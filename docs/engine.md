@@ -1173,7 +1173,8 @@ As built in step 5 (`world/nav.ts`, `sim/fields.ts`):
   head on used to sidestep into each other's way and back for good.
 - **Agreed: mutants use stairs and elevators.** Stairs, ramps, walkways and drops are walked like any floor.
   Platforms: anything rides one that goes by itself; a husk calls one that has power, walks to its middle, rides it,
-  and steps off at the top (tested: Cargo on backup, a husk follows you up to Tier 1). **Ladders**: the cast needs
+  and steps off at the top (tested: Cargo on backup, a husk calls the personnel hoist and rides it after you to the top
+  deck). **Ladders**: the cast needs
   none. Every ladder in the station leads off its level, and the cast does not leave its level.
 - A refuge (`safe`) is only kept out of the cast's rounds, as in the first engine; a hunter follows you into one.
 - **Fields are cheap** (step 6): each is made from arrays of who may enter which spot (no call per edge), only when you
@@ -1691,7 +1692,7 @@ Each step ends with something you can open and play.
      the inventory (Tab), a note, the keypad, the lift panel. The sounds, synthesised as before.
    - **Proof** (`test/puzzle.test.ts`): the upper station's gates played headless through the real interaction (stand
      near, look, press E): the flashlight, the officer's card and the control room, heavy doors on backup, the Armory
-     keypad on Gen-1 with the run's code, Cargo's doors by hand, its backup set and the platform up to Tier 1,
+     keypad on Gen-1 with the run's code, Cargo's doors by hand, its backup set and the hoist up to the top deck, its fire shutters,
      ladderway B's gate, the fuse, the dead surface lift, a note, a fall.
    - **Not yet**: travel between levels waits for the other levels (step 8); saving (step 7).
 5. **Mutants and combat. Done.**
@@ -1961,7 +1962,7 @@ tint as well as shade (`surface`'s `tint`: rust, a chip, a strip). The wear's wa
 (`Look.salt`): on bare cement (poured or sprayed) white salts, on paint and tile the brown tide mark as before.
 
 The palettes (`content/build/furnish.ts`) say what rooms are made of: `UTIL` is dug (`DUG`: shotcrete walls and crown on
-a poured floor), and so are the bays, Cargo's tiers and the sump; Security's floors are coated (since, flaked, and its
+a poured floor), and so are the bays, Cargo's warehouse and its chambers, and the sump; Security's floors are coated (since, flaked, and its
 corridor polished concrete: below); offices, the briefing room, the operations room and Cargo's control room and office
 are `OFF` (board, carpet, a suspended ceiling); `OPS` halls are terrazzo; medical floors vinyl; homes carpeted; the
 lobby, its gallery and the surface landing `FAM` (limestone, terrazzo, a plastered ceiling, a bronze band for the
@@ -2081,7 +2082,7 @@ Rails, too. A walkway's edge was railed wherever anything at all lay below the t
 doorway or a flat on the floor below had a rail standing against the wall there: 51 of them, along the Commons' and the
 Square's fronts over every door below, at the end of the lobby's gallery, the atrium's, and the nurses' station's. An
 edge is railed now only where a room on some deck below rises past the walkway's floor (`drop`, in `finishLevel`): looked
-for through every deck down, so the third floor's gallery ends, its bridge and Cargo's tiers, which look down past the
+for through every deck down, so the third floor's gallery ends, its bridge and Cargo's decks, which look down past the
 walkway under them, keep theirs. The test finds a rail with wall hard against it.
 
 And what is drawn on a board. The nurses' station's whiteboard had its lines started 0.15 m in from its edge, so four of

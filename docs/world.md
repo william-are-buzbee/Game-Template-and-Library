@@ -961,57 +961,72 @@ air-handling plant (fans the height of a room, ducts you can crawl, a plenum; wh
 charging room, a warehouse sprinklers or a deluge system (perhaps a tool: flood a section). What else realistically belongs
 should be added. Below it, production (below).
 
-**Cargo, sketched (proposed).** The L above at true scale, in `mockups/cargo.html`: orbit it, see it in plan, or walk it
-with the lights out. Nothing in the level moves for it yet. Places are plan metres; what is fixed is the link from Security
-(x 109), Cargo control's window (x 109, +5), the exhaust link to ladderway B (x 241) and Ops' rooms west of x 110.
+**Cargo, sketched, and built.** The L above, drawn first at true scale in `mockups/cargo.html` (orbit it, see it in plan,
+or walk it with the lights out) and then built in the level (`buildCargo` in `content/levels/upper.ts`). Places are plan
+metres. What stayed where it was: the link from Security (x 109), Cargo control's window (x 109, +5), the exhaust link to
+ladderway B (x 241) and Ops' rooms west of x 110. Where the build differs from the sketch, it says.
 
 - **Up, not across.** Rock at 400 m is spanned at about 30 m: the deepest hydro stations' machine halls are no wider, and
-  they stand 50 m tall and more. So the nave keeps today's 28 m and gets taller: straight walls to the crane rails at 18 m,
-  the arch to 28. Anything wider is room and pillar.
+  they stand 50 m tall and more. So the nave keeps its 28 m and is taller: straight walls to the crane rails at 20 m
+  (18 in the sketch; the top deck's headroom wants 20), the arch to 28. Anything wider is room and pillar.
 - **The nave** (x 110 to 240) is the bay arm: receiving at its west end under the window, the nest thickening east and
   upward, the mezzanine along its north wall, the crane over all of it, and across its east end a fan wall with the plenum
-  behind it.
-- **The warehouse** (x 112 to 178, z 20 to 86; 9 m high) is the other arm, south off the nave's west half. It is mined
-  the way limestone is mined for warehouses: rooms about 9 m wide between pillars of rock about 10 m square. Racking down
-  the aisles, sprinklers under the roof, the deluge set on the west wall. It is its own fire compartment: three portals to
-  the nave, each with a fire shutter that came down when the power died (fire shutters fail closed), and one stopped on a
-  pallet 0.6 m off the floor, too low to get under, with the nest's red showing beneath it.
-- **The corner** is the freight shaft to Production (*Production*, below), in a hall of its own 20 m tall: a drum winder
-  in a room with a window, its ropes over two sheaves on a steel headframe, the cage hanging in its guides partway down.
-  Both arms' goods met here.
-- **Mezzanines that stand up.** The tiers become a steel mezzanine on columns at 6 m, braced to the rock, decks at +5, +10
-  and +15 as now. Every deck has a stair at each end (people working at height need two ways down), pallet gates where
-  goods came on, and racking under the first deck. The nest lies on the grating and sags through it.
-- **Lifts that show their machinery.** The three floating platforms go. A goods lift (a VRC: two masts, a chain, its motor
-  on top; NO RIDERS on the plate) runs to +10. A rack-and-pinion hoist, the building site's kind, runs to +15: the car
-  climbs its own mast with its motors on its roof and its cable paying out into a basket below. The hoist is the ride the
-  backup set buys. The crane stopped mid-lift with a container on its hook; its cab, under the south end, is a glass
-  lookout boarded from a platform on the wall by a caged ladder.
+  behind it. Receiving's office, in the rock north of it, has the backup set (in the sketch it was in the warehouse's
+  office): so Operations' card still stands between you and Cargo's power, and ladderway B.
+- **The warehouse** (x 112 to 178, z 18 to 84; 9 m high) is the other arm, south off the nave's west half, behind 4 m of
+  rock: mined the way limestone is mined for warehouses, aisles 9 m wide north to south and cross aisles between pillars
+  of rock 10 m square (drawn as rooms in strips; the pillars are the rock left between them). Racking down the aisles,
+  sprinklers under the roof, the deluge set on the west wall. Its own fire compartment: three portals to the nave and one
+  to the freight hall, each with a fire shutter that came down when the power died (fire shutters fail closed). A fire
+  shutter is a heavy door whose drive runs on a backup set's power too (`DoorDef.fire`): once Cargo's set runs, each
+  rises at its control. One came down on a pallet and stopped 0.6 m off the floor, too low to get under (`DoorDef.low`,
+  sealed), with the nest's red showing beneath it.
+- **The early expanse.** Ops' generator burned fuel that came in through Cargo, so the fuel store has a back door, along
+  a passage, onto the warehouse. The warehouse is an early place, dark and enormous, and the nave stays behind the
+  shutters and Operations' card until last. The checker holds it: ladderway B still wants the manager's card, Cargo's
+  door and its backup set, and there are no soft-locks or dead ends. In it for now: a battery or two and a bandage, and
+  nothing that walks.
+- **The corner** is the freight hall, 18 m tall, and its shaft to Production (*Production*, below): a drum winder in a
+  room with a window, its ropes over two sheaves on a steel headframe, the cage hanging in its guides partway down. Both
+  arms' goods met here. The shaft is 30 m of air with a kerb and a barrier all round and its gates shut, and nowhere at
+  its foot to stand; Production is not built.
+- **Mezzanines that stand up.** The tiers are a steel mezzanine (`Deck 1` to `Deck 3`, at +5, +10 and +15) on columns at
+  6 m, a ledger along the rock, braced. Every deck has a stair at each end, along the back wall (people working at height
+  need two ways down), so the decks no longer wait on the backup set: going up in the dark is a choice beside riding up
+  in the light. Racking under the first deck; pallet gates (the rear gate only: the decks' rails run unbroken); the nest
+  on the decks, and sagging through them.
+- **Lifts that show their machinery.** The three floating platforms are gone. A goods lift (a VRC: two masts, a chain, its
+  drive on the head between them; NO RIDERS on the plate) runs from the floor to the second deck; the personnel hoist, rack
+  and pinion, from the floor to the top deck, its car climbing its own mast with its drives on its roof (`PlatformDef.look`
+  draws the car or the carriage; the masts are the level's). Each stops at its two ends only, as every platform does. The
+  hoist is the ride the backup set buys; the cast call it and ride it after you. The crane stopped mid-lift with a
+  container on its hook; its cab is a glass lookout, boarded from a platform on the wall by a caged ladder (dressing: a
+  ladder is not climbed in this engine).
 - **Where she lays: the plenum.** The station breathes west to east and Cargo is last (§1). Six exhaust fans in a concrete
   bulkhead across the nave's east end drew the bay's air into a plenum and out by the exhaust shaft. Every level's warm air
   ends there, still now, and nothing green comes up through poured concrete, so the mother lays in it (§10, *The young
-  gods*). From the window, 117 m away, her red shows through the blades. The exhaust link and ladderway B are behind her,
-  so the climax (*The beats*, 4) is getting past her.
-- **Side divisions.** Off the warehouse: the Cargo office, two storeys, the backup set below and the foreman's lookout
-  above, glazed down the cross aisle; dispatch, a mesh cage by the shutters; forklift charging (chargers, spare batteries,
-  the gantry to swap them, a roof fan for the hydrogen); the workshop (a pit, a two-post lift, a tug left up on it); the
-  cold store (six weeks of food for 500, in insulated panel rooms stood in the chamber); dangerous goods (drums on a bunded
-  floor, gas bottles caged). Off the nave: the air plant (two air handlers, a duct you could crawl running the nave's length
-  under the crown), and at +10 the parts crib, where the Gen-1 fuse would now be kept.
-- **Size.** About 11,600 m² of floor in nine chambers and three decks, where today there is about 6,000 in one hall and
-  its tiers: twice the floor and many more rooms, as §1 asks (*Scale the count, not the size*).
+  gods*; a woman of the Commons bloc, a grandchild of Pia's). The exhaust link and ladderway B are behind her, so the climax
+  (*The beats*, 4) is getting past her. She is dressing for now, with a collider, her look a placeholder for
+  `mockups/mutants.html`. From the window the decks' own glow is above your eye and behind their slabs, so the nest shows
+  in the dark by glows on the floor down the nave, hanging under the first deck's edge, and on the fan wall's face.
+- **Side divisions.** Off the warehouse: the Cargo office, two storeys, dispatch below and the foreman's lookout above,
+  glazed down the cross aisle, its stair inside; dispatch, a mesh cage by the shutters; forklift charging (chargers, spare
+  batteries, the gantry to swap them, a roof fan for the hydrogen); the vehicle workshop (a pit, a two-post lift, a tug
+  left up on it); the cold store (a dock, a chiller and a freezer); dangerous goods (drums on a bunded floor, gas bottles
+  caged). Off the nave: Cargo's air plant (two air handlers; a duct you could crawl runs the nave's length under the
+  crown), and at +10 the parts crib, behind mesh and a counter, where the Gen-1 fuse now is.
+- **Size and cost.** About 11,600 m² of floor in the chambers and decks, where there was about 6,000 in one hall and its
+  tiers. The upper station takes longer to make: built, 131 ms to 185; its sim (the nav and fields), 680 to 995; its
+  light at full power, 1.4 s to 2.1; 14,700 nav spots to 19,100, 7,500 props to 11,500. About a second more to load.
+- **Its own random stream.** Cargo is dressed from a stream of its own (`ownStream`, `content/build/plan.ts`), and leaves
+  the level's where the first Cargo did (2976 draws on), so the hub's overgrowth and roots, built after it, keep the
+  places they were tuned in.
 - **Open.**
-  - *The early expanse.* Ops' generator burned fuel that came in through Cargo, so the fuel store could have a back door
-    onto the warehouse. Then the warehouse is an early place, dark and enormous, and the nave stays behind the shutters and
-    Operations' card until last. A change to the progression, which the checker would have to hold.
-  - *Stairs ungate the decks.* With stairs, the decks (and the fuse) no longer wait on the backup set: going up in the dark
-    becomes a choice beside riding up in the light. Or the stairs are shut some other way.
-  - *Who lays.* The layer in §10 is the mother, a woman of the Commons bloc and so a grandchild of Pia's; none of the young
-    gods lays. Her look in the sketch is a placeholder for `mockups/mutants.html`.
-  - *The cost.* Cargo's plan grows from about 3,800 m² to about 10,500, with roofs to 28 m; the grid, the nav and the light
-    field grow with it. To be measured before it is built.
-  - *A first step.* The platforms could show their machinery now (a scissor under each, or a mast), in `platformParts`
-    (`present/render/things.ts`), before any of this.
+  - *The hoist at every deck.* Platforms go between two floors; a hoist that stops at each deck wants platforms with stops.
+  - *The mother as one of the cast,* and what she does when you pass.
+  - *The deluge as a tool* (flood a section), the crane moved to bridge a gap, the cab reached.
+  - *What else the early warehouse holds:* a note, a pocket of something of its own, or nothing but its size.
+  - *The look on a real card:* the window in the dark wants seeing at full resolution; the test rig draws it small.
 
 **The beats (agreed)**
 
@@ -1114,13 +1129,13 @@ with the lights out. Nothing in the level moves for it yet. Places are plan metr
   a 16 by 8 m ward of four curtained beds, with a treatment bay behind glass and a chair pulled up to the last bed. The hazard
   store moves off the checkpoint, where things came off the hoist (same gate: Gen-1). Still to do: the wing's corridor could
   widen where its rooms branch off (a trunk, not a straight pipe).
-- **A second floor over Security**, at about +5, the height of Cargo's Tier 1, reaching east to the cavern. **Built**
+- **A second floor over Security**, at about +5, the height of Cargo's first deck, reaching east to the cavern. **Built**
   from the lobby's gallery to the atrium's, over the wing (*The lobby as a hub*, above); the atrium's gallery already
   went on to Cargo control.
 - **A window onto the bay.** A glass wall high on the cavern's west side: the nest seen in person, from above, before you go.
   The bay is black until its backup set runs, so the nest must give off its own sick glow, and it should sit nearer the window
   than the cavern's far end (about 120 m today). The glass works both ways: the bay can see you. A view only, not a door; at
-  Tier 1's height a door would skip the platforms. A shortcut, if any, is a door barred from the bay side.
+  the first deck's height a door would skip Cargo's door and its card. A shortcut, if any, is a door barred from the bay side.
 
 **Security at the station's size (proposed)**
 
@@ -1412,14 +1427,14 @@ whether or not the wing is mended.
   the sunken court are built: above.)
 - **Content:** done. The window is three bays of glass in Cargo control's east wall (`DoorDef.glass`: a sealed pane that stops
   bodies and lets sight through). In the dark the bay is black but for the nest's own glow: pustules among the eggs on the
-  rungs, and its edge, creeping west over the floor below the window toward the door, a sick red.
+  decks, and its edge, creeping west over the floor below the window toward the door, a sick red.
 - **Already there:** patrols (the cast keep rounds), vents (loose panels; crawling under), grabbing and dragging (a start for the
   hand), caves of any outline (for the nest's organic shapes), backup sets and the power rules, the progression checker (to prove
   the level, and every way of spending power in it, can still be finished).
 - **For the second pass** (above): cameras that guard armed places; running heard; the alarm answered in a hurry; the
   camera wall; the changed made intelligent (investigating, using cards);
   the night round and its beam; the vaccinator; call points and lockdown; load on the backup set; the big dark section; the
-  opening (the pump, the other patient, the card at each door); Cargo as an L. To be put in order before any of it is built.
+  opening (the pump, the other patient, the card at each door); Cargo as an L (built: *Cargo, sketched, and built*, above). To be put in order before any of it is built.
 
 ### Production (agreed)
 
