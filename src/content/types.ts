@@ -267,10 +267,10 @@ export interface MutantDef { type: string; x: number; y: number; z: number; opts
  *  looks in if the door opens. A stop may want a circuit live (it is passed by otherwise), be kept on the first time
  *  round only, be walked to at a pace of its own, be inside a room it searches (`about`: it looks right round), or be
  *  where it strikes down whoever is there and takes them (the opening's other patient), or grafts what it has taken
- *  (`graft`) and leaves it there */
+ *  (`graft`) and leaves it there. It looks about the way it came, or the way the stop faces it (`face`, a yaw) */
 export interface RoundStop {
   x: number; y: number; z: number; wait?: number; tries?: number; look?: number;
-  need?: string; once?: boolean; pace?: number; take?: boolean; graft?: boolean; about?: boolean;
+  need?: string; once?: boolean; pace?: number; take?: boolean; graft?: boolean; about?: boolean; face?: number;
 }
 /** something to use: a corpse to search, a panel, a backup set, a ladder, the lift */
 export interface UseDef { kind: string; x: number; y: number; z: number; opts: Record<string, unknown> }

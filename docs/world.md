@@ -252,7 +252,8 @@ The testers and those they turned, centred on Horticulture.
   with the plant growing through them rather than over them: tobacco leaf in shelves out of the skin and the face; on the
   flesh side, a little of what the bone and bloat lines do (limbs drawn long, a body or a head swollen), one thing in
   each, muted beside what the Commons will show; and Pia's stupor, the slowness. The longer one has been changing, the
-  more plant it is (§8, *The changed*).
+  more plant it is (§8, *The changed*). What comes up through the wing's floors in places is another growth, Holt's,
+  from below (§8, *Security overgrown in parts*).
 - **Character.** The most technologically able of the flesh. They kept the station's systems running from habit; the cameras
   watch for them on a lockdown protocol, with nobody behind the screens (see §8).
 - **The survivors.** A smaller group of Security's staff, still human, sectioned themselves off from the changed ones. The changed
@@ -748,8 +749,8 @@ wins; the older text stays only because it describes what is built, until the le
     skeleton (`SKEL.husk`, which the model is drawn to), its height and reach, the doors it fits, and its pace. *Built:*
     the pace; and the ways a body of any size gets about by (how wide, the step it climbs, the drop it takes: engine.md
     §7, *Size*), for when one is given its size. Each of Security's seven walks at the bench's pace and steps a minute (Goods inward 0.25 m/s, the Ops stair
-    0.4, the Ops speaker 0.7, the Ops offices 0.85, the hall's east end 0.9, its west end 1; the night round's round was
-    1 already), and everything it does goes as much slower than the rest (1.3 m/s on their rounds, 3.5 after you): the
+    0.4, the old one of Ops 0.35 (the Ops offices' once, at 0.85: *Security overgrown in parts*, below), the Ops speaker
+    0.7, the hall's east end 0.9, its west end 1; the night round's round was 1 already), and everything it does goes as much slower than the rest (1.3 m/s on their rounds, 3.5 after you): the
     slowest after you at two thirds of a metre a second. Its legs, its footfalls and its prints go by its own stride and
     steps. The rest waits on bodies rewritten by size.
   - *The word.* "Husk" is never said in the game (it was only ever a name in the code, which keeps it, and in the dev
@@ -767,18 +768,57 @@ wins; the older text stays only because it describes what is built, until the le
     rounds that sees it (within 14 m, in front of it, lit, in plain view) walks over at its rounds' pace to its near
     side, looks through a moment, and shuts it, if it can: a heavy one only with power enough to move it. Only one goes
     to a door. Leave a door open behind you, and it tells them someone came through.
-- **Security overgrown in parts (asked; the kit built, where it goes open).** The bush colonised the wing (§2), and in
-  places the wing shows it: the same plant that comes out of the changed, grown out of the building. Wild tobacco,
-  rustica: leaf in shelves out of woody knots, stalks up out of the floor, runners along the floor and up the walls,
-  leaf hung from the ceilings as in a curing barn, furniture grown over, and the mound where it took. Green in new
-  growth, curing to yellow and tobacco brown as it ages (the lowest leaves on a stalk first, the heart of a place before
-  its front), its pale yellow flowers where it is oldest. A place grown over is thickest at its heart and thins in
-  islands to a front of runners and seedlings, so it reads as spreading: out of a door and along a corridor, a runner
-  in under the next door. *Built:* the kit (`content/build/overgrowth.ts`; `colonise()` grows a room over from a heart,
-  which may be in the next room) and a bench for it (`?level=bench`). Dressing only, never solid. *Open:* which parts
-  of the wing, and where each heart is (a changed rooted at its post, as in Goods inward; a vent, the spores having come
-  on the air; a grafted body); whether a grown-over place carries spores in its air; whether it does anything in play.
-  - *Flowers on top, roots below (asked; a loose theme).* On the upper floors it flowers, in ways of its own: a spire
+- **Security overgrown in parts (asked; the kit built).** Two growths of the one plant, wild tobacco, rustica, and kept
+  apart (agreed): they share a palette and a kit, and read differently.
+  - *The bush's (open where it goes).* The bush colonised the wing (§2), and its growth comes out of the changed and
+    out from where one of them stands: leaf in shelves out of woody knots, stalks up out of the floor, runners along the
+    floor and up the walls, leaf hung from the ceilings as in a curing barn, furniture grown over, and the mound where
+    it took. A week old, so green in new growth, curing to yellow and tobacco brown as it ages (the lowest leaves on a
+    stalk first, the heart of a place before its front). A place grown over is thickest at its heart and thins in
+    islands to a front of runners and seedlings, so it reads as spreading: out of a door and along a corridor, a runner
+    in under the next door. *Built:* the kit (`content/build/overgrowth.ts`; `colonise()` grows a room over from a
+    heart, which may be in the next room), a bench for it (`?level=bench`), and Goods inward, where the oldest of the
+    changed has rooted at its post. Dressing only, never solid. *Open:* which other parts of the wing, and where each
+    heart is (a changed rooted at its post; a vent, the spores having come on the air; a grafted body); whether a
+    grown-over place carries spores in its air; whether it does anything in play.
+  - *Holt's (agreed; built).* Her root system is under the whole station (§10, *The elders*), and the upper station is
+    the top of her: where she has come through it, there is little of her and most of it flower, the heave of the
+    floor round each stalk saying how thick it is under it. She comes up from below and minds no room: she follows the
+    dig, the water and the cracks. So Security is mostly as it was, a handful of places come through, and those at
+    three ages, so the time she has had shows in one level; further down, less flower and more root. Three places,
+    built (`content/levels/upper.ts`; a stalk forced through a seam is `forced()` in `overgrowth.ts`), dressing only, so
+    nothing is shut and the progression checker is not asked:
+    - *Oldest: Phase 2's door, in the atrium.* Where Phase 2 broke into the cave (§8, *The cave from above*), the one
+      hole the station already had down to her. Stalks forced out round the weld, from the seams either side of the
+      door and under it, its leaf pressed flat to the slab; the floor before it heaved up into a crater; her flowers
+      up out of it under the gallery, the lowest leaf cured (a candelabra, bells, a cup, spires, beds, rustica stalks);
+      three spires up the gap between the gallery and the core, to flower at its rail, across from the boards that say
+      our seedlings take in a day; her roots humped up through the floor and down again, west toward the wing and east,
+      the floor cracked on over them into the west arm, seedlings in the cracks. The most yellow on the station.
+    - *Middle: the muster court's drains.* The work orders already said so (5/11, the drains backing up, the smell):
+      roots go up drains. The court is the lowest floor in the hall, where its water goes, under its tallest ceiling.
+      The gully at the west end of the south steps burst, its grate thrown aside, a spire out of it coming into flower
+      and a stalk with its first; a crack on east along the drain, seedlings where it opened; the gully at the east
+      end as they all were. Away from the skitters' eggs, so the flesh's and hers do not run together; seen from the
+      operations room over its glass, as well as crossing the hall.
+    - *Newest: the wing's corridor.* No flower: the polished slab cracked down the middle of the corridor over her
+      roots coming west, heaved where one came up through it, seedlings in the break. Passed early, by flashlight, so
+      the atrium pays it off.
+    - *Kept clear:* the isolation suite (you start as the one clean body), the lobby (the family's front), and the
+      great roots (years, and in the way: lower down).
+  - *The old one of Ops (agreed; built).* Mutants know kin by smell (§10, rule 8), and Holt grows Pia's flowers: to
+    the bush's line, Pia's grandchildren, they smell of home, and the more plant one is, the stronger the pull. And she feels footsteps
+    on soil, not on stone, and the heaved floor is soil now: she draws Pia's line to where she can feel them. The
+    changed who kept by the Ops offices is made one of the older (fifth of the seven: `mockups/mutants.html`), at
+    0.35 m/s, and given a round that ends among the flowers before Phase 2's door, where it stands a minute facing
+    them (a round's stop can face it a way: `face`); then down the west arm to where it kept before, to the deputy
+    director's open door to look in, and back. So the north arm, the way to Ops' comms cupboard, is timed. Nothing tall
+    stands on the line along the north arm from either end to where it stands: the growth is dressing and the cast see
+    through it, so what hid it there would not hide you. *Open:* whether walking on her soil tells her where you are
+    (nothing comes of it in Security; later, deeper).
+  - *Growing (open).* Things grow while you sleep (§4, *Time and sleep*), and each piece of the kit takes its age: each
+    of her places a stage on a night, or at the mend and Gen-1. Placed at their stage for now; grown when sleep is.
+  - *Flowers on top, roots below (asked; Holt's, above).* On the upper floors she flowers, in ways of her own: a spire
     clothed in flowers opening from the bottom up, bells arching over and hung with nodding trumpets, a candelabra
     forking into a crown of flower heads, a cup (one great doubled flower facing up), a bed of short stems low over the
     floor; pale yellow, cream or gold, plant by plant; each come up through the floor and heaved it. On the floors under
@@ -1533,7 +1573,9 @@ Nobody expected worse than a bad night.
   one generation of plant-like, motile predators grafted from parts of her, the least human things on the station (cane for
   legs, a body of folded leaf, a pod for a head that splits open). Among her stand massive sunflowers, leaning on heavy
   stalks, too heavy to hold their heads up to the light, each ringed by small ones; and Pia's tobacco flowers come out of
-  the rock and up out of the floor: something of her, without words. *Open:* her tell, and how she can be hurt. *Inside:* Tom is
+  the rock and up out of the floor: something of her, without words. Her root system is under the whole station, and her
+  flowers come up through the upper station, the top of her, where Pia's line is drawn to them by their smell (§8,
+  *Security overgrown in parts*). *Open:* her tell, and how she can be hurt. *Inside:* Tom is
   her longest bet, and Sam carries her light.
 - **Pia Lind (painkiller).** The stupor: glassy eyes, pupils pinned whatever the light, pustules, numb to pain and to
   everything, her metabolism slowed to a crawl. She does not fight it; she slows into something stationary and survives as

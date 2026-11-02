@@ -7,7 +7,8 @@ import { ARRIVAL, HISTORY, STAGES, WELCOME, stageAt } from '../exhibit';
 import {
   BAY, FAM, MED, OFF, OPS, SEC, UTIL, WALK, blood, callPoint, camera, comms, container, corpse, desk, eggs, exitSign, forklift, genset, gore, grandStair, liftRoom, medbed, monitors, panel, POLE, shelf, speaker, tbl,
 } from '../build/furnish';
-import { WOOD as ROOTS, runner } from '../build/overgrowth';
+import { WOOD as ROOTS, bed, bells, candelabra, crack, cup, forced, grower, heave, litter, pressed, runner, spire, tobacco, tone } from '../build/overgrowth';
+import { bore, root as rootThrough } from '../build/roots';
 
 /** the block skim-coated smooth: the corridors the wing's people walked every day */
 const SKIM = (o: RoomOpts): RoomOpts['mat'] => ({ ...o.mat, wall: 'plaster' });
@@ -261,6 +262,13 @@ export function buildUpper(ladders: Record<string, LadderDef>): LevelDef {
   speaker(D, 'wing', 50, -1, 'CRIT'); camera(D, 32.8, -3.4, 3.9, PI / 2, 'SEC', 'wing');
   /* what was left of a barricade across the mouth of the wing */
   bx(D, 66.8, -2.6, 1.8, 0.75, 0.7, 0x5b5d5f, { ry: 0.5 });
+  /* and the first of Holt's growth along the wing (world.md §8, Security overgrown in parts): the newest of the three
+     places she has come through, so no flower yet. Her roots are coming west under the floor from the atrium; the slab,
+     ground to its stone, has cracked over them down the middle of the corridor, and heaved where one came up through
+     it, seedlings in the break */
+  crack(D, 59.9, 0, -0.75, -PI / 2 - 0.08, 1.7, 'floor'); crack(D, 58.2, 0, -0.9, -PI / 2 + 0.05, 1.5, 'floor'); crack(D, 56.8, 0, -1.05, -PI / 2 - 0.15, 0.6, 'floor');
+  heave(D, 56.3, -1.15, 0.2); crack(D, 55.9, 0, -1.3, -PI / 2 + 0.5, 1.1, 'floor');
+  tobacco(D, 56.32, -1.18, 0.24, { age: 0 }); tobacco(D, 56.5, -0.95, 0.15, { age: 0 }); tobacco(D, 58.3, -0.85, 0.12, { age: 0 });
   /* North, a storey down: the medical isolation suite (world.md §8, Holding and The opening). Isolation rooms round a tall
      common hall, and over its south end, at the wing's own level, the nurses' station that the stair climbs to. The wing's
      feed is days cut; the suite runs on its own small backup set, kept for its locks, its readers and its pumps, and
@@ -449,10 +457,72 @@ export function buildUpper(ladders: Record<string, LadderDef>): LevelDef {
   comms(D, 'OPS', 91, -9.75, 'w', 2.8, 'The switch the atrium\'s camera and the outer office\'s run on, a cable down to each and one away to the head end. On Ops\' own feed, with no battery behind it.');
   /* where the light changes, it starts: eggs at the threshold, on their side */
   eggs(D, 68.8, -3.2, 2); eggs(D, 68.6, 1.2, 3); blood(D, 82.6, 8.6, 1.4);
+  /* Holt's growth (world.md §8, Security overgrown in parts): not the bush's, which comes out of the changed, but
+     hers, up from under the station, where Phase 2 broke into the cave. The upper station is the top of her, so where
+     she has come through it she is mostly flower. Of the three places she has, this is the oldest, and the most in
+     flower: out round the weld of Phase 2's door, its seams and under it; the floor before it heaved up into a crater,
+     and her flowers up out of it under the gallery, the lowest leaf cured; spires in the gap between the gallery and
+     the core, flowering at its rail, across from the boards that say our seedlings take in a day; and her roots out
+     under the floor toward the wing, the floor cracked over them. The old one of Ops stands in it (its round, below):
+     nothing tall is on the line along the north arm from either end to where it stands, so whatever hides it there
+     hides you as well */
+  {
+    const age = 0.65, g = grower('phase 2'), arm = (x: number, z: number) => x > 68.3 && x < 87.7 && z > -11.9 && z < -6.2;
+    /* out of the seams, where the weld held and the door gave: either side, and under it; its leaf pressed flat to the
+       slab round them */
+    forced(D, [[76.06, 0.75, -12.87], [76.2, 0.9, -12.55], [76.35, 1.35, -12.15], [76.3, 2, -11.75], [76.12, 2.55, -11.45]], 0.06, { age });
+    forced(D, [[77.94, 1.55, -12.87], [77.8, 1.7, -12.5], [77.72, 2.1, -12.1], [77.95, 2.75, -11.7], [78.25, 3.25, -11.45]], 0.05, { age });
+    forced(D, [[77.1, 0.03, -12.95], [77.15, 0.04, -12.45], [77.25, 0.14, -12.05], [77.3, 0.7, -11.8], [77.36, 1.45, -11.7]], 0.07, { age });
+    for (const [x, y, tilt] of [[76.22, 0.55, 0.5], [76.25, 1.05, -0.3], [76.3, 1.6, 0.9], [77.75, 1.3, -0.6], [77.7, 1.95, 0.4], [77.45, 0.3, 1.1]] as const) {
+      const len = g.rnd(0.22, 0.34);
+      pressed(D, x, y, -12.85, 0, len, len * 0.62, tilt, tone(age + g.rnd(-0.2, 0.2), g));
+    }
+    rootThrough(D, [[76.7, 0.035, -13.05], [76.55, 0.045, -12.45], [76.2, 0.05, -11.95], [75.5, 0.06, -11.6], [74.8, 0.03, -11.4]], 0.1, 0.06);
+    bore(D, 74.75, 0, -11.38, [0, 1, 0], 0.06, { dir: [-0.6, -0.8, 0], small: true, g });
+    /* the wall cracked either side of it, and over it */
+    crack(D, 75.6, 0.1, -12, -0.25, 1.5, 0); crack(D, 78.45, 0.2, -12, 0.3, 1.7, 0); crack(D, 77.3, 2.7, -12, 0.15, 1.3, 0);
+    /* the crater, and what came up out of it and round it, under the gallery */
+    heave(D, 77.1, -10.55, 0.6, { g });
+    litter(D, 77.1, -10.6, 1.5, { n: 22, dry: 0.8, inside: arm, g });
+    bed(D, 78.4, -11.45, 0.5, { age, inside: arm }); bed(D, 75.9, -11.45, 0.45, { age, inside: arm }); bed(D, 77.4, -9.55, 0.5, { age: 0.5, inside: arm });
+    candelabra(D, 80, -10.2, 2.6, { age, heave: true }); bells(D, 75, -10.75, 1.8, { age: 0.6, heave: true });
+    spire(D, 73.6, -11, 2.9, { age: 0.6, heave: true }); cup(D, 81.4, -10.7, 1.5, { age: 0.5, heave: true });
+    tobacco(D, 72.2, -11.1, 1.3, { age: 0.55, bloom: true }); heave(D, 72.2, -11.1, 0.2);
+    tobacco(D, 83, -10.9, 1.2, { age: 0.5, bloom: true }); heave(D, 83, -10.9, 0.18);
+    tobacco(D, 84.6, -11.3, 0.5, { age: 0.2 });
+    /* along the wall either side of the door, thick with flower */
+    for (const [x, h, a] of [[73, 1.6, 0.6], [74.4, 1.1, 0.5], [81.9, 1.5, 0.55], [80.6, 0.9, 0.45]] as const) { tobacco(D, x, -11.45, h, { age: a, bloom: true }); heave(D, x, -11.45, 0.16); }
+    bed(D, 73.9, -11.3, 0.55, { age, inside: arm }); bed(D, 81.1, -11.35, 0.55, { age, inside: arm }); bed(D, 79.1, -9.9, 0.4, { age: 0.5, inside: arm });
+    /* in the gap between the gallery and the core, up past the gallery's floor to flower at its rail */
+    spire(D, 76.2, -7.05, 6.4, { age: 0.6, heave: true }); spire(D, 77.75, -6.95, 5.6, { age: 0.55, heave: true });
+    spire(D, 79.2, -7, 6.9, { age: 0.7, heave: true }); spire(D, 80.9, -7.1, 4.4, { age: 0.5, heave: true });
+    bed(D, 77, -7.1, 0.75, { age: 0.5, inside: arm }); bed(D, 80, -7, 0.6, { age: 0.5, inside: arm });
+    /* her roots out under the floor, humped up through it and down again: west toward the wing, and east */
+    const hump = (pts: [number, number, number][], d0: number, d1: number) => {
+      rootThrough(D, pts, d0, d1);
+      const [a, b] = [pts[pts.length - 2], pts[pts.length - 1]], L = Math.hypot(b[0] - a[0], b[2] - a[2]) || 1;
+      bore(D, b[0], 0, b[2], [0, 1, 0], d1, { dir: [(b[0] - a[0]) / L * 0.6, -0.8, (b[2] - a[2]) / L * 0.6], small: true });
+    };
+    hump([[76.6, -0.06, -10.5], [75.7, 0.09, -10.1], [74.9, 0.1, -9.8], [74.2, -0.05, -9.55]], 0.12, 0.08);
+    hump([[72.95, -0.05, -9.05], [72.2, 0.06, -8.6], [71.5, -0.04, -8.1]], 0.07, 0.05);
+    bore(D, 72.95, 0, -9.05, [0, 1, 0], 0.07, { small: true });
+    hump([[77.7, -0.06, -10.45], [78.5, 0.09, -10.15], [79.2, -0.05, -9.85]], 0.1, 0.07);
+    /* and on under the floor, cracking it, round into the west arm toward the wing: her front, seedlings up the cracks */
+    crack(D, 71.3, 0, -7.9, -0.9, 1.5, 'floor'); crack(D, 70.4, 0, -6.6, -0.5, 1.6, 'floor'); crack(D, 69.9, 0, -5.1, -0.2, 1.3, 'floor');
+    tobacco(D, 70.3, -6.5, 0.22, { age: 0 }); tobacco(D, 69.8, -4.95, 0.16, { age: 0 });
+  }
   /* the second leg: south from the atrium between the offices, and out into the muster hall */
   room(D, 'Operations corridor', 74, 12, 6, 12, { ...OPS, ht: 4.5, em: 1, mat: SKIM(OPS) });
   /* the Operations zone sounds here: the corridor, and the hall's east bays */
-  speaker(D, 'ops', 77, 20, 'CRIT'); mut(D, 'changed', 77, 18, { walk: 0.7, steps: 88 }); mut(D, 'changed', 72, 7, { walk: 0.85, steps: 84 }); blood(D, 76, 15.4, 1.2);
+  speaker(D, 'ops', 77, 20, 'CRIT'); mut(D, 'changed', 77, 18, { walk: 0.7, steps: 88 });
+  /* the old one of Ops (world.md §8, Security overgrown in parts): one of the older of the changed, and drawn to Holt's
+     flowers before Phase 2's door, as the bush's line is to what smells of Pia (§10, rule 8). Its round ends there, and
+     it stands a minute among them, facing them; then down the west arm to where it kept before, to the deputy
+     director's open door to look in, and back. As slow as the oldest walk */
+  mut(D, 'changed', 77.4, -9.3, { yaw: PI, walk: 0.35, steps: 60, round: [
+    { F: D, x: 77.4, z: -9.3, wait: 60, face: PI }, { F: D, x: 72, z: 7, wait: 6 }, { F: D, x: 75.2, z: 17, wait: 10, face: -PI / 2 },
+  ] });
+  blood(D, 76, 15.4, 1.2);
   /* Operations' offices, either side of the corridor (world.md §8, Security at the station's size): a house that minds
      how it looks gave its two officers rooms to match. West, the deputy director's, its door open as she left it: her
      desk facing the door, a table to meet at, her coat still on its stand. East, behind her card, the chief of
@@ -607,6 +677,26 @@ export function buildUpper(ladders: Record<string, LadderDef>): LevelDef {
   for (const [x, z, c] of [[44, 28.02, 0x39485a], [56, 28.02, 0x8a7a4a], [44, 43.98, 0x8a7a4a], [56, 43.98, 0x39485a]] as const) bx(D, x, z, 1.4, 2.2, 0.04, c, { y: 5.9, c: 0 });
   bx(D, 39.4, 36, 0.6, 1.1, 0.5, 0x4a3a2c); P(D, 'cyl', 39, 33.2, 0.05, 2.2, 0.05, 0x8a8a84, { c: 0 }); bx(D, 39, 33.6, 0.03, 0.6, 0.9, 0x39485a, { y: 1.5, c: 0 });
   eggs(D, 52, 34.4, 3); eggs(D, 46.8, 37.6, 2); blood(D, 49, 36, 1.6);
+  /* the drains backing up (the work orders, 5/11): Holt's growth come up the court's drains, the lowest floor in the
+     hall, where its water goes (world.md §8, Security overgrown in parts). Younger than the atrium's: the gully at the
+     west end of the north steps burst, its grate thrown aside, a spire out of it coming into flower and a stalk beside
+     it with its first; a crack run on east along the drain under the floor, and seedlings where it opened. The gully
+     at the east end as they all were. Across the court from the operations room, seen over its glass, and from the
+     hall above the steps */
+  {
+    const gully = (x: number, z: number) => {
+      bx(D, x, z, 0.38, 0.004, 0.38, 0x1c1814, { y: 0.001, c: 0, flush: true });
+      for (let k = -2; k <= 2; k++) bx(D, x + k * 0.07, z, 0.025, 0.006, 0.34, 0x4a4d50, { y: 0.004, c: 0, flush: true });
+    };
+    gully(59.5, 32.75);
+    const g = grower('drains'), tip = 0.42, t = 0.02, L = 0.38;
+    heave(D, 41.4, 32.8, 0.3, { g });
+    bx(D, 41.98, 33.3, L, t, L, 0x3e4144, { y: (L / 2) * Math.sin(tip) + (t / 2) * Math.cos(tip) - 0.01 - t / 2, rz: -tip, ry: 0.6, c: 0, mat: 'steel' }); // its grate, thrown off
+    spire(D, 41.35, 32.85, 2.5, { age: 0.3 }); tobacco(D, 42.3, 32.8, 1.4, { age: 0.3, bloom: true }); heave(D, 42.3, 32.8, 0.15);
+    tobacco(D, 40.75, 33.2, 0.7, { age: 0.15 });
+    crack(D, 42.6, 0, 32.6, PI / 2 - 0.05, 1.5, 'floor'); crack(D, 44.2, 0, 32.55, PI / 2 + 0.08, 1.3, 'floor');
+    heave(D, 45.6, 32.6, 0.12); tobacco(D, 45.55, 32.65, 0.24, { age: 0 }); tobacco(D, 45.85, 32.5, 0.16, { age: 0 });
+  }
   /* pillars round the court and down both ends; the track painted round the hall; benches, the muster board, shields */
   for (const [x, z] of [[29, 31], [29, 41], [71, 31], [71, 41], [37, 27], [63, 27], [37, 45], [63, 45]]) {
     bx(D, x, z, 0.9, 4.5, 0.9, 0x8c887e); bx(D, x, z, 1, 0.3, 1, 0x5a5d60, { c: 0 });

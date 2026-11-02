@@ -149,9 +149,10 @@ describe('a breaker thrown means someone threw it', () => {
 describe('a door left open is noticed', () => {
   /** the Armory's heavy door, off the muster hall: with Gen-1 up it opens to its button and stays as it was left */
   const armory = (s: Sim) => s.doors.findIndex(d => d.def.kind === 'heavy' && d.def.code === 1);
-  /** two of the staff in the hall south of it, one facing it (north), one facing away; Gen-1 up; you out of it all */
+  /** two of the staff in the hall south of it, one facing it (north), one facing away; Gen-1 up; you out of it all. Two
+   *  that keep no round, so between their wanderings they stand */
   const setUp = (yaw = Math.PI) => {
-    const s = fresh(), staff = s.cast.filter(q => q.ai === 'husk' && !q.post && q.cards).slice(0, 2), [m, n] = staff;
+    const s = fresh(), staff = s.cast.filter(q => q.ai === 'husk' && !q.post && q.cards && !q.round).slice(0, 2), [m, n] = staff;
     only(s, staff);
     s.game.station!.main = true; s.lighting = null;
     const k = armory(s), d = s.doors[k], cx = (d.def.x0 + d.def.x1) / 2, cz = (d.def.z0 + d.def.z1) / 2;

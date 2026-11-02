@@ -9,7 +9,7 @@ import { bench } from '../src/content/levels/bench';
 import type { LevelDef } from '../src/content/types';
 import { placement } from './placement';
 
-/* The bush's growth (content/build/overgrowth.ts): what a room grown over by colonise() keeps to. */
+/* The growth (content/build/overgrowth.ts): what a room grown over by colonise() keeps to; the bench has every piece. */
 
 const LV: LevelInfo = { id: 'g', name: 'g', c: 'G' };
 /** a room 16 by 12 with a door in its north wall and a battery on its floor, grown over (or not) from its south-west
@@ -73,7 +73,7 @@ describe('a place grown over', () => {
   it('the bench has every piece on it', () => {
     const L = bench(), looks = L.uses.filter(u => u.kind === 'look').map(u => u.opts.label);
     expect(looks).toEqual(expect.arrayContaining(['Shelves', 'Climbing, old', 'In flower', 'Leaf, cured', 'Hung', 'Runner', 'Where it took', 'Grown over', 'The front']));
-    expect(looks).toEqual(expect.arrayContaining(['Spire', 'Bells', 'Candelabra', 'Cup', 'Bed', 'Taproot', 'Out of the wall', 'Across the room', 'Hair roots']));
+    expect(looks).toEqual(expect.arrayContaining(['Spire', 'Bells', 'Candelabra', 'Cup', 'Bed', 'Forced', 'Taproot', 'Out of the wall', 'Across the room', 'Hair roots']));
     expect(L.props.some(p => p.colour[0] > 0.8 && p.colour[1] > 0.75 && p.colour[2] < 0.5)).toBe(true); // its flowers, pale yellow
   });
 });

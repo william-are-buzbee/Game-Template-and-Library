@@ -1260,20 +1260,6 @@ const CAST = [
       it('flesh', 'farmL', [0.45, -0.2, 0.4], [0.5, 0, 1], 0.1)]);
     return d;
   }],
-  ['opsoff', 'Ops, offices', () => {
-    const d = base();
-    Object.assign(d, { name: 'Ops, offices', seed: 13, notes: 'The Operations corridor, by the offices (upper.ts: 72, 7). Long in the arm: the hands hang at its knees and come up a little ahead of it. Narrow with it. Down to its vest, stained; Pia\'s pustules up both arms, a shelf between the shoulder blades. 0.85 m/s, a long loping stride, the arms swinging.' });
-    Object.assign(d.body, { torsoW: 0.36, torsoD: 0.22, torsoL: 0.62, shoulder: 0.05, uArm: 0.5, fArm: 0.48, armT: 0.095, hunch: 0.22, tilt: 0.2, droop: 0.18, jaw: 0.4 });
-    Object.assign(d.gait, { stride: 1.2, spm: 84, knee: 0.4, armSwing: 0.42, elbow: 0.35, hang: 0.2, sway: 0.05, shamble: 0.35, loll: 0.12 });
-    Object.assign(d.dress, { shirt: 'vest', vestCol: 'stained', hair: 'thin' });
-    Object.assign(d.skin, { tone: 2, sallow: 0.6 });
-    d.items = withIds([...EYES(),
-      it('leaf', 'torso', [0.05, 0.62, -0.5], [0, 0, -1], 0.3, { tiers: 3 }),
-      it('pustule', 'farmL', [0.5, 0.15, 0.1], [1, 0, 0.2], 0.045),
-      it('pustule', 'farmR', [-0.5, -0.1, 0.15], [-1, 0, 0.2], 0.05),
-      it('pustule', 'uarmR', [-0.5, -0.3, 0.2], [-1, 0, 0.3], 0.04)]);
-    return d;
-  }],
   ['opsspk', 'Ops, speaker', () => {
     const d = base();
     Object.assign(d, { name: 'Ops, speaker', seed: 14, notes: 'The Operations corridor, under the zone\'s speaker (upper.ts: 77, 18). Operations watched the cameras, and the body grows what you do (world.md §10, rule 1): its head swelled, too heavy for the neck, and grew eyes: black dots, two on the brow, one at the temple, one at the back of the skull. Shirt hanging open, sleeves rolled; it still carries its card, the one thing on it. 0.7 m/s, careful with the weight of its head.' });
@@ -1303,6 +1289,22 @@ const CAST = [
       it('pustule', 'torso', [0.24, 0.3, 0.5], [0, 0, 1], 0.055),
       it('pustule', 'torso', [-0.28, 0.22, 0.5], [0, 0, 1], 0.045),
       it('knot', 'farmL', [0.5, 0, 0.1], [1, 0, 0.2], 0.12, { form: 'bark' })]);
+    return d;
+  }],
+  ['opsoff', 'Ops, offices', () => {
+    const d = base();
+    Object.assign(d, { name: 'Ops, offices', seed: 13, notes: 'The old one of Ops (upper.ts: 77.4, -9.3, and its round). Drawn to Holt\'s flowers before Phase 2\'s door, as the bush\'s line is to what smells of Pia (world.md §10, rule 8): its round ends there, where it stands a minute facing them, then goes down the west arm and the Operations corridor to the deputy director\'s open door to look in, and back. Long in the arm: the hands hang at its knees and come up a little ahead of it. Narrow with it. Down to its vest, stained and torn where the leaf came through at the right shoulder; Pia\'s pustules up both arms, a shelf between the shoulder blades and one off the shoulder, a stalk come up out of the back and flowering, the leaf curing, bark through the right forearm, one eye going milky. 0.35 m/s, the long stride gone short, the arms still swinging.' });
+    Object.assign(d.body, { torsoW: 0.36, torsoD: 0.22, torsoL: 0.62, shoulder: 0.05, uArm: 0.5, fArm: 0.48, armT: 0.095, hunch: 0.3, tilt: 0.24, droop: 0.26, jaw: 0.5 });
+    Object.assign(d.gait, { stride: 0.75, spm: 60, knee: 0.25, armSwing: 0.3, elbow: 0.35, hang: 0.22, sway: 0.07, shamble: 0.55, loll: 0.14 });
+    Object.assign(d.dress, { shirt: 'vest', vestCol: 'stained', hair: 'thin', bootL: 'bare' });
+    Object.assign(d.skin, { tone: 2, sallow: 0.7, cure: 0.35 });
+    d.items = withIds([EYES()[0], { ...EYES()[1], look: 'milky', size: 0.038 },
+      it('leaf', 'torso', [0.05, 0.62, -0.5], [0, 0, -1], 0.32, { tiers: 3 }),
+      it('leaf', 'torso', [-0.45, 0.42, -0.2], [-0.85, 0.1, -0.5], 0.3, { tiers: 3 }),
+      it('stalk', 'torso', [-0.25, 0.4, -0.5], [-0.35, 0.75, -0.65], 0.4, { bend: 0.35 }),
+      it('knot', 'farmR', [-0.5, 0, 0.1], [-1, 0, 0.2], 0.1, { form: 'bark' }),
+      it('pustule', 'farmL', [0.5, 0.15, 0.1], [1, 0, 0.2], 0.045),
+      it('pustule', 'uarmR', [-0.5, -0.3, 0.2], [-1, 0, 0.3], 0.04)]);
     return d;
   }],
   ['night', 'Night round', () => {

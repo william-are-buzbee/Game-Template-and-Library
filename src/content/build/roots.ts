@@ -3,13 +3,13 @@ import { P, roomAt, type Dir, type Floor } from './plan';
 import { CONCRETE, FACE, GROW, HOLE, WOOD, crack, curve, grower, heave, lump, rod, rubble, spindle, type Grow, type V3 } from './overgrowth';
 import { ICO } from '../types';
 
-/* The bush's roots (world.md §8, Security overgrown in parts): what its flowers on the upper floors put down through
-   the station's concrete into the floors under them. Woody, as thick as an arm or a waist, braided where they are
+/* Holt's roots (world.md §8, Security overgrown in parts): what her flowers on the upper floors put down through
+   the station's concrete into the floors under them, and how she comes up to them. Woody, as thick as an arm or a waist, braided where they are
    thickest, pale at their tips; where one goes through a floor, a wall or a ceiling it leaves it broken round it, the
    concrete spalled, cracks run out, the reinforcing bared and bent, rubble fallen under it. The pieces (a root along a
    path; a bore, where one goes through) and what they make: a taproot down out of a ceiling into the floor, a root out
    of a wall and down into the floor, one across a room from wall to wall over a head, and hair roots hung from a
-   ceiling. Plan metres, y over the floor, as the rest of the bush's growth (overgrowth.ts); dressing only, as that is:
+   ceiling. Plan metres, y over the floor, as the rest of the growth (overgrowth.ts); dressing only, as that is:
    nothing here is solid, so lay them where nobody walks through them. But for the great roots (at the end), two to five
    times as thick, which are in the way. */
 

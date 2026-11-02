@@ -259,6 +259,10 @@ describe('the zone alarm', () => {
 
   it('every husk that hears it comes', () => {
     const s = setUp(t => t.cast.filter(m => m.ai === 'husk' && !m.post).map(m => m.id));
+    /* the old one of Ops stands among Holt's flowers behind the core, out of sight of the rest: put it in the atrium's
+       south arm, where its round takes it, in sight of the Operations corridor's */
+    const old = s.cast.find(m => m.type === 'changed' && m.round)!, ob = old.body!;
+    ob.x = old.x = 72; ob.z = old.z = 7; ob.sync();
     soundZone(s, 'atrium');
     const a = s.alarms[0], hear = s.cast.filter(m => free(m) && m.stun < 1e8 && a.heard[m.spot] < EYES.reach && a.route[m.spot] > 2.5);
     hold(s, 0.1);
@@ -285,6 +289,10 @@ describe('the zone alarm', () => {
 
   it('with another in sight hurrying too, faster: one starts and the rest catch it', () => {
     const s = setUp(t => t.cast.filter(m => m.ai === 'husk' && !m.post).map(m => m.id));
+    /* the old one of Ops stands among Holt's flowers behind the core, out of sight of the rest: put it in the atrium's
+       south arm, where its round takes it, in sight of the Operations corridor's */
+    const old = s.cast.find(m => m.type === 'changed' && m.round)!, ob = old.body!;
+    ob.x = old.x = 72; ob.z = old.z = 7; ob.sync();
     soundZone(s, 'atrium');
     hold(s, 0.1);
     const going = s.cast.filter(m => m.state === 'answer');

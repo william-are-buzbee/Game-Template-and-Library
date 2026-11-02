@@ -2,16 +2,17 @@ import { PI } from '../../core/math';
 import type { LevelDef } from '../types';
 import { beginLevel, bx, door, finishLevel, floor, room, stack, stairs, use, type Floor, type LevelInfo } from '../build/plan';
 import { OFF, SEC, UTIL, desk, tbl } from '../build/furnish';
-import { bed, bells, bracket, candelabra, climb, colonise, crown, cup, engulf, grower, hang, heave, knot, litter, runner, spire, tobacco } from '../build/overgrowth';
+import { bed, bells, bracket, candelabra, climb, colonise, crown, cup, engulf, forced, grower, hang, heave, knot, litter, pressed, runner, spire, tobacco } from '../build/overgrowth';
 import { fringe, pillar, span, sprawl, taproot, vault, wallroot } from '../build/roots';
 
-/* A bench for the bush's growth (content/build/overgrowth.ts), not part of the station: ?level=bench. In Security's
+/* A bench for the growth (content/build/overgrowth.ts), the bush's and Holt's, not part of the station: ?level=bench. In Security's
    finish, all of it lit. North of the corridor, the kit laid out piece by piece, each with a look to say what it is:
    shelves out of the wall, two walls climbed, stalks young to old, a ceiling hung, leaf over the floor young to cured,
    a runner and its seedling, the mound where it takes, a desk and a chair grown over. South, an office it has
    colonised from its far corner; out of its door, the front coming along the corridor; and at the corridor's end a
-   runner under the locker room's door, the first leaf in, the room past it still clean. Past that, flowers on top and
-   roots under them: a garden of the ways it flowers, each come up through the floor, and down the stair from it a
+   runner under the locker room's door, the first leaf in, the room past it still clean. Past that, Holt's flowers on top
+   and roots under them: a garden of the ways she flowers, each come up through the floor, a door welded shut with her
+   growth forced out round it, and down the stair from it a
    cellar under the garden, its concrete broken through by their roots (content/build/roots.ts); and through the
    cellar's east wall a hall of the great roots, two to five times as thick, solid: things to go round. */
 
@@ -106,6 +107,14 @@ export function bench(): LevelDef {
   /* and together, as a place grown over would have them */
   spire(F, 37, 6.6, 1.6, { age: 0.5 }); cup(F, 38.3, 7.6, 1.25, { size: 0.2 }); bells(F, 39.6, 6.7, 1.5); bed(F, 37.6, 8.2, 0.6); candelabra(F, 36.3, 8.4, 1.4, { age: 0.2 });
   say(38.2, 8.9, 'Together', 'The ways it flowers, grown up together, as a place it has taken would have them.');
+  /* a door welded shut, and her growth out round it: from its seams either side, and under it */
+  room(F, 'Shut', 37, -4, 4, 2, { ...UTIL, ...H });
+  door(F, 39, -1, { kind: 'heavy', seal: true, msg: 'Welded shut.' });
+  forced(F, [[38.06, 0.75, -0.87], [38.2, 0.9, -0.55], [38.35, 1.35, -0.15], [38.3, 2, 0.25], [38.12, 2.55, 0.55]], 0.06, { age: 0.6 });
+  forced(F, [[39.94, 1.55, -0.87], [39.8, 1.7, -0.5], [39.72, 2.1, -0.1], [39.95, 2.75, 0.3], [40.25, 3.1, 0.55]], 0.05, { age: 0.6 });
+  forced(F, [[39.1, 0.03, -0.95], [39.15, 0.04, -0.45], [39.25, 0.14, -0.05], [39.3, 0.7, 0.2], [39.36, 1.45, 0.3]], 0.07, { age: 0.6 });
+  for (const [x, y, tilt] of [[38.22, 0.55, 0.5], [38.25, 1.05, -0.3], [39.75, 1.3, -0.6], [39.45, 0.3, 1.1]] as const) pressed(F, x, y, -0.85, 0, 0.28, 0.17, tilt, 0x5a6630);
+  say(39, 1.2, 'Forced', 'A door welded shut, and her growth forced out round it: from its seams either side and from under it, swollen where it squeezed through, its leaf pressed flat to the slab. She goes round a shut door, not through it. forced()');
   stairs(B, F, 30, 10.5, 2.5, 10, 'w');
 
   /* roots under them: a cellar of raw concrete under the garden, down the stair; what the flowers above put down through

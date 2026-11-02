@@ -130,8 +130,10 @@ describe('the opening, as it plays out', () => {
     expect(s.world.raycast(w.x, -2.9, w.z, patient.x, patient.y + 0.3, patient.z, d => d.kind === 'body' || !!d.glass)).toBe(1); // you see it all
     expect(patient.grafted).toBe(true);
     expect(stutters(s)).toBe(true);
+    /* a jerk throws one bone of it up, whichever: how many steps some part of it rose more than a centimetre */
     let jerked = 0;
-    for (let t = 0; t < GRAFT.time + 0.5; t += STEP) { const v = patient.rag!.p[1]; step(s, noInput()); if (patient.rag!.p[1] - v > 0.01) jerked++; }
+    const ys = () => patient.rag!.p.filter((_, i) => i % 3 === 1);
+    for (let t = 0; t < GRAFT.time + 0.5; t += STEP) { const v = ys(); step(s, noInput()); if (ys().some((y, i) => y - v[i] > 0.01)) jerked++; }
     expect(jerked).toBeGreaterThan(3);
     expect(stutters(s)).toBe(false);
     const pool = s.pools.find(p => !p.kind && Math.hypot(p.x - patient.x, p.z - patient.z) < 0.8)!;

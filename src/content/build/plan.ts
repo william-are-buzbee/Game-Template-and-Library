@@ -321,7 +321,7 @@ export function exhibit(F: Floor, key: string, x: number, z: number, y: number, 
 export function mut(F: Floor, type: string, x: number, z: number, o: Record<string, unknown> = {}): void { F.muts.push({ type, x, z, o }); }
 /** a place for one of the cast on its floor, as an option to mut(): a stop on a guard's round (types.ts, RoundStop),
  *  given as `round`; a spot to hide in; or where it stands, if on another floor than the one it is listed on (`at`) */
-export interface TStop { F: Floor; x: number; z: number; wait?: number; tries?: number; look?: number; need?: string; once?: boolean; pace?: number; take?: boolean; graft?: boolean; about?: boolean }
+export interface TStop { F: Floor; x: number; z: number; wait?: number; tries?: number; look?: number; need?: string; once?: boolean; pace?: number; take?: boolean; graft?: boolean; about?: boolean; face?: number }
 export function use(F: Floor, kind: string, x: number, z: number, y: number, o: Record<string, unknown> = {}): void { F.uses.push({ kind, x, z, y, o }); }
 /** a named place: where you arrive (by a ladder, the lift, a dive), facing yaw */
 export function mark(F: Floor, name: string, x: number, z: number, yaw: number): void { F.marks[name] = [x, z, yaw]; }

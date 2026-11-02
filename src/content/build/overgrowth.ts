@@ -4,7 +4,12 @@ import { ICO } from '../types';
 import { lid } from './builder';
 import { P, roomAt, type Dir, type Floor, type PRoom } from './plan';
 
-/* The bush's growth (world.md §2, The Security flesh; §10, Pia's young gods): what a place it has colonised is grown
+/* Two growths, one plant (world.md §8, Security overgrown in parts), kept apart: the bush's, out of the changed and out
+   from where one of them stands, a week old; and Holt's, up from under the station, months old, its flowers on the
+   upper floors and its roots through the floors under them (the flowering, below, and roots.ts). The same wild tobacco,
+   so they share a palette and their pieces.
+
+   The bush's growth (world.md §2, The Security flesh; §10, Pia's young gods): what a place it has colonised is grown
    over with. Wild tobacco, Nicotiana rustica, as it comes out of the changed: broad leaf in shelves out of woody knots,
    stacked the way a bracket fungus stacks; stalks of it risen out of the floor and flowering; runners it spreads by,
    along the floor, up the walls, and over the ceilings after the air its spores came on. Green in the new growth,
@@ -38,7 +43,7 @@ const TUBE = 0xb4b056, POD = [0x7a6230, 0x5e4a26], BUD = 0x9aa048;
 /** the station's concrete where it is broken: its raw inside, the dark of a hole through it, and a crack run across it */
 export const CONCRETE = [0x7a766e, 0x6c6860, 0x84807a], HOLE = 0x1c1814, CRACK = 0x3a3530;
 
-/** the bush's numbers: metres where they are sizes */
+/** the growth's numbers: metres where they are sizes */
 export const GROW = {
   /** a leaf's thickness, of its length: a slab, as the changed's are, so it reads across a room */
   thick: 0.06,
@@ -190,9 +195,9 @@ export function tobacco(F: Floor, x: number, z: number, h: number, o: { age?: nu
   }
 }
 
-/* ---- flowering: rustica as the bush grows it up out of the floor, each plant its own way. Its flowers pale yellow,
-   cream or a deeper gold, plant by plant; spent ones gone to seed, buds green at the tips. Each may come up through the
-   floor and break it (`heave`) */
+/* ---- flowering: rustica as Holt grows it up out of the floor from under the station, each plant its own way, and
+   through what was shut against her (forced). Its flowers pale yellow, cream or a deeper gold, plant by plant; spent
+   ones gone to seed, buds green at the tips. Each may come up through the floor and break it (`heave`) */
 /** the yellows one plant flowers in */
 function hue(g: Grow): readonly number[] {
   const k = g.rnd(1);
@@ -331,6 +336,27 @@ export function bed(F: Floor, x: number, z: number, r: number, o: { n?: number; 
     rod(F, [px, -0.01, pz], tip, 0.012, STEM[0]);
     for (let j = 0, m = g.rnd(1) < 0.4 ? 2 : 1; j < m; j++) trumpet(F, tip, way(g.rnd(TAU), g.rnd(0.9, 1.4)), 0.045, 0.016, 0.065, GROW.least, TUBE, g.pick(cols));
   }
+}
+
+/** a stalk forced out of a gap in something shut (a door's seam, under it, a crack) at the first of the points given,
+ *  and on through the rest into the room: d thick, swollen where it squeezed through, tapering as it goes, knuckled at
+ *  its bends with a leaf at each (none so low it would lie on the floor), and a head of flowers at its end unless
+ *  `bloom` is false. Her growth goes round a shut door, not through it */
+export function forced(F: Floor, pts: readonly V3[], d: number, o: { age?: number; bloom?: boolean; g?: Grow } = {}): void {
+  const g = o.g ?? grower('forced', ...pts[0]), age = o.age ?? 0.5, n = pts.length - 1, cols = hue(g), [x0, y0, z0] = pts[0];
+  lump(F, x0, y0, z0, d * 1.6, d * 1.3, d * 1.6, STEM[1], g.rnd(PI));
+  let a = g.rnd(TAU);
+  for (let k = 0; k < n; k++) {
+    const p = pts[k], q = pts[k + 1], dk = d * (1 - (0.45 * k) / n);
+    rod(F, p, q, dk, k ? STEM[0] : STEM[1], dk * 0.3);
+    if (!k) continue;
+    lump(F, p[0], p[1], p[2], dk * 1.25, dk * 1.25, dk * 1.25, STEM[0]);
+    a += GROW.turn;
+    const len = g.rnd(0.2, 0.34);
+    if (p[1] > 0.4) leaf(F, p[0], p[1], p[2], a, len, len * GROW.wide, g.rnd(0.2, 0.7), tone(age + g.rnd(-0.2, 0.25), g));
+  }
+  const [ex, ey, ez] = pts[n];
+  if (o.bloom ?? true) bloom(F, ex, ey, ez, Math.round(g.rnd(5, 9)), 1, g, { pods: age > 0.6 ? 0.3 : 0, cols });
 }
 
 /* ---- where it has broken the station's concrete */

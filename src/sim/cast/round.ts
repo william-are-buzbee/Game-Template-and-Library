@@ -103,8 +103,9 @@ export function walkRound(sim: Sim, m: Mutant): void {
     m.dest = k; m.stk = 0;
   }
   if (m.spot === m.dest || m.F![m.spot] < 0.9) {
-    /* there: it stops, and looks about (or at the reader); and takes whoever is there to be taken */
-    m.dest = -1; m.wm = m.yaw; m.st = P.take ? BEAT.blows : P.tries ?? 0;
+    /* there: it stops, and looks about (or at the reader), the way it came or the way the stop faces it; and takes
+       whoever is there to be taken */
+    m.dest = -1; m.wm = P.face ?? m.yaw; m.st = P.take ? BEAT.blows : P.tries ?? 0;
     m.wt = P.tries ? P.wait ?? ROUND.beep : P.take ? BEAT.first : P.wait ?? ROUND.look;
     if (P.graft) graftHere(sim, m);
     if (m.wt <= 0) next();
