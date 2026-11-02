@@ -281,6 +281,10 @@ export interface RoundStop {
 /** something to use: a corpse to search, a panel, a backup set, a ladder, the lift */
 export interface UseDef { kind: string; x: number; y: number; z: number; opts: Record<string, unknown> }
 
+/** a fixed ladder you climb (sim/player.ts, climbing): the box you climb it standing in, on the plan, from the floor at
+ *  its foot (y0) to the floor at its head (y1), which you come up onto beside it */
+export interface ClimbDef { x0: number; z0: number; x1: number; z1: number; y0: number; y1: number }
+
 /** a platform that carries what stands on it between two heights. Its top is at y0 or y1. */
 export interface PlatformDef {
   x0: number; z0: number; x1: number; z1: number;
@@ -330,6 +334,8 @@ export interface LevelDef {
   water: WaterDef[];
   doors: DoorDef[];
   platforms: PlatformDef[];
+  /** fixed ladders, climbed */
+  climbs?: ClimbDef[];
   lamps: LampDef[];
   /** ceiling fittings: where each room's own light comes from, so it falls in pools below them (world/light.ts) */
   fixtures?: FixtureDef[];

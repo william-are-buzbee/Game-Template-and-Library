@@ -140,6 +140,8 @@ export interface Floor {
   /** blood on the floor: middle and reach */
   stains: { x: number; z: number; r: number }[];
   elevs: { x0: number; z0: number; x1: number; z1: number; lo: Floor; hi: Floor; c: string; name: string; look?: 'hoist' | 'goods' }[];
+  /** fixed ladders up from this floor to one above, climbed */
+  climbs: { x0: number; z0: number; x1: number; z1: number; lo: Floor; hi: Floor }[];
   stairs: { x0: number; z0: number; x1: number; z1: number; dir: Dir; lo: Floor; hi: Floor; bare: boolean }[];
   /** steps within a floor: from a sunken floor up to the floor's own, or between any two heights over it */
   flights: { x0: number; z0: number; x1: number; z1: number; y0: number; y1: number; n: number; dir: Dir; c: number }[];
@@ -192,7 +194,7 @@ export function floor(lv: LevelInfo, o: { y0?: number; li?: number; wet?: number
     rooms: [], doors: [], claims: [], above: null, below: null,
     terrain: t ? { x0: t[0], z0: t[1], res, nx: Math.round((t[2] - t[0]) / res) + 1, nz: Math.round((t[3] - t[1]) / res) + 1 } : null,
     hf: null, cf: null, hset: null, owner: null,
-    props: [], cols: [], lamps: [], cams: [], speakers: [], stains: [], elevs: [], stairs: [], flights: [], items: [], notes: [], exhibits: [], muts: [], uses: [], marks: {}, walls: [], water: [],
+    props: [], cols: [], lamps: [], cams: [], speakers: [], stains: [], elevs: [], climbs: [], stairs: [], flights: [], items: [], notes: [], exhibits: [], muts: [], uses: [], marks: {}, walls: [], water: [],
   };
   C().floors.push(F);
   return F;
@@ -518,6 +520,32 @@ export function elev(lo: Floor, hi: Floor, x: number, z: number, w: number, d: n
   bx(lo, x + w / 2, z + d / 2, w, 0.01, d, 0xb89b2e, { y: 0.012, c: 0 });
   bx(lo, x + w / 2, z + d / 2, w - 0.4, 0.01, d - 0.4, 0x2a2c2e, { y: 0.016, c: 0 });
 }
+/** a fixed ladder from floor lo up to floor hi, climbed (sim/player.ts): you climb it standing in the box w by d from
+ *  (x, z), its rungs on that box's `face` side (the side you face as you climb), and come up through a hatch in hi's
+ *  floor there, railed but on its `off` side, where you step off. Over head height a cage round the rest, as a fixed
+ *  ladder that tall has, open at the hatch; the stiles run on a metre over it, to take hold of */
+export function climb(lo: Floor, hi: Floor, x: number, z: number, w: number, d: number, face: Dir, off: Dir): void {
+  const R = room(hi, '', x, z, w, d, { noroam: 1, nolamp: 1 });
+  R.hole = 'st'; R.landing = off;
+  lo.climbs.push({ x0: x, z0: z, x1: x + w, z1: z + d, lo, hi });
+  const H = hi.y0 - lo.y0, top = H + 1.1, ns = face === 'n' || face === 's', L = ns ? w : d;
+  /* the face's line, the stiles' two places along it, and a point on the plan a distance out from the face */
+  const line = face === 'n' ? z + 0.03 : face === 's' ? z + d - 0.03 : face === 'w' ? x + 0.03 : x + w - 0.03;
+  const at = (along: number, out: number): [number, number] => {
+    const a = (ns ? x : z) + along, o = face === 's' || face === 'e' ? line - out : line + out;
+    return ns ? [a, o] : [o, a];
+  };
+  const C = 0xc9a227;
+  for (const a of [L / 2 - 0.3, L / 2 + 0.3]) { const [px, pz] = at(a, 0); bx(lo, px, pz, 0.06, top, 0.06, C, { c: 0, mat: 'steel' }); }
+  for (let y = 0.3; y < top - 0.05; y += 0.3) { const [px, pz] = at(L / 2, 0); bx(lo, px, pz, ns ? 0.6 : 0.04, 0.04, ns ? 0.04 : 0.6, C, { y, c: 0, mat: 'steel' }); }
+  const D = (ns ? d : w) - 0.03;
+  for (let y = 2.4; y < H - 0.3; y += 1) {
+    const [fx, fz] = at(L / 2, D);
+    bx(lo, fx, fz, ns ? L : 0.04, 0.05, ns ? 0.04 : L, C, { y, c: 0, mat: 'steel' });
+    for (const a of [0.02, L - 0.02]) { const [sx, sz] = at(a, D / 2); bx(lo, sx, sz, ns ? 0.04 : D, 0.05, ns ? D : 0.04, C, { y, c: 0, mat: 'steel' }); }
+  }
+  for (const a of [0.02, L - 0.02]) for (const o of [0, D]) { const [px, pz] = at(a, o); bx(lo, px, pz, 0.04, H - 2.6, 0.04, C, { y: 2.4, c: 0, mat: 'steel' }); }
+}
 /** stairs to another level: you fade, and arrive at the far level's mark for this one */
 export function stairUp(F: Floor, ix: number, iz: number, ax: number, az: number, yaw: number, to: string): void {
   use(F, 'stair', ix, iz, 1, { to, from: F.lv.id, up: 1 });
@@ -764,6 +792,7 @@ export function finishLevel(start?: [number, number, number], on?: Floor) {
     }
     /* platforms between this floor and the one above */
     for (const E of F.elevs) b.platform(E.x0, E.z0, E.x1, E.z1, E.lo.y0, E.hi.y0, 0x4a4f55, { name: E.name, circuit: E.c }, 'steel', E.look);
+    for (const L of F.climbs) b.climb(L.x0, L.z0, L.x1, L.z1, L.lo.y0, L.hi.y0);
     /* stairs: a hidden ramp under visible steps, two to the metre */
     for (const S of F.stairs) {
       const ax = S.dir === 'e' || S.dir === 'w', rev = S.dir === 'w' || S.dir === 'n', rise = S.hi.y0 - S.lo.y0;

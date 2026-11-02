@@ -196,6 +196,30 @@ describe('the upper station, played', () => {
     expect(L.t * (L.def.y1 - L.def.y0)).toBeCloseTo(0.6, 1);
   });
 
+  it('the crane\'s ladder is climbed: walk at it and up it to the cab\'s platform, step off at the top, and back down it looking down', () => {
+    const s = fresh();
+    for (const m of s.cast) m.stun = 1e9;
+    const L = s.world.def.climbs!.find(c => c.y1 === 15)!, b = s.player.body, p = s.player, cx = (L.x0 + L.x1) / 2;
+    /* at its foot, facing it: its rungs are on the south wall */
+    b.x = cx; b.z = L.z0 - 0.6; b.y = 0; b.vy = 0; b.sync(); p.yaw = Math.PI; p.pitch = 0;
+    hold(s, 0.3);
+    hold(s, 9, { forward: 1 });
+    expect(p.climbing).toBe(true);
+    expect(b.y).toBeGreaterThan(15.2); // up through the hatch, and held there
+    hold(s, 1, { strafe: 1 }); // to the west, off it
+    hold(s, 0.5);
+    expect(p.climbing).toBe(false);
+    expect(b.y).toBeCloseTo(15, 1);
+    expect(s.world.roomAt(b.x, b.y + 0.5, b.z)?.name).toBe('Crane cab');
+    /* back onto it, and down it, looking down */
+    hold(s, 1, { strafe: -1 });
+    expect(p.climbing).toBe(true);
+    expect(b.y).toBeGreaterThan(14.8); // on it, not fallen down the hatch
+    p.pitch = -1;
+    hold(s, 9, { forward: 1 });
+    expect(b.y).toBeCloseTo(0, 1);
+  });
+
   it('ladderway B wants Cargo power; the fuse is in the parts crib; the surface lift wants Gen-1', () => {
     const s = fresh();
     const B1: [number, number] = [263.2, 3.2]; // ladderway B, in the fan station

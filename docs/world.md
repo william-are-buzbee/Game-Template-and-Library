@@ -981,6 +981,8 @@ ladderway B (x 241) and Ops' rooms west of x 110. Where the build differs from t
   shutter is a heavy door whose drive runs on a backup set's power too (`DoorDef.fire`): once Cargo's set runs, each
   rises at its control. One came down on a pallet and stopped 0.6 m off the floor, too low to get under (`DoorDef.low`,
   sealed), with the nest's red showing beneath it.
+- **Floored as walled.** Cargo's dug places (the nave, the warehouse, the freight hall, the chambers) have the walls'
+  shotcrete underfoot, flat, in the walls' colour: the coated floor they had read too clean (the owner's call).
 - **The early expanse.** Ops' generator burned fuel that came in through Cargo, so the fuel store has a back door, along
   a passage, onto the warehouse. The warehouse is an early place, dark and enormous, and the nave stays behind the
   shutters and Operations' card until last. The checker holds it: ladderway B still wants the manager's card, Cargo's
@@ -1000,8 +1002,8 @@ ladderway B (x 241) and Ops' rooms west of x 110. Where the build differs from t
   and pinion, from the floor to the top deck, its car climbing its own mast with its drives on its roof (`PlatformDef.look`
   draws the car or the carriage; the masts are the level's). Each stops at its two ends only, as every platform does. The
   hoist is the ride the backup set buys; the cast call it and ride it after you. The crane stopped mid-lift with a
-  container on its hook; its cab is a glass lookout, boarded from a platform on the wall by a caged ladder (dressing: a
-  ladder is not climbed in this engine).
+  container on its hook; its cab, a glass lookout, and the platform on the wall it is parked at are walked, and up to
+  them is a caged ladder you climb (`LevelDef.climbs`), through a hatch in the platform. The cast climb no ladders.
 - **Where she lays: the plenum.** The station breathes west to east and Cargo is last (§1). Six exhaust fans in a concrete
   bulkhead across the nave's east end drew the bay's air into a plenum and out by the exhaust shaft. Every level's warm air
   ends there, still now, and nothing green comes up through poured concrete, so the mother lays in it (§10, *The young
@@ -1024,7 +1026,7 @@ ladderway B (x 241) and Ops' rooms west of x 110. Where the build differs from t
 - **Open.**
   - *The hoist at every deck.* Platforms go between two floors; a hoist that stops at each deck wants platforms with stops.
   - *The mother as one of the cast,* and what she does when you pass.
-  - *The deluge as a tool* (flood a section), the crane moved to bridge a gap, the cab reached.
+  - *The deluge as a tool* (flood a section), and the crane moved to bridge a gap.
   - *What else the early warehouse holds:* a note, a pocket of something of its own, or nothing but its size.
   - *The look on a real card:* the window in the dark wants seeing at full resolution; the test rig draws it small.
 

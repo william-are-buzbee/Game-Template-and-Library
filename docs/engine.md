@@ -1175,7 +1175,12 @@ As built in step 5 (`world/nav.ts`, `sim/fields.ts`):
   Platforms: anything rides one that goes by itself; a husk calls one that has power, walks to its middle, rides it,
   and steps off at the top (tested: Cargo on backup, a husk calls the personnel hoist and rides it after you to the top
   deck). **Ladders**: the cast needs
-  none. Every ladder in the station leads off its level, and the cast does not leave its level.
+  none. Every ladder in the station leads off its level, and the cast does not leave its level; but for fixed ladders
+  within one (`LevelDef.climbs`, `climb()` in `content/build/plan.ts`: Cargo's crane), which you climb: standing in
+  one's box, gravity lets go, and walking forward takes you up it (down it, looking down), as do the jump and crouch
+  keys; at its head you step off beside its hatch (`ladderAt`, `LADDER` in `sim/player.ts`). The nav joins a ladder's
+  foot to its head (`Edge.Climb`), taken only under rules that climb (`Rules.climb`: walking anywhere, and you in the
+  progression checker), never by the cast.
 - A refuge (`safe`) is only kept out of the cast's rounds, as in the first engine; a hunter follows you into one.
 - **Fields are cheap** (step 6): each is made from arrays of who may enter which spot (no call per edge), only when you
   have moved or a door or platform has changed, and only as far out as anything could use it (90 m for a hunt, 40 for

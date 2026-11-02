@@ -15,6 +15,10 @@ before this one are kept below: their rules for the layout, their tools, asks an
   move itself, used wherever the heavy-door rule was. Tested in `test/puzzle.test.ts`.
 - `PlatformDef.look` and `platformParts` (`present/render/things.ts`): the hoist's car and the goods lift's carriage.
 - `rack()` in `content/build/furnish.ts`; `ownStream()` in `content/build/plan.ts`.
+- Fixed ladders, climbed: `ClimbDef` (`LevelDef.climbs`), `climb()` in `content/build/plan.ts` (a hatch in the floor
+  above, railed but on its way off, and the rungs and cage), `ladderAt` and `LADDER` in `sim/player.ts`, `Edge.Climb`
+  and `Rules.climb` in `world/nav.ts`, and in `sim/reach.ts`. Tested in `test/puzzle.test.ts` (up, off, on, down).
+- Saves are version 25 (Cargo's doors, platforms and cast in a new order; the player's `climbing`).
 
 ## What was learned
 

@@ -41,8 +41,10 @@ import { makeSim, type Sim, type SimOpts } from './sim';
  *  21: the lobby's washrooms, and screening's door to the nurses' station back: again
  *  22: the locker room's showers and toilets, and the training room: again
  *  23: the bar's kitchen, its service stair and pantry: again
- *  24: the comms cupboards, one a camera branch: again */
-export const SAVE_VERSION = 24;
+ *  24: the comms cupboards, one a camera branch: again
+ *  25: Cargo made larger (the decks, the hoist and the goods lift, the warehouse and its chambers, the fire shutters, the
+ *  crane's ladder): the upper station's doors, platforms and cast made in a new order; the player's `climbing` */
+export const SAVE_VERSION = 25;
 
 /** copy the named fields of an object */
 const pick = <T extends object, K extends keyof T>(o: T, keys: readonly K[]): Pick<T, K> => {
@@ -55,7 +57,7 @@ const put = <T extends object>(o: T, data: Partial<T>): void => { Object.assign(
 const GAME = ['inv', 'tools', 'keys', 'worn', 'weapon', 'read', 'code', 'code2', 'hp', 'batt', 'light', 'lightOn', 'pad',
   'ended', 'time', 'noise', 'noiseI', 'noiseT', 'vis', 'once', 'kills', 'god'] as const;
 const PLAYER = ['yaw', 'pitch', 'crouch', 'wantStand', 'moved', 'impact', 'water', 'air', 'airMax', 'under', 'slow', 'load', 'slam',
-  'running', 'jumped', 'stepD', 'fly'] as const;
+  'running', 'jumped', 'stepD', 'fly', 'climbing'] as const;
 const BODY = ['x', 'y', 'z', 'vx', 'vz', 'vy', 'h', 'ground'] as const;
 const DOOR = ['t', 'open', 'unlocked', 'hold', 'down', 'drawing', 'pass', 'beep', 'beepOk'] as const;
 const PLATFORM = ['y', 'target', 'wait', 'moving', 'armed'] as const;

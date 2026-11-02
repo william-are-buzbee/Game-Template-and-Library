@@ -259,6 +259,10 @@ export class LevelBuilder {
     return d;
   }
 
+  /** a fixed ladder climbed standing in (x0, z0)-(x1, z1), from the floor at y0 to the floor at y1 */
+  climb(x0: number, z0: number, x1: number, z1: number, y0: number, y1: number): void {
+    (this.def.climbs ??= []).push({ x0, z0, x1, z1, y0, y1 });
+  }
   /** a platform over (x0, z0)-(x1, z1) that carries what stands on it between heights y0 and y1 */
   platform(x0: number, z0: number, x1: number, z1: number, y0: number, y1: number, c = 0xb89b2e, call?: { name: string; circuit: string }, mat: Mat = 'steel', look?: PlatformDef['look']): void {
     this.def.platforms.push({ x0, z0, x1, z1, y0, y1, colour: hex(c), mat, ...(call ? { call } : {}), ...(look ? { look } : {}) });
