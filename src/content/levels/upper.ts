@@ -1,11 +1,11 @@
 import { PI, type Colour } from '../../core/math';
-import type { LevelDef, LadderDef } from '../types';
+import { ICO, type LevelDef, type LadderDef } from '../types';
 import {
-  arch, beginLevel, bx, cave, colT, door, elev, exhibit, finishLevel, flight, item, ladder, floor, mut, note, P, roughen, room, stack, stairs, use, type Floor, type LevelInfo, type RoomOpts,
+  arch, beginLevel, bx, cave, colT, door, elev, exhibit, finishLevel, flight, item, ladder, floor, mut, note, ownStream, P, pick, rnd, roughen, room, stack, stairs, use, type Col, type Floor, type LevelInfo, type POpts, type RoomOpts,
 } from '../build/plan';
 import { ARRIVAL, HISTORY, STAGES, WELCOME, stageAt } from '../exhibit';
 import {
-  BAY, FAM, MED, OFF, OPS, SEC, UTIL, WALK, blood, callPoint, camera, comms, container, corpse, desk, eggs, exitSign, forklift, genset, gore, grandStair, liftRoom, medbed, monitors, panel, POLE, shelf, speaker, tbl,
+  BAY, FAM, MED, OFF, OPS, SEC, UTIL, WALK, blood, callPoint, camera, comms, container, corpse, desk, eggs, exitSign, forklift, genset, gore, grandStair, liftRoom, medbed, monitors, panel, POLE, rack, shelf, speaker, tbl,
 } from '../build/furnish';
 import { WOOD as ROOTS, bed, bells, candelabra, crack, cup, forced, grower, heave, litter, pressed, runner, spire, tobacco, tone } from '../build/overgrowth';
 import { bore, root as rootThrough } from '../build/roots';
@@ -14,7 +14,8 @@ import { bore, root as rootThrough } from '../build/roots';
 const SKIM = (o: RoomOpts): RoomOpts['mat'] => ({ ...o.mat, wall: 'plaster' });
 
 /* Upper station, 400 m down. Off the main shaft, the Security wing (x 14 to 66) and Operations (x 64 to 110, south to
-   z 54), with a two-storey atrium where they meet; the Cargo cavern (x 110 to 240); the exhaust shaft (x 260). Start here.
+   z 54), with a two-storey atrium where they meet; Cargo, an L (buildCargo): the nave, x 110 to 240, and the warehouse south off
+   it to z 104; the exhaust shaft (x 260). Start here.
    Ported from the first engine (archive/first-engine.html, buildUpper and buildCargo2); Security and Ops since laid
    out again around the highway and its bend (world.md §8). */
 
@@ -24,7 +25,7 @@ export function buildUpper(ladders: Record<string, LadderDef>): LevelDef {
   beginLevel(UPPER, ladders);
   /* the ground floor, over a basement a storey down (the isolation suite) where it needs one */
   const lv = UPPER, D = floor(lv, { terrain: [-10, -30, 270, 66], ground: true }), B = floor(lv, { terrain: [-10, -30, 270, 66], y0: -4.5 });
-  /* the rungs over the ground floor at +5, +10 and +15: Tier 1 also carries the second floor over Ops */
+  /* the floors over the ground floor at +5, +10 and +15 (Cargo's decks; the first also carries the second floor over Ops) */
   const tier = (y0: number, li: number) => floor(lv, { terrain: [-10, -30, 270, 66], y0, li }), T1 = tier(5, 1), T2 = tier(10, 2), T3 = tier(15, 3);
   stack(B, D); stack(D, T1); stack(T1, T2); stack(T2, T3);
   /* the main shaft: the hoist cage (runs on Gen-1) at the ground floor, where freight came off, and over it on the second
@@ -815,8 +816,8 @@ export function buildUpper(ladders: Record<string, LadderDef>): LevelDef {
   tbl(T1, 106.6, 0, 0.8, 4, 0x3a3d40); bx(T1, 104.8, 0, 0.45, 0.45, 0.45, 0x2c2f33); for (const z of [-1.6, 1.6]) bx(T1, 106.8, z, 0.5, 0.3, 0.06, 0x22262a, { y: 0.76, c: 0, pw: [[0.04, 0.05, 0.05], [2.2, 2.5, 2.75]], pc: 'CARGO' });
   /* the window onto the bay: three bays of glass in the east wall, high over the floor (world.md §8) */
   for (const z of [-3, 1, 5]) door(T1, 109, z, { span: 2, seal: true, glass: true, c: 'CARGO' });
-  use(T1, 'look', 106.8, 0, 1.5, { label: 'Window', text: 'Thick glass, and the bay a long way down. Out on the rungs something glows, the colour of a healing burn.' });
-  buildCargo(D, T1, T2, T3);
+  use(T1, 'look', 106.8, 0, 1.5, { label: 'Window', text: 'Thick glass, and the bay a long way down. Out on the decks something glows, the colour of a healing burn.' });
+  buildCargo(B, D, T1, T2, T3);
   /* at each screen, what is left of one of the operations staff, grown to it: a hunched trunk, a hand on the desk and
      one swollen eye at the glass of it, joined to its neighbours and by a cord of meat toward the middle of the room.
      Dressing for now: the room's new answer is open (world.md §8) */
@@ -1242,49 +1243,375 @@ function buildHub(B: Floor, D: Floor, T1: Floor, T2: Floor): void {
   for (const x of [9.8, 12.7]) rack(D, x, 13.9, 0.5, 4.6, [0xd8dcdc, 0xb8c4c8, 0x9aa4a8, 0x8a7a6a]);
 }
 
-/* the Cargo cavern: a 20 m vault, x 110 to 240, with three tiers stepped up its north side at +5, +10 and +15 and a platform
-   between each. Dead and black until its backup set runs, which also moves the platforms, and wakes the nest that thickens
-   toward the roof. East of it, the link to the exhaust shaft and ladderway B under the sealed fan door. */
-function buildCargo(D: Floor, T1: Floor, T2: Floor, T3: Floor): void {
-  const cav = cave(D, 'Cargo cavern', 110, -14, 130, 28, { ...BAY, ht: 20, c: 'CARGO', lit: 'main', em: 1, motes: 'flesh' }); arch(D, cav, 5); roughen(D, cav, 0, 1.2);
-  const TW: RoomOpts = { ...WALK, ht: 5, c: 'CARGO', motes: 'flesh', mat: { wall: 'shot', ceiling: 'shot' } };
-  room(T1, 'Tier 1', 126, -14, 96, 10, TW); room(T2, 'Tier 2', 134, -14, 78, 10, TW); room(T3, 'Tier 3', 142, -14, 50, 10, TW);
-  elev(D, T1, 130, -8, 4, 4, 'CARGO', 'Cargo platform'); elev(T1, T2, 138, -8, 4, 4, 'CARGO', 'Cargo platform'); elev(T2, T3, 146, -8, 4, 4, 'CARGO', 'Cargo platform');
-  /* the gantry crane, on rails along both walls */
-  for (const z of [-13.6, 13.6]) bx(D, 175, z, 128, 0.5, 0.4, 0x5a5d60, { y: 17.4, c: 0 });
-  bx(D, 170, 0, 1, 0.8, 27.4, 0xc9a227, { y: 17.6, c: 0 }); bx(D, 170, 3, 1.4, 0.6, 1.4, 0x2a2c2e, { y: 17, c: 0 }); bx(D, 170, 3, 0.05, 8.6, 0.05, 0x2a2c2e, { y: 8.4, c: 0 }); bx(D, 170, 3, 0.5, 0.4, 0.5, 0x8a7a2a, { y: 8, c: 0 });
+/* Cargo (world.md §8, Cargo, made larger and Cargo, sketched): an L. The nave, the bay arm (x 110 to 240): receiving at
+   its west end under Cargo control's window, a steel mezzanine along its north wall at +5, +10 and +15, the crane over
+   it all, the nest thickening east and upward, and across its east end a fan wall with the plenum behind it, where the
+   mother lays, and past her the way on to the exhaust shaft and ladderway B. The warehouse, the other arm, south off the
+   nave's west half: room and pillar, its own fire compartment behind shutters that came down with the power, reached
+   early from Ops' fuel store. The freight shaft at the corner, down to Production; and the chambers off both. Dead and
+   black until the backup set in receiving's office runs, which moves the hoist and the goods lift, and lets the fire
+   shutters rise at their controls. Cargo draws on a random stream of its own (plan.ts, ownStream); the first Cargo drew
+   2976 from the level's, and what is built after it (the hub's overgrowth and roots) keeps the dressing it had. */
+const CARGO_DRAWS = 2976;
+function buildCargo(B: Floor, D: Floor, T1: Floor, T2: Floor, T3: Floor): void {
+  ownStream('cargo', CARGO_DRAWS, () => {
+    buildNave(D, T1, T2, T3);
+    buildWarehouse(B, D, T1);
+  });
+}
+
+const CG = 'CARGO', STL = 0x5a5d60, FRAME = 0x41566e, HAZ = 0xc9a227, DK = 0x2a2c2e, GALV = 0x8a8f94, CONC = 0x77736c, SPRAY = 0x5a5248, OXIDE = 0x6a2e28;
+const PUS: Colour = [2.6, 0.9, 0.55], HIGHBAY: [Colour, Colour] = [[0.08, 0.08, 0.08], [2.9, 2.85, 2.6]];
+const FLESH = [0xb08572, 0x8c4a44, 0xb4826e, 0xa06854], BONE = 0xddd6c0;
+type V3 = [number, number, number];
+/** a rod (or, `box`, a beam) from a to b, each [x, height over the floor, z], r thick: tipped from upright, then turned,
+ *  as props are */
+function rod(F: Floor, a: V3, b: V3, r: number, c: Col, o: POpts & { box?: boolean } = {}): void {
+  const { box, ...p } = o, dx = b[0] - a[0], dy = b[1] - a[1], dz = b[2] - a[2], L = Math.hypot(dx, dy, dz);
+  P(F, box ? 'box' : 'cyl', (a[0] + b[0]) / 2, (a[2] + b[2]) / 2, 2 * r, L, 2 * r, c, { c: 0, ...p, y: (a[1] + b[1]) / 2 - L / 2, rz: -Math.atan2(Math.hypot(dx, dz), dy), ry: Math.atan2(-dz, dx) });
+}
+/** a bar standing in the plane across x at x, its middle (y, z), `len` long toward (dy, dz) in that plane, `wide` across
+ *  it and `thick` along x: a fan's blade, a piece of its casing */
+function across(F: Floor, x: number, y: number, z: number, len: number, wide: number, thick: number, dy: number, dz: number, c: Col): void {
+  P(F, 'box', x, z, len, wide, thick, c, { c: 0, y: y - wide / 2, rz: Math.atan2(dy, -dz), ry: PI / 2 });
+}
+/** bars of wire mesh from (x0, z0) to (x1, z1), h tall, on a frame; solid as a wall */
+function mesh(F: Floor, x0: number, z0: number, x1: number, z1: number, h: number, y = 0): void {
+  const L = Math.hypot(x1 - x0, z1 - z0), n = Math.max(1, Math.round(L / 0.25)), ux = (x1 - x0) / L, uz = (z1 - z0) / L;
+  for (let k = 0; k <= n; k++) bx(F, x0 + ux * L * (k / n), z0 + uz * L * (k / n), 0.025, h, 0.025, 0x4a4d50, { y, c: 0 });
+  for (const yy of [0, h - 0.05]) rod(F, [x0, y + yy + 0.025, z0], [x1, y + yy + 0.025, z1], 0.03, GALV, { box: true });
+  for (const [x, z] of [[x0, z0], [x1, z1]]) bx(F, x, z, 0.06, h, 0.06, GALV, { y, c: 0 });
+  if (!y) colT(F, (x0 + x1) / 2, (z0 + z1) / 2, Math.max(Math.abs(x1 - x0), 0.06), Math.max(Math.abs(z1 - z0), 0.06), h);
+}
+/** eggs, laid on a deck's grating, and what of them has sagged through it and hangs under it */
+function sagged(F: Floor, x: number, z: number, n: number): void {
+  eggs(F, x, z, n);
+  for (let k = 0; k < n - 1; k++) { const h = rnd(0.6, 1.5); P(F, 'ico', x + rnd(-0.7, 0.7), z + rnd(-0.7, 0.7), rnd(0.25, 0.4), h, rnd(0.25, 0.4), pick([0xb9a98a, 0xa89a80, 0xb4826e]), { y: -0.23 - h * ICO, c: 0 }); } // up into the slab's underside
+}
+/** the nest's own light: pustules among the eggs that glow a sick red, enough to be seen across the bay in the dark */
+function pustules(F: Floor, x: number, z: number, r = 5.5): void {
+  for (let k = 0; k < 5; k++) P(F, 'ico', x + (k - 2) * 0.44, z + ((k * 7) % 3 - 1) * 0.5, 0.38, 0.3, 0.38, PUS, { y: k % 2 ? 0 : -0.08, c: 0 });
+  F.lamps.push({ x, z, r, c: [0.55, 0.18, 0.1], h: 0.5 });
+}
+
+/* ---- the nave: today's hall kept at its width (rock this deep is spanned at about 30 m) and made taller, its walls
+   straight to the crane rails and the arch to 28 m */
+function buildNave(D: Floor, T1: Floor, T2: Floor, T3: Floor): void {
+  const cav = cave(D, 'Cargo cavern', 110, -14, 130, 28, { ...BAY, ht: 20, c: CG, lit: 'main', em: 1, motes: 'flesh' }); arch(D, cav, 8); roughen(D, cav, 0, 1.2);
+  /* receiving's office, in the rock north of receiving: the backup set, and the manifest on the desk */
+  room(D, 'Receiving office', 111, -24, 10, 8, { ...OFF, c: CG }); door(D, 114.4, -15, { sg: [['Receiving office', 'n']] }); // (a single door's 1.2 m on the quarter-metre grid: off the whole metre)
+  desk(D, 116, -23.2, 1.8, 0.7); note(D, 'manifest', 115.4, -23.3, 0.78); item(D, 'batt', 116.7, -23.2, 0.78); item(D, 'bandage', 111.8, -17, 0.02);
+  genset(D, CG, 119.8, -22.9, 118.8, -21.6); shelf(D, 111.3, -19.5, 0.5, 3);
+  /* receiving: marshalling bays painted on its floor, the platform scale by the door */
+  const paint = (x0: number, z0: number, x1: number, z1: number) => bx(D, (x0 + x1) / 2, (z0 + z1) / 2, Math.max(x1 - x0, 0.1), 0.01, Math.max(z1 - z0, 0.1), HAZ, { y: 0.012, c: 0 });
+  paint(111, 1.6, 146, 1.6); for (const x of [116, 122, 128, 134, 140]) paint(x, 2, x, 12.5);
+  bx(D, 124, 0, 1.6, 0.04, 1.6, STL, { c: 0, mat: 'steel' }); bx(D, 125.2, 0.9, 0.06, 1.2, 0.06, DK); bx(D, 125.2, 0.9, 0.14, 0.24, 0.32, DK, { y: 1.2, c: 0 });
+
+  /* the mezzanine: steel on columns at 6 m, three decks where the tiers were, its back edge on a ledger bolted to the rock */
+  const TW: RoomOpts = { ...WALK, ht: 5, c: CG, motes: 'flesh', mat: { wall: 'shot', ceiling: 'shot' } };
+  const DECKS = [[T1, 'Deck 1', 122, 218, 5], [T2, 'Deck 2', 128, 200, 10], [T3, 'Deck 3', 140, 188, 15]] as const;
+  for (const [F, n, x0, x1] of DECKS) room(F, n, x0, -14, x1 - x0, 9.5, TW);
+  /* a stair at each end of every deck, along the back wall: anywhere people work at height has two ways down */
+  stairs(D, T1, 122, -14, 2, 10, 'e'); stairs(T1, T2, 134, -14, 2, 10, 'e'); stairs(T2, T3, 146, -14, 2, 10, 'e');
+  stairs(T2, T3, 178, -14, 2, 10, 'w'); stairs(T1, T2, 190, -14, 2, 10, 'w'); stairs(D, T1, 208, -14, 2, 10, 'w');
+  const top = (x: number) => (x >= 140 && x <= 188 ? 15 : x >= 128 && x <= 200 ? 10 : 5);
+  for (let x = 122; x <= 218; x += 6) for (const z of [-4.75, -8.25, -11.75]) { bx(D, x, z, 0.32, top(x) - 0.3, 0.32, FRAME, { mat: 'steel' }); bx(D, x, z, 0.6, 0.04, 0.6, STL, { c: 0 }); }
+  for (const [, , x0, x1, y] of DECKS) {
+    const L = x1 - x0, cx = (x0 + x1) / 2;
+    for (const z of [-4.75, -8.25, -11.75]) bx(D, cx, z, L, 0.4, 0.22, FRAME, { y: y - 0.65, c: 0, mat: 'steel' });
+    for (let x = x0 + 0.75; x < x1; x += 1.5) bx(D, x, -9.25, 0.1, 0.24, 9.4, FRAME, { y: y - 0.49, c: 0, mat: 'steel' });
+    bx(D, cx, -13.9, L, 0.3, 0.2, STL, { y: y - 0.55, c: 0, mat: 'steel' }); // the ledger
+    for (let x = x0 + 6; x < x1 - 1; x += 24) { rod(D, [x, y - 5.2, -11.75], [x + 6, y - 0.7, -11.75], 0.06, FRAME, { box: true }); rod(D, [x + 6, y - 5.2, -11.75], [x, y - 0.7, -11.75], 0.06, FRAME, { box: true }); }
+  }
+  /* pallet gates where goods came on: the gate behind the edge, shut, a bay's depth back */
+  for (const [x0, y] of [[134, 5], [158, 10]] as const) {
+    for (const x of [x0, x0 + 3]) bx(D, x, -6.2, 0.08, 1.4, 0.08, HAZ, { y, c: 0 });
+    for (const yy of [0.55, 1.05]) bx(D, x0 + 1.5, -6.2, 3, 0.07, 0.07, HAZ, { y: y + yy, c: 0 });
+  }
+  /* under the first deck, racking: stores at the floor, as under any mezzanine */
+  for (const [x0, x1] of [[134, 152], [160, 172], [180, 206]]) for (const [z0, z1] of [[-11.1, -10], [-7, -5.9]]) rack(D, x0, z0, x1, z1, 4.2, [1.4, 2.8], 0.6);
+
+  /* the goods lift (a VRC): two masts, a chain each, the drive on the head between them. No riders, says its plate; it
+     runs to the second deck all the same */
+  elev(D, T2, 154, -4.5, 3.5, 3, CG, 'Goods lift', 'goods');
+  for (const x of [153.65, 157.85]) { bx(D, x, -3, 0.3, 12.6, 0.3, FRAME, { mat: 'steel' }); bx(D, x + (x < 155 ? 0.17 : -0.17), -3, 0.05, 12.6, 0.05, 0x1c1e20, { c: 0 }); }
+  bx(D, 155.75, -3, 4.5, 0.5, 0.5, FRAME, { y: 12.6, c: 0, mat: 'steel' }); P(D, 'cyl', 156.8, -3, 0.6, 1, 0.6, DK, { y: 13.1 - 0.5, rz: PI / 2, c: 0 }); bx(D, 155.2, -3, 0.55, 0.4, 0.5, 0x3d5a44, { y: 13.1, c: 0 });
+  mesh(D, 153.3, -4.5, 153.3, -1.25, 2.4); mesh(D, 158.2, -4.5, 158.2, -1.25, 2.4); mesh(D, 153.3, -1.25, 155, -1.25, 2.4); mesh(D, 156.5, -1.25, 158.2, -1.25, 2.4);
+  use(D, 'look', 155.75, -1.15, 1.6, { label: 'Plate', text: 'VERTICAL RECIPROCATING CONVEYOR. 1500 KG. GOODS ONLY. NO RIDERS.' });
+  /* the personnel hoist, rack and pinion, as on a building site: the car climbs its own mast (east of it), the drives on
+     its roof, the mast tied to each deck. The ride the backup set buys, to the top deck */
+  elev(D, T3, 174, -4.5, 3.5, 3, CG, 'Personnel hoist', 'hoist');
+  { const mx = 178, mz = -3;
+    for (const dx of [-0.27, 0.27]) for (const dz of [-0.27, 0.27]) bx(D, mx + dx, mz + dz, 0.07, 19.5, 0.07, GALV, { c: 0, mat: 'steel' });
+    for (let y = 1.5; y < 19.5; y += 1.5) bx(D, mx, mz, 0.6, 0.05, 0.6, GALV, { y, c: 0, mat: 'steel' });
+    bx(D, mx - 0.31, mz, 0.05, 19.5, 0.1, 0x1c1e20, { c: 0 }); colT(D, mx, mz, 0.6, 0.6, 19.5);
+    for (const y of [4.6, 9.6, 14.6]) bx(D, mx, -3.85, 0.6, 0.12, 1.9, GALV, { y, c: 0 }); // tied to each deck's edge beam
+    mesh(D, 173.75, -4.5, 173.75, -1.25, 2); mesh(D, 173.75, -1.25, 175.1, -1.25, 2); mesh(D, 176.6, -1.25, 178.6, -1.25, 2); mesh(D, 178.6, -4.5, 178.6, -1.25, 2);
+    P(D, 'cyl', 172.9, -2.4, 1.1, 1, 1.1, DK); // the cable's basket
+  }
+
+  /* the overhead crane, on rails along both walls; stopped mid-lift, a container on its hook. Its cab, under the south
+     end, is a glass lookout, boarded from a platform on the wall by a caged ladder */
+  const RY = 18.6, X = 196;
+  for (const z of [-13.65, 13.65]) {
+    bx(D, 168, z, 112, 0.9, 0.7, STL, { y: RY - 1, c: 0, mat: 'steel' }); bx(D, 168, z, 112, 0.12, 0.12, DK, { y: RY - 0.1, c: 0 });
+    for (let x = 114; x <= 222; x += 6) bx(D, x, Math.sign(z) * 13.6, 0.7, 1.4, 0.8, SPRAY, { y: RY - 2.4, c: 0 }); // corbels, cast against the rock
+    for (let x = 116; x <= 222; x += 12) bx(D, x, z - Math.sign(z) * 0.25, 0.8, 0.14, 0.5, [0.08, 0.08, 0.08], { y: RY - 1.14, c: 0, pw: HIGHBAY, pc: CG }); // under the crane beam
+    bx(D, X, z, 6, 0.8, 0.7, HAZ, { y: RY, c: 0, mat: 'steel' });
+  }
+  for (const dx of [-1.25, 1.25]) bx(D, X + dx, 0, 0.6, 1.4, 27.3, HAZ, { y: RY + 0.15, c: 0, mat: 'steel' });
+  bx(D, X, 5, 3.2, 1, 2.4, DK, { y: RY + 1.55, c: 0 }); P(D, 'cyl', X, 5, 1, 2.2, 1, STL, { y: RY + 2.2 - 1.1, rz: PI / 2, c: 0 });
+  for (const dz of [-0.3, 0.3]) rod(D, [X - 0.2, RY + 1.55, 5 + dz], [X - 0.2, 14.8, 5 + dz], 0.025, DK);
+  bx(D, X - 0.2, 5, 0.7, 0.8, 0.5, HAZ, { y: 14, c: 0 });
+  for (const [ox, oz] of [[-2.9, -1.1], [2.9, -1.1], [-2.9, 1.1], [2.9, 1.1]]) rod(D, [X - 0.2, 14, 5], [X - 0.2 + ox, 11.6, 5 + oz], 0.025, DK);
+  bx(D, X - 0.2, 5, 6.06, 2.59, 2.44, 0x7a3a2a, { y: 9, c: 0, mat: 'steel' }); bx(D, X + 2.84, 5, 0.04, 2.3, 2.2, 0x15181b, { y: 9.14, c: 0 });
+  bx(D, X, 11.2, 2.6, 0.12, 2.6, DK, { y: RY - 2.75, c: 0 }); bx(D, X, 11.2, 2.6, 0.12, 2.6, DK, { y: RY - 0.2, c: 0 });
+  for (const [dx, dz] of [[-1.25, -1.25], [1.25, -1.25], [-1.25, 1.25], [1.25, 1.25]]) bx(D, X + dx, 11.2 + dz, 0.1, 2.6, 0.1, DK, { y: RY - 2.75, c: 0 });
+  bx(D, X, 11.2, 2.5, 2.4, 2.5, [0.55, 0.66, 0.7], { y: RY - 2.63, c: 0, mat: 'glass' }); bx(D, X - 0.4, 11.6, 0.8, 0.7, 0.5, 0x15181b, { y: RY - 2.63, c: 0 });
+  bx(D, X, 13.35, 3, 0.1, 1.3, STL, { y: RY - 2.85, c: 0, mat: 'grating' });
+  { const lx = X + 2.2;
+    for (const dx of [-0.25, 0.25]) bx(D, lx + dx, 13.75, 0.06, RY - 2.75, 0.06, HAZ, { c: 0 });
+    for (let y = 0.3; y < RY - 2.8; y += 0.3) bx(D, lx, 13.75, 0.5, 0.03, 0.03, HAZ, { y, c: 0 });
+    for (let y = 2.4; y < RY - 2.8; y += 1) { bx(D, lx, 13.05, 0.9, 0.04, 0.04, HAZ, { y, c: 0 }); for (const dx of [-0.45, 0.45]) bx(D, lx + dx, 13.4, 0.04, 0.04, 0.7, HAZ, { y, c: 0 }); }
+  }
+  /* a duct you could crawl, from the air plant up into the crown and along it, a diffuser every 12 m */
+  bx(D, 168, 8.7, 104, 1.4, 1.4, GALV, { y: 21.2, c: 0, mat: 'steel' });
+  for (let x = 118; x < 220; x += 6) for (const dz of [-0.6, 0.6]) bx(D, x, 8.7 + dz, 0.05, 4.4, 0.05, DK, { y: 22.6, c: 0 }); // its hangers, up into the rock
+  for (let x = 124; x < 220; x += 12) bx(D, x, 8.7, 0.9, 0.4, 0.9, DK, { y: 20.8, c: 0 });
+
   /* the floor: receiving at the west end, containers and forklifts, the nest at the east end */
   blood(D, 118, 2, 1.4);
-  container(D, 134, 10, false, 2); container(D, 150, 10, false, 3); container(D, 180, 10.4, false, 2); container(D, 198, 8.8, true, 1); container(D, 158, -10, false, 1); container(D, 186, -10.8, false, 1);
-  container(D, 166, 4.8, true, 2); container(D, 210, 5.2, true, 3); forklift(D, 142, 3, true); forklift(D, 192, 3.6, false);
+  container(D, 134, 10, false, 2); container(D, 150, 10, false, 3); container(D, 180, 10.4, false, 2); container(D, 166, 4.8, true, 2); container(D, 206, 7, true, 3);
+  forklift(D, 142, 3, true); forklift(D, 192, 3.6, false);
   mut(D, 'husk', 150, -0.8); mut(D, 'husk', 182, 0.8);
   /* one of the bone line's middle years beside the young one at receiving: the two come to the door when it is slid open
-     (its `loud`, above) */
-  mut(D, 'bonemid', 146, -4.5);
-  for (const [x, z, n] of [[218, -6, 4], [224, 6, 5], [228, -10, 3], [232, 0, 5], [236, 10, 4], [222, -0.8, 3]]) eggs(D, x, z, n); gore(D, 226, 1, 4); blood(D, 230, -4, 2);
-  mut(D, 'worm', 224, 2); mut(D, 'worm', 226, 4); mut(D, 'worm', 223, 4.8); mut(D, 'skitter', 232, -6); mut(D, 'husk', 214, 8, { post: 1, yaw: -PI / 2 });
-  /* the tiers: thicker with every one */
-  container(T1, 174, -10.8, false, 1); for (const [x, z] of [[160, -10], [188, -12], [206, -8]]) eggs(T1, x, z, 4); mut(T1, 'skitter', 166, -8); mut(T1, 'skitter', 198, -10);
-  for (const [x, z] of [[142, -12], [158, -8], [170, -12], [182, -8.8], [196, -11.2], [206, -10]]) eggs(T2, x, z, 5); gore(T2, 176, -10, 4); mut(T2, 'skitter', 162, -10); mut(T2, 'skitter', 184, -8); mut(T2, 'skitter', 200, -10.8);
+     (its `loud`) */
+  mut(D, 'bonemid', 146, -2.6);
+  for (const [x, z, n] of [[200, -2, 3], [204, 9, 4], [210, -1, 4], [214, 6, 5], [218, -6, 4], [220, 10, 5], [222, 1, 4], [223.6, -9, 5], [224, 6.5, 4], [208, 11, 3], [196, -6, 3], [186, 12, 3]] as const) eggs(D, x, z, n);
+  gore(D, 214, 1, 4); blood(D, 220, -4, 2);
+  mut(D, 'worm', 214, 2); mut(D, 'worm', 216, 4); mut(D, 'worm', 213, 4.8); mut(D, 'skitter', 220, -6); mut(D, 'husk', 212, 8, { post: 1, yaw: -PI / 2 });
+  /* the decks: thicker with every one, and sagging through the grating */
+  for (const [x, z] of [[160, -10], [188, -12], [206, -8], [168, -6.5]]) sagged(T1, x, z, 4);
+  mut(T1, 'skitter', 166, -8); mut(T1, 'skitter', 198, -10);
+  for (const [x, z] of [[150, -8], [158, -8], [170, -11], [182, -8.8], [196, -10]]) sagged(T2, x, z, 5);
+  gore(T2, 176, -10, 4); mut(T2, 'skitter', 162, -10); mut(T2, 'skitter', 184, -8); mut(T2, 'skitter', 196, -7);
   mut(T2, 'grabber', 170, -13.76, { yaw: 0 });
-  for (const [x, z] of [[144, -12], [151.2, -8], [156, -11.2], [162, -8.4], [168, -12], [174, -8], [180, -10.8], [186, -8.8]]) eggs(T3, x, z, 6); gore(T3, 166, -10, 5); gore(T3, 178, -10.8, 4);
-  mut(T3, 'skitter', 154, -10); mut(T3, 'skitter', 170, -7.2); mut(T3, 'skitter', 184, -12);
-  /* the nest's own light: pustules among the eggs that glow a sick red, enough to be seen across the bay in the dark; and
-     its edge, creeping west over the floor toward the door, below Cargo control's window */
+  for (const [x, z] of [[144, -10], [151.2, -8], [158, -11], [162, -8.4], [168, -11], [174, -8], [180, -9.5], [186, -8.8]]) sagged(T3, x, z, 6);
+  gore(T3, 166, -10, 5); gore(T3, 178, -9, 4);
+  mut(T3, 'skitter', 154, -10); mut(T3, 'skitter', 170, -7.2); mut(T3, 'skitter', 184, -9);
+  item(T3, 'batt', 180, -7.2, 0.02, 2);
+  for (const [F, x, z] of [[D, 123.2, 8.4], [D, 131, 6], [D, 138, 8.8], [D, 205, 6], [D, 218, -8], [T1, 160, -10], [T2, 158, -8], [T2, 170, -11], [T3, 151.2, -8], [T3, 162, -8.4], [T3, 174, -8]] as const) pustules(F, x, z);
+  /* and what the window sees of it in the dark (the decks' own are over its eye, behind their slabs): glows on the floor
+     down the nave, hanging under the first deck's edge, and on the fan wall's face at the far end */
+  for (const [x, z] of [[160, 4], [178, -2], [194, 9], [206, -2]]) pustules(D, x, z);
+  for (const [x, z] of [[172, -5], [190, -5.2]]) {
+    for (let k = 0; k < 4; k++) P(D, 'ico', x + (k - 1.5) * 0.42, z - (k % 2) * 0.3, 0.36, 0.5, 0.36, PUS, { y: 4.76 - 0.5 * ICO, c: 0 });
+    D.lamps.push({ x, z, r: 5, c: [0.55, 0.18, 0.1], h: 4.2 });
+  }
+  /* its edge, creeping west over the floor toward the door, below Cargo control's window */
   for (const [x, z, n] of [[122, 9, 3], [130, 5.6, 4], [137, 9.2, 5], [144, 6.4, 4]] as const) eggs(D, x, z, n);
-  for (const [Dk, x, z] of [[D, 123.2, 8.4], [D, 131, 6], [D, 138, 8.8], [T1, 160, -10], [T2, 158, -8], [T2, 170, -12], [T3, 151.2, -8], [T3, 162, -8.4], [T3, 174, -8]] as const) {
-    for (let k = 0; k < 5; k++) P(Dk, 'ico', x + (k - 2) * 0.44, z + ((k * 7) % 3 - 1) * 0.5, 0.38, 0.3, 0.38, [2.6, 0.9, 0.55], { y: k % 2 ? 0 : -0.08, c: 0 });
-    Dk.lamps.push({ x, z, r: 5.5, c: [0.55, 0.18, 0.1], h: 0.5 });
-  } bx(T3, 182, -11.2, 1.1, 0.6, 1.1, 0x6b5a3c); item(T3, 'fuse', 182, -11.2, 0.6); item(T3, 'batt', 180, -9.2, 0.02, 2);
-  /* south of the floor: the cargo office, with the backup set, and the vehicle bay */
-  room(D, 'Cargo office', 114, 16, 8, 8, { ...OFF, c: 'CARGO' }); door(D, 117.4, 15, { sg: [['Cargo office', 'n']] });
-  desk(D, 116.8, 22.6, 1.8, 0.7); note(D, 'manifest', 116.2, 22.5, 0.78); item(D, 'batt', 117.5, 22.6, 0.78); genset(D, 'CARGO', 120.6, 17.4, 119.4, 18.6); item(D, 'bandage', 114.8, 17, 0.02);
-  room(D, 'Vehicle bay', 126, 16, 12, 8, { ...UTIL, c: 'CARGO' }); door(D, 131, 15, { sg: [['Vehicles', 'n']] });
-  forklift(D, 128, 20.6, true); forklift(D, 134.8, 20.4, true); item(D, 'batt', 136.8, 17, 0.02); item(D, 'pipe', 132, 23.2, 0.02);
+  /* flesh up the walls at the east end, porous, toward the crane rails */
+  for (let k = 0; k < 90; k++) {
+    const s = k % 2 ? -1 : 1, x = rnd(198, 225.4), y = Math.pow(rnd(0, 1), 1.6) * 15 * Math.min(1, (x - 196) / 26) + 0.3, sz = rnd(0.7, 2.2) * (1.2 - y / 20);
+    P(D, 'ico', x, s * (13.995 - sz * 0.35 * ICO), sz * rnd(0.8, 1.4), sz * rnd(0.7, 1.2), sz * 0.7, pick(FLESH), { y, c: 0 }); // against the rock
+  }
+
+  /* the fan wall: a concrete bulkhead across the nave's east end, six exhaust fans in it that drew the bay's air into
+     the plenum and on out by the exhaust shaft. The station breathes west to east, and Cargo is last. Stopped; one door
+     in it, at the floor, left open */
+  const FX = 226, FANS: [number, number][] = [];
+  for (const z of [-8, 0, 8]) for (const y of [6, 12]) FANS.push([z, y]);
+  const slab = (z0: number, z1: number, y0: number, y1: number) => bx(D, FX, (z0 + z1) / 2, 0.6, y1 - y0, z1 - z0, CONC, { y: y0, mat: 'concrete', ...(y0 > 0 ? { c: 0 as const } : {}) });
+  slab(-14, 3, 0, 4); slab(4.5, 14, 0, 4); slab(3, 4.5, 2.5, 4);
+  for (const y0 of [4, 10]) for (const [z0, z1] of [[-14, -10], [-6, -2], [2, 6], [10, 14]]) slab(z0, z1, y0, y0 + 4);
+  slab(-14, 14, 8, 10); slab(-14, 14, 14, 20);
+  for (let z = -14; z < 14; z += 2) slab(z, z + 2, 20, 21.5 + 8 * Math.sin((PI * (z + 15)) / 28));
+  for (const [z, y] of FANS) {
+    for (const s of [-1, 1]) { bx(D, FX, z, 1.2, 0.2, 4.2, STL, { y: y + s * 2 - 0.1, c: 0, mat: 'steel' }); bx(D, FX, z + s * 2, 1.2, 4, 0.2, STL, { y: y - 2, c: 0, mat: 'steel' }); }
+    for (let k = 0; k < 8; k++) { const a = (k * PI) / 4; across(D, FX, y + 1.9 * Math.cos(a), z + 1.9 * Math.sin(a), 1.62, 1.1, 0.12, -Math.sin(a), Math.cos(a), DK); }
+    P(D, 'cyl', FX - 0.1, z, 0.9, 0.9, 0.9, 0x15181b, { y: y - 0.45, rz: PI / 2, c: 0 }); P(D, 'cyl', FX + 1, z, 1.1, 1.4, 1.1, DK, { y: y - 0.7, rz: PI / 2, c: 0 });
+    for (let k = 0; k < 7; k++) { const a = (k * 2 * PI) / 7 + z; across(D, FX - 0.1, y + 1.05 * Math.cos(a), z + 1.05 * Math.sin(a), 1.5, 0.34, 0.06, Math.cos(a), Math.sin(a), 0x23262a); }
+  }
+  bx(D, 225.45, 4.07, 0.08, 2.4, 1.4, STL, { ry: 0.9, c: 0, mat: 'steel' }); // the door, swung open into the nave
+  for (const [z, y] of [[-11, 3], [5, 9], [-4, 16], [11.5, 3]]) {
+    for (let k = 0; k < 4; k++) P(D, 'ico', FX - 0.3 - 0.36 * 0.5 * ICO + 0.005, z + (k - 1.5) * 0.4, 0.36, 0.34, 0.36, PUS, { y: y + (k % 2) * 0.3, c: 0 });
+    D.lamps.push({ x: FX - 1.2, z, r: 6, c: [0.6, 0.18, 0.1], h: y });
+  }
+  for (let k = 0; k < 40; k++) {
+    const z = rnd(-13.5, 13.5), y = Math.pow(rnd(0, 1), 1.3) * 16;
+    if (FANS.some(([fz, fy]) => Math.abs(z - fz) < 2.6 && Math.abs(y - fy) < 2.6) || (z > 2.4 && z < 5.2 && y < 3)) continue;
+    const s = rnd(0.5, 1.5); P(D, 'ico', FX - 0.295 - s * 0.25 * ICO, z, s * 0.5, s, s, pick(FLESH), { y, c: 0 });
+  }
+  /* the plenum: every level's warm air ends here, still now the fans are stopped, and nothing green comes up through
+     poured concrete. The mother lays in it (world.md §10): a bone and bloat cross, the swelling making the eggs, the bone
+     the legs. Dressing for now, her look a placeholder; the way on to the exhaust shaft is behind her */
+  const MX = 234.5, MZ = -6.5;
+  P(D, 'ico', MX, MZ, 6.6, 3.8, 4.8, 0xb4826e, { y: 0.1, c: 0 }); P(D, 'ico', MX + 0.5, MZ, 5.8, 2.4, 4.3, 0xb08572, { c: 0 });
+  P(D, 'ico', MX - 3.3, MZ, 1.7, 2.2, 1.8, 0xb4826e, { y: 1.7, c: 0 }); P(D, 'ico', MX - 4, MZ, 1.05, 1.1, 1.05, 0xcdbfae, { y: 3.55, c: 0 });
+  for (let k = 0; k < 5; k++) P(D, 'ico', MX - 2.2 + k * 1.15, MZ, 0.95, 0.4, 1.5, BONE, { y: 2.95 - Math.abs(k - 2) * 0.25, c: 0 });
+  [-2.4, -1, 0.6, 2.2].forEach((hx, i) => { for (const s of [-1, 1]) {
+    const h: V3 = [MX + hx, 2.4, MZ + s * 1.9], k: V3 = [MX + hx * 1.15, 5.3 - i * 0.25, MZ + s * 4.3], f: V3 = [MX + hx * 1.4, 0, MZ + s * 6.4];
+    rod(D, h, k, 0.18, BONE); rod(D, k, f, 0.12, BONE); P(D, 'ico', k[0], k[2], 0.45, 0.45, 0.45, 0x8c4a44, { y: k[1] - 0.2, c: 0 });
+  } });
+  for (let k = 0; k < 22; k++) {
+    /* on her swelling (an icosahedron 6.6 by 3.8 by 4.8 from 0.1 up), a little inside it, so each shows through */
+    const u = rnd(0, 2 * PI), v = rnd(0.12, 0.8) * PI, k = 0.78 * 0.5 * ICO, py = 0.1 + 3.8 * 0.5 * ICO + 3.8 * k * Math.cos(v);
+    if (py > 1) P(D, 'ico', MX + 6.6 * k * Math.cos(u) * Math.sin(v), MZ + 4.8 * k * Math.sin(u) * Math.sin(v), 0.34, 0.3, 0.34, PUS, { y: py - 0.15, c: 0 });
+  }
+  colT(D, MX, MZ, 6.4, 4.4, 3.6);
+  D.lamps.push({ x: MX - 1, z: MZ, r: 14, c: [0.7, 0.2, 0.1], h: 6 }, { x: 231, z: 6, r: 7, c: [0.55, 0.18, 0.1], h: 1 });
+  for (let k = 0; k < 16; k++) eggs(D, MX + 3.2 + k * 0.25, MZ + 1 - k * 0.35, 2);
+  for (let k = 0; k < 60; k++) { const x = rnd(227, 239.5), z = rnd(-13.5, 13.5); if (z > 0.6 && z < 5.2) continue; if (Math.hypot((x - MX) / 3.8, (z - MZ) / 2.8) < 1) continue; eggs(D, x, z, 2 + Math.floor(rnd(0, 4))); }
+  for (const [x, z] of [[229, 2], [237, 1], [232, -12]]) gore(D, x, z, 3);
+  for (let k = 0; k < 50; k++) { const s = k % 2 ? -1 : 1, x = rnd(226.6, 239.6), y = Math.pow(rnd(0, 1), 1.5) * 18, sz = rnd(0.8, 2.4); P(D, 'ico', x, s * (13.995 - sz * 0.35 * ICO), sz, sz * rnd(0.7, 1.2), sz * 0.7, pick(FLESH), { y, c: 0 }); }
+  mut(D, 'skitter', 230, 8);
+
+  /* the parts crib, cut into the north wall off the second deck: spares behind mesh and a counter. The Gen-1 fuse is
+     filed here */
+  room(T2, 'Parts crib', 160, -26, 12, 10, { ...UTIL, c: CG }); door(T2, 166.4, -15, { sg: [['Parts crib', 's']] });
+  mesh(T2, 160, -17.6, 163.4, -17.6, 3); mesh(T2, 167.4, -17.6, 171.96, -17.6, 3); // its gate open, between the mesh and the counter bx(T2, 166, -17.6, 2.8, 1.05, 0.6, DK); mesh(T2, 164.6, -17.6, 167.4, -17.6, 1.4, 1.6);
+  for (const x of [161.6, 164.6, 167.6, 170.6]) rack(T2, x - 1.2, -25.8, x + 1.2, -24.8, 2.6, [1.3, 2.1], 0.9);
+  bx(T2, 166, -21.6, 1.1, 0.6, 1.1, 0x6b5a3c); item(T2, 'fuse', 166, -21.6, 0.6); item(T2, 'batt', 163, -19, 0.02, 2);
+
   /* east: the link to the exhaust shaft, and the top of ladderway B */
-  door(D, 241, -1, { sg: [['Exhaust shaft', 'w']] }); room(D, 'Exhaust link', 242, -2, 12, 4, { ...UTIL, c: 'CARGO', em: 1 }); mut(D, 'grabber', 247, -1.76, { yaw: 0 });
-  door(D, 255, -1, { sg: [['Fan station', 'w']] }); room(D, 'Fan station', 256, -6, 10, 12, { ...UTIL, c: 'CARGO', ht: 6, em: 1 });
+  door(D, 241, -1, { sg: [['Exhaust shaft', 'w']] }); room(D, 'Exhaust link', 242, -2, 12, 4, { ...UTIL, c: CG, em: 1 }); mut(D, 'grabber', 247, -1.76, { yaw: 0 });
+  door(D, 255, -1, { sg: [['Fan station', 'w']] }); room(D, 'Fan station', 256, -6, 10, 12, { ...UTIL, c: CG, ht: 6, em: 1 });
   P(D, 'cyl', 261.2, -0.8, 4.4, 0.8, 4.4, 0x3b4046, { y: 5.2, c: 0 }); for (let k = 0; k < 4; k++) bx(D, 261.2, -0.8, 4, 0.06, 0.5, 0x5a5d60, { y: 5.14, c: 0, ry: (k * PI) / 4 }); // the fan, in the ceiling
   ladder(D, 'B1', 263.2, 3.2, 261.2, 2.8, PI / 2, false);
 }
 
+/* ---- the warehouse arm and the chambers off both arms */
+const WAISLE: [number, number][] = [[112, 121], [131, 140], [150, 159], [169, 178]], WCROSS: [number, number][] = [[18, 27], [37, 46], [56, 65], [75, 84]];
+const WPILX: [number, number][] = [[121, 131], [140, 150], [159, 169]], WPILZ: [number, number][] = [[27, 37], [46, 56], [65, 75]];
+function buildWarehouse(B: Floor, D: Floor, T1: Floor): void {
+  /* room and pillar, as limestone is mined for warehouses: aisles 9 m wide north to south, cross aisles between the
+     pillars, the pillars rock left standing, 10 m square. The westmost aisle stops either side of the Cargo office */
+  const WH: RoomOpts = { ...BAY, ht: 9, c: CG, nolamp: 1 };
+  room(D, 'Warehouse', 112, 18, 9, 18, WH); room(D, 'Warehouse', 112, 49, 9, 35, WH);
+  for (const [x0, x1] of WAISLE.slice(1)) room(D, 'Warehouse', x0, 18, x1 - x0, 66, WH);
+  for (const [x0, x1] of WPILX) for (const [z0, z1] of WCROSS) room(D, 'Warehouse', x0, z0, x1 - x0, z1 - z0, WH);
+  /* its own fire compartment: three portals to the nave over its aisles, each with a fire shutter that came down when the
+     power died; the third came down on a pallet, and stopped too low to get under */
+  for (const [x, low] of [[116.5, false], [135.5, false], [154.5, true]] as const) {
+    door(D, x, 16, { kind: 'heavy', fire: true, c: CG, w: 4, sg: [['Warehouse', 'n']], ...(low ? { seal: true, low: true, msg: 'It came down on a pallet. Not far enough off the floor to get under.' } : {}) });
+    if (low) { bx(D, x + 0.6, 16.2, 1.2, 0.14, 1, 0x8a6a44, { c: 0, rz: 0.1 }); bx(D, x + 0.6, 16.2, 1.1, 0.42, 0.9, 0x9a7a52, { y: 0.12, c: 0, rz: 0.08 }); }
+  }
+  for (const z of [17.9, 14.1]) for (const x of [116.5, 135.5, 154.5]) bx(D, x, z, 3.6, 0.01, 0.4, HAZ, { y: 0.012, c: 0 }); // the shutters' lines, kept clear
+  /* racking down the aisles between the pillars, back to back; one run come down */
+  WAISLE.forEach(([x0, x1], i) => WPILZ.forEach(([z0, z1], j) => {
+    const g = (x0 + x1) / 2, a = z0 + 0.5 + (i === 0 && j === 1 ? 3 : 0), b = z1 - 0.5 - (i === 0 && j === 0 ? 1 : 0);
+    rack(D, g - 1.15, a, g - 0.05, b, 6.6, [1.6, 3.2, 4.8]);
+    if (i === 2 && j === 2) {
+      for (let k = 0; k < 4; k++) rod(D, [g + 0.3, 0, a + 1 + k * 2.4], [g + 3.2, 4.2, a + 1.6 + k * 2.4], 0.05, 0x3a5a8a, { box: true });
+      for (let k = 0; k < 16; k++) bx(D, g + rnd(0.7, 3.8), rnd(a, b), rnd(0.6, 1.1), rnd(0.4, 0.9), rnd(0.6, 1.1), pick([0x9a7a52, 0x6e5230, 0x8a6a44]), { ry: rnd(0, PI), rz: rnd(-0.3, 0.3), c: 0 });
+      colT(D, g + 1.9, (a + b) / 2, 3.2, b - a, 1.2);
+    } else rack(D, g + 0.05, a, g + 1.15, b, 6.6, [1.6, 3.2, 4.8]);
+  }));
+  /* sprinklers under the roof down every aisle and cross aisle; the deluge set on the west wall; high bays */
+  for (const [x0, x1] of WAISLE) { const g = (x0 + x1) / 2; bx(D, g, 51, 0.16, 0.16, 66, 0xa8352a, { y: 8.35, c: 0, mat: 'steel' }); for (let z = 19.5; z < 84; z += 3) bx(D, g, z, 0.08, 0.14, 0.08, 0xa8352a, { y: 8.2, c: 0 }); }
+  for (const [z0, z1] of WCROSS) { const c = (z0 + z1) / 2, w = z0 === 37 ? 121 : 112; bx(D, (w + 178) / 2, c, 178 - w, 0.14, 0.14, 0xa8352a, { y: 8.55, c: 0, mat: 'steel' }); /* (not over the office: rock there) */ for (const [a, b] of WAISLE) bx(D, (a + b) / 2, c, 0.9, 0.16, 0.5, DK, { y: 8.2, c: 0, pw: HIGHBAY, pc: CG }); }
+  for (const z of [60.1, 60.9]) bx(D, 112.35, z, 0.22, 8.6, 0.22, 0xa8352a, { c: 0, mat: 'steel' });
+  bx(D, 112.45, 60.5, 0.5, 0.8, 1.2, 0xa8352a, { y: 1.1, mat: 'steel' }); P(D, 'cyl', 112.73, 60.5, 0.8, 0.06, 0.8, 0xa8352a, { y: 1.67, rz: PI / 2, c: 0 });
+  use(D, 'look', 112.9, 60.5, 1.4, { label: 'Deluge valve', text: 'DELUGE. AISLES 1 TO 4. A red wheel, chained and padlocked open-or-shut, the chain cut.' });
+  for (const [z0, z1] of WCROSS.slice(1)) { const c = (z0 + z1) / 2; for (const s of [-3.6, 3.6]) bx(D, 149.5, c + s, 57, 0.01, 0.1, HAZ, { y: 0.012, c: 0 }); }
+  /* dispatch: the product wrapped and weighed, in a mesh cage by the shutters; the stretch wrapper and the scale */
+  mesh(D, 160, 19.5, 168, 19.5, 2.4); mesh(D, 160, 25.5, 165.2, 25.5, 2.4); mesh(D, 160, 19.5, 160, 25.5, 2.4); mesh(D, 168, 19.5, 168, 25.5, 2.4);
+  for (let i = 0; i < 3; i++) for (let j = 0; j < 2; j++) { const x = 161.4 + i * 2.6, z = 21 + j * 2.6; bx(D, x, z, 1.2, 0.14, 1, 0x8a6a44); bx(D, x, z, 1.06, 1.2, 0.96, [0.62, 0.6, 0.56], { y: 0.14 }); }
+  P(D, 'cyl', 172.2, 23, 2.4, 0.12, 2.4, STL); bx(D, 173.6, 23, 0.3, 2.8, 0.3, HAZ);
+  bx(D, 146, 23, 1.6, 0.04, 1.6, STL, { c: 0, mat: 'steel' });
+  for (let i = 0; i < 4; i++) for (let j = 0; j < 2; j++) { bx(D, 141.6 + i * 1.5, 19.6 + j * 1.6, 1, 0.14, 1.2, 0x8a6a44); bx(D, 141.6 + i * 1.5, 19.6 + j * 1.6, 0.95, 1.1, 1.1, 0x6e5230, { y: 0.14 }); }
+  forklift(D, 138, 41.5, false); forklift(D, 166, 61, true); forklift(D, 127, 80, false);
+
+  /* the Cargo office, two storeys: dispatch below, and above it the foreman's lookout, glazed down the cross aisle. Its
+     stair inside, up its west wall */
+  const OF: RoomOpts = { ...OFF, c: CG };
+  room(D, 'Cargo office', 112, 36.5, 8.5, 12, { ...OF, ht: 4.5 }); room(D, 'Cargo office', 112.25, 37.5, 2, 10, { ...OF, ht: 8.2, part: 1 });
+  room(T1, 'Cargo office', 112, 36.5, 8.5, 12, OF);
+  stairs(D, T1, 112.25, 37.5, 2, 10, 's');
+  door(D, 120.75, 44.4, { sg: [['Cargo office', 'e']] }); door(D, 120.75, 39.5, { glass: true, seal: true, w: 3, glaze: 'view' });
+  for (const z of [38.5, 41.2, 43.9]) door(T1, 120.75, z, { glass: true, seal: true, w: 2.6, glaze: 'full' });
+  bx(T1, 114.35, 41.5, 0.06, 1, 8, HAZ, { c: 1 }); bx(T1, 113.25, 37.4, 2.2, 1, 0.06, HAZ, { c: 1 }); // a rail round the stair's well
+  desk(D, 118.6, 41, 1.8, 0.7); item(D, 'batt', 118.2, 41, 0.78); shelf(D, 117.5, 48.1, 3, 0.5);
+  tbl(T1, 119.8, 46.6, 0.8, 2.4, 0x3a3d40); bx(T1, 119, 46.6, 0.45, 0.45, 0.45, 0x2c2f33); // past the windows, clear of them shelf(T1, 117, 36.85, 3, 0.4);
+  /* from Ops' fuel store, a back door: the fuel for Ops' set came in through Cargo, along this passage. The early way in */
+  room(D, 'Fuel passage', 105, 33.5, 6, 2, { ...UTIL, c: CG, ht: 3 });
+  door(D, 104.5, 34.5, { c: 'OPS', sg: [['Cargo', 'e']] }); door(D, 111.5, 34.5, { sg: [['Fuel store', 'w']] });
+  for (const z of [33.75, 35.25]) P(D, 'cyl', 108, z, 0.14, 6, 0.14, 0x6b5a3c, { y: 2.6 - 3, rz: PI / 2, c: 0 });
+
+  /* the freight hall, at the corner of the L where both arms' goods met: the shaft down to Production, a drum winder in a
+     room with a window, the ropes over two sheaves on a steel headframe, the cage hanging in its guides partway down */
+  const FH: RoomOpts = { ...BAY, ht: 18, c: CG, nolamp: 1 };
+  for (const [x0, z0, x1, z1] of [[182, 18, 200, 24], [182, 24, 185, 32], [195, 24, 200, 32], [182, 32, 200, 34.5], [182, 34.5, 183.5, 40], [198.5, 34.5, 200, 40]] as const) room(D, 'Freight hall', x0, z0, x1 - x0, z1 - z0, FH);
+  /* the shaft: open air over it in the hall, and 30 m of it down to where the cage would land; nowhere in either to stand
+     (its foot is covered, so not even there: `part`, a room with no spot of its own) */
+  room(D, 'Freight hall', 185, 24, 10, 8, { ...FH, air: 1, part: 1 });
+  room(B, 'Freight shaft', 185, 24, 10, 8, { ...BAY, ht: 30, dy: -25.5, c: CG, lit: 'none', nolamp: 1, noroam: 1, part: 1 }); colT(B, 190, 28, 10, 8, 0.6);
+  door(D, 191, 16, { w: 4, open: true, sg: [['Freight hall', 'n']] });
+  door(D, 180, 27, { kind: 'heavy', fire: true, c: CG, w: 4, sg: [['Freight hall', 'w']] });
+  /* the collar: a kerb, a barrier all round, the gates on the north side shut */
+  for (const [x0, z0, x1, z1] of [[185, 23.8, 195, 24], [185, 32, 195, 32.2], [184.8, 23.8, 185, 32.2], [195, 23.8, 195.2, 32.2]] as const) {
+    bx(D, (x0 + x1) / 2, (z0 + z1) / 2, x1 - x0, 0.25, z1 - z0, HAZ, { c: 0 });
+    bx(D, (x0 + x1) / 2, (z0 + z1) / 2, Math.max(x1 - x0, 0.06), 1.1, Math.max(z1 - z0, 0.06), 0x4a4d50, { y: 0.25, c: 1 });
+    bx(D, (x0 + x1) / 2, (z0 + z1) / 2, Math.max(x1 - x0, 0.08), 0.08, Math.max(z1 - z0, 0.08), HAZ, { y: 1.35, c: 0 });
+  }
+  for (const L of [[184.6, 23.6], [195.4, 23.6], [184.6, 32.4], [195.4, 32.4]] as const) bx(D, L[0], L[1], 0.45, 16, 0.45, OXIDE, { mat: 'steel' });
+  for (const y of [5.3, 10.6, 15.8]) { bx(D, 190, 23.6, 10.8, 0.3, 0.3, OXIDE, { y, c: 0 }); bx(D, 190, 32.4, 10.8, 0.3, 0.3, OXIDE, { y, c: 0 }); bx(D, 184.6, 28, 0.3, 0.3, 8.8, OXIDE, { y, c: 0 }); bx(D, 195.4, 28, 0.3, 0.3, 8.8, OXIDE, { y, c: 0 }); }
+  for (const [y0, y1] of [[0.3, 5.3], [5.3, 10.6], [10.6, 15.8]]) for (const x of [184.6, 195.4]) { rod(D, [x, y0, 23.6], [x, y1, 32.4], 0.08, OXIDE, { box: true }); rod(D, [x, y1, 23.6], [x, y0, 32.4], 0.08, OXIDE, { box: true }); }
+  bx(D, 190, 28, 11.2, 0.25, 9.2, STL, { y: 16, c: 0, mat: 'grating' });
+  for (const x of [189.2, 190.8]) { P(D, 'cyl', x, 28, 2.8, 0.3, 2.8, DK, { y: 17.6 - 0.15, rz: PI / 2, c: 0 }); bx(D, x, 28, 0.5, 1.1, 0.5, OXIDE, { y: 16.25, c: 0 }); rod(D, [x, 3.25, 37.4], [x, 19, 28.2], 0.03, DK); }
+  /* the shaft below: the cage partway down, its ropes, its guides */
+  for (const x of [189.2, 190.8]) rod(B, [x, 30 + 17.6, 26.6], [x, 19.55, 26.6], 0.03, DK); // heights over the shaft's foot, 30 m down
+  for (const x of [186, 194]) bx(B, x, 28, 0.25, 46, 0.3, 0x8a6a44, { c: 0 });
+  bx(B, 190, 27.75, 7, 0.2, 4.4, GALV, { y: 16, c: 0 }); bx(B, 190, 27.75, 7, 0.15, 4.4, GALV, { y: 19.4, c: 0 });
+  for (const z of [25.6, 29.9]) for (let x = 186.6; x < 193.5; x += 0.3) bx(B, x, z, 0.03, 3.2, 0.03, 0x4a4d50, { y: 16.2, c: 0 });
+  /* the winder room, cut into the hall's south end: the drum, its motor, the brake, the driver's desk at the window */
+  room(D, 'Winder room', 184, 35, 14, 5, { ...UTIL, c: CG, ht: 4 });
+  door(D, 196, 34.75, { sg: [['Winder room', 'n']] }); for (const x of [186.5, 189.5, 192.5]) door(D, x, 34.75, { glass: true, seal: true, w: 2.6, glaze: 'view' });
+  P(D, 'cyl', 190, 37.4, 2.6, 2.6, 2.6, STL, { y: 0.65, rz: PI / 2 }); for (const x of [188.7, 191.3]) P(D, 'cyl', x, 37.4, 3, 0.15, 3, DK, { y: 1.95 - 0.075, rz: PI / 2, c: 0 });
+  bx(D, 194.4, 37.4, 2.6, 0.2, 1.9, DK); bx(D, 194.4, 37.4, 2.4, 1.7, 1.7, 0x3d5a44, { y: 0.2 }); bx(D, 186.5, 37.4, 0.6, 1.4, 2.4, HAZ);
+  bx(D, 188, 35.7, 3, 0.9, 0.8, DK); bx(D, 188, 35.55, 2.6, 0.3, 0.5, 0x15181b, { y: 0.9, c: 0 });
+  for (const [x, z] of [[182.5, 21], [199.5, 21], [182.5, 33], [199.5, 33]]) bx(D, x, z, 1, 0.2, 0.6, [0.08, 0.08, 0.08], { y: 12, c: 0, pw: HIGHBAY, pc: CG }); // on its walls
+
+  /* forklift charging: chargers along the wall, spare batteries, the gantry to swap them, a fan in the roof for the
+     hydrogen they give off. The warmest room off the warehouse */
+  room(D, 'Charging room', 182, 46, 16, 14, { ...UTIL, c: CG, ht: 6 }); door(D, 180, 51, { sg: [['Charging', 'w']] });
+  for (let x = 184; x < 197; x += 2.1) { bx(D, x, 46.225, 0.7, 1.3, 0.45, 0x6e7378, { y: 0.4 }); bx(D, x, 46.46, 0.12, 0.08, 0.02, [0.05, 0.06, 0.05], { y: 1.5, c: 0, pw: [[0.05, 0.06, 0.05], [0.6, 2.4, 1]], pc: CG }); } // on the wall
+  for (const x of [185, 189, 193]) { bx(D, x, 49.4, 1.4, 0.5, 1, DK); bx(D, x, 49.4, 1.1, 0.8, 0.7, 0x283848, { y: 0.5 }); }
+  for (const x of [186.5, 194.5]) { rod(D, [x, 0, 52.5], [x, 4.3, 54.5], 0.1, HAZ, { box: true }); rod(D, [x, 0, 56.5], [x, 4.3, 54.5], 0.1, HAZ, { box: true }); for (const z of [52.6, 56.4]) colT(D, x, z, 0.3, 0.3, 1.2); }
+  bx(D, 190.5, 54.5, 8.6, 0.3, 0.25, HAZ, { y: 4.3, c: 0 }); bx(D, 191, 54.5, 0.4, 0.4, 0.4, DK, { y: 3.9, c: 0 }); rod(D, [191, 3.9, 54.5], [191, 1.6, 54.5], 0.02, DK);
+  P(D, 'cyl', 190, 53, 1.4, 0.5, 1.4, DK, { y: 5.6, c: 0 }); forklift(D, 188, 57, true); forklift(D, 195, 57, true);
+  bx(D, 197.95, 52, 0.1, 0.5, 0.4, 0x3a8a4a, { y: 1.3, c: 0 }); // the eyewash item(D, 'bandage', 197.2, 53, 0.02);
+  /* the vehicle workshop: an inspection pit, a two-post lift with its rams in plain view and a tug left up on it,
+     trailers, a tool cage */
+  room(D, 'Vehicle workshop', 182, 64, 18, 16, { ...UTIL, c: CG, ht: 7 }); door(D, 180, 72, { w: 4, sg: [['Workshop', 'w']] });
+  bx(D, 188, 72, 1.6, 0.01, 10, 0x15181b, { y: 0.006, c: 0 }); for (const s of [-0.85, 0.85]) bx(D, 188 + s, 72, 0.1, 0.03, 10, HAZ, { y: 0.01, c: 0 });
+  for (const z of [69.4, 74.6]) { bx(D, 195.5, z, 0.5, 4.2, 0.5, 0x3a5a8a); P(D, 'cyl', 195.1, z, 0.2, 3.2, 0.2, GALV, { c: 0 }); }
+  bx(D, 195.5, 72, 2.6, 1.1, 1.5, 0x8a3a2a, { y: 1.8, c: 0 }); bx(D, 194.7, 72, 0.9, 0.8, 1.4, 0x2a3036, { y: 2.9, c: 0 }); for (const z of [70.4, 73.6]) rod(D, [195.5, 1.7, z < 72 ? 69.6 : 74.4], [195.5, 1.7, z], 0.06, DK, { box: true });
+  for (let k = 0; k < 4; k++) { bx(D, 186 + k * 3.2, 78.6, 2.6, 0.8, 1.4, k ? STL : 0x8a3a2a, { y: 0.3 }); for (const dx of [-1, 1]) for (const dz of [-0.5, 0.5]) bx(D, 186 + k * 3.2 + dx, 78.6 + dz, 0.2, 0.3, 0.2, DK, { c: 0 }); }
+  mesh(D, 199.6, 65, 199.6, 76, 2.6); item(D, 'batt', 199.1, 70, 0.02);
+  /* the cold store: six weeks of food for 500 came through Cargo. A dock, and either side of it, behind their doors,
+     insulated rooms: the chiller and the freezer. Dead since the power went */
+  const COLD: RoomOpts = { fl: 0x8a9094, wl: 0xd2d6d6, st: 0x9aa0a4, c: CG, ht: 5, mat: { floor: 'epoxy', wall: 'plaster', ceiling: 'plaster' } };
+  room(D, 'Cold store', 120, 88, 52, 4.5, { ...UTIL, c: CG, ht: 7 }); door(D, 139, 86, { w: 4, sg: [['Cold store', 'n']] });
+  room(D, 'Cold store: chiller', 120, 93, 24, 11, COLD); door(D, 132, 92.75, { sg: [['Chiller', 'n']] });
+  room(D, 'Cold store: freezer', 144.5, 93, 27.5, 11, COLD); door(D, 158, 92.75, { sg: [['Freezer', 'n']] });
+  for (let x = 122; x < 142; x += 4) rack(D, x, 102.6, x + 3, 103.7, 3.2, [1.6], 0.8);
+  for (let x = 147; x < 170; x += 4) rack(D, x, 102.6, x + 3, 103.7, 3.2, [1.6], 0.8);
+  for (let x = 123; x < 170; x += 6.8) { bx(D, x, 92.2, 1.8, 0.8, 0.6, GALV, { y: 4.2, c: 0 }); bx(D, x, 91.89, 1.5, 0.5, 0.02, DK, { y: 4.35, c: 0 }); } // on the dock's south wall
+  for (const [x, z] of [[134, 90.5], [151, 91], [163, 90.4]]) blood(D, x, z, 0.5); // what has run out under the doors
+  /* dangerous goods: drums on a bunded floor, gas bottles caged, its own fire door */
+  room(D, 'Dangerous goods', 98, 62, 10, 14, { ...UTIL, c: CG, ht: 5 }); door(D, 110, 69, { sg: [['Dangerous goods', 'e']] });
+  for (const s of [-3.5, 3.5]) bx(D, 102.4 + s, 69, 0.2, 0.25, 11, HAZ, { c: 0 });
+  for (let i = 0; i < 4; i++) for (let j = 0; j < 7; j++) P(D, 'cyl', 100 + i * 1.5, 64.6 + j * 1.45, 0.62, 0.9, 0.62, j % 3 ? 0x2a4a6a : 0x7a3a2a, { c: 0 });
+  colT(D, 102.25, 68.95, 5.2, 9.4, 0.9); // the drums, packed: one block to walk round
+  mesh(D, 106.8, 63, 106.8, 66.4, 2.2); for (let k = 0; k < 8; k++) P(D, 'cyl', 107.4, 63.4 + k * 0.4, 0.24, 1.6, 0.24, k % 2 ? 0x3a6a4a : 0x6a6a6a);
+  bx(D, 99, 74.6, 0.6, 0.8, 0.6, HAZ);
+  /* the air plant: two air handlers the length of the room, the duct up from them into the nave's crown */
+  room(D, 'Cargo air plant', 204, 18, 18, 22, { ...UTIL, c: CG, ht: 10 }); door(D, 211, 16, { w: 4, sg: [['Air plant', 'n']] });
+  for (const x of [207.5, 218.5]) {
+    bx(D, x, 29.5, 3.8, 0.3, 13.2, DK); bx(D, x, 29.5, 3.6, 3.6, 13, GALV, { y: 0.3, mat: 'steel' });
+    for (let z = 24; z < 36; z += 2.6) bx(D, x, z, 3.7, 3.7, 0.12, 0x6e7378, { y: 0.25, c: 0 });
+    bx(D, x, 22.3, 1.4, 6, 1.4, GALV, { y: 3.9, c: 0, mat: 'steel' });
+  }
+  for (const y of [6.2, 6.8]) P(D, 'cyl', 204.14, 29, 0.26, 21.5, 0.26, 0x3a6a6a, { y: y - 10.75, rz: PI / 2, ry: PI / 2, c: 0 }); // along its west wall
+}

@@ -11,7 +11,7 @@ import { World } from '../src/world/world';
 const MEANT: Record<string, string[]> = {
   upper: [
     /* the walkways in the halls they look down into */
-    'Cargo cavern | Tier 1', 'Cargo cavern | Tier 2', 'Cargo cavern | Tier 3', 'Lobby | Lobby gallery', 'Atrium | Gallery',
+    'Cargo cavern | Deck 1', 'Cargo cavern | Deck 2', 'Cargo cavern | Deck 3', 'Lobby | Lobby gallery', 'Atrium | Gallery',
     'Isolation suite | Nurses\' station',
     /* sunk in its hall */
     'Muster court | Muster hall', 'Pool | Pool hall',
