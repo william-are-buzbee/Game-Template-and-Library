@@ -3,7 +3,8 @@ import type { Colour } from '../../core/math';
 import { hex } from '../../core/math';
 import type { Sim } from '../../sim/sim';
 import { camLive, heard, speakerY, voiced } from '../../sim/eyes';
-import type { DoorDef } from '../../content/types';
+import { needs } from '../../sim/movers';
+import type { DoorDef, PlatformDef } from '../../content/types';
 import type { Mat } from '../../content/materials';
 import type { World } from '../../world/world';
 import type { Lighting } from '../../world/light';
@@ -165,13 +166,35 @@ const CAM: Part[] = [
   ['box', 0x2c2f33, 0.05, 0.4, 0.05, 0, 0.28, -0.3], ['box', 0x2c2f33, 0.14, 0.04, 0.14, 0, 0.48, -0.3],
 ];
 
-/** a platform as the first engine drew it: deck, hazard edges, corner posts, a control post; its top at y 0 */
-function platformParts(w: number, h: number): Part[] {
+/** a platform as the first engine drew it: deck, hazard edges, corner posts, a control post; its top at y 0. A hoist's
+ *  car (PlatformDef.look) is caged east and west, open north and south where it is boarded, with a roof and its two
+ *  drive units on it on the mast's side (east), and its controls on a wall; a goods lift's carriage has guards at its
+ *  sides and its controls on a post at a corner */
+function platformParts(w: number, h: number, look?: PlatformDef['look']): Part[] {
   const out: Part[] = [
     ['box', 0x4a4f55, w - 0.12, 0.16, h - 0.12, 0, -0.08, 0], ['box', 0xb89b2e, w - 0.12, 0.02, 0.12, 0, 0.01, h / 2 - 0.14], ['box', 0xb89b2e, w - 0.12, 0.02, 0.12, 0, 0.01, -h / 2 + 0.14],
-    ['box', 0x2c2f33, 0.2, 1.1, 0.2, 0, 0.55, 0], ['box', LIVE, 0.1, 0.1, 0.22, 0, 1.05, 0],
   ];
-  for (const sx of [-1, 1]) for (const sz of [-1, 1]) out.push(['box', 0x8a7a2a, 0.08, 1.1, 0.08, sx * (w / 2 - 0.14), 0.55, sz * (h / 2 - 0.14)]);
+  const X = w / 2 - 0.06, Z = h / 2 - 0.06, GALV = 0x8a8f94, BAR = 0x5a5d60;
+  if (look === 'hoist') {
+    const top = 2.3;
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) out.push(['box', GALV, 0.08, top, 0.08, sx * X, top / 2, sz * Z]);
+    for (const sx of [-1, 1]) {
+      for (const y of [0.05, 1.1, top]) out.push(['box', GALV, 0.06, 0.06, h - 0.12, sx * X, y, 0]);
+      for (let z = -Z + 0.25; z < Z - 0.1; z += 0.25) out.push(['box', BAR, 0.02, top - 0.1, 0.02, sx * X, top / 2, z]);
+    }
+    for (const sz of [-1, 1]) out.push(['box', GALV, w - 0.12, 0.06, 0.06, 0, top, sz * Z]);
+    out.push(['box', 0x6b6e70, w - 0.1, 0.05, h - 0.1, 0, top + 0.05, 0]);
+    for (const sz of [-0.55, 0.55]) out.push(['box', 0x3d5a44, 0.6, 0.55, 0.5, X - 0.4, top + 0.35, sz * h / 2.8], ['cyl', 0x2a2c2e, 0.42, 0.75, 0.42, X - 1.05, top + 0.3, sz * h / 2.8, Math.PI / 2]);
+    for (const sz of [-1, 1]) out.push(['box', 0xc9a227, w - 0.12, 0.05, 0.05, 0, top + 1.05, sz * Z]);
+    out.push(['box', 0x2c2f33, 0.12, 0.5, 0.36, X - 0.1, 1.25, -Z + 0.5], ['box', LIVE, 0.03, 0.1, 0.1, X - 0.17, 1.4, -Z + 0.5]);
+  } else if (look === 'goods') {
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) out.push(['box', 0xc9a227, 0.07, 1.1, 0.07, sx * X, 0.55, sz * Z]);
+    for (const sx of [-1, 1]) for (const y of [0.55, 1.1]) out.push(['box', 0xc9a227, 0.06, 0.06, h - 0.12, sx * X, y, 0]);
+    out.push(['box', 0x2c2f33, 0.2, 1.1, 0.2, -X + 0.25, 0.55, -Z + 0.25], ['box', LIVE, 0.1, 0.1, 0.22, -X + 0.25, 1.05, -Z + 0.25]);
+  } else {
+    out.push(['box', 0x2c2f33, 0.2, 1.1, 0.2, 0, 0.55, 0], ['box', LIVE, 0.1, 0.1, 0.22, 0, 1.05, 0]);
+    for (const sx of [-1, 1]) for (const sz of [-1, 1]) out.push(['box', 0x8a7a2a, 0.08, 1.1, 0.08, sx * (w / 2 - 0.14), 0.55, sz * (h / 2 - 0.14)]);
+  }
   return out;
 }
 
@@ -199,7 +222,7 @@ export class Things {
     const w = sim.world;
     for (const d of sim.doors) {
       if (d.def.glass) { this.pane(d.def); continue; }
-      const D = d.def, long = Math.max(D.x1 - D.x0, D.z1 - D.z0), need = D.kind === 'heavy' ? 2 : 1;
+      const D = d.def, long = Math.max(D.x1 - D.x0, D.z1 - D.z0), need = needs(D);
       const at: [number, number, number] = [(D.x0 + D.x1) / 2, D.y0, (D.z0 + D.z1) / 2], across: [number, number] = D.alongX ? [0, 0.6] : [0.6, 0];
       const rot = D.alongX ? 0 : Math.PI / 2;
       /* where it stands: a sliding leaf `f` of its slide along its length; anything else where its box is */
@@ -253,7 +276,7 @@ export class Things {
     }
     for (const p of sim.platforms) {
       const D = p.def;
-      this.add(parts(platformParts(D.x1 - D.x0, D.z1 - D.z0), matId(D.mat)), m => m.position.set((D.x0 + D.x1) / 2, p.y, (D.z0 + D.z1) / 2));
+      this.add(parts(platformParts(D.x1 - D.x0, D.z1 - D.z0, D.look), matId(D.mat)), m => m.position.set((D.x0 + D.x1) / 2, p.y, (D.z0 + D.z1) / 2));
     }
     /* the cameras: one guarding an armed room has a light, green while it watches and red while it holds you, and none
        without power; one that only records has none. A smashed one hangs askew. Its zones' speakers, with a beacon that turns while the zone sounds. */

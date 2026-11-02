@@ -4,6 +4,7 @@ import { NOTES } from '../content/notes';
 import { Edge, type Nav } from '../world/nav';
 import { power, type Game, type StationState } from './game';
 import { makeFields } from './fields';
+import { needs } from './movers';
 import type { Sim } from './sim';
 import { airFor } from './player';
 
@@ -136,7 +137,7 @@ function passDoor(D: DoorDef, k: number, st: St): boolean {
   const p = pw(st, D.circuit);
   /* fail-secure: locked until a card or code has opened it, which takes power at the time */
   const lockedNow = !!(D.card || D.code) && !st.have.has('d' + k);
-  if (D.kind === 'heavy') return p === 2 && !lockedNow;
+  if (D.kind === 'heavy') return p >= needs(D) && !lockedNow;
   return !lockedNow; // powered it opens for you; dead, it slides by hand
 }
 

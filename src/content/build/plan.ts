@@ -1,5 +1,5 @@
 import { PI, clamp, hex, inPoly, scale3, type Colour } from '../../core/math';
-import type { Rng } from '../../core/rng';
+import { hashString, type Rng } from '../../core/rng';
 import { CAVERN, FITTED, STREET, WALKWAY, DOORWAY, type Mat, type RoomMats } from '../materials';
 import type { Aim, Batt, DoorLook, LadderDef, LitRule, Motes, Shape } from '../types';
 import { LevelBuilder, lid, type Palette, type WallOpts } from './builder';
@@ -78,6 +78,10 @@ export interface DoorOpts {
   kind?: 'light' | 'heavy'; open?: boolean; card?: string; code?: number; stuck?: boolean; seal?: boolean; vent?: boolean; lift?: boolean; glass?: boolean;
   /** fail-safe: its lock lets go when its power dies (DoorDef.failsafe) */
   failsafe?: boolean;
+  /** a fire shutter: heavy, but its drive runs on a backup set's power too (DoorDef.fire) */
+  fire?: boolean;
+  /** come down on something, its foot 0.6 m up: too low to get under (DoorDef.low; sealed) */
+  low?: boolean;
   /** heard this far when it is opened by hand, drawing those at rest to it (DoorDef.loud) */
   loud?: number;
   /** a window's height in a partition (GLAZE): to the floor, at a desk's height, or a strip high up */
@@ -135,7 +139,7 @@ export interface Floor {
   speakers: { zone: string; x: number; z: number; pa?: string }[];
   /** blood on the floor: middle and reach */
   stains: { x: number; z: number; r: number }[];
-  elevs: { x0: number; z0: number; x1: number; z1: number; lo: Floor; hi: Floor; c: string; name: string }[];
+  elevs: { x0: number; z0: number; x1: number; z1: number; lo: Floor; hi: Floor; c: string; name: string; look?: 'hoist' | 'goods' }[];
   stairs: { x0: number; z0: number; x1: number; z1: number; dir: Dir; lo: Floor; hi: Floor; bare: boolean }[];
   /** steps within a floor: from a sunken floor up to the floor's own, or between any two heights over it */
   flights: { x0: number; z0: number; x1: number; z1: number; y0: number; y1: number; n: number; dir: Dir; c: number }[];
@@ -166,6 +170,16 @@ const C = () => {
 };
 export const rnd = (a: number, b?: number): number => C().rng.range(a, b);
 export const pick = <X>(a: readonly X[]): X => C().rng.pick(a);
+/** build f on a random stream of its own (seeded by `seed`), and leave the level's `draws` draws on from where it was.
+ *  A part of a level rebuilt this way leaves everything laid out after it dressed as it was: what follows draws from
+ *  where it always has, whatever the new part takes */
+export function ownStream(seed: string, draws: number, f: () => void): void {
+  const r = C().rng, at = r.state();
+  r.restore(hashString(seed));
+  f();
+  r.restore(at);
+  for (let k = 0; k < draws; k++) r.next();
+}
 export const mul3 = (c: Colour, k: number): Colour => scale3(c, k);
 const col = (c: Col): Colour => hex(c);
 
@@ -495,11 +509,12 @@ export function stairs(lo: Floor, hi: Floor, x: number, z: number, w: number, le
 export function flight(F: Floor, x: number, z: number, w: number, d: number, y0: number, y1: number, dir: Dir, n: number, c = 0x5a5d60): void {
   F.flights.push({ x0: x, z0: z, x1: x + w, z1: z + d, y0, y1, n, dir, c });
 }
-/** a platform that carries you, and cargo, between floor lo and floor hi: w by d from (x, z). Needs power. */
-export function elev(lo: Floor, hi: Floor, x: number, z: number, w: number, d: number, c: string, nm = 'Cargo elevator'): void {
+/** a platform that carries you, and cargo, between floor lo and floor hi: w by d from (x, z). Needs power. `look`: a
+ *  hoist's car or a goods lift's carriage drawn round it (PlatformDef.look); its mast or masts are the level's to put up */
+export function elev(lo: Floor, hi: Floor, x: number, z: number, w: number, d: number, c: string, nm = 'Cargo elevator', look?: 'hoist' | 'goods'): void {
   const R = room(hi, '', x, z, w, d, { noroam: 1, nolamp: 1 });
   R.hole = 'el';
-  lo.elevs.push({ x0: x, z0: z, x1: x + w, z1: z + d, lo, hi, c, name: nm });
+  lo.elevs.push({ x0: x, z0: z, x1: x + w, z1: z + d, lo, hi, c, name: nm, ...(look ? { look } : {}) });
   bx(lo, x + w / 2, z + d / 2, w, 0.01, d, 0xb89b2e, { y: 0.012, c: 0 });
   bx(lo, x + w / 2, z + d / 2, w - 0.4, 0.01, d - 0.4, 0x2a2c2e, { y: 0.016, c: 0 });
 }
@@ -748,7 +763,7 @@ export function finishLevel(start?: [number, number, number], on?: Floor) {
       }
     }
     /* platforms between this floor and the one above */
-    for (const E of F.elevs) b.platform(E.x0, E.z0, E.x1, E.z1, E.lo.y0, E.hi.y0, 0x4a4f55, { name: E.name, circuit: E.c });
+    for (const E of F.elevs) b.platform(E.x0, E.z0, E.x1, E.z1, E.lo.y0, E.hi.y0, 0x4a4f55, { name: E.name, circuit: E.c }, 'steel', E.look);
     /* stairs: a hidden ramp under visible steps, two to the metre */
     for (const S of F.stairs) {
       const ax = S.dir === 'e' || S.dir === 'w', rev = S.dir === 'w' || S.dir === 'n', rise = S.hi.y0 - S.lo.y0;
@@ -923,7 +938,7 @@ function compileDoor(b: LevelBuilder, F: Floor, h: Hung, P: Paint, floorAt: (F: 
   const [sx0, sz0] = at(c - w / 2, mid - th / 2), [sx1, sz1] = at(c + w / 2, mid + th / 2);
   b.door(sx0, sz0, sx1, sz1, 2.4, {
     kind: o.kind ?? 'light', alongX: ns, open: !!o.open, stuck: !!o.stuck, seal: !!o.seal, vent: !!o.vent, lift: !!o.lift,
-    card: o.card, code: o.code, ...(o.failsafe ? { failsafe: true } : {}), ...(o.loud ? { loud: o.loud } : {}), circuit, msg: o.msg, ...(o.glass ? { glass: true } : {}), ...(look ? { look, side } : {}), ...(slides ? { slides } : {}),
+    card: o.card, code: o.code, ...(o.failsafe ? { failsafe: true } : {}), ...(o.fire ? { fire: true } : {}), ...(o.low ? { low: true } : {}), ...(o.loud ? { loud: o.loud } : {}), circuit, msg: o.msg, ...(o.glass ? { glass: true } : {}), ...(look ? { look, side } : {}), ...(slides ? { slides } : {}),
     ...(Math.abs(depth - 2) > 1e-6 ? { depth } : {}),
   });
   if (look) frame(F, P, h, look);

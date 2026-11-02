@@ -212,6 +212,12 @@ export interface DoorDef {
   open: boolean;
   /** jammed part open: crouch under it */
   stuck: boolean;
+  /** come down on something in its way and stopped there, its foot 0.6 m up: too low for anyone to get under (a fire
+   *  shutter on a pallet). Sealed as well, so nothing works it */
+  low?: boolean;
+  /** a fire shutter (world.md §8, Cargo): a heavy door whose drive runs on a backup set's power as well as Gen-1's. It
+   *  came down when its power died, as fire shutters do, and rises at its control once there is power again */
+  fire?: boolean;
   /** welded shut for good */
   seal: boolean;
   /** a loose wall panel, not a door */
@@ -284,6 +290,9 @@ export interface PlatformDef {
   mat: Mat;
   /** worked by a button on a circuit (the station's cargo platforms); without it, it goes when stood on */
   call?: { name: string; circuit: string };
+  /** how it is drawn round its deck, if not as a bare plate: a hoist's car, caged, its motors on its roof (it climbs a
+   *  mast beside it); or a goods lift's carriage, guarded at its sides (it runs between two masts) */
+  look?: 'hoist' | 'goods';
 }
 
 /** a camera: fixed eyes on a circuit (world.md §8). Its lens at (x, y, z), looking along yaw (as the cast: 0 is south,

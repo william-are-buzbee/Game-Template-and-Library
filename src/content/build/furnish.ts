@@ -208,6 +208,26 @@ export function crates(F: Floor, x: number, z: number, n: number): void {
     if (C01() < 0.4) bx(F, x + ox, z + oz, s * 0.8, s * 0.8, s * 0.8, pick(CC), { y: s, loose: true });
   }
 }
+/** pallet racking from (x0, z0) to (x1, z1), running along its longer side, h tall with its beams at `levels`: blue
+ *  frames and orange beams, as Goods inward's, bays of 2.7 m with two pallets to a bay, some of them taken. Solid as one
+ *  block, so nothing walks through it between the frames */
+export function rack(F: Floor, x0: number, z0: number, x1: number, z1: number, h: number, levels: number[], fill = 0.7): void {
+  const alongX = x1 - x0 >= z1 - z0, len = alongX ? x1 - x0 : z1 - z0, dep = alongX ? z1 - z0 : x1 - x0;
+  const n = Math.max(1, Math.round(len / 2.7)), bay = len / n, at = (s: number, t: number): [number, number] => (alongX ? [x0 + s, z0 + t] : [x0 + t, z0 + s]);
+  for (let k = 0; k <= n; k++) for (const t of [0.04, dep - 0.04]) { const [x, z] = at(k * bay, t); bx(F, x, z, 0.08, h, 0.08, 0x3a5a8a, { c: 0, mat: 'steel' }); }
+  for (const y of levels) for (const t of [0.04, dep - 0.04]) { const [x, z] = at(len / 2, t); bx(F, x, z, alongX ? len : 0.07, 0.1, alongX ? 0.07 : len, 0xc8641e, { y: y - 0.1, c: 0, mat: 'steel' }); }
+  for (let k = 0; k < n; k++) for (const y of [0, ...levels]) {
+    if (rnd(0, 1) > fill) continue;
+    const [x, z] = at((k + 0.5) * bay, dep / 2);
+    for (const o of [-0.62, 0.62]) {
+      if (rnd(0, 1) < 0.18) continue;
+      const [px, pz] = alongX ? [x + o, z] : [x, z + o];
+      bx(F, px, pz, alongX ? 1 : 1.2, 0.14, alongX ? 1.2 : 1, 0x8a6a44, { y, c: 0 });
+      bx(F, px, pz, alongX ? 0.95 : 1.1, rnd(0.5, 1.1), alongX ? 1.1 : 0.95, pick([0x9a7a52, 0x8a6e4a, 0x6e5230, 0xa08a62]), { y: y + 0.14, c: 0 });
+    }
+  }
+  colT(F, (x0 + x1) / 2, (z0 + z1) / 2, x1 - x0, z1 - z0, h);
+}
 export function forklift(F: Floor, x: number, z: number, ns: boolean): void {
   const a = (ox: number, oz: number, sx: number, sy: number, sz: number, c: number, y = 0, cl = false) => bx(F, x + (ns ? ox : oz), z + (ns ? oz : ox), ns ? sx : sz, sy, ns ? sz : sx, c, { y, c: cl ? 1 : 0, mat: 'steel' });
   a(0, 0, 1.2, 0.9, 2, 0xc9a227, 0.25, true); a(0, -0.3, 1.1, 0.08, 1.1, 0x2a2c2e, 2, false);

@@ -60,13 +60,19 @@ const THICK = 0.2;
 export function makeDoor(w: World, def: DoorDef): Door {
   const dyn: Dyn = { kind: 'mover', id: w.newId(), x0: def.x0, y0: def.y0, z0: def.z0, x1: def.x1, y1: def.y1, z1: def.z1, mat: def.mat, ...(def.glass ? { glass: true } : {}) };
   w.dyn.push(dyn);
-  const d: Door = { def, dyn, t: def.stuck ? STUCK : def.open ? 1 : 0, open: def.open, unlocked: false, hold: 0, down: false, drawing: 0, pass: 0, beep: 0, beepOk: false };
+  const d: Door = { def, dyn, t: def.low ? LOW : def.stuck ? STUCK : def.open ? 1 : 0, open: def.open, unlocked: false, hold: 0, down: false, drawing: 0, pass: 0, beep: 0, beepOk: false };
   Object.assign(d.dyn, doorBox(d, d.t));
   return d;
 }
 
 /** how far a jammed door stands open: enough to crouch under */
 const STUCK = 0.45; // its foot 1.07 m up: room for a crouch (1 m)
+/** how far one come down on something stands open: not enough */
+const LOW = 0.25; // its foot 0.6 m up
+
+/** the power a door needs to move under its own drive: a heavy door Gen-1's (a fire shutter's runs on a backup set's
+ *  too); a light door any */
+export const needs = (D: DoorDef): 1 | 2 => (D.kind === 'heavy' && !D.fire ? 2 : 1);
 
 /** put a platform's box where its top is (after a load) */
 export function placePlatform(p: Platform): void {
@@ -106,7 +112,8 @@ export function occupied(d: Door, riders: Rider[]): boolean {
 }
 
 /** The door rules (world.md §4), as the first engine ran them, each step:
- *  - a heavy door shuts when it loses full power, and otherwise stays as its button left it;
+ *  - a heavy door shuts when it loses the power it needs (Gen-1's; a fire shutter's, any), and otherwise stays as its
+ *    button left it;
  *  - a light door on a live circuit opens by itself for anything that moves (`movers`: the player, later the cast),
  *    holds, and shuts behind it; locked, it stays shut; on a dead circuit it stays as a hand slid it;
  *  - welded, jammed and panel doors, and the lift's, keep their own state.
@@ -121,7 +128,7 @@ export function updateDoor(d: Door, riders: Rider[], movers: { x: number; y: num
   }
   if (!(D.stuck || D.vent || D.seal || D.lift)) {
     if (D.kind === 'heavy') {
-      if (power < 2 && d.open && !occupied(d, riders)) { d.open = false; moved = true; }
+      if (power < needs(D) && d.open && !occupied(d, riders)) { d.open = false; moved = true; }
     } else if (power > 0) {
       if (locked(d)) {
         if (d.open && d.pass <= 0 && !occupied(d, riders)) { d.open = false; moved = true; }
@@ -133,7 +140,7 @@ export function updateDoor(d: Door, riders: Rider[], movers: { x: number; y: num
       }
     }
   }
-  const want = D.stuck ? STUCK : d.open ? 1 : 0;
+  const want = D.low ? LOW : D.stuck ? STUCK : d.open ? 1 : 0;
   let t = d.t + Math.max(-DOOR_SPEED * dt, Math.min(DOOR_SPEED * dt, want - d.t));
   if (t < d.t && riders.some(r => overlaps(doorBox(d, t), r.dyn))) t = d.t;
   d.t = t;

@@ -4,7 +4,7 @@ import { field as fieldFrom } from '../../world/nav';
 import { push } from '../body';
 import { soundRules, staffField } from '../fields';
 import { power, sfx } from '../game';
-import { occupied, type Door } from '../movers';
+import { needs, occupied, type Door } from '../movers';
 import { riders, type Sim } from '../sim';
 import type { Mutant } from '../cast';
 import { away, chargeMove, chase, fieldTo, follow, go, own, rnd, roam, step_, turnTo, turnToward, wander, type Wander } from './move';
@@ -326,7 +326,7 @@ export function husk(sim: Sim, m: Mutant): void {
         turnToward(m, Math.atan2(at.x - m.x, at.z - m.z), 4);
         if ((m.st -= dt) > 0) break;
         if (occupied(d, riders(sim))) { m.st = 0.5; break; }
-        if (d.def.kind !== 'heavy' || power(sim.game, d.def.circuit) >= 2) { d.open = false; sfx(sim.game, 'door', { ...at, y: d.def.y0 }); }
+        if (power(sim.game, d.def.circuit) >= needs(d.def)) { d.open = false; sfx(sim.game, 'door', { ...at, y: d.def.y0 }); }
         done(rnd(sim, 3, 6));
         break;
       }
