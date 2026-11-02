@@ -39,10 +39,11 @@ describe('feet', () => {
     expect(underfoot(w, box.x, box.y + box.sy, box.z)).toBe('steel');
     const tb = bed(), c = tb.loose.all[0].dyn;
     expect(underfoot(tb.world, (c.x0 + c.x1) / 2, c.y1, (c.z0 + c.z1) / 2)).toBe('wood');
-    /* the cargo cavern is dug: sprayed rock all round, underfoot as on its walls; a step onto something in it that says
-       nothing of itself is its floor, not grating */
-    const R = w.def.rooms.find(r => r.name === 'Cargo cavern')!;
-    expect(R.mat).toMatchObject({ floor: 'shot', wall: 'shot', ceiling: 'shot' });
+    /* the cargo cavern is dug: sprayed rock over a poured floor, as the link in to it is; a step onto something in it
+       that says nothing of itself is its floor, not grating */
+    const R = w.def.rooms.find(r => r.name === 'Cargo cavern')!, link = w.def.rooms.find(r => r.name === 'Cargo link')!;
+    expect(R.mat).toMatchObject({ floor: 'concrete', wall: 'shot', ceiling: 'shot' });
+    expect(R.floor).toEqual(link.floor);
   });
 
   it('with surface detail off, are guessed as they were before materials', () => {

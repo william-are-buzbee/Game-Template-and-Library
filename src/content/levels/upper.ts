@@ -1260,8 +1260,9 @@ function buildCargo(B: Floor, D: Floor, T1: Floor, T2: Floor, T3: Floor): void {
   });
 }
 
-/** Cargo's dug places floored as they are walled: sprayed rock underfoot, flat, the walls' colour */
-const DUGF = (o: RoomOpts): RoomOpts => ({ ...o, fl: o.wl, mat: { ...o.mat, floor: 'shot' } });
+/** Cargo's dug places floored as the link in from Security is: a poured floor under the sprayed rock, in its grey (the
+ *  owner's call; the coated floor read too clean) */
+const POURED = (o: RoomOpts): RoomOpts => ({ ...o, fl: UTIL.fl, mat: { ...o.mat, floor: 'concrete' } });
 const CG = 'CARGO', STL = 0x5a5d60, FRAME = 0x41566e, HAZ = 0xc9a227, DK = 0x2a2c2e, GALV = 0x8a8f94, CONC = 0x77736c, SPRAY = 0x5a5248, OXIDE = 0x6a2e28;
 const PUS: Colour = [2.6, 0.9, 0.55], HIGHBAY: [Colour, Colour] = [[0.08, 0.08, 0.08], [2.9, 2.85, 2.6]];
 const FLESH = [0xb08572, 0x8c4a44, 0xb4826e, 0xa06854], BONE = 0xddd6c0;
@@ -1299,7 +1300,7 @@ function pustules(F: Floor, x: number, z: number, r = 5.5): void {
 /* ---- the nave: today's hall kept at its width (rock this deep is spanned at about 30 m) and made taller, its walls
    straight to the crane rails and the arch to 28 m */
 function buildNave(D: Floor, T1: Floor, T2: Floor, T3: Floor): void {
-  const cav = cave(D, 'Cargo cavern', 110, -14, 130, 28, { ...DUGF(BAY), ht: 20, c: CG, lit: 'main', em: 1, motes: 'flesh' }); arch(D, cav, 8); roughen(D, cav, 0, 1.2);
+  const cav = cave(D, 'Cargo cavern', 110, -14, 130, 28, { ...POURED(BAY), ht: 20, c: CG, lit: 'main', em: 1, motes: 'flesh' }); arch(D, cav, 8); roughen(D, cav, 0, 1.2);
   /* receiving's office, in the rock north of receiving: the backup set, and the manifest on the desk */
   room(D, 'Receiving office', 111, -24, 10, 8, { ...OFF, c: CG }); door(D, 114.4, -15, { sg: [['Receiving office', 'n']] }); // (a single door's 1.2 m on the quarter-metre grid: off the whole metre)
   desk(D, 116, -23.2, 1.8, 0.7); note(D, 'manifest', 115.4, -23.3, 0.78); item(D, 'batt', 116.7, -23.2, 0.78); item(D, 'bandage', 111.8, -17, 0.02);
@@ -1481,14 +1482,14 @@ function buildNave(D: Floor, T1: Floor, T2: Floor, T3: Floor): void {
 
   /* the parts crib, cut into the north wall off the second deck: spares behind mesh and a counter. The Gen-1 fuse is
      filed here */
-  room(T2, 'Parts crib', 160, -26, 12, 10, { ...DUGF(UTIL), c: CG }); door(T2, 166.4, -15, { sg: [['Parts crib', 's']] });
+  room(T2, 'Parts crib', 160, -26, 12, 10, { ...POURED(UTIL), c: CG }); door(T2, 166.4, -15, { sg: [['Parts crib', 's']] });
   mesh(T2, 160, -17.6, 163.4, -17.6, 3); mesh(T2, 167.4, -17.6, 171.96, -17.6, 3); // its gate open, between the mesh and the counter bx(T2, 166, -17.6, 2.8, 1.05, 0.6, DK); mesh(T2, 164.6, -17.6, 167.4, -17.6, 1.4, 1.6);
   for (const x of [161.6, 164.6, 167.6, 170.6]) rack(T2, x - 1.2, -25.8, x + 1.2, -24.8, 2.6, [1.3, 2.1], 0.9);
   bx(T2, 166, -21.6, 1.1, 0.6, 1.1, 0x6b5a3c); item(T2, 'fuse', 166, -21.6, 0.6); item(T2, 'batt', 163, -19, 0.02, 2);
 
   /* east: the link to the exhaust shaft, and the top of ladderway B */
-  door(D, 241, -1, { sg: [['Exhaust shaft', 'w']] }); room(D, 'Exhaust link', 242, -2, 12, 4, { ...DUGF(UTIL), c: CG, em: 1 }); mut(D, 'grabber', 247, -1.76, { yaw: 0 });
-  door(D, 255, -1, { sg: [['Fan station', 'w']] }); room(D, 'Fan station', 256, -6, 10, 12, { ...DUGF(UTIL), c: CG, ht: 6, em: 1 });
+  door(D, 241, -1, { sg: [['Exhaust shaft', 'w']] }); room(D, 'Exhaust link', 242, -2, 12, 4, { ...POURED(UTIL), c: CG, em: 1 }); mut(D, 'grabber', 247, -1.76, { yaw: 0 });
+  door(D, 255, -1, { sg: [['Fan station', 'w']] }); room(D, 'Fan station', 256, -6, 10, 12, { ...POURED(UTIL), c: CG, ht: 6, em: 1 });
   P(D, 'cyl', 261.2, -0.8, 4.4, 0.8, 4.4, 0x3b4046, { y: 5.2, c: 0 }); for (let k = 0; k < 4; k++) bx(D, 261.2, -0.8, 4, 0.06, 0.5, 0x5a5d60, { y: 5.14, c: 0, ry: (k * PI) / 4 }); // the fan, in the ceiling
   ladder(D, 'B1', 263.2, 3.2, 261.2, 2.8, PI / 2, false);
 }
@@ -1499,7 +1500,7 @@ const WPILX: [number, number][] = [[121, 131], [140, 150], [159, 169]], WPILZ: [
 function buildWarehouse(B: Floor, D: Floor, T1: Floor): void {
   /* room and pillar, as limestone is mined for warehouses: aisles 9 m wide north to south, cross aisles between the
      pillars, the pillars rock left standing, 10 m square. The westmost aisle stops either side of the Cargo office */
-  const WH: RoomOpts = { ...DUGF(BAY), ht: 9, c: CG, nolamp: 1 };
+  const WH: RoomOpts = { ...POURED(BAY), ht: 9, c: CG, nolamp: 1 };
   room(D, 'Warehouse', 112, 18, 9, 18, WH); room(D, 'Warehouse', 112, 49, 9, 35, WH);
   for (const [x0, x1] of WAISLE.slice(1)) room(D, 'Warehouse', x0, 18, x1 - x0, 66, WH);
   for (const [x0, x1] of WPILX) for (const [z0, z1] of WCROSS) room(D, 'Warehouse', x0, z0, x1 - x0, z1 - z0, WH);
@@ -1547,18 +1548,18 @@ function buildWarehouse(B: Floor, D: Floor, T1: Floor): void {
   desk(D, 118.6, 41, 1.8, 0.7); item(D, 'batt', 118.2, 41, 0.78); shelf(D, 117.5, 48.1, 3, 0.5);
   tbl(T1, 119.8, 46.6, 0.8, 2.4, 0x3a3d40); bx(T1, 119, 46.6, 0.45, 0.45, 0.45, 0x2c2f33); // past the windows, clear of them shelf(T1, 117, 36.85, 3, 0.4);
   /* from Ops' fuel store, a back door: the fuel for Ops' set came in through Cargo, along this passage. The early way in */
-  room(D, 'Fuel passage', 105, 33.5, 6, 2, { ...DUGF(UTIL), c: CG, ht: 3 });
+  room(D, 'Fuel passage', 105, 33.5, 6, 2, { ...POURED(UTIL), c: CG, ht: 3 });
   door(D, 104.5, 34.5, { c: 'OPS', sg: [['Cargo', 'e']] }); door(D, 111.5, 34.5, { sg: [['Fuel store', 'w']] });
   for (const z of [33.75, 35.25]) P(D, 'cyl', 108, z, 0.14, 6, 0.14, 0x6b5a3c, { y: 2.6 - 3, rz: PI / 2, c: 0 });
 
   /* the freight hall, at the corner of the L where both arms' goods met: the shaft down to Production, a drum winder in a
      room with a window, the ropes over two sheaves on a steel headframe, the cage hanging in its guides partway down */
-  const FH: RoomOpts = { ...DUGF(BAY), ht: 18, c: CG, nolamp: 1 };
+  const FH: RoomOpts = { ...POURED(BAY), ht: 18, c: CG, nolamp: 1 };
   for (const [x0, z0, x1, z1] of [[182, 18, 200, 24], [182, 24, 185, 32], [195, 24, 200, 32], [182, 32, 200, 34.5], [182, 34.5, 183.5, 40], [198.5, 34.5, 200, 40]] as const) room(D, 'Freight hall', x0, z0, x1 - x0, z1 - z0, FH);
   /* the shaft: open air over it in the hall, and 30 m of it down to where the cage would land; nowhere in either to stand
      (its foot is covered, so not even there: `part`, a room with no spot of its own) */
   room(D, 'Freight hall', 185, 24, 10, 8, { ...FH, air: 1, part: 1 });
-  room(B, 'Freight shaft', 185, 24, 10, 8, { ...DUGF(BAY), ht: 30, dy: -25.5, c: CG, lit: 'none', nolamp: 1, noroam: 1, part: 1 }); colT(B, 190, 28, 10, 8, 0.6);
+  room(B, 'Freight shaft', 185, 24, 10, 8, { ...POURED(BAY), ht: 30, dy: -25.5, c: CG, lit: 'none', nolamp: 1, noroam: 1, part: 1 }); colT(B, 190, 28, 10, 8, 0.6);
   door(D, 191, 16, { w: 4, open: true, sg: [['Freight hall', 'n']] });
   door(D, 180, 27, { kind: 'heavy', fire: true, c: CG, w: 4, sg: [['Freight hall', 'w']] });
   /* the collar: a kerb, a barrier all round, the gates on the north side shut */
@@ -1578,7 +1579,7 @@ function buildWarehouse(B: Floor, D: Floor, T1: Floor): void {
   bx(B, 190, 27.75, 7, 0.2, 4.4, GALV, { y: 16, c: 0 }); bx(B, 190, 27.75, 7, 0.15, 4.4, GALV, { y: 19.4, c: 0 });
   for (const z of [25.6, 29.9]) for (let x = 186.6; x < 193.5; x += 0.3) bx(B, x, z, 0.03, 3.2, 0.03, 0x4a4d50, { y: 16.2, c: 0 });
   /* the winder room, cut into the hall's south end: the drum, its motor, the brake, the driver's desk at the window */
-  room(D, 'Winder room', 184, 35, 14, 5, { ...DUGF(UTIL), c: CG, ht: 4 });
+  room(D, 'Winder room', 184, 35, 14, 5, { ...POURED(UTIL), c: CG, ht: 4 });
   door(D, 196, 34.75, { sg: [['Winder room', 'n']] }); for (const x of [186.5, 189.5, 192.5]) door(D, x, 34.75, { glass: true, seal: true, w: 2.6, glaze: 'view' });
   P(D, 'cyl', 190, 37.4, 2.6, 2.6, 2.6, STL, { y: 0.65, rz: PI / 2 }); for (const x of [188.7, 191.3]) P(D, 'cyl', x, 37.4, 3, 0.15, 3, DK, { y: 1.95 - 0.075, rz: PI / 2, c: 0 });
   bx(D, 194.4, 37.4, 2.6, 0.2, 1.9, DK); bx(D, 194.4, 37.4, 2.4, 1.7, 1.7, 0x3d5a44, { y: 0.2 }); bx(D, 186.5, 37.4, 0.6, 1.4, 2.4, HAZ);
@@ -1587,7 +1588,7 @@ function buildWarehouse(B: Floor, D: Floor, T1: Floor): void {
 
   /* forklift charging: chargers along the wall, spare batteries, the gantry to swap them, a fan in the roof for the
      hydrogen they give off. The warmest room off the warehouse */
-  room(D, 'Charging room', 182, 46, 16, 14, { ...DUGF(UTIL), c: CG, ht: 6 }); door(D, 180, 51, { sg: [['Charging', 'w']] });
+  room(D, 'Charging room', 182, 46, 16, 14, { ...POURED(UTIL), c: CG, ht: 6 }); door(D, 180, 51, { sg: [['Charging', 'w']] });
   for (let x = 184; x < 197; x += 2.1) { bx(D, x, 46.225, 0.7, 1.3, 0.45, 0x6e7378, { y: 0.4 }); bx(D, x, 46.46, 0.12, 0.08, 0.02, [0.05, 0.06, 0.05], { y: 1.5, c: 0, pw: [[0.05, 0.06, 0.05], [0.6, 2.4, 1]], pc: CG }); } // on the wall
   for (const x of [185, 189, 193]) { bx(D, x, 49.4, 1.4, 0.5, 1, DK); bx(D, x, 49.4, 1.1, 0.8, 0.7, 0x283848, { y: 0.5 }); }
   for (const x of [186.5, 194.5]) { rod(D, [x, 0, 52.5], [x, 4.3, 54.5], 0.1, HAZ, { box: true }); rod(D, [x, 0, 56.5], [x, 4.3, 54.5], 0.1, HAZ, { box: true }); for (const z of [52.6, 56.4]) colT(D, x, z, 0.3, 0.3, 1.2); }
@@ -1596,7 +1597,7 @@ function buildWarehouse(B: Floor, D: Floor, T1: Floor): void {
   bx(D, 197.95, 52, 0.1, 0.5, 0.4, 0x3a8a4a, { y: 1.3, c: 0 }); // the eyewash item(D, 'bandage', 197.2, 53, 0.02);
   /* the vehicle workshop: an inspection pit, a two-post lift with its rams in plain view and a tug left up on it,
      trailers, a tool cage */
-  room(D, 'Vehicle workshop', 182, 64, 18, 16, { ...DUGF(UTIL), c: CG, ht: 7 }); door(D, 180, 72, { w: 4, sg: [['Workshop', 'w']] });
+  room(D, 'Vehicle workshop', 182, 64, 18, 16, { ...POURED(UTIL), c: CG, ht: 7 }); door(D, 180, 72, { w: 4, sg: [['Workshop', 'w']] });
   bx(D, 188, 72, 1.6, 0.01, 10, 0x15181b, { y: 0.006, c: 0 }); for (const s of [-0.85, 0.85]) bx(D, 188 + s, 72, 0.1, 0.03, 10, HAZ, { y: 0.01, c: 0 });
   for (const z of [69.4, 74.6]) { bx(D, 195.5, z, 0.5, 4.2, 0.5, 0x3a5a8a); P(D, 'cyl', 195.1, z, 0.2, 3.2, 0.2, GALV, { c: 0 }); }
   bx(D, 195.5, 72, 2.6, 1.1, 1.5, 0x8a3a2a, { y: 1.8, c: 0 }); bx(D, 194.7, 72, 0.9, 0.8, 1.4, 0x2a3036, { y: 2.9, c: 0 }); for (const z of [70.4, 73.6]) rod(D, [195.5, 1.7, z < 72 ? 69.6 : 74.4], [195.5, 1.7, z], 0.06, DK, { box: true });
@@ -1605,7 +1606,7 @@ function buildWarehouse(B: Floor, D: Floor, T1: Floor): void {
   /* the cold store: six weeks of food for 500 came through Cargo. A dock, and either side of it, behind their doors,
      insulated rooms: the chiller and the freezer. Dead since the power went */
   const COLD: RoomOpts = { fl: 0x8a9094, wl: 0xd2d6d6, st: 0x9aa0a4, c: CG, ht: 5, mat: { floor: 'epoxy', wall: 'plaster', ceiling: 'plaster' } };
-  room(D, 'Cold store', 120, 88, 52, 4.5, { ...DUGF(UTIL), c: CG, ht: 7 }); door(D, 139, 86, { w: 4, sg: [['Cold store', 'n']] });
+  room(D, 'Cold store', 120, 88, 52, 4.5, { ...POURED(UTIL), c: CG, ht: 7 }); door(D, 139, 86, { w: 4, sg: [['Cold store', 'n']] });
   room(D, 'Cold store: chiller', 120, 93, 24, 11, COLD); door(D, 132, 92.75, { sg: [['Chiller', 'n']] });
   room(D, 'Cold store: freezer', 144.5, 93, 27.5, 11, COLD); door(D, 158, 92.75, { sg: [['Freezer', 'n']] });
   for (let x = 122; x < 142; x += 4) rack(D, x, 102.6, x + 3, 103.7, 3.2, [1.6], 0.8);
@@ -1613,14 +1614,14 @@ function buildWarehouse(B: Floor, D: Floor, T1: Floor): void {
   for (let x = 123; x < 170; x += 6.8) { bx(D, x, 92.2, 1.8, 0.8, 0.6, GALV, { y: 4.2, c: 0 }); bx(D, x, 91.89, 1.5, 0.5, 0.02, DK, { y: 4.35, c: 0 }); } // on the dock's south wall
   for (const [x, z] of [[134, 90.5], [151, 91], [163, 90.4]]) blood(D, x, z, 0.5); // what has run out under the doors
   /* dangerous goods: drums on a bunded floor, gas bottles caged, its own fire door */
-  room(D, 'Dangerous goods', 98, 62, 10, 14, { ...DUGF(UTIL), c: CG, ht: 5 }); door(D, 110, 69, { sg: [['Dangerous goods', 'e']] });
+  room(D, 'Dangerous goods', 98, 62, 10, 14, { ...POURED(UTIL), c: CG, ht: 5 }); door(D, 110, 69, { sg: [['Dangerous goods', 'e']] });
   for (const s of [-3.5, 3.5]) bx(D, 102.4 + s, 69, 0.2, 0.25, 11, HAZ, { c: 0 });
   for (let i = 0; i < 4; i++) for (let j = 0; j < 7; j++) P(D, 'cyl', 100 + i * 1.5, 64.6 + j * 1.45, 0.62, 0.9, 0.62, j % 3 ? 0x2a4a6a : 0x7a3a2a, { c: 0 });
   colT(D, 102.25, 68.95, 5.2, 9.4, 0.9); // the drums, packed: one block to walk round
   mesh(D, 106.8, 63, 106.8, 66.4, 2.2); for (let k = 0; k < 8; k++) P(D, 'cyl', 107.4, 63.4 + k * 0.4, 0.24, 1.6, 0.24, k % 2 ? 0x3a6a4a : 0x6a6a6a);
   bx(D, 99, 74.6, 0.6, 0.8, 0.6, HAZ);
   /* the air plant: two air handlers the length of the room, the duct up from them into the nave's crown */
-  room(D, 'Cargo air plant', 204, 18, 18, 22, { ...DUGF(UTIL), c: CG, ht: 10 }); door(D, 211, 16, { w: 4, sg: [['Air plant', 'n']] });
+  room(D, 'Cargo air plant', 204, 18, 18, 22, { ...POURED(UTIL), c: CG, ht: 10 }); door(D, 211, 16, { w: 4, sg: [['Air plant', 'n']] });
   for (const x of [207.5, 218.5]) {
     bx(D, x, 29.5, 3.8, 0.3, 13.2, DK); bx(D, x, 29.5, 3.6, 3.6, 13, GALV, { y: 0.3, mat: 'steel' });
     for (let z = 24; z < 36; z += 2.6) bx(D, x, z, 3.7, 3.7, 0.12, 0x6e7378, { y: 0.25, c: 0 });

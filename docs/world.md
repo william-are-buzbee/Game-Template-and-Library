@@ -981,8 +981,9 @@ ladderway B (x 241) and Ops' rooms west of x 110. Where the build differs from t
   shutter is a heavy door whose drive runs on a backup set's power too (`DoorDef.fire`): once Cargo's set runs, each
   rises at its control. One came down on a pallet and stopped 0.6 m off the floor, too low to get under (`DoorDef.low`,
   sealed), with the nest's red showing beneath it.
-- **Floored as walled.** Cargo's dug places (the nave, the warehouse, the freight hall, the chambers) have the walls'
-  shotcrete underfoot, flat, in the walls' colour: the coated floor they had read too clean (the owner's call).
+- **Floored as the link is.** Cargo's dug places (the nave, the warehouse, the freight hall, the chambers) have the
+  poured floor of the link in from Security, in its grey, under their sprayed rock: the coated floor they had read too
+  clean (the owner's call).
 - **The early expanse.** Ops' generator burned fuel that came in through Cargo, so the fuel store has a back door, along
   a passage, onto the warehouse. The warehouse is an early place, dark and enormous, and the nave stays behind the
   shutters and Operations' card until last. The checker holds it: ladderway B still wants the manager's card, Cargo's
