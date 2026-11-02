@@ -1,3 +1,45 @@
+# Handoff: Cargo, made larger
+
+For whoever picks this up in a new session. The branch is `claude/sleepy-lovelace-4v64em`. The design and what was built
+are world.md §8, *Cargo, made larger* and *Cargo, sketched, and built*; the sketch is `mockups/cargo.html`. The handoffs
+before this one are kept below: their rules for the layout, their tools, asks and open items still stand.
+
+## Where things are
+
+- `src/content/levels/upper.ts`: `buildCargo` (on its own random stream), `buildNave` (the cavern, receiving's office
+  and the backup set, the decks and their stairs, the goods lift and the hoist, the crane, the nest, the fan wall, the
+  plenum and the mother, the parts crib, the exhaust link) and `buildWarehouse` (the warehouse's strips and shutters, the
+  Cargo office, the fuel passage, the freight hall and shaft, charging, the workshop, the cold store, dangerous goods,
+  the air plant).
+- Fire shutters: `DoorDef.fire` and `low` (`content/types.ts`); `needs()` in `sim/movers.ts` is the power a door needs to
+  move itself, used wherever the heavy-door rule was. Tested in `test/puzzle.test.ts`.
+- `PlatformDef.look` and `platformParts` (`present/render/things.ts`): the hoist's car and the goods lift's carriage.
+- `rack()` in `content/build/furnish.ts`; `ownStream()` in `content/build/plan.ts`.
+- Fixed ladders, climbed: `ClimbDef` (`LevelDef.climbs`), `climb()` in `content/build/plan.ts` (a hatch in the floor
+  above, railed but on its way off, and the rungs and cage), `ladderAt` and `LADDER` in `sim/player.ts`, `Edge.Climb`
+  and `Rules.climb` in `world/nav.ts`, and in `sim/reach.ts`. Tested in `test/puzzle.test.ts` (up, off, on, down).
+- Saves are version 25 (Cargo's doors, platforms and cast in a new order; the player's `climbing`).
+
+## What was learned
+
+- **A single door's middle goes off the whole metre** (114.4, not 114): its 1.2 m on the quarter-metre grid carves only
+  1 m when centred on a whole metre, too narrow for a spot, and the nav says the room past it is out of reach.
+- **The placement test wants every prop held**: on the floor, against a wall or ceiling, or touching something held, and
+  none partly in rock along a wall (a lump on a wall: its face exactly at the wall, `ICO` for an icosahedron's reach).
+  Hangers into a ceiling are fine; a stub into a wall is not.
+- **Every room needs a spot, and every spot must be reachable**: a pit (the freight shaft, a room on the basement floor
+  with `dy`) is `part` and its foot covered by a collider; a corner boxed in by furniture is a fault.
+- **A level part rebuilt without moving the rest**: `ownStream(seed, draws, f)`, with `draws` what the old part took
+  (count it by the stream's state before and after: each draw adds 0x6d2b79f5).
+- **Screenshots under software rendering** need about 15 s after a teleport for the eye to adapt, and the game drops to a
+  few hundred pixels wide: small glows far off do not show. Serve a build (`vite build`, `vite preview`), as below.
+
+## Open (for the owner)
+
+- The manifest's and the chief of security's notes had their facts moved (the fuse's place, platforms to the hoist,
+  rungs to decks): lore, for the owner to reword.
+- world.md §8, *Cargo, sketched, and built*, **Open**.
+
 # Handoff: Security at the station's size, item 9
 
 For whoever picks this up in a new session. The branch is `claude/practical-maxwell-ajw5zk`, on top of

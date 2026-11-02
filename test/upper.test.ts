@@ -34,7 +34,7 @@ describe('the upper station', () => {
     const r = reach(sim);
     const named = new Set(level.rooms.map(R => R.name).filter(Boolean));
     const missing = [...named].filter(n => !r.rooms.has(n)).sort();
-    expect(missing).toEqual(['Operations room', 'Phase 2']); // the operations room, its door grown shut
+    expect(missing).toEqual(['Freight shaft', 'Operations room', 'Phase 2']); // the operations room, its door grown shut; the freight shaft's foot, fenced off 30 m down
   });
 
   it('walls what the 2 m layout left open: room 4\'s corner, the isolation hall\'s top, the upper corridor\'s side', () => {
@@ -99,7 +99,7 @@ describe('the upper station', () => {
   });
 
   it('looks out over the bay through glass: it stops you, and sight goes through it', () => {
-    const s = makeSim(level, { seed: 1, station: STATION }), panes = s.doors.filter(d => d.def.glass && d.def.circuit === 'CARGO');
+    const s = makeSim(level, { seed: 1, station: STATION }), panes = s.doors.filter(d => d.def.glass && d.def.circuit === 'CARGO' && d.def.x0 > 108 && d.def.x1 < 110); // Cargo control's, over the bay
     expect(panes.length).toBe(3);
     const P = panes[1].def, x = P.x0 - 1.2, z = (P.z0 + P.z1) / 2, y = P.y0 + 1.6;
     /* a line from Cargo control out into the bay: glass is no wall to an eye, but it is to a ray that sees nothing through it */

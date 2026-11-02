@@ -212,6 +212,12 @@ export interface DoorDef {
   open: boolean;
   /** jammed part open: crouch under it */
   stuck: boolean;
+  /** come down on something in its way and stopped there, its foot 0.6 m up: too low for anyone to get under (a fire
+   *  shutter on a pallet). Sealed as well, so nothing works it */
+  low?: boolean;
+  /** a fire shutter (world.md §8, Cargo): a heavy door whose drive runs on a backup set's power as well as Gen-1's. It
+   *  came down when its power died, as fire shutters do, and rises at its control once there is power again */
+  fire?: boolean;
   /** welded shut for good */
   seal: boolean;
   /** a loose wall panel, not a door */
@@ -275,6 +281,10 @@ export interface RoundStop {
 /** something to use: a corpse to search, a panel, a backup set, a ladder, the lift */
 export interface UseDef { kind: string; x: number; y: number; z: number; opts: Record<string, unknown> }
 
+/** a fixed ladder you climb (sim/player.ts, climbing): the box you climb it standing in, on the plan, from the floor at
+ *  its foot (y0) to the floor at its head (y1), which you come up onto beside it */
+export interface ClimbDef { x0: number; z0: number; x1: number; z1: number; y0: number; y1: number }
+
 /** a platform that carries what stands on it between two heights. Its top is at y0 or y1. */
 export interface PlatformDef {
   x0: number; z0: number; x1: number; z1: number;
@@ -284,6 +294,9 @@ export interface PlatformDef {
   mat: Mat;
   /** worked by a button on a circuit (the station's cargo platforms); without it, it goes when stood on */
   call?: { name: string; circuit: string };
+  /** how it is drawn round its deck, if not as a bare plate: a hoist's car, caged, its motors on its roof (it climbs a
+   *  mast beside it); or a goods lift's carriage, guarded at its sides (it runs between two masts) */
+  look?: 'hoist' | 'goods';
 }
 
 /** a camera: fixed eyes on a circuit (world.md §8). Its lens at (x, y, z), looking along yaw (as the cast: 0 is south,
@@ -321,6 +334,8 @@ export interface LevelDef {
   water: WaterDef[];
   doors: DoorDef[];
   platforms: PlatformDef[];
+  /** fixed ladders, climbed */
+  climbs?: ClimbDef[];
   lamps: LampDef[];
   /** ceiling fittings: where each room's own light comes from, so it falls in pools below them (world/light.ts) */
   fixtures?: FixtureDef[];

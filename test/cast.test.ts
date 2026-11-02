@@ -195,20 +195,24 @@ describe('how they follow', () => {
     expect(m.x).toBeLessThan(108);
   });
 
-  it('with Cargo on its backup set, a husk calls the platform and rides it up after you', () => {
-    const s = fresh(), m = cargoHusk(s), nav = s.fields!.nav;
+  it('with Cargo on its backup set, a husk calls the hoist and rides it up after you', () => {
+    const s = fresh(), m = cargoHusk(s), nav = s.fields!.nav, P = s.platforms.findIndex(p => p.def.call?.name === 'Personnel hoist');
     s.game.station!.circuits.CARGO.back = true;
     only(s, [m]);
     s.game.hp = 1e9;
-    /* you, on Tier 1 beside the first platform's top */
+    /* you, on the top deck beside the hoist's landing; it, at the hoist's gate on the floor. The stairs up are at the
+       decks' ends, a long way round: the hoist is the way */
+    const D = s.platforms[P].def;
     let top = -1;
-    for (let i = 0; i < nav.n; i++) if (Math.abs(nav.y[i] - 5) < 0.3 && nav.x[i] > 135 && nav.x[i] < 137 && nav.z[i] > -7 && nav.z[i] < -5) top = i;
+    for (let i = 0; i < nav.n; i++) if (Math.abs(nav.y[i] - 15) < 0.3 && Math.abs(nav.x[i] - (D.x0 + D.x1) / 2) < 1 && nav.z[i] > D.z0 - 3 && nav.z[i] < D.z0 - 1) top = i;
     expect(top).toBeGreaterThanOrEqual(0);
-    place(s, 'player', nav.x[top], 5, nav.z[top]);
-    place(s, m, 124, 0, -3);
+    place(s, 'player', nav.x[top], 15, nav.z[top]);
+    place(s, m, (D.x0 + D.x1) / 2, 0, D.z1 + 1.5);
     m.state = 'hunt';
-    hold(s, 25);
-    expect(m.y).toBeCloseTo(5, 0);
+    let rode = false;
+    for (let t = 0; t < 40 && !(Math.abs(m.y - 15) < 0.5 && Math.hypot(m.x - nav.x[top], m.z - nav.z[top]) < 3); t += 0.5) { hold(s, 0.5); if (m.ride?.lift === P) rode = true; }
+    expect(rode).toBe(true);
+    expect(m.y).toBeCloseTo(15, 0);
     expect(Math.hypot(m.x - nav.x[top], m.z - nav.z[top])).toBeLessThan(3);
   });
 });

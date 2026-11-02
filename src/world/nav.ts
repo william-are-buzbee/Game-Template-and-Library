@@ -38,7 +38,7 @@ const NUDGE = (() => {
 })();
 const MIDDLE: [number, number][] = [[0, 0]];
 
-export const enum Edge { Walk = 0, Drop = 1, Lift = 2 }
+export const enum Edge { Walk = 0, Drop = 1, Lift = 2, Climb = 3 }
 
 export interface NavDoor { x0: number; z0: number; x1: number; z1: number; y0: number }
 export interface NavLift { x0: number; z0: number; x1: number; z1: number; y0: number; y1: number }
@@ -222,6 +222,17 @@ function build(w: World, doors: NavDoor[], lifts: NavLift[], CLIMB: number, FALL
     const ride = Math.abs(L.y1 - L.y0) + 4; // the ride, and the wait for it
     for (const b of bottom) for (const t of top) { edges.push([b, t, Edge.Lift, li, ride, 0]); edges.push([t, b, Edge.Lift, li, ride, 0]); }
   });
+  /* a fixed ladder joins the spots by its foot to the spots by its head: climbed, by whoever climbs (Rules.climb) */
+  for (const L of w.def.climbs ?? []) {
+    const foot: number[] = [], head: number[] = [];
+    spots.forEach((s, i) => {
+      if (!(s.x > L.x0 - 1 && s.x < L.x1 + 1 && s.z > L.z0 - 1 && s.z < L.z1 + 1)) return;
+      if (Math.abs(s.y - L.y0) < 0.4) foot.push(i);
+      if (Math.abs(s.y - L.y1) < 0.4) head.push(i);
+    });
+    const up = L.y1 - L.y0 + 2;
+    for (const a of foot) for (const t of head) { edges.push([a, t, Edge.Climb, -1, up, 0]); edges.push([t, a, Edge.Climb, -1, up, 0]); }
+  }
 
   const nav = new Nav(spots, edges);
   nav.most = { climb: CLIMB, drop: FALL };
@@ -263,7 +274,7 @@ export function fitting(w: World, nav: Nav, r: number): Fit {
       for (let e = nav.start[a]; e < nav.start[a + 1]; e++) {
         const b = nav.to[e];
         if (!spot[a] || !spot[b]) continue;
-        if (nav.kind[e] === Edge.Lift) { edge[e] = 1; continue; }
+        if (nav.kind[e] === Edge.Lift || nav.kind[e] === Edge.Climb) { edge[e] = 1; continue; }
         /* the way between is the same both ways: looked at once */
         const key = Math.min(a, b) * nav.n + Math.max(a, b);
         let ok = between.get(key);
@@ -294,13 +305,15 @@ export interface Rules {
   lifts: Uint8Array;
   drop: number;
   edges: Uint8Array | null;
+  /** fixed ladders may be climbed (the cast climb none) */
+  climb?: boolean;
 }
 
-/** anywhere, on foot: every spot, every platform */
+/** anywhere, on foot: every spot, every platform, every ladder */
 export function openRules(nav: Nav): Rules {
   let lifts = 0;
   for (let e = 0; e < nav.lift.length; e++) lifts = Math.max(lifts, nav.lift[e] + 1);
-  return { blocked: new Uint8Array(nav.n), enter: null, lifts: new Uint8Array(lifts).fill(1), drop: 0, edges: null };
+  return { blocked: new Uint8Array(nav.n), enter: null, lifts: new Uint8Array(lifts).fill(1), drop: 0, edges: null, climb: true };
 }
 
 /** may the edge e (from spot a into spot b) be taken under these rules? null if not; else what it costs */
@@ -308,6 +321,7 @@ export function edgeCost(nav: Nav, R: Rules, e: number, b: number): number | nul
   if (R.blocked[b] || (R.edges && !R.edges[e])) return null;
   const k = nav.kind[e];
   if (k === Edge.Lift && !R.lifts[nav.lift[e]]) return null;
+  if (k === Edge.Climb && !R.climb) return null;
   return nav.len[e] + (k === Edge.Drop ? R.drop : 0) + (R.enter ? R.enter[b] : 0);
 }
 
@@ -319,7 +333,7 @@ export function field(nav: Nav, from: number, R: Rules, out?: Float32Array, limi
   if (from < 0) return d;
   /* the graph's edges run forward; a field to `from` needs them backward. Built once per nav. */
   const rev = reverse(nav), heap = heapFor(nav);
-  const { blocked, enter, lifts, drop, edges } = R, kind = nav.kind, lift = nav.lift, len = nav.len;
+  const { blocked, enter, lifts, drop, edges, climb } = R, kind = nav.kind, lift = nav.lift, len = nav.len;
   heap.size = 0;
   d[from] = 0;
   heap.push(from, 0);
@@ -332,6 +346,7 @@ export function field(nav: Nav, from: number, R: Rules, out?: Float32Array, limi
     for (let e = rev.start[b]; e < rev.start[b + 1]; e++) {
       const a = rev.from[e], fe = rev.edge[e], k = kind[fe];
       if (k === Edge.Lift && !lifts[lift[fe]]) continue;
+      if (k === Edge.Climb && !climb) continue;
       if (edges && !edges[fe]) continue;
       const nd = db + len[fe] + eb + (k === Edge.Drop ? drop : 0);
       if (nd < d[a]) { d[a] = nd; heap.push(a, nd); }

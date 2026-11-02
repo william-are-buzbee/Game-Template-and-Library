@@ -14,6 +14,11 @@ browser (three.js comes from a CDN), and each has been published as a private cl
   *Security's seven* (the Saved tab) is a line-up of the upper station's changed, one for each, newest to oldest;
   *Pia's lines* are examples of the bone, bloat and plant lines that founded the Commons, young to old and each young god.
   `window.__rs` in the console exposes the state.
+- `cargo.html`: Cargo made larger (`docs/world.md` §8, *Cargo, sketched, and built*, which says what the build changed),
+  at true scale in the game's kit: the nave, the warehouse arm (room and pillar), the freight shaft at the corner and the
+  chambers off them, with the station's rooms round it and the old Cargo as an outline to compare. Overview, plan (a 10 m
+  grid) or walk; *Lights out* leaves the nest's glow and your flashlight. Each place picked says what it is for.
+  `window.__rs` in the console exposes the scene, `select(id)`, `setMode(m)` and `setDark(b)`.
 - `lineage.html`: the family tree and an entry for each elder. Generated: edit `lineage/template.html` (the cards) or
   `lineage/build.py` (the tree's nodes), then run `python3 mockups/lineage/build.py`.
 

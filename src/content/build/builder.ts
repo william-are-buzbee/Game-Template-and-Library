@@ -2,7 +2,7 @@ import { Rng } from '../../core/rng';
 import { hex, scale3, type Colour } from '../../core/math';
 import { CAVERN, FITTED, type Mat, type RoomMats } from '../materials';
 import { lie, lyingCorners, lyingYaw, paperYaw } from '../lying';
-import { ICO, WALL_MIN, roomHas, type Aim, type Batt, type DoorDef, type LevelDef, type LitRule, type Motes, type PropDef, type RoomDef, type Shape, type Start, type SurfaceDef, type WallDef } from '../types';
+import { ICO, WALL_MIN, roomHas, type Aim, type Batt, type DoorDef, type LevelDef, type LitRule, type Motes, type PlatformDef, type PropDef, type RoomDef, type Shape, type Start, type SurfaceDef, type WallDef } from '../types';
 
 /* The authoring kit. Levels are written as calls on a LevelBuilder; finish() returns plain data.
    Everything random comes from the level's own seed, so a level is dressed the same way every time. */
@@ -259,9 +259,13 @@ export class LevelBuilder {
     return d;
   }
 
+  /** a fixed ladder climbed standing in (x0, z0)-(x1, z1), from the floor at y0 to the floor at y1 */
+  climb(x0: number, z0: number, x1: number, z1: number, y0: number, y1: number): void {
+    (this.def.climbs ??= []).push({ x0, z0, x1, z1, y0, y1 });
+  }
   /** a platform over (x0, z0)-(x1, z1) that carries what stands on it between heights y0 and y1 */
-  platform(x0: number, z0: number, x1: number, z1: number, y0: number, y1: number, c = 0xb89b2e, call?: { name: string; circuit: string }, mat: Mat = 'steel'): void {
-    this.def.platforms.push({ x0, z0, x1, z1, y0, y1, colour: hex(c), mat, ...(call ? { call } : {}) });
+  platform(x0: number, z0: number, x1: number, z1: number, y0: number, y1: number, c = 0xb89b2e, call?: { name: string; circuit: string }, mat: Mat = 'steel', look?: PlatformDef['look']): void {
+    this.def.platforms.push({ x0, z0, x1, z1, y0, y1, colour: hex(c), mat, ...(call ? { call } : {}), ...(look ? { look } : {}) });
   }
 
   /** an invisible box that bodies cannot enter, base at y (default: the floor) */

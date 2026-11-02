@@ -1,6 +1,6 @@
 import { buildNav, DROP, Edge, field, fitting, NAV_R, STEP_UP, type Nav, type Rules } from '../world/nav';
 import { power } from './game';
-import { locked, type Door, type Platform } from './movers';
+import { locked, needs, type Door, type Platform } from './movers';
 import type { Sim } from './sim';
 
 /* How far every spot is from you, for each way of getting about, and for sound (engine.md §7, §8). Kept fresh in
@@ -159,7 +159,7 @@ export const doorShut = (d: Door) => {
 export const carded = (sim: Sim, d: Door): boolean => {
   const D = d.def;
   return !!sim.world.def.cards && !!D.card && !D.code && !d.down && !(D.seal || D.vent || D.lift || D.stuck)
-    && power(sim.game, D.circuit) >= (D.kind === 'heavy' ? 2 : 1);
+    && power(sim.game, D.circuit) >= needs(D);
 };
 
 /** may a body that gets about this way enter the door it is walking into? One with hands that carries its card, a card

@@ -48,8 +48,9 @@ describe('the upper station', () => {
     const r2 = checkProgress(s, { main: true, have: ['#1'] });
     expect(r2.items.never).toEqual([]);
     expect(r2.goals['the surface']).toEqual([`key the code at door ${ARMORY}`, 'take surface lift pass']); // the Armory, then its pass
-    /* welded, the way out itself, or the suite's clinical rooms, on cards whose holders are gone */
-    expect(r2.rooms.never.every(n => /Cell|Phase 2|Operations room|Surface cage|doorway|Treatment room|Doctor's office/.test(n))).toBe(true);
+    /* welded, the way out itself, the suite's clinical rooms, on cards whose holders are gone, or the freight shaft's foot,
+       fenced off 30 m down */
+    expect(r2.rooms.never.every(n => /Cell|Phase 2|Freight shaft|Operations room|Surface cage|doorway|Treatment room|Doctor's office/.test(n))).toBe(true);
   });
 
   it('works from a save: what you have done is taken as done', () => {

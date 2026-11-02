@@ -2,7 +2,7 @@ import type { Aim } from '../content/types';
 import { ITEMS, keyName } from '../content/items';
 import { STATION_NAMES } from '../content/names';
 import { end, give, giveKey, consume, makeNoise, power, readNote, say, sfx, type Game } from './game';
-import { locked, occupied, sendPlatform, type Door, type Platform } from './movers';
+import { locked, needs, occupied, sendPlatform, type Door, type Platform } from './movers';
 import { eyeHeight } from './player';
 import type { Sim } from './sim';
 import { riders } from './sim';
@@ -310,9 +310,9 @@ export function doorLabel(sim: Sim, d: Door): string | null {
   if (d.down) return 'Locked down';
   const L = power(g, D.circuit), rd = D.card ? 'Card reader' : 'Keypad';
   if (D.kind === 'heavy') {
-    if (L < 2) return 'Heavy door';
+    if (L < needs(D)) return D.fire ? 'Fire shutter' : 'Heavy door';
     if (locked(d)) return rd;
-    return 'Door control';
+    return D.fire ? 'Shutter control' : 'Door control';
   }
   if (L > 0) return locked(d) ? rd : null;
   if (locked(d)) return rd; // fail-secure: no power, no way through
@@ -337,7 +337,7 @@ export function doorAct(sim: Sim, d: Door): void {
   if (D.vent) { d.open = true; sfx(g, 'clang', at); makeNoise(g, 7); return; }
   if (d.down) { sfx(g, 'deny'); return; } // its red lamp says why
   const L = power(g, D.circuit), heavy = D.kind === 'heavy';
-  if (heavy && L < 2) { say(g, short(L)); sfx(g, 'deny'); return; }
+  if (heavy && L < needs(D)) { say(g, D.fire ? 'No power to its drive.' : short(L)); sfx(g, 'deny'); return; }
   if (locked(d)) {
     if (L === 0) { say(g, 'No power.'); sfx(g, 'deny'); return; }
     if (D.card) {

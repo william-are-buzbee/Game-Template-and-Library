@@ -129,7 +129,7 @@ describe('the upper station, played', () => {
     expect(doorAt(s, ax, az).t).toBeGreaterThan(0.9);
   });
 
-  it('with Cargo dead its doors slide by hand and its platform will not move; its backup set changes both', () => {
+  it('with Cargo dead its doors slide by hand and its hoist will not move; its backup set changes both', () => {
     const s = fresh();
     for (const m of s.cast) m.stun = 1e9; // the door opened by hand brings receiving's cast to it: held still, as this is not theirs
     const [dx, dz] = tile(59, 14), d = doorAt(s, dx, dz);
@@ -137,28 +137,90 @@ describe('the upper station, played', () => {
     use(s, find(s, /^Door$/, [dx, dz]), [-1, 0]);
     hold(s, 1);
     expect(d.t).toBeGreaterThan(0.9);
-    /* step onto the first platform: its button offers the ride up, and without power refuses */
-    const P = s.platforms.find(p => p.def.y1 === 5)!, b = s.player.body;
+    /* step into the personnel hoist's car: its button offers the ride up, and without power refuses */
+    const P = s.platforms.find(p => p.def.call?.name === 'Personnel hoist')!, b = s.player.body;
+    expect(P.def.y1).toBe(15); // the floor to the top deck
     const onto = () => { b.x = (P.def.x0 + P.def.x1) / 2; b.z = (P.def.z0 + P.def.z1) / 2 + 1; b.y = 0; b.sync(); hold(s, 0.3); };
     const mid: [number, number] = [(P.def.x0 + P.def.x1) / 2, (P.def.z0 + P.def.z1) / 2];
     onto();
-    use(s, find(s, /^Cargo platform$/, mid), [0, 1]);
+    use(s, find(s, /^Personnel hoist$/, mid), [0, 1]);
     expect(said(s).join(' ')).toMatch(/No power/);
     expect(P.moving).toBe(false);
     const set = s.world.def.uses.find(u => u.kind === 'backup' && (u.opts as { c?: string }).c === 'CARGO')!;
+    expect(s.world.roomAt(set.x, set.y, set.z)?.name).toBe('Receiving office'); // behind Operations' card, with the nave
     use(s, find(s, /^Backup set: stopped$/, [set.x, set.z]), [0, 1]);
     expect(power(s.game, 'CARGO')).toBe(1);
     expect(s.game.events.some(e => e.type === 'power')).toBe(true);
-    /* now it answers: ride it up to Tier 1 */
+    /* now it answers: ride it up to the top deck */
     onto();
-    use(s, find(s, /^Cargo platform$/, mid), [0, 1]);
+    use(s, find(s, /^Personnel hoist$/, mid), [0, 1]);
     expect(P.moving).toBe(true);
-    hold(s, 4.5);
-    expect(P.y).toBeCloseTo(5);
-    expect(b.y).toBeCloseTo(5, 1);
+    hold(s, 11);
+    expect(P.y).toBeCloseTo(15);
+    expect(b.y).toBeCloseTo(15, 1);
   });
 
-  it('ladderway B wants Cargo power; the fuse is up on Tier 3; the surface lift wants Gen-1', () => {
+  it('Cargo\'s fire shutters came down with the power: no way past them from either side until its set runs, then they rise at their controls; one stopped on a pallet, too low to get under', () => {
+    const s = fresh();
+    for (const m of s.cast) m.stun = 1e9;
+    const shutters = s.doors.filter(d => d.def.fire);
+    expect(shutters.length).toBe(4); // three to the nave, one to the freight hall
+    const low = shutters.filter(d => d.def.low);
+    expect(low.length).toBe(1);
+    const open = shutters.filter(d => !d.def.low);
+    const mid = (d: (typeof shutters)[number]): [number, number] => [(d.def.x0 + d.def.x1) / 2, (d.def.z0 + d.def.z1) / 2];
+    for (const d of open) {
+      const [x, z] = mid(d);
+      for (const side of [[0, -1], [0, 1], [-1, 0], [1, 0]] as [number, number][]) {
+        const u = s.usables.find(q => !q.off && q.label() === 'Fire shutter' && Math.hypot(q.x - x, q.z - z) < 3);
+        if (!u) continue;
+        use(s, u, side);
+        expect(said(s).join(' ')).toMatch(/No power/);
+        hold(s, 1);
+        expect(d.t).toBeLessThan(0.05);
+        break;
+      }
+    }
+    /* the one on the pallet: its foot 0.6 m up, under a crouch (1 m), and sealed, whatever the power */
+    const L = low[0];
+    expect(L.t * (L.def.y1 - L.def.y0)).toBeCloseTo(0.6, 1);
+    s.game.station!.circuits.CARGO.back = true;
+    hold(s, 0.5);
+    for (const d of open) {
+      const [x, z] = mid(d);
+      use(s, find(s, /^Shutter control$/, [x, z]), d.def.alongX ? [0, -1] : [-1, 0]);
+      hold(s, 1.5);
+      expect(d.t, `shutter at ${x}, ${z}`).toBeGreaterThan(0.9);
+    }
+    hold(s, 1);
+    expect(L.t * (L.def.y1 - L.def.y0)).toBeCloseTo(0.6, 1);
+  });
+
+  it('the crane\'s ladder is climbed: walk at it and up it to the cab\'s platform, step off at the top, and back down it looking down', () => {
+    const s = fresh();
+    for (const m of s.cast) m.stun = 1e9;
+    const L = s.world.def.climbs!.find(c => c.y1 === 15)!, b = s.player.body, p = s.player, cx = (L.x0 + L.x1) / 2;
+    /* at its foot, facing it: its rungs are on the south wall */
+    b.x = cx; b.z = L.z0 - 0.6; b.y = 0; b.vy = 0; b.sync(); p.yaw = Math.PI; p.pitch = 0;
+    hold(s, 0.3);
+    hold(s, 9, { forward: 1 });
+    expect(p.climbing).toBe(true);
+    expect(b.y).toBeGreaterThan(15.2); // up through the hatch, and held there
+    hold(s, 1, { strafe: 1 }); // to the west, off it
+    hold(s, 0.5);
+    expect(p.climbing).toBe(false);
+    expect(b.y).toBeCloseTo(15, 1);
+    expect(s.world.roomAt(b.x, b.y + 0.5, b.z)?.name).toBe('Crane cab');
+    /* back onto it, and down it, looking down */
+    hold(s, 1, { strafe: -1 });
+    expect(p.climbing).toBe(true);
+    expect(b.y).toBeGreaterThan(14.8); // on it, not fallen down the hatch
+    p.pitch = -1;
+    hold(s, 9, { forward: 1 });
+    expect(b.y).toBeCloseTo(0, 1);
+  });
+
+  it('ladderway B wants Cargo power; the fuse is in the parts crib; the surface lift wants Gen-1', () => {
     const s = fresh();
     const B1: [number, number] = [263.2, 3.2]; // ladderway B, in the fan station
     use(s, find(s, /Ladder/, B1), [-1, 0]);

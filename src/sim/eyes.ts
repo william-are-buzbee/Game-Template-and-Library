@@ -2,7 +2,7 @@ import type { CameraDef, SpeakerDef } from '../content/types';
 import { STEP } from '../core/loop';
 import { field } from '../world/nav';
 import type { Dyn, World } from '../world/world';
-import type { Door } from './movers';
+import { needs, type Door } from './movers';
 import { answer } from './cast';
 import { routeRules, soundRules } from './fields';
 import { power, sfx } from './game';
@@ -78,7 +78,7 @@ export function doorZones(w: World, d: Door): string[] {
 /** a door the lockdown bolts: one that moves, with power enough to move it */
 const boltable = (sim: Sim, d: Door): boolean => {
   const D = d.def;
-  return !(D.seal || D.vent || D.lift || D.stuck || D.glass) && power(sim.game, D.circuit) >= (D.kind === 'heavy' ? 2 : 1);
+  return !(D.seal || D.vent || D.lift || D.stuck || D.glass) && power(sim.game, D.circuit) >= needs(D);
 };
 
 /** the zone locks down: each of its doors that can be bolted and is not is heard being drawn */

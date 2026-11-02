@@ -112,12 +112,12 @@ describe('the station', () => {
     const s = fresh();
     still(s);
     s.game.station!.circuits.CARGO.back = true;
-    const P = s.platforms[0], call = s.usables.find(u => /^Cargo platform$/.test(u.label() ?? '') && Math.abs(u.y - P.def.y1 - 1.1) < 0.1)!;
-    place(s, 'player', 136, 5, -6);
+    const P = s.platforms.find(p => p.def.call?.name === 'Goods lift')!, call = s.usables.find(u => /^Goods lift$/.test(u.label() ?? '') && Math.abs(u.y - P.def.y1 - 1.1) < 0.1)!;
+    place(s, 'player', 155.75, 10, -6); // on the second deck, by its landing
     s.game.events.length = 0;
     call.act();
     expect(s.game.noiseI).toBe(12);
-    hold(s, 5);
+    hold(s, 8);
     expect(sounds(s, 'rattle').length).toBeGreaterThan(0);
     expect(sounds(s, 'thud').length).toBe(1);
   });

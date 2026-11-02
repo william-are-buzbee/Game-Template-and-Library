@@ -6,7 +6,7 @@ import { CROUCH } from './player';
 /* Where a body can get to on foot from where it stands: a flood over the level on a 1 m lattice. Each spot is a place to
    stand (ground under it, room for a crouch over it); from a spot you can step to a neighbour if there is room on the
    way, climbing up to STEP_UP or dropping any distance. Every door that is not welded shut counts as open, and a platform
-   joins its bottom to its top. It answers "can all of this level be walked?" (engine.md §13, step 3), and is the seed of
+   joins its bottom to its top, as a ladder its foot to its head. It answers "can all of this level be walked?" (engine.md §13, step 3), and is the seed of
    the progression checker (step 7). */
 
 export interface Reach {
@@ -59,6 +59,17 @@ export function reach(sim: Sim, from = sim.player.body): Reach {
       const p = sim.platforms[i].def;
       if (x < p.x0 || x > p.x1 || z < p.z0 || z > p.z1) continue;
       for (const py of [p.y0, p.y1]) if (Math.abs(py - y) > 0.3) visit(x, py, z);
+    }
+    /* a ladder you stand by takes you to its other end, onto the floor beside its hatch or at its foot */
+    for (const L of w.def.climbs ?? []) {
+      if (!(x > L.x0 - 1 && x < L.x1 + 1 && z > L.z0 - 1 && z < L.z1 + 1)) continue;
+      for (const [y0, y1] of [[L.y0, L.y1], [L.y1, L.y0]]) {
+        if (Math.abs(y - y0) > 0.4) continue;
+        for (let ix = Math.floor(L.x0 - 1); ix <= Math.ceil(L.x1); ix++) for (let iz = Math.floor(L.z0 - 1); iz <= Math.ceil(L.z1); iz++) {
+          const g = w.groundBelow(circle(ix + 0.5, iz + 0.5, R), y1 + 0.3);
+          if (Math.abs(g - y1) < 0.3 && fits(ix + 0.5, iz + 0.5, g)) visit(ix + 0.5, g, iz + 0.5);
+        }
+      }
     }
   }
 

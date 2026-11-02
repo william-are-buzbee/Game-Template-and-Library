@@ -1,4 +1,5 @@
 import { clamp } from '../core/math';
+import type { ClimbDef } from '../content/types';
 import type { Hit, World } from '../world/world';
 import { fall, fits, footprint, makeBody, settle, slide, steer, STEP_UP, type Body } from './body';
 import type { Input } from './input';
@@ -14,6 +15,9 @@ const WADE = 0.3;
 const SWIM = 1.3;
 /** how high you can haul yourself out of water onto a ledge */
 const CLIMB_OUT = 1.7;
+/** on a fixed ladder: how fast you climb (m/s); looking further down than this (rad), walking forward takes you down it;
+ *  and how far your feet come up over its head before you step off */
+export const LADDER = { speed: 2.4, down: 0.5, over: 0.35 };
 export const AIR = 35;
 /** what you weigh, before what you hold */
 export const MASS = 75;
@@ -68,6 +72,8 @@ export interface Player {
   stepD: number;
   /** dev: fly through everything */
   fly: boolean;
+  /** this step: on a fixed ladder */
+  climbing: boolean;
 }
 
 export function makePlayer(w: World, x: number, y: number, z: number, yaw: number): Player {
@@ -76,11 +82,17 @@ export function makePlayer(w: World, x: number, y: number, z: number, yaw: numbe
   body.skip = own;
   return {
     body, yaw, pitch: 0, crouch: false, wantStand: false, moved: 0, impact: 0,
-    water: 'dry', air: AIR, airMax: AIR, under: false, slow: 0, load: 0, slam: 0, thrown: false, pace: 1, feet: 1, planted: false, down: false, running: false, jumped: false, stepD: 0, fly: false,
+    water: 'dry', air: AIR, airMax: AIR, under: false, slow: 0, load: 0, slam: 0, thrown: false, pace: 1, feet: 1, planted: false, down: false, running: false, jumped: false, stepD: 0, fly: false, climbing: false,
   };
 }
 
 export const eyeHeight = (p: Player): number => (p.crouch ? EYE_CROUCH : EYE);
+
+/** the fixed ladder you are on, if any (LevelDef.climbs): standing in its box, from its foot to just over its head */
+export function ladderAt(w: World, b: Body): ClimbDef | null {
+  for (const L of w.def.climbs ?? []) if (b.x > L.x0 && b.x < L.x1 && b.z > L.z0 && b.z < L.z1 && b.y > L.y0 - 0.1 && b.y < L.y1 + LADDER.over + 0.05) return L;
+  return null;
+}
 
 /** a step's walking intent: where it wants to go, so the sim can tell what it ran into */
 export interface Stride {
@@ -106,10 +118,13 @@ export function updatePlayer(w: World, p: Player, inp: Input, dt: number): { str
   const level = w.waterAt(b.x, b.z), depth = level - b.y;
   p.water = depth > SWIM ? 'swimming' : depth > WADE ? 'wading' : 'dry';
   const swim = p.water === 'swimming';
+  /* on a fixed ladder the jump and crouch keys are up and down it, and nothing else */
+  const ladder = !swim && !p.down ? ladderAt(w, b) : null;
+  p.climbing = !!ladder;
 
   /* crouch is a toggle; standing up needs headroom. In deep water there is no crouching, only swimming down. */
   if (swim) { p.crouch = false; p.wantStand = false; }
-  else if (inp.crouch) {
+  else if (inp.crouch && !ladder) {
     if (p.crouch) p.wantStand = true;
     else { p.crouch = true; p.wantStand = false; }
   }
@@ -117,7 +132,7 @@ export function updatePlayer(w: World, p: Player, inp: Input, dt: number): { str
   if (p.down && !swim) { p.crouch = true; p.wantStand = true; }
   if (p.crouch && p.wantStand && !p.down && fits(w, b, b.x, b.z, b.y, STAND)) { p.crouch = false; p.wantStand = false; }
   p.jumped = false;
-  if (!swim && !p.down && inp.jump && b.ground && (!p.crouch || fits(w, b, b.x, b.z, b.y, STAND))) {
+  if (!swim && !ladder && !p.down && inp.jump && b.ground && (!p.crouch || fits(w, b, b.x, b.z, b.y, STAND))) {
     p.jumped = true;
     b.vy = JUMP; b.ground = false; p.crouch = false; p.wantStand = false;
   }
@@ -157,6 +172,13 @@ export function updatePlayer(w: World, p: Player, inp: Input, dt: number): { str
     const flooded = w.ceilingAbove(footprint(b), b.y + b.h, b.skip, level) <= level;
     const target = inp.rise ? 2 : inp.sink ? -2 : flooded ? 0 : clamp((depth - SWIM - 0.05) * 3, -1, 1);
     b.vy += (target - b.vy) * Math.min(1, dt * 6);
+    p.impact = fall(w, b, dt, 0).impact;
+  } else if (ladder) {
+    /* on a ladder: up it walking forward (down it, looking down), or holding jump; down holding crouch, or walking back;
+       still when you let go. At its head no further: step off onto the floor beside its hatch */
+    const way = p.pitch < -LADDER.down ? -1 : 1, want = clamp(f * way + (inp.rise ? 1 : 0) - (inp.sink ? 1 : 0), -1, 1);
+    b.vy = want * LADDER.speed;
+    if (b.vy > 0 && b.y >= ladder.y1 + LADDER.over) b.vy = 0;
     p.impact = fall(w, b, dt, 0).impact;
   } else p.impact = fall(w, b, dt).impact;
 
