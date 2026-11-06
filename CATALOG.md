@@ -15,9 +15,7 @@ _None yet. A package appears when a second project needs something a first one h
 
 Real projects: tests, a CLAUDE.md of their own, the architecture rules.
 
-| game | what it is | uses | live |
-|---|---|---|---|
-| [throwaway](games/throwaway/) | Test of the game scaffold (Phase 3); delete once it has been seen working. | — | [open](https://william-are-buzbee.github.io/Game-Template-and-Library/games/throwaway/) |
+_None yet._
 
 ## Labs
 
