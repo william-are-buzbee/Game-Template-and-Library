@@ -1,8 +1,9 @@
 // The sim played with no browser: what a held key does, that the state is plain data, that a run is repeatable.
+import { HZ } from '@wb/core';
 import { describe, expect, it } from 'vitest';
 import { noInput, type Input } from '../src/sim/input';
 import { newState, type State } from '../src/sim/state';
-import { HALF, HZ, SPEED, step } from '../src/sim/step';
+import { HALF, SPEED, step } from '../src/sim/step';
 
 function hold(s: State, inp: Input, seconds: number): State {
   for (let i = 0; i < Math.round(seconds * HZ); i++) step(s, inp);

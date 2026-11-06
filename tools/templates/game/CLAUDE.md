@@ -19,7 +19,8 @@ npm test -w {{dir}}                                        this game's tests onl
 npm run build -w {{dir}} && npm run look -- {{dir}}        the real build in headless Chromium, screenshot to _look/{{name}}.png
 ```
 
-- `?dev` shows the frame rate and puts the state on `window.game` in the console.
+- `?dev`: the frame readout (where each frame goes), the state on `window.game` in the console, and P pause, `.` step
+  once while paused, T slow time (×¼, ×1/10, back). Add this game's own dev keys to `DEV_KEYS` in `src/main.ts`.
 - Live: {{site}}{{dir}}/. A pull request's preview: `…/preview/<number>/{{dir}}/`.
 
 ## Layout
@@ -27,7 +28,7 @@ npm run build -w {{dir}} && npm run look -- {{dir}}        the real build in hea
 ```
 src/sim/       the game as plain data, advanced one fixed step at a time (step.ts). No three.js, no page.
 src/present/   drawing (view.ts), camera, keys and mouse (keys.ts). Reads the sim, never writes it.
-src/main.ts    keys → step() at a fixed 60 Hz → draw, every frame
+src/main.ts    keys → step() at a fixed 60 Hz (@wb/core FixedLoop) → draw, every frame; the ?dev keys
 test/          headless tests of the sim; layers.test.ts enforces the sim/present split
 ```
 

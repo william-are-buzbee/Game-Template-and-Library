@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Rootshock</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./src/style.css">
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="vig"></div>
+<div id="hitdir"></div>
+<div id="fade"></div>
+<div id="hud" class="hide">
+  <div id="dot"></div>
+  <div id="prompt"></div>
+  <div id="devtag" class="hide"></div>
+  <div id="track" class="hide"></div>
+  <div id="stat">
+    <div class="bar"><i id="hp"></i></div>
+    <div class="bar sm hide" id="o2w"><i id="o2"></i></div>
+    <div class="bar sm hide" id="batw"><i id="bat"></i></div>
+    <div id="ammo"></div>
+  </div>
+</div>
+<div id="inv" class="hide"><div id="invb"></div></div>
+<div id="tip" class="hide"></div>
+<div id="lift" class="panel hide"><div id="liftb"></div></div>
+<div id="note" class="panel hide"><article id="notet"></article></div>
+<div id="pad" class="panel hide"><div><div id="padd"></div><div id="padk"></div></div></div>
+<button id="back" class="touchonly" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button>
+<div id="turn"><svg viewBox="0 0 48 48" aria-label="Turn the phone on its side"><rect x="8" y="6" width="12" height="22" rx="2"/><rect x="18" y="30" width="24" height="12" rx="2"/><path d="M26 8a12 12 0 0 1 12 12M38 21l-3-3M38 21l3-3"/></svg></div>
+<div id="title" class="screen">
+  <h1>Rootshock</h1>
+  <nav class="menu">
+    <button data-go="continue" class="hide">Continue</button>
+    <button data-go="new">New game</button>
+    <button data-go="settings">Settings</button>
+  </nav>
+  <p class="dev hide"><a href="?level=testbed&amp;dev">Test bed</a> · <a href="?power=full&amp;dev">Lights on</a> · <a href="archive/first-engine.html">First engine</a></p>
+</div>
+<div id="pause" class="screen hide">
+  <nav class="menu">
+    <button data-go="resume">Resume</button>
+    <button data-go="settings">Settings</button>
+    <button data-go="quit">Quit</button>
+  </nav>
+</div>
+<div id="settings" class="screen hide">
+  <nav class="menu">
+    <label>Brightness <input type="range" class="brightness" min="0.7" max="1.6" step="0.05" value="1"></label>
+    <label>Detail <input type="checkbox" class="detail" checked></label>
+    <label>Swap swing sides <input type="checkbox" class="swap"></label>
+    <label class="touchonly">Look speed <input type="range" class="lookspeed" min="0.4" max="2.5" step="0.05" value="1"></label>
+    <div class="keys keysonly"><div><b>W A S D</b> move</div><div><b>Mouse</b> look</div><div><b>E</b> use</div><div><b>F</b> light</div><div><b>Tab</b> carried</div><div><b>Space</b> jump</div><div><b>Click / Q</b> hold to swing</div><div><b>A / D / W</b> held as you do: <span class="sides">from the left, the right</span>, overhead</div><div><b>Shift</b> run</div><div><b>C</b> crouch</div></div>
+    <div class="keys touchonly"><div><b>Left thumb</b> move, past the rim to run</div><div><b>Right thumb</b> look</div><div><b>Swing</b> hold, let go; drag to aim</div><div><b>Stick</b> held left, right or up as you do: <span class="sides">from that side</span>, or overhead</div></div>
+    <button data-go="back">Back</button>
+  </nav>
+</div>
+<div id="end" class="screen hide"><h1 id="endh"></h1><p id="endp"></p></div>
+<script type="module" src="./src/main.ts"></script>
+</body>
+</html>

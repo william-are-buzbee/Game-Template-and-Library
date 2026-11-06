@@ -12,6 +12,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@wb/core": "*",
     "three": "^0.187.0"
   },
   "devDependencies": {

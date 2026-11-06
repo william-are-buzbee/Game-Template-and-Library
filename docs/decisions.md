@@ -42,3 +42,25 @@ which found four repositories sharing no code, copying it instead (the same rand
 10. **`CLAUDE.md` is the rulebook; `AGENTS.md` points to it** (6 Nov 2026). The standard requires the branch, pull request
     and identity rules to be stated in `CLAUDE.md`; other agents read `AGENTS.md`, which sends them there.
 11. **The trends report is run by hand** (6 Nov 2026, the person), not on a schedule.
+12. **What `@wb/core` took first, and what waited** (6 Nov 2026, Phase 4). From the audit's list of systems found in two
+    or more games, `@wb/core` took the ones that can move without changing what any game does:
+    - the random number generator: the same algorithm, giving the same numbers, in all four repositories (pinned by
+      `packages/core/test/golden.test.ts`);
+    - the fixed-step loop and the frame meter, both from Rootshock and now also in the game template;
+    - the angle and interpolation maths.
+
+    Waiting, each for a reason:
+    - **save storage**: every game's saves hold players' data in its own format, and moving them onto one store changes
+      how each saves, for nothing a player would see;
+    - **the WebAudio core**: it would change how two games sound, and a session cannot hear;
+    - **input** (pointer lock with a drag fallback, the touch stick): Tethys's input is wired into its game, and a rewrite
+      changes its feel;
+    - **noise**: Tethys's value noise and Overworld's Perlin noise are different algorithms, each bound to its worlds;
+    - **collision**: the two 3D games share ideas (verlet constraints, closest points), not code.
+
+    Each is promoted when a game needs it and the person can check the result: they hear the sound, or play the feel.
+    Rootshock's resolution governor stays in Rootshock, its only user.
+13. **A dev mode in every new game** (6 Nov 2026, from the person's "god mode without needing to ask"). Under `?dev` the
+    template has a frame readout (`Meter`), the state on `window.game`, and P pause, `.` step, T slow time; each game adds
+    its own keys to `DEV_KEYS`. What the two 3D games' dev modes shared was this pattern (Rootshock: a key map and T for
+    slow time; Tethys: console helpers and a readout); their actual keys (fly, god, teleport) are each game's own.
