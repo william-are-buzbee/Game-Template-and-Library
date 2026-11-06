@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>Tethys</title>
+<style>
+html,body{margin:0;height:100%;overflow:hidden;background:#03080f;font-family:Georgia,'Times New Roman',serif;color:#cfd8dc;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
+canvas{display:block;outline:none;touch-action:none}
+.layer{position:fixed;inset:0;pointer-events:none}
+#vig{background:radial-gradient(ellipse at center,rgba(0,0,0,0) 58%,rgba(0,0,0,.5) 100%)}
+#hurt{background:radial-gradient(ellipse at center,rgba(0,0,0,0) 40%,rgba(110,8,8,.8) 100%);opacity:0;transition:opacity .3s}
+#fade{background:#000;opacity:1;transition:opacity 1.8s}
+#biome{position:fixed;bottom:26px;right:32px;font-size:13px;text-shadow:0 0 6px rgba(0,0,0,.9),0 1px 2px rgba(0,0,0,.9);letter-spacing:.3em;font-weight:300;opacity:0;transition:opacity .8s;color:rgba(220,230,235,.75);pointer-events:none;font-variant-numeric:tabular-nums}
+#compass{position:fixed;top:22px;left:50%;width:260px;height:24px;margin-left:-130px;overflow:hidden;opacity:0;transition:opacity 1.2s;pointer-events:none;-webkit-mask-image:linear-gradient(90deg,transparent,#000 24%,#000 76%,transparent);mask-image:linear-gradient(90deg,transparent,#000 24%,#000 76%,transparent)}
+#cstrip{position:absolute;top:0;left:0;height:100%;width:2600px;will-change:transform}
+#cstrip span{position:absolute;top:7px;font-size:11px;font-weight:300;letter-spacing:.3em;text-indent:.3em;color:rgba(215,228,235,.62);transform:translateX(-50%)}
+#cstrip i{position:absolute;top:10px;width:1px;height:5px;background:rgba(215,228,235,.22)}
+#ctick{position:absolute;left:130px;top:0;width:1px;height:5px;background:rgba(235,240,245,.7)}
+#cpeak{position:absolute;top:20px;width:3px;height:3px;margin-left:-1px;border-radius:50%;background:rgba(235,240,245,.6);opacity:0;transition:opacity .6s}
+#hint{position:fixed;bottom:46px;left:0;right:0;text-align:center;font-size:12px;text-shadow:0 0 6px rgba(0,0,0,.9),0 1px 2px rgba(0,0,0,.9);letter-spacing:.25em;opacity:0;transition:opacity 1.4s;color:rgba(200,215,225,.55);pointer-events:none;padding:0 20px}
+#menu{position:fixed;inset:0;display:flex;flex-direction:column;opacity:1;transition:opacity 1.3s;pointer-events:none} /* the canvas takes the drag (bestiary, lab); only the words are clickable */
+#menu.gone{opacity:0;pointer-events:none}
+#menu.gone .mi,#menu.gone .slot{pointer-events:none} /* v11.13.1: a child's pointer-events:auto beats the parent's none — the invisible picks were taking every click below the title */
+#title{text-align:center;padding-top:8vh;font-size:20px;letter-spacing:.6em;text-indent:.6em;font-weight:300;color:rgba(215,225,232,.8)}
+/* the menu (v11.47): a column of words — new game, continue, options, the creator once it is yours; continue is a list of the save files */
+/* v11.47.1 (the person's ask): the column in the centre of the screen, rising in over 1.6 s a second after the fade has cleared (menu.js sets .up), and
+   the whole menu fading away after MENU_IDLE seconds without the mouse moving (.idle on #menu), back on the first move — the caldera alone meanwhile */
+#mlist{margin:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:26px;padding:44px 120px;opacity:0;transform:translateY(16px);transition:opacity 1.6s,transform 1.6s;background:radial-gradient(ellipse at center,rgba(3,8,15,.45) 0%,rgba(3,8,15,.24) 45%,rgba(3,8,15,0) 72%)} /* the halo: the words sit on the white sand in the centre; the fx panel's dark, as a soft ellipse the column's own size */
+#mlist.up{opacity:1;transform:none}
+#title,#msaves,#mfound{transition:opacity 2.2s}
+#menu.idle #title,#menu.idle #mlist,#menu.idle #msaves,#menu.idle #mfound{opacity:0;transition:opacity 2.2s}
+#menu.idle .mi,#menu.idle .slot{pointer-events:none}
+.mi{pointer-events:auto;cursor:pointer;font-size:15px;font-weight:300;letter-spacing:.4em;text-indent:.4em;color:rgba(234,241,245,.92);transition:color .4s;text-shadow:0 0 8px rgba(0,0,0,.95),0 0 3px rgba(0,0,0,.9),0 1px 2px rgba(0,0,0,.95)} /* v11.47.2: the words read grey at .72 over the halo (the person); near white now */
+.mi:hover{color:#fff}
+#msaves,#mfound{display:none;margin:auto;flex-direction:column;align-items:center;justify-content:center;gap:22px;padding:40px 90px;background:radial-gradient(ellipse at center,rgba(3,8,15,.45) 0%,rgba(3,8,15,.24) 45%,rgba(3,8,15,0) 72%)} /* mfound (v11.75): the founder's list, the saves' shape */
+#msaves.on,#mfound.on{display:flex}
+#mslots,#mfounders{display:flex;flex-direction:column;gap:6px;max-height:52vh;overflow-y:auto;pointer-events:auto;background:rgba(3,8,15,.6);padding:10px 16px;scrollbar-width:thin;scrollbar-color:rgba(200,215,225,.25) transparent}
+.slot span.w{min-width:16em;opacity:.6}
+.slot{display:flex;align-items:baseline;gap:22px;padding:6px 14px;cursor:pointer;font-size:12px;letter-spacing:.18em;color:rgba(232,240,244,.92);text-shadow:0 0 6px rgba(0,0,0,.8);transition:color .3s;font-variant-numeric:tabular-nums;white-space:nowrap}
+.slot:hover{color:rgba(240,245,248,.95)}
+.slot b{font-weight:300;font-size:14px;letter-spacing:.3em;min-width:9em}
+.slot span{opacity:.85;min-width:5em}
+.slot i{font-style:normal;opacity:.45;letter-spacing:.2em;padding-left:8px}
+.slot i:hover{opacity:1}
+.slot i.warn{opacity:1;color:#e0b060}
+.mdim{font-size:12px;letter-spacing:.3em;color:rgba(200,212,220,.4)}
+#mrow,.mrow{display:flex;gap:44px}
+#mnote{position:fixed;bottom:26px;left:0;right:0;text-align:center;font-size:12px;letter-spacing:.25em;color:rgba(200,215,225,.55);text-shadow:0 0 6px rgba(0,0,0,.9);opacity:0;transition:opacity .6s;pointer-events:none}
+#zoo{position:fixed;left:0;right:0;bottom:9vh;text-align:center;pointer-events:none;opacity:0;transition:opacity .8s;color:rgba(222,230,236,.9);text-shadow:0 0 7px rgba(0,0,0,.95),0 1px 2px rgba(0,0,0,.95)}
+#zoo.on{opacity:1}
+#zooname{font-size:18px;letter-spacing:.45em;text-indent:.45em;font-weight:300}
+#zooline{font-size:13px;letter-spacing:.14em;line-height:1.9;margin-top:8px;font-style:normal}
+#zooline i{opacity:.6}
+#zoohint{font-size:12px;letter-spacing:.22em;margin-top:26px;color:rgba(205,218,228,.6)}
+
+/* the lab (lab.js): the game's text, with a dark halo and a panel it can be read against; controls thin and quiet */
+#lab{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity .6s;color:rgba(222,230,236,.92);text-shadow:0 0 6px rgba(0,0,0,.9),0 1px 2px rgba(0,0,0,.9);font-size:13px;letter-spacing:.1em}
+#lab.on{opacity:1}
+#labpanel{position:absolute;top:0;left:0;bottom:0;width:330px;overflow-y:auto;overflow-x:hidden;pointer-events:auto;background:rgba(3,8,15,.72);padding:18px 16px 40px 18px;box-sizing:border-box;scrollbar-width:thin;scrollbar-color:rgba(200,215,225,.25) transparent}
+#lab .sec{margin-bottom:22px}
+#lab .hd{font-size:14px;letter-spacing:.35em;text-indent:.35em;margin:0 0 10px;padding-bottom:4px;border-bottom:1px solid rgba(200,215,225,.15);text-align:center}
+#lab .hd .v{float:right;font-size:12px;letter-spacing:.1em;text-indent:0;opacity:.7}
+#lab .hd2{font-size:11px;letter-spacing:.2em;opacity:.6;margin:8px 0 4px}
+#lab .row{display:flex;align-items:center;gap:8px;margin:5px 0;min-height:20px}
+#lab .row>span:first-child{width:92px;flex:none;opacity:.75;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#lab .row b{font-weight:300;width:46px;flex:none;text-align:right;font-variant-numeric:tabular-nums;font-size:12px}
+#lab .row.out b{color:#e0b060}
+#lab .row .v{opacity:.9}
+#lab input[type=range]{flex:1;min-width:60px;height:2px;-webkit-appearance:none;appearance:none;background:rgba(200,215,225,.25);outline:none;cursor:pointer}
+#lab input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:9px;height:9px;border-radius:50%;background:rgba(230,238,242,.9);border:none}
+#lab input[type=range]::-moz-range-thumb{width:9px;height:9px;border-radius:50%;background:rgba(230,238,242,.9);border:none}
+#lab input[type=number],#lab input[type=text],#lab select,#lab textarea,#lab button{font:inherit;color:inherit;background:rgba(255,255,255,.06);border:1px solid rgba(200,215,225,.2);border-radius:2px;padding:2px 5px;letter-spacing:.06em;text-shadow:none}
+#lab input[type=number]{width:64px}
+#lab input[type=text]{flex:1;min-width:60px}
+#lab select{flex:1;min-width:60px;max-width:180px}
+#lab select option{background:#0a1520;color:#dde6ec}
+#lab button{cursor:pointer;padding:2px 8px}
+#lab button:hover{background:rgba(255,255,255,.14)}
+#lab input[type=checkbox]{accent-color:#9fb8c4;margin:0}
+#lab .nav{position:sticky;top:-18px;z-index:2;display:flex;justify-content:space-between;margin:-18px -16px 16px -18px;padding:10px 14px 8px;background:rgba(3,8,15,.9);border-bottom:1px solid rgba(200,215,225,.12);font-size:11px;letter-spacing:.18em}
+#lab .nav a{cursor:pointer;opacity:.5;padding:2px 0;border-bottom:1px solid transparent;transition:opacity .3s}
+#lab .nav a:hover{opacity:.9}
+#lab .nav a.on{opacity:1;border-bottom-color:#e0b060}
+#lab .part{margin:6px 0;padding:4px 8px;border-left:1px solid rgba(200,215,225,.18);transition:background .2s,border-color .2s}
+#lab .part:hover,#lab .part:focus-within{background:rgba(224,176,96,.07);border-left-color:#e0b060}
+#lab .ph{display:flex;align-items:center;gap:8px;cursor:pointer;min-height:22px}
+#lab .ph>span{letter-spacing:.25em;flex:1;user-select:none}
+#lab .part.open .ph{margin-bottom:4px}
+#lab .pb{padding:2px 0 4px 10px}
+#lab .row b i{font-style:normal;opacity:.45;font-size:10px;margin-left:2px}
+#lab i.dim{opacity:.4;font-size:10px}
+#lab .ph i{opacity:.5;font-size:11px}
+#lab .ph button{padding:0 6px}
+#lab .prof .pt{gap:4px}
+#lab .prof .pt>span{width:14px;opacity:.5}
+#lab .prof input[type=number]{width:54px}
+#lab .swatches{display:flex;flex-wrap:wrap;gap:6px 10px;margin-top:6px}
+#lab .sw{display:flex;align-items:center;gap:5px;font-size:11px;opacity:.85}
+#lab .sw input{width:22px;height:18px;padding:0;border:1px solid rgba(200,215,225,.3);background:none;cursor:pointer}
+#lab .note{font-size:11px;letter-spacing:.08em;opacity:.7;line-height:1.6;margin-top:6px}
+#lab .cv{margin-bottom:18px;padding:8px 10px 10px;border:1px solid rgba(200,215,225,.22);border-radius:2px;background:rgba(255,255,255,.03)}
+#lab .cv.over{border-color:rgba(224,176,96,.7)}
+#lab .cv.over .note{color:#e0b060;opacity:1}
+#lab .cv .row.it{margin:2px 0;min-height:16px;font-size:12px;opacity:.85}
+#lab .cv .row.it>span:first-child{width:auto;flex:1}
+#lab .cv button{flex:1}
+#lab .cv button[disabled]{opacity:.35;cursor:default}
+#lab .warn{font-size:11px;letter-spacing:.08em;line-height:1.6;margin-top:6px;color:#e0b060}
+#lab .warn.dim{color:rgba(224,176,96,.6)}
+#lab .btns{flex-wrap:wrap}
+#lab textarea{width:100%;height:56px;box-sizing:border-box;margin-top:8px;resize:vertical;font-size:11px}
+#labcap{position:absolute;left:330px;right:0;bottom:9vh;text-align:center;pointer-events:none}
+#labname{font-size:18px;letter-spacing:.45em;text-indent:.45em;font-weight:300}
+#labline{font-size:13px;letter-spacing:.14em;line-height:1.9;margin-top:8px}
+#labline i{opacity:.7;color:#e0b060}
+/* the effects list (effects.js): the lab panel's look, narrow, on the right; a row is a name and its state, click to switch */
+#fx{position:fixed;right:28px;top:50%;transform:translateY(-50%);width:214px;padding:14px 18px 12px;box-sizing:border-box;background:rgba(3,8,15,.72);color:rgba(222,230,236,.92);text-shadow:0 0 6px rgba(0,0,0,.9),0 1px 2px rgba(0,0,0,.9);font-size:13px;letter-spacing:.1em;opacity:0;pointer-events:none;transition:opacity .4s}
+#fx.on{opacity:1;pointer-events:auto}
+#fxhd{font-size:14px;letter-spacing:.35em;text-indent:.35em;text-align:center;padding-bottom:6px;margin-bottom:8px;border-bottom:1px solid rgba(200,215,225,.15)}
+#fx .row{display:flex;justify-content:space-between;align-items:center;padding:4px 0;cursor:pointer;opacity:.85;transition:opacity .2s}
+#fx .row:hover{opacity:1}
+#fx .row b{font-weight:300;font-size:12px;letter-spacing:.2em}
+#fx .row.sl{padding:2px 0 6px 12px;cursor:default;opacity:.7}#fx .row.sl span{font-size:11px}#fx .row.sl input{flex:1;margin:0 8px;height:2px;accent-color:rgba(200,215,225,.8);cursor:pointer}
+#fx .row.off b{opacity:.35}
+#fx .row.off span{opacity:.55}
+#wmap{position:fixed;inset:0;display:none;flex-direction:column;align-items:center;justify-content:center;background:rgba(3,8,15,.8);z-index:4;cursor:default} /* the world map (v11.63, worldmap.js): a dev tool on n */
+#wmap.on{display:flex}
+#wmapc{cursor:crosshair;box-shadow:0 0 30px rgba(0,0,0,.8);image-rendering:auto}
+#wmapl{margin-top:10px;font-size:12px;letter-spacing:.22em;color:rgba(215,228,235,.72);text-shadow:0 0 6px rgba(0,0,0,.9);font-variant-numeric:tabular-nums;white-space:nowrap}
+#fxnote{font-size:11px;letter-spacing:.2em;opacity:.45;margin-top:10px;text-align:center}
+#stats{position:fixed;top:10px;left:12px;display:none;font:11px/1.5 Menlo,Consolas,monospace;color:rgba(225,235,240,.92);background:rgba(0,0,0,.55);padding:4px 8px;border-radius:3px;white-space:pre;pointer-events:none}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div id="vig" class="layer"></div>
+<div id="hurt" class="layer"></div>
+<div id="biome"></div>
+<div id="hint"></div>
+<div id="compass"><div id="cstrip"><span style="left:0px">n</span><i style="left:108px"></i><span style="left:216px">e</span><i style="left:324px"></i><span style="left:432px">s</span><i style="left:540px"></i><span style="left:648px">w</span><i style="left:756px"></i><span style="left:864px">n</span><i style="left:972px"></i><span style="left:1080px">e</span><i style="left:1188px"></i><span style="left:1296px">s</span><i style="left:1404px"></i><span style="left:1512px">w</span><i style="left:1620px"></i><span style="left:1728px">n</span><i style="left:1836px"></i><span style="left:1944px">e</span><i style="left:2052px"></i><span style="left:2160px">s</span><i style="left:2268px"></i><span style="left:2376px">w</span><i style="left:2484px"></i><span style="left:2592px">n</span></div><b id="ctick"></b><b id="cpeak"></b></div>
+<div id="menu">
+  <div id="title">tethys</div>
+  <div id="mlist">
+    <div class="mi" id="mnew">new game</div>
+    <div class="mi" id="mcont">continue</div>
+    <div class="mi" id="mopt">options</div>
+    <div class="mi" id="mcreator" style="display:none">creator</div>
+  </div>
+  <div id="msaves"><div id="mslots"></div><div id="mrow"><span class="mi" id="mimport">import a file</span><span class="mi" id="mback">back</span></div></div>
+  <div id="mfound"><div id="mfounders"></div><div class="mrow"><span class="mi" id="mfback">back</span></div></div>
+  <div id="mnote"></div>
+</div>
+<div id="fx"><div id="fxhd">effects</div><div id="fxlist"></div><div id="fxnote">e to close</div></div>
+<div id="zoo"><div id="zooname"></div><div id="zooline"></div><div id="zoohint"></div></div>
+<div id="lab"><div id="labpanel"></div><div id="labcap"></div></div>
+<div id="wmap"><canvas id="wmapc"></canvas><div id="wmapl"></div></div>
+<div id="fade" class="layer"></div>
+<canvas id="spark" class="layer"></canvas>
+<div id="stats"></div>
+<!--SCRIPTS-->
+</body>
+</html>
