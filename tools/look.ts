@@ -18,9 +18,13 @@ const opt = (k: string, d: string) => {
   return i >= 0 && argv[i + 1] ? argv[i + 1]! : d;
 };
 const flagValues = new Set(['--query', '--wait', '--shot', '--size'].flatMap(k => (argv.includes(k) ? [argv[argv.indexOf(k) + 1]] : [])));
-const targets = argv.includes('--all')
-  ? workspaces().filter(w => w.kind !== 'package' && existsSync(join(ROOT, w.dir, 'dist', 'index.html'))).map(w => w.dir)
-  : argv.filter(a => !a.startsWith('--') && !flagValues.has(a));
+const all = argv.includes('--all');
+// --all is every game and lab; one with no build fails below rather than being skipped
+const targets = all ? workspaces().filter(w => w.kind !== 'package').map(w => w.dir) : argv.filter(a => !a.startsWith('--') && !flagValues.has(a));
+if (all && !targets.length) {
+  console.log('no games or labs to look at');
+  process.exit(0);
+}
 if (!targets.length) {
   console.error('usage: node tools/look.ts <games/name|labs/name> [...] | --all   [--query "?dev"] [--wait ms] [--shot file] [--size WxH]');
   process.exit(2);
