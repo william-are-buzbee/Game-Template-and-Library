@@ -1,6 +1,7 @@
-# check.yml — on every pull request and on main: types, tests, the catalog up to date, every workspace builds, and
-# every game and lab boots in headless Chromium with no page error (tools/look.ts --all).
-# Run the same locally with `npm run check && npm run build && npm run look -- --all`.
+# check.yml — on every pull request and on main: types, tests, the catalog up to date, every workspace builds, every
+# workspace's browser tests (its "smoke" script, e.g. Overworld's play-save-reload), and every game and lab boots in
+# headless Chromium with no page error (tools/look.ts --all).
+# Run the same locally with `npm run check && npm run build && node tools/each.ts smoke && npm run look -- --all`.
 name: check
 on:
   pull_request:
@@ -26,5 +27,7 @@ jobs:
         run: |
           npm i -g playwright@1.63.0
           npx playwright@1.63.0 install --with-deps chromium
+      - name: browser tests (each workspace's "smoke" script)
+        run: PLAYWRIGHT_MODULE="$(npm root -g)/playwright" node tools/each.ts smoke
       - name: every game and lab boots
         run: PLAYWRIGHT_MODULE="$(npm root -g)/playwright" node tools/look.ts --all
