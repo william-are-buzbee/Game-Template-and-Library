@@ -5,7 +5,7 @@
 // a net; a line is thin only where |det| is small (CT 1.5 was fat worms over a third of the floor, 3 is a net at 5 m).
 const fs=require('fs'),path=require('path'),root=path.join(__dirname,'..'),{png}=require('./png.js');
 require('./stub.js');const THREE=global.THREE;THREE.DataTexture=function(d,n){this.d=d;this.n=n;};
-const util=fs.readFileSync(path.join(root,'src/util.js'),'utf8'),src=fs.readFileSync(path.join(root,'src/scene.js'),'utf8');
+const util=fs.readFileSync(path.join(root,'vendor/wb-core.global.js'),'utf8')+'\n'+fs.readFileSync(path.join(root,'src/util.js'),'utf8'),src=fs.readFileSync(path.join(root,'src/scene.js'),'utf8');
 const a=src.indexOf('const CAU_RINGS='),b=src.indexOf('const CAU_PARS=');if(a<0||b<0)throw new Error('caustic: scene.js markers not found');
 const num=k=>+(src.match(new RegExp(k+'=([0-9.]+)'))||[])[1];
 const PIX=process.env.PIX===undefined?1:+process.env.PIX,PX=PIX?(num('CAU_PX')||0):0,T=num('CAU_TILE'),N=num('CAU_N'),HMAX=num('CAU_HMAX'),SUN=num('CAU_SUN'),CT=+(process.env.CT||num('CAU_T')),CS=+(process.env.CS||(PIX?0:num('CAU_SOFT'))),HI=num('CAU_HI'),CD=num('CAU_D')||1e9,DK=num('CAU_DARK')||0;

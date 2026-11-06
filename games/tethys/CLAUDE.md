@@ -18,6 +18,11 @@ moves without a physical reason; eyeshine is a reflection; bioluminescence only 
 
 ## Build, test, run, look
 
+Tethys lives in the Game-Template-and-Library repository at `games/tethys` since 6 Nov 2026 (its history came with it); the
+commands below run inside `games/tethys`. From the repository's root the same are `npm run build -w games/tethys` (which also
+writes `dist/` for the site), `npm test -w games/tethys` (`node build.js --test`, after checking the vendored core) and
+`npm run dev -w games/tethys` (`node serve.js`). CI runs the test and the build on every pull request.
+
 ```
 node build.js            tethys.html (everything inlined), dev.html (loads src/*.js separately), src/INDEX.md
 node build.js --test     the same, then every headless test below on both tiers; exit 1 on any failure
@@ -28,6 +33,10 @@ node serve.js            static server; open http://localhost:8080/dev.html (edi
   with `build.js` (byte-identical outputs) — change both or neither.
 - `tethys.html`, `dev.html` and `src/INDEX.md` are **build output**: gitignored, rewritten on every build, never edited by hand.
   After a fresh clone run `node build.js` before playing. `src/INDEX.md` is every top-level name and its line.
+- The one library is the repository's `@wb/core` (`packages/core`), as `vendor/wb-core.global.js`: one name, `WB`, listed first
+  in `src/order.txt`, so both builds, `dev.html` and every test take it like a src file. It is committed (so `build.py` needs no
+  Node); `npm run vendor -w games/tethys` rewrites it, and `npm test` fails when it is stale. `mulberry` and `hashStr` are its
+  `WB.Rng` and `WB.hashString` since 6 Nov 2026: the same numbers (checked over 92,736 `sample()` points against the old code).
 - The tests concatenate `src/` in `src/order.txt` order against a stubbed THREE (`test/stub.js`) and run in Node; the world is the
   real one (same `sample()`), so headless measurements of terrain, collision and behaviour are meaningful. They prove nothing about
   rendering or sound. New THREE APIs may need adding to the stub.
@@ -64,7 +73,7 @@ Env vars: `TIER` (`low`), `PICK` (menu pick for smoke), `T0`, `OLD`, for preview
    the lab (`#lab`), export, paste the `PAL`/`DEFS`/`ROSTER`/`SPECS` lines, hand-write its `SPAWN` envelope; if the kit lacks a part,
    add one to `PARTS` — its styles in `reg` with their clades (and `cores`, `params`), every parameter with its `label`, bands and default on its line (`test/registry.js` fails otherwise). There are no hand builders since v11.25. A new plant is a `species()` in flora.js from grow.js's bauplans.
 2. `node build.js --test` green on both tiers.
-3. **Look at it.** Start `node serve.js` (or the `tethys` launch config), open `dev.html` in the app's browser, play to the changed
+3. **Look at it.** Start `node serve.js` (or the `tethys` launch config, in the repository's `.claude/launch.json`), open `dev.html` in the app's browser, play to the changed
    thing, screenshot it. The pane's loop only ticks while it is visible, and a hidden pane reports a 0×0 viewport, which NaNs the menu
    layout — keep it visible, or drive the loop by hand from the console: stub `requestAnimationFrame`, hold `player.pos`, call `loop(last+16.7)` per frame, and post `renderer.domElement.toDataURL()` to `/_bench/<name>.png` (serve.js writes `test/render/<name>.png`); the horizon audit of 14 Sep (WATER.md Part 3) was looked at that way. For a creature also `node test/preview.js <id>` and look at the PNG. "Unseen" in the CHANGELOG is
    reserved for what genuinely could not be looked at (sound has no output here; the GPU cost is the person's 4060 at 1600×900).
@@ -74,15 +83,14 @@ Env vars: `TIER` (`low`), `PICK` (menu pick for smoke), `T0`, `OLD`, for preview
 5. `HANDOFF.md` describes current state only: a short paragraph for the new version at the top, and remove entries that are no
    longer true rather than appending. Keep that file short; the history is `CHANGELOG.md`.
 6. Commit each version on a `claude/…` branch, one commit per version, the message the CHANGELOG header, and open one pull request
-   per version into `main`. Identity is `WB <willbuzbee@gmail.com>` (`user.name` in the repo's local config; never any other name,
-   the person, 26 Sep 2026 — GitHub shows these commits "Unverified", which is accepted). `origin` is a **public** GitHub repo
-   (`william-are-buzbee/Tethys`) and `main` is protected: nothing reaches it but a pull request the person merges — that button is
-   the release. Claude pushes only its `claude/…` branch (`git push -u origin claude/…`, allowed in `.claude/settings.json`); never
-   `main`, never a force push, no rebasing or hard resets.
-7. Pages (`.github/workflows/pages.yml`, `.github/publish.sh`, 26 Sep 2026) builds on GitHub and writes the `gh-pages` branch: `main`
-   is the live game at `https://william-are-buzbee.github.io/Tethys/`; a pull request is a preview at `…/preview/<number>/`
-   (linked in a comment on it, removed when it closes) — the person plays it there before merging; each new CHANGELOG version is
-   kept at `…/v/<version>/` (e.g. `v/v11.93.1/`), written once, never overwritten.
+   per version into `main`. The repository's root `CLAUDE.md` has the rest: identity `WB <willbuzbee@gmail.com>` with a
+   `Co-Authored-By:` line for Claude, never `main`, never a force push, no rebasing or hard resets; `main` is locked by the ruleset
+   "Only Will Merges", and the person's merge is the release.
+7. The repository's Pages workflow writes the `gh-pages` branch: `main` is the live game at
+   `https://william-are-buzbee.github.io/Game-Template-and-Library/games/tethys/` (with `map.html` beside it); a pull request is a
+   preview at `…/preview/<number>/games/tethys/`, linked in a comment on it, removed when it closes — the person plays it there before
+   merging. The old site, `https://william-are-buzbee.github.io/Tethys/`, and its kept copies per version (`…/v/<version>/`) stay
+   as the old repository left them.
 
 The sandbox delivery (when there is no PC): copy `tethys.html` to `/mnt/user-data/outputs/`, zip the folder as `tethys-src.zip`.
 
@@ -96,12 +104,13 @@ build.js build.py  the build (Node / Python, in step)
 serve.js           static server for looking at the game, and the sink the sound bench posts its wavs to; not part of the game
 test/              headless tests, the THREE stub, real geometry for previews, the png writer and font, vendored acorn
 *.md IDEAS.txt     the design docs and the person's backlog, below
-.claude/           settings (deny/ask rules) and the launch config
+vendor/            @wb/core as one script (WB), committed; tools/vendor.js keeps it current
+tools/             vendor.js, and dist.js (the site's copy of the build); package.json is the repository's view of the game
 ```
 
 | src file | owns |
 |---|---|
-| util.js | math helpers, `mulberry` seeded rng, value noise |
+| util.js | math helpers, `mulberry` seeded rng (over `WB.Rng`), value noise |
 | world.js | the island as an analytic function: `sample(x,z)` → height and the nine condition fields `FI`; `envW` envelopes; tide and clock; sun, moon, weather (v11.87: `weatherAt` with the day's cycle, the easterly waves and the season — `day`, `wave`, `deep`, `spread`, `hazeK`); waves `waveH`; water colour; the retention field `leeW` and the plankton (v11.81: `plank`, `bloomC`, `bloomTint`, `PLK`, `PIGK`, `BLOOM_GLSL`, `plankAt`); the year (v11.83: `YEAR_D`, `TILT`, `yearPhase`, `sunDec`, `seasonAt`); landmarks `LM` |
 | physics.js | contact: the per-cell collider hash, body capsules, verlet chains (arms, tails, tentacles) and rigs, body-to-body push, the disturbance lists |
 | scene.js | quality tier `Q`, renderer, camera, lights, the fog (three's replaced), shadow maps, every shared material |
@@ -231,7 +240,7 @@ Docs, most upstream first. When a doc's Open list says a choice is the person's,
   **All creatures face +z.** An arms or claws predator's `reach` must exceed the contact distance of its and its prey's hit capsules or it can
   never land a bite; a jaw's bite is its mouth touching a capsule (v11.92, combat.js `mouthOn`), and its `reach` is only the strike range's floor. A day is 30 game hours in 40 real minutes; rates are per game day.
 - **An animation's beat is a `swimClock`, never `t*f(spd)`** — `t` is the session clock and `t*f` spins on every change of speed.
-- **Determinism, one scope, no libraries.** The bundle is one IIFE; any file may use any name from any file; `grep -n name src/*.js`
+- **Determinism, one scope, one library.** The library is `@wb/core` (`WB`, vendored; above), and nothing else. The bundle is one IIFE; any file may use any name from any file; `grep -n name src/*.js`
   finds uses — and a top-level name must be unique across the files: a second declaration replaces the first without a word (lint fails on it since v11.53). No `OrbitControls`, no `BufferGeometryUtils`; parts.js has its own merge.
 - **Docs carry status.** "built, unseen" means reasoned without a look; a doc's head note says what a later pass struck. Struck
   features are removed from the game; a kit may stay for reference, marked so.

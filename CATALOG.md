@@ -11,7 +11,7 @@ Proven systems used by two or more projects. Use these before writing anything t
 
 | package | what it is | used by |
 |---|---|---|
-| [`@wb/core`](packages/core/) | Dependency-free systems the games share: seeded random numbers, the fixed-step loop, angle and interpolation maths, the frame meter. | [overworld](games/overworld/), [rootshock](games/rootshock/) |
+| [`@wb/core`](packages/core/) | Dependency-free systems the games share: seeded random numbers, the fixed-step loop, angle and interpolation maths, the frame meter. | [overworld](games/overworld/), [rootshock](games/rootshock/), [tethys](games/tethys/) |
 
 ## Games
 
@@ -21,6 +21,7 @@ Real projects: tests, a CLAUDE.md of their own, the architecture rules.
 |---|---|---|---|
 | [overworld](games/overworld/) | A turn-based roguelike about surviving as an alien creature on a believably simulated world. | [core](packages/core/) | [open](https://william-are-buzbee.github.io/Game-Template-and-Library/games/overworld/) |
 | [rootshock](games/rootshock/) | A first-person game set in Lowfield Station, a facility deep under a field. | [core](packages/core/) | [open](https://william-are-buzbee.github.io/Game-Template-and-Library/games/rootshock/) |
+| [tethys](games/tethys/) | An underwater exploration game: no tech, no oxygen; swimming, an ecology, predators, a surface to breach and land to flop onto. | [core](packages/core/) | [open](https://william-are-buzbee.github.io/Game-Template-and-Library/games/tethys/) |
 
 ## Labs
 

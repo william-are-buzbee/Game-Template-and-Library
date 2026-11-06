@@ -10,7 +10,7 @@ const smax=(a,b,k)=>{const d=a-b;if(d>=k)return a;if(d<=-k)return b;const m=(k-M
 const rnd=(a,b)=>a+Math.random()*(b-a);
 const T1=V3(0,0,0),T2=V3(0,0,0),T3=V3(0,0,0),T4=V3(0,0,0);
 const _m=new THREE.Matrix4(),_q=new THREE.Quaternion();
-function mulberry(seed){return function(){seed|=0;seed=seed+0x6D2B79F5|0;let t=Math.imul(seed^seed>>>15,1|seed);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+function mulberry(seed){const r=new WB.Rng(seed|0);return function(){return r.next();};} // @wb/core's Rng since 6 Nov 2026: the same mulberry32, the same numbers (packages/core/test/golden.test.ts)
 
 // ---------- noise ----------
 const perm=new Uint8Array(512);

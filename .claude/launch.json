@@ -5,7 +5,7 @@
       "name": "tethys",
       "runtimeExecutable": "node",
       "runtimeArgs": [
-        "serve.js"
+        "games/tethys/serve.js"
       ],
       "port": 8080,
       "autoPort": true

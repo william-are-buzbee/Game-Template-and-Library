@@ -5,7 +5,7 @@
 // Env: W (pixels a side, 1200), SPAN (metres a side, the world), CX/CZ (the window's centre, 0), PLAN ("x,z,landR,footR;…" planned
 // islands: the land's radius and the foot's, drawn as two rings), OUT (file name, map.png).
 const fs=require('fs'),path=require('path'),root=path.join(__dirname,'..'),{png,text,textW}=require('./png.js');
-const util=fs.readFileSync(path.join(root,'src/util.js'),'utf8');let world=fs.readFileSync(path.join(root,'src/world.js'),'utf8');
+const util=fs.readFileSync(path.join(root,'vendor/wb-core.global.js'),'utf8')+'\n'+fs.readFileSync(path.join(root,'src/util.js'),'utf8');let world=fs.readFileSync(path.join(root,'src/world.js'),'utf8');
 const cut=world.indexOf('// ---------- the light');if(cut>0)world=world.slice(0,cut); // the geology, the fields and the landmarks; nothing that needs the scene
 const THREE={Vector3:class{constructor(x,y,z){this.x=x;this.y=y;this.z=z;}},Matrix4:class{},Quaternion:class{}};
 const Wd=new Function('THREE',util+'\n'+world+'\nreturn {sample,HALF,CELL,NCELL,LM,CUR_A,WIND_A,CHEMO,FI,ISLE,ISLANDS:typeof ISLANDS==="object"?ISLANDS:[],BASIN:typeof BASIN==="object"?BASIN:null,SILL:typeof SILL==="object"?SILL:null};')(THREE);

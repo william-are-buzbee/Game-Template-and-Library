@@ -1,5 +1,7 @@
 # build order of src/*.js (one name per line, without .js). build.py, test/smoke.js and test/lint.js all read this.
 # Only top-level statements that run at load care about the order; everything else is one shared scope.
+# First, the repository's @wb/core as one name, WB (vendored by tools/vendor.js; packages/core is the source, 6 Nov 2026).
+../vendor/wb-core.global
 util
 world
 physics

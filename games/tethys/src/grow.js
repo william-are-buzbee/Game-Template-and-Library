@@ -4,7 +4,7 @@
 // collapses the other two variants to the origin (degenerate triangles: one draw call, no fill). The species themselves
 // are in flora.js. Sizes are metres; every builder takes the variant's rng so a species is the same on every visit.
 const W=[1,1,1];
-function hashStr(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619);}return h>>>0;}
+function hashStr(s){return WB.hashString(s);} // FNV-1a, @wb/core's since 6 Nov 2026 (the same function)
 // pigment(h, line): a weed is the colour of the light it rejects (PLANET, the green gradient), and since TAXA (v11.15) the colour is the
 // line's, not the depth's: three photosynthetic lines from three planktonic pigment-kinds, each shading within its own band and
 // stopping — greens (green, sunscreen-bright in bright water, olive by −40 and no further), floaters (olive to gold-brown, never
