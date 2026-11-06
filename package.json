@@ -1,0 +1,28 @@
+{
+  "name": "game-template-and-library",
+  "private": true,
+  "description": "Every game, lab and shared package in one place.",
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "workspaces": [
+    "packages/*",
+    "games/*",
+    "labs/*"
+  ],
+  "scripts": {
+    "new": "node tools/new.ts",
+    "catalog": "node tools/catalog.ts",
+    "typecheck": "tsc -p tsconfig.json && node tools/each.ts typecheck",
+    "test": "node tools/each.ts test",
+    "build": "node tools/each.ts build",
+    "check": "npm run typecheck && npm test && node tools/catalog.ts --check",
+    "site": "node tools/site.ts",
+    "look": "node tools/look.ts"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.5",
+    "typescript": "^7.0.2"
+  }
+}

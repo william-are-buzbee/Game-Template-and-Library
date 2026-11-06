@@ -1,0 +1,7 @@
+# One line ending everywhere: LF in the repo and on every checkout, Windows included (Tethys learned this the hard way, 19 Sep 2026).
+* text=auto eol=lf
+*.png binary
+*.jpg binary
+*.wav binary
+*.ogg binary
+*.glb binary

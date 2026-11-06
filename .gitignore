@@ -1,0 +1,26 @@
+# dependencies and build output (every workspace)
+node_modules/
+dist/
+
+# the assembled site and the gh-pages worktree (tools/site.ts, .github/publish.sh)
+/_site/
+/_gh/
+
+# screenshots from tools/look.ts
+/_look/
+
+# logs, local environment, secrets
+*.log
+.env
+.env.*
+!.env.example
+
+# editor and tool state
+.claude/settings.local.json
+.vscode/
+.idea/
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
