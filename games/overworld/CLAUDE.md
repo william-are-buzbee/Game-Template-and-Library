@@ -15,8 +15,10 @@ Biblaridion's *Alien Biospheres*, Nethack and Caves of Qud.
 the body map. Behaviour comes from structures in the body map doing physical things, never from probabilities, tuning levers or
 behaviour labels. If a change needs something that isn't physically present in the body map, it's wrong.
 
-Plain ES modules, no framework, no dependencies, no build step. `index.html` loads `js/main.js` as a module; `js/state.js` is the
-shared mutable state every module imports. Each file's first lines say what it owns; the main groups:
+Plain ES modules, no framework, no build step. `index.html` loads `js/main.js` as a module; `js/state.js` is the
+shared mutable state every module imports. The one dependency is the repository's `@wb/core` (`packages/core`), vendored
+as `vendor/wb-core.js` (committed; `npm run vendor -w games/overworld` rewrites it, and `npm test` fails when it is stale):
+`js/rng.js` draws from its `Rng` since 6 Nov 2026, the same numbers as before. Each file's first lines say what it owns; the main groups:
 
 | area | files (in `js/`) |
 |---|---|
@@ -34,32 +36,39 @@ material through every species' eye; `js/test-hare-bodymap.html` is a test page.
 
 ## Run and look
 
-Modules don't load from `file://`, so serve the folder: `npx serve .` or `python3 -m http.server`, then open `index.html`.
-Add `?seed=<n>` to the URL for a reproducible world (the seed is logged at the start of a
-run). Two automated checks run on every pull request (`.github/workflows/check.yml`): `node tools/check-modules.mjs` (every
-module parses, every import resolves; no dependencies) and `node tools/smoke.mjs` (boots the game headless, plays, saves,
-reloads, checks seed determinism; needs Playwright, which the job installs and which a cloud session already has at
-`/opt/node22/lib/node_modules/playwright`, passed as `PLAYWRIGHT_MODULE`). They catch breakage, not design: the real check is
-playing it. For behaviour, `node tools/ecology.mjs [--seeds=1-8] [--turns=500] [--hunger=0.9] [--json=out.json]` (same
-`PLAYWRIGHT_MODULE`, minutes, not in CI) runs the world over several seeds with the player standing still and reports what the
-animals did as means ± spreads per 100 turns, and deaths by species and cause, who killed whom and which side opened each fight, and the hunt funnel (per predator–animal
+Overworld lives in the Game-Template-and-Library repository at `games/overworld` since 6 Nov 2026 (its history came with
+it). From the repository's root:
+
+```
+npm run dev -w games/overworld        serve the folder at http://localhost:5173 (modules don't load from file://)
+npm test -w games/overworld           vendor/wb-core.js current, then tools/check-modules.mjs: every module parses, every import resolves
+npm run smoke -w games/overworld      tools/smoke.mjs: boots headless, plays, saves, reloads, resumes, checks seed determinism
+```
+
+Add `?seed=<n>` to the URL for a reproducible world (the seed is logged at the start of a run). CI runs `npm test` and
+`smoke` on every pull request (the repository's `.github/workflows/check.yml`), and boots the build. The smoke test and
+`node tools/ecology.mjs` need Playwright: a cloud session has one (`require('playwright')` resolves); otherwise set
+`PLAYWRIGHT_MODULE` to its folder. They catch breakage, not design: the real check is playing it. For behaviour,
+`node tools/ecology.mjs [--seeds=1-8] [--turns=500] [--hunger=0.9] [--json=out.json]` (minutes, not in CI) runs the world over
+several seeds with the player standing still and reports what the animals did as means ± spreads per 100 turns, and
+deaths by species and cause, who killed whom and which side opened each fight, and the hunt funnel (per predator–animal
 pair: detected, viable, pursued, adjacent, attacked, hit, killed, and why each episode ended); run it before and after a change.
 `node tools/spectra.mjs` (plain node, seconds) prints what `spectra.js` makes of the materials: reference colours, each eye in
 each light, contrast in JNDs; `--calibrate` refits the display's chroma scale. A single seed is
-an anecdote: one change anywhere reroutes the world. From a cloud session the page can be opened in the pre-installed Chromium (Playwright) and screenshotted; the
-person's own check is the pull request's preview link (below).
+an anecdote: one change anywhere reroutes the world. From a session, `npm run build -w games/overworld && npm run look --
+games/overworld` boots the build and screenshots it; the person's own check is the pull request's preview,
+`…/preview/<number>/games/overworld/`.
 
 ## Delivering a change
 
-1. One change or one pass per pull request. Work on a `claude/…` branch, push it (`git push -u origin claude/…`), open a pull
-   request into `main`. Never push to `main` (it is protected; the person's merge is the release), never force-push or rebase.
-2. Identity for commits is `WB <willbuzbee@gmail.com>` (`git config user.name WB`, `user.email willbuzbee@gmail.com` in the
-   repo's local config; never any other name — the person, 26 Sep 2026). GitHub shows these commits "Unverified"; accepted.
-3. Pages (`.github/workflows/pages.yml`, `.github/publish.sh`, 26 Sep 2026) publishes the `gh-pages` branch: `main` is live at
-   `https://william-are-buzbee.github.io/Overworld/`; a pull request is a preview at `…/preview/<number>/` (linked in a comment
-   on it, removed when it closes); each merge is kept at `…/v/<date>-<commit>/`, never overwritten.
-4. When a change moves a system's design, update its `Notes/` doc in the same pull request, and tick `Notes/Todo.md`.
-5. Say in the pull request what changed, why, what was looked at, and what the person should check on the preview.
+The root `CLAUDE.md` is the rulebook: `claude/…` branches, a pull request into `main`, never a push to `main`, commits as
+`WB <willbuzbee@gmail.com>` with a `Co-Authored-By:` line for Claude. What is particular to Overworld:
+
+1. One change or one pass per pull request.
+2. When a change moves a system's design, update its `Notes/` doc in the same pull request, and tick `Notes/Todo.md`.
+3. Say in the pull request what changed, why, what was looked at, and what the person should check on the preview.
+4. Live at `https://william-are-buzbee.github.io/Game-Template-and-Library/games/overworld/`. The old site,
+   `https://william-are-buzbee.github.io/Overworld/`, and its kept copies per merge stay as the old repository left them.
 
 ## The person
 
