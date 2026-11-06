@@ -1,11 +1,8 @@
 // sim/step.ts — advances the game by one fixed step. Everything that happens in the game happens here, so a test
 // can play it with no browser (test/sim.test.ts) and two runs with the same inputs end in the same state.
+import { STEP, angDiff, clamp } from '@wb/core';
 import type { Input } from './input';
 import type { State } from './state';
-
-/** the fixed step: the sim always advances by exactly this */
-export const HZ = 60;
-export const STEP = 1 / HZ;
 
 /** top speed, m/s */
 export const SPEED = 5;
@@ -34,16 +31,7 @@ export function step(s: State, inp: Input): void {
   if (Math.abs(p.z) === HALF) p.vz = 0;
   if (Math.hypot(p.vx, p.vz) > 0.2) {
     const want = Math.atan2(-p.vx, -p.vz);
-    p.yaw += angDiff(want, p.yaw) * (1 - Math.exp(-TURN * STEP));
+    p.yaw += angDiff(p.yaw, want) * (1 - Math.exp(-TURN * STEP));
   }
   s.t += STEP;
-}
-
-function clamp(v: number, lo: number, hi: number): number {
-  return v < lo ? lo : v > hi ? hi : v;
-}
-
-/** the shortest signed angle from b to a */
-function angDiff(a: number, b: number): number {
-  return Math.atan2(Math.sin(a - b), Math.cos(a - b));
 }
