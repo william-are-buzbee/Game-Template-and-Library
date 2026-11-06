@@ -72,3 +72,9 @@ which found four repositories sharing no code, copying it instead (the same rand
 15. **Browser tests are a workspace's `smoke` script** (6 Nov 2026). `test` stays headless and fast; `smoke` needs
     Chromium and runs in CI after it is installed (`node tools/each.ts smoke`). Overworld's play-save-reload test is the
     first.
+16. **The games that moved in keep their own architecture** (6 Nov 2026). Rootshock is TypeScript with its own layer rule
+    (close to this repository's); Overworld is plain JavaScript modules served as they are; Tethys is JavaScript in one
+    shared scope, built by its own `build.js` and `build.py`. The architecture rules in `CLAUDE.md` are for games started
+    here. Bringing an older game to them (TypeScript, the sim/present split) is a project of its own and the person's call;
+    until then each game's `CLAUDE.md` says how it is built. Each takes from `@wb/core` what it can without changing what it
+    does: Rootshock all of it, Overworld and Tethys the random numbers (and Tethys the string hash).
