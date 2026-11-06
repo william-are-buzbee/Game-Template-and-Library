@@ -1,0 +1,52 @@
+# pages.yml — builds the site (every game and lab, and the index page: tools/site.ts) and publishes it to the
+# gh-pages branch; .github/publish.sh does the writing.
+#   main            the live site at the root
+#   a pull request  a preview at preview/<number>/, linked in a comment on it, replaced on each push, removed when it closes
+# One-time setting: Settings → Pages → Build and deployment → Deploy from a branch → gh-pages, / (root).
+name: pages
+on:
+  push:
+    branches: [main]
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+  workflow_dispatch:
+permissions:
+  contents: write
+  pull-requests: write
+# one writer to gh-pages at a time
+concurrency:
+  group: pages
+  cancel-in-progress: false
+jobs:
+  publish:
+    # a pull request from a fork has no token that can push: no preview for it
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        if: github.event.action != 'closed'
+        with:
+          node-version: 22
+          cache: npm
+      - if: github.event.action != 'closed'
+        env:
+          PREVIEW_PR: ${{ github.event.pull_request.number }}
+        run: |
+          npm ci
+          npm run build
+          node tools/site.ts
+      - if: github.event_name != 'pull_request'
+        run: bash .github/publish.sh main
+      - if: github.event_name == 'pull_request' && github.event.action != 'closed'
+        run: bash .github/publish.sh pr ${{ github.event.number }}
+      - if: github.event_name == 'pull_request' && github.event.action == 'closed'
+        run: bash .github/publish.sh close ${{ github.event.number }}
+      - if: github.event_name == 'pull_request' && github.event.action == 'opened'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const {owner,repo}=context.repo;
+            const url=`https://${owner.toLowerCase()}.github.io/${repo}/preview/${context.issue.number}/`;
+            await github.rest.issues.createComment({owner,repo,issue_number:context.issue.number,body:`preview: ${url}\n\nEvery game and lab, built from this pull request. Updated on every push; removed when it closes. The first deploy takes a minute or two after this job.`});
