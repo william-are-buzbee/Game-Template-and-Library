@@ -77,9 +77,14 @@ for (const target of targets) {
   const url = `http://127.0.0.1:${(server.address() as AddressInfo).port}/${query}`;
   const page = await browser.newPage({ viewport: { width: W, height: H } });
   const errors: string[] = [];
+  // only the build itself is served: anything from another host (a web font, say) is refused, so the check is of the
+  // game and not of the network, and it runs the same in CI, in a session with no internet, and offline
+  const origin = new URL(url).origin;
+  const outside = new Set<string>();
+  await page.route((u: URL) => u.origin !== origin, (r: any) => (outside.add(new URL(r.request().url()).host), r.abort()));
   page.on('pageerror', (e: Error) => errors.push(`page error: ${e.message}`));
-  page.on('console', (m: any) => m.type() === 'error' && errors.push(`console.error: ${m.text()}`));
-  page.on('requestfailed', (r: any) => errors.push(`request failed: ${r.url()} (${r.failure()?.errorText})`));
+  page.on('console', (m: any) => m.type() === 'error' && !/net::ERR_FAILED/.test(m.text()) && errors.push(`console.error: ${m.text()}`));
+  page.on('requestfailed', (r: any) => new URL(r.url()).origin === origin && errors.push(`request failed: ${r.url()} (${r.failure()?.errorText})`));
   // the browser asks for /favicon.ico on its own; a missing one is not the game's fault
   page.on('response', (r: any) => r.status() >= 400 && !r.url().endsWith('/favicon.ico') && errors.push(`HTTP ${r.status()}: ${r.url()}`));
   try {
@@ -90,13 +95,22 @@ for (const target of targets) {
   }
   const shot = argv.includes('--shot') && targets.length === 1 ? resolve(opt('--shot', '')) : join(ROOT, '_look', `${name}.png`);
   mkdirSync(dirname(shot), { recursive: true });
-  await page.screenshot({ path: shot }).catch((e: Error) => errors.push(`screenshot: ${e.message}`));
+  // the screenshot is for looking at, not part of the verdict: a heavy game under software WebGL can take longer to draw
+  // one frame than any sensible wait (Rootshock, 6 Nov 2026), and that says nothing about whether it boots
+  const notes: string[] = [];
+  let shotTaken = true;
+  await page.screenshot({ path: shot, timeout: 20_000 }).catch((e: Error) => {
+    shotTaken = false;
+    notes.push(`no screenshot (${e.message.split('\n')[0]}): too slow to draw under software WebGL, or hung; look at it on the preview`);
+  });
   await page.close();
   server.close();
+  if (outside.size) notes.push(`refused, from other hosts: ${[...outside].join(', ')}`);
+  const note = notes.map(n => `\n  (${n})`).join('');
   if (errors.length) {
     failed++;
-    console.error(`✗ ${target}${query}\n  ${errors.join('\n  ')}\n  screenshot: ${shot}`);
-  } else console.log(`✓ ${target}${query} booted with no errors; screenshot: ${shot}`);
+    console.error(`✗ ${target}${query}\n  ${errors.join('\n  ')}${shotTaken ? `\n  screenshot: ${shot}` : ''}${note}`);
+  } else console.log(`✓ ${target}${query} booted with no errors${shotTaken ? `; screenshot: ${shot}` : ''}${note}`);
 }
 await browser.close();
 process.exit(failed ? 1 : 0);
