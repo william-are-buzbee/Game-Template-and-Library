@@ -3,7 +3,7 @@ import { STATION } from '../src/content/station';
 import { levelDef } from '../src/sim/run';
 import { testbed } from '../src/content/levels/testbed';
 import { makeSim, type Sim } from '../src/sim/sim';
-import { STEP } from '../src/core/loop';
+import { STEP } from '@wb/core';
 import { refreshFields } from '../src/sim/fields';
 import { ambientFor, genAt, hearing, legacyFloor, roomAir, spaceOf, underfoot } from '../src/present/soundscape';
 import { flickerAt } from '../src/present/flicker';

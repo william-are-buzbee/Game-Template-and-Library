@@ -9,13 +9,17 @@ Live site: https://william-are-buzbee.github.io/Game-Template-and-Library/
 
 Proven systems used by two or more projects. Use these before writing anything they cover (CLAUDE.md, *The promotion rule*).
 
-_None yet. A package appears when a second project needs something a first one has._
+| package | what it is | used by |
+|---|---|---|
+| [`@wb/core`](packages/core/) | Dependency-free systems the games share: seeded random numbers, the fixed-step loop, angle and interpolation maths, the frame meter. | [rootshock](games/rootshock/) |
 
 ## Games
 
 Real projects: tests, a CLAUDE.md of their own, the architecture rules.
 
-_None yet._
+| game | what it is | uses | live |
+|---|---|---|---|
+| [rootshock](games/rootshock/) | A first-person game set in Lowfield Station, a facility deep under a field. | [core](packages/core/) | [open](https://william-are-buzbee.github.io/Game-Template-and-Library/games/rootshock/) |
 
 ## Labs
 

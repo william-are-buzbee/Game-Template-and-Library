@@ -1,7 +1,7 @@
 import type { LevelDef } from '../src/content/types';
 import { STATION } from '../src/content/station';
 import { buildUpper } from '../src/content/levels/upper';
-import { STEP } from '../src/core/loop';
+import { STEP } from '@wb/core';
 import { makeSim, step, type Sim } from '../src/sim/sim';
 import { noInput, type Input } from '../src/sim/input';
 

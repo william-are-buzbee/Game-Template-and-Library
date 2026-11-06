@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { STATION } from '../src/content/station';
 import { step, type Sim } from '../src/sim/sim';
 import { noInput, type Input } from '../src/sim/input';
-import { STEP } from '../src/core/loop';
+import { STEP } from '@wb/core';
 import { give, power } from '../src/sim/game';
 import { EYES, LOCKDOWN, camLive, doorZones, onScreen, soundZone } from '../src/sim/eyes';
 import { doorAct, doorLabel, findUsable } from '../src/sim/interact';

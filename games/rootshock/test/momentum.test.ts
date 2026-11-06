@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { LevelBuilder } from '../src/content/build/builder';
-import { STEP } from '../src/core/loop';
+import { STEP } from '@wb/core';
 import { push } from '../src/sim/body';
 import { noInput, type Input } from '../src/sim/input';
 import { makeSim, step, type Sim } from '../src/sim/sim';

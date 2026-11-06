@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { makeSim, simLighting, step, type Sim } from '../src/sim/sim';
 import { noInput } from '../src/sim/input';
-import { STEP } from '../src/core/loop';
+import { STEP } from '@wb/core';
 import { give } from '../src/sim/game';
 import { field, openRules } from '../src/world/nav';
 import { refreshFields } from '../src/sim/fields';

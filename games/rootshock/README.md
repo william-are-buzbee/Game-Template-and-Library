@@ -9,11 +9,12 @@ station the game now plays.
 
 ## Running it
 
-You need [Node.js](https://nodejs.org) 22 or later. From the repository root:
+You need [Node.js](https://nodejs.org) 22.18 or later. Rootshock lives in the Game-Template-and-Library repository
+(`games/rootshock`); from that repository's root:
 
 ```
-npm install        # once, and whenever package.json changes
-npm run dev        # serves the game at http://localhost:5173 and reloads on every save
+npm install                       # once, and whenever a package.json changes
+npm run dev -w games/rootshock    # serves the game at http://localhost:5173 and reloads on every save
 ```
 
 On a phone or a tablet it plays by touch, on its side (a stick under the left thumb, look with the right; engine.md §11,
@@ -54,15 +55,17 @@ no light), `shownormal` (which way each pixel takes its surface to face), `showl
 | `npm run build` | build the publishable game into `dist/` |
 | `npm run preview` | serve what `build` produced |
 
-Every push to `main` publishes the game with GitHub Pages (`.github/workflows/pages.yml`), with the first engine at
-`archive/first-engine.html`. Every pull request gets a playable preview at `pr-preview/pr-<number>/` on the same site,
-linked from a comment on it and removed when it closes (`.github/workflows/preview.yml`). Both are pushed to the
-`gh-pages` branch, which Pages serves (Settings → Pages → Deploy from a branch: `gh-pages`, `/ (root)`).
+The commands above run inside `games/rootshock` (or with `-w games/rootshock` from the repository's root). Every push to
+`main` publishes the game on the repository's site at
+`https://william-are-buzbee.github.io/Game-Template-and-Library/games/rootshock/`, with the first engine at
+`archive/first-engine.html` beside it; every pull request gets a playable preview at `…/preview/<number>/games/rootshock/`,
+linked from a comment on it (the repository's `.github/workflows/pages.yml`).
 
 ## Where things are
 
 ```
-src/core      maths, seeded random numbers, the fixed-step loop
+src/core      colour and polygon maths (the seeded random numbers, the fixed-step loop and the frame meter are
+              @wb/core, the repository's packages/core, since 6 Nov 2026)
 src/content   levels as data, and the kit for writing them (build/)
 src/world     the level compiled into one spatial model; every spatial question goes here
 src/sim       the game itself: bodies, the player, the cast, one step at a time. No three.js, no page.

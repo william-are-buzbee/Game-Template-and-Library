@@ -1,4 +1,4 @@
-import { STEP } from '../core/loop';
+import { STEP } from '@wb/core';
 import { REEL } from './moves';
 import { leftGrafted, type Mutant } from './cast';
 import { say, sfx } from './game';

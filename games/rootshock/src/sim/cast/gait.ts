@@ -1,4 +1,4 @@
-import { STEP } from '../../core/loop';
+import { STEP } from '@wb/core';
 import type { Sim } from '../sim';
 import type { Mutant } from '../cast';
 import { step_ } from './move';

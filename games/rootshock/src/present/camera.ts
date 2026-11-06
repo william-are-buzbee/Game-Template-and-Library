@@ -1,6 +1,6 @@
 import type * as THREE from 'three';
 import { clamp } from '../core/math';
-import { STEP } from '../core/loop';
+import { STEP } from '@wb/core';
 import type { Sim } from '../sim/sim';
 import type { Dyn } from '../world/world';
 import { U } from './render/shader';

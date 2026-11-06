@@ -1,5 +1,5 @@
 import { testbed } from '../../src/content/levels/testbed';
-import { STEP } from '../../src/core/loop';
+import { STEP } from '@wb/core';
 import { spawn, type Mutant } from '../../src/sim/cast';
 import { give } from '../../src/sim/game';
 import { noInput } from '../../src/sim/input';

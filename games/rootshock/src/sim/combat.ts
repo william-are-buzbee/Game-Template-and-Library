@@ -1,6 +1,6 @@
 import { wstats, type Shape, type WeaponStats } from '../content/items';
 import { clamp } from '../core/math';
-import { STEP } from '../core/loop';
+import { STEP } from '@wb/core';
 import type { Dyn } from '../world/world';
 import { hitMutant, type Mutant } from './cast';
 import { consume, log, makeNoise, sfx } from './game';

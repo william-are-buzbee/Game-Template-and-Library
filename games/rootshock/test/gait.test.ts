@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { LevelBuilder } from '../src/content/build/builder';
-import { STEP } from '../src/core/loop';
+import { STEP } from '@wb/core';
 import { angDiff } from '../src/core/math';
 import { GAIT, MT, pace, spawn, wayOf, type Mutant } from '../src/sim/cast';
 import { fieldTo } from '../src/sim/cast/move';

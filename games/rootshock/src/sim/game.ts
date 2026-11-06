@@ -1,7 +1,7 @@
 import type { CircuitDef, LadderDef } from '../content/types';
 import { GRID, ITEMS, keyName, sizeOf, wstats } from '../content/items';
 import { NOTES, type Note } from '../content/notes';
-import type { Rng } from '../core/rng';
+import type { Rng } from '@wb/core';
 import { circuitPower, type PowerLevel } from '../world/light';
 
 /* The game's state beyond bodies and space: power, what you carry and know, your health, your light. It is all plain

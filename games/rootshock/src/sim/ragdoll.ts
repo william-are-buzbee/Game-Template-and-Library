@@ -1,4 +1,4 @@
-import { STEP } from '../core/loop';
+import { STEP } from '@wb/core';
 import { rect } from '../world/shapes';
 import type { Box } from '../world/shapes';
 import type { Dyn, World } from '../world/world';

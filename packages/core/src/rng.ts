@@ -1,4 +1,6 @@
-/** A seeded random generator (mulberry32). Content, world and sim draw from these, never from Math.random,
+/** A seeded random generator (mulberry32). From Rootshock (src/core/rng.ts, Oct 2026); Tethys, Overworld and Planet-Viewer
+ *  each had the same algorithm, giving the same numbers (packages/core/test/golden.test.ts pins them).
+ *  Content, world and sim draw from these, never from Math.random,
  *  so a level is dressed the same on every load and a run can be replayed. */
 export class Rng {
   private s: number;

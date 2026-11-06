@@ -1,14 +1,6 @@
-export const PI = Math.PI;
-export const TAU = PI * 2;
-
-export const clamp = (v: number, a: number, b: number): number => (v < a ? a : v > b ? b : v);
-export const lerp = (a: number, b: number, t: number): number => a + (b - a) * t;
-
-/** the shortest signed turn from angle a to angle b */
-export function angDiff(a: number, b: number): number {
-  return ((((b - a + PI) % TAU) + TAU) % TAU) - PI;
-}
-export const angLerp = (a: number, b: number, t: number): number => a + angDiff(a, b) * t;
+// math.ts — Rootshock's colour and polygon helpers, and the shared maths re-exported from @wb/core (which has
+// clamp, lerp and the angle helpers since 6 Nov 2026), so the rest of the game imports them from here as before.
+export { PI, TAU, clamp, lerp, angDiff, angLerp } from '@wb/core';
 
 /** an RGB colour, each channel 0..1. Channels above 1.5 mark the colour as emissive (it ignores light) */
 export type Colour = readonly [number, number, number];

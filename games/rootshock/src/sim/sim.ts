@@ -1,6 +1,5 @@
 import type { LevelDef, StationDef } from '../content/types';
-import { Rng } from '../core/rng';
-import { STEP } from '../core/loop';
+import { Rng, STEP } from '@wb/core';
 import { World } from '../world/world';
 import { clamp } from '../core/math';
 import { Lighting, type Loose } from '../world/light';

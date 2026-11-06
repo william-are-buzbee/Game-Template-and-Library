@@ -1,6 +1,6 @@
 import type { RoundStop } from '../../content/types';
 import { angLerp, clamp } from '../../core/math';
-import { STEP } from '../../core/loop';
+import { STEP } from '@wb/core';
 import { field as fieldFrom } from '../../world/nav';
 import { carded, rulesFor, soundRules, staffField } from '../fields';
 import { end, power, sfx } from '../game';

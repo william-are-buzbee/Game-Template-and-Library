@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { LevelBuilder } from '../src/content/build/builder';
-import { STEP } from '../src/core/loop';
+import { STEP } from '@wb/core';
 import type { Mutant } from '../src/sim/cast';
 import { give } from '../src/sim/game';
 import { noInput } from '../src/sim/input';

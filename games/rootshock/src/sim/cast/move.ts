@@ -1,6 +1,6 @@
 import { angDiff, angLerp, clamp } from '../../core/math';
 import { roomHas } from '../../content/types';
-import { STEP } from '../../core/loop';
+import { STEP } from '@wb/core';
 import { Edge, edgeCost, field as fieldFrom } from '../../world/nav';
 import { shove, slide, steer, walk, type Slid } from '../body';
 import { carded, doorShut, opensItself, routeRules, rulesFor, WAYS, type Fields } from '../fields';

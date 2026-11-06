@@ -1,4 +1,4 @@
-import { Rng } from '../../core/rng';
+import { Rng } from '@wb/core';
 import { hex, scale3, type Colour } from '../../core/math';
 import { CAVERN, FITTED, type Mat, type RoomMats } from '../materials';
 import { lie, lyingCorners, lyingYaw, paperYaw } from '../lying';

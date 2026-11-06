@@ -1,4 +1,4 @@
-import { FixedLoop } from './core/loop';
+import { FixedLoop, Meter } from '@wb/core';
 import { bench } from './content/levels/bench';
 import { testbed } from './content/levels/testbed';
 import { STATION } from './content/station';
@@ -28,7 +28,6 @@ import { Hud } from './present/ui/hud';
 import { Panels } from './present/ui/panels';
 import { Carried } from './present/ui/carried';
 import { Feed } from './present/ui/feed';
-import { Meter } from './present/perf';
 import { Governor } from './present/quality';
 import { Touch } from './present/touch';
 import { ITEMS } from './content/items';

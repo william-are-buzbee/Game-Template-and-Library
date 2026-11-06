@@ -1,5 +1,5 @@
 import { angDiff, clamp } from '../../core/math';
-import { STEP } from '../../core/loop';
+import { STEP } from '@wb/core';
 import { field as fieldFrom } from '../../world/nav';
 import { push } from '../body';
 import { soundRules, staffField } from '../fields';

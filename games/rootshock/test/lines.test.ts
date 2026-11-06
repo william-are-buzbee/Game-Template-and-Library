@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { LevelBuilder } from '../src/content/build/builder';
 import { STATION } from '../src/content/station';
-import { STEP } from '../src/core/loop';
+import { STEP } from '@wb/core';
 import { blowKind, hitMutant, MT, type Mutant } from '../src/sim/cast';
 import { RUSH, TEMPER } from '../src/sim/cast/husk';
 import { noInput } from '../src/sim/input';

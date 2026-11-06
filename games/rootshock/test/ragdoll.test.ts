@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { describe, expect, it, onTestFinished, vi } from 'vitest';
 import { testbed } from '../src/content/levels/testbed';
-import { STEP } from '../src/core/loop';
+import { STEP } from '@wb/core';
 import { hitMutant, killAll, MT, spawn, type Hit, type Mutant } from '../src/sim/cast';
 import { give } from '../src/sim/game';
 import { noInput, type Input } from '../src/sim/input';

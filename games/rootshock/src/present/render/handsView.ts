@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { clamp } from '../../core/math';
-import { STEP } from '../../core/loop';
+import { STEP } from '@wb/core';
 import { loadTime, wayNow, wstats, type Hands } from '../../sim/combat';
 import { ACTIVE, PATHS } from '../../sim/sweep';
 import type { Shape } from '../../content/items';

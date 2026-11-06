@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { STATION } from '../src/content/station';
 import { makeSim, simLighting, step, type Sim } from '../src/sim/sim';
 import { noInput, type Input } from '../src/sim/input';
-import { STEP } from '../src/core/loop';
+import { STEP } from '@wb/core';
 import { power } from '../src/sim/game';
 import { locked } from '../src/sim/movers';
 import { checkProgress } from '../src/sim/progress';

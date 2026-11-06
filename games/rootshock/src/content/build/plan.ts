@@ -1,5 +1,5 @@
 import { PI, clamp, hex, inPoly, scale3, type Colour } from '../../core/math';
-import { hashString, type Rng } from '../../core/rng';
+import { hashString, type Rng } from '@wb/core';
 import { CAVERN, FITTED, STREET, WALKWAY, DOORWAY, type Mat, type RoomMats } from '../materials';
 import type { Aim, Batt, DoorLook, LadderDef, LitRule, Motes, Shape } from '../types';
 import { LevelBuilder, lid, type Palette, type WallOpts } from './builder';

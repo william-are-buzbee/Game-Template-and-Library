@@ -2,7 +2,7 @@ import * as THREE from 'three';
 import { blowAt, MT, torchRay, TORCH, type Mutant } from '../../sim/cast';
 import { DOWN } from '../../sim/moves';
 import { ragSpeed } from '../../sim/ragdoll';
-import { STEP } from '../../core/loop';
+import { STEP } from '@wb/core';
 import { rect } from '../../world/shapes';
 import type { Sim } from '../../sim/sim';
 import type { Lighting, Loose } from '../../world/light';

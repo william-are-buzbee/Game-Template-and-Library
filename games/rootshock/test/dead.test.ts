@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import { describe, expect, it, onTestFinished, vi } from 'vitest';
 import { STATION } from '../src/content/station';
-import { STEP } from '../src/core/loop';
+import { STEP } from '@wb/core';
 import { bones, ragAt } from '../src/sim/ragdoll';
 import { levelDef } from '../src/sim/run';
 import { load, save } from '../src/sim/save';

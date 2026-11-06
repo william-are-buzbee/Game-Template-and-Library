@@ -1,17 +1,19 @@
 {
-  "name": "rootshock",
+  "name": "@wb/rootshock",
   "private": true,
   "version": "0.0.0",
+  "description": "A first-person game set in Lowfield Station, a facility deep under a field.",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "vite build && node -e \"require('fs').cpSync('archive','dist/archive',{recursive:true})\"",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "check": "tsc --noEmit && vitest run"
   },
   "dependencies": {
+    "@wb/core": "*",
     "three": "^0.186.1"
   },
   "devDependencies": {

@@ -3,7 +3,7 @@ import { describe, expect, it, onTestFinished, vi } from 'vitest';
 import { STATION } from '../src/content/station';
 import { looseLights, simLighting, step, type Sim } from '../src/sim/sim';
 import { noInput } from '../src/sim/input';
-import { STEP } from '../src/core/loop';
+import { STEP } from '@wb/core';
 import { GAIT, ROUND, torchRay, type Mutant } from '../src/sim/cast';
 import type { Loose } from '../src/world/light';
 import { CastView } from '../src/present/render/castView';

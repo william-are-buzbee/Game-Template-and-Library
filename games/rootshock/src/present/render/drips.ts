@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { Rng } from '../../core/rng';
+import { Rng } from '@wb/core';
 import type { Sim } from '../../sim/sim';
 import type { Lighting } from '../../world/light';
 import type { World } from '../../world/world';

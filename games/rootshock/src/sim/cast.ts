@@ -1,6 +1,6 @@
 import type { MutantDef, RoundStop } from '../content/types';
 import { clamp, PI, TAU } from '../core/math';
-import { STEP } from '../core/loop';
+import { STEP } from '@wb/core';
 import { fall, makeBody, push, settle, type Body } from './body';
 import { makeFields, refreshFields, walkedHere, WAYS, type Walker } from './fields';
 import { DOWN, FALL, MOVES, POISE, regain } from './moves';

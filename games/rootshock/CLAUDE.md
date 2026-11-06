@@ -10,27 +10,19 @@ that keeps it malleable: `src/sim/` and `src/world/` never import three.js or to
 
 ## Delivering a change
 
-The owner (william-are-buzbee) does not write code. Claude writes it; the owner plays the preview, reads the pull request
-and merges it. The merge is the release.
+Rootshock lives in the Game-Template-and-Library repository at `games/rootshock` since 6 Nov 2026 (its history came
+with it). The root `CLAUDE.md` is the rulebook: `claude/…` branches, a pull request into `main`, never a push to `main`,
+commits as `WB <willbuzbee@gmail.com>` with a `Co-Authored-By:` line for Claude, and `npm run check` and `npm run build`
+before pushing. CI boots the game in headless Chromium; the pull request's preview is
+`…/preview/<number>/games/rootshock/`.
 
-1. Work on a `claude/…` branch, push it (`git push -u origin claude/…`) and open a pull request into `main`. Once a pull
-   request is open, its branch takes only fixes to it; follow-up work goes on a new branch and a new pull request.
-2. Never push to `main`. Never force-push, rebase or hard-reset. `main` is locked by the ruleset *Only Will Merges*
-   (Settings → Rules): a pull request is the only way in, force pushes and deletion are blocked, and no approvals are
-   required, because the pull requests open under the owner's account and GitHub does not let anyone approve their own.
-   A refused push to `main` is the ruleset working, not something to get round.
-3. Run `npm run check` before pushing. CI (`.github/workflows/check.yml`) runs it and a build on every pull request, and
-   skips changes to docs alone.
-4. Pages publishes the `gh-pages` branch. Every merge to `main` is live at `https://william-are-buzbee.github.io/Rootshock/`
-   (`pages.yml`); every pull request gets a playable preview at `…/pr-preview/pr-<number>/`, linked in a comment on it and
-   removed when it closes (`preview.yml`). Both workflows push to `gh-pages`, so no ruleset may cover it or all branches.
-5. Commit as `WB <willbuzbee@gmail.com>`: before the first commit, set `git config user.name WB` and
-   `git config user.email willbuzbee@gmail.com` in the repo's local config, and never use any other name (the owner,
-   6 Nov 2026). End every commit message with a `Co-Authored-By:` line for Claude, so GitHub shows both. Tethys, Overworld
-   and Planet-Viewer commit the same way. GitHub marks these commits "Unverified" because they are not signed; that is
-   accepted, so *Require signed commits* stays off in the ruleset.
-6. Say in the pull request what changed, why, what was checked, and what the owner should look at on the preview. Put
-   lore, wording and open design questions under *For the owner*.
+- Say in the pull request what changed, why, what was checked, and what the owner should look at on the preview. Put
+  lore, wording and open design questions under *For the owner*.
+- Shared systems come from `@wb/core` (`packages/core`): `Rng`, `hashString`, `FixedLoop`, `STEP`, `Meter`, and
+  `clamp`, `lerp`, `angDiff`, `angLerp` (re-exported by `src/core/math.ts`). Change them there, for every game, with
+  their tests; `packages/core/test/golden.test.ts` pins the random numbers every level is dressed from.
+- Under software WebGL (CI, a cloud session) the full renderer can take seconds a frame. To look at it from a session,
+  trim it: `npm run look -- games/rootshock --query "?dbg=nomsaa,noglow,noprepass,nograin&detail=off" --size 640x360`.
 
 ## The owner
 

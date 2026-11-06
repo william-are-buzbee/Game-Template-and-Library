@@ -1,7 +1,7 @@
 import * as THREE from 'three';
 import type { Motes as Kind, RoomDef } from '../../content/types';
 import { power } from '../../sim/game';
-import { STEP } from '../../core/loop';
+import { STEP } from '@wb/core';
 import type { Sim } from '../../sim/sim';
 import type { Lighting } from '../../world/light';
 import { LIGHTS, U, lightUniforms } from './shader';

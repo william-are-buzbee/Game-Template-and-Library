@@ -1,0 +1,20 @@
+{
+  "name": "@wb/core",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Dependency-free systems the games share: seeded random numbers, the fixed-step loop, angle and interpolation maths, the frame meter.",
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "scripts": {
+    "build": "vite build",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "^7.0.2",
+    "vite": "^8.3.6",
+    "vitest": "^5.1.0"
+  }
+}

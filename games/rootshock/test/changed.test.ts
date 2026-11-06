@@ -3,7 +3,7 @@ import { STATION } from '../src/content/station';
 import { buildMain } from '../src/content/levels/main';
 import { makeSim, step, type Sim } from '../src/sim/sim';
 import { noInput } from '../src/sim/input';
-import { STEP } from '../src/core/loop';
+import { STEP } from '@wb/core';
 import { field } from '../src/world/nav';
 import { carded, routeRules } from '../src/sim/fields';
 import { answer, type Mutant } from '../src/sim/cast';

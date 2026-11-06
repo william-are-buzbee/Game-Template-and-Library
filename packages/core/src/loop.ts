@@ -1,4 +1,4 @@
-/** The fixed step. The sim always advances by STEP seconds; the renderer draws between the last two steps.
+/** The fixed step. From Rootshock (src/core/loop.ts, Oct 2026). The sim always advances by STEP seconds; the renderer draws between the last two steps.
  *  Real time is fed in, whole steps come out, and the remainder carries to the next frame. */
 export const HZ = 60;
 export const STEP = 1 / HZ;

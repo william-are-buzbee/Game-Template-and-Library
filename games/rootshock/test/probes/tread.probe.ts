@@ -1,7 +1,7 @@
 import { it } from 'vitest';
 import { testbed } from '../../src/content/levels/testbed';
 import { STATION } from '../../src/content/station';
-import { STEP } from '../../src/core/loop';
+import { STEP } from '@wb/core';
 import { killAll, spawn, type Mutant } from '../../src/sim/cast';
 import { noInput } from '../../src/sim/input';
 import { bones, RAG } from '../../src/sim/ragdoll';

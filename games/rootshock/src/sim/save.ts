@@ -1,6 +1,6 @@
 import type { LevelDef } from '../content/types';
 import { NOTES } from '../content/notes';
-import { Rng } from '../core/rng';
+import { Rng } from '@wb/core';
 import { syncBody } from './body';
 import { restoreRoute } from './cast';
 import { layRag } from './ragdoll';

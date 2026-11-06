@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { GRID, sizeOf } from '../src/content/items';
-import { Rng } from '../src/core/rng';
+import { Rng } from '@wb/core';
 import { fits, give, makeGame, moveSlot, settle, unwear, useItem, type Game } from '../src/sim/game';
 import { load, save } from '../src/sim/save';
 import { STATION } from '../src/content/station';

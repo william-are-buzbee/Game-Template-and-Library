@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { FixedLoop, STEP } from '../src/core/loop';
-import { Rng } from '../src/core/rng';
+import { FixedLoop, STEP } from '../src/loop';
+import { Rng } from '../src/rng';
 
 describe('FixedLoop', () => {
   it('runs whole steps and carries the remainder', () => {

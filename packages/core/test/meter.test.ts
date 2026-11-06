@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { Meter } from '../src/present/perf';
+import { Meter } from '../src/meter';
 
-/* The dev readout's frame breakdown (present/perf.ts). */
+/* The dev readout's frame breakdown (src/meter.ts). */
 describe('the meter', () => {
   it('shows each part as its mean and worst a frame over half a second, and nothing before that', () => {
     const m = new Meter();

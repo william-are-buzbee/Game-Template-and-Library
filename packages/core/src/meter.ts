@@ -1,4 +1,4 @@
-/* Where a frame goes (?dev): each part timed, and gathered over half a second into its mean and its worst a frame, so
+/* Where a frame goes (?dev). From Rootshock (src/present/perf.ts, Oct 2026): each part timed, and gathered over half a second into its mean and its worst a frame, so
    the numbers hold still long enough to read. Looks only; nothing reads it but the dev readout. */
 
 /** how often the numbers shown change (s) */

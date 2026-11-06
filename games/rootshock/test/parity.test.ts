@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { step, type Sim } from '../src/sim/sim';
 import { noInput } from '../src/sim/input';
-import { STEP } from '../src/core/loop';
+import { STEP } from '@wb/core';
 import { give, hurt } from '../src/sim/game';
 import type { Mutant } from '../src/sim/cast';
 import { fresh, hold } from './kit';

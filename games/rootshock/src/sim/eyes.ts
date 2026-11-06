@@ -1,5 +1,5 @@
 import type { CameraDef, SpeakerDef } from '../content/types';
-import { STEP } from '../core/loop';
+import { STEP } from '@wb/core';
 import { field } from '../world/nav';
 import type { Dyn, World } from '../world/world';
 import { needs, type Door } from './movers';

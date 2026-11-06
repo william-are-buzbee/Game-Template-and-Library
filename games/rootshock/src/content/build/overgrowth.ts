@@ -1,5 +1,5 @@
 import { PI, TAU, clamp } from '../../core/math';
-import { Rng } from '../../core/rng';
+import { Rng } from '@wb/core';
 import { ICO } from '../types';
 import { lid } from './builder';
 import { P, roomAt, type Dir, type Floor, type PRoom } from './plan';

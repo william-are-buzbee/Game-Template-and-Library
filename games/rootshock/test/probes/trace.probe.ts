@@ -2,7 +2,7 @@ import { it } from 'vitest';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { STATION } from '../../src/content/station';
 import { testbed } from '../../src/content/levels/testbed';
-import { STEP } from '../../src/core/loop';
+import { STEP } from '@wb/core';
 import { MT, spawn } from '../../src/sim/cast';
 import { give } from '../../src/sim/game';
 import { noInput, type Input } from '../../src/sim/input';

@@ -1,4 +1,4 @@
-import { STEP } from '../../core/loop';
+import { STEP } from '@wb/core';
 import type { Dyn } from '../../world/world';
 import { impulse } from '../body';
 import { hurtBy, log, sfx } from '../game';

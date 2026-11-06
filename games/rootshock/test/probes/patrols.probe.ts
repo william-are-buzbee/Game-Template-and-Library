@@ -3,7 +3,7 @@ import { STATION } from '../../src/content/station';
 import { levelDef } from '../../src/sim/run';
 import { makeSim, step } from '../../src/sim/sim';
 import { noInput } from '../../src/sim/input';
-import { STEP } from '../../src/core/loop';
+import { STEP } from '@wb/core';
 import { begin, say } from './out';
 
 /* Where the changed keep their rounds: each level left to itself for some minutes, you out of it (flying, far over
