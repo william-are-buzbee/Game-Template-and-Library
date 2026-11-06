@@ -64,3 +64,11 @@ which found four repositories sharing no code, copying it instead (the same rand
     template has a frame readout (`Meter`), the state on `window.game`, and P pause, `.` step, T slow time; each game adds
     its own keys to `DEV_KEYS`. What the two 3D games' dev modes shared was this pattern (Rootshock: a key map and T for
     slow time; Tethys: console helpers and a readout); their actual keys (fly, god, teleport) are each game's own.
+14. **A game with no build step takes `@wb/core` as a committed file** (6 Nov 2026, Overworld). TypeScript games import
+    the package's source; a game that is served as it is (Overworld) or built by its own script (Tethys) gets
+    `packages/core`'s build copied into its `vendor/` and committed, so the folder still runs as it always did, with
+    nothing to build first. Its `npm test` fails when the copy is stale. A generated file in git is the exception to the
+    rule, and this is what it buys.
+15. **Browser tests are a workspace's `smoke` script** (6 Nov 2026). `test` stays headless and fast; `smoke` needs
+    Chromium and runs in CI after it is installed (`node tools/each.ts smoke`). Overworld's play-save-reload test is the
+    first.
