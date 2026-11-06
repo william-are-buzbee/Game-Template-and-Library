@@ -24,8 +24,11 @@ and merges it. The merge is the release.
 4. Pages publishes the `gh-pages` branch. Every merge to `main` is live at `https://william-are-buzbee.github.io/Rootshock/`
    (`pages.yml`); every pull request gets a playable preview at `…/pr-preview/pr-<number>/`, linked in a comment on it and
    removed when it closes (`preview.yml`). Both workflows push to `gh-pages`, so no ruleset may cover it or all branches.
-5. Commits are authored as Claude, the session's default identity; the owner's merges mark what they accepted. Do not
-   change the identity.
+5. Commit as `WB <willbuzbee@gmail.com>`: before the first commit, set `git config user.name WB` and
+   `git config user.email willbuzbee@gmail.com` in the repo's local config, and never use any other name (the owner,
+   6 Nov 2026). End every commit message with a `Co-Authored-By:` line for Claude, so GitHub shows both. Tethys, Overworld
+   and Planet-Viewer commit the same way. GitHub marks these commits "Unverified" because they are not signed; that is
+   accepted, so *Require signed commits* stays off in the ruleset.
 6. Say in the pull request what changed, why, what was checked, and what the owner should look at on the preview. Put
    lore, wording and open design questions under *For the owner*.
 
