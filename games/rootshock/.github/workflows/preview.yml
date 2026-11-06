@@ -1,0 +1,40 @@
+name: preview
+
+# A playable build of every pull request, at <site>/pr-preview/pr-<number>/, linked from a comment on the pull request
+# and kept up to date with each push; removed when the pull request is closed. It lives on the gh-pages branch beside
+# the site itself (pages.yml). Pull requests from forks get none: their token cannot push.
+on:
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: gh-pages
+  cancel-in-progress: false
+
+jobs:
+  preview:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        if: github.event.action != 'closed'
+        with:
+          node-version: 22
+          cache: npm
+      - name: Build
+        if: github.event.action != 'closed'
+        run: |
+          npm ci
+          npm run build
+      - uses: rossjrw/pr-preview-action@v1
+        with:
+          source-dir: ./dist/
+          preview-branch: gh-pages
+          umbrella-dir: pr-preview
+          qr-code: false

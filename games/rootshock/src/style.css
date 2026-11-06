@@ -1,0 +1,147 @@
+:root {
+  --bone: #d9d3c1; --ash: #86857c; --pitch: #040506; --hazard: #c9a227; --blood: #8e2a20;
+  --sign: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --hand: "Newsreader", Georgia, "Times New Roman", serif;
+  box-sizing: border-box;
+}
+*, *::before, *::after { box-sizing: inherit; }
+html, body { height: 100%; margin: 0; background: var(--pitch); color: var(--bone); font-family: var(--sign); overflow: hidden; overscroll-behavior: none; user-select: none; -webkit-user-select: none; }
+canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; }
+.hide { display: none !important; }
+#hud { position: fixed; inset: 0; pointer-events: none; font-size: 18px; letter-spacing: .02em; }
+#dot { position: absolute; left: 50%; top: 50%; width: 4px; height: 4px; margin: -2px; border-radius: 50%; background: var(--bone); opacity: .55; transition: transform .12s, opacity .12s; }
+#dot.can { opacity: .95; transform: scale(1.6); }
+#devtag { position: absolute; right: 20px; top: 18px; font-size: 14px; font-weight: 600; letter-spacing: .12em; color: var(--hazard); text-shadow: 0 1px 4px #000; white-space: pre; }
+#track { position: absolute; left: 28px; top: 92px; max-width: min(46em, 60vw); max-height: calc(100vh - 260px); overflow: hidden; font-size: 13px; line-height: 1.35; color: var(--bone); text-shadow: 0 1px 4px #000; white-space: pre-wrap; background: rgba(2, 3, 4, .55); padding: 8px 10px; }
+.screen { position: fixed; inset: 0; display: flex; flex-direction: column; justify-content: flex-end; padding: 8vh 8vw; background: rgba(2, 3, 4, .72); }
+/* the title's shot shows through: dark under the name, and behind the menu, and little elsewhere */
+#title { background: linear-gradient(to top, rgba(2, 3, 4, .88), rgba(2, 3, 4, .3) 48%, rgba(2, 3, 4, .12)), linear-gradient(to left, rgba(2, 3, 4, .6), transparent 40%); }
+.screen h1 { font-size: clamp(64px, 13vw, 180px); font-weight: 600; line-height: .85; margin: 0 0 .12em -.04em; letter-spacing: -.01em; text-transform: uppercase; }
+/* a menu: a few words on the right, as a title card has them */
+.menu { position: absolute; right: 12vw; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; align-items: flex-start; gap: .15em; font-size: clamp(22px, 2.2vw, 30px); }
+.menu button { font: inherit; font-weight: 600; letter-spacing: .06em; color: var(--bone); opacity: .72; background: none; border: 0; padding: .1em 0; cursor: pointer; text-align: left; }
+.menu button:hover, .menu button:focus-visible { opacity: 1; color: var(--hazard); outline: none; }
+.menu label { font-size: .7em; font-weight: 500; letter-spacing: .06em; color: var(--ash); display: flex; align-items: center; gap: .8em; padding: .2em 0; }
+.menu input[type=range] { width: 12em; accent-color: var(--hazard); }
+.menu input[type=checkbox] { accent-color: var(--hazard); width: 1.1em; height: 1.1em; margin: 0; }
+.menu .keys { font-size: .55em; color: var(--ash); display: grid; grid-template-columns: repeat(3, auto); gap: 2px 28px; margin: 1em 0 .8em; }
+.menu .keys b { color: var(--bone); font-weight: 500; margin-right: .5em; }
+#settings .menu { left: 8vw; right: auto; }
+.screen .dev { font-size: 16px; color: var(--ash); margin: 0; }
+.screen .dev a { color: var(--hazard); }
+#end { justify-content: center; cursor: pointer; }
+#end p { font-family: var(--hand); font-size: clamp(17px, 1.5vw, 22px); line-height: 1.5; max-width: 34em; margin: 0; }
+/* the HUD and the panels, as the first engine had them */
+:root { --paper: #cfc7ae; --ink: #1d1a15; }
+#vig, #fade, #hitdir { position: fixed; inset: 0; pointer-events: none; }
+/* the side a blow came from: placed by main.ts, at the screen's edge toward whatever struck you */
+#hitdir { opacity: 0; background: radial-gradient(ellipse 55% 55% at var(--hx, 50%) var(--hy, 50%), rgba(150, 12, 8, .7), transparent); }
+#fade { background: #000; opacity: 0; }
+#vig { background: radial-gradient(ellipse at center, transparent 45%, rgba(120, 10, 6, .75) 100%); opacity: 0; }
+#prompt { position: absolute; left: 0; right: 0; top: 54%; text-align: center; font-size: 18px; font-weight: 500; letter-spacing: .03em; opacity: .85; text-shadow: 0 1px 6px #000; }
+#stat { position: absolute; left: 28px; bottom: 26px; width: 230px; }
+.bar { height: 9px; background: rgba(217, 211, 193, .14); margin-bottom: 6px; }
+.bar i { display: block; height: 100%; width: 100%; background: var(--blood); }
+.bar.sm { height: 4px; width: 60%; }
+.bar.sm i { background: var(--hazard); }
+#o2w i { background: #7fb6c9; }
+#ammo { font-size: 17px; font-weight: 500; color: var(--bone); font-variant-numeric: tabular-nums; }
+.panel { position: fixed; inset: 0; display: flex; background: rgba(2, 3, 4, .82); align-items: center; justify-content: center; padding: 4vh 4vw; }
+/* what you carry (present/ui/carried.ts): a strip over the top of the game, which goes on under it. Cells of --c; a thing
+   takes the cells of its size; beside the grid what you wear and your lights, under it keys and papers */
+#inv { --c: 46px; position: fixed; z-index: 2; top: 12px; left: 50%; transform: translateX(-50%); padding: 8px; background: rgba(4, 5, 6, .9);
+  border: 1px solid rgba(217, 211, 193, .22); box-shadow: 0 8px 30px rgba(0, 0, 0, .55); }
+#invb { display: grid; grid-template-columns: auto auto; gap: 8px 14px; }
+#invb .grid, #invb .equip { display: grid; grid-template-columns: repeat(var(--w), var(--c)); grid-template-rows: repeat(3, var(--c)); }
+#invb .grid { --w: 8; }
+#invb .equip { --w: 3; gap: 0; }
+#invb .grid > i { border: 1px solid rgba(217, 211, 193, .09); background: rgba(217, 211, 193, .03); }
+#invb .it { position: relative; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(217, 211, 193, .28);
+  background: rgba(30, 33, 37, .9); color: var(--bone); cursor: pointer; touch-action: none; }
+#invb .equip .it { margin: 1px; }
+#invb .it:hover { border-color: var(--bone); }
+#invb .it.on { border-color: var(--hazard); box-shadow: inset 0 0 0 1px rgba(201, 162, 39, .5); }
+#invb .it.lit { background: rgba(201, 162, 39, .18); }
+#invb .it.ghost { background: none; border-style: dashed; border-color: rgba(217, 211, 193, .14); cursor: default; }
+#invb .it.ghost .pic { filter: grayscale(1) brightness(.55); opacity: .2; }
+#invb .it.lifted { opacity: .25; }
+#invb .pic { width: 100%; height: 100%; padding: 3px; display: block; pointer-events: none; }
+#invb .it em { position: absolute; left: 3px; top: 1px; font-style: normal; font-size: 13px; font-weight: 600; color: var(--bone); text-shadow: 0 1px 2px #000, 0 0 3px #000; pointer-events: none; }
+#invb .land { border: 2px solid var(--hazard); background: rgba(201, 162, 39, .14); pointer-events: none; z-index: 1; }
+#invb .land.no { border-color: #b8392b; background: rgba(184, 57, 43, .14); }
+#invb .row { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 3px; }
+#invb .it.sm { width: calc(var(--c) * .72); height: calc(var(--c) * .72); }
+#ghost { position: fixed; left: 0; top: 0; z-index: 4; pointer-events: none; opacity: .9; border: 1px solid var(--hazard); background: rgba(30, 33, 37, .75); }
+#ghost .pic { width: 100%; height: 100%; padding: 3px; display: block; }
+#ghost em { display: none; }
+#ghost.out { border-color: #b8392b; opacity: .6; }
+/* the name of what the pointer is on, under it */
+#tip { position: fixed; z-index: 3; pointer-events: none; font-size: 16px; font-weight: 600; letter-spacing: .04em; color: var(--bone); background: rgba(4, 5, 6, .92); border: 1px solid rgba(217, 211, 193, .3); padding: 2px 8px; white-space: nowrap; }
+#liftb { width: min(320px, 100%); }
+#liftb button { display: block; width: 100%; font: inherit; font-size: 22px; font-weight: 500; text-align: left; color: var(--bone); background: rgba(217, 211, 193, .05); border: 1px solid rgba(217, 211, 193, .25); padding: 10px 14px; margin: 0 0 6px; cursor: pointer; }
+#liftb button:disabled { opacity: .4; cursor: default; border-style: dashed; }
+#note article { width: min(560px, 100%); max-height: 86vh; overflow: auto; background: var(--paper); color: var(--ink); font-family: var(--hand); font-size: 19px; line-height: 1.5; padding: 38px 42px 30px; white-space: pre-wrap; transform: rotate(-.6deg); box-shadow: 0 20px 60px #000; }
+#note article h2 { font-family: var(--sign); font-size: 15px; font-weight: 600; letter-spacing: .16em; text-transform: uppercase; margin: 0 0 18px; color: #5c5546; }
+#pad > div { width: 250px; }
+#padd { font-size: 44px; font-weight: 600; letter-spacing: .3em; text-align: center; height: 66px; border-bottom: 3px solid var(--hazard); margin-bottom: 12px; }
+#padk { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+#padk button { font: inherit; font-size: 26px; padding: 10px 0; background: rgba(217, 211, 193, .06); color: var(--bone); border: 1px solid rgba(217, 211, 193, .3); cursor: pointer; }
+#padk button .ico { width: 1.1em; height: 1.1em; margin: auto; display: block; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+#padk button:hover, #padk button:focus-visible { border-color: var(--hazard); outline: none; }
+/* a console's feed (present/ui/feed.ts): a monitor's grain and lines over the view, its name, its clock */
+#feed { position: fixed; inset: 0; pointer-events: none; background: repeating-linear-gradient(to bottom, rgba(0, 0, 0, .22) 0 1px, transparent 1px 3px); font-family: 'Barlow Condensed', 'Arial Narrow', Arial, sans-serif; color: #e8e4d8; letter-spacing: .12em; text-shadow: 0 1px 3px #000; }
+#feedn { position: absolute; left: 28px; top: 24px; font-size: 20px; font-weight: 600; }
+#feedn::before { content: ''; display: inline-block; width: .55em; height: .55em; margin-right: .5em; border-radius: 50%; background: #c0392b; vertical-align: .05em; }
+#feedt { position: absolute; right: 28px; top: 24px; font-size: 20px; font-weight: 500; font-variant-numeric: tabular-nums; }
+#feedx { position: absolute; left: 0; right: 0; top: 46%; text-align: center; font-size: 34px; font-weight: 600; letter-spacing: .3em; }
+body.watching #dot { display: none; }
+
+/* touch (present/touch.ts): a phone or a tablet on its side. What is said for keys or for touch, by which this is */
+body:not(.touch) .touchonly, body.touch .keysonly { display: none !important; }
+body.touch { touch-action: none; -webkit-touch-callout: none; }
+body.touch .panel > div, body.touch #note article, body.touch .screen { touch-action: pan-y; }
+#touch { position: fixed; inset: 0; touch-action: none; font-family: var(--sign); }
+#stick { position: absolute; width: 104px; height: 104px; margin: -52px 0 0 -52px; border-radius: 50%; border: 2px solid rgba(217, 211, 193, .35); display: none; pointer-events: none; }
+#stick.on { display: block; }
+#stick.run { border-color: var(--hazard); box-shadow: 0 0 0 10px rgba(201, 162, 39, .12); }
+#stick i { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; margin: -23px; border-radius: 50%; background: rgba(217, 211, 193, .28); }
+.tb { position: absolute; display: flex; align-items: center; justify-content: center; width: 58px; height: 58px; border-radius: 50%;
+  border: 2px solid rgba(217, 211, 193, .4); background: rgba(4, 5, 6, .35); color: rgba(217, 211, 193, .85);
+  font-size: 13px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; user-select: none; -webkit-user-select: none; }
+.tb svg, #back svg, #turn svg { width: 50%; height: 50%; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.tb.down { background: rgba(217, 211, 193, .25); border-color: var(--bone); }
+.tb[data-tb="hands"] { width: 88px; height: 88px; right: calc(24px + env(safe-area-inset-right)); bottom: calc(30px + env(safe-area-inset-bottom)); }
+.tb[data-tb="jump"] { right: calc(128px + env(safe-area-inset-right)); bottom: calc(18px + env(safe-area-inset-bottom)); }
+.tb[data-tb="crouch"] { right: calc(198px + env(safe-area-inset-right)); bottom: calc(18px + env(safe-area-inset-bottom)); }
+.tb[data-tb="use"] { right: calc(38px + env(safe-area-inset-right)); bottom: calc(136px + env(safe-area-inset-bottom)); width: 62px; height: 62px; opacity: .5; }
+.tb[data-tb="use"].lit { opacity: 1; border-color: var(--hazard); color: var(--hazard); }
+.tb[data-tb="light"] { right: calc(116px + env(safe-area-inset-right)); bottom: calc(96px + env(safe-area-inset-bottom)); width: 52px; height: 52px; }
+.tb[data-tb="carry"], .tb[data-tb="pause"] { top: calc(12px + env(safe-area-inset-top)); width: 44px; height: 44px; border-radius: 3px; }
+.tb[data-tb="pause"] { right: calc(16px + env(safe-area-inset-right)); }
+.tb[data-tb="carry"] { right: calc(70px + env(safe-area-inset-right)); }
+/* the HUD out from under the thumbs: what you have and what is said, top left */
+body.touch #stat { top: calc(14px + env(safe-area-inset-top)); bottom: auto; left: calc(18px + env(safe-area-inset-left)); width: 180px; }
+body.touch #prompt { top: 60%; font-size: 18px; }
+body.touch #inv { left: calc(12px + env(safe-area-inset-left)); transform: none; top: calc(8px + env(safe-area-inset-top)); }
+body.touch #devtag { top: 54px; }
+#back { display: none; position: fixed; z-index: 2; bottom: calc(14px + env(safe-area-inset-bottom)); right: calc(16px + env(safe-area-inset-right)); width: 54px; height: 54px; padding: 0;
+  color: var(--bone); background: rgba(4, 5, 6, .6); border: 2px solid rgba(217, 211, 193, .5); border-radius: 3px; }
+#back svg { margin: auto; display: block; }
+body.touch.panelled #back { display: block; }
+#turn { display: none; position: fixed; inset: 0; z-index: 3; align-items: center; justify-content: center; background: var(--pitch); color: var(--hazard); }
+#turn svg { width: 96px; height: 96px; stroke-width: 1.6; }
+@media (orientation: portrait) { body.touch.playing #turn { display: flex; } }
+/* a short screen (a phone on its side): the title and the menus made to fit */
+@media (max-height: 520px) {
+  .screen { padding: 5vh 6vw; }
+  .screen h1 { font-size: min(13vw, 21vh); }
+  .menu { font-size: 22px; right: 8vw; }
+  #end p { font-size: 15px; line-height: 1.4; }
+  .panel { padding: 2vh 3vw; }
+  #inv { --c: 34px; padding: 6px; }
+  #note article { padding: 22px 26px 18px; font-size: 16px; max-height: 92vh; }
+  #pad > div { width: 220px; }
+  #padd { font-size: 32px; height: 44px; margin-bottom: 8px; }
+  #padk button { font-size: 20px; padding: 6px 0; }
+  #liftb button { font-size: 18px; padding: 7px 12px; }
+}

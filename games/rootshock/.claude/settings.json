@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "deny": [
+      "Bash(git push --force:*)",
+      "Bash(git push -f:*)",
+      "Bash(git push --force-with-lease:*)",
+      "Bash(git push origin +:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git clean:*)",
+      "Bash(git rebase:*)",
+      "Bash(rm -rf:*)",
+      "Bash(rm -fr:*)",
+      "Bash(rm -r -f:*)",
+      "Edit(.claude/settings.json)",
+      "Edit(.git/**)",
+      "Write(.claude/settings.json)",
+      "Write(.git/**)"
+    ],
+    "ask": [
+      "Edit(HANDOFF.md)",
+      "Edit(CLAUDE.md)",
+      "Edit(.gitignore)"
+    ]
+  }
+}

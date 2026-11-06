@@ -1,0 +1,2354 @@
+<title>Security Mutant Builder</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+/* Layout: the figure on its bench fills the left, walking over a floor that moves under it; one column of controls on
+   the right, stacked under the figure on a phone. The game's own look: Security's hazard yellow, the leaf's olive. */
+:root {
+  --pitch: #070809; --panel: #0c0e0f; --raise: #15181a; --bone: #d9d3c1; --ash: #8f8d82; --hazard: #c9a227;
+  --leaf: #a39c48; --blood: #c2533f; --line: rgba(217, 211, 193, .14); --line2: rgba(217, 211, 193, .3);
+  --glass: rgba(10, 12, 13, .84);
+  --sign: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --hand: "Newsreader", Georgia, "Times New Roman", serif;
+  color-scheme: dark;
+}
+html { height: 100%; box-sizing: border-box; }
+*, *::before, *::after { box-sizing: inherit; }
+body { height: 100%; margin: 0; background: var(--pitch); color: var(--bone); font-family: var(--sign); font-size: 15px; overflow: hidden; }
+button, input, select, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; }
+[hidden] { display: none !important; }
+body:not(.fine) .fineonly { display: none !important; }
+:focus-visible { outline: 2px solid var(--hazard); outline-offset: 2px; }
+
+#app { height: 100%; display: grid; grid-template-columns: minmax(0, 1fr) 360px; }
+#stage { position: relative; min-width: 0; min-height: 0; overflow: hidden; background: var(--pitch); }
+#c { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; }
+#stage.place #c { cursor: crosshair; }
+#panel { min-height: 0; overflow-y: auto; background: var(--panel); border-left: 1px solid var(--line);
+  padding-block: 14px 28px; padding-left: 16px; padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+/* over the figure */
+.top { position: absolute; left: 0; right: 0; top: 0; display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 18px;
+  padding: 12px 12px 0 max(16px, env(safe-area-inset-left, 0px)); pointer-events: none; }
+.brand { font-size: 14px; letter-spacing: .2em; text-transform: uppercase; color: var(--ash); }
+.brand b { color: var(--bone); font-weight: 600; }
+.top .acts { margin-left: auto; display: flex; gap: 4px; pointer-events: auto; }
+.chip { background: var(--glass); border: 1px solid var(--line); padding: 4px 10px 3px; font-size: 15px; font-weight: 500; letter-spacing: .04em; }
+.chip:hover:not(:disabled) { border-color: var(--line2); }
+.chip:disabled { opacity: .35; cursor: default; }
+.chip[aria-pressed="true"] { background: var(--bone); color: var(--pitch); border-color: var(--bone); }
+
+#tools { position: absolute; left: max(16px, env(safe-area-inset-left, 0px)); top: 52px; display: flex; flex-direction: column; gap: 4px; }
+#tools button { position: relative; width: 42px; height: 42px; display: grid; place-items: center; background: var(--glass);
+  border: 1px solid var(--line); color: var(--bone); }
+#tools button:hover { border-color: var(--line2); }
+#tools button[aria-pressed="true"] { border-color: var(--hazard); color: var(--hazard); }
+#tools button.grow[aria-pressed="true"] { border-color: var(--leaf); color: var(--leaf); }
+#tools button.flesh[aria-pressed="true"] { border-color: var(--blood); color: var(--blood); }
+#tools button.bone[aria-pressed="true"] { border-color: var(--bone); color: var(--bone); background: rgba(217, 211, 193, .12); }
+#tools .k { position: absolute; right: 3px; bottom: 1px; font-size: 11px; color: var(--ash); }
+#tools svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+#tools hr { width: 100%; border: 0; border-top: 1px solid var(--line); margin: 2px 0; }
+
+#sel { position: absolute; right: max(16px, env(safe-area-inset-right, 0px)); top: 52px; width: 270px; background: var(--glass);
+  border: 1px solid var(--line); border-top: 3px solid var(--leaf); padding: 10px 12px 12px; display: flex; flex-direction: column; gap: 4px; }
+#sel h3 { margin: 0; font-size: 20px; font-weight: 600; text-transform: uppercase; letter-spacing: .05em; line-height: 1.1; }
+#sel .where { font-family: var(--hand); font-style: italic; font-size: 15px; color: var(--ash); margin-bottom: 2px; }
+#sel .row { display: flex; gap: 6px; margin-top: 6px; }
+
+.bottom { position: absolute; left: 0; right: 0; bottom: 0; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 8px 12px;
+  padding: 0 12px 12px max(16px, env(safe-area-inset-left, 0px)); pointer-events: none; }
+.bottom > * { pointer-events: auto; }
+.bar { display: flex; gap: 0; }
+.bar .chip + .chip { border-left: 0; }
+#readout { margin-left: auto; text-align: right; font-size: 14px; letter-spacing: .06em; color: var(--ash); font-variant-numeric: tabular-nums; pointer-events: none; }
+#readout b { color: var(--bone); font-weight: 500; }
+#hint { position: absolute; left: 50%; transform: translateX(-50%); bottom: 58px; max-width: min(520px, calc(100% - 160px)); text-align: center;
+  font-family: var(--hand); font-style: italic; font-size: 15px; line-height: 1.35; color: var(--ash); pointer-events: none; text-wrap: balance; }
+#labels { position: absolute; inset: 0; pointer-events: none; }
+#labels div { position: absolute; transform: translate(-50%, -100%); white-space: nowrap; font-size: 14px; letter-spacing: .1em; text-transform: uppercase;
+  color: var(--bone); background: var(--glass); border: 1px solid var(--line); padding: 2px 8px 1px; }
+#labels div.cur { border-color: var(--hazard); color: var(--hazard); }
+#lgroups { position: absolute; left: 50%; top: 52px; transform: translateX(-50%); }
+#toast { position: absolute; left: 50%; top: 96px; transform: translateX(-50%); background: var(--bone); color: var(--pitch);
+  padding: 5px 12px 4px; font-size: 15px; font-weight: 500; pointer-events: none; max-width: calc(100% - 32px); text-align: center; }
+
+/* the controls */
+.name { display: flex; flex-direction: column; gap: 4px; }
+.name label { font-size: 12px; letter-spacing: .22em; text-transform: uppercase; color: var(--ash); }
+#d-name { background: var(--raise); border: 1px solid var(--line); padding: 6px 8px 5px; font-size: 22px; font-weight: 600; letter-spacing: .03em; width: 100%; }
+.state { font-size: 13px; color: var(--ash); letter-spacing: .06em; min-height: 1.2em; }
+.state.dirty { color: var(--hazard); }
+.tabs { display: flex; gap: 6px; position: sticky; top: 0; z-index: 2; background: var(--panel); margin: 12px 0 2px; padding-top: 8px; border-bottom: 1px solid var(--line); }
+.tabs button { flex: 1 1 auto; background: none; border: 0; border-bottom: 2px solid transparent; color: var(--ash); padding: 8px 0 6px;
+  font-size: 15px; font-weight: 600; letter-spacing: .07em; text-transform: uppercase; }
+.tabs button[aria-selected="true"] { color: var(--bone); border-bottom-color: var(--hazard); }
+.tabs button:hover { color: var(--bone); }
+.group { margin: 18px 0 4px; font-size: 13px; letter-spacing: .22em; text-transform: uppercase; color: var(--hazard); }
+.note { font-family: var(--hand); font-size: 15px; line-height: 1.42; color: var(--ash); margin: 8px 0; max-width: 34em; }
+.note i { color: var(--bone); }
+.ctl { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: baseline; gap: 0 10px; padding: 4px 0 2px; }
+.ctl > label, .ctl > .lab { font-size: 16px; }
+.ctl output { font-size: 14px; color: var(--ash); font-variant-numeric: tabular-nums; }
+.ctl input[type="range"] { grid-column: 1 / -1; }
+input[type="range"] { -webkit-appearance: none; appearance: none; width: 100%; height: 20px; margin: 0; background: transparent; }
+input[type="range"]::-webkit-slider-runnable-track { height: 2px; background: var(--line2); }
+input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 11px; height: 16px; margin-top: -7px; background: var(--bone); border: 0; border-radius: 1px; }
+input[type="range"]::-moz-range-track { height: 2px; background: var(--line2); }
+input[type="range"]::-moz-range-thumb { width: 11px; height: 16px; background: var(--bone); border: 0; border-radius: 1px; }
+input[type="range"]:hover::-webkit-slider-thumb { background: var(--hazard); }
+input[type="range"]:hover::-moz-range-thumb { background: var(--hazard); }
+.seg { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.seg button { background: none; border: 1px solid var(--line); padding: 4px 9px 3px; font-size: 15px; font-weight: 500; }
+.seg button:hover:not(:disabled) { border-color: var(--line2); }
+.seg button[aria-pressed="true"] { background: var(--bone); color: var(--pitch); border-color: var(--bone); }
+.seg button:disabled { opacity: .3; cursor: default; }
+.seg .sw { display: inline-block; width: 12px; height: 12px; margin-right: 6px; vertical-align: -1px; border: 1px solid rgba(255, 255, 255, .25); }
+.seg.tones button { width: 34px; height: 30px; padding: 0; }
+.seg.tones button[aria-pressed="true"] { outline: 2px solid var(--bone); outline-offset: 2px; }
+.check { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 16px; cursor: pointer; }
+.check input { accent-color: var(--hazard); width: 16px; height: 16px; margin: 0; }
+.checks { display: flex; flex-wrap: wrap; gap: 0 18px; }
+.btns { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+.btn { background: none; border: 1px solid var(--line2); padding: 5px 12px 4px; font-size: 16px; font-weight: 500; letter-spacing: .03em; }
+.btn:hover:not(:disabled) { border-color: var(--bone); }
+.btn.go { background: var(--hazard); border-color: var(--hazard); color: var(--pitch); font-weight: 600; }
+.btn.go:hover:not(:disabled) { background: #d9b43a; }
+.btn.warn { border-color: var(--blood); color: var(--blood); }
+.btn:disabled { opacity: .35; cursor: default; }
+.btn.sm { font-size: 14px; padding: 2px 8px 1px; }
+textarea { width: 100%; background: var(--raise); border: 1px solid var(--line); padding: 8px; resize: vertical; }
+#d-notes { font-family: var(--hand); font-size: 15px; line-height: 1.4; min-height: 70px; }
+#io { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: 12px; line-height: 1.35; min-height: 90px; }
+.list { list-style: none; margin: 6px 0; padding: 0; border-top: 1px solid var(--line); }
+.list li { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 2px 8px; align-items: center; padding: 7px 0 6px; border-bottom: 1px solid var(--line); }
+.list li.cur .nm { color: var(--hazard); }
+.list .nm { font-size: 17px; font-weight: 600; letter-spacing: .02em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.list .sub { grid-column: 1; font-size: 13px; color: var(--ash); font-variant-numeric: tabular-nums; }
+.list .acts { grid-row: 1 / span 2; grid-column: 2; display: flex; gap: 4px; }
+.empty { font-family: var(--hand); font-style: italic; color: var(--ash); padding: 10px 0; border-bottom: 1px solid var(--line); }
+.items li { grid-template-columns: 14px minmax(0, 1fr) auto; }
+.items .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--leaf); }
+.items .dot.eye { background: var(--bone); }
+.items .dot.pustule { background: #d9d0ad; }
+.items .dot.spike, .items .dot.plate { background: #ddd6c0; border-radius: 1px; }
+.items .dot.flesh { background: var(--blood); }
+.items li.on .nm { color: var(--leaf); }
+.items .nm { font-size: 15px; font-weight: 500; cursor: pointer; }
+.legend { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 10px; margin: 6px 0 4px; font-size: 15px; }
+.legend b { color: var(--leaf); font-weight: 600; font-variant-numeric: tabular-nums; }
+.legend span { color: var(--ash); }
+
+@media (max-width: 760px) {
+  #app { grid-template-columns: minmax(0, 1fr); grid-template-rows: 56% minmax(0, 1fr); }
+  #panel { border-left: 0; border-top: 1px solid var(--line); padding-left: max(16px, env(safe-area-inset-left, 0px)); }
+  .top { padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .brand { display: none; }
+  #tools { flex-direction: row; top: 48px; left: max(16px, env(safe-area-inset-left, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); overflow-x: auto; }
+  #tools button { flex: 0 0 auto; width: 40px; height: 40px; }
+  #tools hr { width: auto; height: auto; border-top: 0; border-left: 1px solid var(--line); margin: 0 2px; }
+  #hint { display: none; }
+  #sel { left: max(16px, env(safe-area-inset-left, 0px)); right: max(16px, env(safe-area-inset-right, 0px)); top: auto; bottom: 12px; width: auto; max-height: calc(100% - 110px); overflow-y: auto; z-index: 3; }
+  #readout { display: none; }
+  .lg { display: none; }
+  .chip { padding: 4px 8px 3px; }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<div id="app">
+  <div id="stage">
+    <canvas id="c" aria-label="The mutant on its bench. Drag to turn the view; with a growth tool, click the body to put it there."></canvas>
+    <div id="labels"></div>
+    <header class="top">
+      <div class="brand"><b>Rootshock</b> · Security, changed</div>
+      <div class="acts">
+        <button class="chip" id="undo" title="Undo (Ctrl+Z)">Undo</button>
+        <button class="chip" id="redo" title="Redo (Ctrl+Shift+Z)">Redo</button>
+        <button class="chip" id="centre" title="Frame the figure (F)">Frame</button>
+      </div>
+    </header>
+    <div id="tools" role="toolbar" aria-label="Tools"></div>
+    <p id="hint"></p>
+    <div id="sel" hidden></div>
+    <div class="bottom">
+      <div class="bar" role="group" aria-label="Motion">
+        <button class="chip" data-mode="stand" aria-pressed="false" title="Stand (Space toggles)">Stand</button>
+        <button class="chip" data-mode="walk" aria-pressed="true">Walk</button>
+        <button class="chip" data-mode="hunt" aria-pressed="false" title="After you: faster, hunched, arms out">Hunt</button>
+      </div>
+      <div class="bar" role="group" aria-label="Light">
+        <button class="chip" data-light="bench" aria-pressed="true">Bench<span class="lg"> light</span></button>
+        <button class="chip" data-light="game" aria-pressed="false" title="The station dark, a flashlight from your eye">Game<span class="lg"> light</span></button>
+      </div>
+      <button class="chip" id="person" aria-pressed="true" title="A 1.8 m person beside it">Person</button>
+      <button class="chip" id="fine" aria-pressed="false" title="The finer kit: lids and glints on the eyes, leaves with veins, thumbs and toes">Fine detail</button>
+      <button class="chip" id="lineup" aria-pressed="false" title="Everything saved, side by side (L)">Line-up</button>
+      <div id="readout"></div>
+    </div>
+    <div id="lgroups" class="bar" role="group" aria-label="Which to line up" hidden>
+      <button class="chip" data-lg="all">All saved</button>
+      <button class="chip" data-lg="security">Security's seven</button>
+      <button class="chip" data-lg="lines">Pia's lines</button>
+      <button class="chip" data-lg="yours">Yours</button>
+    </div>
+    <div id="toast" hidden></div>
+  </div>
+
+  <aside id="panel">
+    <div class="name">
+      <label for="d-name">This one</label>
+      <input id="d-name" type="text" maxlength="60" autocomplete="off" spellcheck="false">
+      <div class="state" id="d-state"></div>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="Controls">
+      <button role="tab" id="t-body" aria-controls="p-body" aria-selected="true">Body</button>
+      <button role="tab" id="t-gait" aria-controls="p-gait" aria-selected="false">Gait</button>
+      <button role="tab" id="t-dress" aria-controls="p-dress" aria-selected="false">Dress</button>
+      <button role="tab" id="t-growth" aria-controls="p-growth" aria-selected="false">Growth</button>
+      <button role="tab" id="t-saved" aria-controls="p-saved" aria-selected="false">Saved</button>
+    </nav>
+    <section role="tabpanel" id="p-body" aria-labelledby="t-body"></section>
+    <section role="tabpanel" id="p-gait" aria-labelledby="t-gait" hidden></section>
+    <section role="tabpanel" id="p-dress" aria-labelledby="t-dress" hidden></section>
+    <section role="tabpanel" id="p-growth" aria-labelledby="t-growth" hidden></section>
+    <section role="tabpanel" id="p-saved" aria-labelledby="t-saved" hidden>
+      <div class="group">Notes</div>
+      <textarea id="d-notes" placeholder="What you like about this one, what is wrong with it, where it stands in the wing."></textarea>
+      <div class="btns">
+        <button class="btn go" id="save">Save</button>
+        <button class="btn" id="saveas">Save as new</button>
+      </div>
+      <div class="state" id="store-state"></div>
+      <div class="group">Saved</div>
+      <ul class="list" id="lib"></ul>
+      <div class="group">Security's seven</div>
+      <p class="note">Claude's line-up of the changed the upper station has, one for each, in order of how long each has been changing: the newest first, the oldest the most plant. The notes on each say where it stands and why it looks as it does.</p>
+      <div class="btns" id="cast"></div>
+      <div class="btns"><button class="btn" id="castsave">Save all seven</button></div>
+      <div class="group">Pia's lines</div>
+      <p class="note">Examples of the three lines that founded the Commons, each from its young god down: the bone mother's, the bloat god's and the bush's, young to old. The plant line's youngest are Security's seven, above. Proposed looks, to argue with.</p>
+      <div class="btns" id="lines"></div>
+      <div class="btns"><button class="btn" id="linesave">Save all of them</button></div>
+      <div class="group">Start from an example</div>
+      <p class="note">These are examples to begin from, not saved designs. Opening one replaces what is on the bench (Undo brings it back).</p>
+      <div class="btns" id="presets"></div>
+      <div class="group">Export</div>
+      <div class="btns">
+        <button class="btn" id="copy1">Copy this one</button>
+        <button class="btn" id="copyall">Copy all saved</button>
+        <button class="btn" id="dl">Download all (.json)</button>
+      </div>
+      <div class="group">Import</div>
+      <p class="note">Paste a design, or a list of them, and open it or add it to the saved ones.</p>
+      <textarea id="io" spellcheck="false" placeholder='{"format": "rootshock-changed/1", ...}'></textarea>
+      <div class="btns">
+        <button class="btn" id="imp-open">Open</button>
+        <button class="btn" id="imp-add">Add to saved</button>
+      </div>
+    </section>
+  </aside>
+</div>
+
+<script type="importmap">{ "imports": {
+  "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js",
+  "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.1/examples/jsm/"
+} }</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+/* A bench for Security's changed (docs/world.md §8): a person's outline, sedated, partly plant. Built in the game's own
+   kit (src/present/render/castKit.ts, castView.ts changed()): boxes, hexagonal cylinders and icosahedra, flat-shaded,
+   with the same tobacco-leaf shelves. Everything that shapes one is a design (FORMAT, below), saved as JSON.
+
+   A design, as exported:
+     body   proportions in metres (and multipliers, ×), angles in radians; the frame is castView's: +y up, the figure
+            facing +z, +x its own left
+     gait   stride (metres for a full stride, both feet), spm (steps a minute), and how it carries itself
+     dress  what it still wears
+     skin   tone (index into TONES), sallow (0..1, the change in its colour), cure (0..1, the leaf from green to cured)
+     items  what grows out of it, each on a named part: p is where on the part's box, -0.5..0.5 along each axis of it
+            (so a pustule stays on the skin as the part is made wider), n the way out of the skin in the same box space,
+            size in metres (a leaf's length, an eye's width), spin about n, and what each kind takes besides */
+
+const FORMAT = 'rootshock-changed/1';
+const PI = Math.PI, TAU = PI * 2;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const ease = t => t * t * (3 - 2 * t);
+const damp = (k, dt) => 1 - Math.exp(-k * dt);
+const r3 = v => Math.round(v * 1000) / 1000;
+const $ = id => document.getElementById(id);
+const clone = o => JSON.parse(JSON.stringify(o));
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/* the kit: the game's unit shapes (templates.ts), flat triangle lists in a 1 m cube */
+const TPL = (() => {
+  const box = () => {
+    const c = [[-.5, -.5, -.5], [.5, -.5, -.5], [.5, .5, -.5], [-.5, .5, -.5], [-.5, -.5, .5], [.5, -.5, .5], [.5, .5, .5], [-.5, .5, .5]];
+    const f = [[0, 1, 2, 3], [5, 4, 7, 6], [4, 0, 3, 7], [1, 5, 6, 2], [3, 2, 6, 7], [4, 5, 1, 0]], p = [];
+    for (const q of f) for (const k of [0, 1, 2, 0, 2, 3]) p.push(...c[q[k]]);
+    return p;
+  };
+  const ico = () => {
+    const t = (1 + Math.sqrt(5)) / 2, n = 0.5 / Math.hypot(1, t);
+    const v = [[-1, t, 0], [1, t, 0], [-1, -t, 0], [1, -t, 0], [0, -1, t], [0, 1, t], [0, -1, -t], [0, 1, -t], [t, 0, -1], [t, 0, 1], [-t, 0, -1], [-t, 0, 1]].map(a => a.map(x => x * n));
+    const fi = [0, 11, 5, 0, 5, 1, 0, 1, 7, 0, 7, 10, 0, 10, 11, 1, 5, 9, 5, 11, 4, 11, 10, 2, 10, 7, 6, 7, 1, 8, 3, 9, 4, 3, 4, 2, 3, 2, 6, 3, 6, 8, 3, 8, 9, 4, 9, 5, 2, 4, 11, 6, 2, 10, 8, 6, 7, 9, 8, 1], p = [];
+    for (const i of fi) p.push(...v[i]);
+    return p;
+  };
+  const cyl = (N = 6) => {
+    const p = [];
+    for (let k = 0; k < N; k++) {
+      const a = (k / N) * TAU, b = ((k + 1) / N) * TAU, x0 = Math.cos(a) * .5, z0 = Math.sin(a) * .5, x1 = Math.cos(b) * .5, z1 = Math.sin(b) * .5;
+      p.push(x0, -.5, z0, x1, -.5, z1, x1, .5, z1, x0, -.5, z0, x1, .5, z1, x0, .5, z0, 0, .5, 0, x0, .5, z0, x1, .5, z1, 0, -.5, 0, x1, -.5, z1, x0, -.5, z0);
+    }
+    return p;
+  };
+  return { box: box(), ico: ico(), cyl: cyl() };
+})();
+const GEO = {};
+for (const k of Object.keys(TPL)) { const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(TPL[k], 3)); g.computeBoundingSphere(); GEO[k] = g; }
+
+const rgb = c => Array.isArray(c) ? c : [((c >> 16) & 255) / 255, ((c >> 8) & 255) / 255, (c & 255) / 255];
+const mix = (a, b, t) => { const A = rgb(a), B = rgb(b); return [lerp(A[0], B[0], t), lerp(A[1], B[1], t), lerp(A[2], B[2], t)]; };
+const shade = (c, k) => rgb(c).map(v => v * k);
+const css = c => '#' + rgb(c).map(v => Math.round(clamp(v, 0, 1) * 255).toString(16).padStart(2, '0')).join('');
+
+/* a cut-down copy of the game's look (shader.ts): faceted, shaded by facing, a room light and a key light (the bench), or
+   the dark and the flashlight from your eye (the game) */
+const VS = `varying vec3 vW;
+#ifdef VCOL
+attribute vec3 aCol; varying vec3 vC;
+#endif
+void main(){
+  vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz;
+#ifdef VCOL
+  vC = aCol;
+#endif
+  gl_Position = projectionMatrix * viewMatrix * w;
+}`;
+const FS = `uniform vec3 uCol; uniform vec3 uRoom; uniform vec3 uKeyDir; uniform float uKey;
+uniform vec3 uFlashPos; uniform vec3 uFlashDir; uniform float uFlash; uniform float uFog; uniform float uTime;
+varying vec3 vW;
+#ifdef VCOL
+varying vec3 vC;
+#endif
+void main(){
+  vec3 n = normalize(cross(dFdx(vW), dFdy(vW)));
+  vec3 tc = cameraPosition - vW; float d = length(tc); vec3 Ld = tc / max(d, 0.001);
+  vec3 nf = dot(n, Ld) < 0.0 ? -n : n;
+  float sh = 0.55 + 0.45 * (abs(nf.y) * 0.95 + abs(nf.x) * 0.7 + abs(nf.z) * 0.5);
+  vec3 light = uRoom * sh * (0.75 + 0.25 * max(nf.y, 0.0));
+  light += uKey * vec3(1.0, 0.96, 0.88) * max(dot(nf, uKeyDir), 0.0);
+  light += uKey * 0.3 * vec3(0.7, 0.8, 1.0) * max(dot(nf, normalize(vec3(-uKeyDir.x, 0.2, -uKeyDir.z))), 0.0);
+  vec3 tp = vW - uFlashPos; float fd = length(tp); vec3 fdir = tp / max(fd, 0.001);
+  float cone = smoothstep(0.86, 0.97, dot(fdir, uFlashDir));
+  float facing = 0.35 + 0.65 * max(dot(nf, -fdir), 0.0);
+  light += uFlash * vec3(1.0, 0.94, 0.82) * (cone * 2.4 + 0.05) * facing / (1.0 + 0.08 * fd * fd);
+  light += vec3(0.012) / (1.0 + 3.0 * d * d);
+#ifdef VCOL
+  vec3 c = vC * light;
+#else
+  vec3 c = uCol * light;
+#endif
+  c *= exp(-d * uFog);
+  vec3 h3 = fract(vec3(gl_FragCoord.xyx + floor(fract(uTime * 7.13) * 977.0)) * 0.1031);
+  h3 += dot(h3, h3.yzx + 33.33);
+  c += (fract((h3.x + h3.y) * h3.z) - 0.5) * 0.022 * (1.0 - smoothstep(0.0, 0.35, dot(c, vec3(0.3, 0.59, 0.11))));
+  gl_FragColor = vec4(c, 1.0);
+}`;
+const U = {
+  uRoom: { value: new THREE.Vector3() }, uKeyDir: { value: new THREE.Vector3(0.35, 0.8, 0.5).normalize() }, uKey: { value: 0 },
+  uFlashPos: { value: new THREE.Vector3() }, uFlashDir: { value: new THREE.Vector3(0, 0, -1) }, uFlash: { value: 0 },
+  uFog: { value: 0.03 }, uTime: { value: 0 },
+};
+const mats = new Map();
+function matFor(c) {
+  const v = rgb(c), key = v.map(x => x.toFixed(3)).join(',');
+  let m = mats.get(key);
+  if (!m) mats.set(key, (m = new THREE.ShaderMaterial({ uniforms: { ...U, uCol: { value: new THREE.Vector3(...v) } }, vertexShader: VS, fragmentShader: FS, side: THREE.DoubleSide })));
+  return m;
+}
+
+const VCMAT = new THREE.ShaderMaterial({ uniforms: { ...U, uCol: { value: new THREE.Vector3(1, 1, 1) } }, vertexShader: VS, fragmentShader: FS, side: THREE.DoubleSide, defines: { VCOL: '' } });
+
+/* parts are built onto groups; while a model is built, PART names the part being made (so a click on it knows where it
+   landed), ITEM the growth being made, and SINK collects them for picking */
+let PART = null, ITEM = null, SINK = null;
+/* the kit is low-poly by default, as the game's older cast is (a pale head, black dots for eyes, raw lumps): each growth a
+   few plain shapes. FINE draws the finer kit instead (lids, glints, veins, more leaves), for comparing */
+let FINE = false;
+function mk(parent, shape, c, sx, sy, sz, x = 0, y = 0, z = 0) {
+  const m = new THREE.Mesh(GEO[shape], matFor(c));
+  m.scale.set(Math.max(sx, 1e-4), Math.max(sy, 1e-4), Math.max(sz, 1e-4));
+  m.position.set(x, y, z);
+  if (ITEM != null) m.userData.item = ITEM; else if (PART) m.userData.part = PART;
+  parent.add(m);
+  if (SINK) SINK.push(m);
+  return m;
+}
+function grp(parent, x = 0, y = 0, z = 0) { const g = new THREE.Group(); g.position.set(x, y, z); parent.add(g); return g; }
+const _pp = new THREE.Vector3();
+/** parts built on a group of their own, as one mesh on `parent` (castKit.ts, merged): a crowd of leaves in one draw. Not
+ *  picked: a click goes through it to the body under it */
+function merged(parent, build) {
+  const g = new THREE.Group(), was = SINK, shown = [];
+  SINK = null;
+  build(g);
+  SINK = was;
+  g.updateMatrixWorld(true);
+  g.traverse(o => { if (o.isMesh) shown.push(o); });
+  let n = 0;
+  for (const o of shown) n += o.geometry.getAttribute('position').count;
+  const P = new Float32Array(n * 3), C = new Float32Array(n * 3);
+  let at = 0;
+  for (const o of shown) {
+    const pos = o.geometry.getAttribute('position'), c = o.material.uniforms.uCol.value;
+    for (let v = 0; v < pos.count; v++, at++) { _pp.fromBufferAttribute(pos, v).applyMatrix4(o.matrixWorld).toArray(P, at * 3); C[at * 3] = c.x; C[at * 3 + 1] = c.y; C[at * 3 + 2] = c.z; }
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(P, 3));
+  geo.setAttribute('aCol', new THREE.BufferAttribute(C, 3));
+  geo.computeBoundingSphere();
+  const m = new THREE.Mesh(geo, VCMAT);
+  parent.add(m);
+  return m;
+}
+/** the same pseudo-random numbers for the same one every time (castKit.ts) */
+function seeded(id) {
+  let s = (id * 2654435761) >>> 0 || 1;
+  const next = () => ((s = (Math.imul(s, 1664525) + 1013904223) >>> 0) / 4294967296);
+  return { rnd: (a, b) => a + next() * (b - a), pick: a => a[Math.floor(next() * a.length)] };
+}
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/* colours: castView's and castKit's, and what the dress adds */
+const RAW = 0x8c4a44, GOREC = 0x4e1616, DARK = 0x140c0d, KNOT = 0x4e4028, KNOT2 = 0x5e5038, LSTALK = 0x5e5a38, VEIN = 0x8a8c5a;
+const LEAF = [0x4b5c2a, 0x5a6630, 0x6e6a2c, 0x7e7430], CURED = [0x8a7428, 0x987c2e, 0xa88a36, 0xb4943e];
+const UNIFORM = 0x2c3440, TROUSERS = 0x23262b, BELT = 0x15181b, BRIEFS = 0xb6b0a0, GLAZE = [1.1, 1.08, 0.98];
+const SHIRTS = { navy: [UNIFORM, 'Navy'], grey: [0x4a5560, 'Grey'], slate: [0x39485a, 'Slate'], olive: [0x6b6f5a, 'Olive'], white: [0xbfc3c0, 'White'], scrubs: [0x4f7c82, 'Scrubs'] };
+/* bone (castView's BONE), and the plant come through the skin */
+const BONE = 0xddd6c0, BONE2 = 0xc6bca2, BONEDK = 0x6f6857, PLANTSKIN = 0x56693a, FLESHC = 0xb08572;
+const VESTS = { white: [0xcdc8b8, 'White'], grey: [0x8c8c86, 'Grey'], stained: [0xb3a47c, 'Stained'] };
+/* any human skin (world.md §10, the people): a mutant keeps its host's */
+const TONES = [0xe3c1a5, 0xcfa184, 0xb98762, 0x9a6a49, 0x7a4e35, 0x5c3a28, 0x42291d];
+/** its skin: its own tone, gone sallow by `sallow`, the same lightness gone grey and yellow */
+function skinOf(K) {
+  const t = rgb(TONES[K.tone] ?? TONES[2]), Y = t[0] * 0.3 + t[1] * 0.59 + t[2] * 0.11;
+  const s = mix(t, [Y * 1.04, Y, Y * 0.74], K.sallow);
+  return K.green ? mix(s, PLANTSKIN, K.green) : s;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/* what grows on them: the kinds, their sizes, and what each takes besides */
+const KINDS = {
+  eye: { name: 'Eye', size: 0.045, min: 0.015, max: 0.25, extra: { look: 'dot', lid: 0.55 }, key: '1' },
+  pustule: { name: 'Pustule', size: 0.045, min: 0.015, max: 0.2, extra: { tint: 'milky', cluster: false }, key: '2' },
+  leaf: { name: 'Leaf shelf', size: 0.28, min: 0.08, max: 0.8, extra: { tiers: 3 }, key: '3' },
+  stalk: { name: 'Stalk', size: 0.4, min: 0.1, max: 1.2, extra: { bend: 0.5, flower: true }, key: '4' },
+  roots: { name: 'Roots', size: 0.45, min: 0.1, max: 1.4, extra: { count: 5 }, key: '5' },
+  knot: { name: 'Knot', size: 0.12, min: 0.04, max: 0.4, extra: { form: 'burl' }, key: '6' },
+  spike: { name: 'Bone spike', size: 0.14, min: 0.03, max: 0.9, extra: { row: false, bend: 0.3 }, key: '7' },
+  plate: { name: 'Bone plate', size: 0.2, min: 0.06, max: 0.8, extra: { rows: 2 }, key: '8' },
+  flesh: { name: 'Raw flesh', size: 0.14, min: 0.03, max: 0.6, extra: {}, key: '9' },
+};
+const PARTS = {
+  torso: 'the torso', neck: 'the neck', head: 'the head', pelvis: 'the hips',
+  uarmL: 'its left upper arm', farmL: 'its left forearm', handL: 'its left hand', uarmR: 'its right upper arm', farmR: 'its right forearm', handR: 'its right hand',
+  thighL: 'its left thigh', shinL: 'its left shin', footL: 'its left foot', thighR: 'its right thigh', shinR: 'its right shin', footR: 'its right foot',
+};
+
+const E = 0.014; // how far cloth stands off the skin
+function cloth(g, c, w, h, dp, x, y, z) { return mk(g, 'box', c, w + E, h, dp + E, x, y, z); }
+/** flaps of torn cloth hanging from a hem: n of them round a w × dp section at y */
+function hem(g, c, w, dp, y, n, R) {
+  for (let k = 0; k < n; k++) {
+    const side = Math.floor(R.rnd(0, 4)), len = R.rnd(0.04, 0.11), fw = R.rnd(0.025, 0.05), t = R.rnd(-0.4, 0.4);
+    const [x, z, ry] = side === 0 ? [t * w, dp / 2 + E / 2, 0] : side === 1 ? [t * w, -dp / 2 - E / 2, 0] : side === 2 ? [w / 2 + E / 2, t * dp, PI / 2] : [-w / 2 - E / 2, t * dp, PI / 2];
+    const f = grp(g, x, y, z);
+    f.rotation.set(0, ry, R.rnd(-0.35, 0.35));
+    mk(f, 'box', c, fw, len, 0.008, 0, -len / 2 + 0.01, 0);
+  }
+}
+/** cloth torn open round where something came out through it, r from its middle, the flaps lifted off the skin */
+function tear(G, c, r, s, R) {
+  const n = FINE ? 7 : 4;
+  for (let k = 0; k < n; k++) {
+    const a = (k / n) * TAU + R.rnd(-0.3, 0.3), len = Math.max(0.025, s * R.rnd(0.12, 0.22)), fw = Math.max(0.02, s * R.rnd(0.08, 0.14));
+    const o = grp(G, Math.cos(a) * r, Math.sin(a) * r, 0.004);
+    o.rotation.z = a - PI / 2;
+    const f = grp(o);
+    f.rotation.x = R.rnd(0.35, 0.9);
+    mk(f, 'box', c, fw, len, 0.007, 0, len / 2, 0);
+  }
+}
+
+/** a leaf, out along yaw from (x, y, z), `len` long, its tip drooping by `droop` (castKit.ts, leaf) */
+function leaf(parent, x, y, z, yaw, len, droop, c) {
+  const g = grp(parent, x, y, z);
+  g.rotation.set(droop * 0.6, yaw, 0);
+  mk(g, 'box', LSTALK, 0.08 * len, 0.07 * len, 0.26 * len, 0, 0, 0.13 * len);
+  mk(g, 'ico', c, 0.7 * len, 0.09 * len, 0.62 * len, 0, 0, 0.5 * len);
+  mk(g, 'box', VEIN, 0.03 * len, 0.095 * len, 0.5 * len, 0, 0.01 * len, 0.5 * len);
+  const o = grp(g, 0, 0, 0.72 * len);
+  o.rotation.x = droop;
+  mk(o, 'ico', c, 0.62 * len, 0.08 * len, 0.6 * len, 0, 0, 0.22 * len);
+}
+const leafCol = (M, i) => mix(LEAF[i % 4], CURED[i % 4], M.cure);
+
+/* each kind, built in its own frame: +z out of the skin, +y the part's up as near as the skin allows */
+const BUILD = {
+  /* wet, the pupil pinned whatever the light, the lid heavy over it, the rim red under it (castView, changed) */
+  eye(G, it, M) {
+    if (!FINE || it.look === 'dot') {
+      /* a black dot, as the older cast have; glassy, a pale ball with one; milky, the pale ball alone */
+      const s = it.size, look = it.look || 'dot';
+      if (look === 'dot' || look === 'black') mk(G, 'ico', DARK, s, s * 0.9, s * 0.6, 0, 0, s * 0.08);
+      else {
+        mk(G, 'ico', look === 'milky' ? 0xd6d2c4 : GLAZE, s, s * 0.72, s * 0.62, 0, 0, s * 0.08);
+        if (look === 'glassy') mk(G, 'ico', DARK, s * 0.3, s * 0.3, s * 0.2, 0, 0, s * 0.36);
+      }
+      return;
+    }
+    const s = it.size, lid = it.lid ?? 0.55, look = it.look || 'glassy';
+    mk(G, 'ico', look === 'milky' ? 0xd6d2c4 : look === 'black' ? 0x0d0a0b : GLAZE, s, s * 0.72, s * 0.62, 0, 0, s * 0.08);
+    if (look === 'glassy') mk(G, 'ico', DARK, s * 0.17, s * 0.17, s * 0.17, 0, -s * 0.02, s * 0.36);
+    if (look !== 'milky') mk(G, 'box', [1.45, 1.45, 1.4], s * 0.24, s * 0.2, s * 0.1, s * 0.22, s * 0.12, s * 0.37);
+    mk(G, 'box', M.lidC, s * 1.12, s * (0.12 + 0.4 * lid), s * 0.6, 0, s * (0.4 - 0.2 * lid), s * 0.12);
+    mk(G, 'box', 0x9a5a4e, s * 0.9, s * 0.13, s * 0.55, 0, -s * 0.36, s * 0.1);
+  },
+  /* Pia's (world.md §10): the angry skin round it, the head of it paler */
+  pustule(G, it, M, R) {
+    if (!FINE) {
+      const s = it.size, c = { milky: 0xd9d0ad, yellow: 0xc8ac48, raw: 0xa04a3a }[it.tint] ?? 0xd9d0ad;
+      mk(G, 'ico', c, s, s * 0.9, s * 0.75, 0, 0, s * 0.2);
+      if (it.cluster) for (let k = 0; k < 2; k++) { const a = k * 2.4 + R.rnd(-0.4, 0.4), q = s * R.rnd(0.45, 0.6); mk(G, 'ico', c, q, q * 0.9, q * 0.75, Math.cos(a) * s * 0.95, Math.sin(a) * s * 0.95, q * 0.2); }
+      return;
+    }
+    const s = it.size, T = { milky: [0xd9d0ad, 0xeee8d2], yellow: [0xc8ac48, 0xe2d27e], raw: [0xa04a3a, 0xc87a62] }[it.tint] ?? [0xd9d0ad, 0xeee8d2];
+    const one = (x, y, q) => {
+      mk(G, 'ico', 0x8c4a44, q * 1.4, q * 1.4, q * 0.32, x, y, 0);
+      mk(G, 'ico', T[0], q, q * 0.9, q * 0.8, x, y, q * 0.22);
+      mk(G, 'ico', T[1], q * 0.38, q * 0.34, q * 0.3, x + q * 0.1, y + q * 0.12, q * 0.55);
+    };
+    one(0, 0, s);
+    if (it.cluster) for (let k = 0; k < 5; k++) { const a = (k / 5) * TAU + R.rnd(-0.4, 0.4), d = s * R.rnd(0.9, 1.5); one(Math.cos(a) * d, Math.sin(a) * d, s * R.rnd(0.35, 0.65)); }
+  },
+  /* a shelf of leaf, the way a bracket fungus stacks out of a stump, from a woody knot (castKit.ts, shelf) */
+  leaf(G, it, M, R) {
+    if (!FINE) { shelfSimple(G, it.size, Math.min(it.tiers ?? 3, 4), M, R, { rise: it.rise, lean: it.lean }); return; }
+    const s = it.size, tiers = it.tiers ?? 3, rise = it.rise ?? s * 0.25, fan = it.fan ?? 0.42, lean = it.lean ?? 0;
+    mk(G, 'ico', KNOT, s * 0.45, rise * (tiers - 0.4), s * 0.4, 0, rise * (tiers - 1) / 2, 0);
+    for (let j = 0; j < tiers; j++)
+      for (let i = -1; i <= 1; i++) {
+        const k = 1 - j * (0.5 / tiers);
+        leaf(G, 0, j * rise, lean * j, i * fan + R.rnd(-0.12, 0.12), s * k * R.rnd(0.85, 1.1), R.rnd(-0.05, 0.14), leafCol(M, i + j + 4));
+      }
+  },
+  /* raw flesh come up through the skin, the older cast's way: a lump, and a darker one in it */
+  flesh(G, it, M, R) {
+    const s = it.size;
+    mk(G, 'ico', RAW, s, s * 0.85, s * 0.6, 0, 0, s * 0.12);
+    mk(G, 'ico', GOREC, s * 0.45, s * 0.4, s * 0.3, s * R.rnd(-0.15, 0.15), s * R.rnd(-0.1, 0.15), s * 0.3);
+    if (FINE) for (let k = 0; k < 2; k++) { const a = k * 3 + R.rnd(-0.5, 0.5); mk(G, 'ico', RAW, s * 0.4, s * 0.35, s * 0.3, Math.cos(a) * s * 0.5, Math.sin(a) * s * 0.45, s * 0.1); }
+  },
+  /* the bone mother's: bone come out through the skin, comfortably, numb as they are; one spike, or a ridge of three */
+  spike(G, it, M) {
+    if (!FINE) {
+      /* a spindle of bone, or a ridge of three */
+      const s = it.size, n = it.row ? 3 : 1;
+      for (let k = 0; k < n; k++) {
+        const q = n > 1 ? 1 - Math.abs(k - 1) * 0.25 : 1, g = grp(G, 0, (k - (n - 1) / 2) * s * 0.5, 0);
+        g.rotation.x = -(it.bend ?? 0.3) * 0.4;
+        mk(g, 'ico', BONE, s * q * 0.24, s * q * 0.24, s * q, 0, 0, s * q * 0.42);
+      }
+      return;
+    }
+    const s = it.size, n = it.row ? 3 : 1, bend = it.bend ?? 0.3;
+    for (let k = 0; k < n; k++) {
+      const q = n > 1 ? 1 - Math.abs(k - 1) * 0.25 : 1, y = (k - (n - 1) / 2) * s * 0.5;
+      mk(G, 'ico', M.lidC, s * 0.34 * q, s * 0.34 * q, s * 0.1, 0, y, 0);
+      let g = grp(G, 0, y, 0);
+      for (let j = 0; j < 3; j++) {
+        const len = (s * q) / 3, w = s * q * 0.3 * (1 - j * 0.3), sg = grp(g, 0, 0, j ? len : 0);
+        sg.rotation.x = -bend * 0.3;
+        mk(sg, 'cyl', j ? BONE : BONE2, w, len * 1.08, w, 0, 0, len / 2).rotation.x = PI / 2;
+        g = sg;
+      }
+      mk(g, 'ico', BONE, s * q * 0.05, s * q * 0.05, s * q * 0.12, 0, 0, (s * q) / 3);
+    }
+  },
+  /* bone in plates, overlapping down the body in rows, the way her elders armour */
+  plate(G, it, M, R) {
+    if (!FINE) {
+      for (let r = 0; r < (it.rows ?? 2); r++) { const p = mk(G, 'box', r % 2 ? BONE2 : BONE, it.size, it.size * 0.32, it.size * 0.08, 0, -r * it.size * 0.27, it.size * 0.04 + r * 0.004); p.rotation.x = -0.25; }
+      return;
+    }
+    const s = it.size, rows = it.rows ?? 2;
+    for (let r = 0; r < rows; r++)
+      for (let c = -1; c <= 1; c++) {
+        const p = mk(G, 'box', R.pick([BONE, BONE2, 0xd2c9b0]), s * (c ? 0.4 : 0.48), s * 0.34, s * 0.07, c * s * 0.36, -r * s * 0.26, s * 0.035 + r * 0.004);
+        p.rotation.set(-0.28, c * 0.3, c * 0.06);
+      }
+  },
+  /* a stalk come out through the skin and turning up to the light, ribbed, a leaf or two, and on the end the plant's
+     flowers, or a bud */
+  stalk(G, it, M, R) {
+    if (!FINE) {
+      const s = it.size, seg = s / 2;
+      let g = G;
+      for (let k = 0; k < 2; k++) {
+        const sg = grp(g, 0, 0, k ? seg : 0);
+        sg.rotation.x = -(it.bend ?? 0.5) * (k ? 0.6 : 0.3);
+        mk(sg, 'cyl', 0x8aa060, s * 0.13 * (1 - k * 0.3), seg * 1.05, s * 0.13 * (1 - k * 0.3), 0, 0, seg / 2).rotation.x = PI / 2;
+        g = sg;
+      }
+      mk(g, 'ico', it.flower ? 0xe2e0a8 : 0x7a9a50, s * 0.2, s * 0.2, s * 0.16, 0, 0, seg);
+      return;
+    }
+    const s = it.size, bend = it.bend ?? 0.5, n = 4, seg = s / n;
+    mk(G, 'ico', KNOT, s * 0.22, s * 0.22, s * 0.1, 0, 0, 0);
+    let g = G;
+    for (let k = 0; k < n; k++) {
+      const r = s * 0.075 * (1 - k * 0.16), sg = grp(g, 0, 0, k ? seg : 0);
+      sg.rotation.x = -bend * (k ? 0.38 : 0.2);
+      mk(sg, 'cyl', k % 2 ? 0x8aa060 : 0x9ab070, r * 2, seg * 1.06, r * 2, 0, 0, seg / 2).rotation.x = PI / 2;
+      if (k === 1 || k === 2) leaf(sg, 0, 0, seg * 0.6, (k === 1 ? 1 : -1) * R.rnd(1.1, 1.5), s * 0.34, 0.1, leafCol(M, k));
+      g = sg;
+    }
+    const top = grp(g, 0, 0, seg);
+    if (it.flower) for (let f = 0; f < 4; f++) {
+      const fg = grp(top);
+      fg.rotation.set(R.rnd(-0.9, 0.9), R.rnd(-0.9, 0.9), 0);
+      mk(fg, 'cyl', 0xbfc286, s * 0.035, s * 0.18, s * 0.035, 0, 0, s * 0.09).rotation.x = PI / 2;
+      mk(fg, 'ico', 0xe2e0a8, s * 0.08, s * 0.08, s * 0.035, 0, 0, s * 0.19);
+    }
+    else mk(top, 'ico', 0x7a9a50, s * 0.12, s * 0.12, s * 0.16, 0, 0, 0);
+  },
+  /* roots out of it, out from the skin and then down, the way a cutting roots in water: most of them stand still and
+     take root (world.md §2, the Security flesh) */
+  roots(G, it, M, R) {
+    if (!FINE) {
+      const s = it.size, n = Math.min(it.count ?? 4, 5), w = 0.016 * Math.sqrt(s / 0.45);
+      for (let k = 0; k < n; k++) {
+        let g = grp(G, 0, 0, 0);
+        g.rotation.set(-1.1 + R.rnd(-0.3, 0.3), ((k / Math.max(1, n - 1)) - 0.5) * 1.4, 0);
+        for (let j = 0; j < 2; j++) {
+          const len = (s / 2) * R.rnd(0.8, 1.15);
+          mk(g, 'box', KNOT, w * (1 - 0.3 * j), len, w * (1 - 0.3 * j), 0, -len / 2, 0);
+          g = grp(g, 0, -len, 0);
+          g.rotation.x = 0.7;
+        }
+      }
+      return;
+    }
+    const s = it.size, n = it.count ?? 5, w = 0.013 * Math.sqrt(s / 0.45);
+    mk(G, 'ico', KNOT, s * 0.16, s * 0.12, s * 0.09, 0, 0, 0);
+    for (let k = 0; k < n; k++) {
+      const a = (k / n) * TAU + R.rnd(-0.4, 0.4);
+      let g = grp(G, Math.cos(a) * s * 0.04, Math.sin(a) * s * 0.04, 0);
+      g.rotation.set(-1.2 + R.rnd(-0.3, 0.3), R.rnd(-0.6, 0.6), 0);
+      for (let j = 0; j < 3; j++) {
+        const len = (s / 3) * R.rnd(0.7, 1.2), rr = w * (1 - 0.28 * j);
+        mk(g, 'cyl', j % 2 ? KNOT : KNOT2, rr * 2, len, rr * 2, 0, -len / 2, 0);
+        g = grp(g, 0, -len, 0);
+        g.rotation.set(0.45 + R.rnd(-0.2, 0.3), R.rnd(-0.4, 0.4), R.rnd(-0.3, 0.3));
+      }
+    }
+  },
+  /* where the wood comes through: a burl, or the skin gone to bark in plates */
+  knot(G, it, M, R) {
+    const s = it.size;
+    if (!FINE) {
+      if (it.form === 'bark') for (let k = 0; k < 3; k++) mk(G, 'box', k % 2 ? 0x5a4a34 : 0x4a3c2a, s * 0.55, s * 0.3, s * 0.07, 0, (k - 1) * s * 0.3, s * 0.02).rotation.z = R.rnd(-0.3, 0.3);
+      else mk(G, 'ico', KNOT, s, s * 0.8, s * 0.55, 0, 0, s * 0.05);
+      return;
+    }
+    if (it.form === 'bark') for (let k = 0; k < 9; k++) {
+      const p = mk(G, 'box', R.pick([0x5a4a34, 0x6a5a40, 0x4a3c2a]), s * R.rnd(0.25, 0.45), s * R.rnd(0.15, 0.3), s * 0.07, R.rnd(-0.4, 0.4) * s, R.rnd(-0.4, 0.4) * s, s * 0.02);
+      p.rotation.z = R.rnd(-0.6, 0.6);
+    }
+    else {
+      mk(G, 'ico', KNOT, s, s * 0.8, s * 0.55, 0, 0, s * 0.05);
+      for (let k = 0; k < 4; k++) { const a = (k / 4) * TAU + R.rnd(-0.5, 0.5); mk(G, 'ico', KNOT2, s * R.rnd(0.3, 0.5), s * R.rnd(0.3, 0.45), s * 0.35, Math.cos(a) * s * 0.36, Math.sin(a) * s * 0.3, s * 0.12); }
+    }
+  },
+};
+/** how far from its middle each kind tears the cloth it comes through, by its size; an eye or a pustule tears none */
+/** a shelf, low-poly: the knot and one broad flat slab of leaf a tier, the lowest the widest */
+function shelfSimple(G, s, tiers, M, R, o = {}) {
+  const rise = o.rise ?? s * 0.28;
+  if (!o.bare) mk(G, 'ico', KNOT, s * 0.4, rise * (tiers - 0.3), s * 0.34, 0, (rise * (tiers - 1)) / 2, 0);
+  for (let j = 0; j < tiers; j++) {
+    const k = 1 - j * (0.45 / tiers), g = grp(G, 0, j * rise, (o.lean ?? 0) * j);
+    g.rotation.set(R.rnd(0.02, 0.12), R.rnd(-0.2, 0.2), 0);
+    mk(g, 'ico', leafCol(M, j + 4), s * 1.3 * k, s * 0.1, s * 0.75 * k, 0, 0, s * 0.42 * k);
+  }
+}
+const GROWS = { leaf: 0.24, stalk: 0.12, roots: 0.1, knot: 0.45, spike: 0.15, plate: 0.5, flesh: 0.4 };
+/** about how big each looks, for the ring round the one picked */
+const RADIUS = { eye: 0.75, pustule: 0.8, leaf: 0.9, stalk: 0.6, roots: 0.6, knot: 0.7, spike: 0.6, plate: 0.6, flesh: 0.7 };
+
+const _x = new THREE.Vector3(), _y = new THREE.Vector3(), _ref = new THREE.Vector3(), _m4 = new THREE.Matrix4();
+/** a frame with +z along n and +y as near the part's up as n allows (its forward, where n is up or down) */
+function facing(n) {
+  const flat = Math.abs(n.y) > 0.92;
+  _ref.set(0, flat ? 0 : 1, flat ? 1 : 0);
+  _x.crossVectors(_ref, n).normalize();
+  _y.crossVectors(n, _x);
+  return new THREE.Quaternion().setFromRotationMatrix(_m4.makeBasis(_x, _y, n));
+}
+/** where an item is on its part, and the way out of the skin there, from where it is in the part's box */
+function itemAt(f, it) {
+  const q = new THREE.Vector3(f.c[0] + it.p[0] * f.s[0], f.c[1] + it.p[1] * f.s[1], f.c[2] + it.p[2] * f.s[2]);
+  const n = new THREE.Vector3(it.n[0] / f.s[0], it.n[1] / f.s[1], it.n[2] / f.s[2]).normalize();
+  return { q, n };
+}
+function itemGroup(f, it) {
+  const { q, n } = itemAt(f, it), G = new THREE.Group();
+  G.position.copy(q);
+  G.quaternion.copy(facing(n));
+  G.rotateZ(it.spin || 0);
+  return { G, q };
+}
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/* the model: castView's husk, part for part (the legs in two at the knee, the arms here in two at the elbow), made to
+   the design's measures, dressed in what it still wears, and grown on */
+/* the bloat god's line, drawn as the game draws its bloats (castView.ts, bloat): one great soft body, a head on it like
+   a baby's, arms hanging, stubs of legs; stood, sat, or lying on its back on the floor. What it still wears is one band
+   of it round the body, if anything */
+function buildBloat(M, d, skin, skinDk) {
+  const B = d.body, D = d.dress, rest = B.rest || 'stand', sit = rest === 'sit', hs = B.headSize;
+  const part = (name, g, c, s) => { M.parts[name] = { g, c, s }; PART = name; };
+  M.bloat = true; M.hipH = 0; M.L = 1;
+  M.root.scale.setScalar(B.scale);
+  const g = (M.P = grp(M.root)), b = (M.T = grp(g, 0, sit ? 1.05 : 1.75, 0));
+  part('torso', b, [0, 0, 0], [1.9, 2.1, 1.7]);
+  mk(b, 'ico', skin, 1.9, 2.1, 1.7);
+  mk(b, 'ico', skinDk, 1.3, 1, 1.2, 0, -0.6, 0.3);
+  if (D.shirt !== 'none') mk(b, 'ico', D.shirt === 'vest' ? (VESTS[D.vestCol] ?? VESTS.white)[0] : (SHIRTS[D.shirtCol] ?? SHIRTS.navy)[0], 1.96, 0.5, 1.76, 0, -0.15, 0);
+  const H = (M.H = grp(b, 0, 1.4, 0.1));
+  part('head', H, [0, 0, 0], [1.25 * hs, 1.35 * hs, 1.2 * hs]);
+  mk(H, 'ico', skin, 1.25 * hs, 1.35 * hs, 1.2 * hs);
+  mk(H, 'box', DARK, 0.16 * hs, (0.03 + 0.06 * B.jaw) * hs, 0.04, 0, -0.38 * hs, 0.5 * hs);
+  for (const [i, s] of [[0, 1], [1, -1]]) {
+    const nm = i ? 'R' : 'L', A = grp(b, s * 0.98, 0.35, 0);
+    part('uarm' + nm, A, [0, -0.5, 0], [0.22, 1, 0.22]);
+    mk(A, 'box', skinDk, 0.22, 1, 0.22, 0, -0.5, 0);
+    M.A.push(A);
+    const Lg = grp(g, s * 0.45, sit ? 0.2 : 1, sit ? 0.85 : 0);
+    if (sit) { part('thigh' + nm, Lg, [0, 0, 0], [0.42, 0.4, 1.3]); mk(Lg, 'box', skinDk, 0.42, 0.4, 1.3); }
+    else { part('thigh' + nm, Lg, [0, -0.5, 0], [0.5, 1, 0.5]); mk(Lg, 'box', skinDk, 0.5, 1, 0.5, 0, -0.5, 0); }
+    M.Lg.push(Lg);
+  }
+  /* on its back: stood, and laid down, the belly up and the legs along the floor */
+  if (rest === 'lie') { M.root.rotation.x = -PI / 2; M.root.position.y = 0.85 * B.scale; M.root.position.z = 1.6 * B.scale; }
+  M.height = (rest === 'lie' ? 1.9 : (sit ? 1.05 : 1.75) + 1.4 + 0.68 * 1.35 * hs) * B.scale;
+  M.clothAt = () => null;
+  for (const it of d.items) buildItem(M, it);
+  SINK = null; PART = null;
+  return M;
+}
+function poseBloat(M, A, mode, dt) {
+  const B = M.d.body, t = (A.t = (A.t ?? 0) + dt), s = 1 + Math.sin(t * 0.9) * 0.02, walk = mode !== 'stand' && (B.rest || 'stand') === 'stand';
+  M.T.scale.set(s, 1 / s, s);
+  M.H.rotation.set(0, Math.sin(t * 0.23) * 0.2, B.tilt * 0.3 + Math.sin(t * 0.4) * 0.08);
+  A.p = walk ? ((A.p ?? 0) + dt * paceOf(M.d, mode).f) % 1 : A.p ?? 0;
+  const p = A.p;
+  for (let k = 0; k < 2; k++) {
+    M.A[k].rotation.x = Math.sin(t * 0.9 + k) * 0.06 + (walk ? Math.sin(TAU * p + k * PI) * 0.15 : 0);
+    if ((B.rest || 'stand') === 'stand') M.Lg[k].rotation.x = walk ? Math.sin(TAU * p + k * PI) * 0.3 : 0;
+  }
+  /* it waddles: rocking side to side over each stub, rising a little on each */
+  M.P.rotation.z = walk ? Math.sin(TAU * p) * 0.07 : 0;
+  M.P.position.y = walk ? Math.abs(Math.sin(TAU * p)) * 0.05 : 0;
+}
+
+function buildModel(d) {
+  const B = d.body, D = d.dress;
+  const Rh = seeded(d.seed * 7919 + 17), Rt = seeded(d.seed * 7919 + 29), Rs = seeded(d.seed * 7919 + 41);
+  const skin = skinOf(d.skin), skinDk = shade(skin, 0.84);
+  const sc = (SHIRTS[D.shirtCol] ?? SHIRTS.navy)[0], vc = (VESTS[D.vestCol] ?? VESTS.white)[0], tc = TROUSERS;
+  const M = { d, root: new THREE.Group(), parts: {}, pick: [], itemMeshes: [], itemGroups: new Map(), A: [], E: [], Lg: [], K: [], An: [], cure: d.skin.cure, lidC: shade(skin, 0.88) };
+  SINK = M.pick; ITEM = null;
+  if (B.plan === 'bloat') return buildBloat(M, d, skin, skinDk);
+  /* the bone mother's line: a limb, or the trunk, gone raw, or to bone. Raw is the husk's arm (castView.ts, husk): the
+     upper arm raw, the forearm drawn out and ending in a point of bone, no hand. Bone is the skeleton winning: the limb
+     bone, raw at the joints. Ribs: the trunk raw, its ribs and its spine out through it */
+  const limbOf = i => (i ? B.limbR : B.limbL) || 'skin', reachOf = i => (i ? B.reachR : B.reachL) || 1, legsAre = B.legs || 'skin', trunk = B.trunk || 'skin';
+  /* swollen, the bloat god's line: the body, the limbs and the hips grown out round */
+  const sw0 = B.swell || 0, skull = B.head === 'skull';
+  const tw = B.torsoW * (1 + 0.8 * sw0), td = B.torsoD * (1 + 1.5 * sw0), tl = B.torsoL, th = B.thigh, sh = B.shin, ua = B.uArm, fa = B.fArm;
+  const lt = B.legT * (1 + 1.1 * sw0), at = B.armT * (1 + 1.3 * sw0), hipw = B.hipW * (1 + 0.6 * sw0);
+  const hipH = th + sh + 0.06, trunkC = trunk === 'skin' ? skin : RAW;
+  M.hipH = hipH; M.L = th + sh;
+  M.root.scale.setScalar(B.scale);
+  const P = (M.P = grp(M.root, 0, hipH, 0)), T = (M.T = grp(P));
+  const part = (name, g, c, s) => { M.parts[name] = { g, c, s }; PART = name; };
+
+  /* the shirt, and where it still covers */
+  const SH = D.shirt, gap = tw * 0.34;
+  const shirtAt = (x, y, z) => SH === 'uniform' ? true : SH === 'open' ? Math.abs(x) > gap / 2 || z < -td * 0.3
+    : SH === 'tornL' ? x < tw * 0.08 : SH === 'tornR' ? x > -tw * 0.08
+    : SH === 'vest' ? y < tl * 0.8 || Math.abs(Math.abs(x) - tw * 0.24) < 0.025 : false;
+  const sleeveOn = s => SH === 'uniform' || SH === 'open' || (SH === 'tornL' && s < 0) || (SH === 'tornR' && s > 0);
+  const trousers = D.legL !== 'bare' || D.legR !== 'bare';
+
+  /* the torso, from the hips up */
+  part('torso', T, [0, tl / 2, 0], [tw, tl, td]);
+  /* a swollen body is round, not a box; a shirt still buttoned, or a vest, stretches over it, and the rest it has burst
+     out of (no badge, no card: they are somewhere under it) */
+  const round = sw0 > 0.05;
+  if (round) {
+    mk(T, 'box', trunkC, tw * 0.72, tl * 0.9, td * 0.66, 0, tl * 0.47, 0);
+    mk(T, 'ico', SH === 'uniform' ? sc : SH === 'vest' ? vc : trunkC, tw * 1.16 + E, tl * 1.1, td * 1.24 + E, 0, tl * 0.47, 0);
+  } else mk(T, 'box', trunkC, tw, tl, td, 0, tl / 2, 0);
+  if (trunk === 'ribs') {
+    /* the ribs out through it, and the spine down its back */
+    mk(T, 'box', BONE, 0.045, tl * 0.5, 0.03, 0, tl * 0.62, td / 2 + 0.008);
+    for (let k = 0; k < 4; k++) for (const s of [-1, 1]) mk(T, 'box', BONE, tw * 0.34, 0.028, 0.03, s * tw * 0.21, tl * (0.42 + 0.12 * k), td / 2 + 0.006);
+    for (let k = 0; k < 7; k++) mk(T, 'box', BONE2, 0.06, 0.045, 0.035, 0, tl * (0.1 + 0.12 * k), -td / 2 - 0.008);
+  }
+  const hasGut = B.gut > 0.02, gz = td * 0.22 + B.gut * 0.08, gd = td * 0.6 + B.gut * 0.3;
+  if (hasGut) mk(T, 'ico', skin, tw * 0.9, tl * 0.55, gd, 0, tl * 0.3, gz);
+  if (FINE && !round && trunk === 'skin') for (const s of [-1, 1]) mk(T, 'ico', skinDk, 0.022, 0.022, 0.01, s * tw * 0.24, tl * 0.74, td / 2 + 0.002);
+  if (FINE && trunk === 'skin') mk(T, 'ico', skinDk, 0.02, 0.026, 0.012, 0, tl * 0.3, (hasGut ? Math.max(td / 2, gz + gd * 0.42) : td / 2) + 0.002);
+  const gutCloth = c => { if (hasGut) mk(T, 'ico', c, tw * 0.9 + E, tl * 0.55 + E, gd + E, 0, tl * 0.3, gz); };
+  if (round) { /* the round body above */ }
+  else if (SH === 'uniform') {
+    cloth(T, sc, tw, tl, td, 0, tl / 2, 0);
+    gutCloth(sc);
+    if (FINE && !hasGut) mk(T, 'box', shade(sc, 0.78), 0.018, tl * 0.86, 0.006, 0, tl * 0.53, td / 2 + E / 2 + 0.002);
+  } else if (SH === 'open') {
+    const x0 = gap / 2, x1 = tw / 2 + E / 2;
+    for (const s of [-1, 1]) {
+      mk(T, 'box', sc, x1 - x0, tl, td + E, (s * (x0 + x1)) / 2, tl / 2, 0);
+      if (FINE) mk(T, 'box', shade(sc, 0.75), 0.014, tl, 0.006, s * (x0 + 0.007), tl / 2, td / 2 + E / 2 + 0.003);
+    }
+    mk(T, 'box', sc, gap + 0.004, tl, 0.03, 0, tl / 2, -(td / 2 + E / 2) + 0.015);
+  } else if (SH === 'tornL' || SH === 'tornR') {
+    /* torn away down one side, the edge ragged, a few strips of it hanging */
+    const s = SH === 'tornL' ? -1 : 1, edge = -s * tw * 0.08, x1 = s * (tw / 2 + E / 2);
+    mk(T, 'box', sc, Math.abs(x1 - edge), tl, td + E, (x1 + edge) / 2, tl / 2, 0);
+    if (FINE) for (let k = 0; k < 6; k++) { const jw = Rt.rnd(0.015, 0.07); mk(T, 'box', sc, jw, (tl / 6) * Rt.rnd(0.6, 1), td + E * 0.9, edge - (s * jw) / 2, (tl * (k + 0.5)) / 6, 0); }
+    if (FINE) for (let k = 0; k < 3; k++) {
+      const len = Rt.rnd(0.06, 0.14), f = grp(T, edge - s * Rt.rnd(0, 0.03), tl * Rt.rnd(0.1, 0.6), (td / 2 + E / 2) * (k % 2 ? -1 : 1));
+      f.rotation.z = -s * Rt.rnd(0.1, 0.5);
+      mk(f, 'box', sc, 0.035, len, 0.007, 0, -len / 2, 0);
+    }
+  } else if (SH === 'vest') {
+    cloth(T, vc, tw, tl * 0.8, td, 0, tl * 0.4, 0);
+    gutCloth(vc);
+    for (const s of [-1, 1]) mk(T, 'box', vc, 0.05, tl * 0.2 + 0.012, td + E, s * tw * 0.24, tl * 0.9 + 0.006, 0);
+  }
+  const onShirt = !round && (SH === 'uniform' || SH === 'open' || SH === 'tornL' || SH === 'tornR');
+  /* the shirt's badge and epaulettes (castView, changed), where there is shirt left to wear them */
+  if (D.badge && onShirt && shirtAt(-tw * 0.29, tl * 0.73, td / 2)) mk(T, 'box', 0x9a8a50, 0.06, 0.07, 0.02, -tw * 0.29, tl * 0.73, td / 2 + E / 2 + 0.004);
+  if (FINE && D.epaulettes && onShirt) for (const s of [-1, 1]) if (shirtAt(s * tw * 0.36, tl, 0)) mk(T, 'box', 0x1f252e, tw * 0.31, 0.025, td * 0.83, s * tw * 0.36, tl + E / 2, 0);
+  /* the card they carry (world.md §8, cards), on a lanyard round the neck */
+  if (D.lanyard && !round) {
+    const z = td / 2 + E / 2 + 0.01;
+    for (const s of [-1, 1]) { const f = grp(T, s * 0.05, tl * 0.98, td * 0.3); f.rotation.set(-0.35, 0, -s * 0.25); mk(f, 'box', 0x2a4a7a, 0.012, tl * 0.36, 0.006, 0, -tl * 0.18, 0); }
+    mk(T, 'box', 0xdcdcd2, 0.056, 0.086, 0.005, 0, tl * 0.64, z);
+    mk(T, 'box', 0x2a4a7a, 0.056, 0.016, 0.006, 0, tl * 0.665, z + 0.001);
+  }
+
+  /* the neck, where the leaf comes out on the game's, and the head */
+  const yb = tl - 0.03, nl = B.neckL * (1 - 0.6 * sw0), nw = 0.13 * Math.sqrt(B.headSize);
+  part('neck', T, [0, yb + nl / 2, 0], [nw, nl, nw]);
+  mk(T, 'cyl', skin, nw, nl + 0.02, nw, 0, yb + nl / 2, 0);
+  const hs = B.headSize, hw = 0.24 * hs * B.headW, hh = 0.28 * hs * B.headH, hd = 0.25 * hs * (0.5 + 0.5 * B.headW);
+  const H = (M.H = grp(T, 0, yb + nl + hh * 0.18, 0));
+  M.height = (hipH + yb + nl + hh * 0.68) * B.scale;
+  part('head', H, [0, 0, 0], [hw, hh, hd]);
+  if (skull) {
+    /* the bone mother's elders: the flesh gone from the face and the skull grown out over it, one fused, simple shape */
+    /* the face gone: one smooth shape of bone, nothing on it at all */
+    mk(H, 'ico', BONE2, hw * 1.1, hh, hd * 1.08, 0, hh * 0.06, -hd * 0.02);
+  } else {
+  mk(H, 'ico', skin, hw, hh, hd);
+  if (FINE) {
+    for (const s of [-1, 1]) mk(H, 'ico', skinDk, hw * 0.14, hh * 0.25, hd * 0.2, s * hw * 0.48, -hh * 0.02, -hd * 0.04);
+    mk(H, 'box', skinDk, hw * 0.13, hh * 0.17, hd * 0.16, 0, -hh * 0.06, hd * 0.42);
+  }
+  mk(H, 'box', 0x3a2622, hw * 0.33, hh * (0.07 + 0.12 * B.jaw), hd * 0.12, 0, -hh * (0.27 + 0.05 * B.jaw), hd * 0.4); // the mouth, slack
+  const hair = Rh.pick([0x1c1a18, 0x2a2420, 0x4a3a2c, 0x6a6058, 0x8a8478]);
+  if (D.hair === 'short') mk(H, 'ico', hair, hw * 1.05, hh * 0.6, hd * 1.06, 0, hh * 0.22, -hd * 0.05);
+  else if (D.hair === 'thin') mk(H, 'ico', hair, hw * 1.04, hh * 0.42, hd * 0.75, 0, hh * 0.04, -hd * 0.2);
+  if (D.cap !== 'none') {
+    const C = grp(H, 0, hh * 0.3, 0);
+    if (D.cap === 'askew') { C.rotation.set(0.05, 0.6, -0.3); C.position.x += hw * 0.06; }
+    if (D.cap === 'back') { C.rotation.x = -0.5; C.position.z -= hd * 0.12; C.position.y += hh * 0.02; }
+    mk(C, 'cyl', UNIFORM, hw * 1.06, hh * 0.32, hd * 1.06, 0, hh * 0.08, 0);
+    mk(C, 'box', 0x1f252e, hw * 0.88, 0.016, hd * 0.5, 0, -hh * 0.06, hd * 0.66);
+    mk(C, 'box', 0x9a8a50, 0.035, 0.035, 0.01, 0, hh * 0.1, hd * 0.53);
+  }
+  }
+
+  /* the arms, each in two at the elbow; its left at +x. A whole arm can be grown larger than the other */
+  for (const [i, s] of [[0, 1], [1, -1]]) {
+    const nm = i ? 'R' : 'L', k = i ? B.armR : B.armL, lim = limbOf(i), fa = B.fArm * reachOf(i), sl = sleeveOn(s) && lim === 'skin' ? D['sleeve' + nm] : 'none';
+    const A = grp(T, s * (tw / 2 + (at * k) / 2 + B.shoulder), tl - 0.04, 0);
+    A.scale.setScalar(k);
+    M.A.push(A);
+    part('uarm' + nm, A, [0, -ua / 2, 0], [at, ua, at * 1.09]);
+    if (lim === 'skin') { mk(A, 'ico', skin, at * 1.3, at * 1.2, at * 1.25, 0, -0.01, 0); mk(A, 'box', skin, at, ua, at * 1.09, 0, -ua / 2, 0); }
+    else if (lim === 'raw') { mk(A, 'ico', RAW, at * 1.5, at * 1.4, at * 1.4, 0, -0.01, 0); mk(A, 'box', RAW, at * 1.25, ua, at * 1.3, 0, -ua / 2, 0); }
+    else { mk(A, 'ico', RAW, at * 1.1, at * 1.1, at * 1.1, 0, -0.01, 0); mk(A, 'box', BONE2, at * 0.5, ua, at * 0.5, 0, -ua / 2, 0); }
+    if (sl !== 'none') {
+      const f = sl === 'short' ? 0.72 : sl === 'torn' ? 0.42 : 1;
+      mk(A, 'ico', sc, at * 1.3 + E, at * 1.2 + E, at * 1.25 + E, 0, -0.01, 0);
+      cloth(A, sc, at, ua * f, at * 1.09, 0, (-ua * f) / 2, 0);
+      if (FINE && sl === 'torn') hem(A, sc, at, at * 1.09, -ua * f, 5, Rt);
+    }
+    const Eg = grp(A, 0, -ua, 0);
+    M.E.push(Eg);
+    part('farm' + nm, Eg, [0, -fa / 2, 0], [at * 0.76, fa, at * 0.76]);
+    if (lim === 'skin') { mk(Eg, 'ico', skin, at * 0.86, at * 0.8, at * 0.86); mk(Eg, 'box', skin, at * 0.76, fa, at * 0.76, 0, -fa / 2, 0); }
+    else if (lim === 'raw') { mk(Eg, 'ico', RAW, at, at, at); mk(Eg, 'box', FLESHC, at * 0.9, fa, at * 0.9, 0, -fa / 2, 0); }
+    else { mk(Eg, 'ico', RAW, at * 0.8, at * 0.8, at * 0.8); mk(Eg, 'box', BONE, at * 0.42, fa, at * 0.42, 0, -fa / 2, 0); }
+    if (sl === 'long' || sl === 'rolled') mk(Eg, 'ico', sc, at * 0.86 + E, at * 0.8 + E, at * 0.86 + E);
+    if (sl === 'long') cloth(Eg, sc, at * 0.8, fa * 0.94, at * 0.8, 0, -fa * 0.47, 0);
+    if (FINE && sl === 'rolled') mk(Eg, 'box', shade(sc, 1.15), at * 0.8 + E * 3, Math.min(0.08, fa * 0.25), at * 0.8 + E * 3, 0, -0.03, 0);
+    const hl = 0.1 * Math.sqrt(at / 0.11), Hg = grp(Eg, 0, -fa, 0);
+    part('hand' + nm, Hg, [0, -hl / 2, 0], [at * 0.8, hl, at * 0.48]);
+    if (lim !== 'skin') {
+      /* no hand: the arm ends in a point of bone (castView.ts, husk) */
+      mk(Hg, 'box', BONE, at * 0.45, 0.16 * Math.sqrt(reachOf(i)), at * 0.45, 0, -0.08 * Math.sqrt(reachOf(i)), 0.02);
+      continue;
+    }
+    mk(Hg, 'box', skin, at * 0.8, hl, at * 0.48, 0, -hl / 2, 0);
+    if (FINE) mk(Hg, 'box', skin, at * 0.24, hl * 0.6, at * 0.26, -s * at * 0.3, -hl * 0.35, at * 0.22); // the thumb
+    if (D.torch && i === 1) {
+      /* the night round's flashlight, in the hand that is still a hand */
+      mk(Hg, 'cyl', 0x2a2c2e, 0.05, 0.24, 0.05, 0, -hl * 0.6, at * 0.34);
+      mk(Hg, 'cyl', 0x3a3d40, 0.068, 0.05, 0.068, 0, -hl * 0.6 - 0.12, at * 0.34);
+      mk(Hg, 'cyl', [2.2, 2.1, 1.9], 0.056, 0.01, 0.056, 0, -hl * 0.6 - 0.147, at * 0.34);
+    }
+  }
+
+  /* the legs, in two at the knee and again at the ankle */
+  for (const [i, s] of [[0, 1], [1, -1]]) {
+    const nm = i ? 'R' : 'L', leg = D['leg' + nm], boot = D['boot' + nm] === 'boot';
+    const Lg = grp(P, (s * hipw) / 2, 0, 0);
+    Lg.rotation.z = s * B.splay;
+    M.Lg.push(Lg);
+    part('thigh' + nm, Lg, [0, -th / 2, 0], [lt, th, lt * 1.06]);
+    if (legsAre === 'bone') mk(Lg, 'box', BONE2, lt * 0.5, th, lt * 0.5, 0, -th / 2, 0);
+    else mk(Lg, 'box', legsAre === 'raw' ? RAW : skin, lt, th, lt * 1.06, 0, -th / 2, 0);
+    if (leg !== 'bare') cloth(Lg, tc, lt, th + 0.02, lt * 1.06, 0, -th / 2 + 0.01, 0);
+    if (FINE && leg === 'torn') hem(Lg, tc, lt, lt * 1.06, -th, 6, Rt);
+    const Kg = grp(Lg, 0, -th, 0);
+    M.K.push(Kg);
+    part('shin' + nm, Kg, [0, -sh / 2, 0], [lt * 0.88, sh, lt * 0.92]);
+    if (legsAre === 'bone') { mk(Kg, 'ico', RAW, lt * 0.7, lt * 0.6, lt * 0.7); mk(Kg, 'box', BONE, lt * 0.42, sh, lt * 0.42, 0, -sh / 2, 0); }
+    else { mk(Kg, 'ico', legsAre === 'raw' ? RAW : skin, lt * 0.9, lt * 0.78, lt * 0.95); mk(Kg, 'box', legsAre === 'raw' ? FLESHC : skin, lt * 0.88, sh, lt * 0.92, 0, -sh / 2, 0); }
+    if (leg === 'full' || leg === 'rolled') {
+      const f = leg === 'full' ? 0.98 : 0.45;
+      mk(Kg, 'ico', tc, lt * 0.9 + E, lt * 0.78 + E, lt * 0.95 + E);
+      cloth(Kg, tc, lt * 0.92, sh * f, lt * 0.96, 0, (-sh * f) / 2, 0);
+      if (FINE && leg === 'rolled') mk(Kg, 'box', shade(tc, 1.3), lt * 0.92 + E * 3, 0.07, lt * 0.96 + E * 3, 0, -sh * f, 0);
+    }
+    const An = grp(Kg, 0, -sh, 0);
+    M.An.push(An);
+    if (boot) {
+      const fw = Math.max(0.15, lt * 1.02);
+      part('foot' + nm, An, [0, -0.015, 0.05], [fw, 0.09, 0.28]);
+      mk(An, 'box', DARK, fw, 0.09, 0.28, 0, -0.015, 0.05);
+      if (leg !== 'full') { PART = 'shin' + nm; mk(Kg, 'box', 0x1a1416, lt * 0.88 + E * 2, 0.17, lt * 0.92 + E * 2, 0, -sh + 0.06, 0); }
+    } else {
+      part('foot' + nm, An, [0, -0.03, 0.05], [lt * 0.72, 0.06, 0.24]);
+      if (FINE) mk(An, 'ico', skinDk, lt * 0.5, 0.07, lt * 0.5);
+      mk(An, 'box', legsAre === 'bone' ? BONE2 : skin, lt * 0.72, 0.06, 0.24, 0, -0.03, 0.05);
+      if (FINE) for (let t = 0; t < 4; t++) mk(An, 'box', skinDk, lt * 0.14, 0.035, 0.04, (t - 1.5) * lt * 0.17, -0.042, 0.18);
+    }
+  }
+
+  /* the hips: trousers, or what is under them; the belt, done up or hanging; a shirt tied round them by its sleeves */
+  const sw = Math.max(tw * 0.96, hipw + lt + 0.02), sd = Math.max(td * 0.96, lt * 1.1);
+  part('pelvis', P, [0, 0, 0], [sw, 0.2, sd]);
+  mk(P, 'box', trunkC, sw - 0.004, 0.18, sd - 0.004);
+  if (trousers) cloth(P, tc, sw, 0.22, sd, 0, 0, 0);
+  else if (D.briefs !== false) mk(P, 'box', BRIEFS, sw + E, 0.16, sd + E, 0, -0.01, 0);
+  if (FINE && trousers && D.belt !== 'off') {
+    const bg = grp(P, 0, 0.085, 0);
+    if (D.belt === 'loose') { bg.rotation.z = 0.12; bg.position.y -= 0.035; }
+    mk(bg, 'box', BELT, sw + E * 2, 0.065, sd + E * 2);
+    mk(bg, 'box', 0x8a8e8c, 0.07, 0.05, 0.02, 0, 0, sd / 2 + E + 0.006);
+    if (D.belt === 'loose') { const f = grp(bg, 0.07, 0, sd / 2 + E + 0.012); f.rotation.z = 0.25; mk(f, 'box', BELT, 0.04, 0.17, 0.01, 0, -0.08, 0); }
+    if (D.radio) mk(bg, 'box', 0x1d1f21, 0.07, 0.13, 0.05, sw * 0.36, -0.03, sd / 2 + E + 0.026); // gone quiet
+  }
+  if (SH === 'tied') {
+    const zf = sd / 2 + E * 2;
+    mk(P, 'box', sc, sw + E * 3, 0.07, sd + E * 3, 0, 0.1, 0);
+    for (const s of [-1, 1]) { const f = grp(P, s * 0.05, 0.1, zf + 0.02); f.rotation.z = s * 0.4; mk(f, 'box', sc, 0.085, 0.34, 0.04, 0, -0.16, 0); }
+    if (FINE) mk(P, 'ico', sc, 0.1, 0.08, 0.07, 0, 0.1, zf + 0.03);
+    const f = grp(P, 0, 0.1, -zf);
+    f.rotation.x = -0.12;
+    mk(f, 'box', sc, sw * 0.95, 0.42, 0.02, 0, -0.2, -0.012);
+  }
+
+  /* what has run down them and dried: on the shirt, and the trousers' thighs */
+  const nS = FINE ? Math.round(D.stain * 8) : 0, SC = [0x8a7432, 0xc6bd9c, 0x5a4a28];
+  for (let k = 0; k < nS; k++) {
+    const c = Rs.pick(SC), w = Rs.rnd(0.04, 0.11), h = Rs.rnd(0.05, 0.17), x = Rs.rnd(-0.38, 0.38), y = Rs.rnd(0.15, 0.85);
+    if (k % 3 !== 2) {
+      if (!round && shirtAt(x * tw, y * tl, td / 2) && !(hasGut && y < 0.58)) { PART = 'torso'; mk(T, 'box', c, w, h, 0.004, x * tw, y * tl, td / 2 + E / 2 + 0.003); }
+    } else {
+      const i = k % 2, nm = i ? 'R' : 'L';
+      if (D['leg' + nm] !== 'bare') { PART = 'thigh' + nm; mk(M.Lg[i], 'box', c, w * 0.7, h, 0.004, x * 0.6 * lt, -(0.2 + y * 0.6) * th, lt * 0.53 + E / 2 + 0.003); }
+    }
+  }
+
+  /** the cloth over a point on a part, or null where it is skin */
+  M.clothAt = (name, q) => {
+    const side = /[LR]$/.test(name) ? name.slice(-1) : '', s = side === 'L' ? 1 : -1;
+    const sl = side && sleeveOn(s) ? D['sleeve' + side] : 'none';
+    switch (name.replace(/[LR]$/, '')) {
+      case 'torso': return shirtAt(q.x, q.y, q.z) ? (SH === 'vest' ? vc : sc) : null;
+      case 'pelvis': return trousers ? tc : D.briefs !== false ? BRIEFS : null;
+      case 'uarm': return sl !== 'none' && q.y > -ua * (sl === 'short' ? 0.72 : sl === 'torn' ? 0.42 : 1) ? sc : null;
+      case 'farm': return sl === 'long' || (sl === 'rolled' && q.y > -0.07) ? sc : null;
+      case 'thigh': return D['leg' + side] !== 'bare' ? tc : null;
+      case 'shin': { const l = D['leg' + side]; return l === 'full' || (l === 'rolled' && q.y > -sh * 0.45) ? tc : null; }
+      default: return null;
+    }
+  };
+
+  for (const it of d.items) buildItem(M, it);
+  if (d.skin.over > 0.01) overgrow(M, d);
+  SINK = null; PART = null;
+  return M;
+}
+
+/* overgrown, the bush's way: rows on rows of shelves over the whole body, spreading as it grows from the back and the
+   shoulders down the limbs and at the last over the face. Each spot, where it is on its part's box and the way out of
+   it, and how soon it fills (lower, sooner); the same spots for its other side */
+const SPOTS = (() => {
+  const o = {}, add = (part, p, n, w) => (o[part] ??= []).push({ p, n, w });
+  const both = (part, p, n, w) => { add(part + 'L', p, n, w); add(part + 'R', [-p[0], p[1], p[2]], [-n[0], n[1], n[2]], w); };
+  for (const y of [-0.4, -0.22, -0.04, 0.14, 0.32]) for (const x of [-0.3, 0, 0.3]) {
+    add('torso', [x, y, -0.5], [x * 0.6, 0.15, -1], 0.05 + (0.32 - y) * 0.25);
+    add('torso', [x, y, 0.5], [x * 0.6, 0.15, 1], 0.35 + (0.32 - y) * 0.3);
+  }
+  for (const y of [-0.35, -0.12, 0.1, 0.3]) for (const z of [-0.25, 0.2]) for (const sx of [-1, 1]) add('torso', [sx * 0.5, y, z], [sx, 0.15, z], 0.2 + (0.3 - y) * 0.2);
+  for (const sx of [-1, 1]) add('torso', [sx * 0.3, 0.5, -0.1], [sx * 0.4, 1, -0.2], 0.12);
+  add('neck', [0, 0, -0.5], [0, 0.2, -1], 0.15); add('neck', [0.5, 0, 0], [1, 0.1, 0], 0.4); add('neck', [-0.5, 0, 0], [-1, 0.1, 0], 0.4);
+  add('head', [0, 0.1, -0.48], [0, 0.1, -1], 0.45); add('head', [0.48, 0.05, -0.1], [1, 0.1, -0.2], 0.55); add('head', [-0.48, 0.05, -0.1], [-1, 0.1, -0.2], 0.55);
+  add('head', [0, 0.48, -0.1], [0, 1, -0.2], 0.6); add('head', [0.25, 0.02, 0.42], [0.4, 0, 1], 0.85); add('head', [-0.25, 0.02, 0.42], [-0.4, 0, 1], 0.85);
+  add('head', [0, 0.32, 0.38], [0, 0.6, 0.8], 0.9);
+  for (const y of [0.25, -0.05, -0.35]) { both('uarm', [0.5, y, 0], [1, 0, 0], 0.3); both('uarm', [0, y, -0.5], [0, 0, -1], 0.45); both('uarm', [0, y, 0.5], [0, 0, 1], 0.7); }
+  for (const y of [0.25, -0.15]) { both('farm', [0.5, y, 0], [1, 0, 0], 0.5); both('farm', [0, y, -0.5], [0, 0, -1], 0.6); }
+  for (const y of [0.3, 0, -0.3]) { both('thigh', [0.5, y, 0], [1, 0, 0], 0.4); both('thigh', [0, y, -0.5], [0, 0, -1], 0.5); both('thigh', [0, y, 0.5], [0, 0, 1], 0.65); }
+  for (const y of [0.25, -0.15]) { both('shin', [0.5, y, 0], [1, 0, 0], 0.6); both('shin', [0, y, -0.5], [0, 0, -1], 0.7); }
+  return o;
+})();
+/** a lighter shelf for the overgrowth: the knot and its tiers, each leaf a blade and a drooping tip */
+function shelfLite(G, s, tiers, M, R) {
+  const rise = s * 0.24;
+  mk(G, 'ico', KNOT, s * 0.4, rise * (tiers - 0.4), s * 0.36, 0, (rise * (tiers - 1)) / 2, 0);
+  for (let j = 0; j < tiers; j++)
+    for (let i = -1; i <= 1; i++) {
+      const len = s * (1 - j * (0.5 / tiers)) * R.rnd(0.85, 1.1), g = grp(G, 0, j * rise, 0);
+      g.rotation.set(R.rnd(-0.03, 0.08), i * 0.45 + R.rnd(-0.15, 0.15), 0);
+      mk(g, 'ico', leafCol(M, i + j + 4), 0.7 * len, 0.09 * len, 0.62 * len, 0, 0, 0.5 * len);
+      mk(g, 'ico', leafCol(M, i + j + 5), 0.6 * len, 0.08 * len, 0.5 * len, 0, -0.04 * len, 0.9 * len);
+    }
+}
+function overgrow(M, d) {
+  const over = d.skin.over, torn = d.dress.tear;
+  let si = 0;
+  for (const [part, spots] of Object.entries(SPOTS)) {
+    const f = M.parts[part], take = [];
+    /* each spot its own numbers, so a spot is where it was however far the rest have spread */
+    /* low-poly, half the spots, bigger */
+    for (const sp of spots) { const r = seeded(d.seed * 131 + si++ * 977 + 7); if (sp.w + r.rnd(-0.12, 0.12) < over * 1.05 && (FINE || si % 2)) take.push([sp, r]); }
+    if (!f || !take.length) continue;
+    const big = part === 'torso' ? 0.32 : part === 'head' || part === 'neck' ? 0.2 : 0.24;
+    merged(f.g, G => {
+      for (const [sp, r] of take) {
+        const { G: g, q } = itemGroup(f, { p: sp.p, n: sp.n, spin: r.rnd(-0.35, 0.35) }), s = big * (0.7 + 0.5 * over) * r.rnd(0.85, 1.15);
+        G.add(g);
+        if (FINE) shelfLite(g, s, over > 0.6 ? 3 : 2, M, r);
+        else shelfSimple(g, s * 1.75, 2, M, r, { bare: true });
+        if (torn && FINE) { const c = M.clothAt(part, q); if (c != null) tear(g, c, s * 0.22, s, r); }
+      }
+    });
+  }
+}
+
+function buildItem(M, it) {
+  const f = M.parts[it.part];
+  if (!f || !BUILD[it.kind]) return;
+  const { G, q } = itemGroup(f, it);
+  f.g.add(G);
+  M.itemGroups.set(it.id, G);
+  const R = seeded(M.d.seed * 104729 + it.id * 7907 + 3);
+  ITEM = it.id; SINK = M.itemMeshes;
+  BUILD[it.kind](G, it, M, R);
+  const tr = GROWS[it.kind];
+  if (tr && M.d.dress.tear) { const c = M.clothAt(it.part, q); if (c != null) tear(G, c, tr * it.size, it.size, R); }
+  ITEM = null; SINK = M.pick;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/* its walk. A stride is a full one, both feet; each foot is on the floor half of it, going back under the hip in a
+   straight line at the walk's pace (so the floor, moving at that pace, holds still under it), and through the air the
+   other half, the knee bent as far as it lifts. The hip rises and falls over the foot it stands on */
+/** a gait's stride and steps a second, as it moves in `mode` */
+function paceOf(d, mode) {
+  let S = d.gait.stride, f = d.gait.spm / 120;
+  if (d.body.plan === 'bloat' && (d.body.rest || 'stand') !== 'stand') return { S, f, v: 0 };
+  if (mode === 'hunt') { S *= 1.25; f *= 1.6; }
+  return { S, f, v: mode === 'stand' ? 0 : S * f };
+}
+function pose(M, A, mode, dt) {
+  if (M.bloat) { poseBloat(M, A, mode, dt); return; }
+  const d = M.d, B = d.body, G = d.gait, L = M.L;
+  A.t = (A.t ?? 0) + dt; A.p = A.p ?? 0;
+  const t = A.t, walk = mode !== 'stand', hunt = mode === 'hunt';
+  let { S, f } = paceOf(d, mode);
+  S = Math.min(S / B.scale, L * 3); // in the model's own measure; past this the leg cannot reach
+  if (walk) A.p = (A.p + dt * f) % 1;
+  const p = A.p;
+  let bob = 0, dip = 0, roll = 0;
+  for (let k = 0; k < 2; k++) {
+    const pk = (p + k * 0.5) % 1;
+    let a = 0, kn = 0.03, toe = 0;
+    if (walk && pk < 0.5) {
+      const u = pk / 0.5, x = S / 4 - u * (S / 2);
+      a = Math.asin(clamp(x / L, -0.95, 0.95));
+      bob = Math.sqrt(Math.max(0, L * L - x * x)) - L;
+      kn = 0.05 + 0.08 * Math.sin(PI * u);
+      if (k === 1) { dip = -G.limp * 0.05 * Math.sin(PI * u); roll = -G.limp * 0.1 * Math.sin(PI * u); }
+    } else if (walk) {
+      const u = (pk - 0.5) / 0.5, x = -S / 4 + ease(u) * (S / 2);
+      const lift = (0.35 + 0.95 * G.knee) * (1 - 0.8 * G.shamble) * (k === 1 ? 1 - 0.75 * G.limp : 1) * Math.min(1, S / (L * 0.9) + 0.35);
+      kn = Math.sin(PI * u) * lift;
+      a = Math.asin(clamp(x / L, -0.95, 0.95)) + kn * 0.45;
+      toe = Math.sin(PI * u) * 0.25 * (1 - G.shamble);
+    } else a = 0.02 * Math.sin(t * 0.5 + k * PI);
+    M.Lg[k].rotation.x = -a;
+    M.K[k].rotation.x = kn;
+    M.An[k].rotation.x = a - kn + toe;
+  }
+  M.P.position.set(walk ? 0 : Math.sin(t * 0.5) * 0.015, M.hipH + bob + dip, 0);
+  M.P.rotation.set(0, walk ? 0.05 * Math.cos(TAU * p) * G.armSwing : 0, roll + (walk ? -Math.sin(TAU * p) * G.sway * 0.5 : Math.sin(t * 0.5) * 0.012));
+  /* the arms swing against the legs; hunting, held out at you (castView, husk) */
+  for (let k = 0; k < 2; k++) {
+    const fwd = Math.cos(TAU * (p + k * 0.5));
+    let ax;
+    if (hunt) ax = (k ? -1.3 : -1.1) + Math.sin(TAU * p * 2 + k * 2) * 0.12;
+    else if (walk) ax = -G.hang + G.armSwing * fwd;
+    else ax = -G.hang + Math.sin(t * 0.9 + k) * 0.03;
+    M.A[k].rotation.set(ax, 0, (k ? -1 : 1) * 0.04);
+    M.E[k].rotation.x = -(G.elbow + (walk && !hunt ? 0.15 * Math.max(0, -fwd) * G.armSwing : 0));
+  }
+  M.T.rotation.set(B.hunch + (hunt ? 0.18 : 0) + (walk ? 0.03 : 0), walk ? -0.08 * Math.cos(TAU * p) * G.armSwing : 0, walk ? Math.sin(TAU * p) * G.sway : Math.sin(t * 0.6) * G.sway * 0.6);
+  /* the head lolled to one side, hung, and moving slowly with nobody much behind it; none of Pia's line twitches */
+  M.H.rotation.set(B.droop - B.hunch * 0.5 + (hunt ? -0.25 : 0) + Math.sin(t * 0.45) * G.loll * 0.4,
+    Math.sin(t * 0.5) * 0.2, B.tilt + Math.sin(t * 0.7) * G.loll);
+}
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/* designs: the game's own to start from, and examples */
+const norm = v => { const l = Math.hypot(...v) || 1; return v.map(x => r3(x / l)); };
+const it = (kind, part, p, n, size, extra = {}) => ({ kind, part, p, n: norm(n), size, spin: 0, ...KINDS[kind].extra, ...extra });
+const withIds = items => items.map((x, i) => ({ id: i + 1, ...x }));
+function base() {
+  return {
+    format: FORMAT, name: 'Untitled', notes: '', seed: 1,
+    body: { scale: 1, torsoW: 0.42, torsoD: 0.24, torsoL: 0.6, shoulder: 0, hipW: 0.22, gut: 0, hunch: 0.06,
+      headSize: 1, headW: 1, headH: 1, neckL: 0.14, tilt: 0.25, droop: 0, jaw: 0.25,
+      uArm: 0.36, fArm: 0.34, armT: 0.11, armL: 1, armR: 1, thigh: 0.45, shin: 0.45, legT: 0.16, splay: 0.02, swell: 0, head: 'face',
+      plan: 'person', rest: 'stand', limbL: 'skin', limbR: 'skin', legs: 'skin', trunk: 'skin', reachL: 1, reachR: 1 },
+    gait: { stride: 1.1, spm: 96, knee: 0.45, armSwing: 0.3, elbow: 0.2, hang: 0.05, sway: 0.04, shamble: 0.2, limp: 0, loll: 0.1 },
+    dress: { shirt: 'uniform', shirtCol: 'navy', vestCol: 'white', sleeveL: 'short', sleeveR: 'short', legL: 'full', legR: 'full', bootL: 'boot', bootR: 'boot',
+      belt: 'on', cap: 'none', hair: 'short', badge: false, epaulettes: false, radio: false, lanyard: false, torch: false, stain: 0, tear: true, briefs: true },
+    skin: { tone: 2, sallow: 0.6, cure: 0, green: 0, over: 0 },
+    items: [],
+  };
+}
+const EYES = () => [it('eye', 'head', [0.229, 0.089, 0.45], [0.25, 0.1, 0.96], 0.042), it('eye', 'head', [-0.229, 0.089, 0.45], [-0.25, 0.1, 0.96], 0.042)];
+/* castView's changed(): up the back of the neck, its side under the jaw, out of the shoulder, and on the most grown down
+   the back, each where the game puts it */
+const SHELVES = grown => [
+  it('leaf', 'torso', [-0.071, 0.467, -0.417], [-0.476, 0, -0.879], 0.3, { tiers: 4, rise: 0.07, fan: 0.45, lean: 0.015 }),
+  ...(grown > 1 ? [it('leaf', 'torso', [0.19, 0.5, 0], [0.955, 0, -0.297], 0.25, { tiers: 3, rise: 0.065 })] : []),
+  it('leaf', 'torso', [0.476, 0.3, -0.083], [0.996, 0, -0.086], 0.3, { tiers: grown > 2 ? 4 : 2, rise: 0.075, fan: 0.4 }),
+  ...(grown > 2 ? [it('leaf', 'torso', [0.357, -0.1, -0.458], [0.786, 0, -0.618], 0.24, { tiers: 3, rise: 0.065 })] : []),
+];
+const PRESETS = [
+  ['torn', 'Shirt torn away', () => {
+    const d = base();
+    Object.assign(d, { name: 'Shirt torn away', seed: 4, notes: 'Example. The leaf took the shirt off its left side; one boot, one leg torn at the knee, roots out of the bare foot.' });
+    Object.assign(d.body, { torsoW: 0.46, gut: 0.15, hunch: 0.22, tilt: 0.38, droop: 0.12, jaw: 0.45 });
+    Object.assign(d.gait, { stride: 0.95, spm: 84, shamble: 0.45, armSwing: 0.18, hang: 0.1, loll: 0.16, limp: 0.25 });
+    Object.assign(d.dress, { shirt: 'tornL', sleeveR: 'rolled', legL: 'torn', bootL: 'bare', belt: 'loose', hair: 'thin' });
+    Object.assign(d.skin, { tone: 4, sallow: 0.55 });
+    d.items = withIds([...EYES(),
+      it('leaf', 'torso', [0.46, 0.42, -0.05], [1, 0, -0.1], 0.36, { tiers: 3 }),
+      it('leaf', 'torso', [-0.071, 0.467, -0.417], [-0.476, 0, -0.879], 0.3, { tiers: 3 }),
+      it('stalk', 'torso', [0.3, 0.05, 0.5], [0.3, 0, 1], 0.42, { bend: 0.6 }),
+      it('flesh', 'torso', [0.42, 0.6, 0.3], [0.6, 0.5, 0.6], 0.16),
+      it('roots', 'footL', [0, -0.1, 0.5], [0, -0.2, 1], 0.5, { count: 4 }),
+      it('eye', 'uarmL', [0.5, 0.3, 0.3], [1, 0, 0.4], 0.045)]);
+    return d;
+  }],
+  ['day', 'Day shift, as built', () => {
+    const d = base();
+    Object.assign(d, { name: 'Day shift, as built', seed: 2, notes: 'Example. The changed as the game draws them now (castView.ts, changed), one of the moderately grown: the badge the one thing on it.' });
+    Object.assign(d.dress, { badge: true });
+    d.items = withIds([...EYES(), ...SHELVES(2)]);
+    return d;
+  }],
+  ['night', 'The night round', () => {
+    const d = base();
+    Object.assign(d, { name: 'The night round', seed: 3, notes: 'Example. Always in uniform, the leaf thickest on it, its flashlight in the hand that is still a hand.' });
+    Object.assign(d.gait, { stride: 1.05, spm: 74, hang: 0.25, elbow: 0.5 });
+    Object.assign(d.dress, { cap: 'on', torch: true });
+    d.items = withIds([...EYES(), ...SHELVES(3)]);
+    return d;
+  }],
+  ['long', 'Long reach', () => {
+    const d = base();
+    Object.assign(d, { name: 'Long reach', seed: 5, notes: 'Example. Long in the arm and the leg, narrow, a long slow stride; the shirt open, both feet bare.' });
+    Object.assign(d.body, { torsoW: 0.34, torsoD: 0.2, torsoL: 0.66, uArm: 0.52, fArm: 0.5, armT: 0.09, thigh: 0.56, shin: 0.6, legT: 0.13, neckL: 0.24, headH: 1.15, headW: 0.9, hunch: 0.32, tilt: -0.2, droop: 0.3 });
+    Object.assign(d.gait, { stride: 1.65, spm: 70, knee: 0.7, armSwing: 0.45, elbow: 0.35, hang: 0.25, sway: 0.07, shamble: 0.1, loll: 0.2 });
+    Object.assign(d.dress, { shirt: 'open', shirtCol: 'slate', sleeveL: 'torn', sleeveR: 'long', legL: 'rolled', legR: 'rolled', bootL: 'bare', bootR: 'bare', belt: 'off', hair: 'none' });
+    Object.assign(d.skin, { tone: 1, sallow: 0.7, cure: 0.4 });
+    d.items = withIds([...EYES(),
+      it('leaf', 'torso', [0, 0.3, -0.5], [0, 0, -1], 0.3, { tiers: 3 }),
+      it('stalk', 'head', [0.1, 0.48, 0], [0.2, 1, 0], 0.35, { bend: 0.3 }),
+      it('flesh', 'farmR', [-0.5, 0, 0.2], [-1, 0, 0.3], 0.12)]);
+    return d;
+  }],
+];
+
+/* Security's changed, the seven the upper station has (content/levels/upper.ts), as Claude proposes them: the
+   bush's line, the young god who breathed a spore off Pia's shoulder (world.md §10, Pia's young gods), so leaf shelves
+   out of the skin and the face, a little of what the bone and bloat lines do on the flesh side (limbs drawn
+   long, a body or a head swollen; muted beside what the Commons will show), and slow; in order of how long each has
+   been changing, the newest first, the oldest the most plant */
+const CAST = [
+  ['hallw', 'Hall, west', () => {
+    const d = base();
+    Object.assign(d, { name: 'Hall, west', seed: 11, notes: 'On its rounds of the muster hall, the west end (upper.ts: 31, 28). The newest: changed a week at most, still nearly a person, and still buttons its shirt. One small shelf at the back of the neck. Its wrongness is a long neck and a long, narrow head, enough to read wrong across the hall before you can say why. The quickest of them, and still slow: 1 m/s.' });
+    Object.assign(d.body, { torsoW: 0.4, neckL: 0.26, headW: 0.9, headH: 1.18, hunch: 0.04, tilt: 0.15, droop: 0.05, jaw: 0.15 });
+    Object.assign(d.gait, { stride: 1.2, spm: 100, knee: 0.45, armSwing: 0.26, elbow: 0.15, hang: 0.02, sway: 0.03, shamble: 0.25, loll: 0.06 });
+    Object.assign(d.dress, { cap: 'askew' });
+    Object.assign(d.skin, { tone: 0, sallow: 0.35 });
+    d.items = withIds([...EYES().map(e => ({ ...e, size: 0.036 })),
+      it('leaf', 'torso', [-0.071, 0.467, -0.417], [-0.476, 0, -0.879], 0.22, { tiers: 2, rise: 0.06 })]);
+    return d;
+  }],
+  ['halle', 'Hall, east', () => {
+    const d = base();
+    Object.assign(d, { name: 'Hall, east', seed: 12, notes: 'On its rounds of the muster hall, the east end (upper.ts: 67, 44). Its left arm grew, a third again, and split the shirt down that side; the leaf comes down the outside of it in shelves and a stalk flowers off the shoulder. It favours its right leg. A boot lost on the left. 0.9 m/s.' });
+    Object.assign(d.body, { armL: 1.38, shoulder: 0.02, hunch: 0.12, tilt: -0.28, droop: 0.08, jaw: 0.3 });
+    Object.assign(d.gait, { stride: 1.1, spm: 98, knee: 0.35, armSwing: 0.2, elbow: 0.25, hang: 0.08, sway: 0.06, shamble: 0.4, limp: 0.4, loll: 0.1 });
+    Object.assign(d.dress, { shirt: 'tornL', sleeveR: 'short', bootL: 'bare', hair: 'short' });
+    Object.assign(d.skin, { tone: 3, sallow: 0.5 });
+    d.items = withIds([...EYES(),
+      it('leaf', 'uarmL', [0.5, -0.05, -0.15], [1, 0, -0.3], 0.28, { tiers: 3 }),
+      it('stalk', 'torso', [0.46, 0.5, 0.05], [0.4, 1, 0.1], 0.36, { bend: 0.3 }),
+      it('flesh', 'farmL', [0.45, -0.2, 0.4], [0.5, 0, 1], 0.1)]);
+    return d;
+  }],
+  ['opsspk', 'Ops, speaker', () => {
+    const d = base();
+    Object.assign(d, { name: 'Ops, speaker', seed: 14, notes: 'The Operations corridor, under the zone\'s speaker (upper.ts: 77, 18). Operations watched the cameras, and the body grows what you do (world.md §10, rule 1): its head swelled, too heavy for the neck, and grew eyes: black dots, two on the brow, one at the temple, one at the back of the skull. Shirt hanging open, sleeves rolled; it still carries its card, the one thing on it. 0.7 m/s, careful with the weight of its head.' });
+    Object.assign(d.body, { headSize: 1.3, headW: 1.1, headH: 1.12, neckL: 0.07, hunch: 0.16, tilt: 0.32, droop: 0.28, jaw: 0.35, torsoW: 0.44 });
+    Object.assign(d.gait, { stride: 0.95, spm: 88, knee: 0.3, armSwing: 0.16, elbow: 0.3, hang: 0.1, sway: 0.08, shamble: 0.5, loll: 0.14 });
+    Object.assign(d.dress, { shirt: 'open', shirtCol: 'slate', sleeveL: 'rolled', sleeveR: 'rolled', lanyard: true, hair: 'none' });
+    Object.assign(d.skin, { tone: 5, sallow: 0.55 });
+    d.items = withIds([...EYES(),
+      it('eye', 'head', [0.13, 0.3, 0.41], [0.25, 0.45, 0.86], 0.036),
+      it('eye', 'head', [-0.11, 0.33, 0.4], [-0.2, 0.5, 0.84], 0.03),
+      it('eye', 'head', [0.46, 0.12, 0.14], [1, 0.2, 0.35], 0.038),
+      it('eye', 'head', [0.02, 0, -0.48], [0, 0, -1], 0.045),
+      it('leaf', 'torso', [-0.071, 0.467, -0.417], [-0.476, 0, -0.879], 0.28, { tiers: 3, rise: 0.065 })]);
+    return d;
+  }],
+  ['stair', 'Ops stair', () => {
+    const d = base();
+    Object.assign(d, { name: 'Ops stair', seed: 15, notes: 'On post on the Operations stair, at the door grown shut with bodies, among the eggs (upper.ts: 67.2, 63.2, the landing). Heavy, short in the leg, its right arm grown thick; it keeps the door it helped close. The shirt tied round its waist by the sleeves, bare-chested, Pia\'s pustules over the chest; leaf out of both shoulders and down the spine, bark coming through on the left forearm. One eye gone small and milky. Barefoot in the gore. 0.4 m/s when it moves at all.' });
+    Object.assign(d.body, { scale: 1.04, torsoW: 0.48, torsoD: 0.3, torsoL: 0.6, gut: 0.35, hipW: 0.26, uArm: 0.34, fArm: 0.32, armT: 0.13, armR: 1.25, thigh: 0.42, shin: 0.42, legT: 0.19, neckL: 0.07, headW: 1.05, hunch: 0.14, tilt: 0.12, droop: 0.22, jaw: 0.55, splay: 0.04 });
+    Object.assign(d.gait, { stride: 0.75, spm: 66, knee: 0.22, armSwing: 0.15, elbow: 0.3, hang: 0.12, sway: 0.1, shamble: 0.6, loll: 0.06 });
+    Object.assign(d.dress, { shirt: 'tied', legL: 'rolled', legR: 'rolled', bootL: 'bare', bootR: 'bare' });
+    Object.assign(d.skin, { tone: 6, sallow: 0.45, cure: 0.15 });
+    d.items = withIds([EYES()[0], { ...EYES()[1], look: 'milky', size: 0.034 },
+      it('leaf', 'torso', [0.45, 0.42, -0.25], [0.8, 0.1, -0.6], 0.36, { tiers: 3, rise: 0.08 }),
+      it('leaf', 'torso', [-0.45, 0.38, -0.25], [-0.8, 0.1, -0.6], 0.32, { tiers: 3, rise: 0.075 }),
+      it('leaf', 'torso', [0, 0.3, -0.5], [0, 0, -1], 0.32, { tiers: 3, rise: 0.08 }),
+      it('pustule', 'torso', [0.24, 0.3, 0.5], [0, 0, 1], 0.055),
+      it('pustule', 'torso', [-0.28, 0.22, 0.5], [0, 0, 1], 0.045),
+      it('knot', 'farmL', [0.5, 0, 0.1], [1, 0, 0.2], 0.12, { form: 'bark' })]);
+    return d;
+  }],
+  ['opsoff', 'Ops, offices', () => {
+    const d = base();
+    Object.assign(d, { name: 'Ops, offices', seed: 13, notes: 'The old one of Ops (upper.ts: 77.4, -9.3, and its round). Drawn to Holt\'s flowers before Phase 2\'s door, as the bush\'s line is to what smells of Pia (world.md §10, rule 8): its round ends there, where it stands a minute facing them, then goes down the west arm and the Operations corridor to the deputy director\'s open door to look in, and back. Long in the arm: the hands hang at its knees and come up a little ahead of it. Narrow with it. Down to its vest, stained and torn where the leaf came through at the right shoulder; Pia\'s pustules up both arms, a shelf between the shoulder blades and one off the shoulder, a stalk come up out of the back and flowering, the leaf curing, bark through the right forearm, one eye going milky. 0.35 m/s, the long stride gone short, the arms still swinging.' });
+    Object.assign(d.body, { torsoW: 0.36, torsoD: 0.22, torsoL: 0.62, shoulder: 0.05, uArm: 0.5, fArm: 0.48, armT: 0.095, hunch: 0.3, tilt: 0.24, droop: 0.26, jaw: 0.5 });
+    Object.assign(d.gait, { stride: 0.75, spm: 60, knee: 0.25, armSwing: 0.3, elbow: 0.35, hang: 0.22, sway: 0.07, shamble: 0.55, loll: 0.14 });
+    Object.assign(d.dress, { shirt: 'vest', vestCol: 'stained', hair: 'thin', bootL: 'bare' });
+    Object.assign(d.skin, { tone: 2, sallow: 0.7, cure: 0.35 });
+    d.items = withIds([EYES()[0], { ...EYES()[1], look: 'milky', size: 0.038 },
+      it('leaf', 'torso', [0.05, 0.62, -0.5], [0, 0, -1], 0.32, { tiers: 3 }),
+      it('leaf', 'torso', [-0.45, 0.42, -0.2], [-0.85, 0.1, -0.5], 0.3, { tiers: 3 }),
+      it('stalk', 'torso', [-0.25, 0.4, -0.5], [-0.35, 0.75, -0.65], 0.4, { bend: 0.35 }),
+      it('knot', 'farmR', [-0.5, 0, 0.1], [-1, 0, 0.2], 0.1, { form: 'bark' }),
+      it('pustule', 'farmL', [0.5, 0.15, 0.1], [1, 0, 0.2], 0.045),
+      it('pustule', 'uarmR', [-0.5, -0.3, 0.2], [-1, 0, 0.3], 0.04)]);
+    return d;
+  }],
+  ['night', 'Night round', () => {
+    const d = base();
+    Object.assign(d, { name: 'Night round', seed: 16, notes: 'The night round (upper.ts: 51, -9.4, and its round). Always in uniform, the cap on, from habit: the habit is what keeps it walking. Tall, long in the leg and the body, so it looms in its own beam; the leaf thickest on it of those that walk, the game\'s four shelves and one more down its back. The flashlight in the hand that is still a hand, and the cap: nothing else on it. Its card, the one you take, is in a pocket. 1 m/s, the round\'s pace.' });
+    Object.assign(d.body, { scale: 1.05, torsoL: 0.68, thigh: 0.52, shin: 0.54, legT: 0.15, torsoW: 0.41, uArm: 0.39, fArm: 0.37, hunch: 0.1, tilt: 0.22, droop: 0.12, jaw: 0.3 });
+    Object.assign(d.gait, { stride: 1.45, spm: 83, knee: 0.45, armSwing: 0.15, elbow: 0.45, hang: 0.28, sway: 0.03, shamble: 0.15, loll: 0.08 });
+    Object.assign(d.dress, { cap: 'on', torch: true });
+    Object.assign(d.skin, { tone: 1, sallow: 0.7, cure: 0.1 });
+    d.items = withIds([...EYES(), ...SHELVES(3)]);
+    return d;
+  }],
+  ['goods', 'Goods inward', () => {
+    const d = base();
+    Object.assign(d, { name: 'Goods inward', seed: 17, notes: 'On post at the freight door in Goods inward (upper.ts: 18, 6.8). The oldest of them, and the most plant: it stopped here early and has been taking root since, out of both feet and a hand. Long in the body, short in the leg, bent over; the shirt gone, the trousers torn at both knees, the leaf curing yellow, bark through a shin, a stalk flowering from the crown, leaf out of the side of its face. Its eyes are going milky. If it walks at all it is a quarter of a metre a second, and it drags its feet.' });
+    Object.assign(d.body, { torsoL: 0.84, torsoW: 0.44, torsoD: 0.26, thigh: 0.4, shin: 0.4, legT: 0.17, uArm: 0.4, fArm: 0.38, hunch: 0.5, tilt: -0.35, droop: 0.4, jaw: 0.7, neckL: 0.18 });
+    Object.assign(d.gait, { stride: 0.55, spm: 50, knee: 0.08, armSwing: 0.06, elbow: 0.15, hang: 0.05, sway: 0.12, shamble: 0.9, loll: 0.2 });
+    Object.assign(d.dress, { shirt: 'none', legL: 'torn', legR: 'torn', bootL: 'bare', bootR: 'bare', belt: 'loose', hair: 'thin' });
+    Object.assign(d.skin, { tone: 4, sallow: 0.9, cure: 0.7 });
+    d.items = withIds([...EYES().map(e => ({ ...e, look: 'milky' })),
+      it('leaf', 'torso', [-0.071, 0.467, -0.417], [-0.476, 0, -0.879], 0.34, { tiers: 4, rise: 0.07, fan: 0.45 }),
+      it('leaf', 'torso', [0.45, 0.4, -0.15], [0.85, 0.1, -0.5], 0.34, { tiers: 3 }),
+      it('leaf', 'torso', [0, 0.05, -0.5], [0, 0, -1], 0.32, { tiers: 3 }),
+      it('leaf', 'head', [0.48, -0.05, -0.1], [1, -0.2, -0.2], 0.2, { tiers: 2 }),
+      it('stalk', 'head', [0.05, 0.48, -0.05], [0.1, 1, -0.15], 0.42, { bend: 0.25 }),
+      it('knot', 'shinL', [0.1, 0.1, 0.5], [0, 0, 1], 0.12, { form: 'bark' }),
+      it('roots', 'footL', [0.25, 0.5, 0.2], [0.5, 0.8, 0.6], 0.5, { count: 4 }),
+      it('roots', 'footR', [-0.25, 0.5, 0.2], [-0.5, 0.8, 0.6], 0.46, { count: 4 }),
+      it('roots', 'handL', [0, -0.5, 0], [0, -1, 0], 0.5, { count: 4 })]);
+    return d;
+  }],
+];
+
+/* Pia's lines (world.md §10, Pia's young gods): the three that founded the Commons, each from young to old, and its young
+   god last; as Claude proposes them, for the owner to argue with. The plant line's youngest are Security's seven */
+const both = (kind, part, p, n, size, extra = {}) => [it(kind, part + 'L', p, n, size, extra), it(kind, part + 'R', [-p[0], p[1], p[2]], [-n[0], n[1], n[2]], size, extra)];
+/* the game's bloat's eyes (castView.ts, bloat), on its head */
+const BLOATEYES = () => [it('eye', 'head', [0.112, -0.163, 0.433], [0.25, -0.3, 0.92], 0.07), it('eye', 'head', [-0.112, -0.163, 0.433], [-0.25, -0.3, 0.92], 0.07)];
+const LINES = [
+  ['husk', 'Bone, young', () => {
+    const d = base();
+    Object.assign(d, { name: 'Bone, young', seed: 31, notes: 'The bone mother\'s, young in it: the husk. The fear for good, and slow, but quick to answer: intelligent, aggressive, reactive. One arm gone raw and drawn out long, a point of bone where the hand was; raw at the shoulder it grows from, and a patch on the face. One black eye. A Commons resident\'s shirt, torn off that side.' });
+    Object.assign(d.body, { hunch: 0.25, tilt: 0.25, droop: 0, jaw: 0.3, limbR: 'raw', reachR: 1.55, armR: 1.1 });
+    Object.assign(d.gait, { stride: 1.15, spm: 90, knee: 0.5, armSwing: 0.2, elbow: 0.15, hang: 0.3, sway: 0.03, shamble: 0.15, loll: 0.04 });
+    Object.assign(d.dress, { shirt: 'tornR', shirtCol: 'grey' });
+    Object.assign(d.skin, { tone: 1, sallow: 0.45 });
+    d.items = withIds([EYES()[0], it('flesh', 'head', [-0.22, 0.12, 0.4], [-0.4, 0.2, 0.9], 0.09), it('flesh', 'torso', [-0.45, 0.48, -0.05], [-0.7, 0.7, -0.1], 0.2)]);
+    return d;
+  }],
+  ['bonemid', 'Bone, middle years', () => {
+    const d = base();
+    Object.assign(d, { name: 'Bone, middle years', seed: 32, notes: 'The bone mother\'s, halfway: the skeleton winning, the person still there. A face still, black-eyed; one arm gone to bone and drawn out, the other raw; the ribs and the spine out through raw flesh. Where the thresher is. Still afraid, still quick: it charges.' });
+    Object.assign(d.body, { scale: 1.08, torsoW: 0.4, torsoD: 0.25, torsoL: 0.64, thigh: 0.5, shin: 0.52, legT: 0.15, headW: 0.9, headH: 1.1, neckL: 0.18, hunch: 0.38, tilt: 0.08, droop: 0.1, jaw: 0.55, limbR: 'bone', reachR: 1.7, limbL: 'raw', reachL: 1.3, trunk: 'ribs' });
+    Object.assign(d.gait, { stride: 1.5, spm: 92, knee: 0.6, armSwing: 0.35, elbow: 0.2, hang: 0.35, sway: 0.05, shamble: 0.15, loll: 0.05 });
+    Object.assign(d.dress, { shirt: 'none', legL: 'torn', legR: 'torn', bootL: 'bare', bootR: 'bare', hair: 'thin' });
+    Object.assign(d.skin, { tone: 3, sallow: 0.45 });
+    d.items = withIds(EYES().map(e => ({ ...e, size: 0.036 })));
+    return d;
+  }],
+  ['boneold', 'Bone elder', () => {
+    const d = base();
+    Object.assign(d, { name: 'Bone elder', seed: 33, notes: 'The bone mother\'s, old: the skeleton has won. The limbs gone to bone, long, raw at the joints; the ribs and the spine out through what is left of the flesh; no face at all, the skull one smooth shape. Blind, numb, less afraid but still afraid. Tall; it walks a long patrol, slowly, the head level, listening.' });
+    Object.assign(d.body, { scale: 1.4, torsoW: 0.42, torsoD: 0.26, torsoL: 0.66, hipW: 0.24, uArm: 0.44, fArm: 0.46, armT: 0.12, thigh: 0.58, shin: 0.62, legT: 0.16, head: 'skull', headSize: 1.15, headH: 1.1, neckL: 0.16, hunch: 0.12, tilt: 0, droop: 0.05, jaw: 0, limbL: 'bone', limbR: 'bone', reachL: 1.5, reachR: 1.5, legs: 'bone', trunk: 'ribs' });
+    Object.assign(d.gait, { stride: 1.7, spm: 58, knee: 0.35, armSwing: 0.15, elbow: 0.2, hang: 0.1, sway: 0.04, shamble: 0.3, loll: 0.03 });
+    Object.assign(d.dress, { shirt: 'none', legL: 'bare', legR: 'bare', bootL: 'bare', bootR: 'bare', hair: 'none', briefs: false });
+    Object.assign(d.skin, { tone: 4, sallow: 0.5 });
+    d.items = [];
+    return d;
+  }],
+  ['bonemother', 'The bone mother', () => {
+    const d = base();
+    Object.assign(d, { name: 'The bone mother', seed: 34, notes: 'A young god (world.md §10): the woman who poked the bony post where Pia\'s index finger had been. The eldest of her line and the most taken: nearly all bone, drawn out on long legs and longer arms, raw at the joints, the ribs open, a crest of bone on a skull with no face. About 4.8 m. Like Pia, she has older children and younger ones.' });
+    Object.assign(d.body, { scale: 1.55, torsoW: 0.38, torsoD: 0.24, torsoL: 0.78, uArm: 0.56, fArm: 0.6, armT: 0.1, thigh: 0.82, shin: 0.9, legT: 0.14, head: 'skull', headSize: 1.15, headW: 0.95, headH: 1.25, neckL: 0.3, hunch: 0.25, tilt: 0.15, droop: 0.15, jaw: 0, limbL: 'bone', limbR: 'bone', reachL: 1.8, reachR: 1.8, legs: 'bone', trunk: 'ribs' });
+    Object.assign(d.gait, { stride: 2.2, spm: 46, knee: 0.5, armSwing: 0.1, elbow: 0.3, hang: 0.3, sway: 0.03, shamble: 0.1, loll: 0.05 });
+    Object.assign(d.dress, { shirt: 'none', legL: 'bare', legR: 'bare', bootL: 'bare', bootR: 'bare', hair: 'none', briefs: false });
+    Object.assign(d.skin, { tone: 3, sallow: 0.55 });
+    d.items = withIds([it('spike', 'head', [0, 0.45, -0.15], [0, 1, -0.4], 0.2, { row: true })]);
+    return d;
+  }],
+  ['bloatyoung', 'Bloat, young', () => {
+    const d = base();
+    Object.assign(d, { name: 'Bloat, young', seed: 35, notes: 'The bloat god\'s, young in it: drawn as the game\'s bloats are, smaller, and still on its feet: one soft body, the head on it like a baby\'s, two black dots. It waddles. Afraid of other things than the bone line is (proposed: of going without, food and warmth and company).' });
+    Object.assign(d.body, { plan: 'bloat', rest: 'stand', scale: 0.55, headSize: 1.05, jaw: 0.2, tilt: 0.2 });
+    Object.assign(d.gait, { stride: 0.6, spm: 80 });
+    Object.assign(d.dress, { shirt: 'none' });
+    Object.assign(d.skin, { tone: 0, sallow: 0.3 });
+    d.items = withIds(BLOATEYES());
+    return d;
+  }],
+  ['bloatold', 'Bloat, older', () => {
+    const d = base();
+    Object.assign(d, { name: 'Bloat, older', seed: 36, notes: 'The bloat god\'s, older: bigger, and sat down for good, as the game\'s bloats are; dopier, like its patron. A raw place on its side.' });
+    Object.assign(d.body, { plan: 'bloat', rest: 'sit', scale: 0.85, jaw: 0.4, tilt: 0.4 });
+    Object.assign(d.dress, { shirt: 'none' });
+    Object.assign(d.skin, { tone: 0, sallow: 0.35 });
+    d.items = withIds([...BLOATEYES(), it('flesh', 'torso', [0.38, 0.05, 0.25], [0.8, 0, 0.5], 0.3)]);
+    return d;
+  }],
+  ['bloatgod', 'The bloat god', () => {
+    const d = base();
+    Object.assign(d, { name: 'The bloat god', seed: 37, notes: 'A young god (world.md §10): the nurse, a man, whose arm Pia grabbed. The bloats come from him. Sat on the floor as his line sit, and twice the size of the oldest of them; a band of his scrubs still round him, raw where her hand closed on his arm. He does not get up.' });
+    Object.assign(d.body, { plan: 'bloat', rest: 'sit', scale: 1.5, headSize: 0.95, jaw: 0.5, tilt: 0.5 });
+    Object.assign(d.dress, { shirt: 'uniform', shirtCol: 'scrubs' });
+    Object.assign(d.skin, { tone: 3, sallow: 0.3 });
+    d.items = withIds([...BLOATEYES(), it('flesh', 'uarmL', [0.5, -0.1, 0.2], [1, 0, 0.3], 0.28)]);
+    return d;
+  }],
+  ['plantold', 'Plant, old', () => {
+    const d = base();
+    Object.assign(d, { name: 'Plant, old', seed: 38, notes: 'The bush\'s line, old in it: between Security\'s seven and the bush. The skin gone green, the shelves in rows over the back, the shoulders and the limbs, starting on the head; one black eye still showing. What is left of a shirt. Barely walks.' });
+    Object.assign(d.body, { scale: 1.15, torsoW: 0.46, torsoD: 0.28, swell: 0.12, uArm: 0.4, fArm: 0.4, thigh: 0.47, shin: 0.48, hunch: 0.3, tilt: 0.3, droop: 0.35, jaw: 0.3 });
+    Object.assign(d.gait, { stride: 0.7, spm: 56, knee: 0.15, armSwing: 0.08, elbow: 0.2, hang: 0.1, sway: 0.1, shamble: 0.75, loll: 0.15 });
+    Object.assign(d.dress, { shirt: 'tornR', legL: 'torn', bootL: 'bare', hair: 'thin' });
+    Object.assign(d.skin, { tone: 2, sallow: 0.8, cure: 0.3, green: 0.45, over: 0.55 });
+    d.items = withIds([EYES()[0], it('pustule', 'neck', [0.3, 0.2, 0.45], [0.6, 0, 0.8], 0.04)]);
+    return d;
+  }],
+  ['bush', 'The bush', () => {
+    const d = base();
+    Object.assign(d, { name: 'The bush', seed: 39, notes: 'A young god (world.md §10): the doctor who leaned in too close and breathed a spore off Pia\'s shoulder. Gigantic now, a person\'s shape swollen about half as far as a bloat or a bone child would go, every bit of it under rows on rows of tobacco shelves, green through; nothing left on it that was ever clothes. No features, the face tucked away somewhere behind the leaf. Stands like a bush until it does not. Its children have the plant growing through them, not over them: Security\'s changed.' });
+    Object.assign(d.body, { scale: 2, torsoW: 0.56, torsoD: 0.36, torsoL: 0.7, swell: 0.4, gut: 0.3, hipW: 0.28, shoulder: 0.03, uArm: 0.46, fArm: 0.46, armT: 0.12, thigh: 0.5, shin: 0.52, legT: 0.19, headSize: 1.15, neckL: 0.12, hunch: 0.2, tilt: 0.1, droop: 0.2, jaw: 0.12 });
+    Object.assign(d.gait, { stride: 1.1, spm: 40, knee: 0.15, armSwing: 0.05, elbow: 0.3, hang: 0.15, sway: 0.08, shamble: 0.7, loll: 0.06 });
+    Object.assign(d.dress, { shirt: 'none', legL: 'bare', legR: 'bare', bootL: 'bare', bootR: 'bare', hair: 'none', briefs: false });
+    Object.assign(d.skin, { tone: 1, sallow: 0.7, cure: 0.15, green: 1, over: 1 });
+    d.items = [];
+    return d;
+  }],
+];
+
+/** a design read from anywhere, made whole: anything missing from the defaults, and numbers where numbers go */
+function sanitize(x) {
+  const d = base();
+  if (!x || typeof x !== 'object') return null;
+  if (typeof x.name === 'string') d.name = x.name.slice(0, 60);
+  if (typeof x.notes === 'string') d.notes = x.notes.slice(0, 4000);
+  if (Number.isFinite(x.seed)) d.seed = x.seed | 0;
+  for (const g of ['body', 'gait', 'dress', 'skin']) if (x[g] && typeof x[g] === 'object') for (const k of Object.keys(d[g])) {
+    const v = x[g][k];
+    if (typeof d[g][k] === 'number' && Number.isFinite(v)) d[g][k] = v;
+    else if (typeof d[g][k] === typeof v) d[g][k] = v;
+  }
+  if (Array.isArray(x.items)) d.items = x.items.filter(i => i && KINDS[i.kind] && PARTS[i.part] && Array.isArray(i.p) && Array.isArray(i.n))
+    .map((i, k) => ({ ...KINDS[i.kind].extra, ...i, id: Number.isFinite(i.id) ? i.id : k + 1, size: clamp(+i.size || KINDS[i.kind].size, KINDS[i.kind].min, KINDS[i.kind].max), spin: +i.spin || 0 }));
+  return d;
+}
+/** a design as exported: numbers to the millimetre */
+function exported(d) {
+  const o = clone(d);
+  const walk = v => { for (const k of Object.keys(v)) { if (typeof v[k] === 'number') v[k] = r3(v[k]); else if (v[k] && typeof v[k] === 'object') walk(v[k]); } };
+  walk(o);
+  o.format = FORMAT;
+  return o;
+}
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/* the scene */
+const canvas = $('c'), stage = $('stage');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+renderer.setClearColor(0x070809);
+const scene = new THREE.Scene(), camera = new THREE.PerspectiveCamera(34, 1, 0.05, 80);
+camera.position.set(2.1, 1.55, 3.5);
+const controls = new OrbitControls(camera, canvas);
+controls.target.set(0, 0.95, 0);
+controls.enableDamping = true;
+controls.dampingFactor = 0.12;
+controls.minDistance = 0.6;
+controls.maxDistance = 40;
+controls.maxPolarAngle = PI * 0.55;
+controls.zoomSpeed = 0.8;
+
+/* the floor: dark, ruled every half metre; the lines across it move under the walk at its pace */
+const floor = grp(scene), SPAN = 14, STEP = 0.5, lines = [];
+mk(floor, 'box', 0x111315, SPAN, 0.1, SPAN, 0, -0.05, 0);
+for (let x = -SPAN / 2 + STEP; x < SPAN / 2; x += STEP) mk(floor, 'box', 0x1d2023, 0.012, 0.002, SPAN, x, 0.001, 0);
+for (let z = -SPAN / 2; z < SPAN / 2; z += STEP) lines.push({ m: mk(floor, 'box', 0x1d2023, SPAN, 0.002, 0.012, 0, 0.001, z), z });
+let floorOff = 0;
+
+/* a person for scale: 1.8 m (elders.html, figure) */
+const person = grp(scene, -1.15, 0, 0);
+{
+  const c = 0x55585b;
+  for (const s of [-1, 1]) mk(person, 'box', c, 0.16, 0.86, 0.18, s * 0.11, 0.43, 0);
+  mk(person, 'box', c, 0.44, 0.62, 0.24, 0, 1.17, 0);
+  for (const s of [-1, 1]) mk(person, 'box', c, 0.1, 0.66, 0.11, s * 0.28, 1.15, 0);
+  mk(person, 'ico', c, 0.24, 0.28, 0.25, 0, 1.64, 0);
+}
+
+/* the marks: a ring where the next growth will go, and one round the growth picked */
+const HAZ = 0xc9a227, LEAFHI = 0xb8b050;
+function ringMesh() {
+  const m = new THREE.Mesh(new THREE.RingGeometry(0.78, 1, 28), new THREE.MeshBasicMaterial({ color: HAZ, transparent: true, opacity: 0.95, depthTest: false, side: THREE.DoubleSide }));
+  m.renderOrder = 10;
+  return m;
+}
+const selMark = new THREE.LineSegments(new THREE.EdgesGeometry(new THREE.IcosahedronGeometry(1, 1)), new THREE.LineBasicMaterial({ color: LEAFHI, transparent: true, opacity: 0.9, depthTest: false }));
+selMark.renderOrder = 11; selMark.visible = false;
+scene.add(selMark);
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/* the state: the design on the bench, its model, how it moves, and what is picked */
+const S = {
+  d: null, M: null, A: { t: 0, p: 0 }, libId: null, saved: null,
+  tool: 'select', mirror: true, mode: 'walk', light: 'bench', person: true, lineup: null, lgroup: 'all',
+  sel: null, size: Object.fromEntries(Object.keys(KINDS).map(k => [k, KINDS[k].size])),
+  hover: null, pointer: { x: 0, y: 0, in: false, down: null }, timeScale: 1, dirtyModel: false,
+};
+const nextId = () => S.d.items.reduce((a, x) => Math.max(a, x.id), 0) + 1;
+const selItem = () => S.d.items.find(x => x.id === S.sel) ?? null;
+
+function rebuild() { S.dirtyModel = true; }
+function doRebuild() {
+  S.dirtyModel = false;
+  if (S.M) scene.remove(S.M.root);
+  S.M = buildModel(S.d);
+  scene.add(S.M.root);
+  if (S.lineup) {
+    S.M.root.position.x = S.lineup.x0;
+    S.lineup.meshes = S.lineup.meshes.filter(m => m.userData.lineup !== -1);
+    for (const m of S.M.pick.concat(S.M.itemMeshes)) { m.userData.lineup = -1; S.lineup.meshes.push(m); }
+  }
+  ghost.keys = [null, null];
+  renderReadout();
+}
+
+/* the history: each finished change, to go back through */
+const hist = { stack: [], at: -1 };
+function commit() {
+  const s = JSON.stringify(S.d);
+  if (hist.stack[hist.at] === s) return;
+  hist.stack.splice(hist.at + 1);
+  hist.stack.push(s);
+  if (hist.stack.length > 150) hist.stack.shift();
+  hist.at = hist.stack.length - 1;
+  saveDraft();
+  renderState();
+  renderItems();
+  syncButtons();
+}
+function undo() { if (hist.at > 0) { hist.at--; restore(hist.stack[hist.at]); } }
+function redo() { if (hist.at < hist.stack.length - 1) { hist.at++; restore(hist.stack[hist.at]); } }
+function restore(s) {
+  S.d = JSON.parse(s);
+  if (S.sel != null && !selItem()) S.sel = null;
+  rebuild(); syncUI(); renderSel(); renderItems(); renderState(); syncButtons(); saveDraft();
+}
+/** open a design on the bench; `libId` is the saved one it is, if it is one */
+function open(d, libId = null) {
+  S.d = d; S.libId = libId; S.saved = libId ? JSON.stringify(exported(d)) : null; S.sel = null;
+  rebuild(); syncUI(); renderSel(); commit(); renderLib();
+  if (!S.lineup) { doRebuild(); frame(); }
+}
+
+/* per-browser conveniences only: the design on the bench, kept across a reload */
+function saveDraft() { try { localStorage.setItem('rs-mutant-draft', JSON.stringify({ d: S.d, libId: S.libId, saved: S.saved })); } catch {} }
+function readDraft() { try { const x = JSON.parse(localStorage.getItem('rs-mutant-draft') || 'null'); const d = x && sanitize(x.d); return d ? { d, libId: x.libId ?? null, saved: x.saved ?? null } : null; } catch { return null; } }
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/* the controls, made from tables */
+const fmt = (v, u) => u === 'm' ? `${v.toFixed(2)} m` : u === 'x' ? `×${v.toFixed(2)}` : u === 'deg' ? `${Math.round((v * 180) / PI)}°` : u === 'spm' ? `${Math.round(v)} a min` : `${Math.round(v * 100)}%`;
+const binds = [];
+const getP = p => p.split('.').reduce((o, k) => o[k], S.d);
+const setP = (p, v) => { const ks = p.split('.'), last = ks.pop(); ks.reduce((o, k) => o[k], S.d)[last] = v; };
+function el(tag, cls, html) { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; return e; }
+function group(t) { return el('div', 'group', t); }
+function slider(path, label, min, max, step, unit, onInput) {
+  const id = 'c-' + path.replace(/\./g, '-'), w = el('div', 'ctl');
+  w.innerHTML = `<label for="${id}">${label}</label><output id="${id}-o" for="${id}"></output><input type="range" id="${id}" min="${min}" max="${max}" step="${step}">`;
+  const inp = w.querySelector('input'), out = w.querySelector('output');
+  inp.addEventListener('input', () => { setP(path, +inp.value); out.textContent = fmt(+inp.value, unit); rebuild(); onInput?.(); });
+  inp.addEventListener('change', commit);
+  binds.push(() => { const v = getP(path); inp.value = v; out.textContent = fmt(v, unit); });
+  return w;
+}
+function seg(path, label, opts, onSet) {
+  const w = el('div', 'ctl'), id = 'c-' + path.replace(/\./g, '-');
+  w.innerHTML = `<span class="lab" id="${id}-l">${label}</span>`;
+  const row = el('div', 'seg');
+  row.setAttribute('role', 'group'); row.setAttribute('aria-labelledby', id + '-l');
+  const bs = opts.map(([v, t, sw]) => {
+    const b = el('button', '', (sw != null ? `<span class="sw" style="background:${css(sw)}"></span>` : '') + t);
+    b.type = 'button'; b.id = `${id}-${v}`; b.dataset.v = v;
+    b.addEventListener('click', () => { if (b.disabled) return; setP(path, v); syncUI(); rebuild(); commit(); onSet?.(v); });
+    row.append(b);
+    return b;
+  });
+  w.append(row);
+  binds.push(() => { const v = getP(path); for (const b of bs) b.setAttribute('aria-pressed', String(b.dataset.v === String(v))); });
+  return w;
+}
+function check(path, label) {
+  const id = 'c-' + path.replace(/\./g, '-'), w = el('label', 'check');
+  w.innerHTML = `<input type="checkbox" id="${id}"><span>${label}</span>`;
+  const inp = w.querySelector('input');
+  inp.addEventListener('change', () => { setP(path, inp.checked); rebuild(); commit(); });
+  binds.push(() => { inp.checked = !!getP(path); });
+  return w;
+}
+const note = t => el('p', 'note', t);
+/** a control the low-poly kit draws nothing for: shown with Fine detail only */
+const fineOnly = w => { w.classList.add('fineonly'); return w; };
+
+/* Body */
+{
+  const P = $('p-body'), sl = (k, ...a) => slider('body.' + k, ...a);
+  const plan = seg('body.plan', 'Built as', [['person', 'A person'], ['bloat', 'A bloat, as the game\'s']], () => { doRebuild(); frame(); });
+  const rest = seg('body.rest', 'A bloat', [['stand', 'Stood'], ['sit', 'Sat'], ['lie', 'Lying on its back']], () => { doRebuild(); frame(); });
+  const F = (k, label, list) => seg('body.' + k, label, list);
+  const FB = [['skin', 'Skin'], ['raw', 'Raw'], ['bone', 'Bone']];
+  P.append(note('Measures are the model’s own, before <i>Overall size</i> scales the whole of it. Left and right are its own: its left is on your right as it faces you. A bloat takes its size, its head and its skin from here, and nothing else.'),
+    group('Plan'), plan, rest,
+    group('Size'), sl('scale', 'Overall size', 0.4, 3, 0.01, 'x'),
+    group('Flesh and bone'), F('limbL', 'Its left arm', FB), sl('reachL', 'Its left forearm, drawn out', 1, 2.5, 0.01, 'x'), F('limbR', 'Its right arm', FB), sl('reachR', 'Its right forearm, drawn out', 1, 2.5, 0.01, 'x'),
+    F('legs', 'Its legs', FB), F('trunk', 'Its trunk', [['skin', 'Skin'], ['raw', 'Raw'], ['ribs', 'Ribs out through it']]),
+    group('Torso'), sl('torsoW', 'Width', 0.28, 0.9, 0.005, 'm'), sl('torsoD', 'Depth', 0.16, 0.5, 0.005, 'm'), sl('torsoL', 'Length', 0.4, 0.95, 0.005, 'm'),
+    sl('shoulder', 'Shoulders set out', -0.05, 0.25, 0.005, 'm'), sl('hipW', 'Hips, joint to joint', 0.14, 0.6, 0.005, 'm'), sl('gut', 'Belly', 0, 1, 0.01, ''), sl('swell', 'Swollen all over (the bloat line)', 0, 1, 0.01, ''), sl('hunch', 'Hunch', 0, 0.9, 0.01, 'deg'),
+    group('Head'), seg('body.head', 'Face', [['face', 'A face'], ['skull', 'Skull, fused and blind']]), sl('headSize', 'Size', 0.7, 1.6, 0.01, 'x'), sl('headW', 'Width', 0.7, 1.5, 0.01, 'x'), sl('headH', 'Length', 0.7, 1.6, 0.01, 'x'),
+    sl('neckL', 'Neck', 0.04, 0.4, 0.005, 'm'), sl('tilt', 'Lolled to one side', -0.6, 0.6, 0.01, 'deg'), sl('droop', 'Hung forward', -0.3, 0.9, 0.01, 'deg'), sl('jaw', 'Jaw slack', 0, 1, 0.01, ''),
+    group('Arms'), sl('uArm', 'Upper arm', 0.2, 0.8, 0.005, 'm'), sl('fArm', 'Forearm', 0.2, 0.8, 0.005, 'm'), sl('armT', 'Thickness', 0.06, 0.22, 0.002, 'm'),
+    sl('armL', 'Its left arm, scale', 0.6, 1.8, 0.01, 'x'), sl('armR', 'Its right arm, scale', 0.6, 1.8, 0.01, 'x'),
+    group('Legs'), sl('thigh', 'Thigh', 0.25, 0.85, 0.005, 'm'), sl('shin', 'Shin', 0.25, 0.85, 0.005, 'm'), sl('legT', 'Thickness', 0.09, 0.3, 0.002, 'm'), sl('splay', 'Splay', 0, 0.25, 0.005, 'deg'));
+}
+/* Gait */
+{
+  const P = $('p-gait'), sl = (k, ...a) => slider('gait.' + k, ...a, renderReadout);
+  const out = el('p', 'note');
+  out.id = 'gait-out';
+  P.append(note('A stride is a full one: both feet, heel to the same heel. The floor moves under it at its pace, so a foot on the floor should hold still on the lines.'),
+    group('Step'), sl('stride', 'Stride length', 0.3, 2.2, 0.01, 'm'), sl('spm', 'Cadence, steps', 30, 160, 1, 'spm'), out,
+    sl('knee', 'Knee lift', 0, 1, 0.01, ''), sl('shamble', 'Shuffle (feet barely lift)', 0, 1, 0.01, ''), sl('limp', 'Limp, its right leg', 0, 1, 0.01, ''),
+    group('Upper body'), sl('armSwing', 'Arm swing', 0, 1, 0.01, 'deg'), sl('elbow', 'Elbow bend', 0, 1.6, 0.01, 'deg'), sl('hang', 'Arms held forward', -0.3, 1.5, 0.01, 'deg'),
+    sl('sway', 'Sway', 0, 0.2, 0.005, 'deg'), sl('loll', 'Head loll', 0, 0.5, 0.01, 'deg'));
+}
+/* Dress */
+const SLEEVES = [['none', 'None'], ['short', 'Short'], ['long', 'Long'], ['rolled', 'Rolled'], ['torn', 'Torn']];
+const LEGS = [['full', 'Full'], ['rolled', 'Rolled'], ['torn', 'Torn at knee'], ['bare', 'Bare']];
+{
+  const P = $('p-dress'), sg = (k, ...a) => seg('dress.' + k, ...a);
+  const kit = el('div', 'checks');
+  kit.append(...[['badge', 'Badge'], ['epaulettes', 'Epaulettes', 1], ['radio', 'Radio', 1], ['lanyard', 'Lanyard and card'], ['torch', 'Flashlight']].map(([k, t, f]) => (f ? fineOnly : x => x)(check('dress.' + k, t))));
+  P.append(note('Half the night shift came back changed, and none of them dress for work. Where a leaf, a stalk or roots come out under cloth, the cloth is torn round it.'),
+    group('Shirt'),
+    sg('shirt', 'Shirt', [['uniform', 'Buttoned'], ['open', 'Open'], ['tornL', 'Torn off its left'], ['tornR', 'Torn off its right'], ['vest', 'Vest'], ['tied', 'Tied at waist'], ['none', 'None']]),
+    sg('shirtCol', 'Shirt colour', Object.entries(SHIRTS).map(([k, [c, t]]) => [k, t, c])),
+    sg('vestCol', 'Vest colour', Object.entries(VESTS).map(([k, [c, t]]) => [k, t, c])),
+    sg('sleeveL', 'Its left sleeve', SLEEVES), sg('sleeveR', 'Its right sleeve', SLEEVES),
+    group('Trousers and boots'),
+    sg('legL', 'Its left leg', LEGS), sg('legR', 'Its right leg', LEGS),
+    sg('bootL', 'Its left foot', [['boot', 'Boot'], ['bare', 'Bare']]), sg('bootR', 'Its right foot', [['boot', 'Boot'], ['bare', 'Bare']]),
+    fineOnly(sg('belt', 'Belt', [['on', 'Buckled'], ['loose', 'Hanging open'], ['off', 'Off']])),
+    group('Head'),
+    sg('cap', 'Cap', [['none', 'None'], ['on', 'On'], ['askew', 'Askew'], ['back', 'Pushed back']]),
+    sg('hair', 'Hair', [['short', 'Short'], ['thin', 'Thinning'], ['none', 'Shaved']]),
+    group('Kit'), note('Plain: one thing on it at most. The low-poly kit draws a badge, the card, the cap and the flashlight; the rest of the kit, the belt and the stains only with <i>Fine detail</i>.'), kit,
+    fineOnly(slider('dress.stain', 'Sap stains', 0, 1, 0.01, '')),
+    check('dress.briefs', 'Underwear, under no trousers'),
+    check('dress.tear', 'Cloth torn where the plant comes through'));
+}
+/* Growth */
+{
+  const P = $('p-growth');
+  const legend = el('div', 'legend');
+  legend.innerHTML = Object.entries(KINDS).map(([k, K]) => `<b>${K.key}</b><span><i style="color:var(--bone);font-style:normal">${K.name}</i> · ${({ eye: 'a black dot, or glassy, or milky', pustule: 'milky, alone or in a cluster', leaf: 'tobacco leaf in tiers, out of a knot', stalk: 'a stalk turning up, flowering', roots: 'out and down, taking root', knot: 'a burl, or skin gone to bark', spike: 'bone out through the skin, one or a ridge', plate: 'bone in overlapping plates', flesh: 'raw, as the older husks have' })[k]}</span>`).join('') +
+    `<b>V</b><span><i style="color:var(--bone);font-style:normal">Pick</i> · click one to change it</span><b>M</b><span><i style="color:var(--bone);font-style:normal">Mirror</i> · put a twin on its other side</span>`;
+  const tones = seg('skin.tone', 'Skin', TONES.map((c, i) => [i, '', null]));
+  tones.querySelector('.seg').classList.add('tones');
+  tones.querySelectorAll('.seg button').forEach((b, i) => { b.style.background = css(TONES[i]); b.setAttribute('aria-label', `Skin tone ${i + 1} of ${TONES.length}`); });
+  const seedRow = el('div', 'ctl');
+  seedRow.innerHTML = `<span class="lab">Variation</span><output id="seed-o"></output>`;
+  const reroll = el('button', 'btn sm', 'Reroll');
+  reroll.type = 'button'; reroll.id = 'reroll';
+  reroll.style.gridColumn = '1 / -1'; reroll.style.justifySelf = 'start'; reroll.style.marginTop = '4px';
+  reroll.addEventListener('click', () => { S.d.seed = (S.d.seed % 9973) + 1; syncUI(); rebuild(); commit(); });
+  seedRow.append(reroll);
+  binds.push(() => { $('seed-o').textContent = '#' + S.d.seed; });
+  const list = el('ul', 'list items');
+  list.id = 'items';
+  const clear = el('button', 'btn warn sm', 'Clear all growth');
+  clear.type = 'button'; clear.id = 'clear';
+  armConfirm(clear, 'Click again to clear', () => { S.d.items = []; S.sel = null; renderSel(); rebuild(); commit(); });
+  P.append(note('Pick a tool on the left of the figure, then click the body. Scroll before you click to size it; scroll over one already there to resize it; right-click one to take it off. The figure holds still while you aim.'),
+    legend, group('Skin and leaf'), tones, slider('skin.sallow', 'Sallow', 0, 1, 0.01, ''), slider('skin.cure', 'Leaf, green to cured', 0, 1, 0.01, ''),
+    slider('skin.green', 'Plant through the skin', 0, 1, 0.01, ''), slider('skin.over', 'Overgrown (the bush)', 0, 1, 0.01, ''), seedRow,
+    group('On it now'), list, clear);
+}
+
+/** a button that wants a second click within a few seconds before it does what it says */
+function armConfirm(b, ask, go) {
+  const label = b.textContent;
+  let t = 0;
+  b.addEventListener('click', () => {
+    if (b.dataset.armed) { clearTimeout(t); delete b.dataset.armed; b.textContent = label; go(); return; }
+    b.dataset.armed = '1'; b.textContent = ask;
+    t = setTimeout(() => { delete b.dataset.armed; b.textContent = label; }, 3000);
+  });
+}
+
+function syncUI() {
+  for (const f of binds) f();
+  const D = S.d.dress, sh = D.shirt, sleeves = sh === 'uniform' || sh === 'open';
+  for (const [side, s] of [['L', 1], ['R', -1]]) {
+    const on = sleeves || (sh === 'tornL' && s < 0) || (sh === 'tornR' && s > 0);
+    document.querySelectorAll(`button[id^="c-dress-sleeve${side}-"]`).forEach(b => { b.disabled = !on; });
+  }
+  document.querySelectorAll('button[id^="c-dress-vestCol-"]').forEach(b => { b.disabled = sh !== 'vest'; });
+  document.querySelectorAll('button[id^="c-body-rest-"]').forEach(b => { b.disabled = S.d.body.plan !== 'bloat'; });
+  document.querySelectorAll('button[id^="c-dress-shirtCol-"]').forEach(b => { b.disabled = sh === 'vest' || sh === 'none'; });
+  const anyLeg = D.legL !== 'bare' || D.legR !== 'bare';
+  document.querySelectorAll('button[id^="c-dress-belt-"]').forEach(b => { b.disabled = !anyLeg; });
+  $('d-name').value = S.d.name;
+  $('d-notes').value = S.d.notes;
+}
+
+/* tabs */
+const TABS = ['body', 'gait', 'dress', 'growth', 'saved'];
+function showTab(k) {
+  for (const t of TABS) { $('t-' + t).setAttribute('aria-selected', String(t === k)); $('p-' + t).hidden = t !== k; }
+  try { localStorage.setItem('rs-mutant-tab', k); } catch {}
+}
+for (const t of TABS) $('t-' + t).addEventListener('click', () => showTab(t));
+$('panel').querySelector('.tabs').addEventListener('keydown', e => {
+  if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
+  const i = TABS.findIndex(t => $('t-' + t).getAttribute('aria-selected') === 'true'), j = (i + (e.key === 'ArrowRight' ? 1 : TABS.length - 1)) % TABS.length;
+  showTab(TABS[j]); $('t-' + TABS[j]).focus();
+});
+
+$('d-name').addEventListener('input', () => { S.d.name = $('d-name').value; renderState(); });
+$('d-name').addEventListener('change', commit);
+$('d-notes').addEventListener('input', () => { S.d.notes = $('d-notes').value; renderState(); });
+$('d-notes').addEventListener('change', commit);
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/* the tools over the figure */
+const ICONS = {
+  select: '<path d="M6 3l12 9-5.6 1.3L15 20l-2.5 1-2.5-6.6L6 18z"/>',
+  eye: '<path d="M2.5 12s3.6-5.5 9.5-5.5 9.5 5.5 9.5 5.5-3.6 5.5-9.5 5.5S2.5 12 2.5 12z"/><circle cx="12" cy="12" r="1.6"/><path d="M4 9.5c4-2 12-2 16 0"/>',
+  pustule: '<circle cx="10" cy="14" r="5"/><circle cx="17.5" cy="7.5" r="2.5"/><circle cx="8.5" cy="12.5" r="1.3"/>',
+  leaf: '<path d="M12 21V8"/><path d="M4 18c3-3 13-3 16 0"/><path d="M5.5 13.5c3-2.6 10-2.6 13 0"/><path d="M7.5 9c2.5-2 6.5-2 9 0"/>',
+  stalk: '<path d="M9 21c0-6 2-10 6-13"/><path d="M15 8c1-2.5 3-3.5 5.5-3.5-.2 2.5-1.6 4.4-4 5z"/><path d="M11 15c-2-1.2-4-1.2-5.5 0 1.2 2 3.4 2.2 5.5 1z"/>',
+  roots: '<path d="M12 3v6"/><path d="M12 9c-3 3-5 6-6.5 12"/><path d="M12 9v12"/><path d="M12 9c3 3 5 6 6.5 12"/><path d="M8.5 15l-3 .5M15.5 15l3 .5"/>',
+  knot: '<path d="M12 4c5 0 8 3.4 8 8s-3 8-8 8-8-3.4-8-8 3-8 8-8z"/><path d="M8.5 10c2.2 1 4.6-.4 7 1.6M8.5 15c2.2-1 4.4.2 6-.8"/>',
+  spike: '<path d="M4 20h16"/><path d="M7 20l3-9 1 9"/><path d="M12 20l4-15 1.6 15"/>',
+  plate: '<path d="M4 6.5c3-2.4 13-2.4 16 0v3.5c-3-2.4-13-2.4-16 0z"/><path d="M4 12.5c3-2.4 13-2.4 16 0V16c-3-2.4-13-2.4-16 0z"/>',
+  flesh: '<path d="M6 14c-1.5-4 2-8 6-7.5 4.5-.5 7.5 3 6 7.5-1.2 3.6-4 5-6.5 4.5C9 19 7 17 6 14z"/><path d="M10.5 12.5c1-1 3-1 3.6.6"/>',
+  mirror: '<path d="M12 3v18" stroke-dasharray="2 2.2"/><path d="M9 7l-5 5 5 5zM15 7l5 5-5 5z"/>',
+};
+{
+  const T = $('tools');
+  const btn = (k, label, key, cls = '') => {
+    const b = el('button', cls, `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[k]}</svg><span class="k">${key}</span>`);
+    b.type = 'button'; b.id = 'tool-' + k; b.title = `${label} (${key})`; b.setAttribute('aria-label', label);
+    T.append(b);
+    return b;
+  };
+  btn('select', 'Pick', 'V').addEventListener('click', () => setTool('select'));
+  for (const [k, K] of Object.entries(KINDS)) btn(k, K.name, K.key, k === 'spike' || k === 'plate' ? 'bone' : k === 'flesh' ? 'flesh' : 'grow').addEventListener('click', () => setTool(k));
+  T.append(el('hr'));
+  btn('mirror', 'Mirror: put a twin on its other side', 'M').addEventListener('click', () => { S.mirror = !S.mirror; syncButtons(); });
+}
+function setTool(k) {
+  S.tool = k;
+  stage.classList.toggle('place', k !== 'select');
+  ghost.keys = [null, null];
+  syncButtons(); renderHint();
+}
+function syncButtons() {
+  $('tool-select').setAttribute('aria-pressed', String(S.tool === 'select'));
+  for (const k of Object.keys(KINDS)) $('tool-' + k).setAttribute('aria-pressed', String(S.tool === k));
+  $('tool-mirror').setAttribute('aria-pressed', String(S.mirror));
+  $('undo').disabled = hist.at <= 0;
+  $('redo').disabled = hist.at >= hist.stack.length - 1;
+  document.querySelectorAll('[data-mode]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === S.mode)));
+  document.querySelectorAll('[data-light]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.light === S.light)));
+  $('person').setAttribute('aria-pressed', String(S.person));
+  $('fine').setAttribute('aria-pressed', String(!!S.fine));
+  $('lineup').setAttribute('aria-pressed', String(!!S.lineup));
+  $('tools').hidden = !!S.lineup;
+  $('lgroups').hidden = !S.lineup;
+  document.querySelectorAll('[data-lg]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lg === S.lgroup)));
+}
+function renderHint() {
+  const h = $('hint');
+  if (S.lineup) { h.textContent = 'Everything saved, side by side, this one first. Click one to open it.'; return; }
+  if (S.tool === 'select') { h.textContent = 'Drag to turn the view. Pick a growth on the left and click the body to put it there; click one already there to change it.'; return; }
+  const K = KINDS[S.tool];
+  h.textContent = `${K.name}: click the body to put one there${S.mirror ? ', and its twin on the other side' : ''}. Scroll first to size it (${(S.size[S.tool] * 100).toFixed(1)} cm). Right-click one to take it off.`;
+}
+
+/* the motion and light bars */
+document.querySelectorAll('[data-mode]').forEach(b => b.addEventListener('click', () => { S.mode = b.dataset.mode; syncButtons(); renderReadout(); }));
+document.querySelectorAll('[data-light]').forEach(b => b.addEventListener('click', () => { S.light = b.dataset.light; syncButtons(); }));
+$('person').addEventListener('click', () => { S.person = !S.person; syncButtons(); });
+$('fine').addEventListener('click', () => {
+  S.fine = FINE = !S.fine;
+  document.body.classList.toggle('fine', FINE);
+  try { localStorage.setItem('rs-mutant-fine', FINE ? '1' : ''); } catch {}
+  rebuild();
+  if (S.lineup) { toggleLineup(); toggleLineup(); }
+  syncButtons();
+});
+$('lineup').addEventListener('click', () => toggleLineup());
+$('undo').addEventListener('click', undo);
+$('redo').addEventListener('click', redo);
+$('centre').addEventListener('click', frame);
+
+function frame() {
+  if (S.lineup) { fitLineup(); return; }
+  const h = S.M?.height ?? 1.8, dir = camera.position.clone().sub(controls.target).normalize();
+  controls.target.set(0, h * 0.52, 0);
+  camera.position.copy(controls.target).addScaledVector(dir, Math.max(3.2, h * 2));
+}
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/* picking: what is under the pointer, a growth or a part of the body, and where on it */
+const ray = new THREE.Raycaster(), ndc = new THREE.Vector2(), _nm = new THREE.Matrix3(), _q = new THREE.Quaternion();
+function pickAt(cx, cy) {
+  const r = canvas.getBoundingClientRect();
+  ndc.set(((cx - r.left) / r.width) * 2 - 1, -((cy - r.top) / r.height) * 2 + 1);
+  ray.setFromCamera(ndc, camera);
+  if (S.lineup) {
+    const h = ray.intersectObjects(S.lineup.meshes, false)[0];
+    return h ? { lineup: h.object.userData.lineup } : null;
+  }
+  if (!S.M) return null;
+  const h = ray.intersectObjects(S.M.pick.concat(S.M.itemMeshes), false)[0];
+  if (!h) return null;
+  if (h.object.userData.item != null) return { item: h.object.userData.item };
+  const part = h.object.userData.part, f = S.M.parts[part];
+  if (!f) return null;
+  const nW = h.face.normal.clone().applyMatrix3(_nm.getNormalMatrix(h.object.matrixWorld)).normalize();
+  if (nW.dot(ray.ray.direction) > 0) nW.negate();
+  const q = f.g.worldToLocal(h.point.clone()), n = nW.applyQuaternion(f.g.getWorldQuaternion(_q).invert());
+  return { part, q, n };
+}
+/** an item made from a pick: where on the part's box it landed */
+function itemFrom(hit, kind, size) {
+  const f = S.M.parts[hit.part];
+  const p = [0, 1, 2].map(i => r3((hit.q.getComponent(i) - f.c[i]) / f.s[i]));
+  const n = norm([0, 1, 2].map(i => hit.n.getComponent(i) * f.s[i]));
+  return { kind, part: hit.part, p, n, size: r3(size), spin: 0, ...KINDS[kind].extra };
+}
+/** its twin on the other side: the other limb, or the same part across the middle; none on the middle line */
+function twinOf(x) {
+  const m = /^(.*)([LR])$/.exec(x.part);
+  if (!m && Math.abs(x.p[0]) < 0.06) return null;
+  return { ...clone(x), part: m ? m[1] + (m[2] === 'L' ? 'R' : 'L') : x.part, p: [-x.p[0], x.p[1], x.p[2]], n: [-x.n[0], x.n[1], x.n[2]], spin: -(x.spin || 0) };
+}
+function place(hit) {
+  const a = itemFrom(hit, S.tool, S.size[S.tool]);
+  a.id = nextId();
+  S.d.items.push(a);
+  if (S.mirror) { const b = twinOf(a); if (b) { b.id = a.id + 1; S.d.items.push(b); } }
+  S.sel = a.id;
+  rebuild(); commit(); renderSel();
+}
+function removeItem(id) {
+  S.d.items = S.d.items.filter(x => x.id !== id);
+  if (S.sel === id) S.sel = null;
+  rebuild(); commit(); renderSel();
+}
+function select(id) { S.sel = id; renderSel(); renderItems(); }
+
+/* the ghost: the growth the next click will put down, shown where it would go (and its twin) */
+const ghost = { keys: [null, null], gs: [grp(scene), grp(scene)], rings: [ringMesh(), ringMesh()] };
+ghost.gs.forEach((g, i) => { g.add(ghost.rings[i]); g.visible = false; });
+function updateGhost() {
+  const h = S.hover, on = !S.lineup && S.tool !== 'select' && h && h.part && S.M;
+  if (!on) { ghost.gs.forEach(g => (g.visible = false)); return; }
+  const a = itemFrom(h, S.tool, S.size[S.tool]), b = S.mirror ? twinOf(a) : null, key = `${S.tool}|${S.size[S.tool]}|${S.M.d.seed}|${FINE}`;
+  [a, b].forEach((x, i) => {
+    const g = ghost.gs[i];
+    if (!x || !S.M.parts[x.part]) { g.visible = false; return; }
+    const f = S.M.parts[x.part];
+    if (g.parent !== f.g) f.g.add(g);
+    const { G } = itemGroup(f, x);
+    g.position.copy(G.position); g.quaternion.copy(G.quaternion);
+    if (ghost.keys[i] !== key) {
+      for (const c of [...g.children]) if (c !== ghost.rings[i]) g.remove(c);
+      const inner = grp(g);
+      ITEM = 'ghost'; SINK = null;
+      BUILD[x.kind](inner, x, S.M, seeded(99 + i));
+      ITEM = null;
+      ghost.keys[i] = key;
+    }
+    ghost.rings[i].scale.setScalar(Math.max(0.012, x.size * (x.kind === 'leaf' || x.kind === 'knot' ? 0.4 : 0.6)));
+    ghost.rings[i].position.z = 0.003;
+    g.visible = true;
+  });
+}
+
+canvas.addEventListener('pointermove', e => { S.pointer.x = e.clientX; S.pointer.y = e.clientY; S.pointer.in = true; });
+canvas.addEventListener('pointerleave', () => { S.pointer.in = false; S.hover = null; });
+canvas.addEventListener('pointerdown', e => { S.pointer.down = { x: e.clientX, y: e.clientY, t: performance.now(), b: e.button }; S.pointer.x = e.clientX; S.pointer.y = e.clientY; });
+canvas.addEventListener('pointerup', e => {
+  const d = S.pointer.down;
+  S.pointer.down = null;
+  if (!d || Math.hypot(e.clientX - d.x, e.clientY - d.y) > 6 || performance.now() - d.t > 700) return;
+  const h = pickAt(e.clientX, e.clientY);
+  if (S.lineup) { if (h) openLineup(h.lineup); return; }
+  if (d.b === 2) { if (h?.item != null) removeItem(h.item); return; }
+  if (h?.item != null) select(h.item);
+  else if (h?.part && S.tool !== 'select') place(h);
+  else select(null);
+});
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+/* the wheel sizes what is under it: a growth already there, or the next one; anywhere else it zooms */
+stage.addEventListener('wheel', e => {
+  if (S.lineup || e.ctrlKey || e.target !== canvas) return;
+  const h = pickAt(e.clientX, e.clientY), k = Math.exp(-clamp(e.deltaMode ? e.deltaY * 40 : e.deltaY, -100, 100) * 0.0008);
+  if (h?.item != null) {
+    const x = S.d.items.find(i => i.id === h.item);
+    if (!x) return;
+    x.size = r3(clamp(x.size * k, KINDS[x.kind].min, KINDS[x.kind].max));
+    if (S.sel !== x.id) select(x.id);
+    rebuild(); renderSel(true); wheelCommit();
+  } else if (h?.part && S.tool !== 'select') {
+    S.size[S.tool] = r3(clamp(S.size[S.tool] * k, KINDS[S.tool].min, KINDS[S.tool].max));
+    renderHint();
+  } else return;
+  e.preventDefault(); e.stopPropagation();
+}, { capture: true, passive: false });
+let wheelT = 0;
+function wheelCommit() { clearTimeout(wheelT); wheelT = setTimeout(commit, 400); }
+
+/* the card for the growth picked */
+function renderSel(sizeOnly = false) {
+  const x = selItem(), box = $('sel');
+  renderItems();
+  if (!x) { box.hidden = true; box.innerHTML = ''; return; }
+  if (sizeOnly && box.dataset.id === String(x.id)) { const s = $('sel-size'); if (s) { s.value = x.size; $('sel-size-o').textContent = `${(x.size * 100).toFixed(1)} cm`; } return; }
+  box.dataset.id = x.id;
+  const K = KINDS[x.kind];
+  box.innerHTML = `<h3>${K.name}</h3><div class="where">on ${PARTS[x.part]}</div>`;
+  const ctl = (label, id, min, max, step, val, show, set) => {
+    const w = el('div', 'ctl');
+    w.innerHTML = `<label for="${id}">${label}</label><output id="${id}-o"></output><input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${val}">`;
+    const inp = w.querySelector('input'), out = w.querySelector('output');
+    out.textContent = show(val);
+    inp.addEventListener('input', () => { set(+inp.value); out.textContent = show(+inp.value); rebuild(); });
+    inp.addEventListener('change', commit);
+    box.append(w);
+  };
+  const opts = (label, id, list, val, set) => {
+    const w = el('div', 'ctl');
+    w.innerHTML = `<span class="lab">${label}</span>`;
+    const row = el('div', 'seg');
+    for (const [v, t] of list) {
+      const b = el('button', '', t);
+      b.type = 'button'; b.id = `${id}-${v}`; b.setAttribute('aria-pressed', String(String(val) === String(v)));
+      b.addEventListener('click', () => { set(v); rebuild(); commit(); renderSel(); });
+      row.append(b);
+    }
+    w.append(row);
+    box.append(w);
+  };
+  ctl('Size', 'sel-size', K.min, K.max, 0.001, x.size, v => `${(v * 100).toFixed(1)} cm`, v => (x.size = v));
+  ctl('Turn', 'sel-spin', -PI, PI, 0.01, x.spin || 0, v => `${Math.round((v * 180) / PI)}°`, v => (x.spin = v));
+  if (x.kind === 'eye') { opts('Look', 'sel-look', [['dot', 'Black dot'], ['glassy', 'Glassy'], ['milky', 'Milky']], x.look === 'black' ? 'dot' : x.look, v => (x.look = v)); if (FINE && x.look !== 'dot') ctl('Lid', 'sel-lid', 0, 1, 0.01, x.lid, v => `${Math.round(v * 100)}%`, v => (x.lid = v)); }
+  if (x.kind === 'pustule') { opts('Colour', 'sel-tint', [['milky', 'Milky'], ['yellow', 'Yellow'], ['raw', 'Raw']], x.tint, v => (x.tint = v)); opts('Form', 'sel-cluster', [[false, 'One'], [true, 'Cluster']], !!x.cluster, v => (x.cluster = v === true || v === 'true')); }
+  if (x.kind === 'leaf') ctl('Tiers', 'sel-tiers', 1, 6, 1, x.tiers, v => `${v}`, v => (x.tiers = v));
+  if (x.kind === 'stalk') { ctl('Bend up', 'sel-bend', 0, 1, 0.01, x.bend, v => `${Math.round(v * 100)}%`, v => (x.bend = v)); opts('End', 'sel-flower', [[true, 'Flowering'], [false, 'Bud']], !!x.flower, v => (x.flower = v === true || v === 'true')); }
+  if (x.kind === 'roots') ctl('Roots', 'sel-count', 2, 9, 1, x.count, v => `${v}`, v => (x.count = v));
+  if (x.kind === 'spike') { opts('Form', 'sel-row', [[false, 'One'], [true, 'A ridge of three']], !!x.row, v => (x.row = v === true || v === 'true')); ctl('Curve', 'sel-sbend', 0, 1, 0.01, x.bend ?? 0.3, v => `${Math.round(v * 100)}%`, v => (x.bend = v)); }
+  if (x.kind === 'plate') ctl('Rows', 'sel-rows', 1, 4, 1, x.rows ?? 2, v => `${v}`, v => (x.rows = v));
+  if (x.kind === 'knot') opts('Form', 'sel-form', [['burl', 'Burl'], ['bark', 'Bark']], x.form, v => (x.form = v));
+  const row = el('div', 'row');
+  const tw = el('button', 'btn sm', 'Mirror copy'), del = el('button', 'btn warn sm', 'Take off'), done = el('button', 'btn sm', 'Done');
+  tw.type = del.type = done.type = 'button';
+  tw.addEventListener('click', () => { const b = twinOf(x); if (!b) { toast('It is on the middle line: its twin would be itself.'); return; } b.id = nextId(); S.d.items.push(b); rebuild(); commit(); select(b.id); });
+  del.addEventListener('click', () => removeItem(x.id));
+  done.addEventListener('click', () => select(null));
+  row.append(tw, del, done);
+  box.append(row);
+  box.hidden = false;
+}
+function renderItems() {
+  const L = $('items');
+  if (!L || !S.d) return;
+  L.innerHTML = '';
+  if (!S.d.items.length) { L.append(el('li', 'empty', 'Nothing grows on this one yet. Pick a tool and click the body.')); return; }
+  for (const x of S.d.items) {
+    const li = el('li', x.id === S.sel ? 'on' : '');
+    const nm = el('span', 'nm');
+    nm.textContent = `${KINDS[x.kind].name}, ${PARTS[x.part].replace(/^(the|its) /, '')} · ${(x.size * 100).toFixed(1)} cm`;
+    nm.tabIndex = 0; nm.setAttribute('role', 'button');
+    nm.addEventListener('click', () => select(x.id));
+    nm.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); select(x.id); } });
+    const del = el('button', 'btn sm', 'Take off');
+    del.type = 'button';
+    del.addEventListener('click', () => removeItem(x.id));
+    li.append(el('span', 'dot ' + x.kind), nm, del);
+    L.append(li);
+  }
+}
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/* what the readout says: how tall, its reach, its stride and pace, and what that stride means at the game's paces
+   (sim/cast/gait.ts, husk: 1.3 m/s on its rounds, 3.5 after you) for one the level does not give its own pace and steps
+   (mut()'s walk and steps, as Security's seven have theirs from here) */
+function renderReadout() {
+  if (!S.d) return;
+  const d = S.d, B = d.body, g = d.gait, h = S.M?.height ?? 0;
+  const reach = (B.uArm + B.fArm + 0.1) * Math.max(B.armL, B.armR) * B.scale, { S: st, v } = paceOf(d, S.mode === 'stand' ? 'walk' : S.mode);
+  const at = (pace, mul) => Math.round((pace / (g.stride * mul)) * 120);
+  $('readout').innerHTML = `<b>${h.toFixed(2)} m</b> tall · reach <b>${reach.toFixed(2)} m</b> · stride <b>${st.toFixed(2)} m</b> · <b>${v.toFixed(2)} m/s</b>`;
+  const o = $('gait-out');
+  if (o) o.innerHTML = `Walking, <i>${(g.stride * g.spm / 120).toFixed(2)} m/s</i>, a step every ${(60 / g.spm).toFixed(2)} s. In the game, given this pace and these steps (<code>walk</code> and <code>steps</code> in <code>mut()</code>), it walks as here, and after you as much faster as the rest are; not given them, at its rounds’ 1.3 m/s this stride takes <i>${at(1.3, 1)} steps a minute</i>; after you, at 3.5 m/s, <i>${at(3.5, 1.25)}</i>.`;
+}
+function renderState() {
+  const st = $('d-state');
+  if (!S.d) return;
+  const now = JSON.stringify(exported(S.d));
+  if (!S.libId) { st.textContent = 'Not saved yet'; st.className = 'state dirty'; }
+  else if (now !== S.saved) { st.textContent = 'Changed since it was saved'; st.className = 'state dirty'; }
+  else { st.textContent = 'Saved'; st.className = 'state'; }
+  $('save').textContent = S.libId ? 'Save changes' : 'Save';
+}
+let toastT = 0;
+function toast(t) { const e = $('toast'); e.textContent = t; e.hidden = false; clearTimeout(toastT); toastT = setTimeout(() => (e.hidden = true), 2600); }
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/* the saved ones: in the artifact's own store where it has one (so they can be read back from it), else in this
+   browser only */
+const store = { mode: 'connecting', list: [], db: null, err: '' };
+const newId = () => 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const sortRecs = list => list.sort((a, b) => (a.order ?? 1e9) - (b.order ?? 1e9) || (b.updated ?? 0) - (a.updated ?? 0));
+function readLocal() { try { return JSON.parse(localStorage.getItem('rs-mutant-lib') || '[]'); } catch { return []; } }
+function writeLocal(list) { try { localStorage.setItem('rs-mutant-lib', JSON.stringify(list)); return true; } catch { return false; } }
+async function initStore() {
+  let db = null;
+  try { db = window.claude?.use ? await window.claude.use('db') : null; } catch { db = null; }
+  if (db) {
+    store.db = db; store.mode = 'db';
+    db.collection('mutants').onSnapshot(snap => {
+      store.list = sortRecs(snap.docs.map(x => ({ id: x.id, ...clone(x.data()) })));
+      renderLib();
+    }, err => { store.mode = 'error'; store.err = err?.message || err?.code || 'unknown'; renderLib(); });
+  } else { store.mode = 'local'; store.list = sortRecs(readLocal()); }
+  renderLib();
+}
+async function saveRec(asNew) {
+  const design = exported(S.d), id = (!asNew && S.libId) || newId();
+  const was = store.list.find(r => r.id === id);
+  const rec = { name: S.d.name.trim() || 'Untitled', notes: S.d.notes, design, updated: Date.now(), ...(was?.order != null ? { order: was.order } : {}) };
+  try {
+    if (store.mode === 'db') await store.db.collection('mutants').doc(id).set(rec);
+    else {
+      const list = readLocal().filter(r => r.id !== id);
+      list.unshift({ id, ...rec });
+      if (!writeLocal(list)) throw new Error('this browser will not keep it');
+      store.list = sortRecs(list);
+    }
+    S.libId = id; S.saved = JSON.stringify(design);
+    saveDraft(); renderState(); renderLib();
+    toast(`Saved “${rec.name}”`);
+  } catch (e) {
+    toast(e?.code === 'invalid_argument' ? 'You can look at these but not save them here.' : `Could not save: ${e?.message || e?.code || e}`);
+  }
+}
+async function deleteRec(id) {
+  try {
+    if (store.mode === 'db') await store.db.collection('mutants').doc(id).delete();
+    else { store.list = readLocal().filter(r => r.id !== id); writeLocal(store.list); }
+    if (S.libId === id) { S.libId = null; S.saved = null; saveDraft(); renderState(); }
+    renderLib();
+  } catch (e) { toast(`Could not delete: ${e?.message || e?.code || e}`); }
+}
+function renderLib() {
+  const L = $('lib'), st = $('store-state');
+  st.textContent = store.mode === 'db' ? 'Saved designs are kept with this page, where Claude can read them back.'
+    : store.mode === 'local' ? 'Saved designs are kept in this browser only. Export them to send them on.'
+    : store.mode === 'error' ? `The saved designs could not be reached (${store.err}).` : 'Connecting to the saved designs…';
+  L.innerHTML = '';
+  if (!store.list.length) { L.append(el('li', 'empty', store.mode === 'connecting' ? 'Looking for saved designs…' : 'Nothing saved yet. Name the one on the bench and press Save; it will be listed here.')); return; }
+  for (const r of store.list) {
+    const d = sanitize(r.design);
+    if (!d) continue;
+    const li = el('li', r.id === S.libId ? 'cur' : ''), nm = el('span', 'nm'), sub = el('span', 'sub'), acts = el('span', 'acts');
+    nm.textContent = r.name || 'Untitled';
+    const M = buildStats(d);
+    sub.textContent = `${M.h.toFixed(2)} m · stride ${d.gait.stride.toFixed(2)} m · ${d.items.length} growing`;
+    const o = el('button', 'btn sm', 'Open'), x = el('button', 'btn sm warn', 'Delete');
+    o.type = x.type = 'button';
+    o.addEventListener('click', () => { open(d, r.id); toast(`Opened “${r.name}”`); });
+    armConfirm(x, 'Sure?', () => deleteRec(r.id));
+    acts.append(o, x);
+    li.append(nm, acts, sub);
+    L.append(li);
+  }
+}
+/** how tall a design stands, without building it */
+function buildStats(d) {
+  const B = d.body, hh = 0.28 * B.headSize * B.headH;
+  return { h: (B.thigh + B.shin + 0.06 + B.torsoL - 0.03 + B.neckL + hh * 0.68) * B.scale };
+}
+{
+  const P = $('cast');
+  for (const [k, name, make] of CAST) {
+    const b = el('button', 'btn sm', name);
+    b.type = 'button'; b.id = 'cast-' + k;
+    b.addEventListener('click', () => { open(make(), store.list.some(r => r.id === 'cast-' + k) ? 'cast-' + k : null); toast(`Opened “${name}”`); });
+    P.append(b);
+  }
+}
+{
+  const P = $('lines');
+  for (const [k, name, make] of LINES) {
+    const b = el('button', 'btn sm', name);
+    b.type = 'button'; b.id = 'line-' + k;
+    b.addEventListener('click', () => { open(make(), store.list.some(r => r.id === 'line-' + k) ? 'line-' + k : null); toast(`Opened “${name}”`); });
+    P.append(b);
+  }
+}
+/** a set as saved records, under ids of their own, in their order: the seven first, Pia's lines after */
+const setRecs = (list, pre, first) => list.map(([k, , make], i) => { const d = make(); return { id: pre + k, name: d.name, notes: d.notes, design: exported(d), order: first + i, updated: Date.now() }; });
+const castRecs = () => setRecs(CAST, 'cast-', 0), lineRecs = () => setRecs(LINES, 'line-', 100);
+async function saveSet(recs, done) {
+  for (const { id, ...rec } of recs) {
+    try {
+      if (store.mode === 'db') await store.db.collection('mutants').doc(id).set(rec);
+      else { const list = readLocal().filter(r => r.id !== id); list.push({ id, ...rec }); writeLocal(list); store.list = sortRecs(list); }
+    } catch (e) { toast(`Could not save “${rec.name}”: ${e?.message || e?.code || e}`); return; }
+  }
+  renderLib();
+  toast(done);
+}
+/* straight away when none of them is saved yet; a second click first when it would replace one */
+for (const [id, pre, recs, done] of [['castsave', 'cast-', castRecs, 'Saved all seven: Line-up shows them'], ['linesave', 'line-', lineRecs, 'Saved Pia\'s lines: Line-up shows them']]) {
+  const b = $(id), label = b.textContent;
+  let t = 0;
+  b.addEventListener('click', () => {
+    const some = store.list.some(r => r.id.startsWith(pre));
+    if (!some || b.dataset.armed) { clearTimeout(t); delete b.dataset.armed; b.textContent = label; saveSet(recs(), done); return; }
+    b.dataset.armed = '1'; b.textContent = 'Replace the ones already saved?';
+    t = setTimeout(() => { delete b.dataset.armed; b.textContent = label; }, 3000);
+  });
+}
+$('save').addEventListener('click', () => saveRec(false));
+$('saveas').addEventListener('click', () => saveRec(true));
+{
+  const P = $('presets');
+  for (const [k, name, make] of PRESETS) {
+    const b = el('button', 'btn sm', name);
+    b.type = 'button'; b.id = 'preset-' + k;
+    b.addEventListener('click', () => { open(make()); toast(`Opened the example “${name}”`); });
+    P.append(b);
+  }
+}
+
+/* export and import */
+async function copy(text, what) {
+  try { await navigator.clipboard.writeText(text); toast(`Copied ${what}`); }
+  catch { const io = $('io'); io.value = text; io.focus(); io.select(); toast('Copying was refused here: it is in the box below, selected.'); }
+}
+const allSaved = () => store.list.map(r => ({ ...exported(sanitize(r.design)), name: r.name, notes: r.notes }));
+$('copy1').addEventListener('click', () => copy(JSON.stringify(exported(S.d), null, 1), `“${S.d.name}”`));
+$('copyall').addEventListener('click', () => { if (!store.list.length) { toast('Nothing saved yet to copy.'); return; } copy(JSON.stringify(allSaved(), null, 1), `${store.list.length} saved`); });
+$('dl').addEventListener('click', async () => {
+  const list = store.list.length ? allSaved() : [exported(S.d)], text = JSON.stringify(list, null, 1), name = 'rootshock-mutants.json';
+  let dl = null;
+  try { dl = window.claude?.use ? await window.claude.use('downloads') : null; } catch { dl = null; }
+  if (dl) { try { await dl.save({ filename: name, data: text }); toast(`Saved ${name}`); } catch (e) { if (e?.code !== 'declined') toast(`Could not save the file (${e?.code || e}). Use Copy instead.`); } return; }
+  if (!window.claude) { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: 'application/json' })); a.download = name; document.body.append(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 3000); return; }
+  toast('Downloads are not available here. Use Copy instead.');
+});
+function parseIO() {
+  try { const x = JSON.parse($('io').value); const list = (Array.isArray(x) ? x : [x]).map(sanitize).filter(Boolean); if (!list.length) throw 0; return list; }
+  catch { toast('That is not a design: paste the JSON that Copy or Download gives.'); return null; }
+}
+$('imp-open').addEventListener('click', () => { const l = parseIO(); if (l) { open(l[0]); toast(`Opened “${l[0].name}”`); } });
+$('imp-add').addEventListener('click', async () => {
+  const l = parseIO();
+  if (!l) return;
+  for (const d of l) {
+    const rec = { name: d.name || 'Untitled', notes: d.notes, design: exported(d), updated: Date.now() }, id = newId();
+    try {
+      if (store.mode === 'db') await store.db.collection('mutants').doc(id).set(rec);
+      else { const list = readLocal(); list.unshift({ id, ...rec }); writeLocal(list); store.list = sortRecs(list); }
+    } catch (e) { toast(`Could not add “${rec.name}”: ${e?.message || e?.code || e}`); return; }
+  }
+  renderLib();
+  toast(`Added ${l.length} to the saved`);
+});
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/* the line-up: everything saved beside the one on the bench, at true scale, a label over each */
+function toggleLineup() {
+  if (S.lineup) {
+    for (const m of S.lineup.models) scene.remove(m.M.root);
+    S.lineup = null;
+    S.M.root.position.x = 0;
+    person.position.x = -1.15;
+    $('labels').innerHTML = '';
+    syncButtons(); renderHint(); frame();
+    return;
+  }
+  const others = store.list.filter(r => r.id !== S.libId && (S.lgroup === 'all' || groupOf(r) === S.lgroup)).map(r => ({ r, d: sanitize(r.design) })).filter(x => x.d);
+  if (!others.length) { toast(S.lgroup === 'all' ? 'Save a few first: the line-up puts the saved ones beside this one.' : 'None of those is saved yet.'); return; }
+  const width = d => { const B = d.body, w = B.swell || 0; return (B.torsoW * (1 + 0.8 * w) * 1.16 + 2 * B.armT * (1 + 1.3 * w) * Math.max(B.armL, B.armR) + 2 * Math.max(0, B.shoulder) + 0.3 * (d.skin.over || 0)) * B.scale; };
+  const all = [S.d, ...others.map(x => x.d)], gapW = 0.7;
+  let x = 0;
+  const xs = all.map((d, i) => { const w = width(d) + 0.5; const at = x + w / 2; x += w + gapW * (i < all.length - 1 ? 1 : 0); return at; });
+  const mid = x / 2;
+  S.lineup = { x0: xs[0] - mid, models: [], meshes: [], labels: [] };
+  const lab = $('labels');
+  lab.innerHTML = '';
+  const add = (name, cur) => { const e = el('div', cur ? 'cur' : ''); e.textContent = name; lab.append(e); return e; };
+  S.lineup.labels.push(add(S.d.name || 'Untitled', true));
+  S.M.root.position.x = S.lineup.x0;
+  for (const m of S.M.pick.concat(S.M.itemMeshes)) { m.userData.lineup = -1; S.lineup.meshes.push(m); }
+  others.forEach(({ r, d }, i) => {
+    const M = buildModel(d);
+    M.root.position.x = xs[i + 1] - mid;
+    scene.add(M.root);
+    for (const m of M.pick.concat(M.itemMeshes)) { m.userData.lineup = i; S.lineup.meshes.push(m); }
+    S.lineup.models.push({ M, A: { t: i * 1.7, p: (i * 0.37) % 1 }, r, d });
+    S.lineup.labels.push(add(r.name || 'Untitled', false));
+  });
+  person.position.x = -mid - 0.9;
+  S.sel = null; renderSel();
+  syncButtons(); renderHint(); fitLineup();
+}
+/** which of the saved a record is: one of Security's seven, one of Pia's lines, or one of yours */
+const groupOf = r => r.id.startsWith('cast-') ? 'security' : r.id.startsWith('line-') ? 'lines' : 'yours';
+document.querySelectorAll('[data-lg]').forEach(b => b.addEventListener('click', () => {
+  S.lgroup = b.dataset.lg;
+  try { localStorage.setItem('rs-mutant-lgroup', S.lgroup); } catch {}
+  if (S.lineup) { toggleLineup(); toggleLineup(); }
+  syncButtons();
+}));
+function fitLineup() {
+  if (!S.lineup) return;
+  const xs = [S.lineup.x0, ...S.lineup.models.map(m => m.M.root.position.x)], w = Math.max(...xs) - Math.min(...xs) + 2.4;
+  const h = Math.max(S.M.height, ...S.lineup.models.map(m => m.M.height));
+  controls.target.set(0, h * 0.62, 0);
+  const dist = Math.max(w / (2 * Math.tan((camera.fov * PI) / 360) * camera.aspect), h * 1.6);
+  camera.position.set(0, h * 0.8, dist);
+}
+function openLineup(i) {
+  if (i < 0) { toggleLineup(); return; }
+  const m = S.lineup.models[i];
+  toggleLineup();
+  open(m.d, m.r.id);
+  toast(`Opened “${m.r.name}”`);
+}
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/* keys */
+window.addEventListener('keydown', e => {
+  const t = e.target, typing = t && (t.tagName === 'INPUT' && t.type !== 'range' && t.type !== 'checkbox' || t.tagName === 'TEXTAREA' || t.isContentEditable);
+  if (typing) return;
+  const k = e.key, mod = e.ctrlKey || e.metaKey;
+  if (mod && (k === 'z' || k === 'Z')) { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+  if (mod && (k === 'y' || k === 'Y')) { e.preventDefault(); redo(); return; }
+  if (mod || e.altKey) return;
+  const tool = Object.entries(KINDS).find(([, K]) => K.key === k);
+  if (tool) { setTool(tool[0]); return; }
+  if (k === 'v' || k === 'V') setTool('select');
+  else if (k === 'm' || k === 'M') { S.mirror = !S.mirror; syncButtons(); renderHint(); }
+  else if (k === 'l' || k === 'L') toggleLineup();
+  else if (k === 'f' || k === 'F') frame();
+  else if (k === 'Escape') { if (S.sel != null) select(null); else setTool('select'); }
+  else if ((k === 'Delete' || k === 'Backspace') && S.sel != null) { e.preventDefault(); removeItem(S.sel); }
+  else if ((k === '[' || k === ']') && selItem()) { const x = selItem(); x.size = r3(clamp(x.size * (k === ']' ? 1.08 : 1 / 1.08), KINDS[x.kind].min, KINDS[x.kind].max)); rebuild(); renderSel(true); wheelCommit(); }
+  else if (k === ' ' && t.tagName !== 'BUTTON') { e.preventDefault(); S.mode = S.mode === 'stand' ? 'walk' : 'stand'; syncButtons(); renderReadout(); }
+});
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/* each frame */
+function resize() {
+  const r = stage.getBoundingClientRect(), w = Math.max(1, r.width), h = Math.max(1, r.height);
+  renderer.setSize(w, h, false);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(stage);
+const _v = new THREE.Vector3(), _s = new THREE.Vector3();
+let last = performance.now();
+function loop(now) {
+  requestAnimationFrame(loop);
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+  if (S.dirtyModel) doRebuild();
+  /* aiming a growth at the body, the figure holds still; then what is under the pointer, on the pose about to be drawn */
+  const aim = !S.lineup && S.tool !== 'select' && S.hover?.part;
+  S.timeScale += ((aim ? 0 : 1) - S.timeScale) * damp(aim ? 10 : 4, dt);
+  const sdt = dt * S.timeScale;
+  if (S.M) pose(S.M, S.A, S.mode, sdt);
+  if (S.lineup) for (const m of S.lineup.models) pose(m.M, m.A, S.mode, dt);
+  scene.updateMatrixWorld();
+  S.hover = S.pointer.in && !S.pointer.down ? pickAt(S.pointer.x, S.pointer.y) : S.pointer.down ? S.hover : null;
+  /* the floor's lines go back under the walk at its pace; still in the line-up, where they walk on the spot */
+  const v = S.lineup ? 0 : paceOf(S.d, S.mode).v;
+  floorOff = (floorOff + v * sdt) % STEP;
+  for (const L of lines) L.m.position.z = ((((L.z - floorOff + SPAN / 2) % SPAN) + SPAN) % SPAN) - SPAN / 2;
+  person.visible = S.person;
+  updateGhost();
+  const x = selItem(), G = x && S.M?.itemGroups.get(x.id);
+  selMark.visible = !!G && !S.lineup;
+  if (G) {
+    G.updateWorldMatrix(true, false);
+    G.localToWorld(_v.set(0, x.kind === 'leaf' ? x.size * 0.3 : 0, x.kind === 'leaf' ? x.size * 0.35 : x.kind === 'stalk' ? x.size * 0.4 : 0));
+    selMark.position.copy(_v);
+    G.getWorldScale(_s);
+    selMark.scale.setScalar(x.size * RADIUS[x.kind] * (x.cluster ? 2 : 1) * _s.x);
+  }
+  /* the light */
+  const game = S.light === 'game';
+  U.uRoom.value.set(...(game ? [0.05, 0.055, 0.06] : [0.6, 0.58, 0.55]));
+  U.uKey.value = game ? 0 : 0.55;
+  U.uFlash.value = game ? 1.15 : 0.22;
+  U.uFog.value = game ? 0.07 : S.lineup ? 0.012 : 0.03;
+  U.uFlashPos.value.copy(camera.position);
+  camera.getWorldDirection(U.uFlashDir.value);
+  U.uTime.value = now / 1000;
+  controls.update();
+  renderer.render(scene, camera);
+  if (S.lineup) {
+    const r = canvas.getBoundingClientRect(), Ms = [S.M, ...S.lineup.models.map(m => m.M)];
+    Ms.forEach((M, i) => {
+      _v.set(M.root.position.x, M.height + 0.2 + (i % 3) * 0.32, 0).project(camera);
+      const e = S.lineup.labels[i];
+      if (e) { e.style.left = `${((_v.x + 1) / 2) * r.width}px`; e.style.top = `${((1 - _v.y) / 2) * r.height}px`; e.hidden = _v.z > 1; }
+    });
+  }
+}
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/* start: what was on the bench last time in this browser, else the first example */
+{
+  const dr = readDraft();
+  if (dr) { S.d = dr.d; S.libId = dr.libId; S.saved = dr.saved; } else S.d = PRESETS[0][2]();
+  if (matchMedia('(prefers-reduced-motion: reduce)').matches) S.mode = 'stand';
+  rebuild(); syncUI(); commit(); renderSel(); renderHint(); syncButtons();
+  let tab = 'body';
+  try { S.fine = FINE = !!localStorage.getItem('rs-mutant-fine'); } catch {}
+  document.body.classList.toggle('fine', FINE);
+  try { tab = localStorage.getItem('rs-mutant-tab') || 'body'; S.lgroup = localStorage.getItem('rs-mutant-lgroup') || 'all'; } catch {}
+  showTab(TABS.includes(tab) ? tab : 'body');
+  resize();
+  doRebuild();
+  frame();
+  requestAnimationFrame(loop);
+  initStore();
+  window.__rs = { S, open, PRESETS, CAST, LINES, castRecs, lineRecs, sanitize, exported, camera, controls, pickAt, setTool };
+}
+</script>

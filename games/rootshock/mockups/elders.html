@@ -1,0 +1,1453 @@
+<title>Pia and Ines</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;500;600&family=Newsreader:ital,opsz,wght@0,6..72,400;1,6..72,400&display=swap" rel="stylesheet">
+<style>
+/* Layout: the model fills the screen; a header to switch creature, and one panel of states and what each means. */
+:root {
+  --pitch: #060708; --panel: rgba(7, 8, 9, .84); --bone: #d9d3c1; --ash: #8a897f; --hazard: #c9a227; --blood: #a8352a;
+  --line: rgba(217, 211, 193, .16);
+  --sign: "Barlow Condensed", "Arial Narrow", "Helvetica Neue", Arial, sans-serif;
+  --hand: "Newsreader", Georgia, "Times New Roman", serif;
+  color-scheme: dark;
+}
+html, body { height: 100%; margin: 0; background: var(--pitch); color: var(--bone); font-family: var(--sign); overflow: hidden; }
+canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; }
+canvas:active { cursor: grabbing; }
+.top { position: fixed; left: 0; right: 0; top: 0; padding: calc(14px + env(safe-area-inset-top, 0px)) 16px 0; display: flex; flex-wrap: wrap; gap: 10px 24px; align-items: baseline; pointer-events: none; }
+.name { font-size: 15px; letter-spacing: .2em; text-transform: uppercase; color: var(--ash); }
+.name b { color: var(--bone); font-weight: 600; }
+nav { display: flex; gap: 4px; pointer-events: auto; }
+nav button, .btns button { font: inherit; color: var(--bone); background: none; border: 1px solid var(--line); cursor: pointer; }
+nav button { font-size: 22px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 2px 14px 1px; }
+nav button[aria-selected="true"] { border-color: var(--hazard); color: var(--hazard); }
+.panel { position: fixed; left: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); width: min(440px, calc(100% - 32px)); background: var(--panel); border-top: 3px solid var(--hazard); padding: 12px 14px 12px; display: flex; flex-direction: column; gap: 8px; }
+.state { flex-wrap: wrap; font-size: 26px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; line-height: 1; display: flex; justify-content: space-between; align-items: baseline; gap: 12px; }
+.knocks { font-size: 16px; font-weight: 500; letter-spacing: .12em; color: var(--ash); white-space: nowrap; }
+.knocks i { font-style: normal; display: inline-block; width: 9px; height: 9px; margin-left: 5px; border-radius: 50%; border: 1px solid var(--ash); vertical-align: 0; }
+.knocks i.on { background: var(--blood); border-color: var(--blood); }
+.knocks i.gap { border: 0; width: 6px; }
+#cap { font-family: var(--hand); font-size: 16px; line-height: 1.42; margin: 0; max-width: 38em; min-height: 4.2em; }
+.btns { display: flex; flex-wrap: wrap; gap: 6px; }
+.btns button { font-size: 17px; font-weight: 500; padding: 3px 10px 2px; }
+.btns button.on { background: var(--bone); color: var(--pitch); border-color: var(--bone); }
+.btns button:hover, nav button:hover { border-color: var(--bone); }
+button:focus-visible { outline: 2px solid var(--hazard); outline-offset: 2px; }
+.row { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 15px; color: var(--ash); }
+.row label { display: inline-flex; align-items: center; gap: 6px; cursor: pointer; }
+.row input { accent-color: var(--hazard); margin: 0; }
+.hint { position: fixed; right: 16px; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); font-size: 14px; letter-spacing: .1em; text-transform: uppercase; color: var(--ash); pointer-events: none; text-align: right; }
+@media (max-width: 720px) { .hint { top: calc(56px + env(safe-area-inset-top, 0px)); bottom: auto; } #cap { font-size: 15px; min-height: 0; } .state { font-size: 22px; } }
+</style>
+
+<canvas id="c" aria-label="3D view of the elder; drag to orbit"></canvas>
+<header class="top">
+  <div class="name"><b>Rootshock</b> · the elders</div>
+  <nav role="tablist" aria-label="Elder">
+    <button role="tab" id="tab-pia" data-scene="pia" aria-selected="true">Pia</button>
+    <button role="tab" id="tab-ines" data-scene="ines" aria-selected="false">Ines</button>
+    <button role="tab" id="tab-dale" data-scene="dale" aria-selected="false">Dale</button>
+    <button role="tab" id="tab-sam" data-scene="sam" aria-selected="false">Sam</button>
+    <button role="tab" id="tab-tom" data-scene="tom" aria-selected="false">Tom</button>
+    <button role="tab" id="tab-holt" data-scene="holt" aria-selected="false">Holt</button>
+  </nav>
+</header>
+<section class="panel" aria-live="polite">
+  <div class="state"><span id="state">Now: the tree</span></div>
+  <p id="cap"></p>
+  <div class="btns" id="btns"></div>
+  <div class="row">
+    <label><input type="checkbox" id="flash" checked> Flashlight (F)</label>
+    <label><input type="checkbox" id="figure" checked> 1.8 m figure</label>
+    <label><input type="checkbox" id="sound" checked> Sound</label>
+  </div>
+</section>
+<div class="hint">Drag to orbit · scroll or pinch to zoom</div>
+
+<script type="importmap">{ "imports": { "three": "https://cdn.jsdelivr.net/npm/three@0.186.1/build/three.module.js" } }</script>
+<script type="module">
+import * as THREE from 'three';
+const PI = Math.PI, TAU = PI * 2;
+/* castView's palette */
+const FLESH = 0xb08572, RAW = 0x8c4a44, GOREC = 0x4e1616, PALE = 0xcdbfae, BONE = 0xddd6c0, DARK = 0x140c0d;
+const RIM = 0x1c1e20;
+const MEAT = [0xa8705e, 0x9a6252, 0xb07a66, 0xa06854], SKIN = [0xb4826e, 0xac7864, 0xba8a76, 0xb07e6a];
+const SCL = 0xd8d0c0, PUP = 0x15100e, GLOW = [2.75, 2.36, 2.2];
+
+/* the game's unit shapes (templates.ts), flat triangle lists in a 1 m cube */
+const TPL = (() => {
+  const box = () => {
+    const c = [[-.5, -.5, -.5], [.5, -.5, -.5], [.5, .5, -.5], [-.5, .5, -.5], [-.5, -.5, .5], [.5, -.5, .5], [.5, .5, .5], [-.5, .5, .5]];
+    const f = [[0, 1, 2, 3], [5, 4, 7, 6], [4, 0, 3, 7], [1, 5, 6, 2], [3, 2, 6, 7], [4, 5, 1, 0]], p = [];
+    for (const q of f) for (const k of [0, 1, 2, 0, 2, 3]) p.push(...c[q[k]]);
+    return p;
+  };
+  const ico = () => {
+    const t = (1 + Math.sqrt(5)) / 2, n = 0.5 / Math.hypot(1, t);
+    const v = [[-1, t, 0], [1, t, 0], [-1, -t, 0], [1, -t, 0], [0, -1, t], [0, 1, t], [0, -1, -t], [0, 1, -t], [t, 0, -1], [t, 0, 1], [-t, 0, -1], [-t, 0, 1]].map(a => a.map(x => x * n));
+    const fi = [0, 11, 5, 0, 5, 1, 0, 1, 7, 0, 7, 10, 0, 10, 11, 1, 5, 9, 5, 11, 4, 11, 10, 2, 10, 7, 6, 7, 1, 8, 3, 9, 4, 3, 4, 2, 3, 2, 6, 3, 6, 8, 3, 8, 9, 4, 9, 5, 2, 4, 11, 6, 2, 10, 8, 6, 7, 9, 8, 1], p = [];
+    for (const i of fi) p.push(...v[i]);
+    return p;
+  };
+  const cyl = (N = 6) => {
+    const p = [];
+    for (let k = 0; k < N; k++) {
+      const a = (k / N) * TAU, b = ((k + 1) / N) * TAU, x0 = Math.cos(a) * .5, z0 = Math.sin(a) * .5, x1 = Math.cos(b) * .5, z1 = Math.sin(b) * .5;
+      p.push(x0, -.5, z0, x1, -.5, z1, x1, .5, z1, x0, -.5, z0, x1, .5, z1, x0, .5, z0, 0, .5, 0, x0, .5, z0, x1, .5, z1, 0, -.5, 0, x1, -.5, z1, x0, -.5, z0);
+    }
+    return p;
+  };
+  return { box: box(), ico: ico(), cyl: cyl() };
+})();
+const hex = c => Array.isArray(c) ? c : [((c >> 16) & 255) / 255, ((c >> 8) & 255) / 255, (c & 255) / 255];
+const geos = new Map();
+function geo(shape, c, sx, sy, sz) {
+  const k = `${shape}|${c}|${sx}|${sy}|${sz}`;
+  let g = geos.get(k);
+  if (g) return g;
+  const src = TPL[shape], col = hex(c), P = [], C = [];
+  for (let v = 0; v < src.length; v += 3) { P.push(src[v] * sx, src[v + 1] * sy, src[v + 2] * sz); C.push(col[0], col[1], col[2]); }
+  g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(P, 3));
+  g.setAttribute('aCol', new THREE.Float32BufferAttribute(C, 3));
+  geos.set(k, g);
+  return g;
+}
+
+/* a cut-down copy of the game's look (shader.ts): faceted, shaded by facing, a room light, the flashlight from the eye,
+   a colour over 2 drawn as its own light, fog and grain */
+const VS = `attribute vec3 aCol; varying vec3 vW; varying vec3 vC;
+void main(){ vec4 w = modelMatrix * vec4(position, 1.0); vW = w.xyz; vC = aCol; gl_Position = projectionMatrix * viewMatrix * w; }`;
+const FS = `uniform vec3 uRoom; uniform vec3 uFlashPos; uniform vec3 uFlashDir; uniform float uFlash;
+uniform vec3 uGlowPos; uniform vec3 uGlowC; uniform float uGlowR; uniform vec4 uTint; uniform float uTime; uniform float uFog;
+varying vec3 vW; varying vec3 vC;
+void main(){
+  vec3 n = normalize(cross(dFdx(vW), dFdy(vW)));
+  vec3 tc = cameraPosition - vW; float d = length(tc); vec3 Ld = tc / max(d, 0.001);
+  vec3 nf = dot(n, Ld) < 0.0 ? -n : n;
+  vec3 base = vC; float em = 0.0;
+  if (base.r > 1.5) { base -= 2.0; em = 1.0; }
+  base = mix(base, uTint.rgb, uTint.a);
+  float sh = 0.55 + 0.45 * (abs(nf.y) * 0.95 + abs(nf.x) * 0.7 + abs(nf.z) * 0.5);
+  vec3 light = uRoom * sh * (0.75 + 0.25 * max(nf.y, 0.0));
+  vec3 tp = vW - uFlashPos; float fd = length(tp); vec3 fdir = tp / max(fd, 0.001);
+  float cone = smoothstep(0.88, 0.975, dot(fdir, uFlashDir));
+  float facing = 0.35 + 0.65 * max(dot(nf, -fdir), 0.0);
+  light += uFlash * vec3(1.0, 0.94, 0.82) * (cone * 2.5 + 0.05) * facing / (1.0 + 0.09 * fd * fd);
+  vec3 tg = uGlowPos - vW; float gd = length(tg);
+  light += uGlowC * max(0.0, 1.0 - gd / uGlowR) * (0.35 + 0.65 * max(dot(nf, tg / max(gd, 0.001)), 0.0));
+  light += vec3(0.014) / (1.0 + 3.0 * d * d);
+  vec3 c = mix(base * light, base, em);
+  c *= exp(-d * uFog);
+  vec3 h3 = fract(vec3(gl_FragCoord.xyx + floor(fract(uTime * 7.13) * 977.0)) * 0.1031);
+  h3 += dot(h3, h3.yzx + 33.33);
+  c += (fract((h3.x + h3.y) * h3.z) - 0.5) * 0.024 * (1.0 - smoothstep(0.0, 0.35, dot(c, vec3(0.3, 0.59, 0.11))));
+  gl_FragColor = vec4(c, 1.0);
+}`;
+const U = {
+  uRoom: { value: new THREE.Vector3() }, uFlashPos: { value: new THREE.Vector3() }, uFlashDir: { value: new THREE.Vector3(0, 0, -1) }, uFlash: { value: 1 },
+  uGlowPos: { value: new THREE.Vector3() }, uGlowC: { value: new THREE.Vector3() }, uGlowR: { value: 1 }, uTime: { value: 0 }, uFog: { value: 0.03 },
+};
+const material = () => new THREE.ShaderMaterial({ uniforms: { ...U, uTint: { value: new THREE.Vector4(0, 0, 0, 0) } }, vertexShader: VS, fragmentShader: FS, side: THREE.DoubleSide });
+const MAT = material();
+
+function mk(parent, shape, c, sx, sy, sz, x, y, z, mat = MAT) {
+  const m = new THREE.Mesh(geo(shape, c, sx, sy, sz), mat);
+  m.position.set(x, y, z); m.frustumCulled = false; parent.add(m);
+  return m;
+}
+function grp(parent, x, y, z) {
+  const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.order = 'YXZ'; parent.add(g);
+  return g;
+}
+/** a box from a to b (world or parent frame), w by h across */
+function beam(parent, c, w, h, a, b) {
+  const len = a.distanceTo(b), m = mk(parent, 'box', c, w, h, len, (a.x + b.x) / 2, (a.y + b.y) / 2, (a.z + b.z) / 2);
+  m.lookAt(parent.localToWorld(b.clone()));
+  return m;
+}
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const damp = (k, dt) => 1 - Math.exp(-k * dt);
+const ease = t => t * t * (3 - 2 * t);
+const smooth = (a, b, x) => ease(clamp((x - a) / (b - a), 0, 1));
+let seed = 7;
+const rnd = (a = 0, b = 1) => a + (((seed = (Math.imul(seed, 1664525) + 1013904223) >>> 0) / 4294967296) * (b - a));
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/* a person for scale: 1.8 m */
+function figure(parent, x, z, yaw) {
+  const g = grp(parent, x, 0, z), c = 0x5c5f62;
+  g.rotation.y = yaw;
+  for (const s of [-1, 1]) mk(g, 'box', c, 0.16, 0.86, 0.18, s * 0.11, 0.43, 0);
+  mk(g, 'box', c, 0.44, 0.62, 0.24, 0, 1.17, 0);
+  for (const s of [-1, 1]) mk(g, 'box', c, 0.1, 0.66, 0.11, s * 0.28, 1.15, 0);
+  mk(g, 'ico', c, 0.24, 0.28, 0.25, 0, 1.64, 0);
+  return g;
+}
+function floor(parent, w, d, c, line, step) {
+  mk(parent, 'box', c, w, 0.1, d, 0, -0.05, 0);
+  for (let x = -w / 2 + step; x < w / 2; x += step) mk(parent, 'box', line, 0.02, 0.004, d, x, 0.001, 0);
+  for (let z = -d / 2 + step; z < d / 2; z += step) mk(parent, 'box', line, w, 0.004, 0.02, 0, 0.001, z);
+}
+
+/** two segments and an end, along +z: a root that turns to face what it reaches for, and a joint that bends */
+function limb(parent, at, L1, L2, c1, c2, w, end, o = {}) {
+  const h = grp(parent, at[0], at[1], at[2]), sh = o.shape ?? 'box', f = sh === 'ico' ? 1.35 : 1;
+  mk(h, sh, c1, w, w, L1 * f, 0, 0, L1 / 2);
+  const k = grp(h, 0, 0, L1);
+  mk(k, 'ico', o.joint ?? BONE, w * 1.3, w * 1.15, w * 1.15, 0, w * 0.15, 0);
+  mk(k, sh, c2, w * 0.85, w * 0.85, L2 * f, 0, 0, L2 / 2);
+  const t = grp(k, 0, 0, L2);
+  return { h, k, t, L1, L2, end: end(t) };
+}
+/** a hand on the end of a limb, palm down, with fingers that curl */
+const footEnd = t => { mk(t, 'ico', FL3, 0.12, 0.08, 0.28, 0, -0.01, 0.09); return []; };
+/** bend a limb so its end reaches t (world): the root turns to face t, the joint bends up. The end's pitch, to undo */
+function reach(L, t, up = 1) {
+  _v.copy(t); L.h.parent.worldToLocal(_v); _v.sub(L.h.position);
+  const yaw = Math.atan2(_v.x, _v.z), hz = Math.hypot(_v.x, _v.z), th = Math.atan2(-_v.y, hz);
+  const d = clamp(Math.hypot(hz, _v.y), Math.abs(L.L1 - L.L2) + 0.02, L.L1 + L.L2 - 0.002);
+  const B = Math.acos(clamp((L.L1 * L.L1 + d * d - L.L2 * L.L2) / (2 * L.L1 * d), -1, 1));
+  const C = Math.acos(clamp((L.L1 * L.L1 + L.L2 * L.L2 - d * d) / (2 * L.L1 * L.L2), -1, 1));
+  const a1 = th - up * B, a2 = up * (PI - C);
+  L.h.rotation.set(a1, yaw, 0); L.k.rotation.set(a2, 0, 0);
+  return a1 + a2;
+}
+/** the same, held in the limb's own fore-and-aft plane: for legs and arms that swing past straight down, where turning to
+   face the target would spin them round */
+function reachP(L, t, up = 1) {
+  _v.copy(t); L.h.parent.worldToLocal(_v); _v.sub(L.h.position);
+  const th = Math.atan2(-_v.y, _v.z), d = clamp(Math.hypot(_v.y, _v.z), Math.abs(L.L1 - L.L2) + 0.02, L.L1 + L.L2 - 0.002);
+  const B = Math.acos(clamp((L.L1 * L.L1 + d * d - L.L2 * L.L2) / (2 * L.L1 * d), -1, 1));
+  const C = Math.acos(clamp((L.L1 * L.L1 + L.L2 * L.L2 - d * d) / (2 * L.L1 * L.L2), -1, 1));
+  L.h.rotation.set(th - up * B, 0, 0); L.k.rotation.set(up * (PI - C), 0, 0);
+}
+
+/* ---------------------------------------------------------------------------------------------------------------- */
+/* the lines' own colours (world.md §10): Pia's milk, Ines's pigment; bark and leaf for what has gone to plant */
+const LEAF = [0x3f6a3a, 0x4f7a40, 0x2f5a34, 0x5a7a3a, 0x6a8a44, 0x2a4a2c];
+const BARK = [0x4b3b2d, 0x574431, 0x3f3125, 0x60503a], BARKL = 0x6a5641;
+const MILK = 0xece4d0, PUS = 0xd6c393, ARM = 0xa86454, ARM2 = 0x9c5446, RAWR = 0x9a3e36;
+const SKINP = [0xa06c50, 0x966448, 0xac7a5c], HAIR = 0x2a2220, SOIL = 0x2a2018, CONC = 0x4a4d50;
+const INK = 0x3346c4, INKWET = 0x5f78ff, INKD = 0x232c78, INKC = 0x4b5aa8, CHALK = 0xd8d0c0;
+const SKINI = [0xa98a72, 0x9c7e67, 0xb5967d, 0xc0a28a], SKINC = [0x6e5444, 0x634a3c, 0x7a5e4d, 0x866a58];
+const SHADE_ON = [2.95, 2.62, 2.05], SHADE_OFF = 0x7a6c56;
+
+/* eyes, as the cast have them: a ball with no lids that turns to look; a blink squeezes it flat. Pinned pupils for the
+   opiate, whatever the light; eyes that never settle for the visions */
+function eye(parent, r, x, y, z, o = {}) {
+  const g = grp(parent, x, y, z), ball = grp(g, 0, 0, 0);
+  mk(ball, 'ico', o.white ?? SCL, r * 2, r * 2, r * 2, 0, 0, 0);
+  const pb = o.pupil ?? 0.5;
+  mk(ball, 'ico', o.pc ?? PUP, r * pb, r * pb, r * 0.22, 0, 0, r * 0.86);
+  return { g, ball, r, yaw: 0, pitch: 0, o, blink: rnd(1, 5), shut: 0, jy: 0, jp: 0, jt: 0 };
+}
+function aim(o, t) {
+  _v.copy(t); o.parent.worldToLocal(_v); _v.sub(o.position);
+  return [Math.atan2(_v.x, _v.z), -Math.atan2(_v.y, Math.hypot(_v.x, _v.z))];
+}
+function lookEye(E, t, dt) {
+  const [y, p] = aim(E.ball, t);
+  if (E.o.wild && (E.jt -= dt) < 0) { E.jt = rnd(0.12, 0.7); E.jy = rnd(-0.55, 0.55); E.jp = rnd(-0.35, 0.35); }
+  const k = damp(E.o.slow ? 2 : 16, dt);
+  E.yaw += (clamp(y, -0.8, 0.8) + E.jy * (E.o.wild ?? 0) - E.yaw) * k;
+  E.pitch += (clamp(p, -0.6, 0.6) + E.jp * (E.o.wild ?? 0) - E.pitch) * k;
+  E.ball.rotation.set(E.pitch, E.yaw, 0);
+  if ((E.blink -= dt) < 0) { E.blink = rnd(2, 6); E.shut = E.o.slow ? 0.7 : 0.16; E.len = E.shut; }
+  const b = E.shut > 0 ? Math.sin((1 - (E.shut -= dt) / E.len) * PI) : 0;
+  E.ball.scale.set(1, 1 - 0.85 * Math.max(0, b), 1);
+}
+function look(o, t, dt, k = 3, lim = [1.2, 0.8]) {
+  const [y, p] = aim(o, t);
+  o.rotation.y += (clamp(y, -lim[0], lim[0]) - o.rotation.y) * damp(k, dt);
+  o.rotation.x += (clamp(p, -lim[1], lim[1]) - o.rotation.x) * damp(k, dt);
+}
+const _a = new THREE.Vector3(), _b = new THREE.Vector3(), _v = new THREE.Vector3();
+const wrap = a => Math.atan2(Math.sin(a), Math.cos(a));
+
+/** leaves: a clump of flattened, tilted blobs */
+function leaves(parent, x, y, z, n, s) {
+  for (let k = 0; k < n; k++) {
+    const m = mk(parent, 'ico', LEAF[k % 6], s * rnd(0.7, 1.3), s * rnd(0.22, 0.4), s * rnd(0.6, 1.1), x + rnd(-1, 1) * s * 0.6, y + rnd(-1, 1) * s * 0.35, z + rnd(-1, 1) * s * 0.6);
+    m.rotation.set(rnd(-0.7, 0.7), rnd(0, TAU), rnd(-0.7, 0.7));
+  }
+}
+/** plates of bark over part of an ellipsoid (centre c, radii r), facing out; keep(d) picks which part */
+function bark(parent, c, r, n, size, keep = () => true) {
+  let made = 0;
+  for (let k = 0; k < n * 4 && made < n; k++) {
+    const th = rnd(0, TAU), ph = Math.acos(rnd(-1, 1)), d = V(Math.sin(ph) * Math.cos(th), Math.cos(ph), Math.sin(ph) * Math.sin(th));
+    if (!keep(d)) continue;
+    const p = V(c.x + d.x * r.x, c.y + d.y * r.y, c.z + d.z * r.z);
+    const m = mk(parent, 'box', BARK[made % 4], size * rnd(0.8, 1.3), size * rnd(0.6, 1.0), size * 0.28, p.x, p.y, p.z);
+    m.lookAt(parent.localToWorld(V(c.x + d.x * r.x * 3, c.y + d.y * r.y * 3, c.z + d.z * r.z * 3)));
+    m.rotateZ(rnd(-0.5, 0.5));
+    made++;
+  }
+}
+/** blisters: small pale bumps along a limb segment (along +z, length L, width w) */
+function pustules(parent, L, w, n, s = 1) {
+  for (let k = 0; k < n; k++) {
+    const a = rnd(0, TAU), sz = rnd(0.035, 0.07) * s;
+    mk(parent, 'ico', PUS, sz, sz * 0.8, sz, Math.cos(a) * w * 0.5, Math.sin(a) * w * 0.5, rnd(0.08, 0.92) * L);
+  }
+}
+/** a hand with long fingers along +z */
+function longHand(s, tip, SK = SKINI) {
+  return t => {
+    mk(t, 'ico', SK[0], 0.15 * s, 0.06 * s, 0.2 * s, 0, 0, 0.08 * s);
+    const f = [];
+    for (let k = 0; k < 5; k++) {
+      const fg = grp(t, (-0.06 + k * 0.03) * s, 0, 0.16 * s); fg.rotation.y = (k - 2) * 0.13 + (k === 0 ? -0.5 : 0);
+      mk(fg, 'box', SK[1], 0.024 * s, 0.024 * s, 0.36 * s, 0, 0, 0.18 * s);
+      if (tip) mk(fg, 'box', tip, 0.03 * s, 0.03 * s, 0.07 * s, 0, 0, 0.36 * s);
+      f.push(fg);
+    }
+    return f;
+  };
+}
+function fatHand(s, c1, c2) {
+  return t => {
+    mk(t, 'ico', c1, 0.17 * s, 0.08 * s, 0.18 * s, 0, -0.01 * s, 0.07 * s);
+    const f = [];
+    for (let k = 0; k < 4; k++) { const fg = grp(t, (-0.05 + k * 0.033) * s, -0.01 * s, 0.13 * s); fg.rotation.y = (k - 1.5) * 0.12; mk(fg, 'box', c2, 0.034 * s, 0.032 * s, 0.13 * s, 0, 0, 0.065 * s); f.push(fg); }
+    mk(t, 'box', c2, 0.036 * s, 0.034 * s, 0.09 * s, 0.08 * s, -0.01 * s, 0.06 * s).rotation.y = 0.7;
+    return f;
+  };
+}
+
+/* ---- the plant. Every green line is wild tobacco, Nicotiana rustica, mutated its own way: a thick stalk, broad
+   rounded leaves on short stalks, and pale yellow-green tubular flowers in clusters at the top, then round capsules ---- */
+const STALK = [0x6e6a44, 0x625e3c, 0x77724a, 0x585436], STALKD = 0x48452e, ROOT = 0x5a5236;
+const RLEAF = [0x3d5e2c, 0x45682f, 0x365426, 0x4c6e34], RIB = 0x9aa070;
+const FLOWER = [0xd9d27c, 0xcfc86c, 0xe2dc90], BUD = 0xa9b25a, CAPS = [0x7d8a3c, 0x8a7a44];
+/** a rustica leaf: broad, rounded, thick, on a short stalk, drooping toward the tip */
+function rleaf(parent, x, y, z, yaw, len, droop, col) {
+  const g = grp(parent, x, y, z); g.rotation.set(droop * 0.6, yaw, 0);
+  mk(g, 'box', STALK[2], 0.07 * len, 0.06 * len, 0.26 * len, 0, 0, 0.13 * len);
+  const c = col ?? RLEAF[Math.floor(rnd(0, 4))];
+  mk(g, 'ico', c, 0.7 * len, 0.07 * len, 0.62 * len, 0, 0, 0.5 * len);
+  mk(g, 'box', RIB, 0.03 * len, 0.075 * len, 0.5 * len, 0, 0.01 * len, 0.5 * len);
+  const o = grp(g, 0, 0, 0.72 * len); o.rotation.x = droop;
+  mk(o, 'ico', c, 0.62 * len, 0.06 * len, 0.6 * len, 0, 0, 0.22 * len);
+  mk(o, 'box', RIB, 0.025 * len, 0.065 * len, 0.4 * len, 0, 0.01 * len, 0.16 * len);
+  return g;
+}
+/** a flower: a short pale tube with a flared mouth, a green cup at its foot. Or a bud, or a capsule */
+function flower(parent, x, y, z, s, kind) {
+  const g = grp(parent, x, y, z); g.rotation.set(rnd(-0.6, 0.6), rnd(0, TAU), rnd(-0.6, 0.6));
+  mk(g, 'ico', CAPS[0], 0.12 * s, 0.1 * s, 0.12 * s, 0, 0, 0);
+  if (kind === 'flower') {
+    mk(g, 'cyl', FLOWER[Math.floor(rnd(0, 3))], 0.08 * s, 0.22 * s, 0.08 * s, 0, 0.13 * s, 0);
+    mk(g, 'ico', FLOWER[2], 0.2 * s, 0.05 * s, 0.2 * s, 0, 0.25 * s, 0);
+  } else if (kind === 'bud') mk(g, 'ico', BUD, 0.09 * s, 0.24 * s, 0.09 * s, 0, 0.13 * s, 0);
+  else mk(g, 'ico', CAPS[Math.floor(rnd(0, 2))], 0.17 * s, 0.2 * s, 0.17 * s, 0, 0.1 * s, 0);
+}
+/** a cluster of them at the end of a stem */
+function cluster(parent, at, n, s, spread) {
+  for (let k = 0; k < n; k++) {
+    const r = rnd(0, 1), kind = r < 0.55 ? 'flower' : r < 0.82 ? 'bud' : 'capsule';
+    const p = V(at.x + rnd(-1, 1) * spread, at.y + rnd(-0.3, 1) * spread * 0.6, at.z + rnd(-1, 1) * spread);
+    beam(parent, STALK[2], 0.025 * s, 0.025 * s, at, p);
+    flower(parent, p.x, p.y, p.z, s, kind);
+  }
+}
+
+/* ================================================================================================================ */
+/* PIA LIND, generation 2: the painkiller. You meet her as the tree. Before that, two stages in one Commons planter */
+function planter(parent, broken) {
+  const g = grp(parent, 0, 0, 0);
+  const sides = [[0, 1.6, 3.4, 0.18], [0, -1.6, 3.4, 0.18], [1.6, 0, 0.18, 3.4], [-1.6, 0, 0.18, 3.4]];
+  for (const [x, z, w, d] of sides) {
+    if (!broken) { mk(g, 'box', CONC, w, 0.5, d, x, 0.25, z); continue; }
+    /* the rim heaved apart by the roots: each side in tilted pieces */
+    for (let k = 0; k < 3; k++) {
+      const f = (k - 1) / 3, m = mk(g, 'box', CONC, w > d ? w / 3 - 0.08 : w, 0.5, d > w ? d / 3 - 0.08 : d, x + (w > d ? f * w : 0) + Math.sign(x) * rnd(0.4, 1.0), 0.2, z + (d > w ? f * d : 0) + Math.sign(z) * rnd(0.4, 1.0));
+      m.rotation.set(rnd(-0.35, 0.35), rnd(-0.4, 0.4), rnd(-0.35, 0.35));
+    }
+  }
+  mk(g, 'box', SOIL, 3.0, broken ? 0.3 : 0.42, 3.0, 0, broken ? 0.15 : 0.24, 0);
+  return g;
+}
+
+/** her body, sitting back in the soil where she lay down. stage 0: the stupor; stage 1: half stalk, sinking */
+function piaBody(G, stage) {
+  const mid = stage === 1, P = {};
+  if (!mid) {
+    mk(G, 'ico', SKINP[0], 1.05, 0.5, 0.85, 0, 0.62, 0.45);
+    for (const s of [-1, 1]) {
+      mk(G, 'ico', SKINP[1], 0.44, 0.38, 0.9, s * 0.3, 0.62, 1.05);
+      mk(G, 'box', SKINP[2], 0.27, 0.62, 0.3, s * 0.32, 0.27, 1.72);
+      mk(G, 'ico', SKINP[1], 0.22, 0.12, 0.32, s * 0.32, 0.05, 1.82);
+    }
+  } else {
+    /* sunk to the waist; the legs gone to root, over the rim and down to the floor */
+    mk(G, 'ico', STALK[1], 2.3, 0.55, 2.1, 0, 0.5, 0.3);
+    for (let k = 0; k < 7; k++) {
+      const a = (k / 7) * TAU + 0.3, c = V(Math.cos(a) * 0.55, 0.55, 0.3 + Math.sin(a) * 0.5), rim = V(Math.cos(a) * 1.75, 0.52, Math.sin(a) * 1.75), end = V(Math.cos(a) * rnd(2.2, 2.7), 0.04, Math.sin(a) * rnd(2.2, 2.7));
+      beam(G, ROOT, 0.16, 0.13, c, rim); beam(G, STALK[k % 4], 0.12, 0.1, rim, end);
+    }
+  }
+  mk(G, 'ico', SKINP[0], 1.0, 0.8, 0.82, 0, 0.98, 0.72);
+  const tor = mk(G, 'ico', SKINP[2], 0.98, 1.02, 0.72, 0, 1.32, 0.35); tor.rotation.x = -0.35;
+  mk(G, 'ico', SKINP[1], 0.82, 0.45, 0.5, 0, 1.46, 0.6);
+  mk(G, 'ico', SKINP[0], 1.04, 0.36, 0.56, 0, 1.72, 0.25);
+  mk(G, 'cyl', SKINP[1], 0.24, 0.22, 0.24, -0.1, 1.9, 0.26);
+  /* the head, heavy on the neck */
+  const N = grp(G, -0.1, 1.95, 0.28), H = grp(N, -0.06, 0.08, 0.02); N.rotation.set(0.15, 0, 0.4);
+  mk(H, 'ico', SKINP[2], 0.34, 0.4, 0.36, 0, 0, 0);
+  mk(H, 'ico', SKINP[1], 0.3, 0.14, 0.26, 0, -0.17, 0.06);
+  mk(H, 'ico', HAIR, 0.37, 0.22, 0.37, 0, 0.11, -0.05);
+  mk(H, 'box', 0x3a1c18, 0.1, 0.022, 0.02, 0, -0.095, 0.172).rotation.z = 0.12;
+  P.eyes = [-1, 1].map(s => eye(H, 0.045, s * 0.075, 0.035, 0.155, { white: 0xd9cfb4, pupil: 0.22, slow: true }));
+  /* the other arm, limp on her belly */
+  beam(G, SKINP[1], 0.21, 0.2, V(-0.55, 1.68, 0.3), V(-0.62, 1.15, 0.6));
+  beam(G, SKINP[2], 0.18, 0.17, V(-0.62, 1.15, 0.6), V(-0.2, 1.05, 1.05));
+  /* and this one, an ordinary arm, slow, that reaches out to touch whoever is near */
+  P.arm = limb(G, [0.55, 1.68, 0.32], 0.75, 0.72, SKINP[1], SKINP[2], 0.2, fatHand(1.25, SKINP[0], SKINP[1]), { joint: SKINP[0] });
+  pustules(P.arm.h, P.arm.L1, 0.2, 3); pustules(P.arm.k, P.arm.L2, 0.18, 2);
+  for (let k = 0; k < (mid ? 14 : 9); k++) { const sz = rnd(0.04, 0.08); mk(G, 'ico', PUS, sz, sz * 0.8, sz, rnd(mid ? 0.15 : -0.45, 0.48), rnd(1.0, 1.78), rnd(0.5, 0.8)); }
+  if (!mid) { rleaf(G, 0.42, 1.86, 0.15, 0.6, 0.32, 0.5); rleaf(G, 0.5, 1.82, 0.05, 1.8, 0.26, 0.6); }
+  else {
+    /* the left side gone to stalk; the right still flesh. Tobacco leaf on the shoulders, buds in the hair */
+    bark(G, V(0, 1.32, 0.35), V(0.52, 0.55, 0.4), 34, 0.22, d => d.x < 0.15);
+    bark(G, V(0, 0.98, 0.72), V(0.52, 0.42, 0.43), 18, 0.2, d => d.x < 0.1);
+    bark(H, V(0, 0, 0), V(0.18, 0.21, 0.19), 9, 0.1, d => d.x < -0.1 && d.z < 0.6);
+    for (let k = 0; k < 6; k++) rleaf(G, rnd(-0.55, 0.5), rnd(1.7, 1.9), rnd(0, 0.35), rnd(0, TAU), rnd(0.35, 0.55), rnd(0.3, 0.7));
+    cluster(H, V(0.02, 0.2, -0.02), 6, 0.55, 0.12);
+  }
+  P.H = N;
+  return P;
+}
+
+/** the tree: a rustica grown to about 13 m, and its stalk on up past the flowers to a point, through the roof of the
+   Commons. Her body is the swollen foot of the stalk; her face a smear in it */
+function piaTree(G) {
+  planter(G, true);
+  for (let k = 0; k < 30; k++) {
+    const a = rnd(0, TAU), r = rnd(2.2, 3.8), m = mk(G, 'box', 0x34373a, 0.58, 0.05, 0.58, Math.cos(a) * r, 0.04, Math.sin(a) * r);
+    m.rotation.set(rnd(-0.25, 0.25), rnd(0, TAU), rnd(-0.25, 0.25));
+  }
+  for (let k = 0; k < 10; k++) {
+    const a = (k / 10) * TAU + rnd(-0.2, 0.2), r2 = rnd(2.4, 3.3) * rnd(1.25, 1.5), r3 = rnd(4.4, 6.4) * rnd(1.25, 1.5);
+    const p0 = V(Math.cos(a) * 1.1, 0.7, Math.sin(a) * 1.1), p1 = V(Math.cos(a) * r2, 0.22, Math.sin(a) * r2), p2 = V(Math.cos(a + rnd(-0.2, 0.2)) * r3, 0.03, Math.sin(a + rnd(-0.2, 0.2)) * r3);
+    beam(G, ROOT, 0.44, 0.34, p0, p1); beam(G, STALKD, 0.22, 0.16, p1, p2);
+  }
+  /* the stalk, thickened to a trunk, ridged; the swollen foot of it was her */
+  mk(G, 'ico', STALK[1], 3.0, 2.4, 2.7, 0, 1.15, 0.1);
+  mk(G, 'ico', STALK[3], 2.2, 1.4, 2.0, 0.15, 2.3, 0.0);
+  let x = 0;
+  const TOP = 11.0, segs = 11;
+  for (let k = 0; k < segs; k++) {
+    const w = lerp(1.9, 0.5, k / (segs - 1)), y = 1.6 + k * ((TOP - 1.6) / segs);
+    mk(G, 'cyl', STALK[k % 4], w, (TOP - 1.6) / segs + 0.05, w, x, y + 0.42, 0);
+    for (let j = 0; j < 7; j++) { const a = (j / 7) * TAU + k * 0.4; mk(G, 'box', STALKD, 0.06, 0.82, 0.05, x + Math.cos(a) * w * 0.47, y + 0.42, Math.sin(a) * w * 0.47).rotation.y = -a; }
+    x += 0.05;
+  }
+  /* and on past the flowers: the stalk narrows to a point that goes on up, through the roof */
+  const PEAK = 20.5, ps = 9;
+  for (let k = 0; k < ps; k++) {
+    const u = k / ps, w = lerp(0.5, 0.06, u), h = (PEAK - TOP) / ps, y = TOP + k * h;
+    mk(G, 'cyl', STALK[k % 4], w, h + 0.05, w, x, y + h / 2, 0);
+    if (w > 0.2) for (let j = 0; j < 5; j++) { const a = (j / 5) * TAU + k * 0.4; mk(G, 'box', STALKD, 0.05, h * 0.8, 0.04, x + Math.cos(a) * w * 0.47, y + h / 2, Math.sin(a) * w * 0.47).rotation.y = -a; }
+    x += 0.04;
+  }
+  /* the Commons' roof, broken where she went through it */
+  const RY = 16.5, hx = 0.62, hw = 1.4, CW = 28;
+  mk(G, 'box', 0x2c2f32, CW, 0.5, (CW - hw) / 2, 0, RY, -(hw / 2 + (CW - hw) / 4));
+  mk(G, 'box', 0x2c2f32, CW, 0.5, (CW - hw) / 2, 0, RY, hw / 2 + (CW - hw) / 4);
+  mk(G, 'box', 0x2c2f32, (CW - hw) / 2, 0.5, hw, hx - (hw / 2 + (CW - hw) / 4), RY, 0);
+  mk(G, 'box', 0x2c2f32, (CW - hw) / 2, 0.5, hw, hx + hw / 2 + (CW - hw) / 4, RY, 0);
+  for (let k = 0; k < 8; k++) { const a = rnd(0, TAU), m = mk(G, 'box', 0x3a3d40, rnd(0.3, 0.6), 0.3, rnd(0.3, 0.6), hx + Math.cos(a) * 0.75, RY - 0.25, Math.sin(a) * 0.75); m.rotation.set(rnd(-0.5, 0.5), rnd(0, TAU), rnd(-0.5, 0.5)); }
+  /* the face: shallow hollows in the swollen wood, smeared down. You could walk past it */
+  const F = grp(G, 0.05, 1.55, 1.3); F.rotation.x = -0.3;
+  for (const [fx, fy, sx, sy, r] of [[-0.24, 0.18, 0.3, 0.13, 0.25], [0.2, 0.12, 0.26, 0.16, -0.4], [0.0, 0.42, 0.7, 0.1, 0.06], [-0.02, -0.32, 0.34, 0.1, 0.35], [0.05, -0.05, 0.1, 0.22, 0]])
+    mk(F, 'ico', 0x55513a, sx, sy, 0.08, fx, fy, 0).rotation.z = r;
+  mk(F, 'box', 0x4a472f, 0.04, 0.5, 0.05, -0.22, -0.05, 0.01).rotation.z = 0.15;
+  /* the leaves: broad and rounded, alternate up the stalk, biggest at the foot */
+  const GA = PI * (3 - Math.sqrt(5));
+  for (let k = 0; k < 16; k++) {
+    const t = k / 15, y = lerp(2.6, 10.3, t), w = lerp(1.7, 0.6, (y - 1.6) / (TOP - 1.6)), a = k * GA;
+    rleaf(G, Math.cos(a) * w * 0.45 + t * 0.5, y, Math.sin(a) * w * 0.45, PI / 2 - a, lerp(4.2, 1.8, t), lerp(0.55, 0.3, t));
+  }
+  /* and the top: a spray of stems, in flower, in bud, setting seed */
+  const top = V(0.55, TOP + 0.2, 0);
+  for (let k = 0; k < 7; k++) {
+    const a = (k / 7) * TAU + 0.3, e = V(top.x + Math.cos(a) * rnd(1.45, 2.4), top.y + rnd(0.7, 1.9), Math.sin(a) * rnd(1.45, 2.4));
+    beam(G, STALK[k % 4], 0.14, 0.14, top, e);
+    cluster(G, e, 10, 1.9, 0.54);
+  }
+  
+  /* where the flesh tap her: cuts, the milk running, and bowls set under */
+  for (const [a, y] of [[0.75, 1.4], [-0.6, 1.0], [1.6, 2.1], [-1.7, 1.5]]) {
+    const r = 1.4, g = grp(G, Math.sin(a) * r, y, Math.cos(a) * r); g.rotation.y = a;
+    mk(g, 'box', 0x1c120e, 0.36, 0.05, 0.06, 0, 0, 0.02).rotation.z = 0.35;
+    for (let k = 0; k < 3; k++) mk(g, 'box', MILK, 0.03, rnd(0.25, 0.6), 0.03, -0.1 + k * 0.1, -0.2 - k * 0.05, 0.05);
+    const bowl = grp(G, Math.sin(a) * 2.0, 0, Math.cos(a) * 2.0);
+    mk(bowl, 'cyl', 0x5e6062, 0.4, 0.14, 0.4, 0, 0.07, 0); mk(bowl, 'cyl', MILK, 0.33, 0.02, 0.33, 0, 0.13, 0);
+  }
+  return {};
+}
+
+function buildPia() {
+  const S = new THREE.Scene();
+  floor(S, 30, 30, 0x303336, 0x232629, 0.6);
+  const intact = planter(S, false);
+  const G1 = grp(S, 0, 0, 0), G2 = grp(S, 0, -0.18, 0), G3 = grp(S, 0, 0, 0);
+  const P1 = piaBody(G1, 0);
+  G2.scale.setScalar(1.35); const P2 = piaBody(G2, 1);
+  const P3 = piaTree(G3);
+  const lamp = grp(G1, -1.5, 0, 1.3);
+  mk(lamp, 'box', 0x3a3430, 0.55, 0.62, 0.5, 0, 0.31, 0);
+  mk(lamp, 'cyl', 0x6a6460, 0.12, 0.32, 0.12, 0, 0.78, 0);
+  mk(lamp, 'cyl', SHADE_ON, 0.4, 0.3, 0.4, 0, 1.06, 0);
+  const fig = figure(S, 1.0, 2.05, -0.4);
+  return {
+    S, fig, G: [G1, G2, G3], P: [P1, P2, P3], intact, room: [0.17, 0.165, 0.16],
+    glow: { pos: V(-1.5, 1.1, 1.3), c: [0.95, 0.72, 0.45], r: 4.2 }, fog: 0.03,
+    cam: { tgt: V(0.4, 1.0, 0.7), yaw: 0.55, pitch: 0.22, dist: 5.6, min: 1.5, max: 48 },
+    mode: 'tree',
+  };
+}
+const PIA_STATES = {
+  glaze: ['Before: the stupor', 'Generation 2, early. Fed and bloated, sitting back in the planter where she lay down, too slow to get up. The eyes are glassy, the pupils pinned whatever the light: the opiate. Her hand reaches out, slowly, and touches whoever is near. That touch, at this stage, is what the Commons carry: their opiate is this snapshot of her, not the tree.', V(0.4, 1.1, 0.9), 5.4, -0.4],
+  mid: ['Between: the change', 'Generation 2, midway, and what her middle children look like. Sinking into the bed, her legs gone to root over the rim. The left side has hardened into the stalk; the right is still flesh, and blistered. Tobacco leaf on the shoulders, buds in the hair.', V(0.3, 1.6, 0.6), 7.5, 0.6],
+  tree: ['Now: the tree', 'How you meet her. A wild tobacco, Nicotiana rustica, grown to a tree about 13 m tall: the stalk thickened to a ridged trunk, still with the plant\'s broad, rounded leaves, and still in flower and setting seed. Past the flowers the stalk keeps going, narrowing to a point that runs on up through the roof of the Commons. The swollen foot of the stalk was her body. Her face is a smear in the wood; you could walk past it. The cuts are where the flesh tap her for milk.', V(-2.4, 8.0, 0.4), 32, 0.45],
+};
+function setPia(mode) {
+  const M = PIA; M.mode = mode;
+  M.G.forEach((g, i) => (g.visible = ['glaze', 'mid', 'tree'][i] === mode));
+  M.intact.visible = mode !== 'tree';
+  const [, , tgt, dist, yaw] = PIA_STATES[mode];
+  M.cam.tgt.copy(tgt); M.cam.dist = dist; M.cam.yaw = yaw; M.cam.pitch = mode === 'tree' ? 0.16 : 0.22;
+  M.fog = mode === 'tree' ? 0.007 : 0.03;
+  M.fig.position.set(mode === 'tree' ? 3.6 : mode === 'mid' ? 2.2 : 1.0, 0, mode === 'tree' ? 3.8 : mode === 'mid' ? 2.6 : 2.05);
+  M.room = mode === 'glaze' ? [0.17, 0.165, 0.16] : mode === 'mid' ? [0.27, 0.26, 0.25] : [0.34, 0.33, 0.32];
+  if (mode === 'glaze') { M.glow.pos.set(-1.5, 1.1, 1.3); M.glow.r = 4.2; M.glow.c = [0.95, 0.72, 0.45]; }
+  /* the Commons' own emergency light, high over the court */
+  else { M.glow.pos.set(1.5, mode === 'tree' ? 9 : 3.2, 5); M.glow.r = mode === 'tree' ? 26 : 9; M.glow.c = [0.42, 0.4, 0.36]; }
+  if (PIA_READY) syncPanel();
+}
+const TOUCH = new THREE.Vector3(), HEADT = new THREE.Vector3();
+function stepPia(dt, now) {
+  const M = PIA;
+  if (M.mode === 'tree') return;
+  const P = M.P[M.mode === 'glaze' ? 0 : 1], G = M.G[M.mode === 'glaze' ? 0 : 1];
+  /* in the stupor: the hand goes out, slowly, rests on whoever is there, and comes back */
+  M.fig.getWorldPosition(TOUCH); TOUCH.y += 0.95; TOUCH.x -= 0.25; TOUCH.z -= 0.1;
+  const u = ease(clamp(0.5 + 0.7 * Math.sin(now * 0.32), 0, 1));
+  _a.set(0.45, 0.86, 1.05); G.localToWorld(_a); _a.lerp(TOUCH, u);
+  reach(P.arm, _a, 1);
+  P.arm.end.forEach((f, k) => (f.rotation.x = 0.25 + u * 0.35 + Math.sin(now * 1.3 + k) * 0.04));
+  HEADT.copy(TOUCH); HEADT.y += 0.6;
+  look(P.H, HEADT, dt, 0.5, [0.7, 0.4]);
+  for (const E of P.eyes) lookEye(E, HEADT, dt);
+}
+
+/* ================================================================================================================ */
+/* INES CALDER, generation 2: the hallucinogen. About 7 m: lanky, and the growth went to the head and to what
+   perceives. She paints a wall in a fluid from her own hands and cannot stop. A child of hers copies her, badly */
+const LOBES = [[0.32, 0.85, -0.1, 0.62, 0], [-0.34, 0.82, -0.05, 0.6, 1], [0, 0.98, -0.3, 0.66, 2], [0.4, 0.5, -0.4, 0.55, 1], [-0.42, 0.48, -0.38, 0.56, 0], [0.05, 0.62, -0.62, 0.6, 2], [0.0, 1.02, 0.15, 0.48, 0]];
+function inesRig(parent, s, x, z, yaw, headK = 1, SK = SKINI) {
+  const root = grp(parent, x, 0, z); root.rotation.y = yaw;
+  const R = { root, s, hip0: 3.9 * s, hip: 3.9 * s };
+  const hipG = grp(root, 0, R.hip0, 0); R.hipG = hipG;
+  mk(hipG, 'ico', SK[1], 0.6 * s, 0.36 * s, 0.36 * s, 0, 0.05 * s, 0);
+  R.legs = [-1, 1].map(k => limb(hipG, [k * 0.2 * s, 0, 0], 2.05 * s, 2.0 * s, SK[0], SK[2], 0.17 * s,
+    t => { mk(t, 'ico', SK[1], 0.14 * s, 0.08 * s, 0.36 * s, 0, -0.02 * s, 0.12 * s); return []; }));
+  const T = grp(hipG, 0, 0.05 * s, 0); R.T = T;
+  mk(T, 'ico', SK[0], 0.4 * s, 0.7 * s, 0.28 * s, 0, 0.38 * s, 0);
+  mk(T, 'ico', SK[2], 0.62 * s, 0.9 * s, 0.42 * s, 0, 1.05 * s, 0);
+  for (let k = 0; k < 5; k++) mk(T, 'box', SK[3], 0.48 * s, 0.025 * s, 0.03 * s, 0, (0.78 + k * 0.12) * s, 0.2 * s);
+  for (let k = 0; k < 7; k++) mk(T, 'ico', SK[3], 0.07 * s, 0.07 * s, 0.07 * s, 0, (0.25 + k * 0.2) * s, -0.2 * s);
+  mk(T, 'box', SK[1], 0.96 * s, 0.14 * s, 0.26 * s, 0, 1.5 * s, 0);
+  const N = grp(T, 0, 1.55 * s, 0.03 * s); R.N = N;
+  mk(N, 'cyl', SK[0], 0.15 * s, 0.62 * s, 0.15 * s, 0, 0.3 * s, 0);
+  const Hd = grp(N, 0, 0.62 * s, 0.04 * s); R.Hd = Hd;
+  const h = s * headK;
+  /* the head: a cranium swollen past the face, in lobes */
+  mk(Hd, 'ico', SK[2], 1.2 * h, 1.0 * h, 1.15 * h, 0, 0.52 * h, -0.08 * h);
+  for (const [lx, ly, lz, ls, c] of LOBES)
+    mk(Hd, 'ico', SK[c], ls * h, ls * 0.82 * h, ls * h, lx * h, ly * h, lz * h);
+  /* and a small face low on the front of it */
+  mk(Hd, 'ico', SK[1], 0.4 * h, 0.34 * h, 0.36 * h, 0, 0.06 * h, 0.3 * h);
+  mk(Hd, 'box', 0x2a1612, 0.12 * h, 0.018 * h, 0.02 * h, 0, -0.02 * h, 0.47 * h);
+  mk(Hd, 'ico', SK[0], 0.08 * h, 0.12 * h, 0.08 * h, 0, 0.14 * h, 0.5 * h);
+  R.eyes = [-1, 1].map(k => eye(Hd, 0.062 * h, k * 0.12 * h, 0.27 * h, 0.47 * h, { pupil: 0.6, wild: 1 }));
+  R.arms = [-1, 1].map(k => limb(T, [k * 0.5 * s, 1.45 * s, 0], 1.75 * s, 1.7 * s, SK[0], SK[1], 0.11 * s, longHand(1.5 * s, INK, SK), { joint: SK[3] }));
+  /* her own pigment, run down the painting hand and dripping from the other */
+  for (const L of R.arms) {
+    mk(L.k, 'box', INK, 0.06 * s, 0.03 * s, 0.6 * s, 0, -0.05 * s, 1.35 * s);
+  }
+  R.drops = [0, 1, 2].map(() => ({ m: mk(parent, 'ico', INKWET, 0.05 * s, 0.07 * s, 0.05 * s, 0, -9, 0), t: rnd(0, 1.5), v: 0 }));
+  return R;
+}
+/** a stroke of paint on the wall face; wet for a while, then dry */
+function stroker(S, cap, size) {
+  const list = [];
+  let i = 0;
+  return {
+    add(x, y, c, wet, now, sz = size) {
+      let st = list[i];
+      if (!st) { st = { m: mk(S, 'ico', wet, sz, sz, 0.02, 0, 0, WALLZ) }; list[i] = st; }
+      st.m.geometry = geo('ico', wet, sz, sz, 0.02); st.m.position.set(x, y, WALLZ); st.dry = c; st.sz = sz; st.at = now; st.wet = true;
+      i = (i + 1) % cap;
+    },
+    step(now) { for (const st of list) if (st.wet && now - st.at > 6) { st.wet = false; st.m.geometry = geo('ico', st.dry, st.sz, st.sz, 0.02); } },
+  };
+}
+const WALLZ = -2.98;
+function buildInes() {
+  const S = new THREE.Scene();
+  floor(S, 20, 14, 0x303336, 0x232629, 1.2);
+  mk(S, 'box', 0x3a3d40, 16, 10, 0.3, 0, 5, -3.13);
+  /* her mural: a disc of seeds on the golden angle, waves across the wall, a motif repeated. Masterful */
+  const GA = PI * (3 - Math.sqrt(5)), cx = 0.9, cy = 5.0;
+  for (let k = 1; k < 300; k++) {
+    const r = 0.13 * Math.sqrt(k), a = k * GA, sz = 0.05 + 0.0045 * Math.sqrt(k) * 6;
+    mk(S, 'ico', k % 13 === 0 ? CHALK : k % 3 ? INK : INKD, sz, sz, 0.02, cx + Math.cos(a) * r, cy + Math.sin(a) * r, WALLZ);
+  }
+  for (const [y0, amp, fr, ph, c] of [[8.6, 0.35, 0.9, 0, INK], [8.1, 0.3, 0.9, 1.1, INKD], [1.6, 0.25, 1.3, 0.4, INKD], [9.2, 0.2, 1.7, 2, CHALK]])
+    for (let x = -7.6; x <= 7.6; x += 0.09) mk(S, 'box', c, 0.1, 0.07, 0.02, x, y0 + Math.sin(x * fr + ph) * amp, WALLZ);
+  for (let k = 0; k < 7; k++) {
+    const mx = 4.4 + (k % 2) * 1.3, my = 2.4 + Math.floor(k / 2) * 1.5;
+    if (my > 7.5) continue;
+    for (let j = 0; j < 12; j++) { const a = (j / 12) * TAU; mk(S, 'ico', INK, 0.07, 0.07, 0.02, mx + Math.cos(a) * 0.42, my + Math.sin(a) * 0.42, WALLZ); }
+    mk(S, 'ico', CHALK, 0.22, 0.22, 0.02, mx, my, WALLZ); mk(S, 'ico', INKD, 0.09, 0.09, 0.025, mx, my, WALLZ);
+  }
+  /* her child's copy, low on the wall: the same disc and the same motif, a generation worse, and running */
+  const ccx = -4.6, ccy = 1.45;
+  for (let k = 1; k < 46; k++) {
+    const r = 0.11 * Math.sqrt(k) * rnd(0.8, 1.25), a = k * rnd(2.0, 2.8), sz = rnd(0.06, 0.16);
+    const x = ccx + Math.cos(a) * r, y = ccy + Math.sin(a) * r;
+    mk(S, 'ico', INKC, sz, sz * rnd(0.7, 1.3), 0.02, x, y, WALLZ);
+    if (k % 4 === 0) mk(S, 'box', INKC, 0.03, rnd(0.2, 0.5), 0.02, x, y - 0.2, WALLZ);
+  }
+  for (let j = 0; j < 9; j++) { const a = (j / 9) * TAU + rnd(-0.3, 0.3); mk(S, 'ico', INKC, 0.1, 0.1, 0.02, -2.6 + Math.cos(a) * rnd(0.3, 0.5), 2.1 + Math.sin(a) * rnd(0.3, 0.5), WALLZ); }
+  mk(S, 'ico', CHALK, 0.26, 0.2, 0.02, -2.6, 2.1, WALLZ);
+  for (let x = -6.6; x <= -2.0; x += 0.14) mk(S, 'box', INKC, 0.13, 0.08, 0.02, x, 0.55 + Math.sin(x * 1.3) * 0.18 + rnd(-0.06, 0.06), WALLZ);
+  /* a work lamp on the floor */
+  const lamp = grp(S, 2.6, 0, -1.6);
+  mk(lamp, 'box', 0x2a2c2e, 0.5, 0.06, 0.4, 0, 0.03, 0);
+  beam(lamp, 0x404244, 0.04, 0.04, V(0, 0.05, 0), V(0, 0.6, 0.1));
+  mk(lamp, 'box', [2.9, 2.88, 2.8], 0.28, 0.2, 0.08, 0, 0.66, 0.12).rotation.x = -0.5;
+  const I = inesRig(S, 1, 0.6, -1.25, PI), C = inesRig(S, 0.38, -4.2, -2.15, PI, 1.18, SKINC);
+  const fig = figure(S, 2.4, 1.6, 2.6);
+  return {
+    S, fig, I, C, st: stroker(S, 900, 0.11), stc: stroker(S, 120, 0.15), room: [0.2, 0.2, 0.22],
+    glow: { pos: V(2.6, 0.8, -1.4), c: [0.9, 0.88, 0.82], r: 7.5 }, fog: 0.014,
+    cam: { tgt: V(-0.6, 3.6, -1.2), yaw: 0.75, pitch: 0.12, dist: 15, min: 1.5, max: 30 },
+    mode: 'paint', dot: 0, dotc: 0, seen: 0,
+  };
+}
+const INES_STATES = {
+  paint: ['Painting', 'Ines Calder, generation 2, about 7 m: very tall, lanky, and the growth went to the head. She paints in a fluid from her own hands and cannot stop; wet strokes are brighter, and go dark as they dry. Her eyes never settle. At the foot of the wall a child of hers, on another body, copies her: the colours and the structure, none of the meaning. (The mural is a stand-in.)', V(-0.6, 3.6, -1.2), 15, 0.75],
+  watch: ['She sees you', 'She stops, turns, and lowers herself to look: the long legs fold, the great head comes down on its neck. The eyes still jump; it is the visions, not you. Her hands drip.', V(0.8, 3.0, -0.2), 11, 0.55],
+};
+function setInes(mode) {
+  const M = INES; M.mode = mode;
+  const [, , tgt, dist, yaw] = INES_STATES[mode];
+  M.cam.tgt.copy(tgt); M.cam.dist = dist; M.cam.yaw = yaw; M.cam.pitch = 0.12;
+  if (PIA_READY) syncPanel();
+}
+const FOOT = new THREE.Vector3(), HANDT = new THREE.Vector3(), EYET = new THREE.Vector3();
+function poseInes(M, R, dt, now, painting, child) {
+  const s = R.s, watching = !painting && !child;
+  M.seen += ((watching ? 1 : 0) - M.seen) * damp(child ? 0 : 1.6, dt);
+  const w = child ? 0 : M.seen;
+  /* turn toward you, and fold */
+  if (!child) { const ty = Math.atan2(camera.position.x - R.root.position.x, camera.position.z - R.root.position.z); R.root.rotation.y = PI + w * wrap(ty - PI); }
+  R.hip = R.hip0 - w * 1.0 * s;
+  R.hipG.position.y = R.hip + Math.sin(now * 1.3) * 0.02 * s;
+  R.T.rotation.x = 0.12 + w * 0.7 + (child ? 0.15 : 0);
+  R.N.rotation.x = 0.15 + w * 0.45;
+  R.root.updateMatrixWorld(true);
+  for (const [k, L] of R.legs.entries()) {
+    FOOT.set((k ? 0.36 : -0.36) * s, 0.06 * s, 0.35 * s + w * 0.5 * s); R.root.localToWorld(FOOT);
+    reach(L, FOOT, 1);
+  }
+  /* the painting hand on the wall, the other hanging and dripping */
+  const pa = R.arms[0], ha = R.arms[1];
+  if (painting) {
+    if (child) {
+      if ((M.jt = (M.jt ?? 0) - dt) < 0) { M.jt = rnd(0.25, 0.6); M.cp = [rnd(-1, 1), rnd(-1, 1)]; }
+      HANDT.set(-4.6 + M.cp[0] * 0.7, 1.45 + M.cp[1] * 0.55, WALLZ + 0.06);
+    } else {
+      const r = 0.6 + 1.2 * (0.5 + 0.5 * Math.sin(now * 0.11)), a = now * 0.9;
+      HANDT.set(0.9 + Math.cos(a) * r, 5.0 + Math.sin(a) * r * 0.85, WALLZ + 0.06);
+    }
+  } else {
+    _a.set(0.55 * s, 2.4 * s - w * 0.6, 0.6 * s); R.root.localToWorld(_a); HANDT.copy(_a);
+  }
+  reach(pa, HANDT, -1);
+  _a.set(-0.6 * s, 2.0 * s - w * 0.7, 0.35 * s); R.root.localToWorld(_a); reach(ha, _a, -1);
+  pa.end.forEach((f, k) => (f.rotation.x = (painting ? -0.2 : 0.4) + Math.sin(now * 4 + k) * 0.05));
+  ha.end.forEach((f, k) => (f.rotation.x = 0.55 + Math.sin(now * 1.5 + k) * 0.06));
+  /* her head follows her hand, or you */
+  EYET.copy(watching ? camera.position : HANDT);
+  look(R.Hd, EYET, dt, 2.5, [1.0, 0.9]);
+  for (const E of R.eyes) lookEye(E, EYET, dt);
+  /* drips from the hanging hand */
+  ha.t.getWorldPosition(_b);
+  for (const d of R.drops) {
+    if ((d.t -= dt) < 0 && d.m.position.y < -1) { d.m.position.copy(_b); d.m.position.z += 0.5 * s; d.v = 0; }
+    if (d.m.position.y > -1) { d.v += 9.8 * dt; d.m.position.y -= d.v * dt; if (d.m.position.y < 0.02) { d.m.position.y = -9; d.t = rnd(0.4, 1.8); } }
+  }
+  return HANDT;
+}
+function stepInes(dt, now) {
+  const M = INES, painting = M.mode === 'paint';
+  const h = poseInes(M, M.I, dt, now, painting, false).clone();
+  if (painting && (M.dot -= dt) < 0) { M.dot = 0.07; M.st.add(h.x + rnd(-0.03, 0.03), h.y + rnd(-0.03, 0.03), Math.random() < 0.08 ? CHALK : INK, INKWET, now, rnd(0.08, 0.12) > 0.1 ? 0.12 : 0.09); }
+  const hc = poseInes(M, M.C, dt, now, true, true);
+  if ((M.dotc -= dt) < 0) { M.dotc = 0.3; M.stc.add(hc.x + rnd(-0.08, 0.08), hc.y + rnd(-0.08, 0.08), INKC, INKWET, now); }
+  M.st.step(now); M.stc.step(now);
+}
+
+/* ================================================================================================================ */
+/* DALE MERCER, generation 2: the strong leaf; employee of the month. An elder, so the plant shows on him: tobacco leaf
+   grown out of him in shelves, the way a bracket fungus stacks, gone the colour of nicotine. No head at all: a chest on
+   two mutated legs, and one hole in the torso that leaks what he makes into the tub. His line looks like him */
+const DN = [0x9a8656, 0x8c7a4c, 0xa6925e, 0x7e6c42], DNH = 0x2a2010, DOT = 0x4a3a20;
+const LEAFN = [0x8a7a2a, 0x9c8a34, 0x7a6a24, 0xa89440];
+const STIM = 0x7a6a1e, STIMD = 0x64561a, STIMW = 0x9c8a2c, TILE = 0x8a9294, TILEL = 0x9aa2a4;
+/** a shelf of leaves, out from the body along yaw, in tiers, nearly flat */
+function shelf(parent, c, yaw, tiers, len) {
+  for (let j = 0; j < tiers; j++)
+    for (let i = -1; i <= 1; i++)
+      rleaf(parent, c.x, c.y + j * len * 0.13, c.z, yaw + i * 0.55 + rnd(-0.15, 0.15), len * (1 - j * 0.16) * rnd(0.85, 1.1), rnd(0.02, 0.16), LEAFN[(i + j + 4) % 4]);
+}
+/** a hole in the body: a lumped rim, dark inside. Teeth in it, for the sleepless */
+function hole(parent, x, y, z, r, teeth) {
+  const g = grp(parent, x, y, z);
+  for (let j = 0; j < 10; j++) { const a = (j / 10) * TAU; mk(g, 'ico', DN[1], r * 0.55, r * 0.55, r * 0.4, Math.cos(a) * r, Math.sin(a) * r, 0); }
+  mk(g, 'ico', DNH, r * 1.7, r * 1.7, r * 0.5, 0, 0, -0.02);
+  let ring = null;
+  if (teeth) { ring = grp(g, 0, 0, 0.02); for (let j = 0; j < 12; j++) { const a = (j / 12) * TAU; const m = mk(ring, 'box', TEETH, r * 0.18, r * 0.32, r * 0.2, Math.cos(a) * r * 0.62, Math.sin(a) * r * 0.62, 0); m.rotation.z = a + PI / 2; } }
+  return { g, ring };
+}
+const TEETH = 0xd2c690;
+/** one of his line: a chest on legs, no head. k sizes it; tw the torso's width; ll, lw the legs' length and thickness; an
+   arm, perhaps; a lump where a head was, perhaps; leaves a few, or none */
+function spawn(parent, o) {
+  const k = o.k ?? 1, tw = o.tw ?? 1, ll = o.ll ?? 1, lw = o.lw ?? 1;
+  const root = grp(parent, o.x, o.y ?? 0, o.z); root.rotation.y = o.yaw;
+  const hipY = 1.0 * k * ll, P = { root, k, hipY, ll, tw };
+  P.legs = [-1, 1].map(s => {
+    const L = limb(root, [s * 0.24 * k * tw, hipY, 0], 0.56 * k * ll, 0.56 * k * ll, DN[1], DN[2], 0.17 * k * lw, t => { mk(t, 'ico', DN[1], 0.2 * k * lw, 0.09 * k, 0.36 * k * lw, 0, -0.02 * k, 0.12 * k); for (let j = 0; j < 3; j++) mk(t, 'box', DN[0], 0.04 * k, 0.04 * k, 0.18 * k, (j - 1) * 0.07 * k * lw, -0.04 * k, 0.3 * k); return []; }, { joint: DN[0] });
+    mk(L.h, 'ico', DN[0], 0.24 * k * lw, 0.22 * k * lw, 0.3 * k, 0, 0, 0.32 * k * ll);
+    return L;
+  });
+  const T = grp(root, 0, hipY, 0); P.T = T; T.rotation.x = o.hunch ?? 0;
+  mk(T, 'ico', DN[0], 0.72 * k * tw, 0.6 * k, 0.56 * k, 0, 0.28 * k, 0.03 * k);
+  P.chest = mk(T, 'ico', DN[2], 0.92 * k * tw, 0.82 * k, 0.66 * k, 0, 0.82 * k, 0);
+  mk(T, 'ico', DN[1], 1.2 * k * tw, 0.36 * k, 0.56 * k, 0, 1.2 * k, -0.02 * k);
+  for (const s of [-1, 1]) mk(T, 'ico', DOT, 0.05 * k, 0.05 * k, 0.025 * k, s * 0.2 * k * tw, 0.95 * k, 0.285 * k);
+  /* the small ones have only a navel, the same dot; the bigger have the hole */
+  if (o.navel) mk(T, 'ico', DOT, 0.05 * k, 0.05 * k, 0.025 * k, 0, 0.36 * k, 0.3 * k);
+  else P.hole = hole(T, 0, 0.42 * k, 0.29 * k, 0.07 * k, false);
+  /* about half keep a head at full growth: the same colour as the rest, lumped, no hair, eyes and a mouth like dots */
+  if (o.head) {
+    const N = grp(T, 0, 1.34 * k, 0.02 * k); P.N = N;
+    mk(N, 'cyl', DN[1], 0.17 * k, 0.16 * k, 0.17 * k, 0, 0.04 * k, 0);
+    const H = grp(N, 0, 0.24 * k, 0.03 * k); P.H = H;
+    mk(H, 'ico', DN[2], 0.3 * k, 0.34 * k, 0.32 * k, 0, 0, 0);
+    mk(H, 'ico', DN[0], 0.17 * k, 0.12 * k, 0.15 * k, rnd(-0.06, 0.06) * k, 0.12 * k, -0.07 * k);
+    mk(H, 'ico', DN[1], 0.22 * k, 0.1 * k, 0.2 * k, 0, -0.13 * k, 0.05 * k);
+    for (const s of [-1, 1]) mk(H, 'ico', DOT, (o.teeth ? 0.055 : 0.04) * k, (o.teeth ? 0.05 : 0.03) * k, 0.02 * k, s * 0.07 * k, 0.04 * k, 0.155 * k);
+    mk(H, 'box', DNH, 0.1 * k, (o.teeth ? 0.05 : 0.018) * k, 0.02 * k, 0, -0.1 * k, 0.15 * k);
+    if (o.teeth) { mk(H, 'box', TEETH, 0.09 * k, 0.016 * k, 0.02 * k, 0, -0.082 * k, 0.158 * k); P.teethG = grp(H, 0, -0.118 * k, 0.158 * k); mk(P.teethG, 'box', TEETH, 0.09 * k, 0.016 * k, 0.02 * k, 0, 0, 0); }
+    for (let j = 0; j < (o.crown ?? 0); j++) { const a = (j / Math.max(1, o.crown)) * TAU + rnd(-0.3, 0.3); shelf(H, V(Math.sin(a) * 0.08 * k, 0.15 * k, Math.cos(a) * 0.06 * k - 0.03 * k), a, 2, 0.32 * k); }
+  } else for (let j = 0; j < (o.crown ?? 0); j++) { const a = (j / Math.max(1, o.crown)) * TAU + rnd(-0.3, 0.3); shelf(T, V(Math.sin(a) * 0.3 * k * tw, 1.3 * k, Math.cos(a) * 0.18 * k), a, 2 + (j % 2), 0.45 * k); }
+  if (o.leak) for (let j = 0; j < 2; j++) mk(T, 'box', STIM, 0.025 * k, rnd(0.15, 0.3) * k, 0.025 * k, (j - 0.5) * 0.05 * k, 0.28 * k, 0.32 * k);
+  for (let j = 0; j < (o.leaves ?? 0); j++) { const a = rnd(-PI, PI); shelf(T, V(Math.sin(a) * 0.45 * k * tw, rnd(0.9, 1.3) * k, Math.cos(a) * 0.25 * k), a, 2, 0.4 * k); }
+  if (o.arm) P.arm = limb(T, [o.arm.side * 0.58 * k * tw, 1.18 * k, 0], 0.48 * k * o.arm.L, 0.44 * k * o.arm.L, DN[1], DN[2], 0.13 * k * o.arm.w, fatHand(0.7 * k * Math.sqrt(o.arm.w * o.arm.L), DN[0], DN[1]), { joint: DN[0] });
+  return P;
+}
+/** plant a standing one's feet under it, a little forward */
+function stand(P, dt, step) {
+  for (const [i, L] of P.legs.entries()) {
+    const s = i ? 1 : -1, ph = step ? step + i * PI : 0;
+    _a.set(s * 0.3 * P.k * P.tw, step ? Math.max(0, Math.sin(ph)) * 0.14 * P.k : 0.04 * P.k, 0.12 * P.k + (step ? Math.cos(ph) * 0.3 * P.k : 0));
+    P.root.localToWorld(_a); reachP(L, _a, 1);
+  }
+}
+
+function buildDale() {
+  const S = new THREE.Scene();
+  floor(S, 22, 18, 0x34383a, 0x262a2c, 1.0);
+  mk(S, 'box', 0x3a3e40, 22, 7, 0.3, 0, 3.5, -5.2);
+  mk(S, 'box', 0x3a3e40, 0.3, 7, 18, -9.0, 3.5, 0);
+  /* the tub: a basin in the court, tiled, full to near the rim with what he makes. Its back stands high where he leans
+     on it, and with him in front of it, from across the room, it reads as a throne */
+  const PW = 8, PD = 7, RIM = 1.0, LV = 0.9;
+  for (const [x, z, w, d] of [[0, PD / 2, PW + 0.5, 0.25], [0, -PD / 2, PW + 0.5, 0.25], [PW / 2, 0, 0.25, PD], [-PW / 2, 0, 0.25, PD]]) {
+    mk(S, 'box', TILE, w, RIM, d, x, RIM / 2, z);
+    mk(S, 'box', TILEL, w + 0.06, 0.06, d + 0.06, x, RIM + 0.03, z);
+  }
+  mk(S, 'box', TILE, 4.8, 2.9, 0.5, 0, 1.45, -PD / 2 + 0.12); mk(S, 'box', TILEL, 4.86, 0.06, 0.56, 0, 2.93, -PD / 2 + 0.12);
+  for (const s of [-1, 1]) { mk(S, 'box', TILE, 0.6, 1.7, 1.6, s * 2.7, 0.85, -PD / 2 + 0.9); mk(S, 'box', TILEL, 0.66, 0.06, 1.66, s * 2.7, 1.73, -PD / 2 + 0.9); }
+  mk(S, 'box', STIMD, 4.82, 0.5, 0.52, 0, 1.05, -PD / 2 + 0.12);
+  mk(S, 'box', STIM, PW - 0.25, 0.05, PD - 0.25, 0, LV, 0);
+  for (let k = 0; k < 9; k++) mk(S, 'ico', k % 2 ? STIMD : STIMW, rnd(0.6, 1.6), 0.012, rnd(0.4, 1.2), rnd(-3.4, 3.4), LV + 0.03, rnd(-3, 3)).rotation.y = rnd(0, TAU);
+  /* Dale: a chest, no head, sat in the tub on two mutated legs, one knee up out of it and the other leg out over the side */
+  const D = { root: grp(S, 0, 0, -2.0) }, R = D.root, T = grp(R, 0, 0.55, 0); D.T = T;
+  mk(T, 'ico', DN[0], 2.4, 1.5, 1.8, 0, 0.8, 0.15);
+  D.chest = mk(T, 'ico', DN[2], 2.7, 2.3, 1.95, 0, 1.8, 0.0);
+  for (const s of [-1, 1]) mk(T, 'ico', DOT, 0.1, 0.1, 0.05, s * 0.6, 2.15, 0.83);
+  mk(T, 'ico', DN[1], 3.4, 0.95, 1.6, 0, 2.85, -0.1);
+  mk(T, 'ico', DN[0], 2.2, 0.55, 1.3, 0, 3.25, -0.12);
+  /* the one hole, low in the front of him, and what runs out of it */
+  D.hole = hole(T, 0, 1.2, 0.98, 0.26, false);
+  D.stream = beam(S, STIM, 0.14, 0.1, V(0, 1.6, -0.95), V(0, LV, -0.45));
+  /* the leaves: shelves of them, over the shoulders where a head would be, down the back and the sides */
+  for (let j = 0; j < 7; j++) { const a = (j / 7) * TAU; shelf(T, V(Math.sin(a) * 0.9, 3.15 + rnd(-0.1, 0.15), -0.12 + Math.cos(a) * 0.55), a, 3, 1.15); }
+  for (const s of [-1, 1]) { shelf(T, V(s * 1.6, 2.5, -0.1), s * PI / 2, 4, 1.05); shelf(T, V(s * 1.25, 1.6, 0.3), s * 1.1, 3, 0.85); shelf(T, V(s * 0.9, 2.85, 0.55), s * 0.5, 2, 0.75); }
+  shelf(T, V(0, 2.2, -0.95), PI, 4, 1.1); shelf(T, V(0, 1.3, -0.85), PI, 3, 0.9);
+  for (const s of [-1, 1]) { shelf(T, V(s * 1.0, 0.95, 0.65), s * 0.85, 3, 0.85); shelf(T, V(s * 0.55, 3.0, 0.72), s * 0.3, 2, 0.65); shelf(T, V(s * 1.45, 1.05, -0.4), s * 2.0, 3, 0.9); shelf(T, V(s * 1.15, 2.0, -0.7), s * 2.4, 3, 0.9); }
+  /* the legs: thick, knotted, too long */
+  D.legs = [];
+  for (const [s, L1, L2, w] of [[-1, 1.5, 1.6, 0.55], [1, 2.8, 2.4, 0.5]]) {
+    const L = limb(T, [s * 0.75, 0.3, 0.45], L1, L2, DN[1], DN[2], w, t => { mk(t, 'ico', DN[1], 0.6, 0.22, 0.9, 0, -0.05, 0.35); for (let j = 0; j < 4; j++) mk(t, 'box', DN[0], 0.09, 0.08, 0.5, (j - 1.5) * 0.14, -0.08, 0.8); return []; }, { joint: DN[0] });
+    for (let j = 0; j < 3; j++) mk(L.h, 'ico', DN[0], w * 1.3, w * 1.2, w * 1.1, rnd(-0.1, 0.1), rnd(-0.1, 0.1), L1 * (0.25 + j * 0.25));
+    for (let j = 0; j < 2; j++) mk(L.k, 'ico', DN[0], w * 1.15, w * 1.1, w, 0, 0, L2 * (0.3 + j * 0.35));
+    shelf(L.h, V(w * 0.5, 0, L1 * 0.55), PI / 2, 2, 0.7); shelf(L.k, V(-w * 0.5, 0, L2 * 0.4), -PI / 2, 2, 0.6);
+    shelf(L.h, V(-w * 0.5, 0.1, L1 * 0.3), -PI / 2, 2, 0.6); shelf(L.k, V(w * 0.5, 0.05, L2 * 0.7), PI / 2, 2, 0.55);
+    D.legs.push(L);
+  }
+  D.drops = [0, 1, 2, 3, 4].map(() => ({ m: mk(S, 'ico', STIMW, 0.09, 0.13, 0.09, 0, -9, 0), t: rnd(0, 1), v: 0 }));
+  D.rip = [0, 1, 2, 3].map(() => ({ m: mk(S, 'cyl', STIMW, 1, 0.01, 1, 0, -9, 0), t: 9 }));
+  /* his eldest: as wrong as he is, fewer leaves, less of the ooze, the same colour */
+  const court = [
+    spawn(S, { x: -4.8, z: 0.6, yaw: PI / 2, k: 1.05, tw: 1.3, ll: 2.72, lw: 1.45, head: true, crown: 3, leaves: 1, leak: true }),
+    spawn(S, { x: 4.9, z: 2.2, yaw: -PI / 2, k: 1.1, tw: 1.45, ll: 1.42, lw: 3.3, crown: 4, leaves: 1, leak: true }),
+    spawn(S, { x: -2.9, z: 4.6, yaw: 0.5, k: 0.8, tw: 1.1, head: true, crown: 1, navel: true }),
+    spawn(S, { x: 1.8, z: 4.8, yaw: 0.15, k: 1.15, tw: 1.2, ll: 1.74, lw: 1.5, arm: { side: 1, L: 1.5, w: 2.2 }, crown: 2, leak: true }),
+    spawn(S, { x: 3.9, z: 4.3, yaw: -0.4, k: 0.75, tw: 1.15, navel: true }),
+    spawn(S, { x: -4.7, z: -1.9, yaw: PI / 2, k: 0.95, tw: 1.1, head: true, crown: 2, arm: { side: -1, L: 1.2, w: 1.2 }, navel: true }),
+  ];
+  const off = court[3];
+  mk(off.arm.k, 'box', 0x5a1410, 0.13 * 2.2 * off.k * 1.05, 0.13 * 2.2 * off.k * 1.05, 0.06 * off.k, 0, 0, off.arm.L2 * 0.82);
+  /* the urn by the wall: low doses, left where people drink */
+  const urn = grp(S, -7.6, 0, -3.6);
+  mk(urn, 'box', 0x4a4e52, 0.6, 1.0, 0.5, 0, 0.5, 0);
+  mk(urn, 'cyl', 0xb7a65a, 0.36, 0.55, 0.36, 0, 1.3, 0);
+  for (let j = 0; j < 4; j++) mk(urn, 'cyl', 0xd8d4c8, 0.08, 0.1, 0.08, -0.2 + j * 0.13, 1.05, 0.2);
+  /* employee of the month, framed, on the back wall: a man, with a head */
+  const fr = grp(S, 4.6, 3.4, -5.03);
+  mk(fr, 'box', 0x6a5a3a, 0.9, 1.1, 0.05, 0, 0, 0); mk(fr, 'box', 0xcfc8b6, 0.72, 0.92, 0.03, 0, 0, 0.02);
+  mk(fr, 'ico', 0x684b3c, 0.22, 0.27, 0.03, 0, 0.12, 0.04); mk(fr, 'box', 0x3a4a6a, 0.42, 0.28, 0.03, 0, -0.2, 0.04);
+  for (let j = 0; j < 2; j++) mk(fr, 'box', 0x6a6a6a, 0.5 - j * 0.14, 0.03, 0.03, 0, 0.4 - j * 0.06, 0.04);
+  /* the doorway, and one of the sleepless keeping its distance: the same kind, hunched, and mad. Its hole has teeth */
+  mk(S, 'box', 0x1a1c1d, 1.6, 2.6, 0.32, 7.2, 1.3, -5.2);
+  const sl = spawn(S, { x: 6.4, z: -3.4, yaw: 0, k: 1.0, tw: 1.2, ll: 1.35, hunch: 0.45, head: true, teeth: true, crown: 1, navel: true, arm: { side: 1, L: 1.9, w: 0.8 } });
+  const fig = figure(S, -1.6, 6.4, PI + 0.3);
+  return {
+    S, fig, D, court, sl, LV, room: [0.22, 0.215, 0.205],
+    glow: { pos: V(0.5, 5.5, 2.5), c: [0.72, 0.7, 0.64], r: 11 }, fog: 0.02,
+    cam: { tgt: V(-1.8, 2.4, -0.6), yaw: 0.3, pitch: 0.3, dist: 15, min: 1.5, max: 40 },
+    mode: 'court', pace: 0, dir: 1, grind: 0,
+  };
+}
+const DALE_STATES = {
+  court: ['His court', 'Dale Mercer, generation 2, employee of the month: his photograph, with a head, is still on the wall. He is an elder, and the plant shows: tobacco leaf grows out of him in shelves, stacked the way a bracket fungus stacks, gone the colour of nicotine. He has no head at all. He is a chest, sat in the tub on two mutated legs, one knee up out of it and one leg out over the side to the floor, and from one hole low in his front what he makes runs into the tub. What looks like a throne is the tub\'s high back. His eldest stand round him, as wrong as he is: the same colour, fewer leaves, less of the ooze, about half of them with heads, the same colour as the rest, the leaf out of the tops of them in more or less; the small ones with only a navel where the big ones have the hole. By the wall, the urn: low doses, left where people drink.', V(-1.8, 2.4, -0.6), 15, 0.3],
+  offer: ['The offer', 'One of his eldest, one arm grown huge, holds out a wrist, cut open: a graft offered. They mean well, and they want more children. Take it and you lose a few nights to the edge of madness, then you are immune; your blood carries it, and the sleepless keep away from your smell. He will not graft you himself.', V(1.7, 2.5, 4.9), 8.0, -0.6],
+  sleepless: ['The sleepless', 'At the door, keeping its distance: one of the energetics, still in it. The same kind as the rest of his line, hunched on long legs, and plainly mad; the sleepless mostly keep their heads. It never stops moving, and you can hear its teeth (sound on). It need not have been one of his: any mutant that gets enough of the tub goes the same way.', V(6.4, 1.6, -3.0), 7.0, 0.5],
+};
+function setDale(mode) {
+  const M = DALE; M.mode = mode;
+  const [, , tgt, dist, yaw] = DALE_STATES[mode];
+  M.cam.tgt.copy(tgt); M.cam.dist = dist; M.cam.yaw = yaw; M.cam.pitch = mode === 'court' ? 0.45 : 0.12;
+  if (PIA_READY) syncPanel();
+}
+/* the teeth: short dry bursts of high noise, in a rhythm that never settles */
+let gac = null, gbuf = null;
+function grindNoise() {
+  try {
+    if (!gac) { gac = new AudioContext(); gbuf = gac.createBuffer(1, gac.sampleRate * 0.12, gac.sampleRate); const d = gbuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (0.5 + 0.5 * Math.sin(i * 0.09)); }
+    if (gac.state === 'suspended') gac.resume();
+    const t = gac.currentTime + 0.005, n = gac.createBufferSource(), f = gac.createBiquadFilter(), g = gac.createGain();
+    n.buffer = gbuf; f.type = 'bandpass'; f.frequency.value = rnd(1800, 3200); f.Q.value = 2.5;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(rnd(0.15, 0.35), t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + rnd(0.05, 0.11));
+    n.connect(f); f.connect(g); g.connect(gac.destination); n.start(t); n.stop(t + 0.12);
+  } catch { /* no sound */ }
+}
+const DT = new THREE.Vector3();
+function stepDale(dt, now) {
+  const M = DALE, D = M.D;
+  /* he breathes, slowly; the hole works, and what comes out of it comes in surges */
+  const br = Math.sin(now * 0.55), pulse = Math.pow(Math.max(0, Math.sin(now * 1.6)), 6);
+  D.chest.scale.set(1 + 0.025 * br, 1 + 0.03 * br, 1 + 0.035 * br);
+  D.hole.g.scale.setScalar(1 + 0.12 * pulse);
+  D.stream.scale.x = 1 + pulse * 0.8; D.stream.scale.y = 1 + pulse * 0.8;
+  /* one knee up out of the tub, the other leg out over the side, its foot on the floor */
+  DT.set(-1.5, 0.2, 0.5); reach(D.legs[0], DT, 1);
+  DT.set(5.3, 0.1, -1.0); reach(D.legs[1], DT, 1);
+  DT.set(0, 1.2, 1.1); D.T.localToWorld(DT);
+  for (const d of D.drops) {
+    if ((d.t -= dt) < 0 && d.m.position.y < -1) { d.m.position.set(DT.x + rnd(-0.12, 0.12), DT.y, DT.z); d.v = 0; }
+    if (d.m.position.y > -1) {
+      d.v += 9.8 * dt; d.m.position.y -= d.v * dt; d.m.position.z += dt * 0.5;
+      if (d.m.position.y < M.LV) {
+        const r = D.rip.find(x => x.t > 1.2) ?? D.rip[0]; r.t = 0; r.m.position.set(d.m.position.x, M.LV + 0.04, d.m.position.z);
+        d.m.position.y = -9; d.t = rnd(0.1, 0.8) / (1 + pulse * 3);
+      }
+    }
+  }
+  for (const r of D.rip) { r.t += dt; const s = 0.1 + r.t * 0.9; r.m.scale.set(s, 1, s); if (r.t > 1.2) r.m.position.y = -9; }
+  /* his eldest: standing, breathing; one holds out a wrist when you are offered */
+  M.court.forEach((P, i) => {
+    P.chest.scale.setScalar(1 + 0.03 * Math.sin(now * 0.7 + i));
+    stand(P, dt);
+    if (P.H) look(P.H, M.mode === 'offer' ? camera.position : D.T.getWorldPosition(DT).setY(2.8), dt, 1.2, [0.8, 0.5]);
+    if (P.arm) {
+      const L = P.arm, len = L.L1 + L.L2, sx = L.h.position.x;
+      if (i === 3 && M.mode === 'offer') { DT.set(sx + 0.1 * P.k, P.hipY + 1.1 * P.k, len); P.root.localToWorld(DT); reach(L, DT, -1); L.k.rotation.z = -1.4; L.end.forEach(f => (f.rotation.x = -0.1)); }
+      else { DT.set(sx + Math.sign(sx) * 0.08 * P.k, P.hipY + 1.18 * P.k - len * 0.97, 0.1 * P.k); P.root.localToWorld(DT); reach(L, DT, -1); L.k.rotation.z = 0; L.end.forEach(f => (f.rotation.x = 0.5)); }
+    }
+  });
+  /* the sleepless: back and forth by the door, never still; the teeth in its hole grind */
+  const sl = M.sl;
+  sl.root.position.x += M.dir * dt * 0.9;
+  if (sl.root.position.x > 7.6) M.dir = -1; else if (sl.root.position.x < 4.8) M.dir = 1;
+  sl.root.rotation.y += ((M.dir > 0 ? PI / 2 : -PI / 2) - sl.root.rotation.y) * damp(6, dt);
+  M.pace += dt * 6.5;
+  sl.root.updateMatrixWorld(true);
+  stand(sl, dt, M.pace);
+  sl.T.rotation.z = Math.sin(now * 13) * 0.025;
+  sl.teethG.position.x = Math.sin(now * 19) * 0.012;
+  look(sl.H, M.mode === 'sleepless' ? camera.position : DT.set(0, 2, -2), dt, 6, [1.0, 0.5]);
+  const A = sl.arm; DT.set(A.h.position.x + 0.1, sl.hipY + 1.1 - (A.L1 + A.L2) * 0.9, Math.sin(M.pace) * 0.3); sl.root.localToWorld(DT); reachP(A, DT, -1);
+  A.end.forEach((f, k) => (f.rotation.x = 0.2 + Math.sin(now * 23 + k) * 0.3));
+  if (M.mode === 'sleepless' && soundEl.checked && (M.grind -= dt) < 0) { M.grind = rnd(0.07, 0.22) + (Math.random() < 0.15 ? rnd(0.3, 0.7) : 0); grindNoise(); }
+}
+
+/* ================================================================================================================ */
+/* SAM OKORO, generation 2: a bit of everything. A big man, a quarter bigger than the thresher, built like a golem; his
+   body a patchwork of pieces swapped with friends, each seam sealed in amber (Holt's wax). He glows: his blood, the
+   mushrooms on his skin, and a light in one hand, Holt's gift. Bright on a good day, dim on a bad one. Her heliotropes
+   follow the light, so they always know where he is */
+const CLOTH = [0xbab4a4, 0xa8a292, 0x7a8290], SAMK = [0x8a6a52, 0x7e604a, 0x96765c], PATCH = [0xc8a080, 0x5a4234, 0xb08a6c, 0x6e5040];
+const SHRM = [2.12, 2.55, 2.48], SHRMD = 0x4e6e68, ARMG = [2.72, 2.93, 2.98], ARMGD = 0x7a8c94, NEON = [2.25, 2.85, 2.98], BLOOD = ARMG, CAP = 0x9ab8ae, SAMHIP = 1.62;
+function buildSam() {
+  const S = new THREE.Scene();
+  floor(S, 16, 14, 0x2e3133, 0x232628, 1.2);
+  mk(S, 'box', 0x34383a, 16, 5, 0.3, 0, 2.5, -6.2);
+  mk(S, 'box', 0x34383a, 0.3, 5, 14, -7.4, 2.5, 0);
+  /* the quiet room: folding chairs in rows, a lectern, a bench along the wall */
+  for (let r = 0; r < 2; r++) for (let c = 0; c < 5; c++) {
+    const g = grp(S, -2.4 + c * 1.2, 0, -3.6 + r * 1.1); g.rotation.y = rnd(-0.15, 0.15);
+    mk(g, 'box', 0x4a4e52, 0.46, 0.05, 0.44, 0, 0.46, 0); mk(g, 'box', 0x4a4e52, 0.46, 0.42, 0.04, 0, 0.7, -0.21);
+    for (const [x, z] of [[-0.2, -0.19], [0.2, -0.19], [-0.2, 0.19], [0.2, 0.19]]) mk(g, 'box', 0x2a2c2e, 0.03, 0.46, 0.03, x, 0.23, z);
+  }
+  mk(S, 'box', 0x5a4a3a, 0.7, 1.1, 0.45, 0, 0.55, -5.6); mk(S, 'box', 0x6a5a48, 0.8, 0.06, 0.55, 0, 1.13, -5.55).rotation.x = 0.2;
+  mk(S, 'box', 0x4a3e32, 3.2, 0.12, 0.6, -5.4, 0.55, 3.4); for (const x of [-6.8, -4.0]) mk(S, 'box', 0x2a2c2e, 0.1, 0.55, 0.5, x, 0.27, 3.4);
+  /* Holt's heliotropes, in pots along the walls: a stem, and a face that turns to the light */
+  const helios = [[-6.6, -4.8], [-3.8, -5.6], [3.6, -5.6], [6.4, -4.4], [-6.7, 0.6]].map(([x, z]) => {
+    const g = grp(S, x, 0, z);
+    mk(g, 'cyl', 0x4e3a2c, 0.5, 0.45, 0.5, 0, 0.22, 0);
+    const top = V(rnd(-0.1, 0.1), rnd(1.7, 2.3), rnd(-0.1, 0.1));
+    beam(g, 0x3f6a3a, 0.06, 0.06, V(0, 0.4, 0), top);
+    rleaf(g, 0, 0.9, 0, rnd(0, TAU), 0.45, 0.4); rleaf(g, 0, 1.3, 0, rnd(0, TAU), 0.38, 0.4);
+    const F = grp(g, top.x, top.y, top.z);
+    mk(F, 'ico', 0x3a2a14, 0.42, 0.42, 0.1, 0, 0, 0.05);
+    for (let j = 0; j < 14; j++) { const a = (j / 14) * TAU; mk(F, 'ico', 0xc9a83a, 0.2, 0.2, 0.04, Math.cos(a) * 0.31, Math.sin(a) * 0.31, 0.03); }
+    return F;
+  });
+  /* Sam: taller than he was broad, about 3.3 m, the most of it in the legs */
+  const root = grp(S, 2.8, 0, 0), R = { root }, hipY = SAMHIP;
+  R.legs = [-1, 1].map(s => limb(root, [s * 0.26, hipY, 0], 0.83, 0.83, s < 0 ? PATCH[2] : SAMK[1], SAMK[2], 0.29, t => { mk(t, 'ico', SAMK[1], 0.3, 0.14, 0.42, 0, -0.04, 0.12); return []; }, { joint: SAMK[0] }));
+  const T = grp(root, 0, hipY, 0); R.T = T;
+  mk(T, 'ico', SAMK[0], 0.85, 0.5, 0.54, 0, 0.05, 0);
+  mk(T, 'ico', SAMK[1], 0.92, 0.7, 0.62, 0, 0.41, 0.02);
+  R.chest = mk(T, 'ico', SAMK[2], 1.19, 0.86, 0.72, 0, 0.89, 0);
+  mk(T, 'ico', SAMK[0], 1.45, 0.48, 0.78, 0, 1.17, -0.04);
+  /* a loincloth, cut from a station sheet and knotted at the hip: what he keeps of being a man */
+  mk(T, 'cyl', CLOTH[0], 0.92, 0.16, 0.62, 0, 0.1, 0.0);
+  mk(T, 'ico', CLOTH[1], 0.12, 0.1, 0.1, 0.36, 0.1, 0.18);
+  R.flaps = [[0.3, 1], [-0.28, -1]].map(([z, s]) => { const g = grp(T, 0, 0.04, z); mk(g, 'box', CLOTH[s > 0 ? 0 : 1], 0.42, 0.7, 0.03, 0, -0.35, 0); mk(g, 'box', CLOTH[2], 0.42, 0.04, 0.035, 0, -0.68, 0); g.s = s; return g; });
+  /* the pieces swapped with friends: someone's chest, someone's shoulder */
+  for (const [x, y, z, sx, sy, sz, c] of [[0.3, 0.93, 0.33, 0.5, 0.48, 0.14, PATCH[0]], [-0.52, 1.18, 0.05, 0.47, 0.38, 0.6, PATCH[1]], [-0.2, 0.35, 0.29, 0.38, 0.36, 0.12, PATCH[3]]]) mk(T, 'ico', c, sx, sy, sz, x, y, z);
+  const N = grp(T, 0, 1.4, 0.05);
+  mk(N, 'cyl', SAMK[1], 0.3, 0.16, 0.28, 0, 0.0, 0);
+  const H = grp(N, 0, 0.21, 0.02); R.H = H;
+  mk(H, 'ico', SAMK[2], 0.36, 0.42, 0.38, 0, 0, 0);
+  mk(H, 'ico', SAMK[1], 0.25, 0.14, 0.23, 0, -0.14, 0.06);
+  mk(H, 'box', 0x3a2420, 0.11, 0.018, 0.02, 0, -0.1, 0.18);
+  /* the eyes: black where the white should be, and the irises neon */
+  R.eyes = [-1, 1].map(s => eye(H, 0.032, s * 0.075, 0.03, 0.16, { white: NEON, pupil: 0.95, slow: true }));
+  /* long arms; the left one glows, far brighter than the mushrooms, and lights the room */
+  R.arms = [-1, 1].map(s => limb(T, [s * 0.7, 1.08, 0], 0.86, 0.82, SAMK[1], SAMK[2], 0.21, fatHand(1.8, SAMK[0], SAMK[1]), { joint: SAMK[0] }));
+  const LA = R.arms[1];
+  R.glowArm = [
+    [mk(LA.h, 'box', ARMG, 0.24, 0.24, 0.84, 0, 0, 0.43), 'box', 0.24, 0.24, 0.84],
+    [mk(LA.k, 'box', ARMG, 0.21, 0.21, 0.8, 0, 0, 0.41), 'box', 0.21, 0.21, 0.8],
+    [mk(LA.k, 'ico', ARMG, 0.29, 0.26, 0.29, 0, 0.03, 0), 'ico', 0.29, 0.26, 0.29],
+    [mk(LA.t, 'ico', ARMG, 0.32, 0.15, 0.34, 0, -0.01, 0.13), 'ico', 0.32, 0.15, 0.34],
+  ];
+  /* shoulders: a ball where each arm meets him; the left one lit with its arm */
+  mk(T, 'ico', SAMK[0], 0.36, 0.34, 0.36, -0.7, 1.08, 0);
+  R.glowArm.push([mk(T, 'ico', ARMG, 0.37, 0.35, 0.37, 0.7, 1.08, 0), 'ico', 0.37, 0.35, 0.37]);
+  R.light = LA.k;
+  /* the mushrooms, all on his left side, thickest by the arm */
+  R.caps = [];
+  /* a mushroom standing out of the skin at p, facing out toward o (both in parent's frame) */
+  const shroom = (parent, p, o, s) => {
+    const g = grp(parent, p.x, p.y, p.z); g.lookAt(parent.localToWorld(o.clone()));
+    const f = grp(g, 0, 0, 0); f.rotation.x = PI / 2;
+    mk(f, 'cyl', CAP, 0.04 * s, 0.1 * s, 0.04 * s, 0, 0.04 * s, 0);
+    R.caps.push({ m: mk(f, 'ico', SHRM, 0.16 * s, 0.06 * s, 0.16 * s, 0, 0.1 * s, 0), s });
+  };
+  /* on the surface of his left side, thickest at the shoulder: [centre, radii, how many] of the body's own blobs */
+  for (const [c, r, n] of [[V(0, 1.17, -0.04), V(0.725, 0.24, 0.39), 12], [V(0, 0.89, 0), V(0.595, 0.43, 0.36), 9], [V(0, 0.41, 0.02), V(0.46, 0.35, 0.31), 4]]) {
+    let made = 0;
+    for (let k = 0; k < n * 20 && made < n; k++) {
+      const th = rnd(0, TAU), ph = Math.acos(rnd(-1, 1)), d = V(Math.sin(ph) * Math.cos(th), Math.cos(ph), Math.sin(ph) * Math.sin(th));
+      if (d.x < 0.45) continue;
+      shroom(T, V(c.x + d.x * r.x * 0.97, c.y + d.y * r.y * 0.97, c.z + d.z * r.z * 0.97), V(c.x + d.x * r.x * 3, c.y + d.y * r.y * 3, c.z + d.z * r.z * 3), rnd(0.6, 1.3));
+      made++;
+    }
+  }
+  for (let j = 0; j < 6; j++) { const a = rnd(-0.6, 2.2), z = rnd(0.1, 0.5); shroom(LA.h, V(Math.cos(a) * 0.12, Math.sin(a) * 0.12, z), V(Math.cos(a), Math.sin(a), z), rnd(0.5, 0.9)); }
+  /* the wound, when there is one: his blood glows, and only out of him */
+  R.wound = grp(T, -0.42, 0.62, 0.3); R.wound.visible = false;
+  mk(R.wound, 'box', 0x1a1012, 0.18, 0.04, 0.04, 0, 0, 0).rotation.z = 0.4;
+  mk(R.wound, 'box', BLOOD, 0.03, 0.22, 0.03, 0.02, -0.12, 0.02);
+  R.drops = [0, 1, 2].map(() => ({ m: mk(S, 'ico', BLOOD, 0.05, 0.08, 0.05, 0, -9, 0), t: rnd(0, 1), v: 0 }));
+  R.pool = []; R.pi = 0;
+  const fig = figure(S, 4.6, 3.2, -2.4);
+  return {
+    S, fig, R, helios, room: [0.05, 0.055, 0.06],
+    glow: { pos: V(0, 1, 0), c: [0.4, 0.95, 0.85], r: 9 }, fog: 0.03,
+    cam: { tgt: V(0, 1.4, 0), yaw: 0.6, pitch: 0.2, dist: 10, min: 1.5, max: 30 },
+    mode: 'good', a: 0, pace: 0, lit: 1,
+  };
+}
+const SAM_STATES = {
+  good: ['A good day', 'Sam Okoro, generation 2. He took every product at least once, and the strains nobody else would touch. A big man, about 3.3 m, long in the leg; his body a patchwork of pieces swapped with friends, because a graft is how he shows affection. The whites of his eyes are neon, the pupils black. He still wears a loincloth, knotted at the hip. His left arm glows, far brighter than the mushrooms crowded on that side of him, and it is the only light in the room. On a good day it is bright, and he walks the quiet room full of love for everything. His graft treats the mind, not the body: listen to what it does to the soundtrack (sound on).', V(0, 1.4, 0), 10, 0.6],
+  bad: ['A bad day', 'A bad day: no sleep, nothing in him to help it, and he sits it out on the bench, hunched and dim. Grumpy, never violent. The light goes down with him.', V(-4.6, 1.2, 2.8), 6.5, 0.7],
+  hurt: ['Hurt', 'Cut him and you see what is in his blood: it glows, out of him, on the floor and wherever it runs. Inside him nothing shows. He stands and looks at you; he does not fight back.', V(1.0, 1.4, 1.0), 8, 0.4],
+  gift: ['Holt\'s gift', 'The light was Holt\'s gift. Her heliotropes follow light, so wherever he walks they turn to his arm, and when he dims they lose him. The spores in his blood are her tissue too: they cannot let her read him, but they make him fond of her. His love for everything is his own; his warmth toward her was grown.', V(-1.0, 1.4, -1.6), 13, 0.35],
+};
+function setSam(mode) {
+  const M = SAM; M.mode = mode;
+  const [, , tgt, dist, yaw] = SAM_STATES[mode];
+  M.cam.tgt.copy(tgt); M.cam.dist = dist; M.cam.yaw = yaw; M.cam.pitch = mode === 'gift' ? 0.3 : 0.2;
+  for (const c of M.R.caps) c.m.geometry = geo('ico', mode === 'bad' ? SHRMD : SHRM, 0.16 * c.s, 0.06 * c.s, 0.16 * c.s);
+  for (const [m, sh, x, y, z] of M.R.glowArm) m.geometry = geo(sh, mode === 'bad' ? ARMGD : ARMG, x, y, z);
+  M.R.wound.visible = mode === 'hurt';
+  if (PIA_READY) syncPanel();
+}
+/* what his graft does to the soundtrack: a chord that is not in the room */
+let pad = null;
+function padSet(on) {
+  try {
+    if (on && !pad) {
+      const ac = new AudioContext(), out = ac.createGain(), lp = ac.createBiquadFilter();
+      lp.type = 'lowpass'; lp.frequency.value = 1400; out.gain.value = 0.0001; out.connect(lp); lp.connect(ac.destination);
+      const osc = [220, 277.18, 329.63, 440, 554.37].map((f, i) => {
+        const o = ac.createOscillator(), g = ac.createGain(), l = ac.createOscillator(), lg = ac.createGain();
+        o.type = i % 2 ? 'triangle' : 'sine'; o.frequency.value = f; o.detune.value = rnd(-6, 6);
+        g.gain.value = 0.12 / (1 + i * 0.4); l.frequency.value = 0.07 + i * 0.03; lg.gain.value = g.gain.value * 0.6;
+        l.connect(lg); lg.connect(g.gain); o.connect(g); g.connect(out); o.start(); l.start();
+        return [o, l];
+      });
+      out.gain.exponentialRampToValueAtTime(0.5, ac.currentTime + 3);
+      pad = { ac, out, osc };
+    } else if (!on && pad) {
+      const p = pad; pad = null;
+      p.out.gain.cancelScheduledValues(p.ac.currentTime); p.out.gain.setTargetAtTime(0.0001, p.ac.currentTime, 0.4);
+      setTimeout(() => p.ac.close(), 2000);
+    }
+  } catch { pad = null; }
+}
+const SP = new THREE.Vector3();
+function stepSam(dt, now) {
+  const M = SAM, R = M.R, good = M.mode !== 'bad';
+  M.lit += ((good ? 1 : 0.18) - M.lit) * damp(1.2, dt);
+  R.legs.forEach(L => (L.h.position.y = good ? SAMHIP : 0.66));
+  const still = M.mode === 'hurt';
+  if (good) {
+    /* he walks the room slowly, round the chairs */
+    if (!still) { M.a += dt * 0.16; M.pace += dt * 2.6; }
+    R.root.position.set(Math.cos(M.a) * 3.2, 0, Math.sin(M.a) * 1.9 - 0.4);
+    R.root.rotation.y = Math.atan2(-Math.sin(M.a) * 3.2, Math.cos(M.a) * 1.9);
+    R.T.position.y = SAMHIP + Math.abs(Math.sin(M.pace)) * 0.03 * (still ? 0 : 1); R.T.rotation.x = 0.04;
+    if (still) R.root.rotation.y = Math.atan2(camera.position.x - R.root.position.x, camera.position.z - R.root.position.z);
+    R.root.updateMatrixWorld(true);
+    for (const [i, L] of R.legs.entries()) { const ph = M.pace + i * PI; _a.set(i ? 0.3 : -0.3, still ? 0.05 : Math.max(0, Math.sin(ph)) * 0.14, 0.12 + (still ? 0 : Math.cos(ph) * 0.42)); R.root.localToWorld(_a); reachP(L, _a, 1); }
+    /* the light hand held a little forward and up, the other swinging */
+    /* the glowing arm held a little out, the other swinging; hurt, that hand goes to the wound */
+    _a.set(0.95, M.mode === 'gift' ? 2.5 : 1.8, 0.55); R.root.localToWorld(_a); reach(R.arms[1], _a, -1);
+    R.arms[1].end.forEach(f => (f.rotation.x = 0.2));
+    if (still) { _a.set(-0.4, SAMHIP + 0.62, 0.42); } else _a.set(-0.75, SAMHIP - 0.95, Math.sin(M.pace + PI) * 0.3);
+    R.root.localToWorld(_a); reachP(R.arms[0], _a, -1);
+    R.arms[0].end.forEach(f => (f.rotation.x = 0.6));
+  } else {
+    /* the bench: sat down, hunched over, hands on his knees */
+    R.root.position.set(-5.4, 0, 3.15); R.root.rotation.y = 0;
+    R.T.position.y = 0.66; R.T.rotation.x = 0.42;
+    R.root.updateMatrixWorld(true);
+    for (const [i, L] of R.legs.entries()) { _a.set(i ? 0.4 : -0.4, 0.05, 1.3); R.root.localToWorld(_a); reach(L, _a, 1); }
+    for (const [i, L] of R.arms.entries()) { _a.set(i ? 0.44 : -0.44, 1.05, 0.85); R.root.localToWorld(_a); reach(L, _a, -1); L.end.forEach(f => (f.rotation.x = 0.7)); }
+  }
+  /* his face: to you on a good day, down on a bad one */
+  if (good) { look(R.H, camera.position, dt, 1.0, [0.8, 0.4]); for (const E of R.eyes) lookEye(E, camera.position, dt); }
+  else { R.H.rotation.x += (0.5 - R.H.rotation.x) * damp(1, dt); R.H.rotation.y *= 0.98; }
+  R.chest.scale.setScalar(1 + 0.02 * Math.sin(now * 0.5));
+  /* the cloth swings as he walks; sat, it falls over his thighs */
+  for (const g of R.flaps) g.rotation.x = good ? -g.s * (0.08 + (still ? 0 : Math.sin(M.pace * 2) * 0.12)) : (g.s > 0 ? -1.1 : 0.2);
+  /* the light is his arm's, and it is as bright as he is */
+  R.light.getWorldPosition(SP);
+  M.glow.pos.copy(SP); M.glow.r = lerp(3.2, 9.5, M.lit);
+  const k = M.lit * (0.92 + 0.08 * Math.sin(now * 1.3));
+  M.glow.c = [0.4 * k, 0.95 * k, 0.85 * k];
+  /* the heliotropes turn to the light; when it fails they lose it and droop */
+  for (const F of M.helios) {
+    if (M.lit > 0.5) look(F, SP, dt, 0.8, [1.6, 1.0]);
+    else { F.rotation.x += (0.9 - F.rotation.x) * damp(0.5, dt); }
+  }
+  padSet(curName === 'sam' && M.mode !== 'bad' && soundEl.checked);
+  /* the blood, when he bleeds: it drips, and it pools on the floor, glowing */
+  if (still) {
+    R.wound.getWorldPosition(DT);
+    for (const d of R.drops) {
+      if ((d.t -= dt) < 0 && d.m.position.y < -1) { d.m.position.set(DT.x + rnd(-0.03, 0.03), DT.y - 0.2, DT.z + 0.05); d.v = 0; }
+      if (d.m.position.y > -1) {
+        d.v += 9.8 * dt; d.m.position.y -= d.v * dt;
+        if (d.m.position.y < 0.02) {
+          let p = R.pool[R.pi]; const sz = rnd(0.12, 0.3);
+          if (!p) { p = mk(M.S, 'ico', BLOOD, sz, 0.012, sz, 0, 0, 0); R.pool[R.pi] = p; }
+          p.position.set(d.m.position.x + rnd(-0.12, 0.12), 0.01, d.m.position.z + rnd(-0.12, 0.12)); p.visible = true;
+          R.pi = (R.pi + 1) % 40; d.m.position.y = -9; d.t = rnd(0.2, 0.7);
+        }
+      }
+    }
+  } else { for (const d of R.drops) d.m.position.y = -9; for (const p of R.pool) p.visible = false; }
+}
+
+/* ================================================================================================================ */
+/* TOM WREN, generation 2: the mild leaf. A very big man who lay down and stopped, and was grown through: his own spore
+   producers have come up through him, chest, belly, thighs and face, plant more than animal, and they throw spores that
+   grow into smaller ones round him. Holt moved him here, to a zone of his own, and sealed it */
+const TSK = [0x8e8a80, 0x84807a, 0x989488, 0x7a766e], TBRUISE = 0x5e5a4e;
+const SPR = [0xd6c24a, 0xc9b640, 0xe0cf62], STALK2 = [0xa9b27a, 0x9aa46c, 0xb4bc86], SPORE = 0xe6da8a;
+const TVENT = V(9.0, 3.4, -8.9), ROOTH = [0x4a5a2c, 0x3e4a26, 0x56663a];
+/** a spore producer: a ribbed stalk, out of whatever it grows from, and a mouth at the top that opens and throws */
+function producer(parent, x, y, z, h, tilt = 0) {
+  const g = grp(parent, x, y, z); g.rotation.set(rnd(-tilt, tilt), rnd(0, TAU), rnd(-tilt, tilt));
+  const segs = 5, P = { g, h, lips: [], ph: rnd(0, TAU) };
+  for (let j = 0; j < segs; j++) { const w = lerp(0.36, 0.2, j / (segs - 1)) * Math.sqrt(h); mk(g, 'cyl', STALK2[j % 3], w, h / segs + 0.02, w, 0, (j + 0.5) * h / segs, 0); mk(g, 'cyl', STALK2[1], w * 1.08, 0.025, w * 1.08, 0, j * h / segs, 0); }
+  const m = 0.32 * Math.sqrt(h);
+  mk(g, 'cyl', SPR[0], m * 0.9, 0.12 * m, m * 0.9, 0, h + 0.03, 0);
+  mk(g, 'ico', 0x3a3010, m * 0.55, 0.05, m * 0.55, 0, h + 0.1, 0);
+  for (let j = 0; j < 8; j++) { const a = (j / 8) * TAU, L = grp(g, Math.cos(a) * m * 0.42, h + 0.08, Math.sin(a) * m * 0.42); L.rotation.y = -a + PI / 2; mk(L, 'ico', SPR[j % 3], m * 0.32, m * 0.75, m * 0.16, 0, m * 0.32, 0); P.lips.push(L); }
+  return P;
+}
+function buildTom() {
+  const S = new THREE.Scene();
+  floor(S, 24, 18, 0x2c2f31, 0x222426, 1.2);
+  mk(S, 'box', 0x34383a, 24, 6, 0.3, 0, 3, -9.15);
+  mk(S, 'box', 0x34383a, 0.3, 6, 18, -12.15, 3, 0);
+  /* the way in, sealed: Holt's roots packed into the doorway, amber at the grafts */
+  mk(S, 'box', 0x1a1c1d, 2.4, 3.0, 0.3, -6.0, 1.5, -9.0);
+  for (let j = 0; j < 14; j++) { const x = -7.0 + j * 0.15; beam(S, ROOTH[j % 3], 0.16, 0.14, V(x + rnd(-0.1, 0.1), 0, -8.95), V(x + rnd(-0.2, 0.2), 3.0, -8.95)); }
+  for (const y of [0.8, 1.6, 2.4]) { beam(S, ROOTH[1], 0.12, 0.1, V(-7.1, y, -8.85), V(-4.9, y + rnd(-0.2, 0.2), -8.85)); }
+  /* the vent, and its fan */
+  mk(S, 'box', 0x2a2d2f, 1.3, 1.3, 0.12, TVENT.x, TVENT.y, -9.0);
+  const fan = grp(S, TVENT.x, TVENT.y, -8.93);
+  for (let j = 0; j < 4; j++) { const g = grp(fan, 0, 0, 0); g.rotation.z = j * PI / 2; mk(g, 'box', 0x55595c, 0.18, 0.55, 0.03, 0, 0.27, 0); }
+  /* Tom: a man four times the size of one, on his back where he lay down, his knees a little up, one arm over his chest */
+  const B = grp(S, -1.0, 0, -2.0); B.rotation.y = -0.35;
+  mk(B, 'ico', TSK[0], 2.6, 1.3, 3.2, 0, 0.62, 0);
+  mk(B, 'ico', TSK[2], 2.4, 1.2, 2.2, 0, 0.62, 2.1);
+  mk(B, 'ico', TSK[1], 2.3, 1.0, 1.7, 0, 0.55, -1.7);
+  mk(B, 'cyl', TSK[1], 0.9, 0.9, 0.9, 0, 0.6, 3.5).rotation.x = PI / 2;
+  const head = grp(B, 0, 0.75, 4.55); head.rotation.x = -0.25;
+  mk(head, 'ico', TSK[2], 1.35, 1.25, 1.55, 0, 0, 0);
+  mk(head, 'ico', TSK[1], 0.3, 0.55, 0.45, 0, 0.75, 0.3);
+  mk(head, 'ico', TSK[0], 0.75, 0.45, 0.6, 0, 0.35, 0.72);
+  for (const s of [-1, 1]) { mk(head, 'ico', TBRUISE, 0.22, 0.1, 0.16, s * 0.28, 0.58, 0.48); mk(head, 'ico', TSK[3], 0.3, 0.4, 0.3, s * 0.65, 0.05, 0.1); }
+  mk(head, 'box', TBRUISE, 0.36, 0.04, 0.08, 0, 0.62, 0.2);
+  for (const s of [-1, 1]) {
+    const knee = V(s * 0.8, 2.3, -3.5), hip = V(s * 0.6, 0.6, -2.0), foot = V(s * 0.9, 0.35, -5.4);
+    beam(B, TSK[0], 0.85, 0.8, hip, knee); beam(B, TSK[1], 0.7, 0.66, knee, foot);
+    mk(B, 'ico', TSK[3], 0.75, 0.55, 1.0, foot.x, 0.3, foot.z - 0.35);
+  }
+  beam(B, TSK[1], 0.6, 0.55, V(-1.4, 0.75, 2.8), V(-1.9, 0.3, 0.8)); beam(B, TSK[0], 0.5, 0.48, V(-1.9, 0.3, 0.8), V(-2.1, 0.25, -1.2));
+  beam(B, TSK[1], 0.6, 0.55, V(1.4, 0.75, 2.8), V(1.2, 1.35, 1.4)); beam(B, TSK[0], 0.5, 0.48, V(1.2, 1.35, 1.4), V(-0.2, 1.35, 1.9));
+  mk(B, 'ico', TSK[2], 0.55, 0.3, 0.7, -0.4, 1.4, 1.9);
+  /* the letters, under his hand on his chest and scattered by him */
+  for (let j = 0; j < 14; j++) {
+    const onChest = j < 3, x = onChest ? rnd(-0.6, -0.1) : rnd(-3.8, 3.8), z = onChest ? rnd(1.6, 2.2) : rnd(-5, 5), y = onChest ? 1.3 : 0.006 + j * 0.002;
+    if (!onChest && Math.abs(x) < 1.8 && z > -6 && z < 5.4) continue;
+    const m = mk(B, 'box', 0xdcd6c6, 0.32, 0.006, 0.44, x, y, z); m.rotation.y = rnd(0, TAU); if (onChest) m.rotation.x = -0.15;
+  }
+  /* what came up through him: torn skin at each, and the producers, tall, plant more than animal */
+  const prods = [];
+  for (const [x, y, z, h] of [[0.3, 1.2, 2.3, 3.0], [-0.5, 1.15, 1.6, 2.3], [0.6, 1.1, 0.8, 2.6], [-0.3, 1.2, 0.0, 3.4], [0.5, 1.2, -0.6, 1.9], [-0.6, 1.1, -1.3, 2.4], [0.2, 1.0, -1.9, 1.6],
+    [0.8, 1.6, -3.4, 1.4], [-0.75, 1.5, -3.7, 1.7], [0.2, 1.3, 4.7, 2.2], [-0.4, 1.2, 4.3, 1.5], [-1.9, 0.6, 0.2, 1.3], [1.3, 1.6, 1.5, 1.2]]) {
+    for (let j = 0; j < 6; j++) { const a = (j / 6) * TAU; mk(B, 'ico', TBRUISE, 0.3, 0.12, 0.3, x + Math.cos(a) * 0.28, y - 0.08, z + Math.sin(a) * 0.28); }
+    prods.push(producer(B, x, y - 0.1, z, h, 0.25));
+  }
+  /* his bubble: smaller ones, thrown by these, grown up out of the floor round him */
+  for (let j = 0; j < 46; j++) {
+    const a = rnd(0, TAU), r = Math.sqrt(rnd(0, 1)) * 8 + 2.8, x = -1.0 + Math.cos(a) * r * 1.1, z = -2.0 + Math.sin(a) * r * 0.8;
+    if (x < -11.5 || x > 11.5 || z < -8.6 || z > 8.6) continue;
+    prods.push(producer(S, x, 0, z, rnd(0.25, 0.25 + 1.2 * Math.max(0, 1 - (r - 2.8) / 8)), 0.15));
+  }
+  const motes = []; for (let j = 0; j < 320; j++) motes.push({ m: mk(S, 'ico', SPORE, 0.04, 0.04, 0.04, 0, -9, 0), v: V(0, 0, 0), life: 0 });
+  const fig = figure(S, 4.2, 4.0, -2.4);
+  return {
+    S, fig, B, prods, motes, fan, room: [0.17, 0.17, 0.155],
+    glow: { pos: V(0, 6, 3), c: [0.5, 0.48, 0.4], r: 18 }, fog: 0.016,
+    cam: { tgt: V(-1, 1.5, -1.5), yaw: 0.9, pitch: 0.4, dist: 17, min: 1.5, max: 40 },
+    mode: 'zone', fans: true, mi: 0,
+  };
+}
+const AMBER2 = 0xd2781a;
+const TOM_STATES = {
+  zone: ['His zone', 'Tom Wren, generation 2: the mild leaf. He was a very big man, four times a man\'s size, and he lay down here and stopped, and was grown through. Holt moved him to this zone and sealed it; her roots fill the doorway. Round him is his own bubble: the producers he threw, grown up out of the floor, thicker the nearer they are to him.', V(-1, 1.5, -1.5), 17, 1.1],
+  tom: ['Tom', 'Still a man, on his back, his knees a little up and one hand on his chest over his letters. His own spore producers have come up through him, out of his chest and belly and thighs and face, torn skin round each: ribbed stalks, plant more than animal, a mouth at the top of each that opens and throws. Sending them his love, as far as it can travel.', V(-0.6, 1.6, 0.0), 11, 1.22],
+  still: ['Fans off', 'Turn the fans off and they stop: the producers open and throw with the draught, and with no draught they hold their mouths shut. What they have thrown hangs in the air.', V(-1, 1.5, -1.5), 15, 0.4],
+};
+function setTom(mode) {
+  const M = TOM; M.mode = mode;
+  const [, , tgt, dist, yaw] = TOM_STATES[mode];
+  M.cam.tgt.copy(tgt); M.cam.dist = dist; M.cam.yaw = yaw; M.cam.pitch = mode === 'tom' ? 0.22 : 0.4;
+  M.fans = mode !== 'still';
+  if (PIA_READY) syncPanel();
+}
+function stepTom(dt, now) {
+  const M = TOM, flow = M.fans ? 1 : 0;
+  if (flow) M.fan.rotation.z += dt * 9;
+  for (const P of M.prods) {
+    P.ph += dt * (0.3 + 0.9 * flow);
+    const s = flow ? Math.sin(P.ph) : -0.7;
+    for (const L of P.lips) L.rotation.x = -0.15 - 0.6 * Math.max(0, s) + 0.45 * Math.max(0, -s);
+    if (flow && s > 0.9 && P.h > 0.9 && Math.random() < 0.25) { _a.set(0, P.h + 0.2, 0); P.g.localToWorld(_a); spawnMote(M, _a.clone(), V(rnd(-0.15, 0.15), 0.5 + rnd(0, 0.3), rnd(-0.15, 0.15))); }
+  }
+  /* what they throw goes where the air goes: to the vent, with the fans on */
+  for (const d of M.motes) {
+    if (d.life <= 0) continue;
+    d.life -= dt;
+    const p = d.m.position;
+    if (flow) { _b.copy(TVENT).sub(p).setLength(0.25); _b.y += Math.sin(now + p.x) * 0.05; d.v.lerp(_b, damp(0.25, dt)); }
+    else d.v.multiplyScalar(1 - damp(1.5, dt));
+    d.v.x += rnd(-0.02, 0.02); d.v.y += rnd(-0.02, 0.02); d.v.z += rnd(-0.02, 0.02);
+    p.addScaledVector(d.v, dt); p.y = clamp(p.y, 0.05, 5.8);
+    if (p.distanceTo(TVENT) < 0.7 || d.life <= 0) { d.life = 0; p.y = -9; }
+  }
+}
+function spawnMote(M, p, v) {
+  const d = M.motes[M.mi]; M.mi = (M.mi + 1) % M.motes.length;
+  d.m.position.copy(p); d.v.copy(v); d.life = rnd(10, 18);
+}
+
+/* ================================================================================================================ */
+/* MAREN HOLT, generation 2: the green god. She has grown through the whole of the cave under Horticulture, and she is
+   the cave: the leaf on the floor, the cane, what hangs from the roof, what is trained up the walls. Her face is in it
+   somewhere, eyes closed, a dot in an ocean. What hunts here is hers: one generation of plant-like predators, grafted
+   from parts of her, the least human things on the station */
+const HG = [0x3d5e2c, 0x45682f, 0x365426, 0x4c6e34, 0x2f4a24], HCANE = [0x6e7a44, 0x5e6a3a, 0x7a864e], ROCK = [0x2e2c2a, 0x363330, 0x282624];
+function buildHolt() {
+  const S = new THREE.Scene();
+  floor(S, 60, 50, 0x23251f, 0x1c1e19, 3);
+  /* the cave: walls of rock round a chamber some forty metres across, a roof far up */
+  for (let j = 0; j < 40; j++) { const a = (j / 40) * TAU, r = rnd(19, 23), s = rnd(6, 11); mk(S, 'ico', ROCK[j % 3], s, rnd(12, 20), s, Math.cos(a) * r * 1.15, rnd(4, 9), Math.sin(a) * r * 0.85).rotation.y = rnd(0, TAU); }
+  for (let j = 0; j < 22; j++) { const a = rnd(0, TAU), r = Math.sqrt(rnd(0, 1)) * 20; mk(S, 'ico', ROCK[j % 3], rnd(8, 14), rnd(3, 5), rnd(8, 14), Math.cos(a) * r, rnd(17, 19), Math.sin(a) * r * 0.8); }
+  /* her: leaf giants over the floor, cane standing, growth hanging from the roof, fans trained up the walls */
+  const clear = (x, z) => Math.hypot(x - 2, z - 6) < 5;
+  for (let j = 0; j < 150; j++) { const a = rnd(0, TAU), r = Math.sqrt(rnd(0, 1)) * 19, x = Math.cos(a) * r * 1.1, z = Math.sin(a) * r * 0.85; if (clear(x, z)) continue; rleaf(S, x, rnd(0.05, 0.6), z, rnd(0, TAU), rnd(1.6, 5.0), rnd(0.15, 0.6), HG[j % 5]); }
+  for (let j = 0; j < 38; j++) {
+    const a = rnd(0, TAU), r = rnd(3, 18), x = Math.cos(a) * r * 1.1, z = Math.sin(a) * r * 0.85, h = rnd(3, 11);
+    if (clear(x, z)) continue;
+    for (let k = 0; k < Math.ceil(h / 1.2); k++) mk(S, 'cyl', HCANE[k % 3], lerp(0.45, 0.2, k * 1.2 / h), 1.25, lerp(0.45, 0.2, k * 1.2 / h), x, k * 1.2 + 0.6, z);
+    for (let k = 0; k < 3; k++) rleaf(S, x, h * rnd(0.4, 0.95), z, rnd(0, TAU), rnd(1.2, 2.6), rnd(0.3, 0.6), HG[(j + k) % 5]);
+  }
+  for (let j = 0; j < 55; j++) {
+    const a = rnd(0, TAU), r = Math.sqrt(rnd(0, 1)) * 18, x = Math.cos(a) * r * 1.1, z = Math.sin(a) * r * 0.85, top = rnd(15, 17.5), bot = top - rnd(3, 9);
+    if (Math.hypot(x - 2, z - 6) < 7) continue;
+    beam(S, HG[j % 5], 0.12, 0.12, V(x, top, z), V(x + rnd(-0.6, 0.6), bot, z + rnd(-0.6, 0.6)));
+    rleaf(S, x, bot + 0.3, z, rnd(0, TAU), rnd(0.8, 1.8), 0.9, HG[(j + 2) % 5]);
+  }
+  for (let j = 0; j < 9; j++) {
+    const a = (j / 9) * TAU + 0.2, r = 18.5, cx = Math.cos(a) * r * 1.1, cz = Math.sin(a) * r * 0.85, base = V(cx * 0.97, 0, cz * 0.97);
+    for (let k = 0; k < 7; k++) { const t2 = (k / 6 - 0.5) * 1.4, tip = V(cx * 0.95 + Math.cos(a + PI / 2) * t2 * 4, rnd(7, 12), cz * 0.95 + Math.sin(a + PI / 2) * t2 * 4); beam(S, HCANE[k % 3], 0.16, 0.14, base, tip); rleaf(S, tip.x, tip.y, tip.z, rnd(0, TAU), 1.4, 0.4, HG[k % 5]); }
+  }
+  /* sunflowers: a few massive ones, leaning, on heavy stalks, heads too big to hold up, each with small ones round it */
+  const helios = [];
+  const sunflower = (x, z, s, lean) => {
+    const g = grp(S, x, 0, z), top = V(Math.sin(lean.a) * lean.r * s, 3.0 * s, Math.cos(lean.a) * lean.r * s), mid = V(top.x * 0.4, top.y * 0.5, top.z * 0.4);
+    beam(g, HG[0], 0.12 * s, 0.12 * s, V(0, 0, 0), mid); beam(g, HG[1], 0.1 * s, 0.1 * s, mid, top);
+    for (let k = 0; k < 4; k++) rleaf(g, mid.x * (k / 3), 0.6 * s + k * 0.55 * s, mid.z * (k / 3), rnd(0, TAU), 0.6 * s, 0.5, HG[k % 5]);
+    const F = grp(g, top.x, top.y, top.z);
+    mk(F, 'ico', 0x3a2a14, 0.42 * s, 0.42 * s, 0.1 * s, 0, 0, 0.05 * s);
+    for (let k = 0; k < 16; k++) { const b = (k / 16) * TAU; mk(F, 'ico', k % 2 ? 0xc9a83a : 0xd8b440, 0.2 * s, 0.2 * s, 0.04 * s, Math.cos(b) * 0.31 * s, Math.sin(b) * 0.31 * s, 0.03 * s); }
+    F.heavy = s > 2; helios.push(F);
+  };
+  for (const [x, z] of [[-6, -6], [8, -3], [-12, 3], [5, 10], [12, 7]]) {
+    if (Math.hypot(x - 2, z - 6) < 5) continue;
+    sunflower(x, z, rnd(2.8, 3.3), { a: rnd(0, TAU), r: rnd(0.25, 0.4) });
+    for (let k = 0; k < 6; k++) { const a = rnd(0, TAU), r = rnd(1.4, 3.2); sunflower(x + Math.cos(a) * r, z + Math.sin(a) * r, rnd(0.8, 1.2), { a: rnd(0, TAU), r: rnd(0, 0.15) }); }
+  }
+  /* and the tobacco's own flowers, Pia's, coming out of the rock and up out of the floor among them */
+  for (let j = 0; j < 12; j++) { const a = rnd(0, TAU), r = 18.2, p = V(Math.cos(a) * r * 1.1 * 0.95, rnd(1.0, 8.0), Math.sin(a) * r * 0.85 * 0.95); cluster(S, p, 8, 1.6, 0.5); }
+  for (let j = 0; j < 10; j++) {
+    const a = rnd(0, TAU), r = rnd(3, 16), x = Math.cos(a) * r * 1.1, z = Math.sin(a) * r * 0.85;
+    if (Math.hypot(x - 2, z - 6) < 4) continue;
+    const top = V(x + rnd(-0.2, 0.2), rnd(0.8, 1.6), z + rnd(-0.2, 0.2));
+    beam(S, HCANE[0], 0.07, 0.07, V(x, 0, z), top); cluster(S, top, 9, 1.6, 0.45);
+  }
+  /* her face: low in a wall of growth near the back, the size of a person's, eyes closed, the colour of the rest */
+  const FC = V(-9.5, 1.7, -13.2);
+  mk(S, 'ico', HG[2], 3.4, 3.2, 1.6, FC.x, FC.y, FC.z - 0.5);
+  for (let j = 0; j < 14; j++) { const dx = rnd(-1.8, 1.8), dy = rnd(-1.2, 1.4); if (Math.hypot(dx, dy) < 0.9) continue; rleaf(S, FC.x + dx, FC.y + dy, FC.z - 0.1, Math.atan2(dx, 0.4), rnd(0.8, 1.6), rnd(0.3, 0.7), HG[j % 5]); }
+  const face = grp(S, FC.x, FC.y, FC.z + 0.25);
+  mk(face, 'ico', HG[3], 0.42, 0.52, 0.2, 0, 0, 0);
+  mk(face, 'ico', HG[1], 0.1, 0.16, 0.1, 0, -0.02, 0.1);
+  for (const s of [-1, 1]) mk(face, 'box', 0x24381c, 0.1, 0.012, 0.02, s * 0.09, 0.07, 0.09);
+  mk(face, 'box', 0x24381c, 0.12, 0.012, 0.02, 0, -0.14, 0.09);
+  /* the light: from the crack in the roof the spring comes through */
+  /* her hunters: one generation, from parts of her. Cane for legs, a body of folded leaf, a pod for a head that opens */
+  const hunters = [0, 1, 2].map(i => {
+    const root = grp(S, 0, 0, 0), H = { root, a: rnd(0, TAU), r: rnd(6, 13), sp: rnd(0.08, 0.14) * (i % 2 ? 1 : -1), pace: rnd(0, TAU) };
+    const body = grp(root, 0, 1.5, 0); H.body = body;
+    mk(body, 'ico', HG[4], 0.9, 0.7, 1.7, 0, 0, 0);
+    for (let k = 0; k < 6; k++) rleaf(body, rnd(-0.2, 0.2), 0.25, rnd(-0.6, 0.5), (k % 2 ? 1 : -1) * rnd(1.1, 2.0), rnd(0.7, 1.1), 0.5, HG[k % 5]);
+    const head = grp(body, 0, 0.15, 1.05); H.head = head;
+    H.jaw = [-1, 1].map(s => { const g = grp(head, 0, 0, 0); mk(g, 'ico', HCANE[1], 0.5, 0.26, 0.85, 0, s * 0.11, 0.38); for (let k = 0; k < 5; k++) mk(g, 'box', 0xd8d0a0, 0.04, 0.12, 0.04, -0.18 + k * 0.09, s * -0.02, 0.7); return { g, s }; });
+    H.legs = [[-1, 1], [1, 1], [-1, -1], [1, -1]].map(([sx, sz]) => limb(root, [sx * 0.35, 1.55, sz * 0.6], 1.05, 1.1, HCANE[0], HCANE[2], 0.1, t => { mk(t, 'box', HCANE[1], 0.06, 0.06, 0.25, 0, 0, 0.1); return []; }, { joint: HCANE[1] }));
+    H.legs.forEach((L, k) => (L.off = [[-1, 1], [1, 1], [-1, -1], [1, -1]][k]));
+    return H;
+  });
+  const fig = figure(S, 3.5, 8.5, 0.5);
+  return {
+    S, fig, helios, face, FC, hunters, room: [0.09, 0.12, 0.09],
+    glow: { pos: V(5, 15, 3), c: [0.55, 0.62, 0.45], r: 34 }, fog: 0.028,
+    cam: { tgt: V(0, 3, 0), yaw: 0.4, pitch: 0.22, dist: 24, min: 1.5, max: 60 },
+    mode: 'cave',
+  };
+}
+const HOLT_STATES = {
+  cave: ['The green god', 'Mary Holt, generation 2. She grafted the plants onto herself slowly, choosing each one, and kept on: through Horticulture, and down into the cave under it, until there was nothing of the cave that was not her. The leaf giants on the floor, the cane, what hangs from the roof, the fans trained up the walls: all one body on one root. She is the level. Everything else breeds; she makes something new.', V(-2, 4, -2), 17, 1.3],
+  face: ['Her face', 'Somewhere in it, low in a wall of growth, is her face: a person\'s size, eyes closed, the colour of the rest. A dot in an ocean. Most will never see it.', V(-9.5, 1.7, -13.0), 3.2, 0.25],
+  hunt: ['Her hunters', 'What hunts here is hers: one generation of predators, grafted from parts of her, the least human things on the station. Cane for legs, a body of folded leaf, and a pod for a head that splits open. They feel you through the root as soon as you step off stone.', V(2, 1.4, 6), 9, 0.9],
+};
+function setHolt(mode) {
+  const M = HOLT; M.mode = mode;
+  const [, , tgt, dist, yaw] = HOLT_STATES[mode];
+  M.cam.tgt.copy(tgt); M.cam.dist = dist; M.cam.yaw = yaw; M.cam.pitch = mode === 'face' ? 0.08 : mode === 'hunt' ? 0.32 : 0.3;
+  if (PIA_READY) syncPanel();
+}
+function stepHolt(dt, now) {
+  const M = HOLT;
+  /* they turn to the light; the big ones too heavy to hold their heads up to it */
+  for (const F of M.helios) { _a.copy(M.glow.pos); if (F.heavy) _a.y -= 22; look(F, _a, dt, 0.3, [1.2, 1.0]); }
+  M.hunters.forEach((H, i) => {
+    const hunting = M.mode === 'hunt' && i === 0;
+    let x, z, yaw;
+    if (hunting) {
+      _a.set(camera.position.x, 0, camera.position.z);
+      const d = _a.sub(H.root.position).setY(0), dist = d.length();
+      if (dist > 3.5) H.root.position.addScaledVector(d.normalize(), dt * 2.2);
+      x = H.root.position.x; z = H.root.position.z; yaw = Math.atan2(camera.position.x - x, camera.position.z - z);
+      H.pace += dt * (dist > 3.5 ? 9 : 2);
+    } else {
+      H.a += dt * H.sp; x = Math.cos(H.a) * H.r * 1.1; z = Math.sin(H.a) * H.r * 0.85;
+      yaw = Math.atan2(-Math.sin(H.a) * H.r * 1.1 * Math.sign(H.sp), Math.cos(H.a) * H.r * 0.85 * Math.sign(H.sp));
+      H.root.position.set(x, 0, z); H.pace += dt * 5;
+    }
+    H.root.rotation.y = yaw;
+    H.body.position.y = 1.5 + Math.abs(Math.sin(H.pace)) * 0.06;
+    H.root.updateMatrixWorld(true);
+    H.legs.forEach((L, k) => { const ph = H.pace + (k === 0 || k === 3 ? 0 : PI); _a.set(L.off[0] * 0.9, Math.max(0, Math.sin(ph)) * 0.3, L.off[1] * 0.9 + Math.cos(ph) * 0.45); H.root.localToWorld(_a); reachP(L, _a, 1); });
+    const open = hunting ? 0.25 + 0.25 * Math.max(0, Math.sin(now * 3)) : 0.05;
+    for (const J of H.jaw) J.g.rotation.x = -J.s * open;
+  });
+}
+
+/* ================================================================================================================ */
+const canvas = document.getElementById('c');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(2, window.devicePixelRatio));
+const camera = new THREE.PerspectiveCamera(50, 1, 0.05, 120);
+const PIA = buildPia(), INES = buildInes(), DALE = buildDale(), SAM = buildSam(), TOM = buildTom(), HOLT = buildHolt();
+let PIA_READY = false;
+let cur = PIA;
+
+const btns = document.getElementById('btns'), stateEl = document.getElementById('state'), capEl = document.getElementById('cap');
+const SCENES = { pia: () => [PIA, PIA_STATES, setPia, stepPia], ines: () => [INES, INES_STATES, setInes, stepInes], dale: () => [DALE, DALE_STATES, setDale, stepDale], sam: () => [SAM, SAM_STATES, setSam, stepSam], tom: () => [TOM, TOM_STATES, setTom, stepTom], holt: () => [HOLT, HOLT_STATES, setHolt, stepHolt] };
+let curName = 'pia';
+function syncPanel() {
+  const [M, S, set] = SCENES[curName](), mode = M.mode;
+  btns.innerHTML = '';
+  for (const [k, [label]] of Object.entries(S)) {
+    const b = document.createElement('button');
+    b.textContent = label; b.id = `b-${k}`; b.className = k === mode ? 'on' : '';
+    b.onclick = () => { set(k); syncPanel(); };
+    btns.appendChild(b);
+  }
+  stateEl.textContent = S[mode][0];
+  capEl.textContent = S[mode][1];
+}
+for (const b of document.querySelectorAll('nav button')) b.onclick = () => {
+  curName = b.dataset.scene; cur = SCENES[curName]()[0];
+  for (const x of document.querySelectorAll('nav button')) x.setAttribute('aria-selected', String(x === b));
+  syncPanel();
+};
+const flashEl = document.getElementById('flash'), figEl = document.getElementById('figure'), soundEl = document.getElementById('sound');
+addEventListener('keydown', e => { if (e.key === 'f' || e.key === 'F') flashEl.checked = !flashEl.checked; });
+
+/* ---- orbit ---- */
+const ptrs = new Map(); let pinch = 0;
+canvas.addEventListener('pointerdown', e => { canvas.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]); });
+canvas.addEventListener('pointerup', e => { ptrs.delete(e.pointerId); pinch = 0; });
+canvas.addEventListener('pointercancel', e => { ptrs.delete(e.pointerId); pinch = 0; });
+canvas.addEventListener('pointermove', e => {
+  const p = ptrs.get(e.pointerId); if (!p) return;
+  const C = cur.cam;
+  if (ptrs.size === 1) { C.yaw -= (e.clientX - p[0]) * 0.006; C.pitch = clamp(C.pitch + (e.clientY - p[1]) * 0.005, -0.25, 1.35); }
+  ptrs.set(e.pointerId, [e.clientX, e.clientY]);
+  if (ptrs.size === 2) {
+    const [a, b] = [...ptrs.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]);
+    if (pinch) C.dist = clamp(C.dist * pinch / d, C.min, C.max);
+    pinch = d;
+  }
+});
+canvas.addEventListener('wheel', e => { e.preventDefault(); cur.cam.dist = clamp(cur.cam.dist * Math.exp(e.deltaY * 0.001), cur.cam.min, cur.cam.max); }, { passive: false });
+function resize() {
+  const w = innerWidth, h = innerHeight;
+  renderer.setSize(w, h, false); camera.aspect = w / h;
+  camera.fov = w < h ? 64 : 50;
+  camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize); resize();
+
+let prev = performance.now();
+function frame(nowMs) {
+  const dt = Math.min(0.05, (nowMs - prev) / 1000), now = nowMs / 1000;
+  prev = nowMs;
+  const M = cur, C = M.cam;
+  camera.position.set(C.tgt.x + Math.sin(C.yaw) * Math.cos(C.pitch) * C.dist, C.tgt.y + Math.sin(C.pitch) * C.dist, C.tgt.z + Math.cos(C.yaw) * Math.cos(C.pitch) * C.dist);
+  camera.lookAt(C.tgt);
+  camera.updateMatrixWorld();
+  _v.set(0.18, -0.2, 0).applyQuaternion(camera.quaternion);
+  U.uFlashPos.value.copy(camera.position).add(_v);
+  U.uFlashDir.value.copy(C.tgt).sub(U.uFlashPos.value).normalize();
+  U.uFlash.value = flashEl.checked ? 1 : 0;
+  U.uRoom.value.set(...M.room);
+  U.uGlowPos.value.copy(M.glow.pos); U.uGlowC.value.set(...M.glow.c); U.uGlowR.value = M.glow.r;
+  U.uTime.value = now; U.uFog.value = M.fog;
+  M.fig.visible = figEl.checked;
+  M.S.updateMatrixWorld(true);
+  SCENES[curName]()[3](dt, now);
+  if (curName !== 'sam') padSet(false);
+  renderer.render(M.S, camera);
+  requestAnimationFrame(frame);
+}
+setPia('tree'); setInes('paint'); setDale('court'); setSam('good'); setTom('zone'); setHolt('cave'); PIA_READY = true; syncPanel();
+requestAnimationFrame(frame);
+window.__rs = { PIA, INES, DALE, SAM, TOM, HOLT, setPia, setInes, setDale, setSam, setTom, setHolt, camera, show: s => document.getElementById('tab-' + s).click() };
+</script>

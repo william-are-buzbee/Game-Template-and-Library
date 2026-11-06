@@ -1,0 +1,294 @@
+<title>Lowfield Lineage</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,500;0,600;1,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:ital@0,400;1,400&display=swap">
+<style>
+/* Layout: a specimen register. The family tree full width in its own scroller, then one entry per elder, then the rules and the tells. */
+:root{
+  --bg:#eef0eb; --fg:#1d2320; --muted:#5b665f; --rule:#c4ccc4; --edge:#7a857d; --x:#6a4f8f;
+  --core:#2e4d63; --crop:#2f5e2a; --holt:#4a9a3c; --milk:#f7f1e1; --nic:#8a6a24; --ines:#3346c4;
+  --rust:#bfa214; --glow:#24a596; --amber:#d2781a; --blood:#ad3f37; --nohost:#8a7ca0;
+  --band-flesh:#f1e3df; --band-sec:#ead3ce;
+  --f-display:"Spectral",Georgia,serif; --f-body:"IBM Plex Sans",system-ui,sans-serif; --f-mono:"IBM Plex Mono",ui-monospace,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#131714; --fg:#e2e7e1; --muted:#97a299; --rule:#2f3831; --edge:#7f8a82; --x:#b39ad6;
+  --core:#7eaac6; --crop:#5f9a55; --holt:#7cc76c; --milk:#ece4cf; --nic:#c49a5a; --ines:#7f8dff;
+  --rust:#e6cf4a; --glow:#4fd6c5; --amber:#efa04a; --blood:#e47c6d; --nohost:#b5a8cb;
+  --band-flesh:#251a18; --band-sec:#30201d; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#131714; --fg:#e2e7e1; --muted:#97a299; --rule:#2f3831; --edge:#7f8a82; --x:#b39ad6;
+  --core:#7eaac6; --crop:#5f9a55; --holt:#7cc76c; --milk:#ece4cf; --nic:#c49a5a; --ines:#7f8dff;
+  --rust:#e6cf4a; --glow:#4fd6c5; --amber:#efa04a; --blood:#e47c6d; --nohost:#b5a8cb;
+  --band-flesh:#251a18; --band-sec:#30201d; color-scheme:dark}
+body{background:var(--bg);color:var(--fg);font-family:var(--f-body);font-size:15px;line-height:1.55}
+.wrap{max-width:1280px;margin:0 auto;padding:32px 20px 64px}
+header{max-width:70ch;display:grid;gap:8px}
+.eyebrow{font-family:var(--f-mono);font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font-family:var(--f-display);font-weight:600;font-size:clamp(30px,5vw,44px);line-height:1.1;margin:0;text-wrap:balance}
+h2{font-family:var(--f-display);font-weight:600;font-size:24px;margin:0 0 14px;text-wrap:balance}
+h3{font-family:var(--f-display);font-weight:600;font-size:20px;margin:0;line-height:1.2}
+header p{margin:0;color:var(--muted)}
+section.block{margin-top:52px}
+.legend{display:flex;flex-wrap:wrap;gap:8px 20px;margin:26px 0 12px;font-size:13px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:7px}
+.dot{width:11px;height:11px;border-radius:50%;display:inline-block;flex:none}
+.dot.milk{box-shadow:inset 0 0 0 1px var(--edge)}
+.sw-dia{width:8px;height:8px;background:var(--fg);transform:rotate(45deg);display:inline-block}
+.sw-x{width:26px;height:0;border-top:2px dotted var(--x)}
+figure{margin:0}
+.scroll{overflow-x:auto;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+svg{display:block;width:100%;min-width:1100px;height:auto}
+figcaption{font-size:13px;color:var(--muted);margin-top:10px;max-width:84ch}
+.edge{fill:none;stroke:var(--edge);stroke-width:1.5}
+.xhalo{fill:none;stroke:var(--bg);stroke-width:6}
+.xedge{fill:none;stroke:var(--x);stroke-width:1.8;stroke-dasharray:1.5 4;stroke-linecap:round}
+.xl{font-family:var(--f-mono);font-size:11px;font-style:italic;fill:var(--x);paint-order:stroke;stroke:var(--bg);stroke-width:4px;stroke-linejoin:round}
+.node{stroke:var(--bg);stroke-width:2.5}
+.ring{fill:none;stroke:var(--bg);stroke-width:2.5}
+.hollow{fill:var(--bg);stroke:var(--fg);stroke-width:1.5}
+.l-core{fill:var(--core)} .l-crop{fill:var(--crop)} .l-holt{fill:var(--holt)} .l-milk{fill:var(--milk)} .l-nic{fill:var(--nic)}
+.l-ines{fill:var(--ines)} .l-rust{fill:var(--rust)} .l-glow{fill:var(--glow)} .l-amber{fill:var(--amber)} .l-blood{fill:var(--blood)} .l-nohost{fill:var(--nohost)}
+.node.l-milk{stroke:var(--edge);stroke-width:1.2}
+.jump{fill:var(--fg)}
+.holtring{fill:none;stroke:var(--holt);stroke-width:1.6;stroke-dasharray:3 2.5}
+.ht{font-family:var(--f-mono);font-size:11px;fill:var(--holt)}
+.sw-ring{width:13px;height:13px;border-radius:50%;border:1.6px dashed var(--holt);display:inline-block}
+.band-flesh{fill:var(--band-flesh)} .band-sec{fill:var(--band-sec)}
+.band-label{font-family:var(--f-mono);font-size:11px;letter-spacing:.12em;fill:var(--muted)}
+.leaf{font-family:var(--f-body);font-size:13px;fill:var(--fg)}
+.inner{font-family:var(--f-body);font-size:12.5px;font-weight:600;fill:var(--fg)}
+.elder{font-family:var(--f-display);font-size:15px;font-weight:600}
+.jl{font-family:var(--f-mono);font-size:11px;font-style:italic;fill:var(--muted)}
+
+.elders{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,370px),1fr));gap:34px 40px}
+.elder-entry{min-width:0;border-top:1px solid var(--rule);padding-top:14px;display:grid;gap:10px;align-content:start}
+.ehead{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.ehead .dot{width:13px;height:13px;align-self:center}
+.epi{font-family:var(--f-mono);font-size:12px;color:var(--muted)}
+.size{margin-left:auto;font-family:var(--f-mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+dl{margin:0;display:grid;grid-template-columns:max-content 1fr;gap:5px 14px;font-size:14px}
+dt{font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);padding-top:3px}
+dd{margin:0;min-width:0}
+.inside{font-size:13.5px;color:var(--muted);margin:0}
+.inside b{font-family:var(--f-mono);font-size:11px;font-weight:400;letter-spacing:.06em;text-transform:uppercase}
+.young{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:20px 40px;font-size:14px}
+.young p{margin:0}
+.young b{font-family:var(--f-display);font-size:16px}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:40px}
+.cols>section{min-width:0}
+ol.laws{margin:0;padding-left:1.4em;display:grid;gap:8px;font-size:14.5px}
+ol.laws li::marker{font-family:var(--f-mono);color:var(--muted)}
+ol.laws strong{font-weight:600}
+table{border-collapse:collapse;width:100%;font-size:14px}
+table.gens{font-size:13px}
+table.gens td:first-child{font-family:var(--f-mono);font-variant-numeric:tabular-nums;width:2.5em}
+th,td{text-align:left;padding:7px 12px 7px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+th{font-family:var(--f-mono);font-size:11px;font-weight:400;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+td.cost{color:var(--muted)}
+ul.tells{margin:0;padding:0;list-style:none;display:grid;gap:8px;font-size:14px}
+ul.tells li{display:grid;grid-template-columns:9.5em 1fr;gap:12px}
+ul.tells .k{font-family:var(--f-mono);font-size:12px;color:var(--muted);padding-top:2px}
+.swatches{display:flex;flex-wrap:wrap;gap:4px 12px}
+.swatches span{display:inline-flex;align-items:center;gap:6px}
+ul.open{margin:0;padding-left:1.1em;display:grid;gap:6px;font-size:14px}
+.note{font-size:13px;color:var(--muted);margin:10px 0 0}
+@media (max-width:520px){ul.tells li{grid-template-columns:1fr;gap:2px}.size{margin-left:0}}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Rootshock · design notes · brainstorm</div>
+    <h1>Lowfield Lineage</h1>
+    <p>One tissue, grafted from body to body. Five testers took it through the products, Holt through a burn. The crop is generation 1; the elders are 2. Every mutant on the station descends from one of them, and looks like it. Every green form is wild tobacco, <i>Nicotiana rustica</i>, mutated its own way (not every line shows it). Almost nothing on the station still looks human. The staff were as racially mixed as the country, and a mutant keeps its host's skin.</p>
+    <p>The testers lived in a large isolation room in Horticulture, a small village built to hold six people for as long as a trial ran. They were encouraged to repeat the same dose, for consistent reports. Nobody expected worse than a bad night.</p>
+  </header>
+
+  <div class="legend" aria-label="Legend">
+    <span><i class="dot" style="background:var(--holt)"></i>Holt</span>
+    <span><i class="dot milk" style="background:var(--milk)"></i>Pia</span>
+    <span><i class="dot" style="background:var(--ines)"></i>Ines</span>
+    <span><i class="dot" style="background:var(--nic)"></i>Dale</span>
+    <span><i class="dot" style="background:var(--rust)"></i>Tom</span>
+    <span><i class="dot" style="background:var(--glow)"></i>Sam</span>
+    <span><i class="dot" style="background:var(--blood)"></i>the flesh</span>
+    <span><i class="dot" style="background:var(--nohost)"></i>no host</span>
+    <span><i class="sw-dia"></i>founder event</span>
+    <span><i class="sw-x"></i>a graft between lines</span>
+    <span><i class="sw-ring"></i>Holt’s hand on it</span>
+  </div>
+
+  <figure>
+    <div class="scroll">
+      <svg viewBox="%%VB%%" role="img" aria-label="Family tree. The core is grafted into the crop. From the crop, Holt takes it through a burn and breeds her cultivars; the products carry it to Tom, Dale, Sam, Ines and Pia. Pia's touch founds the flesh: the Commons bloc, the egg-laying mother, her clutches, and through Cargo, Security. Holt seals Tom away and gives Sam his light. Ines's line takes grafts from Pia and Sam.">
+%%SVG%%
+      </svg>
+    </div>
+    <figcaption>Colour is the lineage, and the colour of its fluids in the game. Large dots are elders; half-and-half dots are hybrids. Diamonds mark founder events: count them between two names to see how related they are. Dotted lines are grafts between lineages; a dashed green ring marks an elder Holt has sealed away or given something to. Branch lengths mean nothing.</figcaption>
+  </figure>
+
+  <section class="block">
+    <h2>The elders</h2>
+    <div class="elders">
+
+      <article class="elder-entry">
+        <div class="ehead"><i class="dot" style="background:var(--holt)"></i><h3>Mary Holt</h3><span class="epi">director of research</span><span class="size">the whole cave</span></div>
+        <dl>
+          <dt>Took</dt><dd>Raw tissue from the beds, through a burn on her hand.</dd>
+          <dt>Way round</dt><dd>Care. She grafts the plants onto herself slowly and on purpose, choosing each one, and has never stopped.</dd>
+          <dt>Now</dt><dd>The green god, and a level. Horticulture is colonised by her; the cave under it is her body entire, floor, cane, roof and walls, one plant on one root. Her face is in it somewhere, a person's size, eyes closed: a dot in an ocean. Massive sunflowers lean among her, too heavy to hold their heads up to the light, ringed by small ones; Pia's tobacco flowers come out of the rock and the floor.</dd>
+          <dt>Makes</dt><dd>The crop, pushed the way a farmer pushed wild corn: leaves big enough to roof a room, stalks strong enough to build with.</dd>
+          <dt>Children</dt><dd>Her cultivars, bred, not born. In the cave, her hunters: one generation of plant-like predators grafted from parts of her, the least human things on the station.</dd>
+          <dt>Open</dt><dd>Her tell, and how she can be hurt.</dd>
+        </dl>
+        <p class="inside"><b>Inside</b> Every other elder can only make more of itself; Holt can make something new. The only one who plans by growing: Tom is her longest bet, and Sam carries her light. Her root system is the station's one true hivemind; she feels footsteps on soil, not on stone.</p>
+      </article>
+
+      <article class="elder-entry">
+        <div class="ehead"><i class="dot milk" style="background:var(--milk)"></i><h3>Pia Lind</h3><span class="epi">painkiller · gen 2</span><span class="size">≈ 13 m, and the point</span></div>
+        <dl>
+          <dt>Crisis</dt><dd>The stupor: glassy eyes, pinned pupils, pustules, numb to pain and to everything. Her metabolism slows to a crawl.</dd>
+          <dt>Way round</dt><dd>She doesn't fight it. She slows into something stationary and survives as that.</dd>
+          <dt>Now</dt><dd>How you meet her: the Commons tree, a rustica grown to about 13 m, its stalk a ridged trunk, still in leaf and in flower, and past the flowers running on to a point up through the roof of the Commons. Her body is the swollen foot of it; her face a smear in the wood you could walk past. She can't speak. A living god to both tribes.</dd>
+          <dt>Spreads by</dt><dd>Early, a touch in her stupor, with an ordinary arm. Late, a cutting from the tree laid on you.</dd>
+          <dt>Children</dt><dd>Early: the dazed, husk-like. Mid: half stalk, half flesh, Pia caught mid-change. Late: sessile, quietly euphoric, still feeling. The founder came from a touch.</dd>
+          <dt>Tell</dt><dd>Milky sap.</dd>
+        </dl>
+        <table class="gens">
+          <thead><tr><th>Gen</th><th>Who</th><th>Can</th><th>Opiate</th><th>Fear</th></tr></thead>
+          <tbody>
+            <tr><td>2</td><td>Pia</td><td>nothing; can't speak</td><td>full</td><td>an idea</td></tr>
+            <tr><td>3</td><td>the dazed, the founder</td><td>gesture</td><td>heavy</td><td>in the founder, an instinct</td></tr>
+            <tr><td>4</td><td>the Commons bloc</td><td>walk, track you with their heads</td><td>some</td><td>strong</td></tr>
+            <tr><td>5</td><td>Commons husks</td><td>act; ignore their own pain</td><td>faint</td><td>strong, and turned outward</td></tr>
+          </tbody>
+        </table>
+        <p class="inside"><b>Inside</b> The opiate dulls with each generation; the fear does not. Pia's fear of eradication was a thought; in the founder it became biology, and the Commons have carried it ever since. Pia infected nobody on purpose. The founder did. So the youngest are the most violent, the oldest the largest and most stupefied. What the Commons carry is the early snapshot of her, the flesh and the opiate, not the tree. Grafting her takes the edge off, and you lose something you don't miss. Old Pias grow faster as they age, so the tree is a clock.</p>
+      </article>
+
+      <article class="elder-entry">
+        <div class="ehead"><i class="dot" style="background:var(--ines)"></i><h3>Ines Calder</h3><span class="epi">hallucinogen</span><span class="size">two storeys</span></div>
+        <dl>
+          <dt>Crisis</dt><dd>She never stops seeing.</dd>
+          <dt>Way round</dt><dd>Her brain grows until it can carry the visions without believing them. What's left is lucid, and finds patterns in everything.</dd>
+          <dt>Now</dt><dd>Very tall, lanky, with a big head: the growth went to the head and to what perceives. Human and fleshy, in her own skin; no plant shows on her at all. She paints in a fluid from her own hands and can't stop.</dd>
+          <dt>Spreads by</dt><dd>Wet paint, and slivers she cuts from herself.</dd>
+          <dt>Children</dt><dd>The eldest are still seeing, still in it. Her children ape the colour and structure of her work and spread it about the station; her grandchildren get only the vague colours and shapes.</dd>
+          <dt>Tell</dt><dd>Height, and a big head. Murals and street art: quality shows distance from her; wet paint means one is near.</dd>
+        </dl>
+        <p class="inside"><b>Inside</b> She painted as a hobby, before. Her scenes mean something: they come from her life before, and see ahead. Where Sam dissolves the details into everything, Ines connects them.</p>
+      </article>
+
+      <article class="elder-entry">
+        <div class="ehead"><i class="dot" style="background:var(--nic)"></i><h3>Dale Mercer</h3><span class="epi">strong leaf · employee of the month</span><span class="size">headless</span></div>
+        <dl>
+          <dt>Crisis</dt><dd>Weeks without sleep: rage, blackouts. The energetics were born then, and he barely remembers them.</dd>
+          <dt>Way round</dt><dd>His brain learns to ignore the stimulant. He sleeps, and he is himself again. The organ never stops making it.</dd>
+          <dt>Now</dt><dd>No head at all: a nicotine-stained chest on two knotted, too-long legs, sat in a tub of his own stimulant, one knee up and one leg over the side. Tobacco leaf grows out of him in shelves, like bracket fungus, the colour of nicotine. One hole low in his front leaks into the tub. No throne; the tub's high back only reads as one.</dd>
+          <dt>Spreads by</dt><dd>Low doses left wherever people drink, and grafts from his eldest for rapid immunity. He won't graft anyone himself.</dd>
+          <dt>Children</dt><dd>His mutations run to size. His eldest look like him: chests on legs, the same colour, fewer leaves, less ooze, each wrong its own way; about half keep a head, tobacco-coloured, leaf out of the top; the small have a navel where the big have the hole. The growth goes into their legs, as his did: one with a hole stands at least a third taller than one without. The sleepless, the same kind still in it, and mad. The antidote child. Late children, mild.</dd>
+          <dt>Tell</dt><dd>The sleepless grind their teeth (you hear it), don't blink, never stop moving. If it sits down, it's past it.</dd>
+        </dl>
+        <p class="inside"><b>Inside</b> He is inoculating the station. There are too many sleepless children for his death to fix anything, so he is trying to get ahead of them. Nobody wants a second dose: it means a bad night. A graft from his eldest costs a few nights awake on the edge, then you are immune, your blood carries it, and the sleepless keep away from your smell. The antidote child breaks the drug down instead, and wants the spreading stopped, not managed.</p>
+      </article>
+
+      <article class="elder-entry">
+        <div class="ehead"><i class="dot" style="background:var(--rust)"></i><h3>Tom Wren</h3><span class="epi">mild leaf</span><span class="size">≈ 7 m, lying</span></div>
+        <dl>
+          <dt>Crisis</dt><dd>Sleepless, but calm. He wrote letters home until only his writing hand moved.</dd>
+          <dt>Way round</dt><dd>Stillness. He lay down and stopped, and was grown through.</dd>
+          <dt>Now</dt><dd>Still plainly a man, four times a man's size, ashen, on his back, one hand over his letters. His own spore producers have come up through his chest, belly, thighs and face: ribbed pale-green stalks, sulphur-yellow mouths that throw with the draught.</dd>
+          <dt>Where</dt><dd>A zone of his own, which Holt moved him to and sealed with her roots. Round him, the smaller producers he threw, grown up out of the floor.</dd>
+          <dt>Spores</dt><dd>A graft like any other: they take in a wound, or after long breathing of them, not in one breath. The rebreather keeps them out.</dd>
+          <dt>Tell</dt><dd>Yellow dust that follows the air.</dd>
+        </dl>
+        <p class="inside"><b>Inside</b> Holt isn't containing him; she is saving him for the surface. Opening his zone lets him out on your schedule instead of hers. The gentlest elder is the one most likely to end the world.</p>
+      </article>
+
+      <article class="elder-entry">
+        <div class="ehead"><i class="dot" style="background:var(--glow)"></i><h3>Sam Okoro</h3><span class="epi">a bit of everything</span><span class="size">≈ 3.3 m</span></div>
+        <dl>
+          <dt>Took</dt><dd>Every product at least once, and the niche strains nobody else touched: a DMT-like, a psilocybin-like. The trial's most watched subject.</dd>
+          <dt>Way round</dt><dd>None needed. Moody like Janus, kind like the aedra: grumpy and dim on a bad day, full of love and energy on a good one. Never psychotic, never violent. Driven to fairness.</dd>
+          <dt>Now</dt><dd>A big man, about 3.3 m, long in the leg, a patchwork of pieces swapped with friends, still in a loincloth: what he keeps of being a man. The whites of his eyes are neon, the pupils black. His left arm glows, brighter than the mushrooms crowded on that side of him.</dd>
+          <dt>Spreads by</dt><dd>Gifts. A graft is how he shows affection.</dd>
+          <dt>His graft</dt><dd>Treats the mind, not the body: sleeplessness still wrecks you, but you stop being violent about it, and can carry on. The soundtrack gains something that isn't in the room.</dd>
+          <dt>Tell</dt><dd>He is a light. His blood glows the arm's colour, but only when it is out of him.</dd>
+        </dl>
+        <p class="inside"><b>Inside</b> The arm's light was Holt's gift, and it does two more things. Her heliotropes follow light, so they always know where he is. And the spores in his blood are her tissue: they don't let her read him, but they make him fond of her. His love for the universe is his own; his warmth toward Holt was grown.</p>
+      </article>
+
+</div>
+  </section>
+
+  <section class="block">
+    <h2>The young gods</h2>
+    <div class="young">
+      <p><b>The founder.</b> Touched by Pia in her stupor. He carried the plants' fear as his own terror, took others by force, and turned the Commons. Where Pia's daze becomes violence.</p>
+      <p><b>The mother.</b> A woman of the Commons bloc whose graft took in the womb. Touch her and you lay eggs too. Her hatchlings have no host, and lose most of the human look.</p>
+      <p><b>Security's first.</b> Taken by a hatchling in Cargo, so it inherited no fear and no thought, only drills. It sits up out of the middle of the overseer. Security tends the nest it can't add to, and wants a mother of its own.</p>
+    </div>
+  </section>
+
+  <div class="cols block">
+    <section>
+      <h2>The rules</h2>
+      <ol class="laws">
+        <li><strong>Strain, rootstock, habit.</strong> You inherit your grafter as they were on the day, on your own body, and your body grows whatever you do.</li>
+        <li><strong>Time alone makes a strain.</strong> Change without passing it on and you drift; change beside someone and you drift together.</li>
+        <li><strong>Every organ makes a problem, and the body grows a way round it.</strong> The crisis is the time that takes, and it leaves scars the solution keeps.</li>
+        <li><strong>Young tissue carries the drug; old tissue carries the cure.</strong> The same graft cures the sick and infects the clean.</li>
+        <li><strong>You age into your solution.</strong> Stillness goes to plant, action to flesh. Elders are big, each in its own way; an elder who isn't big has a reason.</li>
+        <li><strong>An idea in the parent is an instinct in the child.</strong> Effects dull with each generation; instincts don't.</li>
+        <li><strong>Mutation keeps what the human had.</strong> Mutants still sleep, so any of them can be kept awake: Dale's tub is a danger to all of them.</li>
+        <li><strong>The mutagen keeps you changing, not alive.</strong> It can't raise the dead or stop a bleed, and it slows without new grafts.</li>
+      </ol>
+    </section>
+    <section>
+      <h2>Ines's eldest: what to graft</h2>
+      <table>
+        <thead><tr><th>Graft</th><th>Does</th><th>Costs</th></tr></thead>
+        <tbody>
+          <tr><td>none</td><td>Mercy.</td><td class="cost">A life.</td></tr>
+          <tr><td>old Pia</td><td>Eases the visions; starts the wood.</td><td class="cost">Slows their tolerance, so it lasts longer.</td></tr>
+          <tr><td>young Pia</td><td>A strong painkiller; an Ines × Pia hybrid.</td><td class="cost">Grows up clever, creative, checked out.</td></tr>
+          <tr><td>old Ines</td><td>Races them to tolerance.</td><td class="cost">They become more like her.</td></tr>
+          <tr><td>Sam</td><td>They can bear it.</td><td class="cost">Nothing is cured.</td></tr>
+        </tbody>
+      </table>
+      <p class="note">No words needed: work out what's wrong, choose the tissue, live with what it becomes. Each graft needs a visible change within a minute.</p>
+    </section>
+  </div>
+
+  <div class="cols block">
+    <section>
+      <h2>The tells</h2>
+      <ul class="tells">
+        <li><span class="k">Fluid colour</span><span class="swatches">
+          <span><i class="dot milk" style="background:var(--milk)"></i>milk</span>
+          <span><i class="dot" style="background:var(--nic)"></i>nicotine</span>
+          <span><i class="dot" style="background:var(--ines)"></i>pigment</span>
+          <span><i class="dot" style="background:var(--rust)"></i>sulphur</span>
+          <span><i class="dot" style="background:var(--holt)"></i>green</span>
+          <span><i class="dot" style="background:var(--glow)"></i>glow</span></span></li>
+        <li><span class="k">Two colours</span><span>A hybrid.</span></li>
+        <li><span class="k">Behaviour</span><span>Never still means crisis; sitting means past it.</span></li>
+        <li><span class="k">Size</span><span>Age. Each elder big in its own silhouette: tall, wide, heavy, rooted, coiled.</span></li>
+        <li><span class="k">Motif</span><span>Descent from Ines, degrading by generation.</span></li>
+        <li><span class="k">Scars</span><span>Which crisis it survived.</span></li>
+        <li><span class="k">Offered wrist</span><span>Cut open and held out: a graft offered, in every lineage.</span></li>
+      </ul>
+      <p class="note">The player is never told any of this. The game plays without it; it rewards anyone who looks.</p>
+    </section>
+    <section>
+      <h2>Open</h2>
+      <ul class="open">
+        <li>Player mutation: intended, built later. The game must be fun without it.</li>
+        <li>Where Ines paints, and where Dale holds court.</li>
+        <li>Is the founder the thresher?</li>
+        <li>Holt: what marks her work, and how she can be hurt.</li>
+        <li>The antidote child: name, and where it went.</li>
+        <li>What the young gods look like.</li>
+      </ul>
+    </section>
+  </div>
+</div>
