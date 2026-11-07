@@ -96,20 +96,24 @@ function ecoDebit(o){if(o.ent<0||!o.chunk)return;const c=o.chunk.i*NCELL+o.chunk
 // a session (analysis_review 12). It is slow by design — a cell owes half a flicker a day — so ow has to survive an unload, and does.
 // Then a drift: ECO.mig of every kind moves a day toward the four neighbours' free capacity. Immortal kinds sit at capacity.
 const ECO_B={},ECO_TAKE={},ECO_D=[],ECO_RCH=[];
-function ecoReach(kind){let r=ECO_RCH[kind];if(r)return r;const h=DEFS[kind].home||30;r=[];const R=h>=300?2:h>=60?1:0;
-  for(let di=-R;di<=R;di++)for(let dj=-R;dj<=R;dj++){const m=Math.max(Math.abs(di),Math.abs(dj));r.push([di,dj,m===0?1:m===1?0.5:0.25]);}return ECO_RCH[kind]=r;}
-// a generator (the tick steps it a piece a frame: 3.6 ms whole on a sandbox CPU for 256 cells; ~130 ms for the basin's 14,400, v11.58, in pieces under a millisecond); ecoModel drains it (the census)
+function ecoReach(kind){let r=ECO_RCH[kind];if(r)return r;const h=DEFS[kind].home||30,R=h>=300?2:h>=60?1:0,nr=(2*R+1)*(2*R+1);r={n:0,di:new Int32Array(nr),dj:new Int32Array(nr),w:new Float64Array(nr)}; // flat (v11.93.3): the hunt reads it a million times a step
+  for(let di=-R;di<=R;di++)for(let dj=-R;dj<=R;dj++){const m=Math.max(Math.abs(di),Math.abs(dj));r.di[r.n]=di;r.dj[r.n]=dj;r.w[r.n++]=m===0?1:m===1?0.5:0.25;}return ECO_RCH[kind]=r;}
+// a generator (the tick steps it a piece a frame: 3.6 ms whole on a sandbox CPU for 256 cells; ~130 ms for the basin's 14,400, v11.58, in pieces under a millisecond; 73 ms for the world's 57,600 and 26 since v11.93.3, in ~2,000 pieces); ecoModel drains it (the census, test/live.js)
 function* ecoModelGen(dt,isLoaded){
   const E=SPAWN.length;
   for(const k in ECO_B){ECO_B[k].fill(0);ECO_TAKE[k].fill(0);}
   for(let ei=0;ei<E;ei++){const kind=SPAWN[ei].kind;let B=ECO_B[kind];if(!B){B=ECO_B[kind]=new Float32Array(ECO_CELLS);ECO_TAKE[kind]=new Float32Array(ECO_CELLS);}
     const N=POP.n[ei],food=ecoOf(kind).food,CL=POP.cells[ei];for(const c of CL)if(N[c]>0)B[c]+=N[c]*food;} // over the index (v11.65)
   // the hunt: the ask of every hunter entry in every unloaded cell, laid on its prey by weighted biomass
-  for(let ei=0;ei<E;ei++){const K=ecoOf(SPAWN[ei].kind);if(!K.hunter)continue;const N=POP.n[ei],cd=POP.cd[ei],ke=POP.ke[ei],reach=ecoReach(SPAWN[ei].kind),CL=POP.cells[ei];
+  // v11.93.3: the prey's tables gathered once an entry, in the prey list's order (a kind with none never spawns and added 0), and the reach flat — the
+  // sums are the same additions in the same order, so the ledger is the same to the bit; the string-keyed lookups and the destructuring were two thirds of a step
+  const PB=[],PT=[];
+  for(let ei=0;ei<E;ei++){const K=ecoOf(SPAWN[ei].kind);if(!K.hunter)continue;const N=POP.n[ei],cd=POP.cd[ei],ke=POP.ke[ei],R=ecoReach(SPAWN[ei].kind),RI=R.di,RJ=R.dj,RW=R.w,nr=R.n,CL=POP.cells[ei];
+    let np=0;for(const p of K.prey)if(ECO_B[p]){PB[np]=ECO_B[p];PT[np]=ECO_TAKE[p];np++;}
     for(let ci=0;ci<CL.length;ci++){const c=CL[ci];if(!POP.done[c]||isLoaded(c))continue;const n=N[c];if(n<=0&&POP.k[ei][c]<=0)continue;if((ci&2047)===2047)yield;const i=Math.floor(c/NCELL),j=c%NCELL; // v11.58: a cell with no capacity for the kind and none of it is skipped (the basin is most of the world); a piece every 2048 cells
-      let A=0;for(const [di,dj,w] of reach){const ii=i+di,jj=j+dj;if(ii<0||jj<0||ii>=NCELL||jj>=NCELL)continue;const q=ii*NCELL+jj;for(const p of K.prey)A+=(ECO_B[p]?ECO_B[p][q]:0)*w;}
+      let A=0;for(let r=0;r<nr;r++){const ii=i+RI[r],jj=j+RJ[r];if(ii<0||jj<0||ii>=NCELL||jj>=NCELL)continue;const q=ii*NCELL+jj,w=RW[r];for(let k=0;k<np;k++)A+=PB[k][q]*w;}
       const H=K.need*ECO.H,resp=A*A/(A*A+H*H+1e-9),I=n*K.need*resp*dt;if(n<=0){ke[c]=POP.k[ei][c]*(0.1+0.9*resp);continue;}cd[c]+=(resp-cd[c])*(1-Math.exp(-dt/1.5));ke[c]=POP.k[ei][c]*(0.1+0.9*resp); // the condition (trimmed below by what the prey could give) and the capacity the prey allows
-      if(I>0&&A>0)for(const [di,dj,w] of reach){const ii=i+di,jj=j+dj;if(ii<0||jj<0||ii>=NCELL||jj>=NCELL)continue;const q=ii*NCELL+jj;for(const p of K.prey){const b=ECO_B[p]?ECO_B[p][q]*w:0;if(b>0)ECO_TAKE[p][q]+=I*b/A;}}}
+      if(I>0&&A>0)for(let r=0;r<nr;r++){const ii=i+RI[r],jj=j+RJ[r];if(ii<0||jj<0||ii>=NCELL||jj>=NCELL)continue;const q=ii*NCELL+jj,w=RW[r];for(let k=0;k<np;k++){const b=PB[k][q]*w;if(b>0)PT[k][q]+=I*b/A;}}}
     yield;}
   // the cap, and what it costs the hunters: a kind's take in a cell over ECO.take of its biomass a day is cut, and every hunter entry
   // in reach loses condition in proportion (approximately: by the cut on its own cell's prey)

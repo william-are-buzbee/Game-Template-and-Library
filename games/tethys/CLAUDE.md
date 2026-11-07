@@ -25,7 +25,7 @@ writes `dist/` for the site), `npm test -w games/tethys` (`node build.js --test`
 
 ```
 node build.js            tethys.html (everything inlined), dev.html (loads src/*.js separately), src/INDEX.md
-node build.js --test     the same, then every headless test below on both tiers; exit 1 on any failure
+node build.js --test     the same, then every headless test below (steer, player, live, smoke on both tiers); exit 1 on any failure
 node serve.js            static server; open http://localhost:8080/dev.html (edit + refresh) or /tethys.html (the build)
 ```
 
@@ -37,6 +37,11 @@ node serve.js            static server; open http://localhost:8080/dev.html (edi
   in `src/order.txt`, so both builds, `dev.html` and every test take it like a src file. It is committed (so `build.py` needs no
   Node); `npm run vendor -w games/tethys` rewrites it, and `npm test` fails when it is stale. `mulberry` and `hashStr` are its
   `WB.Rng` and `WB.hashString` since 6 Nov 2026: the same numbers (checked over 92,736 `sample()` points against the old code).
+- `--test` runs side by side (v11.93.3): the four runs that time themselves and fail on it (`physics.js`, `audio.js`, `snow.js`, `sky.js`)
+  first, one at a time with nothing else running, then the other fifteen `JOBS` at a time (default the cores, eight at most: all fifteen at once peak near 9 GB), longest first, each with
+  a temp folder of its own; a run's output prints whole when it ends, then a table of every run's time. About 4.5 minutes on a 4-core
+  sandbox (19 one at a time before v11.93.3). A new test that asserts on a time it measures goes in `ALONE` (build.js and build.py);
+  nothing else may read the wall clock — the stub's `performance.now` is the frames'.
 - The tests concatenate `src/` in `src/order.txt` order against a stubbed THREE (`test/stub.js`) and run in Node; the world is the
   real one (same `sample()`), so headless measurements of terrain, collision and behaviour are meaningful. They prove nothing about
   rendering or sound. New THREE APIs may need adding to the stub.
@@ -64,7 +69,7 @@ node serve.js            static server; open http://localhost:8080/dev.html (edi
 | `test/spectro.js` | the sound bench's wavs (`test/render/`, written by `#bench`) as spectrograms and a table of numbers; not in `--test` | `node test/spectro.js`; `node test/spectro.js shot_` |
 | `test/ident.js` | compiled specs against old hand builders; skipped without `OLD=path` | `OLD=… node test/ident.js` |
 
-Env vars: `TIER` (`low`), `PICK` (menu pick for smoke), `T0`, `OLD`, for preview `POSE TILE T SPD PALV COATS NORIG SPEC FLORA DEPTH PIX` (`PIX=1`: the body in texels with its coat's pattern, v11.41), for caustic `DEP CT CS SPAN W`.
+Env vars: `JOBS` (runs side by side in `--test`; 1 is one at a time), `TIER` (`low`), `PICK` (menu pick for smoke), `T0`, `OLD`, for preview `POSE TILE T SPD PALV COATS NORIG SPEC FLORA DEPTH PIX` (`PIX=1`: the body in texels with its coat's pattern, v11.41), for caustic `DEP CT CS SPAN W`.
 
 ## Delivering a change
 
@@ -291,7 +296,7 @@ Docs, most upstream first. When a doc's Open list says a choice is the person's,
   big steps; a step that runs long shows as a frame over `Q.target`.
 - Shadows are read by hand in every tinted fragment (scene.js `updateShadow`, `updateShadowS`), never through `receiveShadow`.
   The static map re-renders only when the sun turns, the camera drifts 20 m, a cell loads or a switch flips.
-- The stub's `setTimeout` runs immediately; `location.hash` comes from `TIER`. Since v11.92 the stub's `Matrix4.lookAt`, `Quaternion.setFromRotationMatrix` and `slerp` are real and an object's matrix composes from its quaternion: headless creatures turn. A body placed by hand faces +z until something turns it; set the player's facing with `faceQ(P)` after its yaw (test/combat.js `choose`).
+- The stub's `setTimeout` runs immediately; `location.hash` comes from `TIER`. Since v11.92 the stub's `Matrix4.lookAt`, `Quaternion.setFromRotationMatrix` and `slerp` are real and an object's matrix composes from its quaternion: headless creatures turn. A body placed by hand faces +z until something turns it; set the player's facing with `faceQ(P)` after its yaw (test/combat.js `choose`). Since v11.93.3 the stub's `add` sets `parent` and takes the object from its old parent, as three's does: before, horizon.js's `sky.parent!==scene` was always true headless and the sky went into the scene again every frame — thousands of copies by the end of a run, every one walked by every render.
 - In the sandbox a second writer once edited `src/` mid-session; build from a clean copy and say so.
 - Three clears the colour buffer to `scene.background` whatever `renderer.autoClear` says (r128's WebGLBackground forces it): a pass drawn before the main one is wiped unless the main scene's background is nulled for that frame (horizon.js `renderFrame`). And near-plane clipping is by view depth, not distance: a near plane at the far plane cuts a dome and anything off-axis to a 32° cone.
 - The mist's closed-form integral (scene.js `mistL`) must keep both exponentials bounded: a ray dropping 90 m or more to the water made `exp(-k)` overflow on the spray's 4 m layer and the fragment black (v11.65) — the world has 900 m of land now.

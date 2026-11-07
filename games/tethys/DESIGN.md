@@ -1829,7 +1829,8 @@ debits. Nothing respawns. The unloaded cells run the model; the loaded cells run
   the peak loaded (clutches laid and hatched), then 60 s of real frames and a table of every hunter kind: mean hunger, the share of it at
   hunger 1.00, the share hunting, and how far the nearest animal it eats actually is against its `detect`. Fails if nothing is laid,
   nothing hatches, nothing is killed, nothing chases, or over a quarter of the hunter role is starving.
-- **Costs**: the model 3.6 ms over ~20 frames every 3 s (sandbox CPU); the paper census 120 ms over the first 64 frames; the readout's
+- **Costs**: the model 26 ms whole over the world's 57,600 cells (v11.93.3; 73 before; sandbox CPU), one of its ~2,000 pieces a frame, then again
+  3 s after it ends; the paper census ~4.5 s over the first 1,800 frames (32 cells a frame); the readout's
   fourth line (`ecoLine`) sums the ledger for a few kinds every frame the readout is open, and `owed` over the loaded cells only.
 - **The rate to expect**: a cell of 26 flickers owes about half a recruit a game day, so one entry in one cell lays roughly every two
   game days; over the ~25 cells loaded round the player that is a clutch every 5–15 real minutes, more as the owed builds. The readout's
