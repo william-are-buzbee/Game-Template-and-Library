@@ -1,0 +1,12 @@
+{
+  "name": "@wb/planet-viewer",
+  "private": true,
+  "version": "0.0.0",
+  "description": "A planet viewer tool used as the world map: a procedural planet generator in the browser, from plates and elevation through atmosphere, currents and hydrology to a regional window and tiles.",
+  "type": "module",
+  "scripts": {
+    "dev": "npx --yes serve -l 5173 .",
+    "build": "node tools/dist.mjs",
+    "test": "node tools/smoke.mjs"
+  }
+}
