@@ -1425,6 +1425,7 @@ const PARTS = {
           const j = jetK(t, st.jet ? 1 : 0),
             k = Math.min(1, spd * 0.15);
           ringPose(rig, lerp(0.32 - 0.12 * k + 0.06 * Math.sin(t * 1.1), 0.05, j), lerp(0.09 + 0.11 * k, 0.06, j), ck(t, spd));
+          rig.hold=j; // v11.93.2: closed on the jet, the ring is held — it goes with the body through the squeeze, as it closes (physics.js SIM.hold); open, it trails as before
         };
       } else if (st0 === 'cone')
         anim = (t, spd) => {
