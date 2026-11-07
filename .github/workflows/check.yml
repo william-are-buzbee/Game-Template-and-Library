@@ -1,8 +1,10 @@
 # check.yml — on every pull request and on main: types, the tools' own tests, the catalog up to date, the workspaces'
-# tests and browser tests (their "test" and "smoke" scripts), every workspace builds, and every game and lab boots in
-# headless Chromium with no page error (tools/look.ts --all).
+# tests and browser tests (their "test" and "smoke" scripts), every workspace builds, every game and lab boots in
+# headless Chromium with no page error (tools/look.ts --all), and the templates still make a game and a lab that work
+# (tools/try-templates.ts).
 # On a pull request the tests and browser tests are those of what it changed and of everything that uses that
-# (tools/each.ts --changed; a change outside any workspace means all of them); on main, always all of them.
+# (tools/each.ts --changed; a change outside any workspace means all of them), and the templates are tried only if the
+# tools, root config or a package changed; on main, always all of it.
 # Run the same locally with `npm run check && npm run build && node tools/each.ts smoke --changed && npm run look -- --all`.
 name: check
 on:
@@ -47,3 +49,6 @@ jobs:
       - name: every game and lab boots
         if: ${{ !cancelled() }}
         run: PLAYWRIGHT_MODULE="$(npm root -g)/playwright" node tools/look.ts --all
+      - name: the templates make a game and a lab that work
+        if: ${{ !cancelled() }}
+        run: PLAYWRIGHT_MODULE="$(npm root -g)/playwright" node tools/try-templates.ts ${{ github.event_name == 'pull_request' && format('--changed=origin/{0}', github.base_ref) || '' }}

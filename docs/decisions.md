@@ -87,3 +87,8 @@ which found four repositories sharing no code, copying it instead (the same rand
     any workspace (the tools, the workflows, the lockfile, root config) runs everything; documentation and Claude's own
     settings run none. Types, the catalog, the builds and the boot check still cover everything, being quick. A push to
     `main` always runs everything, so a gap in the choice would still show there, after the merge.
+18. **CI tries the templates** (7 Nov 2026, the person). Nothing built or tested `tools/templates/`, so a template
+    broken by a change to the tools or to `@wb/core` would only show when someone next ran `npm run new`.
+    `tools/try-templates.ts` scaffolds a game and a lab in a throwaway copy of the repository and installs, typechecks,
+    tests, builds and boots them (about 15 s). On a pull request it runs when the tools, root config or a package
+    changed; on `main`, always.

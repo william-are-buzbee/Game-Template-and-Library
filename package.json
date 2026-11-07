@@ -16,6 +16,7 @@
     "catalog": "node tools/catalog.ts",
     "typecheck": "tsc -p tsconfig.json && node tools/each.ts typecheck",
     "test:tools": "node --test \"tools/test/*.test.ts\"",
+    "test:templates": "node tools/try-templates.ts",
     "test": "node tools/each.ts test",
     "check": "npm run typecheck && npm run test:tools && node tools/each.ts test --changed && node tools/catalog.ts --check",
     "check:all": "npm run typecheck && npm run test:tools && npm test && node tools/catalog.ts --check",
