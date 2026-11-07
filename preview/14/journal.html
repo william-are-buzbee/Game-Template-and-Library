@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>Games and labs</title>
+<meta name="description" content="Every game and lab in the Game-Template-and-Library repository, built from its code: play any of them in the browser.">
+<script>try{var t=localStorage.getItem('wb-theme');if(t)document.documentElement.setAttribute('data-theme',t)}catch(e){}</script><style>
+*,*::before,*::after{box-sizing:border-box}img{max-width:100%}
+.cmp{font:13px/1.4 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:#1d1d1b;color:#e8e6e1;padding:10px 16px;display:flex;flex-wrap:wrap;gap:6px 18px;align-items:center;justify-content:center}
+.cmp p{margin:0;color:#a9a69e}.cmp a,.cmp button{color:#e8e6e1;background:none;border:1px solid #45443f;border-radius:99px;padding:3px 11px;font:inherit;text-decoration:none;cursor:pointer}
+.cmp a[aria-current],.cmp button[aria-pressed=true]{background:#e8e6e1;color:#1d1d1b;border-color:#e8e6e1}.cmp span{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+:root{--paper:#f3eee2;--ink:#2a251e;--soft:#655b4c;--faint:#8f846f;--rule:#d6cab3;--grid:rgba(110,88,52,.075);--red:#983a20;--mat:#fffdf7;--corner:rgba(48,36,22,.82);--shadow:rgba(70,48,20,.2)}@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--paper:#191612;--ink:#ebe3d2;--soft:#b5aa93;--faint:#8b806c;--rule:#3b3329;--grid:rgba(240,222,186,.04);--red:#e3906a;--mat:#2b261f;--corner:rgba(8,6,4,.85);--shadow:rgba(0,0,0,.55)}}:root[data-theme=dark]{--paper:#191612;--ink:#ebe3d2;--soft:#b5aa93;--faint:#8b806c;--rule:#3b3329;--grid:rgba(240,222,186,.04);--red:#e3906a;--mat:#2b261f;--corner:rgba(8,6,4,.85);--shadow:rgba(0,0,0,.55)}
+body{margin:0;color:var(--ink);background:var(--paper);background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:26px 26px;font:17px/1.6 "Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua","Sitka Text",Georgia,serif;-webkit-text-size-adjust:100%}
+a{color:inherit}code{font:.82em ui-monospace,"Cascadia Mono",Consolas,Menlo,monospace}
+.book{max-width:1060px;margin:0 auto;padding:44px 16px 56px}
+@media (min-width:720px){.book{padding:72px 32px 80px}}
+.sc{font-variant:small-caps;letter-spacing:.09em}
+.mast{padding-bottom:26px;border-bottom:1px solid var(--rule)}
+.kicker{margin:0;color:var(--red)}
+h1{font-weight:400;font-style:italic;font-size:clamp(44px,9vw,84px);line-height:1;letter-spacing:-.015em;margin:.08em 0 .22em}
+.lede{max-width:34em;margin:0 0 22px;color:var(--soft)}
+.log{display:flex;flex-wrap:wrap;gap:6px 30px;margin:0;font-size:15px}
+.log div{display:flex;gap:8px;align-items:baseline}.log dt{color:var(--faint)}.log dd{margin:0}
+.part{display:flex;align-items:center;gap:14px;margin:52px 0 0;font-weight:400;font-size:16px;color:var(--soft)}
+.part::after{content:"";flex:1;border-top:1px solid var(--rule)}.part b{font-weight:400;color:var(--red)}
+.entry{display:grid;gap:22px;padding:30px 0 34px;border-bottom:1px dashed var(--rule)}
+@media (min-width:820px){.entry{grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:44px;align-items:center;padding:52px 0}.entry:nth-of-type(even){grid-template-columns:minmax(0,5fr) minmax(0,7fr)}.entry:nth-of-type(even) .plate{order:2}.entry:nth-of-type(even) .mount{rotate:.6deg}}
+.plate{margin:0}
+.mount{display:block;position:relative;padding:9px;background:var(--mat);box-shadow:0 1px 2px var(--shadow),0 10px 26px -10px var(--shadow);rotate:-.6deg;transition:rotate .35s ease,translate .35s ease}
+a.mount:hover{rotate:0deg;translate:0 -2px}
+.mount img{display:block;width:100%;height:auto}
+.mount::before,.mount::after{content:"";position:absolute;width:26px;height:26px;background:linear-gradient(135deg,var(--corner) 50%,transparent 50%);top:2px;left:2px;pointer-events:none}
+.mount::after{top:auto;left:auto;bottom:2px;right:2px;rotate:180deg}
+.wanting{display:grid;place-items:center;aspect-ratio:16/9;padding:16px;border:1.5px dashed var(--rule);color:var(--faint);font-style:italic;text-align:center}
+figcaption{margin:12px 0 0 4px;font-size:15px;font-style:italic;color:var(--soft)}figcaption b{font-style:normal;font-weight:400;color:var(--ink)}
+.no{margin:0;font-size:15px;color:var(--faint)}.no code{font-variant:normal;letter-spacing:0}
+h3{font-weight:400;font-size:clamp(32px,4.4vw,42px);line-height:1.08;margin:.08em 0 .3em}
+h3 a{text-decoration:none}h3 a:hover{text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:5px}
+.desc{margin:0 0 16px}
+.obs{margin:0 0 16px;padding-left:14px;border-left:2px solid var(--rule);font-size:15px;font-style:italic;color:var(--soft)}
+.obs span{display:block;font-style:normal;font-size:14px;color:var(--faint)}
+.stamp{display:table;margin:0 0 16px;padding:1px 10px 2px;border:1.5px solid var(--red);border-radius:3px;color:var(--red);font-size:14px;rotate:-2deg}
+.go{font-size:17px;color:var(--red);text-decoration:none}.go:hover{text-decoration:underline}
+.off{color:var(--faint);font-style:italic;font-size:15px}
+.aside{margin:6px 0 0;color:var(--soft);font-style:italic}
+.notes{list-style:none;margin:0;padding:0;display:grid;column-gap:44px}
+@media (min-width:820px){.notes{grid-template-columns:1fr 1fr}}
+.note{display:grid;grid-template-columns:minmax(0,132px) minmax(0,1fr);gap:18px;align-items:start;padding:24px 0;border-bottom:1px dashed var(--rule)}
+.note .mount{padding:5px;rotate:1.2deg}.note .mount::before,.note .mount::after{width:16px;height:16px}
+.note .wanting{font-size:13px;padding:6px}
+.note h3{font-size:25px;margin:0 0 .2em}.note .desc{font-size:15px;margin:0 0 10px}.note .obs{font-size:14px;margin:0 0 10px}
+footer{margin-top:44px;font-size:14px;color:var(--faint);font-style:italic}footer a{color:var(--soft)}
+a:focus-visible{outline:2px solid var(--red);outline-offset:3px}
+
+</style>
+</head>
+<body>
+<nav class="cmp" aria-label="Designs being compared"><p>Pull request #14: three designs for this page.</p><span><a href="journal.html" aria-current="page">Field journal</a><a href="gallery.html">Dark gallery</a><a href="front-page.html">Front page (my pick)</a></span><span><button data-t="">system</button><button data-t="light">light</button><button data-t="dark">dark</button></span></nav><div class="book">
+<header class="mast">
+<p class="kicker sc">A field journal</p>
+<h1>Games and labs</h1>
+<p class="lede">Every game and lab in the repository, observed as each one opens. The plates are taken from the build each time the site is made, so none is older than its code.</p>
+<dl class="log sc"><div><dt>Entries</dt><dd>3 games, 1 lab</dd></div><div><dt>Made</dt><dd>7 Nov 2026</dd></div><div><dt>From</dt><dd>Pull request #14</dd></div></dl>
+</header>
+<section aria-labelledby="games"><h2 class="part sc" id="games"><b>Part I.</b> Games</h2>
+<article class="entry"><figure class="plate"><a class="mount" href="games/overworld/" tabindex="-1" aria-hidden="true"><img src="cards/overworld-960.webp" srcset="cards/overworld-480.webp 480w, cards/overworld-960.webp 960w" sizes="(min-width: 1060px) 580px, (min-width: 820px) 56vw, calc(100vw - 32px)" width="960" height="540" alt="Overworld as it opens" fetchpriority="high" decoding="async"></a><figcaption><b class="sc">Plate I.</b> Overworld, as it opens.</figcaption></figure><div><p class="no sc">No. 1 · <code>games/overworld</code> · uses core</p><h3><a href="games/overworld/">Overworld</a></h3><p class="desc">A turn-based roguelike about surviving as an alien creature on a believably simulated world.</p><p class="obs"><span class="sc">Last noted 7 Nov 2026</span>The tools run on Windows: npm started portably, paths from fileURLToPath</p><a class="go sc" href="games/overworld/">Open Overworld&nbsp;→</a></div></article>
+<article class="entry"><figure class="plate"><a class="mount" href="games/rootshock/" tabindex="-1" aria-hidden="true"><img src="cards/rootshock-960.webp" srcset="cards/rootshock-480.webp 480w, cards/rootshock-960.webp 960w" sizes="(min-width: 1060px) 580px, (min-width: 820px) 56vw, calc(100vw - 32px)" width="960" height="540" alt="Rootshock as it opens" loading="lazy" decoding="async"></a><figcaption><b class="sc">Plate II.</b> Rootshock, as it opens.</figcaption></figure><div><p class="no sc">No. 2 · <code>games/rootshock</code> · uses core</p><h3><a href="games/rootshock/">Rootshock</a></h3><p class="desc">A first-person game set in Lowfield Station, a facility deep under a field.</p><p class="obs"><span class="sc">Last noted 7 Nov 2026</span>Card pictures for the site's index, taken from each build; heavy games can be shot now</p><p class="stamp sc">Revised in pull request #14</p><a class="go sc" href="games/rootshock/">Open Rootshock&nbsp;→</a></div></article>
+<article class="entry"><figure class="plate"><a class="mount" href="games/tethys/" tabindex="-1" aria-hidden="true"><img src="cards/tethys-960.webp" srcset="cards/tethys-480.webp 480w, cards/tethys-960.webp 960w" sizes="(min-width: 1060px) 580px, (min-width: 820px) 56vw, calc(100vw - 32px)" width="960" height="540" alt="Tethys as it opens" loading="lazy" decoding="async"></a><figcaption><b class="sc">Plate III.</b> Tethys, as it opens.</figcaption></figure><div><p class="no sc">No. 3 · <code>games/tethys</code> · uses core</p><h3><a href="games/tethys/">Tethys</a></h3><p class="desc">An underwater exploration game: no tech, no oxygen; swimming, an ecology, predators, a surface to breach and land to flop onto.</p><p class="obs"><span class="sc">Last noted 7 Nov 2026</span>The tools run on Windows: npm started portably, paths from fileURLToPath</p><a class="go sc" href="games/tethys/">Open Tethys&nbsp;→</a></div></article>
+</section>
+<section aria-labelledby="labs"><h2 class="part sc" id="labs"><b>Part II.</b> Labs</h2>
+<p class="aside">Loose notes: one-shots, model trials and tech demos.</p>
+<ol class="notes"><li class="note"><a class="mount" href="labs/planet-viewer/" tabindex="-1" aria-hidden="true"><img src="cards/planet-viewer-960.webp" srcset="cards/planet-viewer-480.webp 480w, cards/planet-viewer-960.webp 960w" sizes="132px" width="960" height="482" alt="Planet-Viewer as it opens" loading="lazy" decoding="async"></a><div><h3><a href="labs/planet-viewer/">Planet-Viewer</a></h3><p class="desc">A planet viewer tool used as the world map: a procedural planet generator in the browser, from plates and elevation through atmosphere, currents and hydrology to a regional window and tiles.</p><p class="obs"><span class="sc">Last noted 7 Nov 2026</span>Card pictures for the site's index, taken from each build; heavy games can be shot now</p><p class="stamp sc">Revised in pull request #14</p></div></li></ol>
+</section>
+<footer>Preview of <a href="https://github.com/william-are-buzbee/Game-Template-and-Library/pull/14">pull request #14</a>. Made on 7 Nov 2026 from <a href="https://github.com/william-are-buzbee/Game-Template-and-Library/commit/67ddc046824ab93ce104c19a2163cc8af58978e8"><code>67ddc04</code></a> by <code>tools/site.ts</code>. The code, the packages and the catalog are in <a href="https://github.com/william-are-buzbee/Game-Template-and-Library">the repository</a>.</footer>
+</div>
+<script>(function(){var r=document.documentElement,b=document.querySelectorAll('.cmp button');function show(){var t=r.getAttribute('data-theme')||'';b.forEach(function(x){x.setAttribute('aria-pressed',String(x.getAttribute('data-t')===t))})}b.forEach(function(x){x.addEventListener('click',function(){var t=x.getAttribute('data-t');if(t)r.setAttribute('data-theme',t);else r.removeAttribute('data-theme');try{t?localStorage.setItem('wb-theme',t):localStorage.removeItem('wb-theme')}catch(e){}show()})});show()})()</script></body>
+</html>
