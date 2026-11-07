@@ -6,11 +6,11 @@
 // legitimate state of this repo (an empty games/ or labs/), so the root scripts come through here.
 //
 // --changed compares against where this branch left <ref> (git merge-base), counting committed, uncommitted and new
-// files; tools/lib/affected.ts decides what that touches. A change outside any workspace (tools/, the workflows, the
-// lockfile, root config) runs everything; so does anything git cannot answer. Pull requests run this way in CI; a push
-// to main always runs everything.
-import { spawnSync } from 'node:child_process';
+// files (tools/lib/changed.ts); tools/lib/affected.ts decides what that touches. A change outside any workspace (tools/,
+// the workflows, the lockfile, root config) runs everything; so does anything git cannot answer. CI makes the same
+// choice, one job per workspace (tools/plan.ts).
 import { affected } from './lib/affected.ts';
+import { changedFiles, changedRef } from './lib/changed.ts';
 import { runNpm } from './lib/npm.ts';
 import { ROOT, workspaces } from './lib/workspaces.ts';
 
@@ -19,24 +19,15 @@ if (!script || script.startsWith('--')) {
   console.error('usage: node tools/each.ts <script> [--changed[=<ref>]]');
   process.exit(2);
 }
-const changedArg = process.argv.slice(3).find(a => a === '--changed' || a.startsWith('--changed='));
-
-const git = (...args: string[]) => {
-  const r = spawnSync('git', args, { cwd: ROOT, encoding: 'utf8' });
-  return r.status === 0 ? r.stdout : null;
-};
+const ref = changedRef(process.argv.slice(3));
 
 const all = workspaces();
 let targets = all;
-if (changedArg) {
-  const ref = changedArg.includes('=') ? changedArg.slice('--changed='.length) : 'origin/main';
-  const base = git('merge-base', ref, 'HEAD')?.trim();
-  const diff = base ? git('diff', '--name-only', '--no-renames', base) : null;
-  const added = git('ls-files', '--others', '--exclude-standard');
-  if (diff === null || added === null) {
+if (ref) {
+  const files = changedFiles(ref);
+  if (files === null) {
     console.log(`── ${script}: could not compare with ${ref}, so everything runs`);
   } else {
-    const files = [...diff.split('\n'), ...added.split('\n')].filter(Boolean);
     const a = affected(files, all);
     console.log(`── ${script}, for what changed since ${ref} (${files.length} files):`);
     for (const line of a.why) console.log(`   ${line}`);
@@ -54,7 +45,7 @@ for (const w of ran) {
   const r = runNpm(['run', script, '-w', w.dir], { cwd: ROOT, stdio: 'inherit' });
   if (r.status !== 0) failed.push(w.dir);
 }
-if (!ran.length) console.log(`(no ${changedArg ? 'affected ' : ''}workspace has a "${script}" script)`);
+if (!ran.length) console.log(`(no ${ref ? 'affected ' : ''}workspace has a "${script}" script)`);
 if (failed.length) {
   console.error(`\n${script} failed in: ${failed.join(', ')}`);
   process.exit(1);

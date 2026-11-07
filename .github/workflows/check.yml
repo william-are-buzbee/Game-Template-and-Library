@@ -1,11 +1,13 @@
-# check.yml — on every pull request and on main: types, the tools' own tests, the catalog up to date, the workspaces'
-# tests and browser tests (their "test" and "smoke" scripts), every workspace builds, every game and lab boots in
-# headless Chromium with no page error (tools/look.ts --all), and the templates still make a game and a lab that work
-# (tools/try-templates.ts).
-# On a pull request the tests and browser tests are those of what it changed and of everything that uses that
-# (tools/each.ts --changed; a change outside any workspace means all of them), and the templates are tried only if the
-# tools, root config or a package changed; on main, always all of it.
-# Run the same locally with `npm run check && npm run build && node tools/each.ts smoke --changed && npm run look -- --all`.
+# check.yml — on every pull request and on main, in jobs that run side by side:
+#   plan       which workspaces have tests to run (tools/plan.ts): on a pull request, those it changed and everything
+#              that uses them (a change outside any workspace means all of them); on main, all of them
+#   <name>     one job per workspace in the plan: its "test" and "smoke" scripts, on a machine of its own, so the pull
+#              request's checks name the game that failed and main takes as long as its slowest workspace
+#   shared     the quick whole-repository checks: types, the tools' own tests, the catalog, every workspace builds, every
+#              game and lab boots in headless Chromium (tools/look.ts --all), and the templates still make a game and a
+#              lab that work (tools/try-templates.ts; on a pull request only if the tools, root config or a package changed)
+#   all        passes only if all of the above did: the one check to require, if checks are ever required
+# Locally: `npm run check && npm run build && node tools/each.ts smoke --changed && npm run look -- --all`.
 name: check
 on:
   pull_request:
@@ -14,12 +16,16 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
+env:
+  # on a pull request, compare with the branch it goes into; on main, nothing (everything runs)
+  CHANGED: ${{ github.event_name == 'pull_request' && format('--changed=origin/{0}', github.base_ref) || '' }}
 jobs:
-  check:
+  plan:
     runs-on: ubuntu-latest
-    # Tethys's suite (node build.js --test: 19 runs, the ecology over game days among them) is most of it: 17 min on a
-    # cloud session's machine, 6 Nov 2026
-    timeout-minutes: 45
+    timeout-minutes: 5
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+      any: ${{ steps.plan.outputs.any }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -28,13 +34,54 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      # the plan reads only package.json files and git: no install needed
+      - id: plan
+        run: node tools/plan.ts $CHANGED
+
+  workspace:
+    needs: plan
+    if: ${{ needs.plan.outputs.any == 'true' }}
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    # Tethys's suite (node build.js --test, 19 runs) is the longest: 15-17 min
+    timeout-minutes: 45
+    strategy:
+      # one game failing does not stop the others: each says for itself
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: test
+        if: ${{ matrix.test }}
+        run: npm run test -w ${{ matrix.dir }}
+      - name: install headless chromium (in the job only, not the repo)
+        if: ${{ matrix.smoke && !cancelled() }}
+        run: |
+          npm i -g playwright@1.63.0
+          npx playwright@1.63.0 install --with-deps chromium
+      - name: browser tests
+        if: ${{ matrix.smoke && !cancelled() }}
+        run: PLAYWRIGHT_MODULE="$(npm root -g)/playwright" npm run smoke -w ${{ matrix.dir }}
+
+  shared:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
           cache: npm
       - run: npm ci
       - name: types, the tools' own tests, the catalog
         run: npm run typecheck && npm run test:tools && node tools/catalog.ts --check
-      - name: tests (a pull request, what it changed and what uses it; main, everything)
-        if: ${{ !cancelled() }}
-        run: node tools/each.ts test ${{ github.event_name == 'pull_request' && format('--changed=origin/{0}', github.base_ref) || '' }}
       # the steps below run even when one above failed (the job still fails), so one red check cannot hide the others
       - run: npm run build
         if: ${{ !cancelled() }}
@@ -43,12 +90,22 @@ jobs:
         run: |
           npm i -g playwright@1.63.0
           npx playwright@1.63.0 install --with-deps chromium
-      - name: browser tests (each workspace's "smoke" script)
-        if: ${{ !cancelled() }}
-        run: PLAYWRIGHT_MODULE="$(npm root -g)/playwright" node tools/each.ts smoke ${{ github.event_name == 'pull_request' && format('--changed=origin/{0}', github.base_ref) || '' }}
       - name: every game and lab boots
         if: ${{ !cancelled() }}
         run: PLAYWRIGHT_MODULE="$(npm root -g)/playwright" node tools/look.ts --all
       - name: the templates make a game and a lab that work
         if: ${{ !cancelled() }}
-        run: PLAYWRIGHT_MODULE="$(npm root -g)/playwright" node tools/try-templates.ts ${{ github.event_name == 'pull_request' && format('--changed=origin/{0}', github.base_ref) || '' }}
+        run: PLAYWRIGHT_MODULE="$(npm root -g)/playwright" node tools/try-templates.ts $CHANGED
+
+  all:
+    needs: [plan, workspace, shared]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: every job passed (a workspace job skipped because nothing needed testing counts as passed)
+        run: |
+          echo "plan: ${{ needs.plan.result }}  workspaces: ${{ needs.workspace.result }}  shared: ${{ needs.shared.result }}"
+          test "${{ needs.plan.result }}" = success
+          test "${{ needs.shared.result }}" = success
+          test "${{ needs.workspace.result }}" = success -o "${{ needs.workspace.result }}" = skipped
