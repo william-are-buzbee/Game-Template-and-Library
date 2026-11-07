@@ -1,11 +1,11 @@
 // tools/cards.ts — the pictures on the site's index: a screenshot of every game and lab, taken from its build.
 //   node tools/cards.ts                   every game and lab with a dist/ (CI: pages.yml, before tools/site.ts)
 //   node tools/cards.ts games/<name> ...  just those
-// For each it serves dist/ (what `npm run build` made, as look.ts does), opens it as its package.json's "card" says
-// (Card in tools/lib/workspaces.ts: the address, the window, clicks, what to wait for), lets it run, stops its frame loop
-// (tools/lib/browser.ts `freeze`: without that, a game drawing under software WebGL never lets the screenshot happen)
-// and takes the picture. It writes _cards/<name>-<width>.webp at 480 and 960 wide, and _cards/<name>.json saying what
-// is there; tools/site.ts puts them on the index. A picture of one flat colour (nothing drawn yet) is not kept.
+// For each it serves dist/ (what `npm run build` made, as look.ts does) and opens it as its package.json's "card" says
+// (Card in tools/lib/workspaces.ts: the address, the window, clicks, what to wait for). It lets it run, stops its frame
+// loop (tools/lib/browser.ts `freeze`: without that, a game drawing under software WebGL never lets the screenshot
+// happen) and takes the picture. It writes _cards/<name>-<width>.webp at 480, 960 and 1280 wide, and _cards/<name>.json
+// saying what is there; tools/site.ts puts them on the index. A picture of one flat colour (nothing drawn) is not kept.
 // It does not fail for one game: a game with no picture is listed with a card made of its name, and the reason is
 // printed, so one broken lab does not hold up the site. It never builds anything itself.
 import { existsSync, mkdirSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -14,8 +14,8 @@ import { freezable, freeze, launch, serve, url } from './lib/browser.ts';
 import { ROOT, workspaces, type Card, type Workspace } from './lib/workspaces.ts';
 
 export const OUT = join(ROOT, '_cards');
-/** the widths written; the index's srcset chooses between them */
-export const WIDTHS = [480, 960];
+/** the widths written (none wider than the screenshot); the index's srcset chooses between them */
+export const WIDTHS = [480, 960, 1280];
 
 /** a Card with its defaults filled in, and its size read */
 export function settings(card: Card = {}) {

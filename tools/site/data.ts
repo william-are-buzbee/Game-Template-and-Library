@@ -1,9 +1,10 @@
-// tools/site/data.ts — what the index page says about each game and lab, gathered once and handed to whichever design
-// draws it (tools/site/*.ts). `gather` reads the repository (package.json, git, _cards/); the designs only read a Site.
+// tools/site/data.ts — what the index page says about each game and lab, gathered once and handed to the page that
+// draws it (tools/site/gallery.ts). `gather` reads the repository (package.json, git, _cards/); the page only reads a Site.
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { affected, ignorable } from '../lib/affected.ts';
+import { changedFiles } from '../lib/changed.ts';
 import { ROOT, SCOPE, title, type Workspace } from '../lib/workspaces.ts';
 import type { CardFile } from '../cards.ts';
 
@@ -40,8 +41,6 @@ export interface Entry {
   picture: Picture | null;
   /** the last commit that changed its folder */
   last: Change | null;
-  /** the few before that, newest first */
-  earlier: Change[];
   /** on a pull request's preview: whether the pull request changed it, itself or through a package it uses */
   changed: 'here' | 'via' | null;
 }
@@ -53,8 +52,6 @@ export interface Site {
   pr: string | null;
   /** the commit it was made from */
   commit: string | null;
-  /** how many commits led to it (the front page's issue number) */
-  count: number | null;
   /** the day it was made, YYYY-MM-DD */
   made: string;
 }
@@ -79,6 +76,15 @@ export function changes(files: string[], all: Workspace[]): Map<string, 'here' |
   return out;
 }
 
+/** what a pull request changed first, then what changed last, then the catalog's order */
+export function byRecent(entries: Entry[]): Entry[] {
+  const rank = (e: Entry) => (e.changed === 'here' ? 0 : e.changed === 'via' ? 1 : 2);
+  return entries
+    .map((e, i) => ({ e, i }))
+    .sort((a, b) => rank(a.e) - rank(b.e) || (b.e.last?.time ?? 0) - (a.e.last?.time ?? 0) || a.i - b.i)
+    .map(x => x.e);
+}
+
 const git = (...args: string[]): string | null => {
   const r = spawnSync('git', args, { cwd: ROOT, encoding: 'utf8' });
   return r.status === 0 ? r.stdout.trim() : null;
@@ -92,22 +98,16 @@ export function gather(all: Workspace[], built: Set<string>, o: { cards: string;
   let changed = new Map<string, 'here' | 'via'>();
   if (o.pr && o.base) {
     // as tools/each.ts --changed counts them: from where the branch left the base, committed or not, and new files
-    const from = git('merge-base', o.base, 'HEAD');
-    const diff = from ? git('diff', '--name-only', '--no-renames', from) : null;
-    const added = git('ls-files', '--others', '--exclude-standard');
-    if (diff === null || added === null) console.warn(`warning: could not compare with ${o.base}; nothing is marked as changed`);
-    else changed = changes(`${diff}\n${added}`.split('\n').filter(Boolean), all);
+    const files = changedFiles(o.base);
+    if (files === null) console.warn(`warning: could not compare with ${o.base}; nothing is marked as changed`);
+    else changed = changes(files, all);
   }
   const entries: Entry[] = all
     .filter(w => w.kind !== 'package')
     .map(w => {
       const card = join(o.cards, `${w.name}.json`);
-      const log = git('log', '-4', '--no-merges', '--format=%at%x1f%as%x1f%s', '--', w.dir);
-      const history: Change[] = (log ?? '')
-        .split('\n')
-        .filter(Boolean)
-        .map(l => l.split('\x1f'))
-        .map(([time, date, subject]) => ({ time: Number(time), date: date ?? '', subject: subject ?? '' }));
+      const log = git('log', '-1', '--no-merges', '--format=%at%x1f%as%x1f%s', '--', w.dir);
+      const [time, date, subject] = log ? log.split('\x1f') : [];
       return {
         kind: w.kind as 'game' | 'lab',
         name: w.name,
@@ -117,17 +117,14 @@ export function gather(all: Workspace[], built: Set<string>, o: { cards: string;
         description: w.description,
         uses: w.uses.map(u => u.slice(SCOPE.length)),
         picture: existsSync(card) ? picture(w.name, JSON.parse(readFileSync(card, 'utf8')) as CardFile) : null,
-        last: history[0] ?? null,
-        earlier: history.slice(1),
+        last: time && date ? { time: Number(time), date, subject: subject ?? '' } : null,
         changed: changed.get(w.dir) ?? null,
       };
     });
-  const count = git('rev-list', '--count', 'HEAD');
   return {
     entries,
     pr: o.pr ?? null,
     commit: o.commit || git('rev-parse', 'HEAD'),
-    count: count ? Number(count) : null,
     made: o.made ?? new Date().toISOString().slice(0, 10),
   };
 }

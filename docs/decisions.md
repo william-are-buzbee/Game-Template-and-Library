@@ -114,3 +114,11 @@ which found four repositories sharing no code, copying it instead (the same rand
     per-game settings are about what the picture shows, not whether one can be taken: Rootshock's asks for
     `?shot=lobby` (its title shows the lobby or the cargo bay at random), Planet-Viewer's presses Generate and pictures
     the map. When the pictures fail the site is still published, each card showing its name.
+22. **The site's index is a dark gallery** (7 Nov 2026, the person: "I'd go with the dark gallery, though it does look
+    like it could use some love. I'd have it run as a dark page by default"). Three designs were built from the real
+    games and compared on pull request 14's preview: a field journal, a quiet dark gallery, and a newspaper front page
+    (Claude's pick, for leading with what changed). The gallery is `tools/site/gallery.ts`: each game and lab hangs as
+    its picture with a small wall label; the most recently changed game is featured (on a preview, what the pull
+    request changed) and the rest keep the catalog's order; the labs are smaller studies. It is dark whatever the
+    system's setting; "Lights on" gives a light page, remembered in that browser, and without script the page is simply
+    dark. The other two designs are in that pull request's history (commit 5fee142), not in the tools.
