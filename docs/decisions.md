@@ -59,6 +59,7 @@ which found four repositories sharing no code, copying it instead (the same rand
     - **collision**: the two 3D games share ideas (verlet constraints, closest points), not code.
 
     Each is promoted when a game needs it and the person can check the result: they hear the sound, or play the feel.
+    `docs/audit-2026-11.md` keeps the audit's detail for each, so its session starts from it.
     Rootshock's resolution governor stays in Rootshock, its only user.
 13. **A dev mode in every new game** (6 Nov 2026, from the person's "god mode without needing to ask"). Under `?dev` the
     template has a frame readout (`Meter`), the state on `window.game`, and P pause, `.` step, T slow time; each game adds
