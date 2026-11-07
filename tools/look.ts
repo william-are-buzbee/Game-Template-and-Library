@@ -3,13 +3,11 @@
 //   node tools/look.ts --all          every game and lab with a dist/ (CI: "every game and lab boots")
 // It serves the workspace's dist/ (what `npm run build -w <dir>` made, i.e. what gets published) on a free local
 // port, so it checks the real build, not the dev server. Screenshots go to _look/<name>.png unless --shot says.
-// Playwright is not a dependency of the repo: it is found as PLAYWRIGHT_MODULE, else as a global `playwright`
-// (cloud sessions have one; CI installs one in the job).
-import { createServer, type Server } from 'node:http';
-import { createReadStream, existsSync, mkdirSync, statSync } from 'node:fs';
-import { createRequire } from 'node:module';
-import { dirname, extname, join, normalize, resolve } from 'node:path';
-import type { AddressInfo } from 'node:net';
+// Before the screenshot the game's frame loop is stopped (tools/lib/browser.ts `freeze`), so a game that draws slowly
+// under software WebGL still gets its picture taken. Playwright: see tools/lib/browser.ts.
+import { existsSync, mkdirSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
+import { freezable, freeze, launch, serve, url as served } from './lib/browser.ts';
 import { ROOT, workspaces } from './lib/workspaces.ts';
 
 const argv = process.argv.slice(2);
@@ -33,40 +31,9 @@ const wait = Number(opt('--wait', '2500'));
 const query = opt('--query', '');
 const [W, H] = opt('--size', '1280x720').split('x').map(Number) as [number, number];
 
-const TYPES: Record<string, string> = {
-  '.html': 'text/html', '.js': 'text/javascript', '.mjs': 'text/javascript', '.css': 'text/css', '.json': 'application/json',
-  '.png': 'image/png', '.jpg': 'image/jpeg', '.svg': 'image/svg+xml', '.wasm': 'application/wasm', '.wav': 'audio/wav',
-  '.ogg': 'audio/ogg', '.glb': 'model/gltf-binary', '.woff2': 'font/woff2', '.txt': 'text/plain',
-};
-
-function serve(dir: string): Promise<Server> {
-  const root = resolve(dir);
-  const server = createServer((req, res) => {
-    const path = decodeURIComponent(new URL(req.url ?? '/', 'http://x').pathname);
-    let file = normalize(join(root, path));
-    if (!file.startsWith(root)) return void res.writeHead(403).end();
-    if (existsSync(file) && statSync(file).isDirectory()) file = join(file, 'index.html');
-    if (!existsSync(file)) return void res.writeHead(404).end();
-    res.writeHead(200, { 'content-type': TYPES[extname(file)] ?? 'application/octet-stream' });
-    createReadStream(file).pipe(res);
-  });
-  return new Promise(ok => server.listen(0, '127.0.0.1', () => ok(server)));
-}
-
-const require = createRequire(import.meta.url);
-let pw: any;
-try {
-  pw = require(process.env.PLAYWRIGHT_MODULE ?? 'playwright');
-} catch {
-  console.error('Playwright not found: set PLAYWRIGHT_MODULE to its folder, or install it globally (`npm i -g playwright`).');
-  process.exit(2);
-}
-// software WebGL, so a machine with no GPU (CI, a cloud session) still draws
-// software WebGL, so a machine with no GPU (CI, a cloud session) still draws. A browser of its own for each target,
-// closed whole afterwards: a page closed on its own waits for a renderer stuck in long software-WebGL frames, and the next
-// page queued behind it (Tethys's boot took 5 min that way in CI, and Planet-Viewer's after it 1.7, 7 Nov 2026).
-const launch = () => pw.chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
-// --no-shot: the check without the picture (CI, where nobody looks at it and a heavy game's frame can take 20 s)
+// A browser of its own for each target, closed whole afterwards: a page closed on its own waits for a renderer stuck in
+// long software-WebGL frames, and the next page queued behind it (Tethys's boot took 5 min that way in CI, and
+// Planet-Viewer's after it 1.7, 7 Nov 2026). --no-shot: the check without the picture (CI, where nobody looks at it).
 const noShot = argv.includes('--no-shot');
 
 let failed = 0;
@@ -79,9 +46,10 @@ for (const target of targets) {
     continue;
   }
   const server = await serve(dist);
-  const url = `http://127.0.0.1:${(server.address() as AddressInfo).port}/${query}`;
+  const url = served(server) + query;
   const browser = await launch();
   const page = await browser.newPage({ viewport: { width: W, height: H } });
+  await freezable(page);
   const errors: string[] = [];
   // What the game loads from other hosts (Tethys's three.js from cdnjs, Rootshock's web font) it gets, if the network
   // allows. A request to another host that fails is a note, not a fault of the build: a session's network may refuse a
@@ -112,7 +80,8 @@ for (const target of targets) {
     else errors.push(`HTTP ${r.status()}: ${r.url()}`);
   });
   try {
-    await page.goto(url, { waitUntil: 'load', timeout: 20_000 });
+    // a minute: drawn one frame at a time (freezable), a heavy game's load event comes later (Rootshock 14 s here)
+    await page.goto(url, { waitUntil: 'load', timeout: 60_000 });
     await page.waitForTimeout(wait);
   } catch (e) {
     errors.push(`load: ${(e as Error).message}`);
@@ -120,14 +89,17 @@ for (const target of targets) {
   const shot = argv.includes('--shot') && targets.length === 1 ? resolve(opt('--shot', '')) : join(ROOT, '_look', `${name}.png`);
   mkdirSync(dirname(shot), { recursive: true });
   // the screenshot is for looking at, not part of the verdict: a heavy game under software WebGL can take longer to draw
-  // one frame than any sensible wait (Rootshock, 6 Nov 2026), and that says nothing about whether it boots
+  // one frame than any sensible wait (Rootshock, 6 Nov 2026), and that says nothing about whether it boots. Held to one
+  // frame at a time and then stopped (tools/lib/browser.ts), it has its picture taken at once.
   const notes: string[] = [];
   let shotTaken = !noShot;
-  if (!noShot)
-    await page.screenshot({ path: shot, timeout: 20_000 }).catch((e: Error) => {
+  if (!noShot) {
+    await freeze(page).catch(() => {});
+    await page.screenshot({ path: shot, timeout: 60_000 }).catch((e: Error) => {
       shotTaken = false;
       notes.push(`no screenshot (${e.message.split('\n')[0]}): too slow to draw under software WebGL, or hung; look at it on the preview`);
     });
+  }
   await browser.close();
   server.close();
   if (outside.size) notes.push(`could not load, from other hosts: ${[...outside].join(", ")}`);

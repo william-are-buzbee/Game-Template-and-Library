@@ -103,7 +103,26 @@ which found four repositories sharing no code, copying it instead (the same rand
     one did. Main now takes as long as its slowest workspace (Tethys, about 17 minutes) rather than every workspace in a
     row, and it stays that way as games are added. A pull request's checks name the game that failed, and Tethys's
     timing-sensitive tests no longer share a machine with Rootshock's. Public repositories pay nothing for the minutes.
-21. **Each workspace's job builds and boots it; the shared job is only the quick checks** (7 Nov 2026, the person). The
+21. **The index's pictures are taken from each build, as the site is published** (7 Nov 2026, the person: "live
+    screenshots from CI, not hand-made art"). `tools/cards.ts`, in `pages.yml`, opens each game's and lab's build in
+    headless Chromium as its `package.json`'s `card` says (the address, the window, what to click and wait for) and
+    writes the small WebP pictures the index shows; none is committed, the build and the card setting being the recipe.
+    Under software WebGL a heavy game queues frames faster than they are drawn, and a screenshot waited behind all of
+    them (Rootshock and Tethys in CI: 20 s and no picture). `tools/lib/browser.ts` now holds a game to one frame at a time
+    (a one-pixel read after each: `gl.finish()` does not wait in Chromium) and stops its loop before the picture, about
+    30 s for each of the two; `tools/look.ts` does the same, so the boot check's screenshots of them work too. So the
+    per-game settings are about what the picture shows, not whether one can be taken: Rootshock's asks for
+    `?shot=lobby` (its title shows the lobby or the cargo bay at random), Planet-Viewer's presses Generate and pictures
+    the map. When the pictures fail the site is still published, each card showing its name.
+22. **The site's index is a dark gallery** (7 Nov 2026, the person: "I'd go with the dark gallery, though it does look
+    like it could use some love. I'd have it run as a dark page by default"). Three designs were built from the real
+    games and compared on pull request 14's preview: a field journal, a quiet dark gallery, and a newspaper front page
+    (Claude's pick, for leading with what changed). The gallery is `tools/site/gallery.ts`: each game and lab hangs as
+    its picture with a small wall label; the most recently changed game is featured (on a preview, what the pull
+    request changed) and the rest keep the catalog's order; the labs are smaller studies. It is dark whatever the
+    system's setting; "Lights on" gives a light page, remembered in that browser, and without script the page is simply
+    dark. The other two designs are in that pull request's history (commit 5fee142), not in the tools.
+23. **Each workspace's job builds and boots it; the shared job is only the quick checks** (7 Nov 2026, the person). The
     shared job took 8.5 minutes, 7.5 of them booting the four games in one browser: closing a page waits for a renderer
     stuck in long software-WebGL frames, and the next page queued behind it (Tethys 5 min, Planet-Viewer 1.7 after it).
     `tools/look.ts` now gives each target a browser of its own and closes it whole, and takes no screenshot with
