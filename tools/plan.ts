@@ -1,13 +1,14 @@
-// tools/plan.ts — CI's plan: one job per workspace whose tests or browser tests have to run, as a GitHub Actions matrix.
-//   node tools/plan.ts                     every workspace with a "test" or "smoke" script (a push to main)
+// tools/plan.ts — CI's plan: one job per workspace to test, build, browser-test and boot, as a GitHub Actions matrix.
+//   node tools/plan.ts                     every workspace (a push to main)
 //   node tools/plan.ts --changed[=ref]     only those a pull request affects (tools/lib/affected.ts)
-// It prints the plan, and with GITHUB_OUTPUT set writes `matrix` (the jobs) and `any` (whether there are any) for
+// It prints the plan, and with GITHUB_OUTPUT set writes `matrix` (the jobs), `any` (whether there are any) and
+// `templates` (whether tools/try-templates.ts must run) for
 // .github/workflows/check.yml. Each job runs one workspace on a machine of its own, so main takes as long as its slowest
 // workspace rather than all of them in a row, and a pull request's checks name the game that failed.
 import { appendFileSync } from 'node:fs';
 import { affected } from './lib/affected.ts';
 import { changedFiles, changedRef } from './lib/changed.ts';
-import { jobs } from './lib/jobs.ts';
+import { jobs, needsTemplates } from './lib/jobs.ts';
 import { workspaces } from './lib/workspaces.ts';
 
 const all = workspaces();
@@ -24,5 +25,7 @@ if (ref) {
   }
 }
 const plan = jobs(all, dirs);
-console.log(plan.length ? `jobs: ${plan.map(j => `${j.name} (${[j.test && 'test', j.smoke && 'smoke'].filter(Boolean).join(', ')})`).join('; ')}` : 'jobs: none');
-if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `matrix=${JSON.stringify({ include: plan })}\nany=${plan.length > 0}\n`);
+const templates = needsTemplates(dirs);
+console.log(plan.length ? `jobs: ${plan.map(j => `${j.name} (${(['test', 'build', 'smoke', 'boot'] as const).filter(k => j[k]).join(', ')})`).join('; ')}` : 'jobs: none');
+console.log(`templates: ${templates ? 'tried' : 'not needed'}`);
+if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `matrix=${JSON.stringify({ include: plan })}\nany=${plan.length > 0}\ntemplates=${templates}\n`);

@@ -37,8 +37,8 @@ These are the repository standard (`docs/standard.md`); `main` is locked by the 
   `Co-Authored-By:` line for Claude on every commit. GitHub shows them "Unverified"; that is accepted.
 - **Before every push:** `npm run check` and `npm run build`. `check` is the types, the tools' own tests, the catalog,
   and the tests of what the branch changed and of everything that uses it (a change outside any workspace means all of
-  them); `npm run check:all` runs every test. CI does the same on a pull request, everything on `main`, and boots every
-  game and lab in headless Chromium.
+  them); `npm run check:all` runs every test. CI does the same on a pull request, everything on `main`, one job per
+  workspace (named for it), each of which also builds it and boots it in headless Chromium.
 - **The pull request says** what changed and why, what was checked and what was looked at, and what the person should
   try on the preview: which game, which keys, what to look for. Say plainly what could not be checked from a session.
 

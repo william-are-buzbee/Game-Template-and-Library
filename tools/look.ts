@@ -1,5 +1,5 @@
 // tools/look.ts — opens a built game or lab in headless Chromium, fails on any page error, and takes a screenshot.
-//   node tools/look.ts games/<name> [--query "?dev"] [--wait 2500] [--shot path.png] [--size 1280x720]
+//   node tools/look.ts games/<name> [--query "?dev"] [--wait 2500] [--shot path.png | --no-shot] [--size 1280x720]
 //   node tools/look.ts --all          every game and lab with a dist/ (CI: "every game and lab boots")
 // It serves the workspace's dist/ (what `npm run build -w <dir>` made, i.e. what gets published) on a free local
 // port, so it checks the real build, not the dev server. Screenshots go to _look/<name>.png unless --shot says.
@@ -62,7 +62,12 @@ try {
   process.exit(2);
 }
 // software WebGL, so a machine with no GPU (CI, a cloud session) still draws
-const browser = await pw.chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+// software WebGL, so a machine with no GPU (CI, a cloud session) still draws. A browser of its own for each target,
+// closed whole afterwards: a page closed on its own waits for a renderer stuck in long software-WebGL frames, and the next
+// page queued behind it (Tethys's boot took 5 min that way in CI, and Planet-Viewer's after it 1.7, 7 Nov 2026).
+const launch = () => pw.chromium.launch({ args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] });
+// --no-shot: the check without the picture (CI, where nobody looks at it and a heavy game's frame can take 20 s)
+const noShot = argv.includes('--no-shot');
 
 let failed = 0;
 for (const target of targets) {
@@ -75,6 +80,7 @@ for (const target of targets) {
   }
   const server = await serve(dist);
   const url = `http://127.0.0.1:${(server.address() as AddressInfo).port}/${query}`;
+  const browser = await launch();
   const page = await browser.newPage({ viewport: { width: W, height: H } });
   const errors: string[] = [];
   // What the game loads from other hosts (Tethys's three.js from cdnjs, Rootshock's web font) it gets, if the network
@@ -116,12 +122,13 @@ for (const target of targets) {
   // the screenshot is for looking at, not part of the verdict: a heavy game under software WebGL can take longer to draw
   // one frame than any sensible wait (Rootshock, 6 Nov 2026), and that says nothing about whether it boots
   const notes: string[] = [];
-  let shotTaken = true;
-  await page.screenshot({ path: shot, timeout: 20_000 }).catch((e: Error) => {
-    shotTaken = false;
-    notes.push(`no screenshot (${e.message.split('\n')[0]}): too slow to draw under software WebGL, or hung; look at it on the preview`);
-  });
-  await page.close();
+  let shotTaken = !noShot;
+  if (!noShot)
+    await page.screenshot({ path: shot, timeout: 20_000 }).catch((e: Error) => {
+      shotTaken = false;
+      notes.push(`no screenshot (${e.message.split('\n')[0]}): too slow to draw under software WebGL, or hung; look at it on the preview`);
+    });
+  await browser.close();
   server.close();
   if (outside.size) notes.push(`could not load, from other hosts: ${[...outside].join(", ")}`);
   const note = notes.map(n => `\n  (${n})`).join('');
@@ -130,5 +137,4 @@ for (const target of targets) {
     console.error(`✗ ${target}${query}\n  ${errors.join('\n  ')}${shotTaken ? `\n  screenshot: ${shot}` : ''}${note}`);
   } else console.log(`✓ ${target}${query} booted with no errors${shotTaken ? `; screenshot: ${shot}` : ''}${note}`);
 }
-await browser.close();
 process.exit(failed ? 1 : 0);
