@@ -1,7 +1,7 @@
 // tools/lib/jobs.ts: the jobs CI makes from the workspaces a change affects. Run: node --test "tools/test/*.test.ts"
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { jobs } from '../lib/jobs.ts';
+import { jobs, needsTemplates } from '../lib/jobs.ts';
 import { changedRef } from '../lib/changed.ts';
 import type { Workspace } from '../lib/workspaces.ts';
 
@@ -21,12 +21,19 @@ const ALL = [
   ws('labs/quiet', { build: 'vite build' }),
 ];
 
-test('everything (a push to main): one job per workspace with a test or smoke script, in catalog order', () => {
+test('everything (a push to main): one job per workspace with anything to run, in catalog order', () => {
   assert.deepEqual(jobs(ALL, null), [
-    { name: 'core', dir: 'packages/core', test: true, smoke: false },
-    { name: 'overworld', dir: 'games/overworld', test: true, smoke: true },
-    { name: 'tethys', dir: 'games/tethys', test: true, smoke: false },
+    { name: 'core', dir: 'packages/core', test: true, build: true, smoke: false, boot: false },
+    { name: 'overworld', dir: 'games/overworld', test: true, build: true, smoke: true, boot: true },
+    { name: 'tethys', dir: 'games/tethys', test: true, build: true, smoke: false, boot: true },
+    { name: 'quiet', dir: 'labs/quiet', test: false, build: true, smoke: false, boot: true },
   ]);
+});
+
+test('a package builds and tests but is never booted; a game or lab that builds is', () => {
+  const [core, , , quiet] = jobs(ALL, null);
+  assert.equal(core!.boot, false);
+  assert.equal(quiet!.boot, true);
 });
 
 test('a pull request: only the affected ones', () => {
@@ -34,7 +41,14 @@ test('a pull request: only the affected ones', () => {
 });
 
 test('a workspace with nothing to run makes no job, even when affected', () => {
-  assert.deepEqual(jobs(ALL, ['labs/quiet']), []);
+  assert.deepEqual(jobs([ws('labs/empty', { dev: 'vite' })], ['labs/empty']), []);
+});
+
+test('the templates are tried for a shared change or a package, not for a game alone', () => {
+  assert.equal(needsTemplates(null), true);
+  assert.equal(needsTemplates(['packages/core', 'games/tethys']), true);
+  assert.equal(needsTemplates(['games/tethys', 'labs/quiet']), false);
+  assert.equal(needsTemplates([]), false);
 });
 
 test('nothing affected, no jobs', () => {

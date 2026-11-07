@@ -1,13 +1,14 @@
 # check.yml — on every pull request and on main, in jobs that run side by side:
-#   plan       which workspaces have tests to run (tools/plan.ts): on a pull request, those it changed and everything
-#              that uses them (a change outside any workspace means all of them); on main, all of them
-#   <name>     one job per workspace in the plan: its "test" and "smoke" scripts, on a machine of its own, so the pull
-#              request's checks name the game that failed and main takes as long as its slowest workspace
-#   shared     the quick whole-repository checks: types, the tools' own tests, the catalog, every workspace builds, every
-#              game and lab boots in headless Chromium (tools/look.ts --all), and the templates still make a game and a
-#              lab that work (tools/try-templates.ts; on a pull request only if the tools, root config or a package changed)
+#   plan       which workspaces to check (tools/plan.ts): on a pull request, those it changed and everything that uses
+#              them (a change outside any workspace means all of them); on main, all of them; and whether the templates
+#              must be tried (the tools, root config or a package changed; on main, always)
+#   <name>     one job per workspace in the plan, on a machine of its own: its tests, its build, its browser tests, and
+#              for a game or lab its boot in headless Chromium (tools/look.ts). The pull request's checks name the game
+#              that failed, and main takes as long as its slowest workspace
+#   shared     the quick whole-repository checks: types, the tools' own tests, the catalog; and, when the plan says, that
+#              the templates still make a game and a lab that work (tools/try-templates.ts)
 #   all        passes only if all of the above did: the one check to require, if checks are ever required
-# Locally: `npm run check && npm run build && node tools/each.ts smoke --changed && npm run look -- --all`.
+# Locally: `npm run check && npm run build && node tools/each.ts smoke --changed && npm run look -- --all --no-shot`.
 name: check
 on:
   pull_request:
@@ -26,6 +27,7 @@ jobs:
     outputs:
       matrix: ${{ steps.plan.outputs.matrix }}
       any: ${{ steps.plan.outputs.any }}
+      templates: ${{ steps.plan.outputs.templates }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -59,22 +61,28 @@ jobs:
       - name: test
         if: ${{ matrix.test }}
         run: npm run test -w ${{ matrix.dir }}
+      # the steps below run even when one above failed (the job still fails), so one red step cannot hide the others
+      - name: build
+        if: ${{ matrix.build && !cancelled() }}
+        run: npm run build -w ${{ matrix.dir }}
       - name: install headless chromium (in the job only, not the repo)
-        if: ${{ matrix.smoke && !cancelled() }}
+        if: ${{ (matrix.smoke || matrix.boot) && !cancelled() }}
         run: |
           npm i -g playwright@1.63.0
           npx playwright@1.63.0 install --with-deps chromium
       - name: browser tests
         if: ${{ matrix.smoke && !cancelled() }}
         run: PLAYWRIGHT_MODULE="$(npm root -g)/playwright" npm run smoke -w ${{ matrix.dir }}
+      - name: boots with no page error
+        if: ${{ matrix.boot && !cancelled() }}
+        run: PLAYWRIGHT_MODULE="$(npm root -g)/playwright" node tools/look.ts ${{ matrix.dir }} --no-shot
 
   shared:
+    needs: plan
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -82,20 +90,14 @@ jobs:
       - run: npm ci
       - name: types, the tools' own tests, the catalog
         run: npm run typecheck && npm run test:tools && node tools/catalog.ts --check
-      # the steps below run even when one above failed (the job still fails), so one red check cannot hide the others
-      - run: npm run build
-        if: ${{ !cancelled() }}
       - name: install headless chromium (in the job only, not the repo)
-        if: ${{ !cancelled() }}
+        if: ${{ needs.plan.outputs.templates == 'true' && !cancelled() }}
         run: |
           npm i -g playwright@1.63.0
           npx playwright@1.63.0 install --with-deps chromium
-      - name: every game and lab boots
-        if: ${{ !cancelled() }}
-        run: PLAYWRIGHT_MODULE="$(npm root -g)/playwright" node tools/look.ts --all
       - name: the templates make a game and a lab that work
-        if: ${{ !cancelled() }}
-        run: PLAYWRIGHT_MODULE="$(npm root -g)/playwright" node tools/try-templates.ts $CHANGED
+        if: ${{ needs.plan.outputs.templates == 'true' && !cancelled() }}
+        run: PLAYWRIGHT_MODULE="$(npm root -g)/playwright" node tools/try-templates.ts
 
   all:
     needs: [plan, workspace, shared]
