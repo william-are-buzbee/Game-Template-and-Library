@@ -10,7 +10,9 @@ all of the following.
 
 1. **Choose the home.** No dependencies? It joins the package for dependency-free code (create it if this is the
    first). Needs three.js or a library? It goes in a package for that dependency. Don't make a package per system.
-2. **Take the best version.** If both projects have one, compare them, and say in the pull request which won and why.
+2. **Take the best version.** Read the system's section in `docs/audit-2026-11.md` first (what each game had on 6 Nov
+   2026, which is best, the traps), then check it against the code. If both projects have one, compare them, and say in
+   the pull request which won and why.
    Keep the API to what the two projects call: nothing speculative.
 3. **Move, don't copy.** The package gets the code; both projects import it (`"@wb/<package>": "*"` in their
    `package.json`, then `npm install`) and their own copies are deleted.

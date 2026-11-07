@@ -30,11 +30,12 @@ A game with no bundler uses a build of it instead (`npm run build -w packages/co
 
 The 6 Nov 2026 audit found more systems in two or more games. They wait for a reason, not for lack of a second user:
 
-- **Save storage.** Each game's saves are working and hold players' data in its own format. Moving them onto one store
-  changes how each saves, for nothing a player would see.
+- **Save storage.** Each game's saves hold players' data in its own format, and moving them onto one store changes how
+  each saves. Worth doing when it also fixes what players lose: Rootshock deletes saved runs on every save-version bump.
 - **The WebAudio core.** Moving it changes how two games sound, and a session cannot hear.
 - **Input** (pointer lock with a drag fallback, the touch stick). Tethys's input is wired into its game.
 - **Noise.** Tethys's value noise and Overworld's Perlin noise are different algorithms, and each must keep
   generating the same worlds.
 
-`docs/decisions.md` (entry 12) has the detail.
+`docs/decisions.md` (entry 12) says why each waited; `docs/audit-2026-11.md` has what each game's version does, which
+is best, and what makes moving it risky.
