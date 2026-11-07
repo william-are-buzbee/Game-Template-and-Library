@@ -6056,3 +6056,46 @@ chunks.js `terrainColor` — a cell generated at NaN. Instrumented: the NaN was 
 darter — the committed lunge of v11.92 runs at `d.top × d.sprint`, and that row had neither, so its velocity went NaN, the player it bumped went NaN
 with it, and the next cell was asked for at NaN. `DEFS.lab` carries `top` and `sprint` now (the lab's own stats, as its speed and turn). Six low-tier
 runs clean; the high tier clean. Nothing seen: a headless matter.
+
+## v11.93.2 — the jet ring held: the soft-arm's keel arms crumpled and snapped on the squeeze (7 Nov 2026)
+
+`test/anim.js`'s "soft-arm: nor by the jet" (the arm tips' mean |Δv| per frame under 2.0 through the sprint) failed about half the time, before the move into
+the repository and after it (6 Nov: 4 of 6 and 1 of 6), and since 6 Nov it runs in CI on every pull request. Not the threshold: a fault in the arms.
+Measured with `Math.random` seeded so a run can be replayed (40 seeds of the test's own run): median 1.70, nine in ten under 2.46, worst 2.67, 14 of 40
+over 2.0 — every time at frame 7–8 of the sprint, the first squeeze, and on one or two of the eight arms, not the ring.
+
+The cause. The squeeze is `jetImp` 10 m/s over `JET_W` 0.18 s, 55 m/s² forward; the arms lead into it (the ring is at the front, the arms run +z). A
+chain takes the body's *change* of travel only through the drag's relaxation (`damp` 9/s) and the spring (`ks` 55), so its points lag a steady push by
+about a/ks — 0.9 m. The two keel arms (`PLAN242` ±2.9, 0.5 × 2.1 = 1.05 m in four 0.26 m segments) were asked to lag a metre along their own length:
+they buckled. Traced frame by frame (seed 39), in the body's frame: the keel tip 0.13 m off its pose at the sprint's first frame, 0.85 m at the
+seventh, 1.21 m at the twelfth — a 1.05 m arm folded back toward its root, to the side the turn before had swept it; the fold walked down the joints — joint 2 at cos 0.66 on frame 4, joint 3 at 0.58 on frame 6, the tip's joint at 0.47 on frame 7, past the limit
+(`cosMax` 0.55) — and the joint limit's pass alone threw the tip 9.5 m/s in that frame. The random draw is `c.ph` (parts.js `armRing`), each arm's
+phase in the swim stroke: it sets which way and how hard a keel arm starts to buckle, so it decided whether the snap came in the measured window. The
+body reaching the speed cap (`vmax`, 13.77) on the same frame is a coincidence: lifting the cap changed nothing.
+
+The fix (physics.js, creatures_spec.js): **a held ring.** `rig.hold` (0..1) is the share of the body's change of velocity in a frame (`SIM.dv`, from the
+frame's origin — `o.rigV` beside `o.rigO`; none across a jump or a gap, as the travel itself) that a rig's chains take whole; the jet style sets it to
+its pose's ease `j` (closed on the jet, the ring is held together and goes with the body; open, it trails as before), every other rig leaves it 0. The
+turn and the stroke still lag by `SWAY`. After (the same 40 seeds): 1.17–1.33, median 1.23, none over 2.0, the seed barely mattering; the keel tip peaks
+0.63 m off its pose (frame 7) and is back to 0.24 by frame 16, its tip joint at cos 0.94 or straighter. 24 unseeded runs of `node test/anim.js`: 1.19–1.33,
+all ok. The rest of the run is unchanged (the turn's 0.89–1.06, the coilshell's rows: its `withdraw` ring has no hold).
+
+Tried and dropped: the joint limit turning the rest of the chain with the point it straightens (the bend then never walks down, but the whole remainder
+swings at once: median 2.90, worse); the arms stiffened as they close (`ks` × 3–6 by the ease: the fold halves, but the 2.8 m arms then copy the pose's
+own close, whose first-order ease starts at full rate — 1.6–2.45).
+
+Found on the way, not touched (the person's to call, HANDOFF): the coilshell's turn in the same test reads 0.3 or 9–32 m/s a frame, about half the runs,
+before and after alike, and nothing checks it; and the finback's two tail checks read 0.0 in every phase — the test's lookup for the tail
+(a child at `position.z` −0.55) finds nothing, so both pass on zeros.
+
+Seen: the build at the low tier in headless Chromium, the loop driven by hand through the test's run (three r128 from npm's copy: this session's network
+refuses cdnjs), the ring from the side through the first squeeze, before and after. Before, the lower arms crumple into a knot of boxes against the mouth
+by frame 8 and stay knotted through the squeeze (single keel arms at 5.8 and 6.5 m/s a frame); after, they swing down and back and stay arms. And the
+same run headless as the chain points from above (seed 39): before, the keel arms hook back to their roots by frame 10; after, they bend aside and come
+back. Not seen: the high tier — the hand-driven loop ran the container out of memory on its first rendered frame, twice; the chains are the same
+simulation on both tiers (`Q` is numbers), the picture is not.
+
+Unseen, ask in this order:
+1. The soft-arm sprinting at the high tier on the 4060 (a turn, then shift, shows the ring best): does the closed ring read as held, not stiff?
+2. Shift released: the hold eases off with the pose (7/s) — does the ring trail naturally again as it opens?
+3. An arrow squid in a chase: its jet ring holds too.
