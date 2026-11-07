@@ -6,14 +6,15 @@
 //   node tools/vendor.mjs --check   build @wb/core and fail if vendor/wb-core.js differs (npm test and the build run this)
 import fs from 'node:fs';
 import path from 'node:path';
-import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { runNpm } from '../../../tools/lib/npm.ts';
 
-const game = path.resolve(new URL('.', import.meta.url).pathname, '..');
+const game = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const repo = path.resolve(game, '..', '..');
 const built = path.join(repo, 'packages', 'core', 'dist', 'core.js');
 const vendored = path.join(game, 'vendor', 'wb-core.js');
 
-const r = spawnSync('npm', ['run', 'build', '-w', 'packages/core'], { cwd: repo, stdio: ['ignore', 'ignore', 'inherit'] });
+const r = runNpm(['run', 'build', '-w', 'packages/core'], { cwd: repo, stdio: ['ignore', 'ignore', 'inherit'] });
 if (r.status !== 0 || !fs.existsSync(built)) { console.error('vendor: building @wb/core failed'); process.exit(1); }
 const want = fs.readFileSync(built, 'utf8');
 if (process.argv.includes('--check')) {

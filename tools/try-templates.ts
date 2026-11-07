@@ -14,6 +14,7 @@ import { tmpdir } from 'node:os';
 import { join, relative, sep } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { affected } from './lib/affected.ts';
+import { runNpm } from './lib/npm.ts';
 import { ROOT, workspaces } from './lib/workspaces.ts';
 
 const args = process.argv.slice(2);
@@ -53,7 +54,7 @@ cpSync(ROOT, tmp, {
 const failed: string[] = [];
 const run = (what: string, cmd: string, a: string[]) => {
   console.log(`\n── templates: ${what}`);
-  const r = spawnSync(cmd, a, { cwd: tmp, stdio: 'inherit' });
+  const r = cmd === 'npm' ? runNpm(a, { cwd: tmp, stdio: 'inherit' }) : spawnSync(cmd, a, { cwd: tmp, stdio: 'inherit' });
   if (r.status !== 0) failed.push(what);
   return r.status === 0;
 };
