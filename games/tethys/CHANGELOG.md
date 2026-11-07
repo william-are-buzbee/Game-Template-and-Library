@@ -6130,28 +6130,32 @@ moves what a test checks.
    would overwrite each other's. A run's output prints whole when it ends, then a table of every run's time; `JOBS=1` is one at a time. Peak memory:
    smoke.js 1.7 GB (1.45 low), the rest 0.1–0.9; all fifteen at once would peak near 9 GB, hence the eight.
 
-The sandbox (4 cores), seconds:
+Times, seconds. CI is the pull request's tethys job against main's last run (run 34); the sandbox has 4 cores. "Before" per run is the
+first measurement, with other work on the spare cores part of the time (its sum 1136); a clean run of the whole on main was 1098.
 
-| run | before | after, one at a time | after, side by side |
+| run | before | after, one at a time (`JOBS=1`) | after, side by side |
 |---|---|---|---|
-| smoke.js | 200 | 189 | 197 |
-| TIER=low smoke.js | 109 | 102 | 130 |
-| live.js | 207 | 93 | 95 |
-| TIER=low live.js | 195 | 87 | 95 |
-| census.js 40 | 148 | 56 | 62 |
-| player.js | 58 | 61 | 71 |
-| TIER=low player.js | 41 | 44 | 53 |
-| snow.js (alone) | 47 | 48 | 37 |
-| steer.js | 42 | 27 | 33 |
-| TIER=low steer.js | 19 | 18 | 23 |
-| audio.js (alone) | 21 | 21 | 19 |
-| anim.js | 21 | 20 | 23 |
-| the other seven | 28 | 30 | 35 |
-| **the suite** | **1136 (19 min)** | **796** | **268 (4.5 min)** |
+| smoke.js | 200 | 156 | 203 |
+| TIER=low smoke.js | 109 | 103 | 135 |
+| live.js | 207 | 89 | 102 |
+| TIER=low live.js | 195 | 87 | 101 |
+| census.js 40 | 148 | 55 | 66 |
+| player.js | 58 | 56 | 72 |
+| TIER=low player.js | 41 | 41 | 54 |
+| snow.js (alone) | 47 | 38 | 37 |
+| steer.js | 42 | 25 | 35 |
+| TIER=low steer.js | 19 | 18 | 24 |
+| audio.js (alone) | 21 | 20 | 18 |
+| anim.js | 21 | 17 | 25 |
+| the other seven | 28 | 26 | 37 |
+| **the suite, sandbox** | **1098 (18.3 min)** | **734 (12.2 min)** | **275 (4.6 min)** |
+| **the suite, CI's test step** | **1080 (18 min)** | | **359 (6.0 min)** |
 
-"After, one at a time" was measured before the last stub change (`render` asking the lights first), which took snow.js from 48 s to 40 and
-the frame-driven runs with it. Side by side, the floor is smoke.js on the high tier (~3 minutes: six fresh boots, and the finback's 8,400-frame
-swim) and the four timed runs before it (~1 minute).
+Side by side, the floor is the four timed runs (~1 minute) and then smoke.js on the high tier (~3 minutes: six fresh boots and the finback's
+8,400-frame swim). CI's 4 processors behave like 2 cores: alone a run takes there what it takes here, side by side about 1.5 times as long
+(smoke.js 297 s, live.js 157), so CI is bound by the total, not by smoke.js. Green eight times in all: five in a row here (`npm test` three
+times at 275–281 s, `python3 build.py --test` once at 279, `JOBS=1` once), two before them, and CI. anim.js's "soft-arm: nor by the jet"
+read 1.17–1.28 max in them (under 2.0; v11.93.2 had 1.19–1.33).
 
 Not changed: what any test checks — its days, seeds, tiers, thresholds, frames; the game's behaviour (the ledger to the bit). Weighed and not built: the
 suite split across several CI jobs (`tethys-1`, `tethys-2`…, a `shards` list in package.json that tools/plan.ts turns into jobs) — the person's
@@ -6163,5 +6167,5 @@ file; scene.js's comment over the world's shadow map (line 485) calls `sunS` "ne
 
 Unseen, ask in this order:
 1. Nothing to see in the game: the ecology's ledger is the same to the bit.
-2. The pull request's CI: the tethys job's test step (18 minutes on main before).
-3. Whether to split the suite across CI jobs as well (the PR says what it would buy).
+2. Whether to split the suite across CI jobs as well: on 2 shards the test step would be about 4 minutes, on 3 about 3.5 (smoke.js alone is
+   the floor), for a `shards` list and new jobs in tools/plan.ts, tools/lib/jobs.ts and check.yml (docs/decisions.md 24).

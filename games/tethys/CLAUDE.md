@@ -40,7 +40,7 @@ node serve.js            static server; open http://localhost:8080/dev.html (edi
 - `--test` runs side by side (v11.93.3): the four runs that time themselves and fail on it (`physics.js`, `audio.js`, `snow.js`, `sky.js`)
   first, one at a time with nothing else running, then the other fifteen `JOBS` at a time (default the cores, eight at most: all fifteen at once peak near 9 GB), longest first, each with
   a temp folder of its own; a run's output prints whole when it ends, then a table of every run's time. About 4.5 minutes on a 4-core
-  sandbox (19 one at a time before v11.93.3). A new test that asserts on a time it measures goes in `ALONE` (build.js and build.py);
+  sandbox and 6 in CI (18 one at a time before v11.93.3; 12 one at a time now). A new test that asserts on a time it measures goes in `ALONE` (build.js and build.py);
   nothing else may read the wall clock — the stub's `performance.now` is the frames'.
 - The tests concatenate `src/` in `src/order.txt` order against a stubbed THREE (`test/stub.js`) and run in Node; the world is the
   real one (same `sample()`), so headless measurements of terrain, collision and behaviour are meaningful. They prove nothing about

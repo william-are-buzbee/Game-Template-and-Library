@@ -45,7 +45,7 @@ jobs:
     if: ${{ needs.plan.outputs.any == 'true' }}
     name: ${{ matrix.name }}
     runs-on: ubuntu-latest
-    # Tethys's suite (node build.js --test, 19 runs) is the longest: 15-17 min
+    # Tethys's suite (node build.js --test, 19 runs) is the longest: 6 min since its runs went side by side (v11.93.3), 18 before
     timeout-minutes: 45
     strategy:
       # one game failing does not stop the others: each says for itself

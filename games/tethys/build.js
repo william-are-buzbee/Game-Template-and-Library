@@ -95,7 +95,7 @@ if(process.argv.includes('--test')){
     const fin=(code,err)=>{if(end)return;end=true;const s=(Date.now()-t0)/1000;fs.rmSync(tmp,{recursive:true,force:true});if(err)out.push(Buffer.from(String(err)+'\n'));
       process.stdout.write('\n$ '+name(r)+'\n'+Buffer.concat(out).toString()+(code===0?'':'exit '+code+'\n')+'('+s.toFixed(0)+' s)\n');res.push([name(r),code===0,s]);done();};
     const p=spawn(process.execPath,r[0],{cwd:ROOT,env:Object.assign({},process.env,r[1],{TMPDIR:tmp,TMP:tmp,TEMP:tmp})});
-    p.stdout.on('data',d=>out.push(d));p.stderr.on('data',d=>out.push(d));p.on('error',e=>fin(-1,e));p.on('close',code=>fin(code));});
+    p.stdout.on('data',d=>out.push(d));p.stderr.on('data',d=>out.push(d));p.on('error',e=>fin(-1,e));p.on('close',(code,sig)=>fin(code===null?sig:code));});
   (async()=>{
     console.log('\n'+(ALONE.length+SIDE.length)+' test runs: '+ALONE.length+' that time themselves first, one at a time; then '+SIDE.length+', '+JOBS+' at a time');
     for(const r of ALONE)await run(r);
