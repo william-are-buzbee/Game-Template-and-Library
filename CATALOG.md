@@ -27,4 +27,6 @@ Real projects: tests, a CLAUDE.md of their own, the architecture rules.
 
 One-shots, model trials and tech demos. The only rule is that they build.
 
-_None yet._
+| lab | what it is | uses | live |
+|---|---|---|---|
+| [planet-viewer](labs/planet-viewer/) | A planet viewer tool used as the world map: a procedural planet generator in the browser, from plates and elevation through atmosphere, currents and hydrology to a regional window and tiles. | — | [open](https://william-are-buzbee.github.io/Game-Template-and-Library/labs/planet-viewer/) |
