@@ -122,3 +122,10 @@ which found four repositories sharing no code, copying it instead (the same rand
     request changed) and the rest keep the catalog's order; the labs are smaller studies. It is dark whatever the
     system's setting; "Lights on" gives a light page, remembered in that browser, and without script the page is simply
     dark. The other two designs are in that pull request's history (commit 5fee142), not in the tools.
+23. **Each workspace's job builds and boots it; the shared job is only the quick checks** (7 Nov 2026, the person). The
+    shared job took 8.5 minutes, 7.5 of them booting the four games in one browser: closing a page waits for a renderer
+    stuck in long software-WebGL frames, and the next page queued behind it (Tethys 5 min, Planet-Viewer 1.7 after it).
+    `tools/look.ts` now gives each target a browser of its own and closes it whole, and takes no screenshot with
+    `--no-shot` (CI: nobody looks at it). Building and booting moved into each workspace's job, so a pull request boots
+    only what it affects; the shared job keeps types, the tools' tests and the catalog, and installs Chromium only when the
+    plan says the templates must be tried.

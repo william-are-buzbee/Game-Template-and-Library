@@ -15,6 +15,7 @@ import { join, relative, sep } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { affected } from './lib/affected.ts';
 import { changedFiles, changedRef } from './lib/changed.ts';
+import { needsTemplates } from './lib/jobs.ts';
 import { runNpm } from './lib/npm.ts';
 import { ROOT, workspaces } from './lib/workspaces.ts';
 
@@ -26,7 +27,7 @@ if (ref) {
   const files = changedFiles(ref);
   if (files !== null) {
     const a = affected(files, workspaces());
-    if (a.dirs !== null && !a.dirs.some(d => d.startsWith('packages/'))) {
+    if (!needsTemplates(a.dirs)) {
       console.log(`templates: nothing they depend on changed since ${ref}; not tried`);
       process.exit(0);
     }
