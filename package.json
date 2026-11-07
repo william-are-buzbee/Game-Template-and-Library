@@ -21,6 +21,7 @@
     "check": "npm run typecheck && npm run test:tools && node tools/each.ts test --changed && node tools/catalog.ts --check",
     "check:all": "npm run typecheck && npm run test:tools && npm test && node tools/catalog.ts --check",
     "build": "node tools/each.ts build",
+    "cards": "node tools/cards.ts",
     "site": "node tools/site.ts",
     "look": "node tools/look.ts"
   },

@@ -24,6 +24,29 @@ export interface Workspace {
   scripts: Record<string, string>;
   /** the other workspaces it depends on, by package name */
   uses: string[];
+  /** how tools/cards.ts takes its picture for the site's index: package.json's "card", if it has one */
+  card?: Card;
+}
+
+/**
+ * package.json's "card": how to take a game's or lab's picture for the site's index (tools/cards.ts). Every field is
+ * optional; with none, the picture is the build as it opens in a 1280×720 window after 2.5 s.
+ */
+export interface Card {
+  /** added to the address, e.g. "#low" or "?detail=off" */
+  query?: string;
+  /** the window, "1280x720" */
+  size?: string;
+  /** device pixels per CSS pixel (default 1), for a picture sharper than the window, e.g. of one small canvas */
+  scale?: number;
+  /** ms to let it run after it has loaded (and after `click` and `ready`), before its frame loop is stopped */
+  wait?: number;
+  /** selectors clicked in turn once it has loaded, e.g. a button that starts it */
+  click?: string[];
+  /** a selector to wait for after the clicks, e.g. a status line saying it is done */
+  ready?: string;
+  /** a selector: the picture is of this element, not the whole window */
+  element?: string;
 }
 
 export function workspaces(): Workspace[] {
@@ -44,6 +67,7 @@ export function workspaces(): Workspace[] {
         description: pkg.description ?? '',
         scripts: pkg.scripts ?? {},
         uses: Object.keys(deps).filter(d => d.startsWith(SCOPE)).sort(),
+        ...(pkg.card ? { card: pkg.card as Card } : {}),
       });
     }
   }
@@ -53,4 +77,9 @@ export function workspaces(): Workspace[] {
 /** where a game or lab is published on the site (packages have no page of their own yet) */
 export function liveUrl(w: Workspace, base = SITE): string | null {
   return w.kind === 'package' ? null : `${base}${w.dir}/`;
+}
+
+/** the name as the site shows it: `planet-viewer` is Planet-Viewer, as the documents write it */
+export function title(w: Pick<Workspace, 'name'>): string {
+  return w.name.replace(/(^|-)([a-z])/g, (_, d: string, c: string) => d + c.toUpperCase());
 }

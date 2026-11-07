@@ -6,8 +6,9 @@ dist/
 /_site/
 /_gh/
 
-# screenshots from tools/look.ts
+# screenshots from tools/look.ts, and the site's card pictures from tools/cards.ts
 /_look/
+/_cards/
 
 # logs, local environment, secrets
 *.log

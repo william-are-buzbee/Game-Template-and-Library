@@ -1,5 +1,5 @@
-# pages.yml — builds the site (every game and lab, and the index page: tools/site.ts) and publishes it to the
-# gh-pages branch; .github/publish.sh does the writing.
+# pages.yml — builds the site (every game and lab, a picture of each: tools/cards.ts, and the index page:
+# tools/site.ts) and publishes it to the gh-pages branch; .github/publish.sh does the writing.
 #   main            the live site at the root
 #   a pull request  a preview at preview/<number>/, linked in a comment on it, replaced on each push, removed when it closes
 # One-time setting: Settings → Pages → Build and deployment → Deploy from a branch → gh-pages, / (root).
@@ -22,21 +22,35 @@ jobs:
     # a pull request from a fork has no token that can push: no preview for it
     if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # the pictures take a minute or two under software WebGL (Rootshock and Tethys about 30 s each, 7 Nov 2026)
+    timeout-minutes: 25
     steps:
       - uses: actions/checkout@v4
+        with:
+          # the whole history: the index shows each game's last changes, and a preview what its pull request changed
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         if: github.event.action != 'closed'
         with:
           node-version: 22
           cache: npm
       - if: github.event.action != 'closed'
-        env:
-          PREVIEW_PR: ${{ github.event.pull_request.number }}
         run: |
           npm ci
           npm run build
-          node tools/site.ts
+      # a picture of each for the index; if this fails the site is still published, each card showing its name
+      - name: card pictures (headless chromium, in the job only)
+        if: github.event.action != 'closed'
+        continue-on-error: true
+        run: |
+          npm i -g playwright@1.63.0
+          npx playwright@1.63.0 install --with-deps chromium
+          PLAYWRIGHT_MODULE="$(npm root -g)/playwright" node tools/cards.ts
+      - if: github.event.action != 'closed'
+        env:
+          PREVIEW_PR: ${{ github.event.pull_request.number }}
+          PREVIEW_BASE: ${{ github.base_ref && format('origin/{0}', github.base_ref) || '' }}
+        run: node tools/site.ts
       - if: github.event_name != 'pull_request'
         run: bash .github/publish.sh main
       - if: github.event_name == 'pull_request' && github.event.action != 'closed'
