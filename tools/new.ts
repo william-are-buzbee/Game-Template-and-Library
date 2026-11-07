@@ -72,6 +72,6 @@ run('node', ['tools/catalog.ts']);
 console.log(`
 next:
   npm run dev -w ${vars.dir}              play it while you work on it
-  npm run check                         types, tests, catalog
+  npm run check                         types, the catalog, the tests of what you changed
   npm run build -w ${vars.dir} && npm run look -- ${vars.dir}    a screenshot in _look/${name}.png
 ${kind === 'game' ? `  fill in ${vars.dir}/CLAUDE.md ("What this is") from the prompt before writing code` : `  fill in ${vars.dir}/README.md from the prompt`}`);

@@ -14,7 +14,7 @@ Anything that is the person's choice and the prompt leaves open, ask._
 
 ```
 npm run dev -w {{dir}}                                     play it while working on it (reloads on save)
-npm run check                                              types, tests and the catalog, whole repo (run before pushing)
+npm run check                                              types, the catalog, and the tests of what changed (run before pushing)
 npm test -w {{dir}}                                        this game's tests only
 npm run build -w {{dir}} && npm run look -- {{dir}}        the real build in headless Chromium, screenshot to _look/{{name}}.png
 ```
