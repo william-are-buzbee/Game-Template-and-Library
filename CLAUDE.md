@@ -12,7 +12,7 @@ merges.
 
 | folder | holds | rules |
 |---|---|---|
-| `games/<name>` | real projects | the architecture rules below, tests, a `CLAUDE.md` of its own |
+| `games/<name>` | real projects | the architecture rules below (three older games are grandfathered), tests, a `CLAUDE.md` of its own |
 | `labs/<name>` | one-shots, model trials, tech demos | only that `npm run build` works |
 | `packages/<name>` | proven systems used by two or more projects | a README with the API, tests, a demo |
 | `tools/` | `new` (scaffold), `catalog`, `site`, `look`, `each` | |
@@ -59,7 +59,12 @@ none, and a separate package for anything that needs three.js or another library
 
 ## Architecture rules
 
-Games follow these; labs are free to, and should if they hope to become games.
+Games started here follow these; labs are free to, and should if they hope to become games.
+
+**Grandfathered:** Rootshock, Overworld and Tethys were built before these rules existed and are grandfathered in. Each
+keeps the architecture its own `CLAUDE.md` describes (Overworld and Tethys are JavaScript; Tethys is one shared scope with
+its own build), and a change to one follows that file, not these rules. Bringing one of them to these rules is a project
+of its own, and the person's call (`docs/decisions.md`, 16).
 
 1. **The sim never touches the renderer or the page.** `src/sim/` is the game as plain data, advanced one fixed step at
    a time. It never imports three.js or `src/present/`, and never uses `document` or `window`; `test/layers.test.ts`
