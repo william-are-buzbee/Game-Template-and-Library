@@ -79,3 +79,10 @@ which found four repositories sharing no code, copying it instead (the same rand
     here. Bringing an older game to them (TypeScript, the sim/present split) is a project of its own and the person's call;
     until then each game's `CLAUDE.md` says how it is built. Each takes from `@wb/core` what it can without changing what it
     does: Rootshock all of it, Overworld and Tethys the random numbers (and Tethys the string hash).
+17. **A pull request runs the tests of what it changed** (7 Nov 2026, the person). Tethys's suite takes about 15 minutes,
+    and every pull request was running it, a one-line Rootshock change included. Now a pull request's tests and browser
+    tests are those of the workspaces it changed and of every workspace that uses one of them, by the `@wb/*`
+    dependencies the catalog shows (`tools/lib/affected.ts`, pinned by `tools/test/affected.test.ts`). A change outside
+    any workspace (the tools, the workflows, the lockfile, root config) runs everything; documentation and Claude's own
+    settings run none. Types, the catalog, the builds and the boot check still cover everything, being quick. A push to
+    `main` always runs everything, so a gap in the choice would still show there, after the merge.

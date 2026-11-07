@@ -35,8 +35,10 @@ These are the repository standard (`docs/standard.md`); `main` is locked by the 
 - **Identity.** Commits are authored as `WB <willbuzbee@gmail.com>` (`git config user.name WB` and
   `git config user.email willbuzbee@gmail.com` in the clone's local config, never any other name), with a
   `Co-Authored-By:` line for Claude on every commit. GitHub shows them "Unverified"; that is accepted.
-- **Before every push:** `npm run check` (types, tests, catalog) and `npm run build`. CI runs both, and boots every game
-  and lab in headless Chromium.
+- **Before every push:** `npm run check` and `npm run build`. `check` is the types, the tools' own tests, the catalog,
+  and the tests of what the branch changed and of everything that uses it (a change outside any workspace means all of
+  them); `npm run check:all` runs every test. CI does the same on a pull request, everything on `main`, and boots every
+  game and lab in headless Chromium.
 - **The pull request says** what changed and why, what was checked and what was looked at, and what the person should
   try on the preview: which game, which keys, what to look for. Say plainly what could not be checked from a session.
 

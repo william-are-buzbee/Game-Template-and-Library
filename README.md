@@ -20,7 +20,7 @@ Needs [Node.js](https://nodejs.org) 22.18 or later.
 ```
 npm install                          once, and whenever a package.json changes
 npm run dev -w games/<name>          play a game while working on it (reloads on save); labs/<name> likewise
-npm run check                        types, tests and the catalog, everything
+npm run check                        types, the catalog, and the tests of what you changed (check:all: every test)
 npm run build                        build everything
 npm run new -- game <name> "<one line>"   start a game (or: lab)
 ```

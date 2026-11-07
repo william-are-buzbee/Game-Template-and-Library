@@ -1,7 +1,9 @@
-# check.yml — on every pull request and on main: types, tests, the catalog up to date, every workspace builds, every
-# workspace's browser tests (its "smoke" script, e.g. Overworld's play-save-reload), and every game and lab boots in
+# check.yml — on every pull request and on main: types, the tools' own tests, the catalog up to date, the workspaces'
+# tests and browser tests (their "test" and "smoke" scripts), every workspace builds, and every game and lab boots in
 # headless Chromium with no page error (tools/look.ts --all).
-# Run the same locally with `npm run check && npm run build && node tools/each.ts smoke && npm run look -- --all`.
+# On a pull request the tests and browser tests are those of what it changed and of everything that uses that
+# (tools/each.ts --changed; a change outside any workspace means all of them); on main, always all of them.
+# Run the same locally with `npm run check && npm run build && node tools/each.ts smoke --changed && npm run look -- --all`.
 name: check
 on:
   pull_request:
@@ -18,12 +20,19 @@ jobs:
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
+        with:
+          # the whole history, so a pull request can be compared with the branch it goes into
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run check
+      - name: types, the tools' own tests, the catalog
+        run: npm run typecheck && npm run test:tools && node tools/catalog.ts --check
+      - name: tests (a pull request, what it changed and what uses it; main, everything)
+        if: ${{ !cancelled() }}
+        run: node tools/each.ts test ${{ github.event_name == 'pull_request' && format('--changed=origin/{0}', github.base_ref) || '' }}
       # the steps below run even when one above failed (the job still fails), so one red check cannot hide the others
       - run: npm run build
         if: ${{ !cancelled() }}
@@ -34,7 +43,7 @@ jobs:
           npx playwright@1.63.0 install --with-deps chromium
       - name: browser tests (each workspace's "smoke" script)
         if: ${{ !cancelled() }}
-        run: PLAYWRIGHT_MODULE="$(npm root -g)/playwright" node tools/each.ts smoke
+        run: PLAYWRIGHT_MODULE="$(npm root -g)/playwright" node tools/each.ts smoke ${{ github.event_name == 'pull_request' && format('--changed=origin/{0}', github.base_ref) || '' }}
       - name: every game and lab boots
         if: ${{ !cancelled() }}
         run: PLAYWRIGHT_MODULE="$(npm root -g)/playwright" node tools/look.ts --all
