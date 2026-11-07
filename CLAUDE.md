@@ -15,7 +15,7 @@ merges.
 | `games/<name>` | real projects | the architecture rules below (three older games are grandfathered), tests, a `CLAUDE.md` of its own |
 | `labs/<name>` | one-shots, model trials, tech demos | only that `npm run build` works |
 | `packages/<name>` | proven systems used by two or more projects | a README with the API, tests, a demo |
-| `tools/` | `new` (scaffold), `catalog`, `site`, `look`, `each` | |
+| `tools/` | `new` (scaffold), `catalog`, `site`, `cards`, `look`, `each` | |
 | `docs/` | `standard.md` (repository settings), `decisions.md` (what was decided, and why) | |
 
 Every game and lab is published to one site, https://william-are-buzbee.github.io/Game-Template-and-Library/
@@ -85,6 +85,11 @@ From a cloud session you can build, test, run and screenshot; you cannot hear so
 `npm run build -w <dir> && npm run look -- <dir>` boots the real build in headless Chromium (software WebGL), fails on
 any page error and writes a screenshot to `_look/<name>.png`. Look at it. `--query "?dev"`, `--wait <ms>` and
 `--size 1600x900` change what is shot. The person's own check is the pull request's preview.
+
+The site's index shows a picture of each game and lab, taken from its build as the site is published
+(`tools/cards.ts`; `npm run cards -- <dir>` takes the same one into `_cards/`). By default it is the build as it opens,
+1280×720, after 2.5 s; when that shows the wrong thing, a `card` in the game's `package.json` says how to take it
+(`Card` in `tools/lib/workspaces.ts`).
 
 ## Skills
 

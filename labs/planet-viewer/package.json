@@ -8,5 +8,14 @@
     "dev": "npx --yes serve -l 5173 .",
     "build": "node tools/dist.mjs",
     "test": "node tools/smoke.mjs"
+  },
+  "card": {
+    "scale": 2,
+    "click": [
+      "#genBtn"
+    ],
+    "ready": "#statusText:has-text(\"Generated\")",
+    "element": "#planetCanvas",
+    "wait": 500
   }
 }
