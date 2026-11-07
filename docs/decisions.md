@@ -97,7 +97,13 @@ which found four repositories sharing no code, copying it instead (the same rand
     `new URL(…).pathname` reads `/C:/…`. Every tool now starts npm through `tools/lib/npm.ts` (npm's own script with this
     Node when npm started the tool, else `npm`, through a shell on Windows only; `tools/test/npm.test.ts` pins the
     Windows branch, which no session can run) and makes paths with `fileURLToPath`. New tools should do the same.
-20. **The index's pictures are taken from each build, as the site is published** (7 Nov 2026, the person: "live
+20. **CI is one job per workspace, side by side** (7 Nov 2026, the person: "what is smartest long term"). A plan job
+    (`tools/plan.ts`) lists the workspaces whose tests have to run, the same choice as `--changed` (decision 17), and
+    each gets a job of its own; a shared job runs the quick whole-repository checks; an `all` job passes only if every
+    one did. Main now takes as long as its slowest workspace (Tethys, about 17 minutes) rather than every workspace in a
+    row, and it stays that way as games are added. A pull request's checks name the game that failed, and Tethys's
+    timing-sensitive tests no longer share a machine with Rootshock's. Public repositories pay nothing for the minutes.
+21. **The index's pictures are taken from each build, as the site is published** (7 Nov 2026, the person: "live
     screenshots from CI, not hand-made art"). `tools/cards.ts`, in `pages.yml`, opens each game's and lab's build in
     headless Chromium as its `package.json`'s `card` says (the address, the window, what to click and wait for) and
     writes the small WebP pictures the index shows; none is committed, the build and the card setting being the recipe.

@@ -14,25 +14,18 @@ import { tmpdir } from 'node:os';
 import { join, relative, sep } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { affected } from './lib/affected.ts';
+import { changedFiles, changedRef } from './lib/changed.ts';
 import { runNpm } from './lib/npm.ts';
 import { ROOT, workspaces } from './lib/workspaces.ts';
 
 const args = process.argv.slice(2);
-const changedArg = args.find(a => a === '--changed' || a.startsWith('--changed='));
+const ref = changedRef(args);
 const keep = args.includes('--keep');
 
-const git = (...a: string[]) => {
-  const r = spawnSync('git', a, { cwd: ROOT, encoding: 'utf8' });
-  return r.status === 0 ? r.stdout : null;
-};
-
-if (changedArg) {
-  const ref = changedArg.includes('=') ? changedArg.slice('--changed='.length) : 'origin/main';
-  const base = git('merge-base', ref, 'HEAD')?.trim();
-  const diff = base ? git('diff', '--name-only', '--no-renames', base) : null;
-  const added = git('ls-files', '--others', '--exclude-standard');
-  if (diff !== null && added !== null) {
-    const a = affected([...diff.split('\n'), ...added.split('\n')].filter(Boolean), workspaces());
+if (ref) {
+  const files = changedFiles(ref);
+  if (files !== null) {
+    const a = affected(files, workspaces());
     if (a.dirs !== null && !a.dirs.some(d => d.startsWith('packages/'))) {
       console.log(`templates: nothing they depend on changed since ${ref}; not tried`);
       process.exit(0);
