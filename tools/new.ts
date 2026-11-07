@@ -7,6 +7,7 @@
 import { cpSync, existsSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
+import { runNpm } from './lib/npm.ts';
 import { FOLDER, ROOT, SITE, workspaces } from './lib/workspaces.ts';
 
 const KINDS = ['game', 'lab'] as const;
@@ -63,7 +64,7 @@ fill(dir);
 
 console.log(`created ${vars.dir}`);
 const run = (cmd: string, a: string[]) => {
-  const r = spawnSync(cmd, a, { cwd: ROOT, stdio: 'inherit' });
+  const r = cmd === 'npm' ? runNpm(a, { cwd: ROOT, stdio: 'inherit' }) : spawnSync(cmd, a, { cwd: ROOT, stdio: 'inherit' });
   if (r.status !== 0) fail(`${cmd} ${a.join(' ')} failed`);
 };
 if (install) run('npm', ['install', '--no-audit', '--no-fund']);

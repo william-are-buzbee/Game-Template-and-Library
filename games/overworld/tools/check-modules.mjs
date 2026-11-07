@@ -8,8 +8,9 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import { execFileSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
-const root = path.resolve(new URL('.', import.meta.url).pathname, '..');
+const root = path.resolve(fileURLToPath(new URL('..', import.meta.url))); // not URL.pathname: on Windows that is /C:/…, 7 Nov 2026
 const dir = path.join(root, 'js');
 const files = fs.readdirSync(dir).filter(f => f.endsWith('.js')).sort();
 let failures = 0;

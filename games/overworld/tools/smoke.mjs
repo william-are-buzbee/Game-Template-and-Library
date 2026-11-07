@@ -12,8 +12,9 @@ import http from 'node:http';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 
-const root = path.resolve(new URL('.', import.meta.url).pathname, '..');
+const root = path.resolve(fileURLToPath(new URL('..', import.meta.url))); // not URL.pathname: on Windows that is /C:/…, 7 Nov 2026
 const require = createRequire(import.meta.url);
 let playwright;
 try { playwright = require(process.env.PLAYWRIGHT_MODULE || 'playwright'); }

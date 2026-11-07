@@ -92,6 +92,11 @@ which found four repositories sharing no code, copying it instead (the same rand
     `tools/try-templates.ts` scaffolds a game and a lab in a throwaway copy of the repository and installs, typechecks,
     tests, builds and boots them (about 15 s). On a pull request it runs when the tools, root config or a package
     changed; on `main`, always.
+19. **The tools run on Windows too** (7 Nov 2026, the person). The person's own machine is Windows, where
+    `spawnSync('npm', …)` fails (npm is a `.cmd`, which Node will not start without a shell) and a path made from
+    `new URL(…).pathname` reads `/C:/…`. Every tool now starts npm through `tools/lib/npm.ts` (npm's own script with this
+    Node when npm started the tool, else `npm`, through a shell on Windows only; `tools/test/npm.test.ts` pins the
+    Windows branch, which no session can run) and makes paths with `fileURLToPath`. New tools should do the same.
 20. **The index's pictures are taken from each build, as the site is published** (7 Nov 2026, the person: "live
     screenshots from CI, not hand-made art"). `tools/cards.ts`, in `pages.yml`, opens each game's and lab's build in
     headless Chromium as its `package.json`'s `card` says (the address, the window, what to click and wait for) and

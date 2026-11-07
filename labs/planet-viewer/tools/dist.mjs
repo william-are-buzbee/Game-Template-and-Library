@@ -3,8 +3,9 @@
 // Everything but the tools, the package files and what git ignores, as the old Pages workflow published it.
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const lab = path.resolve(new URL('.', import.meta.url).pathname, '..');
+const lab = path.resolve(fileURLToPath(new URL('..', import.meta.url)));
 const out = path.join(lab, 'dist');
 const SKIP = new Set(['dist', 'node_modules', 'tools', 'package.json', '.gitignore']);
 fs.rmSync(out, { recursive: true, force: true });

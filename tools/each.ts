@@ -11,6 +11,7 @@
 // to main always runs everything.
 import { spawnSync } from 'node:child_process';
 import { affected } from './lib/affected.ts';
+import { runNpm } from './lib/npm.ts';
 import { ROOT, workspaces } from './lib/workspaces.ts';
 
 const script = process.argv[2];
@@ -50,7 +51,7 @@ const failed: string[] = [];
 const ran = targets.filter(w => w.scripts[script]);
 for (const w of ran) {
   console.log(`\n── ${script}: ${w.dir}`);
-  const r = spawnSync('npm', ['run', script, '-w', w.dir], { cwd: ROOT, stdio: 'inherit' });
+  const r = runNpm(['run', script, '-w', w.dir], { cwd: ROOT, stdio: 'inherit' });
   if (r.status !== 0) failed.push(w.dir);
 }
 if (!ran.length) console.log(`(no ${changedArg ? 'affected ' : ''}workspace has a "${script}" script)`);
