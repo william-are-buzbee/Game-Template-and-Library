@@ -13,7 +13,9 @@ permissions:
 jobs:
   check:
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    # Tethys's suite (node build.js --test: 19 runs, the ecology over game days among them) is most of it: 17 min on a
+    # cloud session's machine, 6 Nov 2026
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -22,12 +24,17 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run check
+      # the steps below run even when one above failed (the job still fails), so one red check cannot hide the others
       - run: npm run build
+        if: ${{ !cancelled() }}
       - name: install headless chromium (in the job only, not the repo)
+        if: ${{ !cancelled() }}
         run: |
           npm i -g playwright@1.63.0
           npx playwright@1.63.0 install --with-deps chromium
       - name: browser tests (each workspace's "smoke" script)
+        if: ${{ !cancelled() }}
         run: PLAYWRIGHT_MODULE="$(npm root -g)/playwright" node tools/each.ts smoke
       - name: every game and lab boots
+        if: ${{ !cancelled() }}
         run: PLAYWRIGHT_MODULE="$(npm root -g)/playwright" node tools/look.ts --all

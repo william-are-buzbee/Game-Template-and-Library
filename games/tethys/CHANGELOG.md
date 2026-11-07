@@ -1,0 +1,6058 @@
+# CHANGELOG — tethys
+
+Oldest first. Under each version: what changed, what the person saw and said, and what was reasoned but never seen
+(there is no GPU in the sandbox; everything visual is unverified until they look). When they report something off,
+the "unseen" list of the newest build is the first place to look.
+
+## v1
+Single file, 860-unit circular world, 7 biomes, full ecology, three clades.
+
+## v2
+16×16 cells (16× area), chunk streaming, 12 biomes, the mountain profile with mixed cliffs/slopes, mid-water and
+surface content, landmarks, the void as "the dark", better deep visibility.
+
+## v3
+Split into `src/` + build script + smoke test; creature LOD, budgeted streaming, cheaper flora, the light pool, the
+quality tier, the debug readout.
+
+**Unseen:** kelp frond orientation (rewritten to radiate around the stalk via Euler order YXZ); whether `bakeLOD`
+output looks right and the near/far swap pops; Phong `flatShading` terrain look; pointer lock inside an iframe (there's
+a drag-to-look fallback); bladder kelp's non-uniform instance scale (`s:[1,0.014,1]` parts may look odd at extreme
+heights); load hitches from first-time shader compiles; mobile at all.
+
+## v4 — feedback pass
+Removed the floating weed, the glowing colonies and the darter schools (see DESIGN, Creatures). The rockfall got real
+relief; crags, tors and megaspires as solid structures with collision; the great arch (first version) and the great
+lantern; the compass.
+
+**Answered:** crags are the right kind of big. Cliff faces/overhangs wanted (done as ledges in v5). Spires/terraces
+relief wanted (done in v5).
+
+**Unseen:** crag/tor silhouettes at scale (flat-shaded dodecahedra 40–120 wide — they may read as crystals; if so,
+more lumps per cluster or a jittered `IcosahedronGeometry(1,1)`); how the rockfall ridges shade under flat Phong;
+whether collision against sunk spheres feels smooth or catches on lump junctions (the headless solids probe showed no
+breaches and sane heights, nothing more).
+
+## v5
+Cliffs dressed with ledges and cleared of flora; terrace and spire relief; the canopy surface biome with big and huge
+rafts; readout key aliases. Then, on feedback: three canopy patches with halos, pocketed rafts elsewhere.
+
+**Verified (v5 build):** readout in the thickest kelp, desktop, high tier: **120 fps, 8.3 ms, 130 draws, 416k tris,
+cells 9/35, creatures 22/269.** No performance issues reported anywhere. Ledges read as strata; terrace step height is
+right; the canopy and the pit look excellent; crags, tors, great lantern all approved.
+
+**Unseen:** whether the ledges read as strata or as tiles glued to a wall was the worry (answered: strata); terrace
+risers at 12 units may want 8 or 16; the huge rafts' tendrils under MATR2 sway (5 units at 80+ deep — could be too
+much or too little); the canopy fog colour (`WATER[12]`, teal-green) and whether 0.72 light is dim enough under the
+mats.
+
+## v6 — the world above the water
+No ceiling; a shared wave function for physics and rendering; a shader-displaced two-faced surface mesh with foam,
+Fresnel and refracted glints; sky dome, sun disc, air fog and a through-water depth tint; land (atoll rim, skerries, the
+island with a tidal flat) as biome 13 "the strand" with its own colours and flora; the medium model (submersion
+fraction → thrust vs gravity), breaching, splashes, flopping for fish and a walking hook for legs; creatures obey the
+same physics, strand and flop back, and give up the chase at the shore; the scuttler.
+
+**Verified:** approved in full — art direction, floor spacing, the 3D rocks covering edges, going above the water, and
+the canopy ("truly awesome").
+
+**Unseen (never individually confirmed; approved as a whole):** (a) the surface shader compiles at all (it injects into
+Phong via `onBeforeCompile`; if the sea is missing or magenta, that's `SURF_MAT`); (b) surface brightness on both faces
+(top diffuse `0x123a4c`; underside emissive `(0.16,0.34,0.42)*(0.35+0.65*uDf)` plus the refracted glint — either could
+be too bright or too dull); (c) coarse far grid aliasing/flicker in the swell from a high viewpoint (the island top)
+despite the per-wave `aSpace` fade; (d) wave amplitude 1.17 vs creature size — the rafts (`ys` 0 / 0.3) bob rigidly;
+the huge rafts don't conform; (e) the sky dome: horizon = haze, zenith `AIR.zenith`, sun disc nearly overhead; (f) air
+fog 0.0030 — a hazy coast; lower it for a sharper horizon, but then the sea mesh's far edge (hidden by the haze) may
+show; (g) the through-water tint strength (`0.05` per unit of depth) and `TINT_COL`; (h) land colours by height, and
+whether the tidal flat's ±2.6 pools read as pools; (i) flop feel: 4.2/4.8 impulses, 0.7 s cadence; porpoising when
+holding space at the surface; (j) camera side flips at the surface; (k) crags/tors on the island at full size (a tor
+can be ~90 tall on a 42-high island — the person likes big vertical structures, but this one wasn't asked for;
+`per[13]` on `tor`/`crag`); (l) whether the scuttler reads as a creature at 0.7 units.
+
+## v7 — the arches rebuilt
+Both arches as cobbled rock piles on the crag kit; the great arch scaled to a 408 span that breaks the surface.
+Removed by request: the vents' glowing stalk bulbs and the cyan/pink glow clouds.
+
+**Verified:** "way closer to what I had in mind"; the raft exclusion around the crown was noticed and liked. Their
+asks: 50% thicker at the crown, 100% longer, keep the height, and an enormous rock base burying the trunks → v7.1.
+
+### v7.1
+An 800 span with a 30-radius crown and **outcrops** — terrain mounds under each foot with big boulders piled over
+them, burying the arch's lower third.
+
+**Verified:** "looks awesome", "truly huge now"; facing north-east the arch "lands very well and appears to have rocks
+that believably sit below it"; facing south-west (closer to west) the other foot "looks much more odd, with some
+scaling happening on the way down" and its mound "hits the elevation drop immediately below it but does not go down
+into it, creating an artificial shelf". The real ask, in their words: the arch is the cool formation; the region below
+should be "stony all the way across", "just as intricate, explorable and biome-like" as the arch, with crevices to hide
+and cave through like the rockfall — "this whole arch region is supposed to be made of the same material, a large rock
+that happens to have a cool formation on top. We need the actual rock." → v7.2.
+
+**Unseen:** (a) the arch **rotated ~15°** from the 408-span build (the yaw search found different best ground at ±400)
+and its feet moved outward; (b) the mounds' stepping (since replaced by ridges); (c) ledge density on the mounds
+(~50–120 per cell) — if scales, lower the `0.42` chance in `placeCliffs` or gate by `nearLandmark`; (d) where the arch
+column leaves the plateau — if there's a visible seam, add more outcrop boulders near `q>0.6` or sink the first span
+lumps; (e) the crown is +44 centre / ~+95 top — taller than the +34/+70 approved, forced by the thicker (30) crown; drop
+`crown` toward 38 if it looms; (f) the visible bridge ~530 wide at the waterline; (g) tide band −6..+3; (h) collision on
+the crown from above (landing a finback on it — the lumps are solids); (i) the small arch's 17-tall smooth outcrop; (j)
+no flora or light on the arch itself (tussock/scrub on the dry top is the obvious next touch; not asked).
+
+### v7.2
+**The massif**: biome 14, "the arch", an ellipse of raised ridged rock under the whole span with rockfall-density
+crags, ring steps flattened inside it so it runs down into the deep, the mounds ridged instead of stepped.
+
+**Unseen:** (a) does the region read as one rock with the arch on top, and does the seaward descent now flow (the
+profile across each foot goes −80 → −255 over ~300 units with no step)? (b) the massif's edge — a 38% fade band; if the
+join to the terraces/deep looks like a raised platter, widen the fade (`0.62` in `massifW`) or lower the lift; (c) the
+floor under the crown rose from −222 to ~−140, the opening ~150 tall instead of ~230 — if it feels closed, drop the
+lift; (d) the north-east foot that "landed well" changed too — it should look like the rockfall's crags at foot scale;
+(e) the 930 ring step runs under the massif as a long slope, so the floor tilts toward the deep across the opening;
+(f) biome label "the arch" appears on entry and while swimming above the massif under −70 (the canopy rule doesn't
+apply here).
+
+### v7.3
+The massif lifted further, given the game's densest crag/tor table and a settled boulder heap along the span under the
+crown; per-cell baking of world-space landmark layouts; per-vertex tide line on rock; `keep` discs on landmarks;
+`addSolid` grows the cull sphere in 3D.
+
+**Unseen:** (a) structure density: 35 crags/tors per dominant cell plus 45 bigrocks, no field clustering — the person
+asked for "the most rocky area in the game" and "if you are directly below the arch, you should be inside of a
+completely rocky environment... elevated far off the ground in comparison to the actual non-rock floor"; this is a
+first pass (they said not all of it need be done now). Look for: overlapping crags reading as noise rather than rock;
+whether the heap under the crown reads as a boulder pile or as floating stones (each boulder rests on ground or another
+boulder by construction, but non-uniform lump scales can open a visible gap under one); whether the 30–60-unit opening
+under the crown is enough or the heap should be lower; (b) **performance:** massif cells carry 400–650 solids, 3 extra
+instanced draws, ~14k tris of landmark lumps — ask for fps/ms/draws under the arch; (c) colliding among the heap: sphere
+junctions may catch.
+
+## v8 — distance (current)
+Three's fog replaced (radial, two populations, the water's colour by place from a world map, one density per medium,
+the underwater dome); draw distance 1600; the far layer — coarse terrain for the whole world sunk under loaded cells,
+every big structure placed once from the analytic terrain and drawn by region for near and far alike, landmarks
+persistent, sparse impostors for kelp, bladders and rafts beyond the loaded cells (the impostors were asked for); the
+surface mesh to the far plane; big creatures drawn and updated to ~750; the readout shows `far visible/built`.
+
+**Seen so far:** only the first v8 build's screenshots — black backgrounds, a rust wall from the vent field 700 units
+off, pale terrain under the canopy — which led to the camera-weighted map sample (`placeMix` 0.3; see DESIGN,
+Visibility). Nothing since.
+
+**Unseen, in order of "if this is wrong everything is wrong":**
+(a) **the fog chunks compile.** Every material magenta / scene black → the GLSL in scene.js's fog block (the `#ifdef`s
+are on their own lines; `cameraPosition`/`viewMatrix` are in three's prefixes; `mat3(viewMatrix)`; `texture2D`).
+Fallback: comment the four `C.xxx=` assignments out. (b) **the uniform plumbing:** water one flat colour everywhere or
+black → `uFogP/uFogW/uWaterMap` didn't reach the programs; check `THREE.ShaderLib.lambert.uniforms.uFogP` exists in the
+console, and that `waterMap.clone()===waterMap`. (c) **the numbers:** share 0.66 / far 0.0019 roughly doubles
+mid-range clarity (34% contrast at 200 units vs 16–20% before); knobs in DESIGN. (d) **the dome:** from under water, a
+visible edge anywhere against the surface or the horizon? There shouldn't be. (e) **the far terrain's join** to the
+loaded cells at ~540–650 units: a moving line at the edge of the loaded block (a lit sliver = the coarse edge above the
+fine one, which the 30-unit clamp should prevent; a dark line = the trench, which should be hidden from inside); the
+unload at `LOAD_R+1` swaps fine for coarse at ~645 units — a resolution pop on rough ground is possible. (f) **the far
+terrain's colour** vs the near: the same function on a coarser grid; the rockfall's slope→rock lerp triggers less at 18
+units. (g) **the structures:** drawn by the region, culled by the region's sphere — if a crag vanishes at the edge of
+the screen, the sphere is too small (`+80`, `+120` in `genRegion`); their tints come from a new rng, so individual
+crags changed shade. (h) **draw calls / tris:** expect +30–60 draws and +100–200k tris over v7. **Ask for the readout
+in the kelp, under the arch, and on the island top looking across the atoll.** (i) **the boot:** the far layer streams
+behind the menu; click within the first second and the outer ring appears in play over the next few seconds. (j) **the
+creature LOD** to 760 — a static far LOD of a 16-unit animal at 700 units is a smudge; if smudges bother them, drop the
+40 in `lodFar`. (k) **the surface at 192²** and the `0.12/0.88` mapping: chop under the camera should look as before
+(2.1-unit quads); far swell aliasing is the `aSpace` fade. (l) **the light** on far things: sun/hemi only — distant
+vents won't glow. (m) the great lantern's and heart's glow meshes are persistent now, always drawn when in frustum.
+(n) **the impostors:** flat cards; from 540+ units through 12% contrast they should read as texture, not cards; the
+swap at the loaded boundary; the 1.4-wide bladder card aliasing from 800 units.
+
+## v8.1 — housekeeping (this build; the game is byte-identical to v8)
+No change to `src/*.js` or `shell.html`. Build order moved to `src/order.txt` (build.py, smoke.js and lint.js read it);
+`build.py --test` runs lint and the smoke test on both tiers; `src/INDEX.md` (every top-level name and its line) is
+generated on every build; `test/lint.js` (acorn-based, optional) reports undeclared and unused names across the whole
+bundle; the smoke test now also kills and respawns each clade. HANDOFF.md was split: the short entry point stays in
+HANDOFF.md, the per-system reference is DESIGN.md, and history/verification is this file.
+
+## v8.2 — the veil (this build)
+The person's first look at v8 in play: two screenshots at the canopy over the great arch (−42 and −48 deep), against one
+from v7 in the sedge flats, with a Subnautica 2 frame as the reference for what distance should do. Verdict: v7 "looked
+better but lacked distance"; v8 is dark, every pad and stalk out to 400 units is a black cut-out, the far terrain shows
+through pale, and the horizon "runs into black".
+
+Diagnosis from the pixels (see the reply that shipped this build; the numbers are in DESIGN, Visibility): (1) the veil
+was dark — the arch wore the terraces' water, half the shelf's brightness before depth darkening, plus the canopy's shade,
+plus 30% of the void's near-black sampled beyond the rim for every horizon fragment; (2) one share for everything left
+20–34% contrast from 200 to 400 units, so small dark things hung as silhouettes in the same band where the far terrain
+was meant to ghost; (3) the hemisphere ground colour was near-black, so everything seen from below was black. The v7
+shot was also in a brighter place (sedge floor, bright water) — part of the comparison is the biome, and the reply says so.
+
+Changes: **`WATER`** brightened for the slope biomes, the arch and the canopy (shelf and deep untouched); **the veil's
+place and daylight sampled at most `reach` units along the ray** (no void on the horizon; darker looking down, lighter
+looking up); **a sun term** in the veil; **two shares** — big things (`TERRAIN_MAT`, new `MATBIG` for structures /
+landmarks / big creatures' far LOD, `GLOW`, surface, dome) keep the ghost, small things (`MAT`, sway, `MATFAR`) keep half
+of it; **hemisphere ground = water colour × 0.8**; the readout gets a **live fog tuner** (keys on the readout's second
+line, Backspace resets) so the look can be dialled without a build. Smoke and lint pass on both tiers.
+
+**Unseen, in order:** (a) **the GLSL compiles** — new uniform `uFogS`, new maths in `fog_fragment`; magenta/black →
+scene.js fog block; fallback as before. (b) **the per-material `uFogP` swap** in `addTint` — if small and big things
+fog identically, `sh.uniforms.uFogP={value:FOG_PS}` didn't take (check a kelp material's program uniforms in the
+console). (c) **the numbers** — the whole point of the tuner; ask for the pasted fog line and the same two viewpoints
+(−522,−42,−955 and −556,−48,−984, facing the same way). (d) whether the pale far terrain still reads as "LOD": `share`
+is the knob (0.82 → 0.75 halves it beyond 400). (e) the impostor forests at the small share are faint (5% at 600) —
+if the person wants distant forests back, `shareS` 0.84. (f) the sun glow cone (pow 6, ×1.6 at the sun) through the
+surface underside; (g) `ground` 0.8 — undersides of rocks and bellies lifted from black; if it flattens the shading,
+0.5. (h) the arch water (14) is now brighter than the terraces' (7) next door: a step across the massif's edge, blurred
+over ~70 units on the map — if visible, bring 7 up. (i) the readout's second line is long; it wraps nothing (`pre`).
+
+## v8.3 — the horizon (this build)
+The person's look at v8.2 (three screenshots at the arch canopy, −10 to −14 deep): "it looks better"; they could see
+"some differences in how the fog affects the ground vs the objects"; and they withdrew the distant-giants brief —
+"get a good fog system going", preserve the older style, reasonable distant LOD, use your judgement.
+
+Found in the pixels: the bright cyan band over the underwater horizon, the "pale mountains" of the arch crown and a pale
+huge raft at 150 units were all **the surface mesh's topside look leaking through from below** — the mesh writes no
+depth, so at grazing angles the far slope of every wave (a front face from under water) was drawn with the sky-Fresnel
+top look at 96% alpha over the underside look, and that colour is the surface's own, not the fog's, so no fog setting
+could make the horizon converge. The dark navy patches on the massif floor are steep ridged faces lit by ambient only
+(flat shading; the old game did the same) — terrain, not fog.
+
+Changes: the surface picks its look by the camera's medium (`uUnder`), and the underside has **Snell's window** — bright
+sky and glint overhead, a **veil-coloured mirror** (fogColor·0.9, alpha 0.74) toward the horizon — so surface, far floor
+and dome meet in one colour. **One fog curve for everything** by default: share 0.88 = shareS, far 0.0015 (66% at 100,
+23% at 200, 9% at 300, 5% at 600, gone by ~1000); the split stays as a knob. Nothing else moved.
+
+**Unseen, in order:** (a) **the surface shader compiles** — `snell` is a global float in the fragment prefix,
+`fogColor` is read in the emissive block (declared by `fog_pars_fragment` under `USE_FOG`); if the sea is missing or
+magenta it's `SURF_MAT`. (b) **the underwater sky** — bright overhead, fading to the veil from ~40° down to ~15°
+elevation, veil at the horizon; if the sky feels too small, lower the window's `0.65` (atmosphere.js); if the mirror
+band looks like a dark ceiling, raise the `0.9`. (c) **from above water** at grazing angles the crests' far slopes now
+take the top look too (they used to show the underside's teal); the sea from the island top may read slightly
+different. (d) **the horizon from under water**: surface, far terrain and dome should now be one colour; a visible
+seam between the surface's mirror band and the dome means `fogColor` (the camera's lagged veil) and the per-fragment
+veil disagree — `placeMix` toward 0 tightens them. (e) the single curve: 9% at 300 for everything — kelp forests
+reappear faintly at 300–500 (v8.2 had them at 5–6%); `shareS` 0.92 fades them. (f) the pale huge raft in the v8.2
+shot should now be dark like its neighbours; if a big raft is still pale, it's something else (`raft3` at `ys` 0.3
+sits mostly above the surface and its underside is the surface's mirror, which is the veil — dark).
+
+## v8.4 — the flanks
+The person's look at v8.3: from above the water "fog looks great", from the floor looking up "looks great"; the readout
+numbers arrived (120 fps / 8.3 ms pinned, 214–276 draws, 0.9–1.5M tris at the arch canopy); asked for a legible readout;
+and: "the ground still has a kind of black spot where it just doesn't seem affected by the fog at all… the ground
+almost resists the fog, but from above the water it's affected just fine."
+
+From the pixels: the black spots are the down-tilted faces of the big dodecahedra (the heap under the crown, r 11–36:
+faces 20–40 units wide, random-rotated, so from above at 40° their lower ring is in view) lit only by the ground
+hemisphere — near black (0.35 albedo × 0.8 × veil) — and *then* fogged: at 200 units they came out 25% darker than the
+veil, the lit faces 20% brighter, with edges the fog cannot soften. From above the water the through-water tint flattens
+everything to one blue, which is why the floor looked fine from there. Two causes, both lighting: a weak upwelling
+ambient, and rocks 150 under a surface-level player lit by the sun at the *player's* depth (full) while the veil in
+front of them was read at theirs (dim).
+
+Changes: **sun by the fragment's depth** — `sun.intensity` is the surface value and three's directional-light chunks
+are patched to scale it by daylight at the lit point (Lambert in the vertex shader, Phong in the fragment; point lights
+untouched; at the player's own depth nothing changed); **ground ambient 0.8 → 1.2** (top:side:bottom 1.8:1.5:1.2);
+**additive glow clouds take extinction only** (no veil term — they were the cyan speckles on the floor); **the readout
+has a dark backing**. Fog numbers unchanged (the person likes them).
+
+**Unseen, in order:** (a) **the light-chunk patch matches r128's text** — if the console says `sun-by-depth: light
+chunks not as expected`, the regex in scene.js missed and the sun is as before (paste the console line). (b) **the
+dark flanks** at the arch from −4 and −10, same spots as the v8.3 shots — they should now be ~10% darker than the veil,
+not 25%; if still stark, `ground` toward 1.5 in the tuner, and consider the sun's curve (`dl`, linear — a `dl²` on the
+sun alone would flatten deep floors further but darken the deep for a player at depth too). (c) **the whole game's
+shading** with ground 1.2 — flatter undersides and bellies everywhere; if things look pillowy, 1.0. (d) **deep floors
+from above**: a floor 200 down now gets 0.52 sun from a surface-level camera — from the island top through the tint
+this is invisible, from under the surface it is the point. (e) **the strand from the air** is unchanged (fragments above
+0 get factor 1). (f) the glow clouds should vanish with distance now; the ones in view keep their sparkle. (g) the
+readout backing is debug-only styling.
+
+## v8.5 — the camera
+The person's look at v8.4, at (−894,−7,−133) over the slope: "above water the fog works; underwater it doesn't apply to
+the ground, only to objects, creatures and rocks." Two screenshots; the readout says high tier.
+
+From the pixels, the other way round. The floor 300 units off *was* fogged — to (15,55,75), which is exactly the veil
+the design computes there (the slope's `WATER[7]` at the sample point's daylight: (14,54,74) from the map, headless).
+The creatures, rocks and the dome were fogged to (25,108,137): the map at the **world origin** at full daylight, i.e. the
+home shelf's water. Cause: three (r128) uploads its `cameraPosition` uniform only for Phong, Standard and Shader
+materials (`WebGLRenderer.setProgram`); on Lambert, Basic and Points it stays at the GLSL default (0,0,0). The v8 fog (the far-layer build)
+read `cameraPosition` in the fragment, so only `TERRAIN_MAT` (Phong on high) got the world-space veil; everything else
+was fogged as if the camera stood at the origin, wherever the player went. Same bug behind v8's first shots (black backgrounds:
+the dome sampled the map from the origin, 1500 units out over the void; pale terrain: the one thing fogged to its real
+veil), v8.2's "ground and objects fog
+differently" (the shares were equalised for it; the shares were never the difference) and v8.4's "black spot" report.
+On low (Lambert terrain) everything was consistently wrong, so the person's desktop testing was the only place it showed.
+
+Change: the fog gets the camera by hand — `uFogC` (world position) and `uFogR` (world rotation, mat3) shared through
+`ShaderLib` like the other fog uniforms, written by `updateFogCamera` in the frame loop after `camera.updateMatrixWorld`.
+`fog_vertex`/`fog_fragment` and the Lambert sun-by-depth patch use them instead of `cameraPosition`/`viewMatrix`. No fog
+numbers changed. The terrain renders as before; everything else now takes the terrain's veil.
+
+**Also new:** `dlAt` in the tuner (`o`/`p`): 1 = daylight at the sample point (darker looking down), 0 = at the camera
+— with `placeMix` 0 that is the pre-v8 uniform veil, the per-frame colour of the old screenshots.
+
+**What this will look like (unseen):** on the home shelf, nearly nothing changes (the origin's water *is* the shelf's).
+Over the slope, the void's rim, the massif and the deep, the water — creatures, rocks, structures, the dome, the horizon —
+goes to the biome's `WATER` colour at its depth: at the screenshot spot the horizon should read ~(18,68,93) instead of
+(25,108,137), ~40% darker, and the surface's mirror (CPU colour, always local) should now match the dome behind it — the
+one-colour horizon v8.3 claimed and did not have. **If that is too dark, the knob is the `WATER` table (slope 5–7, void
+rim 8–11, arch 14), not the fog:** every non-shelf entry was tuned since v8.2 while only the ground showed it. `bright`
+(9-0) lifts the whole veil for a quick read. Also unseen: the Lambert sun-by-depth now dims by absolute depth rather
+than depth below the camera (creatures deep under a shallow player get a little less sun); the console line if
+`sun-by-depth` warns (still wanted from v8.4).
+
+## v9 — contact
+The person's look at v8.5: the fog and the lighting are done — "a visually impressive game that looks clean", above and
+below. The brief: cohesive physics. Rocks and plants could be swum through; the marine snow ignored the water you pushed;
+the arm animation looked wonky; wanted: (1) collisions with every object, (2) vines, tentacles, grass, snow moving when
+touched, (3) creatures' tentacles as physics objects that wrap around prey with zero clipping, (4) hitboxes from actual
+contact, (5) landing on a lily pad.
+
+New file `physics.js` (DESIGN, Contact). Nothing about the world, the fog or the look changed.
+- **Colliders:** every cell's solids now sit in a 16-unit xz hash (0.5 µs a query with 650 solids; the old flat list would
+  not have carried what follows). Three kinds: spheres, capsules, pads. Every boulder and bigrock (up to 420 a cell), every
+  tower, spire, chimney, sponge, tube, bulb, lantern trunk and scrub is solid (`col` on the `FLORA` entry). Kelp, grass,
+  bladders, raft tendrils, fans and whips are *soft*: they bend, they don't block (decided without asking; a one-line
+  `col` makes any of them rigid). The megaspire's lumps went from four to seven so its flanks are closed.
+- **Pads:** every pad of every raft is a disc you land on from above, are kept under from below, and are walled off at
+  the rim from the side; it rides the swell and dips under weight (a per-instance `aDip` attribute on a per-cell clone of
+  the raft geometry, spring-damped). On a pad you are ashore: you lie there and flop, and a flop off the edge is a
+  splash. Creatures land on them too. The camera ignores them.
+- **Hitboxes:** every builder gives its body as capsules (`hit`). Bodies within 90 of the player push apart by their
+  actual shapes (closest points of capsules, the lighter one moving more, mass = size³; a sitting lurker is immovable),
+  the player included. The old `size*0.42+1` sphere and its `reach` rule are gone.
+- **Chains:** every arm ring (soft-arm, coilshell, the great, ortho, arrow, the veil's skirt), the lurker's arms, the
+  eel's whole body and the jelly's tentacles are simulated chains: position-based, a spring to the swim pose, drag
+  against the pose's own motion, lengths kept, a joint limit, contact with the ground, the solids and every body near
+  them (own, player, prey, neighbours), two contact passes. Hunters with arms **grab** what they reach: the tips are drawn
+  to the prey and the contact wraps them round it; the lurker in its lunge; the player's arms close on whatever it bites.
+  Held by something, you swim at 55%. The player is kept out of every arm segment near it (and the arms out of the
+  player), so nothing passes through a tentacle. Skinned on the CPU into one mesh per rig — the soft-arm's eight arm draws
+  became one, the veil's 22 became one, the eel's 11 became one.
+- **The bend:** all sway materials take twelve disturbance capsules — the player with a trail behind it that springs
+  back through an impulse response (bend, recoil past straight, settle), and the nearest six creatures — and push their
+  vertices out of them, root-weighted. Fans and whips moved to sway materials to take part.
+- **The snow:** the marine snow carries a velocity and follows the potential flow round the player and the nearest
+  creatures (pushed aside ahead, drawn in behind, a dragged skin that leaves a wake).
+- **Readout:** `phys` ms (all of the above per frame). `test/physics.js` (in `build.py --test`) checks the hash against
+  brute force, pad landing/under/rim/dip, chain lengths at rest and at 9 u/s, ground and body contact, the grab, the
+  player out of the arms, body separation, the flow field, the trail's rebound, and the whole loop landing the player on
+  a pad and flopping it off; prints the cost.
+
+**Headless numbers** (V8, warm): solidPush 0.5 µs; an ortho's arms 35 µs + skin 20 + shapes 21 + pose 9 ≈ 85 µs a frame;
+an eel 120, a lurker 100, the veil 120, an arrow 18, a jelly 25; 20 rigged creatures in each other's reach 2.8 ms (a
+worst case); 30 packed bodies' contact 0.28 ms; the snow 50 µs alone, 270 with five bodies in it. Expect `phys` around
+0.5–1.5 ms with a dozen creatures at near LOD; if it is more than that where it matters, the knobs are `lodNear`
+(45+4·size, `Q.lodNear`) for how far out arms run, the 90-unit contact ring, and `DIST_N`.
+
+**Unseen, in order — none of this has been rendered:** (a) **the sway shader compiles** with the disturbance loop
+(`uDistA[12]`, `uDistB[12]`, `mat3(instanceMatrix)`, a `continue` in a `for`) and the raft one with `attribute float
+aDip` — if kelp, grass, bladders, rafts, fans or whips are missing or magenta it is `swayMaterial`; the fallback is to
+empty the `push` block. (b) **the arms**: they should look like the old animation with weight — lag on a turn, drape on
+the floor when the creature lies down, nothing through the mantle; if they jitter, `ks` down / `damp` up on that
+`armRing`; if they stream backwards while swimming, the rest-relative drag isn't doing its job (`simChain`, `rvx`). (c)
+**the wrap**: an ortho or a lurker on you should close its arms round the mantle and you should feel the 55%; if the arms
+only point at you, `reach*1.3+…` in `updateHunter`/`updateLurker` or the 8/s pull in `simChain`. (d) **the eel** as a
+chain: it should snake, and slide round rock instead of through it; if it kinks, `cosMax` 0.72 up. (e) **the jelly's
+tentacles** parting round you. (f) **the bend**: swim through kelp, look back — the stalks should recoil and settle over
+a second and a half; grass under a fish should part; if the bend is too big or too small it is the `1.15` head amplitude
+and the `2.6` cap; if it looks like the whole plant slides, raise `hb`. (g) **the snow**: a wake behind you and a bow
+wave ahead; if it looks like a vacuum cleaner, the `0.6` skin drag in `flowAt`/`updatePlankton`. (h) **rocks**: you stop
+at boulders now; the reef's towers and tubes are solid; the camera bumps out of boulders (it lerps at 8/s, so a shove,
+not a cut). (i) **the pads**: porpoise onto a raft and stop there; try the huge rafts in the canopy. The dip should be
+visible on small pads and invisible on huge ones. (j) **fps**: the readout's `phys` figure is the number to send back.
+
+## v9.1 — rocks
+The person's look at v9: "works great"; the floor's solid things are "awesome"; but (a) some physics objects don't affect
+you — "the little triangles on the ground in the shallows" (the fans, soft in v9); (b) vines don't move when you run
+past them; (c) what bends does it "like in photoshop when people try to edit their figures"; (d) rocks "still let you
+clip through them constantly".
+
+- **(d) Ellipsoids.** Every dodecahedral rock is now an ellipsoid with its real stretch and tilt (`addEllipsoid`, the unit
+  sphere through the lump's affine world transform; the push goes into unit-sphere space and out along the ray). v9's
+  spheres took the shortest axis of a lump — a stretched crag lump was open along 46% of its long side, a bigrock along
+  six units, and the crags always had this. Boulders, bigrocks, the lumps of every crag, tor and ledge, and both arches.
+  Tested: 300 points inside a 3:1 tilted rock all leave it; a point two along its long axis is set 3.9 out.
+- **(a) Fans** are rigid and solid (a flat ellipsoid), back on `MAT`.
+- **(c) The bend reads the plant on its own stalk** at the vertex's height (`axis` on the sway material), so a kelp crown
+  moves as one and the stalk bows; rafts, being clusters of tendrils, still read per vertex.
+- **(b) Flow bends flora.** The potential flow the snow follows now bends plants too (`uDistU`, `KFLOW` 0.45): a plant
+  2–3 units off your path is swept aside as you pass and eases back; before, only contact moved anything.
+
+**Unseen:** (a) the sway shader compiles with the third array and the flow branch (`exp`, `normalize` of a `vec4`
+product); (b) kelp should bow, not smear — if the crown still shears, the `axis` flag is on the wrong materials; (c) the
+strength of the pass-by bend is `KFLOW` (scene.js) and the cap `2.6`; (d) rocks: nothing through a boulder or a crag
+face now; the push is radial from the rock's centre, so a very long lump can slide you a little along its surface —
+if that reads as "slippery", the normal-direction push is the next step; (e) fans stop you.
+
+## v9.2 — the rock itself
+The person's look at v9.1: the vines "don't move at all at the bottom", the top moves slightly and dodges the tail rather
+than the head; rocks still let "half my fishy body" in — "the hitbox is closer but not perfectly accurate to the actual
+shape of the rock"; the bendy look is accepted for now ("we might just need a better physics system eventually"). Asked
+for: rocks with collision, and vines that move out of the way when touched — "not just the leaves".
+
+- **Rocks are their own twelve faces.** `addRock`: a dodecahedron's face normals through the lump's inverse-transpose
+  transform, offset by its inradius; a body inside all twelve planes leaves along the least-penetrated one. Exact for the
+  convex solid that every rock here is (tested against the rock's own vertices and 1000 interior points; the corner test
+  the ellipsoid failed passes). Boulders, bigrocks, every crag/tor/ledge lump, both arches. The ellipsoid stays for fans.
+- **Bodies are capsules against rock** (`bodyPush`): centre, nose and tail are each pushed out and the body follows —
+  the other half of "half my body in a rock" was the snout of a 3.4-unit finback tested as a 0.9 ball. Creatures too.
+- **A stalk pushed at the bottom moves from there up.** The sway shader reads each stalk at the body's height along it
+  and applies that push to everything above it, tapering to the root below — so the base moves when you are at the base,
+  and the top goes with it. Rafts read per tendril. The `hb` root ramp is gone; `H` (the geometry's height) replaces it.
+- **The body capsule runs nose to tail** along the facing, not behind the velocity, so plants dodge the head.
+
+**Unseen:** (a) rocks: nothing in a boulder, a crag face or the heap now, at the corners too; a body sliding along a
+big face may flicker between two faces at an edge — a jitter, not a gap; (b) kelp and bladders: swim into the base of a
+stalk and the whole stalk should lean away from your knee height up; if the top over-swings, the `min(h/hd,1)` is where
+a softer profile would go; (c) the shader compiles with the new block (`Cb`, `hmax`, `strand` base).
+
+## v9.3 — flat rock (this build)
+The person's look at v9.2 after a day of play: the rocks hold ("good job on the last one"). What they learned about rock:
+the rockfall "looks incredible" — rock completely covering the ground, flat and wide, pockets forming from placement;
+"certain large rocks with only a few faces look quite strange and low in polygon relative to their surroundings"; the
+area under the great arch (the massif; they first wrote "spire", then confirmed the arch) is "terrible" — v7.3's brief
+for "extremely rocky" had meant the rockfall's sheets of rock over the floor between the legs, not a heap: "a normal stone
+environment, smooth and with as many flat rocks as possible", the trunks keeping their mass; the "snowmen" (tors) are far
+too common — an occasional underwater oddity, not a landmark for the whole game: none above water, ~90% fewer below, a
+few in a cool place.
+
+- **Facets** (`rockGeo`, DESIGN Structures): every kit lump (crags, tors, slabs, ledges, bigrock, both arches) is drawn as
+  sixty facets — each pentagon split from a centre pushed 1.4–3.5% of the inradius *inward*, a shade per facet (±7%).
+  Inward so nothing sinks into rock: the collider is unchanged and exact; a body at the middle of a big face hovers by
+  at most ~1 unit on a 30-radius lump. Small boulders keep the 36-tri dodecahedron.
+- **Sheet rock:** `slab`/`slab2` structures (seven wide flat lumps, shingled). **Bigrock** is a low cluster of four flat
+  lumps (4.5–11) instead of one dodecahedron (6–15); its lumps are its colliders.
+- **The massif:** the heap under the crown (460 round boulders settled 46 high) is a **pavement** of ~170 flat slabs over
+  the floor (`site.pave`), tops 5–20 over the ridged massif, ~100 of open water under the crown. The structure table
+  went from 35 crags and tors a cell to 25 slabs + 2–3 crags; `torm` is gone; bigrock 45 → 18. Outcrop boulders on the
+  trunks are flat toward the edge and thick at the piers, no longer stacked two high; mounds and piers unchanged. Terrain
+  unchanged.
+- **Tors:** 147 → 17 scattered (one try a cell in the rockfall and the spires; none on land or in the massif) + **the
+  cairns**: seven in a ring on the pit's rim (`CAIRNS`, r 118–138, 35–45 tall). Spires and drop got a slab or two each
+  where the tors were. The rockfall's own table is otherwise untouched.
+- `bigsFor` draws its rng exactly as before and `slab` took `torm`'s slot in the entry order, so every crag and
+  megaspire in the world is where it was. `merge()` multiplies a geometry's own colour attribute in (the facet shades).
+
+**Headless numbers:** structures 589 → 566, their tris 103k → 195k for the whole world (the far layer draws whatever
+regions are in the frustum — about +7% of the 1.5M seen at the arch canopy; the readout's tris figure is the one to
+send back). Massif cells ~1000 solids at ~39 per hash bucket (v9.2: ~36). Rockfall cell 619 → 644 solids (bigrock's
+four lumps).
+
+**Unseen, in order:** (a) **the facets** — the lumps should read as chiselled rock with visible planes, not noise; if it
+is noise, `ROCK_JIT` (0.07) down or `ROCK_DENT` (0.035) up in flora.js; if the facet triangles show as a star on each
+face, `ROCK_DENT` down; (b) **under the arch** — sheets of rock over a ridged floor with open water above, the trunks
+still massive; if it is too bare, `pave.n` (200, world.js) up and `slab` per[14] (16) up; if the slabs look like plates
+lying on the ground rather than rock, the 0.34 y-stretch in the pavement and 0.42 in `slabGeo` up; (c) **bigrock**
+— a wide low rock, not a saucer: `sy` 0.7 on its main lump; (d) **the cairns** — seven pillars around the pit; they
+should clear the rim rubble; (e) fps/tris on the readout at the arch; (f) the spires and the drop with a couple of slabs
+and almost no tors; (g) the small arch's feet went flat too (same code).
+
+
+## v9.3 docs — PLANET.md (no build change)
+The creature ecology audit began and went upstream: `PLANET.md` records the planet (late-G/K star, 1 g with 1 unit = 1 m,
+one large close moon and 6–9 m tides, 28% O₂, a basalt seamount, a chemocline at −450 below which the water is anoxic
+and drains the player, 26–28 °C mixed layer to ~3 °C on the floor), the green gradient (green to ~−20, olive to −60,
+nothing photosynthetic below ~−150, the deep's flora re-read as animals), the three clades as constraints under a
+"no clade has all of jaws, bone and warm blood" rule, cross-clade rules (eyes, blood tint, shell colour by water
+chemistry, geometry language), the niche audit of the v9.3 roster, the conflicts with the game (`GRAV=14`, grass on the
+terraces, the ortho and the abyssal in the dark) and an Open list. README, HANDOFF and DESIGN point at it. `tethys.html`
+is unchanged (v9.3, still unseen).
+
+## v9.4 — 1 g, and the roster (this build)
+The person answered the audit's open list: the clade names (ringmouths, slowbloods, hingeshells), three playable clades
+for now, the jelly as its own clade (drifters; overhaul later), species by niche, mechanics after the creatures look
+right, and **the game's gravity follows the planet**: `GRAV` 14 → 9.8 (world.js). `PLANET.md` updated: the refugium
+replaced by a founders story (a young volcano, three lineages radiating), and a **proposed roster** of 31 species — 15
+new, by family and niche, with a build order (hingeshells first: sickle, trap, tread, hose, flicker). Build + tests pass
+(the smoke test's `sun-by-depth` console line is the stub's missing shader chunks, as since v8.4).
+
+**Unseen:** (a) breaching — a sprinting finback should clear the surface by ~8.5 instead of ~6, and hang longer;
+porpoising at the surface is floatier; (b) the flop — ~0.98 s in the air per flop and ~3 u/s on the flat instead of
+~2; if it reads as bouncing, the 4.8 up-impulse in `updatePlayer` down to ~4; (c) splash particles fall slower;
+(d) beached creatures flop further too (same model, `rnd(0.7,1.3)` cadence). Everything of v9.3 is still unseen.
+
+## v9.4 docs — FLORA.md (no build change)
+The flora audit went upstream: `FLORA.md` proposes the sessile life — three energy sources (sunlight, suspended food,
+chemistry; "chemosynthetic plants" corrected to mats and animals-with-symbionts), a six-test plausibility filter (light,
+drag, attachment, grazing, nutrients, energy), five founder lines with shared signatures (weed; polyps as the drifters' fixed stage; crowns as sessile ringmouths;
+cones as sessile hingeshells; sacs), Earth as reference never template, an eight-bauplan
+grammar (`grow(spec,seed)`: axis, branch, blades, tuft, cup, disc, mound, float), a roster of ~40 species by band with
+the reason each wins its spot, the cuts (rooted lily pads, underwater trunks, the boring fungus, kelp in the air, green
+below −20, the tower in the surf, bulb, grass) and the generator plan: three variants per species baked at load into
+one geometry and chosen per instance by an `aVar` attribute (one draw call), `pigment(h)` tints by depth, `flow(x,z)`
+faces filter-feeders across the current, `band` gates by ground depth. Praised things re-read, not removed: the canopy
+as a float colony (asked), the towers as two species, the lanterns as lure-feeders. README, HANDOFF and PLANET point at
+it. `tethys.html` is unchanged (v9.4, unseen).
+
+## v9.5 — the flora grammar
+The person answered FLORA.md's open list (founder lines yes; the canopy's tendrils as plant roots had no job — they stay
+as fishing lines on float colonies; the stipe lays flat at the surface; both towers; one draw; FLORA.md; giants always).
+Built, unseen:
+
+- **`grow.js`**: eight bauplans (`axis`, `branch`, `blades`, `tuft`, `cup`, `disc`, `mound`, `pads`/`line`), the lines'
+  detailing (`polypTip`, `crown` with its eye ring, `coneShell`), `pigment(h)` (the green gradient as one function),
+  `flowYaw(x,z)` (contour direction), and `species()`: three variants of a species baked into **one geometry** with a
+  per-vertex `vid`; the cell gives each instance `aVar` and the vertex shader collapses the other two variants to the
+  origin (scene.js `VAR_GLSL`; in the sway materials the collapse comes first so collapsed vertices skip the
+  disturbance loop). New materials `MATV` (rigid variant flora), `MATS` (the stipe), `MATM` (mid weed); `MATK` gone.
+- **placeFloraType**: `photo` (tint by `pigment` of the ground depth), `flow` (yaw across the current), `band` (a
+  ground-height gate), variants (per-variant colliders and pads), and a surface cap (a floor entry whose `top` would
+  stand into the air is shortened in y, or skipped). Every species geometry is cloned per cell (instance attributes).
+- **The roster in the game** (FLORA.md has the reasons): weed — turf, wisp, strap (the flats' grass replaced: a weed
+  with runners), chain, grape, **stipe** (the kelp rebuilt: floats at the nodes, spiral blades, a whorl laid flat under
+  the surface; `reach` like the bladder), ladder, ribbon, bladder (browner), **raft** (flat pads, floats, a keel of
+  short fronds); polyps — **colony**/**colony2** (the big rafts re-read: olive skin, a pale gas float crested above the
+  water, fishing lines of four kinds 10–100 deep, cut from ~190), table, horn, rusthorn, dome (bulb replaced),
+  rustdome, **bommie** (the tower shortened to 3.6–4.6 in the passes, pocketed), **tower** (11–14, dull, moved to the
+  terraces and the drop's feet), fan and whip (flow-faced), pen; crowns — lily (a fan crown across the flow, eye ring),
+  tulip, loop (an elbowed tube with a crown in it); cones — cone (crowds in the tide band, the surf, the arch's legs);
+  sacs — tube (ribbed / elbowed / double-walled variants), cup, burr, star, barrel, sponge kept; mats — beard (rust
+  stalk tufts), iron (banded rust domes). **olddome**: the first giant, a structure (14–26 wide, ~4 in the world,
+  appended after slab2 so no rock moved). `grass` is gone (turf on the reef, strap on the flats, nothing on the
+  terraces — the PLANET conflict closed); `kelp`, `bulb`, the old `tube`, `raft2`, `raft3` replaced.
+- Far impostors: the stipe as a stretched card with a canopy pad; the colonies as olive octagons.
+- The per-cell flora rng stream changed (creature spawn points shift, as in v9.3); structures did not move.
+
+**Headless numbers** (real primitive counts, one variant drawn): a pure reef-top cell ~154k tris (was ~80k), the
+stipe forest ~162k (the kelp was ~110k), flats ~91k, rockfall ~81k, terraces ~122k. Draw calls per cell rise by the
+new species count (~10 on the reef top). The stub gained `Vector3.cross`.
+
+**Unseen, in order:** (a) **the readout in the stipe forest and on the reef top** — ms first; the tris figure will
+read ~3× for flora (collapsed triangles are counted); if the ms creeps, the stipe's `per` (900) and the cones/tubes
+are the knobs, then two variants instead of three; (b) **the variants**: three distinct forms per species, one per
+instance, nothing flickering or doubled — if every instance shows all three at once the `aVar` attribute isn't
+binding (makeInstanced's clone), if the sway plants vanish the `VAR_BRANCH` else-block is wrong; (c) **the reef top**
+vivid and rigid: tables, antlers, banded domes, the short spiny bommies in the passes, cone crowds at the water's
+edge, tubes in clusters; (d) **the stipe**: floats up the stem, blades flat, a canopy under the surface and nothing
+in the air; if the floats read as discs, `s:[1,0.03,1]` up; (e) **the colours**: green on the reef flat, olive on
+the shelf, gold-brown at −60 — one plant shading along a slope; (f) **the colonies**: a pale crest above the water,
+lines below, the pads still take weight; (g) **the lilies** on the terraces all facing one way and closing nothing
+yet (withdrawal is a hook); the eye rings should read as dots; (h) **beards and iron** on the rockfall: rust tufts
+and low banded domes, not orange noise; (i) the old dome, four in the world; (j) the far stipe cards from 600 units;
+(k) the tussock and whip still drawn (they carry a zero `vid`).
+
+## v9.6 — five pictures
+The person played v9.5 and sent five screenshots (8 Sep): the reef's variants, colours and the stipe forest were not remarked on;
+the readout at the spires and the terraces said **120 fps / 8.3 ms, 278–346 draws, 1.2–2.3M tris** (the tris figure counts
+the collapsed variants), so the flora grammar's cost is fine on desktop. Diagnosed from the pictures and fixed, unseen:
+
+- **The sideways weed** (kelp forest): the `ribbon`. `bladeAt` starts every blade level with the floor — right for a frond
+  off a stipe, wrong for a blade a float lifts — so the ribbon's negative droop only raised its 9–16 m blade from 16° to 41°
+  and it lay along the ground with its float at the far end. `bladeAt` takes a start angle (`a0`); the ribbon leaves its
+  stub at ~60° and curves to vertical under the float (rises ~8 of a 9 m blade, reaches ~3.6 sideways).
+- **The spires' arms**: stub cylinders centred on the trunk's surface, narrow end up and tilted, so the tip leaned into the
+  wall. Now three cones with the base sunk in the trunk (`rT(y)`, the trunk's radius at that height) and the tip out and a
+  little up. The megaspire is the same figure.
+- **The "little trees of three lines"** on the forest floor: the **strap** (the flats' pasture: four tall narrow blades on a
+  runner) standing alone in the kelp and bladder forests, dark at that depth, read as three lines from a point; the
+  **grape** beside it (three beads on a half-metre stick per node) read as a row of tiny trees. Strap: flats only, rebuilt
+  (six wide short blades leaning both ways, every foot on the runner); **turf** is the forests' ground layer (1:700, 4:700);
+  grape: the bunch lies on the runner, no stick (228 tris a variant).
+- **The terraces' "vases stapled to the floor"**: the kept `sponge` (a cylinder with a flat black lid and a stub, 230 a
+  cell). FLORA.md already listed it as the sac line's *vase*, so it is one now: `vaseB` through `cup()` — a lathe with a
+  waist, a flared lip and a dark inner wall so the mouth is a hole, not a lid; variants tall / paired with a fused bud / a
+  squat urn; ivory-dun-grey (`SACT`); 70 a cell on the terraces (16 spires, 14 bladder forest, 12 plain, 16 massif),
+  `field`-clustered into gardens. (`spongeGeo` was defined twice in flora.js; both gone.)
+- **The big low-poly lump beside the boulder field**: rock facet **level 2** (DESIGN, Rock) — 240 tris a lump, creases along
+  the block edges, per-face and per-facet shade, still inside the collider (checked headlessly: max overshoot −2.6e-9).
+  Kits, the massif's crags and the arches; ledges stay at level 1; boulders plain. `Q.rockLvl` 2 on high, 1 on low.
+  World structures 197k → 767k tris (about half in view at once); bigrock 240 → 960 an instance.
+- The facets draw from a sub-rng seeded by one draw of the kit's (`rockLump`), so a future facet change won't move the
+  lumps; this once, the kits (crag, tor, slab, bigrock, ledge) are laid out a little differently. Structure *positions* did
+  not move (bigsFor's stream is untouched); the per-cell flora rng stream changed again (vase and turf rows), so creature
+  spawn points shift, as in v9.3 and v9.5.
+
+**Unseen, in order:** (a) **the readout in the rockfall and at the arch** — the far layer now carries ~4× the structure
+tris; if the ms creeps, `Q.rockLvl` 1 is the knob, then level 2 for the arches only; (b) whether level 2 reads as
+fractured rock (planes with spall) or as noise — if noise, `ROCK_JIT` down to 0.05 and the midpoint pull to 0.1–0.3;
+(c) the ribbons standing, leaning ~25°, floats up; (d) the spurs on the spires; (e) the vase gardens on the terraces
+— hollow mouths, three forms, gaps between gardens; (f) the forest floors: turf, no sticks; the grape as bunches;
+(g) the flats' strap as a lawn (not seen in the five pictures; if it still reads as lines, cut it to 2:1200 and say so).
+
+## v10 — no biomes
+The person played v9.6 ("looks great", the terraces and the shallows especially) and then vetoed biomes: the world is a
+volcanic island and should just *be*; life favours conditions. Decided (8 Sep): both arches and the massif go ("structurally
+unbelievable"); the rockfall stays but the rock placement gets a cleanup; terraces as rings everywhere they're not buried; a
+caldera lagoon; the HUD shows depth, no name; wind and current directions left to Claude. Built, unseen — everything moved:
+
+- **`world.js` rewritten from the geology** (PLANET, Geology): the caldera (floor −22, rim of land at r 245 with passes at −14),
+  the shield profile, eight 12 m terraces −60..−156 as rings (r 700–1000), the collapse (scarp 75 m at r 340–430 in the sector
+  round 3.9 rad, a hummocky fan to r ~1100 that buries the terraces, blocks out of the water at the scarp), the dike swarm on
+  the old flank (0.35 rad: radial ridges every 2π/22, 8–34 m, r 700–1200), two rift arms (2.6, 5.6) with the pit crater at r
+  470 on arm 0, the fissure vents at r 1200–1420 on arm 0, the flank cone (the island) on arm 1 at r 500, the apron, the void.
+  Wind toward 3.49 rad (the waves strike the old flank), current toward 2.3 (it strikes the north-east flank; the canopy sits
+  in its wake at 2.3 ± 1). **Nine condition fields** per point (`FI`), `fixF` for steepness, `envW` tolerance envelopes,
+  `waterColor` by depth/turbidity/plankton/heat. `sectorW` and the wave function kept; `STEPS`, `STEEP_*`, `massifW`, the
+  outcrops, `archSite`, `BIOME_NAMES`, `BCOL`, `WATER` (bar `WATER_CANOPY`) gone.
+- **Placement by envelope**: every flora entry `per`+`env`; `SPAWN` a list of `{kind,n,env}` (predators on their prey's
+  ground: eels in the weed and the rubble, lurkers on rock, herds on sand and turf, orthos in current and at the vents, the
+  abyssal below −400); `placeFloraType`, `bigsFor`, `impostorsFor`, `spawnChunkCreatures` (`cellW`, `chunkPoint`) evaluate it.
+  Big rock where the geology puts it: crags/tors on the fan (young rubble), slabs on the dike crests (`rel`), old domes on fed
+  rock; boulders 330 on the fan, 60 on bare rock (`boulder2`), 12 on sand (`boulder3`). ~220 structures, 262k tris (v9.6: 590,
+  767k). The far layer's impostor stream and the cell rng streams changed: every creature and plant is somewhere new.
+- **Cells** carry a field grid (`fg`) instead of the biome grid; `terrainColor` by conditions; glow clouds by depth.
+- **The arches and the massif** removed everywhere (`archLayout`, `ARCH*`, `archTop`, `tideTint`, the massif kits, biome 14,
+  the arch solids and draw, `SPAWN[14]`). Landmarks: pit and chimney fixed by the geology, the rest searched by predicate.
+- **HUD**: the depth in whole metres, bottom right, faint, under the water only; the name popup is gone.
+- Tests: `test/smoke.js` reports the substrate under the player instead of a biome; `test/physics.js` prints the culprit when
+  a clear point moves (it caught rafts bleeding 100 m past their band: the `h` soft edge is now capped at 10 m).
+  `makeSchool` is unreferenced (the school spawn branch went with the biome table; the boid ribbon is still owed).
+
+**Headless survey** (`sample` on a 40×40 grid): the lagoon at −22 inside the rim; sand in the lee and the lagoon, rubble on
+the fan, rock on the old flank and the rim, mud from −260 down; food 9 on the struck flank, 0–1 in the lagoon; the dike
+crests, the fan and the fissure where they should be; the terrace profile at 1.0 rad −58, −71, −97, −123, −143, −152, −156.
+
+**Unseen, in order:** (a) **the caldera from the start** — the lagoon floor, the rim as land, the passes, the reef polyps on
+the rim's outer slope; the start is now in 22 m of water; (b) **the terraces as rings** — 12 m risers, treads ~28 m: if too
+narrow, widen the band (700–1000 → 700–1100 in `tS`); (c) **the collapse**: a real scarp above the rockfall, the fan below
+it, crags and boulders on the fan and nowhere else; (d) **the dikes**: radial ridges with pinnacles on the crests, sheet rock
+along them — if they read as a picket fence, fewer (22 → 14) and more varied (the fbm in `dkr`); (e) **the vents** on a line;
+(f) **the water**: no colour jumps anywhere; siltier in the surf and the lee, greener on the fed flank; (g) the weed forest
+on the north-east flank only, the flats on the lee, the lime reef only round the rim; (h) the depth readout; (i) rocks that
+still make no sense where they stand — say where.
+
+## v10.1 — no magic
+The person played v10: "the best version of the game by far"; the terraces read as stairs but the elevation is right and the
+ledges were the wrong thing. Rule added (8 Sep): **fully believable from the logic, no magic anywhere, even for gameplay**.
+Decided: the lily pads go entirely (nothing floating takes weight); a floating raft with man o' war lines pulled by the
+current is wanted; all bioluminescence goes until it can be done accurately; the current as physics next. Built, unseen:
+
+- **Rafts** are a tangle (Sargassum's shape: branching fronds with bladders at the tips, no top, no bottom, half out of the
+  water); **colonies** are a gas float longer along the current, a mass of zooids under it, and fishing lines that **trail
+  downstream** (`line()` takes a drift; the entries are `flow`, so local +z is the current). colony2 is 6–10× (was 9–16): long,
+  not wide. No pads anywhere: `pads()` is gone from grow.js, no species returns pads, `addPad`/`updatePads` are dead code kept.
+- **The current as physics** (`chunks.js currentAt`): the water's velocity from the loaded cell's grid — along the contour in
+  the sense the fixed flora face across (`flowYaw`), `CUR_MAX` 1.2 m/s at full `flow`, weaker within 8 m of the floor. The
+  player is carried by it (player.js, scaled by submersion), every creature within 200 units (creatures_ai.js, re-read every
+  0.4–0.6 s), and the marine snow. Rafts and colonies do not drift yet (instances are static); their lines lean instead.
+- **Bioluminescence out**: the stalk fields and lantern trees, the great lantern and the heart ring (landmarks and their
+  lights), the glow clouds. The deep floor gets **glass** (a cup on a long stalk rooted by a tuft) and **frond** (a quilted
+  blade on a holdfast) from FLORA's roster, and pens and whips now reach −450. `GLOW` is used only by creatures' eyes and the
+  veil's spots — those are next to audit (PLANET, Hooks: bioluminescence as events). `fogExtinctOnly` is dead code.
+- The cell rng streams changed again (two species added, two removed): creatures moved.
+
+**Unseen, in order:** (a) **the current** — it should be felt on the north-east flank and in the rim passes, barely in the
+lagoon; if it fights the controls, `CUR_MAX` down (0.8); if creatures visibly slide, they need to *swim* against it (a
+heading correction in their AI, not built); (b) **the colonies' lines** trailing one way along a flank; if they trail the
+wrong way for the current you feel, flip the sign in `currentAt` (`dx=gz/gl;dz=-gx/gl`) — the flora's convention wins;
+(c) **the rafts** as tangles you push through, half out of the water, green; (d) **the deep**: dark, pens and whips and glass
+stalks and fronds, nothing lit; (e) the tris and draws on the fed flank (the tangles are ~150 tris a variant).
+
+## v10.2 — the current bends the weed; the dike walls; the rafts as mats
+The person played v10.1: "went really, really well", the flora "gorgeous and fitting", the game "a joy to explore"; the
+current works (the player and the snow go the same way, catching it is clearly faster, going against it is felt "in a good
+way"); the kelp forest and the caldera "absolutely gorgeous" ("the coolest cambrian looking thing"); the rock and the line of
+vents "really really good". Three things off: (1) the weed only *seems* to move with the current — it sways and rebounds, "the
+plant physics doesn't actually push plants in the direction of the current"; (2) the spires "unbelievable": needles from deep
+ground almost to the surface, whatever the story (necks on the crests); (3) the colonies float on their own (fine if that's
+what they do — it is) but the rafts "look super weird, like a bark or branch". Built, unseen:
+
+- **The lean** (`scene.js` `LEAN`, `chunks.js` `currentOf`/`makeInstanced`): every sway instance carries `aCur`, the current at
+  its base; the sway shader leans it downstream by 3× its sway amplitude at full current on the sway's own height profile,
+  the tip dropping so nothing stretches, and halves the oscillation in a full current (a stalk in a current streams and
+  flutters; the back-and-forth is surge). At the fed flank's ~0.5 m/s a 40 m stipe's top leans ~4 m, turf ~0.45 m; in a pass
+  (1.2 m/s) 7.7 and 1.05 m. The colonies' lines keep their baked trail and lean a little more. Nothing drifts yet.
+- **The dike walls** (`flora.js` `wallGeo`, `wall`; `far.js` `radial`, `pre`): the spires (46 a cell, to 68 m) and megaspires
+  (96–160 m) are gone; on the dike crests the dike rock stands as broken walls — four tall thin lumps in a row down the flank,
+  8–16 m above the crest, 14–28 long, 3–4 thick, two blocks fallen at the foot; ~170 in the world, overlapping into runs
+  (headless: tops ≥ 20 m under the surface, nearest-neighbour median 11 m). In the megaspire's `BIG` slot so slab2 and the
+  old domes did not move. **The colossal spire is the neck** (`neckGeo`, `LM.neck`, `LMK.neck`): the plug of one parasitic
+  cone, ~65 m across and 43 m above its crest with a talus to 130, at the old spire's site (982, 198), ground −142, top −103.
+  PLANET, Geology, the dikes, rewritten: walls and one stump, not needles.
+- **The rafts** (`raftB`, `ys` −0.2): a flat leafy mat in the surface plane — 6–10 runners from a centre with dense small
+  blades in alternating pairs and berry floats at the outer nodes, wider than thick (1.6–5.7 m across), the top just out of
+  the water; ~320 tris a variant (was ~150). The far impostor discs were still the old pads' size (a 12 m disc for a 2 m
+  tangle): raft r 1.25, colony 1.7 (pale), colony2 2.4.
+- The per-cell rng stream shifted at the spire's old slot: chimneys, limpets and every creature moved (the structures, the
+  impostors and everything before the spire did not).
+
+**Unseen, in order:** (a) **the lean** in the kelp forest and the passes — does the weed now stand downstream and flutter
+rather than rock about the vertical? If it flattens too far, `LEAN` 3.0 → 2.0; if it still reads as undecided, 4.0. The
+turf and strap (2.4 m, `MATG`) are the easiest to judge: they should all lie the same way. (b) **The walls**: serrated
+runs down the ridge crests, the same way on every ridge, 8–16 m tall — if they read as a fence, `per` 120 → 70; if the
+segments float above the crest on the sharp ridge profile, `sink` 0.15 → 0.3. (c) **The neck**: a stump on the swarm, wider
+than tall, columns round a core; whether it is enough of a vertical landmark for the old flank. (d) **The rafts** as leafy
+mats you push up through, green, the berries at the surface; the tris in the canopy. (e) The far impostor discs now the
+size of the real things: does the swap at the load radius still show?
+
+## v10.3 — the tide
+v10.2 seen: "everything looks a lot better" — the lean, the walls, the neck and the mats all passed on one look. The person
+asked for the tide's band on the rocks and said go. Built, unseen:
+
+- **The clock and the tide** (`world.js` `DAY_H`, `LUNAR_H`, `TIDE_P`, `SPRING_D`, `TIDE_A0/A1`, `CLOCK_RATE`, `tideAt`,
+  `tideRate`, `TIDE`, `clockH`; `main.js` sets them each frame): semidiurnal on a 31.2 h lunar day (two a day, later each day),
+  4.5 m at springs and 3.0 at neaps over a 13-day cycle (6–9 m range, PLANET), a game day in forty real minutes so a tide takes
+  21 and the water at mid-tide moves 2.3 cm a second. Boot is mid-flood on a spring. `waveH` = `TIDE` + waves, so the medium,
+  the strand, the splashes, the camera and the HUD depth (`TIDE − y`) follow with no other change; the surface mesh sits at
+  `TIDE`; rafts and colonies bob on `waveH + uTide`; the far raft and colony discs are lifted each frame. The readout shows
+  the tide and the hour. Headless: the rim is land along 40% of its ring at mean level and 2% at a high spring (it drowns —
+  PLANET says it floods; raise it 2 m in `sample()` if land should last), 34% of it a pass over 4.5 under at a low spring;
+  the island 2 → 3 → 6 ha high spring → mean → low spring.
+- **The band** (`scene.js` `BAND_GLSL`, `MATROCK`, `MATROCKB`, `TERRAIN_MAT` at 0.7): by world height in the fragment — the
+  intertidal ±4.5 a dark olive film, the spray zone to ~+7 bleached, and the rock 0.2–1.6 above the water *now* darker, wet: the
+  line walks with the tide. Boulders, bigrocks, ledges, every structure, the neck and the terrain; not creatures or the sessile
+  animals.
+- **The tidal stream** (`world.js` `tidalAt`, `TIDE_U` 0.5, `TIDE_R` 900; `chunks.js` `currentOf` = `steadyOf` + tidal × rate):
+  the ocean's tide going past the island, potential flow round the slope — nothing on the axis (the fed flank, the wake: the
+  kelp and the canopy keep their steady current), 1.0 m/s tangential on the flanks square to it at a spring mid-tide, splitting
+  round the shield, so on the dikes it fights the steady current on the flood and joins it on the ebb (1.6 one way, 0.4 the
+  other) and on the collapse side the reverse; a 0.25 through-flow pass to pass in the lagoon (0.13 in the passes). The player,
+  the creatures and the snow feel it; every sway instance carries `aTide` and leans to `aCur + aTide·uTideR`.
+- **The kelp lies down** (`swayMaterial` `cap`): every upright water sway material folds vertices above `uTide − 0.45` to the
+  water (4% of the excess kept against z-fighting), so a stipe built to the mean surface lies on it at a low spring rather than
+  standing 4 m in the air. The tussock got its own material (`MATGL`) so it is never folded; nothing on land gets a current.
+
+**Unseen, in order:** (a) **the water moving** — stand at the start and watch the lagoon's edge, or better a boulder on the
+rim: does the wet line walk (a metre a minute at mid-tide) and does the surface stay one thing through it (the mesh at
+`TIDE`, the waves on top)? (b) **the band** — dark film through the spring range, pale above, wet just above the water; if the
+film is too heavy on the sand of the flats, `TERRAIN_MAT`'s 0.7 → 0.4; if the dark band on rock is muddy rather than lived-in,
+the colour is `vec3(0.58,0.64,0.52)`. (c) **The rim at a high spring**: twenty minutes in, nearly all of it under — a reef
+awash rather than a ring of land. Decide whether that is the planet or a mistake (the fix is 2 m in `sample()`'s rim
+height). (d) **The kelp at a low spring**: the canopy lying on the water, not stalks in the air; z-fighting there. (e) **The
+current turning** on the dikes and the fan (the readout says rising/falling): the whips and wisps should swing over ~10
+minutes; the player carried the other way on the ebb. (f) The lagoon's through-flow: 0.25 m/s felt at the start — too much
+for a "calm" lagoon? (`TIDE_U` × 0.5 in `tidalAt`). (g) Rafts and colonies still don't drift; creatures still slide rather than
+swim against the current; the cones don't open — all owed.
+
+## v10.4 — rock that lies on the ground
+v10.3 seen: "looks awesome, I love the current". Six screenshots of rock: plates floating far off the ground on their downhill
+edge, plates stacked like dropped dinner plates with thick edges standing up, huge flat sheets on ridges, and the new walls
+reading as "obsidian shards stuck into the sand" — "sometimes it can get geometrically strange". A pass over the rock:
+
+- **Why they floated.** Every structure lay *level* with a random `tilt` (±0.15 rad) and sank a fixed fraction of its scale:
+  a 90 m sheet on a 20% slope was 9 m clear at its downhill edge, and the slab kit's own lumps tilted ±0.175 on top of that,
+  lifting 8 m more. On the dike crests (a sharp ridge 34 m high) and the terrace treads a plate that wide can only bridge air.
+  Headless, the plates' rim bottoms were 3–40 m above the ground at the 90th percentile; one hung over the pit.
+- **`lie`** (`chunks.js lieOn`, `far.js bigPlace`, `placeFloraType`): sheet rock, the walls and the bigrocks take the ground's
+  tilt over their own footprint (`foot`) and sink by `settle` of the drop round them. Now the rims are under the ground at
+  the median and the worst wall end is 1.9 m clear.
+- **Slabs** (`slabGeo`, `slab`/`slab2`): thinner (0.3), flat-lying (kit tilts ±0.03/±0.06), the shingles lower, 10–28× (was
+  14–34), sink 0.12; moved off the dike crests and the treads to the **collapse fan** among the crags as the slide's coherent
+  blocks (Earth's toreva blocks; PLANET, the collapse). 1–13 m proud, median 3.
+- **Walls** (`wallGeo`): two courses of squat blocks — five below half buried, three or four above offset half a block, a broken
+  top — and a fallen block at each foot, 4–7.5×: 6–19 m above the crest (median 11), 18–35 long, 2.5–4.5 thick, lying on
+  the crest's slope. The lozenges are gone.
+- **Bigrocks** lie too; their satellites' tilts halved. `LM.pit.r` 190 keeps structures off the pit's wall.
+- Not touched: crags, tors, the old domes (heaps of round lumps: no edge to lift), boulders, the ledges (their pitch is the
+  point: strata). The far layer's per-type rng is unchanged, so every crag and tor stands where it did.
+
+**Unseen, in order:** (a) **plates on the fan** — flat rock lying *in* the slope, shingled, 2–4 m proud, edges in the ground;
+if they now vanish into the hummocks, `sink` 0.12 → 0.06 or `settle` 0.6 → 0.4; (b) **the walls** — a jointed wall of blocks
+along each crest, broken top, following the ridge down; if too squat, `s` [4,7.5] → [5,9]; (c) nothing floats — say where if
+it does, with the depth readout; (d) the dike crests without sheet rock: bare ridge, wall, boulders — enough?
+
+## v10.5 — the rock, cleaned
+v10.4 seen: the walls read as columns of scales. The person: axe the whole thing — no spires, no special spire-replacement
+rocks, "just normal geography based on what's nearby" — and clean the rock logic up: "we don't need more, we need more
+elegant or cleaner". Done:
+
+- **Four forms, one rule** (DESIGN, Structures): block (boulder), heap (crag), sheet (slab), stack (the cairns only), plus the
+  ledge on cliffs. Each kit returns `{geo, lumps, top, foot}` (`kit()`); `rock(id, kit, o)` makes an entry with one basalt
+  palette and one material. **`settleOn`** (chunks.js) is the single placement rule for near and far: a kit lies on the ground's
+  tilt over its own footprint and sinks by `sink` plus half the drop round it; a single block sits any way up.
+- **Gone:** the dike walls (`wallGeo`, `wall`), the neck (`neckGeo`, `LM.neck`, `LMK.neck`), the per-cell `bigrock` (now `crag3`,
+  a heap at 8–24 on bare rock anywhere, far-drawn like the others), random tors (`tor` is `per` 0: the cairns' kit), `tilt` on
+  structures, and the flags `lie`, `foot` (from the kit now), `settle`, `radial`, `pre`. The dike crests are bare ridges: blocks,
+  the odd heap, ledges on the flanks.
+- The cairns: the pit's rim is 15–50 deep since v10 and a 13× cairn is 45 m tall, so four of the seven had been silently rejected
+  by the surface clamp since then; placed structures now shrink to fit (down to 4×) — five stand.
+- Every structure moved once (the `BIG` list changed; the per-type rng runs by index).
+
+**Unseen, in order:** (a) the dikes as bare ridges — enough, or empty? if empty, `crag3` `per` 1.5 → 3; (b) the fan: heaps, sheets
+and the boulder field lying in the slope; (c) `crag3` on the rim's land and the terrace risers — say if a heap stands somewhere
+it shouldn't; (d) the cairns at their new sizes; (e) nothing floats.
+
+## v10.6 — the roster's builders and the bestiary
+The person asked for viewable models of the roster's unbuilt species, to sign off before any is placed. Done, and nothing placed:
+
+- **Fifteen builders** (`creatures_builders.js`, PLANET's roster): sickle, trap, tread, hose, flicker, hook, picker, comb
+  (hingeshells); stone, crusher, needle, basker (slowbloods); rasp, watcher, pall (ringmouths). Each follows its clade's geometry
+  language and blood tint and its eye rule. Shared kit: `trunk` (plates with joints), `leg`, `flapRow`/`flapWave` (the paddlers'
+  metachronal wave, three phases a side), `mouthRing`; in parts.js `eyeRing`, `stalkEye`, `G.quad`, `trunkPose` (the hose's
+  proboscis is a chain with a claw), and `armRing`'s `web` option (the pall's net, a quad per segment to the mid-angle of each
+  neighbour). `coilShell()` factored out of `buildCoil` for the rasp. `MATT` (scene.js): a translucent Lambert for the flicker.
+- **Action states** every anim reads the same way (`st.tell`, `st.strike`; `st.jet` as before), so the bestiary and later the AI
+  drive the same poses: the sickle's claws cock and sweep, the trap's arms unfold round the outside (a horizontal fold, so it reads
+  from above and never clips the sand), the hose's proboscis extends, the flicker's tail flicks, the hook's legs drop and close,
+  the stone's and crusher's jaws drop, the picker pecks.
+- `DEFS` has the fifteen with `build`, `size` (the roster's half-length) and `floor`/`legs` only — no role, no `SPAWN`: nothing places
+  them. `ROSTER` (creatures_defs.js) lists all 30 species by clade for the bestiary.
+- **The bestiary** (`zoo.js`, DESIGN Creatures): `#zoo` in the URL or `z` on the menu; one species at a time at the peak in the
+  game's light, orbiting camera, caption (name; clade, family; niche; half-length), left/right to step, space (or click) for the
+  strike, s to cruise, drag and wheel; z or escape back. Floor species sit at the game's clearance.
+- **A preview tool** (`test/preview.js`, `test/geo.js`): the builders rendered headlessly to `test/preview/<id>.png` (four views,
+  idle and action) with real geometry and a software Lambert. Every builder above was checked on it; it is the first time a session
+  could look at a model before the person did. The smoke test now walks the whole bestiary (every builder, rig and anim, the strike
+  fired) before the clade runs.
+
+**Unseen, in order:** (a) whether the bestiary frames each species (the camera distance is 2× a bounding radius plus 1.5; the pall
+and the veil are the test — the pall's net is 17 m across at size 9); (b) the pall's web in the game's light: black quads that shear
+a little between arms as the chains move — if the seams show, `web.spread` (0.8) should match the pose the anim holds; (c) the
+flicker's translucency (`MATT`, opacity 0.7) — say if it vanishes or sorts badly; (d) the sickle's claws at rest (forward, curling
+down) and on the strike; (e) the tread's plates — creases between them, legs thick enough under the skirt; (f) the watcher's raised
+arms (four up at ~45°, four walking with their tips on the ground); (g) draw calls: the tread is 15 meshes at near LOD, the sickle
+12, the comb 10 — all bake to one for the far LOD; (h) the caption's placement against the title.
+
+## v10.7 — the roster placed
+The person saw the bestiary: "the new creatures look great". Asked whether to place these or sketch more: place these first, all
+fifteen at once. Done — every species in the roster now lives somewhere (creatures_defs.js `DEFS`, `SPAWN`; chunks.js the spawn
+kinds; creatures_ai.js the behaviours):
+
+- **New behaviour** (DESIGN Creatures): the **strike** for hunters that have one (`strike {tell, dur, speed, range}`: in range the
+  tell — it slows, cocks, turns to the prey — then a burst with the strike pose, the bite landing once within reach: sickle, hose,
+  crusher); **burst-and-coast** (`burst {on, off}`: speed and steering on a duty cycle — sickle, hose, comb; the flaps beat and rest
+  with it); the **trap** role (sits, never moves, strikes what comes within `detect`: the trap buried in the sand, the stone lying on
+  its floor, both as heavy as rock for contact); the **watch** role (the watcher walks up to a standoff of 6 m and stares, follows,
+  backs off, never attacks); the **hook** as an ambusher hung 5–14 m up in the weed or off a rock face (`hang`), dropping on the
+  player below; the **pall** as a wanderer that keeps below the chemocline (`deep`); the **tread** as a calm grazer nothing moves;
+  the crusher's `preyClade:'coil'` (the player is its prey only as the coilshell); a `face` target every creature can turn to.
+- **Boids**: the school role is a loose ribbon now (`boid`: alignment, cohesion, separation among its own school's members, a
+  wander of its own, fleeing the player and the school's scanned threat). Flickers in ribbons of seven over the shallows and the
+  shelf, and the **darters are back** as ribbons of nine (the v4 block was the reason they went; glim stays off pending the
+  no-magic audit). Needles hunt them in threes.
+- **Envelopes** (first guesses, tune from what is seen): rasps on shallow rock; traps in shallow sand; hoses and hooks in the weed
+  forests, hooks off rock faces too; crushers on rock to −150; watchers on the shelf and terraces; sickles on the rockfall and
+  terraces; stones and a very few treads on the plain's sand; combs over the plain; baskers at the vents; pickers from the rim down;
+  palls in the dark. The ortho takes needles, the eel and the arrows take flickers, the abyssal takes combs.
+- **Cost**: the loaded population went from ~450 to ~1100 (most of it flickers and darters). Done for it: grazers scan for threats
+  three times a second instead of every frame (was the frame's biggest cost), schools scan for threats four times a second and
+  their members read the answer, the wave is not read for creatures well under the surface, and anything beyond 150 m moves every
+  other frame with two frames' time. Headless, the trap tells and strikes and bites, the sickle chases/tells/strikes at 16 m/s,
+  the watcher stands off at 5–7 m facing the player, the hook drops and bites and climbs back, a ribbon holds ~4 m across and
+  wanders, the pall stays at −770 over −810 ground.
+- **Buried**: `clear` on a def sets the floor clearance (the trap sits at 0.45, the stone at 0.8: a quarter in the sand).
+- Not done, by design (PLANET's order): no temperature model (the basker is quick wherever it strays), no moulting, no detection
+  modes, no variants by place. The person's principle for later (8 Sep): a niche is shared by clades at unequal shares — 90/8/2, not
+  100/0/0 — filled by variants and minor species once the base forms are in.
+
+**Unseen, in order:** (a) the readout: draws and ms with the ribbons in the shallows (thin with `ribbon` n 2.0 → 1.2 and `darters`
+1.0 → 0.6 if it creeps; the population is the risk, not the behaviours); (b) do the ribbons read as fish — loose, fraying,
+re-forming — or as a clump; (c) the trap: is it found before it strikes (the eyestalks are the tell; a quarter buried), and does
+24 damage feel like a mantis shrimp; (d) the sickle's strike from 13 m at 17 m/s — three bites in eight seconds headless is deadly;
+(e) the hook hanging in the weed at 5–14 m (legs up, still) and whether the drop reads; (f) the watcher's stare; (g) the tread on
+the plain at walking pace, and that it isn't in the way; (h) the pall at −500 in a black net; (i) the stone: found by touch only;
+(j) needles in threes, and whether the food web reads (needles on flickers, hoses on flickers in the weed, crushers on rasps).
+
+## v10.8 — the swimming animation and the arms, un-janked (this build)
+The person played v10.7 and reported the physics as janky: "the player character's tail moves incredibly quickly and the tentacle
+appendages move around constantly. The fish only looks realistic when slowing down, but any movement jerks it back into awkward
+motion." Three faults, found headlessly (`test/anim.js`, new — the run that measures them), none of them the contact system:
+
+- **The phase spin.** Every builder's anim wrote its beat as `sin(t*f(spd))` with `t` the wall clock since page load. That is a
+  phase, not a rate: its rate is `f + t*f'*dspd/dt`, so any change of speed — a key, a turn, the velocity lerp settling — spun the
+  beat at a rate proportional to how long the session had run: two minutes in, the finback's tail averaged 19 rad/s while
+  accelerating (4 is its real peak) and 11 while "cruising" (the lerp still converging); the soft-arm's rest pose swung the same
+  way and the chains chased it. Only a steady speed, or nearly stopped (the tail's amplitude ramps down with speed), looked right —
+  which is what the person saw. All twenty-one speed-driven anims now take their phase from a `swimClock(f0,f1)` (parts.js):
+  advanced by `f*dt` each call, first call `t*f` so the menu, bestiary and preview PNGs start where they did. `flapWave` takes a
+  phase. The flicker's `sin(t*5+spd)` (speed as a phase offset) went the same way. Tail on acceleration 19 → 2.1 rad/s;
+  soft-arm tip jerk on acceleration 6.5 → 0.18 per frame. **It got worse the longer you played**; a fresh reload hid it.
+- **Arms shivering against their own hull.** The coil builder's arm roots (the coilshell, the great) and the watcher's sat inside
+  their own body capsule, so own-body contact pushed them out and the spring pulled them back every frame: tip jitter at idle 1.4
+  (coilshell), 6.0 (great), 1.75 (watcher) — the "constantly moving" tentacles of the coilshell. Rule now (physics.js `simChain`):
+  the first free point of a chain never collides with its own body (it sits where the arm leaves the hull, which the capsule
+  overshoots), and any other point may sit as deep in its own body as its rest point does, no deeper. All three at 0.01.
+- **The hard joint limit.** An arm bent past `cosMax` (57°) at a joint was snapped half-way straight in one pass. An arm leads a
+  decelerating body by `a/ks` (0.11 units at the coil's ks 70) — a 25–40° kink on a 0.25 segment, so on every deceleration the
+  coil's arms reached the limit one after another and were flung (tip jerk 10, the arm the length of itself off its rest). The
+  limit is a ramp now (`JOINT_SOFT` 0.2 in cos: eased from 41°, full at 57°). Coast jerk 10 → 0.2. The grab test still closes on
+  the prey (172/180 frames touching; mean tip distance 1.38 → 1.43, a little less tightly wrapped); arm cost 87 → 98 µs a creature
+  with twenty in each other's reach (the rest-depth check and the ramp).
+- **Poses that switched.** The soft-arm's jet pose (spread 0.35 → 0.05) toggled with shift and flung the arms on release: it eases
+  now (`easer(7)`, parts.js). The ortho's, arrow's and lurker's cruise/lunge poses switched at one speed; they blend over a band
+  (`smooth`). The jet impulse itself (10 u/s in one frame for the soft-arm, 7 for the coil) is delivered as a thrust over the first
+  0.18 s of each 0.5 s cycle (`JET_W`, player.js): the same push, the arms no longer whipped (sprint jerk 3.9 → 1.1).
+- **Taste, not asked**: the soft-arm's idle sweep is quieter (each arm ±0.09 rad, period 3.5 s, spread 0.35) and swimming brings
+  it up (±0.2, spread 0.23, faster) — the v10.7 idle was ±0.2 at 0.4 Hz with random phases per arm and read as writhing even
+  before the spin. Revert: `ringPose(arms,0.35+0.08*Math.sin(t*1.3),0.2,...)` with `swimClock(2.6,0.5)`.
+- Not changed: the chains' springs and drag (ks/damp, ζ≈0.6) — a turn's arm lag traced at three dampings showed no ringing to
+  remove; the finback's tail is still one hinge at 0.45 rad, 1.5 Hz at cruise and 2.5 sprinting.
+
+**Unseen:** all of it — the tail at cruise/sprint/coast, the soft-arm swimming and idle, the coilshell's arms at rest and after a
+sprint, the great and the watcher in the world; whether the jet still reads as a squeeze with the push spread over ten frames;
+whether the softer joint limit lets a grabbing ortho's arms look slack. If the tail still reads fast at sprint, `swimClock(1.5,0.9)`
+in `buildFinback` — the 0.9 is rad/s per unit of speed.
+
+## v11 — the world above the water (this build)
+The person asked for the parked land overhaul: the planet in PLANET.md decides what is above the surface; keep the art style. Built,
+unseen — nothing here has been rendered (no three.js in the sandbox; the tree was looked at in the preview rasterizer only):
+
+- **Day and night on the tide's clock** (`world.js` `LAT`, `SOLAR_H0`, `MOON_T0`, `MOON_R`, `SUN_R`, `skyDir`, `sunHA`, `moonHA`,
+  `moonIllum`; DESIGN, The sky). Tropical latitude, no seasons: 15 h of day, 15 of night. Boot is late morning; sunset 11.5 h
+  (15 real minutes) in; the moon full at boot (my call: a spring is full or new, and the full one makes the better first night),
+  rising with the sunset, transit at local midnight with the high water half an hour behind it; new at 13 days. Three times the
+  Moon's apparent diameter, nine times its light: nights under it at ~0.3 of noon, a moonless night at 0.035.
+- **Weather** (`weatherAt`): trade-wind cover on a slow noise, showers ~10% of the time from a fast one; boot fair, first shower
+  at 3 game hours (4 real minutes), 1.4 h long. The wind `WIND_U` 7 m/s toward `WIND_A`, real time.
+- **One sky shader** (`atmosphere.js` `SKY`, `updateSky`, `SKY_FS`): gradient from `SKYC` keyframes (a 5300 K star: warm noon, amber
+  dusk), the glow toward the sun, a sun disc and glare, **the moon as a sphere lit by the actual sun direction** (the phase is
+  geometry) with the planet's light on its dark side and maria, **stars** in a frame turning about the pole with a galaxy band,
+  **cel-shaded cumulus** on a 640 m plane drifting downwind, and a primary + secondary **rainbow** when rain meets a low sun.
+  The old vertex-coloured dome and the `sunSky` sprite are gone.
+- **Light by time**: a new shared uniform `uFogT` (`FOG_T`: the sky's light and its colour) scales the underwater veil and the
+  from-above tint (`tintU` is a `Vector4` now); the one directional light is the sun by day, the moon by night; the hemi, the
+  sun, `uDf`, the surface's reflected sky (`uSkyR`), Snell's window (`uWin`) and the glint (`uGlint`) all follow; the fog's glow
+  and the underwater shimmer point at the luminary (the Hooks item). The player's light gets `0.5·(1−skyL)²` at night on top of
+  its depth term — the alternative was a screen that goes black at new moon; a judgement call, easy to remove (atmosphere.js,
+  `plight.intensity`).
+- **Rain**: line-segment streaks round the camera above water, bright drop-crowns in the surface shader (`uRain`), thicker air
+  haze, the ambience opening and rising with it (`master.gain` is written per frame now when not muted).
+- **The strand's colours** (`chunks.js` `terrainColor`): olivine sand (green-olive, wet darker), dark basalt above the spray
+  zone with rust patches. Modest; the old numbers are in DESIGN, Land.
+- **The tidal forest** (`flora.js` `tidetree`, `MATTR`, `air`, `MATTR.land`, `farTreeGeo`): the FLORA centrepiece for the land —
+  7/10.5/14 m trunks on props in the tide band, flat green crowns, on the leeward rim and the island's flat, ~530 (× field
+  noise) in the world, none on the surf side; trunk and props solid; a wind sway; an impostor. Built without asking, since it
+  was the document's proposal and the person said "up to you"; strike it by deleting one FLORA line and one FAR_IMP line.
+- The readout shows the local hour, the sun's and moon's altitude, the phase, the light, cloud and rain. The stub gained
+  `Vector4`, `ShaderMaterial`, `LineSegments`, `LineBasicMaterial`, `Color.multiply`, `Vector3.fromArray`.
+
+**Unseen, in order:** (a) **the sky shader compiles at all** — if the sky is missing or magenta above water, it is `SKY_FS`;
+the surface shader also changed (`uSkyR`, `uWin`, `uGlint`, `uRain`, the `vWp` varying) and the fog chunk (`uFogT`): a magenta
+world is one of those. (b) **The first look**: late morning, sun 41° in the east, cover 0.44 — do the clouds read as cumulus
+in three flat tones or as noise? Are they too big (the `/760` scale), too low (`CLOUD_H`), too dark underneath? (c) **The sunset
+at 15 minutes**: the amber horizon toward −x, the sea reflecting it, the moon rising opposite — big enough (0.75°)? too bright
+by day? the terminator right? (d) **The night**: the veil under a full moon at 0.3, the stars' size and count (the 14/38 grids),
+the galaxy band, whether the moonlit clouds read; **whether a moonless night (13 days in) is playable or a black screen** — and
+whether the player's light at night is welcome. (e) **The shower at 4 minutes**: the streaks (420, 0.06 s long), the crowns
+on the water, the haze, the sound — and the bow after it if the sun is low enough (it won't be at 4 minutes; the second shower is
+at ~9 h, dusk). (f) The strand: olivine sand and dark rusty basalt, or mud. (g) **The tidal forest** on the rim from the start
+(swim to the lagoon's edge): do trunks on props in the tide band read as a wood or as lollipops; the crown's sway (`MATTR`
+0.3 at hn 9); z-fighting or floating at the props; the impostors across the lagoon; whether ~180 on the island's flat is a
+forest or a plantation. (h) **Performance**: the readout above water at sunset and in a shower (two noises per sky pixel; 420
+lines) — the person tests on desktop. (i) The fog tuner's `sun` knob now scales the glow toward whichever light is up.
+
+## v11.1 — the sea back (this build)
+v11 seen: "the trees look great", "the day night cycle works". But the sea was gone above water and only the veil showed below:
+the surface's Phong program failed to compile — the rain specks read `uTime` in the fragment and v11 declared it in the vertex
+shader only (`ERROR: 0:989: 'uTime' : undeclared identifier`), so `SURF_MAT` never drew on either face. One declaration added.
+**Unseen:** the surface itself under v11's light — the sky it reflects (`uSkyR`), the foam and the emissive by the hour, Snell's
+window at night, the moon's glint, the rain's crowns on the water; everything else in the v11 list still stands.
+
+## v11.2 — the tide's cards, the whip (this build)
+v11.1 seen (9 Sep): "the trees look great", "the day night cycle works awesome", and two things wrong:
+
+- **"The water in a strange clipped way"** from above — a row of dark wedges on the sea at a few hundred metres, kelp standing
+  out of the water beyond it. The screenshots are at low water (−3.6 m): the far layer's stipe and bladder impostor cards are
+  stretched to *mean* sea level and the bladder card carries a six-sided pad on top, so at a low tide the pads stood 3.5 m in the
+  air in a row at the loaded-cell boundary and the cards poked out beyond it — the real kelp is folded to the water by the sway
+  shader (v10.3 `cap`), the cards never were. Now the reach impostors follow the water down (`im.reach`; `cullFar` sets their y
+  to `min(TIDE,0)` — never up, since the real stipes only ever reach mean level). A v10.3 defect the missing surface had hidden.
+- **The whip struck** (the person: "way too earth like"): the FLORA entry and `whipGeo` are gone; the pen keeps `MATW`. The lily
+  (the crown on a stalk, which they mistook for the same thing at first) stays.
+- **One rng per flora entry** (`chunks.js genChunk`: seeded by the cell and the entry's id), so striking or adding a species no
+  longer moves every entry after it in the table. One-time cost: everything the cell places (small flora, boulders, the cliffs'
+  ledges and, downstream of the cell rng, the spawn points) reshuffles once now; the rules are unchanged, the structures (far.js,
+  their own rng) do not move.
+
+**Unseen:** the sea from above at low water without the wedges; the far canopy line at a low spring (the cards' bases now sit
+3.5 m into the floor — invisible at that range, expected); the forests without the whips; the reshuffled boulders.
+
+## v11.3 — the sea as a mirror at grazing angles (this build)
+The row of dark wedges on the far water was still there in a screenshot at boot (tide 0), so v11.2's tide fix was not it. The row
+is periodic at ~18 m and hangs under a straight pale edge: it is the far layer's **hidden trench** — where the loaded cells end,
+the coarse terrain dives 80 m under the fine mesh in one coarse step (DESIGN, The far layer), a sawtooth of walls. Under water the
+fog hides it; from above, the through-water tint paints the walls deep blue and the surface let them through. The "hairs" beyond
+are the far kelp cards, seen the same way. Why now: the surface's Fresnel sky term was **diffuse** — lit by the sun — so under
+the old noon sun it was as bright as the sky and covered the floor, and under v11's 16° sun it went dark and the far sea read as
+glass. Fixed in the surface shader: the reflected sky is **emissive** (`uSkyR·fr·0.85`, unlit — a reflection is not lit), the
+diffuse fades out as the reflection takes over, and the alpha goes to **1.0** at grazing (0.96 before: 4% of the floor at any
+distance). `uSkyR` is 0.85·horizon + 0.2·zenith now (the sky the water reflects at grazing is the horizon's). Nothing else
+touched: the near facets, foam and glints are as they were.
+
+**Unseen:** the far sea reading as the sky at every hour (it should merge into the haze regardless of the sun); whether the
+trench still shows from the island top (5° down at 430 m → 9% of the floor through the surface — if a faint line shows there,
+the trench itself is the next thing to hide: `farPushVertex`); the near surface's transparency at low sun.
+
+## v11.4 — the far sea, un-aliased (this build)
+Four more screenshots (9 Sep, boot and on the rim): the step on the water still there after v11.3, at a few dozen metres from a
+camera at the surface and ~100 m from the beach — "the waves are out of sync… the patches are all good except some difference
+occurs there". They were right; it is the surface mesh. Each wave is faded out where the grid can't resolve it (`aSpace`), but
+the fade was set to *finish* at exactly two samples a wavelength (`0.28L`→`0.5L`), so every wave was drawn fully aliased — a
+sawtooth of facets — over a band of distance before it went: the chop at 20–60 m, the 29 m wave at 160–300 m, the swell at
+260–580 m. The noon sun lit that sawtooth evenly and it never showed; a 16° sun lights its facets light and dark: the rows of
+wedges, and the smooth sea beyond them reading as a lower patch. Two of the sub-effects were real geometry, not light: a faded
+wave dropped its mean too (the crest sharpening puts a wave's mean 0.2 of its amplitude under zero), so the far sea sat 0.23 m
+higher than the near; and the kelp canopy was folded to the *tide*, not the wave, so its tops stood 0.7 m up through every trough
+— the "hairs", with the far kelp cards (built to mean level) doing the same beyond the loaded cells.
+
+- **The fade** (`scene.js` `WAVE_GLSL`): a wave is fully drawn at seven samples a wavelength and gone at three and a third
+  (`0.14L`→`0.30L`), and it fades to its mean (`WSH_MEAN` −0.195·A) rather than to zero. On the new mesh the chop goes by
+  16–26 m, the 15 m wave by 56, the 29 m by 136, the swell by 260; beyond that the sea is flat at the same level as the near sea.
+  The physics keeps every wave everywhere (`sp` 0): a floating thing 100 m off may sit ±0.4 m off the drawn surface, ~0.2° from
+  the water — accepted.
+- **The mesh** (`atmosphere.js` `sg`): `map(u)=SR(0.06u+0.94u³)` — 1.05 m between vertices under the camera (2.1 before, which
+  could not resolve the 6 m chop even at the camera), ~50 m at the edge (48); same vertex count, `SSTEP` follows.
+- **The canopy folds to the water now** (`swayMaterial` `cap`): `uTide − 0.45 + waveH(base.xz)`, the wave sum evaluated only for
+  vertices within 1.8 m of the tide level (every capped sway material: kelp, bladders, stipes, mid weed, grass, pens).
+- **The far kelp and bladder cards** stop 1.4 m under mean level (`impostorsFor` `sy`), under the deepest trough.
+
+**Unseen:** the sea from the surface at any low sun — no rows, no step, the chop visible only near, the swell to ~250 m; the canopy
+riding the waves from above (blades that dip in the troughs); from a hilltop, whether the flat sea beyond 260 m reads as too calm;
+a raft or a colony at 100–200 m bobbing against a flat drawn sea. If the near chop now looks too fine-grained, the fade's upper
+number (`0.30`) is the knob; if the sea beyond looks dead, the mesh count `Q.surf` (192/96).
+
+## v11.5 — the inside of a wave (this build)
+Two screenshots with the readout (sea 53,−1,4: the player at the surface, camera 0.5 m over the local wave, sun 47–49°) and the
+decisive description: "I can't look at it head on or it disappears… at eye level with the surface of the water. If you turn to
+face down, it's gone." That is the camera in a **trough**: below the mean level and below the crests around it. Looking through a
+nearby crest's steep, translucent near face you look *inside the wave*, and what was drawn there was the far surface seen from
+underneath — a back face, painted with the top look's reflected sky. So the far sea read as a pale ceiling with a hard edge at the
+crest line; look down and no ray crosses a crest, so it vanished. The mean-level and aliasing fixes of v11.4 were real, but the
+edge was this.
+
+- **A back face seen with the camera in air is the water body** (`SURF_MAT`, `!gl_FrontFacing` under `uUnder<0.5`): opaque, unlit,
+  the through-water colour (`TINT_COL·uWin`), no glints. Through a crest you now see dark water, as you would.
+- **The surface writes depth** (`depthWrite:true`): a crest's front slope hides the slopes behind it. Until now, from a low
+  camera the far waves' back slopes were back faces drawn *over* the front ones in index order (v8.3's "both slopes drawn over
+  each other"), which the topside look happened to survive and the fix above would not have. Transparent things beneath the
+  surface (jellies, the flicker, ink) are sorted before it and blend as before; the rain streaks that fall below the water are
+  now hidden by it, which is right.
+- The physics test failed once and passed on three reruns: a random-probe check (`points inside are pushed out`), pre-existing
+  and flaky, not touched.
+
+**Unseen:** the surface at eye level from a trough — dark water through the crests, the sky above them, no edge; the far sea from
+a low camera with the back slopes hidden (it should look the same, only cleaner); the surface from under water with depth on
+(jellies and the flicker still visible through it); breaching, where the camera flips sides. If anything under the surface
+has vanished from above (a splash, ink), that is the depth write.
+
+### v11.6 — the water line: the flicker, the sort, the shimmer
+Seen (9 Sep): two screenshots ten seconds apart from one spot at eye level, the whole lighting in the air set in one (sky dome, the
+surface topside with its reflected-sky band, the far waves' undersides hazed pale overhead) and the sea set in the other; then a
+17 s video at night, rising toward the surface: the floor steady, a broad glow over the surface switching on and off every 2–5
+frames (measured on the frames: the upper band alternating between two levels, the lower two bands flat). Two causes, both fixed.
+
+- **Cause:** `updateAtmosphere` decided `above` by `camera.y > waveH(camera.xz)` every frame, with no hysteresis and no link to
+  `player.camAbove`. `camAbove` only clamped the camera's *target* 0.5 clear of the wave; the camera lerps behind it (τ 0.125 s)
+  at a different x,z, and the chop (6 m, ~3 m/s) moves under it, so the camera sat a few centimetres on the wrong side for runs
+  of frames — and every uniform keyed on `above` (fog, hemi, sun, `uUnder`, the sky and water domes, the tint, the shimmer)
+  flipped with it. Measured headless hovering at the line: 21–56 wrong-side frames in 3000, clearance down to 0.00 (the wave
+  through the near plane).
+- **Cause 2, the video:** three sorts transparent objects by the NDC depth of each object's *origin*; the surface's origin is the
+  camera's snapped x,z at `TIDE`, so near the line it is within a metre of the camera and hops a grid step at a time — in front of
+  the camera plane one frame, behind it the next (at pitch 10°, yaw 0, its view depth is 0.06 − 0.98·dz for a snap offset dz of
+  ±0.5) — and the surface swapped places with the shimmer sprite (90 m, additive) every few frames: drawn under the mirror the
+  sprite is blended down to 26%, drawn over it it adds on top. The same swap hit the jellies and the snow. v11.5's depth write did
+  not cause it but made the two states further apart.
+- **Fix 2 (`atmosphere.js` updateAtmosphere):** `surface.renderOrder` is −1 under water (the farthest transparent thing on any
+  ray, drawn first) and +1 above (everything transparent is beneath it, drawn last); rain and spray are 2, in front of the sea from
+  above (until now, from above, the surface would have blended over them). The shimmer sprite from below is always over the
+  surface now — the brighter of the two states in the video is the one that stays.
+- **Fix 1 (`player.js` finishPlayer):** the camera itself is held `CAM_CLEAR` 0.35 clear of the wave at its own x,z, on its side,
+  after the lerp and the hurt shake; flips of `camAbove` are at least `CAM_DWELL` 0.5 s apart. **`updateAtmosphere` takes the
+  medium from `camAbove`** in play. Headless after: 0 wrong-side frames, clearance never under 0.35; legitimate crossings
+  (porpoising) flip exactly once each.
+
+- **Cause 3, the second video (daytime, rising to the surface):** with the flicker gone, a straight horizontal edge sweeping down
+  the screen to the horizon in five frames, a pale wash below it, the surface's dark facets above. The shimmer sprite (90 m,
+  additive) hung 1.5 m *under* the surface: rising, the camera came up underneath it (a glowing ceiling half a metre overhead
+  across the whole sky — the "bright sunny shade"), then the near plane sliced it (the edge, descending as the camera rose), then
+  it was culled at its plane. The sprite's plane was inside the wave band, and the shade was under the water rather than on it.
+- **Fix 3 (`atmosphere.js`):** the sprite hangs `SHIM_H` 1.5 *above* the surface, clear of every crest, and draws before the surface
+  (renderOrder −2), so the surface blends over it — glitter on the water, seen through the window and the mirror; an underwater
+  camera can never reach its plane. The surface's alpha takes 62–74% of it, so its strength is `SHIM_A` 1.4 (0.9 before). The
+  refracted glint's onset at the critical angle (a hard cut where `refract` leaves total internal reflection, visible only with a
+  low sun in its azimuth) is masked to a fade (`smoothstep(0.60,0.72,cv)`, eta 1.25).
+
+**Seen (9 Sep, third video, 12 s, four crossings):** "looks great… much more fluid and seamless". Measured on the frames: the only
+frame-to-frame jumps left are the four crossings themselves (one frame each), nothing within a medium. Also visible in it, not yet
+raised by the person: from just above the water at grazing, the near sea is big flat wedges — the per-facet Fresnel (`fr=(1−cv)³`
+on the flat-shaded normal) swings hard at grazing with small facet tilts, and the foreshortened grid reads as geometry. A candidate
+fix is the mean normal (up) for the Fresnel term with the facets kept for the diffuse and the glints; asked, not built.
+
+**Unseen:** whether the glow on the surface is steady now (it should be the brighter state, always); the rain over the sea from
+above, now drawn in front of it; whether the line is quiet while hovering at it; the single snap on a real crossing (it is one pop, not a fade —
+a fade between the two sets is possible if the pop offends); whether the 0.35 clearance ever shows the wave cutting the view
+(it is above the near plane, 0.2, so it should not); the camera riding the chop when pinned against a fast wave.
+
+### v11.7 — the crossing crossfades; the sea from above unwedged
+Asked for after v11.6 was seen ("fix these issues"): the one-frame pop on a crossing, and the flat wedges on the near sea from just
+above at grazing (both visible in the third video).
+
+- **The crossing (`atmosphere.js` `medK`, `MED_T` 0.3, `applyFog(k)`):** the camera's side still flips in one frame (the surface's
+  look must), but the fog (density, tail, share, and the veil — the fog chunk in scene.js now mixes the water's veil against
+  `fogColor` by `uFogP.w` instead of switching on it), the fog colour, the hemisphere pair, the sun, the player's glow, the
+  tint from above, the domes (the sky fades in over the water's dome by `uMix`; the sky material is transparent for it), the snow,
+  the shimmer and the audio all mix linearly over 0.3 s. Boot and a respawn are instant (`snapMed`). Traced headless: every value
+  ramps over 18 frames, nothing else steps. The fog tuner (main.js) passes `medK`.
+- **The sea from above (`SURF_MAT`):** the Fresnel and the window read the view angle against the mean surface (`vNup`), not the
+  flat-shaded facet. The facets still light the diffuse, the specular and the glint.
+
+**Seen (9 Sep, fourth video):** "the transition reads a little odd" — a "black foggy something" on going above (the water's veil
+mixed into the air fog and the sky fading over the water's dome: teal on the shore and the sky for 0.3 s); and "the surface from
+below has changed a lot… less striking" (the mean normal on the underside's window). "Better than before by far", but must be
+seamless and fast.
+
+### v11.7.1 — the crossing, second cut
+- **Only the light fades.** The fog (density, tail, share, the veil model) and the domes switch with the camera's side, in the one
+  frame the surface's look switches; the hemisphere, sun, glow, tint, snow, shimmer and audio fade over `MED_T` 0.25 (0.3 before).
+  The fog chunk switches on `uFogP.w` again; the sky dome is opaque again.
+- **The underside's window is per facet again** (`cv`); only the topside Fresnel reads the mean normal (`cm`).
+
+**Unseen:** the crossing (the light fading over a quarter second under a medium that switched at once — if it still reads as a
+pop, the remaining step is the surface's look at the flip frame, which is the membrane itself); the surface from below, which should
+be v11.6's again exactly; the near sea from just above, smooth.
+
+**Seen (9 Sep, fifth video, at night):** going under is fine; surfacing "the light flickers on and off". The video, frame by frame: the mean
+luminance steps up ~40% on the flip frame, then decays over 15 frames (0.25 s) — the sky and the horizon band three times brighter at the flip,
+the water unchanged.
+
+### v11.7.2 — the crossing, third cut: the water's things leave with the water
+The flash was the shimmer plane. Since v11.6 it hangs 1.5 m over the surface, 90 m wide, additive; it faded out by `medK` after a breach,
+so for a quarter of a second it sat a metre over a camera that had just come up — an additive ceiling over the whole sky. (v11.6 moved
+it from under the surface for the mirror-image reason.) The snow and the player's glow had the same shape of bug at a smaller scale, and
+the tint from above ramped in while the seabed was already being seen through air.
+
+- **The water's things fade in, and are gone at once** (`atmosphere.js` `wk`): the shimmer (`sunMesh.visible=!above`), the snow, the
+  player's glow are hidden the frame the camera is in air and fade in by `medK` once it is under. Going under is as before (a fade-in
+  seen through the surface); coming up loses nothing that should have been there.
+- **The tint from above is the medium's** (`uTint.y` = 1 in air, 0 under): the water column seen from above switches with the camera's
+  side like the fog and the domes.
+- Still fading over `MED_T`: the hemisphere, the sun, the audio. Nothing medium-specific is in the fade any more.
+
+**Also in the video, not asked about, not touched:** from just above the water looking down at night, the moon's specular lights whole
+near facets — bright quads a few metres wide on the near sea (the flat wedges of v11.6 again, this time the specular, not the Fresnel,
+which v11.7 fixed). The candidate fix is the same one: the mean normal for the specular at grazing (or a smoothed normal near the camera),
+the facets kept for the diffuse. Asked.
+
+**Unseen:** the breach at night with the shimmer gone — the sky should not change at the flip at all; the snow and the glow at a breach;
+the tint switching (the seabed through the surface should be the same shade from the flip frame on); a dive, which should be unchanged.
+
+## v11.8 — the clade audit, and coats in the bestiary (this build)
+The person's ask (9 Sep 2026): a diagnostic pass over the roster — which creatures are Earth animals, which are vague, which are the
+world's own, which fit the art — and then an upstream fix: the clades read as cephalopod / fish-reptile / arthropod in costume and
+want signatures of their own (integument, eyes, mouth, limbs, blood) so that two same-sized predators from different clades tell apart.
+Creatures only; no flora, no world.
+
+- **`CLADES.md`** (new, proposed, nothing decided): the diagnostic table for all thirty, what the pass shows (Earth's greatest hits in
+  three eras; two apexes are scale variants of smaller species; the only clade tells that exist are colour and the hingeshells' kit;
+  the clade names promise features the builders lack — no ringmouth shows a mouth, no hingeshell has a hinge), and the proposal: one
+  radial ancestor whose ring of arms each clade broke differently — ringmouths keep it open and differentiate it 2-4-2 with no head and
+  a collar of eyes; slowbloods fuse it into a petal snout that opens as an iris, with an eye band and three-fold fins; hingeshells
+  string it into rows under a bivalved carapace, with a comb for antennae. Per-species candidates for what would change, the lines it
+  would change in PLANET, and a build plan (kit first, one clade per pass). Awaiting strikes.
+- **Coats in the bestiary** (`zoo.js`, `creatures_builders.js` `PAL_VARIANTS`/`palVariant`/`palKey`): up/down (w/x) rebuild the shown
+  species in a palette variant — hue ±35, the complement, the clade's blood tint, dark water, bleached, a hard countershade; the caption
+  names it. Eyes, pupils, glow, mouths and claws are not recoloured. The PAL entry is swapped only while the builder runs. Nothing in the
+  world reads the variants. `test/preview.js`: `PALV=k` builds in a variant, `COATS=1` writes `<id>_coats.png` strips (all thirty rendered
+  and looked at: the blood coat is the quiet one that separates the clades; the bleached coat is the moult). The smoke test cycles a coat
+  on every species and all eight on one.
+- The preview sheets `test/preview/*.png` regenerated for the audit (no builder changed).
+
+**Unseen:** the coats in the game's light (the strips are the software Lambert); whether the caption line fits under the name on a phone.
+
+### v11.8.1 — the ringmouth pass, and no eye glows
+The person answered (9 Sep): try the flat coil; the veil is a ringmouth but reads as an octopus, rethink its eyes; should any animal
+have glowing eyes — if not, drop them; the tread stays (they like the Ohmu read; size is right); continue. Built, all in
+`creatures_builders.js`/`parts.js`, stats and envelopes untouched:
+- **The ring kit**: `armRing` plans (per-arm angle, length, width, spread offset), `eyeCluster`, `helix`, `ringMouth`, `skirtTrio`,
+  `coilShell` flat, `coilBody`, `buildJetter`, `buildGreat`. CLADES.md, "The ringmouth pass", has the species table.
+- **Every ringmouth rebuilt** to the signature: headless, a collar of rim eyes, the predators' cluster on a knuckle, the mouth
+  showing, 2-4-2 arms, a three-lobed skirt on the jetters, teal-grey flesh. The coilshell, rasp and great carry the shell as a flat
+  wheel. The great has its own builder (it was the coilshell ×3.2). The veil is a filter funnel with a collar and no forward eyes.
+  The pall lost its ear fins. The lurker's arms lie forward in a fan.
+- **No eye glows** (PLANET, Cross-clade rules): every yellow and red eye replaced — ringmouths a pale iris and black pupil,
+  slowbloods silver-grey; the veil's `GLOW` spots removed. No creature uses an emissive material now except the unspawned glim.
+- `test/preview.js` sheets regenerated; `test/anim.js` still passes on the new soft-arm and coilshell (tip jerk 1.14 / 0.85 max).
+
+**Seen (9 Sep):** "genuinely awesome" — all of it but the shells: the flat wheel "sits flatside on top of the animal"; stood up 90° it would be a proper shell.
+
+### v11.8.2 — the shells on their edge
+`coilShell` gets `up`: the same carry (over the mantle, the outer whorl ending forward) with the spiral in the vertical plane along the body,
+curling up and back from the front — read from the side, edge-on to the water. The coilshell, rasp and great use it; `flat` stays in the kit.
+Hit capsules follow (a vertical capsule over the mantle). **Seen (9 Sep):** "much much better", the shell a little too far forward.
+
+### v11.8.3 — the shells back
+The coil's centre moved 0.45 back on the coilshell and the great, 0.18 on the rasp (`cz`): the outer whorl's front end now sits over the middle of
+the mantle, not over the collar; the hit capsules follow. **Unseen.**
+
+### v11.8.4 — the slowblood pass
+The person: "if you have the context, go for it". All ten slowbloods rebuilt to the CLADES signature — the petal snout (the ring fused
+into a point, opening as an iris on the bite), the silver eye band with forward lobes on predators, three fins at 120° and a three-lobed
+tail, chevron plates, no white teeth; the abyssal its own builder (it was the ridge ×5); the darter's glim coat no longer emissive. Kit:
+`petalSnout`, `eyeBand`, `finTrio`, `tailTrio`, `chevrons`, `profR`, `buildAbyssal`. The finback player wears the lobes (`pred:true` in
+CLADES). CLADES.md, "The slowblood pass", has the species table. Stats, envelopes, hit capsules unchanged (the snouts sit inside the old
+capsules). **Unseen.** Next: the hingeshell pass (valves, comb).
+
+**Seen (9 Sep, two screenshots in the weed):** the mouth hard to read — the petal boxes overlapped and clipped into an angular jank at the
+tip, the front moved on its own (the idle gape), and the silver band cut the head off the body while the eyes were lost.
+
+### v11.8.5 — the snout readable
+- **Petals are flattened four-sided pyramids** (full width at the hinge, a point at the tip): n of them meet without overlapping. A dark
+  **lip line** where they hinge, and the petals' insides dark, so the mouth reads shut when shut and open when open.
+- **No idle gape**: the snout opens only on the bite (the grazer holds a small fixed gap).
+- **The band is dark iron and thin**; the silver moved into two **eye patches** on it — big and forward on predators, small and lateral on
+  prey. No sphere, no pupil, no tracking; but eyes where the eye looks for them.
+**Unseen.**
+
+**Seen (9 Sep):** "not bad". Asked: are the white patches eyes (if so, dark; if not, bin them); the collar strip fights the countershading;
+the mouth parts needn't be triangular — rectangular flaps pointed at each other (a square point), or top and bottom flaps meeting in a
+rooftop against flat rigid sides, blocky, once tentacles; find the configurations that look good first. Then: slowblood eyes are a shark's —
+they track, but dark on dark you can't tell unless you look close; predators need binocular vision from *elevated facial tissue* (a
+hammerhead's extension, not stalks), a ring of eyes with two pushed forward and given more meat, not absurdly enlarged. And the band stays:
+it is a function of the species; the silver was the problem.
+
+### v11.8.6 — flap mouths, shark eyes
+- **The mouth is rectangular flaps** (`petalSnout` takes a `kind`): **roof** — top and bottom flaps meeting at a ridge, flat rigid side
+  plates they close against (the seal); **square** — four flaps pointed at each other into a square point. Both open on the bite, dark
+  inside. Roof on the finback, ridge, abyssal, crusher, stone, eel; square on the darter, needle, grazer, basker — two configurations in
+  the world to choose between.
+- **Eyes** (`slowEyes`, replacing `eyeBand`): the band is a thin dark line the eye ring sits on; six small dark eyes round it on every
+  slowblood; predators carry two of them forward on lobes of the head's own flesh, big, with a darker pupil seen only close. All slowblood
+  eye colours dark. The silver patches and the vents are gone.
+**Unseen.**
+
+**Seen (9 Sep):** "much closer", the eyes "look great". The band: in the bin. The flaps: the species' mouth parts do all sorts of things —
+sometimes many, sometimes few, sometimes two. The player's: two, a top and a bottom, no side pieces; the mouth parts move with the body;
+smaller, blending into the body. Others may have one each side, or sides plus a single triangle below that moves only to bite. Try a few.
+
+### v11.8.7 — no band; the mouth's configurations
+- **No band**: the ring of six dark eyes sits on the head's own skin; predators keep the forward pair on flesh lobes.
+- **Four configurations** of the flap mouth (`petalSnout` `kind`), smaller and countershaded like the body so they blend shut, a dark
+  interior seen only open, the side plates gone: **pair** (top and bottom) on the finback player, ridge, needle, darter, stone; **sides**
+  (one each side, meeting at the midline) on the grazer, basker, crusher; **trident** (sides and a flat triangle below) on the abyssal and
+  the eel. The old **square** stays in the kit. The snout is a child of the body mesh where the body sways, so it moves with it.
+**Unseen.** Ask which configurations feel right by species.
+
+**Seen (9 Sep):** the countershading "looks great", but the flaps had dark dots inside, you could see through them where nothing sat
+behind, and the whole idea made "a Lego fish". The person: the ringmouths animate arms fine — maybe small tentacles that come together.
+
+### v11.8.8 — the mouth as tentacles
+`petalSnout` is gone. **`mouthArms`**: the mouth is a ring of short stiff tentacles on the ringmouths' chain rig (`armRing`, ks 150, the
+ring's `curve` carrying each tip to the axis), converging to a point at rest and blooming on the bite (`open(k)` is a `ringPose` every
+frame; nothing moves on its own). A dark sphere inside shows only open. Countershaded like the body. Six on the finback, ridge, basker,
+crusher, eel; eight on the abyssal, grazer (held a little open) and stone; four long on the needle and darter. Every slowblood now has a
+rig (`rigs:[snout.rig]`); the eel two. Tests pass, the finback's tail unchanged. **Unseen.**
+
+**Seen (9 Sep, screenshot):** "WAY better... that's the way to do it" — but you could see past the mouth into the body.
+
+### v11.8.9 — the nose capped
+The lathe bodies are open at the front and single-sided, so between the tentacles you looked into the hull. `mouthArms` now caps the nose
+with a rounded body-coloured knob the tentacles grow from, the dark mouth disc at its centre. The stone's mouth and eye ring moved onto
+the lump (they sat ahead of its squashed body). **Unseen.**
+
+**Seen (9 Sep):** "Looks AWESOME. Perfected it!" — the slowbloods are done. "Go ahead and do hingeshells."
+
+## v11.9 — the hingeshell pass (this build)
+Eight of the nine rebuilt to the CLADES signature; **the tread untouched** (the person loves the Ohmu read). Kit in `creatures_builders.js`:
+`valves` (the bivalved carapace hinged at the midline over the back — two plates, `set(k)` raises them; pale inside, the joint colour, so
+opening shows; raised while moving, clamped on the tell), `comb` (a rake of rigid plates on the front of the shield, in place of antennae —
+the clade has none now), `mouthRing` with a `front` option (the ring of plates on the face).
+
+| species | built as |
+|---|---|
+| scuttle | valves seated on the low body, a comb, five rim eyes and two short stalks, the plate mouth under the front; the trilobite's tail spine gone |
+| trap | its valves are the lid it buries under (rust), cracking on the tell as the eyestalks rise; a comb; the plate mouth on the face; the shrimp abdomen and tail fan gone |
+| hook | small valves on the thin trunk (clamp on the tell), a comb and the plate mouth on the eight-eyed face |
+| picker | relic valves it cannot close, a small comb; legs and proboscis as before |
+| flicker | a swimming bean: it lives inside a pair of translucent valves hinged along the top, eyes and a short comb out of the front gap, legs out of the bottom, a short abdomen out of the back that curls under on the flick while the valves clap shut |
+| hose | the proboscis is one of a mismatched pair — the long chain on one side, a short rigid stub with a claw on the other; valves over the trunk; the plate mouth on the face; one tail plate for the fan |
+| sickle | valves raised over the trunk (clamped on the tell, the pale insides the flash), a comb on the shield; the tail's twin spines gone; claws, plate mouth, flaps, fan as before |
+| comb | valves over the long pale trunk; the combs as before |
+
+No stats, envelopes or hit capsules moved. Tests pass. **Unseen.** The first things to ask: do the valves read as a shell that opens (the
+sickle from the side, moving, then its tell), the flicker as a bean at 0.4 m in a ribbon, the trap's lid cracking, the scuttle's flat pair on
+the strand (it is the boxiest of them; if it reads as a table, curve the valves down at the edges).
+
+**Seen (9 Sep):** "these look great" — but the sickle and the hose are still Anomalocaris and Opabinia, the one place the roster is
+identically an Earth animal; the person likes the vibe (stalked eyes, strange mouth parts, the elegance) and wants it reinvented as a
+family with varied eye placement, mouth placement, shapes, limb orientation and weapons, to choose from.
+
+### v11.9.1 — the raptor family
+`buildRaptor(s,pal,o)`: one builder whose parts are each a choice — eyes (stalks / a rim row with no stalks / on the valves' own edges /
+a crown: one median stalk and a low pair / a row under a hood), mouth (the plate ring under the head / on the face / at the end of a short
+rigid probe), weapon (claw pair / spear pair that swings down on the strike / whip pair on the chain rig / raptorial fold / none), flaps
+(down the sides / down the top and bottom edges — a knife swimmer / the rear half only), valves (back / small / a hood over the head), tail
+(fan / one spine / three plates), a ventral keel, legs at the rear, a comb. `RAPTORS` holds five looks:
+- **keel** — the sickle in the world now: tall and narrow, flaps top and bottom, a keel, a rim of five eyes and no stalks, the mouth on the
+  face, two spears folded under the body that swing down on the strike, three tail plates.
+- **splay** — the hose in the world now: small, broad and flat, four eyes on the valves' edges, the mouth on a probe, a raptorial fold, a fan.
+- **hood**, **lash**, **ram** — bestiary only (DEFS entries, no SPAWN): a broad flat one under a hood with short claws, rear flaps and legs;
+  a sleek one with a crown stalk and two whips; a heavy wedge-headed charger with no frontal weapon, seven rim eyes, a big face mouth.
+`buildSickle`/`buildHose` stay in the file, unreferenced, until the person has chosen. **Unseen.** Ask which looks go in the world and at
+what sizes; a look can be scaled or its parts swapped in `RAPTORS` in one line.
+
+**Seen (9 Sep):** the raptors — "THOSE ARE AWESOME! Exactly what I had in mind."
+
+### CREATOR.md (design only, no build)
+The person asked for a design document for a creature creator: modular internals first (every animal from one developmental framework,
+creatures makeable by hand from parts), a dev tool for them now, the player's Spore-like creator later, split by clade, with movement and
+physics derived from the build. `CREATOR.md`: a species is a spec, a builder is a compiler (`buildRaptor` is the proof); the spec schema and
+the clade grammars; `compile` and the part registry; the calculator `derive` (mass, drag, thrust, speed, turn, mode, plausibility) that
+makes free-form bodies honest; the `#lab` tool on the zoo; what changes for the player later; what one session should build; eleven
+questions for the person.
+
+### v11.10 — the creature lab
+The person answered CREATOR.md's questions (recorded there, Decisions). Built:
+- **`creatures_spec.js`**: `GRAMMAR`, four cores (`mantle`, `coilbody`, `lathe`, `trunk`), the `PARTS` registry (eyes, mouth, arms, shell,
+  ridge, skirt, chevrons, spines, barbels, plates, fins, tail, comb, tailplate, legs, keel, valves, flaps, weapon — each with styles,
+  parameters, a believable band and an extreme band, a cost, paired or not), `compile`, `validate` (warns in the believable band, clamps
+  at the extreme; positions only warn), `derive` (mass, volume, drag, thrust, speed, accel, turn, hp, mode, buoyancy, reach, cost,
+  plausibility), `statsOf` (locks), `coatFor` (pigment chemistry by clade, depth, diet), `SPECS` for 18 species with their hit capsules,
+  `SPEC_BLANK`, JSON / `#lab=` hash / export.
+- **Migration**: soft, arrow, coil, great, ortho, fin, ridge, abyssal, grazer, darter, needle, basker, crusher, sickle, hose, hood, lash,
+  ram are specs; their hand builders and `RAPTORS` deleted, the kit kept. `test/ident.js` compared old and new (tris, bounds, checksum,
+  idle and action): identical, zero warnings. Not migrated: rasp, veil, lurker, watcher, pall, eel, stone, scuttle, trap, hook, picker,
+  flicker, comb.
+- **`lab.js`** and the `#lab` panel in shell.html: `l` on the menu or on a spec species in the bestiary; species / size / scale / depth /
+  floor; the core and its beat, a profile editor for lathes; each part with style, sliders, mirror, remove; add a part; coat by preset,
+  drawn from chemistry (with a note), or by hand per colour; the readout with derived stats and a lock per stat; warnings; copy json,
+  copy link, export (the DEFS/ROSTER/SPECS lines), paste; `p` places it in the world as `DEFS.lab`; space for the action, s to cruise,
+  drag to turn, wheel to close in, l or escape to leave. Orbit camera as the bestiary's.
+- The bestiary caption shows the calculator's numbers beside DEFS's on spec species. Captions (`#zoo`, `#hint`, `#biome`) a point larger
+  with a dark halo (answer 11).
+- `test/preview.js` takes `SPEC=file.json`; the smoke test opens the lab, loads every spec and blank, fires the action, places one.
+
+**Calibration**, derived vs DEFS: fin 7.5/8.8, sickle 10.8/9.5, arrow 5.4/5.8, soft 8.8/7, darter ok. Two honest disagreements the
+calculator is right to make: the **great** (7.4 vs 1.0 — a 10 m jetting coil is not a 1 m/s animal; DEFS's 1 was a design choice for a
+slow monument) and the **grazer** (5.6 vs 2.3). DEFS keeps its numbers; the lab shows both. `DERIVE_K` in creatures_spec.js is the dial
+if the scale should move.
+
+**Unseen:** the lab panel itself in a browser (layout, the 330 px column, sliders, the dark panel over the sea; the smoke test only drives
+it headlessly); whether live rebuild on a slider drag feels fine at the big species; the drawn coats — every one of them is a formula, not
+a seen palette; `p`'s placement in play (ahead of the player, ground-clamped for floor creatures); the hash link surviving a reload;
+clipboard writes (need a secure context). The calculator's numbers have only been read in a table, never felt in play.
+
+### v11.11 — the lab, second round
+The person built creatures ("works great") and asked for seven things:
+1. **Only the clade's styles** — `STYLE_CLADES` in creatures_spec.js: collar and cluster eyes and the beak are ringmouth; ring eyes and
+   the tentacle mouth slowblood; stalks, rim, crown, under and valve eyes and the plate mouth hingeshell. The lab offers only those;
+   `validate` corrects a stray one and says so. The rim eyes and the ring eyes stay distinct kinds for later.
+2. **The drag** — `#menu` covered the canvas with `pointer-events:auto`, so no drag reached it in the bestiary or the lab. Now only the
+   picks take the pointer. **r** (or the spin box) starts and stops the spin; a drag stops it.
+3. **Re-entry** — **l in play** opens the lab beside the player (the world waits; the camera orbits the creature ahead of you); l puts
+   you back, click to look again. The menu and the bestiary as before.
+4. **Weapons placed and sized** — x, y, z, pitch and yaw in degrees, len and w scales, the teeth on a claw; snap hangs it from the belly.
+5. **Snapping** — the surface model: `bodySurf` (the core's section at (x,z): an ellipse for the round bodies, the box for a trunk) and
+   `cover(F,core,p)` on the armour parts (valves, the hood, the keel, the slowblood plates), so `ctx.top(x,z)` and `ctx.bottom(x,z)` are
+   the body *with what lies on it*. Every placed part has `snap` (on by default for the eyes and the mouth): its y is the surface's,
+   the slider hidden. Eyes on a valve sit on the valve; a stalk on a hood stands on the hood; an under mouth hangs from the belly.
+6. **Variation** — the hingeshell eyes reparameterised: stalks (pairs, x, z, length, size, tilt, splay), rim (count, spread, sweep back,
+   size), crown, under (count, spread); the plate mouth: where (under / on the face / on a probe), z, radius, probe length, and **mouth
+   parts** — mandibles (a pair of curved blades that close inward), palps (short jointed stubs), feelers (whiskers fanned out) — with
+   count and length; comb placed; legs with pairs, spacing, length.
+7. **The panel** — a nav that follows the scroll (click to jump); each part a fold (click its name); the part under the cursor or with
+   a focused slider lights up on the creature (`compile(…,{split:true})` gives each part its own mesh in the lab; `MAT_HI`);
+   readable names on the sliders with units, the believable band in the tooltip.
+Identity: every migrated species unchanged except the hood (its under eyes were inside the head box; they now hang below it, seen)
+and the lash's crown stalk by 0.0002 (tan of a rounded degree). `test/ident.js` reports both.
+
+**Unseen:** all of it in a browser; the folds and the sticky nav; the lit part (the emissive colour is a guess at what reads under water);
+the lab from play — the camera jump in and out, the hint; the mouth parts at every size (drawn at one hingeshell in the preview: snap,
+front and probe sheets in test/preview/spec_*.png looked right).
+
+### v11.12 — the performance pass (this build)
+From `AUDIT.md` (9 Sep, the first session run on the person's own PC, with the game measured live) and the person's five answers: 450 m
+for the flora cut; variety stays plant to plant (per-cell variants struck); Node on the PC; the reformat; the world.js fix. Built here:
+Node 22 at `C:\Users\willb\tools\node`, `build.js` (a port of build.py, byte-identical outputs), a git repo in `tethys/`, acorn vendored
+for the lint (`test/acorn.js`), `IDEAS.txt` in the tree, `tools/astcheck.js` (an AST comparison for reformats).
+- **world.js:146 restored.** `sub=Math.max(sub, the dikes, the rim, the fan's blocks)` had been swallowed by the comment before it since
+  before v11.11 and never ran. Bare rock on the dikes' crests, the rim band and the scarp blocks is back, and with it the sub-gated
+  species there (rasp, cone, beard, crag3, boulder2, tube, cup, lily…) and the terrain colour. The rim and the dikes look different.
+- **The sway shader's disturbance loop** runs only for plants within `DIST_R` 90 m of the camera (scene.js): it was the cost and ran for
+  every vertex to the far plane. In the forest 6.3 → 4.6 ms mean, the GPU-wait spikes gone. No visual change by construction.
+- **Small flora is drawn to `FLORA_FAR` 450 m** (scene.js): collapsed per instance in the sway and var shaders past it (the variants'
+  trick, so nothing pops as a cell), and a cell whose nearest edge is past it hides its instanced meshes and turns its far impostors on
+  (`ch.near`, chunks.js cullChunks; far.js farApplyCell). The stipe, bladder, raft, colony and tidal-tree materials are not collapsed:
+  their cards take over at the cell hide. At 450 the veil leaves 6.6% contrast.
+- **Streaming.** The generator yields inside the big steps (two rows of samples, every 200 flora tries, every member of a group spawn,
+  every 50 tries of a region's structures and impostors); the budget is what the last frame left of `Q.target` (7.5 ms high, 14 low), at
+  most `budgetMs`; cells unload one a frame. Frames over 10 ms while a cell loads: about 40% → about 2%.
+- **A kind's body and far-LOD bake are shared** by every individual (`KIND_GEO`, creatures_ai.js spawn; the rigs stay per creature; the
+  lab's placed species is never cached): the heap at boot 455 → 173 MB, resident geometries 630–1000 → 450–580. The build still runs
+  per spawn (1–2 ms).
+- **Shaders warmed** at the end of the first frame: every material in the form the game uses it (plain and instanced), through
+  `renderer.compile`; 25 programs, none compiled mid-play any more (the flicker's, MATBIG, the sky on the first breach, the rain). ~40 ms
+  more on the first frame, behind the fade.
+- The far layer's 14 ms menu budget only while the fade is black (`t<2.4`); the readout shows `render` ms and the heap.
+- **Reformat** of creatures_spec.js, lab.js and flora.js through prettier (print width 150, single quotes, no trailing commas), the
+  programs AST-identical: 515 → 2448, 238 → 942, 339 → 1256 lines.
+- Not built from the audit: shared flora vertex buffers with pooled per-cell meshes (the per-cell clone and its upload stay), the one
+  placement rule, the mode table, the half-cell grid offset, the residency ring, per-file temporaries.
+
+**Measured** (RTX 4060, 1600×900, high tier, the main thread with the pane hidden so no vsync; means): the peak 3.9 → 3.0 ms (p99
+24 → 3.7); the weed forest at (330, 0) 5.9 → 3.2 ms (p90 15.5 → 3.4, p99 30 → 3.8), draws 374 → 306, tris 5.5M → 4.2M; sprinting west
+from the forest for 30 s: median 4.0 ms, p90 5.9–7.7, over 10 ms 20 then 3 frames of 900, max 41–52 (a few big steps or GC pauses a
+minute). Boot 507 ms synchronous, the first frame 353 ms with all 25 programs. Tests: the four suites green.
+
+**Unseen (all of it):** the rim and the dikes with the bare-rock line back; the 450 m cut and the card hand-off at a cell line (a stand
+of stipes becoming cards; a chimney or a boulder popping, since MAT and MATROCK have no shader cut); the menu with the far layer's
+budget dropped at 2.4 s; the first breach without the sky's compile stall; the reformatted files in an editor.
+
+## v11.13 — the light (POLISH.md pass A; 9 Sep 2026)
+
+The person asked (IDEAS #3) for the low-budget systems that carry low-poly games; `POLISH.md` is the survey — the catalogue, what not
+to build against this game's numbers, a ranked list in three passes, seven questions — and they answered: caustics on everything;
+shadows on big creatures too; god rays "as long as it's not forced and is believably based on appropriate water physics"; blood at a
+bite yes, by size and volume; the bioluminescent wake yes for now; A then B then C; the flush and the vignette off by default. This is
+pass A, built here and unseen. The rule it follows: fill is nearly free and vertices are the frame (AUDIT), so the light is per
+fragment in the shaders that exist, from what every fragment already carries under `USE_FOG`. No new pass, no render target.
+DESIGN has a new section, The light, with every number.
+
+- **Caustics** (scene.js `LIGHT_GLSL`, injected by `addTint` into every tinted material but `GLOW`: terrain, rock, structures, flora,
+  the sway materials, creatures, the impostors): three nested sine bands in world xz drifting downwind, sharp under the surface and a
+  mottle deeper, by depth (gone by −45), by the face normal's up (from screen derivatives), by the beam's share and by the canopy.
+  Multiplicative, strength `SEA_FOG.cau` 1.3 (the readout's `t-y`). Skipped whole when the sun is down or under a shower.
+- **The sun under water** (`SUN_W`, atmosphere.js updateSky): the luminary refracted at the surface and the beam's share of the light —
+  nothing under cloud, little from a grazing sun, a full moon's share on a clear night.
+- **The sun's shadow of a body** (`LIGHT_GLSL`, `updateCasters`, `Q.casters` 6/2): capsule casters projected along the refracted sun
+  (the true sun in air) in every tinted fragment, a penumbra widening with height, gone by 35 m under water; slot 0 the player, then
+  the nearest bodies weighted by size (`d − 8·size`), so a big thing overhead outranks the fish at the camera. Strength `SEA_FOG.shd`
+  0.55 (`u-i`). A body part-shades its own belly.
+- **Light shafts** (atmosphere.js `shafts`, `Q.shafts` 4/2): sixteen additive quads from 3 m under the surface along the refracted sun,
+  on a fixed world grid so nothing jumps, faded at the patch's edge, over water deeper than 4 m under their top only (the bottom stops
+  1.5 m over the ground), by the canopy, by the beam's share and the sky's light, hidden the frame the camera is in air (`wk`), gone
+  for a camera below ~50 m, the fog's extinction only. One draw. `SH_A` 0.16.
+- **Translucency** (`thinLight`): a share of the far face's light comes through the weed, whips, tussock, far cards (0.35), bladders
+  (0.3), rafts (0.2), colonies (0.15). A regex on r128's Lambert chunk; warns and skips if it doesn't match.
+- **Occlusion at build**: the terrain's cavity term (gullies and the foot of walls up to 30% darker, crests up to 12% lighter; `sample()`
+  beyond the cell edge so boundaries agree), the shade under the canopy (`terrainColor`, so the far terrain matches), the foot of every
+  boulder (`MATROCK`, from the sink line up over 0.8 of the scale, 35%).
+- **Small motions**: the sessile animals breathe (`MATV`, 2.5% radial, above 0.25 m); the far cards sway (`MATFAR`), so the hand-off at
+  450 m isn't a forest going still.
+- **The chemocline** (the fog chunk, PLANET): a milky plate at −450, browner water below.
+- Readout: `t-y` and `u-i` on the tuner; `SEA_FOG.cau/shd`. `LIGHT_FX` false strips the caustics and shadows from every shader.
+- Tests: the four suites green on both tiers; the composed GLSL of every changed material dumped under the stub and read (balanced,
+  every name declared in scope); a headless check that the caster arrays and the shafts' vertices are finite and all six slots fill.
+
+**Cost, expected** (not measured — no GPU here): caustics ~0.1–0.2 ms of fill, the six casters ~0.1–0.3, the shafts one draw, the rest
+nothing at run. Measure the forest at (330, 0) with the readout: `render` before and after; if it moved more than 0.5 ms, the tuner's
+`t` to 0 and `u` to 0 tell which. `updateCasters` is one distance per resident creature (~10 µs).
+
+**Unseen (all of it).** In order of what to ask for: (1) does everything tinted draw at all — a black or magenta world at boot is the
+GLSL (set `LIGHT_FX` false and rebuild to confirm); (2) the caustics on the shelf floor at noon — is 1.3 too strong, is the web the right
+size (3 m cells), does it read on the player's back; (3) the player's shadow on the floor when swimming 3–5 m up, and a big creature's
+shadow passing over; the belly self-shade; (4) the shafts — too bright, too many, do they cut anything, do they show through the
+canopy, is there a flash at the breach; (5) the kelp from below at a sunset (the translucency); (6) the gullies and the foot of the
+walls; the boulders' feet; (7) the tubes and cups breathing; the far cards moving; (8) the plate at −450 from the pit's floor. Then the
+readout's `render` ms in the forest.
+
+### v11.13.1 — the mouse (9 Sep)
+v11.13 seen: "fantastic". The mouse only looked at the top of the screen: the menu's three picks, invisible after `.gone`, kept
+`pointer-events:auto` (a child's auto beats the parent's none) and took every mousedown below the title. Fixed in shell.html. And the
+person's ask: looking by default — play starts with the pointer locked (as `choose()` always tried; the picks' overlay was what defeated
+it), Tab releases the lock and shows the cursor, Tab or a click on the canvas takes it back, the click that takes it is not a bite, the
+lock is dropped on leaving play (input.js `unlock`, `syncLock`). Drag-to-look stays where the lock is refused. The hint says "tab cursor".
+Unseen: the lock on the first frame of play in their browser (Chrome may refuse a re-lock within a second of Escape — a second click).
+
+## v11.14 — the sound (9 Sep)
+IDEAS #6, the audio overhaul; `AUDIO.md` is the design and the person's answers (the defaults, all of them). Built, in audio.js (rewritten,
+225 lines) with hooks in physics.js, chunks.js, player.js, main.js, scene.js and the stub; DESIGN has a new section, The sound.
+- **The space, read from the world**: twelve rays from the listener every 0.25 s through the terrain, the surface and the collider hash → the
+  reverb (two generated impulse responses, a cove and a cavern, by the closed fraction and the mean wall distance), three early-reflection
+  taps delayed by the real round trip at 1480 m/s and panned to the wall's side, a low shelf when the floor is within a metre, a lid.
+- **Occlusion** per placed voice: the line to the listener marched through ground and solids; a boulder shadows, a ridge muffles.
+- **The water as itself**: the slosh over you follows the wave's rate at your x,z (the same `waveH` the surface draws); the breakers from the
+  shore's direction by `expo`; the current's rush by `currentAt`; the vent at the chimney's mouth, occluded; the forest's rustle from the
+  weed's centroid (a per-cell 4×4 height grid, `ch.ac`), loud in a stream; the hush by depth and a 32/34 Hz beat below the chemocline; the
+  crackle by `nut`, louder at night; the heat's bubbling on the fissure.
+- **The body**: the flow past it by speed (the finback's beat on a phase clock), the jet's burst per squeeze, the landing (a click on rock, a
+  thud on sediment), the knock and scrape on rock, the brush through weed — `solidPush` reports what it pushed against (`contactK`; flora
+  solids flagged `fl` from `addFloraSolids`); the player reads `hitFl`/`hitRk`/`landV`.
+- **Passing bodies**: the water the six nearest creatures displace, by size and speed, panned, occluded. No voices, no calls.
+- The four old thumps carry a noise transient and go through the space; the hit is placed where it came from. `Q.hrtf` 1/0, `Q.vol`.
+- Above water: the medium opens to 16 kHz; wind by the weather, the rain's patter, the same slosh voice as lapping under you, the breakers
+  brighter. Minimal.
+- Tests: `test/audio.js` (in `--test`): the graph built against a fake `AudioContext` in the stub (every param throws on NaN), the space's
+  numbers at the peak, the shelf forest, the pit, the vent and the void, the pit more closed than the peak (0.58 vs 0.46), the forest 0.75
+  vs 0.35, the vent not heard from the peak, a placed hit, mute and back; `updateAudio` 0.1 ms a frame headless.
+- atmosphere.js no longer touches the audio (the old `lp`/`master` lines); the readout has a third line, `audioLine()`.
+
+**Unheard (all of it — there is no audio output in the sandbox).** In order of what to ask for: (1) does anything play at all after the pick,
+and is the whole too loud or too quiet (`Q.vol`, or the master's 0.8); (2) the slosh: does it swell and fall with the chop you see just under
+the surface, and fade by ~10 m; (3) swim along a rock face — is there a slap from that side (the taps); into a gully or the pit — does it
+close in (the wet); (4) sprint — the flow noise, the finback's beat, the soft-arm's squeeze; bump a boulder — the knock; drag along it — the
+scrape; swim through the stipe forest — the brush and the rustle; (5) bottom out on sand vs rock; (6) something big passing close — is the
+hiss placed, and does it duck behind a rock; (7) the vent from 200 m and from behind the ridge; (8) the pressure beat below 400 m; (9) the
+crackle on the reef top, day and night — strike it if it reads as animals; (10) the surface: the crossing (the medium's filter opens over
+`MED_T`), wind, rain from both sides. Every number is in DESIGN, The sound, by name; the readout's third line shows what the space found.
+
+### v11.14.1 — the first listen (9 Sep)
+v11.14 heard: "very loud", "a strong sound like I am under a waterfall even when not moving", "very hissy and white noise adjacent" where
+the old bed was "a low rumble, like you were put under a high pass filter"; the sloshing when moving less intrusive. Two causes: every bed
+was white noise through a broad bandpass at 0.1–0.4, summed; and the compressor at −14 dB — the browser's DynamicsCompressor adds makeup gain
+by its threshold, so it lifted the whole bed. Now: a pink buffer (Kellet) and the beds on pink and brown, no white bed under water (white is
+the scrape, the brush, the rain and the transients only); every level roughly halved (DESIGN, The sound, has each); the medium's lowpass
+2.4 kHz → 600 Hz by depth (was 5 → 1.1); the compressor −3 dB 8:1, a guard on peaks; the master 0.5 (`AU_K.vol`). And a tuner so the rounds
+don't need a build a number: with the readout open, `g-h` the master, `j-k` every bed at once, `v-b` the water's lowpass; backspace resets
+with the fog's; the readout's third line shows them — paste it back and they get baked in. Unheard: whether it is now a rumble with the slosh
+over it, and what the knobs land on.
+
+## v11.15 — the plant overhaul, first pass: three lines (9 Sep)
+The person asked for the plant overhaul (IDEAS #5) grounded in evolutionary logic: what each form eats, what colonised what in
+what order, real splits — adjacent clades, several of them — with Earth's eras as inspiration only. `TAXA.md` is the tree; its
+answers: three photosynthetic lines, called **greens, floaters and reds**; rebuild the trees ("don't try to preserve something just
+because I said it was awesome"); the swamp parked until the island is bigger; build order Claude's.
+
+- **The deep split is pigment, and depth zonation is taxonomic** (grow.js `pigment(h, line)`): three lines from three planktonic
+  pigment-kinds, each shading within its own band and stopping — greens green → olive by −40 (sunscreen-bright in bright water),
+  floaters olive → gold-brown by −80, never green; reds pale pink where they lay lime in bright water, red-purple by −50, dark at −150.
+  Every `photo` entry carries a `line`; the cell tints by it (chunks.js).
+- **Bands narrowed to the lines'** (flora.js): the greens — turf −42..−1, strap −42..−3, grape −40..−6, chain as it was; the floaters —
+  wisp −82..−16 at 420 a cell in two sizes (the forests' ground layer now; turf no longer goes below −42), stipe −54..−16, ladder −66..−16,
+  ribbon −78..−16, bladder −80..−30, the raft olive (it is a floater that let go). The shelf is no longer green.
+- **The reds, new** (the slope had no weed at all): `rind` (2–3 flat plates on rock, red-purple, −150..−24, 300 a cell on rock),
+  `limerind` (the same crust laying lime, pink, on exposed rock −26..+2.6: the crest, the skerries — a real reef's crest is this, not
+  polyps), `sandball` (a knobbly lime ball on the sand, −60..−8), `redblade` (one thin blade on a stub, −150..−48, sparse). ≤ 84 tris each.
+- **The greens in air, rebuilt as jointed axes** (their signature carried onto land; the Silurian–Devonian look): the tidewood
+  (`tidetree`, `tidewoodB`: a ribbed jointed trunk 6/9/12 m with a dark ring at every node, a whorl of six to eight tapering rods with
+  a kink at every node above the springs' reach, a brush at the tip, props at the base as before; 510 tris a variant, was 8268 vertices;
+  the sphere canopy gone), the **reed** (new: 3–5 jointed leafless uprights 1.4–3 m in a clump, whorls near the top; the sheltered tide
+  band, `expo` ≤ 0.4, 900 a cell, `air`: the swamp of stems you swim through at high water and walk among at low), the scrub (jointed
+  dwarf stems with dense dry whorls) and the tussock (a tuft of small jointed shoots) — both species now (three variants), both `MATGL`,
+  both tinted by the greens' pigment at land light. `grassGeo`, `scrubGeo`, `TREET` gone.
+- far.js: the tree card's trunk pale green, the raft card olive.
+- test/preview.js has a flora mode: `FLORA=1 [DEPTH=h] node test/preview.js reed rind` renders a species' three variants (quarter over
+  side) tinted by its pigment at that depth — every new form here was looked at in it.
+
+**Unseen (all of it).** In order of what to ask for: (1) the shelf at −30: olive-gold, no green left, the wisp as the ground layer
+under the stipes; (2) the lagoon and the reef top: green, and the pink limerind on the crest and the pass walls; (3) the slope from −50
+down: red plates on the rock thinning out, the odd redblade; (4) the tidal forest — jointed trunks with whorls instead of the old crown:
+does it read as a wood or as a stand of poles (the whorl count `6 + (j % 3)` and the rod width 0.09 are the knobs); (5) the reed-beds on the
+rim's inner slope and the island's flat, at high and at low water; (6) the strand's scrub and tussock; (7) the readout in the forest at
+(330, 0) — the wisp went from 220 to 420 a cell there and the tidewood from 8268 vertices to ~1500, unmeasured. Not done from TAXA: the
+animal lines' missing leaves (plume, seep, stilt, nod), the epiphytes, the reef's spur-and-groove, the bog.
+
+### v11.15.1 — the animal lines' leaves (9 Sep)
+v11.15 seen: "the tidal forest looked good. The whole thing looks good"; the tree line at −30 right; the bottom of the shelf read as
+orange rather than red (the floaters' gold-brown at −60..−80 is that; the reds' plates are flat and hand-thick, so `rind` goes 300 → 380
+a cell and `redblade` 60 → 100, larger). Next: a larger world map, after this pass. Built here, TAXA's missing leaves:
+- **plume** (`plumeB`): the crowns' bacterial-farm branch at the vents — bunches of four to eight ribbed white tubes 0.9–2.8 m with a red
+  plume of rods round the mouth and the eye ring, `heat` ≥ 0.3, 110 a cell in clumps. **seep** (`seepB`): the same branch at the rim —
+  two or three black tubes 3.5–6 m with dark crowns, ground −464..−444 (`band`; placeFloraType now lets a banded species through below
+  −450), 70 a cell: the straddlers' line round the world at the chemocline.
+- **stilt** (`stiltB`): the propped straightshell — a banded cone shell tilted mouth-up on two struts from its lip, a six-arm crown fanned
+  across the flow with the eye ring; rubble and silt in a current (`sub` 0.3–0.85, `flow` ≥ 0.25), 40 a cell, cream / rust tints.
+- **nod** (`nodB`): the stalked cone — a plated cone with five comb legs on a flexible stalk 0.35–0.65 m, `MATW` (bends), `flow` ≥ 0.55 on
+  rock, 90 a cell.
+- **mat** (sulfur: white and yellow tufts, `heat` ≥ 0.18, 260 a cell) and **greymat** (below −452, 220 a cell, `band`): the dark has its
+  mats and nothing else, as PLANET says.
+
+**Unseen:** the vent field with plumes crowding the cracks and mats round it (ask whether the red reads); the rim at −450 — a line of black
+tubes with the crowns just above the plate; the stilt in the rockfall (does the propped shell read, and does the fan face across the current);
+the nods on the pass walls. `FLORA=1 node test/preview.js plume seep stilt nod` is what was looked at.
+
+## v11.16 — the drifters (9 Sep)
+The person: the man o' war pads "need some love" — you clip through them, they are white, they spawn backwards into each other, "big
+pustules in the sky"; and underneath it, the wish: an evolutionary reason for interesting things on open water, points of interest and
+orientation. Asked what is real (does a man o' war sit like a lily pad? do they raft?), for the jelly tree fleshed out and functional
+(what they eat, how they survive), and a version with a long arm streaming in the current that floats. `DRIFTERS.md` is the answer:
+the real animals (a gas float with everything hanging under it, not a pad; fleets by wind-sorting, never a raft; the blue button — a
+disc that farms green cells — is the real "lily pad", and it is an animal), the clade (the ring kept radial and stinging; no eyes, no
+intent; pigment by depth: violet at the surface, clear in the light, red in the dark), the tree (polyp / bell / float; the float splits
+into the button and the sailer).
+- **The sailer, a creature** (`buildSailer`, DEFS `sailer` 1× and `greatsailer` 2.5×, role `sail`, `surface`, `updateSailer`): a
+  blue-violet float 3.6 / 9 m long with a pink crest, feeding bodies beneath, eight 25 / 63 m lines and eight short. Rides the wave
+  (`surface` rule in updateCreatures: `waveH` + `ys`), carried by the current, sails at 5% of the wind 40° off downwind, left- or
+  right-handed by animal (`hand`); the whole animal yawed to its heading. The float is a body (`hit`): you push against it. The lines
+  are soft chains posed by `linePose` (parts.js, new) to stream against the animal's way through the water, simulated near you, and
+  sting: within `lines` (0.9 / 1.4 m) of any simulated point, `dmg` 6 / 10 on a 0.7 s clock. Fleets in the canopy mask (1–4 a cell, a
+  great one in a third of the cells), the odd one on open water. `MATT` throughout (translucent); no eyes.
+- **The button, flora** (`button`, `buttonB`, `MATR`): 1.6–2.6 m discs, green-blue centre, violet rim, sixteen short arms; `canopyPer`
+  60, pockets elsewhere; a far card. Replaces `colony`/`colony2` (and `colonyB`, `MATR2`'s use, their cards).
+- **The jelly rebuilt** (`buildJelly(s, deep)`): an eight-sided bell and core in `MATT` (was three unlit Basic materials — the last
+  emissive-looking things on a creature), eight hanging arms, a `swimClock`; **deepbell** the same at 3.8×, dark red, below −220,
+  0.35 a cell, slow. The canopy's three extra jellies a cell are gone (the canopy is the sailers').
+- test/stub.js: `Quaternion.setFromAxisAngle`, `slerp`/`copy` real. test/preview.js: `NORIG=1` hides the rigs (the sailer's lines are
+  25 m; the float is 3.6).
+
+**Unseen.** (1) A sailer on the water: does the float sit at the surface, crest up, and ride the swell without bobbing through it
+(`ys`); (2) the lines from below — do they stream, do they part round you, and does brushing one hurt; (3) push against the float;
+(4) the fleet in the canopy — are they sorted two ways by the wind, and does the great one read as a landmark from across the water
+(it is drawn to 300 m; the crest 3 m tall); (5) the buttons' fleets among the rafts; (6) the jelly translucent under the light, the
+deepbell red in the dark; (7) the readout with a fleet near: sixteen chains a sailer.
+
+### v11.16.1 — the raft in the bin; sailers at the coast (9 Sep)
+v11.16 seen: "so much cooler." Two notes. The surface weed ("foliage or moss") "looks terrible" — struck: `raft`, `raftB`, its card
+and its canopy density are gone; the surface is buttons and sailers now, and the pad mechanism (physics.js) has nothing to carry until
+something floats that should (test/physics.js section 7 runs only when a species has pads). And where sailers spawn, by Earth: the man
+o' war is an oceanic animal, but it is met on beaches, because an onshore wind drives a fleet against the coast and strands it. So: a
+SPAWN entry on the exposed shallows (`expo` ≥ 0.55, −70..−10, 1.4 a cell) beside the canopy's fleets and the open-water stragglers,
+and **stranded** (flora, `strandedB`: a deflating float on the sand with a limp fringe, 26 a cell on the windward strand, `expo` ≥ 0.5).
+Unseen: the windward strand with dead floats; sailers off the surf side; whether the canopy without rafts still reads as a place.
+
+## v11.17 — the sky above the water: what the climate gives (10 Sep)
+The person asked for the surface's look rethought from the planet — fog only if the climate makes it; a sky that is this planet's (its
+star, its moon, its stars); clouds that read as volumes at the height they belong. Decided from PLANET, with the reasoning as comments
+at `HAZE` and `STAR` in world.js and in DESIGN, The sky:
+- **No sea fog.** A 26–28 °C sea under steady trade air never saturates (fog wants cold water under warm air, cold air over warm water,
+  or land cooling all night; a six-hectare rim cannot). Instead: the **marine haze** as a layer on the water every ray in air integrates
+  in closed form (`MIST_GLSL`, the fog chunk's air branch and the dome: the horizon's white band, glowing toward the light — the
+  "gmod horizon" was a two-colour gradient; this is the boundary layer seen edge on), thicker under a shower; and the surf's **spray**,
+  a low mist over the breakers by the wave-exposure field at the camera. Not built, the person's to decide: vog from a fuming vent
+  above water; a calm (the trades slackening) that would let a clear night mist the lagoon at dawn.
+- **The star and the moon by derivation** (the person: realism first). `STAR` 5300 K → 0.85 R☉, 0.51 L☉, 0.71 AU: the sun's disc 1.2×
+  ours (`SUN_R` 0.32°). The moon: 3× the tidal force at the Moon's density is 1.44× the Moon's diameter — `MOON_R` 0.37° radius, down
+  from the 0.75° it was drawn at. `MOONL` unchanged (a look). Three placeholder **wanderers** on the sun's track (`PLANETS`).
+- **The stars** on 3D cells over the sphere (round dots everywhere; the old az/el grid stretched them into dashes near the pole and
+  zenith — seen in the harness, below), a narrower galaxy with a dark lane, out from a degree under the sun to eight (they were out at
+  sunset with the sun still up).
+- **The sky's shape**: Rayleigh-shaped gradient, a haze aureole round the sun, the disc drawn over the haze so a setting sun reads.
+- **Cirrus** (`CIRRUS_H` 9500, on its own weather noise and the upper wind, streaked 7000×1600 m; sunlit pink for 3° after sunset).
+- **The cumulus** as a marched deck (`Q.cloud` 5 / 2 slices, base 650, thick 900, the threshold rising with height, the thickness
+  capped by the ray's slope): flat bases, lit domed tops and sides showing where the base thins, three flat steps, aerial perspective;
+  **under a shower** the base drops, the deck grows to congestus and scud drifts under it — the "large and approaching lower".
+- `Q.cloud` is the one tier number added. New uniforms `uMist/uMistC/uMistW` through ShaderLib; `SKY` gains `cirrus`, `upperOff`,
+  `cirrC`, `plan`, `spray`; `updateHaze` runs in `updateAtmosphere`.
+- **A harness** (not in the repo; the sandbox, `w/harness/render.js`): the real `SKY_FS` and fog chunk drawn over a sea plane in raw
+  WebGL under headless Chrome + SwiftShader, so the sky could be *looked at* here for the first time. Every number above was tuned
+  from its renders at boot, sunset, full moon, new moon and a shower. It has no terrain, no real surface, no three.js.
+
+**Unseen, in order:** (1) the sky compiles in the game (the harness compiles the dome's GLSL under ANGLE, not three's material with the
+new `uMist` uniforms: a magenta world or a missing sky is the first thing to say); (2) at boot from the surface: the horizon's white
+band — too white? (`HAZE.dens`); the deck — cel-banded tops on the big overhead clouds read as clouds or as contour maps? (3) the
+readout's `render` ms surfaced at noon and at sunset (`Q.cloud` 3 if it moved); (4) the sunset at 15 minutes: the cirrus pink, the
+disc on the horizon, the moon rising — at 0.37° it is a disc, not a plate: ask whether the bright nights still feel earned; (5) the
+night: round stars, the galaxy's lane, the wanderers in the evening twilight (west, 38° from the sunset point); (6) the shower at 4
+minutes: the low grey deck and the scud; (7) spray on the windward shore (0.35 rad, over the surf); (8) the moonless night 13 days in.
+
+### v11.17.1 — the person's three calls: eclipses, the fumarole, calms (10 Sep)
+Answered the same day: declination 0 stays; a vent above water, if believable; calms, if believable. Both are — a young cone on a live
+shield degasses (Kilauea, Piton de la Fournaise: fumaroles, SO2, vog), and the trades blow about three days in four (Hawaii) — so all
+three are built. Nothing here is a look; each is a consequence of a decided fact, and each is one constant block in world.js.
+- **Eclipses** (`UMBRA_R`, `discOverlap`; `SKY.eclS/eclL`, `uEclS/uEclL`). The moon's lit fraction is now the geometry (`0.5·(1−sun·moon)`;
+  `moonIllum(h)` was a cosine on the hour an hour out of step with the conjunctions — unreferenced now). Every full moon passes through
+  the planet's shadow: partial from 2.3 h before the transit, total for 1.4 h round it (the first night: h 18.3–19.7, local midnight),
+  the moon dark red in the umbra (lit by every sunset on the planet at once), the moonlight gone (×0.03), the stars out in full. The
+  solar eclipse is built too (the moon's dark disc over the sun, the corona, the light to 3% of noon at totality, stars) — but with
+  the decided clock it is never seen: 26 days × 30 h is exactly 25 lunar days, so every conjunction falls at local midnight, forever.
+  Break the commensurability (LUNAR_H 31.2 → anything else) and it will drift into daylight; that is PLANET's tide clock, so not touched.
+- **The fumarole** (`FUME`, `VOG`; `updateFume`, `updateHaze`). A steam plume off the cone's summit (+40 at `ISLE`): 96 puffs as points
+  born at the summit, rising with a decaying lift, carried by the wind at 0.85 of its speed, growing 4→22 m and fading over 70 s, soft
+  discs lit by the sky and fogged toward the mist's colour; in a calm it stands straight up. Vog: the third mist layer (`uMistW.yz`) —
+  a Gaussian plume downwind of the summit, half-width 70 m growing 0.16 per metre, extinction 4e-4 on the axis, scale height 140 (the
+  plume is buoyant), felt to 2.4 km, pooling round the cone in a calm; it greys and warms the mist's colour. Sampled at the camera.
+- **Calms** (`weatherAt().wind`, `SKY.windK`, `SEA_CHOP`, `uChop`). Wind 1 the trades, 0 a calm, on a slow noise (~25% of the time,
+  hours at a stretch; a shower is a gust front). A calm brings the wind to 0.15 of `WIND_U` (the clouds hang, the audio's wind bed
+  drops), kills the spray (whitecaps want a Beaufort 4: ×wind²) and the chop — the three short waves (L < 20) scale by `SEA_CHOP`
+  0.25..1 in `waveH` and `uChop` in the wave GLSL (both shaders that sum the waves bind it), the swell keeps running, physics and
+  surface agree. **The dawn mist** (`MIST_DAWN`): clear (cover < 0.45) × calm (wind < 0.5) × the lagoon field at the camera², from
+  3 h before sunrise, full at sunrise, gone 1.2 h after; 0.02/m at the water over 6 m — a mist lying on the lagoon that burns off.
+  First one under the boot weather: the sunrise at h 176 (day 6, wind 0, cover 0.08); the readout says `mist`.
+- The readout adds `calm`, `eclipse`, `mist`, `vog`. Seen in the harness: the moon in totality (dark red, 5 px at 960 wide), a calm
+  clear dawn from the lagoon (the horizon lifted pink). Unseen, in order: the plume from the water (the points' size clamp: puffs nearer
+  than ~80 m may draw small; if it reads wrong the fix is instanced quads); the vog's grey downwind of the cone; the chop dying in a
+  calm without a pop (`SEA_CHOP` eases with the weather noise, not a switch); the first night's eclipse at 15 + 4.5 real minutes in.
+
+### v11.17.2 — the sky compiled (10 Sep)
+Seen: the dome's fragment failed — `uMistW` undeclared (the third mist layer read it from `MIST_GLSL`; the dome declared only `uMist`
+and `uMistC`). Declared and bound. The harness had masked it by declaring all three itself; it now declares none and relies on the
+game's shader, as it should have.
+
+## v11.18 — odds and ends (10 Sep)
+The person's five asks, all built here and unseen.
+- **Mouth parts sway with the body** (creatures_spec.js `compile`). The slowbloods' sway (`tail.body`) yawed the merged hull mesh alone;
+  the mouth's cap and tentacle rig (`mouthArms`), the `finTrio` groups and the tail's hinge were children of the creature group and stood
+  still under it. There is a body frame now (`ctx.bf`, `B.frame`): the hull, fins, tail and mouth cap ride it and the sway is the frame's;
+  a rig flagged `ride` (the mouth tentacles) has its rest points yawed with the frame after the hooks pose it — the rigs stay in `g`,
+  skinned in the creature's frame. The lab's split meshes track the frame (`r.D`). Checked headless: the mouth ring's mean tip yaws by
+  exactly the frame's angle. The player's finback is the case they saw; every spec slowblood has it now.
+- **First person** (player.js `toggleFP`, `f` in play). The camera a little ahead of the nose (`F.nose` × scale + `FP_AHEAD` 0.35),
+  looking along the view, no lerp, the surface-side hysteresis and `CAM_CLEAR` kept; the whole body hidden (arms too — "hide the hands").
+  The body still casts, disturbs and is bitten. No touch control for it.
+- **Rain, three ways.** *The light:* `shade` is `1 − 0.30·cover − 0.20·rain` (was 0.45/0.35): a daytime shower leaves ~0.52 of noon's
+  sky light; it left 0.24, under a clear full-moon night's 0.31. The direct beam still dies under a shower (no caustics, no shadows).
+  *The look:* the "crowns" were 0.67 m grid squares flashed white a frame at a time; they are rings now — per 0.8 m cell a splash then a
+  ring growing to 0.34 m and fading over 1.1 s, offset randomly in the cell, within ~30 m of the camera, and the surface goes matte
+  (specular × 0.4) under rain. The streaks: a `ShaderMaterial` with a per-vertex alpha that fades with distance (`RAIN_R` 14, so nothing
+  pops at the box edge), tapering from the drop to its tail, each drop its own fall speed and streak length, 620 (260 low), wind slant
+  halved, lit by the sky. *The sound:* the in-air bed was pink noise above 2.4 kHz (a hiss); it is a patter (`auNoise(6,380)`: 380 drops a
+  second rung through a wide 1.5 kHz band, `AU.rainAir`) over a soft hush below 1.4 kHz (`AU.rainHush`), at 0.09 + 0.06 of the bed. The
+  under-water bed was white noise above 3 kHz met by the water's 2.4 kHz lowpass — a narrow band at ~2.5–3 kHz, the screech; it is pink
+  through a wide 900 Hz band now at 0.16 × the depth fade (the slosh is 0.22), 0.08 in air. Every level is blind; the tuner's j-k scales
+  them all with the beds.
+- **The load-in** (creatures_ai.js `spawn`). Two causes. The far pose: the rigs held `armRing`'s build pose (0.3 rad spread — a lurker's
+  arms raised 17°, a sailer's 25 m lines splayed) until the near LOD switched them on and the sim dropped them; and the sailers and jellies
+  are transparent, so `bakeLOD` skips them and the far thing *is* the build pose. Now every spawn poses its rigs with the creature's own
+  idle anim and `rigRest` before the bake (the kind's shared bake inherits it). And `lodNear` on the def: lurker 75, deepbell 90, pall 110,
+  sailer 130, greatsailer 230 (its lines are 62 m); the rest keep `45 + 4·size`. The switch itself still snaps the chains to rest; it happens
+  further off now.
+- **The current** (creatures_ai.js). Creatures were advected at the water's full speed and their steering never knew: sitters drifted off
+  their homes too (the lurker in `sit` had no clamp). Now `c.carried` is false for a sitter, a grounded body, a trap or a floor crawler;
+  and `seek` and the boid steer subtract the current from the way they want to go over the ground, clipped to `CUR_FIGHT` 1.2 × the speed
+  asked, so a swimmer crabs upstream, holds station facing into the flow with its tail beating (the anim reads its through-water speed),
+  and is swept only when the current outruns it. Drifters (jellies, sailers) drift as before.
+Unseen, in order: does the finback's mouth move with its head now; first person at the surface (the camera held clear of the wave on its
+side — does it flicker); a shower by day (the light under water, the rings, the streaks against the sky, the patter) and from under the
+surface (the rush, its level against the slosh); a sailer approached from 150 m (the lines straight, then streaming at 130 m); a lurker at
+80 m; a grazer in the pass current (facing upstream, holding). Tests: all green; `test/anim.js` unchanged.
+
+### v11.18.1 — the invisible bestiary (10 Sep)
+Seen: everything invisible in play, the player bitten to death by things it could not see. Mine: v11.18's edit to the `lodNear` line in
+`spawn` put a comment before `c.lodFar=…` and swallowed it, so `lodFar` was undefined, `dp<c.lodFar` false, and every creature was hidden
+while it went on hunting. Restored. The smoke test now fails if no creature is drawn after the short run — it printed the count all
+along and never checked it. Not first person: that toggle only hides the player's own body.
+
+### v11.18.1 — the creatures were there, unseen (10 Sep)
+Seen: almost every creature hidden, first person or not, shadows moving on the floor and bites from nothing. Mine: the v11.18 edit
+that put `lodNear` on the def carried its comment over the rest of the line, so `c.lodFar=...` became part of the comment; with
+`lodFar` undefined every creature failed `dp<c.lodFar` and was hidden while it still swam, hunted and bit. Restored. The smoke test
+printed the visible count but never checked it; it now fails if nothing is drawn after the short run.
+
+## v11.19 — where rock goes (10 Sep)
+The person's two-part ask: first decide, from the geology, where rock *belongs* — "if rocks don't belong somewhere, they don't go there;
+if I thought it looked cool, that's not a good enough reason" — and only then fix the look: the rock formations that were "a mountain of
+crap" (the old spire's site) and the big videogamey blocks littering the terraces on the way down to the vents (their screenshot). Built
+here and unseen.
+
+**What the survey found** (headless, `bigsFor` over every cell): 238 structures. Twenty-three heaps and sheets stood on the *rift arms*,
+four heaps of scale 34–46 on arm 0 between r 900 and 1150 at −110 to −175 — the terraces above the fissure, the screenshot exactly. Cause:
+`young` is 0.7 on the arms (a fresh flow) and the heap envelope was `young ≥ 0.45`, written for the collapse fan and catching the arms by
+accident. A rift arm is an intact flow, not a debris field: nothing on it but its own rubble. Also: the sheet kit is 5.6× its scale wide, so
+a scale-28 slab was a 157 m plate lying across 60 m hummocks — the clipping; `crag3` (8–24 m heaps on any bare rock) sat on every riser of
+every terrace, 112 of them; and `rel` is 0 over the whole fan (the scarp drops it below the smooth shield), so it cannot gate anything there.
+
+**The decision** (DESIGN, Structures, "Where rock goes"): talus lies under a face; heaps and sheets are the slide's and lie only where its
+debris is thick and the ground can carry them; a rockfall cone at a face's foot; the dike ridges, the risers and the rim are the rock, and
+carry blocks, not piles. Built as:
+- **The heap is a pile of alike blocks** (`heapGeo`): fifteen level-2 blocks of r 0.34–0.5, nine on the ground, four on their shoulders, two
+  on top; ~3 wide, ~1.2 tall, 3600 tris. Was one lump with four satellites (1200 tris) — the videogame rock. `crag` 8–20 (blocks 6–17 m),
+  `crag2` 6–14; sinks 0.25 so the base course shows its top third and the second course stands clear.
+- **Heaps and sheets need `young ≥ 0.8`** (the fan where the debris is thick; the arms' 0.7 and the fan's thinning edges are out) and
+  `heat ≤ 0.05` (off the fissure). Sized by depth as the fan is: `crag` and `slab` −180/−170 to −60 (the fan is −85 at the scarp), `crag2`
+  −300 to −150, `slab2` −230 to −100. Sheets 6–14 and 5–12 (were 12–28, 10–24: 34–78 m plates now).
+- **`fit`** (chunks.js `settleOn`, both the cell and far.js `bigPlace`): a kit reads the ground at eight points on its foot circle, lies on
+  the least-squares plane through them (it lay on four axial points before) and is *not placed* if the ground falls more than `fit[0]` ×
+  scale below that plane (an edge would float) or rises more than `fit[1]` above it (buried). Heaps [0.35, 0.5], sheets [0.3, 0.55],
+  `crag3` [0.4, 0.5]. Measured before setting: the median placed sheet had a 0.28–0.40 gap, the 90th percentile 0.54–1.04 scales — plates
+  hanging a third of their size over the hummocks. Near the scarp few sheets pass (5 in the world); mid-fan 16; that is the fan.
+- **`face`** ([R, rise], `settleOn`): only where the ground within R rises `rise` above the point. **`talus`**, a new block entry (0.8–3.2 m,
+  420 tries a cell, `face` [14, 6], off the fan and the arms which have their own rubble): a boulder beach at the back of every terrace
+  tread, the scarp's foot, the dike flanks, the rim's feet — 100–190 a cell on the terraces, 0 on the shelf. `crag3` is a rockfall cone now:
+  4–10 (was 8–24), `face` [16, 8], on `sub ≥ 0.6`; 42 in the world (was 112). `boulder2` keeps off faces (`maxSlope` 1.2, was 1.9: a block
+  on a 60° face rolls off it); the ledges are untouched — the walls the person likes are theirs.
+- After: 160 structures, 401k tris (were 238 and 262k; the heaps cost more each and there are more of them, all on the fan); nothing
+  on the arms but blocks and the cairns; `crag` 20, `crag2` 37 on the fan.
+- `FLORA=1 node test/preview.js crag` renders a rock kit now (one column, the line at its sink); the heap was looked at there.
+Unseen, in order: the terraces above the fissure with the heaps gone (arm 0, r 900–1150) — does the boulder beach under each riser read;
+the fan's piles — are 6–17 m blocks in a pile still "big", and does any sheet still hang over a hummock; the old spire's site on the dike
+crest (only blocks and ledges now); whether 420 talus tries a cell shows in the readout's cell-build time. Tests: all green.
+
+### v11.19.1 — the fan's hummocks rounded (10 Sep)
+Seen (four screenshots at r 470–570 on the collapse fan, just under the scarp): the terrace walls and the small rock "great", the overhaul
+"awesome and not out of place"; but a big pile there met "the sort of wavy ground" awkwardly, and between the walls on either side "strange
+jagged terrain that has lots of clipping with rocks and some flora". The terrain, not the rock: the fan's hummocks were `rg²` of a tent
+(`rg = 1−|2f−1|` of the clamped noise) — a crease along every crest, a kink at every foot, and the crests running along the noise's median
+contour as a maze of ridges (the fishbowl's walls). Measured across the fan near the scarp: 41, 40 and 34 of 81 sample steps had a second
+difference over 0.5 m/m² (the plain terraces: 21, all of them risers), the sharpest 6.2. Now (world.js `sample`): the mound is a smoothstep
+of the same noise, `smooth(0.5, 0.68, fbm)` — a rounded mound on the noise's high ground, continuous slope at crest and foot, flat between;
+creases 11, 17, 23 and the sharpest 2.4; the steepest ground on the fan 6.4 → 4.9. Same noise, so the mounds stand where the old ridges'
+high points were. The surface-breaking blocks read the same noise (`smooth(0.68, 0.78)`): they were breaking the surface at 4 of 20,000
+sample points before and at 0 now — PLANET's "a few blocks stand out of the water near the scarp" was never really built; the person's
+call whether to make it so (the term would need ~70 m, a mesa, not a spire). More of the slide's rock fits the ground now: 183
+structures, 466k tris (crag 23, crag2 45, slab 7, slab2 25). Unseen: the fan from the scarp's foot looking out — are the mounds mounds, and
+do the piles meet them.
+
+## v11.20 — the reef as a landform: the framework generator (10 Sep 2026), built, unseen
+The person asked, with two screenshots of the tiered spiny towers (80 m and 17 m), what size coral really is and whether bigger
+structures are believable here or nearby; if bigger, a list and a generator; judge them as tools for a larger world. `REEF.md` is the
+answer: a single colony tops out near 6–8 m tall and 30 m wide as a mound (the Solomon Islands *Pavona*, 34 m, 5.5 m, 300–500 yr); a tall
+rigid individual at 3–5 m; **everything larger is framework** — dead skeleton cemented by crusts, alive only on its skin — and that has
+no ceiling (bommies 30 m, Silurian pinnacle reefs 200 m thick, cold-water mounds kilometres long in the dark, sponge reefs 20 m on mud).
+The eight drowned terraces are ~40,000 years of subsidence: enough time, and they imply drowned reefs on every lip the world didn't have.
+The fields were scanned for where framework fits (REEF, measured): the rim and lagoon, the terrace lips, the current flank, the deep mud;
+never the fan. Built: `src/reef.js` (new file, after flora in order.txt; its entries append to FLORA so the rock's rng streams are
+untouched) — four kits by growth rules in the rock's language and a lime palette: **pinnacle** (widens upward: undercut foot, wide
+shoulder; a capped one whose top died flat at the lowest tide), **mound** (long and low along the current: the cold-water reef on the
+NE flank, the glass reef on the apron's mud), **atoll** (a microatoll: flat dead plate, live rim), **ridge** (a drowned reef along a
+terrace's lip). Every kit carries **anchors** (points and normals on its upper surfaces) and its entry an **epi table**; the cell coats
+the structure from the ordinary species roster (`chunks.js coatStructure`, `placeEpibionts`, after `placeBigSolids`): a species drawn by
+weight from the entries the anchor's face allows, gated by its own envelope at the anchor's depth with the substrate forced to rock,
+stood along the normal (`upTo`, a hand-rolled quaternion so the stub agrees), never into the air, in per-species instanced meshes with
+colliders — the framework is the far layer's, the coat the cell's, and no two pinnacles wear the same. far.js: `clear` (a top's
+distance under mean level, 12 for rock, 5 for a reef: it grows to the lowest tide and stops), `fill` (scale up to reach it), `flow`
+on a structure (yaw along the current, the rng draw kept). chunks.js `settleOn`: `drop:[R,fall]`, a lip gate, the mirror of `face`.
+The **tower** cut to 4.5–6 m (was 11–14, 20 at scale; the person: "make the change") with four tiers and `s` [0.7, 1.2]: a single
+fisher colony stood up out of the terrace's silt layer. test/preview.js: `FLORA=1` draws a reef kit's anchors as pins and, with
+`SCALE`/`DEPTH`, the kit in its coat (`COAT=0` bare); `coatStructure`, `mulberry` and `sample` exported to it. Looked at headlessly:
+the bare kits (mushroom pinnacles, the ring, the ridges) and a coated pinnacle at −10 (tables on the shoulder, horns and cups on the
+flanks, limerind; 24 colonies of 40 anchors), a capped one at −5, an atoll. Count: 112 pinnacles (capped tops all at −5.0..−5.4),
+23 atolls, 97 drowned ridges at −54..−165, 11 cold-water mounds, 34 glass reefs; 277 structures, 755k tris world-wide (the rock: 401k).
+Tests pass both tiers. **Unseen, all of it** — REEF.md has the order to ask: a pinnacle from the surface and its foot (a reef knoll or a
+pile of rocks?), the capped tops at a spring low, the ridges on their lips, colonies floating off or sunk into the facets, `render` ms
+on the rim and at (900, −400), the small tower. Not built, listed as tools in REEF: spur-and-groove, the fore-reef wall, rubble ramparts,
+rust stromatolite mounds, a mesophotic (red-symbiont) farmer — the last a new TAXA split, asked.
+
+## v11.20.1 — the reef seen: white rocks (10 Sep 2026), built, unseen
+Seen (10 Sep, two screenshots in the lagoon at 6 m): the pinnacles as "really strange looking rock structures" — pale blue-white faceted piles,
+bare. Two causes. (1) The coat was never placed: a v11.20 edit swallowed `scl.set`/`M.compose` in `coatStructure` into a trailing comment, so
+every colony went into the cell at the identity matrix (a headless count showed 270 colonies a cell; none where they belonged). Fixed; the
+preview now shows the coat. (2) The lime palette was 0.86 beside basalt at 0.34: ice. Now a warm grey at ~0.5 (`LIME`, `DEADLIME` 0.4,
+`COLDLIME` 0.5, `GLASSLIME` 0.46). Also: anchors now sit on the lump's true dodecahedron surface (`dodecHit`, `dodecInside` in reef.js; they
+were at 0.84 of the circumradius, half of them buried); the pinnacle's ring lumps are fewer, bigger and nearer the axis so it reads as one
+mass; more anchors a lump (5 flank / 6–7 top); the tower cut to 4.5–6 m (REEF.md); pinnacles halved (`per` 4/3/2).
+Unseen: the coat on a pinnacle in the lagoon; the dun tint under the water; whether it now reads as a reef knoll and not a rock pile.
+
+## v11.21 — the coat on the geology's rock; the manufactured reefs struck (10 Sep 2026), built, unseen
+Seen (10 Sep, three screenshots): the coated pinnacles "MUCH better" and disliked — "like a piece of art displayed deliberately"; the person's
+finding: coral and rock never touch anywhere in the world, so fix that instead of building rock to coat. Built: the five manufactured reef
+structures struck (reef.js keeps the kits; no entries); `ROCK_EPI` — 21 species that cement to rock — and anchors on every rock: kits
+(`kitAnchors`, ~7 per unit of lump radius: a heap ~40, a sheet ~30), blocks (`BLOCK_ANCHORS`, five on the unit dodecahedron, coated from
+scale 2.2 — ~4.5 m across — `epiMin`), ledges (placeCliffs); the coat gathered per cell (`coatRocks` → `ch.coat`) and drawn with the
+structures' in `placeEpibionts`, now after the cliffs. `coatStructure`: the pick is weighted by each species' envelope at the anchor before the
+draw (an anchor goes to what fits; before, a fan drawn on a lagoon rock was a wasted anchor), tops by the *world* normal (a tilted block),
+nothing facing down, nothing under the ground (`hAt`). Two more giant colonies: `olddome2` (two lobes, 12–22), `olddome3` (low and wide,
+14–30), each `per` 1 like the old dome. REEF.md has the v11.21 note at its head.
+Headless: a fan cell 1539 flora instances / 1842 solids, a rim cell 2031 / 660 — the coat is a few hundred a cell where there is rock.
+Unseen, ask in this order: a heap on the fan from close (rust horns, beards, rinds *on* the blocks; do they sit on the facets or float); the
+talus under a riser at −70 (fans on the faces, rinds); a big boulder in the lagoon (tables, horns, limerind); whether the coat reads as growth
+or as confetti — the `p` values in `ROCK_EPI` are the knob, and `kitAnchors`'s 7; the two new giants beside the old one.
+
+## v11.22 — nothing grows inside rock (10 Sep 2026), built, unseen
+Seen (10 Sep, nine screenshots): "an immense amount of clipping between rocks and plants" — plants inside blocks with their tips out, cones
+through walls, the coat's colonies flat on faces or at odd angles, things "encased by 3 rocks"; and the coat on dark rock "completely out of
+place". The person asked for a system, not tweaking: "put the placed rocks with stuff stuck to it in the bin". Built: (1) **the rock coat is
+struck** — reef.js keeps only the two giant shapes; `coatStructure`, `coatRocks`, `placeEpibionts`, `ROCK_EPI`, the anchors and the kits are
+gone (in the v11.20–11.21 zips if ever wanted). (2) **The order**: a cell places its rock first — the structures' collision (own, and the
+neighbours' that reach in, registered here too so an unloaded neighbour's crag is seen), the cliffs' ledges, the blocks — and only then what
+grows. (3) **The clearance test** (`clearOf`, placeFloraType): every plant asks the collision hash before it stands — its base as a pad the
+size of its footprint, and its middle if it is over 3 m — through `solidPush` with the cell under construction as `extra`: the same hash the
+player is pushed by, so whatever a body cannot pass through, nothing grows through. Rigid plants placed earlier in FLORA are solids too, so
+later ones keep out of them. A rejected plant is not moved, it is not placed. Headless: a fan cell 1539 → 762 flora instances (half its
+plants stood in rock), the dikes 1512 → 1156, the lagoon 2066 → 2030; ~0.5 µs a query.
+Unseen: the fan and the dikes from close — nothing through a block; whether the fan now reads bare (the rust mats between the blocks are all
+that is left there, which is the geology's answer; if it wants more, the boulders' `per` is the knob, not the test); a cell line with a big
+crag across it.
+
+## v11.23 — the effects list, the shadow map, your own shadow in first person, the water's light under a shower (10 Sep 2026), built, unseen
+The person's asks. (1) **The effects list** (`src/effects.js`, `#fx` in the shell): the cosmetic systems switchable live, in the game's own
+text — the word `effects` at the bottom right of the menu, or `e` on the menu and in play (the pointer is released while it is open and
+taken back when it closes; escape or a click on the canvas closes it too). Rows: caustics, shadows, sharp shadows, light shafts, marine
+snow, rain (the streaks and the rings; the shower itself stays), clouds (the cumulus march, the sky shader's one cost), surface glow (the
+shimmer under the surface), vignette. Nothing in it touches the world or its physics. Saved in localStorage (`tethys.fx`); `FX_DEF` is a fresh
+browser's set — everything on, shadows off on the low tier. `FX.key` is read where each system draws; a new switch is a key, a row and a read.
+(2) **The shadows, second pass** (scene.js, "Shadows (v11.23)"): the capsule shadows are gone; in their place one shadow map along the sun —
+three's own depth pass (`sun.castShadow`, a 2048² map on high, 1024² on low, ×2 with "sharp shadows") over a 128 m box (80 on low) that
+follows a point ahead of the camera, texel-snapped, its up vector north so it never spins as the sun crosses the zenith — read by hand in
+every tinted fragment from the world position (never through three's `receiveShadow`: r128 keys the program on it per material and one
+material serves everything, so nothing "receives" as far as three knows). Five taps: the centre for the caster's distance, four on a
+rotated square whose radius widens 5% a metre from the caster, each faded by that distance (35 m under water, 300 in air) — the same
+penumbra and scattering the capsules had — the box's edge faded over its outer 7%, a normal offset of two texels and a 0.3 m bias
+against acne. Every creature's meshes cast when the creature is among the nearest `Q.casters` bodies by size (16 high / 6 low, scored
+`distance − 8·size` as before, `updateShadow` switches `castShadow` per creature so the depth pass stays a few dozen draws); the flora, the
+rock and the terrain never cast (their occlusion is baked at build, as in v11.13). So every animal in the frame has the same shadow —
+its own silhouette, arms and fins included — and one that lands on the flora and on other bodies, which the capsules never did. The
+**light's direction** changed with it: under water the Lambert key (and so the map) is now the *refracted* sun, in air the true one, blended
+over the crossing (`medK`); at noon nothing moves, at a low sun the underwater world is lit from ≥42° up instead of from the horizon — what
+the water does. Under cloud the key rises toward the zenith as the beam dies (`K.lumLw`); the shadows and the caustics fade with the beam's
+share (`uSunW.w`) as before. (3) **Your own shadow in first person**: the body is no longer hidden — three's depth pass skips a hidden
+object, so it had no shadow — it wears `MATGHOST` (writes no colour, no depth) and still casts. (4) **Rain under water**: a shower cut the
+sky's light to 0.52 and killed the beam, and under water the sun *is* most of the light, so a shower was "extremely dark". Now the water has
+its own sky light, `K.skyLw` (cloud takes 12%, rain 8% — an overcast sky is still a whole sky of diffuse light; the beam is what dies), and
+its own key, `K.lumLw` — the beam, or 0.6 of the diffuse light from above when the beam is gone. The veil, the ambient, the depth's daylight
+and the key under water scale by these; the air and the sea seen from above keep `skyL`. The readout shows `light air/water` under water.
+Measured headless: nothing (the shadow pass is a GPU thing and a draw count). The readout's `draws` includes the depth pass, so the rise is
+visible there; `render` ms is the number to watch.
+**Unseen, ask in this order:** whether the world draws at all (the shadow GLSL is new in every tinted material: black or magenta at boot means it);
+the player's shadow on the sand at noon from third person, then from first person looking down (`f`); a school's shadows — every fish, not six;
+a shadow falling across weed and across another body; acne or a crawl as the camera moves (the snapping); the box's edge (a shadow fading
+64 m out); the shadows under a low sun (the refracted direction: a shadow never longer than ~1.1× the height); the underwater light at
+sunset (now from ≥42° up — say if it reads wrong); a shower from under the surface (should barely dim); the effects list on the menu and in
+play (does the pointer come back on close); `render` ms with shadows on and off, and with sharp on. `Q.casters`, `SHM_R`, `SHM_BIAS`, the
+0.05/m penumbra and the 35 m fade are the knobs; `renderer.shadowMap.enabled` false and `LIGHT_K[1]` 0 is off.
+
+## v11.24 — the marine snow as what the column holds (10 Sep 2026), built, unseen
+The person's ask: the snow was one even cloud with minor current and body physics; reason about how it really works — surely the stuff at
+the bottom of the world is different from the top, in composition and concentration — then plan and build it. What is real (DESIGN, Contact,
+"The snow"): marine snow is not one thing. The lit layer holds living plankton and fine debris, most under the surface and again at the
+thermocline where the nutrients sit (a chlorophyll maximum); the aggregates — the snow proper — form under it and sink, fewer with depth as
+bacteria eat them (the Martin curve), bigger and browner as the small ones go; particles pile up at every density step because settling
+slows there, so there are thin layers on the thermocline and a particle maximum at the chemocline where iron and manganese come out of
+solution (the Black Sea has this layer: rusty above, a milky bacterial plate in it); below the chemocline the water is ferrous and sulfidic
+and iron sulfide falls out as black flakes, sparse and nearly still in stratified water; over any mud or sand the current lifts a bottom
+nepheloid layer of the bed's own mineral; the surf's column carries sand and bubbles; a vent field's plume is sulfide grains carried up by
+its convection and settling downwind; the swell's orbital motion swings everything in the top 15 m. Built in atmosphere.js: five kinds
+(live, floc, silt, bubble, black) by weight functions of depth, height over the floor and the point's own cached fields (`snowW`), every
+point one kind or parked so the count goes where the snow is (`Q.snow` 1800 / 1000), a refresh at one point in 64 a frame that re-rolls
+the kind where the point has sunk to, settling slowed at the two density steps, turbulence by wind, bed and vent and none in the deep, the
+two longest waves' orbits, the flow round bodies as before; a per-point colour, size and alpha through an `onBeforeCompile` patch of the
+points chunks, the material colour as the light and the player's light added per point by distance (in the dark the snow shows in the
+torch's reach only). Fall rates ~10× reality (the old rate was ~400×). `test/snow.js` (in `--test`) prints the mix at twelve sites and
+checks the layering; headless 0.33 ms a frame in the sandbox against 0.17 before. Found on the way: the chimney landmark stands just
+outside the `heat` sector (raw 2.60 against the warped field's 2.66–2.7), so its own water has never had heat — the fissure field beside
+it does (not changed; theirs to move).
+**Unseen, ask in this order:** whether the snow draws at all and at sizes (a warning `snow: points chunks not as expected` means the patch
+missed and it draws uniform); the top 3 m under the shelf's surface in a wind (fine pale motes swinging with the swell, bubbles rising over
+the windward shore); the thermocline's layer from the slope at −64 (a visible band?); the deep at −200 (few big brown flakes, most of the
+count parked — too sparse?); the plate from 30 m above (rust, then milk); under it (black flakes only in the torch's reach — is that too
+dark, or right); the bed over the apron mud (the nepheloid layer's silt in the current); the vent field's dark grains lifting; the lagoon's
+fine silt; the night; `phys` ms on the readout with the snow on and off (the effects list). Knobs: `SN_K` (size, fall), `SN_W0` (how much
+weight fills the count), `SN_GAIN` (weight to alpha), `SN_REF`, the weights in `snowW`, the colours in `snowSeed`.
+
+## v11.25 — every creature in the creator (10 Sep 2026), built, unseen
+The person's ask (IDEAS #4, suspended since v11.11): fully implement the creature creator for the other clades. Read as: every species of the
+roster is a spec now, the lab can load and edit all of them, and the drifters are a clade in the grammar. The eighteen hand builders that
+were left — rasp, veil, lurker, watcher, pall; eel, stone; scuttle, trap, hook, picker, flicker, tread, comb; jelly, deepbell, sailer,
+greatsailer — are gone from creatures_builders.js (the kit stays); `SPECS` has 37 entries (plus `deepbell`, `greatsailer` and `glim` as
+scale variants of the jelly, the sailer and the darter, so the bestiary's `l` opens them too). Built in creatures_spec.js:
+- **Cores.** Seven new: `sac` (the deep line: a mantle ellipsoid or a lathe profile with a collar ellipsoid — the pall, the veil), `chain`
+  (the eel: the body is one chain; the core skins the rig over the finished part list through a `finish` hook, so the eye ring and the
+  mouth ride the head segment; it `provides` the clade's tail), `shield` (the scuttle: a domed body under the valves with a head plate),
+  `bean` (the flicker), `arches` (the tread: the overlapping plates over belly boxes, the shield and the knob), `bell` and `float` (the
+  drifters). `coilbody` gained `y`, `breathe` and its segment counts (the lurker and the watcher are a mantle on the floor with no shell;
+  the shell is no longer required by the core). `trunk` gained `z0`, `y`, a head offset, a tail box and a snout box, and every hingeshell
+  frame carries the fields the armour and limb parts read (`z0 z1 LT w0 w1 h0 h1 H zh hy ht zf`), so those parts sit on any hingeshell core.
+  A core parameter's default may be a function of the core (`z0` from `L`).
+- **Parts and styles.** eyes: `arc` (a row round the shield's rim — the scuttle, the tread), `rows` (the hook's two rows, the picker's pair),
+  stalks that `rise` on the tell (the trap), stalk thickness and colour. mouth: `rasp`, `peck` (the picker's pecking proboscis), `slit` (one
+  dark box: the forage). arms: `crawl` and `raise` (flat rings on the floor with the `PLANS` — fan, crawl, raise — the lurker, the rasp, the
+  watcher), `net` (webbed, the pall and the veil), `hang` and `lines` (the drifters), with colour, countershade, soft, web, taper, phase
+  in steps. spines on hingeshells too. plates: per-plate width over the radius (the stone). tail: `stub`. comb: `teeth` (the tread's
+  feeding combs). tailplate: the fan placed by hand, `abdomen` (the flicker's tail-flick). legs: `placed`, `walk`, `hang`, `rock`,
+  `march`, `swim`. valves: `placed` (by hand) and `clam` (the flicker's translucent halves), and how they open (`o0 o1 tc sc tk sk`).
+  flaps placed by hand. weapon: `combs` (the filter feeder's appendages). A new kind, `head` (`turret`: the watcher's raised head of five
+  eyes that looks about). `spec.mat: 'glass'` builds every mesh translucent (the flicker, the drifters). A parameter's believable band may
+  be a function of the style (`bandOf`); the bands widened where the roster sits.
+- **The grammar.** A fourth clade, `drifters` (cores bell/float, arms required, no eyes — the calculator says so if you add any); the
+  ringmouths and hingeshells require *a* mouth of any of their styles; a core may `provide` a required part; `STYLE_CLADES` covers the arm
+  styles. `CLADE_LIMIT` ringmouths 16 (the veil).
+- **The calculator.** A core may supply thrust, mode and buoyancy (the chain undulates, the bell pulses, the float sails and floats); legs
+  give walking thrust; a `sail` mode. **Found and fixed:** since v11.18 (the body frame) `derive` had silently read no thrust from any
+  moving part — the tail's mesh went into `ctx.bf`, which the dry context lacked, the build threw and was swallowed — so every slowblood
+  read "nothing propels it" and speed 0 in the lab. The dry context has a frame now; fin 7.5 again (the v11.10 calibration).
+- `PAL` has `jelly`, `deepbell`, `sailer` (the builders' fixed colours as keys); `coatFor` draws the drifters' keys (a bell colourless in
+  the light, dark red below it). The lab lists the drifters, names the new sliders, edits a lathe sac's profile. `test/ident.js` compares
+  the eighteen against a v11.24 copy of the builders (`OLD=`): rasp, lurker, pall, eel, stone, jelly, deepbell identical to the bit; the
+  rest the same shape with tessellation-level differences, looked at side by side in the preview (trap: the raptor `fold` weapon at 1.58
+  stands in for its three-segment arm; the watcher, the flicker and the tread carry the mouth the grammar requires — a beak under the head,
+  a slit, a plate ring under the shield). Smoke: 37 specs and four blanks build, act, cruise, place.
+**Unseen:** all of it in the game — the migrated eighteen in the world and the bestiary (the previews match the old sheets; the rigs and
+the far bake are the same paths), the lab panel on the new cores (the arches' twenty sliders; a chain body's parts cannot be lit under the
+cursor), the drawn coats for a drifter, `p` placing a drifter (role drift, no eyes) or a walker. Ask first for the bestiary run through
+(z, right ×36) — anything that looks wrong — then the lab on the tread, the eel and the jelly.
+
+## v11.26 — the ecology: the world as a ledger (10 Sep 2026)
+The person asked for the population to represent a real ecosystem — an accurate number of predators, every kind at a reasonable
+number, deaths, the eating of flesh, hunger, births (pregnancy, eggs if that is what it takes), and the world changing off screen rather
+than frozen or patrolling forever. What was found first (`test/census.js`, new): the pyramid was upside down — 70 ridges, 64 orthos, 91
+eels, 180 lurkers, 247 arrows against 465 flickers and 172 darters in 12 km² of water, hunter biomass 600× the edible — and it did not
+matter, because no hunt could end: every prey's `flee` matched or beat its hunter's `speed`, a school scattered at 14 m before a hunter
+saw it at 12, the grazers had 1e9 hp so every ridge chase ended "bored", and a kill came back at its home ninety seconds later.
+- **The ledger** (`src/ecology.js`, DESIGN The ecology). Every cell of the 256 holds a count per spawn entry; capacity is the envelope's
+  mean tolerance over the cell times `n` (`ecoCap`, from the cell's grid when loaded, 36 samples on paper otherwise — the paper census runs
+  four cells a frame after boot, ~120 ms in all). A loading cell spawns the ledger's count (`ecoTake`), rounded by its rng, and the ledger
+  keeps what actually stood; an unloading cell writes its living back (`ecoWriteBack`); a death debits (`ecoDebit`). Nothing respawns.
+- **The model** (`ecoModelGen`, a piece a frame every 3 s — 3.6 ms whole on the sandbox CPU): for the cells nobody is in, births by
+  allometry (r = 0.12·mass^-¼ a game day: a flicker breeds sixty times as fast as a ridge), natural death at a tenth of r, predation by a
+  type-III functional response over each hunter's reach (its cell; the 3×3 at half weight past a 60 m home; the 5×5 past 300 — the abyssal
+  lives in the dark and hunts the combs on the plain above it), the take capped at 35% of a kind in a cell a day, a hunter's condition from
+  what it got, starvation under 0.35, a drift of 3%/day toward the neighbours' free capacity (a hungry hunter kind five times as readily).
+  **A hunter's capacity in a cell is its envelope times its prey response there** — predators are where prey is, not where a band says
+  they may be; the paper hunters start at 0.8 of that (`ecoSettle`). A hunter's intake is 5%/day of its mass at unit mass, falling with
+  size (`q0`); its hunger clock is 0.5·mass^¼ days; its meal is the intake over the clock. The small forage carries a `stock` — one drawn
+  flicker stands for eight, a rasp for eight, a scuttle for four, a picker for three, a grazer for three — the way the snow's points
+  stand for more; without it the visible forage feeds one eel. The rates are per game day, compressed the way the tide is; the ratios are
+  Earth's. `test/census.js 120` runs it on paper: from the envelopes' start the world settles in three weeks and holds — about 600 flickers,
+  240 darters, 125 rasps, 90 scuttles, 70 grazers, 70 pickers, 110 arrows, 50 needles, 27 hoses, 23 lurkers, 18 traps, 16 hooks, 11 eels, 5
+  sickles, 5 stones, 4 crushers, 4 ridges, 3 orthos, 2 abyssals, 1–2 baskers (the vent's picker swarm feeds it), 14 combs.
+- **The numbers** (`SPAWN`): `n` is capacity per cell in individuals (groups by `grp`), the strand's scuttles an entry of their own
+  (`land`, by land area, `max` 8). Predators cut to what the water carries, forage and grazers up; the grazers to −160 (the terraces' sand)
+  so the ridges and stones there eat; the crusher's band to −50 where the rasps are; pickers at the vents; prey lists widened where PLANET's
+  placement put a hunter above nothing it could eat (ortho + grazer, picker; ridge + picker; stone + grazer, torpid: a 5-day clock; lurker
+  and hook get prey lists at all — they lunged at the player only). Grazers (hp 70) and combs (260) are mortal; the veil is off the
+  abyssal's list (it could never die). The loaded 25 cells at the peak hold ~1350 (1100 before); the world ~2600.
+- **Hunger, live** (`hungerTick`): a hunter's clock runs fed→starving over its cycle; it hunts only past 0.4 (a fed ridge cruises past the
+  player; the great still rams, the drifters still sting — neither feeds); the chase is a burst (1.6× for two seconds, tiring to cruise)
+  that gives up after 9 s on anything but the player; a kill sets the clock back by the prey's food over the meal, and the killer stays
+  and **feeds** at the body; at 1 it starves, and a cycle and a fifth past that it dies. Ambushers lunge at their prey (a lurker takes a
+  darter; a hook a flicker) when hungry; a trap strikes at nearly anything (a reflex) but not on a full stomach.
+- **Carcasses** (`kill`, `updateCarcass`): a body eaten whole (the player's bite; a small prey in a big mouth, under 35% of the meal;
+  a flicker) goes; the rest stays in the scene, sinks, rolls onto its side, is pushed against like rock, and is eaten away by its killer,
+  by the **scavengers** it draws (`def.scav`: the picker from 90 m, the watcher 50, the crusher 40, the scuttle 30, the rasp 12 — they walk
+  to it and eat until it is gone) and by the water (0.45 game days untouched, gone at 1.5× that regardless).
+- **Eggs and juveniles** (`layEggs`, `updateEggs`, `juvDef`, `growUp`): what the ledger owes a loaded cell over its living is laid as a
+  clutch — up to a group's worth, a knot of seven translucent spheres the clade's colour (ringmouths grey-green, slowbloods amber,
+  hingeshells cream) sized by the animal, on the floor within 8 m of an adult of its kind — that hatches after 0.25·mass^¼ days (a
+  flicker's in five minutes, a grazer's in twenty, a ridge's in a day and a half) into **juveniles** at 0.55 scale (their own def chained
+  to the adult's: size, speed, reach, hp, damage scaled; their own cached geometry) that grow up out of sight after 1·mass^¼ days (the
+  adult spawned in their place, entry, school and state kept). A clutch is a carcass to a scavenger of another kind, from half its smell;
+  eaten down it hatches fewer and the ledger is debited. A hatched ribbon joins the nearest school of its kind. The strand's scuttles and
+  the floats walk in out of sight instead (nowhere the game can show the laying).
+- The readout's fourth line: world totals of a few kinds, the tally (born, died, eaten, starved, kills, laid, hatched, eggs, carcasses),
+  the nearest hunter's hunger and state. The smoke test prints the ecology and fails on NaN in the ledger; the census is in `--test`.
+- Costs: the model 3.6 ms spread over ~20 frames every 3 s; the paper census 120 ms over the first 64 frames; scavengers scan the
+  carcasses (a handful) every 0.6 s; the eggs a mesh each. The stub gained `Quaternion.clone/multiply`.
+**Unseen:** all of it. Ask first whether the readout's fourth line counts up (kills, laid, hatched) in the shallows over ten minutes; then a
+carcass — a needle's kill sinking and lying on the sand, a picker or scuttle walking to it, the killer feeding beside it; a clutch on the
+floor near a herd and what hatches from it (do the juveniles read as small ones or as a wrong scale); a fed ridge passing the player;
+whether hunts now end (an arrow catching a darter); the number of hunters met in a swim across the shelf (too few now?). If the big
+predators are too rare for play, the honest knob is the grazers' `stock` (3) or their `n`; the dishonest one is `q0`. Parked: the player
+eating eggs; the bite on a juvenile worth less; eggs guarded by their kind; the model's take from loaded cells (their hunters do it live,
+so a cell the player sits in for hours is safer than one they left); the immortal kinds (veil, pall, tread, watcher, great, drifters) have
+no birth or death at all; temperature, moulting, detection modes as before.
+
+## v11.27 — the edge of the world (10 Sep 2026), built, unseen
+The person, at (1283, −166, −381) with the readout open: looking out into what should be endless dark water there is "a dark corner or
+line in here somewhere", "it usually has a horizon look, like it's a skybox or the end of the world"; the goal is that the sky bottom
+never pops into reality — there always looks like something is over there, you just happen to have hit the world border. Their spot is
+260 m inside the void's edge (the `reach` of the veil's bounded sample). Three things found on paper, three fixes:
+- **The veil's colour was a map of the floor** (`WATER`, world.js: `WCOL` indexed by the *floor's* depth — near black over the void
+  at −810 and the pit). Read at the bounded point, the void's dark entered every ray that reached it: at their spot the veil looking
+  outward was 40% darker than looking along the slope (0.084 vs 0.134 green, on paper) — the dark band on the horizon in the void's
+  direction *is* the void's shape, blurred over ~100 m. Now the veil at a point is the table at the point's **own** depth, never brighter
+  than the table at `OPEN_D` (150: the sand's bounce belongs to the floor, not to open water), blended toward the floor's entry (with its
+  turbidity, plankton and heat) by exp(−(height above the floor − `FLOOR_FREE` 30)/`FLOOR_H` 80). The floor comes from a second 96×96 map
+  (`floorMap`, scene.js; `fmRaw`/`FM_DATA` filled and blurred beside the water map in far.js; `wmFloor` reads it on the CPU) and the
+  table from `wcol()` in GLSL (`WCOL_GLSL`, generated from `WCOL`). `updateAtmosphere` blends the ambient the same way (the hemisphere
+  light over the void was near black: everything swimming out over it went black). On paper: the three directions at their spot now
+  agree within 5%; the shelf at −10 over −20 within 1% of before; the surface over the slope 11% brighter (open water at the surface is
+  not darker than open water at −150 — the number to lower if that reads wrong is `OPEN_D`, toward 120 for brighter, 250 for darker).
+- **The far mesh ended at ±HALF** with the black dome beyond: a straight silhouette 25 m past the player's clamp on every edge. The four
+  edge rows of regions carry an **apron** (`apronGen`, far.js; `APRON` offsets 60…2000 beyond the edge, six columns doubling, a block on
+  a corner, ~600–1000 more vertices, the same `sample()` — the void's floor at ~−810 runs out flat), in the region's own mesh so the seam
+  is no seam. `reg.ext` widens the region's sphere and its distance test in `cullFar`. Checked on paper: every apron triangle faces up,
+  no NaN, reach 3720 from the centre.
+- **The veil never closed**: the slow population left 1.1% at the far plane, so the dome (black) and a terrain fragment beside it at the
+  same distance differed by a percent or two of the terrain's lit colour — on a dark gradient, the far mesh's outline against the dome.
+  `FOG_CUT_GLSL` (scene.js): transmittance × (1 − smoothstep(0.62·FAR, 0.9·FAR, d)) in the fog block, `fogExtinctOnly` and the shafts;
+  2.7% contrast at the cut's start, 0 at its end; past it every fragment is the veil in that direction exactly, dome or not.
+Unseen, all of it. Ask first, at their spot, whether the dark band toward the void is gone (and whether looking down into the void from
+its edge reads as deep water); then the edge of the world from the clamp at x = 1695 looking out (the apron: a floor going on into the
+fog, no line); then the surface over the slope from just under it (brighter than it was — right, or lower `OPEN_D`); then the shelf at
+−10 (should be as it was); then `render` ms (two more texture reads and a six-mix gradient in every fogged fragment). The dome is still
+black and could be any colour now. Not done: the *cells'* fine terrain has no apron (it ends where the region takes over — 25 m past the
+clamp the far mesh is what you see, at 18 m resolution against 4.5 m; the join is the existing far/near join, at the world's edge).
+
+## v11.28 — the lower flank, and no black water (10 Sep 2026), built, unseen
+v11.27 was seen: "I think you actually did it" — the band toward the open water is gone. Then, at 215 m and 288 m looking out: the
+floor "just drops off a cliff into a bunch of rock", "an artificial border to wrap the world up in rocky bubble wrap"; the dark still has
+"some sway" — "a fog of cloudy blackness is not how that works in real life"; and the ask: the elevation past the island as accurate to
+real oceans as a guide, so the game always has ocean ahead and a player who swims out of the box meets open ocean, not a wall.
+- **The lower flank** (world.js `sample()`, `FLANK_*`; PLANET "The lower flank and the plate"; DESIGN World shape). The void — 520 m down
+  in 90–250 m at r ≈ 1600, a 64–80° wall that `fixF` made rock — is gone. Past the apron's toe (`FLANK_R` 1560 ± 60 by sector) the slope
+  ramps with no crease from the apron's 5.7° to 16.7° over 250 m (∫smoothstep in closed form), eases to 12.4° between 600 and 2600 m
+  beyond the toe, ribbed ±15% by sector, and goes on down: −320 at the square's edge on an axis, ~−580 at a corner, ~−850 where the far
+  apron ends 2 km out, the plate (~−3800) ~15 km out — the direction the world grows. The flank is mud (under 20°, `fixF` gives no rock).
+  Checked on paper: heights by radius and angle, the slope along a radius continuous (0.2–0.4 with the hills' noise, no step).
+- **No black water.** `WCOL` ends at 250 (the deep blue, (0.05,0.20,0.32)) and holds it below; the entries at 400 (0.03,0.08,0.16) and
+  451 (0.006,0.01,0.03) — "dark on purpose over the deep and the void" — are gone. The deep's darkness is the daylight term alone
+  (`dl`): at −400 the veil is (0.025,0.10,0.16) on paper, 2.5× brighter in green than it was, a dim blue rather than a black. Below the
+  chemocline the brown tint and the plate stand as they were.
+- **The ecology followed the geology.** The dark inside the square (ground < −450) is the pit and the corners' last 200 m now; the
+  picker's deep entry lost the void and the stone and the basker starved of it (`test/census.js`: stone 8.6→1.3, basker 2.5→0.3). The
+  picker's deep entry is `h [−800, −300]` — the lower flank's mud down into the dark. The census passes; the equilibrium moved: stone 26→17
+  (was 11→6), ortho 17→9 (was 9→4), ridge 12→5 (was 9→4), pall's capacity 10→2, abyssal 3→2. More hunters in the world than v11.26's
+  pyramid meant to have — the open question from v11.26 (are the big predators too rare?) may now read the other way; the knob is
+  the grazers'/picker's `n` or `stock`.
+- `test/snow.js`: the three chemocline sites moved from the void to the pit (floor −554 there); the "anoxic deep sparser than the plate"
+  invariant reads the column's weight now, not the cloud's share (over the pit the site is 34 m off the bed and the nepheloid layer
+  is in the box).
+Unseen. Ask first for the edge again from 215 m (the floor going on down into the fog, mud, no wall), then the deep at −300 to −400 by
+day (a dim blue now, not black — too bright? the number is `dl`'s floor 0.28 in the fog block and updateAtmosphere), then the pit from
+its rim, then the readout's fourth line for stone/ortho/ridge counts. The far apron at 2 km sits at −850; the chemocline plate at −450
+is now crossed on the flank 800 m past the square's axis edge — beyond the clamp — and at the corners inside it.
+
+## v11.29 — dithering (10 Sep 2026), built, unseen
+v11.28 seen: "that looked awesome". Then, watching the floor in the deep: "rings of brightness that come up in solid lines", the eye
+fixating on them. That is banding: the veil in the deep is a smooth gradient of dark blues spanning a handful of 8-bit levels, and the
+fog is radial, so the quantisation contours are rings round the view; a red-light screen filter compresses the blue channel (the deep's
+whole signal) and multiplies it. Not an art-style choice, not a bug in the geometry. The cure is the one every game uses: ±half a level
+of per-pixel noise before quantisation. r128 has it as `material.dithering`; scene.js now rewrites `dithering_pars_fragment` /
+`dithering_fragment` without their `#ifdef` (`DITHER_PARS`, the hash written out so it needs nothing from common.glsl), so every
+built-in material dithers — terrain, flora, creatures, the dome, the surface — and the sky shader calls the same function on its
+output. Cost: one hash per fragment. Unseen. Ask whether the rings are gone in the deep at −300 by day (and with the red filter on),
+and whether the noise shows anywhere bright (it should not: half a level).
+
+## v11.30 — the world's shadows (10 Sep 2026), built, unseen
+The person asked for shadows from everything that had none — vines, rocks, coral, the structures — with the best emphasis on performance, off by
+default, on the effects list. Built (DESIGN The light, "The world's shadows"): a second shadow map for what does not move (`sunS`, scene.js
+`updateShadowS`), rendered by hand only when the sun has turned ~0.3°, the camera has drifted 20 m, a cell in the box loaded, or a switch flipped
+— between refreshes it costs the fragment its second set of taps and nothing else, and the per-frame depth pass is still the creatures alone. The
+box is 80 m either side of the camera itself (turning moves nothing). Casters: every cell's instanced flora and rock, the structures through
+per-cell proxies on layer 1 (chunks.js `placeBigSolids`; the far layer's region meshes are never drawn into it), the landmarks, and — its own
+switch, "ground shadows" — the terrain. The flora is drawn at rest (`depthFor`: the species' own vertex code under `DEPTH_PASS`, the variant
+collapse and the lean kept, the sway, the pushes, the wave and the breathing dropped). Two rows on the effects list, `world shadows` and `ground
+shadows`, both off; `sharp shadows` doubles this map too. The depth programs compile at boot behind the fade (main.js `warmShaders`). The readout
+shows `wshadow <ms>/<n>` (the pass's submit time and how many refreshes) while the map is on. Every generated depth program and the two-map light
+block were compiled on Mesa in the sandbox (GLSL ES 3.00); the stub grew `layers`, `Camera`, `MeshDepthMaterial` and `shadowMap.render`.
+
+**Unseen, all of it.** Ask first whether the world still draws with both switches off (the light block changed in every tinted fragment), then
+turn on `world shadows` at noon on the shelf: does the weed forest cast onto the sand, and is the pass's spike felt (the readout's `wshadow`,
+and `ms` on the frames it runs — a hitch every couple of seconds in the forest would mean the cell set is too big: `SHS_R`, or skip the ground
+cover by species). Then a rock's shadow, a reef structure's, the tidal forest's on the strand, a raft's on the floor. Then `ground shadows`: a
+cliff's shadow at a low sun, the pit's rim, the scarp — and whether the terrain acnes anywhere (the receiver offset is two texels; `SHM_BIAS`).
+Then a plant a creature pushes: its shadow stays where the plant was (by design); does it read? The sway: the shadow is still while the
+plant sways — acceptable? If not, the sway could go back in with the refresh made per-frame for the nearest cell only. Then the
+refresh on turning the sun: does a shadow's edge step every ~2 s (two texels; if it reads as a crawl, `SHS_ANG` down and the cost up). Then a
+breach: the map re-renders on the crossing (the light flips) — a hitch? Then `render` and `wshadow` ms in the forest at (330, 0) with the switch
+on and off. Not built: the world drawn into the creatures' per-frame map (a fish under a ledge is still lit); the GLOW clouds and far cards cast
+nothing; the low tier's numbers are guesses (`SHS_R` 50).
+
+## v11.30.1 — the world's shadows, seen once (10 Sep 2026), built, unseen
+v11.30 seen: `world shadows` on gave a black screen and `Cannot read properties of null (reading 'state')` every frame. The cause was on
+paper: the pass called `renderer.shadowMap.render` outside `renderer.render`, and r128's `setProgram` reads the render state that only
+`render` sets up; the throw came after the pass had bound the shadow map as the render target, so the frame drew into it. Now the pass is a
+`renderer.render` of the scene through `camS` (an orthographic camera on layer 1 aimed at an empty box 500 km up) into a 4×4 target: it draws
+nothing and casts everything on layer 1 into `sunS`'s map — `sunS` is in the scene on layer 1 with intensity 0, invisible to the main camera;
+the hemisphere and the point-light pool are on layer 1 too so the light-state hash is the same in both renders and no material rebinds its
+program. Every static caster has `shBounds` (its cell's sphere) and `frustumCulled` true, with `Frustum.intersectsObject` patched to read it —
+which also gives the depth pass a proper cull by the light's box (v11.30 submitted every cell the box overlapped). DESIGN The light, "The
+world's shadows" rewritten for this. The unseen list is v11.30's, from the top.
+
+## v11.31 — combat as the physics: the hold (11 Sep 2026), built, unseen
+The person: the ecology's mechanics were surface-level — the enemies bump into each other with loose hitboxes and take damage, despite
+good physics with clear boundaries; the physical nature of an animal should be how it attacks; grab first (real predators take hold and
+bite until it dies or bleeds open), the player grabbing with a button and biting as a separate action, blood, a realistic outcome with
+losing allowed; reflect, then build what is realistic for this world; touch how combat happens, not the AI. DESIGN has a new section,
+Combat. What is real: predators swallow whole or take hold and dismember; bite-and-release is a mass-ratio exception (white sharks on
+seals). Built, `src/combat.js`: **a fight is a hold** — a rope between the holder's grip (derived from the spec's parts by `compile`:
+jaws at the mouth ring, arms at the beak, claws at the weapon or the plate mouth) and a point on the held body's own hit capsule, solved
+after the bodies have pushed apart, mass-weighted, shortening until the bodies touch; the held one's own steering is the struggle and a
+grip has a strength by the holder's mass; bites on the hold's clock, a share now and a share that bleeds out; a jaw lets go of prey
+near its own weight after a bite; the hold ends when the holder's AI drops its target (the ink, the stun, boredom, a lost chase) or
+either dies. Forage still dies at the touch. The player: right mouse or r held is the grab (a fleeing grazer drags you, a ridge holds
+you where it is), click bites — a gulp of small forage, a mouthful of a carcass (new: you eat what you kill), or a tear on what you
+hold; a bite on what holds you loosens it; a hunter's hp is no longer reset when it flees, so it can be killed. Blood: one pooled point
+cloud in the clade's colour (copper, iron, vanadium), drifting with the water and the bodies, on the effects list (`blood`). Three
+one-line AI touches: the chase clock stops while holding; the lurker and the trap keep their target while they hold it (the lurker
+drags its prey home). `test/combat.js` runs in `--test` (a table of what each hunter's hold means for a thrashing finback: eel 4 s / 24
+hp, crusher 7 s / 93, lurker 2.6 s / 6; ridge, sickle, basker, stone, ortho, abyssal hold for good at 9–23 hp a second — the ability or
+~9 s). Found on the way: the player's grab, called mid-`updatePlayer`, clobbered the move vector through the shared temps (the player
+drove itself into whatever it looked at) — it runs last now; the smoke test's lab step left `r` held (its key helper never sends keyup).
+
+**Unseen, all of it.** Ask first for a lurker's grab from its rock: are you held, do the arms wrap, does the rope read as a hold or as
+a rubber band (`HOLD_DRAG`, `close`); can you thrash out of it (2.6 s on paper) and does the break feel earned. Then a grazer: r on it —
+does the finback's mouth close on it, does it drag you, does the tear (click) read, does it bleed; then a ridge or an eel on you: the
+clamp, the jerk of each bite, the hp rate (too fast? `GRIP.bite`), the ink or the stun letting you out. Then the blood: does the cloud
+read as blood in the water at −20 by day and in the torch at night, is the trickle too much, the colours by clade. Then the number
+that matters: does a ridge hold you forever (yes on paper) and is that right, or should a struggle at the jaw wear even a big grip
+(`GRIP.k` down, or a `pull` floor). Then eating a carcass by biting it (heals 3–5 a bite). Then whether the trap re-striking what it
+holds looks right, whether the great's ram still reads (it snaps as before), and the readout's `phys` ms with a hold on (the rope is a
+few dozen flops). Not built: venom or paralysis, wounds slowing a creature, a hunter returning to bled prey (behaviour, next pass).
+
+## v11.31.1 — the combat group of the code review: reach against contact (13 Sep 2026)
+`analysis_review.md` items 2–6, one patch, each re-verified against the code first. All five stood; nothing in the group had been
+fixed since the 12 Sep read.
+
+**2. Most predators could not bite what was directly ahead.** `reach` in DEFS is centre-to-centre and the comment there has always
+said it must exceed the two bodies' contact distance. Measured off the same `hit` capsules physics.js uses (`bodyExt` in
+creatures_ai.js: `hitN`, how far the shape reaches forward of the origin; `hitB`, how far it reaches in any direction), **45 of the
+58 predator/prey pairs were short** — worse than the review's nose-only table said, because a prey's own body counts too: basker
+4.6 against 8.09 to the player, abyssal 10 against 14.06, crusher 4.2 against 7.61, ram 5.5 against 8.16, arrow 0.9 against 1.34 of a
+darter. Since `resolveBodies` holds the capsules apart, those hunters could not land a nose-on bite at all: headless, a basker
+running down a grazer had to blow past it and take it alongside its mid-body, the first bite at a centre gap of 4.4 rather than the
+8.6 where its jaws are, and the kill took 10.2 s against 8.4 now. Off screen, where nothing pushes bodies apart, the same bite landed
+at once — the two halves of the world disagreed. The DEFS numbers are left alone (they are the animal's own reach); the bite test now
+asks `reachOf(c,tg) = max(reach, hitN + hitB + BITE_M)` with the new knob **`BITE_M` 0.3 m**, and every site that measured against
+`reach` uses it: the chase bite, the strike's bite and its trigger range (`S.range`), the trap's strike, the lurker's lunge, the
+coil's ram, the drifters' sting, feeding at a carcass (a hunter could not reach the carcass it had made either), and the player's
+own grab and bite target (`playerTarget`, which had the same bug against a big body pressed on you). The arms' reach is
+**`armReach`** (`max(reach·k, reachOf) + prey·0.5`), never narrower than it was. The extents are measured once per body and cached on
+the creature, not the kind, because a juvenile is compiled smaller.
+
+**3. Hunter regen cancelled bleeding.** 2 hp/s from the frame a wound landed, so nothing a hunter took ever bled out. Now
+**`HUNT_REGEN`** 2 hp/s waits **`HUNT_REGEN_W`** 8 s past the last wound and stops while the body still bleeds (`c.lastHurt`, stamped
+by `wound` and by every tick of the bleed — the player's own 8 s gate is the pattern). A 20 hp wound on an eel now costs it 55 → 37 hp
+and is back at 55 about forty seconds later; before, it healed straight through.
+
+**4. A hold with dt 0 went NaN for good.** `main.js` clamps dt to `[0,0.05]`, not above 0, and the struggle divides by it. One NaN in
+`h.load` was a NaN rope that never cleared. `updateHolds` now returns on `dt <= 1e-4`, the guard `simChain` already had.
+
+**5. `c.grab` leaked after the player died, inked or stunned.** Five places ended a pursuit and each cleared a different subset;
+none but the lost-chase branch cleared `c.grab`, so a rigged hunter's arms went on reaching for the player out of wander. One routine
+now: **`dropTarget(c, cool)`** clears target, `grab`, the hold, `bored`, the tell and strike clocks, the face and the chase clock, and
+returns the animal to wander (an ambusher to `return`; a feeder and a sitter are left in their state). Used by the ink, the finback's
+pulse, the player's death, the lost chase and `combatBite`'s kill.
+
+**6. Stale hit capsules for prey past 90 m.** `startHold` read `shapesW`, which `updateCreatures` refreshes only within 90 m of the
+player, so a hold taken further off anchored its rope where that body last was — tens of metres off the animal, a rope that never
+shortened. `freshShapes` rebuilds both bodies' capsules when they are not this frame's (`c.shapeF`, stamped where `worldShapes` is
+called).
+
+`node build.js --test` green on both tiers. `test/combat.js` gained four sections: the **reach table** (every predator's `reach`
+against `hitN + hitB` for each prey, and the count of short pairs), which fails if any pair's bite distance falls under their contact;
+a basker running a grazer down (kills it in 8.4 s, first bite nose-on at 8.6 m); an eel's wound costing it its hp and healing later;
+two frames of no time leaving a hold finite; and the ink dropping target, arms and hold at once. The hunters' hold table moved a
+little — the lurker now holds 4–6 s for 28–50 hp instead of 2.6 s for 6, its lunge no longer falling short.
+
+**Seen** (dev.html, 1280×720, the app's browser): the world boots and plays with no console errors, 120 fps / 8.3 ms, draws ~390,
+tris 3.7M, phys 1.1–1.2 ms, render 3.9–4.1 ms, heap 227–264M — unchanged from before the pass. The ecology readout is the visible
+difference: over two minutes of play `kills` went 13 → 28 with `carcasses` 9 → 12, and the nearest-hunter line cycled between
+`hunger 1.00` and `hunger 0.03` — hunters catching and eating. The 12 Sep screenshots had hunters pinned at `hunger 1.00 wandering`
+and that was item 13's complaint; item 2 was half of it.
+
+**Unseen, ask in this order.** A hunt at close range: a basker or a ridge on a grazer — does the bite land where the jaws are, or
+does it now read as biting from too far out (`BITE_M`, and `reachOf`'s use of the prey's `hitB`, its widest radius, rather than the
+nearest surface — that is conservative by up to a body radius on a long prey seen side-on). Then the same on you: being run down and
+bitten nose-on rather than shoved past. Then the small end: an arrow or a needle taking a darter — forage dies at the touch, and the
+touch is now 1.6 m instead of 0.9, so does a darter pop out of existence too far from the arrow's mouth. Then the crusher's tell: its
+strike now begins at `reachOf × 1.7` ≈ 11.8 m instead of 7.1 — does it cock too early. Then a lurker's lunge from its rock (it holds
+twice as long now) and whether that reads as earned. Then the player's own grab (`r`) on something big pressed against you — it
+should now take hold where it could not before. Then the ink or the pulse with a hunter's arms already on you: do the arms let go
+cleanly. Then whether a hunter you fight off and drive away now dies of its wounds somewhere off screen (`HUNT_REGEN_W`), and whether
+that is right or too harsh. Not touched in this group: items 7–11 and the readout findings 12–15.
+
+## v11.31.2 — the ecology group of the code review: the clutch that was never laid, and hunters that never went looking (13 Sep 2026)
+
+`analysis_review.md` items 12 and 13, both from the person's 12 Sep readout screenshots. Item 2 (reach against nose-on contact) was
+asked for again with this group; it was already done in v11.31.1 and the reach table it asks for is section 7 of `test/combat.js` — it
+still prints, all 58 predator/prey pairs bite at or past the distance their bodies force, and nothing here changed it.
+
+**12. No clutch was ever laid.** `laid 0 hatched 0 eggs 0` in every one of the ten shots. It was not a broken branch: `ecoTick`'s
+reconcile ran every time, and the arithmetic under it could never reach a whole animal. A loaded cell's growth went into `POP.n`, which
+is *also* where the cell's living are counted — `ecoTake` writes the spawned integer into it, `ecoDebit` takes one out per kill,
+`ecoWriteBack` sets it to the living on every unload. The surplus over the living was therefore erased every time the player swam a cell
+away and back, and even undisturbed it grows at `r(1-n/K)-m` — measured headless, the fastest entry in the world (a cell of 26 flickers)
+owes **0.55 of a recruit a game day**, so no row ever crossed 1.
+
+The births a loaded cell is owed now have their own array, **`POP.ow[entry][cell]`** (ecology.js): the model banks a loaded cell's `b-d`
+there instead of in `n`, the logistic reads `n+ow` so it still saturates at capacity, and the reconcile lays `floor(gap + ow*Q.creatures)`
+as the clutch, moving what it spent from `ow` into `n`. `ow` is untouched by `ecoDebit` and `ecoWriteBack`, so it survives an unload. The
+natural death `m` still comes off it — nothing dies of age in a loaded cell, and charging the births for the deaths the live world does
+not run is what keeps a loaded cell's equilibrium the same as an unloaded one's.
+
+That alone left the first clutch at game day 2.1 (85 real minutes), because every cell in the world started owing exactly zero. It now
+starts at a **random phase** — `ecoCap` seeds `ow = rng()*min(1,K)/Q.creatures` the first time a cell's capacity is known — which is not a
+rate change but the removal of an artefact: a population is not everywhere at the same point in its cycle. Over `Q.creatures` so the low
+tier waits the same wall time for a clutch it shows. Headless, with 25 cells loaded: first clutch at game day 0.67 and 20 laid / 19
+hatched by day 4 on high, 2.0 and 5 / 5 on low. In play that is a clutch somewhere near you every five to fifteen real minutes, more as
+the owed builds. The readout's fourth line gained **`owed`**, the loaded cells' total: it climbs between clutches and drops when one is
+laid.
+
+**13. Hunters at hunger 1.00 wandering, not hunting.** Half-answered by v11.31.1 (the bite lands now). The other half, measured: the
+nearest animal a hunter eats sits **35-50 m away** on the shelf, against a `detect` of 9-17 m. Nothing was wrong with `findPrey`; a hunter
+simply had no way to go looking. It wandered a random point inside its home and met prey by accident, and a tenth of the hunter role sat
+at hunger 1.00 with a school two cells over.
+
+A hungry hunter now **casts**: the 0.4 s scan it already runs goes out to **`HUNT_SEEK`** 4 x detect (the same one `findPrey` call — a
+wider radius costs nothing), and what it finds inside `detect` it chases as before, while what it finds further off becomes its wander
+target. The cast swims at **`HUNT_CAST`** 0.8 of the animal's speed and not at its cruise (`cruiseF`, 0.45-0.5): the first build of this
+used the cruise, and a stern chase at the cruise never closed on a school drifting at its own — one needle held 44 m for ninety seconds.
+It casts only at prey within **`HUNT_HOME`** 1.5 x its `home` of its own home, so a hunter stays its patch's resident, the shelf's
+predators do not all drain toward whatever school the player is in, and the chase that follows starts inside the leash that drops one
+(1.9 x home — a cast that ended outside it was dropped in the frame it began). The eyes stay the ring's (PLANET: 360 degrees, motion);
+past them this is the water itself, scent and the pressure a shoal makes.
+
+A/B over 60 s of shelf play, same seed, same start: kills **18 -> 27**, the hunter role's mean hunger **0.471 -> 0.433**, the share of it
+sitting at hunger 1.00 **13% -> 8%**, the share chasing doubled. What is left at 1.00 is mostly the ambushers (the hook and the lurker,
+which by design sit and wait) and animals whose patch has no prey in it at all — the one ortho in the world has its nearest meal 202 m
+away, which is a `SPAWN` envelope question, not a behaviour one. `starved` is still 0 because starving takes 1.2 cycles at hunger 1.00
+(22 real minutes for a needle) and nothing in a headless run gets there.
+
+**A crash found on the way.** `updateHolds` walks `holds` backwards, and a bite inside the loop can kill the held body, whose `kill` ->
+`releaseAll` splices holds *below* the cursor; the walk then ran off the end of the shortened list. It took the low tier's smoke run down
+once in about fifty. The index is re-clamped at the top of each turn.
+
+**New test: `test/live.js`** — the ecology where the player is, the counterpart to `test/census.js`'s paper. It boots the whole game
+against the stub, lets the cells round the peak load, drives the ecology clock four game days (`ecoTick` with the model drained each step,
+`updateEggs` on the matching real seconds) and fails if nothing is laid or nothing hatches; then runs 60 s of real frames and prints a
+table of every hunter kind — seen, mean hunger, the share at 1.00, the share hunting, the distance to the nearest animal it eats, and its
+`detect` — failing if nothing is killed, nothing chases, or over a quarter of the hunter role is starving. It runs on both tiers in
+`node build.js --test` (build.py in step). Knobs by name: `POP.ow`, `ECO` unchanged, `HUNT_SEEK` 4, `HUNT_CAST` 0.8, `HUNT_HOME` 1.5.
+
+**Seen** (dev.html in the app's browser, 800x450, the clutches forced by hand — waiting out the real rate is 5-15 minutes a clutch):
+`laid` and `eggs` climb on the readout and `owed` moves with them; three clutches side by side at their true scale — a flicker's 0.38 m
+across, a needle's 0.54, a grazer's 1.10 — sitting on the sand as knots of pale translucent spheres. Live, with the hunters round the
+player made hungry: 20 of 86 casting, chases and a carcass with a hunter feeding at it within a few seconds. No console errors.
+
+**Unseen, ask in this order.** First the rate: play a real session and watch `laid` and `owed` on the readout — is a clutch every five to
+fifteen minutes near you enough to notice, or should the world be laying more? (The rate is the model's, unchanged; only the phase moved.
+Raising it means raising `ECO.r0`, which moves the whole census.) Then the clutch itself at 2-3 m: the small ones read as pale rocks on
+the sand in the shot — do they need a colour or a shine that says egg. Then whether a clutch is ever laid somewhere absurd (it goes near
+an adult of its kind, on the floor, clear of solids, and refuses ground above -4 m). Then hatching: do the juveniles appear where the
+clutch was and read as small. Then the cast, in play: does a needle or an arrow now visibly leave off wandering and *go somewhere* when
+hungry, or does it read as drifting; and does the shelf feel emptier of predators near you (the `HUNT_HOME` leash is meant to prevent
+that). Then whether the extra hunting has thinned the flicker and darter schools over a long session — `flicker` and `darter` on the
+readout's fourth line are the numbers. Then, on the 4060, whether any of this shows in the frame time (it should not: no new per-frame
+work, one wider radius on a scan that already ran). Not touched: items 7-11, 14 (the shadow-caster performance pass) and 15.
+
+## v11.31.3 — the placement group of the code review: what a cell reads over its own line (13 Sep 2026)
+
+Items 7 and 9 of `analysis_review.md`. Both stood as *bugs*; item 9's cost claim did not, and the measurement is below. Nothing
+here changes a rule — only what the existing rules read.
+
+**Item 7a: a cell laid different ledges depending on where the player came from.** `placeCliffs` sized each ledge by the drop over
+±3 grid steps (13 m) and read it with `groundAt`, which resolves to a *loaded* cell's grid if there is one and to `sample()` if there
+is not. Thirteen metres out of a candidate near a cell line lands in the neighbour, so the same cell answered differently on a visit
+from the north than on a visit from the west. The check: load a cell alone, then unload everything, load its four neighbours and load
+it again, and compare the instance matrices — 14 of the 41 cells that have ledges disagreed. It never flipped an accept/reject in 64
+cells (the count and the creature stream matched every time), so what moved was each ledge's scale and its nudge along the gradient,
+but a flip is one rounding away and would move the cell's whole rng stream, spawns included.
+
+**Item 7b: a plateau in a 14 m band on every cell line.** `ch.h` clamps to the cell's grid, so a probe past the edge reads the edge
+vertex again. Every `settleOn` test that reaches outward — `face`, `drop`, `fit` — therefore saw flat ground in a band as wide as its
+radius along every cell line. Per-cell flora has exactly one such entry, `talus` (`face` [14, 6]: place only where the ground within
+14 m rises 6 above), and the error is one-sided: the face above the point never registered, so the boulders were refused. 2.2% of the
+tries in the band, 294 lost against 3 gained.
+
+**The fix for both: `hOut(ch,x,z)`** (chunks.js) — the cell's own grid inside it, `sample()` beyond its edge. The same rule
+`buildTerrain`'s `hAt1` already uses for the cavity term, and the rule the far layer has always used (`bigH` is `sample`). It is
+`placeFloraType`'s `hAt` now and `placeCliffs`'s drop; inside a cell it is `ch.h` exactly, so nothing away from a line moved.
+Talus over 100 cells 8779 → 9013, and the band's share of them 23.1% → 24.9% against the 24.4% of a cell's area it covers — the band
+now carries its area's worth. Ledges: same 829 over 100 cells, mean scale 11.65 → 11.59, mean |y − ground| 2.24 → 2.23 m. Load-order
+disagreement 14 cells → 0.
+
+**Item 9: `bigsGen`'s yield had never once fired — and it did not matter.** The counter was per entry against 50, and the fattest
+`big` entry is `crag` at 20 tries a cell (65 over all of them), so a cell's whole structure pass was always a single step. The review
+expected that step to be well over `Q.farMs`. It is not: measured over all 256 cells it is 0.27–0.54 ms, against farMs 3 (2 on low),
+because `sample()` warm is 0.7 µs here, not the ~35 µs two comments in far.js were citing (that is the cold figure; DESIGN's "far
+layer" section already had ~2 µs warm). So the guard was dead rather than late. `BIG_YIELD` 16 counted over the whole cell, the cairns
+yielding too: five steps a cell, worst 0.15 ms. Both comments corrected.
+
+**Seen** (dev.html in the app's browser, 800×450, finback, midday). Talus at the x = −215 cell line at (−216, −16, −204) and in
+survey from (−229, −1, −175): boulders lie on the ground across the line, no stripe, no gap, nothing floating or doubled where a
+lump sits in two hashes. Ledges on a face near (−297, −9, −125): wedges half buried in the wall, downhill lip up, as before.
+`node build.js --test` green on both tiers; lint's unused list unchanged.
+
+**Unseen, ask in this order.** The talus change is +2.7% of scattered 1–3 m boulders and no before/after screenshot would show it,
+so the first question is whether the foot of a long face that crosses a cell line now reads *even* — walk one and look for a thinning
+that is no longer there. Then the ledges: they all re-scaled slightly (mean 11.65 → 11.59) and the statistics say that is nothing, but
+a cliff is the place to check that none is now floating or buried. Then, on the 4060: `bigsGen` yields five times a cell where it
+yielded once, which is five budget checks instead of one — it should be invisible, but the far layer's build is the one place a
+regression would show, as a hitch when a new region comes up behind the menu. Not touched: items 8, 10, 11, 14 (the shadow-caster
+performance pass) and 15.
+
+## v11.31.4 — the render, lab and tests group of the code review (13 Sep 2026)
+
+Items 1, 8, 10 and 11 of `analysis_review.md`. All four stood. Item 8 was the shallow half of a deeper one: the species it names
+could not be drawn at all, and nor could the other two land species — **no plant has ever stood on the island's land.**
+
+**Item 1: the light shafts never took the sun's colour.** `atmosphere.js:296` ended with the comment "rays are a thing of the top
+of the column" and the `shU.uCol` update was glued to the end of that comment, so it had never run: the shafts were the literal the
+uniform was built with, `(0.55, 0.72, 0.8)`, at every hour. Now on its own line. Read off the running game: a high sun (clockH 7.5)
+`lumC` (1, 0.94, 0.84) → shafts (0.55, 0.68, 0.67); a low one (clockH 10.8) `lumC` (1, 0.71, 0.47) → shafts (0.55, 0.51, 0.37);
+under the moon `lumC` (0.72, 0.8, 0.96) → (0.40, 0.58, 0.77). The change is small by day and largest at dusk — where the shafts are
+also at their faintest, since `uK` carries `SUN_W[3]·skyL` and both fall with the sun. Nothing else about them moved.
+
+**Item 8, and the bug under it: land flora was never placed.** `stranded` (a dead sailer's float on the windward strand) was a
+`species()` — three variants packed into one geometry, the shader picking one per instance — drawn with `MAT`, which has no variant
+collapse, so all three would have drawn on top of each other. It has `MATVD` now: `varMaterial(true)`, the variant material without
+the 2.5% breath (`PULSE_GLSL`), because a stranded float is a corpse. But nothing was drawn, because of the surface cap in
+`placeFloraType` (chunks.js:130): `f.top && !f.air && f.top*sc > -1.4-h` — the rule that keeps a stalk from standing out of the
+water. On land `h` is positive, so `-1.4-h` is negative, the test is true for any plant, `room` is negative and every try was
+skipped. Three species carry `minH >= 0` — `tussock` (per 1500), `scrub` (110) and `stranded` (26) — and not one instance of any of
+them had ever been placed anywhere in the world. The rule now exempts a plant rooted above the tide line (`!(f.minH>=0)`), which is
+what `air:true` already does for the tidal forest. Counted over the cells loaded at the north strand: tussock 0 → 797, scrub 0 → 70,
+stranded 0 → 9. Nothing else in `FLORA` sets `minH` at or above 0, so nothing else moved.
+
+**Item 10: the smoke test's mouse never reached input.js.** `test/stub.js`'s `__run` and `test/smoke.js` both took
+`handlers[...][0]`, the *first* listener registered on an event; zoo.js and lab.js register on the canvas and the window before
+input.js does (src/order.txt), so fifteen hundred frames of clicking drove the bestiary's drag handler and nothing else. The bite
+and the look had never run headlessly, and the file's first comment said they had. Both dispatch to every listener now, as a browser
+does. The stub's `requestPointerLock` works instead of throwing (`global.__nolock` puts the refusal back), so the test plays the way
+the game is played: play starts locked, a move is the look, a click is the bite. A new block in smoke.js asserts, for all three
+clades: the pointer is locked when play starts, a locked mousemove turns the head, a click bites (`player.biteCD`), the right button
+takes and releases the grab, Tab releases the pointer, and then with the lock refused a drag looks and a short click bites — and a
+click takes the pointer back. `__run` also holds the right button down for a second every 313 frames.
+
+**Item 11: the lab.** Three separate things.
+- **NaN into the spec mid-edit**: `labOnInput` guarded only `stats.*`, so a number field holding `-` or `1e` wrote NaN into the
+  build, and a NaN in a build reaches the uniforms. Every number now: `if (typeof v === 'number' && isNaN(v)) return;`.
+- **The lab ate a forced tier.** `location.hash = specToHash(...)` replaced the whole hash, and scene.js read the tier as the whole
+  hash (`h==='low'`), so `#low` and the lab were exclusive and a reload or a shared link came back on high. The hash is a list of
+  flags now, any order, separated by `&` or `,` (scene.js `HASH_FLAGS`, `HASH_TIER`): `#low&lab=<spec>` works, and the lab writes
+  the tier back (`labHash`). zoo.js and lab.js read the flags instead of searching the whole string — a spec's base64 can contain
+  the letters `zoo`.
+- **`LAB_NAME` had nine duplicate keys**, so the later label won and some sliders were captioned for another part: a mouth's `fn`
+  (its feeler count) read "nod rate", a shell's `cy`/`cz` read "collar y/z", an arms `y0` "height", a tail's `ll` "paddle length",
+  a mouth's `pulse` "pulse". `z0` and `col` were duplicated with the same text. One entry each in `LAB_NAME` now, with the
+  part-specific meanings in `LAB_NAME_BY` (`arms.y0`, `shell.cy`, `shell.cz`, `mouth.fn`, `mouth.pulse`, `legs.ll`, `tailplate.w0`,
+  `chain.w0`) — the table that exists for exactly this.
+
+**Seen** (dev.html in the app's browser, 800×450, finback, the camera placed by hand). A stranded float on the north strand at
+(14, 1.1, 242), close up: one body — a grey-lilac deflated hull, five dark-pink sail vanes along its back, tendrils spread on the
+sand — not three superimposed, and it lies flat on the ground. Two more visible down the same beach, different tints. Tussock now
+reads as tufts on the slope above the strand and scrub above that. The shafts render at midday from 16 m down with the surface and
+its caustics above them; the colours above are read off the same session. `node build.js --test` green on both tiers; lint's unused
+list unchanged.
+
+**Unseen, ask in this order.** The land is the big one: three species that have never been on the island are on it now, and the
+density is whatever the entries said when nobody could see them — walk the island above the tide line and say whether the tussock is
+too thick or too thin, whether the scrub reads as scrub, and whether the strand carries the right number of dead floats (`per` 1500,
+110 and 26 in flora.js). Then the cost of that on the 4060: a land cell now carries up to ~800 more instances, which is a draw call
+and some fill, and the readout on a beach is the place to see it. Then the shafts at dusk, which is where the new colour is largest
+and the shafts themselves are faintest — if they are too dim to read warm, `SH_A` is the knob. Not touched: items 12–15 (14, the
+shadow-caster pass, is the next performance job) and the drift list.
+
+## v11.32 — one number, one place: the daylight curve, the canopy fade, the two masses, the chemocline (13 Sep 2026)
+The drift half of the code review (`analysis_review.md`, "Drift and cost"): four numbers that were written out between two and
+twenty-three times each, three of which had already drifted, and one that reads as drift and is not. Nothing here is meant to
+change the look; one of them does, slightly, and it is named below.
+
+- **The daylight curve** — how much of the surface's light is left at a depth, which the fog's veil, the ambient, the sun's own
+  scale (`SUNK_V`/`SUNK_F`) and the shadows all read — was six copies of `0.28..1 over 420 m`, and the two in JS measured depth
+  from the tide while the four in GLSL measured it from sea level. `DL_REF`, `DL_MIN`, `daylightAt(y)` and `DL_GLSL(y)` in
+  world.js and scene.js are the one definition now, generated from the same constants, and the shader follows the JS: depth is
+  from the water's surface (the person, 12 Sep). Read off the running game, the JS and the old GLSL agree to four decimals at
+  slack water, which is the size of the bug — the tide over 420 m is 1.1% of the light each way, and nothing below −302 where the
+  curve clamps. **The shader needs the tide to do it**, and none of the four fog vectors had a spare component, so `uFogW.x` —
+  which held `1/(2*HALF)`, a constant of the world's size — is `TIDE` now and the water map's scale is written into the three
+  shader strings that sample it as `WM_SCALE` (0.000290698). main.js writes `FOG_W[0]` with the other clock uniforms.
+- **The canopy fade** was a `smoothstep(-90,-60)` in the shader and a hard cut at `y>-70` in the JS, so under the mats the
+  ambient light, the fog colour and the light shafts' heads disagreed with the veil actually drawn, and stepped at −70 instead of
+  ramping. `CAN_LO`/`CAN_HI`/`canopyFade(y)`/`CAN_GLSL(y)`; the JS follows the shader (the person, 12 Sep). **This is the one
+  visible change**: between −60 and −90 inside a canopy patch the water now fades in instead of switching, and at −70 the canopy's
+  share is 0.74 of the map rather than all of it. The patches are three, 1400 m out, over deep water.
+- **Two masses, and they are not one.** `size³` appeared six times, three floored at 0.6 and three not, which the review read as
+  drift. It is not: the floored one is physical (contact, the body push, a hold's struggle — a flicker at 0.064 must not vanish
+  against a ridge) and the unfloored one is biological (a birth rate as mass^−0.25, a meal, a carcass's flesh — flooring it would
+  put a flicker's rate at half what `test/census.js` is drawn for). `bioMass(d)` and `bodyMass(d)` in creatures_defs.js, named so
+  the next reader does not unify them; census unchanged to the digit.
+- **The chemocline** was a bare −450 in fourteen places with −444/−446/−448/−452/−455/−458/−462/−464/−465/−470 around it. `CHEMO`
+  in world.js, with `CHEMO_PLATE` (the milky plate's half-thickness) and `CHEMO_TINT` (the band the water browns over) derived,
+  and the pall's spawn and wander bands written as `CHEMO-5`, `CHEMO-8`, `CHEMO-15`, `CHEMO-20`. Moving the chemocline is one edit.
+- **The two slopes are left as two, deliberately** (chunks.js takes a central difference over its own grid, far.js a forward
+  difference from two extra `sample()` calls): a central difference on the far layer would be four samples a point on its budget,
+  and they agree to first order. Both sites say so now, and chunks.js's "so they match where they meet" is corrected to what is
+  actually true — the conditions match, the slope they are measured with does not.
+
+**Found and fixed while looking at it, and the reason to look.** `--test` was green on both tiers with the world broken: putting
+the daylight curve into `SUNK_V` put `uFogW` into the **vertex** shader, where only `fog_pars_fragment` declared it, so every
+Lambert program failed to compile — no flora, no creatures, a washed-out plain. The stub compiles no shaders, so no test could
+catch it; the menu screenshot against a build of the previous commit did, in one frame. `fog_pars_vertex` declares `uFogW` now.
+This is the trap CLAUDE.md names ("the fog is not three's") and it cost one build to find.
+
+**Seen** (dev.html, 800×450): the menu at the peak, identical to a build of v11.31.4 beside it — grass, the three creatures, the
+same water; the weed forest at (330, 0) at 15 m with the readout up, teal water, olive blades, pale floor, a finback; and, read out
+of the running page, `FOG_W[0]` carrying the tide, `WM_SCALE` exact to 1/3440, and the daylight and canopy curves tabulated against
+their old GLSL at six depths each.
+
+**Unseen, ask in this order.** The canopy band at −60..−90 inside a patch (1400 m out, the current's wake) — swim down through it
+and say whether the fade reads better than the step, which is the only thing here that should look different. Then the water's
+colour across a full tide at 20–60 m, where the shader's daylight now moves by a percent either way and did not before. Then the
+light shafts' heads under the mats, which take the same ramp now (`atmosphere.js` `shWM`). Left of the review: the dead code and the
+stale docs (the other half of the drift list), and items 14 and 15 — the shadow-caster pass is the next performance job.
+
+## v11.32.1 — the readout shows the work, not the wait (13 Sep 2026)
+Every performance screenshot so far read `8.3 ms` and `120 fps`, and both are the vsync interval: `msEma` is `dt`, the wall clock
+between frames, so on a machine with headroom it says the same thing however cheap the frame is. `frameMs` — the top of `loop()` to
+the bottom — was computed for the streaming budget and never printed. The readout's first line now carries **`work <ema>/<max>ms`**
+and, when it is above 0.05, **`gen <ema>ms`**: the frame's own cost, the worst single frame since the readout last drew a quarter
+second ago, and the streaming's share of it. The max is the point — the shadow map re-renders only when the sun turns, the camera
+drifts 20 m or a cell loads, and on those frames it lands all at once; an EMA hides that and a max does not.
+All three are CPU: `renderer.render` is the submit, and the GPU runs behind it.
+**Seen** (dev.html, this PC, not the person's 4060): `work 18.4/18.4ms  gen 7.0ms` in the weed forest at (330, 0) while cells were
+still streaming, and `work 23.6/573.5ms` on the frame after a teleport, which is the cell burst showing up exactly as it should.
+**Unseen:** the numbers on the 4060 — that is the first thing the shadow-caster pass wants (`analysis_review.md` item 14), and what
+this change exists to make readable.
+
+## v11.33 — the dead and the stale: the rest of the drift list (13 Sep 2026)
+The second half of `analysis_review.md`'s drift section. Small fixes, five removals, and four inert paths kept on purpose with a
+note at each so the next reader neither deletes them nor has to find out again why they are there.
+
+**Real fixes.**
+- **`chunkAt` off the grid, not through a string key.** It built `i+','+j` and hit a `Map` on every call, and it is *the* per-frame
+  ground lookup: every live creature, every chain point outside its own cell, the player five times a frame, the audio rays, the
+  snow. `chunkGrid` has existed for this since v11.12 and `solidPush` already used it. Range-checked, because `i=1, j=-1` would
+  alias onto cell (0, 15) in a flat array. Verified in the running page: 4000 random points across ±2600 and the six just-outside-the-
+  square cases, zero disagreements with the old path.
+- **The ecology stopped throwing away time.** `ecoTick` clamped the elapsed game days to 0.5 and set `POP.last` to now, so a hidden
+  tab or a long spell in the menu or the lab lost every day past the first half. The excess is carried on `POP.last` now
+  (`ECO_MAX_STEP`), so the model runs it on the following ticks instead of dropping it.
+- **The starvation tally** read `n` after the decrement and undercounted the readout's `starved` by a factor of `1 − s·dt`.
+- **`landBite` guards its target.** `dropTarget` (v11.31.1) can null a target mid-strike and two of the four call sites did not
+  re-check; the guard is in the function, once, rather than at each site.
+- **Alt-tab no longer leaves you swimming.** `blur` cleared the mouse grab and not the held keys, so tabbing away on W came back
+  still moving.
+- **`serve.js` survives a malformed URL.** A stray `%` threw inside the request handler and took the server down; it is a 400 now.
+
+**Removed** (all five were on lint's unused list, and that list is now empty): `fogExtinctOnly` (nothing has called it since the
+bioluminescence went in v10.1; the rule it carried is still true and the light shafts re-implement it by hand), `moonIllum` (the lit
+fraction comes from the two directions since v11), `trunkPose` (no spec ever used it), `cellW` (ecology.js `ecoCap` is the one the
+ledger uses), `ecoCell`. Also **`MATR2`** — a whole sway program with no user, compiled at every boot by the warm-up.
+
+**`ROSTER.new` cleared on the fifteen species that spawn** (rasp, watcher, pall, needle, basker, stone, crusher, trap, hook, tread,
+picker, flicker, comb, deepbell, sailer). `new` means built and not yet placed, and the bestiary captions it "built, not yet
+placed", so it had been lying about fifteen of the thirty-six for several versions. It stands on hood, lash, ram and greatsailer,
+which is correct. The darter's niche no longer says "(unspawned)".
+
+**Kept, with a note where it lives:** `GLOW` and the `f.glow` branches (for when bioluminescence returns as events — PLANET Hooks);
+the whole `pads` path through grow.js, chunks.js and physics.js (an empty loop a frame, and a thing that takes a body's weight is
+wanted again); `y:'mid'`; and `DEFS.glim`/`SPECS.glim`/`PAL.glim` — the darter's pale variant is a roster question for the person,
+not drift. **Not done, deliberately:** the fog tuner's `o`/`p` collide with the lab's `place` and first person, but `g-h`, `j-k` and
+`v-b` are the audio tuner's and the rest of the alphabet is the game's, so picking a new pair blind risked a worse collision.
+
+**Stale lines fixed where they live:** lint.js said acorn was not vendored (it is, as `test/acorn.js`); `creatures_spec.js` cited
+`test/spec.js` (it is `test/ident.js`); `chunks.js`'s `underCanopy` still called the canopy "mats", which it has not been since the
+raft colonies went in v11.16 — it is buttons and sailers, discs in fleets rather than a ceiling. CLAUDE.md's known-stale list is
+rewritten around what is actually left.
+
+**Seen** (dev.html): the menu and the weed forest at (330, 0), unchanged; and the `chunkAt` equivalence run above, read out of the
+running page. `node build.js --test` green on both tiers; lint reports no unused top-level names for the first time.
+**Unseen:** whether anything reads differently at all — nothing here should. The ecology's carried time only shows over a long
+session; the starvation tally only in the readout's `starved`. Left of the review: items 14 and 15 (the shadow-caster pass is next,
+and the person's 4060 now reads `work 5.9/7.9ms` in the forest against an 8.3 ms budget, the 2 ms gap being the shadow re-render).
+
+## v11.33.1 — a rainy night keeps three quarters, and the daylight tuner leaves `p` alone (13 Sep 2026)
+Two things the person asked for after looking.
+
+**Rain was halving the night.** The dark screenshots were not the night — the person: "night time brightness is perfectly fine…
+it's actually the rain making it incredibly dark occasionally". Rain reached the night twice: `weatherAt` adds `0.5·rain` straight
+into `cover` (world.js), and the night branch of `skyL` then took `0.7` of that off the moon (atmosphere.js `updateSky`). Fitting
+the person's own three night readouts to that formula gives `moonL` 0.294 and `STARL` 0.024, so a full shower left **0.128 against
+a clear night's 0.256 — half.** The day was fixed for the same complaint in v11.18 and keeps 52% of noon, and the ratios are in
+fact almost identical; the point is that half of noon is grey and half of a night is unreadable. `coverN` is the cover rain did not
+put there (`max(0.08, cover − 0.5·rain)`), with the rain's own share a gentle `0.15` on top, in both `skyL` and `skyLw`:
+
+| sky | cover | rain | before | after |
+|---|---|---|---|---|
+| clear night | 0.30 | 0 | 0.256 | **0.256** |
+| light shower | 0.57 | 0.25 | 0.201 | 0.215 |
+| shower | 0.72 | 0.69 | 0.170 | 0.210 |
+| full shower | 0.92 | 1.00 | 0.129 | **0.187** |
+
+A rainy night keeps 0.73 of a clear one (the person: "it should come up to the day's three quarters"), and a clear night is
+unchanged to the digit. The moon's *beam* is deliberately left alone (`moonP`, below it): no direct moonlight survives thick
+cloud, and an overcast sky scatters rather than extinguishes — which is exactly what the term this touches is.
+
+**The daylight tuner is `o`–`n`, not `o`–`p`.** `p` places the lab's creature, so with the readout open in the lab it did both at
+once (`analysis_review.md`, left unfixed in v11.33 for want of a free pair). The person: "k and l or something like that… whatever
+it is" — but `k` is the audio tuner's and `l` opens the lab, and in fact **every letter on the keyboard is taken except `n`**.
+`KeyO` had no other use, so only the one key moved. The readout's hint line says `o-n`.
+
+**Seen:** the numbers above, computed against the person's own readouts; `node build.js --test` green on both tiers.
+**Unseen:** a real shower at night in the game — the change is arithmetic in one term and was verified against the readouts
+rather than by waiting for weather. Ask whether a rainy night now reads as "dimmer" rather than "blind", and whether the light
+shower (0.215) and the full one (0.187) are far enough apart to feel like different weather.
+
+## v11.34 — the sound bench: what a sound is, as a picture (13 Sep 2026)
+
+Nobody working on this game from here can hear it. Every number in audio.js was chosen blind (AUDIO.md says so at its head), and
+the next thing the person wants is *more* sound — creature voices, combat, the punctuation. So before making any of it: an
+instrument. This version adds nothing the player hears. It adds the ability to look at what they already hear.
+
+**`src/bench.js` (new), `#bench` in the URL or `b` in play or on the menu.** Renders every sound the game makes to a wav and
+posts it to serve.js, which writes it under `test/render/`. Three engines:
+
+- **offline** — a one-shot through the real `thump()`, into an `OfflineAudioContext`, faster than real time. `actx`, `AU.dry`,
+  `AU.send` and `AU.whiteBuf` are swapped out from under audio.js's own helpers and put back in a `finally`; one shared scope
+  makes this three lines instead of a refactor.
+- **solo** — one *live* chain (the ones `initAudio` built) recorded off `master` with every other gain at zero, the medium wide
+  open and the reverb shut. Real time, six seconds, twenty-one chains, about two minutes.
+- **live** — the master bus exactly as the person hears it, wherever the player is standing, space and all. The take names itself
+  by depth and the condition fields, not by a place (PLANET: no place has a name).
+
+**The rule the bench obeys: it never reimplements a sound.** A bench with its own copy of the recipes would measure the copy, and
+the copy would go stale the first time a knob moved. `BN_SHOTS` is the one place a value is repeated — the arguments each
+`thump()` call site passes — and each entry names its call site so a grep catches drift.
+
+**`test/spectro.js` (new)** turns the wavs into `test/render/<name>.png`: the envelope over a log-frequency spectrogram from 20 Hz
+to nyquist across a 78 dB range, the numbers under it, a table on stdout and `_sheet.png` with every panel stacked. The numbers
+are peak, rms, crest, spectral centroid, 85% rolloff, the five band shares (sub/low/mid/hi/air), attack, decay to −40 dB,
+steadiness, clipping and DC. **`test/png.js` (new)** is the PNG writer test/preview.js has had inline since v11.10, plus a 5×7
+font, so the next tool that draws a picture does not write it a third time; preview.js keeps its own copy and is left alone.
+
+**Two one-line changes elsewhere.** `updateAudio` bails on `AU.bench` — the 20 Hz tick would fight the bench for every gain.
+serve.js takes `POST /_bench/<name>` and writes it to `test/render/` (the name is validated as a plain file name; 64 MB fuse).
+test/lint.js learns `DataView`, `Blob`, `fetch` and `alert`.
+
+**Seen: all forty sounds, rendered and looked at.** The bench and the pictures are what this version is, and both were run end to
+end — 13 one-shots, 21 beds, 4 noise buffers, 2 impulse responses. What the first look found, none of it fixed here:
+
+- **Eleven of the thirteen one-shots are the same sound.** Centroids 62–378 Hz, decay to −40 dB between 260 and 385 ms, crest
+  17–20 dB. A knock on rock, a landing on sediment, a bite, a hold torn free and the finback's pulse are one low thud at five
+  volumes. `shot_into_weed` (4.3 kHz, noise only) is the only one that is its own thing.
+- **`thump`'s noise transient is nearly absent.** `shot_knock_rock` asks for a burst at 1.4 kHz and measures 28/72/0/0/0 — nothing
+  at all above 500 Hz in the mean. It is there in the spectrogram, a sliver at t=0, but a Q-1.2 bandpass on white noise passes so
+  little energy beside a 400 ms chirp that the "knock" has no knock in it.
+- **The chirp ends on a visible edge.** `exponentialRampToValueAtTime(0.001)` then `stop()` 50 ms later leaves a step at −60 dB;
+  it draws as a vertical streak at 0.4 s in every one-shot panel.
+- **`bed_crackle` is the best thing in the game's sound** — a dense broadband tick field, crest 37 dB, the shape snapping shrimp
+  actually make — and it is gated to near-inaudibility in play (`0.025 * nut`, rms −56 dB at the bench's fixed 0.5).
+- `noise_white` clips in the render because `auNoise` makes it at ±1 and the bench renders buffers at unity; in the game it only
+  ever passes through a gain. Expected, not a defect.
+
+**Unseen, ask in this order:** (1) whether the forty wavs, played back, agree with what the pictures say — the whole point of the
+bench is that the person's ear and these numbers should be describing the same object, and if they are not it is the bench that is
+wrong; (2) whether `bed_crackle` should be let up in play; (3) the live capture (`4` in the panel) has been built but not taken —
+it wants a real place and a real swim; (4) whether the one-shots get fixed before the creature voices are built or after, since
+the voice synthesiser will want the same transient that `thump` is currently losing.
+
+## v11.34.1 — the tail that wasn't there, and a shadow on the wrong side (13 Sep 2026)
+
+Two things the person pointed at in four screenshots of the finback. Both are one-line fixes in shared code, and both were wrong
+for every clade, not just the slowbloods.
+
+**The tail stem was inside out.** `FIN_TPROF` is written nose-to-tip — `[0.02,0.03]` down to `[0.02,-1.35]` — where every other
+lathe profile in the game climbs. `THREE.LatheGeometry` takes its winding and its normals from the point order, so a descending
+profile builds the surface facing inward: under `MAT`'s front-side culling the finback's tail stem was simply not drawn, and the
+flukes hung off the end of a body that stopped behind the dorsal fin. It has been like that since the tail became a spec part
+(v11.10). `G.lathe` (parts.js) now reverses a profile whose last point is below its first before handing it to three — the
+geometry is identical, only the normals come out — and the copy stays local, so `profR`, `nose` and `tail` still read the array
+the caller wrote. Instrumenting the reversal and walking `test/smoke.js` over all three clades, the bestiary and the lab found
+exactly one call site affected: the `tail` part with `style:'lathe'`. No flora profile and no core profile descends, so nothing
+else moved. The tail is now countershaded the right way up too, which it could not have been before.
+
+**A body printed its own dorsal silhouette on its belly.** The hand-read shadow (`SH_GLSL`, v11.23) multiplied the lit colour by
+`1 − shd·(1−sh)·beam·dl` with no reference to which way the fragment faced. A shadow takes the beam away; a face the beam never
+reached has nothing to lose, and the flat-shaded Lambert had already left it unlit. So the belly got darkened a second time, and
+because the darkening came from a depth map it arrived with the shape of what was above it — the chevron plates, the fin roots,
+the hull's edge — in hard-edged patches on an underside that should read as one even pale sheet. Added `nl =
+clamp(dot(fn,uShL.xyz)·2.5, 0, 1)` to the final multiply. The ×2.5 means a face 24° into the light already takes the full shadow,
+so nothing that was correctly shadowed has weakened: the ground under a creature, a cliff face, the dorsal fin's shadow on the
+back are all unchanged. Only the grazing and away-facing fragments stop double-counting. This also removes the acne a
+near-edge-on facet could show, which the normal offset was carrying alone.
+
+**Seen.** `node test/preview.js fin` before and after: the tail stem goes from a dark inverted wedge to a tapered, countershaded
+continuation of the body. The bestiary's finback, the clade pick and the game in the app's browser, at 1400×800: the tail is
+attached; and with the camera pitched under the player, the finback's and the soft-arm's bellies go from grey hard-edged blotches
+to an even pale underside in the same frame with the same sun. `node build.js --test` green on both tiers.
+
+**Unseen, ask in this order:** (1) whether the tail's shape, now that it is actually drawn, is the shape the finback should have —
+it has never been looked at, and `FIN_TPROF`'s taper was tuned blind; (2) whether the belly now reads too flat — `nl` is a linear
+cut at the terminator and the person may want a softer one; (3) whether any *other* creature's self-shadow still looks wrong from
+below (the ringmouths' arms and the coilshell's whorl were never checked); (4) the hand-written normal offset (`SHM_P.w`, 2 texels)
+could probably come down now that `nl` carries the away-facing case, which would sharpen contact shadows — not touched here.
+
+
+
+## v11.35 — the caustic derived: the sun focused by the wind's ripples (13 Sep 2026)
+
+From the 13 Sep audit of the effects list, the person's own finding: caustics "make the game look ridiculously good but also somehow
+detract from what makes everything else work". The diagnosis had three parts. v11.13's caustic was a *gain* — `× (1 + 1.3·k)`, never
+below 1 — so the floor's mean light went up ~1.4× and the sand clipped to white; that clip was most of the "ridiculously good". Its
+period was ~15 m, the terrain's own facet scale, so it competed with the facets rather than sitting on them as texture (and it is
+the wrong size by 10× for what it claims to be). And it ran on its own clock, unrelated to the surface it was supposed to be. The
+person agreed to energy conservation, a smaller and slower net, quantisation, and derivation, and said the old one need not survive.
+
+**Derived, honestly.** The web on a floor is `1/|det J|`, `J = I − d·c·H`: the Jacobian of the map from a surface point to where its
+refracted ray lands (`d` depth, `c` = 1 − 1/1.33, `H` the surface height's Hessian). Mean 1 by construction: light is moved, never
+made. The first thing the derivation showed is that `WAVES` can't do it — the shortest swell (L 6, A 0.06) has a focal length of ~60 m
+and never focuses in the top 30 — so the web must be the wind's ripples, 1–3 m, which the surface mesh cannot hold anyway (it fades
+waves under seven samples a wavelength). `CAU_R` is that ripple layer, living only in the light: `Q.cau` trains round `WIND_A`
+(3 high, 2 low), each at its own deep-water speed on `uTime`, amplitude × `uChop` — a calm goes glassy and the web dies, which is
+true. The Hessian is analytic per train; the surface point read is the one the fragment's beam came through (up `uSunW` by `d`).
+Damped by `exp(−d/CAU_D)` for the beam's spreading (contrast fades, mean stays 1). Clamped [`CAU_LO`, `CAU_HI`] and quantised in
+steps of 1/`CAU_Q` — the facets' vocabulary, as the cloud deck's three-step light already was. Applied by the beam's share, the canopy,
+whether the beam reaches the face (`nl`'s rule from v11.34.1) and a fade from the eye (`CAU_FAR`). `SEA_FOG.cau` is now a contrast,
+1 physical (was a strength, 1.3); `LIGHT_K` reads it instead of carrying its own literal; the tuner's `t-y` still moves it. Seven
+sines a fragment against the old six nested ones. The tinted materials take `uChop` (`LIGHT_PARS`, `addTint`). Knobs: `CAU_R`,
+`CAU_D` 18, `CAU_Q` 4, `CAU_LO` 0.75, `CAU_HI` 2, `CAU_SWELL` 4, `CAU_FAR` 18–45, `Q.cau` 3/2 (scene.js); `SEA_FOG.cau` 1.0 (world.js).
+
+**Seen, three rounds on the menu's sand in the app's browser at 800×450.** Round one (three trains, LO 0.5, steps of ½): the scale
+was right at last, but three fixed sine trains interfere into a *lattice* — a regular grid of dark ovals — and on sand that white
+the ×1.5 lines clip to nothing while the ×0.5 cells show, so the net read as its own negative. Round two: the ripples now ride the
+swell — the surface point is carried by the horizontal orbital displacement of the longest `WAVES` (~2 rad of ripple phase from
+the 46 m swell) — and the cells came down to one quiet step; the lattice loosened but a 46 m carry shifts a 10 m view almost
+uniformly. Round three: the carry takes the four longest waves (the 15 and 8.5 m chop distort within a view), `CAU_Q` 4 with LO
+0.75 (a quarter step down for the cells), and the far sand's speckle — a metre net aliased at 40 m, which the 15 m pattern never had —
+fades by distance. The result: cells that vary in shape and wander, lines where the sand is not clipped, nothing far. No shader
+errors on either tier; `node build.js --test` green on both. The person's real test — a darker floor, 5–15 m, in motion — was
+not possible from here: the pane's capture breaks after pointer lock.
+
+**Unseen, ask in this order:** (1) whether the net reads as a net on a darker floor (mud, rock, the deep sand) in play, and at what
+depth it is best — the ripple amplitudes in `CAU_R` set the focal depth (~13 m for the 1.6 m train) and were chosen from physics,
+not a look; (2) whether the quantised edges crawl objectionably as the trains move (the cloud deck's steps do the same and were
+accepted); (3) the sand's albedo: it has no headroom above 1 with any caustic, and the old gain hid that by clipping everything —
+the person may now find the sand itself too pale; (4) the low tier's two-train web on a phone; (5) whether the shafts' flicker and
+the shimmer should now read the same ripple field, since the audit named four unrelated clocks for one surface and this fixes one.
+
+
+## v11.35.1 — the net, not the lattice: capillary ripples, six trains, a clamp that isn't a clip (13 Sep 2026)
+
+The person looked at v11.35 in play, over the home shelf's sand at a few metres, and sent a screenshot: a regular lattice of white
+ovals across the whole floor, at the facets' own scale, clipping. "I think this might be a bug." Not in the code — the shader did
+what it was told — but the parameters had reproduced the audit's own complaint. Three causes, all numbers.
+
+**The ripples were ten times too long and steep.** `CAU_R` had 1.6–2.5 m trains at 2 cm: `jc·H` ≈ 0.3 per train at 5 m, so
+`|det J|` sat under the clamp over broad regions — a plateau of level-2 ovals, not thin fold lines — and a metre of swell carry
+barely warps a 2 m lattice. The webs a snorkeller sees come from capillary-gravity ripples of 0.3–1 m at millimetres: cells of
+10–50 cm, folds thin, and for those the same carry is 10–20 rad of phase, which shreds any lattice for free. **Three trains are too
+poor a spectrum.** Rebuilt with three short trains the lattice was gone, but whenever one train dominated its fold lines showed as
+a band of straight stripes across the mid-distance sand — a plane wave's caustic is parallel lines. Six trains now, 0.35–2.2 m,
+spread ±70° round the wind as wind ripples are (`Q.cau` 6 high, 3 low). **The clamp was a clip.** `CAU_HI` 2 on white sand has
+nowhere to go; 1.5 now (two quarter-steps up, one down), and `SEA_FOG.cau` 0.8. And the fade from the eye is per train, in
+wavelengths (`CAU_FAR` [30, 70]: a 0.35 m train is gone by 25 m, the 2.2 m one by 150) — one distance for all had the short train
+speckling while the long one was still legible. Ten sines a fragment (four carry, six trains).
+
+**Seen, three rounds on the menu's sand at 800×450, three frames each.** Short trains: lattice gone, a stripe band at moments.
+Per-train fade: the band stayed (it was not aliasing — 0.35 m is ~27 px at 10 m there). Six trains: an irregular dapple of 20–40 cm
+cells that wanders frame to frame, no lattice, no band, the cells one quiet step down and the lines pale. `node build.js --test`
+green on both tiers; no shader errors either tier.
+
+**Unseen, ask in this order:** (1) the same view the person sent — the shelf's sand at a few metres in play, moving; if it still
+reads as too much, `SEA_FOG.cau` (the readout's `t-y`) is the knob and 0.5 is a reasonable floor before anything structural; (2)
+a darker floor at 8–15 m, where the 0.7–1 m trains focus and the net should be at its most legible; (3) the low tier's three-train
+web; (4) the rest of v11.35's list.
+
+
+## v11.35.2 — the sun has a size, and the net has two tones (13 Sep 2026)
+
+The person looked at v11.35.1 in play at 12 m over the shelf's sand: "still kinda looks weird". The screenshot was a uniform
+halftone — every train contributing equally everywhere, and quarter-step quantisation on 30 cm cells reading as a dot screen, not
+as facets. Two fixes, both with a reason.
+
+**The sun's disc.** A half-degree sun, widened by forward scatter in the water, blurs the floor's pattern by `d·θ`; at 12 m that is
+~14 cm, which erases a 35 cm train's contrast (×0.04) and leaves the metre trains (×0.7–0.9). Deep caustics are large and soft for
+exactly this reason. Now per train: each Hessian term is scaled by `exp(−2(π·d·CAU_SUN/L)²)` (`CAU_SUN` 0.012 rad), replacing the
+crude `exp(−d/CAU_D)` on the whole — the short trains own the shallows, the long ones the deep, and the mean stays 1 at every depth.
+
+**Two tones.** `CAU_Q` 2: with `CAU_LO` 0.75 the only level that survives rounding is ×1.5, where the focus is 1.25 or more. Pale
+lines on the floor and nothing else — Wind Waker's caustic, which is the low-poly reference for this — no dark cells, no dither. The
+mean is now a little over 1 (the lines' share, ~1.1 at their densest) rather than exactly 1; `SEA_FOG.cau` 0.8 stands.
+
+**Seen** on the menu's sand at 800×600, two frames: a two-tone net of pale lines, cells 30–60 cm, wandering; the sand between them
+its own colour. `node build.js --test` green on both tiers.
+
+**Unseen, ask in this order:** (1) the person's 12 m view: the metre trains alone should give a soft, sparse net there, cells ~1 m;
+(2) whether the lines' coverage in the shallows is too dense — `CAU_LO` up (0.8: only focus ≥1.3 shows) thins them; (3) v11.35.1's list.
+
+
+## v11.35.3 — softer, sparser, bigger: what the old one had right (13 Sep 2026)
+
+The person put v11.35.2 at 14 m beside two shots of v11.13's caustic: "still kinda weird, a little too small maybe". Side by side
+the lesson was plain. The old one looked right because it was soft, sparse and big; the clip was its only real crime. The new one
+was right in scale for a snorkeller and on screen was a dense two-tone camo print: half the floor covered, hard edges, the same
+density everywhere. Three knobs, each with its reason.
+
+**Bigger at depth.** `CAU_SUN` 0.012 → 0.02: the blur at 14 m is 28 cm, which leaves only the 1.4–2.2 m trains — cells of about a
+metre, not 40 cm — and by 25 m the net is quiet on its own, as the old one was in the kelp. **Thinner lines.** A line now needs a
+focus of `CAU_T` 1.5 (was 1.25): coverage falls to roughly a fifth. **A soft step.** The hard two-tone was most of the "weird": the
+cloud deck's hard steps work because its shapes are huge on screen; at 40 cm they are a print. `smoothstep(CAU_T − CAU_SOFT,
+CAU_T + CAU_SOFT)` with `CAU_SOFT` 0.25 replaces the floor; 0 gets the hard edge back. `CAU_Q` and `CAU_LO` are gone.
+
+**Seen** on the menu's sand at 800×450, two frames: sparse pale flecks between the blades, no print; white sand gives it little to
+show against. `node build.js --test` green on both tiers. The 14 m view was tuned from the physics, not seen.
+
+**Unseen, ask in this order:** (1) the person's 14 m view over the shelf — the metre trains alone, soft, about a fifth of the floor;
+if it is too faint `CAU_T` 1.3 doubles the lines, if too sharp `CAU_SOFT` 0.4; (2) whether the shallows (2–5 m) still read as a
+net at all now that the threshold is high — they should, the short trains are sharp there; (3) v11.35.2's list.
+
+
+## v11.36 — the sea baked: thirty-two ripple trains in two tiles a ring, and the net comes out (13 Sep 2026)
+
+The person put v11.35.3 at 16 m beside the old one: "certainly looks cuter … it looks good actually, it's just not accurate", and asked
+whether the problem could be made easier. It could. Polka dots on a near-grid are the signature of two plane waves below their focal
+depth — `|det J|` never reaches zero, so its minima are isolated curvature peaks — and a real net (connected fold lines round cells)
+needs a broadband surface: the sea is a random field, not six sines. Thirty-two sines a fragment is silly; but the Hessian is linear
+in the trains, and trains of one wavelength share one frequency (dispersion), so a ring of trains at that wavelength can be baked once.
+
+**The bake (`scene.js` `CAU_RINGS` … `CAU_TEX`).** Four rings (2, 1.2, 0.75, 0.45 m; `Q.cau` 4 high, 2 low), `CAU_DIRS` 8 trains each on
+the `CAU_TILE` 16 m lattice (k = 2π n / T, so the tile wraps; a ring is the lattice vectors within ±18% of its wavelength, one per
+direction bin within ±`CAU_SPREAD` 1.2 rad of the wind), random phases and amplitudes (`mulberry(1717)`), amplitude by `cos` of the
+angle off the wind. For each ring two 192² byte tiles: the sin and cos parts of (Hxx, Hxy, Hzz), since sin(k·x − ωt + φ) =
+sin(k·x + φ)cos ωt − cos(k·x + φ)sin ωt. The fragment recovers the exact broadband field at any time from two taps and one sincos a
+ring (`CAU_GLSL`), the sun-disc blur and the far fade now per ring — where they belong, by wavelength. ~2.4 M sines at boot, in the
+scene's load. `CAU_R` and the per-fragment trains are gone; the swell carry, `det J`, the line step stay.
+
+**Two numbers, found with a picture.** The first bake at millimetre amplitudes gave blobs at every depth: RMS `jc·H` ≈ 0.4 at 5 m,
+so `det` never crossed zero and the bright set was the curvature peaks again. ×2.5 (RMS slope ~0.15, a breeze-ruffled sea) and the folds
+appear — as fat worms over 36% of the floor, because a threshold of 1.5 on `1/|det|` is `|det| < 0.67`, a wide band round each fold.
+A fold line is thin only where `|det|` is small: `CAU_T` 3, `CAU_SOFT` 0.8 — 18% at 5 m, 10% at 16. And an 8 m tile repeated visibly
+inside a 16 m view; 16 m at 192 texels (8 cm; the 0.45 m ring at 5.4 texels a wavelength).
+
+**`test/caustic.js` (new, not in `--test`).** The picture that found those numbers: runs the bake against the stub and draws
+`1/|det J|` through the line step at a few depths into `test/preview/caustic_<d>m.png`, printing the lines' coverage. `DEP`, `CT`,
+`CS`, `SPAN`, `W`. Tune there first; the menu's white sand shows nothing.
+
+**Seen.** `test/caustic.js` at 5 m: thin wandering connected lines round 0.5–1 m cells — a net; at 16 m soft sparse dashes from the
+long rings alone, which is what deep caustics do. The menu's sand in the app's browser: thin pale lines, no errors either tier.
+`node build.js --test` green on both.
+
+**Unseen, ask in this order:** (1) the person's 16 m and 5 m views over the shelf — the net's density is `CAU_T` (down for more),
+its softness `CAU_SOFT`, its strength `t-y`; (2) whether the 16 m tile's repeat shows on a long flat (the swell carry warps it; a
+32 m tile at 384² would cost ~10 M sines at boot); (3) the low tier's two long rings; (4) the boot cost on the person's PC — the bake
+is synchronous in scene.js's load, behind the fade.
+
+
+## v11.36.1 — the rings half again as long (13 Sep 2026)
+
+The person looked at v11.36 at 10 and 12 m over the shelf: "much better … still kinda small dots, but they come on naturally". The
+shape is right now, so the rest is scale: `CAU_RINGS` ×1.5 in wavelength — 3, 1.8, 1.1, 0.65 m — with the amplitudes ×2 so the
+steepness holds (`A k²` scales as 1/L; RMS slope ~0.2, still a breezy sea) and the folds keep forming at 5 m. Nothing else moved.
+
+**Seen** in `test/caustic.js`: at 10 m a net of connected lines round 1–1.5 m cells (was 0.5–1), the lines over 22–23% of the floor at
+5, 10 and 16 m alike. `node build.js --test` green on both tiers. Not looked at in the browser this round: the menu's white sand shows
+nothing the picture doesn't, and the person is the one swimming.
+
+**Unseen, ask in this order:** (1) the same 10–12 m views — if the cells are still small, the rings can go ×1.5 again (the tile holds
+it: a 1 m ring at 12 texels a wavelength) though 4.5 m ripples are a stretch to call wind ripples; if the net is now too dense,
+`CAU_T` 3.5; (2) v11.36's list.
+
+
+## v11.36.2 — the net in blocks, and a wider sun (14 Sep 2026)
+
+Five shots from the person of v11.36.1 (kelp forest 9 m, rock 25 m, sand 6 m and 5 m, a field at 7 m): "the best by far … not great";
+and, on reflection, that the shader "might be too nice or clean for the low poly game — maybe a more pixelated effect would land better".
+What the shots said, in order: the net at 25 m was as crisp as at 6 m, the same cell size (the deep should be soft big blobs); the
+forest floor had a full net under a dense canopy (the canopy term is the water map's 36 m texels — the honest fix is the world shadows,
+a separate pass); the density was the same everywhere (a gusty modulation, a follow-on); and the lines were anti-aliased curves
+sliding across flat facets — the last thing on the floor no vertex explained. This pass takes the first and the last.
+
+**Blocks (`CAU_PX` 0.15 m).** The surface point is snapped to a world grid after the swell carry, so the net is drawn in world-fixed
+blocks the pattern moves through, like a display; a block is lit or it isn't (`CAU_SOFT` 0, and the step is `step()` — `smoothstep`
+with equal edges is undefined GLSL). `CAU_STEP` (frames a second the clock steps in; 0 continuous) is there for stop-motion water and
+off by default, since it can read as lag. **A wider sun (`CAU_SUN` 0.03).** At 25 m the spread is 0.75 m: the 1.8 m ring is gone and
+the 3 m one is soft blobs 1–2 m across; the cells grow with depth, which is what deep caustics do and answers "small dots" the
+physical way. `CAU_T` 2.5 (was 3) to keep the shallows' lines two blocks wide.
+
+**Seen** in `test/caustic.js` (which now snaps to `CAU_PX` and takes a hard step at `CAU_SOFT` 0): 25 cm blocks at 5 m were confetti —
+the lines were one block wide; at 15 cm and `CAU_T` 2.5 a blocky connected net round 0.7–1.5 m cells (18% of the floor), and at
+16 m sparse soft blobs 1–2 m across (10%). The menu in the app's browser boots with no shader error on either tier; `node build.js
+--test` green on both.
+
+**Unseen, ask in this order:** (1) the person's 5–7 m views: do the blocks read as the world's grain or as a screen door — `CAU_PX`
+is the knob (0.2 coarser, 0.1 finer, 0 off); (2) the 25 m rock: soft blobs now, or still a net; (3) whether stop-motion is wanted
+(`CAU_STEP` 8); (4) the follow-ons the shots named — the canopy (world shadows) and the gusts (a slow world-space modulation of the
+rings' amplitude, which wants a small bake of its own); (5) v11.36.1's list.
+
+
+## v11.37 — the sea at the world's scale, with gusts (14 Sep 2026)
+
+Six shots of v11.36.2 from the person and a clear brief: "your main task is to make the caustics look good." What the old one had
+right was metres-wide, soft, irregular, sweeping; v11.36.2 had "reworked it into various circles that move around" — at 11–15 m the
+long rings were below focus and gave blobs, "all still kind of tiny blob looking, so nothing on top of that will sit right". Near the
+surface the fine fast web was "really cool". The 15 cm blocks read a little weird only because the shadows are smoother — two grains.
+And "nothing in the kelp forest, no caustics at all": that was v11.36.2's `CAU_SUN` 0.03, which blurred every floor past ~18 m dark
+(the only intentional cut is the floating colonies' canopy mask, `canopyW`, 85% under a raft mat; kelp is not in it) — back to 0.02.
+
+**Rings ×2.5, equal curvature.** `CAU_RINGS` 5, 3, 2, 1.2, 0.7 m (`Q.cau` 5 high, 3 low) on a 40 m tile at 320². The first try kept
+the steepness, which is the physics of a wind sea — and puts the curvature in the shortest waves, so the folds were still a fine web.
+Amplitude ∝ L² instead (equal curvature a ring, ~0.15 per train: a 5 m wave at 11 cm, honest chop), so the 5 m ring is an equal
+partner and the cells come out at its scale; the 0.7 m ring is a trace of the fine web in the top few metres. **Gusts.** A second
+tile (`CAU_GTEX`, 64², three octaves of the world's value noise at `CAU_GUST` [110 m, 0.75]) modulates the rings' amplitude by
+1 − 0.75·(1 − n): patches of strong net and patches of calm, as a gusty wind ripples a sea, instead of one texture over the whole
+floor. One tap. **Blocks 30 cm** (`CAU_PX`), lines two or three blocks wide at these scales — chunkier, nearer the shadow's grain.
+
+**Seen, in `test/caustic.js` (which now takes the gusts, `OX`/`OZ` and a wide `SPAN`).** At 10 m over 16 m: blocky ribbons metres
+long, half a metre to a metre wide, irregular — the world's grain. Over 120 m at 8 m: dense zones and calm zones, no tile grid (a
+24 m tile showed as a lattice of the same ribbons at 100 m; 40 m does not). Lines over 7% of the floor at 5 m, 14% at 10, 19% at 16
+(`CT` 2.5). The menu in the app's browser boots with no shader error, the whole load 655 ms on this PC with the ~8 M-sine bake in
+it. `node build.js --test` green on both tiers.
+
+**Not built, offered.** The two grains: snapping the shadow lookup to the same block grid as the caustic is a one-line change in
+`SH_GLSL` and would give blocky shadows — the audit argued for a harder shadow edge anyway. The person's call.
+
+**Unseen, ask in this order:** (1) the person's 5–15 m views — big enough now, and do the ribbons read as light; `CAU_RINGS`' first
+entry is the scale, `CAU_T` the density; (2) the gust patches in play — `CAU_GUST[1]` 0.75 is the depth of the calm, 0.5 milder;
+(3) whether the near-surface web survived in a form he still likes (the 0.7 m ring is weak now); (4) the blocky-shadow offer;
+(5) the boot cost on the person's PC (`CAU_N` 320 → 256 halves the bake).
+
+
+## v11.38 — two lights, one switch: pixel and smooth (14 Sep 2026)
+
+Three shots of v11.37 from the person: "this does look cool. A little too busy — too many pieces and small things going on. Maybe even
+bigger? The ribbons don't always read as light." And the decision: keep the pixel style as its own version and the high-resolution
+one as its own, snap the shadows to the caustic's grain in the pixel one, and compare — "this may be one of those games where nice
+effects work well with low poly textures. But for now we need to try both."
+
+**The switch.** `pixel light` on the effects list (`e`; default on; `FX.pixel` → `pixU`, scene.js `uPix`). Pixel: the caustic in
+`CAU_PX` 30 cm world-fixed blocks with a hard step, and the shadows read at the same grid — the receiver point snapped to it and moved
+along its face's plane so it stays on the surface (a face steeper than ~72° is left alone), one hard tap instead of the four-tap
+penumbra. One grain for both systems. Smooth: no snap, the caustic through a wide soft step (`CAU_SOFT` 1.2 either side of `CAU_T` 3),
+the shadows as v11.23 built them — the OG's broad sweeping patches, now over a real structure. Both are the same bake; the switch is
+a uniform read in the fragment. `test/caustic.js` draws either (`PIX=0`).
+
+**Bigger and quieter.** `CAU_RINGS` 8, 5, 3, 1.8, 1 m (the 8 m wave at 28 cm, honest chop), the 1 m ring at half weight; `CAU_T` 3.
+Fewer pieces: lines over 3% of the floor at 5 m, 13% at 10, 18% at 16.
+
+**Seen.** `test/caustic.js` at 10 m over 16 m: pixel — sparse chunky patches 1–2 m across, a calm gust over the top half; smooth — the
+same shapes as soft broad patches with gradients, unmistakably the OG's look. The menu in the app's browser: the row is on the list,
+the switch flips live both ways and persists in `tethys.fx`; with pixel on the creature shadows have stepped edges and the sand
+blocky patches, with it off both are soft; no shader errors. `node build.js --test` green on both tiers.
+
+**Unseen, ask in this order:** (1) the comparison itself, in play, at 5–15 m — which the person prefers, and whether the pixel
+shadows' steps sit well on a body's shadow (they are world-fixed, so a swimming animal's shadow crawls through them); (2) whether
+8 m is big enough or too big — `CAU_RINGS[0]`; (3) whether the smooth version wants a lower `CAU_T` (denser, more like the OG's
+coverage) — the two versions share it today; (4) acne on steep slopes in pixel mode (the snap is skipped past 72°, the band between
+is untested); (5) v11.37's list.
+
+
+## v11.38.1 — the beam diffuses, the edges agree, and a brightness slider (14 Sep 2026)
+
+Five shots of v11.38 from the person: "WOW, looks so so so much better … the pixel look is interesting, not bad at all, but I
+genuinely think the nicer looking effects are better for a game like this. The new caustics are legitimately awesome. My only
+complaint is how they have these arbitrary thin and blurry zones." And: a slider to adjust the brightness.
+
+**Two causes of the blurry zones, one of them physics.** The soft step was ±1.2 round the threshold, so weak focus — a calm gust,
+a fold seen off its line — painted as a broad faint smear beside a crisp line. Softness belongs to depth, not to the local
+strength: `CAU_SOFT` 0.5, and every patch has the same edge. And the first shot was at **73 m** with a clear net on it: the sun-disc
+blur sets the cells' size with depth but the beam's diffusion by scatter is what kills the contrast, and real caustics are gone by
+25–30 m in clear water. `CAU_D` 30 m: a contrast fade `exp(−d/CAU_D)` — 85% at 5 m, 60% at 15, 9% at 73 — on top of the disc blur.
+
+**The slider.** `brightness` under `caustics` on the `e` list (`FX_SLIDERS`, effects.js: a slider is [label, key, min, max, step]
+under a switch; the key is a number in `FX_DEF` and persists with the switches — the loader now takes any value of its default's
+type). `FX.cauK` 0..2, default 1, multiplies `SEA_FOG.cau` where `LIGHT_K` is written (atmosphere.js); the readout's `t-y` still
+moves the base. `pixel light` now defaults off — the person's preference "at least for now"; a saved choice is kept.
+
+**Seen.** `test/caustic.js` smooth at 10 m: the same shapes with one edge everywhere, the smears gone. The menu in the app's browser:
+the slider row under caustics, live, the value read back from `tethys.fx`, the switch rows still toggling round it; no errors.
+`node build.js --test` green on both tiers.
+
+**Unseen, ask in this order:** (1) the deep — does the net now fade away by 25–30 m as it should, and is the shelf at 5–15 m still
+as the person liked it (`CAU_D` up if it lost too much); (2) the edges — one softness everywhere now; if the crisp lines are wanted
+crisper, `CAU_SOFT` 0.3; (3) the slider's range (0–2) — whether 2 is ever wanted; (4) v11.38's list.
+
+
+## v11.39 — a wind sea, light moved not made, gusts that blow, shafts on the same clock (14 Sep 2026)
+
+The believability conversation the person deferred until the look settled, held 14 Sep and decided (PLANET, Decided 14 Sep 2026).
+Four answers, four changes.
+
+**No film: a wind sea and nothing else.** v11.38's rings had equal curvature — which is a sea with its short waves damped, a slick —
+and I had offered the floating colonies' organics as a story for it. The person: "I had not intended for the planet's sea to carry a
+film … I simply want to prioritise believability, even if it means smaller caustics. There is no stated stylisation." So `CAU_RINGS`
+are a wind sea: constant steepness ak 0.06 across 8, 4, 2, 1, 0.5 m (7.6 cm down to 5 mm), which puts the curvature in the short
+waves. Each ring folds at its own depth and the sun's disc and the beam's diffusion take the short ones first, so the net grows with
+depth on its own: a fine fast web in the top few metres, metre cells at 5–10, 2 m at 10–15, soft patches by 20, nothing by 24. The
+tile is 384² for the 0.5 m ring (5 texels a wavelength); ~12 M sines at boot, the whole load 725 ms on the dev PC.
+
+**Light moved, not made** (`CAU_DARK` 0.35). The cells of the net — where the surface defocuses, `1/|det J|` < 1 — are darkened by
+`CAU_DARK·(1 − I)`, so what the lines add the cells give back. `test/caustic.js` now prints the drawn factor's mean over the floor:
+0.99–1.00 at 3, 6, 10, 16 and 24 m. v11.35 had this exactly and v11.36–v11.38 lost it to the line threshold.
+
+**Gusts drift downwind** (`uWindOff`). The gust tile is sampled at `ps − windOff`, the wind's integral (`K.windOff`, the clouds'
+drift) modulo the tile: cat's paws cross the floor at the wind's speed, 7 m/s in the trades, a calm's crawl in a calm.
+
+**The shafts read the surface** (`cauFocus`, scene.js; `SH_FOC` 8, atmosphere.js). The focusing at a point, now, on the CPU from the
+same tiles — the swell carry, the gust, the rings at their phases, the disc blur, det J. Each light shaft's alpha is scaled by the
+focusing over its head (0.25 + 0.5·I, clamped 0.2–1.6): a shaft is a beam the surface focused, so it brightens and dims with the
+same field the floor's net is drawn from. The two-sine flicker it had since v11.13 is gone. Of the audit's "four clocks for one
+surface" the shimmer alone remains on its own.
+
+**Seen.** `test/caustic.js` (`PIX=0 DEP=3,6,10,16,24 SPAN=24`): 3 m a fine web of thin lines with darker cells, gust-varied; 10 m a
+net of 1–2 m cells, darker inside, bright lines; 24 m nothing. Lines over 6–10% of the floor, mean 1.00. The menu in the app's
+browser boots with no error (an overcast moment, no net to see); `node build.js --test` green on both tiers, the shafts' CPU read
+included in the smoke.
+
+**Unseen, ask in this order:** (1) the wind sea in play — the fine web at 2–4 m the person once liked and once found "busy" is
+back by decision; whether it reads as water; (2) the darkened cells on the pale sand — too grey, and `CAU_DARK` comes down (0.2), the
+mean then a little over 1; (3) the shafts — do they now flicker with the net beneath them, and is 0.25 + 0.5·I the right range;
+(4) the gusts' drift at 7 m/s — visible, and not a slide; (5) the boot cost (`CAU_N` 384; 320 loses the 0.5 m ring's shape).
+
+
+## v11.39.1 — PIXEL.md: the de-res, designed (14 Sep 2026)
+
+A document, no code. The person, on the pixel light: "the pixel version is awesome … it would only look proper if the rest of the game
+was like that" — then, with a screenshot of it at 20 m: "de-res the rest of the game: not changing any meshes, just the texture
+being pixelated to a rough or equivalent size, more Minecraft-like; the ground and objects too, so the pixel shadow/caustic look
+matches it." `PIXEL.md`: one rule — in pixel mode a surface's colour is constant over a cell of a texel grid fixed to the thing it is
+on (the world for the ground, the body for an animal, the instance for a plant) — built as a shader path behind the light's own
+`uPix`: the fragment extrapolates its interpolated colour to the cell's centre with screen-space derivatives (exact within a facet,
+~25 ops), posterises it, and adds a hashed tone per cell for grain, with the creature coats gaining a `pattern` for stripes, spots,
+plates and scales in body space. No second world, no conversion script, no textures, no memory; the switch is instant both ways.
+Three passes (the de-res; the texels' pattern with the lab's controls and `test/preview.js PIX=1`; the edges) and six Open questions
+for the person — the bodies' texel size first. Not built.
+
+
+## v11.40 — the de-res, pass A: the world in texels (14 Sep 2026)
+
+PIXEL.md pass A, the person's six answers taken as given (bodies 0.15 m, the world 0.3, the fog continuous). Meshes untouched. One
+switch: `pixel light` on the effects list is `pixel` now — the light's blocks and the world's texels together, off by default as it
+was. "Look at it before you tell me it's done": looked at, below.
+
+**The rule, built** (scene.js, "The de-res" at `PIX_T`). In pixel mode every tinted surface's colour is constant over a cell of a texel
+grid fixed to the thing it is on. `addTint` adds a varying `vGrid`: the position before the model and instance matrices, read at
+`begin_vertex` (before the sway, the collapse, the wave — the texels ride the blade) and scaled to metres by the object's and the
+instance's scale; a material with `grid 'world'` takes the world position instead. The fragment (`PIX_GLSL`) extrapolates its own
+colour to the cell's centre with screen-space derivatives — the tangent basis `dFdx/dFdy(vGrid)`, the centre's offset put on the face's
+plane along its dominant axis (the xz grid on a floor, yz or xy on a wall — the three-way pick a Minecraft block makes), a 2×2 solve for
+the screen offset, `col + a·dFdx(col) + b·dFdy(col)` — exact for a linear interpolant, then posterises to `PIX_TONES` 16 levels a
+channel. It sits before the light block (whose caustic and shadows snap themselves, v11.38) and before the tint and the fog (continuous,
+decided). Which grid: the terrain (`TERRAIN_MAT`, cells and the far mesh alike) and the landmarks on the world's; bodies on their own
+(`PIX_TB` 0.15: every non-instanced lit material — `MAT`, `MATBIG`, `MATT`, the lab's); every instanced thing — plants, the cells'
+boulders, the structures, the far cards — on its instance's at `PIX_T` 0.3. `CAU_PX` is `PIX_T` now: one knob. The landmarks
+(far.js `keep`) moved off `MATBIG` onto a new `MATLM` — the same material with `grid 'world'` — because `MATBIG` is also a big
+animal's far LOD and a shared material can't be both. The shimmer (`sunMesh`) is hidden in pixel mode (a canvas radial gradient has no
+cells). Off, the whole thing is one uniform test per fragment; nothing new is allocated, no texture, no target.
+
+Also: serve.js's sink takes a `.png` (a screenshot of the canvas posted from the app's browser — how the shots below got off the page:
+`renderer.render` then `canvas.toBlob` then POST `/_bench/<name>`); test/smoke.js flips the switch on for one clade (the JS path:
+`fxToggle`, `fxApply`, the shimmer's rule; the stub compiles no shader).
+
+**Seen** (dev.html in the app's browser, the switch on, finback, 14–17 m, the sun behind cloud): every lit program compiled with the code
+(read back from the page: `vGrid` in the fragment of all twenty-one tinted programs, the world grid on the terrain's and the landmarks'
+only), no console error. The menu: the sand in 0.3 m blocks, the three bodies banded. The shelf forest at (330, 0): the floor in
+world-fixed blocks with the finback's shadow on the same grain. The finback at 3 m: the countershade in bands, the band edges
+stair-stepped at 0.15 m. A boulder at 2 m behind it: flat facets, one stepped tone boundary. The lab's soft-arm at 2 m: the ridge's
+pale patch with a stepped edge. The talus slope from 16 m. A blade at 1.5 m: one flat green — a blade's vertex colour is flat, so
+there is nothing to band (pass B's vein is what would show on it). `node build.js --test` green on both tiers.
+
+**What it looks like, plainly:** posterised more than texelised. The gradients across a body or a facet are gentle, so sixteen levels
+give two or three bands and the grid shows only where a band's edge falls; a flat-coloured face shows no grid at all. That is what
+pass A is — pass B's per-cell grain is what makes every cell visible. If the person wants the grid to read before B, `PIX_TONES` 8.
+
+**Unseen, ask in this order:** (1) motion — does anything swim as the camera moves (a still frame cannot show it; the grid is fixed
+to the thing by construction, the extrapolation is the new part); (2) the tone count — 16 leaves a body in two or three bands; (3) the
+rigs — arms and tails are skinned by `rigSkin` into their own geometry, so their grid is the rig's frame: do an arm's texels crawl
+along it as it bends; (4) the near/far seam — both terrains are on the world grid, but the far mesh's facets are coarser, so the
+extrapolation is from a different plane: does the cell's edge show; (5) walls — the caustic snaps on xz where |n.y| > 0.3 while the
+colour picks the dominant axis, so on a face between 17° and 35° off vertical the two grids differ; (6) the rocks' tide band
+(`BAND_GLSL`) runs after the snap and is still a smooth gradient across the texels (pass C, the edges; the boulder's foot runs
+before it and is snapped); (7) cost — ~40 ops a fragment in every lit program, behind a uniform branch: `render` ms on the 4060
+with the switch on and off, in the forest.
+
+**Seen by the person (14 Sep 2026):** "Looks great. Literally zero complaints." The animals and their rigs look right; render cost is a later thing — pixel mode is an optional style, kept so the two looks can be compared. Nothing on the unseen list was raised.
+
+
+## v11.41 — the de-res, pass B: the pattern in the texel (14 Sep 2026)
+
+PIXEL.md pass B, on the person's "let's do it" after pass A ("literally zero complaints"). Constant colour per cell was the de-res; a pattern
+per cell is the Minecraft. Pixel mode only; nothing changes with the switch off.
+
+**The grain** (scene.js `PIX_CLS_GLSL`, after the posterise). A hash of the cell's index gives one of {−1, 0, +1} × `PIX_GRAIN` 0.06 of tone,
+weighted by the material's class (`PIX_CLASS`): sand 1.0 and rock 0.6 on the terrain, told apart by the vertex colour's luminance (the
+terrain colours by substrate, so no new data); placed rock, structures and the landmarks 0.6; plants, blades and the far cards 0.4; bodies
+0.5. Applied as one multiplier so a 6% step survives the sixteen levels. Every `addTint` material names its class (`cls`, the sixth
+argument; the sway materials are blades when thin and plants otherwise; `MAT` instanced is a plant, non-instanced a body).
+
+**The marks.** Rock: a darker stratum every `PIX_STRATA` 4 cells of world height (1.2 m), by 0.08 — the boulders share strata across a
+face. Blades and cards: a vein every `PIX_VEIN` 3 cells across the growth axis, by 0.08 (the across index is the cell axis that is not
+the growth axis). Bodies: the coat's pattern in body space — stripes bands along z, spots hashed clusters of scale² cells at a 30%
+threshold, plates a coarser grid with a darker seam, scales the same grid with every other row offset by half a period.
+
+**The spec** (creatures_spec.js "the texel pattern"): `spec.pattern = {kind, scale, tone}`; `PATTERNS` none | stripes | spots | plates |
+scales; by clade unless the spec says (`PATTERN_BY_CLADE`, the person's rule: ringmouths spots, slowbloods stripes, hingeshells plates,
+drifters none), `PATTERN_DEF` scale 3 cells, tone 0.12; `fillSpec` fills it, so the export, the hash and the share carry it like any key.
+It reaches the shader as a per-vertex attribute `aPat` on every mesh of the body, the rigs' too (`patternOn`, at the end of `compile`), and
+on the far LOD's baked geometry (creatures_ai.js spawn) — no per-mesh uniform on a shared material (r128 re-uploads a Lambert's uniforms only
+when the material changes between draws, so an `onBeforeRender` hook would not have worked). A geometry without it — an egg, a plant on
+`MAT` — reads zero and draws no pattern. The lab's coat tab has the three controls (pattern, period in cells, tone) with a note when the
+switch is off; the **custom** option and the painter are pass D, as decided.
+
+**`test/preview.js PIX=1`** draws a body as pixel mode does — the tri's colour posterised, the grain and the pattern per 0.15 m cell of the
+body frame, the same column and hash rules in JS — so a coat can be looked at without the game: `PIX=1 node test/preview.js fin soft`.
+
+Fixed on the way: the pass A note on the shimmer line (atmosphere.js) was a trailing `//` that ate the rest of its line, so the shimmer's
+opacity and position stopped updating in v11.40 (lint found `SHIM_A` unreferenced). One version; in pixel mode it was hidden anyway.
+
+**Seen** (dev.html in the app's browser, the switch on): the sand grained in 0.3 m cells — the floor reads as texture now, not bands; the
+dome boulder at 20 m in horizontal strata; the finback striped; the crusher (a slowblood) in 0.45 m bands, the sickle (a hingeshell) in
+plates on its hull and in scales at tone 0.3 after the lab's select was changed through the real input path (the spec and its hash carried
+it, no error); the three controls on the coat tab with the clade's default filled in; a dark mud floor at the rock weight. `PIX=1`
+previews of fin (stripes), soft (spots) and crusher. `node build.js --test` green on both tiers; lint clean.
+
+**Unseen, ask in this order:** (1) the tone: is 0.12 by default a mark or a smudge, and is the sand's grain (1.0) too busy at 14 m;
+(2) spots at 30% of scale² clusters — a ringmouth up close; (3) the vein on a real blade at a metre (the floor shot had only tufts);
+(4) the strata on a wall — the cell there is a column along x or z, so the stripe is by `vWy` and stays level, as it should; (5) the
+far cards' vein against the near plant's at the `FLORA_FAR` hand-off; (6) the bestiary run-through, every species' clade default.
+
+
+## v11.41.1 — the strata binned, the rock grain coarse, texels on their own switch (14 Sep 2026)
+
+The person on v11.41: "those textures look AWESOME", the sand's grain good; two comments. **The rings round the rocks go**: they were
+`PIX_STRATA`, the darker stratum every 1.2 m of world height, which on a boulder is a set of level rings — gone, knob and all. The rock's
+grain is coarse instead: hashed on clumps of `PIX_ROCK_CLUMP` 3 cells (0.9 m), weight 0.7. **The switch is two**: `pixel light` (the
+caustic and the shadows in blocks, `uPix`, as v11.38 had it) and `texels` (the de-res and the pattern, a new uniform `uTex`; the shimmer
+hides with it), so the textures can be tried under the smooth light. Both off by default; a saved `pixel` choice is kept, `texels` starts
+off. The lab's note and the smoke test follow the new key.
+
+**Seen:** the effects list with both rows; texels on and pixel light off — the sand grained under the smooth caustic and the soft shadow;
+a boulder with no rings and 0.9 m clumps. `node build.js --test` green on both tiers.
+
+**Unseen:** the boulder's coarse grain up close — 0.7 at 0.9 m may want more weight now that the strata are gone.
+
+
+## v11.41.2 — the light out of the texel (14 Sep 2026)
+
+The person's two screenshots of v11.41.1 (texels with and without the pixel light — "fantastic" with it; without, "more time to decide"; the
+texels "add a lot of visual character"): the ground's light showed as "odd ring effects … colours radiate out in the zone they're colouring
+as you move across it … like light sources glow with rigid contours … reminds me of Morrowind". Diagnosis: the player's own point light
+and the sun's falloff are smooth per-vertex ramps, and the posterise turned the ramp into sixteen level rings that move with the light —
+exactly Morrowind's vertex-lit bands.
+
+**Built** (scene.js `PIX_GLSL`, the note "The light in the texel"): by default the fragment splits the colour it has into albedo
+(`diffuseColor.rgb`, the vertex colour times the material's — in scope at `fog_fragment` in r128's Lambert and Phong) and light (what is
+left after dividing it out). The albedo alone is extrapolated to the cell, posterised and grained; the smooth light multiplies back. Colour
+in cells, light continuous; the countershade still bands, since it is in the vertex colour. **`banded light`**, a row under `texels` on the
+effects list (`FX.texelLight`, `uTexL`), is the v11.41 look, kept to compare; off by default.
+
+**Seen:** the menu and the shelf with texels on, banded light off: the sand in cells with the player's light a smooth pool over them, no
+rings; the same with banded light on: the rings back. `node build.js --test` green on both tiers.
+
+**Unseen, ask:** whether the smooth light is the one — and whether without the bands a body's countershade still reads as pixel art or now as
+a smooth-lit sprite (the tones are in the vertex colour and still band, but the sun's own Lambert gradient across the flank no longer does).
+
+
+## v11.41.3 — the posterise dithered (14 Sep 2026)
+
+The person on v11.41.2's smooth light, with two videos: "freezing the lighting just makes it look like rainbow sherbet … static … like the
+dirt has changed colours"; the banded light is "distracting to the point I know people would beg me to let them turn it off"; "is it
+possible to have the light at a higher resolution?" The rings were the posterise's hard steps on a smooth ramp; the smooth light took the
+steps out of the light and left the ground's colour patches frozen under a light that no longer read as light.
+
+**Built:** the posterise is dithered (scene.js `PIX_GLSL`, `bd`): a 2×2 Bayer offset per cell — 1/8, 5/8, 7/8, 3/8 on the cell's parity — in
+place of the half-step rounding, in both modes. A tone boundary is now a checkered band of cells instead of a contour, the way pixel art
+has always drawn a gradient; the light still moves and pools. `banded light` is on by default again; off is still the smooth light.
+
+**Seen:** the talus slope with texels and the pixel light on, banded light on — the player's pool over the sand with its edges checkered,
+no rigid ring; the finback's flank the same. `node build.js --test` green on both tiers.
+
+**Unseen, ask:** whether the checkered edges read as light in motion; if the bands are still too visible, the next step is the player's
+own point light computed exactly per fragment (its position, colour and range as uniforms, subtracted from the vertex light and added
+back smooth) so only the sun and the ambient are posterised — a bigger change, held until this is seen.
+
+**Seen by the person (14 Sep 2026, on v11.41.3):** "It looks interesting … certainly its own look — not one to scoff at, but the game is still built around a kind of minimalist vibe that gets filled in by space as opposed to noise." Undecided which is the right call; "it can look incredibly cool and old school". Down the line: possibly a really, really subtle version of the texels — an incredibly small amount, to touch up what look like smooth objects normally. Nothing to change now; both looks stay on the effects list, off by default.
+
+## v11.42 — the fog in two segments, the swell with the wind, the camera on the line (14 Sep 2026)
+
+From `WATER.md` (the 14 Sep audit of the surface from both sides; the person: "two segment fog please", and for the half-and-half
+camera "the most believable outcome"). Three changes, one version:
+
+- **The swell runs with the wind** (world.js `WAVES`): the directions are `WIND_A` ± a fan (the swell on it, the wind sea within ±0.6 rad).
+  To v11.41 the 46 m swell travelled toward 0.35 — dead against the wind, the caustic's ripple trains, the spray and the flats — and the
+  rest fanned to every quarter (WATER.md item 1). Five numbers; the physics and both shaders read the same table.
+- **The two-segment fog** (scene.js, the fog block: `fogVeil`, `fogWater`, `fogAir`; `FOG_A`, `FOG_AC`, `FOG_PSURF`, `UPWELL`,
+  `WAVE_GLSL_FOG`). Every ray is cut where it crosses the water and each part takes its own medium's fog, the part nearer the fragment
+  first: the water's veil (the old body, now a function of its origin) over the part in water, the air's haze and mist over the part in
+  air. The medium is no longer the camera's (`applyFog` writes both media's sets every time; `uFogP.w` is now "may split", 0 on the
+  surface mesh, whose fragments are the boundary). The level: the wave at the camera (`uFogAC.w`, JS `waveH`), the wave sum per fragment
+  within 3 m of the tide (a pad on a crest is *at* the surface), the mean elsewhere. From above, a downward ray's water is darkened toward
+  `UPWELL` (the old `TINT_COL` over `WCOL[0]`), so the deep straight down is the blue it was and at grazing it is the veil. **The
+  through-water depth tint is gone** (`addTint`; `uTint.y/z` unread) — the fog paints the column by path length and place instead. **The
+  surface's topside body** (atmosphere.js `SURF_BODY` 0.22, `uBody`): the dark diffuse at 0.66 alpha is down to 0.22 at normal
+  incidence; the Fresnel sky still takes it to 1.0 at grazing; the foam is opaque. The surface's look is chosen by the face
+  (`gl_FrontFacing`), not the camera's medium; `uUnder` (the camera's true side, this frame) remains for v11.5's back-face-in-air case.
+- **The camera on the line** (player.js): `CAM_CLEAR` and the target's 0.5 nudge are gone; `camAbove` flips `CAM_FLIP` 0.4 past the wave
+  (with `CAM_DWELL`) and drives only the light's crossfade, the sound and the water's things. The sky stays drawn within `SKY_NEAR` 1.5
+  under the wave (atmosphere.js): a camera just under sees air through the near plane's gap, and that is the sky. POLISH's "split water
+  line" entry is superseded by this: it was a pass; with the fog per fragment it is a plane test.
+
+**Seen:** `node build.js --test` green on both tiers; the shaders compile in the app's browser (no console errors); one frame from just
+under the surface over the shelf with the sky above the line and the seabed below it. **Unseen, ask in this order:** (1) the sea from
+15 m up over the forest (the person's fourth screenshot): the far seabed should be gone into the water's colour, the near sand clear;
+(2) the shore from the water's edge: sand-coloured shallows, blue past them; (3) the camera resting on the line while swimming at the
+surface — the waterline's facets, whether the chop sweeping the eye is tolerable (the eye could ride the wave if not); (4) the underside
+within 1.5 m of the surface, where the sky now shows through the mirror's alpha (WATER.md B makes that the window); (5) `SURF_BODY` —
+too glassy or still too teal from above; (6) rain from above (the air's haze thickens by `FOG_A`, as it did).
+
+## v11.42.1 — the water's fog over the whole ray from above, the underside opaque (14 Sep 2026)
+
+The person on v11.42, with a video and three stills: "the clear water looks completely different, huge environmental step up", then
+"the fog goes away once you leave the water. So you gain vision. Looks insanely weird" — the forest crisp to the horizon from just
+above the surface and from the line, a white flash at the water line, creatures seen far off against a pale backdrop from above.
+
+**Why.** (1) v11.42 fogged the water's part of a ray by its own length: from 2 m up, a stalk 200 m off and 5 m deep took 128 m of
+water (51% through) against a bright surface veil, where from below it takes 200 (23%). The true ray refracts at the surface and shows
+a compressed sliver of what is close under the exit point — geometry this engine cannot draw — so the honest stand-in is that nothing
+under water is seen further from above than from below. (2) The surface's underside was still 62–74% opaque, and what lay behind it —
+the shore, the sky within `SKY_NEAR`, the dome — was now fogged as air, pale, and bled through, flickering as the facets flipped.
+(3) A bug: the fog chunk's clock (`uFogTime`) was handed `timeU` itself, and r128's `cloneUniforms` copies a number by value into every
+material, so it stood at zero — the level the ray was cut at was a frozen sea, and a kelp cap on the real wave sat above or below it.
+
+**Built.** scene.js: from above, the water segment is fogged over the whole ray's length `d` (its origin still the crossing, so the veil is
+the surface water's), times the chop's scatter at grazing — `SCAT` [0.06, 0.30] on the ray's elevation × the chop (17°–3° in the trades,
+4°–1° in a calm: a wind sea's slopes scramble a transmitted image within a few slope-widths of the horizon, and what is left is the
+water's colour under the reflected sky) — and the far cut. The clock and the chop go to the chunk as a typed array (`FOG_TC`, main.js
+and `updateHaze` write it). atmosphere.js: the underside's alpha is 1.0 — a total-internal-reflection mirror outside the window, the
+window's own colour inside it until WATER.md B draws the refracted sky; the shimmer sprite draws over it (renderOrder 0, no depth test)
+at `SHIM_A` 0.9 again.
+
+**Seen:** `node build.js --test` green on both tiers; the shaders compile in the app's browser. The app's browser pane would not tick
+the game loop this session, so the sea itself is **unseen — ask, in this order:** (1) from the line and from 2 m up over the forest:
+the far forest should fade as it does from below, the near stalks and the sand stay clear; (2) the water line while swimming at the
+surface: no white flash; (3) the far sea at grazing from above: reflection only, no creatures through it; (4) from just under the surface:
+the underside now opaque — whether the sun's shimmer still reads and the window is not too flat; (5) `SCAT` if the grazing cut-off is too
+near or too far — it is two numbers.
+
+## v11.42.2 — the fog cuts the ray at the drawn surface (14 Sep 2026)
+
+The person on v11.42.1, three stills: "still seeing white nothingness out there … high enough in the distance you can still see
+clearly through" — a white wall of kelp stalks on the horizon, from just under the surface and from just above it.
+
+**Why.** The surface mesh fades each wave out where its grid cannot resolve it (`aSpace`, v11.4), so 200 m out it is drawn at the mean
+level; the fog chunk cut the ray at the *full* wave sum, which swings ±1.2 m there. Everything in the band between — the far kelp
+cards' tops, 1.4 m under mean level; a stalk's top on a trough — was classed as in air and took the air's haze: white, visible at any
+distance, from either side of the water.
+
+**Built** (scene.js `WAVE_GLSL_FOG`, `WAVE_FADE_D`, `FOG_SN`/`FOG_SR`): the fog chunk's wave sum is the drawn surface's, each wave faded
+by the fragment's distance from the mesh's centre (max of |dx|, |dz| from the camera — the grid's per-axis mapping) between the two
+distances where the mesh's fade starts and ends, found once from the grid's own numbers (46 m: 90→259; 29 m: 49→136; 15 m: 20→56;
+8.5 m: 6→26; 6 m: 0→15 on high — DESIGN's figures). `FOG_SN`/`FOG_SR` mirror atmosphere.js `SN`/`SR`: change both or neither.
+
+**Seen:** `node build.js --test` green on both tiers. The pane would not tick again; **ask** for the same three views — the far forest
+from just under the surface and from just above it should fade into the water's colour, no white stalks on the horizon.
+
+## v11.42.3 — the sky above the water only, the dome below it, the mirror the reflected veil (14 Sep 2026)
+
+The person on v11.42.2: "I see the same thing pretty much. In the same spot." — and then opened the app's browser pane, so this one was
+seen. Hiding the kelp showed the white was never the stalks: a **solid white band on the horizon** between the surface line and the far
+floor, the stalks dark against it.
+
+**Why.** The sky is a whole sphere at 0.94·FAR and the far terrain clips at the draw distance, so just under the surface line — where a
+ray runs nearly level for more than the draw distance before it meets the floor — the sky's lower half showed. Under water it had been
+hidden by the black dome until v11.42 kept the sky drawn within `SKY_NEAR` of the surface (which is why it vanished "once I get low
+enough"); from above it always showed through the surface at grazing, and v11.42's thinner topside body made it plain. Two more found
+on the way: (1) the far cut closed a split ray to the *camera's* medium, so from above the dome and the far floor past 0.9·FAR came out
+the air's horizon white under the water; (2) far out the kelp folds to the true wave while the fog's level was the drawn (faded) surface,
+so a folded top on a crest counted as air.
+
+**Built.** atmosphere.js: the sky discards any direction whose point at its radius lies under the water (`uCamH`), the dome discards its
+fragments above the water level and is drawn in both media — the two tile at the water plane at the far plane, and the dome is the water's
+far wall from either side, fogged into the veil. scene.js: on a split ray the far cut belongs to the water segment only; the fog's level
+is the higher of the drawn surface and the true wave (`fogWaveH` twice, within the 3 m band). And WATER.md C, brought forward because a
+camera at the line saw the near facets overhead as a dark slab against sunlit water: **the underside mirror is the veil in the reflected
+direction** — the ray reflected off the facet, the water along it to the floor (`uFloorMap`) or the veil's reach, through the fog chunk's
+`fogVeil` — in place of `fogColor·0.9`, one flat colour with no daylight by direction and no sun.
+
+**Seen** (the app's browser, the shelf forest at x 180): from 0.25 m above the water at noon — the sea at grazing the sky's pale
+reflection, the near forest through it, the far forest dissolving, no white; from 2 m under — the far forest fading into the veil, the
+underside a continuous luminous ceiling; from 10 m under looking up — the window with the sun. `node build.js --test` green on both
+tiers. **Unseen, ask:** the line itself while swimming at the surface (the waterline's facets; the eye riding the chop); dusk and night
+from both sides (the reflected veil takes the daylight, the window `uWin`); the shore.
+
+## v11.42.4 — the far kelp cards dimmed (14 Sep 2026)
+
+The person on v11.42.3: "You 95% fixed it. Holy smokes it makes a massive difference in the believability of the world" — and a thin
+pale line left along the far water level, which they read as the light shafts' tops. It was not the shafts (they hang within ~30 m of
+the camera, from 3 m under, so from 10 m down they sit 14° above the horizon, and switching them off changed nothing): hiding the far
+impostor cards (`MATFAR`) removed it. Past the swap at `FLORA_FAR` the cards' residual through the fog read *paler* than the veil where
+the real kelp's read darker — the stipe's pigment darkens with depth and its pads are silhouettes from below, the card's tint did not —
+so the far forest was a faint pale band with a bright row of card pads along the water level.
+
+**Built** (far.js `FAR_IMP`): a `dim` per card kind on the instance tint — the stipe 0.55, the bladder 0.7; the raft and the tidal tree
+unchanged (`impostorsGen`). **Seen:** the far horizon from 10 m under, the cards' band gone into the veil; tests green.
+**Ask:** the swap at 450 m from the real kelp to the cards in daylight — whether it now reads darker than the kelp instead of paler.
+
+## v11.43 — the real Snell's window (14 Sep 2026)
+
+WATER.md B, on the person's "go ahead and do it". The underside's window was a constant colour (`(0.22,0.46,0.56)` diffuse plus a fixed
+emissive × `uWin`) with the sun stood in for by a 90 m additive sprite over the surface and a `pow(…,40)` glint.
+
+**Built** (atmosphere.js `SURF_MAT`, `SKYLITE_GLSL`): inside the window the eye is refracted through each facet into the air
+(`refract(-V,-normal,1.33)`, view space, to world by `uFogR`) and the sky is read in that direction by `skyLite` — a reduced copy of the
+sky shader (the gradient, the sun's aureole and horizon glow, its disc and glare, the moon's disc and halo, the deck's shade as a flat
+factor of `uCover`, no cloud noise, no stars) sharing the sky's own uniforms (`skyU`, pushed every frame now, since the sphere is hidden
+under water). Past the critical angle `refract` returns zero and the horizon's colour stands in, which the soft 15–50° band the person
+chose in v11.7 (`snell`) blends into the mirror of v11.42.3. So the sun wobbles facet by facet, a sunset lies warm along the rim, the
+moon comes through at night, and the flip between window and mirror per facet — the thing that reads as moving water — is kept. The
+diffuse inside the window is 0.3 of what it was (the sky carries it). **Gone:** the shimmer sprite (`sunMesh`, `sunTex`, `SHIM_H/A`)
+and its effects-list row `surface glow`; the refracted glint in `lights_fragment_end` (the disc and glare in `skyLite` are the glint);
+`uDf`. `SKY_FS` is the reference for `skyLite`: when its gradient or glare changes, change both.
+
+**Seen:** from 10 m under at noon facing the sun — the disc through the facets overhead, the sky's blue through the window, banded
+by the facets; from 2 m under — a pale sky through every facet, the far surface the mirror's teal; at sunset from 4 m — warm bands
+along the rim. `node build.js --test` green on both tiers. **Ask:** the window at night under the full moon; whether the sun through
+the facets reads brighter or duller than the sprite did (`skyLite`'s `uSunC*1.4` disc and the 0.92 on the window); the rim's
+horizon colour in the soft band (`snell`'s 0.25–0.65) — it is the sky's horizon now, not teal.
+
+## v11.44 — shoaling, breaking and shelter; the foam emissive; a comment that ate six bindings (14 Sep 2026)
+
+WATER.md D, on the person's "go ahead and do it".
+
+**The sea by the floor** (world.js `waveFac`, `WAVE_BRK` 0.39, `WAVE_SHOAL_MAX` 1.6; scene.js `waveAmpGLSL`/`waveSumGLSL`/`WAVE_DEP_GLSL`;
+far.js `wfRaw`, `wmWave`). Every wave sum — the JS physics (`waveH`), the surface mesh, the kelp's fold and the rafts' bob (the sway
+shader), the fog's level (`fogWaveH`) and the caustic's swell carry (`cauFocus`) — reads the water depth and the place's wave energy
+at its point from the floor map (red: the floor; green, new: `mix(0.35,1,expo)·(1−0.75·shel)` — 1 on the struck flank, 0.35 in the lee, a
+quarter of that inside the lagoon), and each wave's amplitude is its deep-water amplitude × Green's law as the floor comes up
+(`(L/2d)^¼` past half a wavelength of depth, at most ×1.6) × the energy (the wind sea whole, the swell by half — it wraps) and no more
+than 0.39 × the depth, the breaking limit H/d 0.78. The excess over it is white water: the surface vertex hands it to the fragment as
+`vBrk`, foam on the topside and a pale patch on the underside. The wavelength does not shorten (a phase integral, not a local factor).
+At the strand the amplitude goes to nothing and the water stands at the tide. The map is initialised deep and fully exposed
+(`FM_DATA.fill(255)`) so headless tests without the far layer keep the deep-water sea. Vertex texture fetch: 16 units on the 4060.
+
+**Foam** (atmosphere.js `SURF_MAT`): the breaking excess and the crests' whitecaps — by height as before but halved and by the chop
+(`uChop` in the fragment now), a wind sea's, since shoaling raises the swell over the whole shelf — drawn *emissive* in the sky's
+light (`uWin`); lit foam went dark far off, where the flat normal comes from screen derivatives across triangles under a pixel quad.
+
+**A bug of v11.43's**: the comment after the window's sky bindings sat mid-line and commented out the six bindings after it — `uSkyR`,
+`uWin`, `uGlint`, `uRain`, `uBody` and the surface's own fog set `FOG_PSURF`. The surface fell back to the split fog, its own crests were
+classed under water wherever the true wave stood above the drawn one, and from above every far crest wore a dark patch; found by
+reading the compiled uniforms (`renderer.properties.get(SURF_MAT).uniforms.uFogP.value !== FOG_PSURF`) after foam, depth, back faces,
+the dome and the rafts had each been ruled out by toggling them live. Fixed by moving the comment.
+
+**Seen:** the shelf from 0.2 m above — clean again, the sea at grazing the sky's reflection, the near sea clear; 2.5 m under — the
+window and the far forest as before; the exposed shore at (124, 220) from the water's edge — the amplitudes there 0.57/0.32/0.14
+(shoaled from 0.50/0.32/0.18 with the wind sea scaled by 0.81), the strip along the strand pale, though at the pane's resolution the surf
+band could not be told from the wet sand. `node build.js --test` green on both tiers. **Unseen, ask in this order:** (1) the surf line
+on the struck flank at a low spring (the strand at tide −4.5 exposes the flats: the map's depth is blurred over ~70 m, so the band is
+broad and soft — `WAVE_BRK` and the map's blur are the knobs); (2) the lagoon in the trades against the open shelf — the chop should be
+a quarter of the open sea's, the swell three quarters; (3) the weed forest's frame time at (330, 0) — the sway shader's fold now
+fetches the floor map and takes five `pow`s per vertex; the last pass had it at 3.2 ms on the 4060; (4) whether the whitecaps
+(halved, by the chop) are missed in the trades.
+
+## v11.45 — the line from above: the reflection by direction, the air's far colour the sky's, the long swell (14 Sep 2026)
+
+The person's ask: the water line seen from above, good with something in the distance, odd for depth over open water. The audit is
+WATER.md Part 3 (measured down the screen's centre column at 1280×720: the sea's edge was the one constant every air fragment converges
+to, the horizon keyframe, which the dome never shows — a pale rim under a darker sky, fixed at 992–1440 m so it widened with height until
+from 40 m there was no line at all; and between 100 m and the rim nothing varied but the fog, since the reflected sky was one colour for
+every direction and a facet's tilt changed nothing of the topside). Their answers: the line's side my call ("whatever is more believable
+given the planet"), facets visible, the air my call, a long swell for "maximum compatibility and most believable".
+
+**The topside reflection by direction** (atmosphere.js `SURF_MAT`, `REFL_FACET`, `REFL_GRAZE`; WATER.md item J). The reflected sky is
+`skyLite` of the eye reflected off the *facet* (world normal by `uFogR`, clamped to the horizon), not `uSkyR`: the zenith at the feet, the
+horizon far off, and every facet a different elevation of the sky. **Composited as a reflection**: alpha is the fraction of the column the
+surface covers, `uBody + R − uBody·R` (the foam whole), and the colour is divided by it, so the blend gives exactly `R·sky + (1−R)·(body
+over the column)`. To v11.44 the reflection was scaled by the body's alpha too — a third of itself at 25°, the facets' swing lost in the
+column: the first cut of this version (the direction alone) gave ±2 levels between facets at 140 m, measured, and a sea still smooth.
+R is the facet's own Fresnel where the view is steep (`cm` above `REFL_GRAZE[1]` 0.35, 20° down) and the mean surface's at grazing (below
+0.12, 7°), where the per-facet weight was the v11.7 tennis-court wedges. **Seen:** from 15 m looking across the swell the rows converge to
+the horizon; looking along it (north, where the facets tilt sideways and reflect the same elevation) the rows run diagonally; from 3 m
+looking down, faceted bands in the mid-distance and a smooth near sea (the reflection is 2% there — physics, and the same as before).
+At the line the sea now reflects the sky a few degrees up, darker than the horizon's haze: the sea's edge is 166,182,194 under a sky of
+181,196,208 (was 183,201,216 under 180,196,208).
+
+**The air's far colour is the sky's, by direction** (scene.js `skyLite2`/`skyLite`/`skyFar`, `FOG_SKA..F`, `fogAir`). The reduced sky
+moved from the surface's shader into the fog chunk, reading six shared vec4s (`uSkA..uSkF`: zenith+dayK, horizon+cover, glow+moonL, the
+sun's colour, the sun's and the moon's directions; typed arrays, written by `pushSky`), and `fogAir` converges to `skyFar(rd)` — the sky in
+the ray's direction with the haze band integrated to infinity, exactly what the dome draws there — instead of `uFogAC`'s constant. The rule
+the veil has had under water since v11.27, for air. `skyFar` takes the sky *without* the deck's mean shade (`skyLite2(d,0.0)`): the dome's
+gradient between its clouds is unshaded, and with the shade the cone stood as a silhouette 15% darker than the sky beside it from 1500 m
+(seen, fixed). **Seen:** the far sea, the far kelp and the shore end in the sky behind them at 1, 15 and 40 m; toward the sun the sea's edge
+takes the glow and the line softens into it; away from it the sea ends darker than the sky. Cost: `skyLite` per fragment in air (~40 ALU:
+two `pow`s to 300 and 10, an `exp`, the gradient), unmeasured.
+
+**The long swell** (world.js `WAVES[5]`): 150 m, 0.30 m, period 9.8 s, from a far storm upwind in the trade belt (`WIND_A`+0.08), so it
+strikes the flank the exposure field already gives surf, cones and spray to — a swell from another belt would put the surf on a shore the
+geology calls a lee (WATER.md L, answered by compatibility). Last in the table: the caustic's carry (`CAU_SWELL` 4), the spray and the
+audio index the first entries and keep the 46 m as "the swell"; every sum reads the whole table (physics, the surface, the fog chunk's
+level, the sway fold, the rafts). The grid draws it whole to ~460 m and fades it by 1.4 km; `WAVE_AMP` is 1.47 now (the whitecap
+threshold `vH/uAmp` shifts with it). One more sine per vertex in the sway shader.
+
+**The air, a step clearer** (world.js `AIR`): `dens` 0.0030 → 0.0024, `far` 0.0022 → 0.0018. With the fog converging to the sky the
+sea's edge can no longer show, so the density is only the visibility; a trade-wind day over a warm sea is clear, and the world is 3.4 km
+across. Tried at 0.0022/0.0016 first (frames kept): from 40 m the horizon is still a soft band either way — the far cut at 992–1440 m
+is the limit, not the density — so a modest step, the look kept.
+
+**The near slab** (`SURF_MAT`, the back face from air): the crest seen through from a trough is the column's colour now — `fogVeil`
+along the eye refracted into the water to the floor or the veil's reach, darkened downward as the fog chunk paints the seabed — not black
+plus a constant. Rarely reached: from 0.5 m the dark region across the bottom of the view is the camera *under* the wave (the underside,
+the deep's dark veil), which is right.
+
+Also: CLAUDE.md "Look at it" says how the loop was driven with the pane hidden (stub `requestAnimationFrame`, hold the player, call
+`loop(last+16.7)`, post the canvas to serve.js); the frames of this version are `test/render/hz_*.png` (before) and `v45b_*.png` (after).
+`node build.js --test` green on both tiers. **Unseen, ask in this order:** (1) the sea from the shelf at 5–15 m looking across the
+swell, in play — whether the rows read as water or as stripes, and whether `REFL_FACET` (1) wants less; (2) the line from 40 m — still a
+soft band at this density; a clearer day (`AIR.dens` 0.0015) sharpens it but changes the look; (3) the sun's side — the glitter is still
+five grey bars (WATER.md F not built); (4) dusk and night from above (the reflected sky is the reduced one: no clouds, the deck's mean
+shade); (5) the weed forest's frame time (one more sine in the sway fold) and the render ms in air (`skyLite` in every fragment).
+
+## v11.46 — the rest of the water from above: foam by steepness, the glitter, the slope in the light, the breach, rain from below; the open sea's waves back (14 Sep 2026)
+
+The person on v11.45: "mostly looks the same except I feel I can see farther out and see more waves … more reflections further out";
+the rows "read as water but could be a little less row-like, a little"; "build the rest". Built, in the order WATER.md Part 3 left:
+
+**A short-crested swell** (world.js `WAVES`): the 46 m swell is two trains at ±0.15 rad of 0.28 m — a swell has a directional spread, so its
+crests are ~150 m long and the sea is a lattice of lozenges rather than rulings to the horizon; 0.56 where they meet, 0.4 rms, the same sea.
+Seven components now; the caustic's carry (`CAU_SWELL` 4) takes both 46 m trains, the 29 and the 15.
+
+**The open sea's waves back** (world.js `waveEnergy`, `LEE`; far.js `wmFill`). Found on the way: v11.44 read the place's wave energy off the
+*expo* field, which is a shore field — zero wherever the water is deeper than 30 m — so since v11.44 the open sea has had 35% of its chop and
+two thirds of its swell everywhere (measured: 0.35 at every azimuth at r 1000). The sea is full on open water now; what takes from it is the
+island's wind shadow — the lee: downwind of the shield, within its width across the wind, fading over 1.5 km (`LEE` [0.65, 400, 600, 1000,
+1500]: 0.41 at (−900, −300)) — and the lagoon's shelter as before; the struck shore keeps expo's 1. The v11.45 frames were of the 35% sea.
+
+**Foam by steepness** (atmosphere.js `SURF_MAT` vertex, `FOAM_S`; scene.js `chopSlope`; WATER.md E). A whitecap is where the wind sea's
+slope passes `FOAM_S` [0.17, 0.27] rad — the three chop components sum to 0.22 in line, 0.35 shoaled — not where the swell is high; the same
+test 2.5 and 5 m downwave is where the crest was a moment ago, so the foam trails on the back slope at 0.6 and 0.3 (a whitecap outlives its
+crest); broken into streaks by a hash on cells 6 m along the wind by 1.5 m across it (`vFoam`). In a calm the quarter chop never reaches the
+threshold. The foam by height (`vH/uAmp`) is gone; the breaking foam (`vBrk`) stays. From below the foam is a grey patch like the breaking.
+Per vertex: soft-edged, and coarse where the grid is (streaks seen from 40 m as pale smudges).
+
+**The glitter** (scene.js `RIP_GLSL`, `RIP_FAR`, `RIP_CAP`, `GLIT_K`; `SURF_MAT`; WATER.md F). The caustic's bake writes a third tile per ring — the
+same trains' *gradient*, sin and cos parts (`CAU_TEX[i].g`, `sm`) — and the surface's fragment reads the ripple layer's slope at its point
+(`ripSlope`: carried by the swell and gusted like the caustic, each ring faded where its wavelength is under a few pixels), plus three
+capillary trains analytic in the fragment (`RIP_CAP`: 22, 15 and 11 cm, slopes to a Cox–Munk rms of ~0.16 rad at 7 m/s, the capillary
+dispersion; faded by `fwidth` so they live within ~10 m of the eye), and tilts the normal the *sun's specular* sees by it; the reflected sky
+and the Fresnel keep the flat facet — "the ripple layer lives only in the light". The specular is 0xd8d8d8 at shininess 500 (0x8a8a8a at 90):
+a sharp lobe over a rough field is specks; a broad one was one grey oval per near facet (seen, two rounds). **Seen:** from the shelf toward the
+sun the five grey bars are a sparkling path and the whole sea glints; from 1 m into the sun the path is a scatter of pale patches, still soft
+close in — the rings' tile is bilinear at 10 cm and the capillary term does not break them as far as it should; **ask**.
+
+**The slope in the light** (scene.js `restSlope`, `SLOPE_AA`; WATER.md Part 3, P3). The surface's fragment tilts its reflection by the gradient of
+what the mesh faded out — each component by the complement of its drawn weight (the vertex's fade by `aSpace`), each faded again where its phase
+turns more than 0.8–1.6 rad a pixel — so the rows go on past the grid's reach in the light alone, smooth where the mesh could not hold them.
+Six sin/cos and six `fwidth`s per surface fragment.
+
+**The breach residue** (player.js `splash`, `residues`, `RES_N` 16, `RES_T` 6 s, `RES_UP`/`RES_DN`; WATER.md I). A foam patch where a body crossed:
+an irregular ten-gon 0.86 m at v 8, doubling over ~4 s and fading by the square, riding the wave — white in the sky's light 6 cm over the surface
+(drawn after it from above, hidden from below by the opaque underside's depth) and a grey patch 10 cm under it (drawn before the surface from
+above so the body tints it, after it from below so it shows through the window), both fogged by their medium — and a puff of twenty bubbles
+rising at 0.2–0.35 m/s for four seconds, capped at the water. A flat polygon, no radial gradient. The creatures' crossings within 160 m make
+one too (creatures_ai, the same `splash`). The first cut at twice the size read as a raft (seen); the bubbles at 12 cm as tiles (seen).
+
+**Rain from below** (`SURF_MAT` underside; WATER.md K). The drops roughen the surface: the eye's refraction leans halfway to the mean surface
+(the facets' flip matted) and the window a third of the way to the sky's mean (the disc smeared); the drops' rings and dots read as bright specks
+from beneath within ~30 m (`rainRing`, the v11.18 rings as a function used by both sides). Seen with `uRain` forced from 3 m under.
+
+**Seen** (`test/render/v46*.png`): 15 m across the swell — lozenges to the horizon, whitecap streaks; 1 m across it — a faceted crest against
+the sky; 40 m — the sea's rows to the far distance with streaks; the shelf toward the sun — glitter; the splash from above and below; rain from
+below. `node build.js --test` green on both tiers. **Unseen, ask in this order:** (1) the open sea's full chop in play after two versions at
+35% — too rough? (`LEE`, and the chop's amplitudes are the table's); (2) the glitter from 1 m into a low sun — the near path is soft patches,
+not sparkle; the next step is a finer capillary set or a per-fragment hash; (3) whitecaps: too many, too soft (`FOAM_S`; the hash's 0.35);
+(4) the residue's size on a ringmouth's breach and a creature's; (5) the weed forest's frame time — the sway fold has seven sines now, the
+surface's fragment ripSlope (six texture taps, four sines) and restSlope; (6) rain from below in a real shower, and the window's matting.
+
+## v11.47 — the menu: new game, continue, options, the creator; save files (14 Sep 2026)
+
+The person's ask: the game boots to the caldera as before, same camera, but with no clades turning — a title and a column of words, new game,
+continue, options, and a hidden creator; multiple save files that do not live in the browser forever; new game starts as the slowblood; continue
+lists and deletes saves; options is the effects list for now; the creator is the lab, gated to what has been seen.
+
+**The menu** (menu.js rewritten, shell.html `#mlist`, `#msaves`). The three menu creatures and the `leaving` swim-off are gone (`menuCreatures`
+no longer exists; zoo.js and lab.js hide and restore the menu through `menuPage`). `layoutMenu` keeps the v11.13.1 camera. **new game** →
+`startNew(CLADES[1])`: the world cleared, a fresh ledger (`ecoReset`, ecology.js), the clock at boot (`t=0`), the finback built at the peak,
+a new slot written at once. The finback until the creator is the start (DIRECTION: the smallest body the creator allows — the person: "in the
+future this will be the player creator … not right now"). **continue** → the slots, newest played first: name, clade, time played, when; click
+to load (`startFrom`), `export` for a .json file, `delete` asks once (the word turns to `sure?`) and goes on the second click; `import a file`
+reads one back (`saveImport`: shape-checked, a new id if its own is taken). **options** → the effects list (effects.js; the menu's `effects`
+word at the bottom right is gone, `e` still works). **creator** → the lab as the player's (`labEnter(undefined,true)`), shown once
+`PROFILE.creator` is set: opening the lab at all sets it (`grantCreator`), or `#creator` in the URL. **esc** in play with the pointer free saves
+and returns to the menu (`toMenu`); with the pointer locked the browser keeps the first esc for the lock, so it is esc twice (the hint says "esc
+menu"). effects.js prevents the default on the esc that closes its list so menu.js's stands down. `choose(c,pos,yaw,pitch,hp)` is the bare start
+the tests still drive (anim, combat, physics; the smoke test starts the finback through the real `mnew` click and the others through `__start`).
+
+**The saves** (save.js, new; `src/order.txt` after effects). A slot is a record: the player (clade, position, yaw, pitch, hp), the clock (`t`,
+so the hour and the tide follow), and the ledger's five tables (`POP.n/k/ke/cd/ow`), `done`, `last` and the tally — the loaded cells counted
+into the tables as the tick counts them (the living on the ledger, and the eggs). ~110 KB a slot. What a cell drew — carcasses, wounds, a
+school's shape — is not kept, as an unload does not keep it either. **Where:** the browser's IndexedDB (`tethys`, store `kv`; localStorage
+where IndexedDB is missing, memory in the tests — the backends answer through callbacks, since the tests' frames are driven by hand and no
+microtask runs between them), and `navigator.storage.persist()` asked for so the browser will not evict it; the file export/import is what
+does not depend on the browser at all. **When:** `SAVE_EVERY` 30 s of play (`updateSave` in the frame after `ecoTick`), on esc to the menu, and
+on the page hiding (`visibilitychange`, `pagehide`). **Loading** (`startFrom`): every cell unloaded (`worldClear`: the living written back, a
+cell mid-build dropped with what it spawned), `popLoad` — a save from another roster (SPAWN's kinds differ, or the arrays' shapes) gets a fresh
+census with a console warning and the player still loads; the paper census generator is dropped when the save had finished it — then the body
+(`playerBody`), the 3×3 round it (`cellsAround`, which boot uses too now), the camera behind it, the medium snapped. Names are `game N`.
+
+**The profile** (save.js `PROFILE`, one record beside the slots): the creator's key; what has been seen — species ids, clades, core kinds
+and part `kind:style`, marked for any species drawn within `SEEN_R` 30 m in play (creatures_ai `seeSpec`, one Set check a creature a frame)
+and for the player's own clade; and the creator's saved creatures (spec JSON by name). Nothing is written before the stored profile is read
+(`profileLoaded`; main.js `profileLoad` after boot) — a write first would have emptied the seen lists. The profile is a person's, not a game's:
+the creator on the main menu sits outside any slot, so what one game saw stays known. **The creator gate** (lab.js `lab.player`, `labOk`,
+`labStyles`): the species dropdown, the new-clade blanks, the core kinds, each part's style select and the add-part list show only the seen
+ones (a part keeps the style it wears). The paste box and the link still take anything — this is a game's gate, not a lock. **Saved creatures**
+(the lab's save section, every mode): `save as <name>`, the list (click loads, × deletes), `export file` / `import file` for the whole set.
+
+**Tests.** `test/smoke.js`: for the finback, after the ecology run — the slot exists, tab frees the pointer, esc returns to the menu with
+creatures under it, continue from the list puts the player within 2 m, the clock within a second and the ledger within 5 %, something was seen,
+the lab granted the creator, delete removes the slot. `test/stub.js` starts the finback through `mnew:click`; audio.js and snow.js the same;
+physics.js no longer exports `menuCreatures`. `node build.js --test` green on both tiers.
+
+**Seen** (the app's browser, dev.html): the caldera under the same camera with the title and the column; the words over the sand were
+unreadable in the first cut and were moved up under the title over the water with the hint's text shadow; the empty continue page; the
+effects list from options; new game → the finback at the peak with the hint, "game 1" in IndexedDB at 114 KB; esc (dispatched — the pane's
+own esc key does not reach the page) → the menu; continue → `game 1 · finback · 1 min · just now · export · delete`; the slot → play at the
+saved spot; `l` → the lab; back and esc → the menu with `creator` as a fourth word. No console errors beyond the pane's pointer-lock refusal.
+**Unseen, ask in this order:** (1) the column's placement and weight on a 1600×900 screen at other hours (the words sit over the water band;
+at a low sun the water is darker still); (2) esc twice from locked play — does the hint's "esc menu" read, or should a pause page come first;
+(3) a save over a long game: the 30 s autosave's cost (~3 ms of JSON once a minute, unmeasured on the 4060) and whether the world comes back
+believably where you left it (the creatures near you are re-drawn from the ledger, not restored one by one); (4) the creator's gate from a
+real game — is 30 m the right "seen", and should the player's own parts count; (5) export/import round trip through a real file; (6) delete's
+two-click confirm; (7) whether the profile (what has been seen) should be per save instead of per person.
+
+## v11.47.1 — the menu's column centred, rising, idling; the save that was not there (14 Sep 2026)
+
+The person on v11.47: "looks awesome … good job"; move the words to the centre of the screen, have them slowly come up after a second, or stay
+invisible until the mouse moves; and "does the game actually move the camera to the last area you saved from? It did not do that last time I
+checked" — open to ideas.
+
+**The column** (shell.html `#mlist`, menu.js `updateMenu`). Centred on the screen (`margin:auto` in the menu's flex column, so a little above true
+centre under the title) in a soft dark halo — a radial ellipse the column's own size in the fx panel's dark (`rgba(3,8,15)` .62 → .38 at 45 % → 0 at
+72 %), because the centre of the screen is white sand at noon and the words alone were unreadable there (seen, the first cut). It rises: opacity
+0 → 1 and 16 px up over 1.6 s, `MENU_RISE` 3200 ms after boot (the black fade clears at ~2.2 s, so a second after) and `MENU_RISE_BACK` 1200 ms
+after a return from play. Both of the person's ideas, since the caldera is the thing to look at: after `MENU_IDLE` 12 s without the mouse moving
+(or a key or a touch) the whole menu — title, column, the continue page — fades over 2.2 s and the caldera is alone; the first move brings it back
+(`menuWake`; `#menu.idle`). Not while the effects list is open. The idle clock is the wall clock, not summed dt: a throttled loop (the app's pane
+runs a frame a second or so) would otherwise take a quarter hour to idle — which is how the first cut failed to, seen. The continue page's rows
+are brighter (.8) with the same halo, and the list itself sits on the fx panel's translucent dark (`#mslots`), since the rows run wider than the halo's dense core (seen).
+
+**The save that was not there** (save.js). Continue does restore the place: verified across a full page reload — the finback put at (300, 60) on
+the shelf with yaw 1.2, the page reloaded, continue → the same spot and heading, the camera behind, the weed forest in view (`test/render` not
+written; seen in the pane). The headless roundtrip proved the same in v11.47. What the person most likely met was a save that had never been
+written: in v11.47 the first esc from locked play only released the pointer (the browser keeps that esc), and a close or reload right after it
+lost everything since the last 30 s autosave; and IndexedDB's put on `pagehide` is not guaranteed to finish. Two hooks: the pointer lock's release
+in play saves (`pointerlockchange`), and the page's exit (`pagehide`, `beforeunload`) writes the record synchronously to localStorage as well
+(`saveShadow`, `tethys.last`, ~110 KB, ~2 ms), which `saveRefresh` moves into the store at the next boot — the shadow is the latest state of that
+slot by construction, nothing later can exist. Not built: a pause page on the first esc; the person's call (HANDOFF).
+
+**Seen** (the app's browser): the column centred in its halo, all four words readable over the sand at noon; the rise (mid-transition, blurred);
+the idle fade — the caldera alone at 14 s — and the wake on a mouse move; the continue page in the halo; continue after a reload at the saved
+spot. `node build.js --test` green on both tiers after the last source change (the shell's CSS is not in the bundle). **Unseen, ask in this
+order:** (1) the halo's weight at 1600×900 — too much of a panel, or right; (2) the rise's timing against the boot fade on the 4060 (the pane's
+timing is not the PC's); (3) the idle fade's 12 s — too soon while reading the continue list?; (4) the shadow save after a real close and reopen.
+
+## v11.47.2 — the title screen's camera: the sea shot, then wherever you last were; the words white (14 Sep 2026)
+
+The person on v11.47.1: "good job"; the white text looks grey ("text should go over the shading — unless I'm wrong and it already is"); and a
+handful of camera positions — the caldera is one, the starting one must be a shot with the horizon in the middle and the ocean under it, the
+island in the background or not; and after any play at all — "rage quit, randomly exit, save, die or whatever" — the title screen must open from
+the exact spot you died, left or saved in, every time.
+
+**The words** (shell.html `.mi`, `.slot`). They were over the halo already; they read grey because the colour was `rgba(205,217,225)` at .72.
+Near white now (`rgba(234,241,245,.92)`, hover `#fff`; the rows `rgba(232,240,244,.92)`), and the halo lighter (.45 → .24 at 45 %) — over the
+sea shot the v11.47.1 halo read as a dark disc on the water (seen).
+
+**The shots** (menu.js `MENU_SHOTS`, `menuCam`, `camNow`; save.js `camNote`, `camRead`). A table: **sea** — the start: from the water 6 m up at
+(700, −700) off the north-east coast, looking (−0.55, 0, 0.835), so the horizon is in the middle, the ocean under it, and the island's 48 m cone
+at (346, −346) sits on the horizon right of centre (found with a scan of `sample` along 24 bearings: the land is a low ring 2–7 m high with the
+caldera in the middle and one cone at bearing 315°, so that is the only silhouette to be had); **caldera** — the v11.13.1 shot over the peak's
+shallows, kept in the table and used by nothing now. **The last spot** overrides both: `camNote` writes the camera's position and look direction
+to localStorage (`tethys.cam`, a few dozen bytes, synchronous) at every event that ends or fixes a game — the 30 s autosave, esc to the menu,
+the pointer's release, the page's exit (`saveShadow`) and death (player.js `die`, the moment of death, before the fade) — and `menuCam(camRead()
+|| MENU_SHOTS.sea)` at boot puts the title screen there. Esc to the menu does not move the camera at all: `toMenu` takes `camNow()` and the
+menu holds it (`menuCam` after `worldClear`). A shot sets `player.pos` too, since the cells stream round it — the bestiary and the lab put it
+back at the peak on entry (their creature is shown there) and `layoutMenu` restores the shot on leaving. `camRead` refuses a position outside
+the world's apron or a direction of no length.
+
+**Seen** (the app's browser): the sea shot — horizon mid-frame, the cone on it, the sea's rows and the floor through the water, clouds; new game,
+the finback moved to the shelf; esc → the title screen in the weed forest at the play camera, the column over it; a page reload → the same
+camera again (`tethys.cam` at (281, −11.5, 58)); the words white. `node build.js --test` green on both tiers. **Unseen, ask in this order:**
+(1) the sea shot on the 4060 through the day — the cone's placement, the 6 m height against the open sea's chop (a crest through the camera flips
+the medium for a frame); (2) whether a title screen from a death spot (mid-fight, blood in the water) reads as intended, or whether death should
+wait for the respawn; (3) the halo at .45 over sand; (4) whether the caldera shot should come back anywhere (a first boot after a wipe is the
+sea shot; the table is there for more).
+
+## v11.48 — the camera's field on the readout: fov, first-person fov, the arm (14 Sep 2026)
+
+The person's question: Subnautica's reaper is longer than a blue whale, and on a flat screen it felt like a shark your size while in VR it
+felt like what it was; the difference was put down to the field of view. Ours was 62° vertical, ~94° across at 16:9 — Subnautica's default
+— with a third-person camera 6.5–7.5 m behind a 3 m body. A wide field renders every animal at about half its true angular size (the screen
+subtends ~50° of the eye's field at a desk) and the eye reads the screen as a window; in a headset the rendered angle is the real one. The
+person asked for a way to try the field without a build.
+
+**Built.** `CAM_K` (scene.js): `fov` (third person, 62), `fovFP` (first person, 62), `arm` (metres added to the clade's `cam`, 0). The camera
+is made from it, `applyCam` (player.js) sets the field by mode — every frame from `finishPlayer`, on `f`, and from the tuner — and the
+third-person spot adds the arm. `CAM_TUNE` (main.js) on the readout: ←→ fov by 2° (30–110), pgdn-pgup fovFP, ↓↑ arm by 0.5 m (−4 to +8);
+Backspace resets them with the fog's and the audio's; a fourth readout line `cam  fov 62°  fovFP 62°  arm +0.0m  (94° across)`. Every letter
+was taken, so the arrows and page keys: input.js prevents their default while the readout is open (they scroll the page), and the bestiary's
+arrows stand down then (a/d w/x still step). No behaviour changes at the defaults.
+
+**The tests (v11.47.2's break).** `test/physics.js`, `test/combat.js` and `test/live.js` never start a game: they measure the world the title
+screen loads, which was the peak's shallows until v11.47.2 moved the title screen's camera to the sea shot off the north-east coast. Since then
+physics and combat threw on a null cell at the origin and live found no clutch and no hunt in open water — v11.47.2's entry says the build was
+green; it was not, on either tier. Fixed in the tests, not the game: each puts the player at the peak and loads its cells (`peak()` in the
+physics and combat exports, `__peak` in live) before measuring, which is what the old boot did for them.
+
+**Seen** (the app's browser, 800×450): the readout's cam line; six ArrowLefts from 62 to 50 with the arm at +2 — the finback keeps its framing,
+the weed field compresses toward it, `(79° across)`; `f` took `fovFP` 56 after three PageDowns; Backspace put all three back and the fog's
+share with them. `node build.js --test` green on both tiers, with the three tests running again. **Unseen, ask in this order:** (1) the
+veil or the abyssal at 62, 55 and 50 with the body in frame on the 4060 — the point of the tuner; (2) whether 50 on a fast turn is
+uncomfortable; (3) first person at a wider field than third (there is no body in frame to be a ruler, and awareness matters more); (4) the
+number to bake into `CAM_K`, and whether the arm goes with it.
+
+## v11.49 — the sky through the window: the clouds in, the sun's little circles out (14 Sep 2026)
+
+The person's audit ask: looking up through the surface — "strange flickers of light in little circles" (bin them), "I can't see the
+skybox, even if it's clearly got clouds above", and what does the code want you to see. **What it wanted (v11.43–v11.48):** inside Snell's
+window the eye refracted through each *facet* into the reduced sky `skyLite` — the gradient, the aureole, the sun's disc and its glare, the
+moon, and the deck's *mean shade* (`1−0.35·cover`) standing in for clouds it did not draw ("no cloud noise", WATER.md B, for cost); outside
+the window the mirror of the water in the reflected direction; the person's soft 15–50° band blending the two. The sky sphere itself is hidden
+under water beyond `SKY_NEAR` and the underside is opaque, so the dome's clouds could never show through. **The circles** were the sun's disc
+and its `pow(cs,300)` glare read through every facet: each facet's refraction lands the disc somewhere else, so a scatter of facets each showed
+a small bright circle, and they flickered on and off as the facets turned. Both were the design, and both were wrong to look at.
+
+**Built.** The cumulus march, the scud and the cirrus were inline in `SKY_FS`; they are strings now (`SKY_NOISE_GLSL`, `CLOUD_GLSL`:
+`cloudDeck(d, zen, hor)` and `cirrusA(d)`, atmosphere.js) that the dome and the surface's window both compile. The window reads
+`skyLite2(Tw, 1, 0)` — the reduced sky *without* the disc and sharp glare (`dsc`, scene.js) — then the cirrus and the deck along the refracted
+eye, per facet, where the refraction is valid (`wk`; past the critical angle the fallback horizon direction takes no clouds — with them the soft
+band was a wall of pale cloud smudges, seen), and the sun once: the disc's glow (`pow 300` and `pow 40`) along the eye refracted through the
+*mean* surface (`vNup`), under the deck's cover, so it is one soft blob overhead that swims with the swell instead of a circle per facet.
+`SURF_MAT` binds the sky's own uniform objects for the clouds (`uCloudH`, `uCam`, `uWind`, `uLum`…). Cost: the deck's march on the window's
+fragments (`Q.cloud` slices × two 4-octave noises) — the same work the dome does in air, which is not drawn under water.
+
+**Seen** (`test/render/v49b_*.png`): from 6 m under looking up — the cumulus through the window, broken along the facets' edges as it should
+be, the cirrus, the sun one blob, no circles; from 3 m under toward the sun at 40° — the window's rim, the mirror facets below it clean.
+`node build.js --test` green on both tiers. **Unseen, ask in this order:** (1) the render ms from under the surface looking up at noon with the
+deck overhead (the march is on the water's fragments now); (2) the sun's blob — too big, too soft? (`pow 40 × 0.25` is the knob); (3) the moon
+through the window at night — the same treatment, its disc off per facet and one `pow 400` blob from the mean surface, unseen; (4) a shower
+from below with the clouds in.
+
+## v11.50 — the sky through the surface, plainly: the underside translucent, the dome drawn under water; Snell's window a switch (14 Sep 2026)
+
+The person on v11.49's window, with two stills from 14 m and 3 m: "super weird … like a snowglobe is above everything. I just want to be
+able to look up and actually kinda see what's going on above me, like how it would work normally … look up and see the same [things] you see
+when you're above the water, but through a shader." The physical window — Snell's cone with the sky compressed inside a bright rim and the
+mirror outside — is right and reads wrong at this resolution and this poly count; the rim is a hard circle and the outside a flat pale wall.
+
+**Built** (atmosphere.js `SURF_MAT`, `WIN_T`, `WIN_LO`, `WIN_HI`; effects.js `snell`). The sky dome is drawn under water too (`sky.visible`
+always; its own discard keeps it above the water plane, so from 14 m down it shows from half a degree up). The underside is **translucent by
+the facet's angle to the eye**: alpha `1 − winT`, `winT = smoothstep(WIN_LO, WIN_HI, cv) × WIN_T × the water's transmittance to the fragment
+× (1 − 0.3·rain) × (1 − foam)` — 0.7 of the pixel is the sky straight up, nothing by 87° from the facet's normal, and the water's own
+extinction to the fragment applied to the sky's share since the dome is not fogged — over the mirror's colour (the veil in the reflected
+direction, as before), each facet its own share so the surface still moves. No critical angle, no compressed rim: the sky, the clouds, the sun's
+own disc, the moon, the stars, a shore or a kelp top or a breaching body in the air, all through the surface as they are, tinted by the water
+and cut by the facets. **The physical window (v11.43–v11.49) is the `snell window` row on the effects list** (`FX.snell`, `uSnell`), off by
+default; its cloud march runs only with it on. v11.49's shared cloud strings stay for it.
+
+**Seen** (`test/render/v50b_*.png`): 14 m under looking straight up — the cumulus and the sun through a blue tint with faint facet columns;
+3 m under toward the sun at 40° — the sun, the cirrus, the facets thickening to the mirror at grazing; 1.5 m under in the forest looking a
+little up — the kelp tops in the air and the sky, the near surface teal. `node build.js --test` green on both tiers. **Unseen, ask in this
+order:** (1) whether it now reads as "through a shader" in play, and `WIN_T` (0.7) — more sky or more water; (2) the line while surfacing:
+things in the air are seen through the surface now, which v11.42.1 made opaque to stop a flicker at the line — the angle band should keep
+it smooth, but look; (3) night: the stars and the moon through the surface; (4) the render ms looking up — the dome's march runs under
+water now instead of the window's (about the same).
+
+## v11.50.1 — the sparkles on the underside: the whitecaps drawn from above only (15 Sep 2026)
+
+The person, with a still from 40 m under the shelf looking up: "strange sparkles (not the marine snow) that show up on the surface of the water when you look up … they look really weird." Found by elimination in the app's browser (the loop driven by hand at 38 m, each layer hidden in turn): not the sun's specular, not the shafts, not the snow, not the dome's cirrus or its deck — hiding the sky kept them and hiding the surface removed them. They were v11.46's **whitecaps seen from below**: the foam by steepness (`vFoam`, hashed into streaks 6 m along the wind by 1.5 m across) mixed into the underside as a grey patch, and through 40 m of water the streaks were soft pale lozenges all lying one way, scattered over the whole surface — the person's sparkles.
+
+**Built** (atmosphere.js `SURF_MAT`, the underside branch): the underside's foam term is the surf alone (`vBrk`, the breaking excess at the beach); the whitecaps stay on the topside as they were. Nothing else touched. **Seen** (`test/render/v501_after.png` against `v501_t_nosky.png`, the sky hidden to show them plain): from 38 m looking up the lozenges are gone; what remains are the shafts' straight lines and the snow's squares. `node build.js --test` green on both tiers. **Unseen, ask in this order:** (1) the same view in play at 1600×900 on the 4060; (2) the surf zone from below — the breaking still shows, and whether it looks lonely without the whitecaps round it.
+
+## v11.50.2 — the white patch the shape of a light shaft: the shafts blended as screen (15 Sep 2026)
+
+The person, with stills and a clip at 9–16 m on the meadow by the spawn: "distant fog gets turned off … a white patch … clearly the shape of the god ray in front of you", reliably after a new game, and found by them to go with the `light shafts` switch alone. Frames from the clip showed the white to be the crowns of the far tower kelp along the water line (the real stipes in loaded cells 250–450 m off, the cards past them), which the fog draws at the veil's colour at the water line — pale toward the sun — while the water behind them is veiled darker. The shafts were plain additive: up to four stacked along the sun's azimuth added ~0.15 each onto a pixel already near white, and the sum clipped. Over the darker water and the floor the same addition read as a faint streak, so the patch took the shaft's outline.
+
+**Built** (atmosphere.js `shM`; test/stub.js the blending constants): the shafts blend as screen, `dst + src·(1 − dst)` — a dark pixel takes the whole shaft, a pale one almost none, nothing can clip. No other number moved; `SH_A`, the profile, the focus term and the extinction are as they were. **Seen** (`test/render/fix_on.png`, the loop driven by hand at (19, −16, 28), hour 0.8, the person's readout spot): the crowns at the left stay their pale outline under the shafts; the shafts over the water column read as before. Measured over three hours and six headings: no pixel is pushed past white by the shafts. `node build.js --test` green on both tiers. **Unseen, ask in this order:** (1) the patch in play at the spot and hour where it showed; (2) the shafts over bright sand, which they now brighten less (screen over a near-white floor adds little) — whether they still read there.
+
+Still open, not this pass: the crowns themselves. A stipe top within 3 m of the water line is fogged to the veil at its own distance (the water map at its bounded point, the shallows), and stands as a pale outline against the deeper water behind it, which the dome veils darker. It is the "pale band with a bright line of pads along the far water level" v11.42.4 dimmed on the cards; the real stipes in loaded cells still draw it.
+
+## v11.50.3 — the white patch, found: the shafts drawn after the surface (15 Sep 2026)
+
+The person on v11.50.2: "I still see it … it's definitely the light shafts … it might have something to do with surface water effect changes." It was. Bisected on one frame at their readout's spot (19, −16, 28), hour 0.8, the loop driven by hand: the shafts change 394 pixels, all along the water line at the far kelp crowns, by up to 45% of full range — and change nothing there with the surface hidden, nothing with the sky hidden, nothing with their colour write off, and nothing when drawn after the surface. The shafts had `renderOrder` −3 since v11.13; the surface is −1 under water and writes depth (v11.5). So a shaft was drawn first and then the surface was drawn over it: erased over the whole far water above the horizon line, kept on what sits in front of the surface — the floor, where it reads as the intended streak, and the far kelp crowns at the water line, where a dark veil takes the full addition and the crowns come out lit while the water round them is not. The patch is the shaft's outline clipped to the crowns; it moves with the shafts. v11.50.2's screen blend bounded the sum and could not touch this.
+
+**Built** (atmosphere.js `shafts`): `renderOrder` 0 — after the surface (−1), before the fume and the rain (2). The screen blend stays. **Seen** (`test/render/ord_0.png` against `ord_m3.png`, `up2_0.png` against `up2_m3.png`): at the person's spot the crowns keep their own colour under the shafts and the shafts' light lies evenly over the water; looking up at the surface from 10 m the shafts read the same either way. `node build.js --test` green on both tiers. **Seen by the person** (15 Sep): "that worked perfectly" — the patch is gone in play. **Unseen, ask:** the shafts against the far water now that they are no longer cut off at the horizon line — whether a beam standing against the veil reads right.
+
+## v11.50.2 — the whitecaps struck: gone from above as well (15 Sep 2026)
+
+The person on v11.50.1: "Would you mind removing it from the top looking down as well please?" **Built** (atmosphere.js `SURF_MAT`): the whitecaps by steepness (v11.46, WATER.md E — `chopSlope` against `FOAM_S`, the downwave trail, the wind-aligned streaks, the varying `vFoam`) are struck from the vertex and fragment shaders; the surface's foam from either side is the surf's breaking excess `vBrk` alone. `FOAM_S` is gone; `chopSlope` (scene.js) stays in the shared slope strings, unused by the surface now. WATER.md's head note marks E struck. **Seen** (`test/render/v502_above.png`, `v502_above_steep.png`): the open sea from 5 and 12 m over the water at (700, −700) in a full wind — rows and glitter, no streaks. `node build.js --test` green on both tiers. **Unseen, ask in this order:** (1) whether a full wind with no whitecaps at all reads right from the shelf in play; (2) the surf zone from above and below, the breaking now the only white on the water.
+
+## v11.51 — the sky through the surface, refracted: the frame read through each facet (15 Sep 2026)
+
+The person on v11.50, with two stills (the meadow from 3 m, the open sky from 14 m): "almost zero occlusion or any kind of warping or refraction … It's close, but it can't be a completely straight view through. It still has to look like you're staring at the surface of water." The v11.50 underside was an alpha over whatever the frame held: the sky, the clouds and the land came through unmoved, and the window was full to 37° off every facet and only gone at 87°, so from 14 m the whole ceiling was one flat sky with the clouds' shapes as drawn.
+
+**Built** (atmosphere.js `REFR_*`, `refrMark`, `refrTex`; scene.js `ripGLSL`; player.js `finishPlayer`; effects.js): the underside reads the frame *through* each facet. An empty mesh at renderOrder 0.5 in the opaque pass (`refrMark`) copies the drawing buffer to a texture (`copyFramebufferToTexture`, one blit, only with the camera under water and the switch on) after the sky, the far layer, the terrain, the flora and the creatures have drawn; the surface, later in the transparent pass, is opaque from below now and mixes that copy in by the v11.50 window share (`winT`), sampled at its own pixel moved by the *differential* refraction — the eye refracted into the air through the facet minus the eye refracted through the mean surface, projected by the focal lengths (`uRefrRes`) — so the image sits where it sits (no Snell cone, no snowglobe) and each facet moves it by what its own tilt adds, more toward the rim as the real window does. The ripple layer tilts the facet further (`ripSlopeR`: the caustic's rings alone — with the capillary trains the sky from 17 m was an interlace of 4–8 px stripes, their shift more than their wavelength; seen and struck), share `REFR_RIP` 0.35. The shift is capped at `REFR_MAX` 0.05 of the screen's height; five taps `REFR_BLUR` 1.5 px wide, ×2.5 by 120 m. The player's own body goes to renderOrder 1 while it is under water (`P.ro`), drawn after the copy and before the surface — it occludes by depth and is never in what the surface samples (the first cut sampled it: the dark head smeared into the sky, seen); in the air, or crossing, it is in the copy and refracted like the land. The window's band `WIN_LO`/`WIN_HI` 0.05–0.8 → 0.35–0.8: full to 37° off the facet, gone by 70°, a soft rim outside the physical 49°. The switch is `refraction` on the effects list (`FX.refract`, on) with a `wobble` slider (`FX.refrK` 0–3, a multiplier on `REFR_K`); off, the underside is v11.50's plain blend. The stub gained `getDrawingBufferSize`, `copyFramebufferToTexture` and `RGBFormat` (the copy is RGB: the drawing buffer has no alpha and a copy may not ask for a component the framebuffer lacks).
+
+**Seen** (the app's browser at 1280×720; `test/render/v511_up14.png`, `v511_oblique.png`, `v511_oblique_off.png`): from 14 m straight up the clouds' edges are sawtoothed facet by facet and move with the swell; at 40° elevation the window's clouds give way to the mirror's veil over a soft band; the body's edges are clean against the sky; the slider at 3 is a mess of stepped edges, at 0 the v11.50 look; no GL error, the frame's cost in the pane unchanged within its noise. `node build.js --test` green on both tiers. **Unseen, ask in this order:** (1) the wobble in motion at 1600×900 on the 4060, and whether 1 on the slider is the right amount (the physical differential; 0.5–0.7 may read calmer); (2) the frame time under water on the readout — the copy is a full-screen blit every frame below the line; (3) a fish, a raptor or a drifter between the eye and the surface — a creature stays in the copy and can fringe by up to 45 px, narrow while the cap is; (4) the crossing: the body in the air seen from just under, refracted through the surface; (5) rain from below, unchanged, over the refracted sky; (6) the window's new rim at 70° — whether it reads as water or as the snowglobe's edge come back.
+
+## v11.52 — the performance pass: the flora pooled per species, the Snell window struck, the placement made deterministic (15 Sep 2026)
+
+The person's readouts (15 Sep, four spots at 1600×900 on the 4060, Brave): the forest at 3 m under was over budget — `work 7.3/9.7 ms`,
+117 fps, `render 5.78 ms`, 447 draws, 4.7M tris — and everywhere the worst frame was the average plus the world shadow map's re-render
+(3.0–3.8 ms). Their call: a performance pass before any of the look questions; the Snell window out ("it looks bad"); the shadow map freed
+when off.
+
+**Measured first**, in the app's browser at their forest spot (147, −3, −443) with the loop driven by hand and a `gl.finish()` timed after
+every render, interleaved A/B so the other sessions' panes on the same GPU cancel out. The frame is the CPU submitting draws: 434 draws,
+`render` 3.5 ms of a 5.4 ms frame here (8 µs a draw; 13 µs in their browser), and the GPU idle half a millisecond after the last one.
+Hiding all cell flora: −1.2 ms CPU, −1.2 GPU, 268 draws. Hiding the reef's sessile animals (2.4M of the 4.7M triangles): −0.3. A quarter of
+the pixels: −0.4; 2.25× the pixels: 0. Caustics, both shadow maps' taps, the shafts, the refraction's blit, the sky, the surface: nothing
+measurable each. Hiding small species per cell by distance: −0.6 at best. The draw census: cell flora 268, the far layer 71, creatures 49
+(16 of them the shadow pass), cell terrain 14, the rest 20. So the lever is the one DESIGN named on 13 Sep: the flora at one `InstancedMesh`
+per species per cell.
+
+**Built.**
+- **The flora pools** (chunks.js "the flora pools": `POOLS`, `poolFor`, `poolAlloc`, `poolAdd`, `poolRemove`, `poolStats`). Every species
+  without a card (far.js `FAR_IMP`, marked `f.card`) or a pad draws once for all loaded cells: a cell writes its instances as one block into
+  the species' pool — the same rng order, matrices, tints, `aVar`, `aCur`, `aTide` as the per-cell mesh had — and `unloadChunk` takes the
+  block out by moving the tail down; only the written range uploads (`updateRange`). The pool draws everything loaded: the per-instance
+  collapse past `FLORA_FAR` does what the per-cell hide did, a cell behind the camera costs its vertices (tris 4.7M → 8.8M at the spot; the
+  GPU had it to spare). A pool grows by doubling into a fresh geometry clone with the old disposed. The world's shadow pass casts the pools
+  whole (a bounds sphere the size of the island, so camS's box never sees them). The stipe, bladder, buttons and tidetree keep a mesh per cell
+  (their cards take over per cell), the rafts keep `aDip`, the glow clouds their mesh. `pools` on the readout is the count drawing.
+  **Same spot after: 231 draws (434), frame 4.6 ms (5.4), `render`+finish 3.2 (4.0), the shadow re-render 2.0–2.5 (2.5–4.3) — on my pane; on
+  theirs at 13 µs a draw the render should fall by ~2.8 ms.** `test/pool.js` (in `--test`) checks the bookkeeping.
+- **The placement is deterministic again** (found by that test, two causes). (1) `clearOf` asked the 3×3 contact query, so a plant 2 cm
+  inside a cell line stood or not by whether the neighbour was loaded (the wisp, 301 against 306 in one cell). It asks the cell's own hash
+  alone now (`solidPush(…, own)`). (2) Since v11.22 `placeBigSolids` registered a neighbour's reaching structures into the cell *only while
+  that neighbour was unloaded*, leaving the loaded case to the same 3×3 query — so a revisit with the neighbours up put tubes in a
+  structure's foot. Registered always now; the cell's own hash is complete. A cell's blocks are byte-identical loaded alone, first or last.
+- **The Snell window struck** (atmosphere.js): the `snell window` row, `uSnell`, the branch and the cloud march's strings and uniforms
+  are gone from the surface shader; the underside is v11.50's translucent facet with v11.51's refraction. DESIGN The surface.
+- **The creatures' shadow map freed when `shadows` is off** (scene.js `updateShadow`; 16 MB, 67 sharp) — the 13 Sep audit's first item.
+- **No rain from a clear sky**: rain, its rings and the window's matting want `clouds` on too (atmosphere.js `updateRain`, `surfaceU.uRain`).
+- **The player's own light on the effects list**: `own light` (`FX.plight`, on) gates `plight`'s intensity — POLISH.md Raised 13 Sep, the
+  person's yes of 15 Sep.
+- **The penumbra halved** (scene.js `SHM_PEN` [1.0, 0.025]; was 1.5 and 0.05 a metre): the audit called the soft edge the foreign half of an
+  in-style shadow; the person said harden it. The shimmer sprite the audit named went in v11.43 already.
+
+**Seen** (the app's browser, 1600×900): the forest at the spot draws as before with the pools — stipes, blades, the ground layer, the
+reef animals; the surface from below compiles and draws; no console error. `node build.js --test` green on both tiers with `test/pool.js`.
+**Unseen, ask in this order:** (1) the readout at the same four spots — `draws` and `work` are the numbers, `pools` the count; (2) a cell line
+while swimming across it slowly: a species' whole pool re-uploads a range when a cell loads or goes, which should be invisible; (3) the
+world's shadows with `world shadows` on — the pools cast whole now, so a kelp behind you casts ahead as before; (4) the shadow edge at half
+the penumbra; (5) `own light` off in the deep and at night.
+
+## v11.52.1 — the pools partitioned by sight: the CPU's saving kept, the GPU's load put back (15 Sep 2026)
+
+The person's readouts on v11.52 at the same four spots: `work` halved as promised (7.3 → 4.1 in the forest, `render` 5.8 → 2.7) and the vsync
+interval rose — 9.3 ms in the forest against 8.7, 8.6 looking up, **16.1 in the air over the forest (64 fps)**, 9.3 on the title screen. A pool
+drew every loaded cell's instances, behind the camera and all: tris 4.7M → 8.5–9.6M, and their GPU had no room for the doubled vertices at
+their resolution. My pane's `gl.finish()` had said the GPU was idle: a hidden tab never presents, so it under-reads the GPU, and the numbers I
+took from it were the CPU's. The person's vsync is the truth; the CPU numbers stand.
+
+**Built** (chunks.js `poolMove`, `poolCull`, `P.nVis`, `b.vis`): each pool's arrays are partitioned — the blocks of the cells in view
+(`ch.group.visible && ch.near`, cullChunks' own verdict) first, the rest after, and `im.count` is the seen total. When a cell comes into or out of
+view its block moves to the boundary: a memmove of the span between the two blocks and one ranged upload, a few times a second at most; a
+full turn at the forest spot cost nothing measurable (4.3 ms a frame against 4.0 still), the cull itself 2 µs. The world's shadow pass sets every
+pool's count to its whole (a kelp behind you casts ahead) and back. `test/pool.js` checks the partition: the seen blocks first, their total the
+count, every block's data intact through the moves.
+
+**Seen** (the app's browser, the loop driven by hand): the forest spot draws 4.66M triangles with 263 draws (v11.52: 8.8M and 231; v11.51:
+4.7M and 434); the air spot 4.66M and 208 (v11.52: 9.6M). The forest by day, facing both ways. **Unseen, ask in this order:** (1) the same four
+readouts — the interval should be back at 8.3 with `work` where v11.52 put it; (2) a slow turn in the forest with the readout open, for a hitch
+when a cell's block moves; (3) `world shadows` on: a kelp behind the camera casting ahead as before.
+
+**Seen by the person (15 Sep 2026, four readouts on the 4060 at 1920×1080):** 120 fps and 8.3–8.4 ms everywhere. The forest at 11 m under: `work 4.1/4.5 ms`, 231 draws, 4.79M tris (v11.51: 7.3/9.7, 447, 4.7M); looking up from 11 m: 4.2/4.8, 143 draws, 2.8M; the air over the forest: 4.1/4.6, 203 draws, 4.0M; the shadow re-render 2.3–2.4 ms. Their first readouts were of the v11.52 build (11M tris with four cells in view), not this one.
+
+## v11.53 — POLISH pass B, the body: silt, bubbles and scraps; the ring; squash and stretch, banking, the stun shown; the flinch, the snap, the debris at a bite (15 Sep 2026)
+
+The person: "I'd love for you to do it if you [have context]". POLISH.md's pass B as decided on 9 Sep (items 12–14, 16, 19–21, 23, 25, 26; 24 off by
+default), less what had been built since under other names — the blood at a bite is v11.31's cloud, the breach's foam patch and bubble puff are
+v11.46's residue.
+
+**Built.**
+- **fx.js** (new; after combat in the order): one pooled point system for the water answering a body — the snow's kind of points (squares, the
+  player's light, alpha by distance), one draw. **Silt** in the floor's own colour (`terrainColor` through `sample()`) where a body moves on the
+  floor — the player walking or flopping, a jet fired within reach of the sand, a crawler going, a trap striking out of it — sinking at 0.15 m/s
+  and settling; **bubbles** from the seeps (a cell keeps its seep tops, `ch.seeps`; each seep within 110 m lets one go every 0.35–0.8 s; they
+  rise at 0.9 m/s with a wobble, grow, and end at the water); **scraps** at a bite in the prey's own vertex colour, tumbling (the size flickers),
+  sinking, gone in three seconds. `FXK` holds the kinds' numbers; `debris` on the effects list (on). `fxStats()` for the tests; the combat test
+  checks the bites leave scraps and nothing is NaN.
+- **The ring** (16): the breach's residue (player.js `splash`) has an annulus that runs out to four times the patch over three seconds and fades.
+- **Squash and stretch, banking, the stun shown** (19–21; fx.js `bodyPose`, `POSE_K`): after a body's own anim, the frame (compile returns
+  `frame` and `body` now) is scaled along +z by 1+s and across by 1−s/2, s from the acceleration and the strike, and rolled into a turn by the
+  yaw rate and the speed; stunned, it lists to one side while it sinks 0.3 m/s (creatures_ai.js). A rigged body rolls less (`bankRig`) and its
+  chains' rest positions are turned by the roll, so the arms and the tail lean with the hull. worldShapes reads g's scale, so contact is untouched.
+- **At a wound** (23–26; fx.js `hitFx` from combat.js `wound`, the kill included): the flinch — the chain points shoved along the bite, the tips
+  most, and a spin about +z damped over a second; the **flush** (24) — MAT_HIT, a pale emissive, for 0.15 s — `flush` on the effects list, off;
+  silt if the wound is within 2.2 m of the floor, scraps, the blood as before.
+- **The bite's snap** (25): the player's frame stretches for 0.1 s, the camera is nudged toward the bite for 0.15 s; on being hurt the field of view
+  kicks 2° for 0.2 s and the body gets a spin.
+- **Lint** checks for a name declared twice at the top level and fails — fx.js's first `updateFX` was silently replaced by effects.js's, and only
+  a look found it. The rule: one scope, every top-level name unique across the files.
+
+**Seen** (the app's browser, the loop driven by hand): silt in the sand's colour behind the finback walking on the flats by the peak; scraps
+at a bite on an eel in the forest; a column of bubbles rising from the seeps at the rim (1367, −450, 1607); the flinch's spin on the eel; the
+banking's number on turning bodies. **Unseen, ask in this order:** (1) the silt's amount and colour in play — too much behind a walking body,
+too little under a jet? (`FXK[0]`, the rates in `updateFXEmit`); (2) the banking's sign and size on the finback in a hard turn (`POSE_K.bank`;
+if it leans the wrong way, negate it) and whether a rigged ringmouth's arms follow the lean; (3) the squash on a jet and a strike (`sqMax`,
+`strike`); (4) a bite: the scraps, the flinch, the nudge and the snap together — too much? (5) the stun's list on a stunned hunter; (6) `flush`
+on, for a verdict; (7) the ring on a breach from above; (8) the seeps' bubbles at the rim by day.
+
+## v11.54 — COMBAT pass 1: the edge and the covering read off the spec; no capsule past the nose (15 Sep 2026)
+
+The person: "If that first pass means fixing collisions and getting that right, lets do it." COMBAT.md (written the same day: injury as states, not
+numbers; the chemistry per clade in §3b) is built in passes; this is the first, and it changes no outcome yet — the bites still deal `dmg` — it
+makes every fight *readable*, and in reading it found the contact fault the person has been seeing.
+
+**Built.**
+- **The edge and the coverings** (creatures_spec.js `compile`, beside the grip): every body's edge — the weapon's if it has one (spears `point`,
+  claws/fold/whips `claws`, ram `ram`), else the mouth's (a beak, a rasp, the hingeshells' `plates` mouthparts as `shred`, the slowbloods'
+  petals by a new `mouth:tentacles` param **`edge`**: `hold` (the default), `cut`, `point`, `crush`) — and a covering per hit capsule, by clade
+  (ringmouths skin; slowbloods hide, plate under `plates`; hingeshells plate, shell under the big valves; drifters skin; a shell part's own
+  capsule shell; a spec's own hit list puts the shell first). `b.edge`, `b.cover[]`, `b.gape` (the mouth's radius at the world scale). Each hit
+  capsule knows its owner part (`hitOwn`). The lab shows `edge` on the petals. The six slowblood hunters get theirs: ridge, abyssal, eel, basker
+  `cut`; needle `point`; crusher `crush`. The finback player stays `hold` (COMBAT.md Open 3 is the person's).
+- **`EDGE`** (combat.js): edge × covering → the verdict — `yes`, `nape` (only at a pinned animal's nape), `joint`, `thrash` (with the body's
+  thrash), `time`, `no`. A hold records the capsule it took (`bodyPointNear` now says which: `bpIdx`), the covering there and the verdict
+  (`h.ci`, `h.edge`, `h.cover`, `h.thru`). Nothing acts on the verdict yet.
+- **The readout's hold line** (main.js `holdLine`): every hold near the player — `hold ridge jaw/cut on you hide: thrash  0.3s pull 0.00`.
+- **No capsule past the nose** (compile, one rule): measured against the real hulls (`test/geo.js`), every lathe's hit capsule ended 0.5–0.7 of a
+  body unit past the frame's nose, the cores' formulas and the kept hand lists alike — at the ridge's scale **2 m of capsule in front of its
+  mouth**, 1.6 of the basker's, 0.7 of the finback player's. Two bodies touched and pushed apart before a mouth reached the other, and a hold's
+  rope, which stops closing at the contact, held the prey that far off the jaws for good. That is the "biting isn't working right" of the
+  person's opening line, on paper. Every capsule's nose end is now clamped at `F.nose − r` (the mouth's default z); the tail end is left alone.
+  The measurement, world metres past the nose, before: ridge 2.08, basker 1.58, great 1.70, pall 1.64, veil 1.54, crusher 1.19, tread 1.16,
+  comb 0.95, stone 0.75, hood 0.75, fin 0.71, grazer 0.70; after: none.
+- **`test/combat.js` §12, the matrix**: every kind's capsules covered, every hunter edged, then every hunter nose-on at contact behind each of its
+  prey (the player as all three clades): the hold point as `startHold` takes it, the covering there, the verdict, the gape against the prey's
+  widest capsule, the grip's distance from the hold point; fails if a grip is over a metre off the body it would hold. The jaws' distance at
+  contact before the rule: ridge on the finback 2.6 m, abyssal 5.0, basker 2.3, ridge on a grazer 3.1; after: 0.4, 0.6, 0.4, 0.4. The reach
+  table: 45 → 30 of 58 pairs have a DEFS `reach` under their contact. The ridge takes a grazer at 0.3 s (0.4), the basker kills one in 8.7 s (8.5).
+
+**What the matrix says** (findings for the person, in COMBAT.md §7): the ram has no route through anything (a blow: by design); the hood, lash
+and ram's claws get through none of the grazer's or the finback's hide — hingeshell hunters of slowbloods have no kill in the kit (joints on a
+lathe, or the person's call); the abyssal's comb (PLANET) is shell to a cutting edge: no route; the stone's petals are `hold`, so a trap eats by
+gape alone; by geometry the ridge (0.68), basker (0.74), stone (0.80), crusher (0.80) and abyssal (1.35) gape wider than the player's body
+(soft 0.57, fin 0.53) — under the gape rule the player is swallowed, which is COMBAT.md's finback death; the finback's tail capsule reads hide
+(the kept hit lists have no owner part; a fin is skin).
+
+**Seen** (dev.html in the app's browser, a ridge placed on the finback from the console, the readout open): the hold line
+`hold ridge jaw/cut on you hide: thrash`, first on the tail capsule (ci 1) as the ridge came from behind, then on the body (ci 0), the rope 0.76
+m at half a second and 0 at nine, the player at 13 hp by then (the damage is v11.31's still). The matrix and the fit table above.
+**Unseen, ask in this order:** (1) bodies bash closer now — every creature's contact shrank by up to 2 m at the nose: does a ridge's nose sink into
+the player, a hunter into the flora, the finback player's own nose into what it bites? (2) a held finback with the ridge's jaws at its flank in
+third person, against the v11.31 look; (3) the lab's `edge` row on the petals.
+
+
+## v11.55 — COMBAT pass 2: the states. No hit points; the gape, the pin and the placed act; wounds that bleed and slow; paralysis and the sting; autotomy; death ends the slot's animal (15 Sep 2026)
+
+The person: "Awesome. Lets move forward", and the three answers that gated it (COMBAT.md §9): autotomy automatic, the finback born with plain
+petals ("no to from birth"), death ends the slot. COMBAT.md §8's pass 2, built.
+
+**Built.**
+- **No hit points.** `hp` and `maxhp` are gone from the player, `derive` and the lab's readout; `DEFS.hp` keeps two meanings only (≤1 forage, ≥1e8
+  immortal) and `dmg` is a bite's size for the blood and the debris. The health bar is gone from the HUD (COMBAT.md §5: the body shows the damage).
+  `HUNT_REGEN` and the player's 8-second heal are gone with them. Eating feeds nothing yet — growth is what it will buy (DIRECTION).
+- **The three questions** (combat.js): a slowblood **swallows** what fits its mouth — the prey's widest capsule against its gape × `GAPE_K` 1.15
+  (ringmouths and hingeshells take forage in pieces at the touch, by mass as before); a hold kept past its **pin time** (`PIN.t` 2.5 s ×
+  (m_held/m_holder)^0.6, floored at 0.3, capped at 3) with the struggle under `PIN.pull` is a pin, and a paralysed body is pinned at once;
+  then the **placed act** by the edge's verdict where the hold is (`EDGE`, v11.54): `yes`/`nape` — opened (cut), skewered (point), crushed
+  (crush), bitten at the nerve cord (beak), dismembered (claws, shred); `thrash` — the next bite on the clock tears the piece out; `joint`,
+  `time`, `no` — the hunter lets go and looks elsewhere for `PIN.bored` 8 s. A kill goes through `kill()` as before (a carcass, or nothing if
+  swallowed); the player's is `die(cause)`. The player's own hold acts on its bite: pinned and through, the bite kills; the finback's plain
+  petals get `no` on a hide and only tear. Past 95 m from the player there is no rope and no struggle, so a far fight resolves on the pin
+  clock alone (the first build pinned only inside the near-rope block and a far fight never ended; `test/combat.js` §1 found it).
+- **Wounds** (`wound`): no number lands. The body bleeds for its clade's clotting time (`BLEED_T`: ringmouths 6 s, slowbloods 14, hingeshells 3,
+  drifters 4; a second bite restarts the clock), swims at `WOUND_SLOW` 0.8 while it bleeds (creatures through `seek`/`seekAway`, the player
+  through `slowOf`), leaves a trickle that is faster while fresh, and never dies of it. A hunter or ambusher bitten `FLEE.n` 3 times by the
+  player (a count that decays by one every 8 s) leaves — the lost part's stand-in until pass 3.
+- **The chemistry** (COMBAT.md §3b): `venom` on DEFS and the coil clade. **Paralysis** — the lurker's beak (7 s) and the coilshell player's
+  (5 s), against slowbloods and ringmouths, carried by the holder's first bite in the hold: the held body's steering is off (a creature drifts
+  and sinks a little, the player's keys do nothing, no ability, no withdraw) and it is pinned at once — which is how a coilshell with a
+  0.6 grip kills. **The sting** — the basker's and the grazer's new spine rows (`spines` parts on both specs): a jaw or arms on them lets
+  go after `STING.t` 0.45 s, swims at half speed for 6 s and waits 6 s before hunting again; only a holder under `STING.mass` 4 × the spined
+  body's mass is put off (a ridge on a grazer swallows the spines; the finback player is stung off a grazer and cannot grab for 6 s). The
+  drifters' cells sting instead of wounding. The hingeshells' poison waits for pass 4 (it needs where an animal fed).
+- **Autotomy** (automatic): a ringmouth about to be pinned by a jaw or claws (0.7 of the pin time) drops the held arm — the chain's frames
+  collapse to its base in `rigSkin` (`c.gone`), the hold goes with it, the holder keeps the arm (`AUTOTOMY.cool` 6 s, a tenth of its hunger),
+  and the arm regrows `AUTOTOMY.regrow` 5 game days later; never the last `keep` 2 arms. The soft-arm player drops arms the same way.
+- **Death ends the slot's animal** (save.js `slotDeath`): the cause is written to the slot (`deaths`: cause, day, playT), the next animal
+  waits at the peak, the menu comes back from the spot of the death with the cause as its note, and the slot's row says how many died and
+  how. Continue starts the new animal in the same world, the ledger and the clock as they stand. Without a slot (the tests, the lab) the
+  respawn as before.
+- **`test/combat.js`** reads the states: the eel pins the finback 0.73 s after the hold (64 against 7) and, pinned, tears it open at 1.6 s; a wound
+  bleeds 14 s on an eel and closes; the lurker's venom stops an eel; the grazer's spines sting the finback off in 0.42 s; the table of every
+  hunter of the player ends in an outcome — the crusher, stone, basker, ridge and abyssal **swallow** the finback 0.7 s into the hold, the
+  sickle skewers it, the eel tears it open, the lurker and the ortho bite the nerve cord, the trap and the hook let go (claws and shred on a
+  hide: `no`). `test/smoke.js` follows the death to the menu and continues the slot as a new animal.
+
+**Seen** (dev.html in the app's browser, the loop driven by hand): a lurker lunging at the finback, the hold line `lurker arms/beak on you
+hide: nape`, the kill "bitten at the nerve cord by a lurker", the fade, the menu opening over the lurker with the finback in its arms and the
+cause as the note, the slot carrying `{cause, day 0, playT 4}`; a hook on the soft-arm, the arm dropped 0.87 s into the hold (`armsLost` 1,
+chain 0 gone, the regrowth at t + 12000 s), the hold gone with it; the basker's and the grazer's spine rows (`test/preview/basker.png`,
+`grazer.png`: a short row along the back ahead of the dorsal fin).
+**Unseen, ask in this order:** (1) **the window** — a ridge, basker or crusher swallows the finback 0.75 s into its hold with no answer but
+the blow: is that the fear, or is `PIN.t` (2.5) or its floor (0.3) to rise? (2) the dropped arm's look — the chain collapses to a point at the
+base; a stump would be pass 3's spec edit; (3) the paralysed finback in first person: 5–7 s of nothing answering, then the beak; (4) the
+grazer's and the basker's spines in play at their scale (`spines` on both specs; the basker's are 1 m); (5) the slot's row with a death on it,
+and the note's wording; (6) hunters bitten three times leaving — too easy a way off a lurker?
+
+
+## v11.56 — COMBAT pass 4: hunters read blood; the strike's miss rule; injuries kept in the save; the hingeshells' poison by where they feed (15 Sep 2026)
+
+The person: "Wow, works great! Keep going." COMBAT.md §8's pass 4, built — the smaller pass, and the one that answers v11.55's window: the
+tell before the bite, and a dodge that works.
+
+**Built.**
+- **Hunters read blood** (combat.js `findBleeding`, creatures_ai.js `updateHunter`): a hungry hunter's scan takes a bleeding body on its prey list
+  within `SMELL_R` 90 m as its chase, past its eyes, and keeps it past `detect` while it bleeds. An eel 60 m from a whole finback (detect 17)
+  casts about; wounded, the finback is its chase within a scan. The wound you survived is what brings the next hunter (COMBAT.md §4).
+- **The strike's miss rule** (`MISS`): a chasing hunter in reach **commits** — the mouth opens (`st.strike`, the tell) and the bite lands
+  `MISS.t` 0.25 s later, on the prey if it is still within `range` 1.15 × reach and has **dodged** under `MISS.k` 0.8 of its own width across the
+  line the strike was aimed along (`dodged`: running straight away is caught by the reach check, the sideways burst is what is measured),
+  on water otherwise; a miss costs the hunter `cool` 1.5 bite cooldowns and a snap. A striker's strike phase (the tell/dur hunters, the
+  trap) and the lurker's lunge are their commits, scaled by their duration; a lunge lasts out its commit and a dropped pursuit forgets
+  it. The escape reflex as a rule (COMBAT.md §5).
+- **Injuries in the save** (save.js): a dropped arm is still dropped when you come back (`arms`, `regrow` as the world clock's times,
+  `bleed`), put back on the body by `injuriesLoad`; a death writes the new animal whole.
+- **The poison by feeding** (`POISON`, `poisonTick`): a hingeshell whose floor is below the chemocline (`deep` −440) or whose water carries
+  the vents' heat (`heat` 0.45) loads the sulfur line's toxin — full after `load` 0.4 game days there, clear `clear` 3 days after it leaves —
+  and a body over `min` 0.35 is no meal: what eats it, or its carcass, is sick for `t` 45 s at half speed and hunts nothing (`sicken`); the
+  player that gulps one is sick and slowed. The abyssal is **immune** (`DEFS.immune`; its comb is its whole diet — the garter snake's
+  answer to the newt), which is COMBAT.md §7's answer to "adapted, or not its meal".
+- **`test/combat.js` §13**: the eel that cannot see a whole finback at 60 m reads its blood in 0.2 s; a chasing ridge commits, a grazer moved
+  2.5 m across in the window is missed (biteT 2.25), one that holds still is taken in 1.6 s with no miss; a lurker that eats a body fed at the
+  seeps is sick 45 s and unfed, the abyssal is fed, the finback that gulps one is at half speed.
+
+**Seen** (dev.html in the app's browser, the loop driven by hand): a ridge on the finback's tail with the readout open — the mouth opening at
+the commit (`st.strike` 0.89) 6.6 m out; **the dodge trials**, five each: at `MISS.k` 1.0 a finback at sprint that turns 90° at the tell is
+caught 4 of 5 and one that turns before the tell (at 1.6 × reach) is missed 5 of 5; at 0.8 the turn at the tell is missed 4 of 5 — 0.8 is
+baked in, so the tell is answerable; a scuttle placed on the rim floor at −450 loads the toxin (0.0063 after 2.5 s: 1.0 in 0.4 days), a
+darter beside it stays clean; the eel's chase of a bleeding finback and the poisoned meal by the numbers (the test).
+**Unseen, ask in this order:** (1) **the tell in play** — is the mouth opening 0.25 s out readable at speed, and is the dodge learnable
+(`MISS.t`, `MISS.k`)? (2) the trail: does a wounded finback now draw a second hunter in the shelf's traffic, and is 90 m too far
+(`SMELL_R`)? (3) a sick finback for 45 s at half speed after a gulp at the rim — too long, or should the HUD say why (`POISON.t`)? (4) the
+arm still gone on a continue, then back five days on.
+
+
+## v11.57 — COMBAT pass 3: the wound as a spec edit — a tail torn off and the body slower for good; the stump, and the arm growing back (15 Sep 2026)
+
+The person: "Keep going, I checked and it looks good." The last of COMBAT.md's four passes.
+
+**Built.**
+- **A creature's body is its spec, and a wound edits it** (combat.js `liveSpec`, `rederive`): the first wound copies the filled spec to the
+  body (`o.live`); a lost part is `lost` on it; the calculator runs on the live build against the whole one and the ratios are the body's
+  from then on — `speedK` (floored at `LOSE.floor` 0.2: a finback without its tail has its fins and nothing else) through `slowOf`, `turnK`
+  through the creatures' and the player's turn rate. A dropped arm edits the arm count the same way (`armsLive`).
+- **What a hold can take** (`LOSE.parts`: the tail): a hold on a capsule that belongs to a part (compile's `hitOwn`; the four slowbloods with a
+  tail capsule mark it `own: 'tail'` in their hit lists, and a tail or a fin is skin on any clade) takes the part instead of the life when
+  the edge is through (`actOn` → `losePart`): the part's meshes are hidden (`r.nodes`, the objects a part added at compile), the body
+  re-derived, a big burst of blood and a bleed, the hunter let go with its mouthful (`LOSE.cool` 4 s, `meal` 0.15). A gape swallows from
+  the body, never from a tail. A hunter that loses a part flees `LOSE.flee` 12 s — the flee rule the pass 2 bite count stood in for.
+- **The stump and the regrowth** (physics.js `RIG_STUMP` 1, combat.js `regrowTick`): a dropped arm keeps one segment; the rest collapse to
+  its end and grow back segment by segment as the arm's clock runs (`c.grow` 0..1 over `AUTOTOMY.regrow` 5 days; the first arm gone is the
+  first back). A slowblood's tail never regrows.
+- **The commit coasts**: a chasing hunter's body slows while its jaws open (`c.vel × (1−3·dt)` for the quarter second), so the bite lands
+  where it was aimed — without it a ridge ran two body-lengths past its commit and bit the mid-body. On the floor a big hunter still bites
+  from above (its clearance keeps it 2 m up), so the tail is taken in open water, the joint on the floor.
+- **The save** carries the lost parts (`lost`), put back by `injuriesLoad`.
+- **`test/combat.js` §14**: a ridge from behind in open water takes the finback by the tail (capsule 1, skin) at 2.6 s and tears it off, not
+  the life; the finback is at speedK 0.15 (the floor then; 0.2 now) and turnK 1.5 with the tail's meshes hidden, and is swallowed 6.7 s later
+  — the survivor is slower and the second bite finds it; the soft-arm drops an arm to a hook at 1.2 s, the chain gone with grow 0 and the
+  live spec at seven arms, half back halfway through five days, whole after them with the speed back. The states now run in the test's
+  frame (`updateStates`); §3's eel is placed ahead of the finback (from behind it took the tail, which is right, and not what §3 measures).
+
+**Seen** (dev.html in the app's browser, the loop driven by hand): the soft-arm from above after a hook, one arm a stub among seven whole
+(`armsLost` 1, the live spec at 7, speedK 0.989 — the arms hardly move a jetter), the blood scraps round it; the same arm at half length
+two and a half days on (grow 0.50); the finback after a ridge from behind: the tail gone, blood at the stump, the pectoral fins left
+(speedK 0.2, turnK 1.5, bleeding 13.5 s), the ridge let go with its mouthful.
+**Unseen, ask in this order:** (1) a finback without its tail in play — at a fifth of its speed it is a slow death; is `LOSE.floor` the
+number, or should a lost tail end the animal outright? (2) the stump's look at the arm ring in first person and the regrowth's steps; (3) a
+hunter that lost a part fleeing (`LOSE.flee`), and whether the flee-by-bites rule (`FLEE`) should now go; (4) the far LOD: a kind's bake
+is shared, so a lost tail shows again past `lodNear`.
+
+## v11.58 — the basin: the same island on a 26 km world, the floor at −1100, the sill's nearest segment (15 Sep 2026)
+
+The person's ask, after a discussion of the map's size (100× the area as the thing to be capable of, an archipelago later, a wide open
+ocean so nothing is a wall): first, nothing but the island as it is, on a world you can swim out of until you hit the sill. The person
+chose the silled basin (DIRECTION, 12 Sep) over the plate, on the condition that it is a real thing and not a gameplay convenience — it is
+(PLANET, The basin: the Cariaco, the Black Sea, and the Iceland-Faroe Ridge for a volcanic ridge with a sill at 480 m); where the ridge
+runs was mine to judge.
+
+- **The world** is `NCELL` 120 cells, 25.8 km a side (`HALF` 12,900); the island's own square is the middle 16. Every cell array scales
+  from the one constant. The player's clamp and the apron are where they were, at the edge.
+- **The island is untouched to the bit**: `sample()` over the old square (185,761 samples, every field) is identical to v11.57's, and the
+  first change on a ray out is at r 3.7 km, where the flank meets the floor. The basin block runs only past r 2400; `smax` (util.js), a
+  smooth max with a knee, is exact past its knee, so the island's own function never sees the floor.
+- **The basin** (`BASIN`): abyssal plain at −1100 with hills of ±60 m at ~1.5 km, manganese-black mud (chunks.js `terrainColor`, darkened
+  from −600 so the pit's floor at −550 is as it was). The flank meets it through a 200 m knee — a rounded foot, the seamount's sediment
+  apron. −1089 at 5 km on the current's axis, the floor to the edges on every side but the north-east.
+- **The sill** (`SILL`): the ridge of drowned older shields crosses the north-east corner, its normal the current's source (`CUR_A` reversed),
+  crest 13 km out with a ±450 m wander: two summit groups near −150 (bare rock, `sub` 0.9), saddles at −410 and the sill proper at −430 —
+  20 m over the chemocline, so the water under it never leaves the basin. The main gap sits on the current's axis; the inflow's jet
+  (`gapF`) is the strongest steady flow in the world (0.95) and carries food in (`nut` +0.35). Flanks at 12° both sides, ribbed; beyond
+  the crest the outer flank goes on down (−1500 at the corner, the ordinary ocean's).
+- **The seamount effect is the island's**: past rw 3–6 km (`BASIN.fade`) `nut`'s upwelling term and the current's wake fade to the basin's
+  water (nut 0.12, flow 0.4). Inside the old square nothing moves (the fade starts past the warped corner).
+- **The far layer streams** (far.js `FAR_R` 2.7 km, `FAR_DROP` 3.6 km): regions are built nearest first within the far plane's reach and
+  dropped beyond it, one a frame; a dropped region's water map block stays. To v11.57 the whole world was built once and kept: on 900
+  regions that was a hundred megabytes of terrain nobody sees. A region is ~25 ms of CPU in 306 pieces; the ring round the player is up
+  in a few seconds. The water map is `NCELL·6` texels a side (720; the texel 35.8 m as before).
+- **The ledger** is 14,400 cells: the census 32 cells a step (eight seconds, not a minute), the model skips cells with no capacity for the
+  kind and none of it (the basin is most of the world) and yields every 2048, so its 110 ms comes in pieces under a millisecond. **The
+  save** run-length codes the five tables (`rle`/`unrle`, save.js): 0.30 MB and 28 ms where raw was 6.6 MB and 105 ms; an older record
+  decodes as itself and, being 256 cells, starts a fresh census as a roster change does.
+- `test/physics.js` and `test/combat.js` indexed the cell grid by a literal 16; they read `NCELL` now.
+
+**Seen** (dev.html in the app's browser, the loop driven by hand — the pane's frames stop when it is not displayed): the old square
+identical; the drowned summit at −141 m a twilight garden of vases and discs on bare rock with the finback's shadow on it; the gap's floor
+at −396 m with the ridge's flank rising ahead in the chemocline's brown; the flank's toe at −796 m and the floor at −1100 m — the dark, as
+the pit is (daylight's floor `DL_MIN` 0.28 shows the mud and the hills, just). The far regions arrive and go with no seam seen.
+**Unseen, ask in this order:** (1) the frame at the old island — the far scan is 900 entries a frame now, the cull the same; the
+readout's `work` should not have moved; (2) a swim from the shelf edge down the flank to the floor and on to the gap at sprint (the
+regions' streaming under real motion; teleports here were 10 km); (3) the basin at night; (4) what lives on the sill: the envelopes to
+−800 give the ridge's flanks pickers, pall, veils and the abyssal, the summits whatever takes rock at −150 — none of it placed on purpose
+(`test/census.js`: the abyssal's world capacity is 144 now, its combs 54, and it declines 14.6 → 5.9 over 40 days on paper — a deep
+resident with nothing to eat on the basin's slopes; the envelope or the comb's is the fix, and the person's call);
+(5) the chemocline over the outer flank beyond the crest, where the deep should be oxic and the game's band still browns it.
+
+## v11.59 — the world as a map: test/map.js (15 Sep 2026)
+
+The person, after swimming from the peak to the floor at −1038 and seeing the abyssals and the chemocline ("great"): before a huge distant
+island, a world map, "to get a grip of the size of everything". A headless tool like the previews, not in `--test`: `node test/map.js`
+samples the world into `test/preview/map.png` — depth bands (land, the shallows, the lit slope, the twilight, the dark under the chemocline,
+the deep, the floor) with a hillshade, contours at 0, −60, −150, −450, −800 and −1000, the island's old square, the clamp, the region grid,
+the landmarks, the sill's crest and gap, the current and the wind, a scale bar; `SPAN`, `CX`, `CZ`, `W` for a window (`SPAN=4400` the island
+close), and `PLAN="x,z,landR,footR;…"` draws planned islands as two rings (the land, the foot on the floor), also beyond the square — the
+function is analytic, so the map can show where the world would grow before it does. It prints the areas: 0.06 km² of land, 637 km² under
+the chemocline, 532 km² of floor in the 666 km² square. `test/preview/map_plan.png` is a 50 km window with an 8 km island 17.5 km to the
+south-west along the rift axis as a first proposal. **Seen**: the three maps. Nothing in the game changed.
+
+## v11.60 — the interactive map: map.html (15 Sep 2026)
+
+The person, on the maps ("I absolutely love those"): one they can edit, proposing islands and changing their radius. `map.html` at the root,
+a dev tool beside dev.html and not part of the game: it loads `src/util.js` and `src/world.js` as they are under a three-class THREE stub,
+so its `sample()` is the game's and never stale; open it from `node serve.js` (`/map.html`) or from the file. The same picture as
+`test/map.js` (bands, hillshade, contours, the old square, the clamp, the regions, the landmarks, the sill) on a canvas you pan and zoom,
+rendered in three passes (a quarter, a half, full) a few rows at a time on timers — not animation frames, which a background pane never
+gets. Planned islands: `n` or the button adds one, drag the centre to move it, drag its land ring to resize it, fields for the name, the
+place, the land's radius, the summit and the submarine slope; the foot on the basin floor follows (land + 1100 m of flank at the slope);
+the sidebar derives what a decision needs — the distance from our island and the open floor or the saddle between the feet, the summit's
+height above the horizon from our surface with the curvature's drop, how far it is visible in clear air, the crossing in real minutes,
+the land area, the distances to the other planned islands — and a proposed `NCELL` draws the world square that would hold them and says
+whose foot reaches past it. Export: the `PLAN` string for `test/map.js`, or JSON (and load it back); the plan autosaves in
+`localStorage['tethys.map']`. **Seen**: the world and the island close, an island added and dragged to 7 km south-west with its rings and
+label, the tool's own numbers. Nothing in the game changed.
+
+## v11.60.1 — the map's sidebar on a narrow window (15 Sep 2026)
+
+The person saw no place to paste: the canvas's own width pushed the sidebar off the right edge of a narrow window (`min-width:0` on the
+canvas, `flex:none` on the sidebar). The paste box is labelled and has a placeholder now. Seen in the pane at 800 px.
+
+## v11.60.2 — tp(x,z,y) from the console (15 Sep 2026)
+
+The person asked how to teleport. `tp(x,z,y)` in the browser's console (F12): the player at x,z (east +, south +), y above the ground
+there (10 by default; a negative y is a depth), still, the camera with it, the cells round it loaded at once; returns where it put you and
+the ground. Works from tethys.html (the bundle is an IIFE, so nothing else is reachable) and dev.html. The map's stat line gives x,z under
+the mouse. Not a feature: nothing saves or reads it. Smoke and lint green; unseen in play.
+
+## v11.61 — the islands as records: sample() sums islands over the basement (15 Sep 2026)
+
+The first step of the chain (the person: "can we begin work on creating the second island — what will we need to do first?"). Nothing is
+placed yet; this is the refactor every later step stands on, done alone so it can be proved harmless.
+
+- **`ISLANDS`** (world.js): an island is a record — where it stands (`x`, `z`), how it is turned (`rot`), its radial scale (`sc`), a noise
+  offset (`ns`, so a second island does not repeat the first's pattern), and every number its geology had as a file constant: the shield's
+  profile as steps (`h0`, `prof`), the terraces (`terr`), the rim and the lagoon (`rimR`, `rimW`, `lagH`), the collapse (`coll`), the dikes
+  (`dike`), the rift arms (`rifts`), the fissure (`vent`), the pit (`pit`), the flank cone (`isle`), the lower flank (`flank`), and `reach`,
+  past which it is not computed (its flank is 340 m under the floor's lowest there, and smax is exact past its knee). `ISLANDS[0]` is our
+  island, built from the old constants, which stay as they were for the readers that name them (the tide's stream, the fumarole, the pit's
+  cairns and rim flora, the landmarks).
+- **`islandH(R,x,z,o)`** is the old body of `sample()` in the island's own frame — a record's parameters in place of the constants, the same
+  operations in the same order — and hands back the intermediates the conditions read. **`sample()`** takes the smooth max of every island
+  in reach over the basement, the highest island's conditions where it stands (a volcano on another's flank: the saddles are the max of the
+  two, the fields the nearer's), and the basin's alone in open water. Two scratch objects, nothing allocated per sample.
+- **Proved**: against v11.60.2's `sample()` over the old square (185,761 samples: the ground and all nine fields identical to the bit) and
+  the whole 25.8 km world at 50 m (266,256 samples: the ground and eight fields identical; `rel` differs beyond 8.5 km, see below).
+  `sample()` is 0.6 µs in open water now (0.9 before: an island out of reach is not computed), 0.8 on the island as before.
+- **The one change, meant**: relief (`rel`) on the basin floor and the sill. To v11.60 the island's smooth profile (−290, the shield without
+  its flank) leaked across the whole basin as the "smooth" ground, so every hill of the floor and every summit of the sill had relief 0. Past
+  an island's reach the smooth ground is the basement's now, and the hills and the ridge's knobs read as relief. No envelope reads `rel`
+  (flora.js names it, nothing sets it), so nothing placed moves. The lower flank inside reach still has the old leak (rel 0 from the
+  apron's toe down, since v11.28) — the island's own `hSmooth` stops at the profile; left as it was, to be fixed with the person's knowledge
+  since it is inside the island.
+
+**Seen**: nothing to see — the world is the same. **Next**: the giant's record south-west (the person's layout from map.html), which needs
+the kit's one missing term, land above the water: a shield rising to a summit with gullies, its shore, its flows.
+
+## v11.61.1 — the maps show the island records (15 Sep 2026)
+
+The person: "can you update the map?" `map.html` and `test/map.js` draw every record in `ISLANDS` as it stands in the game — its centre, a
+dashed ring at its reach, "built: <id>" — beside the yellow plan, so the two are never confused; the maps' picture is the live `sample()`
+already, so a record added to `ISLANDS` shows as terrain on the next refresh. Re-rendered `test/preview/map.png` and `map_plan.png` (the
+plan with the giant and the young shield). Seen in the pane.
+
+## v11.61.2 — ARCHIPELAGO.md (15 Sep 2026)
+
+The person is taking the giant to a new chat. The plan lived in this one: ARCHIPELAGO.md now carries the chain's numbers, the build order
+(the records built; the giant's land term, the horizon tier, the world at 240 cells, the road), the tools, and the person's answers.
+CLAUDE.md's doc table and HANDOFF point at it.
+
+## v11.62 — the giant's record and the land term (15 Sep 2026)
+
+ARCHIPELAGO step 2 (the person: build the giant's island record and the land term the kit lacks; place it at the table's position; keep ours
+bit-identical; do not grow the world or build the horizon tier). The giant exists in `sample()` now, most of it past the world's edge.
+
+- **`land` in the record** (world.js `islandH`, the term the kit lacked): the subaerial shield inside `land.r`. The surface is a mix of a cone
+  and an S-curve from the shore to the summit `land.h` — 4° at the coast and at the summit, 9° mid-flank, 7.3° mean at 900 over 7000 (PLANET
+  puts subaerial flows at 4–8°). Where the surf strikes (`expoW`) the coast is a wave-cut cliff of `land.cliff` over the first 55 m inland; in
+  the lee a plain runs to the sand. The rain is the trades' and falls on the windward flank, so the gullies are there: `land.gully.n` valleys on
+  their own angle (unevenly spaced, slowly bent), each cut from the interfluve surface toward a graded floor (`h·t^1.8`: base level at the
+  coast, a bay through the cliff; meeting the surface below the summit, an amphitheatre head), a rounded floor with the shield's old surface
+  left flat between (the planezes of a dissected shield); how far each gets is the rain (1 windward, `land.gully.lee` in the lee) times a
+  per-valley draw, so a few are master valleys to the floor and most are gulches. The last flows ran down the rift zones and lie on the surface
+  as ridges `land.flows.h` high — half the slots of a comb of `land.flows.n` within `land.flows.hw` of a rift, from the caldera's rim over the
+  shore onto the shelf, fresh rock (`young`). A summit caldera `land.cald`: a flat floor `d` under the rim, its wall `w` wide, the valley heads
+  that reach the rim notched into it. The gullies go on `h` alone; `hSmooth` carries the surface less a third of the cut, so a valley floor
+  reads as relief 0 and a planeze as a crest.
+- **The kit's last constants are the record's**: `riftR` (the rift arms' radial extent; ours `[280,340,1600,1300]` by name), the shelf edge
+  read off the terraces' band (`T.r0−50..+30`, `T.r1+150..−50`: ours 650/730/1150/950 exactly), the upwelling's fade `fade` in rw (ours
+  `BASIN.fade`), a record without `rimR` has no lagoon and no passes, and the wind and the current read the unrotated angle (`rot` is 0 on both
+  records, so the same doubles).
+- **The giant** (`ISLANDS[1]`): at (−15400, 9200), 18 km south-west on the chain's axis. In metres (`sc` 1 — the doc's "radii scale by sc, ~3×
+  ours" was for a scaled copy; with the record carrying its own radii the scale is unneeded and the noise keeps our grain), `ns` 500. Land
+  r 7000 (the coast wavy ±16% by the kit: the shore at 6.5 km on the windward side, 7.5 toward us), the summit 900 with a caldera (r 700,
+  110 m: the floor at 728 under a rim at ~870, so the highest ground is the rim, and the map's +880), the cliff 40, 36 gullies (windward
+  valleys 150 m deep near the coast and 270 mid-flank, the lee's 20–50), the flows on rifts 2.6 and 5.74 (the chain's axis: toward the young
+  shield and toward us), a 1 km shelf to −60, the terraces 8000–8800, the slope to −290 at 9.8 km, the flank at 12° (`s0=s1=0.21`, the table's)
+  to the floor at ~13.8 km, `reach` 16000 (−1390 at worst with the ribs, 300 under the floor's highest hill). No collapse, dikes, vent, pit or
+  cone: nothing decided them yet.
+- **The saddle**: the giant's foot reaches ours — −927 at 4.5 km from our centre on the line between (the doc's "about −1000"). The current
+  is the world's, so the giant's fed flank (`upW`, the source at 5.44) is the one toward us: `nut` 0.66 on its shelf there, 0.83 at the windward
+  shelf edge, 0.36 in its lee; `flow` 0.43 / 0.61 / 0.21.
+- **Proved**: ours is bit-identical over the old square (185,761 samples at 8 m: the ground and all nine fields, `Object.is`), and over the
+  whole world every difference lies inside the giant's reach (76,583 of 267,289 samples at 50 m differ, none outside the 16 km circle, the
+  nearest 3.7 km from our centre — the saddle). The scratch script loaded HEAD's world.js beside the new one, as v11.61's did.
+- **The maps**: `test/map.js` and `map.html` draw a built island's land ring and name its summit (`built: giant +900`). The world map's
+  stat line: land 37.5 km² (ours is ~0.4), the floor 385 of 666.
+- **The world's edge**: the giant's centre is 2.5 km past the edge (x −12900) until step 4; inside the world stand its eastern flank from
+  ~640 m down, the shore, the shelf and the saddle. The player's clamp holds at the edge; the apron carries the coarse terrain 2 km further
+  (to r ≈ 500 from its centre); nothing draws past the far plane.
+- **Seen** (dev.html in the app's browser; the loop driven by hand, each frame posted through serve.js — the other chat's server on 8080
+  predates the sink's png and took them as .txt): the shore toward us from the sea (a low green plain of olivine sand, tidal trees, boulders
+  and crags, the land rising behind into the haze) and from 25 m up; the windward cliff from offshore (a 40 m bluff with crags along its
+  crest — sand-coloured to its top, since the strand's colours run to 18 m before the rock, so it reads as a bank, not a sea cliff); a
+  windward valley from inside (the floor with boulders, the walls, the far wall rising) and from its ridge (a planeze with boulders and rust
+  patches, bare: the greens stop at h 60); the world's edge at 643 m looking at the summit (the fine cell's ridge in front, then the apron's
+  coarse ridges whitened to nothing by the air's haze — step 3's business). Performance at 1280×720, the loop by hand: the shore 4.3 ms of
+  work, 126 draws, 3.0 M tris, 1174 creatures loaded (the shelf's spawns); the valley 0.8 ms, 56 draws, 0.7 M tris. Tests green on both
+  tiers; the census still ok — the world's total capacity went from 14,268 to 51,385 (the giant's shelf inside the world holds 3.6× the old
+  world's life: flicker 1,062 → 11,073), while the boot counts at the peak are unchanged (850 on low, 1,379 on high).
+- **Unseen, ask in this order**: the shore at high water and at night; the caldera and the summit (past the edge until step 4 — the map has
+  them); the flows' ridges from the ground (8 m on a 900 m flank; on the map they are the faint radial lines on the rift sides); the lee coast's
+  plain and its gullies; the person's 4060 at 1600×900 on the shore, where the creature count is the cost.
+- **Open, asked 15 Sep** (ARCHIPELAGO's list): the caldera — keep, fill it (post-shield) or strike; rivers in the master valleys (nothing
+  carries water on land); the reef's amount (by envelope now: whatever the lime polyps' rule gives on a 1 km shelf); the greens above 60 m —
+  tussock and scrub stop at `h` 60 by their envelopes, so the giant's slopes are bare rock above that, and the rain says the windward flank
+  should be green to the cloud base at 650; whether the cliff face wants a rock colour of its own; the crossing's road; the layout (this is the
+  table's — the map's json may differ).
+
+## v11.63 — the world map in the game, and tp() names the clamp (15 Sep 2026)
+
+The person, after teleporting to the wrong side of the world: a world map in the game. A dev tool beside `tp()`, not a thing the animal carries
+(PLANET's rule: no names, no magic; the game's own text stays minimal) — so it draws the dev's picture, not a player's chart.
+
+- **`src/worldmap.js`** (`n` in play or the menu; esc or `n` closes; with the readout open `n` stays the fog tuner's): the whole world from
+  `sample()` with `test/map.js`'s bands, hillshade and contours (the sea, −60, −150, the chemocline, −800, −1000; the two tables kept in step by
+  hand), the island records' reach and land rings, the clamp, the old square, the loaded cells as faint squares, the landmarks as dots, the player
+  as a dot with the way it faces; under the picture the cursor's x, z and the ground there, and your own place; a scale bar. The wheel zooms
+  about the cursor (300 m to the world and a quarter), a drag pans, a click goes there (`tp`) and closes; opened in play it centres on you. The
+  world's picture is `WMAP_N`² (512) samples made once on first opening (~0.3 s, a stall a dev tool may have); zoomed in past 60% of the world
+  the window is re-sampled at `WMAP_Z`² (320) once the view has rested `WMAP_REST` ms, so the island's square reads at its own scale instead of
+  as 66 px of the world. The pointer is released while it is open and taken back when it closes, as the effects list does; a click on the game's
+  canvas closes it. The shell gains `#wmap` (a canvas and a line, dark behind); main.js calls `updateWMap(dt)` after `updateFX()` so the dot
+  moves and the cells follow. Nothing in the game reads it and nothing is saved.
+- **`tp()`** clamps its point to the world (±`HALF`−25) itself and says so: `outside the world (±12875): held at 12875, 9200, y -1081 (ground
+  -1091)` — before, it reported the ground at a place the player never arrived at, and the player's clamp moved them silently next frame (the
+  person, teleporting to 15400, 9200: the giant is at −15400; the point they typed was the east edge's abyssal floor).
+- **Seen** (dev.html in the app's browser, the loop live): the map over the play at the peak — the world whole with the giant in the south-west
+  corner and the sill across the north-east, the 3×3 loaded cells round the peak, the landmarks, the yellow dot; eight wheel steps over the
+  giant's shore re-sampled the window at 4.3 km across (the gullies, the shelf's contours); a click on the windward shore put the player at
+  (−9061, 11514) on the strand and closed the map; `tp(15400, 9200)` answered with the clamp. Tests green on both tiers; the low tier's
+  `test/live.js` sat at 0 kills twice in 60 s inside `--test` (2, 4, 2, 2 over four runs of v11.61.2; 0–4 over ten runs since, mean 1.6; the boot
+  counts at the peak are the same 850, so the difference is the dice, not the density): the threshold is one kill on a count that low, and a
+  0 is the test's flakiness, not this change — the test wants a longer play or a floor of its own some day.
+- **Unseen**: the map on the menu (the same code path, the camera at the peak); a drag; a phone (mouse events only — no touch, by design for
+  a dev tool).
+
+## v11.64 — the horizon tier, and a trade-wind air (15 Sep 2026)
+
+ARCHIPELAGO step 3 (the person: "let's get onto the next step"): the giant shows from our surface. Two things had to change, not one.
+
+- **The air.** The world's fog in air was "a hazy coast" (world.js `AIR`: dens 0.0024, share 0.6, far 0.0018 — 47% contrast at 300 m, 4% at
+  1 km), chosen in v6 so the far plane merged into the sky, and the far cut (`FOG_CUT`, scene.js) made every fragment the sky by 1440 m. No
+  island 18 km off can exist under that. WATER.md P6 had already named the change as the person's call; the giant needs it, so it is made
+  and can be undone by name: `AIR` is a trade-wind day now — dens 0.0009, share 0.35, far 0.00003. The near population is the look (35% of
+  the contrast gone by 2 km, a light general haze), the far term is clear air (130 km), and the physics of the distance is the boundary layer
+  the fog already integrates along every ray (`HAZE.dens` 1.7e-4 over 70 m: Koschmieder's 23 km at the water): from the water the giant's foot
+  at 18 km is lost in the layer (~3%) while a ray to its summit climbs out of it (~30%) — the peak floating on the haze, as a far island
+  looks. A shower still thickens it (`applyFog`). The far cut is lifted for the air part from above (scene.js `fogAir(...,1.0)` in the camera-
+  above branch): a fragment in air keeps its haze contrast to the far plane instead of dissolving, since the horizon tier continues past it.
+  Under water nothing changes.
+- **The pass** (`src/horizon.js`): with the camera in air, a second scene is drawn first — the sky dome (moved there from the main scene while
+  above; back when under), a sea disc from `HZ_SEA0`·FAR to `HZ_FAR` (80 km) about the camera, and one mesh of every island's land and shore
+  sampled once from `sample()` at `Q.hz` metres (100 high, 200 low; a triangle is kept if any corner is above `HZ_CUT`, −5, so every shore quad
+  stays and the disc covers the rest) — through a camera from `HZ_NEAR` (20 m) to 80 km; then the main pass over it with the depth cleared, so
+  everything nearer than the far plane is the world as it was and everything beyond is this. The planet's curvature is a vertex-shader drop of
+  d²/2R from the camera's foot on both the disc and the mesh (`HZ_R` Earth's: PLANET says 1 g and nothing else) — the giant's shore at 18 km
+  sits 25 m under the sea's curve from the water and shows from 40 m. The mesh is lit by the sky's own uniforms (`HZ_LIGHT`: the zenith and
+  horizon as the ambient by the normal's tilt, the sun's colour by dayK) and fogged by the world's `fogAir` without the cut; the disc is the
+  surface's topside rule at its far end (the Fresnel weight on the mean normal, the sky reflected, a body under it). Built on the first frame
+  above the water (16,753 vertices, 32,768 triangles, ~100 ms behind the boot's fade) and kept; three draws a frame. The extent is the
+  world's square with its apron and every record's land with a 3 km margin.
+- **Two things that bit**: near-plane clipping is by view depth, not distance, so a near plane at the far plane cut the dome and anything
+  off-axis to a 32° cone (hence `HZ_NEAR` 20 m and the overdraw); and three clears to a scene's `background` colour whatever `autoClear` says
+  (WebGLBackground forces it), so the main pass wiped the horizon pass every frame until its background was handed to the horizon scene for
+  the duration. Both are in CLAUDE.md's list now. Also: the boundary-layer mist is already the sea-salt haze, so a far term of 0.00012 on top of
+  it (the first cut) left 0.35% at 18 km — the giant drawn and invisible.
+- **Seen** (dev.html in the app's browser, the loop by hand, frames through the sink): from open water 3 km south-west of our island at 3 m,
+  the giant on the horizon — a broad pale shield 2.6° high, centred, its foot in the haze; from 15 m the same with its gullied flank readable;
+  from 40 m over the peak it stands over the rim (from the peak at 3 m it is behind the rim's islets and trees, which is where it should be);
+  from the giant's shore looking at ours, nothing (our rim is under the horizon from 4 m; the isle's hill at 10 km is two pixels); from the
+  world's edge at 680 m the flank goes on past the apron to the caldera's rim; open water north, a clean line. Known and left: a faint lighter
+  band under the line where the sea disc meets the surface mesh's far end (the two topside rules differ a shade); small dark marks on the line at
+  the far plane, which are the drifters' fleets on the surface, hidden until now by the old haze. Cost at 1280×720: the pass is 3 draws and
+  ~33k triangles; render 4.4 ms over the peak with 157 draws in all, 0.9 ms in open water. Tests green on both tiers.
+- **Unseen, ask in this order**: the clearer air over the whole island by day — the far mesh at the far plane now keeps 58% of its contrast
+  where it used to dissolve, so the island's far terrain, the kelp cards and the surf read from 1.6 km (WATER.md P6's question: the hazy coast
+  or the clear day); the giant under a shower and at dusk (the sun sets behind it: WIND_A puts the sunset over the collapse, west, and the giant
+  is south-west); the sea line's band; the pass on the low tier (200 m grid); the person's 4060 at 1600×900.
+
+## v11.65 — the world grown to 240 cells, and the ledger's index (15 Sep 2026)
+
+ARCHIPELAGO step 4 (the person: "let's work on to step 4"): the world is 51.6 km a side, so the giant is whole — its centre, its summit and its
+western half inside the clamp — and the sill's crest has 23 km of ocean flank beyond it.
+
+- **`NCELL` 240** (world.js; 120 from v11.58, 16 to v11.57; `HALF` 25,800). Everything indexed by cell scales by itself: `chunkGrid`, the far
+  layer's caches and its 60×60 regions, the water and floor maps (`WM_N` 1440: ~65 MB of typed arrays, the doc's "fine, or window it" — left
+  fine, for a performance pass to window), the horizon mesh's extent (557² samples, still ~17k vertices: land only), the world map. Ours is
+  proved bit-identical over the old square and over every sample of the old 25.8 km world (267,289 at 50 m: the ground and all nine fields).
+- **The sill beyond its crest** (world.js `SILL.plate`): the ridge's window was 7 km either side of the crest, so 20 km out the floor would have
+  jumped back to −1100; the window is one-sided now (7 km on the basin's side, open beyond), the outer fall `out` floors at the plate (PLANET's
+  ~−3800), and the ridge's own flank runs down at its 12° to meet it ~16 km past the crest. Nothing inside the old world changes (its
+  corner is 5 km past the crest). Open, PLANET's own note: the deep beyond the sill is the ocean's and oxic, and the game's chemocline is the
+  basin's — wrong there, and now reachable.
+- **The ledger's index** (ecology.js `POP.cells`, `POP.kcells`, `ecoMark`, `ecoIndexAll`): the world is 57,600 cells and the basin's floor is most
+  of it, with two or three kinds living there. The tables stay dense (five per entry, 37 entries: ~43 MB of Float32, cheap to index), and every
+  loop of the model, the settle and the drift walks a per-entry list of the cells the entry has any capacity or count in (a per-kind union for
+  the take's cap), so the cost is the habitat's, not the map's. A cell joins its lists when its capacity is first known (`ecoCap`) or later turns
+  up above zero, never leaves (a stale member costs a skip), and a save loading rebuilds them (`save.js popLoad`). The breeding loop runs per
+  entry over its list now rather than per cell over every entry; the lists are in the order the cells were known, so the model's sums run in
+  a different order than v11.64's and its floats differ in the last places — the census prints the same numbers. The paper census is 57,600
+  cells at 32 a frame: ~30 s after boot (8 before), the loaded cells first as ever. A save from the 120-cell world fails the length check and
+  starts the world fresh with the warning it always had.
+- **The mist's integral rewritten** (scene.js `MIST_GLSL` `mistL`): `e·(1−exp(−k))/k` with `k = dy/H` overflowed float32 on the spray's 4 m layer
+  for any ray dropping more than ~90 m to the water — `exp(−k)` to infinity, `e` to zero, 0·∞ = NaN, the fragment black. Nothing stood 90 m over
+  the sea until the giant; from its summit the sea and the flank past the far plane were black to the horizon. The same integral as
+  `rho·(exp(−cy/H) − exp(−fy/H))/k`, both exponentials in (0,1], for every material that reads the chunk.
+- **The horizon tier from a height** (horizon.js): the sea disc and the pass reach `HZ_FAR` 250 km now (from 886 m the horizon is 106 km off
+  and the 80 km disc left the dome's dark underside showing between); the disc carries the water column the surface mesh shows through
+  (alpha `a = uBody + R − uBody·R` leaves 1−a of the pixel to the dark water beneath), its terms on a uniform (`HZ_SEA_U`) and tuned in the
+  pane against the surface's far end from 300 m up: with the column at 1 and the surface's own 0.85 ceiling the two match to three levels
+  of 255 (`HZ_LIGHT`). The octagon of the surface mesh's edge still reads faintly from a height: the rows of the swell stop there.
+- **Seen** (dev.html, the loop by hand): the world map at 51.6 km — the giant whole, the sill running across the north-east with the plate dark
+  beyond it; the giant's caldera floor from inside (flat sand at 730 m, its wall a mass of dark boulders — the rock kit's crags on a 70° face,
+  the person's to judge, and the rim's crest is rubble the camera clips into); from 70 m over the rim, the caldera across and the flank down to
+  the sea and the sea to the horizon toward our island (which is under it: two pixels of the isle's hill at 18 km); from 300 m over the giant's
+  shelf, the seam; the heap ~350 MB after the census (the ledger's tables and lists, the maps). The whole `--test` is 6 m 17 s now (the
+  census over 57,600 cells and the 40-day model on both tiers), green on both tiers.
+- **Unseen, ask in this order**: the ocean beyond the sill from the surface and at the plate (−3800 — the dark's chemistry is wrong there);
+  the north-east corner's far terrain from the crest; the census's 30 s on the person's machine (the ledger's readout `eco n/57600` climbs);
+  the summit at dusk and under a shower; a save made in the 240-cell world loading (the index rebuilt); the low tier at the summit.
+- **Not this pass**: the young shield's record (its centre at 30.8 km along the chain is 5 km past the new edge — the doc's arithmetic; the
+  next island wants a record and the horizon tier will show it from here whatever the world's size); the road (step 5).
+
+## v11.65.1 — SEAFLOOR.md (15 Sep 2026)
+
+A discussion recorded, nothing built. SEAFLOOR.md carries what an archipelago this size can honestly differ in from island to island (marine
+endemism at the chain's level, not the island's, except brooders; ecotypes by `expo`; the progression rule for the young shield; colour by
+`young`; the sill relict) and the underwater formations the geology gives — lava tubes, pillow slopes, dike walls, talus aprons, the terrace
+notch, tidal channels and ebb deltas, blue holes, the guyot, more pits, diffuse vents, iron crusts, the giant's slide lobe, canyons, sand
+waves in the saddle — ranked by ecology per unit of work. The person agreed to all of the formations ("all of that"). Open and theirs: a range
+term for endemics (§5), the one item that changes the code's shape. CLAUDE.md's doc table and HANDOFF point at it.
+
+## v11.65.2 — SEAFLOOR.md §5, the surface (15 Sep 2026)
+
+What the physics puts on the water, recorded to come back to: pumice rafts from the young shield, discoloured water and gas over vents,
+wind rows and slicks, fronts, blooms (the wake lit at night as an event), wrack after storms as the struck raft's honest form, the neuston's
+two predators (a bubble-raft grazer of sailers, a slug under the film), floating carcasses, basking slowbloods, egg masses, drift logs.
+Ranked. Flyers are a clade decision and the person's. The range term moves to §6.
+
+## v11.66 — the hingeshell variety pass (15 Sep 2026)
+
+The person's ask: the hingeshells significantly more varied in the world, above all the radiodont-like paddlers, every form from the clade's rules
+and every placement from the condition fields; the first of three passes (slowbloods and ringmouths follow), so the variation is infrastructure
+every clade shares and nothing is hingeshell-only code.
+
+- **The individual** (creatures_ai.js, the section over `spawn`). Every animal the ledger places draws three things at its spawn, from the cell's
+  own stream so a cell comes back the same: a size within `VARY.spread` ±15% of its kind's — an instance scale on the group over the shared geometry
+  (`scaledDef` chains a def with the size numbers scaled, the routine the juvenile used; the hit capsules, `reach`, the contact and the gape follow;
+  nothing is rebuilt: 40 sickle spawns 17 ms with the variation and without); a coat class from the place's chemistry (creatures_spec.js
+  `coatClassAt`, `coatChem`, `COAT_CHEM_KEYS`, `COAT_CLASSES`: rust on rock in the lit water, lime on the surf's shallow rock where the lime rind
+  grows, sulfide below the chemocline and at the vents, manganese on the mud below the light, and a `d` suffix darker on fresh rock — PLANET's
+  shell-colour rule and SEAFLOOR §2's `young`; the kind's `PAL` preset shifted, its pale joints and its eyes never; a geometry per kind and class
+  in `KIND_GEO` since the palette is in the vertex colours, 18–29 classes in the cache over a tour of the island at ~0.5 ms and a few thousand
+  vertices each; only the hingeshells' key list is filled, the other clades' rows wait for their passes and draw no class); and, for a clade that
+  moults (`GRAMMAR.moult`), whether it is in the soft state. `coatFor` reads the fields too. Nothing outside the ledger varies (ent −1: the
+  lab's placed spec, the fleets, the tests' bodies).
+- **The moult** (`MOULT`; PLANET's promised cost and story): a twentieth of a moulting clade's placed adults start soft — pale (the `soft` class,
+  the bleached coat of v11.8), valves clamped (`st.soft`, read by the valves part), laid against the nearest solid within 6 m (`hideSpot`),
+  still, and covered by skin instead of plate so any edge opens it (PLANET: the only time a hingeshell is edible; a hunter takes a soft body of
+  any kind while its own mass is at least `MOULT.prey` 0.5 of the body's — `findPrey`). It hardens after `MOULT.soft` 0.5 days × mass^¼ out of
+  sight (a fresh adult in its place, as a juvenile grows up); a hard adult carries a clock to its next moult (`MOULT.every` 20 days × mass^¼: a
+  scuttle every 15, a sickle every 66) and, out of sight and unheld, is replaced by its soft twin with its cast carapace on the floor beside it
+  (`dropShed`: a mesh, gone after `MOULT.shedT` 4 days; `updateSheds` in the frame). Old sheds lie about as debris: a flora entry per moulting
+  kind the ledger places (`shedFlora`: the body built in the `shed` coat with its valves clamped and flattened to one geometry, the eyes pale
+  cuticle, lifted so its underside sits on the floor, placed by the kind's own envelopes at `MOULT.shedPer` 0.5 of its capacity a cell, `MAT`,
+  `clearOf` like any small flora, one pool draw a kind — 15 entries; chunks.js placeFloraType gained `envs`, the best of several envelopes, and
+  `rare`, a chance under one for a thing rarer than one try a cell). Boids skip the soft state (a ribbon's mean would drag on one).
+- **The raptor family in the world** (the person's default: all five looks live, one each, placed by what the build implies; `ROSTER` loses their
+  `new`). The **hood** buried on the sand flats and the lagoon floor as an ambusher from below (`role:'ambush'`, `clear` 0.55; chunks.js
+  placeKind places the trap, the stone, the hook, the lurker and the hood by role now, `strikeOnLunge` opens its claws on the way up); the **lash**
+  on the ledges and the lips (`rel` ≥ 0.6 — rock standing above its surroundings; flat ground reads 0.5); the **ram** slow and big in the open
+  water over the upwelling flank, its `weapon:ram` a blow (combat.js `RAM`: a strike on what its mouth cannot take whole is a knock — the body
+  stunned 2.5 s, the player dazed 2 s, no hold, the ram off it 3 s; the stun is every role's now, handled before the roles in updateCreatures);
+  the **sickle** on the rockfall by `young` ≥ 0.35 and on the terraces' rock; the **hose** in the stipe's own band. COMBAT.md §7's finding
+  (the claws of the three get through no slowblood hide) is answered by **prey they can open**: the hood and the lash hunt the forage (flickers,
+  darters, needles, scuttles, rasps, the sifters), the ringmouths' skin (arrows, rasps, the soft-arm) and any hingeshell at its moult; the ram
+  hunts the swarms (sifters, flickers, darters, arrows) and never the player. The matrix's "no route" list is empty.
+- **Five forms by mechanism** (creatures_spec.js `SPECS`, written dense as the lab exports them and validated headless; the kit unchanged, its
+  unused combinations used; a `PAL` preset each): the **sifter** (0.6 m, the comb's small relative in the lit fed water — combs, flap rows, a
+  spine tail; a boid of the water column, `DEFS.mid` and placeKind/updateSchools keep its ribbons at their own depth, in eights where `nut` ≥
+  0.5 and `flow` ≥ 0.3; forage: the ram's, the arrows', the needles', the eels', the traps' and the lurkers' meal; tells stalked eyes + flap
+  rows); the **cinder** (1.2 m, the seep walker: the picker's cousin, plated where the picker is stilted, black in its own preset and blacker in
+  the sulfide class, forage, poison by its diet as built; on the vent field's mats, `heat` ≥ 0.25, where the basker eats it down, and thinly along
+  the chemocline's seep line round every island, the kind's reservoir; tells mouth under); the **wedge** (0.9 m, the scuttle's exposure ecotype:
+  a low wide shield, short paddle legs, valves twice as thick, on the rock the waves strike, `expo` ≥ 0.5 from −12 to +2; the crusher's and the
+  lurker's; the scuttle keeps off the surf now, `expo` ≤ 0.7; tells mouth under); the **plough** (1.6 m, the flats' deposit feeder that is not
+  the trap: feeding combs under the front, the mouth under, no weapon, on the sand the grazers pasture, `sub` ≤ 0.4 from −80 to −8; the ridge's
+  and the stone's by gape; tells stalked eyes + mouth under); the **relict** (4 m, SEAFLOOR §3's sill relict: the hose's line stranded on the
+  drowned summits as their island sank — larger, pale, its eyes small below the light and its comb large, the proboscis picking pickers off the
+  rock; `h` −450..−280 on `sub` ≥ 0.55 off fresh rock, which the world has only on the sill's summits, swept clean; tells stalked eyes + flap
+  rows). `rel` low could not place it, as the brief wanted: the summits read `rel` 1 because the smooth surface has no knobs.
+- **Spawning by the fields**: the hingeshell rows of `SPAWN` read `expo` (trap, scuttle, wedge), `rel` (lash), `shel` (hood), `flow` (hose,
+  sifter), `nut` (a second flicker entry where the water is fed, sifter, ram, comb), `young` (sickle, relict), `heat` (cinder), `grp` (sifter),
+  `sub` and `turb` where the mechanism says. Written against a per-region capacity table (a scratch tool over `envW` at 2×2 samples a cell,
+  the world split ours / the giant / the sill / the basin): the giant's shelf is ~30× ours, so every K is mostly the giant's; the young shield
+  has no record in the world, so its pillow slopes have no population yet. **The abyssal's envelope moved to the rim** (h −560..−380, `nut` ≥
+  0.25): the 120-day census at v11.65 already failed with it collapsing 70 → 12 — its band ran over the sill's flank and the basin's far floor,
+  where no comb lies within its 5×5 reach; `--test`'s 40-day run never sees it. Found and not fixed: the `seep` flora's `sub` 0.3–1 puts it
+  nowhere on our island's rim (mud, 0.15) since the basin; it grows only on the sill.
+- **The census, 120 days, before and after** (`node test/census.js 120`; K, the day-0 count, the day-120 count; the kinds whose numbers moved):
+
+  | kind | K before | day 0 | day 120 | K after | day 0 | day 120 |
+  |---|---|---|---|---|---|---|
+  | flicker | 35862 | 30482 | 22797 | 37637 | 31991 | 23199 |
+  | sifter | — | — | — | 28196 | 23967 | 19430 |
+  | picker | 24992 | 21243 | 14981 | 24985 | 21237 | 14784 |
+  | scuttle | 13866 | 11787 | 11773 | 13113 | 11146 | 11131 |
+  | lurker | 2186 | 734 | 602 | 2186 | 1185 | 1378 |
+  | wedge | — | — | — | 1572 | 1336 | 1300 |
+  | hook | 964 | 398 | 314 | 964 | 401 | 362 |
+  | cinder | — | — | — | 906 | 770 | 810 |
+  | eel | 861 | 453 | 342 | 861 | 582 | 612 |
+  | hose | 851 | 596 | 712 | 851 | 596 | 736 |
+  | comb | 519 | 441 | 450 | 339 | 288 | 291 |
+  | plough | — | — | — | 291 | 247 | 257 |
+  | sickle | 420 | 92 | 78 | 248 | 45 | 32 |
+  | ram | — | — | — | 228 | 159 | 199 |
+  | abyssal | 702 | 70 | 11.9 (a collapse: FAILED) | 131 | 21 | 8.8 |
+  | tread | 100 | 100 | — | 91 | 91 | — |
+  | relict | — | — | — | 84 | 59 | 74 |
+  | hood | — | — | — | 59 | 41 | 50 |
+  | lash | — | — | — | 40 | 28 | 36 |
+
+  The grazers and the flickers stand (3307 → 3347; 22797 → 23199); the new hunters' load is on the forage. The sickle's world number halved
+  by its own envelopes (the giant's terrace rock at `young` < 0.3 is less than its old band) — ours holds 11 sickles against 15.
+- **Seen** (dev.html in the app's browser, the loop driven by hand with the canvas posted through serve.js's sink; frames in
+  `test/render/v66_*.png`): a sickle at 0.90 of its size in the `d` coat on the rockfall at −180; a hose in the forest in the lime coat; a hood
+  buried on the lagoon's flats and a plough on the sand; a wedge on the surf's rock; a cinder black on the vent slope among the chimneys and their
+  bubbles; a relict pale over the sill's summit rock at −287; a swarm of sifters over the terrace; a ram in the manganese coat over the plain; a
+  lash rust-brown on the dike ridge with its whips out; a soft scuttle pale with its valves clamped on the shelf floor; a shed trap on the sand;
+  the bestiary's nine (hood, lash, ram, comb, sifter, relict, cinder, wedge, plough). Two things fixed on sight: the lime class at 0.45/0.78/0.5
+  read bleached (a soft one) and is toned to a cream cast; a shed's eyes were black beads and are pale cuticle now. Tests green on both tiers;
+  `test/combat.js` §15 covers the size band, the classes, a slowblood's preset untouched, the soft state's covering and a ridge opening a soft
+  sickle where it cannot open a hard one, the moult and the shed, the ram's blow; `test/live.js`: 8 kills in 60 s, 5% of the hunter role starving,
+  the hood at hunger 0.41 with prey 24 m off.
+- **Unseen, ask in this order**: the coat classes side by side on one kind (a scuttle rust on the rock beside one lime on the crest, and the
+  lime coat's paleness on the hose — the person's call); the soft state in play — does a pale sickle lying against a rock read as moulted or as
+  broken; the sheds' density (a shed trap a cell on the flats, the pickers' on the lower flank); a moult happening (out of sight only, so never
+  seen — a shed found where none was); the ram's blow on a swarm and the hood's lunge from the sand in play; the frame cost of the 15 shed
+  pools and the sifter swarms (~16 more boids a cell over the upwelling); the young shield (no record yet).
+
+## v11.67 — the flora variety pass (16 Sep 2026)
+
+The person's ask (SEAFLOOR §2, agreed 15 Sep): the sessile life varying visibly with the conditions, not only with depth — the same weed short
+and thick on a surf coast and long and broad in shelter, the life on fresh basalt tinted by its chemistry, a few forms that live only where a
+condition is extreme, the forest absent from flows too young to have grown one. Every difference from a field of `sample(x,z).f` or from `h`;
+no biomes, no island ids, no names, so the giant's coasts and ours differ for free where their fields differ.
+
+- **The fields, measured first** (a scratch survey over `sample()`; the numbers the pass was tuned against). `young` in the light lies on
+  our two rift arms (0.7, at 2.6–2.8 and 5.6 rad, r 300–1000), the collapse fan (0.5–1, 3.4–4.4 rad, mostly below −60) and the giant's rift
+  flows (0.7; 300 ha between −20 and −60); `heat` only at −240..−280, so no weed ever meets it; `turb` ≥ 0.35 in the light is the surf over
+  sand — 81 quarter-hectare cells on ours, 1563 on the giant's windward shelf (`turb` 0.49 at (−14600, 2380), `sub` 0.36, `expo` 0.53); `expo`
+  fades out by −30, so it separates the coasts in the forest's top 25 m only ((282,103): 0.70; the lee (−328,−123): 0.04; the giant's east shelf
+  at −26: 0.06, its windward at −10: 0.64). The sill's highest point is exactly −150.0 at (24400, 4500): flat (slope 0.00), bare (`sub` 0.90),
+  in the basin's water (`nut` 0.12, `turb` 0), `rel` 1.0 — the summits stand above the smooth surface, as v11.66 found for the relict.
+- **Ecotypes by exposure** (grow.js `ecoK`, `ECO_LO` 0.22, `ECO_HI` 0.5, `ECO_MIX` 0.24; chunks.js placeFloraType reads `ch.f(x,z)` at the
+  instance). An `eco` entry's variant index is `ecoK(expo, u)` — 0 sheltered, 1 the middle, 2 exposed, the thresholds jittered ±0.12 per
+  instance — with the one rng draw the random pick made, so no cell's stream moves (`test/pool.js` green). The builders read k as the kelps do:
+  **turf** (n 4→6, length 0.42→0.24, wider, spread 0.4→0.75), **wisp** (6→8 blades, 1.15→0.6 m, splayed), **chain** (4→2 discs a run, thicker,
+  on a shorter stouter axis), **stipe** (the height is the water's, so the ecotype is the rest: stipe radius 0.05/0.13→0.08/0.19, holdfast
+  0.35→0.55, 8→6 nodes, blades 1.9→1.1 m and 0.5→0.3 wide, the canopy 6→4 blades 2.6→1.8 m), **ladder** (13→8 m, axis 0.08→0.12, blades
+  1.5→1.0 m and 0.44→0.28 wide, holdfast 0.25→0.38), **ribbon** (blade 12.5→6 m and 1.35→0.85 wide, stub 3→2 m and 0.09→0.14, holdfast
+  0.25→0.4), **bladder** (a `species()` now, `bladderB` — the last kept one-variant weed, `bladderGeo` and `vid0` gone: stalk 0.10/0.2→0.17/0.32,
+  5→3 floats, blades 3.0→1.7 m). The three stay one geometry; `top` is the tallest (sheltered) variant's, as species() always made it. Nothing
+  without a reason to read the waves changed (the sacs, the mats, the rinds, the crowns keep the random pick).
+- **Colour by rock age and chemistry** (grow.js `tintBy(h,f,photo)`, `TINT_CHEM`): a stain over the instance's tint — the pigment's or the
+  list's pick — by the fields at its base, composed to one `[r,g,b,cover]` and mixed in before the jitter (chunks.js `makeInstanced`,
+  `poolAdd`; the instance carries `chem`). Fresh basalt rusts and darkens the animal forms (rust [0.44,0.25,0.12], cover 0.55 × `young`
+  smoothed in over 0.15–0.6) and dulls the weeds (dull [0.36,0.33,0.22], 0.45 — iron on a blade); the vents' heat whitens and yellows toward
+  the sulfur mats (sulfur [1,0.94,0.62], 0.7 × `heat` over 0.1–0.5); the lime rind's water creams the shells (cream [0.92,0.86,0.72], 0.4 where
+  h > −22, `sub` > 0.65, `expo` > 0.45, `nut` < 0.42). Null where the fields are ordinary: the default look is untouched, at no cost. The rock
+  (the terrain's colour), a surface float and `chem:false` (the plume — its crown's iron-blood red is the thing to see — the chimney and the
+  limpet, black sulfide by PLANET) take none. **Fixed on sight:** the cream reached the weeds and the forest's stipes at (330, 0) went
+  yellow; the lime stain is the shells' rule now, never a blade's, and it wants the clear-water term (the forest's fed water, `nut` 0.59, is
+  not lime water). A finding for the coat classes: creatures_spec.js `coatClassAt`'s `lime` lacks that term, so a hingeshell in the forest wears
+  a lime coat where the flora does not cream. At present nothing but the mats and the sheds carries the heat stain: no weed lives at a vent's depth.
+- **The progression rule**: `young: [0, 0.45]` on stipe, ladder, ribbon, bladder and tidetree (a wood is decades; the reed and the tussock
+  keep the flows). Hectares of full tolerance over the world at 100 m: stipe ours 48 → 46, the giant 1120 → 1014; bladder 112 → 104 and
+  2972 → 2811; tidetree on the giant 591 → 543 (ours falls between the samples). The rift arm at (−720, 280), −52, `young` 0.70, reads bare —
+  boulders, rust beards, cups gone dun-rust, the rind — with the forest resuming on either side; the giant's flow at (−8558, 5250), −20,
+  the same beside its forest.
+- **Habitat-only forms, two of three.** **paddle** (flora.js `paddleB`, a green of the runner line — TAXA: a thick-bladed runner for stirred
+  water; a runner with three or four broad, short, thick box blades, 48 tris; `eco`; `turb` ≥ 0.3, h −26..−3, `sub` 0.05–0.62, 600 a cell):
+  5 ha on ours, 760 on the giant's windward shelf — the one sessile thing that tells the two islands apart at a glance, and the river-mouth
+  weed re-read, since there are no rivers (SEAFLOOR §2 says so now). **darkrind** (`darkrindB`, the reds' crust at the light's floor — TAXA:
+  the deep rind; one or two wide plates a finger thick, dark, on a wider paler disc that shows as the growing edge, 64 tris; h −172..−142
+  with a 6 m edge, `sub` ≥ 0.6, `nut` ≤ 0.2, `young` ≤ 0.3, 220 a cell): 85 ha along the sill's summits from (−9600, −25800) to (24800, 4800)
+  and on no island flank — the floor of the light is the water's, and the sill's top under the basin's clearest water reaches exactly −150.
+  Each is a pool that draws only where it has instances: neither draws at the forest. **The high-current form was struck** before it was
+  built: the fan, the nod, the bommie, the tube and the stilt already own the passes' rock (`flow` ≥ 0.3–0.6 on `sub` ≥ 0.5); a sixth fisher on
+  the same ground would be a draw call for a look the others give (FLORA.md, Open).
+- **The forest at (330, 0), before and after**, like for like: dev.html in the app's pane, the loop driven by hand with a `gl.finish()` after
+  each frame, 300 frames of streaming (25 cells), then 40 timed (the pane was hidden, so the live readout could not be used; the numbers are
+  this PC's, not the 4060's):
+
+  | | draws | triangles | frame avg | frame min | render | physics |
+  |---|---|---|---|---|---|---|
+  | v11.66 | 184 | 4.88 M | 9.5 ms | 7.0 | 4.4 | 3.7 |
+  | v11.67 | 185 | 5.05 M | 11.1 ms | 7.1 | 4.7 | 5.4 |
+
+  One more draw (the paddle's pool: our windward shallows are in reach), 3% more triangles (the sheltered variants are the long ones); the
+  physics share moved with the run's creature count (the minimum frame did not). With the pane visible before the change the live readout read
+  33.6 ms work / 19.7 render / 147 draws at 13 cells; after, at 59 cells, 34.9 / 20.7 / 134.
+- **Seen** (dev.html in the app's browser over `node serve.js`, the canvas posted through the sink; frames in `test/render/v67_*.png`): the
+  forest at (330, 0) before and after; the surf coast at (282, 103) — the forest's exposed edge, cones and limerind; the lee flats — strap
+  pasture and grape on sand; the rift arm — bare, rust, dun cups, no forest; the lagoon — the green pasture, sheltered variants; the vents —
+  mats, chimneys, plumes and limpets unstained; the sill's summit at −150 — the darkrind's plates on bare rock among vases, towers and glass
+  sacs; the giant's east shelf — a denser, longer-bladed forest than ours; the giant's windward shelf — paddles among the strap under the reef;
+  the giant's flow — bare beside its forest. The preview sheets (`FLORA=1 node test/preview.js turf wisp chain stipe ladder ribbon bladder
+  paddle darkrind`, `test/preview/flora_*.png`): the harness normalises every variant to its own extent, so the proportions show (the exposed
+  stipe's thick stalk and small canopy, the ribbon's short broad blade on a fat stub, the chain's two fat discs) and the sizes do not. Tests
+  green on both tiers (`test/pool.js`: 54 pools, the middle cell's blocks intact across the growth).
+- **A finding for ARCHIPELAGO**: the giant's east shelf grows what our lee grows, because its fields there are our lee's (`expo` 0.06,
+  `sub` 0.8, `nut` 0.59); its windward shelf and its flows differ from anything on ours, by `turb` and `young`. The fields differ enough
+  where the geology differs; a wholly different look per island would need a different geology, not a flora fix.
+- **Unseen, ask in this order**: the exposed forest edge against the sheltered one in play, side by side in one swim (the surf coast at
+  (282, 103) against the giant's east shelf at (−7800, 9200)) — does the ecotype read, or only the density; the rust stain on the sacs and
+  crowns of the rift arm at −52 — chemistry, or dirt; the paddle among the strap on the giant's windward shelf at 1600×900; the darkrind's
+  paler rim at play distance; the edge of the young bound where the forest stops at the arm's flank — a line, or a fade; the frame on the
+  4060 at (330, 0) (one draw and 3% triangles say nothing changed; the pane cannot say more).
+
+## v11.67.1 — LINEAGE.md, the line across generations (20 Sep 2026)
+
+The creator becomes the start of the game, so what happens between lives had to be decided before any of it is built. A discussion of
+20 Sep recorded as `LINEAGE.md`, designed, not built. The frame is the person's: Tethys is a believable simulation with exactly one
+thing in it that does not obey the rules, and that thing is the player — rapid evolution, no in-world justification owed, and the
+12 Sep decision against a lineage struck in `DIRECTION.md` with today's date (its reason, that the world would have to change with the
+generations, is answered: the line is the animal's, not the world's).
+
+- **The loop** (§4): you breed as you play; at a hatch, if you are there, you may take a hatchling and become it, and the moment passes.
+  A switch is immediate and in place — no skip and no pause (the person, 20 Sep); what becomes of a loosed brood is decided by the
+  off-screen model in its own time, the same code that decides every other species' fate. What you do not claim goes to nature and
+  mostly dies. At death the game looks for any living descendant; none, and the save is over (no grace).
+  So survival at death depends on whether the animals you designed and abandoned were good enough to live without you.
+- **Only your own descent** (the person, 20 Sep): you may swap only into what the body you wear produced. Siblings and parents are not
+  eligible — the clutch you hatched out of is not a reserve of spare bodies — and grandchildren are, at any depth. So every life must
+  breed for itself, and a switch rebases the tree: the den you leave and everything else that parent made is outside the line forever.
+  The choice at a hatch is "am I done with everything this body made", not "is this body better".
+- **The three starts** (§3) are the clades' own reproduction: ringmouths semelparous (one forced switch, many cheap young), slowbloods
+  iteroparous and indifferent (several switches, middling odds), hingeshells brooding (few switches, young that actually survive).
+  Drifters later.
+- **The mutation budget is physics** (§6): a body plan is a bill of materials — mass, mineral, pigment, nerve — paid for by eating, the
+  model `coatFor` already sets. No points, no unlock tree; the constants are playtest constants. A lost part is not inherited.
+- **The sparkle** (§7): the magic admitted, not explained — a star or candle flicker with a trail, on the founder, in the creator, at a
+  switch, closing the mutation window, on the cursor, and as the save icon. The rule that makes it work is that it appears nowhere else.
+  Cheap: fx.js's pooled emitters and a HUD overlay; the silhouette must read at 16 px.
+- **The ledger absorbs what the player looses** (§8): variants become real entries with envelopes and compete. The arithmetic is stated
+  — five dense `Float32Array`s over 57,600 cells is ~1.15 MB an entry, so player variants want a sparse cell→count map walked through
+  `POP.cells[ei]` as the loops already do. And the gap this forces: `derive` gives physics, not role, prey, reach, diet or envelope, so
+  a derived `DEFS` (§8.2) is the load-bearing missing piece of the whole creator plan, lineage or not. A finding from the descent rule:
+  the ledger counts and cannot know who begat whom, and an unclaimed child wears its parent's spec exactly — so descent is carried by a
+  **tree of population nodes** (`{cell, n, born, gen, parent, spec}`) that the model grows and kills, a surviving node spawning child
+  nodes that are the grandchildren. Eligibility is a subtree walk of tens of entries, and the same nodes are the shrine's marketshare.
+- **The shrine** (§9) is out of the world, after the run: the forms, their tracks over the world, diet, close calls, kilometres, and each
+  variant's share of the population by region. It needs a track log recorded from the first version, since it cannot be retrofitted;
+  `worldmap.js` is most of the renderer already.
+- **Sharing a place, not just a creature** (§10) is far future but shapes the early record: `sample()` is deterministic and the island
+  records are shared, so a coordinate means the same thing in every save — a distribution is portable in a way a seeded world's would
+  not be.
+- §11 is open (the body you leave behind at a switch, the hatch's warning, a new founder's clade, kin recognition, the budget's first
+  numbers); §12 records the person's ten answers of 20 Sep; §13 is the build order — the line and the track log first, then the whole
+  loop on one clade with no creator work, then death's search for a descendant, then the creator at the hatch.
+- **Unseen, ask in this order**: nothing was built, so nothing was seen. The doc's own questions are §11.
+
+## v11.67.2 — conception, the children you let go, the home of the sparkle; the size ceiling (20 Sep 2026)
+
+The person's second round of answers on `LINEAGE.md`, and the first code against it. Docs, plus two knobs and three radii.
+
+- **The editor opens at conception, not at the hatch** (§4): mating is the trip to the creature editor, because the egg's genetic future
+  is fixed when it is fertilised. Declining to change anything is a legitimate move — you bred, the generation counts, the child is a copy.
+- **Grandchildren struck** (§4, misread on the first pass): only your own children are eligible. Their young are ordinary animals of the
+  world. The descent record collapses from a tree of nodes to a flat list of brood records per life, which is markedly cheaper (§8).
+- **Editing is not occupying** (§5, new): you may shape a child and let it go, and make several variants from one build — a radiation,
+  not a zoo. The ones built sociable follow you, which is the honest version of a party: the disposition is something you built at
+  conception, not a mode. **Your old body is just an animal**, running the ordinary AI over its own history — it may ignore you or attack
+  you. No kin system, and a creature arriving from another player's game needs nothing special either.
+- **The budget grows with the generation** (§6), pulling against the mass and materials the body must still be fuelled with: generations
+  buy licence, the ecology sends the bill, and a twenty-generation line looks like one.
+- **The home of the sparkle** (§7b): follow the wisp on a current to an island of creatures that mutate as the player does. Endgame, and
+  recorded now for what it does upstream — it is the box the larger-than-life animals go in, so everything outside stays under the 8 Sep
+  rule, and it is the natural first consumer of anything the creator learns to build.
+- **The size ceiling** (CREATOR.md, new section; the person: the creator must be made with large creatures in mind, "think Sin from FFX").
+  The audit's answer: expressing one is nearly free, hosting one is a real pass, and it is not needed yet. Built now:
+  - **`SPEC_SIZE_MAX` 120 and `SPEC_SCALE_MAX` 12** (creatures_spec.js), replacing two bare literals in lab.js that did not agree —
+    `size` (the half-length a spec *claims*) capped at 30 while `s` (the build scale the geometry is multiplied by) capped at 10, so any
+    large animal warned "longer than its size says" forever. The longest core (trunk `L`, extreme 20 m) × 12 is 240 m, half-length 120.
+  - **`c.nearR` and `c.stepR`** (creatures_ai.js) for the loop's bare 90 and 150: a body to push against and to change out of sight, and
+    the distance past which a creature steps every other frame. Both `Math.max(old, size × k)`, so **every number in the game today is
+    unchanged** (the roster's largest is 16 m) and a giant is pushed against and animated at full rate out to where it is still drawn.
+    Without this a giant would flicker to half-rate animation while filling the screen and would never grow up or moult, since
+    `!c.g.visible` is never true for something that large.
+- **Seen** (the lab in the pane, 20 Sep): the fields take the new maxima (`sMax` 12, `sizeMax` 120) and a scaled body compiles —
+  36.67 m and 3,870 t off the blank soft spec at `s` 12. Two findings from looking, both recorded in the doc: **the size field is a
+  claim, not the geometry** (setting it to 60 changed nothing; `derive` reads `s`), and **the lab's camera frames by that claim**, so at
+  `s` 12 the view is inside the animal — the studio should frame by the compiled bounds. The speed term confirms the audit's item 4:
+  23.5 m/s on a 36 m body, because `speed ∝ L^0.4` with a scale-invariant thrust/drag has no upper term.
+- Tests green on both tiers.
+- **Unseen, ask in this order**: nothing else was built. `LINEAGE.md` §11 is the open list, and its first question is the one that
+  matters — now that the editing happens at conception, is the hatch still a moment you may take a body at, or is occupying only ever
+  what happens when the current body dies?
+
+## v11.67.3 — a full life for each creature (20 Sep 2026)
+
+`LINEAGE.md` §11.1 answered (the person: *"I'll say for now that it's #2, but in the future, maybe you'll be able to swap without dying.
+But a full life is a good place to start for each creature."*). Doc only; no code.
+
+- **You only take a child when the current body dies.** No hatch moment, no stepping out of a healthy animal. §4 is rewritten as one
+  full life at a time: you breed, you shape what you breed at conception, your young hatch and live their own lives in front of you
+  (some following you, most dying), and your death continues as one of them — **where and as it is**, a juvenile at the clutch if you
+  died young, a grown animal across the world if you died old. **Swapping while alive is left open for later**, and is an addition to
+  this loop rather than a change to it, so nothing built against §4 has to be undone if it arrives.
+- **What it does to the shape**: each body is now a life with a beginning, a middle and an end, and the creator is something you visit
+  *during* a life rather than between them — the generations are episodes, not respawns. It also makes the first build step smaller
+  than the first draft's, since there is no hatch interface to write (§13.2).
+- **And it gives breeding a price.** With no switch while alive, a clutch is the only thing between a bad fight and the end of the save,
+  but it costs the materials the child is built from (§6): breed early and be safe and poor, breed late and be rich and one mistake from
+  nothing. §3's clade modes are re-read in that light — they set how many clutches a life leaves and how well those young do alone,
+  which together are the odds that a death finds anything alive at all. The ringmouth's spawning and death being one event is now the
+  clade that has no choice about any of it.
+- §11's open list is the residue: **which child** you continue as when several are alive (a choice, or the nearest — a choice makes the
+  shrine's map mean more; the nearest needs no interface), and **an unhatched clutch at death**, which counts as a living child by §4
+  but is not a body you can be. That is the one hole the death-only loop leaves: either the world runs on to the hatch, which is a skip
+  of a different kind to the one struck, or an unhatched clutch does not count and the save ends.
+- **Unseen**: doc only, nothing to look at.
+
+## v11.68 — the player as a spec (21 Sep 2026)
+
+The first code of `LINEAGE.md` §13: before a child can carry the player's body, the player has to *be* a body. To v11.67 `CLADES`
+hand-typed speed, accel, turn, mass and bite, player.js never called `derive`, and the save stored a clade id. Now the player is built
+from any spec, and the three presets play on exactly the numbers they had.
+
+- **`playerClade(spec, preset)`** (player.js) makes the object the game reads as `player.clade`: speed, accel, turn, mass and `bite` from
+  `statsOf(spec)` — derive with the spec's `stats` locks over it — `size` the spec's, `jet` and `legs` derive's. **`CLADE_PRESETS`** keeps
+  only what derive has no term for: `cam` (the third-person arm, scaled by the spec's size against the preset's), `jetImp`, `sprint`,
+  `venom`, and the `ability` (ink, stun, withdraw). `CLADES` is the three presets built through it, so every old reader still works.
+- **The old numbers are locks**: `SPECS.soft/fin/coil` carry `stats` (speed/accel/turn/mass/bite soft 7.0/3.2/7/5/9, fin 8.8/2.6/4.5/7/26,
+  coil 4.6/1.5/3/8/6). Derive alone would give the finback 7.5 m/s, 2.01, 3.08 and **1.7 t against 7** — its calibration against the
+  hand numbers is loose, which is worth knowing before the creator is the start: a spec with no locks plays on derive's numbers.
+- **A spec that is no preset** takes its fixed numbers from `presetFor` (a coiled ringmouth the coilshell's, another ringmouth the
+  soft-arm's, anything else the finback's); the ability and the venom only if its clade is the preset's, so a hingeshell has none; its
+  bite without a lock is `mass × 3`, the lab's own `dmg` rule (`specExport`). The id stays the preset's, so the crusher's `preyClade:'coil'`
+  and `PLAYER_GRIP` read it as before.
+- **The readers moved off the clade id** onto the spec where the id stood for the body: `cladeOf(player)` is the spec's clade (the finback's
+  test was `id==='fin'`), the gulp by gape is any slowblood's, `specOf(player)` is the player's own spec (so a wound edits *that* build),
+  the swim sound's tail beat is any slowblood's, the ability switches on `C.ability`. Identical for the three presets.
+- **The save stores the spec**: `SAVE_V` 2, the record's `spec` beside `clade` (the preset's id); `cladeOfRec` builds the saved spec, and a
+  version 1 record — or a spec that no longer compiles (`specOk`, warned) — loads as the preset its clade id names. The continue list shows
+  a spec's own id when it is no preset's.
+- **Tests**: `test/player.js` (new, in `--test` on both tiers) — each preset's speed, accel, turn, mass, bite, cam, size, jet, jetImp,
+  sprint and venom against the literal CLADES numbers of v11.67, a non-preset spec (the sickle) on derive's, the spec through the save,
+  a version 1 record and a broken spec to their presets, the finback's round trip. `test/smoke.js` swims a fourth run as the sickle
+  (no ability, derive's 10.8 m/s): 256 m out, bites, grabs, the mouse, a death and the respawn. Green on both tiers.
+- **Seen** (dev.html in the pane): a new game is the finback at the peak with 8.8, 4.5 and the 7.5 m arm, as before. The sickle as the player
+  swims at 10.8 m/s with a 20.8 m arm (7.5 × its size against the finback's). **One visible change, in the lab only**: loading the soft-arm,
+  the finback or the coilshell shows their four readout numbers as locks (checked, the old values in the fields), and `p` places them at
+  those numbers; the lab's caption still shows derive's.
+- **Unseen, ask in this order**: nothing in play should differ — if the finback feels any different at all, that is a bug here. Then
+  whether a spec that is no preset should get the finback's sprint and arm by default or something the calculator says.
+
+## v11.69 — the first loop: the line, the clutch, the handover (21 Sep 2026)
+
+`LINEAGE.md` §13.1–2, the finback only. Decided for this pass (the person, 21 Sep 2026, recorded as §12.17–19): **the player breeds alone**,
+no mate; **at death you continue as the nearest living child**; **an unhatched clutch counts as a living child**, and the world runs on to
+its hatch. New file `src/line.js`.
+
+- **The line on the slot**: `curSave.line`, a list of lives `{spec, preset, born, grown, died, cause, playT, parent, track, lay, broods}`,
+  the last the one played. Times are the world clock `t`. **The track** is a position every `LINE.trackS` 5 s of play, whole metres,
+  run-length coded (`[x,y,z]`, or `[x,y,z,k]` for k equal samples) — recorded from this version on, since the shrine cannot be retrofitted.
+  A record from before is its animal as the founder. `SAVE_V` 3 (the line, and `over`).
+- **Laying** (`x`, `playerLay`): the slowblood only, grown, within `LINE.near` 3 m of a floor deeper than −4 m, clear of solids.
+  **The cost is a cooldown**, `LINE.cool` 0.2 game days (8 real minutes) between clutches, because **the player has no hunger yet** (the
+  bite on a carcass "feeds nothing yet", combat.js) — LINEAGE §6's bill of materials replaces it when eating is built. `LINE.n` 4 eggs,
+  the world's own clutch (`eggGeo`, `MATT`, `0.12·size^0.6`), hatching after `ECO.hatch`·mass^¼ — 0.39 game days, 15.5 real minutes for
+  the finback. Refused with one word on the hint line (`not yet`, `not yet grown`, `on the floor, under water`, `not here`, `not this body`).
+  No touch gesture for it yet.
+- **Broods**: a record per clutch on the life that laid it, `{cell, pos, n, born, hatch, spec, hatched, at}`, true whether its cell is loaded
+  or not. Loaded, it is a clutch outside the ledger (`ent` −1; scavengers eat it down like any clutch and its n falls) and then its young —
+  `ent` −1 creatures of **a kind per spec** (`lineKind`, `line:<hash>`: `DEFS` built like the lab's placed creature from the player's
+  numbers, a hunter of the player's own food, `LINE_PREY` arrow, needle, scuttle), juveniles until `ECO.grow`·mass^¼ days, and n is counted
+  off them every second. **Whatever hunts the player hunts them** (`preyOn`: a prey list's `player` stands for the line's young too).
+  Unloaded, **n falls by `BROOD_SURVIVE` 0.8 a game day** and the hatch goes by the clock — a named stand-in for §8's sparse ledger entries,
+  said so where it lives. `lineLoad`/`lineUnload` in chunks.js put a brood back or count it; the young of earlier lives still load, as
+  animals of the world, not as yours. The lookups that took a kind's spec from `SPECS` take a def's own (`specOfKind`).
+- **Death** (`slotDeath` → `lineNext`): the nearest living child of the life that died — a young in a loaded cell, a clutch, an unloaded
+  brood with n ≥ ½. **An unhatched clutch runs the world on**: every cell out (the living into the ledger), the clock to its hatch, the
+  ledger's model catching up the gap over its next ticks (0.5 game days a tick), then its survivors hatch and you are one of them — or, if
+  the run-on left none, the next nearest child. `lineContinue` makes you the child **where and as it is**: a young's own place and facing, its
+  age — a hatchling is `playerClade(spec, preset, ECO.juv)`, the numbers scaled as `scaledDef` scales a juvenile's and the body compiled at
+  that scale, and it grows up in one step at its time (`playerRebody`: in view, where the world's juveniles grow out of sight — a stand-in).
+  **No child, and the save is over**: `over` on the slot, the menu's note "<cause>. no young: the line ends", the continue list shows "the
+  line ended" and a click on it says "this line has ended". Only the life's own broods count: a hatchling that dies with siblings alive and
+  no clutch of its own ends the save (seen, below — §4's rule, not a bug).
+- **The sparkle, minimal** (LINEAGE §7): at the handover only, a screen-space four-point star (`starPath` — the mark, one shape so the save
+  icon can be the same drawing) with a 16-point trail, on a canvas `#spark` over the fade: it comes down in a curl from high in the view onto
+  the child over 1.2 s, flickers like a flame and goes by 2.2 s (`SPARK`). Nothing else of §7.
+- **Tests**: `test/player.js` gains the line — the clutch laid and the second refused; a death with only the clutch (the world ran on 0.39
+  game days, you at the clutch as a 0.99 m hatchling at 6.5 m/s, three siblings round you); a hatchling cannot lay; grown at its time; the
+  child's clutch hatched and a death with four young alive (you are the nearest, 2.1 m off, where it was; three left); founder, child,
+  grandchild, each with its own broods; the track's run; a death with none (the slot ended with its line of three, continue refused); an
+  unloaded brood a game day on (4 → 3.20, hatched by the clock); the line through the save and back as three young at the clutch.
+  `test/smoke.js`: the finback's death with no young now ends the slot, continue refuses it and a new game goes on. The stub gained a 2D
+  context's paths and `Vector3.project`. Green on both tiers.
+- **Seen** (dev.html in the pane, the loop live): a new game, the clutch laid at the peak's floor (in first person, the seven-sphere knot,
+  `test/render/v69_clutch_fp.png`); death with the clutch out — black, the world run on to night (day 0.39), the star coming down onto the
+  hatchling at the clutch with its trail, siblings beside it (`v69_handover_b.png`, `v69_handover_c.png`, `v69_child.png`); the hatchling
+  grown and laying its own clutch; and, first, a hatchling's death with only siblings alive: the menu, the slot "gen 2 · the line ended".
+- **Unseen, ask in this order**: whether the handover reads as the magic (the star is 28 px at 1080 lines, `SPARK.r` 14 — small on purpose,
+  candle-sized); whether an eight-minute cooldown and four eggs feel like a slowblood's career; whether the run-on to another hour wants
+  saying (nothing says the world moved on; the dark says it); the hatchling's growth pop in view.
+
+## v11.70 — the registry pass: what the lab offers is what the kit can build (21 Sep 2026)
+
+The person, 20 Sep: the creator's parts "show up as either duplicates, or as blank, or as parts from another animal type". The ask: an
+inventory first, one registry, fix what it finds, leave the judgement calls. Inventory first, then the build; nothing in the game moves.
+
+- **The inventory** (`test/registry.js`, new, in `--test`; one run, the lab has no tiers): drives the real lab — `labLoad`, the panel's own
+  input and select handlers, `labPanelHTML` read as the person reads it, a row a control — over every clade × core × part kind × style it
+  offers, in the dev lab and in the creator (`lab.player`, every species seen), then the 42 roster panels, then every species onto every
+  other core of its clade; then reads the registry directly (labels, bands, defaults, each style's clades, cores and params, the roster
+  against it). Real geometry (`test/geo.js`). `ALL=1` prints every line, `SRC=path` runs another tree's src.
+- **The table on v11.69** (`SRC=` a `git archive` of 656a37b): **505 offered, 443 compile, 62 do not, 105 with a blank control, 32 with a
+  duplicate, 0 foreign, 272 undeclared.** What is behind the numbers, a line per cause:
+  - *The build failed — a coat, not a part.* The ringmouth blank wears the jetter's coat, which has no `top`, `shell` or `band`: the **sac
+    core failed from the lab's own core select** (and with it all seventeen styles on it), and **`shell:coil` and `shell:cone` failed on
+    every ringmouth core** — a new ringmouth could not be given a shell at all.
+  - *Parts from another animal type — by core, not by clade.* `arms:withdraw` on a mantle or a sac threw every frame (it pulls the soft
+    body in; only the shelled body has one). `fins:trio` on a chain body threw inside the add's timeout — the panel was dead from there.
+    All four `tail` styles were offered on the chain, which is its own tail. `mouth:slit` on either slowblood core built **NaN geometry**
+    with two empty sliders (the slowbloods' mouth anchor has no `y` or `R`). `barbels:whisker` and `tail:lathe` built only on a spec that
+    brought its own list (`pairs`, `prof`): added in the lab, or reached by cyl → lathe, they failed.
+  - *Blank.* Raw keys for names: `arms.curve`, `shell.spines`, `skirt.f1`, `head.f`, `mouth.edge`, `fins.fk`, `fins.dorsal`, `chain.fin`,
+    `flaps.px`, `flaps.py`; no value: `mouth.y`, `mouth.R` on a slowblood.
+  - *Duplicate.* Two sliders, one name: `spines` "height" (`h`, `y0`), `legs:rock` and `legs:swim` "thickness" (`wl`, `th`).
+  - *Foreign: none.* The known cause — `stylesFor`'s `return !c || …` letting an unlisted style through to every clade of its kind — was
+    latent: 272 offers came through it, but the only unlisted kind with two clades is `spines`, and both wear it.
+  - *Not in the table, found by looking at the sac in the pane:* the shared name table put false names on true ranges — every body's
+    radius "ring radius", **a trunk's tail length "tooth length"** and its tail height "thickness", a skirt's and a leg's speed gain "open on
+    the strike", the chevrons' size "stretch", a plate count "count", the flaps' rake in "°" when it is radians.
+- **One registry** (creatures_spec.js). `PARTS[kind].reg` is every style with its `clades`, the `cores` it can stand on (none listed: any
+  of the clade's) and the `params` it reads (none listed: all); `styles` and `clades` are read off it at load. `STYLE_CLADES` and `PSTYLE`
+  are gone. Every parameter, part and core alike, declares its `label` (`by`: a style's own word where the key means another thing there —
+  `legs.wl` is a paddle's width on `rock` and `swim`), its `unit` (a `len` or a `z` is metres by its kind; `°` and `rad` said), its bands
+  `b` and `x` and its default `d` on one line. `LAB_NAME`, `LAB_NAME_BY` and `LAB_UNIT` are gone from lab.js; the four hundred labels were moved by
+  script (acorn) so each control reads what it read, then the twelve unnamed and the mislabelled above were written by meaning.
+  `stylesFor(kind, clade, core)` gates by core and by what the core `provides`; `styleClades`; `paramOf(owner, key, p, F)` /
+  `paramsOf` give a parameter resolved for a body — label, unit, type, bands in the spec's units, default, value — which is what the lab
+  reads now, and what the editor at conception (LINEAGE §6: a diff priced from these) and drag handles will read next. Neither is built.
+- **The fixes.** `cores` on two styles: `arms:withdraw` → coilbody, `fins:trio` → lathe; a kind the core provides is not offered
+  (tail on a chain). `mouth` `y`/`R` fall back to the axis and the ring's radius; `barbels:whisker` lists `pairs`; `tail` has a `prof`
+  with a default (the blank's, at the core's tail anchor); `tail:stub` reads nothing (it listed nothing, so it showed fifteen sliders on a
+  part that builds nothing). `coatFill(coat, clade)`: when a build throws, the lab tries once more with the coat's missing colours filled
+  from the clade's other coats, keeps that coat on the spec (every key a swatch) and says so under the caption (`lab.note`) — only then,
+  since a key filled ahead of need would cut short the `pal.mouth || pal.band` chains and move the roster. **Changing the core under a
+  finished animal** removes the parts the new core cannot carry and says how many (lathe → chain left two tails and a fin that threw),
+  and turns a style that cannot stand there into the first that can; `validate` corrects styles by core too and warns on the rest.
+- **The table now: 578 offered (the core changes are 73 of them), 578 compile, 0 blank, 0 duplicate, 0 foreign, 0 undeclared; the
+  registry sound.** The test fails on any of them from here.
+- **Identical**: all 42 `SPECS` fingerprinted before and after — triangles, meshes, a position-and-colour checksum, bounds, hit capsules,
+  rigs, grip, edge, cover, gape, `derive`, `statsOf`, `validate`'s spec and warnings. One difference in 630 fields: the stone's validated
+  spec no longer carries fifteen defaults for its stub tail. `test/player.js` green: the three presets' numbers are CLADES' old literals.
+- **Seen** in the app's browser, the panel walked by its own handlers for every clade and each of its cores (eleven; all build, the sac
+  with the coat note, the chain with "1 part the chain cannot carry: removed"); a shot per clade: a new ringmouth on the shelled body given
+  a coil shell (the build failed in v11.69), `shell`/`band` among the swatches; a new slowblood through cyl → lathe with whiskers and
+  fins (`beat ratio`, `dorsal share`); a new hingeshell's flaps (`pivot out`, `pivot up`) and rocking legs (`pairs`, `paddle length`,
+  `paddle width`, `thickness`, `speed gain`); a float with lines. **What changed in what is offered**: `arms:withdraw` is offered only on the
+  shelled body; a slowblood on a chain body is not offered `fins` and `tail`; nothing else — every other change is that what was offered now builds.
+- **Ask first** (judgement calls, left as they are):
+  1. `mouth:slit` is declared for all three clades and worn by one hingeshell (the flicker). It builds on all three now. Deliberate — the
+     forage mouth of any clade — or the hingeshells' only? (GRAMMAR requires `mouth:tentacles` of a slowblood, so there it is a second mouth.)
+  2. `arms:hold` is worn by no species. An orphan to strike, or a style waiting for an animal?
+  3. **Styles by core.** Everything in a clade is offered on every core of it and builds: the bean's `valves:clam`, `tailplate:abdomen` and
+     `legs:swim`, the shield's `legs:rock`, the arches' `legs:march`, the crawlers' `arms:crawl`/`raise` and `head:turret` on a jetter, the
+     float's `lines` on a bell and the bell's `hang` on a float. If "another animal type" also means these, `cores` on the style is one word each.
+  4. `valves:placed` at its defaults is `valves:back` (the same body to the vertex): one style with a preset, or two?
+     `arms:jet`/`cone`/`hold`/`withdraw` also build alike at rest and differ in how they move — two things, I think; say if not.
+  5. The add list offers a second `eyes` or `mouth` to a body that has one. Two eye sets are real (the soft-arm's collar and cluster); a second mouth?
+  6. Five styles have no controls (`eyes:valve`, `tailplate:spine`, `tailplate:plates`, `keel:ventral`, `weapon:ram`): fixed pieces, or to be opened?
+- **Unseen**: the creator from the menu with a real profile (the test sees everything; a real game has seen little); `p` placing a lab
+  animal whose coat was filled; the look of a filled colour against a hand-drawn coat (it takes the clade's first coat that has the key).
+
+## v11.70.1 — the registry answered: a style is one clade's, every piece has controls (21 Sep 2026)
+
+The person on v11.70: "much much better … I actually had a lot of fun this time making creatures", and the six asks answered (CREATOR.md,
+Fifth round). Built:
+
+1. **`mouth:slit` is the hingeshells' only** (for now; the person is not sure). It was declared for all three clades; only the flicker wears it.
+2. **`arms:hold` is off, not deleted**: `off: true` on its registry line; `stylesFor` offers an off style to no one, the build is kept.
+3. **A style is one clade's.** The person: each clade is genetically distinct; two clades may converge on a similar adaptation, but the
+   parts are necessarily different pieces, and any reuse is a first pass. The one style declared for two clades, `spines:row`, is split:
+   `row` the slowbloods', `thorns` the hingeshells' (hook, picker, cinder), still the same build — the first pass the person allows; how a
+   hingeshell's thorns should differ is a content pass. `was: 'row'` on thorns: a saved hingeshell that wears the old name moves to it with
+   its numbers (`validate`), and the profile re-reads its seen species' parts at load so the creator offers thorns to whoever saw a hook
+   (save.js `profileLoad`). The test now fails on a style declared for two clades. (Asked about styles across a clade's *cores*; the answer
+   was about clades, which I read as: within a clade every core may wear every style, so that stays.)
+4. **`valves:back` and `valves:placed` stay two**, and now differ by more than a name: `back` and `small` are in fractions of the body
+   (`fa` front edge, `fb` back edge — or length on small —, `fw` width, `fy` height, `ft` thickness, unit ×body), so they follow it when the
+   core changes; `placed` is the same pair in metres and stays where it is put. At the trunk's defaults they build the same body, as before.
+   `small` is the same machine as `back` with other fractions; kept, the roster wears both.
+5. **A second mouth is allowed** — it was; nothing changed.
+6. **Every piece has controls.** `eyes:valve` (`vs`, `vs2` the front and back eye, `vx` out ×valve, `vy`, `vf`, `vb` along ×valve; the valves'
+   build reads them through `ctx.eyeP`), `tailplate:spine` (`sl`, `sr`, `st`, `sy`, `sz`), `tailplate:plates` (`pz`, `ph`, `pl`), `keel:ventral`
+   (`w`, `h`, `l`, `y`, `z`; its cover reads them), `valves:hood` (`kw`, `kl`, `kh` ×head, `lift`), and back/small above. Each default is the
+   number that was hard-coded. **Two stay bare, and say why**: `tail:stub` builds nothing (it is the absence of a tail), and `weapon:ram`
+   builds nothing either — the blow is the head's, and its strength is combat.js `RAM` (stun 2.5 s, daze 2, cool 3), one table for every
+   ram. A reach control on it moved the ram's derived reach 4.6 → 8.1 m (its reach term was NaN and dropped until then), so it was taken
+   back. The test fails on any other piece without controls.
+
+- **Identical**: all 42 species' geometry, capsules, grip, edge, cover, gape, `derive` and `statsOf` unchanged to the bit against v11.70;
+  the validated specs differ only by the new controls' defaults and the thorns rename. `--test` green on both tiers; the registry test 569
+  of 569 (hold's offers are gone).
+- **Seen** in the app's browser: the hose's eye and valve controls with the eyes enlarged and the valves widened; the hood's plate lengthened
+  and its tail spine drawn out. The first labels ("width, of the body") were cut off by the panel's column; the fraction moved into the unit.
+- **Unseen, ask in this order**: how a hingeshell's thorns should look against a slowblood's spines, now that they may differ; whether the
+  ram's blow wants its numbers on the animal (per ram, from the part) rather than one `RAM` table.
+
+## v11.71 — one calculator for every animal (21 Sep 2026)
+
+**Decided (the person, 21 Sep 2026):** "The child's speed should be derived from the animal's body map like any other. Not its parent's, but
+there should just be a universal logic of how fast an animal moves based on its size and mass and such." This replaces CREATOR's decision 2
+(derived by default, a lock per stat) for anything that lives in the world; recorded in LINEAGE §12.20 and CREATOR's Decisions.
+
+**Measured first.** v11.70.1's `derive` against the hand numbers (the "derive v11.70" column below): the active swimmers ran 0.85–1.7 of their
+hand speeds, the tails consistently ~1.4 high, and thirteen kinds were out by 2–8×. Three of those were faults in the calculator, the rest
+were hand numbers that were never top speeds:
+- **a jet's thrust grew with the body** — `volume × 4` against an area, so thrust/drag went as the length and the veil derived 11.7 m/s. Now
+  `DERIVE_K.jet × volume^(2/3)`: the water per pulse goes as the volume and the pulse rate as 1/length.
+- **a walker's speed came off thrust/drag**, which is not what stops a leg (the picker's was 125). Now Froude's: `DERIVE_K.walk × sqrt(g × leg)`,
+  the leg's length returned by every walking style of the `legs` part (`leg`).
+- **the flicker was a drifter**: a row of swimming legs was no propulsor `derive` knew. `legs:swim` returns `paddle` and counts as the flaps' mode.
+- **the hand `speed` of anything that flees or ambles was its everyday pace**, and its `flee` the top speed. The fit is against the top speed
+  (flee where a kind has one), over the kinds that swim for their life or their meal; the filter feeders, the floor's amblers and the relict
+  were left out of the fit and are listed below.
+
+**The calculator (creatures_spec.js `DERIVE_K`, every term named with its reason on its line):** top speed = `speed` 3.15 × `mode` (tail 1,
+paddles 1, jet 0.95, a bell 0.4, a sail 0.25) × (thrust/drag)^`tdExp` 0.35 × (L/2)^`lenExp` 0.4 × the ceiling × `chamber` 0.8 for a
+gas-chambered shell. Fitted by geometric mean of derived/hand per mode: tails 1.00 over ten kinds (spread ×1.21), jets 1.00 over four (×1.12),
+paddlers 0.96 over seven (×1.34), walkers 0.98 over five (×1.42). **The ceiling** (CREATOR, The size ceiling, item 4): the factor
+`(1+(L/ceilL)^ceilN)^(-lenExp/ceilN)` with `ceilL` 60 m, `ceilN` 4 — 0.999 at the abyssal's 19 m, 0.994 at 30 m, flat past 60: the ridge's build
+scaled up reads 9.6 m/s at 11 m, 14.7 at 32, 18.0 at 64, 19.1 at 128 and 19.1 at 600. The reason is a burst's anaerobic store against the time
+to reach speed (Hirt et al. 2017: the fastest animals are mid-sized). **Turn and accel need no ceiling** — turn falls as L^-0.85 (0.04 rad/s at
+600 m) and accel as mass^-0.15 — and both fit the roster as they were (turn 1.04 over thirty kinds, spread ×1.5; accel 0.97 over the three
+presets). One new turn term: `flex` 1.8, a body that bends along its whole length (the chain core) — the eel's hand turn was 1.9× derive's.
+
+**The hand numbers are gone.** No `DEFS` row carries `speed`, `turn` or `accel`: `defPhysics` (creatures_defs.js) reads `top`, `turn` and
+`accel` off the build for every kind at load, and `speed = top × pace`, `flee = top`. What stays by hand is behaviour: **`pace`** (new — the
+share of its top speed an animal goes about at; a hunter has none, its chase is its top speed), `flee: true`, `cruise`, `cruiseF`, `burst`,
+`detect`. **Accel reaches the AI for the first time**: `seek` and `seekAway` scale their urgency by the body's accel over `ACC_REF` 2
+(creatures_ai.js), so the abyssal answers at 0.4 of the old rate and the needle at 1.8. The three presets' `stats` locks are deleted; the
+player's speed, accel and turn are derive's, its contact mass is every creature's rule (size cubed, `BODY_MIN`), its bite's size the lab's rule
+(mass × 3 + 2, cosmetic). `statsOf(spec, locks)` reads a lock only when asked, and only the dev lab asks (its readout and its placed creature);
+the creator shows no lock. `specExport` no longer emits `speed` or `turn`. Still absolute and the next candidates: `lunge` and `strike.speed`.
+
+| kind | mode | L m | hand speed / flee | derive v11.70 | now: goes about / top | top moved | hand turn | now | moved |
+|---|---|---|---|---|---|---|---|---|---|
+| darter | undulate | 0.83 | 3.6 / 5.5 | 5.1 | 2.79 / 4.3 | -22% | 7 | 8 | +14% |
+| glim | undulate | 0.76 | 3 / 5 | 5 | 2.46 / 4.1 | -18% | 7 | 8 | +14% |
+| arrow | jet | 1.53 | 5.8 | 5.3 | 6.1 / 6.1 | +5% | 5 | 8 | +60% |
+| grazer | undulate | 4.84 | 2.3 / 4.2 | 5.6 | 2.59 / 4.7 | +12% | 1.5 | 2.35 | +57% |
+| veil | jet | 17.43 | 1.4 | 11.7 | 1.43 / 7.5 | +436% | 0.35 | 1.17 | +234% |
+| great | jet | 10.32 | 1 | 7.3 | 0.99 / 7.1 | +610% | 0.8 | 0.86 | +7% |
+| ridge | undulate | 10.7 | 7.8 | 11.5 | 9.6 / 9.6 | +23% | 1.4 | 1.23 | -12% |
+| ortho | jet | 8.17 | 9.5 | 9 | 8.9 / 8.9 | -6% | 1.6 | 1.05 | -34% |
+| abyssal | undulate | 19 | 9.2 | 13.1 | 10.9 / 10.9 | +18% | 1 | 0.84 | -16% |
+| eel | undulate | 8.18 | 6.4 | 9.7 | 8 / 8 | +25% | 2.5 | 2.41 | -4% |
+| lurker | jet | 4.16 | – | – | – | – | 4 | 3.73 | -7% |
+| scuttle | walk | 1.84 | 2.4 / 3.8 | 1.1 | 1.45 / 2.3 | -39% | 5 | 4.76 | -5% |
+| rasp | jet | 1.41 | 0.7 / 1.2 | 2.5 | 0.7 / 3.2 | +167% | 2 | 4.68 | +134% |
+| watcher | jet | 2.23 | 2.6 | 6.7 | 2.62 / 6.1 | +135% | 2.5 | 6.61 | +164% |
+| pall | jet | 8.8 | 1.2 | 8.9 | 1.23 / 8.2 | +583% | 0.3 | 1.98 | +560% |
+| needle | undulate | 1.89 | 5.2 / 6 | 7.9 | 5.66 / 6.5 | +8% | 5 | 4.74 | -5% |
+| basker | undulate | 9.9 | 7.2 | 8.6 | 7.1 / 7.1 | -1% | 1.6 | 2.68 | +68% |
+| stone | drift | 2.52 | – | – | – | – | 1.5 | 3.64 | +143% |
+| crusher | undulate | 7.42 | 5.6 | 7.2 | 5.9 / 5.9 | +5% | 2 | 2.16 | +8% |
+| trap | walk | 3.83 | – | – | – | – | 6 | 2.56 | -57% |
+| hook | walk | 4.16 | – | – | – | – | 3 | 2.38 | -21% |
+| tread | walk | 17.36 | 0.9 | 4.7 | 0.9 / 5.3 | +489% | 0.5 | 0.71 | +42% |
+| picker | walk | 0.97 | 1.6 / 2.6 | 4.7 | 2.42 / 3.9 | +50% | 2.5 | 8 | +220% |
+| flicker | flap | 0.87 | 2.8 / 5.5 | 1.5 | 1.53 / 3 | -45% | 8 | 6.59 | -18% |
+| hose | flap | 3 | 5.5 | 7.6 | 6.6 / 6.6 | +20% | 2.2 | 2.56 | +16% |
+| sickle | flap | 11.4 | 9.5 | 10.8 | 9.4 / 9.4 | -1% | 1 | 0.77 | -23% |
+| hood | flap | 10.3 | 8.5 | 11.5 | 10 / 10 | +18% | 1.2 | 0.86 | -28% |
+| lash | flap | 6.6 | 9.5 | 8.8 | 7.7 / 7.7 | -19% | 1.4 | 1.26 | -10% |
+| ram | flap | 9.2 | 7 | 11.5 | 10 / 10 | +43% | 0.8 | 0.95 | +19% |
+| comb | flap | 11.9 | 1.8 | 14.7 | 1.81 / 12.9 | +617% | 0.4 | 0.79 | +98% |
+| sifter | flap | 1.25 | 2.4 / 4.5 | 4.5 | 2.07 / 3.9 | -13% | 6 | 5.19 | -13% |
+| cinder | walk | 2.2 | 1.4 / 2.4 | 2.3 | 1.62 / 2.8 | +17% | 2.5 | 4.09 | +64% |
+| wedge | walk | 1.73 | 1.5 / 2.6 | 1 | 1.04 / 1.8 | -31% | 4 | 5.01 | +25% |
+| plough | walk | 3.1 | 1.2 / 2 | 1.9 | 1.44 / 2.4 | +20% | 1.5 | 3.06 | +104% |
+| relict | flap | 8.3 | 3.2 | 9.8 | 8.6 / 8.6 | +169% | 0.8 | 1.04 | +30% |
+| P:soft | jet | 3.06 | 7 | 8.7 | 8.1 / 8.1 | +16% | 7 | 5.13 | -27% |
+| P:fin | undulate | 3.62 | 8.8 | 7.5 | 6.2 / 6.2 | -30% | 4.5 | 3.08 | -32% |
+| P:coil | jet | 2.94 | 4.6 | 3.8 | 4 / 4 | -13% | 3 | 2.51 | -16% |
+
+`facing`: a creature's `turn` is now its rate at the top speed, and the facing slerp takes the share `|v|/top` of it floored at `TURN_MIN` 0.35
+(creatures_ai.js) — a turn is speed over a radius that goes as the length, so the veil ambling at a fifth of its speed comes round at 0.41 rad/s
+(its hand number was 0.35) without a hand number.
+
+**Every kind whose top speed moved more than 25%, and which side was wrong:**
+- **veil, great, pall, comb, tread, watcher** (+135% to +617%): *the hand number was not a top speed.* It was the pace of an animal that never
+  bolts and never chases; `pace` (0.19, 0.14, 0.15, 0.14, 0.17, 0.43) keeps the everyday speed to the hundredth, and the top is never used
+  today. The comb's 12.9 m/s is still too quick for a filter feeder: *derive lacks the basket's drag* (the `comb` part returns no area).
+- **rasp** (flee 1.2 → 3.2): *the hand number was a crawl.* A 1.4 m chambered jetter beside the coilshell's 4.0 at 2.9 m; its everyday 0.7 is kept by `pace` 0.22.
+- **relict** (3.2 → 8.6): *derive lacks a term* — the cold. "Slow: a life below the light" is a metabolic rate, and there is no temperature
+  model (PLANET Hooks). It needed the speed anyway: the picker it lives on now bolts at 3.9.
+- **ram** (7.0 → 10.0): *the hand number was character* ("slow and big"); the build's thrust/drag (4.8) is its kin's.
+- **picker** (flee 2.6 → 3.9): *hand low* — the longest legs for its body in the roster, and Froude reads the legs.
+- **scuttle** (3.8 → 2.3) and **wedge** (2.6 → 1.8): *derive lacks a term* — a small walker cycles its legs faster than a pendulum (a ghost
+  crab runs at a Froude number over 1); `walk` is one number for every size.
+- **flicker** (5.5 → 3.0): *derive lacks a term* — the escape is the abdomen's flick, a burst, and `tailplate`'s `flick` is priced as a steady thrust.
+- **eel** (6.4 → 8.0, +25%): *hand low* against its kin at its length and thrust/drag.
+- **the finback preset** (8.8 → 6.2, turn 4.5 → 3.1) and **the soft-arm's turn** (7 → 5.1): *the hand numbers were the player's feel*, tuned
+  above its kin — the old finback out-cruised the ridge three times its length. Under one logic it does not: 6.2 (10.9 sprinting) against the
+  ridge's 9.6, the basker's 7.1, the eel's 8.0. The player's turn is the body's facing only (the heading is the camera's).
+- **turn** moved more than 25% on seventeen kinds, both ways (the table). It is a facing rate and the loosest fit (×1.5); the slow animals'
+  hand turns were character, and the facing rule above gives most of it back. The trap's 6 → 2.6 is *hand high* (a buried ambusher's snap
+  to its prey is its strike's, not its body's).
+
+**Tests.** `test/player.js` checks the presets against `derive` (not the old literals), that no species ships with a lock, that every `DEFS`
+kind moves on derive's top, turn and accel, that nothing goes about faster than its top, that a lock is read only when asked, and the ceiling's
+shape. **combat**: the matrix is unchanged; the pin times against the finback moved by its mass (7 → 5.83: the eel's kill 2.8 → 2.7 s, the
+lash 1.1 → 1.0, the hook 1.5 → 1.4), the basker's run-down of a grazer 3.0 → 3.2 s (the grazer bolts 12% faster), the crippled finback taken
+6.0 → 6.6 s later (it is slower; so is a fifth of it). **live**: 13 → 14 clutches by day 4, kills over the 60 s window 7 → 4 (the forage's
+everyday pace fell with its top: darter 3.6 → 2.8, flicker 2.8 → 1.5, so fewer ribbons wander into a needle), the hunters' hunger within
+0.02. **census** is on paper and reads no speed: unchanged. `--test` green on both tiers.
+
+**Seen** in the app's browser (the loop driven by hand): each preset swum for six seconds — soft-arm 7.9 m/s (8.1 less its jet's pulse),
+finback 6.0 and 10.6 sprinting, coilshell 3.7; a relict (the biggest mover that hunts) put 24 m from a picker on the shelf: it wandered 5 s,
+took the chase at 21 m, reached 10.6 m/s on its burst and had the picker 2.2 s later (`test/render/v71_relict_picker.png`).
+
+**Unseen, ask in this order:**
+1. **The finback at 6.2** (10.9 sprinting): it no longer out-cruises a ridge. Is that the game — you escape by the sprint, the turn and the
+   dodge — or should the preset's *build* change (a bigger tail, a slimmer hull) so the number comes honestly? Not a lock either way.
+2. The relict's cold: a metabolic term on `derive` by the spec's `depth`, or let it be quick?
+3. The flicker at 3.0 against a hose at 6.6: every chase is lost now. A burst term for the flick (and `lunge`, `strike.speed` with it)?
+4. The ram at 10: is "slow and big" wanted back, by shortening its rows?
+5. The small walkers (scuttle, wedge) a third slower; the rasp bolting at 3.2.
+6. How the big hunters read now that they answer at 0.4–0.6 of the old urgency (`ACC_REF`): heavier, or sluggish?
+
+
+## v11.72 — the editor at conception (21 Sep 2026)
+
+LINEAGE §13.4, the finback only (the other two clades' modes are §13.6). **Laying is the trip to the editor**: `x` on the floor, with the
+conditions v11.69 asked (a slowblood, grown, the cooldown past, the floor under you), opens the lab as the creator over the world — as `l` in
+play does — loaded with your own spec (line.js `conceiveOpen`). The clade is locked: the `from` row is gone, and `labLoad` refuses a spec of
+another clade (a saved creature of your own clade may be loaded; it is priced like any other change). `p` places nothing while the window is
+open. A block at the head of the panel is the bill — the generation, the total against the budget, the six dearest items, and two buttons.
+
+- **Close without changes = decline** (§4.2): the clutch is a copy of the parent, the brood is recorded with its generation, no sparkle —
+  a copy is what any animal lays. `decline: a copy` does the same from any state.
+- **Close with changes, within the budget**: the clutch carries the child's spec (its id the parent's with the generation, `fin-2`), the
+  young hatch as a kind of their own off that spec (`lineKind`, through v11.71's `defPhysics`), and **the sparkle plays** on the clutch
+  (§7: "when you successfully close the mutation window"; `sparkStart(at)` takes a place in the world now).
+- **Over the budget the lab will not commit** and says why: the hint and the panel name the total, the budget and the dearest item; `lay the
+  clutch` is disabled; `l` and esc stay in the window. Take something back, or decline. There is no way out that lays nothing — opening the
+  window was the mating.
+
+**The budget (line.js `BUDGET`, one table, a comment per key; first numbers, to be moved by play).** The diff between child and parent, both
+validated, priced off the v11.70 registry (`paramOf`): `param` 1 for a number moved across its whole believable band, pro rata, the stretch
+outside the band × `extreme` 2, under `eps` 0.005 free; `toggle` 0.25 for a switch, a choice, the beat, the pattern; `list` 0.5 for a
+profile redrawn; a part `add`ed 1 × its registry cost (twice mirrored), `remove`d 0.5 ×, its `style` swapped 0.75 × and then the numbers
+the two styles share priced as moves; the `core`'s kind changed 6; `size` 4 per doubling or halving of the scale or the claimed half-length,
+whichever moved more; the `coat` 0.3 for every colour across its whole range. Parts are paired by kind in order. The name, the depth and the
+floor switch are free. **The budget grows with the generation**: `conceiveBudget(gen)` = `base` 3 + `gen` 1.5 per generation behind the
+parent — 3 for the founder's child, 6 for the third life's (a new core), 16.5 for the tenth's. **No hard cap on the distance from the
+parent: the budget is the cap** — LINEAGE §11.5 is still the person's; this is the default until they answer.
+- **The fuel half of §6 is time, for now.** The body paid for by eating needs the player's hunger, which is not built; until it is, a clutch's
+  cooldown goes with the child's derived mass: `LINE.cool` 0.2 game days for a child of `LINE.coolM` 1.69 t (the finback preset's), in
+  proportion otherwise, floored at a quarter (`layClutch`; the life carries `coolS`). The knob says so where it lives.
+- **The child plays on its own numbers.** `lifeClade` takes the preset by the child's own spec (`presetFor`), and everything else is
+  v11.71's: speed, accel and turn off the build.
+- **Not this pass**: disposition and followers (they need derived `DEFS`, §8.2), the ringmouth's and the hingeshell's modes, a tuner for `BUDGET`.
+
+**Tests.** `test/player.js` §5: x opens the lab as the creator with nothing laid; the budget by generation; another clade refused; a declined
+conception (a copy, generation 2, no sparkle); the cooldown; a tail lengthened by 0.6 of its band priced 0.6 and committed, the clutch carrying
+it, the sparkle, the cooldown by mass; four times the scale (8 of 3) refused with nothing laid, then declined; a death with only the edited
+clutch continued as the child, grown on its own derived speed, accel and turn, and its own conception opening at generation 2's budget. §4's
+layings decline (what they laid before). **`test/live.js`'s hunt window is 180 s on the low tier** (`HUNT_S`): its check is 'anything was killed', and the
+low tier loads so few hunters that 60 s held exactly one kill at v11.70.1, one at v11.71 and none on this run — a coin flip, not a finding (the
+high tier's 60 s: 7, 4, 9). 180 s holds two or three. `--test` green on both tiers.
+
+**Seen** in the app's browser: x on the shelf at (300, 60) opening the panel with the conception block, no `from` row and no locks; the
+tail's lobe dragged to 1.3 m through the panel's own slider and the bill reading "tail lobe length 0.45 of 3.0, within the budget"; the scale
+at 4.2 turning the block amber — "8.45 of 3.0 … over the budget by 5.45: take something back, or decline", the lay button greyed, `l` refused
+with the same words on the hint; the scale put back and the clutch laid (`fin-2`, price 0.45); the death, and the child: a hatchling at
+0.55 of the body and 6.0 m/s, grown at 8.1 m/s (measured 8.3 over two seconds) against the parent's 6.2, its long tail on the body.
+
+**Found.** 0.45 points of tail bought +31% speed and no mass: `derive`'s tail lobes weigh nothing and drag almost nothing (`area` 0.05 of
+the lobe). The budget prices the move, not what it buys — honest only as far as the calculator is. A lobe's mass and drag are the next term.
+
+**Unseen, ask in this order:**
+1. **The sparkle on the clutch**: the pane reported no viewport and the harness's canvas was 500 px in an 800 px page, so the star's place
+   and size at 1600×900 were not judged (it drew). Does it read at the clutch under you in third person?
+2. §11.5, still yours: is the budget the only cap on how far a child may move, or is there a hard one?
+3. The first numbers: is 3 points enough to feel like a choice at generation 2 (a new pair of fins is 2–3; a longer tail 0.5)?
+4. The world runs while the window is open (as `l` in play always has): a predator can arrive while you edit. Pause it?
+5. The lab frames the child among the weed where you laid — the studio (CREATOR, size ceiling item 6) would fix that.
+
+## v11.72.1 — out of the world while you edit (21 Sep 2026)
+
+The person on v11.72: "WOW, that is a lot of fun. Really enjoying this." Their four answers (LINEAGE §12.21–24): **the sparkle on the clutch
+is in**; **the budget as the only cap on a child's distance from its parent "works fine for now"** (§11.5, answered for now); **3 points is OK
+for now**; and **"the game should teleport the player out of existence temporarily or make them invis/invuln while they edit."**
+
+Built: while the editor at conception is open the parent is out of the world (player.js `playerAway`, set by `conceiveOpen`, lifted by
+`labLeave`): the body hidden, its hold dropped, every creature that had it as a target let go, and nothing can see, smell, chase, hold, sting or
+flee it — the twelve reads of `player.dead` in creatures_ai.js and the two in combat.js that mean "is the player there to react to" (a hold's
+start, the blood trail) ask `playerGone()`, which death answers too. The world runs on; the clutch is laid where you were, and you are back
+in the world the frame the window closes.
+
+- **Tests**: `test/player.js` §5 — with the window open a hungry eel 7 m off leaves the hidden parent alone for 3 s; on the close the body is
+  back and the eel takes it. `--test` green on both tiers.
+- **Seen** in the app's browser (the loop by hand): a hungry eel put 8 m from the parent, the window held open 5 s — away, hidden, no target,
+  no hold, no wound, the eel wandered off to 16 m; the window closed and the eel had the player as its target on the first frame.
+- **Unseen, ask in this order**: whether coming back into the world beside something hungry wants a second of grace; the lab's creature standing
+  where your body was (it is drawn ahead of you, as `l` in play draws it).
+
+## v11.73 — the player's hunger (21 Sep 2026)
+
+LINEAGE §6's fuel half, DIRECTION decision 3, and **one rule for every animal** (the person, 21 Sep: "a universal logic", not a special case).
+The player's stomach is the model every hunter already runs — `ecoOf` on the player's line kind (creatures_ai.js `eaterK`: the finback's
+cycle 0.78 game days, need 188 kg a day, meal 146 kg) — through the same three functions: `hungerTick` (the clock to 1, then `STARVE_T` 1.2
+cycles to the death: about 68 real minutes from full to dead), `kill` (a gulp or the placed act feeds the eater by the prey's `food` over its
+`meal`; the `by !== player` skips are gone) and `eatAt` (a bite at a carcass is `EAT.bite` 1 s of the world's feeding rate: 7.3 kg and 0.05
+of the finback's hunger — twenty bites fill it from starving; a poisoned body sickens instead, as it does a lurker). Any one prey on the
+player's list fills the finback: the model's food for an arrow is 1 t against a 146 kg meal. Starvation is `die('starved')`: the handover
+to the nearest living child, or the save is over (line.js, v11.69). The stomach rides the save (`hunger`, `starveT`), survives a rebody,
+is the child's own at the handover (a hatchling's is full), and is not ticked while the parent is out of the world in the editor.
+
+- **A clutch is paid from what the body has eaten.** `LINE.egg` 0.01 × `LINE.n` 4 eggs × the child's adult derived mass, in tonnes, off the
+  parent's stomach over its meal (line.js `clutchCost`, `clutchHunger`): the finback's copy is 71 kg, 0.49 of its stomach; **a child of twice
+  the mass costs twice** (0.97). `x` refuses `hungry` past `ECO.hungry` 0.4 (the line where the ledger's hunters go hunting) and `not fed enough`
+  when a copy of yourself would leave the stomach starving, so declining can always lay; a heavier child is refused at the close ("not fed
+  enough for this child: a smaller one, or decline"), and the bill has an `eggs` row — the cost against what the stomach holds — that turns
+  the block amber and greys `lay` when the stomach cannot hold it. **The cooldown is gone**: `LINE.cool`, `LINE.coolM` and the life's `coolS`
+  (v11.72's stand-in) are struck; the knob is `LINE.egg` in line.js, the price is `clutchHunger`, and the brood record keeps `fuel` in tonnes.
+- **Shown on the readout only** (the text rule): a `hunger` line — the clock, hungry or not, the time to starving (or the share of the way to
+  death past it), the stomach in kg, the cycle, and what a clutch of yourself costs of it. No bar; the body's own tell is the person's (Unseen 1).
+- **The tail term** (v11.72's finding: 0.45 points of tail bought +31% speed, the lobes weighing and dragging nothing). The `tail` part's lobes
+  now weigh (three boxes 0.05 thick: 0.15 × lh × ll m³ at the clade's density) and drag by two terms in `DERIVE_K`: `lobeF` 0.1 skin friction
+  per m² of lobe (six faces at Cf ~0.008 over a body cd ~0.45) and `lobeI` 5 induced drag per chord² × amp² (a foil's lift costs C_L²/(π ×
+  aspect), aspect = lh/ll, so the cost is ∝ ll²: a tall narrow lobe pays less than a broad one for the same thrust; the beat stays out, being
+  the animation's number). `lobeT` (the lobe's thrust per m², the old literal 3) is 4.3, refit so the nine tailed kinds' geometric mean of speed
+  holds (1.002). **Every species it moves** (speed, accel, mass): fin 6.2 → 6.1, 2.01 → 1.98, 1.69 → 1.77 t; ridge 9.6 → 9.5, 1.23 → 1.22,
+  43.4 → 45.5; abyssal 10.9 → 11.0, 0.83 → 0.84, 311 → 324; grazer 4.7 → 5.0, 1.05 → 1.11, 8.69 → 8.86; darter 4.3 → 4.1, 3.22 → 3.08;
+  needle 6.5 → 6.2, 3.56 → 3.38; basker 7.1 → 7.5, 0.94 → 0.99, 46.7 → 47.2; crusher 5.9 → 6.3, 0.92 → 0.97, 34.5 → 34.9; glim 4.1 → 3.9,
+  3.22 → 3.08 — the broad-lobed small boids down 5%, the tall-lobed big bodies up 6–7%, the presets within 2%. v11.72's move (lobe length 0.5
+  → 1.3) buys +3% now. The chain core's lobes (the eel) are untouched: its thrust is the body's, and its lobes add none.
+- **Found.** Lobe *height* is the cheap direction now: the test's move of 0.6 of its band (0.85 → 3.7 m on a 3.6 m body) buys +48% for 0.6
+  points, because a lobe's thrust grows with its area and only its friction and mass grow with its height — nothing in `derive` says the
+  stem's muscle has to swing it. The next term is a muscle cap: the lobes' thrust bounded by the stem's cross-section (the peduncle), which
+  `stem` already measures. Not built: the person's call whether the tail pays by muscle or by the budget's band price (`lh`'s band 0.1–2.5
+  is wide).
+- **Written, not built: §6's other half, the materials** — LINEAGE §6 "The materials" proposes the mineral for a shell or plates and the
+  pigment for a coat drawn from what was eaten where (`coatFor`, `COAT_CHEM` the precedent), with what a finback would have to eat for each.
+- **Tests** (`test/player.js` §6, in `--test`): the player runs on its line kind's numbers; half a cycle of play is hunger 0.50; the readout's
+  line; fed by a gulp (an arrow at the mouth through `playerBite`), by a kill (`kill(picker, player)`, the starving clock reset) and at a
+  carcass (one bite 7.3 kg and 0.050, forty bites fed; a poisoned body sickens and feeds nothing); the stomach through the save; starved to
+  death with only a clutch (the cause `starved`, the world run on to the hatch, the hatchling fed) and with none (the save over, the cause
+  written); laying refused hungry (0.45) and the window open at 0.30; a child of twice the mass (scale × ∛2, 1.33 points) costing twice,
+  refused at 0.30 (0.97 wanted, 0.70 held) with nothing laid and afforded at 0.02; a copy at 0.30 afforded. §4–5's cooldown checks are
+  stomach checks now, and §5's edited child has taller lobes instead of longer ones (a longer lobe no longer moves the derived speed at one
+  decimal — which is the tail term working). `--test` green on both tiers.
+- **Seen** in the app's browser (dev.html on serve.js; the pane's loop ran only while a screenshot was taken, so the clock was driven by
+  hand): the readout's line at a new game ("hunger 0.00  starving in 0.78 d  stomach 146 kg  cycle 0.78 d  a clutch of 4 as you: 0.49 of
+  it"); an arrow spawned at the mouth and bitten took hunger 0.80 → 0.00; on the floor at 0.30, `x` opened the bill with "the eggs 0.49 of
+  0.70" and "unchanged: the clutch will be a copy"; the scale at ∛2 turned it amber — "the eggs 0.97 of 0.70 … not fed enough for this
+  child: a smaller one, or eat first", `lay` greyed, `decline` live; declined, the clutch laid (71 kg) and the stomach at 0.79; `x` again
+  put "hungry" on the hint; hunger set to 1 and the starving clock past its end: the fade, the cause `starved` on the slot, the world run
+  on to the hatch (t 934, night), and the hatchling at the clutch among its siblings with the sparkle over it and a full stomach. A game day
+  of real play, eating as you go, was not played (40 real minutes).
+
+**Unseen, ask in this order:**
+1. **How the body shows hunger** — no bar, the person decides. Candidates, cheapest first: (a) the belly: the lathe's profile radius scaled
+   by (1 − 0.15 × hunger) over the trunk, as `bodyPose` squashes and stretches already (fx.js) — a gaunt fish, visible in third person;
+   (b) the pace: a hungry body's cruise falls (`speedK` × (1 − 0.1 × hunger past `ECO.hungry`)) and its idle sways slower, the way a starving
+   hunter's chase tires; (c) the sound: the heartbeat bed (audio.js) slower and thinner past 0.7; (d) the hint once at `ECO.hungry` and once
+   at 1 ("hungry", "starving"), the way the controls hint shows once. (a) and (d) are an hour; (b) touches the fight's balance.
+2. Whether the numbers play: 31 real minutes from full to hungry-enough-to-be-refused-a-clutch, 68 to death, and one arrow filling you from
+   starving (the model's number: a 146 kg meal against a tonne of arrow). A player-only `meal` multiplier is a special case and was not built.
+3. The tail's next term: the muscle cap on the lobes (Found, above), or leave it to the band price.
+4. The materials proposal (LINEAGE §6) — which of the three sources to build first, and whether a hingeshell's mineral rides its coat class.
+
+## v11.74 — the ringmouths' reproduction (21 Sep 2026)
+
+LINEAGE §13.6's ringmouth half, on the person's decisions of 21 Sep (LINEAGE §12.26–28): the soft-arm is semelparous — it may spawn once, grown,
+then broods and dies at the hatch — and it ages; the coilshell breeds like the finback (the nautilus, not the octopus: a shelled animal has a
+skeleton, so §3's reason does not hold for it — §3 amended); nothing else ages yet. The mode is read off the body, not chosen.
+
+- **The modes** (line.js `BREED`, a comment per key; `breedOf(spec)`): a slowblood is `slowbloods`; a ringmouth whose body floats on the calculator
+  (derive's `buoyancy` — the chambered shell) is `shelled`, the nautilus; any other ringmouth is `soft`, the octopus. A hingeshell has no mode and
+  `x` says `not this body` (the den is §13.6, unbuilt). The eggs, r against K: `n` a clutch and `egg`, an egg as a share of the child's adult derived
+  mass — soft 30 × 0.001 (67 kg, 0.66 of the soft-arm's 102 kg stomach), shelled 2 × 0.008 (53 kg, 0.63 of the coilshell's 84), slowbloods 4 × 0.01 as
+  v11.73 (71 kg, 0.49 of 146). `LINE.egg` and `LINE.n` are gone; `BROOD_SURVIVE` is the mode's `survive` (soft 0.5 a day — many cheap eggs, mostly
+  eaten; the others 0.8). The mode is cached on the life and the brood (`_m`, never saved).
+- **The soft-arm spawns once.** Its one conception is its one trip to the editor and the clutch carries whatever it chose; after it `x` says
+  `brooding`. The hint at the laying: "the clutch: 30 eggs, the hatch in 0.36 days — you will not feed again; stay by it, or not".
+- **Brooding.** `feeds(o)` (line.js; creatures_ai.js `kill` and `eatAt` ask): a brooding body kills and is not fed, and takes nothing from a carcass.
+  **Guarding** (`BREED.guard` 12 m): within it the parent guards the clutch — `findCarcass` never offers it to a scavenger and `scavenge` drops one that
+  has it, and nothing is lost; off it, the mode's losses run on the loaded clutch by the clock (`survive` a day, the egg's count following, `lineTick`)
+  and any scavenger takes it. A choice with a payoff, not a leash: the parent may go anywhere. **The wasting**: `wasteOf` is the share of the way
+  from hungry (`ECO.hungry`) to death by starvation (`STARVE_T`) on the stomach's own clock, 0..1; the live spec carries it (`spec.waste`, as a wound
+  edits the live spec) and the calculator gives the speed — `DERIVE_K.waste` 0.8, the share of the thrust gone at full wasting; speed goes as
+  thrust^0.35, so the soft-arm's 8.1 is 7.5 at a quarter, 6.8 at half, 4.6 at the end (`rederive` → `speedK`, v11.57's path). The body is rebuilt
+  thinner at every tenth of waste (`BREED.gaunt` 0.25 of the mantle's radius at full; `gauntClade`, `playerRebody`); the spec on the save stays
+  the adult's. The same term could run for every starving body (v11.73's candidate b) — not switched on.
+- **Checked: the brood is inside the starvation clock.** The hatch is `ECO.hatch` × mass^¼ = 0.36 game days (14 real minutes; `hatchK` 1). From a
+  laying at the latest hunger allowed (0.4) death by starvation is 1.28 days off, from a full stomach 1.56: the parent lives to the hatch with three
+  and a half times to spare, so neither gives — but the wasting only reaches 0.1–0.3 by the hatch (speed × 0.97–0.90): the parent is hungry at the
+  hatch, not spent. `BREED.soft.hatchK` is the knob for the octopus's long brood: at 3 (1.07 days) it arrives wasted 0.67–0.83 (speed × 0.7–0.6); at 4
+  a parent that laid hungry starves first — a death like any other, and v11.69's run-on to the hatch.
+- **Death at the hatch**: `die('spent')` from `lineTick` once the brood's clutch has hatched — loaded (`broodHatch` put the young in the world the
+  frame before), unloaded (by the clock, `broodCatchUp`), or eaten to nothing (the clock all the same). The handover is v11.69's: the nearest living
+  child, a hatchling at the clutch among its siblings. Killed while brooding, the clutch stands and hatches — v11.69's run-on, tested.
+- **Age**: `BREED.life` 4 game days × mass^¼ (the ledger's q, as every rate) — the soft-arm 5.69 game days, 3.8 real hours; a founder is an adult
+  hatched a growth ago (`lineStart`: born = now − `growS`; a record from before v11.74 gets the same at load), a child from its hatch. `die('old')`
+  in `lineTick`; the shelled and the slowbloods have `life` 0. The readout's hunger line has `age 1.42 d of 5.69` and, brooding, `brooding 28 eggs,
+  the hatch in 0.35 d, guarded, wasted 0.28 speed ×0.91`.
+- **The tail's stem** (v11.73's finding): `DERIVE_K.stemM` 40 — the lobes' thrust is capped at stemM per m² of the stem's mean cross-section (π r̄²,
+  r̄ off the side area the stem term already measures, stem / 2L; the lobes style with no stem takes the core's tail end). The roster's lobes against
+  their stems: darter and glim 39, needle 27, basker 22, crusher 17, abyssal 17, fin and ridge 15, grazer 12 — **at 40 no species moves**: every
+  derived speed, accel and turn is v11.73's to the digit, over all 42 specs. v11.73's tall lobe (lh 3.7 on the fin, 0.6 points) buys +26% now (7.7
+  against 6.1) for +48%, and the lab's readout says "the lobes outrun the stem that swings them (60% driven)". At 30 the darters would lose 9%.
+- **Tests** (`test/player.js` §7, in `--test`): the mode off the body (soft; the coilshell shelled by its floating shell); the clutch's cost; the
+  founder's age a growth and its span 5.69 (on the readout); the brood inside the starvation clock; laid once, grown and fed, and not twice; an arrow
+  bitten while brooding feeds nothing; the parent on the clutch guards it (a scuttle 10 m off smells no carcass in it and does not go, for a second of
+  the world), 40 m off it does not (the scuttle smells it, goes to it and eats it down); a tenth of a day strayed loses the clutch 29.9 → 27.9 and the
+  egg follows, a tenth guarding loses nothing; at hunger 0.90 the body is wasted 0.28, speed × 0.91 as derive gives it on the live spec, and rebuilt
+  gaunt with the spec the adult's and the stomach kept; fed again, whole; killed brooding, the world runs on 0.35 d and you are a hatchling at the
+  clutch; the hatch loaded: the parent's death "spent", you a hatchling among 29 siblings, not brooding, the same mode; old age unspawned at 5.69 d
+  with no child, the save over, the cause "old"; the coilshell lays and lays again (two clutches of 2), no span on its readout; the finback's mode;
+  the tall lobe capped and no roster kind capped. §4–6's `LINE.n` and `BROOD_SURVIVE` reads are the mode's. `--test` green on both tiers (the low
+  tier's eel check in §5, v11.72.1, is random — `wander` — and failed once in six runs before this change as after it).
+- **Found by looking, fixed**: the handover took the child's stomach as it was, and a hatchling's was `spawn`'s random draw for a hunter (you became one
+  at 0.72) — the young at a hatch are fed now (`broodSpawn`); a clutch hatched early by hand gave the child an age of −0.35 d — the child's birth is the
+  hatch or now, whichever is first (`lineContinue`); and a death's 2.8 s fade ended whatever slot was current when it fired — it is the slot's it happened
+  in now (player.js `die`).
+- **Seen** in the app's browser (dev.html on serve.js, the loop driven by the pane): a new game as the soft-arm at the peak's floor; `x` at hunger 0.10
+  opened the bill — "the eggs 0.66 of 0.90 eaten … unchanged: the clutch will be a copy"; declined, the clutch laid, the hint "the clutch: 30 eggs, the
+  hatch in 0.36 days — you will not feed again; stay by it, or not", and the readout's line "hunger 0.76 hungry … a clutch of 30 as you: 0.66 of it  age
+  1.42 d of 5.69  brooding 30 eggs, the hatch in 0.36 d, guarded, wasted 0.20 speed ×0.94" — the clutch takes the stomach past hungry, so the wasting
+  starts at the laying; 40 m off the readout said strayed, back over it guarded; at hunger 1 with the starving clock at 0.85 the body was rebuilt at the
+  eighth step (the mantle's radius 0.509 for 0.636, wasted 0.90, speed ×0.64) — from behind, a visibly thinner mantle under the same collar and skirt;
+  the egg's clock put to 0.1 s: the hatch (30 young in a knot over the clutch, seen through the fade), the parent's death "spent", and you a hatchling of
+  0.88 m among 29 siblings with the sparkle over you. The coilshell: "the eggs 0.63 of 0.90", two clutches of 2 laid in a row, no brooding, the readout's
+  age without a span. Not seen: a brood played to its hatch in real time (14 minutes), a scavenger taking an unguarded clutch in play (the test does),
+  and the gaunt body from the side in good light.
+
+**Unseen, ask in this order:**
+1. **The brood's length** (`BREED.soft.hatchK`): at 1 the parent is hungry at the hatch, not spent (wasted 0.1–0.3); the octopus's long brood is 3, and
+   the parent arrives wasted 0.7–0.8 at speed × 0.6–0.7 — 43 real minutes over the clutch. Which is the game?
+2. **The waste term for every starving body** (v11.73's candidate b): `spec.waste` in derive is one switch from running for a starving hunter and for the
+   finback player past hungry; it touches the fight's balance.
+3. **The numbers**: 30 eggs at 0.66 of the stomach, half the clutch a day unguarded, 12 m to guard, a life of 5.7 game days (3.8 real hours).
+4. **The gaunt mantle**: a quarter of its radius at full wasting, in tenths (a rebuild each) — does it read as a starving animal, and should the arms and
+   the collar thin with it?
+5. **A brooding parent's threat**: guarding keeps scavengers off by the parent's presence alone; whether a hunter should fear a brooding soft-arm over
+   its clutch, or take it more easily as it wastes, is not built.
+
+## v11.75 — any species can be the player (21 Sep 2026)
+
+The person's decisions (21 Sep 2026, LINEAGE §12.29–31): the founder is any existing species of the chosen clade — the roster is the presets, the
+randomiser later; abilities will come from a universal ganglion model (a neuron cluster driving a motor cortex, a body with a long list of things it can
+do) — not this pass, a table stands in; the player moults, and the moult is not a trip to the editor (v11.76). This version retires the three presets'
+hand numbers and opens new game to the roster.
+
+- **The presets' hand numbers are gone** (player.js `CLADE_PRESETS` is three names). Every number the player runs on is the build's or the founder
+  species' row: the third-person arm is the body's length (`CAM_BODY`: 1.04 + 1.79 × derive's `length` — the soft-arm's 6.5 at 3.06 m and the finback's
+  7.5 at 3.62 to the digit; **the coilshell's 6.5 is 6.3**, the one number that moved; a sickle at 11.4 m is framed from 21); the jet's squeeze is
+  derive's (`DERIVE_K.jetImp` 1.235 × the top speed, × `jetShell` 1.417 for a chambered body — the soft-arm's 10 and the coilshell's 7 to the digit,
+  the arrow's 7.6); the sprint is derive's `burst` by the propulsor (`DERIVE_K.burst`: undulate 1.75 — the finback's; flap 1.6 — the roster's strikers
+  strike at 0.8–2.2 of their derived top, median 1.6, PLANET's burst and coast; a jet's burst is its squeeze, a walker's Froude speed its ceiling, a bell
+  and a sail have none); a legged body's strand speed is derive's `walk` (the Froude speed of its legs whatever its mode: the hood swims on flaps at 10
+  and walks at 3.9); venom and immunity are the founder's `DEFS` row. `derive` returns `walk`, `burst` and `jetImp`.
+- **The founder's row (creatures_defs.js `founderDef`, the seam LINEAGE §8.2 replaces):** a player's spec carries `founder`, the species id its line began
+  from (a child's spec inherits it: the editor at conception copies the parent's), and everything the calculator does not give — venom, immunity, prey,
+  role and behaviour — is read off `DEFS[founder]` and carried down the line unchanged. The three presets have rows of their own now (`DEFS.soft/fin/coil`,
+  role `player`, no `SPAWN` entry: v11.69–74's line kind — hp 100, the player's food, detect 10 + 5 × size, home 20 + 10 × size, the coilshell's venom).
+  **The line's young run the founder's row on their own body** (line.js `lineKind`): a sickle's young hunt needle and grazer with hp 150, an arrow's hunt
+  darter, flicker, scuttle and sifter with hp 1 (forage: they die at a touch), the presets' as before; the physics is the child's build. A forage founder's
+  young are a schoolless forage (`graze`: they wander and flee — the boid role wants a school). A spec without the key (a save from before) is its own id's
+  row, its id's root ('fin-3' → 'fin'), or the preset of its kind. **Where the seam is:** when §8.2's derived `DEFS` infers role, prey, reach and diet from
+  the build, `founderDef` goes and `lineKind` reads the inference; until then a sickle's line eats what a sickle eats however its body is edited.
+- **A founder that hunts nothing** (a grazer, a filter feeder: no prey on its row) runs no hunger clock — the world's grazers have none — and its clutch
+  takes nothing from a stomach the model has not got (`clutchHunger` 0); the readout says `no stomach on the model`.
+- **Abilities from parts** (player.js `ABILITIES`, the stand-in for the ganglion model): each existing ability tied to the part that makes it physically
+  possible, the first that fits is Q, none when nothing fits — **ink** the mantle core (an ink sac is a mantle-cavity organ); **stun** a tail that swings
+  (`tail`, not `stub`: the finback's blow); **withdraw** a coiled soft body with a shell wide enough to pull into (the shell's aperture at least the body's
+  radius: the coilshell, the rasp, the great, the ortho; a lurker has a coiled body and no shell — nothing); **ram** the ram's blow (`weapon:ram`); **shut**
+  the valves (any hingeshell with `valves`). The three roster players keep exactly the one they had (the test checks). Two new abilities: **ram** (Q) is
+  the world's rule on the striker (combat.js `RAM`): the nearest live body ahead in reach is stunned `RAM.stun` 2.5 s, thrown, dazed by a snap wound,
+  nothing through, `RAM.cool` 3 s; **shut** (Q held) clamps the valves — the body still and sinking as the withdraw is, the covering `shell` over every
+  capsule while the key is down (combat.js `coverAt` reads the player's state; a hold on the player re-reads its covering every frame, `h.thru` with it),
+  **not invulnerable**: the edge decides — a crusher's plate jaw is through a shell, a rasp drills it in time, everything else lets go at the pin. The
+  anim's `soft` flag clamps the valves for both shut and the moult. A ram has ram and shut; Q is the first.
+- **The founder picker** (menu.js `founderList`, `founderClade`, `menuFounders`; shell.html `#mfound`): new game lists the roster's three players and
+  every species the profile has seen up close (save.js `PROFILE.seen.sp`, as the creator is gated), drifters excluded, in the bestiary's order — name,
+  clade and family, niche, half-length — and a click starts a new slot as that species, its spec copied with `founder` on it. Nothing judges what can be
+  played (below). The slot list shows the founder's id (v11.68's rule). Esc or back returns.
+- **Walking, as it stands** (asked for a report, not a build): derive's `walk` mode gives a legged body the Froude speed of its legs as its top speed
+  (the scuttle 2.3, the trap 2.7, the hook 5.6, the tread 5.3) and the player controller does two things with `C.legs`: on the strand (grounded, mostly
+  out of the water) it walks at `landSpeed` and jumps at 5 m/s instead of flopping; **under water it is a free swimmer at that speed** — space rises, c
+  dives, the floor is the same clamp every body gets, and nothing keeps it on the ground. The legs' gait reads the speed. **Floor walking is not built.**
+  What it would take: a floor mode in `updatePlayer` for a legged body under water — the body held at `groundAt` plus its clearance while grounded, w/s
+  along the slope, no rise (space a hop), the turn about the up axis only, the camera's pitch bounded, and a switch by contact for a body with both legs
+  and flaps (the hood, the ram); some 40 lines in player.js and the camera. The AI's walkers (`d.floor`, `d.legs`) already live on the floor by their own
+  rule, so the world's side exists.
+- **Tests** (`test/player.js` §1, §2, §8; `test/smoke.js`): the presets' numbers as v11.74 had them off the build and the row (the coilshell's arm 6.3);
+  the sickle's parts give it shut and nothing else; the abilities appear and go with their parts (the finback's tail, a stub, the soft-arm's mantle, a
+  coiled body with and without a shell wide enough, the sickle's valves, the ram's two, the rasp, the lurker, a darter); the founder's list with nothing
+  seen is the three players, seen species join it and a drifter never; the arrow, the needle and the hose as founders (a copy that knows its species; cam
+  from the length, the kick from the speed, the sprint from the mode; their young on their rows with their own physics); a new game as each — four seconds
+  of sprint takes them 34–40 m; continue brings the hose back with its shut; a grazer founder with no clock and a free clutch; the lash shut (shell) and
+  open (plate). Smoke: picks 3–5 start as the sickle, the arrow and the needle through `founderClade` and check the founder, the ability and the young's
+  prey; new game in the stub, the audio and the snow tests goes through the founder list. `--test` green on both tiers.
+- **Seen** in the app's browser (dev.html on serve.js, the loop driven by hand): the founder list with fourteen species seeded as seen (`test/render/`
+  has no frame of the menu: it is HTML over the canvas) — the three players first, then the seen ringmouths, slowbloods and hingeshells, the jelly kept
+  out; a new game as the hose (v11.76's frames), as the arrow (`v75_arrow.png`: the little jetter with its collar of eyes at the peak's floor, the camera
+  3.8 m back — close, and right for a 1 m body), as the needle (`v75_needle.png`: the lobed tail, 4.4 m back); the readouts `q: ink` (the arrow, whose
+  hunger line also has an age and a span: the soft-arm's mode, as its body says), `q: stun`, `q: shut`.
+
+**Unseen, ask in this order:**
+1. **Which species should not be offered.** The picker judges nothing; these cannot honestly be played as they are: **the trap and the stone** (the
+   trap's legs walk it at 2.7 m/s, the stone has no propulsion at all — derive gives 0 — and both are buried sitters); **the hood** (a buried ambusher
+   that, as the player, swims on its flaps at 10 m/s); **the forage swarms** — darter, flicker, sifter, glim (no prey on their rows, so no stomach and a
+   free clutch; their young are forage); **the immortals** as bodies whose kind never dies — the watcher, the tread, the veil, the pall (the player dies
+   as any body; the mismatch is what hunts them: nothing); **too big for the camera** — with the arm the body's length, the sickle is framed from 21 m,
+   the ram 17.5, the eel 15.7, the crusher 14.3, the basker 18.8, the great 19.5, the ortho 15.7, the ridge 20, the comb 22, the abyssal 35, the veil 32:
+   at those distances the fog is most of the view. The person decides which stay, which go, and whether the camera's arm should stop growing past some
+   length.
+2. **The stun's blow does not scale**: a darter's tail (0.6 m) stuns an eel exactly as the finback's does (2.5 s, 9 m/s, within 6 m + 0.3 × its size),
+   and a ram's blow is the same on a 4 m body as the hose would deal. The table keeps the presets identical; the ganglion model is where the numbers
+   would come from.
+3. **The camera's fit**: the coilshell's arm 6.3 for 6.5, and whether 1.04 + 1.79 × L is the right line for a 0.5 m rasp (3.6 m) and a 3 m lash (12.9).
+4. **The flap burst at 1.6** (a sprint for every paddler): the hose at 10.6, the sickle at 15 — against their strike speeds of 9 and 17.
+5. **Q with two abilities**: a ram has ram and shut and only the first is reachable. A second key, or the list on the readout only.
+6. **The crusher's `preyClade` and `PLAYER_GRIP`** read the kind of body (`presetFor`: coil, soft, fin), so a rasp founder is the crusher's meal and a
+   hingeshell founder grips as the finback does.
+
+## v11.76 — the hingeshells' line (21 Sep 2026)
+
+LINEAGE §13.6's hingeshell half (§3: iteroparous, invested, K), on v11.75's path: any hingeshell of the roster is a founder, and the person's decision of
+21 Sep (§12.31) that the player moults, and that the moult is not a trip to the editor — the editor opens at conception only, as for everyone.
+
+- **The mode** (line.js `BREED.hingeshells`, `breedOf` by clade): few large eggs — `n` 3 at `egg` 0.02 of the child's adult derived mass (the hose's 58 kg,
+  0.68 of its 84 kg stomach; the sickle's 1.8 t of 3.1) — laid again and again (`once` false, no age), **at a den** (`den`: the sheltered water, the `shel`
+  field at 0.5 or more, or a solid within 2.5 m — a rock, a stalk, a structure's foot, as `MOULT`'s `hideSpot` finds one for the world's soft bodies;
+  `denAt`; `x` elsewhere says `at a den: sheltered water, or against rock`), **guarded** with v11.74's knob (`guard` 12 m: on it no scavenger takes the
+  clutch and nothing is lost; off it the losses run at `survive` 0.9 a day and any scavenger comes — now for every unhatched clutch of a guarding mode, so
+  a hingeshell with two dens guards one and strays from the other; `lineTick`), and the parent **feeds meanwhile** (not `once`: no brood, no wasting).
+  Nine in ten of an unloaded brood live a day (`survive`, the clade whose young survive best). The readout's hunger line has `clutches 2: 1 guarded`.
+- **The moult on the player** (line.js, the section over the track): the world's own `MOULT` rules by the clock — an adult moults every `MOULT.every`
+  20 × mass^¼ game days and is soft for `MOULT.soft` 0.5 × mass^¼ after each (the hose 27.1 days and 0.68, 27 real minutes; the sickle 66.9 and 1.67 —
+  an adult that never moults in a session; the person tunes `MOULT.every`, the world's knob). Soft: the body rebuilt pale in the soft coat (`softBuild`:
+  `coatChem` 'soft' on the whole coat, as `buildKind` builds the world's soft twin), its valves clamped (the anim's `soft`), **skin to every edge**
+  (combat.js `coverAt`: the player's state first) and **prey to whatever is big enough, listed or not** (creatures_ai.js `findPrey`: `softPrey` on the
+  player as on any soft body — a hose takes a soft hose, a lash or a hood a soft sickle, COMBAT §7's answer for the whole clade), with **the cast
+  carapace on the floor** where it stood (`dropShed` on the line kind — `shedGeo` and `buildKind` read `specOfKind`, so the player's kind sheds as a
+  roster kind does; `MOULT.shedT` 4 days, the cell's). It moves as it likes: the world's soft body lies hidden by its choice (`updateSoft`), not by a
+  rule, so the player is not held. Hardened at its time, the body rebuilt plain (`hardened`). Everything is a function of the clock — `moultN`, `moultAt`
+  off the life's `born` and `grown` — so an unload, a run-on or a save change nothing; the life keeps only `moults` (the count done) and `hardAt` (the
+  clock it hardens at, 0 hard), both on the record; a record from before gets its count by the clock. The readout's line: `the moult in 27.11 d`, then
+  `soft, hard in 0.58 d`; the hint `the moult: soft` / `the moult: a size bigger, and soft` / `hardened`. **Knowing it is coming** is the one
+  player-specific piece and is not built: the readout only (Unseen 1 proposes the cue).
+- **Growth through the moults** (the juvenile system allows it: `playerClade` takes any scale): a hingeshell hatchling grows a step at each of
+  `MOULT_P.juv` 3 moults from the hatch to grown (`lineScale`: ECO.juv 0.55 → 0.70 → 0.85 → 1, the last at `grown`), soft after each for `MOULT_P.juvSoft`
+  0.25 of its moult interval at most (the adult's soft days would outlast a juvenile's interval: the hose's steps are 0.45 days apart, soft 0.11 — 4.5
+  real minutes; the sickle's 1.11 and 0.28). The other clades grow in one step at `grown` as before (`lineScale` says which). A founder starts with its
+  juvenile moults behind it (`lineStart`: `moults` 3, hard); a child at a handover with none (its own line). `startFrom` and `lineContinue` build the
+  body at the line's scale and, soft, pale.
+- **Found by the test, fixed:** a save with a brood's young in view left the brood's catch-up stamp at the hatch (save.js `lineOut` set the count, not
+  `at`), so a continue took the unloaded losses off young that had been loaded the whole time — with the finback's 0.8 a day, a save a day after a hatch
+  lost a fifth of the loaded young on the load, and a 27-day jump lost them all. `lineOut` stamps `at` now, as `lineUnload` does.
+- **A dev hook** (main.js `skip(days)` beside `tp`): the world clock moved on by that many game days in play — for looking at what a clock brings (a
+  moult, a hatch, a brood's losses); the ledger's model catches up over its next ticks, the broods lazily. Nothing saves or reads it.
+- **Tests** (`test/player.js` §9, in `--test`): the mode off the clade; a clutch's cost; two spots found round the peak — against rock and open water
+  off the shelter — the laying refused in the open (`at a den…`) and taken against rock; not brooding, the clutch guarded on the readout; a darter bitten
+  feeds the parent; a tenth of a day on the den loses nothing, 40 m off it the clutch 3 → 2.969 (`survive` 0.9) and the readout says `0 guarded`; off the
+  den a second is refused, back at it laid — again and again; the founder's three juvenile moults behind it, its next 27.1 days off on the readout; the
+  clock come: soft 0.68 d, the body rebuilt, skin, the cast on the floor, the readout and the hint; a hose (which never hunts the player) takes the soft
+  body as prey and would not hard; hardened at its time — shell again, `hardened`; a clutch hatched, moulted again, through the save still soft with the
+  count kept; killed soft with young alive — a hatchling, hard, at 0.55; its three moults at 0.45, 0.90, 1.36 days, the last at grown; the first a step
+  to 0.70 and soft 0.11 d; hardened with the size kept; the third at grown the adult body; a founder moulted with no child, killed soft — the save over.
+  `--test` green on both tiers.
+- **Seen** in the app's browser (dev.html on serve.js, the loop driven by hand from the console, the clock by `skip`): a new game as the hose at the peak,
+  `tp(148,138,3)` to the test's den against the rocks on the shelf; `x` opened the bill (`the eggs 0.68 of 1.00 eaten … unchanged: the clutch will be a
+  copy`), `l` laid it — `v76_hose_clutch.png`: the hose over its pale clutch at the foot of the rocks, the readout `hunger 0.68 hungry … clutches 1: 1
+  guarded  the moult in 27.11 d  q: shut`; `skip(27.2)` — `v76_hose_moult.png`: the body bleached pale with its valves clamped, the cast carapace on the
+  sand behind it at its old size, the hint `the moult: soft`, the readout `soft, hard in 0.58 d`; `skip(0.7)` — `v76_hose_hard.png`: night now, the coat
+  back, the shed still lying there, the hint `hardened`. Not seen: a hunter taking the soft body in play (the test does), a juvenile's moults in play, a
+  hingeshell over 3 m as the player.
+
+**Unseen, ask in this order:**
+1. **The cue that a moult is coming** — proposed, not built: the body's own tell in the last tenth of the interval — the valves stop raising when it swims
+   (the anim's `soft` eased in from 0 over the last day), the coat dulls toward the soft coat's pale, the strand speed and the burst fall a little —
+   and a hint at the last hour (`the moult is near`). Or nothing but the readout, as now, if the surprise is the point of the siege.
+2. **The soft body's freedom**: it swims at full speed. The world's soft body hides and does nothing by choice; a real moulting arthropod can barely
+   move. A speed factor while soft (the wound's 0.8, or lower) would be one term.
+3. **The numbers**: 3 eggs at 0.02 (0.68 of the hose's stomach), a den at `shel` 0.5 or a solid within 2.5 m, guard 12 m, `survive` 0.9, and
+   `MOULT.every` 20 × mass^¼ (the hose's 27 game days is 18 real hours: no adult moults in a session at today's world knob — a player-only multiplier,
+   or the world's knob lowered for every hingeshell).
+4. **The juvenile's moult**: 3 steps, soft a quarter of the interval at most. And PLANET says juveniles are soft; the world's are not, nor the player's.
+5. **The den's look**: nothing marks it; a clutch against a rock reads as a clutch against a rock.
+
+## v11.77 — the animal steers itself (22 Sep 2026)
+
+The person's decision (21 Sep 2026, DESIGN The player): every animal must be playable without feeling strange — steering by heading, no strafing for
+swimmers, backing up only where the body can; "if it's a problem I'll let you know, use your judgement". The bug behind it, found in player.js: the
+body was turned to face its velocity with a lookAt against world up — parallel to up (space or c held) the basis flipped and the body spun ("looking
+them in the eyes while they swim backwards"), a strafe turned the body sideways, a knockback turned it to the knock, and the surface branch always
+faced the velocity, which is why touching the water snapped it back.
+
+- **The heading and the facing** (player.js, the section over `updatePlayer`): the mouse sets the heading you want (`yaw`, `pitch`, the pitch to
+  `PITCH_MAX` 1.54 rad — 88°, nearly straight up or down); the body's own facing (`byaw`, `bpitch`) turns toward it at derive's turn rate by the
+  world's rule (creatures_ai.js: the rate at the top speed, an ambling body at its pace's share, floored at `TURN_MIN` 0.35 — `turnRateOf`), eased
+  within `STEER.ease` 0.3 rad of the heading and capped at the rate past it (`faceToward`; a radian's easing left the sickle settling for seconds).
+  So the finback comes round at 176°/s, the soft-arm 294, the coilshell 144, the hose 147, the sickle 44 — with no per-species code. **The orientation
+  is composed from the facing** (`faceQ`: Euler YXZ, the yaw about world up, the pitch about the body's own x), so the body's up tends to world up of
+  itself and nothing degenerates at vertical: no lookAt against UP anywhere in the player. `bodyPose`'s bank reads the body's own yaw now, not the
+  heading's.
+- **Thrust along the body** (`bodyFwd`): w along the body's axis at its speed; s backs at `STEER.rev` where the body can (a jetter turns its funnel:
+  `jet` 0.6 of the top speed, the jet's squeeze kicking backward too) and brakes a body that cannot (the coast's decay × `STEER.brake` 2.5, the fins
+  flared: the finback stops in a second); **a and d turn the heading** at the body's turn rate (`STEER.key` 1 — the keyboard's mouse, and the touch
+  stick's x; my call, the person offered roll or a tighter turn: the bank into a turn is already `bodyPose`'s, and a turn key keeps keyboard-only and
+  touch play whole) and **space and c pitch it** (the old rise and dive: up and down are the head's now; space stays the jump on the strand for a legged
+  body). Derive's buoyancy is a drift the pitch trims (`BUOY_V`: sinks −0.25 m/s, neutral 0, floats 0.15 — the coilshell rises when it rests, the
+  finback settles). The withdraw's and the shut's own sink stay.
+- **In the air** the body follows its arc (the facing toward the velocity at `STEER.air` 2 × its rate; a fish flopping on the strand too) and hands back
+  to the heading at its rate when it lands: no snap. A knockback is a push and a flinch (`rollV`), never a turn. A walker on the strand faces its
+  heading's yaw, level (v11.78 gives it the slope).
+- **The camera** (`finishPlayer`): behind the body's facing, led toward the heading by at most `STEER.lead` 1 rad — it turns with the body and is never
+  in front of the face; its up is composed from its own angles (`_m.lookAt` with that up, never `UP`), so a look straight up or down never rolls. First
+  person: the eyes are yours — the camera at the nose along the body, looking along the heading, the body following.
+- **Touch** on the same model: the left stick's x turns, y swims and brakes (the hint says so); the right side steers. The compass and the world map
+  show the way the body faces (`byaw`); the audio's turn swish reads the body's angular speed (`angV`).
+- **Tests**: `test/steer.js` (in `--test`, both tiers): scripted input through the real frame loop for the finback, the soft-arm, the coilshell, the hose
+  and the sickle — settle, straight up (8 s), straight down, level, a loop (the heading swept round in 6 s), a knockback, a and d, space and c, s, the
+  touch stick, a breach at a sprint (the surface both ways), first person. Fails on a flip (the body more than 3° off a held heading), a spike (any
+  frame faster than the body's turn rate — the arc's allowance in the air), a strafe (the velocity across the body on a held heading), a body upside down,
+  a NaN in the body, its orientation or the camera. The stub's `Vector3.applyQuaternion` is real now (it returned its input); `test/combat.js` faces the
+  player at +z by hand where its placements assumed the stub's identity facing. `--test` green on both tiers.
+- **Seen** in the app's browser (dev.html on serve.js, the loop driven by hand, the frames posted to `test/render/v77_*.png`): the finback level in the
+  weed from behind, straight up from below with the tail toward the camera and the surface ahead, in the air over its own foam ring, straight down
+  from above nose-first to the floor; the soft-arm the same (its jet threw it 8.6 m out of the water) and the sickle — vertical from below, and from
+  above at its 21 m arm, small in the fog (v11.75's Unseen 1 stands).
+
+**Unseen, ask in this order:**
+1. **The feel of the turn at rest**: the world's rule gives a resting body 0.35 of its rate (the finback 62°/s, the sickle 15), so looking round while
+   still is slow and the camera sits at the lead's 57° until the body comes; a fish pivots faster than it swims round. `STEER.min` is the knob, or a
+   rule of its own for a body at rest.
+2. **The camera's lead** at 1 rad: a flick of the mouse puts the view 57° off the tail and the body swings into it; more feels like looking, less like
+   riding. And whether first person should look along the body instead of the heading.
+3. **a and d as a turn** (my call) against roll or a tighter turn; **s as a brake** on a fish at 2.5 × the coast.
+4. **The buoyancy drift**: 0.25 m/s down for a sinker, 0.15 up for the coilshell — it drifts to the surface left alone.
+5. **The pitch limit** 88°: a loop is not a heading; whether the body should ever go past vertical.
+
+## v11.78 — walking on the floor (22 Sep 2026)
+
+CHANGELOG v11.75's scope ("what it would take"), built on v11.77's model: a legged body on the ground is a walker, wet or dry.
+
+- **The walker** (player.js `WALK`, the section over `updatePlayer`): a legged body with its feet on the ground — under water or on the strand, one path —
+  is held at the ground plus its kind's clearance (`C.clear`: the founder's `DEFS` clear, else 0.35 × size, the world's rule for its own walkers; the
+  picker's 0.52, the ram's 1.4; a swimmer keeps the 1.1 it had), walks along its facing at derive's walk speed (`landSpeed`, the legs' Froude speed:
+  the picker 3.9, the scuttle 2.3, the ram 3.2 on the floor against 10 swimming; no sprint — a walker's Froude speed is its ceiling, v11.75) at
+  `WALK.acc` 8/s, backs at `STEER.rev.legs` 0.5 where its legs are jointed pairs (`LEGS_BACK`: placed, walk, hang, march — the picker; a paddle row or
+  the rear pairs cannot — the scuttle, the ram; `legsBackOf`), turns about up at its full rate (legs pivot at any pace; the picker's 8 rad/s comes
+  round a right angle in a quarter second), its pitch the slope along its facing and its lean the slope across it (`groundGrad`, `rollBias` into
+  fx.js `bodyPose` at `WALK.lean` 0.8), keeps its feet down a step (`WALK.step` 0.6 × size: a deeper drop is a ledge and it falls), is not carried by
+  the current (as the world's floor creatures hold on), and hops off the floor on space (`WALK.hop` 2.5 m/s; the strand's jump in the air as before).
+  The keys' pitch does nothing on the ground; the mouse's pitch only leads the camera, whose lead (v11.77) and the ground clamp bound it.
+- **Off the floor it swims by what its build says**: a flapper with legs (the hood, the ram; `canSwim`: derive's mode is not `walk`) swims as any
+  flapper and settles at its buoyancy; a body whose only propulsion is its legs (derive's mode `walk`: the picker, the scuttle, the trap, the tread…) has
+  no thrust in the water and sinks at `WALK.sink` 1.2 m/s until its feet find the ground again — a hop is a hop.
+- **The scope against v11.75's estimate** ("some 40 lines in player.js and the camera"): 63 lines changed in player.js and one in fx.js; the camera
+  needed nothing (v11.77's lead already bounds it). What the estimate had not counted: the clearance per kind, the step against the ledge, the walker
+  out of the current, the lean, backing by the legs' style, and the legs-only body that cannot swim — each a line or two, and each found by the test
+  or the look (the picker walked into a boulder and stood there: contact, not the walk — the test now finds a path clear of rock).
+- **Tests** (`test/steer.js`, the walking section; both tiers in `--test`): the picker (walk legs), the scuttle (paddle legs) and the ram (flaps and
+  legs) on the west shelf's slope (found by the test: ground −13, rising 5 m over 24 m, the path clear of solids) — up the slope nose-up at the walk
+  speed with the feet on the ground every frame, a right-angle turn on the spot, s stepping back or not by the legs, a 0.2 m step kept, a ledge
+  fallen off and landed (a flapper sinks at its buoyancy instead), the hop — the legs-only bodies sink back in a second, the ram swims off at 10 m/s —
+  and the beach above it walked ashore at the walk speed. Green on both tiers.
+- **Seen** (dev.html, the loop by hand, `test/render/v78_picker_*.png`): the picker on the shelf floor from behind, walking; on the slope with its nose
+  36° up and the beach in view; across the slope leaning 27° into it, its silt trail behind. Not seen: the strand walk in play, the hop, a flapper's
+  switch from walking to swimming.
+
+**Unseen, ask in this order:**
+1. **The walker's camera**: with the body pitched to the slope the camera pitches with it (the lead is about the body's facing); on a steep climb it looks
+   up the hill. Whether the camera should stay level on the floor.
+2. **The hop** at 2.5 m/s under water and the sink at 1.2: a picker hops 0.44 m and is down in a second.
+3. **Which legs back**: jointed pairs yes, paddle rows and rear pairs no — a scuttle cannot reverse.
+4. **The lean** at 0.8 of the side slope, and the pitch at the whole of the fore-and-aft one.
+
+## v11.77.1 — the keys as before, the camera the mouse's (22 Sep 2026)
+
+The person looked (22 Sep 2026): "the controls are a little dizzying now — pressing c and space should function like before, moving the camera is
+useless honestly, it just disorients the player. I think pressing left and right should also move the animal left or right, it's just that the
+controls are generally better now with the proper steering. but nothing was really broken about how it worked before, except the whole turn around
+thing." So v11.77's two calls are struck and the old keys come back on the new model — which is what the old model could not do, since its body turned
+to face whatever the keys pushed it toward.
+
+- **The keys** (player.js `updatePlayer`): w and s along the body's axis (s backs at `STEER.rev` where the body can, else brakes), **a and d sidestep**
+  along the body's right, **space and c rise and dive** — the move vector as v11.76 had it (normalised, × the speed, the vertical at 0.8), but a thrust on
+  a body that keeps its facing; the jet's squeeze follows the keys' direction (the funnel turns), else the body's axis. Space is the jump on the strand
+  and the hop off the floor for a legged body (v11.78). `STEER.key` is gone. Touch: the left stick swims, as before.
+- **The camera is the mouse's** (`finishPlayer`: the heading's angles, as before v11.77; `STEER.lead` is gone), with one guard — **the heading is held
+  within `HEAD_MAX` 1.4 rad (80°) of the body's facing** in yaw and in pitch (`updatePlayer`): a flick round the back stops 80° off the tail and the
+  mouse drags the animal round at its own rate, so the camera never looks it in the face and never moves on its own.
+- **Tests** (`test/steer.js`): a and d run the velocity 70% across a body that keeps its facing with the heading untouched; space and c put 60% of it
+  vertical with the body level; the touch stick swims and sidesteps; a flick of π stops 75–79° off the body; the vertical phases hold the heading every
+  frame as a mouse would. The walking section unchanged. `--test` green on both tiers.
+- **Seen**: the finback swum with a and d and with space in the app's browser (`test/render/v771_*.png`): the body level and facing forward while the
+  velocity runs across and up.
+
+**Unseen, ask in this order:**
+1. `HEAD_MAX` at 80°: whether the stop at the flick reads as a drag or a wall, and whether 90° (the animal's flank) is better.
+2. The sidestep at the full speed, as v11.76 had it, on every body — a fish crabbing sideways as fast as it swims.
+
+## v11.77.2 — the body turns into the keys (22 Sep 2026)
+
+The person looked at v11.77.1: "a little odd. The animal just moves without changing direction when going down, up, left or right. And when you hit A for
+left and D for right, the movement is swapped." Two faults, both mine: the right vector had its sign flipped (the body's local +x is its left when it
+faces +z; the world right of a heading is (cos yaw, 0, −sin yaw), as v11.76's `right` had it), and I had made the keys pure thrusts on a body that
+kept its facing, where the person wanted the animal to turn into the movement as it did before — only without the flip.
+
+- **The keys are a direction in the camera's frame** (player.js `updatePlayer`, `dirK`): w the heading's forward, a and d its right, space and c up
+  and down at 0.8, summed as v11.76 summed them; **the body turns into that direction at its own rate and swims where it faces** (the thrust along the
+  body, as v11.77). a alone turns it a right angle left and away, w with a is 45° off the camera, w with space a 39° climb, space alone straight up —
+  a body pointing up, never a flip, since the facing is composed. s alone brakes or backs, never a turn. The jet's squeeze along the body again.
+  A walker's pitch stays the slope's and its hop stays the key's; a and d turn it on its legs.
+- **`HEAD_MAX` 1.6 rad (92°)**, from 80: a alone puts the body a right angle off the camera and must not drag the camera with it.
+- **Tests** (`test/steer.js`): a and d turn the body 45° left and right of the heading with w, swimming where it faces, the heading untouched; space and c
+  pitch it ±39° with w and put 60% of the velocity vertical; the touch stick turns it into its sidestep; a flick stops 86–89° off the body. Green on both tiers.
+- **Seen** (`test/render/v772_fin_*.png`): the finback turned left of the camera under w and a, climbing under w and space, and the flick stopped at
+  its flank.
+
+## v11.77.3 — free look (22 Sep 2026)
+
+The person looked at v11.77.2: "Much, much better." One ask: "an option to change the camera back to the old version, where you can spin the camera
+around completely without moving the player at all. It's only once you hit w that you begin to move towards the camera … Right now I can't turn the
+screen without turning the character."
+
+- **`free look`** on the effects list (effects.js `FX.freeLook`, off by default; the one switch there that is not a drawing): the heading is unclamped
+  (`HEAD_MAX` off) and the body holds its facing until a movement key is down, then turns toward the keys' direction in the camera's frame as v11.77.2
+  has it. Off, the mouse steers the animal and the camera is held within `HEAD_MAX` of it, as v11.77.1–2.
+- **The old backwards swim cannot return**: the thrust runs by the body's alignment with where the keys point (`al`: full within a right angle of it,
+  none facing away), so with the camera behind its face and w down the body pivots first and the thrust fades in as it comes round — never the body
+  swimming tail-first toward the camera.
+- **A body thrusting into a turn turns at its full rate** whatever its speed (`rate` under `dirK`, as a walker's): the pace's share (`TURN_MIN` at
+  rest) is for a body looking round with no key down. Found by the test: the sickle at rest turned at 15°/s and a free-look pivot from facing the
+  camera took twelve seconds; at its 44°/s it takes four.
+- **Tests** (`test/steer.js`, the free-look section, the finback and the sickle): the camera spun round the back with the body holding at 180°, the
+  heading unclamped; w from there — 0.25 m/s after ten frames (the pivot), then swimming off at 6.1 and 7.0 m/s within 3° of the camera in six
+  seconds, no spike; the switch off again. Green on both tiers.
+- **Seen** (`test/render/v773_fin_*.png`): the finback face-on with the camera spun behind its face and the body holding; ten frames into w, pivoting
+  in place; and swum off away from the camera.
+
+## v11.79 — the camera off the body's axis, free look by default, s the reverse (22 Sep 2026)
+
+The person answered the whole stack of movement asks. Four of them are code, and this is the four.
+
+- **Free look is the default** (effects.js `FX_DEF.freeLook` true). The person: "Free look should be the default for sure. Something about the old
+  controls was better than the new controls — the turning is good, fixing the issue with getting turned around was good, but the game needed those
+  simpler controls and a camera that isn't pulling you like it's a racing game." The clamped mode (`HEAD_MAX`, the mouse dragging the animal round)
+  stays as the switch off. On the 92° stop with it off, they saw nothing either way ("I don't see much of a wall or anything anywhere"), so it stands.
+- **A default that changes now reaches a browser that has already played** (effects.js `FX_V` 79, `FX_NEW`): the saved record carries a version and,
+  when it is older, the keys listed in `FX_NEW` take the new default instead of the stored one. Every other choice the person has made is kept. Without
+  it a v11.77.3 save of `free look: off` would have hidden this version's whole point.
+- **The camera sits over the body instead of on its axis** (player.js `CAM_LIFT` 0.42, `CAM_AIM` 0.45). The person: "The camera does seem to be a bit
+  directly behind you. Contributing to the racing game feeling a bit. Felt that way with the slowblood fin, like I was positioned exactly behind and I
+  was driving a racecar." It was 1.4 m above the body's line whatever the animal — 12° for a finback at an arm of 7.5 m and 2° for a sickle at 38 m,
+  which is the body's own axis, seen end-on. Now the lift is a share of the arm (the finback 3.15 m, 23°) and the look rises by `CAM_AIM` of it, so the
+  view tilts down 9° and the animal sits about a sixth of the frame below centre with its back, its fins and the ground under it in view.
+- **s is the reverse, for every body** (player.js `STEER.rev`: jet 0.6, sculling 0.35 — new — legs 0.5 × what the legs are). The person: "I think S
+  needs to be a reverse. You need to be able to swim backwards and use the controls fully — if you are not moving the mouse and you move to the left,
+  then press s, you should swim backwards and therefore move to the right, while the camera is unmoving." s alone still turns nothing, so that is what
+  it does. The brake is not gone: while the body is still moving forward the same backward thrust runs at `STEER.brake` 2.5 × accel, so it stops
+  smartly and then backs. "Later on that can be a cognitive capacity — not all animals can swim in reverse" is the next version of this, not this one.
+- **Any pair of legs may back up** (player.js `LEGS_AWK` 0.55; `legsBackOf` returns a factor, not a flag). The person: "any pair of legs should be able
+  to back up as long as it makes sense (if your back legs don't work you can't use your front very well, but you could probably try)". Jointed pairs
+  (placed, walk, hang, march) back at the full `STEER.rev.legs`; a paddle row (rock, swim) and the raptors' rear pairs back at 0.55 of it — the scuttle
+  now makes 1.2 m where it made none, the picker 3.6.
+- **The hint line follows the switch** (menu.js): "mouse looks, w a d swim, s reverse" with free look on, the old line with it off.
+- **Found and fixed on the way**: the camera's `_m.lookAt` had been swallowed by the comment I put on that line (the third time this project has done
+  that — v11.18.1, v11.43). The camera kept whatever orientation it last had while its position tracked the body, which draws a world that swings
+  round you for no reason. Caught by looking: the finback was not in the frame at all.
+- **Tests** (`test/steer.js`, both tiers): the battery now runs with free look off (it is the clamp it tests) and turns it back on after; s backs every
+  one of the five founders along its own body within the rate `STEER.rev` gives it and with no strafe (the finback 2.15 m/s, the soft-arm 4.86, the
+  coilshell 2.40, the hose 2.32, the sickle 3.29); every walker steps back, the picker 3.6 m and the paddle rows 1.2 and 1.7. `node build.js --test`
+  green on both tiers.
+- **Seen** (`test/render/v79_fin_cam.png`, and `v79_fin_cam_before.png` with the old numbers for the comparison): before, the finback is dead centre and
+  almost tail-on; after, it is below centre and seen from over its back, with the shelf under it.
+
+**Unseen, ask in this order**: whether the lift reads as "a little over it" or as too high a camera (`CAM_LIFT`), then whether the animal wants to sit
+higher in the frame (`CAM_AIM`, lower = the camera looks down more and the body rides higher), then the reverse speeds — a fish sculling backwards at a
+third of its cruise is the guess, and nothing measured it — then whether an awkward backer should also be slower to turn while it backs.
+
+## v11.80 — nothing about the animal moves the camera, and the arms feel the curve (22 Sep 2026)
+
+The person's two odds and ends after v11.79, both about how it moves rather than what it does.
+
+- **The camera's orientation no longer has the animal in it** (player.js, the look block in `finishPlayer`). The person: "the screen does some
+  awkward jittery sort of v-sync looking screen tearing stuff when you move side to side — it's the turning or rotating of the animal that was added.
+  It also rotates the camera and I think it does something to the pixel representation that comes across like a lack of antialiasing." Measured, it is
+  real and it is not vsync: the camera looked *at the body* from a position that lags it, so any sideways move swung the view after it — holding `a`
+  with the mouse untouched rolled the camera 3° off the heading and rocking a and d rocked the picture, which on a low-poly scene reads as edges
+  crawling. Now the look is the heading's, dipped by a constant `dip` = atan(lift·(1−`CAM_AIM`) / (arm+3)) — the same angle the v11.79 framing implied,
+  9.4° for the finback — and its up is that dipped angle's, so the camera points exactly where the mouse points and nothing else can turn it. Measured
+  after: 0.00° of yaw off the heading through the same sidestep, the pitch a flat −9.37°. The body now drifts within the frame as it sidesteps, which
+  is what a free camera means.
+- **`camera shake` on the effects list** (effects.js `FX.camFx`, on by default). The person: "maybe we can remove the camera shake, or make the camera
+  effects something modular you can mess with, like the free camera setting." One row now covers the three things that move the camera on their own:
+  the shake when you are hurt, the nudge toward a bite (v11.53) and the fov kick. The steering's own camera is `freeLook`, next to it.
+- **The arms feel a sustained curve** (physics.js `SWAY` 0.5). The person: "the creature parts do not sway with them when they curve at an angle while
+  moving." The cause: `simChain` measured drag against the *whole* rest velocity, which carries translation, rotation and the swim stroke alike, so a
+  body in a steady turn dragged nothing — the arms lagged the moment the turn rate changed and settled back to their cruise offset while it went on
+  curving. A body's own travel must still be carried (or a straight swim streams the arms back for ever, and a squid swimming arms-first would not),
+  but the body turning under them is water they have to push. `SWAY` of the rest's motion that is *not* the body's travel is left out of the drag
+  reference, which parks a tip damp/ks × SWAY × that speed — 0.09 s of it — behind its rest for as long as the curve lasts. Measured on the finback's
+  petals through a 69°/s curve with w down: cruise 0.07 m, curve 0.11–0.23 m (0.10–0.14 before); the soft-arm's arms 0.30–0.35 m in the curve against
+  0.05–0.15 cruising, about a fifth of an arm's length swung out.
+- **The body's travel is read off the frame's origin**, not `o.vel` (physics.js `o.rigO`, over 50 m/s ignored as a teleport). Found by the test:
+  `test/physics.js` moves a body by hand without touching its velocity, and with SWAY reading `o.vel` the arms streamed back hard enough to stretch
+  the segments past 3%. A creature's velocity and where its group actually is need not agree — a hold drags one, a spawn teleports one.
+- **Tests**: `node build.js --test` green on both tiers; `test/anim.js`'s tip jerk unchanged through accelerate/cruise/turn/sprint/coast (the coilshell's
+  coast max fell 0.29 → 0.20), `test/physics.js`'s segment lengths hold at 9 m/s, `test/steer.js` unchanged.
+- **Seen** (`test/render/v80_fin_cam.png`, `v80_soft_curve.png`): the framing of v11.79 with the orientation now rigid to the mouse; the soft-arm mid-curve.
+
+**Unseen, ask in this order**: whether the side-to-side jitter is actually gone (this is the one that needs your eyes, not a measurement), then whether
+`SWAY` 0.5 is enough sway or too much — it is the one knob, and the arms' look at a hard turn is the thing to judge — then whether `camera shake` off
+feels better than on, then whether the constant 9° dip should instead ease in with speed.
+
+## v11.80.1 — the combs swing with the body (22 Sep 2026)
+
+The person looked at v11.80: the camera "seems to be fixed", and one part still does not move with the animal — "the top part of the hingeshell comb
+does not sway with the hingeshell" (a still of a hingeshell curving over the floor).
+
+- **Why that one could not sway.** The frontal combs (creatures_spec.js, weapon style `combs` — the `comb` species' 1.7 m appendages and the sifter's
+  0.14 m ones) are not a chain: they are merged geometry in a `THREE.Group`, turned by a slow sine of their own. v11.80's `SWAY` works on chains, so it
+  could not reach them. Making them a chain would mean rebuilding the segments and their teeth as a skinned rig; swinging the group at its root is what
+  a jointed appendage does anyway.
+- **The body's turn and acceleration now reach the builders** (fx.js `bodyPose`: `o.turnV`, `o.accV`, eased over 8 and 6 per second so a part does not
+  jitter with the frame's own noise; player.js and creatures_ai.js pass them in the anim's state as `st.turn` and `st.acc`). Any builder whose part is
+  rigid geometry in a group can use them; nothing else reads them yet.
+- **The combs trail** (`COMB_LAG` yaw 0.22 rad per rad/s, acc 0.05 rad per m/s², stop 0.5 rad): 15° behind through a 1.2 rad/s curve, about where the
+  chains sit at that turn, and folding back a little as the animal accelerates. The slow sweep they always had is untouched.
+- **Seen** (`test/render/v801_comb_straight.png`, `v801_comb_curve.png`): the comb species from above, straight — the pair even and symmetric — and
+  through a 1.2 rad/s curve, the pair clearly swung round after the body.
+- **Tests**: `node build.js --test` green on both tiers.
+
+**Unseen, ask in this order**: whether 15° at a hard turn is the right amount of swing (`COMB_LAG.yaw`), then whether the fold-back under acceleration
+reads at all (`COMB_LAG.acc` is small on purpose), then whether any other rigid part wants the same treatment — the spears, the claws and the tread's
+feeding plates are all still stiff.
+
+## v11.81 — the plankton: the field, the three kinds in the water's colour, the ring, and the canopy ghost gone (22 Sep 2026)
+
+PLANKTON.md §13 pass 1, as the person asked: the field, the bloom map, the three pigment kinds through the water's colour and the veil, and the
+canopy strip of §12. Not the snow, the swarms, the season or the bloom night (passes 2–6).
+
+- **The field** (world.js, the plankton section; DESIGN World, "The plankton"). `plank(x,z,s)` is the column per place: a standing stock in mg/m³
+  of pigment from the food less the vents' share (`PLK.c0` 0.035 × 10^(2.1·nut)), × the benthic return over a shallow floor (`shallow` 1.5, and
+  0.6 more of it in the lagoon's shelter), × the retention field (`lee` 1.5 × `leeW`); split green/gold by the stirred share (the current and the
+  waves, halved over a shallow floor); and X = log10(depth/u³), Simpson–Hunter's criterion with u the tidal stream at full flood on a spring
+  (`tidalAt`). `bloomC` puts the vertical on it by the clock — green to 45 m fading by 85, gold to 60 fading by 110, red a Gaussian at 95 ± 35,
+  derived from the lit crop under a floor deeper than 60–140 where the column is not stirred — and `bloomTint` colours the water by each kind's
+  crop: w1 = C/(C+0.8) toward the kind's tint (`PIGK`: green 1.05/1.06/0.62, gold 1.35/1.06/0.58, red 0.90/0.70/0.83 — pigment absorbs blue and
+  red; the reds leave a dimmer plum), w2 = C/(C+6) toward the heavy stage (olive, brown). `plankAt(x,y,z)` is the field exactly, for the snow
+  (pass 2) and the tests. The numbers (`node test/plankton.js`): the basin 0.06 (a gyre's 0.03–0.08), the shelf 0.32, the fed flank's break 3.8
+  (gold 2.7 over green 1.1), the lagoon 0.2 (green 50:1), the lee's eddy 0.25 against 0.10 past it and still poorer than the shelf, the gap's jet
+  0.33 (gold), the vent field 0.12 (the heat's food is chemosynthetic, not pigment).
+- **The ring.** The front is a Gaussian on X about `xc` 2.1 (width `xs` 0.3), shifted every frame by 3·log10(amp/springAmp) (`FOG_B`, far.js
+  `bloomTick`): at springs it sits on the shelf break — ~125 m where the stream round the rim's cylinder is 1 m/s, ~55 m where it is 0.75 — and at
+  neaps it moves onto the shelf (~38 m at r 475): the 13-day breathing of §4. It is broken at the two stagnation points on the current's axis (the
+  fed flank's centre and the lee), since the potential flow round the rim has no stream there. It feeds the lit layer × (1 + `front` 2.0) and
+  unmakes the deep maximum × (1 − 0.7). The doc's "40–80 m contour" was arithmetic on the far-field speed; with the flanks' 1 m/s the criterion lands
+  the ring at the break, which is what the doc meant, and `xc` was lowered from 2.35 to 2.1 to put it there.
+- **The storm's pulse.** The rain of the past four days (`weatherAt`, 2 h steps) through a kernel rising over a day and decaying over three, less
+  `calm` 0.15 — the trades' own showers, one most days, are the climatology and not a storm (at first the pulse counted them and the gold sat at
+  ×1.9 everywhere) — × `storm` 4 on the gold: ×1.7 at the peak of a 24-day run, ×1 at its least.
+- **The maps** (scene.js, far.js `wmFill`/`wmBlur`, `wmBloom`, `bloomAt`). The two crops on a log scale (`plankEnc`, 0.03–20) in the floor map's
+  blue and alpha, X as (X−1)/5 in the water map's alpha; filled and blurred with the colour and the floor from the same sample per texel, so the
+  ring is drawn at the maps' 36 m grain and nothing is refilled. The first build gave the bloom its own 720×720 map beside the water map, as the
+  doc and the ask had it: **every tinted material failed to compile** — the fragment shaders were at WebGL's 16 texture units — and the world was
+  the veil alone (seen in the first after-stills: no floor, no body). Packing into the existing maps' free channels is the fix and costs nothing.
+  CLAUDE.md's Things that bite says so now.
+- **The veil** (scene.js `fogVeil`): each of its two samples is tinted at its own depth (`bloomTint(bloomC(…))`) after the floor's blend, so a ray
+  looking down into the deep maximum reads plum-grey and one along the shelf reads the shelf's green; the ambient (atmosphere.js
+  `updateAtmosphere`) does the same on the CPU (`bloomAt`). `waterColor` lost its plankton guess (nut × the floor's light × 0.3, greener), which
+  the field replaces; the turbidity's grey and the plume's brown stay.
+- **The canopy strip** (§12). `canopyW` is `leeW`, the retention field, with the v9 positions (three eddies in the wake, the `EDDY` table): it
+  places the sailer fleets and the buttons (`leePer`, was `canopyPer`) and feeds the crop's `lee` term, and nothing else. Gone: `WATER_CANOPY` and
+  the green mixed by the alpha (scene.js, atmosphere.js), the floor's 22% shade (chunks.js), the snow's floc boost and its canopy slot (atmosphere.js,
+  `pf` stride 7 → 6), the light's 0.72 and the sun's (atmosphere.js), the shafts' 1 − 0.85 lid, the caustic's 1 − 0.85 shade (scene.js `LIGHT_GLSL`),
+  the sound's lid and the column bed's 0.35 (audio.js), `underCanopy`, `canopyFade`, `CAN_LO`/`CAN_HI`, `CAN_GLSL`. The water map's alpha, which
+  was the canopy's weight, now carries X. The man-o'-war's patch is the ordinary blue-teal with the fleets over it.
+- **ISLANDS[0]**: untouched — `sample()` is not edited; proved anyway against HEAD's world.js over the old square (185,761 samples at 8 m, the
+  ground and all nine fields `Object.is`) and the whole world at 400 m (16,900): 0 differ.
+- **Tests**: `test/plankton.js` (new, in `--test`): the table above, no NaN across the world at four depths, the encoding in range, the doc's
+  numbers, the vertical, the ring on a side radial (crest at r 850, the floor −122) and broken on the axis and moving in at neaps (−38 at r 475), the
+  maps against the field at a texel's centre (0.3 of 255 after the blur) and `bloomAt` against `plankAt` within 5%, the GLSL from the tables, the
+  pulse bounded. `node build.js --test` green on both tiers; `test/snow.js` unchanged but for the floc's canopy term.
+- **Seen** (`test/render/v81_before_*.png`, `v81_after_*.png`, the same five poses from the same build's `tp` and heading, the loop driven by hand
+  in an iframe since the pane would not draw while the app was hidden): the fed flank's break at −20 (599, −672) blue-teal before, olive-green
+  after — the flank's gold at 2.7 mg/m³ and the boot's spring tide; the side break's ring (622, 579, `v81_after_ring.png`) olive; the lagoon at −8
+  a bright faint green over the flats, the sedge and the sand as they were; the thermocline at −64 over the fed slope a dim grey-green, the plum
+  faint; the basin at −20 the same blue as before; the man-o'-war's patch: the green ghost with its hard band at −60 to −90 before, the ordinary
+  blue-teal with the fleets and the buttons over it after.
+
+**Unseen, ask in this order**: whether the fed flank's olive is right or too heavy (`PLK.k1` 0.8 and `k2` 6 set how soon a crop shows and when it
+goes olive; the gold's `PIGK[1]`), then whether the ring at the side break reads as a band of richer water or as a wall (`PLK.front` 2.0, `xs` 0.3),
+then whether the lagoon's green is enough (`shallow` 1.5), then whether the thermocline's plum shows at all over the deep slope (`red` 0.5, the
+red's `PIGK[2]`), then whether the storm's bloom after a rainy stretch reads as an event (`storm` 4, `calm` 0.15), then the sound under the old
+patches — the column bed lost its 0.35 lid there and nothing was heard from here.
+
+## v11.81.1 — the green turned down (22 Sep 2026)
+
+The person looked at v11.81 with nine stills: "it looks actually really beautiful … curious if it's too green or if it looks like too much". Their
+stills said where: the shelf forest at (330, 0) went pea-green frame-wide, a "green ring around the kelp area" they swam into as "intense green
+fog rolling in" (the tidal front at the break, tripling the crop), and the palette flip at the surface (the column green below, the sky above —
+that one is physics, and stays). They also asked whether the clouds move: they do not, they are the map of where the water is fed; only the ring
+breathes with the spring–neap cycle and the gold swells after a storm.
+
+- `PLK.k1` 0.8 → 1.5: how much crop it takes to show. Shelf water at ~1 mg/m³ is teal-green now, not pea-green; the fed flank keeps its olive.
+- `PLK.front` 2.0 → 1.2: the ring at the break is a band of richer water (× 2.2 at its crest), not a wall (× 3).
+- **Seen** (`test/render/v811_forest.png`, `v811_ring.png`, `v811_flank.png`): the shelf forest with the sand grey-teal under a green-teal
+  column; the side break's ring teal-green with the floor visible through it; the fed flank still olive-green.
+- Tests green (`test/plankton.js` unchanged in its assertions; the ring still feeds the break × 2.2 over the shelf).
+
+**Unseen, ask in this order**: the shelf forest at their own screen (the person's still was greener than mine — their pane is 1600×900 on the 4060,
+the same shader), then the blue snow against the dark water — v11.82, pass 2, colours the snow by the pigment kind and spends it where the crop is.
+
+## v11.82 — the snow off the field: the live kind by the crop, its colour by kind, the chains (22 Sep 2026)
+
+PLANKTON.md §13 pass 2 (§9), as the person asked after looking at v11.81 — their point 2 was this one: the marine snow "blue and out of place"
+against the dark water, because the `live` kind coloured itself by the old nutrient field and weighed itself by a smooth function of depth.
+
+- **The live kind is the field's** (atmosphere.js `snCrop`, `snowW` case 0). `snowSeed` caches the maps' texel at the point (far.js `wmBloom`:
+  the two crops, the front's X, the floor — `pf` grew from 6 to 10 slots) and the weight is world.js `bloomC` on it at the point's height:
+  0.12 × a floor of the finest debris in lit water + 0.9 × C/(C + `SN_CK` 0.6) × (1 + 0.5 × the thermocline's Gaussian). So the ring, the lee's
+  eddy, the fed flank, the deep maximum at 95 and the storm's gold are in the snow by the same numbers as the water's colour, and the person's
+  "concentrated pockets" have the mechanism under them rather than a noise function. Cost: one bilinear read of two maps and one `bloomC` per
+  seed, cached across the six kinds' weights (`snCi`/`snCy`); the loop 0.25 ms a frame headless (0.43 before — fewer kinds are drawn in poor water).
+- **Colour by pigment kind** (`SN_PIG`, `SN_PALE`): the live point's colour is the mix of the three kinds' crops at the point, blended from the
+  old pale by C/(C+0.5) — greenish on the shelf, warm on the flank, plum-grey in the deep maximum, pale in the basin. Subtle, on purpose.
+- **The chain kind** (`SN_K[5]`, 0.5 size, 1.2 cm/s; `SN_CHW` 0.12 of the live weight; `snL`, `snFree`): a leader seeds one or two followers
+  28 cm apart along a random direction, sharing its look, fall and eddy phase; the followers are not refreshed on their own and re-roll when the
+  leader leaves the box, parks or changes kind, or when a per-frame check finds them orphaned. Diatom chains, faecal strings, the discarded houses
+  of filter-feeding drifters — where the life is, a share of it. At `SN_CHW` 0.4 the box was 42% chains (each leader brings 1.5 followers) and
+  the loop 0.61 ms; 0.12 gives 15–21% and 0.25 ms.
+- **Tests**: `test/snow.js` has seventeen sites now — the front ring at a side break against the slope beside it at the same depth (the live weight
+  0.86 vs 0.42), the deep maximum at 95 over the fed slope against the same column at 140 (0.43 vs 0.10; the box 36% live) — and the chains in the
+  ring's box (20%). Three of its old assertions were rewritten for a live kind that moves with the field: the lagoon's "mostly live" counts the
+  chains, the surf's bubbles are 3% of the box not 5 (the crop there dilutes their share, not their number), and the thermocline's floc is judged
+  by its weight rather than its share. `node build.js --test` green on both tiers.
+- **Seen** (`test/render/v82_snow_ring.png`, `v82_snow_flank.png`, `v82_snow_deepmax.png`, `v82_snow_lagoon.png`, `v82_snow_basin.png`): the snow
+  at the break, the flank, the deep maximum, the lagoon and the basin, denser where the field is; the points are 7 cm quads, so at a wide still's
+  distance neither the chains nor the tint can be read — the numbers above are the record for those.
+
+**Unseen, ask in this order**: whether the snow's colour now sits *in* the dark water (the person's point 2), then whether the chains read as strings
+at swimming distance (`SN_CHW`, the 0.28 m spacing in `snowSeed`), then whether the deep maximum reads as a layer when descending through 95 m over
+the flank, then whether the ring's snow is a visible band from the shelf.
+
+## v11.82.1 — the water from above: the tint and the snow (22 Sep 2026)
+
+The person, looking from above the surface after v11.81: no marine snow below the surface, and "green water in the heart of it looks the same
+blue from above as all other water".
+
+- **The tint from above.** The two-segment fog darkens a downward ray's water toward `UPWELL` (scene.js, v11.42: a violet-grey multiplier that
+  reproduced the old from-above look). The veil under it carried the plankton's green since v11.81, but ×(0.50, 0.43, 0.60) took the green out
+  again and left every column the same blue. Now `UPWELL` is multiplied by the crop's tint at the crossing point (`bloomTint` of `bloomC` at the
+  surface, two map reads): the upwelling light in a bloom is the bloom's colour. The basin keeps the blue the person approved.
+- **The snow from above.** The points were hidden the frame the camera was in air. They draw from the air now with their alpha × exp(−depth/2.5)
+  (`snAU`, the points' vertex stage): the top few metres through the surface's body, nothing from the deep. The seeding box already reached 30 m
+  under an airborne camera, so nothing else moves.
+- **Seen** (`test/render/v821_above_ring_graze.png`, `v821_above_basin.png`): from 4 m up at the side break the water is green-grey with the shelf's
+  floor through it; over the basin the same pose is deep blue. The snow's specks are in the frame near the body, small.
+
+**Unseen, ask in this order**: whether the from-above green over the flank is now too much (it is the tint squared there: once in the veil, once
+in the upwelling — a bloom seen from a boat is olive, but the number is a first guess), then whether the snow through the surface reads as
+anything at the person's screen.
+
+## v11.83 — the year: the tilt, the seasonal wind, the mixed layer and the crops by season (22 Sep 2026)
+
+PLANKTON.md §13 pass 3 (§6), on the year the person and another chat decided the same day (PLANET "Decided 22 Sep 2026": ~185 local days of 30 h,
+from the star). The person left the order to me: pass 3 first, on the current 13-day spring–neap cycle — the drift needs only two incommensurate
+periods, and everything here reads the tide's amplitude by name, so the half-distance moon changes `LUNAR_H` and `SPRING_D` and nothing in this
+pass. The day's migration (§5) is not in it: the snow's live kind is the crop, and the crop does not migrate — the grazers do, and they are the
+swarms of pass 4, which will carry the dusk rise.
+
+- **The tilt** (world.js `TILT` 0.262, `YEAR_D` 185, `YEAR_P0` 0.6; `yearPhase`, `sunDec`; `skyDir(ha, out, dec)` — the standard alt-az from latitude,
+  +z south, reducing to the old formula at declination 0). The sun's declination is 15°·sin(2π·phase): at 11.5° N it passes overhead twice a year,
+  the day runs 15.0 h at the equinox, 15.6 at the northern peak and 14.5 at the southern (`test/plankton.js`). The moon keeps declination 0 until
+  the moon pass, so the eclipse at every full moon (v11.17.1, kept on purpose then) is seasonal now: only near the equinoxes is a full moon exactly
+  antisolar. The wanderers ride the tilted ecliptic (atmosphere.js: each at its own longitude's declination). The stars still turn with the sun.
+- **The season is the wind** (`seasonAt` = −sin(2π·phase): +1 at the windy peak, the sun south — an 11.5° N island's winter, as Earth's north-east
+  trades are strongest in the northern winter; −1 at the still). `weatherAt` shifts the wind's threshold by ±0.06 (a year sampled: 224 calm hours at
+  s > 0.5 against 437 at s < −0.5) and the showers' by ±0.02, and returns `season`. Boot is phase 0.6, early in the windy half (s +0.59).
+- **The water by season** (`uFogB.w` = s, far.js `bloomTick`; `bloomC` in the JS and the GLSL from the same lines): the mixed layer 64 × (1 + 0.3 s)
+  — 83 m windy, 45 still — with the green's floor at 0.7–1.33 of it and the gold's at 0.94–1.72; the deep maximum at its base + 31 m, its width
+  35 × (1 + 0.2 s); the gold × (1 + 0.35 s), the green × (1 + 0.15 s), the red × (1 − 0.3 s). Over the fed slope: 3 m gold 0.56 windy against 0.27
+  still; 70 m the lit crop 1.10 against 0.03; the red's peak 0.44 at 75 m still against 0.24 at 115 windy. §6's table, in numbers: the windy half
+  high and shallow and olive, the still half low at the surface with a sharp deep maximum and bluer water. The snow follows, since its live kind
+  reads `bloomC` (v11.82).
+- **What the season does not touch.** `nut` and the ledger: `sample()` stays a function of place, so the census is the same at every point of the
+  year and §6's "risk, named" is not taken here. The ecology will breathe through the swarms (pass 4), which are ledger records that eat the crop.
+  PLANKTON.md §6 says so now.
+- **The readout's clock line** shows the year's phase and the season (windy / between / still). `skip(days)`: a fraction of a day moves the hour
+  (CLAUDE.md says so now — a still at `skip(27.75)` was taken at night before that was noticed).
+- **Tests**: `test/plankton.js` has the year: the windy half feeds the lit layer and mixes it deeper, the still half has the sharper, shallower deep
+  maximum and the calms, the sun's declination is 0 / +15° / −15° at the equinox and the two peaks, the day's length 15.0 / 15.6 / 14.5 h, the moon
+  unchanged. `node build.js --test` green on both tiers; census unchanged by construction.
+- **Seen** (`test/render/v83_flank_boot.png`, `v83_flank_windy.png` at day 212 in the afternoon, `v83_flank_still.png` at day 120 in the morning): the
+  fed flank's break at −20 olive-green at the windy peak and blue-teal at the still, the same pose.
+
+**Unseen, ask in this order**: whether a season no single animal can see is worth its numbers or wants a shorter year after all (§14 — 185 days is
+123 real hours; one session sees a few days of it), then whether the seasonal eclipses are wanted (v11.17.1 kept every full moon eclipsed), then
+whether the still half's blue reads as clearer water or as duller, then the sun's noon height at the two peaks (11.5° and 26.5° off the zenith).
+
+## v11.83.1 — the hood is a player-sized hunter (22 Sep 2026)
+
+The person, before pass 4: "the hingeshell that burrows and comes out and attacks you — that one needs to be just another variant for a
+player-sized predator. As opposed to what it is now. If it needs different eyes or shape … fine, but if it doesn't, I like how it looks. The
+claws seem useful for grabbing small prey and putting them into the mouth."
+
+- **The hood** (`SPECS.hood`: size 5 → 2, `s` 1 → 0.42 — the build itself untouched, so the look stands: the hooded valves, the rear flaps, the
+  legs, the claws, the tail spine; the body 3.6 m, 6.5 with the spine, against the finback's 4.4). `DEFS.hood`: role `ambush` → `hunter` of the
+  sand flats and the lagoon floor, the same two spawn envelopes but no longer buried (`placeKind` by role); reach 4.6 (3.2 left the bite 1.3 m
+  short of the player in the matrix), dmg 18, biteCD 1.4, a strike (tell 0.35, dur 0.35, speed 12, range 1.8), bursts, home 50, cruise 16, cool 4;
+  prey the small things its claws can take — flicker, darter, needle, scuttle, rasp, sifter, arrow — and the player. COMBAT.md §7 still holds: its
+  claws get through neither the grazer's nor the finback's hide, so against you it holds for a moment and lets go, and it is a hunter of what it
+  can open. The roster's niche line says so; `floor` is off it (it swims).
+- **Tests**: the combat matrix's hood rows land on every prey it lists; `test/combat.js`'s moult check ("a hungry hunter that hunts no sickle takes
+  a soft one") used the size-5 hood and now uses the ridge (the ram at size 4 is only just heavy enough for a sickle at its mean size, and fails
+  on a large individual). `node build.js --test` green on both tiers.
+- **Seen**: `test/preview/hood.png` — the look as it was, smaller. Not looked at in the world.
+
+**Unseen, ask in this order**: whether the eyes under the body still suit a swimmer (the burrower's eyes looked up from the sand; a hunter over
+the sand might want them forward — the person allowed a change if the niche wants it), then whether it is met often enough (0.3 a cell over the
+flats, 0.4 in the lagoon — the buried one's numbers), then the strike's speed 12 against a fleeing darter.
+
+## v11.84 — the swarms: ledger records with the day's rise, drawn by the snow (22 Sep 2026)
+
+PLANKTON.md §13 pass 4 (§10, with §5's migration, which pass 3 left for the grazers). The person: "pass 4, yes. Go right ahead."
+
+- **A swarm is a kind with no body** (creatures_defs.js `DEFS.swarm`, `swarmBuild`: an empty group, no hit capsule, `ghost` so `bodyPush`
+  skips it, `noOrient`; size 6 is the cloud's half-width; immortal to bites — pass 5 makes it food). Its `SPAWN` row (2.5 a cell, the water
+  column below −12) carries `crop`: ecology.js `ecoCap` multiplies the envelope's tolerance at each of its 36 samples by `cropK` of the lit
+  standing stock there (world.js `cropAt`: C/(C+0.5), half at island water), so the swarms are where the water is fed — 1.7 a cell at the ring,
+  2.2 on the fed flank, 0.3 in the basin; 19,549 in the world's ledger (`test/census.js`). Rates by hand (`r` 0.5, `cycle` 2): `bioMass` from
+  size 6 would breed it like a ridge. Placed in the open water over its place (chunks.js `placeKind`, `openY` 10–40 up) with its pigment kind
+  read off the crop (`swarmPig`: gold on the flank, green in the lagoon).
+- **Its day** (creatures_ai.js `updateSwarm`, `swarmDepth`): the night layer `SW_NIGHT` −28 (−14 by the swarm's own draw q), the day layer
+  `SW_DAY` −380 or the floor + `SW_FLOOR` 6 where the floor comes first — over the shelf the grazers hide near the bottom by day, as they do —
+  a full moon holding the night layer `SW_MOON` 45 m deeper (0.28 of noon's light: −80 under it), the two mixed by the sky's `dayK`, so the
+  transit rides the dusk and the dawn at `SW_RISE` 4 m/s real (a 300 m transit in ~80 s, one game hour). The cloud wanders within home 90 at
+  `SW_WANDER` 0.35 and is carried by the current like anything else in the water.
+- **Drawn by the snow** (atmosphere.js): the last `SN_SW` points (480; a quarter of `PN` on low) are the swarm block. Every half second
+  `swAssign` gives `SN_SWP` 80 points each to the `SN_SWN` 6 swarms nearest the camera within `SW_SEE` 160; `swBlock` seeds a block with
+  offsets in a flattened cloud of radius `SW_R` 8–14 by q, the kind's colour `SW_COL` (a shade warmer than the snow's), size `SW_SZ` 1.7×,
+  `pk` 254. In the loop a swarm point takes the same `FLOW` scatter the snow does (a body parts the cloud) and relaxes to its place, jittering
+  slowly on `swSeed`; a block whose swarm left the reach parks at the camera. No new material, no new draw call, no points beyond the budget:
+  the snow's own loop, its seeding and its refresh run to `PN_SN`. What tells a swarm from the snow is motion and density, as the doc says.
+- **Tests**: `test/plankton.js` has the swarms — the entry reads the crop; the capacity at the ring and the flank against the basin; the layers
+  −35 night, −393 day, −80 under a full moon, the floor over a 40 m shelf, −214 at half day; the kind by place. `test/snow.js` skips the block in
+  its stats (`PN_SN`). `test/census.js` carries the kind at capacity (immortal, unpreyed — for now). `node build.js --test` green on both tiers.
+- **Seen** (`test/render/v84_swarm_beside.png`, at night beside a gold swarm at −78 over the shelf edge, 14 m off): a dense warm cloud of points
+  against the sparse snow, the finback under it; the dusk transit and the moon's hold were read off the records (`creatures` in the iframe: the
+  swarm at −105 by day rose to −78 by the full-moon night), not watched.
+
+**Unseen, ask in this order**: whether a swarm reads as a living cloud or as more snow (`SW_SZ`, `SW_COL`, the jitter), then whether they are
+met often enough in play (`SW_SEE` 160, 2.5 a cell), then whether the dusk rise is ever seen (80 real seconds), then whether a cloud parting
+round the body at speed reads at all.
+
+## v11.84.1 — a swarm within arm's reach threw (22 Sep 2026)
+
+`test/anim.js` was red under v11.84 and I committed anyway, having read the suite's log before it had finished: a swarm within `lodNear` (10 m) had
+`c.anim` called on it, and a swarm has no anim (`swarmBuild`). `updateCreatures` guards the call now (`if(c.anim)`); the shed's call in `shedFlora`
+is only reached by kinds that moult. The smoke tests never met one that close. `node build.js --test` green on both tiers, read after the exit line
+this time.
+
+## v11.85 — filter feeding: the swarms are food, the sieve off the build (23 Sep 2026)
+
+PLANKTON.md §13 pass 5 (§11). The person: "Go ahead and work on pass 5 for filter feeding … the stomach fills from a swarm the body passes through,
+not from a bite, since a swarm has no capsule to hold."
+
+- **The sieve is derived** (creatures_spec.js `derive` → `filter`, m², with the square of the scale): the frontal `combs` of the weapon part (two
+  combs of n segments × seg × the teeth's tl — the comb 13.3 m², the sifter 0.08), a `comb` part marked `sieve` (the rake's plane w × len, or n
+  hanging plates; the ram's 1.2) and a webbed `net` marked `sieve` (the funnel's mouth, π(R + len·wsp/2)²; the veil's 99.8 at s 1.4). `sieve` is a new
+  boolean control on both (the registry: label, default off) because the geometry alone was wrong twice over — a first cut read every comb as a sieve
+  and made the tread, the cinder, the wedge, the plough, the lash and the relict hunters of swarms on paper (the hingeshells' mouth combs rake the
+  floor), and a web as a sieve would have put the pall on the swarms below the chemocline, where none are, and starved it. The switch is the creator's.
+  `defPhysics` puts `filter` on every `DEFS` row off the build (a `scaledDef` individual's with k²); `lineKind` gives the player's row the same.
+- **On the ledger** (ecology.js `ecoOf`): a kind with a sieve has `swarm` on its paper prey — never on `DEFS.prey`, which is what a hunter chases and
+  bites — so it is a hunter (the response, the condition, `ke`, starvation); the swarm is `edible`, so mortal: it breeds at its hand `r` toward the
+  crop's capacity and is taken by biomass share. `test/census.js` loads the spec compiler now so the sieves are on the rows; `node test/census.js 120`:
+  the swarms at 17,064 of a 19,549 capacity (the take is a small share of 216 t clouds), the sifter 19,737 → 20,965, the comb 237 → 288, the ram 160 → 205,
+  nothing under a fifth. The veil (hp 1e9, not edible) is still immortal on paper and sits at `ke`, the capacity its swarms allow.
+- **Live** (creatures_ai.js, the `FILTER` table): the intake a second is `eff` 0.35 × the sieve × the water through it (the body's speed floored at the
+  combs' `sweep` 1 m/s) × the swarm's density (`c.flesh`, `bioMass` 216 t when whole, over the cloud's volume as drawn — `swarmR` 8–14 by q, flattened
+  0.45; `SW_R` moved here from atmosphere.js so the draw and the intake read one radius), capped by the stomach's room and the swarm's flesh, off the
+  stomach over the kind's meal as a kill's is (`filterIntake`; a brooding ringmouth takes nothing). A starving veil hanging in a full swarm is fed in
+  ~45 s and takes half of it; the density falls with the flesh, so the tail is exponential (the last of a swarm under a starving veil ~140 s more) and
+  at `spent` 8% the swarm disperses (`swarmSpent`: debited, `POP.eaten`). The snow draws the share of a swarm's points its flesh leaves (`swarmShare`),
+  so the cloud thins as it is eaten; `ecoWriteBack` counts a half-eaten swarm as half. A filter feeder past `ECO.hungry` seeks the nearest swarm within
+  `seeOf` (`see` 120 + its home: the veil 320, the comb and the ram 300, a sifter school 150), swims to it, circles inside through wander points in the
+  cloud (`filterSeek`, state `filter`: the wander role — which runs `hungerTick` now when it has a sieve — and the ram's idle between hunts), and lets
+  it go at `full` 0.06 or when it is spent. A sifter school moves as one (`updateSchools`: the members' mean hunger, the swarm as target and, feeding,
+  as home, so the ribbons follow the layer's day); each member takes its own intake. A swarm the ledger owes a loaded cell forms out of sight, whole
+  (`ecoTick` through `placeKind` `off`, no clutch, no juvenile). The player: `filterPlayer` from `updatePlayer` — the nearest swarm within 120 m every
+  half second, the intake inside it, the readout's hunger line with the sieve's m², the swarm's distance and what is left of it; a body with a sieve is a
+  hunter on the model and runs the clock (the v11.75 line "a filter feeder feeds off the model" is gone).
+- **Also**: ecology.js `ecoCap`'s `max` clause had been swallowed by v11.84's trailing comment (the strand's cap of 8 scuttles a cell went unread:
+  41,860 in the 120-day census, 11,146 now, as before v11.84). Back on its line.
+- **Tests**: `test/plankton.js` — the sieve off the build for the four and none on the tread, the pall or the finback; the swarm on the paper prey and on
+  no chase list; a starving veil fed in 46 s through a full swarm, the swarm's loss exactly the meal (53% left), nothing taken fed or outside the cloud,
+  the swarm dispersing eaten down (135 s more), a hungry comb 50 m off seeking a swarm, fed in it in 50 s and letting it go; a sifter's stomach on the
+  model. `test/live.js` tables the filter feeders with the hunters (a swarm as a meal, `filter` as hunting). `node build.js --test` green on both tiers.
+- **Seen** (dev.html in the app's browser, the loop driven by hand — the pane ran at a twentieth of real time, so every number below is game time; the frames posted to `test/render/`): as the veil (`startNew(playerClade(SPECS.veil))`, the readout's line `sieve 99.8 m² in a swarm, 97% left`) hanging still in a 167 t swarm of radius 13.2 over the shelf by day, hunger 0.95 → 0.71 in 20 s and 0.53 in 60 s, the swarm 97% → 82% → 71% (`v85_veil_swarm_0/20/60.png`: the veil from behind, the cloud too faint from a camera in the air over 11 m of water to read). From the veil's nose in first person in a gold swarm at −47 in the kelp (`v85_swarm_fp_full.png`), then the same swarm eaten to 29% with 53 of its 75 points parked (`v85_swarm_fp_120.png`): fewer gold squares, which reads only side by side — the cloud is sparse to begin with. A ram spawned 60 m from a full swarm at hunger 1 went to state `filter` on its first scan, closed at ~3.4 m/s, was inside at 12 s and fed 1 → 0.69 over the next 15 s at the computed 0.03 t/s; `v85_ram_in_swarm.png`: the ram in the cloud with a sifter shoal feeding beside it. The sifter schools: over 15 s on the flank, schools with a swarm in reach moved 2 m/s to it and fed (0.74 → 0.07, 0.57 → 0.08); schools past 360 m stood, as everything past the step radius does. Not seen: a veil of the world's own feeding (none loaded near the shelf), the thinning of a cloud at the swarm's full point count on the person's tier, the night.
+
+**Unseen, ask in this order**: whether a veil or a ram is ever seen feeding in a swarm (it circles inside; the cloud thins), then whether the sifter
+schools find the swarms by night, then whether ~45 s for the veil's meal and the half-swarm it takes read right (`FILTER.eff`), then whether a
+comb-built child is worth playing yet — no founder with a sieve exists until a veil, comb, sifter or ram has been seen.
+
+## v11.86 — the island as a tuff cone; the fumarole struck (23 Sep 2026)
+
+The person (23 Sep): the starting zone's island — a round 40 m hill with a steam plume on a round tidal flat — "looks too neat to feel like it
+could've been any island in the game", a tutorial zone; "open to anything from demolishing 100% of the stuff above ground to leaving it mostly
+intact but removing the smoke", and the lagoon itself is liked ("looks like a nursery"). The lagoon is a real caldera and stays; the cone is the
+fake part. A small vent erupting into shallow water on a shield's flank builds a tuff cone, and its shape is the forces on it.
+
+- **The shape** (world.js `CONE`, the `R.isle` block of `islandH`; DESIGN Land): within 270 m of the cone's centre only — a ring of radius 70
+  round a crater instead of a hill; the rim highest downwind (48 m where the trades drop the ash, 12 upwind, `lean` 0.6), breached on the upwind
+  axis to −2.5 where the sea broke in (`gapA` 0.8 rad); the crater floor at 0.8 m, a tidal pond through the gap; the windward outer slope cut to a
+  cliff over a wave-cut platform at −3; the lee's flat of bars and pools kept, reaching 120 all round, 200 down the current (the spit, pointing
+  at the caldera rim — v11.85's reach there, so the saddle to the lagoon is untouched) and 160 downwind. Outside 270 m nothing moved: 24,649
+  samples over the island's square bit-identical to v11.85 in the ground and every field. The cone has its own exposure (`expoW` by its aspect)
+  and its ring is rock (`coneRock` → `sub`). Land within 300 m: 2.9 → 6.9 ha (the ring's 34° flanks need the foot).
+- **The colour**: palagonite — tuff altered by hot water — is tan to ochre (Diamond Head's), so `terrainColor` blends the land to `tuff`
+  0.62/0.50/0.32 by `coneK` (world.js: 1 on the ring, 0 past its foot) from the strand up, near and far; `placeCliffs` tints the ledges on the
+  cone the same (a first look had a crown of black boulders on a tan ring).
+- **The strike**: the fumarole's plume (`FUME`, `updateFume`) and the vog (`VOG`, the third mist layer's greying, the readout's `vog`) are gone —
+  a monogenetic cone erupts once and goes cold; steam would mean it is years old and bare. The person's call of 10 Sep (v11.17.1) is reversed by
+  their call of 23 Sep. The dawn mist keeps the third layer alone.
+- **The plants**: `scrub` wants `expo` ≤ 0.65 now (salt-blasted off the shore the waves strike), so it grows in the crater and on the lee flat and
+  not on the windward rim. The tussock is everywhere it was.
+- **Tests**: `node build.js --test` green on both tiers (the ledger's scuttle capacity follows the land area; nothing in the census moved past
+  noise). One flake on the way: test/player.js's "the window closed: the body is back, and the eel takes it as prey" failed once on the high tier and
+  passed on the rerun — the eel kept the cooldown a lost chase leaves; the check clears `cool` and the target each try now.
+- **Seen** (dev.html in the app's browser, the loop driven by hand, the same eight fixed views before and after: `test/render/v86_before_1..5.png`,
+  `v86_after_1..8.png`): from the air (3) the round dome with scattered boulders became a tan ring, its crater floor green with a pond in it, the
+  breach open to the sea with surf in it, the high rim a wall of tan ledges; from the windward side in the air (7) and from the high rim across
+  the crater to the breach (8) it reads as a place with a wind. From the caldera rim at the surface (2) the hill is a lower, longer, tan island —
+  the crater does not show from sea level, only the lopsidedness does. From the spawn underwater (1) nothing changed. To windward underwater (4)
+  the platform is a flat rock-strewn shelf; the old lee view (5) is inside the ring's foot now (the ground there rose from −8 to +5.5), so (6)
+  looks along the spit from 6 m up: the flat's bars and pools with the scrub's tall stalks all over them and the tan slope behind. Not seen:
+  the pond at a high tide, the cone in rain or at night, the far layer's version from the giant's shore.
+
+**Unseen, ask in this order**: whether the island now reads as a place that could be anywhere (the person's test), then whether it is too big
+(`CONE.h` sets it: a 30 m rim at 34° needs a 190 m foot; 24 would shrink it a fifth), then whether the scrub's 8 m stalks on the lee flat are the
+"cute trees" and want thinning (`scrub` `per` 110 or its size), then the ledges' size on the inner wall (the cliff kit's `s` 5–26 scaled by the
+drop), then whether the tan reads as rock or as sand (`tuff` in `terrainColor`; the strand's own sand is olive-green and stays below it).
+
+## v11.86.1 — the sky over the crater was the horizon mesh (23 Sep 2026)
+
+The person, from the crater: "the skybox turns tan when you get closer to the land structure. inside the pond area, the skybox has zero clouds and is
+100% tan colored." Reproduced from the crater floor looking over the rim (`test/render/v86_sky_before_9.png`): the whole sky above the rim tan.
+The horizon tier's land mesh is sampled at `Q.hz` 100 m (200 on low) and drawn from `HZ_NEAR` 20 m out; at that spacing the crater does not
+exist, so its triangles span from rim to rim over the camera's head, and the main pass, which overdraws the mesh wherever it has ground, has
+nothing in the sky to cover them. The old hill never showed it because a dome has no hollow. The fix (horizon.js): the land mesh's fragment
+discards nearer than `uHzMin` = `FAR` × `HZ_SEA0` (1200 on high) — where the sea disc already starts and the main pass hands over; the far
+regions stream to `FAR_R` past the far plane, so the handover is covered both ways and the cut is under the far layer. Seen after
+(`v86_sky_after_9/10/11.png`): sky and cloud over the rim from the floor, the sea through the breach, and from 60 m up the far side of the
+caldera and the giant on the horizon still drawn, no hole. `node build.js --test` green on both tiers.
+
+Also the person's look at v11.86 (23 Sep): the scrub's stalks are fine for now ("they will be overhauled eventually along with all other land
+plants"), the ledges are fine, the tan reads as rock; whether the island reads as any island "is a moving goalpost" with only two landmasses to
+judge against — SEAFLOOR.md's chain is where that answer comes from.
+
+## v11.87 — the clouds and the weather's clocks; the near clouds as lumps (24 Sep 2026)
+
+The person (23 Sep): there are several kinds of cloud — little stringy ones, larger ones with darker patches — "figure out if that's intentional, or
+just layers of added implementation on top of each other"; ask what the planet actually is and what clouds belong, and how they change by the
+season, the week and the day; as much visual variety as is believable and no more; look at how the clouds meet the skybox; rain and storms only
+if they fit. Answered in CLOUDS.md: the three layers were designed in one pass (v11.17), but the deck's dark patches were nested contours of one
+2D noise (v11.17's own unseen question, never answered) and the cirrus a field of dashes at partial cover; and the weather had one mode with no
+clock but the wind's season. The person (24 Sep): explore the low-poly direction for the near clouds; showers with a place (pass D) to the next pass.
+
+- **The field** (clouds.js, new): the deck as one function of a point, written in GLSL and in JavaScript from a hash exact in float32, so the dome,
+  the sea, the land and the beam at the player agree. 3D noise (each slice its own shape), the first octave plain and three billowed, in the wind's
+  frame — streets along the trades (`CLD.street`, `rowL` 4200, `rowA`), the tops leaning downwind (`lean`), a cap over the giant (`CLD_CAPS`, `capR`,
+  `capOff`, `CLD_S.cap` 0.22–0.42 by the afternoon × the trades). The threshold is the cover's quantile (`CLD_TH`, `cldThOf`): cover 0.45 is 0.469 of
+  the field. `CLD_SHADE` 0.85 (world.js) is what a cloud takes of the beam.
+- **The deck's light** (atmosphere.js `CLOUD_GLSL`): lit by the sun's elevation — tops under a high sun, bases and sunward sides under a low one —
+  in the deck's own sunlight (`CLD_S.deckC/deckL`: the keyframe at the sun's altitude plus 0.8° of depression, dimmed 45% at the horizon, lit
+  until 0.8° under), so the undersides go amber and pink at sunset where they went blue-grey; a silver lining near the sun; the thickness
+  darkening smooth. The cirrus on a coarse field for where it is and a fine one for its fibres (fewer streaks at half cover, not shorter ones);
+  unlit it is darker than the twilight; under an overcast the grey sky's colour (it was brown through a shower's gaps).
+- **The weather's clocks** (world.js `weatherAt`): `day` (+1 at local 5 h, −1 at 20 h) on the cover and the showers — showers before dawn 0.125
+  against the afternoon's 0.06; `wave` (the easterly waves, ~4-day features) on the cover, the showers, the wind and the congestus; the season on
+  the cirrus (the still season's: 0.40 against 0.12), the congestus (`deep`) and the haze (`hazeK`); `spread` flattens a full deck's tops toward
+  dawn. The year: showers 8.5%, calms 27%, mean cover 0.44; boot cover 0.53, the first shower 3.25 h in.
+- **The sky touches the world**: `sunL` reads the cloud over the player along the luminary (`cloudAt` → `K.cloudHere`), not cover^1.5 — full
+  sun in a gap, shade as a cloud drifts over at 7 m/s, the caustics, shafts and shadows with it; the surface's direct light and the land in air
+  read `cloudSh` (in every fogged material's fog chunk; `Q.cldSh` 1 desktop, 0 low), relative to the player's own shade.
+- **The lumps** (clouds.js; `near clouds` on the effects list, on): the near clouds as heaps of 14–21 dodecahedra, flat-based, countershaded,
+  shaded in the deck's three steps on each puff's own normal, at the field's maxima within 2400 m (a 0.6 ms scan every half second, keyed by
+  cell, measured by a walk), drawn in the horizon pass while the dome's deck fades out under them (`uLump`, `CLD.near`); the giant's cap as
+  five fixed lumps in front of its summit. Off, the deck fills the near sky as before.
+- `node test/sky.js` (new, in `--test`): the calibration, the year's statistics, the lumps' scan, the costs. The stub needed nothing new.
+
+**Seen** (dev.html in the app's browser, the loop driven by hand — the pane hides itself between calls, so the canvas was posted as PNGs:
+`test/render/v87c_*.png`, `v87d_*.png`): the first cut's deck was ribbons (the along-wind stretch 2.2× — now 1.5×) and the cirrus a fan of
+dashes across the whole sky (the fine-field threshold — now a coarse field first); the first lumps (6–9 puffs, flat facets) read as faceted
+grey slabs filling the sky from below — now many small puffs with smooth per-puff normals, and they read as low-poly cumulus with banded
+shading; the second cut's deck at 0.62 was a field of cells (every octave billowed — now the first plain, the gain 0.45). The last cut: boot
+(cover 0.53, the trades) streets of cumulus to the horizon with lit tops and grey bases; a low-poly cumulus overhead beside a long street
+ribbon; the broken deck at 0.62; the sunset from the sea with pink undersides and the sea's glow, the lump above lit on its sunward side; the
+clearest day (0.08) a few small clouds; the cirrus streaking along the upper wind, sparser; from 40 m up the sea darker under a cloud's shadow;
+the shower's overcast a proper grey with the rain and the bow. `node build.js --test` green on both tiers.
+
+**Unseen, ask in this order:** (1) the lumps in motion at 1600×900 — whether a cloud sliding overhead reads as a cloud or as a mesh, whether they
+want the switch off (CLOUDS.md §5 has the judgement so far); (2) the readout's `render` ms above water with the deck overhead (the dome does
+~400 hashes a pixel now; `Q.cloud` 3 halves it) and over open sea (`Q.cldSh` 0 strips the shadows from every material in air); (3) under water:
+the light coming and going as a cloud passes over — the caustics dying and returning — and whether the deck through the surface reads the
+same as from above; (4) the sunset: the undersides amber (`CLD_S.deckC`, the 0.55 dim), the silver lining near the sun; (5) whether the
+streets read as rows of cloud or as stripes (`CLD.street` 0.5, `CLD.rowA` 0.07); (6) the giant's cap from a height (the haze hides it from
+the water); (7) a calm — the streets dissolving; (8) the still season (`skip(120)`): the cirrus most days, the deeper congestus, the whiter haze.
+
+## v11.88 — showers with a place (24 Sep 2026)
+
+The person on v11.87: "Wow. Looks awesome. Go ahead on D if you're ready." CLOUDS.md §6, built. To v11.87 a shower was a number: the weather's
+`rain` lifted the whole sky's cover by half within forty real seconds and rained on the camera wherever it stood; you never saw one coming.
+
+- **A shower is a cell with a place** (clouds.js `SHWR`, `CELLS`, `updateCells`, called from `updateSky`): the weather's rain is the trigger; an
+  episode births one cell 6 km upwind of the player on a track across the wind hashed from the episode (±4.5 km — most pass beside you), radius
+  2.2–3.2 km, steered along the wind at 2.2 × the trades (the flow aloft that carries a congestus outruns the deck's drift), alive 800 real
+  seconds (grown over 120, gone over 220), two at once. Its congestus is a bump in the cloud field (`cellK`, `CLD.bump` 0.5): the deck thickens
+  and darkens there and grows to three times its depth, a lump under it grows to a tower, the sea goes dark under it through the shadows. Its
+  rain at the camera is its profile at the distance (`SHWR.shaft` half the radius). The dome draws the shaft as a curtain from the base to the
+  sea (`SKY_FS` `curtain`: the path through a vertical cylinder, denser toward the axis, fogged to its own distance, the far haze cut behind it).
+  The rain, its rings, the patter, the haze, the gust, the base's drop and the scud read the cell's rain; the bow needs a cell in reach and
+  stands only on the curtain or in the rain here; the cover lifts a quarter near a cell (world.js `weatherAt` no longer lifts it by the rain).
+- **The lumps stand down as the cover closes** (`CLD_S.lump` × smooth 0.82→0.5): a plateau of cloud gets one lump at its maximum, so under a
+  shower's overcast the near sky was a bare hole with the deck faded out; the deck draws it now. The scan collects its maxima before matching
+  (matching as they were found stole a lump whose own cloud came later, which then got a second — the sky filled with doubles), and a new cloud
+  takes the deadest lump rather than waiting for one to fade.
+- Uniforms `uCellA`/`uCellB` (the anchor in the field's frame, 1/R², the strength) shared through ShaderLib with `uCld`; `SKY.cellNear`.
+  `test/sky.js` gains the showers: the trigger, one cell an episode, born upwind within the band, its speed, growth, the field over its centre,
+  rain over the player and none three radii off, its death, no second cell for one episode.
+
+**Seen** (the loop driven by hand, `test/render/v88c_*.png`, `v88d_*.png`; the first cut's dome failed to compile — `zen`/`hor` in the curtain's
+call outside `cloudDeck` — and every v88b shot was the clear colour): a cell 4 km upwind on the clearest day as a towering lump over a thickened
+deck with the grey shaft under its base; at 1.8 km the tower filling the sky; over the camera the rain, the rings, the ceiling, `sunL` 0.05;
+gone downwind the sun back; the bow over a cell opposite a low sun. `node build.js --test` green on both tiers.
+
+**Unseen, ask in this order:** (1) a shower born by the trigger in play — whether it is seen coming across the water at its own pace (13 real
+minutes from 6 km upwind to gone; `SHWR.u` 2.2 is the pace, `SHWR.ahead` the warning), and whether a quarter of them over you is right
+(`SHWR.band`); (2) the curtain's read — a grey shaft or a smear (`SHWR.vis`, the 0.9 shade); (3) the tower lump: a towering cumulus or an
+iceberg (it is the lumps' look at 3× height); (4) the sea going dark ahead of the rain; (5) the bow on the shaft from the sea at a low sun;
+(6) the cover lifting a quarter near a cell — too little for a shower's sky, or right; (7) the frame cost of the two extra Gaussians in every
+field read.
+
+## v11.89 — the cloud volume: the deck marched from a baked atlas, the light banded after the cloud (24 Sep 2026)
+
+The person, on the stills of v11.87–88: the near lumps are "clearly 3d" and the far deck "more like a paper you fully color in" — two good
+systems that "are not cohesive and in combination look worse"; is there a foundational change we have been avoiding for the low-poly vibe?
+CLOUDS.md §8: yes — the deck's density was flat, so no stylising could make it read as solid. Built on their full confidence.
+
+- **The noise tiles** (clouds.js `CLD_NOISE_GLSL`, `cldV(p,per,seed)`, the JavaScript twin): the hash folded into a period per octave (16 base
+  cells doubling, a lacunarity of exactly 2), the field repeating every 20 km; the shadows and the beam use it procedurally as before.
+- **The atlas** (`CLD_ATLAS`, `cldBake`, `cldTexU`, `cldRT`): the GPU bakes the noise once into 32 slices of 256² in a 2048×1024 half-float
+  target (bytes if half float cannot be rendered); `cldFT` reads it, the tile inset a texel, the height mixed between slices. Read back it
+  matches the JavaScript noise to three decimals.
+- **The density** (`cldDensT`): the field at a world point with the local deck's depth (a shower's deeper), the caps, the cells, the
+  threshold rising with the height; `cldRowW` the streets' wander once a ray.
+- **The march** (atmosphere.js `VOL_GLSL` `cloudVol`, `VOL_SIG` 1/120, `VOL_SIGL` 1/150, `VOL_L1`/`VOL_L2` 120/300 m, `VOL_FAR` 16 km, `VOL_DT`
+  30 m / 1.8%; `Q.vol` 80 steps desktop, 0 low): the slab's entry and exit (a camera inside starts at itself), steps growing with the
+  distance from an ordered 4×4 dither, two light samples toward the luminary at every step with cloud, the sun's share averaged over the
+  ray's cloud and quantised to three steps, the ambient by the mean height, the silver lining, the fog by the mean distance. `uVol` picks
+  the volume or the old `cloudDeck` live (`cloud volume` on the effects list; the low tier and a failed bake fall back on their own);
+  `uVolT` the deck's depth and the deepest cell's; `uCldTex` the atlas.
+- **The lumps stand down**: `near clouds` off by default (`FX_V` 89 resets an old 'on'); the code stays behind the switch. `CLD.sc` 1/1000.
+
+**Seen** (`test/render/v89d_*.png`, `v89e_*.png`): the boot sky as cumulus in three tones with forms to the horizon, a cel-shaded volume
+overhead, the broken deck at 0.62, the sunset backlit toward the sun and pink-lit away from it, small fair-weather cumulus on the clearest day,
+a shower's plateau with the shaft under it, the giant's cap from 300 m, dark shapes over the stars at night. The first cut was a solid ceiling
+(a comment swallowed the line writing the field's uniforms — the threshold read 0); a hashed jitter was speckle, a small one bands. Cost in
+the pane within the frame's noise. `node build.js --test` green on both tiers.
+
+**Unseen, ask in this order:** (1) the readout's `render` ms above water on the 4060 with the volume on and off (the `cloud volume` switch;
+`Q.vol` is the knob); (2) whether the three bands read as the low-poly world's own light or want a fourth (`floor(q·3+0.5)/3`); (3) the
+clouds' size (`CLD.sc`); (4) a cloud sliding over in play — the shadow on the sea and the light under water against the volume overhead;
+(5) the dither at the edges at 1600×900; (6) the lowest degrees of the sky, empty of cloud past 16 km (`VOL_FAR`); (7) the crossing of the
+surface and the volume through it from below; (8) a shower's tower from the sea.
+
+## v11.90 — the volume alone: the slices and the lumps struck; smaller, lighter, rounded; the audio's 80× gain (24 Sep 2026)
+
+The person on v11.89: "WOW, that looks absolutely awesome. We 100% can remove the old cloud system … it has a real sense of scale that is
+incredibly helpful for context against the vastness of the ocean." Then: almost too large (if believable, conceded); too dark; the bottoms flat
+with "a clear line where the clouds go and stop"; and the audio "hilariously bass boosted … compressed or distorted".
+
+- **The audio**: `Q.vol` has been the master volume's key since v11.14 (audio.js `AU_K.vol*(Q.vol||1)`); v11.89 added `vol:80` — the march's
+  steps — to the same object literal, so the later key won and the game played at 80× gain into the compressor. The march's knob is `Q.march`
+  (80 desktop, 28 low). One line, the whole bug.
+- **The old system struck** (clouds.js, atmosphere.js, effects.js, scene.js): `cloudDeck` and the scud slice (v11.17–89), the lumps
+  (v11.87–89: `LUMP_*`, `lumpScan`, the horizon-pass meshes), the `near clouds` and `cloud volume` switches, `uLump`, `uVol`, `uCloudT`,
+  `Q.cloud`, `CLD.near`; `updateClouds` is the atlas's one bake; `FZ0` is 0.1 (the shadows' and the beam's height in the deck). The low tier
+  marches at 28 steps rather than keeping the slices.
+- **Smaller**: `CLD.sc` 1/750 (from 1/1000) — trade cumulus are 0.5–1.5 km across, wider than tall. **Lighter**: the ambient 0.95–1.2 of a
+  shade half way to a light grey (0.62,0.64,0.67). **Rounded bases**: `CLD.base` 0.12 — the threshold rises again under it (0.8·rise at the
+  base plane), so the bottom of a cloud is a curve, not the slab's cut.
+- `test/sky.js` loses the lumps' section.
+
+**Seen** (`test/render/v90_*.png`, 1280×720): boot — a field of smaller cumulus in three tones, mid-grey bases; overhead a bright cel-shaded
+ceiling; the broken deck at 0.62 as scattered small clouds; the sunset silhouettes with rounded undersides; the clearest day's small cumulus.
+Not heard: the audio at 1× (the stub cannot play).
+
+**Unseen, ask in this order:** (1) the audio at its old level (a fresh load; nothing else in the sound changed); (2) the size now — 750 is a
+number, the person's to move (`CLD.sc`); (3) the bases — light enough, round enough (`CLD.base`, the 0.95 ambient, the grey mix); (4) the
+render ms on the 4060 (`Q.march`); (5) the low tier on a phone, marching at 28.
+
+## v11.91 — COMBAT pass A: the wound by the bite, blood as a volume that kills, one mass (24 Sep 2026)
+
+The person, after hours as the finback being bitten on purpose (COMBAT.md §10, the eight points): blood gushed with no damage done; blood was
+not by the injury (half a tail bled "moderately"); you never bled out; the hunter that took the tail left, fed by a fixed 0.15 of its hunger.
+Pass A of §10.8 builds the wound and the blood; B (contact and the hold as a joint), C (the edge's work) and D (the predators' behaviour) follow.
+
+- **One mass** (§10.2): `kgOfBody` — derive's mass (the build's volume at the world scale × the clade's density, tonnes) × 1000, per kind once
+  (`KG`), a body's by its build's scale (a juvenile, the size band). Every creature's `mass` (contact, the struggle; `mass0` its own under the
+  sitting ambusher's 1e6) and the player's (`playerClade.mass`) are kilograms: the finback 1770, the eel 2650, the ridge 45,450, a flicker 10 —
+  size³ had 5.8, 64, 729 and 0.6. `GRIP.k` is newtons per kg^(2/3) now (jaw 90, arms 70, claws 130; a 3 t white shark's 18 kN is ~85), set so
+  the eel pins the thrashing finback at 2 s (0.7 before) and the grazer still tears free of the player's jaws in half a second.
+- **The bite is the edge on the body** (`biteOn` → `cutAt`, §10.5): every bite in a hold (the jaw's and claws' clamp is the first) is the
+  holder's edge at the capsule the hold is on. The verdict table (`EDGE`) says whether the edge opens the covering at all — nothing through is a
+  **bruise** (`bruise`: the flinch and the flash, no wound, no blood). Through, the geometry decides: the bite's radius ρ (`EDGE_RHO` × the
+  gape: cut 0.8, crush 1, beak 1, claws 1, shred 0.7, point 0.35 with its depth the needle's or the spear's length, `pointDepth`) against the
+  struck capsule's radius r — a limb (a part with its own capsule) is **severed** at ρ ≥ `SEVER` 0.7 r, its share of the body the biter's food;
+  the trunk is **opened to the vitals** (the kill: opened, skewered, crushed, the nerve cord) when ρ (a point's depth) reaches `VITAL.core`
+  0.75 r along the capsule's front 60% or `VITAL.nape` 0.3 r at the nape — the zone behind the head (`nape0`–`nape1` 0.55–0.8 of the trunk
+  capsule) with the biter's mouth over the back (`napeY`; the hold point is on the axis, so the side is read off the mouth); else a **wound** of
+  area (ρ/r_trunk)², and the bite's volume is the biter's (`pieceShare`, `feedPiece`: its share of the body's food over the eater's meal, as a
+  kill feeds). A body with `TORN` 0.25 of its mass taken in pieces is dead, torn apart. Arms that have pinned a body have turned it: their placed
+  bite is at the nape wherever they took hold (the ringmouths' kill, §3). The ram's and the great's blows are `blow` (a shove and a daze, no
+  wound); a gripless body bumps. `placedAct` at the pin: swallowed by the gape; the nape and the thrash become the next bite's; an edge already
+  through has nothing to place; nothing to do, the hunter lets go (`PIN.bored`). `afterBite`: a severed limb is a mouthful — the hold let go,
+  `LOSE.cool` 4 s with it, **the target kept while the biter is hungry** (it comes back for the rest) and dropped fed.
+- **Blood as a volume** (`BLOOD`, §10.6): a share of the mass by clade (slowbloods 4%, ringmouths 6%, hingeshells 20%, drifters 2%); a wound
+  (`openWound`) drains q₀ = `k` 0.05 × its area × the part's vessels (`vessel`: the root of a torn-off tail 1.5, the head 1.2, the trunk 1, an
+  arm 0.6, a puncture 0.3) × the clade's pressure (`press`: ringmouths 1.3, slowbloods 1, hingeshells 0.3) of the volume a second, and clots
+  with τ = `BLEED_T` × (1 + area/`clot` 0.25); `o.wounds` holds up to `max` 6 (`updateWounds` drains and clots them; `o.bleed` is their sum,
+  `o.blood` the loss). The loss (`bloodK`, in `slowOf` and the grip's strength): whole under `weak` 0.15, half by `collapse` 0.30 (no sprint,
+  no ability: `collapsed`), a fifth at `dead` 0.40 — **bled out** (`bledOut`: the player's cause, a creature a carcass credited to its last
+  wounder within `near` 40 m). Fed, the blood comes back over `refill` game days (ringmouths 1, hingeshells 2, slowbloods 4). The burst at a
+  wound and the trail's rate follow q (`burst`, `trail`); a bruise shows nothing. `smellR`: `SMELL_R` × √(q/`qRef`), at most twice — a pouring
+  wound is read from 180 m, a thread from 40. A hunter losing blood past `weak` leaves what it was after (`bloodTick`; `FLEE` by a count of
+  bites is gone). Autotomy's arm feeds the holder by its share and bleeds as a graze (the drop is at a place built to close). The save carries
+  `blood`, `wounds` and `eaten` (`injuriesLoad`).
+- **Gone**: `dmg` as a thing combat reads (`dmgOf`; `DEFS.dmg` stays in the rows unread but for the drifters' sting flag, to be struck with pass
+  C), `GRIP.first/bite/bleed`, `HOLD_BIG` (the pin's bored release does it), `WOUND_SLOW`, `FLEE`, `LOSE.meal`/`floor`, `AUTOTOMY.meal`,
+  `wound()`, `bodyMass` as a physical mass (it is the ledger's unit). `rederive`'s speed floor is 0.05. `regrowTick` snaps a grow under 1e-6 to
+  0 (1 − 5 days/5 days is not always 0 in floating point at a large t: the stump test flaked).
+- The readout's hold line shows the blood: `blood 21.3% lost  −1.09%/s from 1 wound  weak  ×0.79`.
+- **On paper** (`test/combat.js`, rewritten to the rules — §3, §5, §9, the table over 60 s with the blood lost, §16 new): the eel's clamp on
+  the finback's flank is one wound at 1.09%/s (ρ 0.22 on r 0.53: short of the vitals); held and bitten every 1.5 s the finback is weak at
+  10 s and dead of it — "bled out after a eel's bite" — at 16 s; the finback's plain petals on a grazer's hide are bruises, no blood; a beak's
+  graze on an eel costs it 1.6% and clots; a ridge from behind severs the tail (ρ 0.55 against r 0.25), the root pours at 1.73%/s, the tail is
+  a snack (hunger 1 → 0.87) and the ridge keeps its target and swallows the cripple 5 s later; the tail alone, nothing else, bleeds the
+  finback out in 39 s; a soft sickle in a ridge's jaws is torn apart in pieces at 21 s (25% taken, 18% of its blood); the thread from 41 m, the
+  pour from 174. The hunter table: the eel bleeds you out, the lurker and the ortho bite the nerve cord once pinned (the arms have you),
+  the crusher, stone, basker, ridge and abyssal swallow, the sickle skewers, the claws let go of a hide.
+- **Lineage** (§10.10, PLANET, CLADES): the edge is one program — the clade's dermal plate rows on the petals' inner faces — and the saw arose
+  once, in the ancestor of the ridgebacks and the longbacks (the sawmouths); the basker moves from the finbacks to the ridgebacks. No spec
+  changes; the player's line reaches `cut` at conception at the budget's price.
+
+**Seen** (the app's browser pane, `dev.html` on another session's serve.js): the game boots and plays as the finback on the new mass (1770 kg on the player; a spawned eel 2650); an eel staged 7 m off in open water took the finback and the slot ended "bled out after a eel's bite" at 25 s of play — the pass's death, in the real game. The blood itself was not watched: the pane went dark mid-fight (the app's window hidden), so the wound's puff, the trail by the rate and the bruise's nothing are the tests' word and the readout's.
+
+**Unseen, ask in this order:** (1) whether a fight now reads as a wound and a bleed, not a shower — the eel on the finback, the bruise of the
+finback's own bite on a grazer (nothing); (2) the crippled death — a tail gone, the trail pouring, a hunter coming back (40 s to bleed out:
+`BLOOD.dead`, `BLOOD.k`, the root's `vessel` 1.5); (3) the eel's bites killing a held finback in 16 s — right, or should the struggle free you
+sooner (`GRIP.k`); (4) the blood's numbers by clade (`BLOOD.vol`, `press`) — a hingeshell barely bleeds and is torn apart instead; (5) the nape
+zone's placement (`VITAL.nape0–1`) once a beak hunter is seen killing; (6) `TORN` 0.25.
+
+## v11.92 — COMBAT pass B: contact, not reach; the intercept and the committed lunge; the hold as a joint; the petals to the skin (24 Sep 2026)
+
+The person on pass A: "this pass looked good"; go ahead on B. Points 1 and 5 of COMBAT.md §10: the slowbloods' pointed mouth turning through its
+own face to nab you from any angle, and a hunter that runs at you, hits, and orbits you with its mouth pointed until the momentum settles.
+
+- **A bite is a touch** (combat.js `mouthOn`, `landsOn`; §10.3): a jaw's mouth is a sphere at the mouth part (the grip's point), its radius the gape
+  × `STRIKE.slack` 1.3, biting within `STRIKE.cone` (60°) of the body's axis — the bite lands when it touches one of the prey's hit capsules, and that
+  capsule is where the bite is. A plain jaw (hold petals: suction) draws a body it can swallow from `STRIKE.suck` 2 gapes off — the engulfer's only
+  reach. Arms and claws bite at their reach as before (a part's reach: `reachOf`, `armReach`). The DEFS `reach` no longer lands a jaw's bite;
+  `MISS` (the dodge across the strike's line as a rule, v11.56) is gone with `missWin`, `dodged`, `commitAt`. The player's jaw finds its target the same
+  way, `PLAYER_BITE` 1 m past the sphere for the click.
+- **The chase turns, it does not flip** (creatures_ai.js `seekTurn`): a chasing swimmer's heading comes round toward the way it wants at its turn rate
+  (derive's, rad/s), so its turning radius is its speed over that rate (the ridge 7.7 m at 9.5 m/s) and an overshoot is a circle back, nose first; a
+  tight turn is taken slower (`TURN_BRAKE`: a C-start — or a prey inside the circle is never reached), and turning right round it yaws (a target astern
+  and a little below is not a dive the floor undoes). Its facing follows the velocity `TURN_FACE` 5× faster than the rate (it points where it goes).
+  `seek`'s lerp let a hunter reverse in place and wobble on a prey beside its own trunk — the orbit.
+- **The strike** (§10.3): the chase aims where the prey will be (`aimAt`: led by the time to close at the closing speed, at most `STRIKE.lead` 0.8 s);
+  a jaw hunter steers for the point a nose-length short of the prey along its facing (`approachPt`, `noseD`) and, with the prey beside or behind its
+  mouth, out to a run-up point `STRIKE.runup` 5 m past that on its own side, to come at it again. In range (`strikeRange`: the contact plus
+  `STRIKE.range` 0.3 s of the sprint) with the prey ahead of the mouth (`mouthAhead`, `STRIKE.face` 0.55) it **commits**: `commitT` = `STRIKE.dur`
+  0.6 s, the heading locked on the point aimed, a burst at derive's sprint (`d.sprint` on every row, `defPhysics`), the steering `STRIKE.steer` 0.5 of
+  the rate, the head snapped to the point (`c.face`, `TURN_STRIKE` 6×: the mouth dips to a prey under it — the centre rides the floor's clearance),
+  the mouth open (the tell). Contact in the lunge is the bite; none by its end is a miss (`missed`, `STRIKE.cool`) and it coasts past on its momentum
+  (`STRIKE.coast` 0.5 s). The strikers' strike phase is the same commit (the bite on contact, a miss at its end); the ambushers' lunge too. The
+  pursuit's clock (`ECO_CHASE`) restarts at a commit. The escape is geometry: turn across it late.
+- **The impact** (`impact`): at the clamp the two velocities become one, the momentum shared by mass — a ridge carries a finback off at nearly its own
+  speed. A blow (`blow`: the ram's, the great's, the player's ram) is an elastic knock by the striker's speed and the masses, the stun by the Δv.
+- **The hold is a joint** (§10.4, `updateHolds`): the grip and the struck point — on the prey's *skin* now, the axis point moved out by the
+  capsule's radius toward the mouth — are one point: the gap closed by mass share every frame, the velocities made one with the momentum shared
+  exactly. The rope, `HOLD_DRAG` and `GRIP.close` are gone; the bodies of a pair are not pushed apart (physics.js `resolveBodies`); the holder does
+  not seek into a body it already has (the pair drifts as one; the shake is pass C) and turns by its share of the pair's mass; the arms that hold you
+  no longer shove you out of themselves. What the joint takes off the held body every frame is its whole thrust — a fresh finback from rest is 3 g,
+  55 kN — so `GRIP.k` is five times pass A's (jaw 450, arms 350, claws 650): an eel holds a fresh finback for seconds, not for good, until pass C's
+  stamina makes the struggle fade.
+- **The petals follow the contact** (physics.js `stepRigs`, `simChain`; creatures_builders.js `mouthArms` marks its chains `mouth`): the mouth's
+  chains go for the point the hold has on the prey's skin — before a hold, the nearest point of the prey's surface to the mouth — and only while that
+  point is inside the mouth's cone (`MOUTH_CONE` 0.85, the petals' own joint limit); outside it they keep their pose and the head has to turn. The
+  arms still reach for the centre. To v11.91 every tip went for the centre, and a prey beside the head pulled the petals through the face.
+- **The stub** (test/stub.js): `Matrix4.lookAt`, `Quaternion.setFromRotationMatrix`, `slerp` and `Vector3.crossVectors` are three's now, and an
+  object's matrix composes from its quaternion — to here every headless creature faced +z for ever (a no-op `lookAt`), which the reach sphere never
+  noticed and the mouth's contact does. `mouthOn` composes both bodies' frames itself: past the near list nothing else does, and a far hunt must land.
+- **Found on the way and reverted**: the floor clearance by the body's own radius (a ridge hangs 3 m up on 0.35 × size, its mouth over any floor prey)
+  wedges big bodies in the floor's rocks — the head-dip does the job instead. `curComp` in the turned steering cancels the turn (it subtracts the
+  current from an incrementally rotated heading every frame): the current carries the body by its position drift there.
+- **On paper** (`test/combat.js`; the hunter table's hunters face the finback now, and §17 is new): a ridge 6 m beside the finback is within the old
+  reach (6.8 m) but its mouth is on nothing; nose to it, it bites. The ortho takes the thrashing finback and sweeps 26° about it in 1.8 s of the hold
+  (then the nerve cord), the ridge 0° in 0.7 s (then swallowed); the joint's two points never part by more than 0.35 m (0.00). The ridge holding the
+  finback off its axis: no mouth tentacle folds behind its root (2 of 264 samples 15 cm behind, the flinch). A chasing ridge commits its lunge and a
+  grazer that moved 2.5 m across it is missed — the mouth touches nothing — and one that holds still is taken in 1.3 s. The finback's mouth takes an
+  arrow 0.57 m off its nose (suction). The table: the eel bleeds the finback out in 14 s, the lurker and the ortho bite the nerve cord, the crusher,
+  stone, basker, ridge and abyssal swallow it, the sickle skewers and bleeds it out, the trap, hood and hook let go of a hide, the lash bleeds it out.
+
+**Seen** (the app's browser pane, `dev.html`, a game started and a ridge spawned 14 m behind the finback facing it, the state read each two seconds): the ridge came in at 4.7 m/s, committed, and at 8 s of play its clamp from behind took the tail (the live spec at speedK 0.15, the root pouring at 1.62%/s, 3.5% lost), let go with the mouthful and kept the chase (6.5 m off a moment later), came straight back and tore the crippled finback apart — the slot over, "torn apart by a ridge", the menu. The bite itself was not framed: the impact swung the camera, and the ridge was behind the player's view the whole approach. The petals, the joint and the miss's circle back are the tests' word.
+
+**Unseen, ask in this order:** (1) whether the mouth now bites where it is — a slowblood passing beside you is nothing, one coming nose-on is
+the bite — and the petals never through its own face; (2) the ortho and the ridge on impact: carried off, held at the point, no orbit; (3) the
+turning: a hunter that misses coasting past and coming round on a real circle, and whether the circle reads as a fish's (`TURN_BRAKE`, `STRIKE.coast`);
+(4) how often hunters miss now (`STRIKE.range`, `.steer`, `.face`, `.slack`) — most attacks should fail, but a ridge should get you within a few tries;
+(5) the run-up when a hunter finds you beside its head (`STRIKE.runup`); (6) the eel holding a fresh finback ~14 s and the finback tearing free of
+smaller jaws (`GRIP.k`) — pass C's stamina is the real answer; (7) the head snapping down to a prey under it (`TURN_STRIKE`).
+
+## v11.93 — COMBAT pass C: the edge's work — the verdict by force, the shake and the roll, the claws' pull, subdued by stamina, the swallow as a sequence (25 Sep 2026)
+
+The person on pass B: "AWESOME. terrifying." — with four notes (COMBAT.md §10.9): the orthos still orbit a little, the arm hunters angled away contort
+through their own bodies to reach, the middle range (a small player holding a bigger animal) detaches constantly and reads as nothing, tentacles should
+wrap (a later pass). Points 2 and 4 of §10: every fight physical, and a mouth too small to swallow still able to bite, tear, pull or break a part.
+
+- **The verdict is physics** (combat.js `EDGE_K`, `COVER_T`, `thruK`; §10.5): an edge is through a covering when F × σ ≥ τ × r — F = K × M^(2/3) the
+  holder's force (K in N per kg^(2/3): a jaw 85, the white shark's; a beak 150; the claws' lever 1300, the coconut crab's; the mouthparts 40), σ its
+  sharpness (point 6, beak 5, cut 3, rasp 1.5, shred 1, claws 0.1 — a pinch, not a blade), τ the covering's toughness (skin 25, hide 100, plate 1200,
+  shell 4000 kN per m of radius), r the struck capsule's. A crush is a fracture: F ≥ τc × r² (skin 20, hide 50, plate 150, shell 200 kN/m²) — a shell
+  breaks whole or not at all. The `EDGE` table (v11.54) is gone with its `nape`, `joint`, `thrash` and `time` words; the nape is geometry (cutAt) and
+  the limb's route is the pull. The same numbers say what a line's mouth would do at any size, which the table could not. Calibrated so §7's verdicts
+  hold: the eel's cut on the finback's hide k 0.93 (short at rest, through with the saw), the ridge's 6.2, the ridge on a plate 0.25 and a shell 0.16
+  (never, shake as it may), the crusher on the coil's shell 1.4, the soft-arm's beak on a grazer 1.4 (it bleeds one, §10.5's table), claws through
+  skin (the hood on a soft-arm 1.3) and not a hide (0.4–0.8), a point through a hide (9.4) and not a shell (0.15).
+- **The holder does what its build does** (`holderWork`, §10.4). A **cutting jaw shakes**: its head yaws ±25° (`SHAKE.amp`) at 1.6 Hz × √(9 m ÷ its
+  size) — the eel 2.4, the ridge 1.6, the abyssal 1.2 — a yaw composed on the facing (creatures_ai.js `c.shakeYaw`, taken off before the steering and
+  put back after, so the two never fight); the grip moves with the head and the joint swings the held (a grazer in a ridge's jaws is thrown side to
+  side). Each cycle sharpens the saw ×1.5 to 3× (`h.saw`): the eel is through the finback's hide on its second cycle, the ridge never through a plate.
+  A **chain body rolls** instead (the eel's core): `SPIN.rate` 3.2 rad/s on its own axis (fx.js `bodyPose` spins the frame), the held carried round
+  the axis through the grip and turned with it (the player's position only), a turn a cycle — the crocodile's roll. **Claws on a limb pull**: the
+  holder backs off at half its speed and the root tears when the claw's force (or the struggle's) passes `PULL.root` 6 MN/m² × r² for a second's
+  worth — the sickle (1.26 MN) takes the finback's tail (375 kN) in 0.4 s, the lash (0.42 MN) in ten, the trap and the hood never. A claw's own bite
+  is a pinch now (`EDGE_RHO.claws` 0.35 of the gape; 1 to v11.92, when a hood on your tail bled you out in five seconds). A **plain jaw clamps and
+  waits**. Arms reel in as built.
+- **Subdued by stamina** (`SUBDUE`, `STAMINA`, `stamK`, `stamTick`): `PIN.t` and `pinTime` are gone. The held body's struggle is its thrust × its blood
+  × a stamina that drains while it is held and fills at rest (by clade: slowbloods full 6 s then fading over 6 to a third; ringmouths 12 and 10 to 0.4;
+  hingeshells 40 and 20 to 0.6; the rest 40, 50, 90 s), riding `slowOf` for a held body (the player's speed and a creature's seek alike); subdued when
+  the struggle has stayed under half the grip for a second (`h.calm`), a paralysed body at once, a far hold (no joint) once the clade's stamina would
+  be gone. The placed act follows: the swallow, or the hunter that can do nothing where it holds lets go (`SUBDUE.bored` 8 s). An eel holds a fresh
+  finback through its thrashing now: the finback tires and the eel's roll opens it.
+- **The swallow is a sequence** (`SWALLOW`): subdued in a gape that takes it, the body is drawn into the mouth over 1 + 4 × (its length ÷ the
+  swallower's) seconds (the stone on the finback 6.7 s, a ridge 2.3) — the joint's point on the swallower walks back into its body (`h.la`, a copy
+  now), the grip doubled, the mouth not biting — and the death comes at the end, seen coming; a body that tears free keeps its wounds. To v11.92 the
+  swallow was the instant the pin struck.
+- **The arms' cone** (physics.js `ARM_CONE` 0.3, ~72°; the person's note b): a ringmouth's arms reach only for a target inside a cone about its axis
+  — outside it they keep their pose and the body must turn to bring the ring to bear; a slowblood's *tail* chain no longer reaches for its prey either
+  (every non-mouth chain of a rigged hunter was drawn to the grab target).
+- **The edge as a line's step** (line.js `BUDGET.edge` 1.5, `EDGE_STEP`; §10.10): the mouth's `edge` changed at conception is one item on the bill,
+  named for what it is — "the mouth's edge: hold → cut (the sawmouths' step)", point the needle's, crush the platebacks' — half the founder's budget,
+  where a switch cost 0.25.
+- **The readout's hold line** shows the ratio k, the saw, calm or subdued, the swallow's clock, the tear and the held body's stamina.
+- **The test is seeded** (test/combat.js: `Math.random = mulberry(11)`): the spawns and the fights are the same run each time. §3's eel had been
+  landing its bite by luck of the draw; seeded, this build lands it in 7 of 8 seeds at 9.3 s against 2 of 8 for v11.92. §17's standing ridge hold is on
+  a grazer now (its clamp opens the finback at once, §10.5) and the orbit is measured as the net bearing drift (the shake swings to and fro, an orbit
+  goes round); the petals' fold allowance is 6% under the shake's whip. §15's ridges are placed nose-on: a ridge's run-up on a floor-sitting prey
+  lands or not by the seed on this build and v11.92 alike (a pass D matter). §18 is new: the verdict numbers above, the sickle's tail-tear and the
+  hood's failure, the stone's swallow (subdued at 1.0 s, 6.7 s to the end, the finback drawn 1.4 m in), the stamina half back after half its rest,
+  the ortho with the finback abeam not reaching (90 frames of wanting it, no touch) and reaching ahead (822 contacts), the bill's edge line.
+- **On paper** (the hunter table, the finback thrashing): the trap, hood and hook hold a second and let go (claws on hide: no); the stone subdues at
+  1.0 s and swallows at 7.7; the eel subdues at 1.0 s, rolls and bleeds you out at 13.8; the lash and the sickle pinch the tail and bleed you out in
+  24 and 54 s; the lurker and the ortho take the nerve cord; the crusher, basker, ridge and abyssal kill at the clamp (opened, or a mouth that takes
+  30% of you in one bite: torn apart). The soft sickle in a ridge's jaws: 18 s, 25% taken.
+
+**Seen** (the app's browser pane, `dev.html`): an eel spawned 5 m ahead of the still finback took hold at once, was subdued in a second, rolled (spinV 3.2, the roll advancing frame by frame, the saw at 3×) and bled the finback out in under ten seconds ("bled out after a eel's bite"); the sim clock ran at wall speed. A ridge on a grazer 10 m ahead: it circled and missed the grazer two or three times before taking it, then stood on the carcass to feed, the grazer knocked onto its side by the clamp; the second trial it was still circling at 10 m after eight seconds (the run-up on a slow floor prey: pass D). The hold and the shake themselves were never framed — the camera looks along the finback and the eel held it from behind the view, and the ridge's hold on the grazer lasted less than the two seconds between stills — so the roll, the shake and the swallow are the tests' word.
+
+**Unseen, ask in this order:** (1) the eel's roll with you in its jaws — the world turning round the eel's axis, the finback carried round — and
+whether `SPIN.rate` 3.2 is a roll or a blur; (2) a ridge shaking a grazer: does the grazer whip and the ridge's head swing read as a shake, or as a
+glitch (`SHAKE.amp`, `.hz`); (3) being swallowed by a stone or a ridge: drawn into the mouth over seconds, the death at the end (`SWALLOW`); (4) the
+middle range now — the person's grab on a grazer with the grazer tiring (`STAMINA.slowbloods`): does it stop detaching, and is the drag on you felt;
+(5) the arm hunters angled away no longer contorting (`ARM_CONE`), and whether they turn to bring the ring to bear soon enough (pass D if not);
+(6) how long you last in an eel's jaws now (14 s on paper: the stamina's `full`, `GRIP.k`); (7) the bill at conception naming the sawmouths' step,
+and whether 1.5 is the right price.
+
+## v11.93.1 — the placed creature's lunge: a NaN one run in three on the low tier's smoke test (25 Sep 2026)
+
+The person asked for the failure fixed before the freeze. `TIER=low node test/smoke.js` failed about one run in three, on v11.92 and v11.93 alike, in
+chunks.js `terrainColor` — a cell generated at NaN. Instrumented: the NaN was the lab's placed creature (`DEFS.lab`, lab.js) in its first chase of a
+darter — the committed lunge of v11.92 runs at `d.top × d.sprint`, and that row had neither, so its velocity went NaN, the player it bumped went NaN
+with it, and the next cell was asked for at NaN. `DEFS.lab` carries `top` and `sprint` now (the lab's own stats, as its speed and turn). Six low-tier
+runs clean; the high tier clean. Nothing seen: a headless matter.

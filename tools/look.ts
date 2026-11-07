@@ -77,16 +77,34 @@ for (const target of targets) {
   const url = `http://127.0.0.1:${(server.address() as AddressInfo).port}/${query}`;
   const page = await browser.newPage({ viewport: { width: W, height: H } });
   const errors: string[] = [];
-  // only the build itself is served: anything from another host (a web font, say) is refused, so the check is of the
-  // game and not of the network, and it runs the same in CI, in a session with no internet, and offline
+  // What the game loads from other hosts (Tethys's three.js from cdnjs, Rootshock's web font) it gets, if the network
+  // allows. A request to another host that fails is a note, not a fault of the build: a session's network may refuse a
+  // host CI reaches. What the game then does without it (a page error) still fails the check.
   const origin = new URL(url).origin;
   const outside = new Set<string>();
-  await page.route((u: URL) => u.origin !== origin, (r: any) => (outside.add(new URL(r.request().url()).host), r.abort()));
+  const external = (u: string) => {
+    try {
+      return new URL(u).origin !== origin;
+    } catch {
+      return false;
+    }
+  };
   page.on('pageerror', (e: Error) => errors.push(`page error: ${e.message}`));
-  page.on('console', (m: any) => m.type() === 'error' && !/net::ERR_FAILED/.test(m.text()) && errors.push(`console.error: ${m.text()}`));
-  page.on('requestfailed', (r: any) => new URL(r.url()).origin === origin && errors.push(`request failed: ${r.url()} (${r.failure()?.errorText})`));
+  page.on('console', (m: any) => {
+    if (m.type() !== 'error') return;
+    const at = m.location()?.url ?? '';
+    if (/^Failed to load resource/.test(m.text()) && external(at)) outside.add(new URL(at).host);
+    else errors.push(`console.error: ${m.text()}`);
+  });
+  page.on('requestfailed', (r: any) =>
+    external(r.url()) ? outside.add(new URL(r.url()).host) : errors.push(`request failed: ${r.url()} (${r.failure()?.errorText})`),
+  );
   // the browser asks for /favicon.ico on its own; a missing one is not the game's fault
-  page.on('response', (r: any) => r.status() >= 400 && !r.url().endsWith('/favicon.ico') && errors.push(`HTTP ${r.status()}: ${r.url()}`));
+  page.on('response', (r: any) => {
+    if (r.status() < 400 || r.url().endsWith('/favicon.ico')) return;
+    if (external(r.url())) outside.add(new URL(r.url()).host);
+    else errors.push(`HTTP ${r.status()}: ${r.url()}`);
+  });
   try {
     await page.goto(url, { waitUntil: 'load', timeout: 20_000 });
     await page.waitForTimeout(wait);
@@ -105,7 +123,7 @@ for (const target of targets) {
   });
   await page.close();
   server.close();
-  if (outside.size) notes.push(`refused, from other hosts: ${[...outside].join(', ')}`);
+  if (outside.size) notes.push(`could not load, from other hosts: ${[...outside].join(", ")}`);
   const note = notes.map(n => `\n  (${n})`).join('');
   if (errors.length) {
     failed++;
