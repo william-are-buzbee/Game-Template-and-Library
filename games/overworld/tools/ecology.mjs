@@ -28,11 +28,12 @@
 //
 // Needs Playwright's Chromium, like smoke.mjs. Not run in CI (it takes minutes).
 import http from 'node:http';
+import { fileURLToPath } from 'node:url';
 import fs from 'node:fs';
 import path from 'node:path';
 import { createRequire } from 'node:module';
 
-const root = path.resolve(new URL('.', import.meta.url).pathname, '..');
+const root = path.resolve(fileURLToPath(new URL('..', import.meta.url))); // not URL.pathname: on Windows that is /C:/…, 7 Nov 2026
 const require = createRequire(import.meta.url);
 let playwright;
 try { playwright = require(process.env.PLAYWRIGHT_MODULE || 'playwright'); }
