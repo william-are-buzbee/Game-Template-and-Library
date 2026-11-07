@@ -1148,7 +1148,13 @@ function makeChain(n,sign,upx,upy,upz,o){
 // ever), but the part of the rest's motion that is the body turning under them, and the stroke moving them, is water they have to push: SWAY of it is
 // left out of the drag reference, which parks the tip damp/ks × SWAY × that speed behind its rest — 0.18 s of it — for as long as the curve lasts.
 const SWAY=0.5;
-const SIM={shapes:[],grab:null,grabM:null,self:null,ch:null,vx:0,vy:0,vz:0},JOINT_SOFT=0.2; // grabM (v11.92): the mouth chains' point, the prey's surface inside the cone, or null // the joint limit's ramp width in cos: 0.55 -> 0.75 is 57 -> 41 degrees
+// A held ring (v11.93.2): the body's change of travel in a frame reaches a chain only through the drag's relaxation (damp, 9/s) and the spring (ks),
+// so a point lags a steady acceleration by about a/ks — a/ks is 0.9 m under the soft-arm's squeeze (jetImp 10 m/s over JET_W 0.18 s, 55 m/s²). An arm
+// that leads into the push cannot lag along its own length: its 1.05 m keel arms (PLAN242's ±2.9) buckled, the fold walked down the joints and snapped
+// out at the tip in one frame (9 m/s; test/anim.js's "nor by the jet", which caught it about one run in three, by the arms' random stroke phase c.ph).
+// A ring closed on the jet is held together, not trailed: rig.hold (0..1, the jet pose's ease, creatures_spec.js) is the share of the body's change of
+// velocity its chains take whole, SIM.dv; the turn and the stroke still lag by SWAY. Every other rig's hold is 0, as before.
+const SIM={shapes:[],grab:null,grabM:null,self:null,ch:null,vx:0,vy:0,vz:0,hold:0,dvx:0,dvy:0,dvz:0},JOINT_SOFT=0.2; // grabM (v11.92): the mouth chains' point, the prey's surface inside the cone, or null // the joint limit's ramp width in cos: 0.55 -> 0.75 is 57 -> 41 degrees
 const CPT={x:0,y:0,z:0};
 function chainGround(x,z){const ch=SIM.ch;return ch&&x>=ch.x0&&x<ch.x0+CELL&&z>=ch.z0&&z<ch.z0+CELL?ch.h(x,z):groundAt(x,z);}
 function simChain(c,e,s,dt){
@@ -1165,6 +1171,7 @@ function simChain(c,e,s,dt){
   const G=c.mouth?SIM.grabM:SIM.grab,kd=Math.exp(-c.damp*dt),ks=c.ks*dt*(G?0.3:1); // a mouth chain (v11.92) goes for the surface point inside its cone, or holds its pose
   const Q=simChain.Q||(simChain.Q=new Float32Array(3*40));
   const bvx=SIM.vx,bvy=SIM.vy,bvz=SIM.vz,kw=1-SWAY; // the owner's own travel (carried whole) and the share of the rest's motion under it that is carried (v11.80: SWAY of the turn and the stroke is not)
+  if(SIM.hold>0){const h=SIM.hold,dx=SIM.dvx*h,dy=SIM.dvy*h,dz=SIM.dvz*h;for(let k=1;k<=n;k++){V[k*3]+=dx;V[k*3+1]+=dy;V[k*3+2]+=dz;}} // a held ring (v11.93.2, above): its share of the body's change of travel, taken whole
   for(let k=1;k<=n;k++){const i=k*3;const rvx=bvx+((RW[i]-RP[i])/dt-bvx)*kw,rvy=bvy+((RW[i+1]-RP[i+1])/dt-bvy)*kw,rvz=bvz+((RW[i+2]-RP[i+2])/dt-bvz)*kw;
     let vx=rvx+(V[i]-rvx)*kd,vy=rvy+(V[i+1]-rvy)*kd,vz=rvz+(V[i+2]-rvz)*kd;
     vx+=(RW[i]-P[i])*ks;vy+=(RW[i+1]-P[i+1])*ks;vz+=(RW[i+2]-P[i+2])*ks;
@@ -1249,8 +1256,10 @@ function stepRigs(o,near,dt){
   // the body's own travel (SWAY: the one part of the rest's motion the chains are carried by whole), read off the frame's origin rather than o.vel —
   // a creature's velocity and where its group actually is need not agree (the tests move a body by hand, a hold drags one, a spawn teleports it)
   {const px=o.rigO||(o.rigO=new Float32Array(3)),ox=e[12],oy=e[13],oz=e[14];let vx=(ox-px[0])/dt,vy=(oy-px[1])/dt,vz=(oz-px[2])/dt;
-   if(!(vx*vx+vy*vy+vz*vz<2500))vx=vy=vz=0; // over 50 m/s is a teleport, a respawn or the first frame: carry nothing this frame
-   px[0]=ox;px[1]=oy;px[2]=oz;SIM.vx=vx;SIM.vy=vy;SIM.vz=vz;}
+   const jumped=!(vx*vx+vy*vy+vz*vz<2500);if(jumped)vx=vy=vz=0; // over 50 m/s is a teleport, a respawn or the first frame: carry nothing this frame
+   px[0]=ox;px[1]=oy;px[2]=oz;SIM.vx=vx;SIM.vy=vy;SIM.vz=vz;
+   const pv=o.rigV||(o.rigV=[0,0,0,-1]),ok=!jumped&&t-pv[3]<0.1; // the travel's change since the last step, for a held ring (v11.93.2, simChain): none across a jump or a gap (far LOD, a respawn)
+   SIM.dvx=ok?vx-pv[0]:0;SIM.dvy=ok?vy-pv[1]:0;SIM.dvz=ok?vz-pv[2]:0;pv[0]=vx;pv[1]=vy;pv[2]=vz;pv[3]=jumped?-1:t;}
   if(o.shapesW)for(const w of o.shapesW)S.push(w);
   if(near)for(const q of near){if(q===o||!q.shapesW)continue;if(q.pos.distanceTo(o.pos)>o.reach+q.bound+1)continue;for(const w of q.shapesW)S.push(w);}
   // the grab (v11.92, COMBAT.md §10.3): the arms reach for the prey's centre as before; the mouth's chains (c.mouth) for the point the hold has on the prey's
@@ -1265,7 +1274,7 @@ function stepRigs(o,near,dt){
     if((vx*e[8]+vy*e[9]+vz*e[10])/(fl*vl)>=MOUTH_CONE){mp.x=sx;mp.y=sy;mp.z=sz;mp.own=G;SIM.grabM=mp;}
     if(G.shapesW&&(!near||near.indexOf(G)<0))for(const w of G.shapesW)S.push(w);}else{SIM.grab=null;SIM.grabM=null;}
   let touch=0;
-  for(const rig of b.rigs){for(const c of rig.chains){simChain(c,e,s,dt);touch+=c.touch;}rigSkin(rig,e);}
+  for(const rig of b.rigs){SIM.hold=rig.hold||0;for(const c of rig.chains){simChain(c,e,s,dt);touch+=c.touch;}rigSkin(rig,e);}SIM.hold=0;
   o.holding=touch;
 }
 stepRigs.G={x:0,y:0,z:0,own:null};stepRigs.M={x:0,y:0,z:0,own:null};
@@ -4049,6 +4058,7 @@ const PARTS = {
           const j = jetK(t, st.jet ? 1 : 0),
             k = Math.min(1, spd * 0.15);
           ringPose(rig, lerp(0.32 - 0.12 * k + 0.06 * Math.sin(t * 1.1), 0.05, j), lerp(0.09 + 0.11 * k, 0.06, j), ck(t, spd));
+          rig.hold=j; // v11.93.2: closed on the jet, the ring is held — it goes with the body through the squeeze, as it closes (physics.js SIM.hold); open, it trails as before
         };
       } else if (st0 === 'cone')
         anim = (t, spd) => {
