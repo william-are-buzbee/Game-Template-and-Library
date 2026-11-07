@@ -15,9 +15,11 @@
     "new": "node tools/new.ts",
     "catalog": "node tools/catalog.ts",
     "typecheck": "tsc -p tsconfig.json && node tools/each.ts typecheck",
+    "test:tools": "node --test \"tools/test/*.test.ts\"",
     "test": "node tools/each.ts test",
+    "check": "npm run typecheck && npm run test:tools && node tools/each.ts test --changed && node tools/catalog.ts --check",
+    "check:all": "npm run typecheck && npm run test:tools && npm test && node tools/catalog.ts --check",
     "build": "node tools/each.ts build",
-    "check": "npm run typecheck && npm test && node tools/catalog.ts --check",
     "site": "node tools/site.ts",
     "look": "node tools/look.ts"
   },
