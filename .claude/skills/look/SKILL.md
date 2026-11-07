@@ -14,7 +14,8 @@ description: Look at a game or lab the way the person will - build it, boot it i
    - `--shot path.png` for another file name
 3. **Open the screenshot and look at it.** Booting without errors is not the same as looking right.
 4. To see something that needs input or time (a key held, a menu opened), write a short Playwright script for it in
-   your scratchpad, not in the repository. Take the browser from `PLAYWRIGHT_MODULE` or the global `playwright`, as
-   `tools/look.ts` does.
+   your scratchpad, not in the repository. Take the browser and the server from `tools/lib/browser.ts`, as
+   `tools/look.ts` does; its `freezable` and `freeze` stop a heavy game's frame loop so a screenshot can be taken.
+   The picture the site's index shows: `npm run cards -- <dir>`, then open `_cards/<name>-960.webp`.
 5. **Say plainly what was not seen:** sound, the person's GPU and frame rate, touch on a real phone, feel. List those in
    the pull request as what to try on the preview.

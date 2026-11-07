@@ -92,3 +92,14 @@ which found four repositories sharing no code, copying it instead (the same rand
     `tools/try-templates.ts` scaffolds a game and a lab in a throwaway copy of the repository and installs, typechecks,
     tests, builds and boots them (about 15 s). On a pull request it runs when the tools, root config or a package
     changed; on `main`, always.
+20. **The index's pictures are taken from each build, as the site is published** (7 Nov 2026, the person: "live
+    screenshots from CI, not hand-made art"). `tools/cards.ts`, in `pages.yml`, opens each game's and lab's build in
+    headless Chromium as its `package.json`'s `card` says (the address, the window, what to click and wait for) and
+    writes the small WebP pictures the index shows; none is committed, the build and the card setting being the recipe.
+    Under software WebGL a heavy game queues frames faster than they are drawn, and a screenshot waited behind all of
+    them (Rootshock and Tethys in CI: 20 s and no picture). `tools/lib/browser.ts` now holds a game to one frame at a time
+    (a one-pixel read after each: `gl.finish()` does not wait in Chromium) and stops its loop before the picture, about
+    30 s for each of the two; `tools/look.ts` does the same, so the boot check's screenshots of them work too. So the
+    per-game settings are about what the picture shows, not whether one can be taken: Rootshock's asks for
+    `?shot=lobby` (its title shows the lobby or the cargo bay at random), Planet-Viewer's presses Generate and pictures
+    the map. When the pictures fail the site is still published, each card showing its name.
