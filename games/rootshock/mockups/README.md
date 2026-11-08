@@ -14,6 +14,12 @@ browser (three.js comes from a CDN), and each has been published as a private cl
   *Security's seven* (the Saved tab) is a line-up of the upper station's changed, one for each, newest to oldest;
   *Pia's lines* are examples of the bone, bloat and plant lines that founded the Commons, young to old and each young god.
   `window.__rs` in the console exposes the state.
+- `plants.html`: the plant line bench, Pia's bush line (`docs/world.md` §8 and §10), published as *Plant Line Bench*:
+  every plant mutant kept, numbered for good, in rows (Kept, Grown in, Maybe, Dropped) and a generator (templates,
+  stages, batches; the same batch number rolls the same ones). Keep, Maybe or Drop each and leave a note; the picks are
+  kept in the artifact's store (collection `picks`, one document a figure) where Claude can read them back. Each figure
+  is baked into three meshes (still, body, head), so a row of fifty draws in a couple of dozen calls. `?` lists the
+  keys; `window.__rs` in the console exposes the state, `select(i)`, `setLine(k)` and `setView(v)`.
 - `cargo.html`: Cargo made larger (`docs/world.md` §8, *Cargo, sketched, and built*, which says what the build changed),
   at true scale in the game's kit: the nave, the warehouse arm (room and pillar), the freight shaft at the corner and the
   chambers off them, with the station's rooms round it and the old Cargo as an outline to compare. Overview, plan (a 10 m
