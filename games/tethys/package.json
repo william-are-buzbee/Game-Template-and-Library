@@ -9,6 +9,7 @@
     "build": "node tools/vendor.js --check && node build.js && node tools/dist.js",
     "test": "node tools/vendor.js --check && node build.js --test"
   },
+  "shards": 3,
   "dependencies": {
     "@wb/core": "*"
   }

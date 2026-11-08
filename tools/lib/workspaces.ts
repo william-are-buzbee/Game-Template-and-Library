@@ -26,6 +26,11 @@ export interface Workspace {
   uses: string[];
   /** how tools/cards.ts takes its picture for the site's index: package.json's "card", if it has one */
   card?: Card;
+  /**
+   * package.json's "shards": how many CI jobs its tests are split across (tools/lib/jobs.ts), for a suite too slow for
+   * one machine. Each runs `npm test` with SHARD=k/n in its environment, and the test script runs only its k-th part.
+   */
+  shards?: number;
 }
 
 /**
@@ -68,6 +73,7 @@ export function workspaces(): Workspace[] {
         scripts: pkg.scripts ?? {},
         uses: Object.keys(deps).filter(d => d.startsWith(SCOPE)).sort(),
         ...(pkg.card ? { card: pkg.card as Card } : {}),
+        ...(Number.isInteger(pkg.shards) && pkg.shards > 1 ? { shards: pkg.shards as number } : {}),
       });
     }
   }

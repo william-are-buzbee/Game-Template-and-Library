@@ -1,12 +1,17 @@
 # HANDOFF — tethys
 
+**v11.93.4 (8 Nov 2026): the suite in three CI jobs.** The person, on v11.93.3's question: split it if it works without a
+headache. package.json `"shards": 3`: CI runs the tests as `tethys-1`…`tethys-3` (each `npm test` with `SHARD=k/3`) and builds and boots
+in `tethys`; build.js and build.py deal the runs to the parts by the seconds beside each. A new run gets its seconds in both lists.
+Locally nothing changes: without `SHARD` it is the whole suite side by side.
+
 **v11.93.3 (7 Nov 2026): the tests in minutes.** `node build.js --test` was 19 runs one after another, 19 minutes here and 18 in CI. Three
 changes, none to what a test checks: the ecology's hunt without its by-name lookups (ecology.js `ecoModelGen`, the ledger the same to the bit;
 census.js and live.js were two thirds that loop), the stub's `add` setting `parent` as three's does (headless, horizon.js re-added the sky every
 frame and every render walked the copies) and its `render` walking the scene only when a light wants a map, and the runs side by side
 (build.js and build.py): the four that assert on a time they measure first and alone (`ALONE`), the other fifteen `JOBS` at a time (`SIDE`,
 default the cores, eight at most), each with its own temp folder. 4.6 minutes on the sandbox's 4 cores, 6–8 in CI's test step by the runner (18 before).
-A new test that asserts on a time goes in `ALONE`, in both builds. Open, the person's: whether to split the suite across CI jobs too (CHANGELOG).
+A new test that asserts on a time goes in `ALONE`, in both builds.
 
 **v11.93.2 (7 Nov 2026): the jet ring held.** `test/anim.js`'s "soft-arm: nor by the jet" failed about half the runs, and CI runs it since the move. It was a fault, not the threshold: the squeeze (55 m/s²) asked the two 1.05 m keel arms to lag a metre along their own length, they buckled, and the fold snapped out at the tip (9 m/s in a frame); the arms' random stroke phase (`c.ph`) decided whether it came in the measured window. A ring closed on the jet is held now (physics.js `rig.hold`: its chains take the body's change of velocity by the pose's ease; every other rig 0). 40 seeded runs: 1.17–1.33, against 1.11–2.67 before (14 of 40 failing). **Ask first** whether the soft-arm's ring reads as held through a sprint rather than stiff (the opening after it is the old trail), then the arrow squid's ring in a chase (its jet holds too). **Found, not touched — which first is the person's:** the coilshell's turn in the same test reads 0.3 or 9–32 m/s a frame in about half the runs, unchecked; the finback's two tail checks read 0.0 everywhere (the tail lookup finds nothing), so they pass on zeros.
 

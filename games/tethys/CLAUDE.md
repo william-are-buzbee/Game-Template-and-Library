@@ -42,6 +42,10 @@ node serve.js            static server; open http://localhost:8080/dev.html (edi
   a temp folder of its own; a run's output prints whole when it ends, then a table of every run's time. About 4.5 minutes on a 4-core
   sandbox and 6–8 in CI by the runner (18 one at a time before v11.93.3; 12 one at a time now). A new test that asserts on a time it measures goes in `ALONE` (build.js and build.py);
   nothing else may read the wall clock — the stub's `performance.now` is the frames'.
+- In CI the suite is split in three (v11.93.4; package.json `"shards": 3`): jobs `tethys-1`…`tethys-3` each run `npm test` with
+  `SHARD=k/3`, and `tethys` builds and boots. `SHARD=k/n` deals the runs longest first, by the seconds beside each in `ALONE` and
+  `SIDE`, to the part with the fewest so far; each part runs its own timed runs first and alone. A new run needs its seconds there
+  (one at a time, `JOBS=1` prints them), in build.js and build.py alike; a wrong number only unbalances the parts.
 - The tests concatenate `src/` in `src/order.txt` order against a stubbed THREE (`test/stub.js`) and run in Node; the world is the
   real one (same `sample()`), so headless measurements of terrain, collision and behaviour are meaningful. They prove nothing about
   rendering or sound. New THREE APIs may need adding to the stub.
@@ -69,7 +73,7 @@ node serve.js            static server; open http://localhost:8080/dev.html (edi
 | `test/spectro.js` | the sound bench's wavs (`test/render/`, written by `#bench`) as spectrograms and a table of numbers; not in `--test` | `node test/spectro.js`; `node test/spectro.js shot_` |
 | `test/ident.js` | compiled specs against old hand builders; skipped without `OLD=path` | `OLD=… node test/ident.js` |
 
-Env vars: `JOBS` (runs side by side in `--test`; 1 is one at a time), `TIER` (`low`), `PICK` (menu pick for smoke), `T0`, `OLD`, for preview `POSE TILE T SPD PALV COATS NORIG SPEC FLORA DEPTH PIX` (`PIX=1`: the body in texels with its coat's pattern, v11.41), for caustic `DEP CT CS SPAN W`.
+Env vars: `JOBS` (runs side by side in `--test`; 1 is one at a time), `SHARD` (`k/n`: the k-th of n parts of `--test`), `TIER` (`low`), `PICK` (menu pick for smoke), `T0`, `OLD`, for preview `POSE TILE T SPD PALV COATS NORIG SPEC FLORA DEPTH PIX` (`PIX=1`: the body in texels with its coat's pattern, v11.41), for caustic `DEP CT CS SPAN W`.
 
 ## Delivering a change
 

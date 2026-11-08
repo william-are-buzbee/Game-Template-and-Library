@@ -1,4 +1,5 @@
-// tools/plan.ts — CI's plan: one job per workspace to test, build, browser-test and boot, as a GitHub Actions matrix.
+// tools/plan.ts — CI's plan: one job per workspace to test, build, browser-test and boot (a slow suite split across
+// several, package.json's "shards"), as a GitHub Actions matrix.
 //   node tools/plan.ts                     every workspace (a push to main)
 //   node tools/plan.ts --changed[=ref]     only those a pull request affects (tools/lib/affected.ts)
 // It prints the plan, and with GITHUB_OUTPUT set writes `matrix` (the jobs), `any` (whether there are any) and
@@ -26,6 +27,6 @@ if (ref) {
 }
 const plan = jobs(all, dirs);
 const templates = needsTemplates(dirs);
-console.log(plan.length ? `jobs: ${plan.map(j => `${j.name} (${(['test', 'build', 'smoke', 'boot'] as const).filter(k => j[k]).join(', ')})`).join('; ')}` : 'jobs: none');
+console.log(plan.length ? `jobs: ${plan.map(j => `${j.name} (${(['test', 'build', 'smoke', 'boot'] as const).filter(k => j[k]).map(k => (k === 'test' && j.shard ? `test ${j.shard}` : k)).join(', ')})`).join('; ')}` : 'jobs: none');
 console.log(`templates: ${templates ? 'tried' : 'not needed'}`);
 if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `matrix=${JSON.stringify({ include: plan })}\nany=${plan.length > 0}\ntemplates=${templates}\n`);

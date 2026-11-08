@@ -6169,3 +6169,30 @@ Unseen, ask in this order:
 1. Nothing to see in the game: the ecology's ledger is the same to the bit.
 2. Whether to split the suite across CI jobs as well: on 2 shards the test step would be about 4 minutes, on 3 about 3.5 (smoke.js alone is
    the floor), for a `shards` list and new jobs in tools/plan.ts, tools/lib/jobs.ts and check.yml (docs/decisions.md 24).
+
+## v11.93.4 — the suite in three CI jobs (8 Nov 2026)
+
+v11.93.3 left one question for the person: CI's 4 processors behave like 2 cores (side by side, a run takes about 1.5 times what it takes
+on a session), so the suite was 6–8 minutes there against 4.6 on a session, and only more machines would close that. The person: "If you
+think splitting it would work, and improve performance without causing a huge headache, then go for it."
+
+- **package.json `"shards": 3`.** The repository's plan (tools/lib/jobs.ts, docs/decisions.md 25) turns it into four jobs: `tethys-1`,
+  `tethys-2` and `tethys-3` run `npm test` with `SHARD=1/3`, `2/3`, `3/3`; `tethys` builds and boots (no tests). Any workspace can do the
+  same; its test script must honour `SHARD`.
+- **build.js, build.py: `SHARD=k/n`.** Every run in `ALONE` and `SIDE` carries its seconds one at a time (the sandbox, `JOBS=1`, v11.93.3);
+  the runs are dealt longest first to the part with the fewest seconds so far, ties to the lower part, and a part runs its own timed runs
+  first and alone, then the rest side by side, as the whole suite does. Without `SHARD` nothing changes. A malformed `SHARD` fails.
+  The two builds deal the same parts: checked with stand-in tests for 1 to 4 parts, every run in exactly one part each time.
+
+The three parts (n = 3), and their times on the sandbox, one part after another as three machines would run them:
+
+| part | runs | sandbox |
+|---|---|---|
+| 1 | smoke.js, census.js 40, audio.js (alone), combat.js, pool.js | 183 s |
+| 2 | TIER=low smoke.js, player.js on both tiers, steer.js, anim.js, plankton.js | 122 s |
+| 3 | live.js on both tiers, snow.js, physics.js and sky.js (alone), TIER=low steer.js, registry.js, lint.js | 139 s |
+
+smoke.js on the high tier is the floor (~2.7 minutes of six boots and a long swim), so a fourth part buys nothing. CI's times are in
+the pull request.
+
+Not changed: any test, its order within a part (alone first, then longest first), the whole suite locally. Unseen: nothing in the game.
