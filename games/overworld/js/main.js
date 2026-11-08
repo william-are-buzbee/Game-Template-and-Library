@@ -7,15 +7,14 @@ import { tileSize, viewW, viewH, cycleZoom, setZoom, zoom, toggleSpritePack, get
 // modal.js: the help screen and the eat panel (several corpses on one tile).
 import { modalEl, closeModal, openModal, setUpdateUICallback } from './modal.js';
 import { updateUI, hideHud, toggleStatusFullMode } from './ui.js';
-import { canvas, ctx, resizeCanvas, render } from './rendering.js';
-import { tintedSprite } from './sprites.js';
+import { canvas, ctx, resizeCanvas, render, renderScene } from './rendering.js';
 import { isTexturePickerOpen, toggleTexturePicker } from './texture-picker.js';
 
 import { attemptMove, restAction, turnInPlace, setGroundModalCallbacks, eatAction } from './player-actions.js';
-import { T, terrainName, terrainInfo } from './terrain.js';
+import { terrainName, terrainInfo } from './terrain.js';
 import { inBounds, getCover } from './world-state.js';
 import { MON } from './monsters.js';
-import { SPECIES_DISPLAY_CONFIDENCE } from './constants.js';
+import { SPECIES_DISPLAY_CONFIDENCE, DAWN_TICKS } from './constants.js';
 import { getItems } from './ground-items.js';
 import { setOnPlayerDeathCallback } from './turn-loop.js';
 import { debugEcology, debugForceHunger, debugCognition, debugSubstrate, debugNodes, debugWiring, debugMemory } from './debug.js';
@@ -34,7 +33,8 @@ import { showHelp } from './interactions.js';
 import { bodyScreenHTML } from './hub.js';
 import { log, LOG_CATEGORIES } from './log.js';
 import { initLogUI } from './log-ui.js';
-import { openCharGen, beginGame, onPlayerDeath, speciesKeyNav } from './chargen.js';
+import { openCharGen, beginGame, onPlayerDeath, speciesKeyNav, nextWorldSeed } from './chargen.js';
+import { previewWorld } from './world-logic.js';
 import { hasSave, tryResume, deleteSave, migrateFromLocalStorage } from './save-load.js';
 import { isMapOpen, toggleMap, closeMap, markCurrentCell } from './worldmap.js';
 
@@ -156,10 +156,7 @@ canvas.addEventListener('wheel', (ev) => {
   if (cycleZoom(direction)) {
     resizeCanvas();
     if (state.gameState === 'play') render();
-    else if (state.gameState === 'title') {
-      _titleBackdropCanvas = null; // invalidate cache for new tile size
-      renderTitle();
-    } else if (state.gameState === 'death') renderDeathScreen();
+    else if (state.gameState === 'title') renderTitle(); else if (state.gameState === 'death') renderDeathScreen();
     updateZoomLabel();
   }
 }, { passive: false });
@@ -578,148 +575,23 @@ document.addEventListener('keyup', (ev) => {
 // canvas using the same sprite pipeline as gameplay. (The restart
 // confirmation is drawn by showRestartConfirm, which nothing binds yet.)
 
-// ---- Seeded 2D Perlin noise (self-contained for title backdrop) ----
-function _titleNoise2D(seed) {
-  const perm = new Uint8Array(512);
-  const p = new Uint8Array(256);
-  for (let i = 0; i < 256; i++) p[i] = i;
-  let s = seed | 0;
-  for (let i = 255; i > 0; i--) {
-    s = (s * 1103515245 + 12345) & 0x7fffffff;
-    const j = s % (i + 1);
-    const tmp = p[i]; p[i] = p[j]; p[j] = tmp;
+// ---- Title backdrop: the world a new game begins in ----
+// The real surface, made by the game's own generator from the seed NEW GAME
+// will use (chargen.js nextWorldSeed), centred where the player would wake,
+// in sunrise light (a run starts at sunrise), drawn by the game's own tile
+// code (rendering.js renderScene) with nobody looking: no creatures, no field
+// of view. Generated again only when the seed or the world in the stores has
+// changed (a game was begun, continued or loaded since); redrawn every repaint.
+let _titleWorld = null;   // { seed, grid, layer, x, y }
+
+function titleWorld() {
+  const seed = nextWorldSeed();
+  const w = _titleWorld;
+  if (!w || w.seed !== seed || worlds[w.layer] !== w.grid) {
+    const at = previewWorld(seed);
+    _titleWorld = { seed, grid: worlds[at.layer], ...at };
   }
-  for (let i = 0; i < 512; i++) perm[i] = p[i & 255];
-  const grad2 = [[1,1],[-1,1],[1,-1],[-1,-1],[1,0],[-1,0],[0,1],[0,-1]];
-  function fade(t) { return t * t * t * (t * (t * 6 - 15) + 10); }
-  function lerp(a, b, t) { return a + t * (b - a); }
-  return function(x, y) {
-    const X = Math.floor(x) & 255;
-    const Y = Math.floor(y) & 255;
-    const xf = x - Math.floor(x);
-    const yf = y - Math.floor(y);
-    const u = fade(xf);
-    const v = fade(yf);
-    const g = grad2;
-    const aa = g[perm[perm[X] + Y] & 7];
-    const ba = g[perm[perm[X + 1] + Y] & 7];
-    const ab = g[perm[perm[X] + Y + 1] & 7];
-    const bb = g[perm[perm[X + 1] + Y + 1] & 7];
-    return lerp(
-      lerp(aa[0]*xf + aa[1]*yf, ba[0]*(xf-1) + ba[1]*yf, u),
-      lerp(ab[0]*xf + ab[1]*(yf-1), bb[0]*(xf-1) + bb[1]*(yf-1), u),
-      v
-    );
-  };
-}
-
-function _titleFbm(noiseFn, x, y, octaves, freq, lac, gain) {
-  let sum = 0, amp = 1, maxAmp = 0;
-  for (let i = 0; i < octaves; i++) {
-    sum += noiseFn(x * freq, y * freq) * amp;
-    maxAmp += amp;
-    freq *= lac;
-    amp *= gain;
-  }
-  return sum / maxAmp;
-}
-
-// ---- Title backdrop: cached terrain preview ----
-const TITLE_SEED = 42;
-let _titleBackdropCanvas = null;
-let _titleBackdropW = 0;
-let _titleBackdropH = 0;
-
-function generateTitleBackdrop() {
-  const TILE = tileSize();
-  const cols = Math.ceil(canvas.width / TILE);
-  const rows = Math.ceil(canvas.height / TILE);
-
-  // Skip regeneration if cached at current canvas size
-  if (_titleBackdropCanvas
-      && _titleBackdropW === canvas.width
-      && _titleBackdropH === canvas.height) {
-    return;
-  }
-
-  const noise = _titleNoise2D(TITLE_SEED);
-  const coverNoise = _titleNoise2D(TITLE_SEED + 7);
-
-  const offscreen = document.createElement('canvas');
-  offscreen.width = canvas.width;
-  offscreen.height = canvas.height;
-  const octx = offscreen.getContext('2d');
-  octx.imageSmoothingEnabled = false;
-
-  // Black base
-  octx.fillStyle = '#000';
-  octx.fillRect(0, 0, offscreen.width, offscreen.height);
-
-  for (let ry = 0; ry < rows; ry++) {
-    for (let rx = 0; rx < cols; rx++) {
-      const n = _titleFbm(noise, rx, ry, 4, 0.04, 2.0, 0.5);
-
-      // Map noise to terrain type
-      let terrain, cover = 0;
-      if (n < -0.30)       terrain = T.DEEP_WATER;
-      else if (n < -0.12)  terrain = T.WATER;
-      else if (n < -0.02)  terrain = T.BEACH;
-      else if (n < 0.08)   terrain = T.SAND;
-      else if (n < 0.40)   terrain = T.GRASS;
-      else if (n < 0.52)   terrain = T.DIRT;
-      else                  terrain = T.ROCK;
-
-      // Cover layer — trees and mushrooms for visual depth
-      if (terrain === T.GRASS && n >= 0.18) {
-        const cn = _titleFbm(coverNoise, rx, ry, 3, 0.06, 2.0, 0.5);
-        if (cn > 0.12) cover = T.FOREST;
-        else if (cn < -0.25) cover = T.MUSHFOREST;
-      }
-
-      // If mushforest cover, use fungal_grass ground
-      if (cover === T.MUSHFOREST) terrain = T.FUNGAL_GRASS;
-
-      // Resolve sprite name with variants (rocks)
-      const groundInfo = terrainInfo(terrain);
-      let spriteName = groundInfo.sprite;
-      if (terrain === T.ROCK) {
-        const rockVar = ((rx * 3571 + ry * 2909) >>> 0) % 3;
-        spriteName = rockVar === 1 ? 'ROCK_V2' : rockVar === 2 ? 'ROCK_V3' : 'ROCK';
-      }
-
-      // Rotation for visual variety (same logic as rendering.js)
-      const tileHash = ((rx * 7919 + ry * 6271 + 1013) >>> 0) % 256;
-      const rotVariant = tileHash % 4;
-      const canRotate = !cover && (terrain === T.GRASS || terrain === T.SAND || terrain === T.ROCK);
-
-      const px = rx * TILE;
-      const py = ry * TILE;
-
-      if (canRotate && rotVariant > 0) {
-        octx.save();
-        octx.translate(px + TILE / 2, py + TILE / 2);
-        octx.rotate(rotVariant * Math.PI / 2);
-        octx.drawImage(tintedSprite(spriteName, groundInfo.palette), -TILE / 2, -TILE / 2, TILE, TILE);
-        octx.restore();
-      } else {
-        octx.drawImage(tintedSprite(spriteName, groundInfo.palette), px, py, TILE, TILE);
-      }
-
-      // Draw cover sprite on top
-      if (cover) {
-        const coverInfo = terrainInfo(cover);
-        octx.drawImage(tintedSprite(coverInfo.sprite, coverInfo.palette), px, py, TILE, TILE);
-      }
-    }
-  }
-
-  // Dim overlay — darkens terrain for text readability
-  octx.fillStyle = 'rgba(0, 0, 0, 0.55)';
-  octx.fillRect(0, 0, offscreen.width, offscreen.height);
-
-  _titleBackdropCanvas = offscreen;
-  _titleBackdropW = canvas.width;
-  _titleBackdropH = canvas.height;
+  return _titleWorld;
 }
 
 // ---- Title menu state ----
@@ -740,15 +612,19 @@ async function updateTitleMenu() {
 
 // ---- Render: Title Screen ----
 function renderTitle() {
-  generateTitleBackdrop();
-
-  // Draw cached terrain backdrop
-  if (_titleBackdropCanvas) {
-    ctx.drawImage(_titleBackdropCanvas, 0, 0);
-  } else {
-    ctx.fillStyle = '#0a0a0a';
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-  }
+  const w = titleWorld();
+  renderScene(w.layer, w.x, w.y, DAWN_TICKS);
+  // Dimmed a little everywhere, and most where the words are, so the world
+  // shows and the words read over it
+  ctx.fillStyle = 'rgba(0, 0, 0, 0.25)';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const cx = canvas.width / 2, cy = canvas.height * 0.43;
+  const pool = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(260, canvas.width * 0.32));
+  pool.addColorStop(0, 'rgba(0, 0, 0, 0.7)');
+  pool.addColorStop(0.6, 'rgba(0, 0, 0, 0.45)');
+  pool.addColorStop(1, 'rgba(0, 0, 0, 0)');
+  ctx.fillStyle = pool;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   // Title text
   ctx.font = '24px "Press Start 2P"';
@@ -914,8 +790,6 @@ function handleSpeciesKeys(ev) {
 function goToTitle() {
   state.gameState = 'title';
   hideHud();
-  // Invalidate backdrop cache so it regenerates at current canvas size
-  _titleBackdropCanvas = null;
   updateTitleMenu().then(() => renderTitle()).catch(e => console.error(e));
 }
 
@@ -935,7 +809,7 @@ updateZoomLabel();
     console.error('[Save] localStorage → IndexedDB migration failed:', e);
   }
   await updateTitleMenu();
-  // Initial title render — terrain backdrop + menu.
+  // Initial title render — the next world + menu.
   // Font may still be loading; document.fonts.ready handler above
   // will re-render once the pixel font is available.
   renderTitle();
@@ -962,8 +836,6 @@ window.addEventListener('resize', () => {
     render();
     if (_restartConfirmVisible) renderRestartConfirm();
   } else if (state.gameState === 'title') {
-    // Invalidate backdrop cache — new canvas size requires regeneration
-    _titleBackdropCanvas = null;
     renderTitle();
   } else if (state.gameState === 'death') {
     renderDeathScreen();

@@ -158,12 +158,13 @@ function lerp(a, b, t) {
  * @param {number} w       - width  of the tinted region (px)
  * @param {number} h       - height of the tinted region (px)
  * @param {number} layer   - current layer index
+ * @param {number} [tick]  - the world tick whose light to draw (default: now)
  */
-export function drawTimeTint(ctx, x, y, w, h, layer) {
+export function drawTimeTint(ctx, x, y, w, h, layer, tick) {
   // Surface only for now — easy to expand later
   if (layer !== 0) return;
 
-  const { r, g, b, a } = getTint();
+  const { r, g, b, a } = getTint(tick);   // tick: the world's now, unless given
   if (a <= 0) return;
 
   ctx.fillStyle = `rgba(${Math.round(r)},${Math.round(g)},${Math.round(b)},${a.toFixed(3)})`;

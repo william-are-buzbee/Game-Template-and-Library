@@ -60,6 +60,7 @@ Prompt queue and task tracker. Check things off as they're done.
 - [x] Ecological palette and tile texture update
 - [x] Ambient brightness dip rendering
 - [x] Canvas-rendered title screen
+- [x] Title screen shows the real world: the one NEW GAME begins in, not a noise imitation (8 Nov 2026)
 - [x] Detection performance optimization
 - [x] Palette revert to pre-overhaul working values
 

@@ -449,7 +449,9 @@ export function spawnMonstersInWorld(){
 }
 
 // ==================== INIT ====================
-export function initWorld(seed){
+// Empties every world store: grids, cover, features, creatures, corpses, layer
+// records and scent.
+function clearWorld(){
   for (const k in worlds) delete worlds[k];
   for (const k in covers) delete covers[k];
   for (const k in features) delete features[k];
@@ -457,13 +459,12 @@ export function initWorld(seed){
   for (const k in groundItems) delete groundItems[k];   // corpses of the last run
   for (const k in LAYER_META) delete LAYER_META[k];
   resetScent();
+}
 
-  generateLayer(LAYER_SURFACE, seed);
-  generateLayer(LAYER_UNDER, seed);
-
-  // Spawn player on the surface: scan outward from center for a walkable,
-  // non-water, non-cover tile.
-  const spawnCenter = findSpotNear(
+// Where a new run wakes the player: scan outward from the surface's centre for
+// a walkable, non-water, non-cover tile. Returns [x, y].
+function surfaceSpawn(){
+  const spot = findSpotNear(
     LAYER_SURFACE,
     Math.floor(W_SURF / 2),
     Math.floor(H_SURF / 2),
@@ -475,8 +476,27 @@ export function initWorld(seed){
     },
     Math.max(W_SURF, H_SURF),
   );
-  const spawnX = spawnCenter ? spawnCenter[0] : Math.floor(W_SURF / 2);
-  const spawnY = spawnCenter ? spawnCenter[1] : Math.floor(H_SURF / 2);
+  return spot || [Math.floor(W_SURF / 2), Math.floor(H_SURF / 2)];
+}
+
+// The world a new game with this seed begins in, for the title screen to show:
+// the surface alone, generated exactly as initWorld generates it, and the tile
+// the player would wake on. Nothing is spawned. NEW GAME's initWorld clears it
+// and generates the whole world again; CONTINUE's loadGame replaces it.
+export function previewWorld(seed){
+  clearWorld();
+  generateLayer(LAYER_SURFACE, seed);
+  const [x, y] = surfaceSpawn();
+  return { layer: LAYER_SURFACE, x, y };
+}
+
+export function initWorld(seed){
+  clearWorld();
+
+  generateLayer(LAYER_SURFACE, seed);
+  generateLayer(LAYER_UNDER, seed);
+
+  const [spawnX, spawnY] = surfaceSpawn();
   state.player.startX = spawnX;
   state.player.startY = spawnY;
 

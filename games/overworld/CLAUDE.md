@@ -27,7 +27,7 @@ as `vendor/wb-core.js` (committed; `npm run vendor -w games/overworld` rewrites 
 | senses and minds | detection.js, signals.js, scent.js, sensory-constants.js, fov.js, wiring.js (each species' nervous system as nodes), nodes.js (runs a wiring), cognition.js, ai.js, ai-utils.js, behaviors.js, hunt-funnel.js (harness bookkeeping, read by nothing in play) |
 | combat | combat.js, combat-constants.js |
 | the world | world-gen.js (coordination), surface-gen.js, underground-gen.js, terrain.js, ecology-data.js, gen-utils.js, world-logic.js, world-state.js, time-cycle.js |
-| player | player.js, player-actions.js, hub.js (the player plays the hub: its body runs first, the body screen), chargen.js (species selection), ground-items.js (corpses on the ground), interactions.js (the help screen) |
+| player | player.js, player-actions.js, hub.js (the player plays the hub: its body runs first, the body screen), chargen.js (species selection, and the seed of the world the next game begins in), ground-items.js (corpses on the ground), interactions.js (the help screen) |
 | colour | spectra.js: the one colour pipeline, reflectance × light × one eye's receptors → contrast or screen (`Notes/Spectral-Color-Design.md`; pure, not yet read by the game; the planet viewer is to carry a copy) |
 | drawing and UI | rendering.js, display.js, sprites.js, sprites-32.js, texture-picker.js, modal.js, ui.js, log.js, log-ui.js, worldmap.js, debug.js; sprite-select.js and palette-compute.js (superseded by spectra.js) are standalone (CommonJS, not yet imported by the game) |
 
@@ -45,7 +45,8 @@ npm test -w games/overworld           vendor/wb-core.js current, then tools/chec
 npm run smoke -w games/overworld      tools/smoke.mjs: boots headless, plays, saves, reloads, resumes, checks seed determinism
 ```
 
-Add `?seed=<n>` to the URL for a reproducible world (the seed is logged at the start of a run). CI runs `npm test` and
+Add `?seed=<n>` to the URL for a reproducible world (the seed is logged at the start of a run). The title screen shows the
+world NEW GAME begins in: its real surface around the spawn, drawn by the game's own tile code with nobody looking. CI runs `npm test` and
 `smoke` on every pull request (the repository's `.github/workflows/check.yml`), and boots the build. The smoke test and
 `node tools/ecology.mjs` need Playwright: a cloud session has one (`require('playwright')` resolves); otherwise set
 `PLAYWRIGHT_MODULE` to its folder. They catch breakage, not design: the real check is playing it. For behaviour,
