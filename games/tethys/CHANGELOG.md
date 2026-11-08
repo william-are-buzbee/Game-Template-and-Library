@@ -6099,3 +6099,73 @@ Unseen, ask in this order:
 1. The soft-arm sprinting at the high tier on the 4060 (a turn, then shift, shows the ring best): does the closed ring read as held, not stiff?
 2. Shift released: the hold eases off with the pose (7/s) — does the ring trail naturally again as it opens?
 3. An arrow squid in a chase: its jet ring holds too.
+
+## v11.93.3 — the tests in minutes: the ecology's hunt without its lookups, the stub's scene as three's, the runs side by side (7 Nov 2026)
+
+`npm test -w games/tethys` (`node build.js --test`: 19 runs, one after another) took 18 minutes in CI and 19 on the sandbox, the slowest job of
+every CI run on main and of every Tethys pull request. The person asked for a few minutes without weakening what it checks: no fewer days,
+seeds or tiers, no looser thresholds, nothing skipped. Every slow run was profiled first (`node --cpu-prof`); three changes followed, and none
+moves what a test checks.
+
+1. **The ecology's hunt** (ecology.js `ecoModelGen`, `ecoReach`). census.js's 40 days and live.js's four are the paper model run 2,000 and
+   2,400 times over the world's 57,600 cells, and a step cost 73 ms — two thirds of it the hunt's innermost loop, where for every hunter's
+   cell, every cell of its reach and every prey kind it looked a table up by the kind's name (`ECO_B[p]`, twice) and destructured the reach's
+   `[di,dj,w]`. The prey's tables are gathered once an entry, in the prey list's order (a kind with no table never spawns and added 0), and
+   the reach is three flat arrays: the same additions in the same order, so the ledger is the same to the bit, at 26 ms a step. Checked: the
+   ledger's `n`, `ke`, `cd` and `ow` hashed after 100 steps from the census's start, identical; census.js's printout identical; live.js with
+   `Math.random` seeded (a preload; the live world draws from it), its 27 lines identical before and after. It is the game's model too: the
+   tick steps it a piece a frame (~2,000 pieces, 37 µs each before, 13 now; DESIGN, The ecology, Costs had the 256-cell world's numbers).
+2. **The stub's scene** (test/stub.js). horizon.js puts the sky into the scene when `sky.parent!==scene`; the stub's `add` never set `parent`,
+   so headless the sky went in again every frame — 975 times in one audio.js run, one per frame in every run — and the stub's `render`,
+   which walks the scene to give a shadow-casting light its map (v11.30), walked every copy every frame. Now `add` sets `parent` and takes the
+   object from its old parent and `remove` clears it, as three's do; `traverse` is three's loop; and `render` walks the scene only when one
+   of the lights wants a map (only a light has a shadow; `LIGHTS`). Checked with `Math.random` seeded: steer.js's 232 lines and snow.js's 88
+   identical before and after, but for snow's own measured cost.
+3. **Side by side** (build.js, build.py, in step). The four runs that time themselves and fail on it — physics.js (20 rigged creatures under
+   4 ms a frame), audio.js (`updateAudio` under 0.3 ms), snow.js (`updatePlankton` under 0.6 ms), sky.js (`cloudAt` under 20 µs) — go first,
+   one at a time with nothing else running (`ALONE`); then the other fifteen, `JOBS` at a time (default the cores, eight at most), longest
+   first (`SIDE`). Nothing else in a run reads the wall clock: the stub's `performance.now` moves only between frames (16.7 ms each), so
+   the streaming budgets and every other number come out the same on a busy machine. Each run gets a temp folder of its own (`TMPDIR`,
+   `TMP`, `TEMP`): every test writes its bundle into the OS's temp folder under one fixed name, and the two tiers of one test side by side
+   would overwrite each other's. A run's output prints whole when it ends, then a table of every run's time; `JOBS=1` is one at a time. Peak memory:
+   smoke.js 1.7 GB (1.45 low), the rest 0.1–0.9; all fifteen at once would peak near 9 GB, hence the eight.
+
+Times, seconds. CI is the pull request's tethys job against main's last run (run 34); the sandbox has 4 cores. "Before" per run is the
+first measurement, with other work on the spare cores part of the time (its sum 1136); a clean run of the whole on main was 1098.
+
+| run | before | after, one at a time (`JOBS=1`) | after, side by side |
+|---|---|---|---|
+| smoke.js | 200 | 156 | 203 |
+| TIER=low smoke.js | 109 | 103 | 135 |
+| live.js | 207 | 89 | 102 |
+| TIER=low live.js | 195 | 87 | 101 |
+| census.js 40 | 148 | 55 | 66 |
+| player.js | 58 | 56 | 72 |
+| TIER=low player.js | 41 | 41 | 54 |
+| snow.js (alone) | 47 | 38 | 37 |
+| steer.js | 42 | 25 | 35 |
+| TIER=low steer.js | 19 | 18 | 24 |
+| audio.js (alone) | 21 | 20 | 18 |
+| anim.js | 21 | 17 | 25 |
+| the other seven | 28 | 26 | 37 |
+| **the suite, sandbox** | **1098 (18.3 min)** | **734 (12.2 min)** | **275 (4.6 min)** |
+| **the suite, CI's test step** | **1080 (18 min)** | | **359 and 464 (6.0 and 7.7 min: the PR's two runs, the same code)** |
+
+Side by side, the floor is the four timed runs (~1 minute) and then smoke.js on the high tier (~3 minutes: six fresh boots and the finback's
+8,400-frame swim). CI's 4 processors behave like 2 cores: alone a run takes there what it takes here, side by side about 1.5 times as long
+(smoke.js 297 s, live.js 157), so CI is bound by the total, not by smoke.js. Green eleven times in all: five in a row here (`npm test` three
+times at 275–281 s, `python3 build.py --test` once at 279, `JOBS=1` once), four more here, and CI twice. anim.js's "soft-arm: nor by the jet"
+read 1.12–1.31 max in the nine here (under 2.0; v11.93.2 had 1.19–1.33).
+
+Not changed: what any test checks — its days, seeds, tiers, thresholds, frames; the game's behaviour (the ledger to the bit). Weighed and not built: the
+suite split across several CI jobs (`tethys-1`, `tethys-2`…, a `shards` list in package.json that tools/plan.ts turns into jobs) — the person's
+call, below; smoke.js split by pick into separate runs (its six boots are independent, but the CPU they cost is the same, so side by side it
+moves the floor, not the total).
+
+Found on the way, not touched: by hand, two copies of one test at once on one machine (two terminals, two sessions) still share their bundle
+file; scene.js's comment over the world's shadow map (line 485) calls `sunS` "never in the scene", and line 510 adds it.
+
+Unseen, ask in this order:
+1. Nothing to see in the game: the ecology's ledger is the same to the bit.
+2. Whether to split the suite across CI jobs as well: on 2 shards the test step would be about 4 minutes, on 3 about 3.5 (smoke.js alone is
+   the floor), for a `shards` list and new jobs in tools/plan.ts, tools/lib/jobs.ts and check.yml (docs/decisions.md 24).

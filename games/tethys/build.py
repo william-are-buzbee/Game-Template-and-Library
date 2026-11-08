@@ -2,7 +2,7 @@
 """Builds the game and the name index.
 
   python3 build.py          tethys.html (single file, everything inlined), dev.html (loads src/*.js separately), src/INDEX.md
-  python3 build.py --test   the same, then node test/lint.js, node test/physics.js, node test/anim.js, node test/steer.js, node test/audio.js, node test/snow.js, node test/sky.js, node test/plankton.js, node test/combat.js, node test/pool.js, node test/registry.js, node test/census.js 40, node test/player.js, node test/live.js and node test/smoke.js (player, live and smoke on both tiers); exit 1 on any failure
+  python3 build.py --test   the same, then node test/lint.js, node test/physics.js, node test/anim.js, node test/steer.js, node test/audio.js, node test/snow.js, node test/sky.js, node test/plankton.js, node test/combat.js, node test/pool.js, node test/registry.js, node test/census.js 40, node test/player.js, node test/live.js and node test/smoke.js (steer, player, live and smoke on both tiers): the four that time themselves first, alone, the rest side by side (JOBS at a time, default the cores); exit 1 on any failure
 
 Build order comes from src/order.txt. src/INDEX.md is generated: every top-level name, its file and line, and which other
 files use it. Do not edit INDEX.md by hand; it is rewritten on every build.
@@ -99,11 +99,29 @@ write('src/INDEX.md', '\n'.join(lines))
 print('built tethys.html, dev.html, src/INDEX.md (%d files, %d top-level names)' % (len(ORDER), len(home)))
 
 # ---------- tests ----------
+# v11.93.3: side by side, as build.js does (its comment has the why): the four runs that time themselves first, one at a time with nothing
+# else running; then the rest, JOBS at a time (default the cores, eight at most), longest first; each with a temp folder of its own, its output printed
+# whole when it ends, then a table of every run's time.
 if '--test' in sys.argv:
-    ok = True
-    for cmd, env in [(['node', 'test/lint.js'], {}), (['node', 'test/physics.js'], {}), (['node', 'test/anim.js'], {}), (['node', 'test/steer.js'], {}), (['node', 'test/steer.js'], {'TIER': 'low'}), (['node', 'test/audio.js'], {}), (['node', 'test/snow.js'], {}), (['node', 'test/sky.js'], {}), (['node', 'test/plankton.js'], {}), (['node', 'test/combat.js'], {}), (['node', 'test/pool.js'], {}), (['node', 'test/registry.js'], {}), (['node', 'test/player.js'], {}), (['node', 'test/player.js'], {'TIER': 'low'}), (['node', 'test/census.js', '40'], {}), (['node', 'test/live.js'], {}), (['node', 'test/live.js'], {'TIER': 'low'}), (['node', 'test/smoke.js'], {}), (['node', 'test/smoke.js'], {'TIER': 'low'})]:
-        print('\n$ ' + ' '.join(('%s=%s ' % kv for kv in env.items())) + ' '.join(cmd))
-        r = subprocess.run(cmd, cwd=ROOT, env={**os.environ, **env})
-        ok = ok and r.returncode == 0
-    print('\nALL OK' if ok else '\nFAILED')
-    sys.exit(0 if ok else 1)
+    import shutil, tempfile, threading, time
+    from concurrent.futures import ThreadPoolExecutor
+    ALONE = [(['test/physics.js'], {}), (['test/audio.js'], {}), (['test/snow.js'], {}), (['test/sky.js'], {})]
+    SIDE = [(['test/smoke.js'], {}), (['test/smoke.js'], {'TIER': 'low'}), (['test/live.js'], {}), (['test/live.js'], {'TIER': 'low'}), (['test/player.js'], {}), (['test/census.js', '40'], {}), (['test/player.js'], {'TIER': 'low'}), (['test/steer.js'], {}), (['test/anim.js'], {}), (['test/steer.js'], {'TIER': 'low'}), (['test/combat.js'], {}), (['test/registry.js'], {}), (['test/pool.js'], {}), (['test/plankton.js'], {}), (['test/lint.js'], {})]
+    JOBS = max(1, int(os.environ.get('JOBS') or 0) or min(8, os.cpu_count() or 1))  # eight at most by default, as build.js
+    T0, res, lock = time.time(), [], threading.Lock()
+    def name(r): return ''.join('%s=%s ' % kv for kv in r[1].items()) + 'node ' + ' '.join(r[0])
+    def run(r):
+        tmp, t0 = tempfile.mkdtemp(prefix='tethys-test-'), time.time()
+        p = subprocess.run(['node'] + r[0], cwd=ROOT, env={**os.environ, **r[1], 'TMPDIR': tmp, 'TMP': tmp, 'TEMP': tmp}, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        s = time.time() - t0
+        shutil.rmtree(tmp, ignore_errors=True)
+        with lock:
+            sys.stdout.write('\n$ %s\n%s%s(%.0f s)\n' % (name(r), p.stdout.decode('utf-8', 'replace'), '' if p.returncode == 0 else 'exit %d\n' % p.returncode, s)); sys.stdout.flush()
+            res.append((name(r), p.returncode == 0, s))
+    print('\n%d test runs: %d that time themselves first, one at a time; then %d, %d at a time' % (len(ALONE) + len(SIDE), len(ALONE), len(SIDE), JOBS)); sys.stdout.flush()
+    for r in ALONE: run(r)
+    with ThreadPoolExecutor(min(JOBS, len(SIDE))) as ex: list(ex.map(run, SIDE))
+    bad = [r for r in res if not r[1]]
+    print('\n' + '\n'.join('%s%5.0f s  %s' % ('ok    ' if ok else 'FAILED', s, n) for n, ok, s in res))
+    print('%s (%.0f s, %d at a time)' % ('\nFAILED: ' + ', '.join(r[0] for r in bad) if bad else '\nALL OK', time.time() - T0, JOBS))
+    sys.exit(1 if bad else 0)

@@ -2,12 +2,12 @@
 // build.js — the build in Node (a port of build.py, so one runtime builds and tests; the outputs are byte-identical).
 //
 //   node build.js          tethys.html (single file, everything inlined), dev.html (loads src/*.js separately), src/INDEX.md
-//   node build.js --test   the same, then node test/lint.js, node test/physics.js, node test/anim.js, node test/steer.js, node test/audio.js, node test/snow.js, node test/sky.js, node test/plankton.js, node test/combat.js, node test/pool.js, node test/registry.js, node test/census.js 40, node test/player.js, node test/live.js and node test/smoke.js (player, live and smoke on both tiers); exit 1 on any failure
+//   node build.js --test   the same, then node test/lint.js, node test/physics.js, node test/anim.js, node test/steer.js, node test/audio.js, node test/snow.js, node test/sky.js, node test/plankton.js, node test/combat.js, node test/pool.js, node test/registry.js, node test/census.js 40, node test/player.js, node test/live.js and node test/smoke.js (steer, player, live and smoke on both tiers): the four that time themselves first, alone, the rest side by side (JOBS at a time, default the cores); exit 1 on any failure
 //
 // Build order comes from src/order.txt. src/INDEX.md is generated: every top-level name, its file and line. Do not edit
 // INDEX.md by hand; it is rewritten on every build. build.py is kept for the sandbox sessions; keep the two in step.
 'use strict';
-const fs=require('fs'),path=require('path'),{spawnSync}=require('child_process');
+const fs=require('fs'),path=require('path');
 const ROOT=__dirname;
 const THREE='<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>\n';
 const read=p=>fs.readFileSync(path.join(ROOT,p),'utf8');
@@ -79,14 +79,30 @@ write('src/INDEX.md',lines.join('\n'));
 console.log('built tethys.html, dev.html, src/INDEX.md ('+ORDER.length+' files, '+Object.keys(home).length+' top-level names)');
 
 // ---------- tests ----------
+// v11.93.3: side by side. The four runs that time themselves and fail on it (physics.js: 20 rigged creatures under 4 ms a frame; audio.js:
+// updateAudio under 0.3 ms; snow.js: updatePlankton under 0.6 ms; sky.js: cloudAt under 20 µs) go first, one at a time with nothing else
+// running; then the rest, JOBS at a time (default: the machine's cores, eight at most), longest first. Nothing else in a run reads the wall clock (the
+// stub's performance.now is the frames'), so sharing the machine changes no other result. Each run gets a temp folder of its own (TMPDIR,
+// TMP, TEMP): every test writes its bundle into the OS's temp folder under one fixed name, and two tiers of one test side by side would
+// overwrite each other's. A run's output is printed whole when it ends, then a table of every run's time. JOBS=1 is one at a time.
 if(process.argv.includes('--test')){
-  let ok=true;
-  const runs=[[['test/lint.js'],{}],[['test/physics.js'],{}],[['test/anim.js'],{}],[['test/steer.js'],{}],[['test/steer.js'],{TIER:'low'}],[['test/audio.js'],{}],[['test/snow.js'],{}],[['test/sky.js'],{}],[['test/plankton.js'],{}],[['test/combat.js'],{}],[['test/pool.js'],{}],[['test/registry.js'],{}],[['test/player.js'],{}],[['test/player.js'],{TIER:'low'}],[['test/census.js','40'],{}],[['test/live.js'],{}],[['test/live.js'],{TIER:'low'}],[['test/smoke.js'],{}],[['test/smoke.js'],{TIER:'low'}]];
-  for(const [args,env] of runs){
-    console.log('\n$ '+Object.entries(env).map(([k,v])=>k+'='+v+' ').join('')+'node '+args.join(' '));
-    const r=spawnSync(process.execPath,args,{cwd:ROOT,stdio:'inherit',env:Object.assign({},process.env,env)});
-    ok=ok&&r.status===0;
-  }
-  console.log(ok?'\nALL OK':'\nFAILED');
-  process.exit(ok?0:1);
+  const os=require('os'),{spawn}=require('child_process');
+  const ALONE=[[['test/physics.js'],{}],[['test/audio.js'],{}],[['test/snow.js'],{}],[['test/sky.js'],{}]];
+  const SIDE=[[['test/smoke.js'],{}],[['test/smoke.js'],{TIER:'low'}],[['test/live.js'],{}],[['test/live.js'],{TIER:'low'}],[['test/player.js'],{}],[['test/census.js','40'],{}],[['test/player.js'],{TIER:'low'}],[['test/steer.js'],{}],[['test/anim.js'],{}],[['test/steer.js'],{TIER:'low'}],[['test/combat.js'],{}],[['test/registry.js'],{}],[['test/pool.js'],{}],[['test/plankton.js'],{}],[['test/lint.js'],{}]]; // longest first (their times on a sandbox CPU, v11.93.3)
+  const JOBS=Math.max(1,+process.env.JOBS||Math.min(8,os.availableParallelism())),T0=Date.now(),res=[]; // eight at most by default: smoke.js alone (~3 min) is the floor past five or six, and all fifteen at once peak near 9 GB
+  const name=([args,env])=>Object.entries(env).map(([k,v])=>k+'='+v+' ').join('')+'node '+args.join(' ');
+  const run=r=>new Promise(done=>{const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'tethys-test-')),t0=Date.now(),out=[];let end=false;
+    const fin=(code,err)=>{if(end)return;end=true;const s=(Date.now()-t0)/1000;fs.rmSync(tmp,{recursive:true,force:true});if(err)out.push(Buffer.from(String(err)+'\n'));
+      process.stdout.write('\n$ '+name(r)+'\n'+Buffer.concat(out).toString()+(code===0?'':'exit '+code+'\n')+'('+s.toFixed(0)+' s)\n');res.push([name(r),code===0,s]);done();};
+    const p=spawn(process.execPath,r[0],{cwd:ROOT,env:Object.assign({},process.env,r[1],{TMPDIR:tmp,TMP:tmp,TEMP:tmp})});
+    p.stdout.on('data',d=>out.push(d));p.stderr.on('data',d=>out.push(d));p.on('error',e=>fin(-1,e));p.on('close',(code,sig)=>fin(code===null?sig:code));});
+  (async()=>{
+    console.log('\n'+(ALONE.length+SIDE.length)+' test runs: '+ALONE.length+' that time themselves first, one at a time; then '+SIDE.length+', '+JOBS+' at a time');
+    for(const r of ALONE)await run(r);
+    const q=SIDE.slice();await Promise.all(Array.from({length:Math.min(JOBS,q.length)},async()=>{while(q.length)await run(q.shift());}));
+    const bad=res.filter(r=>!r[1]);
+    console.log('\n'+res.map(([n,ok,s])=>(ok?'ok    ':'FAILED')+s.toFixed(0).padStart(5)+' s  '+n).join('\n'));
+    console.log((bad.length?'\nFAILED: '+bad.map(r=>r[0]).join(', '):'\nALL OK')+' ('+((Date.now()-T0)/1000).toFixed(0)+' s, '+JOBS+' at a time)');
+    process.exitCode=bad.length?1:0; // not process.exit: on Windows a piped stdout is written asynchronously, and exit would cut it
+  })();
 }
