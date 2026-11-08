@@ -10,12 +10,9 @@
     "test": "node tools/smoke.mjs"
   },
   "card": {
+    "query": "?card",
     "scale": 2,
-    "click": [
-      "#genBtn"
-    ],
-    "ready": "#statusText:has-text(\"Generated\")",
-    "element": "#planetCanvas",
+    "ready": "body[data-card=ready]",
     "wait": 500
   }
 }

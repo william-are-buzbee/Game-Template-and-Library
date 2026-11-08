@@ -52,6 +52,12 @@ npm test -w labs/planet-viewer        tools/smoke.mjs: planet → hi-res ×2 →
 that the check is looking at it: `npm run build -w labs/planet-viewer && npm run look -- labs/planet-viewer` boots the build
 and screenshots it; the person's own check is the pull request's preview, `…/preview/<number>/labs/planet-viewer/`.
 
+The site's index pictures the lab as the globe (8 Nov 2026, the person: "the 3d planet rather than the static square"),
+not the flat map. `?card` (main.js `showCard`) is that picture: it generates the default seed by itself and shows the
+globe alone, filling the window, still, without the HUD, turned (`landFacingRotY`) to face the most land, then marks
+`<body data-card="ready">`, which the `card` in `package.json` waits for. `npm run look -- labs/planet-viewer --query "?card"
+--wait 15000` shows it.
+
 ## Delivering a change
 
 The root `CLAUDE.md` is the rulebook: a fresh `claude/…` branch per change, a pull request into `main`, never a push to

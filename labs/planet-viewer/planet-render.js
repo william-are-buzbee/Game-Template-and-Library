@@ -490,8 +490,40 @@ function renderGlobe() {
   }
 
   globeCtx.putImageData(globeImageData, 0, 0);
-  drawOrientationHUD(globeCtx, gw);
+  if (!state.card) drawOrientationHUD(globeCtx, gw);
   drawSelectionMarker();
+}
+
+// The spin (state.rotY) that turns the most land toward the viewer at the current tilt (state.rotX): the land's area
+// as seen, each cell weighted by its area and by how squarely it faces the eye. For ?card (main.js): the world is an
+// archipelago, and an arbitrary side of it is mostly sea.
+function landFacingRotY(steps = 360) {
+  const P = state.cells;
+  if (!P) return state.rotY;
+  // land cells as unit vectors in renderGlobe's planet frame (x3d, y3d, z3d2 for a cell's lat/lon), times cos(lat)
+  const xs = [], ys = [], zs = [];
+  for (let j = 0; j < H; j++) {
+    const lat = (1 - 2 * (j + 0.5) / H) * Math.PI / 2, cl = Math.cos(lat);
+    for (let i = 0; i < W; i++) {
+      if (!P.isLand[j * W + i]) continue;
+      const lon = (i + 0.5) / W * 2 * Math.PI - Math.PI;
+      xs.push(cl * cl * Math.sin(lon)); ys.push(-cl * Math.sin(lat)); zs.push(cl * cl * Math.cos(lon));
+    }
+  }
+  const sinX = Math.sin(state.rotX), cosX = Math.cos(state.rotX);
+  let best = state.rotY, bestScore = -1;
+  for (let s = 0; s < steps; s++) {
+    const rotY = s / steps * 2 * Math.PI - Math.PI;
+    // the point at the globe's centre, in the planet frame (renderGlobe with sx = sy = 0, sz = 1)
+    const vx = Math.sin(rotY), vy = -Math.cos(rotY) * sinX, vz = Math.cos(rotY) * cosX;
+    let score = 0;
+    for (let k = 0; k < xs.length; k++) {
+      const d = xs[k] * vx + ys[k] * vy + zs[k] * vz;
+      if (d > 0) score += d;
+    }
+    if (score > bestScore) { bestScore = score; best = rotY; }
+  }
+  return best;
 }
 
 function drawOrientationHUD(ctx, canvasW) {
@@ -637,7 +669,7 @@ function drawSelectionMarker() {
 }
 
 export {
-  render, renderGlobe, renderMollweide,
+  render, renderGlobe, renderMollweide, landFacingRotY,
   drawSelectionMarker, drawStreamlines,
   overlays,
   mollweideProject, mollweidePixelToCell, globePixelToCell, globeCellToPixel

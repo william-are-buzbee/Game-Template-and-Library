@@ -106,6 +106,9 @@ export const state = {
     sstFloor: 0.50,
   },
 
+  // ?card: the page is the site's picture of it, the globe alone (main.js showCard); renderGlobe leaves off the HUD
+  card: false,
+
   // Globe state
   rotX: 0.15,
   rotY: 0,

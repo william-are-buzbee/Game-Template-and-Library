@@ -113,7 +113,7 @@ which found four repositories sharing no code, copying it instead (the same rand
     30 s for each of the two; `tools/look.ts` does the same, so the boot check's screenshots of them work too. So the
     per-game settings are about what the picture shows, not whether one can be taken: Rootshock's asks for
     `?shot=lobby` (its title shows the lobby or the cargo bay at random), Planet-Viewer's presses Generate and pictures
-    the map. When the pictures fail the site is still published, each card showing its name.
+    the map (since 8 Nov 2026 the globe, through its `?card`: the person asked for "the 3d planet"). When the pictures fail the site is still published, each card showing its name.
 22. **The site's index is a dark gallery** (7 Nov 2026, the person: "I'd go with the dark gallery, though it does look
     like it could use some love. I'd have it run as a dark page by default"). Three designs were built from the real
     games and compared on pull request 14's preview: a field journal, a quiet dark gallery, and a newspaper front page
