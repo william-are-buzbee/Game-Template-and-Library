@@ -604,7 +604,7 @@ function checkRegionPendingTarget(completedCx, completedCy) {
 // ══════════════════════════════════════════════════════════════════
 // ── initUI — Wire up all event listeners ──
 // ══════════════════════════════════════════════════════════════════
-export { clearRegionCache };
+export { clearRegionCache, setView };
 
 export function initUI(runGeneration) {
 

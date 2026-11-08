@@ -8,8 +8,8 @@ export { state };
 // ── Imports ──
 import { generatePlanet } from './planet-gen.js';
 import { generateHighResSurface, yieldFrame, updateProgress, hideProgress } from './hires-gen.js';
-import { render, renderGlobe, renderMollweide } from './planet-render.js';
-import { initUI, clearRegionCache } from './ui.js';
+import { render, renderGlobe, renderMollweide, landFacingRotY, globeCanvas } from './planet-render.js';
+import { initUI, clearRegionCache, setView } from './ui.js';
 import { initPlanetRender } from './planet-render.js';
 import { initRegionalRender } from './regional-render.js';
 
@@ -125,7 +125,26 @@ async function runGeneration() {
   }
 }
 
+// ── ?card: the picture of the lab on the site's index (package.json "card", the repository's tools/cards.ts) ──
+//    The globe alone, filling the window at its pixel density, still, turned to the most land, without the HUD or
+//    the page around it. It generates the default seed by itself and marks <body data-card="ready"> once drawn.
+async function showCard() {
+  state.card = true;
+  document.body.append(globeCanvas);
+  document.body.classList.add('card');
+  globeCanvas.width = Math.round(innerWidth * devicePixelRatio);
+  globeCanvas.height = Math.round(innerHeight * devicePixelRatio);
+  setView('globe');
+  state.autoSpin = false;
+  await runGeneration();
+  if (!state.cells) return;
+  state.rotY = landFacingRotY();
+  renderGlobe();
+  document.body.dataset.card = 'ready';
+}
+
 // ── Initialize ──
 initPlanetRender();
 initRegionalRender();
 initUI(runGeneration);
+if (new URLSearchParams(location.search).has('card')) showCard();
