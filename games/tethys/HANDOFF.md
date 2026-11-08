@@ -3,7 +3,7 @@
 **v11.93.4 (8 Nov 2026): the suite in three CI jobs.** The person, on v11.93.3's question: split it if it works without a
 headache. package.json `"shards": 3`: CI runs the tests as `tethys-1`…`tethys-3` (each `npm test` with `SHARD=k/3`) and builds and boots
 in `tethys`; build.js and build.py deal the runs to the parts by the seconds beside each. A new run gets its seconds in both lists.
-Locally nothing changes: without `SHARD` it is the whole suite side by side.
+Locally nothing changes: without `SHARD` it is the whole suite side by side. In CI the longest of the four jobs took 3 min 11 s (7–9 as one).
 
 **v11.93.3 (7 Nov 2026): the tests in minutes.** `node build.js --test` was 19 runs one after another, 19 minutes here and 18 in CI. Three
 changes, none to what a test checks: the ecology's hunt without its by-name lookups (ecology.js `ecoModelGen`, the ledger the same to the bit;

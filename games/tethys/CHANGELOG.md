@@ -6184,15 +6184,18 @@ think splitting it would work, and improve performance without causing a huge he
   first and alone, then the rest side by side, as the whole suite does. Without `SHARD` nothing changes. A malformed `SHARD` fails.
   The two builds deal the same parts: checked with stand-in tests for 1 to 4 parts, every run in exactly one part each time.
 
-The three parts (n = 3), and their times on the sandbox, one part after another as three machines would run them:
+The three parts (n = 3), and their times: on the sandbox one part after another, as three machines would run them, and the test step
+of each job in the pull request's CI:
 
-| part | runs | sandbox |
-|---|---|---|
-| 1 | smoke.js, census.js 40, audio.js (alone), combat.js, pool.js | 183 s |
-| 2 | TIER=low smoke.js, player.js on both tiers, steer.js, anim.js, plankton.js | 122 s |
-| 3 | live.js on both tiers, snow.js, physics.js and sky.js (alone), TIER=low steer.js, registry.js, lint.js | 139 s |
+| part | runs | sandbox | CI |
+|---|---|---|---|
+| 1 | smoke.js, census.js 40, audio.js (alone), combat.js, pool.js | 183 s | 114 s |
+| 2 | TIER=low smoke.js, player.js on both tiers, steer.js, anim.js, plankton.js | 122 s | 182 s |
+| 3 | live.js on both tiers, snow.js, physics.js and sky.js (alone), TIER=low steer.js, registry.js, lint.js | 139 s | 136 s |
 
-smoke.js on the high tier is the floor (~2.7 minutes of six boots and a long swim), so a fourth part buys nothing. CI's times are in
-the pull request.
+`tethys` (build and boot) took 64 s. The longest Tethys job was 3 min 11 s (the whole check 3 min 38 s, Rootshock's job the last to end)
+against 7–9 before and 19 one after another. The parts weigh differently there than here (part 2's four runs side by side on 2 cores,
+part 1's smoke.js on a fast runner), so the weights are a sandbox's, good to a minute. smoke.js on the high tier is the floor (~2.7
+minutes on the sandbox: six boots and a long swim), so a fourth part buys little.
 
 Not changed: any test, its order within a part (alone first, then longest first), the whole suite locally. Unseen: nothing in the game.
