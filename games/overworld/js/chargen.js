@@ -13,6 +13,22 @@ import { updatePlayerFOV } from './fov.js';
 // Species keys in display order
 const SPECIES_ORDER = ['prowler', 'ravager', 'grazer', 'shaleback', 'lurker'];
 
+// ==================== THE NEXT WORLD ====================
+// The seed the next NEW GAME begins in. It is drawn when first asked for (the
+// title screen asks, to show that world) and kept until a game begins in it,
+// so the world on the title is the world you wake in. ?seed=<n> in the URL
+// replays a world; otherwise one fresh draw of entropy. This is the only
+// Math.random in the game — every other roll goes through the seeded rng so a
+// seed reproduces a run.
+let _nextSeed = null;
+function nextWorldSeed(){
+  if (_nextSeed === null) {
+    const urlSeed = parseInt(new URLSearchParams(window.location.search).get('seed'), 10);
+    _nextSeed = Number.isFinite(urlSeed) ? (urlSeed >>> 0) : Math.floor(Math.random() * 0xffffffff);
+  }
+  return _nextSeed;
+}
+
 function openCharGen(){
   document.getElementById('species-screen').style.display = 'flex';
   state.selectedSpecies = null;
@@ -97,11 +113,10 @@ function beginGame(){
   //    `fed` (turn-loop.js) until the player's body joins the gut model ──
   state.player.hormones = { alarm: 0, hunger: 0, fatigue: 0 };
 
-  // World seed: ?seed=<n> in the URL replays a world; otherwise one fresh
-  // draw of entropy. This is the only Math.random in the game — every other
-  // roll goes through the seeded rng so a seed reproduces a run.
-  const urlSeed = parseInt(new URLSearchParams(window.location.search).get('seed'), 10);
-  const seed = Number.isFinite(urlSeed) ? (urlSeed >>> 0) : Math.floor(Math.random() * 0xffffffff);
+  // World seed: the one the title screen showed (nextWorldSeed above); the
+  // run after this one gets a fresh draw.
+  const seed = nextWorldSeed();
+  _nextSeed = null;
   state.worldSeed = seed;
   initWorld(seed);
   document.getElementById('species-screen').style.display = 'none';
@@ -146,4 +161,4 @@ function onPlayerDeath(){
   state.gameState = 'death';
 }
 
-export { openCharGen, beginGame, onPlayerDeath, speciesKeyNav };
+export { openCharGen, beginGame, onPlayerDeath, speciesKeyNav, nextWorldSeed };

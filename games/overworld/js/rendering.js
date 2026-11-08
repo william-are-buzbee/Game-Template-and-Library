@@ -241,8 +241,6 @@ function render(){
   const TILE = tileSize();
   const VW = viewW();
   const VH = viewH();
-  const S = TILE / 32;
-  const currentZoom = zoom();
 
   ctx.fillStyle = '#000';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -250,7 +248,6 @@ function render(){
   const ox = state.player.x - (VW >> 1);
   const oy = state.player.y - (VH >> 1);
   const layer = state.player.layer;
-  const coverGrid = covers[layer];
 
   // FOV visibility — when fovSet is null (first frame before any action),
   // treat all tiles as visible for backward compatibility.
@@ -285,259 +282,8 @@ function render(){
         continue;
       }
 
-      const ground = worlds[layer][wy][wx];
-      const cover = coverGrid ? coverGrid[wy][wx] : 0;
-
-      // VOID tiles: pure black, skip everything else
-      if (ground === T.VOID){
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(px, py, TILE, TILE);
-        continue;
-      }
-      // CAVE_ROCK tiles: dark warm wall, visible to native eyes
-      if (ground === T.CAVE_ROCK){
-        ctx.fillStyle = '#181816';
-        ctx.fillRect(px, py, TILE, TILE);
-        const rockHash = ((wx * 7919 + wy * 6271 + 1013) >>> 0) % 256;
-        if (rockHash < 40){
-          ctx.fillStyle = rockHash < 20 ? '#242220' : '#141412';
-          const rx = (rockHash * 3) % 20 + 4, ry = (rockHash * 7) % 20 + 4;
-          ctx.save();
-          ctx.translate(px, py);
-          ctx.scale(S, S);
-          ctx.fillRect(rx, ry, 4, 3);
-          ctx.restore();
-        }
-        continue;
-      }
-
-      const tileHash = ((wx * 7919 + wy * 6271 + 1013) >>> 0) % 256;
-
-      // ---- Draw GROUND ----
-      const groundInfo = terrainInfo(ground);
-      const rotVariant = tileHash % 4;
-
-      // Cave wall uses variant sprites for tiling variety
-      let groundSpriteName = groundInfo.sprite;
-      if (ground === T.CAVE_WALL){
-        if (!textureConfig.CAVE_WALL) {
-          // Default: hash-based variant mix
-          const wallVar = ((wx * 3571 + wy * 2909) >>> 0) % 3;
-          groundSpriteName = wallVar === 1 ? 'CAVE_WALL_V2' : wallVar === 2 ? 'CAVE_WALL_V3' : 'CAVE_WALL';
-        }
-        // else: textureConfig override — groundSpriteName stays 'CAVE_WALL',
-        // getActiveSprite will return the selected variant via buildTintedTerrain
-      }
-      // Rock surface uses variant sprites for tiling variety
-      if (ground === T.ROCK){
-        if (!textureConfig.ROCK) {
-          // Default: hash-based variant mix
-          const rockVar = ((wx * 3571 + wy * 2909) >>> 0) % 3;
-          groundSpriteName = rockVar === 1 ? 'ROCK_V2' : rockVar === 2 ? 'ROCK_V3' : 'ROCK';
-        }
-        // else: textureConfig override — groundSpriteName stays 'ROCK',
-        // getActiveSprite will return the selected variant via buildTintedTerrain
-      }
-
-      if (!cover && (ground === T.GRASS || ground === T.SAND || ground === T.CAVE_FLOOR || ground === T.CAVE_WALL || ground === T.ROCK) && rotVariant > 0){
-        ctx.save();
-        ctx.translate(px + TILE/2, py + TILE/2);
-        ctx.rotate(rotVariant * Math.PI/2);
-        ctx.drawImage(getTinted(groundSpriteName, groundInfo.palette), -TILE/2, -TILE/2, TILE, TILE);
-        ctx.restore();
-      } else {
-        ctx.drawImage(getTinted(groundSpriteName, groundInfo.palette), px, py, TILE, TILE);
-      }
-
-      // ---- Ground decorations (skip at ×1 for performance/clarity) ----
-      // Decorations are left off under a drawn sprite: a creature the player
-      // perceives here, or the player. (It used to be any creature standing
-      // here, perceived or not, so a hidden animal showed as a bare tile.)
-      if (currentZoom >= 2 && !cover && !_perceivedMonAt(wx,wy) && !(wx===state.player.x && wy===state.player.y)){
-        const decor = tileHash;
-        ctx.save();
-        ctx.translate(px, py);
-        ctx.scale(S, S);
-
-        
-        if (ground === T.SAND && decor < 12){
-          if (decor < 6){
-            // scattered pale pebbles on gray depleted ground
-            ctx.fillStyle = '#605e5c';
-            ctx.fillRect((decor*4)%24+4, (decor*7)%24+4, 3, 2);
-          } else {
-            // desiccated scrub stub — gray-brown, no green
-            ctx.fillStyle = '#524e48';
-            const cx2 = (decor*3)%22+5;
-            ctx.fillRect(cx2, 16, 2, 8);
-            ctx.fillRect(cx2-2, 19, 2, 1);
-            ctx.fillRect(cx2+2, 21, 2, 1);
-          }
-        }
-        if (ground === T.ROCK && decor < 30){
-          if (decor < 12){
-            // small pebble cluster — warm earthy
-            ctx.fillStyle = decor < 6 ? '#524a42' : '#463e32';
-            const sx = (decor*4)%20+4, sy = (decor*6)%18+6;
-            ctx.fillRect(sx, sy, 3, 2);
-            ctx.fillRect(sx+1, sy+2, 2, 1);
-          } else if (decor < 20){
-            // scattered rock chips — dark ochre
-            ctx.fillStyle = '#605840';
-            const sx = (decor*3)%18+5, sy = (decor*5)%16+8;
-            ctx.fillRect(sx, sy, 2, 1);
-            ctx.fillRect(sx+6, sy+3, 2, 1);
-            ctx.fillRect(sx+3, sy+7, 1, 1);
-          } else {
-            // hairline crack across rock surface
-            ctx.fillStyle = 'rgba(30,24,14,0.35)';
-            const cy2 = (decor*3)%12+10;
-            ctx.fillRect(4, cy2, 7, 1);
-            ctx.fillRect(11, cy2-1, 5, 1);
-            ctx.fillRect(16, cy2, 8, 1);
-          }
-        }
-        if (ground === T.BEACH && decor < 30){
-          if (decor < 8){
-            // mineral-stained pebbles — warm ochre
-            ctx.fillStyle = '#988258';
-            const sx = (decor*5)%22+5, sy = (decor*7)%18+8;
-            ctx.fillRect(sx, sy, 2, 1);
-            ctx.fillRect(sx+1, sy+1, 1, 1);
-          } else if (decor < 16){
-            // tide-line mineral deposits
-            ctx.fillStyle = 'rgba(72,56,28,0.35)';
-            const ry = (decor*3)%16+10;
-            for (let i=0;i<5;i++){
-              const rx = 4 + i*5 + ((decor+i)%3);
-              ctx.fillRect(rx, ry, 3, 1);
-            }
-          } else if (decor < 22){
-            // amber foam line
-            ctx.fillStyle = 'rgba(170,148,90,0.22)';
-            const fy = (decor*4)%12+16;
-            ctx.fillRect(3, fy, 18, 1);
-            ctx.fillRect(6, fy+1, 12, 1);
-          } else {
-            // dark driftwood — deep brown
-            ctx.fillStyle = '#544428';
-            const dwx = (decor*3)%20+4, dwy = (decor*5)%16+10;
-            ctx.fillRect(dwx, dwy, 6, 2);
-            ctx.fillRect(dwx+1, dwy-1, 1, 1);
-          }
-        }
-        if (ground === T.CAVE_FLOOR && decor < 10){
-          ctx.fillStyle = '#302a22';
-          ctx.fillRect((decor*4)%26+3, (decor*6)%20+6, 2, 3);
-        }
-        if (ground === T.FUNGAL_GRASS && decor < 18){
-          if (decor < 9){
-            // manganese mineral flecks — violet
-            ctx.fillStyle = '#3e3456';
-            const dx2 = (decor*4)%22+4, dy2 = (decor*6)%18+6;
-            ctx.fillRect(dx2, dy2, 3, 2);
-          } else {
-            // tiny chemotrophic spire stub — clear purple
-            ctx.fillStyle = '#5c4c6e';
-            const dx2 = (decor*3)%20+6;
-            ctx.fillRect(dx2, 14, 1, 4);
-            ctx.fillRect(dx2+1, 13, 1, 1);
-          }
-        }
-        if (ground === T.MUD && decor < 15){
-          // amber-brown organic puddle
-          ctx.fillStyle = 'rgba(46,36,14,0.4)';
-          const mx = (decor*4)%20+4, my = (decor*6)%16+8;
-          ctx.fillRect(mx, my, 5, 3);
-        }
-        if (ground === T.DIRT && decor < 15){
-          ctx.fillStyle = decor < 8 ? '#4a3a1e' : '#382c12';
-          const dx2 = (decor*3)%22+4, dy2 = (decor*7)%20+6;
-          ctx.fillRect(dx2, dy2, 3, 2);
-        }
-
-        ctx.restore();
-      }
-
-      // ---- Cover decorations (drawn on ground, before cover sprite) ----
-      // Forest and mushforest decorations when they are cover
-      if (cover && !_perceivedMonAt(wx,wy) && !(wx===state.player.x && wy===state.player.y)){
-        const decor = tileHash;
-        ctx.save();
-        ctx.translate(px, py);
-        ctx.scale(S, S);
-
-        if (cover === T.FOREST && decor < 15){
-          // photosynthetic mat debris at tree base — visible deep maroon
-          ctx.fillStyle = '#361c14';
-          const dx2 = (decor*3)%20+4, dy2 = (decor*5)%10+18;
-          ctx.fillRect(dx2, dy2, 5, 3);
-          ctx.fillRect(dx2+1, dy2-1, 3, 1);
-        }
-        if (cover === T.MUSHFOREST && decor < 20){
-          if (decor < 10){
-            // chemotrophic colony mat fragment — visible violet
-            ctx.fillStyle = '#583c68';
-            const dx2 = (decor*3)%20+4, dy2 = (decor*5)%14+14;
-            ctx.fillRect(dx2, dy2, 3, 2);
-            ctx.fillRect(dx2+1, dy2-1, 1, 1);
-          } else {
-            // fruiting spire base — clear purple-brown
-            ctx.fillStyle = '#7e5e68';
-            const dx2 = (decor*4)%22+3;
-            ctx.fillRect(dx2, 20, 2, 4);
-            ctx.fillRect(dx2-1, 19, 4, 1);
-          }
-        }
-
-        ctx.restore();
-      }
-
-      // ---- Draw COVER (overlay) ----
-      if (cover){
-        const coverInfo = terrainInfo(cover);
-        ctx.drawImage(getTinted(coverInfo.sprite, coverInfo.palette), px, py, TILE, TILE);
-      }
-
-      // ---- Draw GROUND ITEM indicator ----
-      // Rendered after cover but before entities so items sit on top of trees/mushrooms.
-      // Priority: corpse > other.
-      // Draws the highest-priority item's visual; others just get the gold dot.
-      const giLayer = groundItems[layer];
-      if (giLayer) {
-        const giStack = giLayer[tileKey];
-        if (giStack && giStack.length > 0) {
-          const topItem = groundItemPriority(giStack);
-          if (topItem && topItem.kind === 'corpse' && getSprite('CORPSE')) {
-            // Draw corpse sprite at half-opacity so it's visible but subdued
-            ctx.save();
-            ctx.globalAlpha = 0.7;
-            ctx.drawImage(getSprite('CORPSE'), px, py, TILE, TILE);
-            ctx.restore();
-          } else {
-            // Default gold dot for non-corpse items
-            ctx.save();
-            ctx.translate(px, py);
-            ctx.scale(S, S);
-            ctx.fillStyle = 'rgba(0,0,0,0.5)';
-            ctx.fillRect(2, 25, 6, 6);
-            ctx.fillStyle = '#d4a840';
-            ctx.fillRect(3, 26, 4, 4);
-            ctx.restore();
-          }
-          // If multiple items, also draw the gold dot on corpse tiles as a stack hint
-          if (giStack.length > 1 && topItem && topItem.kind === 'corpse') {
-            ctx.save();
-            ctx.translate(px, py);
-            ctx.scale(S, S);
-            ctx.fillStyle = 'rgba(0,0,0,0.5)';
-            ctx.fillRect(2, 25, 6, 6);
-            ctx.fillStyle = '#d4a840';
-            ctx.fillRect(3, 26, 4, 4);
-            ctx.restore();
-          }
-        }
-      }
+      const occupied = !!_perceivedMonAt(wx, wy) || (wx === state.player.x && wy === state.player.y);
+      if (!drawTile(layer, wx, wy, px, py, TILE, occupied)) continue;
 
       // ---- FOV: three visual tiers ----
       // Binocular (visible): full brightness, full entity detail.
@@ -628,6 +374,302 @@ function render(){
 
   canvas.classList.toggle('stealth', state.player.stealth);
   updateUI();
+}
+
+/**
+ * One tile of the world as it is: its ground, the ground's and the cover's
+ * decorations, the cover, and any ground items. Nobody's senses come into it:
+ * render() lays the player's percepts over it, the title screen draws it as
+ * it is (renderScene). `occupied` leaves the decorations off, for a tile a
+ * sprite is drawn on. Returns false for a tile that is only a fill (void,
+ * cave rock), which nothing is drawn over.
+ */
+function drawTile(layer, wx, wy, px, py, TILE, occupied) {
+  const S = TILE / 32;
+  const tileKey = `${wx},${wy}`;
+  const coverGrid = covers[layer];
+  const ground = worlds[layer][wy][wx];
+  const cover = coverGrid ? coverGrid[wy][wx] : 0;
+
+  // VOID tiles: pure black, skip everything else
+  if (ground === T.VOID){
+    ctx.fillStyle = '#000000';
+    ctx.fillRect(px, py, TILE, TILE);
+    return false;
+  }
+  // CAVE_ROCK tiles: dark warm wall, visible to native eyes
+  if (ground === T.CAVE_ROCK){
+    ctx.fillStyle = '#181816';
+    ctx.fillRect(px, py, TILE, TILE);
+    const rockHash = ((wx * 7919 + wy * 6271 + 1013) >>> 0) % 256;
+    if (rockHash < 40){
+      ctx.fillStyle = rockHash < 20 ? '#242220' : '#141412';
+      const rx = (rockHash * 3) % 20 + 4, ry = (rockHash * 7) % 20 + 4;
+      ctx.save();
+      ctx.translate(px, py);
+      ctx.scale(S, S);
+      ctx.fillRect(rx, ry, 4, 3);
+      ctx.restore();
+    }
+    return false;
+  }
+
+  const tileHash = ((wx * 7919 + wy * 6271 + 1013) >>> 0) % 256;
+
+  // ---- Draw GROUND ----
+  const groundInfo = terrainInfo(ground);
+  const rotVariant = tileHash % 4;
+
+  // Cave wall uses variant sprites for tiling variety
+  let groundSpriteName = groundInfo.sprite;
+  if (ground === T.CAVE_WALL){
+    if (!textureConfig.CAVE_WALL) {
+      // Default: hash-based variant mix
+      const wallVar = ((wx * 3571 + wy * 2909) >>> 0) % 3;
+      groundSpriteName = wallVar === 1 ? 'CAVE_WALL_V2' : wallVar === 2 ? 'CAVE_WALL_V3' : 'CAVE_WALL';
+    }
+    // else: textureConfig override — groundSpriteName stays 'CAVE_WALL',
+    // getActiveSprite will return the selected variant via buildTintedTerrain
+  }
+  // Rock surface uses variant sprites for tiling variety
+  if (ground === T.ROCK){
+    if (!textureConfig.ROCK) {
+      // Default: hash-based variant mix
+      const rockVar = ((wx * 3571 + wy * 2909) >>> 0) % 3;
+      groundSpriteName = rockVar === 1 ? 'ROCK_V2' : rockVar === 2 ? 'ROCK_V3' : 'ROCK';
+    }
+    // else: textureConfig override — groundSpriteName stays 'ROCK',
+    // getActiveSprite will return the selected variant via buildTintedTerrain
+  }
+
+  if (!cover && (ground === T.GRASS || ground === T.SAND || ground === T.CAVE_FLOOR || ground === T.CAVE_WALL || ground === T.ROCK) && rotVariant > 0){
+    ctx.save();
+    ctx.translate(px + TILE/2, py + TILE/2);
+    ctx.rotate(rotVariant * Math.PI/2);
+    ctx.drawImage(getTinted(groundSpriteName, groundInfo.palette), -TILE/2, -TILE/2, TILE, TILE);
+    ctx.restore();
+  } else {
+    ctx.drawImage(getTinted(groundSpriteName, groundInfo.palette), px, py, TILE, TILE);
+  }
+
+  // ---- Ground decorations (skip at ×1 for performance/clarity) ----
+  // Decorations are left off under a drawn sprite: a creature the player
+  // perceives here, or the player. (It used to be any creature standing
+  // here, perceived or not, so a hidden animal showed as a bare tile.)
+  if (zoom() >= 2 && !cover && !occupied){
+    const decor = tileHash;
+    ctx.save();
+    ctx.translate(px, py);
+    ctx.scale(S, S);
+
+    
+    if (ground === T.SAND && decor < 12){
+      if (decor < 6){
+        // scattered pale pebbles on gray depleted ground
+        ctx.fillStyle = '#605e5c';
+        ctx.fillRect((decor*4)%24+4, (decor*7)%24+4, 3, 2);
+      } else {
+        // desiccated scrub stub — gray-brown, no green
+        ctx.fillStyle = '#524e48';
+        const cx2 = (decor*3)%22+5;
+        ctx.fillRect(cx2, 16, 2, 8);
+        ctx.fillRect(cx2-2, 19, 2, 1);
+        ctx.fillRect(cx2+2, 21, 2, 1);
+      }
+    }
+    if (ground === T.ROCK && decor < 30){
+      if (decor < 12){
+        // small pebble cluster — warm earthy
+        ctx.fillStyle = decor < 6 ? '#524a42' : '#463e32';
+        const sx = (decor*4)%20+4, sy = (decor*6)%18+6;
+        ctx.fillRect(sx, sy, 3, 2);
+        ctx.fillRect(sx+1, sy+2, 2, 1);
+      } else if (decor < 20){
+        // scattered rock chips — dark ochre
+        ctx.fillStyle = '#605840';
+        const sx = (decor*3)%18+5, sy = (decor*5)%16+8;
+        ctx.fillRect(sx, sy, 2, 1);
+        ctx.fillRect(sx+6, sy+3, 2, 1);
+        ctx.fillRect(sx+3, sy+7, 1, 1);
+      } else {
+        // hairline crack across rock surface
+        ctx.fillStyle = 'rgba(30,24,14,0.35)';
+        const cy2 = (decor*3)%12+10;
+        ctx.fillRect(4, cy2, 7, 1);
+        ctx.fillRect(11, cy2-1, 5, 1);
+        ctx.fillRect(16, cy2, 8, 1);
+      }
+    }
+    if (ground === T.BEACH && decor < 30){
+      if (decor < 8){
+        // mineral-stained pebbles — warm ochre
+        ctx.fillStyle = '#988258';
+        const sx = (decor*5)%22+5, sy = (decor*7)%18+8;
+        ctx.fillRect(sx, sy, 2, 1);
+        ctx.fillRect(sx+1, sy+1, 1, 1);
+      } else if (decor < 16){
+        // tide-line mineral deposits
+        ctx.fillStyle = 'rgba(72,56,28,0.35)';
+        const ry = (decor*3)%16+10;
+        for (let i=0;i<5;i++){
+          const rx = 4 + i*5 + ((decor+i)%3);
+          ctx.fillRect(rx, ry, 3, 1);
+        }
+      } else if (decor < 22){
+        // amber foam line
+        ctx.fillStyle = 'rgba(170,148,90,0.22)';
+        const fy = (decor*4)%12+16;
+        ctx.fillRect(3, fy, 18, 1);
+        ctx.fillRect(6, fy+1, 12, 1);
+      } else {
+        // dark driftwood — deep brown
+        ctx.fillStyle = '#544428';
+        const dwx = (decor*3)%20+4, dwy = (decor*5)%16+10;
+        ctx.fillRect(dwx, dwy, 6, 2);
+        ctx.fillRect(dwx+1, dwy-1, 1, 1);
+      }
+    }
+    if (ground === T.CAVE_FLOOR && decor < 10){
+      ctx.fillStyle = '#302a22';
+      ctx.fillRect((decor*4)%26+3, (decor*6)%20+6, 2, 3);
+    }
+    if (ground === T.FUNGAL_GRASS && decor < 18){
+      if (decor < 9){
+        // manganese mineral flecks — violet
+        ctx.fillStyle = '#3e3456';
+        const dx2 = (decor*4)%22+4, dy2 = (decor*6)%18+6;
+        ctx.fillRect(dx2, dy2, 3, 2);
+      } else {
+        // tiny chemotrophic spire stub — clear purple
+        ctx.fillStyle = '#5c4c6e';
+        const dx2 = (decor*3)%20+6;
+        ctx.fillRect(dx2, 14, 1, 4);
+        ctx.fillRect(dx2+1, 13, 1, 1);
+      }
+    }
+    if (ground === T.MUD && decor < 15){
+      // amber-brown organic puddle
+      ctx.fillStyle = 'rgba(46,36,14,0.4)';
+      const mx = (decor*4)%20+4, my = (decor*6)%16+8;
+      ctx.fillRect(mx, my, 5, 3);
+    }
+    if (ground === T.DIRT && decor < 15){
+      ctx.fillStyle = decor < 8 ? '#4a3a1e' : '#382c12';
+      const dx2 = (decor*3)%22+4, dy2 = (decor*7)%20+6;
+      ctx.fillRect(dx2, dy2, 3, 2);
+    }
+
+    ctx.restore();
+  }
+
+  // ---- Cover decorations (drawn on ground, before cover sprite) ----
+  // Forest and mushforest decorations when they are cover
+  if (cover && !occupied){
+    const decor = tileHash;
+    ctx.save();
+    ctx.translate(px, py);
+    ctx.scale(S, S);
+
+    if (cover === T.FOREST && decor < 15){
+      // photosynthetic mat debris at tree base — visible deep maroon
+      ctx.fillStyle = '#361c14';
+      const dx2 = (decor*3)%20+4, dy2 = (decor*5)%10+18;
+      ctx.fillRect(dx2, dy2, 5, 3);
+      ctx.fillRect(dx2+1, dy2-1, 3, 1);
+    }
+    if (cover === T.MUSHFOREST && decor < 20){
+      if (decor < 10){
+        // chemotrophic colony mat fragment — visible violet
+        ctx.fillStyle = '#583c68';
+        const dx2 = (decor*3)%20+4, dy2 = (decor*5)%14+14;
+        ctx.fillRect(dx2, dy2, 3, 2);
+        ctx.fillRect(dx2+1, dy2-1, 1, 1);
+      } else {
+        // fruiting spire base — clear purple-brown
+        ctx.fillStyle = '#7e5e68';
+        const dx2 = (decor*4)%22+3;
+        ctx.fillRect(dx2, 20, 2, 4);
+        ctx.fillRect(dx2-1, 19, 4, 1);
+      }
+    }
+
+    ctx.restore();
+  }
+
+  // ---- Draw COVER (overlay) ----
+  if (cover){
+    const coverInfo = terrainInfo(cover);
+    ctx.drawImage(getTinted(coverInfo.sprite, coverInfo.palette), px, py, TILE, TILE);
+  }
+
+  // ---- Draw GROUND ITEM indicator ----
+  // Rendered after cover but before entities so items sit on top of trees/mushrooms.
+  // Priority: corpse > other.
+  // Draws the highest-priority item's visual; others just get the gold dot.
+  const giLayer = groundItems[layer];
+  if (giLayer) {
+    const giStack = giLayer[tileKey];
+    if (giStack && giStack.length > 0) {
+      const topItem = groundItemPriority(giStack);
+      if (topItem && topItem.kind === 'corpse' && getSprite('CORPSE')) {
+        // Draw corpse sprite at half-opacity so it's visible but subdued
+        ctx.save();
+        ctx.globalAlpha = 0.7;
+        ctx.drawImage(getSprite('CORPSE'), px, py, TILE, TILE);
+        ctx.restore();
+      } else {
+        // Default gold dot for non-corpse items
+        ctx.save();
+        ctx.translate(px, py);
+        ctx.scale(S, S);
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(2, 25, 6, 6);
+        ctx.fillStyle = '#d4a840';
+        ctx.fillRect(3, 26, 4, 4);
+        ctx.restore();
+      }
+      // If multiple items, also draw the gold dot on corpse tiles as a stack hint
+      if (giStack.length > 1 && topItem && topItem.kind === 'corpse') {
+        ctx.save();
+        ctx.translate(px, py);
+        ctx.scale(S, S);
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(2, 25, 6, 6);
+        ctx.fillStyle = '#d4a840';
+        ctx.fillRect(3, 26, 4, 4);
+        ctx.restore();
+      }
+    }
+  }
+  return true;
+}
+
+/**
+ * The world as it is, with nobody looking: every tile of the view centred on
+ * (cx, cy), in the light of world tick `tick`. No field of view, no
+ * creatures, no HUD; nothing about the player is read. The title screen
+ * shows the world a new game begins in this way (main.js).
+ */
+export function renderScene(layer, cx, cy, tick) {
+  const TILE = tileSize();
+  const VW = viewW();
+  const VH = viewH();
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const ox = cx - (VW >> 1);
+  const oy = cy - (VH >> 1);
+  for (let vy = 0; vy < VH; vy++) {
+    for (let vx = 0; vx < VW; vx++) {
+      const wx = ox + vx, wy = oy + vy;
+      if (!inBounds(layer, wx, wy)) {
+        ctx.fillStyle = '#050505';
+        ctx.fillRect(vx * TILE, vy * TILE, TILE, TILE);
+        continue;
+      }
+      drawTile(layer, wx, wy, vx * TILE, vy * TILE, TILE, false);
+    }
+  }
+  drawTimeTint(ctx, 0, 0, VW * TILE, VH * TILE, layer, tick);
 }
 
 // ─── Ground scent trail overlay ───
