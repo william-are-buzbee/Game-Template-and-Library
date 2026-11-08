@@ -6149,13 +6149,13 @@ first measurement, with other work on the spare cores part of the time (its sum 
 | anim.js | 21 | 17 | 25 |
 | the other seven | 28 | 26 | 37 |
 | **the suite, sandbox** | **1098 (18.3 min)** | **734 (12.2 min)** | **275 (4.6 min)** |
-| **the suite, CI's test step** | **1080 (18 min)** | | **359 (6.0 min)** |
+| **the suite, CI's test step** | **1080 (18 min)** | | **359 and 464 (6.0 and 7.7 min: the PR's two runs, the same code)** |
 
 Side by side, the floor is the four timed runs (~1 minute) and then smoke.js on the high tier (~3 minutes: six fresh boots and the finback's
 8,400-frame swim). CI's 4 processors behave like 2 cores: alone a run takes there what it takes here, side by side about 1.5 times as long
-(smoke.js 297 s, live.js 157), so CI is bound by the total, not by smoke.js. Green eight times in all: five in a row here (`npm test` three
-times at 275–281 s, `python3 build.py --test` once at 279, `JOBS=1` once), two before them, and CI. anim.js's "soft-arm: nor by the jet"
-read 1.17–1.28 max in them (under 2.0; v11.93.2 had 1.19–1.33).
+(smoke.js 297 s, live.js 157), so CI is bound by the total, not by smoke.js. Green eleven times in all: five in a row here (`npm test` three
+times at 275–281 s, `python3 build.py --test` once at 279, `JOBS=1` once), four more here, and CI twice. anim.js's "soft-arm: nor by the jet"
+read 1.12–1.31 max in the nine here (under 2.0; v11.93.2 had 1.19–1.33).
 
 Not changed: what any test checks — its days, seeds, tiers, thresholds, frames; the game's behaviour (the ledger to the bit). Weighed and not built: the
 suite split across several CI jobs (`tethys-1`, `tethys-2`…, a `shards` list in package.json that tools/plan.ts turns into jobs) — the person's

@@ -134,7 +134,7 @@ which found four repositories sharing no code, copying it instead (the same rand
     Profiled first, two causes went (Tethys v11.93.3, the results the same to the bit): the ecology model's lookups by
     name, two thirds of census.js and live.js, and the test stub's scene, which gained a copy of the sky every frame.
     Then `node build.js --test` runs side by side: the four runs that assert on a time they measure first, alone; the
-    rest on the machine's cores. CI's test step went to 6 minutes (4.5 on a 4-core session). Splitting a game's suite across CI
+    rest on the machine's cores. CI's test step went to 6–8 minutes, by the runner (4.5 on a 4-core session). Splitting a game's suite across CI
     jobs (a `shards` list in its package.json that `tools/plan.ts` turns into `tethys-1`, `tethys-2`…) was weighed and
     not built: side by side speeds up the person's machine and every session's `npm run check` as much as CI, shards
     only CI, for new machinery in the plan, the jobs and the matrix. CI's 4 processors behave like 2 cores (alone, a run
