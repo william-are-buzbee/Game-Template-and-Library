@@ -4,7 +4,8 @@
 #              must be tried (the tools, root config or a package changed; on main, always)
 #   <name>     one job per workspace in the plan, on a machine of its own: its tests, its build, its browser tests, and
 #              for a game or lab its boot in headless Chromium (tools/look.ts). The pull request's checks name the game
-#              that failed, and main takes as long as its slowest workspace
+#              that failed, and main takes as long as its slowest workspace. A suite too slow for one machine is split
+#              (package.json "shards": n): <name>-1 … <name>-n run its tests, each given SHARD=k/n, and <name> the rest
 #   shared     the quick whole-repository checks: types, the tools' own tests, the catalog; and, when the plan says, that
 #              the templates still make a game and a lab that work (tools/try-templates.ts)
 #   all        passes only if all of the above did: the one check to require, if checks are ever required
@@ -45,7 +46,8 @@ jobs:
     if: ${{ needs.plan.outputs.any == 'true' }}
     name: ${{ matrix.name }}
     runs-on: ubuntu-latest
-    # Tethys's suite (node build.js --test, 19 runs) is the longest: 6-8 min since its runs went side by side (v11.93.3), 18 before
+    # Tethys's suite (node build.js --test, 19 runs) is the longest: 18 min one after another, 6-8 side by side (v11.93.3),
+    # about 3 in each of its three shards (v11.93.4)
     timeout-minutes: 45
     strategy:
       # one game failing does not stop the others: each says for itself
@@ -61,6 +63,9 @@ jobs:
       - name: test
         if: ${{ matrix.test }}
         run: npm run test -w ${{ matrix.dir }}
+        env:
+          # k/n for one part of a split suite; empty (all of it) otherwise
+          SHARD: ${{ matrix.shard }}
       # the steps below run even when one above failed (the job still fails), so one red step cannot hide the others
       - name: build
         if: ${{ matrix.build && !cancelled() }}

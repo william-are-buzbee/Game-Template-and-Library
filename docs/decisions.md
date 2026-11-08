@@ -129,14 +129,24 @@ which found four repositories sharing no code, copying it instead (the same rand
     `--no-shot` (CI: nobody looks at it). Building and booting moved into each workspace's job, so a pull request boots
     only what it affects; the shared job keeps types, the tools' tests and the catalog, and installs Chromium only when the
     plan says the templates must be tried.
-24. **Tethys's suite runs side by side on its one machine, not split across jobs** (7 Nov 2026; the person asked for it in
+24. **Tethys's suite runs side by side on its one machine~~, not split across jobs~~** (7 Nov 2026; the person asked for it in
     a few minutes, nothing checked less, and left the way to Claude). It was 19 runs one after another, 18 minutes in CI.
     Profiled first, two causes went (Tethys v11.93.3, the results the same to the bit): the ecology model's lookups by
     name, two thirds of census.js and live.js, and the test stub's scene, which gained a copy of the sky every frame.
     Then `node build.js --test` runs side by side: the four runs that assert on a time they measure first, alone; the
-    rest on the machine's cores. CI's test step went to 6–8 minutes, by the runner (4.5 on a 4-core session). Splitting a game's suite across CI
+    rest on the machine's cores. CI's test step went to 6–8 minutes, by the runner (4.5 on a 4-core session). ~~Splitting a game's suite across CI
     jobs (a `shards` list in its package.json that `tools/plan.ts` turns into `tethys-1`, `tethys-2`…) was weighed and
     not built: side by side speeds up the person's machine and every session's `npm run check` as much as CI, shards
-    only CI, for new machinery in the plan, the jobs and the matrix. CI's 4 processors behave like 2 cores (alone, a run
+    only CI, for new machinery in the plan, the jobs and the matrix.~~ CI's 4 processors behave like 2 cores (alone, a run
     takes the same time there as on a session; side by side, about 1.5 times as long), so CI is the one place more
-    machines would still help: down to about 3.5 minutes, smoke.js alone being the floor. That is the person's call.
+    machines would still help: down to about 3.5 minutes, smoke.js alone being the floor. ~~That is the person's call.~~
+    Split since (25).
+25. **A suite too slow for one machine is split across CI jobs** (8 Nov 2026; the person, on 24: "If you think splitting
+    it would work, and improve performance without causing a huge headache, then go for it"). A workspace's package.json
+    `"shards": n` makes `tools/lib/jobs.ts` give its tests n jobs, `<name>-1` … `<name>-n`, each run with `SHARD=k/n`, and
+    its build, browser tests and boot one more job named for it. The workspace's test script runs its k-th part: Tethys's
+    build.js and build.py deal their runs longest first, by each run's measured seconds, to the part with the fewest so
+    far, and each part runs its own timed runs first and alone (24). Tethys has three (its CHANGELOG, v11.93.4, has the parts and their times). Side by side (24)
+    stays: it is what a session and the person's machine run, and what each part runs on its machine. The cost is the
+    seconds beside each run in build.js and build.py, to keep roughly right as tests grow; a stale number only
+    unbalances the parts, it never drops a run.

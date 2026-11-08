@@ -38,7 +38,9 @@ These are the repository standard (`docs/standard.md`); `main` is locked by the 
 - **Before every push:** `npm run check` and `npm run build`. `check` is the types, the tools' own tests, the catalog,
   and the tests of what the branch changed and of everything that uses it (a change outside any workspace means all of
   them); `npm run check:all` runs every test. CI does the same on a pull request, everything on `main`, one job per
-  workspace (named for it), each of which also builds it and boots it in headless Chromium.
+  workspace (named for it), each of which also builds it and boots it in headless Chromium; a suite too slow for one
+  machine is split across several (`"shards": n` in its package.json: `<name>-1` … `<name>-n` run its tests, each
+  given `SHARD=k/n`, which its test script must honour — Tethys's does).
 - **The pull request says** what changed and why, what was checked and what was looked at, and what the person should
   try on the preview: which game, which keys, what to look for. Say plainly what could not be checked from a session.
 

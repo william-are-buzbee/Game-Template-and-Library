@@ -2,7 +2,7 @@
 // build.js — the build in Node (a port of build.py, so one runtime builds and tests; the outputs are byte-identical).
 //
 //   node build.js          tethys.html (single file, everything inlined), dev.html (loads src/*.js separately), src/INDEX.md
-//   node build.js --test   the same, then node test/lint.js, node test/physics.js, node test/anim.js, node test/steer.js, node test/audio.js, node test/snow.js, node test/sky.js, node test/plankton.js, node test/combat.js, node test/pool.js, node test/registry.js, node test/census.js 40, node test/player.js, node test/live.js and node test/smoke.js (steer, player, live and smoke on both tiers): the four that time themselves first, alone, the rest side by side (JOBS at a time, default the cores); exit 1 on any failure
+//   node build.js --test   the same, then node test/lint.js, node test/physics.js, node test/anim.js, node test/steer.js, node test/audio.js, node test/snow.js, node test/sky.js, node test/plankton.js, node test/combat.js, node test/pool.js, node test/registry.js, node test/census.js 40, node test/player.js, node test/live.js and node test/smoke.js (steer, player, live and smoke on both tiers): the four that time themselves first, alone, the rest side by side (JOBS at a time, default the cores, eight at most); SHARD=k/n runs the k-th of n parts; exit 1 on any failure
 //
 // Build order comes from src/order.txt. src/INDEX.md is generated: every top-level name, its file and line. Do not edit
 // INDEX.md by hand; it is rewritten on every build. build.py is kept for the sandbox sessions; keep the two in step.
@@ -87,8 +87,14 @@ console.log('built tethys.html, dev.html, src/INDEX.md ('+ORDER.length+' files, 
 // overwrite each other's. A run's output is printed whole when it ends, then a table of every run's time. JOBS=1 is one at a time.
 if(process.argv.includes('--test')){
   const os=require('os'),{spawn}=require('child_process');
-  const ALONE=[[['test/physics.js'],{}],[['test/audio.js'],{}],[['test/snow.js'],{}],[['test/sky.js'],{}]];
-  const SIDE=[[['test/smoke.js'],{}],[['test/smoke.js'],{TIER:'low'}],[['test/live.js'],{}],[['test/live.js'],{TIER:'low'}],[['test/player.js'],{}],[['test/census.js','40'],{}],[['test/player.js'],{TIER:'low'}],[['test/steer.js'],{}],[['test/anim.js'],{}],[['test/steer.js'],{TIER:'low'}],[['test/combat.js'],{}],[['test/registry.js'],{}],[['test/pool.js'],{}],[['test/plankton.js'],{}],[['test/lint.js'],{}]]; // longest first (their times on a sandbox CPU, v11.93.3)
+  const ALONE=[[['test/physics.js'],{},4],[['test/audio.js'],{},20],[['test/snow.js'],{},38],[['test/sky.js'],{},2]]; // the third number: its seconds one at a time on a sandbox CPU (v11.93.3), for the shards
+  const SIDE=[[['test/smoke.js'],{},156],[['test/smoke.js'],{TIER:'low'},103],[['test/live.js'],{},89],[['test/live.js'],{TIER:'low'},87],[['test/player.js'],{},56],[['test/census.js','40'],{},55],[['test/player.js'],{TIER:'low'},41],[['test/steer.js'],{},25],[['test/steer.js'],{TIER:'low'},18],[['test/anim.js'],{},17],[['test/combat.js'],{},9],[['test/registry.js'],{},5],[['test/pool.js'],{},4],[['test/plankton.js'],{},2],[['test/lint.js'],{},1]]; // longest first
+  // v11.93.4: SHARD=k/n (CI: package.json's "shards", one machine a part) runs the k-th of n parts. The runs are dealt longest first to the part
+  // with the fewest seconds so far, ties to the lower part; build.py deals them the same. Each part runs its own timed runs first and alone.
+  const SH=/^(\d+)\/(\d+)$/.exec(process.env.SHARD||'');
+  if(process.env.SHARD&&!(SH&&+SH[1]>=1&&+SH[1]<=+SH[2])){console.error('SHARD is k/n with 1 <= k <= n, not '+process.env.SHARD);process.exit(1);}
+  const part=new Map();if(SH){const load=new Array(+SH[2]).fill(0);for(const r of ALONE.concat(SIDE).sort((a,b)=>b[2]-a[2])){let k=0;for(let i=1;i<load.length;i++)if(load[i]<load[k])k=i;load[k]+=r[2];part.set(r,k+1);}}
+  const mine=r=>!SH||part.get(r)===+SH[1],alone=ALONE.filter(mine),side=SIDE.filter(mine);
   const JOBS=Math.max(1,+process.env.JOBS||Math.min(8,os.availableParallelism())),T0=Date.now(),res=[]; // eight at most by default: smoke.js alone (~3 min) is the floor past five or six, and all fifteen at once peak near 9 GB
   const name=([args,env])=>Object.entries(env).map(([k,v])=>k+'='+v+' ').join('')+'node '+args.join(' ');
   const run=r=>new Promise(done=>{const tmp=fs.mkdtempSync(path.join(os.tmpdir(),'tethys-test-')),t0=Date.now(),out=[];let end=false;
@@ -97,12 +103,12 @@ if(process.argv.includes('--test')){
     const p=spawn(process.execPath,r[0],{cwd:ROOT,env:Object.assign({},process.env,r[1],{TMPDIR:tmp,TMP:tmp,TEMP:tmp})});
     p.stdout.on('data',d=>out.push(d));p.stderr.on('data',d=>out.push(d));p.on('error',e=>fin(-1,e));p.on('close',(code,sig)=>fin(code===null?sig:code));});
   (async()=>{
-    console.log('\n'+(ALONE.length+SIDE.length)+' test runs: '+ALONE.length+' that time themselves first, one at a time; then '+SIDE.length+', '+JOBS+' at a time');
-    for(const r of ALONE)await run(r);
-    const q=SIDE.slice();await Promise.all(Array.from({length:Math.min(JOBS,q.length)},async()=>{while(q.length)await run(q.shift());}));
+    console.log('\n'+(alone.length+side.length)+' test runs'+(SH?' (part '+SH[1]+' of '+SH[2]+', SHARD)':'')+': '+alone.length+' that time themselves first, one at a time; then '+side.length+', '+JOBS+' at a time');
+    for(const r of alone)await run(r);
+    const q=side.slice();await Promise.all(Array.from({length:Math.min(JOBS,q.length)},async()=>{while(q.length)await run(q.shift());}));
     const bad=res.filter(r=>!r[1]);
     console.log('\n'+res.map(([n,ok,s])=>(ok?'ok    ':'FAILED')+s.toFixed(0).padStart(5)+' s  '+n).join('\n'));
-    console.log((bad.length?'\nFAILED: '+bad.map(r=>r[0]).join(', '):'\nALL OK')+' ('+((Date.now()-T0)/1000).toFixed(0)+' s, '+JOBS+' at a time)');
+    console.log((bad.length?'\nFAILED: '+bad.map(r=>r[0]).join(', '):'\nALL OK')+' ('+((Date.now()-T0)/1000).toFixed(0)+' s, '+JOBS+' at a time'+(SH?', part '+SH[1]+' of '+SH[2]:'')+')');
     process.exitCode=bad.length?1:0; // not process.exit: on Windows a piped stdout is written asynchronously, and exit would cut it
   })();
 }
