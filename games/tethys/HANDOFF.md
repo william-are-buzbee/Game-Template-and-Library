@@ -1,5 +1,11 @@
 # HANDOFF — tethys
 
+**The deep, designed (10 Nov 2026, no version; DEEP.md).** Under the region model's basins: round ours an oxic deep with a survivable oxygen
+minimum (−500 to −800), the floor as apron near, nodules far, crusts by age; the deep gardens, carcass falls; the dark in the basin 28 km west
+with the constructors' structures on its rim; the vents kept as the rejuvenated stage; **the pit struck** (the person: a holdover that breaks
+believability). **Ask first** about DEEP §11: the cairns (move or go), where the pit was, the carcass fall's clock, how far the arrangement goes.
+Next: DEEP §11's build, step 1 (strike the pit).
+
 **v11.94 (10 Nov 2026): the region as a plume's history** (GLOBE.md §9.1; §7–10 are the design and the person's answers). `src/region.js`
 runs the plume under the plate for 30 Myr with ours (3 Ma) and the giant (1.31 Ma) pinned; `region.html` draws the province, its basins and
 what shows from ours, tells each member's story, surveys seeds and exports the recipe; `test/region.js` pins it. Nothing in the game changed.

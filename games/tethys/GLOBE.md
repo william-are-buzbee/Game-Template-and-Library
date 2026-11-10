@@ -222,6 +222,7 @@ stages became, and what running them taught:
   that's ok." Seed 32 puts eleven members there: the 308 m high island 20 km north of ours, five atolls (three awash, two just under), five
   seamounts; the hand-built sill (world.js `SILL`) is to become the model's own old track.
 - Still open: whether the reef on the fed face is none (`fedK` 0) or a little.
+- What the deep becomes under the basins, the pit struck and the constructors' structures: **DEEP.md** (designed 10 Nov 2026).
 
 ## 10. A world that size (10 Nov 2026, proposed)
 
