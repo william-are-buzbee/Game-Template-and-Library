@@ -2,6 +2,8 @@
 
 Status: **designed, not built.** The person's decisions are in §7; the build is deferred to a chat with room for it (§8). Read PLANET.md first (The
 planet, Geology) and ARCHIPELAGO.md: this doc revises ARCHIPELAGO's "one chain" into a cluster and says why; nothing in PLANET changes.
+**Revised 10 Nov 2026:** no planet map — the region is drawn by a model of the plume's history (§9, agreed in principle; its stages proposed);
+a world that size, every member reachable (§10, proposed); the person's answers of that day in §7, the build order in §8 rewritten.
 
 ## 1. Why zoom out
 
@@ -65,6 +67,9 @@ Ice costs nothing at the planet level and pays on every island:
 
 ## 5. The tool: a planet map, then a region window
 
+**Struck in part (10 Nov 2026):** the planet map (1) is not built — all it would hand over are §2's five facts, already decided. The region (2)
+is drawn by §9's history model instead. Planet-Viewer (`labs/planet-viewer`) is Overworld's tool and has no relation to Tethys (the person).
+
 Not a rendered sphere. Two pictures, both from rules, in the manner of `map.html` (loads world.js as it is):
 
 1. **The planet** at continent resolution, equirectangular, drawn from a few rules rather than noise: plate polygons with motion vectors; ridges,
@@ -99,12 +104,89 @@ The value-noise machinery is not the tool here: a province is drawn by its logic
 - Ice: never considered; the terraces and the drowned rim are liked; what ice does to them is §4. Taken as Earth-like glacial cycles.
 - **Accepted (25 Sep 2026): the cluster on a slow plate as the model, revising ARCHIPELAGO's single chain.**
 
+**10 Nov 2026** (asked what comes next for the chain):
+
+- No planet map; Planet-Viewer is Overworld's only. The plume's history as the model that hands over the members: agreed completely.
+- **All six members reachable, eventually.** Realistically far apart if that is how far apart they are, and the whole world playable: "we can make
+  a huge world, we just need to discuss how best to do that" (§10).
+- **The test for any change**, our island included: not "make the world bigger" but "represent the island chain more accurately, and this piece is
+  not accurate for x, y, z reasons" — accurate relative to this alien planet's Earth-like conditions. A lot of work has made the ecology feel
+  believable; moving, adjusting or changing it is fine when it passes that test. Treat it less as a game than as a simulated ecology.
+- **The giant gets its own attention later**, rivers included if a thorough look finds them plausible; rivers look expensive with the water
+  physics as it is. Land can be ignored for now, until foliage can be made really cheaply: meanwhile it is "an awkward brown mountain".
+- **Believability within scope, above all.** Not a straight line in one direction; different elevations and ages; space between things is fine,
+  and long crossings are fine (fantastical things can later be placed between or around otherwise believable areas). As cool and
+  player-friendly a space as a believable reading of the ecology allows. Some islands of the planet may be huge, near-continents, or tiny and far
+  away: not shown here. The picture: the Galápagos or the Seychelles or something smaller — better, **several clusters at different
+  elevations** — with enough formations that two areas that are "the same" in many ways look and feel different. Sameness where nature is
+  samey is accepted.
+- **The order of the work:** first a world that could stand on its own as a believable ecology for this planet, its conditions and its animals;
+  only then the uniqueness and the human-positioned things that make a game fun.
+
 ## 8. Open, and the build
 
-Open for the person, not to be decided here: the region's exact layout (drawn on the region tool, as the chain was on map.html); the province's
-name-free character per member (which is the active one, which the enormous one); the weed forests' warmth (§6); how far the world's square
-grows (a second window, or the horizon tier alone for the far members).
+Open for the person, not to be decided here: the region's exact layout (picked on §9's page, as the chain was drawn on map.html); the weed
+forests' warmth (§6); §9's and §10's open lists. Settled 10 Nov 2026: which member is which comes from the model, not from a pick; the world
+grows to hold every member (§10).
 
-The build, deferred to a chat with context to spare, in order: (1) `globe.html` — the planet map from rules, with us on it; (2) the region window
-with member records and the −120 shoreline; (3) the person's layout; (4) records into `ISLANDS` with the identity test, the horizon tier showing
-them; (5) the members' ages as their geology (the shield, the gullies, the atoll's karst) in `islandH`; (6) SEAFLOOR's formations by member.
+The build, in order (rewritten 10 Nov 2026; the old one began with `globe.html`): (1) the region model (§9) and its page, ours and the giant
+pinned; (2) the person's layout; (3) SEAFLOOR §4's formations as `islandH` terms by a member's age and state, each passing §7's test on our
+island before it lands there; (4) the engine for a world that size (§10), every step invisible; (5) the records into `ISLANDS`, the horizon tier
+first, then reachable; (6) the colonisation times (SEAFLOOR §6) and the young members' surface (SEAFLOOR §5). The giant's land is its own pass.
+
+## 9. The region as a plume's history (10 Nov 2026; agreed in principle, the stages proposed)
+
+The members are not placed; a plume is run and they fall out of it. The inputs are §2's facts and a handful of knobs: the plate's speed and
+heading (1–2 cm a year, the old end north-east), the plume's flux over time (the pulse), its footprint (~100 km), the plate's elastic thickness,
+the sea-level curve (Earth's glacial cycles, §4) and the reef's growth rate.
+
+1. **The head.** A plume arriving builds a plateau of thickened crust: the province's platform. The game already says so — the basin floor at
+   −1100 stands 2.7 km over the plate at −3800 (PLANET, The basin). Earth: the Galápagos platform, the Mascarene Plateau.
+2. **The tail.** Volcanoes on the plateau, each born where the plume's footprint meets an old weakness (a fracture zone, an earlier rift), its
+   volume the flux of its time. The pulse makes clusters in time and the plate turns time into distance: **clusters along the track, each one
+   scattered, not a line.** At 1.5 cm a year, 20 Myr is 300 km of track (the Canaries: 21 Myr, 500 km).
+3. **Each member's rise and fall.** Thermal subsidence; **flexure** — every new volcano bends the plate into a moat round itself, sinking its
+   neighbours (Maui and Lanai sink under the Big Island; ours drowns beside the giant, which gives its subsidence a cause), and an arch beyond
+   that lifts older members (Makatea, an atoll raised 113 m on Tahiti's arch; PLANET's "moat and arch, 50–150 km out — nothing at this scale"
+   is at this scale now); the sea level; erosion.
+4. **The reef against relative sea level decides the state:** high island; rim and lagoon (ours); atoll; raised atoll (limestone cliffs and caves
+   on an arch); **carbonate bank** — sinking slowly enough for the reef to keep up: a flat, lit, shallow sea tens of km across at −10 to −60, dry at
+   every lowstand, so karst and blue holes across it (Saya de Malha, 40,000 km² on the Réunion hotspot's track; the Great Bahama Bank's blue
+   holes); guyot (the reef outrun: a flat top from −100 to −1000); seamount (never surfaced). The Seychelles' granite is a continental sliver and
+   has no place here; its bank's form does, by this route.
+5. **The water.** The old tracks' ridges enclose basins on the plateau; under a basin's sill the water is the chemocline's (PLANET); outside, the
+   flank's deep is oxic and cold. A member inside and one outside are different places below −450. The current enters through the gaps (the
+   upwelling), islands shelter one another's coasts and shade one another's wakes, and a bank turns the tide into streams. These are where two
+   members of one age stop being the same.
+
+Out come records for `ISLANDS`, each with its age, volume and state, and each member's colonisation time (SEAFLOOR §6) with them. `ISLANDS[0]`
+and `[1]` are pinned: the model is tuned until they fall out of it, never overwritten. The model is a recipe (the repository's rule 3): run at
+load from its seed and knobs, not typed as records. Its page sits beside map.html — the knobs, the province, the game's world on it — and the
+person picks the layout. ARCHIPELAGO's young shield and seamount stay if the model puts something there.
+
+What the model asks of the code: `CHEMO` is one constant (world.js); a deep outside the basin wants the chemocline's depth by place, or an oxygen
+field beside the nine.
+
+Open for the person: whether a second basin may have its own sill and so its own chemocline (Cariaco's sits near −250 behind a 146 m sill) — the
+chemocline at −450 is one of the base facts of the rule (CLAUDE.md), so this is theirs; how old ours is (DIRECTION, Open 1 — an input now).
+
+## 10. A world that size (10 Nov 2026, proposed)
+
+What is already unbounded: `sample()` is analytic, and JavaScript's numbers are doubles, so the sim, the physics, the ledger's values and the
+saves are exact at any distance. The limits are what is kept per cell for the whole world, and what the GPU gets as float32.
+
+- **The GPU.** Every mesh's vertices local to its own corner, the mesh placed at the corner: three composes the model-view matrix in doubles, so
+  the large numbers cancel before float32. The pools and the far regions relative to a render origin that re-snaps as the player travels (a
+  re-snap rewrites the pools' matrices: rare). The terrain is written in world coordinates today (chunks.js `buildTerrain`): 2 mm at the square's
+  edge, about 1.6 cm of vertex jitter at 200 km.
+- **The ledger.** Its tables are dense (50 entries × five Float32 and a Uint8 × 57,600 cells, about 60 MB) and cannot grow. Two tiers: fine cells
+  near the player, the same model on coarse patches beyond — the off-screen model is already a model — a patch split into cells by capacity as
+  the player comes and merged as they go. The point records (broods, carcasses, the line) as they are.
+- **Cells.** No `NCELL`: a cell is an (i, j) in a hash. The square's edge, the clamp and the apron go; the region's own floor is the edge.
+- **The whole-world things become windows:** the water and floor maps (1440², and the texture units are full) scroll round the player; the big
+  structures, the impostors and the landmarks stream by region as the far terrain has since v11.58; `sample()` finds its islands through an index
+  of the records' reaches instead of a loop over every one; the horizon tier keeps a mesh per member, built as it comes within the disc.
+- **Order, each step invisible** — the world at any place the same to the bit, and a test that says so: the records' index; the local origins;
+  the cell hash; the ledger's tiers; the windows. Then the world grows to what §9 gives.
+
+Not proposed: separate windows per cluster with a fade between them. The crossing is part of the world.

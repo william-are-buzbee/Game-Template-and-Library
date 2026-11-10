@@ -1,5 +1,12 @@
 # HANDOFF — tethys
 
+**The region, designed (10 Nov 2026, no version; GLOBE.md §7–10).** The person asked what comes next for the chain. No planet map: the region is
+a model of the plume's history — the head's plateau, pulses making clusters along a slow track, each member's subsidence and flexure (moats and
+arches), the reef against the sea level deciding its state (high island, rim, atoll, raised atoll, carbonate bank, guyot, seamount), basins on the
+plateau — with ours and the giant pinned. Every member reachable, eventually: §10 is the engine plan for a world that size (local origins for the
+GPU, a cell hash, a two-tier ledger, windowed maps). The person's test for any change is in §7. **Ask first** about §9's stages and its open list
+(a second basin with its own chemocline; how old ours is), then §10's order. Nothing in the game changed.
+
 **v11.93.4 (8 Nov 2026): the suite in three CI jobs.** The person, on v11.93.3's question: split it if it works without a
 headache. package.json `"shards": 3`: CI runs the tests as `tethys-1`…`tethys-3` (each `npm test` with `SHARD=k/3`) and builds and boots
 in `tethys`; build.js and build.py deal the runs to the parts by the seconds beside each. A new run gets its seconds in both lists.
