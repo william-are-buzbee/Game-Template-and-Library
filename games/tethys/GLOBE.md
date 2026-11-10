@@ -167,8 +167,10 @@ person picks the layout. ARCHIPELAGO's young shield and seamount stay if the mod
 What the model asks of the code: `CHEMO` is one constant (world.js); a deep outside the basin wants the chemocline's depth by place, or an oxygen
 field beside the nine.
 
-Open for the person: whether a second basin may have its own sill and so its own chemocline (Cariaco's sits near −250 behind a 146 m sill) — the
-chemocline at −450 is one of the base facts of the rule (CLAUDE.md), so this is theirs; how old ours is (DIRECTION, Open 1 — an input now).
+Answered by the person (10 Nov 2026, the second round): **a second basin may have its own sill and so its own chemocline** — the −450 is our
+basin's, not the planet's (Cariaco's sits near −250 behind a 146 m sill); **ours is not young** — "whatever age gives the greatest variety and
+the most tools and creative options", the creatures' own ages being as vague (DIRECTION, Open 1, closed: an input to the model, chosen when it
+is built); **the stages: "that looks awesome — go ahead and build it."**
 
 ## 10. A world that size (10 Nov 2026, proposed)
 

@@ -137,6 +137,7 @@ channel) → the archipelago (the chain, the saddles, the sill and its gaps) →
 
 ## Open — deferred by the person
 1. **How young "young" is** (a million years, Hawaiian, which the terraces and the exhumed dikes need; or a hundred thousand): decided
-   when the single island is finished and the archipelago begins. Not before.
+   when the single island is finished and the archipelago begins. Not before. **Closed 10 Nov 2026 (the person):** not young — whatever age
+   gives the most variety; an input to the region model (GLOBE.md §9).
 2. **The ledger's mass for long bodies**: size³ (the fish assumption) or `derive`'s volume off the build? Undecided; matters once the
    hingeshell giants are long and thin.
