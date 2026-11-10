@@ -101,8 +101,9 @@ explained". The believable floor under that mystery is large and real:
 **Here.** On the basin's rim, along the seep line (the food is concentrated where the plate meets the walls) and never below the
 chemocline (they breathe): dens under crust slabs, walled with stacked nodules and shells; middens of the basin's black sulfide shells round
 each; denser where any warm seepage comes up — where the awesome shield's young flank meets the rim, if the build finds one there; and
-round some dens, patterns in the sediment. Built from the ground's own materials: slabs, nodules, shells, and bones from the graveyard.
-As structures first (structures with collision, `settleOn`), with the residents later. How far the arrangement goes now is open (§11).
+round some dens, patterns in the sediment — **left out of this pass** (the person, 10 Nov 2026), noted for a later one. Built from the
+ground's own materials: slabs, nodules, shells, and bones from the graveyard. As structures first (structures with collision, `settleOn`),
+with the residents later.
 
 ## 7. The vents: kept, as the rejuvenated stage
 
@@ -123,7 +124,7 @@ agrees: pit craters stand open on an active rift (Kīlauea's), and ours went qui
   tors the person liked "as an oddity, once") — §11.
 - The landmarks fixed by the pit, the dark's homes that name it (the pall's "the void, the pit", the picker's "the pit"), and the docs that
   describe it (PLANET, FLORA, DESIGN, SEAFLOOR, CLAUDE.md's "the pit and the chimney are fixed by the geology").
-- Where it was: the rift arm's low ridge stays; a filled pit is a shallow sandy bowl a few metres deep — or nothing (§11).
+- Where it was: as if it had never been — the rift arm's ground, nothing marking the place (the person, §10). The cairns go with it.
 
 ## 9. Oxygen, and where it lands in the code
 
@@ -147,13 +148,15 @@ seep and the grey mats re-homed.
 - **New deep life: the gardens, the nodules and the carcass falls, "100%"; fauna can wait** (§2–4).
 - **The constructors in the basin 28 km west, "perfect"; their structures first** (§6).
 - **The oxygen minimum survivable** (§2, §9).
+- **The cairns go with the pit**: "another holdover from a time when there were cool looking things in the game for the fuck of it." (§8)
+- **Where the pit was: "it should look like it was never there, like the rest of the environment around it"** — no bowl, no scar: the rift
+  arm's ground as if the pit had never been cut (§8).
+- **The carcass fall's clock as proposed:** scavengers 1–3 game days, the enriched patch ~10, the mats ~40, the bones until buried (§4).
+- **The constructors: dens, walls and middens, yes; the patterns in the sediment are left out of this pass**, noted for a later one (§6).
 
 ## 11. Open, and the build
 
-Open for the person: **the cairns** — they stood on the pit's rim; move them where a tor stack has a reason (a fresh flow's edge, a dike's
-crest) or let them go with it; **where the pit was** — a filled sandy bowl or nothing; **the carcass fall's clock** — Earth's stages run months
-to decades, and a game day is 40 minutes (proposed: scavengers 1–3 game days, the enriched patch ~10, the mats ~40, the bones until buried);
-**how far the constructors' arrangement goes now** — dens, walls and middens only, or the patterns in the sediment too.
+Nothing open (answered 10 Nov 2026, §10). Left out on purpose: the patterns in the sediment round the constructors' dens (§6), for a later pass.
 
 The build, proposed, in order: (1) strike the pit; (2) the oxygen field and `chemoAt` — the −450 plate goes round ours and the envelopes
 move (the pall, the picker, the seep, the cinder's seep range, the grey mats, the poison, the sulfide coat); (3) the floor: the apron, the
