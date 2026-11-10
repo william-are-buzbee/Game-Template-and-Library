@@ -36,9 +36,9 @@ const sites=[
   {name:'mid-water over the slope',x:Math.cos(5.44)*1000,z:Math.sin(5.44)*1000,y:-110},
   {name:'the deep floor: the nepheloid layer',x:Math.cos(1.5)*1500,z:Math.sin(1.5)*1500,dy:3},
   {name:'the deep, 60 m over the same floor',x:Math.cos(1.5)*1500,z:Math.sin(1.5)*1500,dy:60},
-  {name:'the chemocline over the pit',x:LM.pit.x,z:LM.pit.z,y:-450}, // v11.28: the void is a flank now (-320 at the square's edge); the pit is the dark inside the square
-  {name:'40 m above the chemocline',x:LM.pit.x,z:LM.pit.z,y:-410},
-  {name:'below the chemocline',x:LM.pit.x,z:LM.pit.z,y:-520},
+  {name:'the chemocline over the floor east of ours',x:6000,z:0,y:-450}, // v11.95: over the open floor (-1100); the pit, struck, was the column to v11.94
+  {name:'40 m above the chemocline',x:6000,z:0,y:-410},
+  {name:'below the chemocline',x:6000,z:0,y:-520},
   {name:'the vent field, 6 m over the fissure',x:Math.cos(2.68)*1300,z:Math.sin(2.68)*1300,dy:6}, // the heat field sits at the warped angle, 2.66-2.7 raw; the chimney landmark at 2.60 is just outside it
   {name:'the front ring at a side break (v11.82)',x:622,z:579,y:-20},
   {name:'the slope beside it, the same depth',x:951,z:886,y:-20},

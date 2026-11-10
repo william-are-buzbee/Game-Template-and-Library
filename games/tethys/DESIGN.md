@@ -28,11 +28,11 @@ holds the reasons, the numbers and what the person asked for. History and what h
 
 `world.js`: `sample(x,z) → {h,f}` is the analytic terrain and the **condition fields** at a point, and the single source of
 truth. Everything (cell grids, the far terrain, landmark search, structure and flora placement, spawns, the water map) reads
-it. `CELL=215, NCELL=240, HALF=25800` (v11.65; 120 and 12900 from v11.58, 16 and 1720 to v11.57 — the island's own square is the middle 16 cells and is untouched to the bit, verified over 185,761 samples at every change; the whole 25.8 km world of v11.64 likewise at 50 m). The geology it encodes is PLANET.md's Geology section (the caldera and its rim, the
-shield profile, the terraces as rings, the collapse scarp and fan, the dike ridges, the rift arms with the pit crater and the
+it. `CELL=215, NCELL=240, HALF=25800` (v11.65; 120 and 12900 from v11.58, 16 and 1720 to v11.57 — the island's own square is the middle 16 cells and is untouched to the bit, verified over 185,761 samples at every change — but once, on purpose: v11.95 struck the pit, and the 491 samples within 130 m of it are all that moved; the whole 25.8 km world of v11.64 likewise at 50 m). The geology it encodes is PLANET.md's Geology section (the caldera and its rim, the
+shield profile, the terraces as rings, the collapse scarp and fan, the dike ridges, the rift arms with the
 fissure, the flank cone); its parameters are the constants at the top of world.js (`WIND_A`, `CUR_A`, `RIFT_A`, `COLL`,
-`DIKE`, `RIM_R`, `VENT`, `ISLE`, `PIT`, `FLANK_*`) — and since v11.61 those constants are one record, `ISLANDS[0]`: an island is a record
-(place, turn, radial scale, noise offset, the profile as steps, the terraces, the rim, the collapse, the dikes, the rifts, the fissure, the pit, the cone,
+`DIKE`, `RIM_R`, `VENT`, `ISLE`, `FLANK_*`; `PIT` until v11.95) — and since v11.61 those constants are one record, `ISLANDS[0]`: an island is a record
+(place, turn, radial scale, noise offset, the profile as steps, the terraces, the rim, the collapse, the dikes, the rifts, the fissure, the cone,
 the lower flank, its reach), `islandH()` is the geology in the island's own frame, and `sample()` takes the smooth max of every island in reach over
 the basement with the highest island's conditions (the saddle between two is the max of both). Proved bit-identical for ours over the old square
 and the whole world; the archipelago is more records. **The land term** (v11.62, ARCHIPELAGO step 2): a record's `land` block is the subaerial shield inside `land.r` — the surface a mix of a cone and an S-curve to the summit `land.h` (4° at the shore and the summit, 9° mid-flank), a wave-cut cliff `land.cliff` where `expoW` is high, rain gullies `land.gully` (`n` valleys on their own angle, cut toward a graded floor `h·t^1.8`, the planezes flat between, the depth the rain — 1 windward, `lee` in the lee — times a per-valley draw), the last flows `land.flows` as low young ridges within `hw` of a rift, a summit caldera `land.cald`; `hSmooth` carries the surface less a third of the cut. The kit's last constants went into the record too: `riftR`, the shelf edge off the terraces' band, the upwelling's `fade`, no lagoon without `rimR`. **The giant** is `ISLANDS[1]` at (−15400, 9200): land r 7000 to 900 m with a caldera (r 700, 110 m), 36 gullies, flows on rifts 2.6 and 5.74, a 1 km shelf, the terraces 8000–8800, the flank at 12° to the floor at ~13.8 km, `reach` 16000; its foot reaches ours (the saddle −927 at 4.5 km from our centre); its centre is 2.5 km past the edge until `NCELL` grows (step 4). **The lower flank** (v11.28): beyond the apron's toe (`FLANK_R` 1560, wavy) the floor
@@ -44,7 +44,7 @@ inside the old square changes; the seamount effect (`nut`'s upwelling, the curre
 nearest segment crosses the north-east corner: a ridge of drowned older shields with its normal the current's source, crest 13 km out (±450 m
 wander), summits to −150 (bare rock), saddles −410, the sill proper −430 (20 m over the chemocline), the main gap on the current's axis with
 the inflow's jet (`gapF`: flow 0.95, nut +0.35), flanks at 12° both sides, the outer flank going on down beyond the crest to the plate (`SILL.plate` −3800, v11.65: the ridge's window is one-sided, open outward, and the ridge's own flank meets the plate ~16 km past the crest; the world reaches 23 km past it, and PLANET's note stands — the deep beyond the sill is the ocean's and oxic, the game's chemocline the basin's). The dark
-(ground < −450) is the pit, the basin and the ridge's lower flanks. **There are no biomes** (since v10): no ids, no names, no sector tables. The fan's hummocks are
+(ground < −450) is the basin and the ridge's lower flanks (the pit struck v11.95). **There are no biomes** (since v10): no ids, no names, no sector tables. The fan's hummocks are
 rounded mounds — `smooth(0.5, 0.68, fbm)` (v11.19.1; a tent's crease before, which everything settled on it clipped through).
 
 **The fields** (`FI`, nine floats 0..1 in `s.f`): `sub` substrate (0 mud, ⅓ sand, ⅔ rubble, 1 rock), `flow` current (the
@@ -135,7 +135,7 @@ province (and the game's own ground inside its square), `regionBasins` floods it
 
 ## Landmarks
 
-`world.js`: the pit crater and the chimney sit where the geology puts them (rift arm 0: `PIT`, the fissure's middle); the
+`world.js`: the chimney sits where the geology puts it (rift arm 0, the fissure's middle; the pit crater was the other until v11.95); the
 rest are searched (`findSpot(rng, ok, r0, r1)`: the flattest patch in the band whose sample passes `ok`, seed 4242, fixed
 sequence — new ones on the end): the bones, the lantern heart and the great lantern on mud with no heat; the neck
 (`LM.neck`, v10.2; the colossal spire's search, so it stands where that stood) on a dike crest: `flora.js neckGeo`, one
@@ -146,15 +146,14 @@ and the massif are gone (v10).
 
 ## Landmarks
 
-`world.js` `findSpot` searches the terrain for a flat patch of a given biome in a radius band; `LM` and `PIT` are set
-once at load with seed 4242, in a fixed sequence (pit, arch1, arch2, bones, chimney, spire, heart, lantern — **new ones
+`world.js` `findSpot` searches the terrain for a flat patch of a given biome in a radius band; `LM` is set
+once at load with seed 4242, in a fixed sequence (bones, chimney now; the pit, the arches, the spire, the heart and the lantern are gone — **new ones
 go on the end** so earlier positions don't move). `findSpot` takes an optional `minDepth`, used so the great arch lands
 on deep ground. Because positions are searched, they survive terrain tweaks.
 
 The set: two arches (the great one in the terraces, breaking the surface; a small one in the spires), a ribcage on the
 plain, a 50-unit chimney with a plume, a lantern-heart ring, a colossal spire, the great lantern (`LM.lantern`, one
-lantern tree at 11× with its own light), and the pit (in the flats; a ring of boulders; `sample()` drops the floor 520
-inside it, so it is biome 11).
+lantern tree at 11× with its own light), and the pit (struck v11.95).
 
 Meshes are built once at boot and kept (`far.js` `LMK`, using `gridH` for their ground height so they sit on the fine
 mesh to 1e-6); a cell registers only the solids, lights and plumes of the landmarks inside it (`chunks.js`
@@ -977,7 +976,7 @@ get only the sun/hemi (the light pool is assigned by distance), so distant vents
   `slab` took `torm`'s old slot and `slab2` went after the megaspire — crags and megaspires stayed put), and drawn as
   **one InstancedMesh per geometry per region** (≤6 per region, 566 structures / 195k tris on high since v9.3's facets
   and slabs; 103k before) — near and far alike; the cell only registers their `lumps` as solids from the same cached
-  list (`placeBigSolids`). `CAIRNS` (flora.js) are placed structures in world space appended to their cell's list through
+  list (`placeBigSolids`). `CAIRNS` (flora.js, struck v11.95 with the pit) were placed structures in world space appended to their cell's list through
   the same `bigPlace`. Nothing pops when a cell loads; `placeFloraType` returns immediately for `big`.
 - **Landmarks** (`LMK`): the ribcage, the neck, the chimney (the arches, the great lantern and
   the heart are built at boot with `gridH` for their ground height and kept; the cell registers solids/lights/plumes.
@@ -1122,10 +1121,10 @@ with the one basalt palette `ROCKT` and `MATROCK`):
 
 | form | kit | entries | where (by the fields, never a place) |
 |---|---|---|---|
-| **block** | one dodecahedron (`boulderGeo`, collider `{d:1}`) | `boulder` 330 a cell on the fan and the arms (`young`, `rim` round the pit), `boulder2` 60 on bare rock (`sub` ≥ 0.72, `maxSlope` 1.2), `boulder3` 12 on sand, **`talus`** 420 tries under a face (`face` [14, 6], off the fan and the arms) | the fan's field, a flow's rubble, and talus at the foot of every face: the risers' boulder beaches, the scarp, the dikes, the rim |
+| **block** | one dodecahedron (`boulderGeo`, collider `{d:1}`) | `boulder` 330 a cell on the fan and the arms (`young`), `boulder2` 60 on bare rock (`sub` ≥ 0.72, `maxSlope` 1.2), `boulder3` 12 on sand, **`talus`** 420 tries under a face (`face` [14, 6], off the fan and the arms) | the fan's field, a flow's rubble, and talus at the foot of every face: the risers' boulder beaches, the scarp, the dikes, the rim |
 | **heap** | fifteen alike blocks piled two courses (`heapGeo`, 3600 tris) | `crag` 8–20 (h −180..−60), `crag2` 6–14 (h −300..−150), on the fan (`young` ≥ 0.8, `heat` ≤ 0.05), `fit` [0.35, 0.5]; `crag3` 4–10 under a face (`face` [16, 8], `sub` ≥ 0.6) | the fan's hummocks; a rockfall cone at a face's foot |
 | **sheet** | seven flat lumps, shingled (`sheetGeo`, 5.6 wide) | `slab` 6–14 (h −170..−60), `slab2` 5–12 (h −230..−100), on the fan, `fit` [0.3, 0.55] | the slide's coherent blocks (toreva blocks) lying in the fan where it can carry them |
-| **stack** | five stacked (`stackGeo`) | `tor`, `per` 0: the seven cairns on the pit's rim (`CAIRNS`), scaled to fit under the surface, gone under 4× | an oddity, once |
+| **stack** | struck v11.95 with the pit and its seven cairns (the person: a holdover) | — | — |
 | **ledge** | three flat lumps in a row (`ledgeGeo`) | `ledge`, `per` 0: `placeCliffs` lays them along the contour on steep faces | strata on a cliff |
 
 The blocks are per-cell flora; heaps, sheets and stacks are structures (`big:true`: placed once for the whole world by
@@ -1142,14 +1141,14 @@ away round it, so it is *in* the slope it sits on; with `fit` [gap, bury] it is 
 scale under that plane or rises more than bury × scale above it (v11.19: a 157 m sheet lay across 60 m hummocks before); with `face`
 [R, rise] anything is placed only where the ground within R rises `rise` above the point (talus lies under a face). A single block
 (`tilt`) sits any way up, sunk by `sink` and a quarter of the slope. `settleOn` returns false for a rejection and the caller draws
-nothing. Structures keep 110 clear of every landmark (`LM.all`; `LM.pit.r` 190) and are scaled to keep `top` 12 under the surface
+nothing. Structures keep 110 clear of every landmark (`LM.all`) and are scaled to keep `top` 12 under the surface
 unless on the strand. The world's rock structures: 160, 401k tris (v11.19; 238 and 262k before, 23 of them on the rift arms by the
 `young ≥ 0.45` accident).
 
 What went, and why (8 Sep 2026): the spires and megaspires (needles to the surface — "unbelievable"), then their replacements
 the dike walls and the neck ("obsidian shards", then columns of scales — "no more spires, no more weird special spire
 replacement rocks, just normal geography based on what's nearby"), the per-cell `bigrock` (a heap at a second scale: now
-`crag3`), random tors (the cairns are the tor's only stand), `tilt` on structures, and the placement flags `lie`, `foot`,
+`crag3`), random tors (the tor and the cairns struck v11.95), `tilt` on structures, and the placement flags `lie`, `foot`,
 `settle`, `radial`, `pre`. The dike crests are bare ridges now: blocks, the odd heap, ledges on the flanks, and the ridge
 itself. The far layer's per-type rng runs over the `BIG` list by index, so every structure moved once with this cleanup.
 
@@ -2116,5 +2115,5 @@ grid, `sample()`, and its own solids, which hold its rock, its plants and every 
   through kelp as the player does); the finback's tail, the grazer's fins and the scuttler's legs are still rigid
   animated parts (a tail is one `tailPose` chain away); creatures landing on pads flop by the sea-floor gradient, not the
   pad's; a held player could be dragged (the grab only slows).
-- The person likes: big vertical structures, phosphorescent deep biomes, archways, a bone, a pit — all present now;
+- The person likes: big vertical structures, phosphorescent deep biomes, archways, a bone — present (the pit struck v11.95, the person: a holdover);
   more of that vein is welcome.

@@ -1,6 +1,6 @@
 # DEEP.md — the deep under the region model (10 Nov 2026)
 
-Status: **designed, not built.** The person's decisions are in §10; the open list is §11. Read PLANET.md first (The ocean, the head note on The
+Status: **designed; §8 (the pit and the cairns struck) built v11.95.** The person's decisions are in §10; the build is §11. Read PLANET.md first (The ocean, the head note on The
 basin), then GLOBE.md §9.1 (the region model and its basins), FLORA.md (the deep floor, the vents, the rim) and SEAFLOOR.md §4. The rule
 stands: nothing has a name or a biome; every species places itself by envelope over the fields; nothing glows or moves without a reason.
 

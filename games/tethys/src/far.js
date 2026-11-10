@@ -126,12 +126,6 @@ function* bigsGen(i,j){
       e.col=[tc[0]*(0.85+rng()*0.25),tc[1]*(0.85+rng()*0.25),tc[2]*(0.85+rng()*0.25)];L.push(e);
     }
   }
-  for(const c of CAIRNS){ // placed structures (flora.js): the ones standing in this cell
-    if(cellOf(c.x)!==i||cellOf(c.z)!==j)continue;
-    if(++tn%BIG_YIELD===0)yield;
-    const e=bigPlace(c.f,c.x,c.z,sample(c.x,c.z).h,c.sc,c.yaw,c.sx,c.sz,4);if(!e)continue; // a placed one shrinks to fit under the surface rather than going (the pit's rim is 15–50 deep: a 13× cairn is 45 m tall); under 4× it goes
-    const tc=c.f.tints[0];e.col=[tc[0],tc[1],tc[2]];L.push(e);
-  }
   bigCache[i*NCELL+j]=L;return L;
 }
 function bigsFor(i,j){const g=bigsGen(i,j);let r;do r=g.next();while(!r.done);return r.value;}

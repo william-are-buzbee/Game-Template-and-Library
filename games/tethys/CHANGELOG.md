@@ -6243,3 +6243,36 @@ fed face wider; the page on the person's screen (the labels crowd inside the squ
 The person, on the open list (10 Nov 2026): the model's basins decide where the dark is ("how it naturally should play out"); seed 32; the
 proposals inside the square accepted ("we are going to need to make some big changes, so that's ok"). Recorded in GLOBE §9.1, PLANET (The
 basin) and CLAUDE.md's rule.
+
+
+## v11.95 — the pit and the cairns struck (10 Nov 2026)
+
+DEEP.md §8, step 1 of its build. The person: the pit is "a silly holdover of an older time period and can be removed since it clearly
+breaks believability and sets a bad precedent"; the cairns are "another holdover from a time when there were cool looking things in the game
+for the fuck of it. Let them go as well"; where it was "should look like it was never there, like the rest of the environment around it".
+The geology agrees: pit craters stand open on an active rift, and ours went quiet ~2.5 Myr ago — talus, sand and reef fill a 500 m shaft.
+
+- **world.js.** The pit's term in `islandH` (520 m off the floor inside 130 m), `PIT`, `ISLANDS[0].pit` and `LM.pit` are gone, and the
+  comments that described them say so. Nothing else in the geology changed: the rift arm's low ridge runs on over the place.
+- **flora.js, far.js, chunks.js.** The cairns (seven tors in a ring on the rim, `CAIRNS`, seed 4343), the tor and its stack builder
+  (`stackGeo`, `STACK`: nothing else used them), the cairns' loop in `bigsGen`, and the rim boost round the pit (`f.rim`: the boulders'
+  0.7 and the 60 tries a cell near it). The other species and cells are untouched: the rim drew no numbers from any cell's sequence.
+- **Ours is no longer bit-identical, on purpose** — the first deliberate change to `ISLANDS[0]` (GLOBE §7's test: its reason given).
+  The old world.js against the new over the old square (ARCHIPELAGO step 1's 185,761 samples at 8 m): 491 differ, every one within 130 m
+  of the pit; the ground and the nine fields identical everywhere else; the bones and the chimney unmoved. The pit's centre is −34 now
+  (was −554), the ring round it −28 to −59, as the shelf round it is.
+- **The tests that stood in the pit.** test/audio.js's closed place is the caldera inside its rim against open water over the flank (0.46
+  against 0.00); test/snow.js's chemocline column (the plate, above it, below it) is over the open floor east of ours — the −450 stays until
+  DEEP's step 2.
+- **The docs**: PLANET (the rift arms, the dark, the praised list, the pall's and the picker's ground), FLORA, DESIGN (the shape, the
+  landmarks, the structures, the stack row), SEAFLOOR (pit craters along the rift struck too), AUDIO, README, CLAUDE.md (the landmarks,
+  the seeds, the identity rule with its one exception), DEEP's status.
+
+Seen: `node test/map.js` over the place before and after (`test/preview/pit_before.png`, `pit_after.png`: the hole gone, the arm's ridge
+unbroken); the real build in headless Chromium with three.js r128 from npm (cdnjs is refused in this session), a new game as the soft-arm,
+`tp` over the old centre at 12 and 14 m: the shelf's sand, weed tufts and boulders, nothing that marks the place; no page error but pointer
+lock's, which needs a real click.
+
+**Unseen, ask in this order:** whether the rift arm reads as ordinary shelf where the shaft was, in the person's own play; that nothing they
+relied on stood there (the pit was the dark inside the square: below −450 is now only the lower flank and the floor, until DEEP's step 2
+re-homes the dark).

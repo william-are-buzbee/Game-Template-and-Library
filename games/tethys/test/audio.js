@@ -26,7 +26,7 @@ const LM=__au.lm();
 const sites=[
   {name:'the peak, spawn',x:0,z:0,dy:3},
   {name:'the shelf forest (330,0)',x:330,z:0,dy:3},
-  {name:'the pit crater',x:LM.pit.x,z:LM.pit.z,dy:3},
+  {name:'open water over the flank, 100 m up (v11.95: the pit, struck, was the closed place to v11.94; the caldera inside its rim is now)',x:Math.cos(1.5)*2500,z:Math.sin(1.5)*2500,dy:100},
   {name:'the vent, 20 m up the chimney',x:LM.chimney.x,z:LM.chimney.z,dy:20},
   {name:'the void below the chemocline',x:-67,z:-1695,dy:340}];
 for(const s of sites){
@@ -35,7 +35,7 @@ for(const s of sites){
   ok(A.enc>=0&&A.enc<=1&&A.size>0&&A.wet>=0&&A.wet<=1,'numbers in range');
   s.A=Object.assign({},A);
 }
-ok(sites[2].A.enc>sites[0].A.enc,'the pit is more closed than the peak ('+sites[2].A.enc.toFixed(2)+' vs '+sites[0].A.enc.toFixed(2)+')');
+ok(sites[0].A.enc>sites[2].A.enc+0.15,'the caldera inside its rim is more closed than open water over the flank ('+sites[0].A.enc.toFixed(2)+' vs '+sites[2].A.enc.toFixed(2)+')');
 ok(sites[1].A.forest>sites[0].A.forest,'the shelf forest reads as forest ('+sites[1].A.forest.toFixed(2)+' vs '+sites[0].A.forest.toFixed(2)+' at the peak)');
 ok(sites[3].A.voices>0,'voices in use at the vent: '+sites[3].A.voices);
 ok(sites[0].A.voices<=6,'the vent is not heard from the peak (voices at the peak: '+sites[0].A.voices+')');

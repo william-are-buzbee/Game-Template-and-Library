@@ -1,10 +1,14 @@
 # HANDOFF — tethys
 
-**The deep, designed (10 Nov 2026, no version; DEEP.md).** Under the region model's basins: round ours an oxic deep with a survivable oxygen
-minimum (−500 to −800), the floor as apron near, nodules far, crusts by age; the deep gardens, carcass falls; the dark in the basin 28 km west
-with the constructors' structures on its rim; the vents kept as the rejuvenated stage; **the pit struck** (the person: a holdover that breaks
-believability). The person's answers (DEEP §10): the cairns go too; where the pit was looks as if it had never
-been; the carcass clock as proposed; no sediment patterns this pass. Next: DEEP §11's build, step 1 (strike the pit).
+**v11.95 (10 Nov 2026): the pit and the cairns struck** (DEEP.md §8; the person: "a silly holdover of an older time period … it
+clearly breaks believability and sets a bad precedent"; the cairns "another holdover … cool looking things in the game for the fuck of it";
+where it was, "as if it was never there"). world.js loses the pit's term, `PIT` and `LM.pit`; flora.js the tor, its stack builder and the
+cairns; chunks.js the boulders' rim boost; far.js the cairns' loop. Ours is no longer bit-identical, on purpose: over the old square 491 of
+185,761 samples moved, all within 130 m of the pit, the ground and the nine fields identical elsewhere, the landmarks unmoved. Seen: the
+map before and after (test/preview/pit_*.png) and the real build over the place in headless Chromium (three.js r128 from npm: cdnjs is
+refused here) — the shelf's sand, weed and boulders, nothing to mark it. test/audio.js's closed place is the caldera now, test/snow.js's
+chemocline column the open floor east of ours. **Ask first** whether the rift arm reads right where the shaft was. The deep's design is
+DEEP.md (the person's answers in §10, the patterns in the sediment left out); next, its build's step 2: the oxygen field and `chemoAt`.
 
 **v11.94 (10 Nov 2026): the region as a plume's history** (GLOBE.md §9.1; §7–10 are the design and the person's answers). `src/region.js`
 runs the plume under the plate for 30 Myr with ours (3 Ma) and the giant (1.31 Ma) pinned; `region.html` draws the province, its basins and

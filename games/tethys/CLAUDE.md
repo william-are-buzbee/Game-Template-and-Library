@@ -188,8 +188,9 @@ Docs, most upstream first. When a doc's Open list says a choice is the person's,
 - **The world is a function.** `sample(x,z,out)` in world.js is the single source of truth: the ground and the nine condition
   fields (`FI`: sub, flow, expo, nut, turb, young, heat, shel, rel), analytic geology plus fbm. No biome ids anywhere. Since v11.61 the
   islands are records (`ISLANDS`, `islandH` in the island's frame) summed by smooth max over the basement (`BASIN`, `SILL`); `ISLANDS[0]` is
-  ours and must stay bit-identical — check any change to `islandH` or `sample` against the last commit's world.js over the old square. Species and
-  structures carry `env` envelopes; `envW(env,h,slope,f)` is 0..1. Landmarks: the pit and the chimney are fixed by the geology, the
+  ours and must stay bit-identical but by a decision with its reason (v11.95: the pit struck — 491 samples within 130 m of it moved, nothing
+  else; DEEP §8) — check any change to `islandH` or `sample` against the last commit's world.js over the old square. Species and
+  structures carry `env` envelopes; `envW(env,h,slope,f)` is 0..1. Landmarks: the chimney is fixed by the geology (the pit struck v11.95), the
   rest searched on the terrain at load (`findSpot`, seed 4242, fixed sequence — add new ones at the end).
 - **Cells.** 240×240 cells of 215 m (`CELL`, `NCELL`, the world ±`HALF` 25.8 km; v11.65 — the island's own square is the middle 16, the giant whole in the south-west, the rest the basin floor at −1100, the sill across the north-east and the ocean's flank down to the plate beyond it; 120 from v11.58). A loaded cell is a 49×49 grid, a terrain mesh, its flora as a
   block in each species' pool (v11.52, chunks.js `POOLS`: one `InstancedMesh` per species across every loaded cell; the card species, the
@@ -248,7 +249,7 @@ Docs, most upstream first. When a doc's Open list says a choice is the person's,
 - **Knobs** are top-level `const NAME=value; // meaning, units` or a table with a comment per key (`GRIP`, `ECO`, `AU_K`,
   `DERIVE_K`, `Q`). The readout's tuners mutate some live; bake a tuned value in by name.
 - **Randomness.** `mulberry(seed)` wherever the world must persist (cells by index, species by `hashStr(id)`, landmarks 4242,
-  cairns 4343, noise 1337). `Math.random` only for animation and particles.
+  noise 1337; the cairns' 4343 went with them in v11.95). `Math.random` only for animation and particles.
 - **Units and frames.** 1 unit = 1 m, `GRAV` 9.8, y up, sea level 0, east +x, north −z, angles in radians from +x toward +z.
   **All creatures face +z.** An arms or claws predator's `reach` must exceed the contact distance of its and its prey's hit capsules or it can
   never land a bite; a jaw's bite is its mouth touching a capsule (v11.92, combat.js `mouthOn`), and its `reach` is only the strike range's floor. A day is 30 game hours in 40 real minutes; rates are per game day.

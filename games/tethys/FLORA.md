@@ -342,7 +342,7 @@ world) or the largest variant of a species. Proposed, with the first built:
 - **Earth's eras as a frame** — gone. The bands are what the conditions make them.
 
 Everything the person has praised survives by re-reading: the canopy (a colony), the towers (two species), the
-lanterns (lure-feeders), the rockfall's rust (living), the pit and the dark (empty of sessile life, and now for a reason).
+lanterns (lure-feeders), the rockfall's rust (living), the dark (empty of sessile life, and now for a reason; the pit struck v11.95).
 
 ## Hooks (derived here, not built)
 - **Withdrawal**: crowns fold into their stalks within a radius of a body (a per-instance attribute the vertex shader
