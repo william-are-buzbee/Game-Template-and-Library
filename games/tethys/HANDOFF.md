@@ -5,9 +5,10 @@ runs the plume under the plate for 30 Myr with ours (3 Ma) and the giant (1.31 M
 what shows from ours, tells each member's story, surveys seeds and exports the recipe; `test/region.js` pins it. Nothing in the game changed.
 The default is seed 32 (an active 2,533 m shield 47 km north-west of ours, five peaks over the horizon from ours, 103 atolls and banks, 47
 drowned). Learned: a slow plate's reefs never drown, so the guyots are the fed face's (PLANET: the polyps win only in clear water); no raised
-atolls at these sizes; **the model does not make our basin** (the water beside ours reaches the open ocean over ~−1060). **Ask first** about
-the layout (seed 32 or a row of the survey), then the basin, then the 308 m island it proposes inside the square. Next: §8 step 2 (the person's
-layout), then the formations by age (3) and the engine for a world that size (4).
+atolls at these sizes; **the model does not make our basin** (the water beside ours reaches the open ocean over ~−1060). **The person
+(10 Nov 2026):** the model's basins decide where the dark is (the −450 round ours goes; the nearest chemocline is a basin 28 km west, at −1000);
+seed 32; the square's eleven proposed members accepted, big changes and all. Still open: a little reef on the fed face, or none. Next (GLOBE §8):
+the game's own square by the model (step 5, no engine work), the formations by age (3), the engine for a world that size (4).
 
 **v11.93.4 (8 Nov 2026): the suite in three CI jobs.** The person, on v11.93.3's question: split it if it works without a
 headache. package.json `"shards": 3`: CI runs the tests as `tethys-1`…`tethys-3` (each `npm test` with `SHARD=k/3`) and builds and boots

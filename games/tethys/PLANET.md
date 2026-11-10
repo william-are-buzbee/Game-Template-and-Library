@@ -60,6 +60,9 @@ consequence of "a young oceanic shield volcano, almost drowned", and world.js `s
 - **The shield.** Gentle flanks: the shelf is the upper flank at 4–6°, −20 to −60 out to r 700; the slope ring to −250 at
   r 1200; the apron of the volcano's own debris to −290 at 1600. Basalt everywhere: olivine-green sand.
 - **The basin** (15 Sep 2026, built v11.58; the person chose it over the plate on the condition that it is a real thing, and it is).
+  **Decided 10 Nov 2026 (the person; GLOBE.md §9.1): the region model's basins decide where the dark is.** The province does not enclose ours
+  (its ridges are saddles at −1000 to −1500): the water round ours is open to the floor, the nearest silled basin 28 km west (chemocline
+  −1000). The paragraph below is what is built until that pass.
   The island stands in a **silled basin** far larger than the world (DIRECTION, 12 Sep). What is real: the Cariaco Basin is 1,400 m deep behind
   a 146 m sill and has been anoxic below ~250 m for 14,000 years; the Black Sea the same at 2,200 m; in both the chemocline sits at or below
   the sill. A volcanic ridge with a sill near −450 is real too: the Iceland-Faroe Ridge is the hotspot's older track, subsided to a 480 m

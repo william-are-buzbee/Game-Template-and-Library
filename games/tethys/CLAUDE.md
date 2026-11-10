@@ -13,7 +13,8 @@ when needed. 1 unit = 1 m; the player is a 3–3.5 m animal.
 
 **The rule (8 Sep 2026): the island is fully believable from its logic — no biomes, no magic, even for gameplay.** If a thing
 can't be derived from a young shield volcano, a big close moon, 28% oxygen, iron, a chemocline at −450 and the founder lines, it
-goes. No place has a name; every species places itself by a tolerance envelope over the condition fields. Nothing glows, floats or
+goes. (10 Nov 2026, the person: ours is 3 Ma, and the chemocline is each silled basin's, where the region model puts them — GLOBE.md §9.1;
+the game keeps −450 until that is built.) No place has a name; every species places itself by a tolerance envelope over the condition fields. Nothing glows, floats or
 moves without a physical reason; eyeshine is a reflection; bioluminescence only as events. Earth is reference, never template.
 
 ## Build, test, run, look

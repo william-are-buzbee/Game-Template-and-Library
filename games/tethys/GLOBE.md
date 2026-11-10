@@ -131,9 +131,10 @@ forests' warmth (§6); §9's and §10's open lists. Settled 10 Nov 2026: which m
 grows to hold every member (§10).
 
 The build, in order (rewritten 10 Nov 2026; the old one began with `globe.html`): (1) the region model (§9) and its page, ours and the giant
-pinned (built v11.94, §9.1); (2) the person's layout; (3) SEAFLOOR §4's formations as `islandH` terms by a member's age and state, each passing §7's test on our
+pinned (built v11.94, §9.1); (2) the person's layout (seed 32, 10 Nov 2026); (3) SEAFLOOR §4's formations as `islandH` terms by a member's age and state, each passing §7's test on our
 island before it lands there; (4) the engine for a world that size (§10), every step invisible; (5) the records into `ISLANDS`, the horizon tier
-first, then reachable; (6) the colonisation times (SEAFLOOR §6) and the young members' surface (SEAFLOOR §5). The giant's land is its own pass.
+first, then reachable — the game's own square first (its eleven members, the sill as the model's old track, the chemocline by the basins:
+it needs no engine work, the square exists); (6) the colonisation times (SEAFLOOR §6) and the young members' surface (SEAFLOOR §5). The giant's land is its own pass.
 
 ## 9. The region as a plume's history (10 Nov 2026; agreed in principle, the stages proposed)
 
@@ -207,10 +208,20 @@ stages became, and what running them taught:
   over the horizon from ours (the giant and the 308 on an ordinary day, three on clear days); 47 guyots, drowned banks and seamounts; 2,005 km²
   of land. region.html surveys any 30 seeds under any knobs.
 
-Open for the person (10 Nov 2026): **our basin** — keep the −450 chemocline as the stretch it is, find it another cause (a basin far larger
-than the province, or the planet's own ocean: an oxygen-minimum layer needs no enclosure), or let the model's basins decide where the dark
-is; **the layout** — seed 32 or another from the survey; **the proposals inside the square**; whether the reef on the fed face is none
-(`fedK` 0) or a little.
+**The person's answers (10 Nov 2026, the third round):**
+- **The basins: "let the model's basins decide how it naturally should play out."** The −450 chemocline round ours goes. Seed 32 at a 1.1 km
+  grid: the water round ours is open to the floor (out over ~−1060 east, −969 south, −1225 across the sill's corner); the nearest silled
+  basin is 28 km west, between ours, the giant and the awesome shield (317 km², sill −980, chemocline −1000, floor −1363); the next 63 km
+  east (−1134) and 116 km east (1,264 km², −1295). About 1% of the sea floor in the province lies under a chemocline. What the −450 carries
+  today — `CHEMO` in ten files (the milky plate, the seep line, the iron domes, the poison by feeding, the anoxic manganese plain, the
+  abyssal's rim) and eight envelopes — moves to where the basins put the dark, or is re-derived for an oxic deep (DIRECTION's "what is at the
+  bottom" with it). The darkness of depth is the light's and stays where it is. A basin's sill comes out of a coarse grid here; the build
+  computes it at the game's grain.
+- **The layout: seed 32** (§8 step 2, done).
+- **The proposals inside the square: accepted** — "the world we have now is nice but we are going to need to make some big changes, so
+  that's ok." Seed 32 puts eleven members there: the 308 m high island 20 km north of ours, five atolls (three awash, two just under), five
+  seamounts; the hand-built sill (world.js `SILL`) is to become the model's own old track.
+- Still open: whether the reef on the fed face is none (`fedK` 0) or a little.
 
 ## 10. A world that size (10 Nov 2026, proposed)
 

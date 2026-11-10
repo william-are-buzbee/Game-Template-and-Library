@@ -6239,3 +6239,7 @@ neighbours and the game's own square with the sill across its corner.
 −450 as a stretch, give it another cause, or let the model's basins say where the dark is; the 308 m island north of ours (a proposal); whether
 the old end's mass of atolls and banks is too much of one thing (it is what a warm, slow, keep-up province makes — the Tuamotus) or wants the
 fed face wider; the page on the person's screen (the labels crowd inside the square).
+
+The person, on the open list (10 Nov 2026): the model's basins decide where the dark is ("how it naturally should play out"); seed 32; the
+proposals inside the square accepted ("we are going to need to make some big changes, so that's ok"). Recorded in GLOBE §9.1, PLANET (The
+basin) and CLAUDE.md's rule.
