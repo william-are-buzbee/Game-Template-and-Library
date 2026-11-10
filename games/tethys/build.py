@@ -106,7 +106,7 @@ if '--test' in sys.argv:
     import shutil, tempfile, threading, time
     from concurrent.futures import ThreadPoolExecutor
     ALONE = [(['test/physics.js'], {}, 4), (['test/audio.js'], {}, 20), (['test/snow.js'], {}, 38), (['test/sky.js'], {}, 2)]  # the third number: its seconds one at a time, as build.js
-    SIDE = [(['test/smoke.js'], {}, 156), (['test/smoke.js'], {'TIER': 'low'}, 103), (['test/live.js'], {}, 89), (['test/live.js'], {'TIER': 'low'}, 87), (['test/player.js'], {}, 56), (['test/census.js', '40'], {}, 55), (['test/player.js'], {'TIER': 'low'}, 41), (['test/steer.js'], {}, 25), (['test/steer.js'], {'TIER': 'low'}, 18), (['test/anim.js'], {}, 17), (['test/combat.js'], {}, 9), (['test/registry.js'], {}, 5), (['test/pool.js'], {}, 4), (['test/plankton.js'], {}, 2), (['test/lint.js'], {}, 1)]
+    SIDE = [(['test/smoke.js'], {}, 156), (['test/smoke.js'], {'TIER': 'low'}, 103), (['test/live.js'], {}, 89), (['test/live.js'], {'TIER': 'low'}, 87), (['test/player.js'], {}, 56), (['test/census.js', '40'], {}, 55), (['test/player.js'], {'TIER': 'low'}, 41), (['test/steer.js'], {}, 25), (['test/steer.js'], {'TIER': 'low'}, 18), (['test/anim.js'], {}, 17), (['test/combat.js'], {}, 9), (['test/registry.js'], {}, 5), (['test/pool.js'], {}, 4), (['test/plankton.js'], {}, 2), (['test/region.js'], {}, 1), (['test/lint.js'], {}, 1)]
     # v11.93.4: SHARD=k/n runs the k-th of n parts, dealt as build.js deals them: longest first to the part with the fewest seconds, ties low
     SH = re.match(r'^(\d+)/(\d+)$', os.environ.get('SHARD', ''))
     if os.environ.get('SHARD') and not (SH and 1 <= int(SH.group(1)) <= int(SH.group(2))):

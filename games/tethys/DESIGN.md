@@ -119,6 +119,20 @@ olive, the lagoon a faint green over the flats, the thermocline over the fed slo
 ordinary blue-teal with the fleets over it (the green ghost gone). Not built (passes 2–6): the snow off the field, the day and the year, the
 swarms, filter feeding, the bloom night.
 
+## The region
+
+`region.js` (v11.94, GLOBE.md §9–9.1): the province as a plume's history, pure data, not yet read by the game. `regionModel(K)` runs the
+plume under the plate for `REGION_K.span` (30 Myr) in steps of `RG_DT` (2 kyr): the track through ours (`ageOurs` 3 Ma) and the giant (1.31 Ma
+at `v` 1.06 cm/yr, turning `turn` 3°/Myr); births by the flux (`base` 0.3 and the pulses: one at the giant's birth, `young` waxing now) on a
+power law (`vol` 6 km³, `beta` 0.75, `vMax` 3000), scattered over `foot` 40 km and drawn onto fracture zones (`fracSp`, `fracA`, `fracPull`);
+each member a cone of 12° holding its volume (`rgShape`), its base the plateau (`platW`, `headR`, solved so the floor beside ours is `floor`)
+plus the plate's cooling (`plateAge`), the swell (`swell`, `swellW`) and the flexure of every load (`Te`, kei by `rgKei`); erosion (`erode`)
+and planing (`plane`, `wb`) after the shield; the reef by `rgSea` (Earth's sawtooth) at `reef` mm/yr decaying with depth (`light`), drowned
+past `photic`, none on the fed face (`fedL`, `fedK`). The pins' volumes are tuned by secant until their summits are `REGION_PINS`'s. Each
+member ends with a state (`RG_STATE`), its flat top, its shore, its first light and the neighbour it was settled from. `regionGrid` draws the
+province (and the game's own ground inside its square), `regionBasins` floods it from the edge for every cell's sill and the basins,
+`regionSeen` what clears the horizon from a point. ~0.3 s a run; `test/region.js` pins it.
+
 ## Landmarks
 
 `world.js`: the pit crater and the chimney sit where the geology puts them (rift arm 0: `PIT`, the fissure's middle); the

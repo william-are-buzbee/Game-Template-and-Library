@@ -6199,3 +6199,43 @@ part 1's smoke.js on a fast runner), so the weights are a sandbox's, good to a m
 minutes on the sandbox: six boots and a long swim), so a fourth part buys little.
 
 Not changed: any test, its order within a part (alone first, then longest first), the whole suite locally. Unseen: nothing in the game.
+
+## v11.94 — the region as a plume's history: src/region.js, region.html (10 Nov 2026)
+
+The person, on GLOBE.md §9's stages: "That looks awesome. Go ahead and build it." Their answers of the same day: a second basin may have its
+own sill and chemocline; ours is not young — whatever age gives the most variety. This is GLOBE §8 step 1: the model and the page the person
+picks the layout on. Nothing in the game changed: region.js is in `order.txt` (lint reads it) but nothing calls it; its records go into
+`ISLANDS` with step 5.
+
+- **src/region.js.** `regionModel(K)` runs the plume under the plate for 30 Myr in 2 kyr steps: the track through ours at 3 Ma and the giant
+  at 1.31 (1.06 cm/yr, turning 3°/Myr); the flux's pulses (one at the giant's birth, one waxing now — ARCHIPELAGO's active young shield); births
+  on a power law, scattered over the plume's footprint and drawn onto old fracture zones; each member's base the plateau plus the plate's
+  cooling, the swell and the flexure of every load (a thin plate's kei, A&S 9.9.12); erosion and the waves' planing; the reef against Earth's
+  sea level, its growth falling off with depth, drowned past 50 m. The pins' volumes are tuned by secant (7 rounds) until ours stands at
+  +4.4 and the giant at 900, and the plateau's level until the floor beside ours is −1100. `regionGrid`, `regionBasins` (a priority flood
+  from the edge: every cell's sill and the enclosed basins) and `regionSeen` (over the horizon from a point). Knobs: `REGION_K`, every one
+  commented. ~0.3 s a run.
+- **What the running taught (GLOBE §9.1).** On a plate this slow no reef ever drowns: the loads are small, subsidence is ~0.05 mm/yr, and the
+  sea comes back up to every reef top at each deglaciation — so the province was all atolls and the game's own sill could not exist. What
+  stops a reef here is PLANET's rule that the lime polyps win only in clear water: members on the upstream face, where the current brings
+  the open ocean's water in, get no reef (`fedL`, `fedK`), are planed and sink — the guyots. Flexure's arch is metres at these sizes: no
+  raised atoll comes out. And **the model does not make our basin**: its ridges are saddles at −1000 to −1500, so the water beside ours
+  reaches the open ocean over ~−1060; the game's chemocline at −450 needs a sill near −430 all round. That one is the person's.
+- **The default, seed 32**, the nearest of 60 to the person's picture of 25 Sep: 159 members — an active shield of 2,533 m 47 km north-west of
+  ours (the awesome one), the giant and an 820 (the great), a 308 and a 243 (the fine), a 50 and ours; 67 atolls, 36 banks, 28 guyots, 18
+  seamounts; 2,005 km² of land; five peaks over the horizon from ours. A 308 m island 20 km north of ours falls inside the game's square,
+  where the game has floor: flagged as a proposal.
+- **region.html** beside map.html (and on the site, tools/dist.js): the province shaded, the silled basins washed violet with their sills, the
+  track with its ages, the plume now, the game's square with its own ground inside (or the model's), the haze's 30 km and the clear day's
+  110 from ours; a click tells a member's story; every knob; a survey of 30 seeds; the recipe for `REGION_K`.
+- **test/region.js**, in `--test` (`SIDE`, 1 s, in build.js and build.py alike): kei against A&S's table, the sea, the track through the
+  pins, the pins' summits and the floor, determinism, no NaN, the grid, the flood; then the default province as a table.
+
+Seen: region.html in headless Chromium at 1500×900 from the file, no page errors — the province whole (the plateau's peanut outline, the
+atoll and bank mass at the old end, the violet basin in the middle, the curved track) and zoomed to the awesome shield, its moat's
+neighbours and the game's own square with the sill across its corner.
+
+**Unseen, ask in this order:** whether seed 32 reads as the archipelago they pictured, or which row of the survey does; the basin — keep the
+−450 as a stretch, give it another cause, or let the model's basins say where the dark is; the 308 m island north of ours (a proposal); whether
+the old end's mass of atolls and banks is too much of one thing (it is what a warm, slow, keep-up province makes — the Tuamotus) or wants the
+fed face wider; the page on the person's screen (the labels crowd inside the square).

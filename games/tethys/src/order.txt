@@ -4,6 +4,7 @@
 ../vendor/wb-core.global
 util
 world
+region
 physics
 scene
 clouds

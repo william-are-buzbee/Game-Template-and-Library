@@ -1,0 +1,53 @@
+// test/region.js — the region model (v11.94, GLOBE.md §9; src/region.js): the pieces against their numbers and the history against its pins.
+// kei against Abramowitz & Stegun's table; the sea level's sawtooth; the track through ours and the giant; the pins' summits and the floor beside
+// ours tuned to the records'; the same seed the same province to the bit; no NaN; every state a named one; the grid finite and the flood's fill
+// never under the ground; and a table of the default province (the states, the land, what shows from ours, the basins) for the log. In --test.
+'use strict';
+const fs=require('fs'),path=require('path'),root=path.join(__dirname,'..');
+const util=fs.readFileSync(path.join(root,'vendor/wb-core.global.js'),'utf8')+'\n'+fs.readFileSync(path.join(root,'src/util.js'),'utf8');
+let world=fs.readFileSync(path.join(root,'src/world.js'),'utf8');const cut=world.indexOf('// ---------- the light');if(cut>0)world=world.slice(0,cut); // the geology and the fields (test/map.js's cut)
+const region=fs.readFileSync(path.join(root,'src/region.js'),'utf8');
+const THREE={Vector3:class{constructor(x,y,z){this.x=x;this.y=y;this.z=z;}},Matrix4:class{},Quaternion:class{}};
+const G=new Function('THREE',util+'\n'+world+'\n'+region+'\nreturn {sample,HALF,ISLANDS,REGION_K,REGION_PINS,RG_STATE,regionModel,regionGrid,regionBasins,regionSeen,rgKei,rgSea,rgTrack};')(THREE);
+let fails=0;const ok=(c,msg)=>{console.log((c?'  ok   ':'  FAIL ')+msg);if(!c)fails++;};
+console.log('region: the pieces');
+// kei(x) (A&S Table 9.12): 1 → −0.494991, 2 → −0.202400, 3 → −0.051123, 4 → +0.002198; the table is kei/kei(0), kei(0) = −π/4
+for(const [x,v] of [[1,-0.494991],[2,-0.202400],[3,-0.051123],[4,0.002198]]){const k=G.rgKei(x)*-Math.PI/4;ok(Math.abs(k-v)<2e-4,`kei(${x}) ${k.toFixed(6)} against ${v}`);}
+let lo=0,hi=-1e9;for(let t=0;t<1;t+=0.0005){const s=G.rgSea(t);lo=Math.min(lo,s);hi=Math.max(hi,s);}
+ok(G.rgSea(0)===0&&lo>=-120.001&&lo<-119&&hi<=0,`the sea: 0 now, ${lo.toFixed(1)} at the lowstands of the last 1 Myr, never over 0`);
+console.log('region: the default province');
+const t0=Date.now(),R=G.regionModel(),ms=Date.now()-t0,K=R.K,M=R.M,home=M.find(m=>m.id==='home'),giant=M.find(m=>m.id==='giant');
+const o={x:0,z:0};R.track(K.ageOurs,o);const dO=Math.hypot(o.x-home.x,o.z-home.z);R.track(R.tg,o);const dG=Math.hypot(o.x-giant.x,o.z-giant.z);
+ok(dO<1&&dG<1,`the track passes through ours at ${K.ageOurs} Ma (${dO.toFixed(3)} m) and the giant at ${R.tg.toFixed(2)} Ma (${dG.toFixed(3)} m)`);
+ok(Math.abs(R.tg-1.31)<0.03,`the giant's age from the speed: ${R.tg.toFixed(3)} Ma (1.06 cm/yr over 17.9 km from 3 Ma)`);
+const P0=G.REGION_PINS;ok(Math.abs(home.zv-P0[0].sum)<2&&Math.abs(giant.zv-P0[1].sum)<2,`the pins' summits today: ours ${home.zv.toFixed(1)} (${P0[0].sum}), the giant ${giant.zv.toFixed(1)} (${P0[1].sum}), in ${R.iter} rounds`);
+const ref=R.floorAt(R.ref.x,R.ref.z);ok(Math.abs(ref-K.floor)<2,`the floor beside ours ${ref.toFixed(1)} (${K.floor})`);
+ok(home.state==='rim'&&giant.state==='high',`ours is ${G.RG_STATE[home.state]}, the giant ${G.RG_STATE[giant.state]}`);
+ok(home.alive&&giant.reef&&!home.fed&&!giant.fed,'both pins carry a living reef and neither is fed');
+const num=['x','z','age','V','H','R','Ts','zv','peak','E','rt','top','rtop','shore','land','fl'];let bad=0;
+for(const m of M){for(const k of num)if(!Number.isFinite(m[k]))bad++;if(!G.RG_STATE[m.state])bad++;}
+ok(bad===0,`${M.length} members: every number finite, every state a named one`);
+const R2=G.regionModel(),same=JSON.stringify(R2.M.map(m=>[m.x,m.z,m.age,m.V,m.zv,m.rt,m.state]))===JSON.stringify(M.map(m=>[m.x,m.z,m.age,m.V,m.zv,m.rt,m.state]));
+ok(same,'the same knobs, the same province to the bit');
+const R3=G.regionModel({seed:K.seed+1});ok(R3.M.length!==M.length||R3.M[2].x!==M[2].x,'another seed, another province');
+const ages=M.filter(m=>m.pin<0).map(m=>m.age);ok(Math.min(...ages)>=0&&Math.max(...ages)<=K.span+0.01,`births between now and ${K.span} Ma`);
+const atA=M.filter(m=>m.pin<0&&m.age<0.6),atB=M.filter(m=>m.pin<0&&m.age>K.span-3);let dA=0,dB=0;R.track(0,o);for(const m of atA)dA+=Math.hypot(m.x-o.x,m.z-o.z)/atA.length;R.track(K.span,o);for(const m of atB)dB+=Math.hypot(m.x-o.x,m.z-o.z)/atB.length;
+ok(atA.length>0&&atB.length>0&&dA<2*K.foot*1000&&dB<2*K.foot*1000,`the young births sit by the plume now (${(dA/1000).toFixed(0)} km) and the oldest by the head (${(dB/1000).toFixed(0)} km)`);
+console.log('region: the grid and the basins');
+const span=520e3,n=260,x0=-140e3,z0=-260e3,t1=Date.now(),H=G.regionGrid(R,x0,z0,span,n),t2=Date.now(),B=G.regionBasins(H,n,span/n),t3=Date.now();
+let fin=true,under=0;for(let k=0;k<n*n;k++){if(!Number.isFinite(H[k]))fin=false;if(B.F[k]<H[k]-1e-3)under++;}
+ok(fin,`${n}² heights, all finite`);ok(under===0,'the flood\'s fill is never under the ground');
+let edge=true;for(let i=0;i<n;i++)for(const k of [i,(n-1)*n+i,i*n,i*n+n-1])if(B.F[k]!==H[k])edge=false;ok(edge,'the grid\'s edge is the open ocean: its fill is its ground');
+const f9=new Float32Array(9),Hg=G.regionGrid(R,x0,z0,span,n,(x,z)=>G.sample(x,z,f9).h,G.HALF),ci=Math.floor((6000-x0)/(span/n)),cj=Math.floor(-z0/(span/n));
+ok(Math.abs(Hg[cj*n+ci]-G.sample(6000+0.5*span/n-((6000-x0)%(span/n)),0.5*span/n-(-z0%(span/n)),f9).h)<1,'inside the game\'s square the grid is the game\'s own ground');
+// the log: what the default province is
+const cnt={};let land=0;for(const m of M){cnt[m.state]=(cnt[m.state]||0)+1;land+=m.land;}
+console.log(`\n  ${M.length} members in ${ms} ms (seed ${K.seed}; the grid ${t2-t1} ms, the flood ${t3-t2} ms):`);
+for(const s in G.RG_STATE)if(cnt[s])console.log(`    ${String(cnt[s]).padStart(3)}  ${G.RG_STATE[s]}`);
+console.log(`  land ${land.toFixed(0)} km² (discs); above the sea:`);
+for(const m of M.filter(m=>m.zv>0).sort((a,b)=>b.zv-a.zv))console.log(`    ${m.id.padEnd(6)} ${G.RG_STATE[m.state].padEnd(18)} ${String(Math.round(m.zv)).padStart(5)} m  ${m.age.toFixed(2).padStart(5)} Ma  ${String(Math.round(m.V/1e9)).padStart(5)} km³  ${String(Math.round(m.land)).padStart(5)} km²  at ${(m.x/1000).toFixed(1)}, ${(m.z/1000).toFixed(1)} km${m.inSq&&m.pin<0?'  (inside the game\'s square: a proposal)':''}`);
+const seen=G.regionSeen(R,0,0);console.log(`  from ours: ${seen.map(s=>`${s.m.id} ${(s.d/1000).toFixed(0)} km${s.haze?'':s.clear?' (clear days)':' (never)'}`).join(', ')}`);
+const k0=cj*n+ci;console.log(`  the water beside ours (the game's ground inside its square): floor ${Hg[k0].toFixed(0)}, its way out tops at ${regionFill(Hg,n,span,k0).toFixed(0)}`);
+function regionFill(Hh,nn,sp,k){return G.regionBasins(Hh,nn,sp/nn).F[k];}
+for(const b of B.B.filter(b=>b.silled).sort((a,b)=>b.area-a.area).slice(0,4))console.log(`  a silled basin: ${b.area.toFixed(0)} km², sill ${b.sill.toFixed(0)}, floor ${b.floor.toFixed(0)}, chemocline ${b.chemo.toFixed(0)}`);
+console.log(fails?`\nregion: ${fails} FAILED`:'\nregion: all passed');process.exit(fails?1:0);

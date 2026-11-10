@@ -2,8 +2,9 @@
 
 Status: **designed, not built.** The person's decisions are in §7; the build is deferred to a chat with room for it (§8). Read PLANET.md first (The
 planet, Geology) and ARCHIPELAGO.md: this doc revises ARCHIPELAGO's "one chain" into a cluster and says why; nothing in PLANET changes.
-**Revised 10 Nov 2026:** no planet map — the region is drawn by a model of the plume's history (§9, agreed in principle; its stages proposed);
-a world that size, every member reachable (§10, proposed); the person's answers of that day in §7, the build order in §8 rewritten.
+**Revised 10 Nov 2026:** no planet map — the region is drawn by a model of the plume's history (§9, agreed; **built v11.94**: src/region.js,
+region.html, test/region.js — §8 step 1); a world that size, every member reachable (§10, proposed); the person's answers of that day in §7,
+the build order in §8 rewritten.
 
 ## 1. Why zoom out
 
@@ -130,7 +131,7 @@ forests' warmth (§6); §9's and §10's open lists. Settled 10 Nov 2026: which m
 grows to hold every member (§10).
 
 The build, in order (rewritten 10 Nov 2026; the old one began with `globe.html`): (1) the region model (§9) and its page, ours and the giant
-pinned; (2) the person's layout; (3) SEAFLOOR §4's formations as `islandH` terms by a member's age and state, each passing §7's test on our
+pinned (built v11.94, §9.1); (2) the person's layout; (3) SEAFLOOR §4's formations as `islandH` terms by a member's age and state, each passing §7's test on our
 island before it lands there; (4) the engine for a world that size (§10), every step invisible; (5) the records into `ISLANDS`, the horizon tier
 first, then reachable; (6) the colonisation times (SEAFLOOR §6) and the young members' surface (SEAFLOOR §5). The giant's land is its own pass.
 
@@ -171,6 +172,45 @@ Answered by the person (10 Nov 2026, the second round): **a second basin may hav
 basin's, not the planet's (Cariaco's sits near −250 behind a 146 m sill); **ours is not young** — "whatever age gives the greatest variety and
 the most tools and creative options", the creatures' own ages being as vague (DIRECTION, Open 1, closed: an input to the model, chosen when it
 is built); **the stages: "that looks awesome — go ahead and build it."**
+
+### 9.1 As built (v11.94, 10 Nov 2026)
+
+`src/region.js` (`regionModel`, `regionGrid`, `regionBasins`, `regionSeen`; the knobs `REGION_K`, the pins `REGION_PINS`), drawn by
+`region.html`, checked by `test/region.js`. In `order.txt` but not called by the game: its records go into `ISLANDS` with §8 step 5. What the
+stages became, and what running them taught:
+
+- **Ages.** Ours 3 Ma (the person: not young, the most variety); the plate 1.06 cm/yr, so the giant 1.31 Ma; the history 30 Myr, the track
+  ~320 km, turning 3°/Myr (a quarter circle). Ours at 3 Ma comes out a rim at sea level with a living reef and the giant 900 m with one — the
+  records' states — with no hand-setting beyond their volumes (82 and 297 km³, tuned). Erosion (0.45/Myr) and the waves leave nothing high
+  past ~4 Myr: every high island in the province is from the giant's pulse or the one waxing now.
+- **The births** are a power law (N(>V) ∝ V^−0.75, the smallest 6 km³): most are seamounts that never surface; a pulse makes ~6 over
+  30 km³ and ~2 over 100. A pulse is pinned at the giant's birth, another waxing now (ARCHIPELAGO's active young shield; `young`).
+- **A slow plate's reefs never drown.** Subsidence here is ~0.05 mm/yr (the loads are small: the giant's moat is ~200 m), so a reef top sinks
+  ~5 m between highstands and every deglaciation's sea simply comes back up to it; reef growth rate makes no difference. Left alone, every
+  old member is an atoll or a bank — the Tuamotus — and the game's own sill (drowned shields at −150 to −410) could not exist. **What stops a
+  reef here is PLANET's own rule:** the lime polyps win only in clear, bright water. The current enters across the province's upstream face
+  (the game's: the gap in the sill), and a member with nothing upstream to shelter it within 90 km (`fedL`) sits in the open ocean's fed water,
+  where the weed takes its shallows: no reef (`fedK` 0), so it is planed and sinks — the guyots. Seed 32: all 28 guyots are fed; 103 atolls and
+  banks in the lee.
+- **Flexure is small at these sizes** (α 15.7 km at Te 6 km): the arch is ~1.4% of the moat, metres. No raised atoll comes out of any seed;
+  §9's Makatea needs a Tahiti-sized load. The awesome member's moat (735 m under a 2,600 km³ shield) is the largest effect.
+- **Colonisation comes free:** each member's first light and the nearest lit member then. Seed 32: median 11 km from a neighbour, the
+  longest 54 km, one from afar (the founders).
+- **The basin: the model does not make ours.** Its ridges are saddles at −1000 to −1500; it encloses basins of its own (seed 32: 1,260 km²
+  behind a sill at −1273, chemocline −1293) but none round ours. With the game's own ground inside its square, the water beside ours reaches
+  the open ocean over ~−1060. The game's chemocline at −450 wants a sill near −430 all round, which a hotspot province does not build. Open
+  for the person (below).
+- **Births inside the game's square are kept and flagged**: the game has only floor there. Seed 32 puts a 308 m, 3.1 Ma island 20 km north
+  of ours (in the awesome shield's moat). A proposal for §8 step 5, to be judged by §7's test, not built.
+- **The default, seed 32** — of 60 surveyed, the nearest to the person's picture of 25 Sep: an active shield of 2,533 m (1,337 km², 47 km
+  north-west of ours: the awesome one), the giant 900 and another of 820 (the great), 308 and 243 (the fine), 50 and ours (the barely); 5
+  over the horizon from ours (the giant and the 308 on an ordinary day, three on clear days); 47 guyots, drowned banks and seamounts; 2,005 km²
+  of land. region.html surveys any 30 seeds under any knobs.
+
+Open for the person (10 Nov 2026): **our basin** — keep the −450 chemocline as the stretch it is, find it another cause (a basin far larger
+than the province, or the planet's own ocean: an oxygen-minimum layer needs no enclosure), or let the model's basins decide where the dark
+is; **the layout** — seed 32 or another from the survey; **the proposals inside the square**; whether the reef on the fed face is none
+(`fedK` 0) or a little.
 
 ## 10. A world that size (10 Nov 2026, proposed)
 
