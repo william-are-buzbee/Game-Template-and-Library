@@ -6706,3 +6706,119 @@ Seen: in headless Chromium, no page errors, on m139's slope 8 km north of ours a
 across the spurs and up toward the reef; a hunter passing. **Unseen, ask in this order:** the slope in play (`tp(670,-8127,-530)`, across and
 up it); the mounds there — big structures, drawn by the far regions, which do not build at a headless frame rate; whether the relict's 81 is
 "a bit"; the spurs' look from a distance (30 m of relief every 320 m).
+
+## v11.108 — no basin is anoxic (11 Nov 2026)
+
+The person (11 Nov 2026), on v11.106's moat — the deep floor round ours under a chemocline at −1019, the moat and the basin 28 km west one water
+behind −999: "believability is the deciding factor … it's very ok if it turns out it's not plausible this deep." It is not.
+
+- **Why.** A basin behind a sill holds still water, renewed only when denser water spills in; it goes anoxic when the food raining into it
+  uses up the oxygen that renewal brings. Two things set that: the food reaching the sill — most of what leaves the surface is eaten on the
+  way down, about a seventh reaching 1000 m (Martin's curve, (z/100)^−0.86) — and the oxygen of the water coming over it. A sill at −1000
+  under open water gets little of the first and the deep's water, recovered from the minimum, for the second: 0.5 of the surface's, which
+  under Tethys's 28% atmosphere and at ~5 °C is a third more than Earth's at the same share. Earth agrees: the deep-silled basins off
+  California are hypoxic (Santa Monica, 740 m, on the Pacific's far poorer minimum) or oxygenated (San Clemente, 1800 m); the anoxic ones
+  have a shallow sill under rich water (Cariaco, 146 m) or sit in a severe minimum (Santa Barbara, 475 m).
+- **The rule (world.js `chemoD`, `OXY.anox` 2.4):** a silled basin's food over its oxygen — `anox` × the basin's mean `nut` × the share of the
+  food that reaches its sill, over `oxyProf` at the sill (what its inflow brings); anoxic at 1. `anox` puts Cariaco (1.04) and Santa Barbara
+  (1.15) over the line and Santa Monica (0.82) and San Clemente (0.12) under it, on the game's own profile. `chemoInit` takes each basin's
+  `nut` from the flood's own samples; region.js's `silled` is the geometry alone now (still water), and `b.chemo` where the line would be.
+- **The world:** five silled basins, none anoxic — the moat round ours and the basin west 0.09, v11.102's 13 km² north-north-east 0.18, 39 km²
+  at 24.7 km east 0.26, and the nearest two small ones 44 and 67 km east behind −616 and −604 under fed water, 0.70 and 0.80. `chemoAt` is
+  null everywhere: the moat's floor has its sessile life back, the plate and the black flakes are gone, and nothing is poison there. The
+  dark's machinery (the plate, the seep line, the poison, the sulfide coat, the straddlers) stays for a basin that earns it.
+- **DEEP §5–6:** the basin west is still there — 380 m of still, food-poor water behind its sill — but not dark, so the constructors'
+  structures, planned for its rim, need the person's word on their place (DEEP §11).
+- **test/region.js:** the rule on Earth's four basins; the moat's basin silled and oxic (0.09); no basin in the world anoxic, no chemocline
+  over ours, the floor east, the giant, the drowned atoll north, a far corner or the basin west. region.html: a silled basin is still water,
+  not a chemocline.
+
+Seen: in headless Chromium, no page errors, the moat's floor at −1100 east of ours — quiet mud, a few animals, no black flakes. **Unseen,
+ask in this order:** where the constructors go (DEEP §11); the moat's floor in play (`tp(6000,0,-1100)`), now with the deep's ordinary life.
+
+## v11.109 — a horizon mesh per island (11 Nov 2026)
+
+GLOBE §10.1, the engine work before the province; the person (11 Nov 2026): "go ahead and do the engine work". The first of three steps
+(a horizon mesh per member; the local origins; the cell hash), each invisible in the world and pinned by a test.
+
+- **horizon.js `hzGen(cx, cz)`, `hzLand`.** The land past the far plane was one mesh of every island, ~2.3 s of `sample()` since v11.106's
+  world (~6 s at 60 fps, a slice of `HZ_MS` a frame), drawn when all of it was done. Now each live coarse cell of v11.102's pass belongs to
+  one member — of the records whose top holds its centre, the one it lies deepest inside (distance over the top's radius least; the first
+  in `ISLANDS` on a tie) — and each member's cells are a mesh of their own, the members built in order of the camera's distance to their
+  tops' edge when the build starts. From ours: ours, the giant, the 308 m island, the atolls east … the awesome shield (35 members). The
+  giant's land is done after 5.4% of the build, the 308 m island's after 8.9% (~0.3 and ~0.5 s at 60 fps); the awesome shield is half of it.
+- **The same land.** A vertex on a boundary between two members is the same lattice point sampled for both, so the meshes meet exactly;
+  against v11.107's one mesh (node, the old code's build against this one's), every one of its 603,994 triangles is in the members', with
+  their positions, colours and normals to the bit and nothing more.
+- **Culling:** each member's mesh by its own bounding sphere widened by `HZ_DROP` 4 km (the curvature's drop in the vertex shader, ~3.1 km at
+  200 km), so the islands behind the camera are not drawn; up to 35 draws in the horizon pass where there was one.
+- **test/horizon.js** (new, in `--test`, ~13 s): the build from ours to its end, then with the members collapsed to one (the source patched,
+  as v11.102–108 built it): every triangle in one member's mesh, the members' triangles the one mesh's with their winding, every vertex on the
+  lattice, the members nearest first, the giant's land after ~5% of the build's triangles (the stub's clock stands still within a frame, so
+  the build never yields there).
+
+Seen: the identity above; and in headless Chromium (no page errors), surfacing 3 km east of ours: ours' mesh at once, the giant's ~40 s
+later at the headless frame rate (a frame every few seconds) and on the horizon in the shot, the 308 m island and the east atoll next — where
+v11.106's one mesh had not appeared after 30 minutes. **Unseen, ask in this order:** how soon the far land shows at your frame rate (~0.3 s
+for the giant by the CPU's count); the frame rate above water with up to 35 draws in the horizon pass instead of one (the culling drops those
+behind you).
+
+## v11.110 — local origins (11 Nov 2026)
+
+GLOBE §10.1, the engine work before the province, step 2 of 3 (the person: "go ahead and do the engine work"). Invisible: the world is where
+it was, to within the old floats' rounding.
+
+- **Why.** The GPU works in float32, which holds a world coordinate of 70 km to 8 mm and of 300 km to 3 cm; a vertex written at its world
+  position is multiplied by a model-view matrix carrying the camera's equally large translation, and the two cancel in float32, so the ground
+  swims by that much as the camera moves. Invisible at ±70 km, a visible shimmer in a province. three composes the model-view matrix in
+  doubles, so an object placed far off with small vertices loses nothing.
+- **chunks.js `ORIGIN`, `originOf`, `instLocal`, `poolSnap`.** A cell's group sits at the cell's corner (`ch.ox`, `ch.oz`) and everything in it
+  is local to that: the terrain's vertices (`buildTerrain`), its own instanced flora (cards, rafts, glow) and its structures' shadow proxies, its
+  vents' plumes (their rising points), its carcass falls' bones and enriched patch (creatures_ai.js `fallShow`, `fallPatch`). The flora pools
+  span the loaded cells: their translations are relative to a render origin, the pools' group placed at it, which re-snaps to the player's
+  1 km square once the player is 4 km off (`ORIGIN.snap`, `ORIGIN.grid`; every pooled instance's translation shifted once, one ranged upload a
+  pool). Each local number is taken from the double the world one came from, not from the stored float.
+- **far.js:** a region's group at its corner, its terrain and apron (`apronGen` takes the offset), its structures and its cards (`imp.mats`, which
+  `farApplyCell` copies back, local too) local to it.
+- **horizon.js:** each member's mesh at a lattice point by it, its vertices whole `Q.hz` steps from that; the vertex shader takes the
+  curvature's drop from the world position by `modelMatrix` and draws the local vertex lowered by it.
+- **The shaders needed nothing else:** the fog's world position is the camera's plus the view-space offset (scene.js `fog_vertex`), and the
+  world texels and the sway go through `modelMatrix`.
+- **`ORIGIN.on` false** writes world coordinates as to v11.109 (the test's other run). Not moved: the snow, blood and debris points round the
+  camera (8 mm at 70 km; for the province).
+- **test/origins.js** (new, in `--test`, ~22 s): the game booted as built and with `ORIGIN.on` false (a child run), at ours and 36 km out (the
+  render origin re-snapped to 30000, −20000): every loaded cell's terrain and own instanced meshes, every pool block, every far region's
+  terrain, structures and cards in the same world place — 532 meshes and blocks at ours within 0.12 mm, 349 out there within 0.98 mm (the old
+  floats' rounding; an all-zero card hidden under a loaded cell draws nothing and is not compared) — and every local number small (a cell's
+  ≤ 215 m, a region's ≤ 860, a pool's ≤ 1,290, where the old world numbers reached 30,530). test/horizon.js compares world positions now.
+
+Seen: in headless Chromium, no page errors — the shelf forest at ours (the pooled flora, the terrain, the shadows and caustics in place);
+a bank 36 km out after the render origin had re-snapped there (its seagrass and rock in place); the giant on the horizon from the surface.
+**Unseen, ask in this order:** anything out of place or shimmering after a long swim (the render origin moves every 4 km); nothing else
+should look different.
+
+## v11.111 — the cell hash (11 Nov 2026)
+
+GLOBE §10.1, the engine work before the province, step 3 of 3 (the person: "go ahead and do the engine work"). Invisible.
+
+- **No table of the world's size.** v11.106 grew the dense arrays over the world's cells with it: the loaded cells (`chunkGrid`, 430,336 slots),
+  the far layer's structure and card caches (`bigCache`, `impCache`, as many), the far regions (26,896). A province 300 km across would make
+  them millions. Now: chunks.js `chunks` is the one table of loaded cells, a `Map` by `ckey(i, j)` — a number, `(i + 2¹⁹)·2²⁰ + (j + 2¹⁹)`, for any
+  cell within 524,288 of the anchor (112,000 km; the string `'i,j'` to v11.110) — with `chunkIJ(i, j)` and `chunkAt(x, z)` for the lookups
+  (audio.js, physics.js, ecology.js, far.js); far.js's caches are `Map`s by the same key, and its regions a `Map` of the built ones, region
+  (ri, rj) the cells from 4ri, 4rj (numbered from cell 0, not from `GRID0`; the maps' block of a region is texel 24ri, so `WM_C0` went), the
+  world's edge `RG0`/`RG1` for the apron. `gridIdx` is gone; `gridIn` is the world's bounds, the clamp's.
+- **A brood's cell in the save** past the old square is NCELL² + its key (line.js `lineCell`; v11.106's NCELL² + `gridIdx` was never in a
+  released save): whatever size the world.
+- **The same world.** Against v11.110 in node, booted and swum the same: at ours, 36 km out and in the far south-west the same loaded cells,
+  regions (by their corners) and pool counts, every terrain's and instanced mesh's numbers the same (99, 106 and 101 of them).
+- **test/cells.js** (new, in `--test`, ~13 s): no table of the world's size; a cell's key one safe integer per (i, j) over ±700 cells; at ours,
+  the west edge and the north-east corner every loaded cell found at its middle and by (i, j), 400 places round each found right, nothing off
+  the world; every region the cells from 4ri, 4rj and in its table, the apron on the edge's regions (6 at the west edge, 5 at the corner, 0
+  at ours) and no other; the caches 912 cells each where the world has 430,336. test/physics.js and test/combat.js through `chunkIJ`;
+  test/origins.js keys a cell's instanced meshes by their place among them (it had failed once in six runs with one mesh of another length; a carcass's bones shown meanwhile shift the count over every mesh — the likely cause, not proven).
+- **What the province still needs** (GLOBE §10.1): the world's bounds lifted (the clamp, the apron); the ledger's coarse patches, dense over
+  the world; the horizon's members beyond `HZ_FAR` built as they come in; the near particles against the render origin; the records' index
+  and the chemocline's flood over a window.
+
+Seen: the comparison above; the suite. **Unseen:** nothing should look or play differently.

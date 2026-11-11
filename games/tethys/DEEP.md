@@ -142,8 +142,17 @@ DIRECTION's "what is at the bottom" has its address on the rim (§6).
 Its centre lies at x ≈ −27 km, just past the old square's west edge (−25.8). **v11.106: all of it is in the world (±70.5 km)** — and at the
 game's grain (world.js `chemoAt`, 400 m over the world's own ground) it is not alone: the moat round ours joins it under one sill, −999 (an
 atoll's foot 33 km east-south-east), 603 km², its chemocline −1019, its floor −1384, so the deep floor round ours (127 km² within 10 km) is
-under the chemocline too. The model's coarse grid keeps them apart (333 km² behind −988 at 400 m; ours open). Whether that stands is the
-person's (CHANGELOG v11.106).
+under the chemocline too. The model's coarse grid keeps them apart (333 km² behind −988 at 400 m; ours open).
+**v11.108 (the person, 11 Nov 2026: "believability is the deciding factor"): not dark.** A silled basin's still water goes anoxic only when
+the food raining onto its sill uses up the oxygen its inflow brings, and a sill at −1000 under open water gets neither: about a seventh of the
+surface's food reaches that depth (Martin's curve), and the water coming over it is the deep's, recovered from the minimum (0.5 of the
+surface's, under a 28% atmosphere, at ~5 °C). Earth's deep-silled basins are the same: Santa Monica's (740 m) is hypoxic on the Pacific's far
+poorer minimum, San Clemente's (1800 m) oxygenated; the anoxic ones have shallow sills under rich water (Cariaco, 146 m) or sit in a severe
+minimum (Santa Barbara, 475 m). world.js `chemoD`: this basin 0.09 where 1 is anoxic. **The basin is still there** — 380 m of still, quiet
+water behind its sill, the moat round ours its eastern end — **but oxic, and so is everything in the world today**: the nearest to anoxic are
+two small basins 44 and 67 km east behind −616 and −604 under fed water (0.70, 0.80). The dark of §5 (the plate, the seep line, the iron, the
+poison) has no place in the region as it stands; the machinery stays for a basin that earns it. §6's constructors were to be on this rim:
+open for the person (§11).
 
 ## 6. The constructors' structures (the person: their structures first, the fauna later)
 
@@ -220,6 +229,10 @@ seep and the grey mats re-homed.
 - **The carcass fall's clock as proposed:** scavengers 1–3 game days, the enriched patch ~10, the mats ~40, the bones until buried (§4).
 - **The constructors: dens, walls and middens, yes; the patterns in the sediment are left out of this pass**, noted for a later one (§6).
 
+**The person (11 Nov 2026), on the moat and the basin west (v11.106 joined them under −999):** "believability is the deciding factor … it's
+very ok if it turns out it's not plausible this deep." Not plausible: a basin is anoxic only when the food raining onto its sill outruns the
+oxygen its inflow brings, and none in the region does (§5; built v11.108).
+
 **The person (11 Nov 2026), on what v11.102 lost with the sill:**
 - **The deep gardens onto the banks' and atolls' deep slopes: "sounds fantastic"** (§3; built v11.107).
 - **The relict: "should be increased a bit"** (built v11.107, by the same ground: the reefs' limestone walls below the light).
@@ -233,6 +246,9 @@ struck (it returns about a basin, §5); the poison and the sulfide coat under a 
 (`h` −1200..−560, `nut` ≥ 0.25: 3,222 cells against 6,023); the readout's `oxy`. The silled rule refined (region.js): a sill between −100 and
 −1100 — the inflow the minimum's water, not the ventilated deep's — and 10 km² or more; seed 32's only big dark is then the basin west.
 Not in step 2: the player's oxygen (§9), the swarms' day depth by it. **Built v11.97 (step 3):** the floor (§2). Nothing open (answered 10 Nov 2026, §10). Left out on purpose: the patterns in the sediment round the constructors' dens (§6), for a later pass.
+
+**Open (v11.108):** the constructors' structures (§6) were for the dark basin's rim; the basin west is still water now, oxic. Their place —
+that rim anyway (a quiet, deep, food-poor floor), or elsewhere — is the person's.
 
 The build, proposed, in order: (1) strike the pit; (2) the oxygen field and `chemoAt` — the −450 plate goes round ours and the envelopes
 move (the pall, the picker, the seep, the cinder's seep range, the grey mats, the poison, the sulfide coat); (3) the floor: the apron, the

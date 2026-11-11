@@ -176,9 +176,12 @@ game's own ground at `OXY.G` (400 m), built on the first call (~70 ms), the worl
 enclose one: 12 km² behind −1010, its chemocline −1030, its floor −1170, 20 km north-north-east of ours between the drowned atoll (m131), the
 atoll east (m141) and the bank's flank (test/region.js lists it). **Since v11.106 the flood is the world's** (353² at 400 m on the old square's
 lattice, ~0.3 s on the first call) and finds five: that one (13 km² behind −1007), 38 km² behind −927 at 24.7 km east, two small ones far east
-(−610, −629), and **603 km² behind −999 — the moat round ours joined to DEEP §5's basin 28 km west** (the sill an atoll's foot 33 km east-south-
-east; to v11.105 the square's edge let the moat out), its chemocline −1019, its floor −1384: the floor east and south of ours past ~4.7 km lies
-under it (414 km² of the old square, 127 within 10 km of ours). The person's call (CHANGELOG v11.106); the ledger does not read the chemocline. `OXY.top` (−450) is
+(−604, −616), and **603 km² behind −999 — the moat round ours joined to DEEP §5's basin 28 km west** (the sill an atoll's foot 33 km east-south-
+east; to v11.105 the square's edge let the moat out). **Since v11.108 a silled basin is anoxic only when its food outruns its inflow**
+(`chemoD(sill, nut)` = `OXY.anox` 2.4 × the basin's mean `nut` × (−sill/100)^−0.86, Martin's curve for the food that reaches the sill, over
+`oxyProf(sill, nut)`, the oxygen the inflow brings; anoxic at 1 — Cariaco's 146 m sill under rich water 1.04, Santa Barbara's 475 m 1.15,
+Santa Monica's 740 m 0.82, San Clemente's 1800 m 0.12): none in the world is (the moat 0.09; the nearest, the two small ones east, 0.80 and
+0.70), so `chemoAt` is null everywhere and the dark's machinery waits for a basin that earns it. The ledger does not read the chemocline. `OXY.top` (−450) is
 the minimum's upper edge: where the open water's life is squeezed above it (`openY`, the mid flora's and the schools' depths over the deep) —
 the old −450's number with its new reason. Readers: chunks.js (sessile life, `f.chemo` bands for the seep and the grey mats), far.js,
 combat.js `POISON`, creatures_spec.js `coatClassAt`'s `cz`, atmosphere.js `SN_CH` (the snow's plate and black flakes, by the camera's column),
@@ -1001,6 +1004,22 @@ splits albedo (`diffuseColor.rgb`) from light (the rest), texelises and posteris
 sherbet"), so the posterise is dithered instead — a 2×2 Bayer offset per cell in place of the half-step rounding, in both modes — and a tone
 boundary is a checkered band of cells, not a contour; banded light is the default again.
 
+## Local origins (v11.110, GLOBE §10.1)
+
+`chunks.js` `ORIGIN`, `poolSnap`, `originOf`, `instLocal`; far.js `genRegion`, `apronGen`; horizon.js `hzGen`; creatures_ai.js `fallShow`. The GPU's
+float32 holds a world coordinate of 70 km to 8 mm and of 300 km to 3 cm, and a vertex shader that multiplies a large vertex by a model-view
+matrix with the camera's large translation in it cancels the two there, so the ground swims by that much as the camera moves. three composes
+the model-view matrix in doubles, so an object placed far off with small vertices loses nothing. So: a cell's group is placed at the cell's
+corner and everything in it is local to that (`ch.ox`, `ch.oz`: the terrain's vertices, its own instanced flora's and its structures' shadow
+proxies' translations, its plumes, its falls' bones and patch); a far region's group at the region's corner (terrain and apron, structures,
+cards — `imp.mats` local too); each horizon member's mesh at a lattice point by it (its vertices whole `Q.hz` steps from it, the curvature's
+drop from `modelMatrix`). The flora pools span the loaded cells, so they hold translations relative to a render origin (`ORIGIN.x`, `ORIGIN.z`,
+the pools' group placed there) that re-snaps to the player's `grid` (1 km) square once it is `snap` (4 km) off — every pooled instance's
+translation shifted once, one ranged upload a pool. Each local number is taken from the double the world one was. The shaders needed nothing:
+the fog's world position is the camera's plus the view-space offset (`fog_vertex`), the texels' and the sway's go through `modelMatrix`.
+`ORIGIN.on` false writes world coordinates as before; test/origins.js boots both and compares every vertex and instance (0.12 mm apart at
+ours, 0.98 at 36 km, the old floats' rounding). Not moved: the snow, blood and debris points near the camera.
+
 ## The far layer
 
 `far.js`. The water map and the landmarks exist for the whole world at once; the regions stream (v11.58: built nearest first within `FAR_R`
@@ -1016,7 +1035,7 @@ get only the sun/hemi (the light pool is assigned by distance), so distant vents
   silhouette 25 m past the player's clamp. A region on the world's edge carries its terrain on: six more columns of vertices beyond
   the edge at `APRON` offsets (60…2000, doubling), a block on a corner, from the same `sample()` (the lower flank, v11.28, going on down to ~−850), in the region's own mesh (`apronGen`), so there is no seam; `reg.ext` widens the sphere and the distance test in `cullFar`.
   The last offset must exceed FAR from the clamp on both tiers.
-- **Far terrain.** 26,896 **regions** of 4×4 cells since v11.106 (164², from cell `GRID0`; 3,600 to v11.105, 900 before; `FR`, `regions`, and the built ones in `farList` for the loops each frame — `manageFar` scans only the regions within `FAR_R` of the player, `farCellChanged` only a cell's own and its neighbours; ~35 live round the player, built by `genRegion` under a budget in `manageFar`, dropped by `dropRegion`),
+- **Far terrain.** **Regions** of 4×4 cells (`FR`; v11.111: region (ri, rj) the cells from 4ri, 4rj, the built ones in the `regions` Map by `ckey` and in `farList` for the loops each frame, the world's edge `RG0`, `RG1`; 26,896 in a dense array from `GRID0` in v11.106–110, 3,600 to v11.105, 900 before — `manageFar` scans only the regions within `FAR_R` of the player, `farCellChanged` only a cell's own and its neighbours; ~35 live round the player, built by `genRegion` under a budget in `manageFar`, dropped by `dropRegion`),
   each one mesh on an 18-unit grid (36 on low) — every 4th vertex of the fine grid from the *same* `sample()` calls, so
   far and near heights are bit-identical where they share a vertex (verified); coloured by the same `terrainColor`.
   Under loaded cells it is pushed 80 down (`farPushVertex/farCellChanged`; a vertex goes under only when *every* cell
@@ -1061,7 +1080,13 @@ of every island's land sampled once from `sample()` at `Q.hz` metres (100 high, 
 `terrainColor`'s colours — through a camera from `HZ_NEAR` (20 m) to 80 km — the land mesh itself only past `uHzMin` = `FAR` × `HZ_SEA0` (v11.86.1: nearer, its coarse triangles can stand over the camera in a hollow the fine ground has and the mesh does not — the tuff cone's crater — and nothing in the main pass covers the sky; the sea disc starts there too and the far regions reach past the far plane, so the handover is covered); then the main pass over it with the depth cleared. The planet's curvature
 is a vertex-shader drop of d²/2R from the camera's foot on both (`HZ_R` Earth's). The mesh is lit from the sky's uniforms (`HZ_LIGHT`: ambient by the
 normal's tilt between horizon and zenith, the sun by dayK) and fogged by the same `fogAir` as the world without the cut; the disc is the surface's
-topside rule at its far end with the water column the surface's alpha leaves to what is beneath (v11.65, `HZ_SEA_U`, tuned against the surface mesh from 300 m: three levels apart). Built on the first frame above the water (~17k vertices, ~100 ms) and kept; three draws. Two rules it depends on:
+topside rule at its far end with the water column the surface's alpha leaves to what is beneath (v11.65, `HZ_SEA_U`, tuned against the surface mesh from 300 m: three levels apart). Built on the first frame above the water (~17k vertices, ~100 ms) and kept; three draws. *v11.102:* coarse
+first (`HZ_C`), only in the records' tops, a slice of `HZ_MS` a frame. *v11.109 (GLOBE §10.1): a mesh per member* (`hzLand`): each live coarse
+cell belongs to the record it lies deepest inside, each member's cells are one mesh, built in order of the camera's distance to their tops'
+edge when the build starts — from ours the giant's land is done after 5.4% of the build, the 308 m island's after 8.9% (all of it ~2.3 s of
+CPU, ~6 s at 60 fps) — and culled by its own sphere widened by `HZ_DROP` (4 km) for the curvature. The members' meshes are v11.107's one mesh to
+the bit (603,994 triangles; test/horizon.js), boundary vertices sampled once for each side; up to 35 draws where the one mesh was one, fewer
+with the culling. Two rules it depends on:
 the main scene's `background` is nulled for the frame (three clears to it regardless of `autoClear`), and the near plane is short (near-plane
 clipping is by view depth). Under water the pass is skipped and the dome goes back. Seen (CHANGELOG v11.64): the giant on the horizon from open
 water, its foot in the haze; the seam where the disc meets the surface mesh's far end is a shade lighter, left.

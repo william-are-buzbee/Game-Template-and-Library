@@ -174,6 +174,7 @@ function regionBasins(H,n,cell,th){if(th===undefined)th=30;const N=n*n,F=new Flo
   const B=[];for(let k=0;k<N;k++){if(lab[k]>=0||F[k]-H[k]<th||F[k]>=0)continue;const b={id:B.length,sill:F[k],floor:H[k],cells:0,sx:0,sz:0},st=[k];lab[k]=b.id;
     while(st.length){const q=st.pop(),x=q%n,y=(q/n)|0;b.cells++;b.sx+=x;b.sz+=y;if(H[q]<b.floor)b.floor=H[q];
       for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=n||yy>=n)continue;const r=yy*n+xx;if(lab[r]>=0||F[r]-H[r]<th||Math.abs(F[r]-b.sill)>1)continue;lab[r]=b.id;st.push(r);}}
+    // silled: still water behind its sill; anoxic only if world.js chemoD says its food outruns its inflow (v11.108) — b.chemo is where the line would be
     b.area=b.cells*cell*cell/1e6;b.cx=b.sx/b.cells;b.cz=b.sz/b.cells;b.silled=b.sill<-100&&b.sill>(typeof OXY==='object'?OXY.floor:-1100)&&b.sill-b.floor>=150&&b.area>=10;b.chemo=b.silled?b.sill-20:null;B.push(b);}
   return {F,lab,B};}
 // ---------- the region in the game (v11.102, GLOBE §8 step 5) ----------

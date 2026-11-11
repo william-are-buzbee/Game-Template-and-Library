@@ -332,4 +332,26 @@ a horizon mesh per member.
   **What it changed: the chemocline's flood**, now over the world at the game's grain. The moat round ours and DEEP §5's basin 28 km west are
   one water there, 603 km² behind a sill at −999 (an atoll's foot 33 km east-south-east, 25 m over the model's floor; to v11.105 the square's
   edge let the moat out east), its chemocline −1019, its floor −1384: 414 km² of the old square's floor under it, 127 km² within 10 km of
-  ours. The model's own grid still has ours open (its cones are not the records' flanks). The person's call, asked in v11.106's pull request.
+  ours. The model's own grid still has ours open (its cones are not the records' flanks). The person (11 Nov 2026): "believability is the
+  deciding factor". Built v11.108 (DEEP §5): a silled basin is anoxic only when the food raining onto its sill outruns its inflow's oxygen,
+  and none in the world does — the moat round ours is still water, oxic.
+- **Before the province (the person, 11 Nov 2026: "go ahead and do the engine work"): a horizon mesh per member (v11.109).** horizon.js:
+  each live coarse cell of v11.102's pass belongs to the record it lies deepest inside, each member is a mesh, built nearest first (from ours
+  the giant's land after 5.4% of the build) and culled by its own sphere; the union is v11.107's one mesh to the bit (test/horizon.js). For
+  the province the members beyond `HZ_FAR` will be left unbuilt and built as they come in; nothing streams yet. Next: the local origins,
+  then the cell hash.
+- **Local origins (v11.110).** Every mesh that held world coordinates holds them local to its own corner and is placed there — a cell's group
+  at the cell's corner (terrain, its own flora, its structures' shadow proxies, its plumes, its falls), a far region's at the region's, each
+  horizon member at a lattice point by it — and the flora pools relative to a render origin that re-snaps to the player's kilometre square
+  once 4 km off (chunks.js `ORIGIN`, `poolSnap`). three composes the model-view matrix in doubles, so the GPU never cancels a large
+  translation against a large vertex: at 300 km that would have been ~3 cm of swim. The shaders needed nothing. Everything is where it was to
+  within the old floats' rounding (test/origins.js: as built against world coordinates, at ours and 36 km out). Not moved: the snow, blood
+  and debris points near the camera (8 mm at 70 km; for the province). Next: the cell hash.
+- **The cell hash (v11.111).** No table is the world's size any more: the loaded cells (chunks.js `chunks`, one `Map` by `ckey(i, j)`, a
+  number for any cell within 112,000 km; `chunkIJ`, `chunkAt`), the far layer's structure and card caches and its regions (far.js; a region
+  numbered from cell 0, the world's edge `RG0`/`RG1`) — to v11.110 dense arrays of 430,336 cells and 26,896 regions, which a province would
+  have made millions. The same cells, regions and contents load as before at ours, 36 km out and in the far south-west (node, against
+  v11.110), and test/cells.js pins the lookups. **What the province still needs** (none of it built): the world's bounds lifted — the clamp
+  (`gridIn`, `WHALF`), the apron at the edge — with the model's own floor as the edge; the ledger's coarse patches, dense over the world (82²
+  today, a tier coarser again or a hash past a few hundred km); the members beyond `HZ_FAR` left out of the horizon until they come in; the
+  near particles (snow, blood, debris) against the render origin; the records' index and the chemocline's flood over a window, not the world.

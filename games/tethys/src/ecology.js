@@ -61,7 +61,7 @@ function ecoId(i,j){const a=i-ECO_FB.i0,b=j-ECO_FB.j0;if(a>=0&&b>=0&&a<ECO_FB.w&
 function ecoIdOut(i,j){if(!ECO_PT.on||!gridIn(i,j))return -1;const s=ECO_PT.blk[ecoPOf(i,j)];return s<0?-1:ECO_FINE+s*64+((i-GRID0)%PATCH)*PATCH+((j-GRID0)%PATCH);}
 function ecoIJ(c){if(c<ECO_FINE){ECO_IJ[0]=ECO_FB.i0+Math.floor(c/ECO_FB.w);ECO_IJ[1]=ECO_FB.j0+c%ECO_FB.w;}else{const s=(c-ECO_FINE)>>6,l=(c-ECO_FINE)&63,p=ECO_PT.bp[s];ECO_IJ[0]=ecoPI(p)+(l>>3);ECO_IJ[1]=ecoPJ(p)+(l&7);}return ECO_IJ;}
 // is ledger cell c loaded (the game's isLoaded for the model): its world cell's chunk (chunkGrid[c] itself to v11.105, while the box was the world)
-function ecoLoaded(c){ecoIJ(c);return !!chunkGrid[gridIdx(ECO_IJ[0],ECO_IJ[1])];}
+function ecoLoaded(c){ecoIJ(c);return !!chunkIJ(ECO_IJ[0],ECO_IJ[1]);}
 // a loading cell's index: its patch split first if it is coarse (the bubble splits ahead of the cells, so this is the rare case)
 function ecoCellOf(ch){let c=ecoId(ch.i,ch.j);if(c<0&&ECO_PT.on&&gridIn(ch.i,ch.j)){const p=ecoPOf(ch.i,ch.j);if(ECO_PT.coarse[p]){if(!ECO_PT.free.length)ecoMergeFarthest();ecoSplit(p);c=ecoId(ch.i,ch.j);}}return c;}
 // the ledger's count of an entry over the world: the fine tables (the slots' cells among them) and the coarse patches not split
@@ -242,7 +242,7 @@ function ecoMerge(p){const P=ECO_PT,s=P.blk[p];if(s<0)return;const base=ECO_FINE
   for(let ei=0;ei<SPAWN.length;ei++){let n=0,cw=0;for(let l=0;l<64;l++){const c=base+l,v=POP.n[ei][c];n+=v;cw+=v*POP.cd[ei][c];POP.n[ei][c]=0;POP.k[ei][c]=0;POP.ke[ei][c]=0;POP.ow[ei][c]=0;POP.cd[ei][c]=0.7;}
     P.n[ei][p]=n;if(n>0){P.cd[ei][p]=cw/n;if(!P.mark[ei][p]){P.mark[ei][p]=1;P.cells[ei].push(p);}}}
   for(let l=0;l<64;l++)POP.done[base+l]=0;P.blk[p]=-1;P.bp[s]=-1;P.free.push(s);}
-function ecoPatchLoaded(p){const i0=ecoPI(p),j0=ecoPJ(p);for(let a=0;a<PATCH;a++)for(let b=0;b<PATCH;b++){const i=i0+a,j=j0+b;if(gridIn(i,j)&&chunkGrid[gridIdx(i,j)])return true;}return false;}
+function ecoPatchLoaded(p){const i0=ecoPI(p),j0=ecoPJ(p);for(let a=0;a<PATCH;a++)for(let b=0;b<PATCH;b++){if(chunkIJ(i0+a,j0+b))return true;}return false;}
 function ecoPatchDist(p,px,pz){const W=PATCH*CELL,x0=ecoPI(p)*CELL-HALF,z0=ecoPJ(p)*CELL-HALF,dx=Math.max(x0-px,0,px-x0-W),dz=Math.max(z0-pz,0,pz-z0-W);return Math.sqrt(dx*dx+dz*dz);}
 function ecoMergeFarthest(){const P=ECO_PT;let best=-1,bd=-1;for(let s=0;s<ECO_SLOTS;s++){const p=P.bp[s];if(p<0||ecoPatchLoaded(p))continue;const d=ecoPatchDist(p,player.pos.x,player.pos.z);if(d>bd){bd=d;best=p;}}if(best>=0)ecoMerge(best);}
 // the bubble, every tick: the split patches the player has left merge, and the nearest coarse patch within ECO_R[0] splits (one a tick: ~10 ms)

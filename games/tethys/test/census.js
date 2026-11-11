@@ -6,7 +6,7 @@ const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..');
 require('./stub.js');
 const src=['../vendor/wb-core.global','util','world','region','physics','scene','parts','grow','creatures_builders','creatures_spec','creatures_defs','ecology'].map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n'); // v11.85: the spec compiler too, so every kind's sieve (derive's filter, creatures_defs.js defPhysics) is on its row and the filter feeders hunt the swarms on paper
-const pre='const chunkGrid=[],chunks=new Map(),creatures=[],carcasses=[],player={pos:{}};function cellOf(v){return Math.floor((v+HALF)/CELL);}function placeKind(){}\n';
+const pre='function chunkIJ(){return undefined;}const chunks=new Map(),creatures=[],carcasses=[],player={pos:{}};function cellOf(v){return Math.floor((v+HALF)/CELL);}function placeKind(){}\n';
 const W=new Function('return (function(){"use strict";'+pre+src+'\nreturn {SPAWN,DEFS,POP,ECO,ECO_CELLS,ECO_FINE,ECO_PT,ecoCap,ecoPatchCap,ecoSum,ecoModel,ecoOf,ecoSettle};})()')();
 const {SPAWN,DEFS,POP,ECO,ECO_CELLS,ECO_FINE,ECO_PT,ecoCap,ecoPatchCap,ecoSum,ecoModel,ecoOf,ecoSettle}=W;
 for(let c=0;c<ECO_FINE;c++)ecoCap(c,null);if(ECO_PT.on)for(let p=0;p<ECO_PT.np;p++)if(ECO_PT.coarse[p])ecoPatchCap(p);ecoSettle(()=>false); // v11.105: the fine box, then the coarse patches (none while the box is the world)
