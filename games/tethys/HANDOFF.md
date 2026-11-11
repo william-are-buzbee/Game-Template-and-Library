@@ -1,9 +1,12 @@
 # HANDOFF — tethys
 
+**v11.111 (11 Nov 2026): the cell hash** (GLOBE §10.1, step 3 of 3 — the engine work before the province done). Every table of cells
+is a `Map` by `ckey(i, j)`; none is the world's size. Invisible: the same cells, regions and contents as v11.110 (test/cells.js). Next, the
+province itself, whose list is in GLOBE §10.1 (the bounds lifted, the ledger's patches, the horizon streaming, the particles, the flood).
+
 **v11.110 (11 Nov 2026): local origins** (GLOBE §10.1, step 2 of 3). Every mesh that held world coordinates is local to its own corner and
 placed there (cells, far regions, horizon members); the flora pools against a render origin that re-snaps every 4 km. Invisible: the world
 where it was to within the old floats' rounding (test/origins.js). **Ask first** whether anything looks out of place after a long swim.
-Next: the cell hash.
 
 **v11.109 (11 Nov 2026): a horizon mesh per island** (GLOBE §10.1, the engine work before the province, step 1 of 3). The far land is a
 mesh per member, built nearest first: from ours the giant's land after ~5% of the build, not after all of it. The same triangles as before,

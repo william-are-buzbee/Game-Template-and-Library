@@ -6796,3 +6796,29 @@ Seen: in headless Chromium, no page errors — the shelf forest at ours (the poo
 a bank 36 km out after the render origin had re-snapped there (its seagrass and rock in place); the giant on the horizon from the surface.
 **Unseen, ask in this order:** anything out of place or shimmering after a long swim (the render origin moves every 4 km); nothing else
 should look different.
+
+## v11.111 — the cell hash (11 Nov 2026)
+
+GLOBE §10.1, the engine work before the province, step 3 of 3 (the person: "go ahead and do the engine work"). Invisible.
+
+- **No table of the world's size.** v11.106 grew the dense arrays over the world's cells with it: the loaded cells (`chunkGrid`, 430,336 slots),
+  the far layer's structure and card caches (`bigCache`, `impCache`, as many), the far regions (26,896). A province 300 km across would make
+  them millions. Now: chunks.js `chunks` is the one table of loaded cells, a `Map` by `ckey(i, j)` — a number, `(i + 2¹⁹)·2²⁰ + (j + 2¹⁹)`, for any
+  cell within 524,288 of the anchor (112,000 km; the string `'i,j'` to v11.110) — with `chunkIJ(i, j)` and `chunkAt(x, z)` for the lookups
+  (audio.js, physics.js, ecology.js, far.js); far.js's caches are `Map`s by the same key, and its regions a `Map` of the built ones, region
+  (ri, rj) the cells from 4ri, 4rj (numbered from cell 0, not from `GRID0`; the maps' block of a region is texel 24ri, so `WM_C0` went), the
+  world's edge `RG0`/`RG1` for the apron. `gridIdx` is gone; `gridIn` is the world's bounds, the clamp's.
+- **A brood's cell in the save** past the old square is NCELL² + its key (line.js `lineCell`; v11.106's NCELL² + `gridIdx` was never in a
+  released save): whatever size the world.
+- **The same world.** Against v11.110 in node, booted and swum the same: at ours, 36 km out and in the far south-west the same loaded cells,
+  regions (by their corners) and pool counts, every terrain's and instanced mesh's numbers the same (99, 106 and 101 of them).
+- **test/cells.js** (new, in `--test`, ~13 s): no table of the world's size; a cell's key one safe integer per (i, j) over ±700 cells; at ours,
+  the west edge and the north-east corner every loaded cell found at its middle and by (i, j), 400 places round each found right, nothing off
+  the world; every region the cells from 4ri, 4rj and in its table, the apron on the edge's regions (6 at the west edge, 5 at the corner, 0
+  at ours) and no other; the caches 912 cells each where the world has 430,336. test/physics.js and test/combat.js through `chunkIJ`;
+  test/origins.js keys a cell's instanced meshes by their place among them (it had failed once in six runs with one mesh of another length; a carcass's bones shown meanwhile shift the count over every mesh — the likely cause, not proven).
+- **What the province still needs** (GLOBE §10.1): the world's bounds lifted (the clamp, the apron); the ledger's coarse patches, dense over
+  the world; the horizon's members beyond `HZ_FAR` built as they come in; the near particles against the render origin; the records' index
+  and the chemocline's flood over a window.
+
+Seen: the comparison above; the suite. **Unseen:** nothing should look or play differently.

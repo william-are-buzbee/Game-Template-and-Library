@@ -80,7 +80,7 @@ function solidPush(p,pad,vel,extra,noPad,own){ // own (v11.52): only extra's has
   for(let pass=0;pass<3;pass++){
     let moved=false;
     for(let n=-1;n<=(own?-1:8);n++){
-      let ch;if(n<0)ch=extra;else{const i=ci+(n%3)-1,j=cj+((n/3)|0)-1;if(!gridIn(i,j))continue;ch=chunkGrid[gridIdx(i,j)];}
+      let ch;if(n<0)ch=extra;else{const i=ci+(n%3)-1,j=cj+((n/3)|0)-1;ch=chunkIJ(i,j);if(!ch)continue;}
       if(!ch||!ch.solids.length)continue;
       const mg=ch.solidR+pad;if(p.x<ch.x0-mg||p.x>ch.x0+CELL+mg||p.z<ch.z0-mg||p.z>ch.z0+CELL+mg)continue;
       const i0=clamp(Math.floor((p.x-pad-ch.x0)/HB),0,HN-1),i1=clamp(Math.floor((p.x+pad-ch.x0)/HB),0,HN-1),j0=clamp(Math.floor((p.z-pad-ch.z0)/HB),0,HN-1),j1=clamp(Math.floor((p.z+pad-ch.z0)/HB),0,HN-1);

@@ -347,3 +347,11 @@ a horizon mesh per member.
   translation against a large vertex: at 300 km that would have been ~3 cm of swim. The shaders needed nothing. Everything is where it was to
   within the old floats' rounding (test/origins.js: as built against world coordinates, at ours and 36 km out). Not moved: the snow, blood
   and debris points near the camera (8 mm at 70 km; for the province). Next: the cell hash.
+- **The cell hash (v11.111).** No table is the world's size any more: the loaded cells (chunks.js `chunks`, one `Map` by `ckey(i, j)`, a
+  number for any cell within 112,000 km; `chunkIJ`, `chunkAt`), the far layer's structure and card caches and its regions (far.js; a region
+  numbered from cell 0, the world's edge `RG0`/`RG1`) — to v11.110 dense arrays of 430,336 cells and 26,896 regions, which a province would
+  have made millions. The same cells, regions and contents load as before at ours, 36 km out and in the far south-west (node, against
+  v11.110), and test/cells.js pins the lookups. **What the province still needs** (none of it built): the world's bounds lifted — the clamp
+  (`gridIn`, `WHALF`), the apron at the edge — with the model's own floor as the edge; the ledger's coarse patches, dense over the world (82²
+  today, a tier coarser again or a hash past a few hundred km); the members beyond `HZ_FAR` left out of the horizon until they come in; the
+  near particles (snow, blood, debris) against the render origin; the records' index and the chemocline's flood over a window, not the world.

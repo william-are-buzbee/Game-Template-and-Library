@@ -202,7 +202,7 @@ function conceiveClose(decline){ // the window closed: the clutch laid as the ch
   const child=pr.total>0?JSON.parse(specToJSON(lab.v)):cv.parent;if(pr.total>0&&(!child.id||child.id===cv.parent.id))child.id=(cv.parent.id||'line').replace(/-\d+$/,'')+'-'+(cv.gen+1);
   const fuel=clutchHunger(child);if(player.hunger+fuel>=1){const m='not fed enough for this child ('+fuel.toFixed(2)+' of the stomach, '+(1-player.hunger).toFixed(2)+' in it): a smaller one, or decline';hintEl.textContent=m;hintEl.style.opacity=1;labRender();labMsg(m);return false;} // v11.73: the fuel half of the bill (LINEAGE §6) — the stomach must hold the eggs; a copy always can (playerLay checked)
   lab.conceive=null;labLeave();return layClutch(child,pr,cv);}
-function lineCell(i,j){return i>=0&&j>=0&&i<NCELL&&j<NCELL?i*NCELL+j:NCELL*NCELL+gridIdx(i,j);} // a brood's cell as the save keeps it: the old square's i·NCELL + j as before v11.106 (old saves read the same), past it a number of its own
+function lineCell(i,j){return i>=0&&j>=0&&i<NCELL&&j<NCELL?i*NCELL+j:NCELL*NCELL+ckey(i,j);} // a brood's cell as the save keeps it: the old square's i·NCELL + j as before v11.106 (past it NCELL² + the cell's key, v11.111: whatever size the world) (old saves read the same), past it a number of its own
 function layClutch(child,pr,cv){ // the clutch on the floor where the window opened, carrying the child's spec
   const L=lineCur(),P=player,ch=chunkAt(cv.at.x,cv.at.z),m=lifeBreed(L)||BREED.slowbloods;if(!L||!ch)return false;
   const b={cell:lineCell(ch.i,ch.j),pos:[r3(cv.at.x),r3(cv.at.y),r3(cv.at.z)],n:m.n,born:r3(t),hatch:r3(t+hatchS(child)*(m.hatchK||1)),spec:child,gen:cv.gen+1,price:pr.total,hatched:false,at:r3(t),_ch:ch,_egg:null};

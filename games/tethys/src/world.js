@@ -13,10 +13,11 @@ const CELL=215,NCELL=240,HALF=CELL*NCELL/2; // v11.65 (ARCHIPELAGO step 4): 240 
 // v11.106 (GLOBE §10.1 step 4; the person, 11 Nov 2026: "±70 km first"): the world is GRIDN cells a side from cell GRID0 — 140 km, ±WHALF. The
 // grid is the same: cell (0, 0) is still the v11.65 square's corner and HALF its anchor, so every cell's place (i·CELL − HALF), every seed by
 // cell and every number of the old square is as it was; the new cells go round it, from −208 to 447. NCELL and HALF are the old square's (the
-// fine ledger's box, the maps' anchor); the world's extent is WHALF, and a dense table over the world's cells is indexed by gridIdx.
+// fine ledger's box, the maps' anchor); the world's extent is WHALF (a dense table over the world's cells was indexed by gridIdx, v11.106–110).
 const GRID0=-208,GRIDN=656,WHALF=CELL*GRIDN/2;
 function gridIn(i,j){return i>=GRID0&&j>=GRID0&&i<GRID0+GRIDN&&j<GRID0+GRIDN;}
-function gridIdx(i,j){return (i-GRID0)*GRIDN+(j-GRID0);}
+// v11.111 (GLOBE §10.1, the cell hash): nothing is indexed by gridIdx any more — every table of cells is a Map keyed by chunks.js ckey(i, j),
+// sized by what is in it, not by the world; gridIn is the world's bounds (the clamp) alone
 // the geology's parameters: angles are radians from +x toward +z
 const WIND_A=3.49,CUR_A=2.3; // the directions the wind (so the waves) and the ocean current travel toward: the waves strike the old flank (0.35), the current the north-east flank (5.44), the lee is the collapse's side
 const RIFT_A=[2.6,5.6]; // the two rift arms

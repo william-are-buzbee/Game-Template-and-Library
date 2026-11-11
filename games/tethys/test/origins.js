@@ -21,7 +21,7 @@ const insts=(m,n)=>{const a=m.instanceMatrix.array,[x,z]=placeOf(m),c=n===undefi
 const big=(a,lim)=>{let m=0;for(let k=0;k<a.length;k+=3)m=Math.max(m,Math.abs(a[k]),Math.abs(a[k+2]));return m;};
 function dump(){const D={},L={cell:0,reg:0,pool:0};
   for(const ch of O.chunks.values()){const key='c'+ch.i+','+ch.j;if(ch.terrain){D[key+':t']=Array.from(verts(ch.terrain));L.cell=Math.max(L.cell,big(ch.terrain.geometry.attributes.position.array));}
-    ch.meshes.forEach((m,q)=>{if(m.isInstancedMesh){D[key+':i'+q]=Array.from(insts(m));}});}
+    ch.meshes.filter(m=>m.isInstancedMesh).forEach((m,q)=>{D[key+':i'+q]=Array.from(insts(m));});} // by place among the cell's instanced meshes: a fall shown meanwhile (a Mesh, when a carcass is eaten to bones) would shift a count over every mesh
   for(const P of O.POOLS.values())for(const b of P.blocks){const a=P.im.instanceMatrix.array,[x,z]=placeOf(P.im),o=[];for(let k=b.start;k<b.start+b.count;k++){o.push(x+a[k*16+12],a[k*16+13],z+a[k*16+14]);L.pool=Math.max(L.pool,Math.abs(a[k*16+12]),Math.abs(a[k*16+14]));}D['p'+P.f.id+'@'+b.ch.i+','+b.ch.j]=o;}
   for(const r of O.farList){const key='r'+r.ri+','+r.rj;r.group.children.forEach((m,q)=>{if(m.isInstancedMesh)D[key+':i'+q]=Array.from(insts(m));else if(m.geometry){D[key+':t']=Array.from(verts(m));L.reg=Math.max(L.reg,big(m.geometry.attributes.position.array));}});}
   return {D,L,origin:[O.ORIGIN.x,O.ORIGIN.z]};}
@@ -31,7 +31,7 @@ let fails=0;const ok=(c,m)=>{console.log((c?'  ok   ':'  FAIL ')+m);if(!c)fails+
 console.log('origins: as built against world coordinates (ORIGIN.on false, a child run)');
 const out=path.join(os.tmpdir(),'tethys_origins_off.json');const r=cp.spawnSync(process.execPath,[__filename],{env:Object.assign({},process.env,{ORIGINS:'off',ORIGINS_OUT:out}),encoding:'utf8',maxBuffer:1<<26});
 if(r.status!==0){console.log(r.stderr.slice(-3000));process.exit(1);}const W=JSON.parse(fs.readFileSync(out,'utf8'));
-const cmp=(X,Y,tag)=>{let keys=0,vals=0,bad=0,worst=0,lenBad=0;const kinds={c:0,p:0,r:0};for(const k in X.D){if(!(k in Y.D))continue;const a=X.D[k],b=Y.D[k];keys++;kinds[k[0]]++;if(a.length!==b.length){lenBad++;continue;}
+const cmp=(X,Y,tag)=>{let keys=0,vals=0,bad=0,worst=0,lenBad=0;const kinds={c:0,p:0,r:0};for(const k in X.D){if(!(k in Y.D))continue;const a=X.D[k],b=Y.D[k];keys++;kinds[k[0]]++;if(a.length!==b.length){lenBad++;if(process.env.ORIGINS_DBG)console.log('    length',tag,k,a.length,b.length);continue;}
     let kb=0;for(let q=0;q<a.length;q++){if(a[q]===null||b[q]===null)continue;const d=Math.abs(a[q]-b[q]);vals++;if(d>worst)worst=d;if(d>0.005){bad++;kb++;}}if(kb&&process.env.ORIGINS_DBG)console.log('    ',tag,k,a.length,kb,a.slice(0,6).map(v=>+v.toFixed(2)),b.slice(0,6).map(v=>+v.toFixed(2)));}
   ok(keys>50&&kinds.c>0&&kinds.p>0&&kinds.r>0&&lenBad===0&&bad===0,`${tag}: ${keys} meshes and blocks in both (${kinds.c} of the cells', ${kinds.p} pool blocks, ${kinds.r} of the regions'), ${vals} numbers, the most apart ${(worst*1000).toFixed(2)} mm${bad?' — '+bad+' over 5 mm':''}${lenBad?' — '+lenBad+' of another length':''}`);};
 cmp(A,W.A,'at ours');cmp(B,W.B,'36 km out, the render origin re-snapped');

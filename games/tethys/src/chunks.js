@@ -1,13 +1,14 @@
 // chunks.js — the world is built cell by cell around the player and thrown away behind them.
 // A cell: a 48x48 grid of heights and condition fields (world.js), one terrain mesh, one instanced mesh per flora type, landmarks, creatures.
 const CH_RES=48,STEP=CELL/CH_RES,GR=CH_RES+1,LOAD_R=2;
-const chunks=new Map(),chunkGrid=new Array(GRIDN*GRIDN).fill(null); // same chunks, indexed by cell for cheap 3x3 lookups
-function ckey(i,j){return i+','+j;}
+const chunks=new Map(); // the loaded cells by ckey (v11.111: the one table; chunkGrid, a dense array over the world's cells for the 3×3 lookups, is gone)
+function ckey(i,j){return (i+524288)*1048576+(j+524288);} // a cell's key (v11.111: a number for any cell within ±524,288 of the anchor, 112,000 km; to v11.110 the string 'i,j')
+function chunkIJ(i,j){return chunks.get(ckey(i,j));} // the loaded cell (i, j), or undefined
 function cellOf(v){return Math.floor((v+HALF)/CELL);}
 // the cell at a point, off the grid rather than through a built string key and a Map (v11.33): this is the per-frame ground
 // lookup — every creature, every chain point outside its own cell, the player five times, the audio rays, the snow — and it
 // allocated a string on each call. The range check is not optional: i=1,j=-1 would alias onto cell (0,15) in a flat array.
-function chunkAt(x,z){const i=cellOf(x),j=cellOf(z);return gridIn(i,j)?chunkGrid[gridIdx(i,j)]||undefined:undefined;} // the world's grid (v11.106)
+function chunkAt(x,z){return chunks.get(ckey(cellOf(x),cellOf(z)));} // the loaded cell under (x, z), or undefined (only loaded cells are in the table: no bounds to test)
 function groundAt(x,z){const ch=chunkAt(x,z);return ch?ch.h(x,z):sample(x,z).h;}
 // hOut(ch,x,z): the ground for *placing* a thing from a cell being built — the cell's own grid inside it, sample() beyond its
 // edge. ch.h clamps at the grid edge, so a probe that reaches past a cell line reads the edge vertex again and every settleOn
@@ -428,7 +429,7 @@ function* genChunk(i,j){
   for(const f of FLORA){if(f.mat===MATROCK)continue;yield* placeFloraType(ch,mulberry((((i*73856093)^(j*19349663)^hashStr(f.id))>>>0)),f);yield;}
   placeLandmarks(ch);yield;
   yield* spawnChunkCreatures(ch,rng);lineLoad(ch);fallsLoad(ch); // the player's broods that lie in it (line.js, v11.69); the falls in it (v11.99)
-  scene.add(ch.group);chunks.set(ch.k,ch);chunkGrid[gridIdx(i,j)]=ch;farCellChanged(i,j);shadowDirty(ch);
+  scene.add(ch.group);chunks.set(ch.k,ch);farCellChanged(i,j);shadowDirty(ch);
 }
 function loadChunkNow(i,j){if(chunks.has(ckey(i,j)))return;const g=genChunk(i,j);while(!g.next().done){}}
 function unloadChunk(ch){
@@ -442,7 +443,7 @@ function unloadChunk(ch){
   for(let i=creatures.length-1;i>=0;i--)if(creatures[i].gone)creatures.splice(i,1);
   for(let i=carcasses.length-1;i>=0;i--)if(carcasses[i].gone)carcasses.splice(i,1);
   for(let i=schools.length-1;i>=0;i--)if(schools[i].chunk===ch)schools.splice(i,1);
-  chunks.delete(ch.k);chunkGrid[gridIdx(ch.i,ch.j)]=null;farCellChanged(ch.i,ch.j);shadowDirty(ch);
+  chunks.delete(ch.k);farCellChanged(ch.i,ch.j);shadowDirty(ch);
 }
 let activeGen=null,activeKey=null;
 function manageChunks(budgetMs){
