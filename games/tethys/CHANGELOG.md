@@ -6276,3 +6276,52 @@ lock's, which needs a real click.
 The person's look (11 Nov 2026), over the old centre at 22 m: "seems fine from what I can tell" — the shelf, the weed, a slowblood
 going by, 120 fps. **Unseen:** that nothing they relied on stood there (the pit was the dark inside the square: below −450 is now only the lower flank and the floor, until DEEP's step 2
 re-homes the dark).
+
+
+## v11.96 — the water's oxygen: no chemocline round ours (11 Nov 2026)
+
+DEEP.md §11 step 2. The person (10 Nov 2026): the region model's basins decide where the dark is; the oxygen minimum survivable; the abyssal at
+the same depth for a better reason; the pall in the minimum's core. The model encloses nothing round ours, so the −450 chemocline under the
+whole world (`CHEMO`, PLANET since v8) goes.
+
+- **world.js: `OXY`, `oxyAt`, `chemoAt`, `underChemo`.** Oxygen as a share of the surface's: 1 to −150, the core's minimum through −500..−800
+  (0.25 where the island's food rains, 0.5 in the open basin's water, by `nut`), back to 0.5 by −1100; 0 under a basin's chemocline.
+  `chemoAt` is region.js's flood over the game's own ground at 400 m, built on the first call (64–70 ms), the world's edge the open ocean.
+  `OXY.top` (−450, the minimum's upper edge) keeps the old number where it meant "over the deep, the open water's life stays above": `openY`,
+  the mid flora and the schools — the same placements, a reason that is true.
+- **The silled rule refined (region.js `regionBasins`).** The game's own square turned up four "basins" of 0.5–1.6 km² at −2500 to −3500 on
+  the outer flank's ribbing, 150–230 m deep behind their sills. What makes enclosed water anoxic is what comes in over the sill: the oxygen
+  minimum's water goes anoxic under a basin's own rain of food (Santa Barbara Basin, behind 475 m), the ventilated deep's stays oxic, and a
+  small hollow is stirred clean. Silled now: the sill between −100 and −1100, 150 m deep behind it, 10 km² or more. The square has none.
+  Seed 32's big dark is then the 320 km² basin west (sill −957 at 2 km, −980 at 1.1 km); its 1,260 km² basin behind −1273 stays oxic.
+- **What moved.** The fog's milky plate and the brown under it (scene.js) are struck — a basin's come back by uniforms when one is in the
+  world (DEEP §9). The snow's plate and black flakes read the camera's column (atmosphere.js `SN_CH`: −1e5 where there is no chemocline).
+  The seep and the grey mats stand on a band about a basin's chemocline (flora.js `chemo`), so none round ours; the cinder's seep-line row is
+  struck (its vent row stands; the seep line returns about a basin, DEEP §5). The poison by feeding (combat.js `POISON`) and the sulfide coat
+  (creatures_spec.js `coatClassAt`'s `cz`) read a basin's chemocline; the vents' heat for both stands. The pall: placed and wandering in the
+  core (−500..−800) over the fed deep, `h` −1200..−560 and `nut` ≥ 0.25 — 3,222 cells against the old flank band's 6,023, its density per
+  cell kept. Ledges (chunks.js) lose their depth gate: rock is rock. The maps' contour at −450 is "the minimum". The readout shows `oxy`.
+  chunks.js's `deepN`, counted and never read, is gone.
+- **The cinder lost its reservoir, and the seeps are its new one.** The census (40 days) failed: the cinder 6.4 → 0.4. Its 906 lived
+  mostly on the seep line round the island "where nothing hunts it" (v11.66), and the vent field's 8 were the basker's, held down and
+  resupplied from the line. With the line gone, the field alone is eaten out whatever its size (30 a cell: 24 → 1.4 by day 120; 40:
+  32 → 0.8) — a prey with no refuge from a resident hunter — and the field's cool margins are no refuge at the ledger's 215 m (one cell holds
+  the field and its rim). SEAFLOOR §4's diffuse warm-vent fields (agreed 15 Sep 2026: low-temperature seeps through fresh rock "away from the
+  chimney", rust mats and shimmer, no chimneys) are the honest one: world.js `SEEP`, dotted patches along rift arm 0 between r 620 and 1160,
+  heat up to 0.14 — under the basker's reach (its envelope ends at 0.195), so the vent mats and a little sulfide shimmer come with them but
+  not the hunter. The cinder's row reads heat ≥ 0.06 (an explicit taper of 0.03: the default 15% of [0.05, 1] had let zero heat count as
+  0.65, a census of 254,000). 200 days on paper: the cinder 12.3 → 3.4 by day 40, then 3.4–4.1 to day 200; the basker 2.5 → 1.1, then
+  1.3–1.4 — a predator and its prey at a balance. **Ours changed again, on purpose:** over the old square the ground is identical, and the
+  fields differ at 867 samples, all on the arm's strip — heat, and the nutrient and turbidity the geology derives from heat.
+- **Tests.** test/region.js: the square has no silled basin; no chemocline over ours, the floor, the giant, the sill or a corner; the
+  profile over the fed water (1 at −50, 0.70 at −300, 0.25 at −650, 0.50 at −1100); the core lower there than in the open basin.
+  test/snow.js: at −450 east of ours no plate (12% against 13% 40 m above), no black flakes at −450 or −520, the snow thinning with depth.
+
+Seen: the real build in headless Chromium (three.js r128 from npm; cdnjs is refused here), a new game, the readout open, `tp` into the
+minimum's core 3 km east of ours at −620 (`oxy 0.25`) and to −445 over the open floor 5 km out (`oxy 0.50`): deep blue darkening by depth,
+no milky sheet, no brown; no shader error (the fog's chunk compiled without the plate).
+
+**Unseen, ask in this order:** the seeps on rift arm 0 (the vent mats in patches between the old pit's place and the fissure, `tp(-700,420)`)
+and whether the cinder belongs there; whether the deep round ours reads right without the plate (a blue that only darkens, the minimum invisible —
+oxygen has no colour); the palls, fewer and over the deep water near the islands now, not on the flank; whether the readout's `oxy` is
+worth keeping on. Not in this version: the player's oxygen (DEEP §9 — a slow, recoverable deficit in the core), the swarms' day depth by it.

@@ -19,7 +19,7 @@ function hOut(ch,x,z){return x<ch.x0||x>ch.x0+CELL||z<ch.z0||z>ch.z0+CELL?sample
 
 function makeChunk(i,j){
   const x0=i*CELL-HALF,z0=j*CELL-HALF,hg=new Float32Array(GR*GR),fg=new Float32Array(GR*GR*NF);
-  return {i:i,j:j,k:ckey(i,j),x0:x0,z0:z0,cx:x0+CELL/2,cz:z0+CELL/2,hg:hg,fg:fg,landN:0,deepN:0,minH:0,maxH:-1e9,group:new THREE.Group(),creatures:[],schools:[],eggs:[],meshes:[],plumes:[],lightSrc:[],solids:[],seeps:[],hash:makeHash(),solidR:0,sphere:null,terrain:null,shBig:[], // terrain, shBig (v11.30): the ground's mesh and the structures' shadow proxies, casters into the world's map (scene.js updateShadowS)
+  return {i:i,j:j,k:ckey(i,j),x0:x0,z0:z0,cx:x0+CELL/2,cz:z0+CELL/2,hg:hg,fg:fg,landN:0,minH:0,maxH:-1e9,group:new THREE.Group(),creatures:[],schools:[],eggs:[],meshes:[],plumes:[],lightSrc:[],solids:[],seeps:[],hash:makeHash(),solidR:0,sphere:null,terrain:null,shBig:[], // terrain, shBig (v11.30): the ground's mesh and the structures' shadow proxies, casters into the world's map (scene.js updateShadowS)
     pooled:[],flora:[],near:true,ac:new Float32Array(16),sheds:[], // sheds (v11.66): the cast carapaces dropped in this cell in play (creatures_ai.js dropShed) // pooled (v11.52): the species pools this cell has written a block into (poolAdd); taken out on unload // ac: the swaying flora's height summed in a 4×4 grid of the cell — the forest's sound (audio.js) // flora: the instanced meshes hidden once the cell is past FLORA_FAR (v11.12, cullChunks); near: whether they are drawn now
     h:function(x,z){let fx=clamp((x-x0)/STEP,0,CH_RES-0.001),fz=clamp((z-z0)/STEP,0,CH_RES-0.001);const ix=Math.floor(fx),iz=Math.floor(fz),tx=fx-ix,tz=fz-iz;const a=hg[iz*GR+ix],b=hg[iz*GR+ix+1],c=hg[(iz+1)*GR+ix],d=hg[(iz+1)*GR+ix+1];return a+(b-a)*tx+(c-a)*tz+(a-b-c+d)*tx*tz;},
     f:function(x,z){const ix=clamp(Math.round((x-x0)/STEP),0,CH_RES),iz=clamp(Math.round((z-z0)/STEP),0,CH_RES);return fg.subarray((iz*GR+ix)*NF,(iz*GR+ix+1)*NF);}, // the conditions at the nearest vertex
@@ -32,7 +32,7 @@ function makeChunk(i,j){
   };
 }
 function sampleRow(ch,jj){
-  for(let ii=0;ii<GR;ii++){const x=(ch.i*CH_RES+ii)*STEP-HALF,z=(ch.j*CH_RES+jj)*STEP-HALF;const n=jj*GR+ii,s=sample(x,z,ch.fg.subarray(n*NF,(n+1)*NF));ch.hg[n]=s.h;if(s.h>0.5)ch.landN++;if(s.h<CHEMO)ch.deepN++;if(s.h<ch.minH)ch.minH=s.h;if(s.h>ch.maxH)ch.maxH=s.h;}
+  for(let ii=0;ii<GR;ii++){const x=(ch.i*CH_RES+ii)*STEP-HALF,z=(ch.j*CH_RES+jj)*STEP-HALF;const n=jj*GR+ii,s=sample(x,z,ch.fg.subarray(n*NF,(n+1)*NF));ch.hg[n]=s.h;if(s.h>0.5)ch.landN++;if(s.h<ch.minH)ch.minH=s.h;if(s.h>ch.maxH)ch.maxH=s.h;}
 }
 function finishGrid(ch){
   for(let jj=0;jj<GR;jj++)for(let ii=0;ii<GR;ii++){const n=jj*GR+ii;fixF(ch.fg.subarray(n*NF,(n+1)*NF),ch.slope((ch.i*CH_RES+ii)*STEP-HALF,(ch.j*CH_RES+jj)*STEP-HALF));} // steep faces are rock
@@ -188,7 +188,7 @@ function* placeFloraType(ch,rng,f){
     if(f.field)p*=clamp(0.1+4*Math.pow(fbm(x*f.field+31,z*f.field+17,2),2.5),0,1.6);
     if(rng()>=p)continue;
     const h=ch.h(x,z);
-    if(f.y!=='surface'&&h<CHEMO&&!f.band)continue; // nothing sessile below the chemocline but what a band lets through (the seep, the grey mats)
+    if(f.y!=='surface'){const cz=chemoAt(x,z);if(f.chemo?cz===null||h<cz+f.chemo[0]||h>cz+f.chemo[1]:cz!==null&&h<cz)continue;} // nothing sessile under a basin's chemocline but what straddles or mats it (f.chemo: a band about the chemocline, so none where there is none: v11.96, DEEP §2 — to v11.95 the -450 under the whole world)
     if(f.y==='surface'&&h>-4)continue; // rafts don't ground
     if(f.minH!==undefined&&h<f.minH)continue; // land plants keep off the wet sand
     if(f.band&&(h<f.band[0]||h>f.band[1]))continue; // a depth band on the ground (the cones' tide band, the straddlers at the rim)
@@ -196,7 +196,7 @@ function* placeFloraType(ch,rng,f){
     let y=h,sc=f.s?f.s[0]+rng()*(f.s[1]-f.s[0]):1,sy=sc;
     if(f.reach){if(h>-14)continue;sy=-h-0.6;sc=1;}
     else if(f.y==='surface'){y=f.ys!==undefined?f.ys:-0.45;}
-    else if(f.y==='mid'){if(h>-30)continue;y=h<CHEMO?-40-rng()*300:clamp(h+12+rng()*70,h+10,-14);}
+    else if(f.y==='mid'){if(h>-30)continue;y=h<OXY.top?-40-rng()*300:clamp(h+12+rng()*70,h+10,-14);} // over the deep, above the oxygen minimum (OXY.top; the chemocline's -450 to v11.95)
     // v11.31.4: the rule fired on land too, where the room to the surface is negative, so every land species was skipped at every try — tussock, scrub and stranded had never once been placed anywhere on the island. A plant whose minH is above 0 is not growing up through the water.
     else if(f.top&&!f.air&&!(f.minH>=0)&&f.top*sc>-1.4-h){const room=(-1.4-h)/f.top;if(room<sc*0.5)continue;sy=room;} // nothing stands into the air (bar the tidal forest, `air`, and a plant rooted above the tide line, minH>=0): shorten in y or skip
     const yaw=f.flow?flowYaw(x,z)+(rng()-0.5)*0.5:rng()*TAU; // flow-faced things turn across the current
@@ -283,7 +283,7 @@ function lieOn(d,gx,gz,yaw){const c=Math.cos(yaw),sn=Math.sin(yaw),sx=gx*c-gz*sn
 function placeCliffs(ch,rng){
   const f=FLORA_BY_ID.ledge,list=[],d=new THREE.Object3D();
   for(let jj=1;jj<GR-1;jj+=2)for(let ii=1;ii<GR-1;ii+=2){
-    const n=jj*GR+ii,h=ch.hg[n];if(h<CHEMO)continue;
+    const n=jj*GR+ii,h=ch.hg[n]; // v11.96: no depth gate — a ledge is rock, and the dark is no longer a reason (to v11.95 none below the chemocline)
     const gx=(ch.hg[n+1]-ch.hg[n-1])/(2*STEP),gz=(ch.hg[n+GR]-ch.hg[n-GR])/(2*STEP),g=Math.hypot(gx,gz);
     if(g<1.15)continue;
     const x=ch.x0+ii*STEP,z=ch.z0+jj*STEP,ux=gx/g,uz=gz/g;
@@ -337,7 +337,8 @@ function currentOf(ch,x,z,y,out){steadyOf(ch,x,z,y,out);const r=tideRate(clockH)
 function chunkPoint(ch,rng,env,land){for(let k=0;k<40;k++){const x=ch.x0+rng()*CELL,z=ch.z0+rng()*CELL,h=ch.h(x,z);if(land?h<=0.5:h>=-5)continue;if(env&&rng()>=ch.w(env,x,z))continue;return V3(x,h,z);}return null;}
 // the cell's mean tolerance for an envelope, over a 6x6 grid of points
 // (v11.33: cellW is gone — ecology.js ecoCap does the same 6x6 mean over a cell and is the one the ledger uses.)
-function openY(ch,p,rng,lo,hi){if(p.y<CHEMO)return -60-rng()*260;return clamp(p.y+lo+rng()*(hi-lo),p.y+4,-8);}
+function openY(ch,p,rng,lo,hi){if(p.y<OXY.top)return -60-rng()*260; // over the deep the open water's hunters keep above the oxygen minimum (DEEP §2; the chemocline's -450 to v11.95)
+  return clamp(p.y+lo+rng()*(hi-lo),p.y+4,-8);}
 // v11.26: a cell spawns what the ledger holds for it (ecology.js ecoTake), placed by kind through placeKind — the same routine the
 // ledger's recruits use (ecoTick), with off:true (out of the player's sight) and juv:true (born small). The sailers' fleets are the
 // lee's and outside the ledger: drifters die of nothing.
@@ -371,7 +372,7 @@ function* placeKind(ch,e,count,rng,opt){
     else if(D.role==='trap'){p.y+=(D.clear!==undefined?D.clear:D.size*0.35)+0.05;if(solidPush(p,1.5,null,ch))continue;const c=spawn(ch,kind,p,rng,o);c.state='sit';c.g.rotation.y=rng()*TAU;placed++;} // the trap, the stone: lying on its floor, any way round (by role since v11.66)
     else if(D.role==='ambush'&&D.hang){let ok=false;for(let tr=0;tr<6&&!ok;tr++){const q=chunkPoint(ch,rng,e.env);if(!q)break;p.copy(q);p.y=clamp(p.y+5+rng()*9,p.y+4,-6);ok=!solidPush(p,2.5,null,ch);}if(!ok)continue;const c=spawn(ch,kind,p,rng,o);c.state='sit';c.g.rotation.y=rng()*TAU;placed++;} // the hook: hung up in the structure
     else if(D.role==='ambush'){let ok=false;for(let tr=0;tr<6&&!ok;tr++){const q=chunkPoint(ch,rng,e.env);if(!q)break;p.copy(q);p.y+=(D.clear!==undefined?D.clear:D.size*0.35)+0.1;ok=!solidPush(p,2,null,ch);}if(!ok)continue;const c=spawn(ch,kind,p,rng,o);c.state='sit';c.g.rotation.y=rng()*TAU;placed++;} // the lurker among rock, the hood under the sand (v11.66: by role, at its own clearance)
-    else if(kind==='pall'){p.y=clamp(p.y+15+rng()*120,p.y+10,CHEMO-15);if(p.y>CHEMO-5)continue;spawn(ch,'pall',p,rng,o);placed++;} // in the dark, off the mud
+    else if(kind==='pall'){if(p.y>OXY.core[0]+20)continue;p.y=Math.max(p.y+10,OXY.core[0]-rng()*(OXY.core[0]-OXY.core[1]));spawn(ch,'pall',p,rng,o);placed++;} // in the oxygen minimum's core, -500..-800, off the mud (v11.96, DEEP §2; below the chemocline to v11.95)
     else if(D.floor){p.y+=D.size*0.35+0.3;spawn(ch,kind,p,rng,o);placed++;} // rasp, watcher, tread, picker, scuttle: on the floor
     else if(kind==='veil'){p.y=openY(ch,p,rng,30,110);spawn(ch,'veil',p,rng,o);placed++;}
     else if(kind==='ridge'||kind==='ortho'||kind==='abyssal'){p.y=openY(ch,p,rng,15,80);spawn(ch,kind,p,rng,o);placed++;}

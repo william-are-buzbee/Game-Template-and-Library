@@ -197,8 +197,9 @@ stages became, and what running them taught:
   §9's Makatea needs a Tahiti-sized load. The awesome member's moat (735 m under a 2,600 km³ shield) is the largest effect.
 - **Colonisation comes free:** each member's first light and the nearest lit member then. Seed 32: median 11 km from a neighbour, the
   longest 54 km, one from afar (the founders).
-- **The basin: the model does not make ours.** Its ridges are saddles at −1000 to −1500; it encloses basins of its own (seed 32: 1,260 km²
-  behind a sill at −1273, chemocline −1293) but none round ours. With the game's own ground inside its square, the water beside ours reaches
+- **The basin: the model does not make ours.** Its ridges are saddles at −1000 to −1500; it encloses basins of its own but none round ours.
+  (v11.96 refined which go anoxic: a sill between −100 and −1100, so the inflow is the oxygen minimum's water, 10 km² or more — seed 32's
+  big dark is then the 320 km² basin west behind −957/−980; its 1,260 km² basin behind −1273 takes ventilated deep water and stays oxic.) With the game's own ground inside its square, the water beside ours reaches
   the open ocean over ~−1060. The game's chemocline at −450 wants a sill near −430 all round, which a hotspot province does not build. Open
   for the person (below).
 - **Births inside the game's square are kept and flagged**: the game has only floor there. Seed 32 puts a 308 m, 3.1 Ma island 20 km north

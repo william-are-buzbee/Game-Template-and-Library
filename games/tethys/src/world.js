@@ -18,6 +18,7 @@ const DIKE={a:0.35,hw:0.62}; // the oldest flank, wave-cut deepest in the lowsta
 const RIM_R=245,RIM_W=34; // the caldera rim: crest radius, width
 const FLANK_R=1560,FLANK_W=250,FLANK_S0=0.30,FLANK_S1=0.22,FLANK_A=600,FLANK_B=2600; // the lower flank (sample(), v11.28): the apron's toe, the ramp's width, the slopes (tan) at the top and eased, the easing's span beyond the toe
 const VENT={a:2.6,r0:1200,r1:1420}; // the hydrothermal fissure: the deep end of rift arm 0
+const SEEP={a:2.6,hw:0.12,r0:620,r1:1160,h:0.14}; // v11.96 (SEAFLOOR §4, agreed 15 Sep 2026; DEEP §7): diffuse low-temperature seepage through the arm's fresh rock inside the fissure — dotted patches of rust mats and shimmer, no chimneys, the rejuvenated stage's — heat up to h, under the basker's reach (0.195) so it is the cinder's ground away from it
 const ISLE={x:Math.cos(5.5)*500,z:Math.sin(5.5)*500}; // a flank cone on rift arm 1: the island
 // The island as a tuff cone (v11.86, the person, 23 Sep 2026: the round hill with a plume "looks too neat to feel like it could've been any island
 // in the game"). A small vent erupting into shallow water on a shield's flank builds a tuff cone — Diamond Head, Koko Crater, Capelinhos — and
@@ -86,9 +87,11 @@ function tidalAt(x,z,out){const r=Math.hypot(x,z),ex=Math.cos(TIDE_A),ez=Math.si
 // The canopy fade (CAN_LO/CAN_HI, canopyFade) that sat here to v11.80 went with the canopy's paint (v11.81, PLANKTON.md §12).
 const DL_REF=420,DL_MIN=0.28; // the depth the daylight curve would reach zero at, and its floor
 function daylightAt(y){return clamp(1+Math.min(0,y-TIDE)/DL_REF,DL_MIN,1);}
-// The chemocline (PLANET): one depth, and the bands the water's look and the sessile life take from it. It was a bare -450
-// in a dozen places with -444/-446/-448/-452/-455/-458/-462/-464/-465/-470 around it, so moving it meant finding all of them.
-const CHEMO=-450,CHEMO_PLATE=2,CHEMO_TINT=[CHEMO+4,CHEMO-12]; // the milky plate's half-thickness; the band the water browns over
+// The water's oxygen (v11.96, DEEP.md §2, §9; the person, 10 Nov 2026: the region model's basins decide where the dark is). To v11.95 this was
+// CHEMO, a chemocline at -450 under the whole world; the model encloses nothing round ours, so round ours the water is oxic to the floor with
+// an oxygen minimum under the island's food (Earth's tropical open oceans have one at 400-900 m without any wall), and a chemocline exists only
+// where a basin's sill holds its water (chemoAt, at the end of this file). The table (as a share of the surface's oxygen):
+const OXY={photic:-150,top:-450,core:[-500,-800],floor:-1100,min:[0.25,0.5],deep:0.5,G:400}; // 1 to the light's base; falling to the core's minimum (0.25 where the food rains, the island's fed water; 0.5 in the open basin's) through -500..-800; back to 0.5 by the floor (deep water ventilated from far off). top: the minimum's upper edge — where the open water's life is squeezed up above it (the hunters work that edge: DEEP §2) and the bands the old -450 drew. G: the basins' flood grain (m)
 // ---------- the sky's clock: the sun, the moon, the weather (v11) ----------
 // Day and night run on the same clock as the tide (PLANET, Moon: a 30 h day, bright nights under the big moon). The island is
 // tropical (a 26–28 °C mixed layer), so it sits at a low latitude LAT and the sun passes nearly overhead; no axial tilt has
@@ -254,7 +257,7 @@ function sectorW(a,c,hw,fade){let d=(a-c)%TAU;if(d<0)d+=TAU;if(d>Math.PI)d-=TAU;
 // kit lacked, the subaerial shield (islandH, below). Ours carries its old numbers by name, so its doubles are v11.61's.
 const ISLANDS=[
   {id:'home',x:0,z:0,rot:0,sc:1,ns:0,h0:-14,prof:[[RIM_R+RIM_W*0.3,330,6],[330,700,40],[1000,1200,94],[1200,1600,40]],terr:{r0:700,r1:1000,n:8,step:12},
-   rimR:RIM_R,rimW:RIM_W,lagH:-22,coll:COLL,dike:DIKE,rifts:RIFT_A,riftR:[280,340,1600,1300],vent:VENT,isle:ISLE,flank:{r:FLANK_R,w:FLANK_W,s0:FLANK_S0,s1:FLANK_S1,a:FLANK_A,b:FLANK_B},fade:BASIN.fade,reach:8500},
+   rimR:RIM_R,rimW:RIM_W,lagH:-22,coll:COLL,dike:DIKE,rifts:RIFT_A,riftR:[280,340,1600,1300],vent:VENT,seep:SEEP,isle:ISLE,flank:{r:FLANK_R,w:FLANK_W,s0:FLANK_S0,s1:FLANK_S1,a:FLANK_A,b:FLANK_B},fade:BASIN.fade,reach:8500},
   // The giant (v11.62; ARCHIPELAGO's table, the person's plan of 15 Sep 2026): 18 km south-west along the chain at 2.6 rad, the member one step
   // behind the hotspot — its shield just finished, so it is the biggest and now only loses. 14 km of land (r 7000, the coast wavy ±16% of that
   // by the kit) rising to 900 m with a summit caldera 1.4 km across and 110 m deep; rain gullies down the windward flank (the wind is the
@@ -332,7 +335,8 @@ function islandH(R,x,z,o){
       const K=L.cald;if(K){const ck=smooth(K.r+K.w,K.r-K.w,rw);if(ck>0){const tr=1-K.r/L.r,fl=L.h*(0.55*tr+0.45*tr*tr*(3-2*tr))-K.d;lnd=lerp(lnd,fl,ck);lndS=lerp(lndS,fl,ck);young=Math.max(young,0.5*ck);}}
       h+=lnd;hSmooth+=lndS;}}
   if(R.rifts){const RR=R.riftR;for(let k=0;k<R.rifts.length;k++){const rwk=sectorW(awn,R.rifts[k],0.13,0.09)*smooth(RR[0],RR[1],rw)*smooth(RR[2],RR[3],rw);h+=8*rwk;young=Math.max(young,0.7*rwk);}} // the arms' radial extent is the record's (v11.62)
-  if(R.vent){const V=R.vent,vw=sectorW(awn,V.a,0.1,0.07)*smooth(V.r0-70,V.r0,rw)*smooth(V.r1+70,V.r1,rw);if(vw>0){heat=vw;h+=22*vw*Math.pow(fbm(lx*0.03+50+ns,lz*0.03+50,3),3)*1.6;young=Math.max(young,vw);}}
+  if(R.seep){const S=R.seep,sw=sectorW(awn,S.a,S.hw,0.06)*smooth(S.r0-60,S.r0,rw)*smooth(S.r1+40,S.r1,rw);if(sw>0)heat=Math.max(heat,S.h*sw*smooth(0.5,0.62,fbm(lx*0.011+70+ns,lz*0.011+30,3)));} // the seeps (SEEP), in patches
+  if(R.vent){const V=R.vent,vw=sectorW(awn,V.a,0.1,0.07)*smooth(V.r0-70,V.r0,rw)*smooth(V.r1+70,V.r1,rw);if(vw>0){heat=Math.max(heat,vw);h+=22*vw*Math.pow(fbm(lx*0.03+50+ns,lz*0.03+50,3),3)*1.6;young=Math.max(young,vw);}}
   // the lower flank beyond the apron (v11.28; PLANET, The shield). To v11.27 the floor fell 520 m in 90-250 m here —
   // a cliff into "the void" at -810, the world's rocky wrapping (the person, 10 Sep: "an artificial border to wrap the world up in rocky
   // bubble wrap"). A seamount whose summit reaches the surface stands 3-4 km off the plate on flanks of 10-20°; the apron of its own
@@ -584,7 +588,25 @@ function findSpot(rng,ok,r0,r1){
 }
 const LM={};
 (function(){const rng=mulberry(4242);
-  const mud=s=>s.h<-230&&s.h>CHEMO&&s.f[FI.sub]<0.35&&s.f[FI.heat]<0.1;
+  const mud=s=>s.h<-230&&s.h>OXY.top&&s.f[FI.sub]<0.35&&s.f[FI.heat]<0.1; // OXY.top was CHEMO (-450) to v11.95: the same number, so the bones lie where they lay
   LM.bones=findSpot(rng,mud,1290,1430);
   {const vr=(VENT.r0+VENT.r1)/2,x=Math.cos(VENT.a)*vr,z=Math.sin(VENT.a)*vr;LM.chimney={x:x,z:z,h:sample(x,z).h};} // on the fissure
     LM.all=Object.keys(LM).map(k=>LM[k]);})();
+// ---------- the water's oxygen and the basins' chemoclines (v11.96, DEEP.md §2, §9) ----------
+// Where the dark is, the region model's way (GLOBE §9.1): the water each place exchanges with the open ocean through, by region.js's flood over the
+// game's own ground at OXY.G m, the world's edge the open ocean (the province beyond encloses nothing round ours). A basin is silled — anoxic
+// under its sill, its chemocline 20 m below it (PLANET, The basin) — by region.js's rule: its sill between -100 and OXY.floor (the inflow is the
+// minimum's water), 150 m deep behind it, 10 km² or more.
+// None today — the square's ground encloses no such basin (test/region.js says so); the basin 28 km west comes with its members (DEEP §5).
+// Built on the first call, once (~70 ms); region.js (after this file in order.txt) holds the flood.
+let CHEMO_B=null;
+function chemoInit(){const G=OXY.G,n=Math.ceil(2*HALF/G),x0=-HALF,H=new Float32Array(n*n);
+  for(let j=0;j<n;j++)for(let i=0;i<n;i++)H[j*n+i]=sample(x0+(i+0.5)*G,x0+(j+0.5)*G).h;
+  const R=regionBasins(H,n,G,1);CHEMO_B={n,x0,G,lab:R.lab,ch:R.B.map(b=>b.silled?b.chemo:null),B:R.B};}
+function chemoAt(x,z){if(!CHEMO_B)chemoInit();const B=CHEMO_B,i=Math.floor((x-B.x0)/B.G),j=Math.floor((z-B.x0)/B.G);if(i<0||j<0||i>=B.n||j>=B.n)return null;const l=B.lab[j*B.n+i];return l>=0?B.ch[l]:null;} // a basin's chemocline over (x,z), or null
+function underChemo(x,y,z){const c=chemoAt(x,z);return c!==null&&y<c;} // in a basin's anoxic water
+// oxygen at a point, as a share of the surface's: 0 under a chemocline; else the profile, its core lower where the food rains (nut: the fields'
+// at x,z, read from sample() when not given)
+function oxyAt(x,y,z,nut){if(underChemo(x,y,z))return 0;const d=-y;if(d<=-OXY.photic)return 1;if(nut===undefined)nut=sample(x,z).f[FI.nut];
+  const k=clamp((nut-0.12)/0.4,0,1),m=OXY.min[1]-(OXY.min[1]-OXY.min[0])*k;
+  return 1-(1-m)*smooth(-OXY.photic,-OXY.core[0],d)+(OXY.deep-m)*smooth(-OXY.core[1],-OXY.floor,d);}

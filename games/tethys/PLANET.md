@@ -37,7 +37,7 @@ been answered is in [Open](#open), and is not to be decided by Claude.
   few founding lineages reached it and radiated into every niche (the Galápagos rule), so there are endemics, giants
   and dwarfs, and the family tree is lopsided and the species count modest. The above-water part of the world is due
   an overhaul later; this paragraph is what it must agree with.
-- **The ocean.** (**Revised in design 10 Nov 2026, DEEP.md:** round ours the water is oxic to the floor with a survivable oxygen minimum at −500 to −800; the chemocline is a basin's — the nearest 28 km west at −1000; the pit is struck. What follows is built until those passes.) Oxic to about **−450, then a chemocline**: below it the water is anoxic, ferrous and sulfidic (the
+- **The ocean.** (**Revised 10 Nov 2026, DEEP.md; built v11.96:** round ours the water is oxic to the floor with a survivable oxygen minimum at −500 to −800; the chemocline is a basin's — the nearest 28 km west at −1000; the pit is struck. What follows is built until those passes.) Oxic to about **−450, then a chemocline**: below it the water is anoxic, ferrous and sulfidic (the
   Proterozoic ferruginous ocean; the Black Sea today). This is the real reason **the dark** is different. The
   chemocline is a *depth*, not a floor biome: the flank crosses −450 at the square's corners (the pit, whose floor was −550, struck v11.95) (the
   void at −800 is gone since v11.28: the flank goes on down to the plate instead), "the dark" is ground < −450, and the water over
@@ -109,7 +109,7 @@ consequence of "a young oceanic shield volcano, almost drowned", and world.js `s
   and one neck in their place; all struck by the person, 8 Sep 2026: "no more spires, no more weird special spire
   replacement rocks — just normal geography based on what's nearby".)
 - **The rift arms.** Two, at 2.6 and 5.6 rad: low ridges of younger flows from the summit out. Arm 0 carries, at its deep end (r 1200–1420), the **hydrothermal fissure** — the rejuvenated stage on a 3 Ma
-  island (DEEP.md §7; its pit crater at r 470 struck v11.95, DEEP §8): a line of chimneys,
+  island (DEEP.md §7; its pit crater at r 470 struck v11.95, DEEP §8; diffuse seeps dot the arm inside it since v11.96, `SEEP`): a line of chimneys,
   sulfur mats, the warm water the straightshells visit. Arm 1 carries a **flank cone** at r 500: the island — a tuff cone since v11.86 (23 Sep 2026): a breached ring round a tidal crater, high downwind where the ash fell, cliffed to windward, cold (a monogenetic vent, erupted once into shallow water; the fumarole of 10 Sep is struck).
 - **Wind and current.** One prevailing wind: the waves strike the old flank (0.35 rad) — surf, cones, stirred sand; the lee
   (3.5 rad, the collapse's side) is where sand settles: the flats. One prevailing current: it strikes the north-east flank

@@ -3197,9 +3197,9 @@ const COAT_CLASSES = {
 };
 // the class at a place: h the ground's height, y the animal's depth, f the fields there. '' is the preset — and '' for a clade whose key
 // list is empty (nothing would move, and a class is a geometry in the cache)
-function coatClassAt(h, y, f, clade) {
+function coatClassAt(h, y, f, clade, cz) { // cz: a basin's chemocline over the place (world.js chemoAt), or none
   if (clade && !(COAT_CHEM_KEYS[clade] || []).length) return '';
-  const sulf = y < CHEMO || f[FI.heat] > 0.3,
+  const sulf = (cz !== undefined && cz !== null && y < cz) || f[FI.heat] > 0.3, // under a chemocline or at the vents (v11.96: the -450 to v11.95)
     lime = h > -26 && f[FI.sub] > 0.55 && f[FI.expo] > 0.35,
     rust = !lime && f[FI.sub] > 0.55 && h > -80,
     mn = !sulf && h < -200 && f[FI.sub] < 0.35;

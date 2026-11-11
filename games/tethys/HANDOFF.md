@@ -1,5 +1,16 @@
 # HANDOFF — tethys
 
+**v11.96 (11 Nov 2026): the water's oxygen — no chemocline round ours** (DEEP.md §11 step 2). `CHEMO` (−450 under the whole world) is
+`OXY`/`oxyAt`/`chemoAt` (world.js): oxic to the floor with an oxygen minimum (0.25 in the core over the fed water, 0.5 in the open basin), a
+chemocline only where region.js's flood finds a silled basin in the game's own ground — none in today's square. The fog's plate and brown
+struck; the snow's plate and black flakes, the seep, the grey mats, the poison and the sulfide coat follow a basin's chemocline; the cinder's
+seep row struck; the pall in the core over the fed deep. The silled rule refined: a sill between −100 and −1100 (the inflow the minimum's
+water), 10 km² or more — the outer flank's tiny hollows are not basins. The cinder lost its reservoir with the seep line and the census
+caught it dying out at the vents; SEAFLOOR §4's diffuse seeps on rift arm 0 (world.js `SEEP`, heat ≤ 0.14, under the basker's reach) are its
+ground now — cinder ~4 and basker ~1.4 at a balance over 200 days. Seen in the real build: deep blue, no sheet, `oxy` on the readout.
+**Ask first** about the seeps on rift arm 0 (`tp(-700,420)`), then whether the deep reads right without the plate, then the palls' new ground. Next: DEEP step 3, the floor (the apron near
+ours, nodules far out, crusts by age); the player's oxygen when the person wants it.
+
 **v11.95 (10 Nov 2026): the pit and the cairns struck** (DEEP.md §8; the person: "a silly holdover of an older time period … it
 clearly breaks believability and sets a bad precedent"; the cairns "another holdover … cool looking things in the game for the fuck of it";
 where it was, "as if it was never there"). world.js loses the pit's term, `PIT` and `LM.pit`; flora.js the tor, its stack builder and the
