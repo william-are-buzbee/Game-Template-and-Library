@@ -341,6 +341,7 @@ const DIKE={a:0.35,hw:0.62}; // the oldest flank, wave-cut deepest in the lowsta
 const RIM_R=245,RIM_W=34; // the caldera rim: crest radius, width
 const FLANK_R=1560,FLANK_W=250,FLANK_S0=0.30,FLANK_S1=0.22,FLANK_A=600,FLANK_B=2600; // the lower flank (sample(), v11.28): the apron's toe, the ramp's width, the slopes (tan) at the top and eased, the easing's span beyond the toe
 const VENT={a:2.6,r0:1200,r1:1420}; // the hydrothermal fissure: the deep end of rift arm 0
+const SEEP={a:2.6,hw:0.12,r0:620,r1:1160,h:0.14}; // v11.96 (SEAFLOOR §4, agreed 15 Sep 2026; DEEP §7): diffuse low-temperature seepage through the arm's fresh rock inside the fissure — dotted patches of rust mats and shimmer, no chimneys, the rejuvenated stage's — heat up to h, under the basker's reach (0.195) so it is the cinder's ground away from it
 const ISLE={x:Math.cos(5.5)*500,z:Math.sin(5.5)*500}; // a flank cone on rift arm 1: the island
 // The island as a tuff cone (v11.86, the person, 23 Sep 2026: the round hill with a plume "looks too neat to feel like it could've been any island
 // in the game"). A small vent erupting into shallow water on a shield's flank builds a tuff cone — Diamond Head, Koko Crater, Capelinhos — and
@@ -409,9 +410,11 @@ function tidalAt(x,z,out){const r=Math.hypot(x,z),ex=Math.cos(TIDE_A),ez=Math.si
 // The canopy fade (CAN_LO/CAN_HI, canopyFade) that sat here to v11.80 went with the canopy's paint (v11.81, PLANKTON.md §12).
 const DL_REF=420,DL_MIN=0.28; // the depth the daylight curve would reach zero at, and its floor
 function daylightAt(y){return clamp(1+Math.min(0,y-TIDE)/DL_REF,DL_MIN,1);}
-// The chemocline (PLANET): one depth, and the bands the water's look and the sessile life take from it. It was a bare -450
-// in a dozen places with -444/-446/-448/-452/-455/-458/-462/-464/-465/-470 around it, so moving it meant finding all of them.
-const CHEMO=-450,CHEMO_PLATE=2,CHEMO_TINT=[CHEMO+4,CHEMO-12]; // the milky plate's half-thickness; the band the water browns over
+// The water's oxygen (v11.96, DEEP.md §2, §9; the person, 10 Nov 2026: the region model's basins decide where the dark is). To v11.95 this was
+// CHEMO, a chemocline at -450 under the whole world; the model encloses nothing round ours, so round ours the water is oxic to the floor with
+// an oxygen minimum under the island's food (Earth's tropical open oceans have one at 400-900 m without any wall), and a chemocline exists only
+// where a basin's sill holds its water (chemoAt, at the end of this file). The table (as a share of the surface's oxygen):
+const OXY={photic:-150,top:-450,core:[-500,-800],floor:-1100,min:[0.25,0.5],deep:0.5,G:400}; // 1 to the light's base; falling to the core's minimum (0.25 where the food rains, the island's fed water; 0.5 in the open basin's) through -500..-800; back to 0.5 by the floor (deep water ventilated from far off). top: the minimum's upper edge — where the open water's life is squeezed up above it (the hunters work that edge: DEEP §2) and the bands the old -450 drew. G: the basins' flood grain (m)
 // ---------- the sky's clock: the sun, the moon, the weather (v11) ----------
 // Day and night run on the same clock as the tide (PLANET, Moon: a 30 h day, bright nights under the big moon). The island is
 // tropical (a 26–28 °C mixed layer), so it sits at a low latitude LAT and the sun passes nearly overhead; no axial tilt has
@@ -577,7 +580,7 @@ function sectorW(a,c,hw,fade){let d=(a-c)%TAU;if(d<0)d+=TAU;if(d>Math.PI)d-=TAU;
 // kit lacked, the subaerial shield (islandH, below). Ours carries its old numbers by name, so its doubles are v11.61's.
 const ISLANDS=[
   {id:'home',x:0,z:0,rot:0,sc:1,ns:0,h0:-14,prof:[[RIM_R+RIM_W*0.3,330,6],[330,700,40],[1000,1200,94],[1200,1600,40]],terr:{r0:700,r1:1000,n:8,step:12},
-   rimR:RIM_R,rimW:RIM_W,lagH:-22,coll:COLL,dike:DIKE,rifts:RIFT_A,riftR:[280,340,1600,1300],vent:VENT,isle:ISLE,flank:{r:FLANK_R,w:FLANK_W,s0:FLANK_S0,s1:FLANK_S1,a:FLANK_A,b:FLANK_B},fade:BASIN.fade,reach:8500},
+   rimR:RIM_R,rimW:RIM_W,lagH:-22,coll:COLL,dike:DIKE,rifts:RIFT_A,riftR:[280,340,1600,1300],vent:VENT,seep:SEEP,isle:ISLE,flank:{r:FLANK_R,w:FLANK_W,s0:FLANK_S0,s1:FLANK_S1,a:FLANK_A,b:FLANK_B},fade:BASIN.fade,reach:8500},
   // The giant (v11.62; ARCHIPELAGO's table, the person's plan of 15 Sep 2026): 18 km south-west along the chain at 2.6 rad, the member one step
   // behind the hotspot — its shield just finished, so it is the biggest and now only loses. 14 km of land (r 7000, the coast wavy ±16% of that
   // by the kit) rising to 900 m with a summit caldera 1.4 km across and 110 m deep; rain gullies down the windward flank (the wind is the
@@ -655,7 +658,8 @@ function islandH(R,x,z,o){
       const K=L.cald;if(K){const ck=smooth(K.r+K.w,K.r-K.w,rw);if(ck>0){const tr=1-K.r/L.r,fl=L.h*(0.55*tr+0.45*tr*tr*(3-2*tr))-K.d;lnd=lerp(lnd,fl,ck);lndS=lerp(lndS,fl,ck);young=Math.max(young,0.5*ck);}}
       h+=lnd;hSmooth+=lndS;}}
   if(R.rifts){const RR=R.riftR;for(let k=0;k<R.rifts.length;k++){const rwk=sectorW(awn,R.rifts[k],0.13,0.09)*smooth(RR[0],RR[1],rw)*smooth(RR[2],RR[3],rw);h+=8*rwk;young=Math.max(young,0.7*rwk);}} // the arms' radial extent is the record's (v11.62)
-  if(R.vent){const V=R.vent,vw=sectorW(awn,V.a,0.1,0.07)*smooth(V.r0-70,V.r0,rw)*smooth(V.r1+70,V.r1,rw);if(vw>0){heat=vw;h+=22*vw*Math.pow(fbm(lx*0.03+50+ns,lz*0.03+50,3),3)*1.6;young=Math.max(young,vw);}}
+  if(R.seep){const S=R.seep,sw=sectorW(awn,S.a,S.hw,0.06)*smooth(S.r0-60,S.r0,rw)*smooth(S.r1+40,S.r1,rw);if(sw>0)heat=Math.max(heat,S.h*sw*smooth(0.5,0.62,fbm(lx*0.011+70+ns,lz*0.011+30,3)));} // the seeps (SEEP), in patches
+  if(R.vent){const V=R.vent,vw=sectorW(awn,V.a,0.1,0.07)*smooth(V.r0-70,V.r0,rw)*smooth(V.r1+70,V.r1,rw);if(vw>0){heat=Math.max(heat,vw);h+=22*vw*Math.pow(fbm(lx*0.03+50+ns,lz*0.03+50,3),3)*1.6;young=Math.max(young,vw);}}
   // the lower flank beyond the apron (v11.28; PLANET, The shield). To v11.27 the floor fell 520 m in 90-250 m here —
   // a cliff into "the void" at -810, the world's rocky wrapping (the person, 10 Sep: "an artificial border to wrap the world up in rocky
   // bubble wrap"). A seamount whose summit reaches the surface stands 3-4 km off the plate on flanks of 10-20°; the apron of its own
@@ -907,17 +911,36 @@ function findSpot(rng,ok,r0,r1){
 }
 const LM={};
 (function(){const rng=mulberry(4242);
-  const mud=s=>s.h<-230&&s.h>CHEMO&&s.f[FI.sub]<0.35&&s.f[FI.heat]<0.1;
+  const mud=s=>s.h<-230&&s.h>OXY.top&&s.f[FI.sub]<0.35&&s.f[FI.heat]<0.1; // OXY.top was CHEMO (-450) to v11.95: the same number, so the bones lie where they lay
   LM.bones=findSpot(rng,mud,1290,1430);
   {const vr=(VENT.r0+VENT.r1)/2,x=Math.cos(VENT.a)*vr,z=Math.sin(VENT.a)*vr;LM.chimney={x:x,z:z,h:sample(x,z).h};} // on the fissure
     LM.all=Object.keys(LM).map(k=>LM[k]);})();
+// ---------- the water's oxygen and the basins' chemoclines (v11.96, DEEP.md §2, §9) ----------
+// Where the dark is, the region model's way (GLOBE §9.1): the water each place exchanges with the open ocean through, by region.js's flood over the
+// game's own ground at OXY.G m, the world's edge the open ocean (the province beyond encloses nothing round ours). A basin is silled — anoxic
+// under its sill, its chemocline 20 m below it (PLANET, The basin) — by region.js's rule: its sill between -100 and OXY.floor (the inflow is the
+// minimum's water), 150 m deep behind it, 10 km² or more.
+// None today — the square's ground encloses no such basin (test/region.js says so); the basin 28 km west comes with its members (DEEP §5).
+// Built on the first call, once (~70 ms); region.js (after this file in order.txt) holds the flood.
+let CHEMO_B=null;
+function chemoInit(){const G=OXY.G,n=Math.ceil(2*HALF/G),x0=-HALF,H=new Float32Array(n*n);
+  for(let j=0;j<n;j++)for(let i=0;i<n;i++)H[j*n+i]=sample(x0+(i+0.5)*G,x0+(j+0.5)*G).h;
+  const R=regionBasins(H,n,G,1);CHEMO_B={n,x0,G,lab:R.lab,ch:R.B.map(b=>b.silled?b.chemo:null),B:R.B};}
+function chemoAt(x,z){if(!CHEMO_B)chemoInit();const B=CHEMO_B,i=Math.floor((x-B.x0)/B.G),j=Math.floor((z-B.x0)/B.G);if(i<0||j<0||i>=B.n||j>=B.n)return null;const l=B.lab[j*B.n+i];return l>=0?B.ch[l]:null;} // a basin's chemocline over (x,z), or null
+function underChemo(x,y,z){const c=chemoAt(x,z);return c!==null&&y<c;} // in a basin's anoxic water
+// oxygen at a point, as a share of the surface's: 0 under a chemocline; else the profile, its core lower where the food rains (nut: the fields'
+// at x,z, read from sample() when not given)
+function oxyAt(x,y,z,nut){if(underChemo(x,y,z))return 0;const d=-y;if(d<=-OXY.photic)return 1;if(nut===undefined)nut=sample(x,z).f[FI.nut];
+  const k=clamp((nut-0.12)/0.4,0,1),m=OXY.min[1]-(OXY.min[1]-OXY.min[0])*k;
+  return 1-(1-m)*smooth(-OXY.photic,-OXY.core[0],d)+(OXY.deep-m)*smooth(-OXY.core[1],-OXY.floor,d);}
 
 // region.js — the region as a plume's history (v11.94, GLOBE.md §9): the province's members are not placed but fall out of a plume run under the
 // plate. The head's plateau; the tail's volcanoes born by the plume's pulse, scattered over its footprint and drawn onto old fracture zones; each
 // member's rise and fall (the swell it rides off, the plate's cooling, flexure under every load, erosion and the waves' planing); the reef against
 // Earth's sea level deciding its state; and, on a grid, the basins the ridges enclose with each one's sill. Pure data: no THREE, no page. Ours and
 // the giant (ISLANDS[0], [1]) are pinned — the track passes through them at their ages, their volumes are tuned until their summits today are the
-// records', and the floor beside ours until it is the basin's −1100. Not read by the game yet: region.html draws it, test/region.js checks it, and
+// records', and the floor beside ours until it is the basin's −1100. The game reads only the flood (v11.96: world.js chemoInit, the basins'
+// chemoclines); region.html draws the rest, test/region.js checks it, and
 // its records go into ISLANDS with GLOBE §8 step 5. Frame: x east, z south, metres; ages in Ma (millions of years before now), t counting back.
 // ---------- the knobs ----------
 const REGION_K={
@@ -1070,20 +1093,23 @@ function regionGrid(R,x0,z0,span,n,inner,half){const H=new Float32Array(n*n),c=s
   if(inner)for(let j=0;j<n;j++){const z=z0+(j+0.5)*c;for(let i=0;i<n;i++){const x=x0+(i+0.5)*c,e=Math.min(half-Math.abs(x),half-Math.abs(z));if(e>0){const w=smooth(0,3000,e),q=j*n+i;H[q]+=(inner(x,z)-H[q])*w;}}}
   return H;}
 // the water each cell exchanges with the open ocean through: the shallowest point on its deepest way to the grid's edge (a priority flood from the
-// edge, lowest first). A cell whose floor lies under that is enclosed; the enclosed cells in one piece are a basin with that sill. A basin whose sill
-// is deeper than −100 and whose floor lies 150 m or more under it is silled as ours is (PLANET, the basin: anoxic under the sill, its chemocline
-// 20 m below it); shallower ones are lagoons and hollows the tide flushes
-function regionBasins(H,n,cell){const N=n*n,F=new Float32Array(N).fill(Infinity),hp=new Int32Array(N),lab=new Int32Array(N).fill(-1);let hn=0;
+// edge, lowest first). A cell whose floor lies under that (by th, 30 m unless given; world.js chemoInit passes 1, so a basin's walls are its) is
+// enclosed; the enclosed cells in one piece are a basin with that sill. A basin is silled as ours was (PLANET, the basin: anoxic under the sill,
+// its chemocline 20 m below it) when the water coming in over its sill is the oxygen minimum's, not the ventilated deep's — the sill above
+// OXY.floor (-1100; Santa Barbara Basin goes anoxic behind a 475 m sill on the minimum's water) and below -100 (a lagoon the tide flushes) — when
+// its floor lies 150 m or more under the sill, and when it is 10 km² or more (v11.96: a hollow smaller is stirred clean; the outer flank's
+// ribbing made 0.5-1.6 km² "basins" at -2500 to -3500)
+function regionBasins(H,n,cell,th){if(th===undefined)th=30;const N=n*n,F=new Float32Array(N).fill(Infinity),hp=new Int32Array(N),lab=new Int32Array(N).fill(-1);let hn=0;
   const up=k=>{const v=hp[k];while(k>0){const p=(k-1)>>1;if(F[hp[p]]<=F[v])break;hp[k]=hp[p];k=p;}hp[k]=v;},
     down=()=>{const v=hp[--hn];let k=0;for(;;){let c=2*k+1;if(c>=hn)break;if(c+1<hn&&F[hp[c+1]]<F[hp[c]])c++;if(F[hp[c]]>=F[v])break;hp[k]=hp[c];k=c;}hp[k]=v;};
   const push=i=>{hp[hn]=i;up(hn++);};
   for(let i=0;i<n;i++)for(const k of [i,(n-1)*n+i,i*n,i*n+n-1])if(F[k]===Infinity){F[k]=H[k];push(k);}
   while(hn){const k=hp[0];if(hn>1)down();else hn=0;const x=k%n,y=(k/n)|0,f=F[k];
     for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=n||yy>=n)continue;const q=yy*n+xx;if(F[q]!==Infinity)continue;F[q]=Math.max(H[q],f);push(q);}}
-  const B=[];for(let k=0;k<N;k++){if(lab[k]>=0||F[k]-H[k]<30||F[k]>=0)continue;const b={id:B.length,sill:F[k],floor:H[k],cells:0,sx:0,sz:0},st=[k];lab[k]=b.id;
+  const B=[];for(let k=0;k<N;k++){if(lab[k]>=0||F[k]-H[k]<th||F[k]>=0)continue;const b={id:B.length,sill:F[k],floor:H[k],cells:0,sx:0,sz:0},st=[k];lab[k]=b.id;
     while(st.length){const q=st.pop(),x=q%n,y=(q/n)|0;b.cells++;b.sx+=x;b.sz+=y;if(H[q]<b.floor)b.floor=H[q];
-      for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=n||yy>=n)continue;const r=yy*n+xx;if(lab[r]>=0||F[r]-H[r]<30||Math.abs(F[r]-b.sill)>1)continue;lab[r]=b.id;st.push(r);}}
-    b.area=b.cells*cell*cell/1e6;b.cx=b.sx/b.cells;b.cz=b.sz/b.cells;b.silled=b.sill<-100&&b.sill-b.floor>=150;b.chemo=b.silled?b.sill-20:null;B.push(b);}
+      for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=n||yy>=n)continue;const r=yy*n+xx;if(lab[r]>=0||F[r]-H[r]<th||Math.abs(F[r]-b.sill)>1)continue;lab[r]=b.id;st.push(r);}}
+    b.area=b.cells*cell*cell/1e6;b.cx=b.sx/b.cells;b.cz=b.sz/b.cells;b.silled=b.sill<-100&&b.sill>(typeof OXY==='object'?OXY.floor:-1100)&&b.sill-b.floor>=150&&b.area>=10;b.chemo=b.silled?b.sill-20:null;B.push(b);}
   return {F,lab,B};}
 
 // physics.js — contact. Colliders in a per-cell hash (spheres, capsules, bobbing pads), body shapes (capsules) for every
@@ -1684,10 +1710,10 @@ const MIST_GLSL='float mistL(float cy,float dy,float d,float rho,float ih){float
     'w0.rgb=bloomTint(w0.rgb,bloomC(vec3(f0.ba,w0.a),f0.r*'+FM_SCALE.toFixed(1)+',uFogW.x-o.y));w1.rgb=bloomTint(w1.rgb,bloomC(vec3(f1.ba,w1.a),f1.r*'+FM_SCALE.toFixed(1)+',uFogW.x-sp.y));'+
     'vec4 wm=mix(w0,w1,uFogP.z);float y=mix(o.y,sp.y,uFogW.z);float dl='+DL_GLSL('y')+';float sg=pow(max(dot(rd,uFogS.xyz),0.0),6.0);'+
     'vec3 fc=wm.rgb*uFogW.y*(0.3+0.7*dl)*(1.0+uFogS.w*sg*dl)*uFogT.x*mix(vec3(1.0),uFogT.yzw,smoothstep(-40.0,0.0,y));'+
-    'fc*=mix(vec3(1.0),vec3(1.12,0.92,0.72),smoothstep('+CHEMO_TINT[0].toFixed(1)+','+CHEMO_TINT[1].toFixed(1)+',y));return fc;}\n'+
-    // the water segment: the chemocline's milky plate by the ray's length inside it, then the veil by the two-population transmittance (uFogP.y the material's share); dn: the downward darkening from above; ck: the far cut, on the camera's segment only
-    'vec3 fogWater(vec3 col,vec3 o,vec3 rd,float L,vec3 dn,float ck){vec3 fc=fogVeil(o,rd,L)*dn;float dy=rd.y*L;if(abs(dy)<1e-3)dy=1e-3;float sl=abs(clamp(('+(CHEMO+CHEMO_PLATE).toFixed(1)+'-o.y)/dy,0.0,1.0)-clamp(('+(CHEMO-CHEMO_PLATE).toFixed(1)+'-o.y)/dy,0.0,1.0))*L;'+
-    'col=mix(col,mix(fc,vec3(0.62,0.64,0.60)*uFogT.x*0.5,0.6),1.0-exp(-0.25*sl));float tr=mix(exp(-uFogP.x*L),exp(-uFogA.w*uFogA.w*L*L),uFogP.y)*ck;return mix(col,fc,1.0-tr);}\n'+
+    'return fc;}\n'+ // v11.96: the chemocline's brown below -450 is gone with it (DEEP §2); it comes back as a basin's, by uniforms, when one is in the world (DEEP §9)
+    // the water segment (v11.96: the chemocline's milky plate is gone from it with the -450 — DEEP §2; a basin's comes back by uniforms, DEEP §9): the veil by the two-population transmittance (uFogP.y the material's share); dn: the downward darkening from above; ck: the far cut, on the camera's segment only
+    'vec3 fogWater(vec3 col,vec3 o,vec3 rd,float L,vec3 dn,float ck){vec3 fc=fogVeil(o,rd,L)*dn;'+
+    'float tr=mix(exp(-uFogP.x*L),exp(-uFogA.w*uFogA.w*L*L),uFogP.y)*ck;return mix(col,fc,1.0-tr);}\n'+
     // the air segment: the mist on the water integrated over the segment (MIST_GLSL, heights over the water level), glowing toward the light, then the haze toward the sky's horizon colour
     'vec3 fogAir(vec3 col,vec3 o,vec3 rd,float L,float ck){float mo=mistRay(o.y-uMistW.x,o.y+rd.y*L-uMistW.x,L);col=mix(col,uMistC.rgb*(1.0+uMistC.w*pow(max(dot(rd,uFogS.xyz),0.0),6.0)),1.0-exp(-mo));'+
     'float tr=mix(exp(-uFogA.x*L),exp(-uFogA.z*uFogA.z*L*L),uFogA.y)*ck;return mix(col,skyFar(rd,o.y-uMistW.x),1.0-tr);}\n#endif'; // the far colour is the sky in the ray's direction with the haze to infinity (v11.45, skyFar), not uFogAC's constant: at the cut a fragment is the dome exactly, so the far sea, the kelp cards and the shore end in the sky behind them and the sea's edge is no longer a pale rim (WATER.md Part 3)
@@ -6002,9 +6028,9 @@ const COAT_CLASSES = {
 };
 // the class at a place: h the ground's height, y the animal's depth, f the fields there. '' is the preset — and '' for a clade whose key
 // list is empty (nothing would move, and a class is a geometry in the cache)
-function coatClassAt(h, y, f, clade) {
+function coatClassAt(h, y, f, clade, cz) { // cz: a basin's chemocline over the place (world.js chemoAt), or none
   if (clade && !(COAT_CHEM_KEYS[clade] || []).length) return '';
-  const sulf = y < CHEMO || f[FI.heat] > 0.3,
+  const sulf = (cz !== undefined && cz !== null && y < cz) || f[FI.heat] > 0.3, // under a chemocline or at the vents (v11.96: the -450 to v11.95)
     lime = h > -26 && f[FI.sub] > 0.55 && f[FI.expo] > 0.35,
     rust = !lime && f[FI.sub] > 0.55 && h > -80,
     mn = !sulf && h < -200 && f[FI.sub] < 0.35;
@@ -7999,7 +8025,8 @@ function darkrindB(rg,k){const P=[],n=1+(k%2);
 // photo: a weed — tinted by pigment(ground depth) per instance (grow.js). flow: turned across the current by flowYaw. band: [lo,hi] of
 // ground height the species stands in. vars: from species() — each variant's own col/pads; top: the tallest variant's highest
 // point, and anything that would stand into the air is shortened in y or skipped (rigid things, ladder, ribbon).
-// field: noise scale that modulates density (thick and thin forests).
+// field: noise scale that modulates density (thick and thin forests). chemo: [lo,hi] of ground height about a basin's chemocline (world.js
+// chemoAt, v11.96): the species stands only there, so nowhere a basin does not hold its water.
 // maxSlope: steepest ground an instance may stand on (default 0.9; rocks 1.9; structures unlimited, they sink on slopes).
 // leePer: density where the retention field (world.js leeW) is 1 (v11.81; canopyPer to v11.80). ys: y for surface flora (default -0.45).
 // pocket: noise scale; the base density applies fully only inside pockets of that noise (~15% of area) and at 10% elsewhere.
@@ -8225,9 +8252,9 @@ const FLORA = [
   species('plume', {mat: MATV, tints: [[1, 1, 1], [0.96, 0.94, 0.92]], s: [0.7, 1.6], per: 110, env: {heat: [0.3, 1]}, field: 0.03, maxSlope: 1.4, chem: false}, plumeB), // the vents; chem:false (v11.67): the sulfur stain would wash the crown's iron-blood red, the thing to see
   species(
     'seep',
-    {mat: MATV, tints: [[1, 1, 1], [0.9, 0.9, 0.92]], s: [0.8, 1.5], per: 70, env: {h: [-464, -444], sub: [0.3, 1]}, band: [-464, -444], field: 0.02, maxSlope: 1.4},
+    {mat: MATV, tints: [[1, 1, 1], [0.9, 0.9, 0.92]], s: [0.8, 1.5], per: 70, env: {sub: [0.3, 1]}, chemo: [-14, 6], field: 0.02, maxSlope: 1.4},
     seepB
-  ), // the rim: a line round the world at the chemocline
+  ), // the straddlers: a line round a basin's walls at its chemocline (chemo: the band about chemoAt) — v11.96, DEEP §5: none round ours, where there is none; to v11.95 a line round the world at -450
   species(
     'stilt',
     {mat: MATV, tints: [[1, 1, 1], [0.95, 0.9, 0.84], [0.82, 0.62, 0.5]], s: [0.7, 1.6], flow: true, per: 40, env: {h: [-150, -5], sub: [0.3, 0.85], flow: [0.25, 1]}, field: 0.02},
@@ -8289,7 +8316,7 @@ const FLORA = [
   species('beard', {mat: MATV, tints: RUSTB, s: [0.7, 1.8], per: 200, env: {h: [-150, -3], young: [0.5, 1], sub: [0.55, 1]}, maxSlope: 1.6}, beardB),
   species('iron', {mat: MATV, tints: RUSTB, s: [0.7, 1.8], tilt: true, sx: [0.8, 1.3], per: 22, env: {h: [-150, -10], young: [0.5, 1]}}, ironB),
   species('mat', {mat: MATV, tints: [[1, 1, 0.95], [1, 0.95, 0.55], [0.95, 0.9, 0.75]], s: [0.8, 1.6], per: 260, env: {heat: [0.18, 1]}, field: 0.03, maxSlope: 1.6}, matB([0.95, 0.94, 0.8])), // sulfur: white and yellow round the vents
-  species('greymat', {mat: MATV, tints: [[0.6, 0.6, 0.62], [0.5, 0.5, 0.5], [0.42, 0.4, 0.42]], s: [0.8, 1.6], per: 220, env: {h: [-800, -452]}, band: [-800, -452], field: 0.03, maxSlope: 1.6}, matB([0.8, 0.8, 0.82])), // below the chemocline: grey and black, and nothing else
+  species('greymat', {mat: MATV, tints: [[0.6, 0.6, 0.62], [0.5, 0.5, 0.5], [0.42, 0.4, 0.42]], s: [0.8, 1.6], per: 220, chemo: [-400, -2], field: 0.03, maxSlope: 1.6}, matB([0.8, 0.8, 0.82])), // under a basin's chemocline: grey and black, and nothing else (v11.96: none round ours; the vents' and the carcass falls' mats are DEEP §4's; to v11.95 under the -450 everywhere)
   // the reds (TAXA): a rind, the light's floor and the reef's glue. rind paints the slope's rock red-purple from the greens' edge to −150;
   // limerind is the same crust laying lime in the bright pounded water of the crest and the skerries (pink; a real reef's crest is this,
   // not polyps); sandball is a lime rind that let go; redblade the reds' one sheet
@@ -8575,9 +8602,10 @@ const SPAWN=[
   {kind:'basker',n:4,env:{heat:[0.3,1]}}, // the vents (one cell of them)
   {kind:'picker',n:3,env:{h:[-800,-300]}}, // the lower flank's mud down into the dark (v11.28: to -400 while the void stood; the dark inside the square is the pit and the corners now, and the stone's and basker's food went with it)
   {kind:'picker',n:12,env:{heat:[0.3,1]}}, // and at the vents, in a swarm, picking at the mats (Earth's vent shrimp swarms): the basker's food (20 before the cinder took its share, v11.66)
-  {kind:'cinder',n:8,env:{heat:[0.25,1]}}, // v11.66: the seep walker on the vent field's mats; the basker's other meal, and poison to eat (combat.js POISON) — the basker eats the field's down to a couple
-  {kind:'cinder',n:1.5,env:{h:[-470,-440]}}, // and thinly along the seep line at the chemocline round every island (the sulfide's other home; the greymat's upper edge), where nothing hunts it — the kind's reservoir (v11.66)
-  {kind:'pall',n:0.4,env:{h:[-800,CHEMO-20]}}, // the dark
+  {kind:'cinder',n:8,env:{heat:[0.06,1,0.03]}}, // v11.96: and the arm's seeps (world.js SEEP, heat 0.06-0.14: under the basker's reach — the kind's reservoir now the seep line is gone, DEEP §2; heat ≥ 0.25 to v11.95) // v11.66: the seep walker on the vent field's mats; the basker's other meal, and poison to eat (combat.js POISON) — the basker eats the field's down to a couple
+  // v11.96 (DEEP §2): the seep line's row struck — round ours there is no chemocline for a seep line; it comes back about a basin's (DEEP §5).
+  // To v11.95: {kind:'cinder',n:1.5,env:{h:[-470,-440]}}, // and thinly along the seep line at the chemocline round every island (the sulfide's other home; the greymat's upper edge), where nothing hunts it — the kind's reservoir (v11.66)
+  {kind:'pall',n:0.4,env:{h:[-1200,-560],nut:[0.25,1]}}, // the oxygen minimum's core over the deep, where the island's food rains into it (v11.96, DEEP §2: the vampire-squid precedent; below the chemocline over the flank, h -800..-470, to v11.95) — 3,222 cells against 6,023
   {kind:'arrow',grp:5,n:3.75,env:{h:[-62,-5]}}, // arrow squid hunt the shallows and the shelf in packs
   {kind:'great',n:0.1,env:{h:[-150,-8]}},
   {kind:'jelly',n:2,env:{h:[-800,-15]}},
@@ -8977,7 +9005,7 @@ function spawn(ch,kind,pos,rng,opt){
   // the individual (v11.66, above): the size band, the coat class of the place, the soft state; plain outside the ledger
   const k=vary?1+VARY.spread*(2*rng()-1):1,d=k!==1?scaledDef(D,k):D;
   const soft=vary&&!juv&&moults(kind)&&D.role!=='boid'&&(opt&&opt.soft!==undefined?!!opt.soft:rng()<MOULT.frac);
-  const f=vary&&ch?ch.f(pos.x,pos.z):null,cls=soft?'soft':f&&SPECS[kind]?coatClassAt(ch.h(pos.x,pos.z),pos.y,f,SPECS[kind].clade):'';
+  const f=vary&&ch?ch.f(pos.x,pos.z):null,cls=soft?'soft':f&&SPECS[kind]?coatClassAt(ch.h(pos.x,pos.z),pos.y,f,SPECS[kind].clade,chemoAt(pos.x,pos.z)):'';
   const b=buildKind(D,kind,cls);if(k!==1){b.g.scale.multiplyScalar(k);b.gape*=k;}
   const c={kind:kind,def:d,g:b.g,anim:b.anim,pos:pos.clone(),vel:V3(0,0,0),home:pos.clone(),hp:d.hp,state:'wander',t0:rng()*100,lastSpd:0,lastYaw:0,roll:0,rollV:0,sq:0,stunSide:rng()<0.5?-1:1,target:null,biteT:0,wanderT:0,wander:pos.clone(),alive:true,gone:false,stun:0,bored:0,cool:rng()*3,scanT:rng()*0.5,alarm:0,fleeT:0,lungeT:0,ramT:0,school:null,off:null,offT:0,chunk:ch,lod:-1,parts:null,lodMeshes:null,sub:1,wet:true,grounded:false,flopT:0,
     b:b,mass:0,mass0:0,bound:0,reach:0,shapesW:null,chainW:null,grab:null,holding:0,hold:null,held:0,bleed:0,blood:0,wounds:null,paraT:0,stungT:0,armsLost:0,regrow:null,sickT:0,poison:0,poisT:rng()*2,commitT:0,coastT:0,missN:0,speedK:1,turnK:1,live:null,lost:null,cWith:null,d6:0,par:creatures.length&1, // hold: the hold it has on something, held: how many have hold of it, bleed: the rate its wounds drain at, blood: the share of its blood lost (combat.js, v11.91); mass: kg (combat.js kgOfBody; 1e6 while it sits), mass0 its own
@@ -9056,8 +9084,8 @@ function setWander(c){
     fh=groundAt(p.x,p.z);if(d.legs||fh<-3-d.size*0.6)break;
   }
   if(d.floor)p.y=fh+rnd(0.5,2.5)+d.size*0.4;
-  else if(d.deep)p.y=clamp(c.home.y+rnd(-60,60),fh+8,CHEMO-8); // the pall: below the chemocline, off the mud
-  else if(fh<CHEMO)p.y=clamp(c.home.y+rnd(-80,80),-420,-30);
+  else if(d.deep)p.y=clamp(c.home.y+rnd(-60,60),Math.max(fh+8,OXY.core[1]),OXY.core[0]); // the pall: in the oxygen minimum's core, off the mud (v11.96, DEEP §2)
+  else if(fh<OXY.top)p.y=clamp(c.home.y+rnd(-80,80),-420,-30); // over the deep: above the minimum
   else p.y=clamp(fh+rnd(4,d.cruise||30),fh+3,-4-d.size*0.4);
   c.wander.copy(p);c.wanderT=rnd(6,14);
 }
@@ -9241,7 +9269,7 @@ function updateSchools(dt){
     let n=0;T1.set(0,0,0);for(const c of s.members)if(c.alive){n++;T1.add(c.pos);}if(n)s.pos.copy(T1.multiplyScalar(1/n));
     s.t-=dt;
     if(s.t<=0||s.pos.distanceTo(s.target)<3){if(s.sw&&s.sw.alive){const R=swarmR(s.sw);s.t=rnd(3,6);s.target.set(s.sw.pos.x+(Math.random()-0.5)*R,s.sw.pos.y+(Math.random()-0.5)*R*0.4,s.sw.pos.z+(Math.random()-0.5)*R);} // v11.85: a hungry school of filter feeders moves through the swarm it found
-      else{s.t=rnd(5,12);const p=s.home.clone().add(V3(rnd(-30,30),0,rnd(-30,30)));const fh=groundAt(p.x,p.z),mid=s.members.length&&s.members[0].def.mid;p.y=fh<CHEMO?clamp(s.home.y+rnd(-30,30),-400,-20):mid?clamp(s.home.y+rnd(-12,12),fh+8,-8):clamp(fh+rnd(1.5,8),fh+1.5,-3);s.target.copy(p);}} // mid (v11.66): a swarm of the water column keeps its own depth
+      else{s.t=rnd(5,12);const p=s.home.clone().add(V3(rnd(-30,30),0,rnd(-30,30)));const fh=groundAt(p.x,p.z),mid=s.members.length&&s.members[0].def.mid;p.y=fh<OXY.top?clamp(s.home.y+rnd(-30,30),-400,-20):mid?clamp(s.home.y+rnd(-12,12),fh+8,-8):clamp(fh+rnd(1.5,8),fh+1.5,-3);s.target.copy(p);}} // mid (v11.66): a swarm of the water column keeps its own depth
     // threats: the player, and any hunter of the members' kind, scanned four times a second (every member reading every creature
     // was a thousand by a thousand a frame)
     s.scanT=(s.scanT||0)-dt;if(s.scanT<=0){s.scanT=0.25;let th=null,td=14;const kind=s.members.length?s.members[0].kind:'';
@@ -9453,7 +9481,7 @@ function hOut(ch,x,z){return x<ch.x0||x>ch.x0+CELL||z<ch.z0||z>ch.z0+CELL?sample
 
 function makeChunk(i,j){
   const x0=i*CELL-HALF,z0=j*CELL-HALF,hg=new Float32Array(GR*GR),fg=new Float32Array(GR*GR*NF);
-  return {i:i,j:j,k:ckey(i,j),x0:x0,z0:z0,cx:x0+CELL/2,cz:z0+CELL/2,hg:hg,fg:fg,landN:0,deepN:0,minH:0,maxH:-1e9,group:new THREE.Group(),creatures:[],schools:[],eggs:[],meshes:[],plumes:[],lightSrc:[],solids:[],seeps:[],hash:makeHash(),solidR:0,sphere:null,terrain:null,shBig:[], // terrain, shBig (v11.30): the ground's mesh and the structures' shadow proxies, casters into the world's map (scene.js updateShadowS)
+  return {i:i,j:j,k:ckey(i,j),x0:x0,z0:z0,cx:x0+CELL/2,cz:z0+CELL/2,hg:hg,fg:fg,landN:0,minH:0,maxH:-1e9,group:new THREE.Group(),creatures:[],schools:[],eggs:[],meshes:[],plumes:[],lightSrc:[],solids:[],seeps:[],hash:makeHash(),solidR:0,sphere:null,terrain:null,shBig:[], // terrain, shBig (v11.30): the ground's mesh and the structures' shadow proxies, casters into the world's map (scene.js updateShadowS)
     pooled:[],flora:[],near:true,ac:new Float32Array(16),sheds:[], // sheds (v11.66): the cast carapaces dropped in this cell in play (creatures_ai.js dropShed) // pooled (v11.52): the species pools this cell has written a block into (poolAdd); taken out on unload // ac: the swaying flora's height summed in a 4×4 grid of the cell — the forest's sound (audio.js) // flora: the instanced meshes hidden once the cell is past FLORA_FAR (v11.12, cullChunks); near: whether they are drawn now
     h:function(x,z){let fx=clamp((x-x0)/STEP,0,CH_RES-0.001),fz=clamp((z-z0)/STEP,0,CH_RES-0.001);const ix=Math.floor(fx),iz=Math.floor(fz),tx=fx-ix,tz=fz-iz;const a=hg[iz*GR+ix],b=hg[iz*GR+ix+1],c=hg[(iz+1)*GR+ix],d=hg[(iz+1)*GR+ix+1];return a+(b-a)*tx+(c-a)*tz+(a-b-c+d)*tx*tz;},
     f:function(x,z){const ix=clamp(Math.round((x-x0)/STEP),0,CH_RES),iz=clamp(Math.round((z-z0)/STEP),0,CH_RES);return fg.subarray((iz*GR+ix)*NF,(iz*GR+ix+1)*NF);}, // the conditions at the nearest vertex
@@ -9466,7 +9494,7 @@ function makeChunk(i,j){
   };
 }
 function sampleRow(ch,jj){
-  for(let ii=0;ii<GR;ii++){const x=(ch.i*CH_RES+ii)*STEP-HALF,z=(ch.j*CH_RES+jj)*STEP-HALF;const n=jj*GR+ii,s=sample(x,z,ch.fg.subarray(n*NF,(n+1)*NF));ch.hg[n]=s.h;if(s.h>0.5)ch.landN++;if(s.h<CHEMO)ch.deepN++;if(s.h<ch.minH)ch.minH=s.h;if(s.h>ch.maxH)ch.maxH=s.h;}
+  for(let ii=0;ii<GR;ii++){const x=(ch.i*CH_RES+ii)*STEP-HALF,z=(ch.j*CH_RES+jj)*STEP-HALF;const n=jj*GR+ii,s=sample(x,z,ch.fg.subarray(n*NF,(n+1)*NF));ch.hg[n]=s.h;if(s.h>0.5)ch.landN++;if(s.h<ch.minH)ch.minH=s.h;if(s.h>ch.maxH)ch.maxH=s.h;}
 }
 function finishGrid(ch){
   for(let jj=0;jj<GR;jj++)for(let ii=0;ii<GR;ii++){const n=jj*GR+ii;fixF(ch.fg.subarray(n*NF,(n+1)*NF),ch.slope((ch.i*CH_RES+ii)*STEP-HALF,(ch.j*CH_RES+jj)*STEP-HALF));} // steep faces are rock
@@ -9622,7 +9650,7 @@ function* placeFloraType(ch,rng,f){
     if(f.field)p*=clamp(0.1+4*Math.pow(fbm(x*f.field+31,z*f.field+17,2),2.5),0,1.6);
     if(rng()>=p)continue;
     const h=ch.h(x,z);
-    if(f.y!=='surface'&&h<CHEMO&&!f.band)continue; // nothing sessile below the chemocline but what a band lets through (the seep, the grey mats)
+    if(f.y!=='surface'){const cz=chemoAt(x,z);if(f.chemo?cz===null||h<cz+f.chemo[0]||h>cz+f.chemo[1]:cz!==null&&h<cz)continue;} // nothing sessile under a basin's chemocline but what straddles or mats it (f.chemo: a band about the chemocline, so none where there is none: v11.96, DEEP §2 — to v11.95 the -450 under the whole world)
     if(f.y==='surface'&&h>-4)continue; // rafts don't ground
     if(f.minH!==undefined&&h<f.minH)continue; // land plants keep off the wet sand
     if(f.band&&(h<f.band[0]||h>f.band[1]))continue; // a depth band on the ground (the cones' tide band, the straddlers at the rim)
@@ -9630,7 +9658,7 @@ function* placeFloraType(ch,rng,f){
     let y=h,sc=f.s?f.s[0]+rng()*(f.s[1]-f.s[0]):1,sy=sc;
     if(f.reach){if(h>-14)continue;sy=-h-0.6;sc=1;}
     else if(f.y==='surface'){y=f.ys!==undefined?f.ys:-0.45;}
-    else if(f.y==='mid'){if(h>-30)continue;y=h<CHEMO?-40-rng()*300:clamp(h+12+rng()*70,h+10,-14);}
+    else if(f.y==='mid'){if(h>-30)continue;y=h<OXY.top?-40-rng()*300:clamp(h+12+rng()*70,h+10,-14);} // over the deep, above the oxygen minimum (OXY.top; the chemocline's -450 to v11.95)
     // v11.31.4: the rule fired on land too, where the room to the surface is negative, so every land species was skipped at every try — tussock, scrub and stranded had never once been placed anywhere on the island. A plant whose minH is above 0 is not growing up through the water.
     else if(f.top&&!f.air&&!(f.minH>=0)&&f.top*sc>-1.4-h){const room=(-1.4-h)/f.top;if(room<sc*0.5)continue;sy=room;} // nothing stands into the air (bar the tidal forest, `air`, and a plant rooted above the tide line, minH>=0): shorten in y or skip
     const yaw=f.flow?flowYaw(x,z)+(rng()-0.5)*0.5:rng()*TAU; // flow-faced things turn across the current
@@ -9717,7 +9745,7 @@ function lieOn(d,gx,gz,yaw){const c=Math.cos(yaw),sn=Math.sin(yaw),sx=gx*c-gz*sn
 function placeCliffs(ch,rng){
   const f=FLORA_BY_ID.ledge,list=[],d=new THREE.Object3D();
   for(let jj=1;jj<GR-1;jj+=2)for(let ii=1;ii<GR-1;ii+=2){
-    const n=jj*GR+ii,h=ch.hg[n];if(h<CHEMO)continue;
+    const n=jj*GR+ii,h=ch.hg[n]; // v11.96: no depth gate — a ledge is rock, and the dark is no longer a reason (to v11.95 none below the chemocline)
     const gx=(ch.hg[n+1]-ch.hg[n-1])/(2*STEP),gz=(ch.hg[n+GR]-ch.hg[n-GR])/(2*STEP),g=Math.hypot(gx,gz);
     if(g<1.15)continue;
     const x=ch.x0+ii*STEP,z=ch.z0+jj*STEP,ux=gx/g,uz=gz/g;
@@ -9771,7 +9799,8 @@ function currentOf(ch,x,z,y,out){steadyOf(ch,x,z,y,out);const r=tideRate(clockH)
 function chunkPoint(ch,rng,env,land){for(let k=0;k<40;k++){const x=ch.x0+rng()*CELL,z=ch.z0+rng()*CELL,h=ch.h(x,z);if(land?h<=0.5:h>=-5)continue;if(env&&rng()>=ch.w(env,x,z))continue;return V3(x,h,z);}return null;}
 // the cell's mean tolerance for an envelope, over a 6x6 grid of points
 // (v11.33: cellW is gone — ecology.js ecoCap does the same 6x6 mean over a cell and is the one the ledger uses.)
-function openY(ch,p,rng,lo,hi){if(p.y<CHEMO)return -60-rng()*260;return clamp(p.y+lo+rng()*(hi-lo),p.y+4,-8);}
+function openY(ch,p,rng,lo,hi){if(p.y<OXY.top)return -60-rng()*260; // over the deep the open water's hunters keep above the oxygen minimum (DEEP §2; the chemocline's -450 to v11.95)
+  return clamp(p.y+lo+rng()*(hi-lo),p.y+4,-8);}
 // v11.26: a cell spawns what the ledger holds for it (ecology.js ecoTake), placed by kind through placeKind — the same routine the
 // ledger's recruits use (ecoTick), with off:true (out of the player's sight) and juv:true (born small). The sailers' fleets are the
 // lee's and outside the ledger: drifters die of nothing.
@@ -9805,7 +9834,7 @@ function* placeKind(ch,e,count,rng,opt){
     else if(D.role==='trap'){p.y+=(D.clear!==undefined?D.clear:D.size*0.35)+0.05;if(solidPush(p,1.5,null,ch))continue;const c=spawn(ch,kind,p,rng,o);c.state='sit';c.g.rotation.y=rng()*TAU;placed++;} // the trap, the stone: lying on its floor, any way round (by role since v11.66)
     else if(D.role==='ambush'&&D.hang){let ok=false;for(let tr=0;tr<6&&!ok;tr++){const q=chunkPoint(ch,rng,e.env);if(!q)break;p.copy(q);p.y=clamp(p.y+5+rng()*9,p.y+4,-6);ok=!solidPush(p,2.5,null,ch);}if(!ok)continue;const c=spawn(ch,kind,p,rng,o);c.state='sit';c.g.rotation.y=rng()*TAU;placed++;} // the hook: hung up in the structure
     else if(D.role==='ambush'){let ok=false;for(let tr=0;tr<6&&!ok;tr++){const q=chunkPoint(ch,rng,e.env);if(!q)break;p.copy(q);p.y+=(D.clear!==undefined?D.clear:D.size*0.35)+0.1;ok=!solidPush(p,2,null,ch);}if(!ok)continue;const c=spawn(ch,kind,p,rng,o);c.state='sit';c.g.rotation.y=rng()*TAU;placed++;} // the lurker among rock, the hood under the sand (v11.66: by role, at its own clearance)
-    else if(kind==='pall'){p.y=clamp(p.y+15+rng()*120,p.y+10,CHEMO-15);if(p.y>CHEMO-5)continue;spawn(ch,'pall',p,rng,o);placed++;} // in the dark, off the mud
+    else if(kind==='pall'){if(p.y>OXY.core[0]+20)continue;p.y=Math.max(p.y+10,OXY.core[0]-rng()*(OXY.core[0]-OXY.core[1]));spawn(ch,'pall',p,rng,o);placed++;} // in the oxygen minimum's core, -500..-800, off the mud (v11.96, DEEP §2; below the chemocline to v11.95)
     else if(D.floor){p.y+=D.size*0.35+0.3;spawn(ch,kind,p,rng,o);placed++;} // rasp, watcher, tread, picker, scuttle: on the floor
     else if(kind==='veil'){p.y=openY(ch,p,rng,30,110);spawn(ch,'veil',p,rng,o);placed++;}
     else if(kind==='ridge'||kind==='ortho'||kind==='abyssal'){p.y=openY(ch,p,rng,15,80);spawn(ch,kind,p,rng,o);placed++;}
@@ -10163,7 +10192,7 @@ function* bigsGen(i,j){
       if(u>=q)continue; // the envelope can only lower the chance from here
       const s=sample(x,z),h=s.h,sl=Math.hypot((sample(x+STEP,z).h-h)/STEP,(sample(x,z+STEP).h-h)/STEP);
       if(f.env&&u>=q*envW(f.env,h,sl,fixF(s.f,sl)))continue;
-      if(h<CHEMO)continue;
+      if(underChemo(x,h,z))continue; // nothing under a basin's chemocline (v11.96; the -450 to v11.95)
       if(nearLandmark(x,z,110))continue;
       let sc=f.s[0]+rng()*(f.s[1]-f.s[0]);
       if(h<0.5&&!f.fill)sc=Math.min(sc,(-(f.clear||12)-h)/(f.top-(f.sink||0)));if(sc<f.s[0]*0.5)continue; // the same test as bigPlace's, here so a rejection draws nothing more
@@ -10244,7 +10273,7 @@ function* impostorsGen(i,j){
       if(u>=Math.max(pocket,cterm)*field)continue;
       const s=sample(x,z),h=s.h,sl=Math.hypot((sample(x+STEP,z).h-h)/STEP,(sample(x,z+STEP).h-h)/STEP);
       if(u>=Math.max((f.per||0)/maxN*(f.env?envW(f.env,h,sl,fixF(s.f,sl)):1)*pocket,cterm)*field)continue;
-      if(floor&&h<CHEMO)continue;
+      if(floor&&underChemo(x,h,z))continue; // nothing on the floor under a basin's chemocline (v11.96; the -450 to v11.95)
       if(!floor&&h>-4)continue;
       if(floor&&sl>0.9)continue;
       let y=h,sc=f.s?f.s[0]+rng()*(f.s[1]-f.s[0]):1,sy=sc,sxz=sc;
@@ -11111,7 +11140,7 @@ const waterDome=(function(){const mat=new THREE.MeshBasicMaterial({color:0x00000
 //            mud or sand the current stirs a bottom nepheloid layer (7 m e-folding); the lagoon's still water holds its fines.
 //            Nothing over bare rock (`sub` 1). The colour of the bed: olivine sand, grey-brown mud, dark at the vents.
 //   bubble — from breakers and whitecaps in the top 2 m, and rain on the surface: white, rising (28 cm/s: mm bubbles).
-//   black  — below the chemocline the water is ferrous and sulfidic and iron sulfide falls out: black flakes, big, sparse,
+//   black  — under a basin's chemocline (none round ours since v11.96: SN_CH) the water is ferrous and sulfidic and iron sulfide falls out: black flakes, big, sparse,
 //            nearly still (the deep is stratified, no turbulence); and at a vent field the sulfide grains of the plume, dark with
 //            a white share (anhydrite, bacterial floc), carried up by the field's convection near the floor and settling downwind.
 // The column (per frame, cheap): settling slowed at the two density steps (particles pile up there — that is why thin layers
@@ -11152,7 +11181,7 @@ function swBlock(k,c){ // a block seeded for a swarm: offsets in a flattened clo
     const j=(Math.random()-0.5)*0.08;pc[i*3]=col[0]+j;pc[i*3+1]=col[1]+j;pc[i*3+2]=col[2]+j;ps[i*2]=SW_SZ*(0.7+0.6*Math.random());ps[i*2+1]=0.85;pk[i]=254;snL[i]=i;}
   snDirty=true;
 } // the live kind's colour by pigment kind (green, gold, red) and in poor water; the chain's; the crop (mg/m³) at which the live kind is half its full weight; the chains' share of the live weight
-const SN_TH=-64,SN_CH=CHEMO,SN_W0=0.9,SN_GAIN=3.0,SN_REF=63; // the thermocline, the chemocline (y); the weight that fills the count; weight → alpha; the refresh mask (one point in 64 a frame: a point re-rolls about once a second)
+const SN_TH=-64,SN_W0=0.9,SN_GAIN=3.0,SN_REF=63;let SN_CH=-1e5; // the thermocline (y); SN_CH the chemocline under the camera (world.js chemoAt, set each frame in updatePlankton; -1e5 where there is none — round ours since v11.96, DEEP §2: no plate, no black flakes; the -450 to v11.95); the weight that fills the count; weight → alpha; the refresh mask (one point in 64 a frame: a point re-rolls about once a second)
 const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(pp,3));pg.setAttribute('color',new THREE.BufferAttribute(pc,3));pg.setAttribute('aSz',new THREE.BufferAttribute(ps,2));
 const plU={value:new THREE.Vector4(0,0,0,0)},plCU={value:new THREE.Color(0x6fbfe0)},snAU={value:new THREE.Vector4(0,1/2.5,0,0)}; // snAU (v11.82.1): the tide, 1/the depth the snow fades over seen from the air, 1 with the camera in air
 // square on purpose (the person, 13 Sep 2026): an untextured PointsMaterial writes the whole quad, and a round sprite would cost a
@@ -11217,6 +11246,7 @@ function snowSeed(i,x,y,z,keep){
 for(let i=0;i<PN;i++){pk[i]=255;snL[i]=i;pf.fill(0,i*10,i*10+10);} // all parked until the first frame under water seeds them where the camera is; the swarm block (i ≥ PN_SN) is assigned by swAssign
 function updatePlankton(dt){
   const cx=camera.position.x,cy=camera.position.y,cz=camera.position.z,kd=Math.exp(-2.5*dt),kf=Math.min(1,8*dt),K=SKY;
+  {const c=chemoAt(cx,cz);SN_CH=c===null?-1e5:c;} // the snow is the camera's column: its plate and its black flakes are this basin's, if any
   currentAt(cx,cz,cy,CURV);const cux=CURV.x*dt,cuz=CURV.z*dt; // the snow drifts with the current
   const w0=WAVES[0],w1=WAVES[1],e0=w0.A*w0.w,e1=w1.A*w1.w,t0=w0.w*t-w0.ph,t1=w1.w*t-w1.ph,wind=0.35+0.65*K.windK;
   snFrame++;const ref=snFrame&SN_REF;
@@ -11521,7 +11551,7 @@ const SMELL_R=90; // m: a hungry hunter takes a bleeding body it eats as its tar
 // range: s of the sprint the commit is judged over (strikeRange). MISS (v11.56–91), the dodge across the strike's line as a rule, is gone: the miss is geometry
 const STRIKE={dur:0.6,steer:0.5,coast:0.5,cool:1.5,slack:1.3,suck:2,cone:0.5,lead:0.8,range:0.3,face:0.55,runup:5}; // face: cos of the angle within which the prey must be ahead for a hunter to commit (or a striker to cock); runup: m past the mouth's distance a jaw hunter backs off to when its prey is beside it, to come at it again
 const PLAYER_BITE=1.0; // m past the mouth's sphere the player's own bite and grab find their target (the click's convenience; the AI has none)
-const POISON={heat:0.45,deep:CHEMO+10,load:0.4,clear:3,min:0.35,t:45,slow:0.5}; // hingeshells feeding where the sulfur line lives (heat over this, or below the chemocline) carry its toxin: full after load game days there, clear again after clear days away; a body over min sickens whatever eats it or its carcass for t seconds at slow (unless immune: the abyssal on its combs)
+const POISON={heat:0.45,deep:10,load:0.4,clear:3,min:0.35,t:45,slow:0.5}; // hingeshells feeding where the sulfur line lives (heat over this, or within deep m over a basin's chemocline — v11.96: none round ours; the -450 to v11.95) carry its toxin: full after load game days there, clear again after clear days away; a body over min sickens whatever eats it or its carcass for t seconds at slow (unless immune: the abyssal on its combs)
 const RAM={stun:2.5,cool:3,daze:2}; // the ram's blow (v11.66; COMBAT.md §2: `weapon:ram` is a blow, nothing through): a strike that lands on what the mouth cannot take whole is a knock, not a hold — the body stunned stun s (steering gone, sinking: creatures_ai.js), the player dazed daze s (the sting's slowness, no wound), the ram off it for cool s
 const PLAYER_GRIP={soft:1.2,fin:1.0,coil:0.6}; // the clades' grips: the jetter's arms are for this; the coilshell's are short
 const BLOOD_COL={ringmouths:[0.16,0.24,0.34],slowbloods:[0.32,0.03,0.03],hingeshells:[0.52,0.5,0.32],drifters:[0.6,0.6,0.6]}; // copper, iron, vanadium (PLANET)
@@ -11833,7 +11863,7 @@ function missed(c,tg){c.biteT=(c.def.biteCD||1.2)*STRIKE.cool;c.missN=(c.missN||
 function sicken(o){if(o===player){player.sickT=POISON.t;hurtPlayer(0,null);}else{o.sickT=POISON.t;dropTarget(o,POISON.t);}}
 // a hingeshell's toxin follows where it has fed (every 2 s, staggered): loading at the seeps and below the chemocline, clearing elsewhere
 function poisonTick(c,dt){c.poisT-=dt;if(c.poisT>0)return;c.poisT=2;const sp=SPECS[c.kind];if(!sp||sp.clade!=='hingeshells')return;const ch=chunkAt(c.pos.x,c.pos.z),f=ch?ch.f(c.pos.x,c.pos.z):null;
-  const at=c.pos.y<POISON.deep||(f&&f[FI.heat]>POISON.heat);c.poison=clamp((c.poison||0)+(at?2/(POISON.load*DAY_S):-2/(POISON.clear*DAY_S)),0,1);} // a body's speed factor by its states (creatures_ai.js seek, player.js)
+  const at=underChemo(c.pos.x,c.pos.y-POISON.deep,c.pos.z)||(f&&f[FI.heat]>POISON.heat);c.poison=clamp((c.poison||0)+(at?2/(POISON.load*DAY_S):-2/(POISON.clear*DAY_S)),0,1);} // a body's speed factor by its states (creatures_ai.js seek, player.js)
 // once a frame: the states' clocks on the player and every creature (the creatures' paralysis is read in creatures_ai.js updateCreatures)
 function updateStates(dt){const P=player;P.paraT=Math.max(0,(P.paraT||0)-dt);P.stungT=Math.max(0,(P.stungT||0)-dt);P.sickT=Math.max(0,(P.sickT||0)-dt);if(P.regrow)regrowTick(P);if(P.clade&&mode==='play')stamTick(P,dt);
   for(const c of creatures){if(!c.alive)continue;if(c.paraT>0)c.paraT-=dt;if(c.stungT>0)c.stungT-=dt;if(c.sickT>0){c.sickT-=dt;c.cool=Math.max(c.cool,0.5);}if(c.regrow)regrowTick(c);poisonTick(c,dt);if(c.held>0||c.stam<1)stamTick(c,dt);}} // sick: no hunting (the cool held); the stamina (v11.93) drains held, fills at rest
@@ -12082,7 +12112,7 @@ fxApply();
 // back when it closes, as the effects list does (effects.js fxShow). The bands and contours are test/map.js's, kept in step by hand.
 const WMAP_N=512,WMAP_Z=320,WMAP_REST=180; // the world picture's side in samples; the zoomed window's; the rest (ms) after a wheel or drag before the window re-samples
 const WMAP_BANDS=[[0,[0.55,0.52,0.40]],[-6,[0.62,0.78,0.72]],[-60,[0.30,0.62,0.66]],[-150,[0.18,0.42,0.56]],[-450,[0.12,0.26,0.44]],[-800,[0.10,0.17,0.30]],[-1100,[0.08,0.11,0.20]],[-3000,[0.04,0.05,0.10]]];
-const WMAP_CONT=[0,-60,-150,CHEMO,-800,-1000]; // the sea, the shelf's edge, the light's end, the chemocline, the deep, the floor's top (the hills cross -1100 everywhere)
+const WMAP_CONT=[0,-60,-150,OXY.top,-800,-1000]; // the sea, the shelf's edge, the light's end, the oxygen minimum's top (the chemocline to v11.95), the deep, the floor's top (the hills cross -1100 everywhere)
 const wmapEl=document.getElementById('wmap'),wmapC=document.getElementById('wmapc'),wmapL=document.getElementById('wmapl');
 const wmap={open:false,cx:0,cz:0,span:2*HALF,base:null,win:null,winKey:'',rest:0,drag:null,moved:0,mx:0,mz:0,hover:false};
 function wmapBand(h){if(h>=0)return h>4?[0.42,0.40,0.32]:WMAP_BANDS[0][1];for(let k=1;k<WMAP_BANDS.length;k++)if(h>=WMAP_BANDS[k][0]){const a=WMAP_BANDS[k-1][1],b=WMAP_BANDS[k][1],t=(WMAP_BANDS[k-1][0]-h)/(WMAP_BANDS[k-1][0]-WMAP_BANDS[k][0]);return [a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];}return WMAP_BANDS[WMAP_BANDS.length-1][1];}
@@ -12092,7 +12122,7 @@ function wmapPicture(cx,cz,span,W){const N=W+2,M=span/W,x0=cx-span/2,z0=cz-span/
   const cv=document.createElement('canvas');cv.width=W;cv.height=W;const g=cv.getContext('2d'),img=g.createImageData(W,W),d=img.data;
   for(let y=0;y<W;y++)for(let x=0;x<W;x++){const k=(y+1)*N+(x+1),h=H[k],dx=(H[k+1]-H[k-1])/(2*M),dz=(H[k+N]-H[k-N])/(2*M);
     const len=Math.sqrt(dx*dx+1+dz*dz),nd=(0.55*dx+0.35+0.55*dz)/len/0.75,sh=0.55+0.55*Math.max(0,Math.min(1.4,nd)),c=wmapBand(h);let r=c[0]*sh,gr=c[1]*sh,b=c[2]*sh;
-    const hr=H[k+1],hd=H[k+N];for(const cl of WMAP_CONT){if((h-cl)*(hr-cl)<0||(h-cl)*(hd-cl)<0){const w=cl===CHEMO?0.35:cl===0?0.6:0.5,l=cl===CHEMO?0.6:0.95;r=r*(1-w)+l*w;gr=gr*(1-w)+l*w;b=b*(1-w)+l*w;if(cl===CHEMO)r+=0.15;}}
+    const hr=H[k+1],hd=H[k+N];for(const cl of WMAP_CONT){if((h-cl)*(hr-cl)<0||(h-cl)*(hd-cl)<0){const w=cl===OXY.top?0.35:cl===0?0.6:0.5,l=cl===OXY.top?0.6:0.95;r=r*(1-w)+l*w;gr=gr*(1-w)+l*w;b=b*(1-w)+l*w;if(cl===OXY.top)r+=0.15;}}
     const o=(y*W+x)*4;d[o]=Math.min(255,r*255);d[o+1]=Math.min(255,gr*255);d[o+2]=Math.min(255,b*255);d[o+3]=255;}
   g.putImageData(img,0,0);return cv;}
 function wmapKey(){return Math.round(wmap.cx)+','+Math.round(wmap.cz)+','+Math.round(wmap.span);}
@@ -13896,7 +13926,7 @@ function updateStats(dt){
   statT-=dt;if(statT>0||!showStats)return;statT=0.25;
   const fMax=frameMax;frameMax=0; // read and reset: the max belongs to the quarter second just gone, not to the session
   const r=renderer.info.render;
-  statsEl.textContent=fpsEma.toFixed(0)+' fps  '+msEma.toFixed(1)+' ms  work '+frameEma.toFixed(1)+'/'+fMax.toFixed(1)+'ms'+(genEma>0.05?'  gen '+genEma.toFixed(1)+'ms':'')+'  draws '+r.calls+'  tris '+(r.triangles/1000).toFixed(0)+'k  cells '+visibleChunks+'/'+chunks.size+'  pools '+poolStats().draws+'  far '+visibleRegions+'/'+farBuilt+'  creatures '+visibleCreatures+'/'+creatures.length+'  phys '+physEma.toFixed(2)+'ms  render '+renderEma.toFixed(2)+'ms'+(SHS_P[1]>0?'  wshadow '+shsMs.toFixed(2)+'ms/'+shsN:'')+'  lights '+lightSources.length+(performance.memory?'  heap '+(performance.memory.usedJSHeapSize/1048576).toFixed(0)+'M':'')+'  '+Q.tier+'  '+(player.sub<0.5?(player.grounded?'strand':'air'):'sea')+'  '+player.pos.x.toFixed(0)+','+player.pos.y.toFixed(0)+','+player.pos.z.toFixed(0)+'  tide '+(TIDE>=0?'+':'')+TIDE.toFixed(1)+'m '+(tideRate(clockH)>0.02?'rising':tideRate(clockH)<-0.02?'falling':'slack')+' '+((clockH+SOLAR_H0)%DAY_H).toFixed(1)+'h  year '+yearPhase(clockH).toFixed(3)+(seasonAt(clockH)>0.3?' windy':seasonAt(clockH)<-0.3?' still':' between')+'  sun '+(Math.asin(SKY.sunAlt)*180/Math.PI).toFixed(0)+'°  moon '+(Math.asin(SKY.moonAlt)*180/Math.PI).toFixed(0)+'° '+(SKY.illum*100).toFixed(0)+'%  light '+SKY.skyL.toFixed(2)+(wasAbove===false?'/'+SKY.skyLw.toFixed(2):'')+'  cloud '+SKY.cover.toFixed(2)+(SKY.rainA>0.02?'  rain '+SKY.rainA.toFixed(2):'')+(SKY.windK<0.5?'  calm':'')+(SKY.eclL>0.02?'  eclipse '+SKY.eclL.toFixed(2):'')+(SKY.dawn>0.02?'  mist '+SKY.dawn.toFixed(2):'')+'\n'+fogLine()+'\n'+audioLine()+'\n'+camLine()+'\n'+(mode==='play'?hungerLine()+'\n':'')+ecoLine()+holdLine(); // the stomach's line (player.js, v11.73)
+  statsEl.textContent=fpsEma.toFixed(0)+' fps  '+msEma.toFixed(1)+' ms  work '+frameEma.toFixed(1)+'/'+fMax.toFixed(1)+'ms'+(genEma>0.05?'  gen '+genEma.toFixed(1)+'ms':'')+'  draws '+r.calls+'  tris '+(r.triangles/1000).toFixed(0)+'k  cells '+visibleChunks+'/'+chunks.size+'  pools '+poolStats().draws+'  far '+visibleRegions+'/'+farBuilt+'  creatures '+visibleCreatures+'/'+creatures.length+'  phys '+physEma.toFixed(2)+'ms  render '+renderEma.toFixed(2)+'ms'+(SHS_P[1]>0?'  wshadow '+shsMs.toFixed(2)+'ms/'+shsN:'')+'  lights '+lightSources.length+(performance.memory?'  heap '+(performance.memory.usedJSHeapSize/1048576).toFixed(0)+'M':'')+'  '+Q.tier+'  '+(player.sub<0.5?(player.grounded?'strand':'air'):'sea')+'  '+player.pos.x.toFixed(0)+','+player.pos.y.toFixed(0)+','+player.pos.z.toFixed(0)+'  oxy '+oxyAt(player.pos.x,player.pos.y,player.pos.z).toFixed(2)+'  tide '+(TIDE>=0?'+':'')+TIDE.toFixed(1)+'m '+(tideRate(clockH)>0.02?'rising':tideRate(clockH)<-0.02?'falling':'slack')+' '+((clockH+SOLAR_H0)%DAY_H).toFixed(1)+'h  year '+yearPhase(clockH).toFixed(3)+(seasonAt(clockH)>0.3?' windy':seasonAt(clockH)<-0.3?' still':' between')+'  sun '+(Math.asin(SKY.sunAlt)*180/Math.PI).toFixed(0)+'°  moon '+(Math.asin(SKY.moonAlt)*180/Math.PI).toFixed(0)+'° '+(SKY.illum*100).toFixed(0)+'%  light '+SKY.skyL.toFixed(2)+(wasAbove===false?'/'+SKY.skyLw.toFixed(2):'')+'  cloud '+SKY.cover.toFixed(2)+(SKY.rainA>0.02?'  rain '+SKY.rainA.toFixed(2):'')+(SKY.windK<0.5?'  calm':'')+(SKY.eclL>0.02?'  eclipse '+SKY.eclL.toFixed(2):'')+(SKY.dawn>0.02?'  mist '+SKY.dawn.toFixed(2):'')+'\n'+fogLine()+'\n'+audioLine()+'\n'+camLine()+'\n'+(mode==='play'?hungerLine()+'\n':'')+ecoLine()+holdLine(); // the stomach's line (player.js, v11.73)
 }
 // the first 3x3 cells are built before the first frame; the rest stream in under a per-frame time budget
 cellsAround(); // save.js: the 3×3 round the player (the peak, under the menu's camera)
