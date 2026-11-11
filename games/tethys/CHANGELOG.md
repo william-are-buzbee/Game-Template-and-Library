@@ -6321,7 +6321,8 @@ Seen: the real build in headless Chromium (three.js r128 from npm; cdnjs is refu
 minimum's core 3 km east of ours at −620 (`oxy 0.25`) and to −445 over the open floor 5 km out (`oxy 0.50`): deep blue darkening by depth,
 no milky sheet, no brown; no shader error (the fog's chunk compiled without the plate).
 
-**Unseen, ask in this order:** the seeps on rift arm 0 (the vent mats in patches between the old pit's place and the fissure, `tp(-700,420)`)
-and whether the cinder belongs there; whether the deep round ours reads right without the plate (a blue that only darkens, the minimum invisible —
+The person's look (11 Nov 2026), ten minutes in both places: "I really enjoy the low oxygen area. It looks awesome visually … seeing the
+filter feeders below and above me in one shot … Love both areas." **Still unseen:** whether the cinder reads as belonging on the seeps;
+whether the deep round ours reads right without the plate (a blue that only darkens, the minimum invisible —
 oxygen has no colour); the palls, fewer and over the deep water near the islands now, not on the flank; whether the readout's `oxy` is
 worth keeping on. Not in this version: the player's oxygen (DEEP §9 — a slow, recoverable deficit in the core), the swarms' day depth by it.

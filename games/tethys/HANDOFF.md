@@ -8,7 +8,8 @@ seep row struck; the pall in the core over the fed deep. The silled rule refined
 water), 10 km² or more — the outer flank's tiny hollows are not basins. The cinder lost its reservoir with the seep line and the census
 caught it dying out at the vents; SEAFLOOR §4's diffuse seeps on rift arm 0 (world.js `SEEP`, heat ≤ 0.14, under the basker's reach) are its
 ground now — cinder ~4 and basker ~1.4 at a balance over 200 days. Seen in the real build: deep blue, no sheet, `oxy` on the readout.
-**Ask first** about the seeps on rift arm 0 (`tp(-700,420)`), then whether the deep reads right without the plate, then the palls' new ground. Next: DEEP step 3, the floor (the apron near
+The person's look (11 Nov 2026, ten minutes in the minimum and on the seeps): "I really enjoy the low oxygen area. It looks awesome visually
+… seeing the filter feeders below and above me in one shot … Love both areas." Next: DEEP step 3, the floor (the apron near
 ours, nodules far out, crusts by age); the player's oxygen when the person wants it.
 
 **v11.95 (10 Nov 2026): the pit and the cairns struck** (DEEP.md §8; the person: "a silly holdover of an older time period … it
