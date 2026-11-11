@@ -332,4 +332,6 @@ a horizon mesh per member.
   **What it changed: the chemocline's flood**, now over the world at the game's grain. The moat round ours and DEEP §5's basin 28 km west are
   one water there, 603 km² behind a sill at −999 (an atoll's foot 33 km east-south-east, 25 m over the model's floor; to v11.105 the square's
   edge let the moat out east), its chemocline −1019, its floor −1384: 414 km² of the old square's floor under it, 127 km² within 10 km of
-  ours. The model's own grid still has ours open (its cones are not the records' flanks). The person's call, asked in v11.106's pull request.
+  ours. The model's own grid still has ours open (its cones are not the records' flanks). The person (11 Nov 2026): "believability is the
+  deciding factor". Built v11.108 (DEEP §5): a silled basin is anoxic only when the food raining onto its sill outruns its inflow's oxygen,
+  and none in the world does — the moat round ours is still water, oxic.

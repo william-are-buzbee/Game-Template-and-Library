@@ -8,7 +8,7 @@ const util=fs.readFileSync(path.join(root,'vendor/wb-core.global.js'),'utf8')+'\
 let world=fs.readFileSync(path.join(root,'src/world.js'),'utf8');const cut=world.indexOf('// ---------- the light');if(cut>0)world=world.slice(0,cut); // the geology and the fields (test/map.js's cut)
 const region=fs.readFileSync(path.join(root,'src/region.js'),'utf8');
 const THREE={Vector3:class{constructor(x,y,z){this.x=x;this.y=y;this.z=z;}},Matrix4:class{},Quaternion:class{}};
-const G=new Function('THREE',util+'\n'+world+'\n'+region+'\nreturn {sample,HALF,WHALF,FI,ISLANDS,REGION_K,REGION_PINS,RG_STATE,regionModel,regionGrid,regionBasins,regionSeen,rgKei,rgSea,rgTrack,OXY,chemoAt,oxyAt,underChemo,chemoB:()=>CHEMO_B,apronAt,apronR,RG_BUILT,rgFloor,BASIN,islandH};')(THREE);
+const G=new Function('THREE',util+'\n'+world+'\n'+region+'\nreturn {sample,HALF,WHALF,FI,ISLANDS,REGION_K,REGION_PINS,RG_STATE,regionModel,regionGrid,regionBasins,regionSeen,rgKei,rgSea,rgTrack,OXY,chemoAt,chemoD,oxyAt,underChemo,chemoB:()=>CHEMO_B,apronAt,apronR,RG_BUILT,rgFloor,BASIN,islandH};')(THREE);
 let fails=0;const ok=(c,msg)=>{console.log((c?'  ok   ':'  FAIL ')+msg);if(!c)fails++;};
 console.log('region: the pieces');
 // kei(x) (A&S Table 9.12): 1 → −0.494991, 2 → −0.202400, 3 → −0.051123, 4 → +0.002198; the table is kei/kei(0), kei(0) = −π/4
@@ -43,14 +43,17 @@ ok(Math.abs(Hg[cj*n+ci]-G.sample(6000+0.5*span/n-((6000-x0)%(span/n)),0.5*span/n
 console.log('region: the game\'s own water (v11.96, DEEP §2, §9)');
 // the basins of the game's own ground (v11.102: the model's members in it; v11.106: the world's, ±WHALF): those silled by region.js's rule
 const t4=Date.now();G.chemoAt(0,0);const CB=G.chemoB(),silled=CB.B.filter(b=>b.silled),bXZ=b=>[CB.x0+(b.cx+0.5)*CB.G,CB.x0+(b.cz+0.5)*CB.G];
-console.log(`  the world's ground at ${CB.G} m (${CB.n}², ${Date.now()-t4} ms): ${CB.B.length} hollows and lagoons, ${silled.length} silled by region.js's rule: `+silled.map(b=>{const p=bXZ(b);return `${b.area.toFixed(0)} km² behind ${b.sill.toFixed(0)} at ${(p[0]/1000).toFixed(1)}, ${(p[1]/1000).toFixed(1)} km`;}).join('; '));
-// v11.106: at the game's grain over the world the moat round ours and DEEP §5's basin 28 km west are one water behind a sill at about −999 (an
-// atoll's foot 33 km east-south-east, 25 m over the model's floor; to v11.105 the square's edge let the moat out), so the floor east of ours lies
-// under its chemocline — the person's call (CHANGELOG v11.106); these pin it as built
+console.log(`  the world's ground at ${CB.G} m (${CB.n}², ${Date.now()-t4} ms): ${CB.B.length} hollows and lagoons, ${silled.length} silled by region.js's rule: `+silled.map(b=>{const p=bXZ(b);return `${b.area.toFixed(0)} km² behind ${b.sill.toFixed(0)} at ${(p[0]/1000).toFixed(1)}, ${(p[1]/1000).toFixed(1)} km (nut ${b.nut.toFixed(2)}, food over oxygen ${b.D.toFixed(2)})`;}).join('; '));
+// v11.108 (the person, 11 Nov 2026: "believability is the deciding factor"): a silled basin's still water goes anoxic only when the food raining
+// onto its sill outweighs the oxygen its inflow brings (world.js chemoD, OXY.anox). The rule against Earth's basins on the game's profile, then
+// the world: the moat round ours and the basin 28 km west are one silled water behind −999 (v11.106) — oxic; no basin in the world is anoxic
+const E=[['Cariaco',-146,0.6,true],['Santa Barbara',-475,0.5,true],['Santa Monica',-740,0.5,false],['San Clemente',-1800,0.3,false]];
+ok(E.every(([n,sl,nu,an])=>(G.chemoD(sl,nu)>=1)===an),'the rule on Earth\'s basins: '+E.map(([n,sl,nu])=>n+' '+G.chemoD(sl,nu).toFixed(2)).join(', ')+' (anoxic at 1: the first two are, the last two are not)');
 const labAt=(x,z)=>{const i=Math.floor((x-CB.x0)/CB.G),j=Math.floor((z-CB.x0)/CB.G);return CB.lab[j*CB.n+i];},mo=CB.B[labAt(6000,0)];
 let west=false;if(mo)for(let k=0;k<CB.n*CB.n;k++)if(CB.lab[k]===mo.id&&CB.x0+(k%CB.n+0.5)*CB.G<-30000){west=true;break;}
-ok(mo&&mo.silled&&mo.sill<-990&&mo.sill>-1010&&mo.area>500&&mo.floor<-1300&&west&&G.chemoAt(6000,0)===mo.chemo,`the floor east of ours is in a silled basin: ${mo?mo.area.toFixed(0):'-'} km² behind ${mo?mo.sill.toFixed(1):'-'}, its chemocline ${mo?mo.chemo.toFixed(0):'-'}, its floor ${mo?mo.floor.toFixed(0):'-'} — the moat round ours joined to the basin 28 km west (it reaches past x −30 km: ${west})`);
-const spots=[[0,0,'ours'],[-15400,9200,'the giant'],[-400,-11100,'the drowned atoll north'],[20000,20000,'a far corner'],[15000,-15000,'the open floor north-east']];
+ok(mo&&mo.silled&&mo.sill<-990&&mo.sill>-1010&&mo.area>500&&west&&!mo.anox&&mo.D<0.5,`the floor east of ours is in a silled basin — ${mo?mo.area.toFixed(0):'-'} km² behind ${mo?mo.sill.toFixed(1):'-'}, the moat joined to the basin 28 km west — and it is oxic: its food over its oxygen ${mo?mo.D.toFixed(2):'-'} (open water, nut ${mo?mo.nut.toFixed(2):'-'}, the sill deep)`);
+ok(silled.every(b=>!b.anox)&&CB.ch.every(c=>c===null),`no basin in the world is anoxic (the nearest ${Math.max(...silled.map(b=>b.D)).toFixed(2)}): no chemocline anywhere`);
+const spots=[[0,0,'ours'],[6000,0,'the floor east'],[-15400,9200,'the giant'],[-400,-11100,'the drowned atoll north'],[20000,20000,'a far corner'],[-27900,-5100,'the basin west']];
 ok(spots.every(([x,z])=>G.chemoAt(x,z)===null),'no chemocline over '+spots.map(p=>p[2]).join(', '));
 ok(!G.underChemo(6000,-1000,0),'the floor east of ours at -1000 is not under a chemocline');
 // the profile: 1 in the light, the core's minimum, back to half at the floor; the core lower where the food rains
@@ -92,5 +95,5 @@ for(const m of M.filter(m=>m.zv>0).sort((a,b)=>b.zv-a.zv))console.log(`    ${m.i
 const seen=G.regionSeen(R,0,0);console.log(`  from ours: ${seen.map(s=>`${s.m.id} ${(s.d/1000).toFixed(0)} km${s.haze?'':s.clear?' (clear days)':' (never)'}`).join(', ')}`);
 const k0=cj*n+ci;console.log(`  the water beside ours on the model's grid (the game's ground inside its world): floor ${Hg[k0].toFixed(0)}, its way out tops at ${regionFill(Hg,n,span,k0).toFixed(0)}`);
 function regionFill(Hh,nn,sp,k){return G.regionBasins(Hh,nn,sp/nn).F[k];}
-for(const b of B.B.filter(b=>b.silled).sort((a,b)=>b.area-a.area).slice(0,4))console.log(`  a silled basin: ${b.area.toFixed(0)} km², sill ${b.sill.toFixed(0)}, floor ${b.floor.toFixed(0)}, chemocline ${b.chemo.toFixed(0)}`);
+for(const b of B.B.filter(b=>b.silled).sort((a,b)=>b.area-a.area).slice(0,4))console.log(`  a silled basin: ${b.area.toFixed(0)} km², sill ${b.sill.toFixed(0)}, floor ${b.floor.toFixed(0)}, its line if anoxic ${b.chemo.toFixed(0)}`);
 console.log(fails?`\nregion: ${fails} FAILED`:'\nregion: all passed');process.exit(fails?1:0);

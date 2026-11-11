@@ -1,15 +1,19 @@
 # HANDOFF — tethys
 
+**v11.108 (11 Nov 2026): no basin is anoxic** (DEEP §5; the person: "believability is the deciding factor"). A silled basin goes dark
+only when the food raining onto its sill outruns its inflow's oxygen (`chemoD`, calibrated on Earth's four basins); none in the world does,
+so the moat round ours (v11.106's) is still water, oxic, and the dark has no place in the region. **Ask first** where the constructors'
+structures go now that their basin is not dark (DEEP §11); then the moat's floor in play.
+
 **v11.107 (11 Nov 2026): the reefs' deep slopes** (DEEP §3; the person's answers on v11.102's losses). Atolls and banks carry a
 carbonate cap: hard spurs and muddy chutes down their slopes to −1000 (`CARB`). The deep gardens find the spurs (thicket 116 km² in the old
-square, mounds 38.5), and the relict the upper ones (81 on paper, from 3). The darkrind stays off. **Ask first** whether the relict's 81 is
-the "bit" wanted, then the slope in play (`tp(670,-8127,-530)`).
+square, mounds 38.5), and the relict the upper ones (81 on paper, from 3). The darkrind stays off. The relict's 81: "fine for now" (the person). Ask about the slope in play (`tp(670,-8127,-530)`).
 
 **v11.106 (11 Nov 2026): the world to ±70 km** (GLOBE §10.1 step 4). 656² cells (`GRID0`, `GRIDN`, `WHALF`), the old square still the
 grid's anchor; 25 more of the model's members are records (45), the maps' window moves, the ledger's patches cover the world, the far
 regions stream over it. The old square is v11.105's to the bit (ground, maps, ledger). **What changed: the chemocline's flood over the
 world joins the moat round ours to the basin 28 km west** (603 km² behind −999, chemocline −1019): the deep floor round ours past ~4.7 km is
-now anoxic. **Ask first** whether that stands (DEEP §5, GLOBE §10.1); then the new islands in play. Next: DEEP's basin step (the
+anoxic as built in v11.106 — answered in v11.108 (oxic). Ask about the new islands in play. Next: DEEP's basin step (the
 constructors' structures), or the province (local origins, the cell hash, a horizon mesh per member).
 
 **v11.105 (11 Nov 2026): the ledger in tiers** (GLOBE §10.1 step 3). The fine box (the v11.65 square) keeps its cells; past it coarse 8×8-cell

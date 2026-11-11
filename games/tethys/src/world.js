@@ -102,7 +102,7 @@ function daylightAt(y){return clamp(1+Math.min(0,y-TIDE)/DL_REF,DL_MIN,1);}
 // CHEMO, a chemocline at -450 under the whole world; the model encloses nothing round ours, so round ours the water is oxic to the floor with
 // an oxygen minimum under the island's food (Earth's tropical open oceans have one at 400-900 m without any wall), and a chemocline exists only
 // where a basin's sill holds its water (chemoAt, at the end of this file). The table (as a share of the surface's oxygen):
-const OXY={photic:-150,top:-450,core:[-500,-800],floor:-1100,min:[0.25,0.5],deep:0.5,G:400}; // 1 to the light's base; falling to the core's minimum (0.25 where the food rains, the island's fed water; 0.5 in the open basin's) through -500..-800; back to 0.5 by the floor (deep water ventilated from far off). top: the minimum's upper edge — where the open water's life is squeezed up above it (the hunters work that edge: DEEP §2) and the bands the old -450 drew. G: the basins' flood grain (m)
+const OXY={photic:-150,top:-450,core:[-500,-800],floor:-1100,min:[0.25,0.5],deep:0.5,G:400,anox:2.4}; // 1 to the light's base; falling to the core's minimum (0.25 where the food rains, the island's fed water; 0.5 in the open basin's) through -500..-800; back to 0.5 by the floor (deep water ventilated from far off). top: the minimum's upper edge — where the open water's life is squeezed up above it (the hunters work that edge: DEEP §2) and the bands the old -450 drew. G: the basins' flood grain (m). anox (v11.108): a silled basin goes anoxic when the food raining onto its sill outweighs the oxygen its inflow brings, by this factor (chemoD below)
 // ---------- the sky's clock: the sun, the moon, the weather (v11) ----------
 // Day and night run on the same clock as the tide (PLANET, Moon: a 30 h day, bright nights under the big moon). The island is
 // tropical (a 26–28 °C mixed layer), so it sits at a low latitude LAT and the sun passes nearly overhead; no axial tilt has
@@ -661,12 +661,20 @@ const LM={};
 // game's own ground at OXY.G m, the world's edge the open ocean (the province beyond encloses nothing round ours). A basin is silled — anoxic
 // under its sill, its chemocline 20 m below it (PLANET, The basin) — by region.js's rule: its sill between -100 and OXY.floor (the inflow is the
 // minimum's water), 150 m deep behind it, 10 km² or more.
-// None today — the square's ground encloses no such basin (test/region.js says so); the basin 28 km west comes with its members (DEEP §5).
-// Built on the first call, once (~70 ms); region.js (after this file in order.txt) holds the flood.
+// v11.106: over the world (±WHALF) on the old square's lattice. v11.108 (the person, 11 Nov 2026: "believability is the deciding factor"): a
+// basin region.js finds silled holds still water, and that water goes anoxic only when the food raining into it uses up the oxygen its inflow
+// brings (chemoD). Most of the food is eaten on the way down (Martin's curve: (z/100)^−0.86 of what leaves the surface reaches z — a seventh at
+// 1000 m), so a deep sill under open water never does; a shallow sill under rich water does (Cariaco, sill 146 m; Santa Barbara, 475 m on the
+// minimum's water). OXY.anox puts those two over the line and Santa Monica's (740 m, hypoxic) and San Clemente's (1800 m) under it. In the
+// world today no basin is: the moat round ours and DEEP §5's west basin are one water behind −999 (0.09), the two small ones east behind −604
+// and −616 under fed water the nearest (0.80, 0.70). Built on the first call, once (~0.3 s); region.js (after this file in order.txt) holds the flood.
 let CHEMO_B=null;
+function chemoD(sill,nut){return OXY.anox*nut*Math.pow(-sill/100,-0.86)/Math.max(0.01,oxyProf(sill,nut));} // a silled basin's food over its oxygen: anoxic at 1
 function chemoInit(){const G=OXY.G,n=Math.ceil(2*WHALF/G),x0=-WHALF,H=new Float32Array(n*n); // the world's ground (v11.106: ±WHALF; the old square to v11.105)
-  for(let j=0;j<n;j++)for(let i=0;i<n;i++)H[j*n+i]=sample(x0+(i+0.5)*G,x0+(j+0.5)*G).h;
-  const R=regionBasins(H,n,G,1);CHEMO_B={n,x0,G,lab:R.lab,ch:R.B.map(b=>b.silled?b.chemo:null),B:R.B};}
+  const Nu=new Float32Array(n*n);for(let j=0;j<n;j++)for(let i=0;i<n;i++){const s=sample(x0+(i+0.5)*G,x0+(j+0.5)*G);H[j*n+i]=s.h;Nu[j*n+i]=s.f[FI.nut];}
+  const R=regionBasins(H,n,G,1),sn=new Float64Array(R.B.length);for(let k=0;k<n*n;k++){const l=R.lab[k];if(l>=0)sn[l]+=Nu[k];}
+  for(const b of R.B){b.nut=sn[b.id]/b.cells;b.D=b.silled?chemoD(b.sill,b.nut):0;b.anox=b.silled&&b.D>=1;} // v11.108: the basin's food (its cells' mean nut) against its inflow
+  CHEMO_B={n,x0,G,lab:R.lab,ch:R.B.map(b=>b.anox?b.chemo:null),B:R.B};}
 function chemoAt(x,z){if(!CHEMO_B)chemoInit();const B=CHEMO_B,i=Math.floor((x-B.x0)/B.G),j=Math.floor((z-B.x0)/B.G);if(i<0||j<0||i>=B.n||j>=B.n)return null;const l=B.lab[j*B.n+i];return l>=0?B.ch[l]:null;} // a basin's chemocline over (x,z), or null
 function underChemo(x,y,z){const c=chemoAt(x,z);return c!==null&&y<c;} // in a basin's anoxic water
 // oxygen at a point, as a share of the surface's: 0 under a chemocline; else the profile, its core lower where the food rains (nut: the fields'

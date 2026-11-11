@@ -37,7 +37,7 @@ been answered is in [Open](#open), and is not to be decided by Claude.
   few founding lineages reached it and radiated into every niche (the Galápagos rule), so there are endemics, giants
   and dwarfs, and the family tree is lopsided and the species count modest. The above-water part of the world is due
   an overhaul later; this paragraph is what it must agree with.
-- **The ocean.** (**Revised 10 Nov 2026, DEEP.md; built v11.96:** round ours the water is oxic to the floor with a survivable oxygen minimum at −500 to −800; the chemocline is a basin's — the nearest 28 km west at −1000; the pit is struck. What follows is built until those passes.) Oxic to about **−450, then a chemocline**: below it the water is anoxic, ferrous and sulfidic (the
+- **The ocean.** (**Revised 10 Nov 2026, DEEP.md; built v11.96:** round ours the water is oxic to the floor with a survivable oxygen minimum at −500 to −800; the chemocline is a basin's, where the food raining onto its sill outruns its inflow's oxygen — none in the region (v11.108: the basin 28 km west is still water, oxic); the pit is struck. What follows is built until those passes.) Oxic to about **−450, then a chemocline**: below it the water is anoxic, ferrous and sulfidic (the
   Proterozoic ferruginous ocean; the Black Sea today). This is the real reason **the dark** is different. The
   chemocline is a *depth*, not a floor biome: the flank crosses −450 at the square's corners (the pit, whose floor was −550, struck v11.95) (the
   void at −800 is gone since v11.28: the flank goes on down to the plate instead), "the dark" is ground < −450, and the water over

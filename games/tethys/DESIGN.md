@@ -176,9 +176,12 @@ game's own ground at `OXY.G` (400 m), built on the first call (~70 ms), the worl
 enclose one: 12 km² behind −1010, its chemocline −1030, its floor −1170, 20 km north-north-east of ours between the drowned atoll (m131), the
 atoll east (m141) and the bank's flank (test/region.js lists it). **Since v11.106 the flood is the world's** (353² at 400 m on the old square's
 lattice, ~0.3 s on the first call) and finds five: that one (13 km² behind −1007), 38 km² behind −927 at 24.7 km east, two small ones far east
-(−610, −629), and **603 km² behind −999 — the moat round ours joined to DEEP §5's basin 28 km west** (the sill an atoll's foot 33 km east-south-
-east; to v11.105 the square's edge let the moat out), its chemocline −1019, its floor −1384: the floor east and south of ours past ~4.7 km lies
-under it (414 km² of the old square, 127 within 10 km of ours). The person's call (CHANGELOG v11.106); the ledger does not read the chemocline. `OXY.top` (−450) is
+(−604, −616), and **603 km² behind −999 — the moat round ours joined to DEEP §5's basin 28 km west** (the sill an atoll's foot 33 km east-south-
+east; to v11.105 the square's edge let the moat out). **Since v11.108 a silled basin is anoxic only when its food outruns its inflow**
+(`chemoD(sill, nut)` = `OXY.anox` 2.4 × the basin's mean `nut` × (−sill/100)^−0.86, Martin's curve for the food that reaches the sill, over
+`oxyProf(sill, nut)`, the oxygen the inflow brings; anoxic at 1 — Cariaco's 146 m sill under rich water 1.04, Santa Barbara's 475 m 1.15,
+Santa Monica's 740 m 0.82, San Clemente's 1800 m 0.12): none in the world is (the moat 0.09; the nearest, the two small ones east, 0.80 and
+0.70), so `chemoAt` is null everywhere and the dark's machinery waits for a basin that earns it. The ledger does not read the chemocline. `OXY.top` (−450) is
 the minimum's upper edge: where the open water's life is squeezed above it (`openY`, the mid flora's and the schools' depths over the deep) —
 the old −450's number with its new reason. Readers: chunks.js (sessile life, `f.chemo` bands for the seep and the grey mats), far.js,
 combat.js `POISON`, creatures_spec.js `coatClassAt`'s `cz`, atmosphere.js `SN_CH` (the snow's plate and black flakes, by the camera's column),

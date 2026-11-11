@@ -6706,3 +6706,32 @@ Seen: in headless Chromium, no page errors, on m139's slope 8 km north of ours a
 across the spurs and up toward the reef; a hunter passing. **Unseen, ask in this order:** the slope in play (`tp(670,-8127,-530)`, across and
 up it); the mounds there — big structures, drawn by the far regions, which do not build at a headless frame rate; whether the relict's 81 is
 "a bit"; the spurs' look from a distance (30 m of relief every 320 m).
+
+## v11.108 — no basin is anoxic (11 Nov 2026)
+
+The person (11 Nov 2026), on v11.106's moat — the deep floor round ours under a chemocline at −1019, the moat and the basin 28 km west one water
+behind −999: "believability is the deciding factor … it's very ok if it turns out it's not plausible this deep." It is not.
+
+- **Why.** A basin behind a sill holds still water, renewed only when denser water spills in; it goes anoxic when the food raining into it
+  uses up the oxygen that renewal brings. Two things set that: the food reaching the sill — most of what leaves the surface is eaten on the
+  way down, about a seventh reaching 1000 m (Martin's curve, (z/100)^−0.86) — and the oxygen of the water coming over it. A sill at −1000
+  under open water gets little of the first and the deep's water, recovered from the minimum, for the second: 0.5 of the surface's, which
+  under Tethys's 28% atmosphere and at ~5 °C is a third more than Earth's at the same share. Earth agrees: the deep-silled basins off
+  California are hypoxic (Santa Monica, 740 m, on the Pacific's far poorer minimum) or oxygenated (San Clemente, 1800 m); the anoxic ones
+  have a shallow sill under rich water (Cariaco, 146 m) or sit in a severe minimum (Santa Barbara, 475 m).
+- **The rule (world.js `chemoD`, `OXY.anox` 2.4):** a silled basin's food over its oxygen — `anox` × the basin's mean `nut` × the share of the
+  food that reaches its sill, over `oxyProf` at the sill (what its inflow brings); anoxic at 1. `anox` puts Cariaco (1.04) and Santa Barbara
+  (1.15) over the line and Santa Monica (0.82) and San Clemente (0.12) under it, on the game's own profile. `chemoInit` takes each basin's
+  `nut` from the flood's own samples; region.js's `silled` is the geometry alone now (still water), and `b.chemo` where the line would be.
+- **The world:** five silled basins, none anoxic — the moat round ours and the basin west 0.09, v11.102's 13 km² north-north-east 0.18, 39 km²
+  at 24.7 km east 0.26, and the nearest two small ones 44 and 67 km east behind −616 and −604 under fed water, 0.70 and 0.80. `chemoAt` is
+  null everywhere: the moat's floor has its sessile life back, the plate and the black flakes are gone, and nothing is poison there. The
+  dark's machinery (the plate, the seep line, the poison, the sulfide coat, the straddlers) stays for a basin that earns it.
+- **DEEP §5–6:** the basin west is still there — 380 m of still, food-poor water behind its sill — but not dark, so the constructors'
+  structures, planned for its rim, need the person's word on their place (DEEP §11).
+- **test/region.js:** the rule on Earth's four basins; the moat's basin silled and oxic (0.09); no basin in the world anoxic, no chemocline
+  over ours, the floor east, the giant, the drowned atoll north, a far corner or the basin west. region.html: a silled basin is still water,
+  not a chemocline.
+
+Seen: in headless Chromium, no page errors, the moat's floor at −1100 east of ours — quiet mud, a few animals, no black flakes. **Unseen,
+ask in this order:** where the constructors go (DEEP §11); the moat's floor in play (`tp(6000,0,-1100)`), now with the deep's ordinary life.
