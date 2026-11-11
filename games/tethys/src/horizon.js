@@ -20,7 +20,7 @@ function hzUniforms(){const L=(THREE.ShaderLib&&THREE.ShaderLib.lambert&&THREE.S
 const HZ_VS_HEAD='uniform vec3 uFogC;uniform mat3 uFogR;uniform vec4 uFogW;varying float vFogDepth;varying vec3 vFogPos;\n'; // the fog's vertex stage by hand: vFogPos is the dropped world position
 const HZ_FS_HEAD='#define USE_FOG\n'+DITHER_PARS+'\n'; // then the chunk: fogAir, skyLite, the mist
 function hzMat(vs,fs){return new THREE.ShaderMaterial({uniforms:hzUniforms(),vertexShader:vs,fragmentShader:fs,vertexColors:true,side:THREE.DoubleSide,fog:false});}
-const HZ_TERRAIN_MAT=hzMat(HZ_VS_HEAD+'varying vec3 vCol;varying vec3 vN;void main(){vec3 p=position;vec2 dd=p.xz-uFogC.xz;p.y-=dot(dd,dd)*'+(0.5/HZ_R).toExponential(6)+';vec4 mv=modelViewMatrix*vec4(p,1.0);vFogDepth=length(mv.xyz);vFogPos=p;vCol=color;vN=normal;gl_Position=projectionMatrix*mv;}',
+const HZ_TERRAIN_MAT=hzMat(HZ_VS_HEAD+'varying vec3 vCol;varying vec3 vN;void main(){vec3 w=(modelMatrix*vec4(position,1.0)).xyz;vec2 dd=w.xz-uFogC.xz;float dr=dot(dd,dd)*'+(0.5/HZ_R).toExponential(6)+';vec4 mv=modelViewMatrix*vec4(position.x,position.y-dr,position.z,1.0);vFogDepth=length(mv.xyz);vFogPos=vec3(w.x,w.y-dr,w.z);vCol=color;vN=normal;gl_Position=projectionMatrix*mv;}',
   HZ_FS_HEAD+THREE.ShaderChunk.fog_pars_fragment+'\nvarying vec3 vCol;varying vec3 vN;void main(){vec3 n=normalize(vN);float sd=max(dot(n,uSkE.xyz),0.0);vec3 amb=mix(uSkB.xyz,uSkA.xyz,0.5+0.5*n.y)*'+HZ_LIGHT[0].toFixed(3)+';vec3 col=vCol*(amb+uSkD.xyz*uSkA.w*sd*'+HZ_LIGHT[1].toFixed(3)+');'+
   'float d=vFogDepth;if(d<uHzMin)discard;vec3 rd=(vFogPos-uFogC)/max(d,1e-3);col=fogAir(col,uFogC,rd,d,1.0);gl_FragColor=vec4(dithering(col),1.0);}'); // lit by the sky's own uniforms (the zenith and horizon as the ambient, the sun's colour by dayK), an approximation of the world's hemisphere and sun that the haze at 1.3 km hides
 HZ_TERRAIN_MAT.uniforms.uHzMin={value:FAR*HZ_SEA0};HZ_TERRAIN_MAT.fragmentShader='uniform float uHzMin;\n'+HZ_TERRAIN_MAT.fragmentShader; // v11.86.1: the land mesh draws only past HZ_SEA0 of the far plane, where the sea disc starts and the main pass hands over — nearer, its Q.hz-metre triangles can stand over the camera where the fine ground is a hollow (the tuff cone's crater: from its floor the sky was the mesh's tan underside; the person, 23 Sep 2026), and nothing in the main pass covers the sky
@@ -59,17 +59,17 @@ function* hzGen(cx0,cz0){const E=hzExtent(),S=Q.hz,C=S*HZ_C,x0=E[0],z0=E[2],nx=M
         for(const q of tops){const d=Math.hypot(mx-q.x,mz-q.z);if(d<q.t){const u=d/q.t;if(u<bu){bu=u;own=q;}if(q.r>0&&Math.abs(d-q.r)<q.w)rim=true;}}
         if(own!==m)continue;if(rim||Math.max(cH(i,j),cH(i+1,j),cH(i,j+1),cH(i+1,j+1))>HZ_CUT)cells.push(i,j);}
       if(performance.now()-tq>HZ_MS){yield;tq=performance.now();}}
-    const keep=new Map(),pos=[],col=[],nrm=[],idx=[];
+    const keep=new Map(),pos=[],col=[],nrm=[],idx=[],li=Math.round((m.x-x0)/S),lj=Math.round((m.z-z0)/S),[ox,oz]=originOf(x0+li*S,z0+lj*S),OL=ORIGIN.on; // v11.110: the mesh at a lattice point by the member, its vertices whole steps from it
     const use=(i,j)=>{const k=j*nx+i;let v=keep.get(k);if(v!==undefined)return v;const x=x0+i*S,z=z0+j*S,h=sample(x,z,f).h;
       const gx=(hAt(Math.min(i+1,nx-1),j)-hAt(Math.max(i-1,0),j))/(2*S),gz=(hAt(i,Math.min(j+1,nz-1))-hAt(i,Math.max(j-1,0)))/(2*S),sl=Math.sqrt(gx*gx+gz*gz),L=Math.sqrt(gx*gx+1+gz*gz);
-      terrainColor(x,z,h,fixF(f,sl),sl,cT,0);v=pos.length/3;pos.push(x,h,z);col.push(cT[0],cT[1],cT[2]);nrm.push(-gx/L,1/L,-gz/L);keep.set(k,v);return v;};
+      terrainColor(x,z,h,fixF(f,sl),sl,cT,0);v=pos.length/3;pos.push(OL?(i-li)*S:x,h,OL?(j-lj)*S:z);col.push(cT[0],cT[1],cT[2]);nrm.push(-gx/L,1/L,-gz/L);keep.set(k,v);return v;};
     for(let c=0;c<cells.length;c+=2){const ci=cells[c],cj=cells[c+1];
       for(let j=cj*HZ_C;j<Math.min((cj+1)*HZ_C,nz-1);j++)for(let i=ci*HZ_C;i<Math.min((ci+1)*HZ_C,nx-1);i++){if(hAt(i,j)<HZ_CUT&&hAt(i+1,j)<HZ_CUT&&hAt(i,j+1)<HZ_CUT&&hAt(i+1,j+1)<HZ_CUT)continue;const A=use(i,j),B=use(i+1,j),Cc=use(i,j+1),D=use(i+1,j+1);idx.push(A,Cc,B,B,Cc,D);} // a→b along +x, a→c along +z, the far layer's winding
       if(performance.now()-tq>HZ_MS){yield;tq=performance.now();}}
     nl+=cells.length/2;if(!idx.length)continue;
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(nrm,3));g.setIndex(idx);
     g.computeBoundingSphere();if(g.boundingSphere)g.boundingSphere.radius+=HZ_DROP;
-    const mesh=new THREE.Mesh(g,HZ_TERRAIN_MAT);mesh.name=m.id;hzLand.add(mesh);nv+=pos.length/3;nt+=idx.length/3;}
+    const mesh=new THREE.Mesh(g,HZ_TERRAIN_MAT);mesh.name=m.id;mesh.position.set(ox,0,oz);hzLand.add(mesh);nv+=pos.length/3;nt+=idx.length/3;}
   console.log('horizon: '+nx+'×'+nz+' at '+S+' m, '+nl+' coarse cells live of '+(cx*cz)+', '+hzLand.children.length+' members, '+(CH.size+H.size)+' samples, '+nv+' vertices, '+nt+' triangles, '+(performance.now()-t0).toFixed(0)+' ms over the frames');}
 // the sea disc: rings from HZ_SEA0·FAR to HZ_FAR, spaced by a power so the near rings are fine, about the camera each frame (the drop is the shader's)
 function hzSeaBuild(){const K=18,NS=96,r0=FAR*HZ_SEA0,p=[],c=[],ix=[];for(let k=0;k<=K;k++){const r=r0*Math.pow(HZ_FAR/r0,k/K);for(let s=0;s<NS;s++){const a=s/NS*TAU;p.push(Math.cos(a)*r,0,Math.sin(a)*r);c.push(1,1,1);}}

@@ -6762,3 +6762,37 @@ later at the headless frame rate (a frame every few seconds) and on the horizon 
 v11.106's one mesh had not appeared after 30 minutes. **Unseen, ask in this order:** how soon the far land shows at your frame rate (~0.3 s
 for the giant by the CPU's count); the frame rate above water with up to 35 draws in the horizon pass instead of one (the culling drops those
 behind you).
+
+## v11.110 — local origins (11 Nov 2026)
+
+GLOBE §10.1, the engine work before the province, step 2 of 3 (the person: "go ahead and do the engine work"). Invisible: the world is where
+it was, to within the old floats' rounding.
+
+- **Why.** The GPU works in float32, which holds a world coordinate of 70 km to 8 mm and of 300 km to 3 cm; a vertex written at its world
+  position is multiplied by a model-view matrix carrying the camera's equally large translation, and the two cancel in float32, so the ground
+  swims by that much as the camera moves. Invisible at ±70 km, a visible shimmer in a province. three composes the model-view matrix in
+  doubles, so an object placed far off with small vertices loses nothing.
+- **chunks.js `ORIGIN`, `originOf`, `instLocal`, `poolSnap`.** A cell's group sits at the cell's corner (`ch.ox`, `ch.oz`) and everything in it
+  is local to that: the terrain's vertices (`buildTerrain`), its own instanced flora (cards, rafts, glow) and its structures' shadow proxies, its
+  vents' plumes (their rising points), its carcass falls' bones and enriched patch (creatures_ai.js `fallShow`, `fallPatch`). The flora pools
+  span the loaded cells: their translations are relative to a render origin, the pools' group placed at it, which re-snaps to the player's
+  1 km square once the player is 4 km off (`ORIGIN.snap`, `ORIGIN.grid`; every pooled instance's translation shifted once, one ranged upload a
+  pool). Each local number is taken from the double the world one came from, not from the stored float.
+- **far.js:** a region's group at its corner, its terrain and apron (`apronGen` takes the offset), its structures and its cards (`imp.mats`, which
+  `farApplyCell` copies back, local too) local to it.
+- **horizon.js:** each member's mesh at a lattice point by it, its vertices whole `Q.hz` steps from that; the vertex shader takes the
+  curvature's drop from the world position by `modelMatrix` and draws the local vertex lowered by it.
+- **The shaders needed nothing else:** the fog's world position is the camera's plus the view-space offset (scene.js `fog_vertex`), and the
+  world texels and the sway go through `modelMatrix`.
+- **`ORIGIN.on` false** writes world coordinates as to v11.109 (the test's other run). Not moved: the snow, blood and debris points round the
+  camera (8 mm at 70 km; for the province).
+- **test/origins.js** (new, in `--test`, ~22 s): the game booted as built and with `ORIGIN.on` false (a child run), at ours and 36 km out (the
+  render origin re-snapped to 30000, −20000): every loaded cell's terrain and own instanced meshes, every pool block, every far region's
+  terrain, structures and cards in the same world place — 532 meshes and blocks at ours within 0.12 mm, 349 out there within 0.98 mm (the old
+  floats' rounding; an all-zero card hidden under a loaded cell draws nothing and is not compared) — and every local number small (a cell's
+  ≤ 215 m, a region's ≤ 860, a pool's ≤ 1,290, where the old world numbers reached 30,530). test/horizon.js compares world positions now.
+
+Seen: in headless Chromium, no page errors — the shelf forest at ours (the pooled flora, the terrain, the shadows and caustics in place);
+a bank 36 km out after the render origin had re-snapped there (its seagrass and rock in place); the giant on the horizon from the surface.
+**Unseen, ask in this order:** anything out of place or shimmering after a long swim (the render origin moves every 4 km); nothing else
+should look different.

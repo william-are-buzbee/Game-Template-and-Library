@@ -340,3 +340,10 @@ a horizon mesh per member.
   the giant's land after 5.4% of the build) and culled by its own sphere; the union is v11.107's one mesh to the bit (test/horizon.js). For
   the province the members beyond `HZ_FAR` will be left unbuilt and built as they come in; nothing streams yet. Next: the local origins,
   then the cell hash.
+- **Local origins (v11.110).** Every mesh that held world coordinates holds them local to its own corner and is placed there — a cell's group
+  at the cell's corner (terrain, its own flora, its structures' shadow proxies, its plumes, its falls), a far region's at the region's, each
+  horizon member at a lattice point by it — and the flora pools relative to a render origin that re-snaps to the player's kilometre square
+  once 4 km off (chunks.js `ORIGIN`, `poolSnap`). three composes the model-view matrix in doubles, so the GPU never cancels a large
+  translation against a large vertex: at 300 km that would have been ~3 cm of swim. The shaders needed nothing. Everything is where it was to
+  within the old floats' rounding (test/origins.js: as built against world coordinates, at ours and 36 km out). Not moved: the snow, blood
+  and debris points near the camera (8 mm at 70 km; for the province). Next: the cell hash.

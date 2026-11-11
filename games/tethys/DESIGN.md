@@ -1004,6 +1004,22 @@ splits albedo (`diffuseColor.rgb`) from light (the rest), texelises and posteris
 sherbet"), so the posterise is dithered instead — a 2×2 Bayer offset per cell in place of the half-step rounding, in both modes — and a tone
 boundary is a checkered band of cells, not a contour; banded light is the default again.
 
+## Local origins (v11.110, GLOBE §10.1)
+
+`chunks.js` `ORIGIN`, `poolSnap`, `originOf`, `instLocal`; far.js `genRegion`, `apronGen`; horizon.js `hzGen`; creatures_ai.js `fallShow`. The GPU's
+float32 holds a world coordinate of 70 km to 8 mm and of 300 km to 3 cm, and a vertex shader that multiplies a large vertex by a model-view
+matrix with the camera's large translation in it cancels the two there, so the ground swims by that much as the camera moves. three composes
+the model-view matrix in doubles, so an object placed far off with small vertices loses nothing. So: a cell's group is placed at the cell's
+corner and everything in it is local to that (`ch.ox`, `ch.oz`: the terrain's vertices, its own instanced flora's and its structures' shadow
+proxies' translations, its plumes, its falls' bones and patch); a far region's group at the region's corner (terrain and apron, structures,
+cards — `imp.mats` local too); each horizon member's mesh at a lattice point by it (its vertices whole `Q.hz` steps from it, the curvature's
+drop from `modelMatrix`). The flora pools span the loaded cells, so they hold translations relative to a render origin (`ORIGIN.x`, `ORIGIN.z`,
+the pools' group placed there) that re-snaps to the player's `grid` (1 km) square once it is `snap` (4 km) off — every pooled instance's
+translation shifted once, one ranged upload a pool. Each local number is taken from the double the world one was. The shaders needed nothing:
+the fog's world position is the camera's plus the view-space offset (`fog_vertex`), the texels' and the sway's go through `modelMatrix`.
+`ORIGIN.on` false writes world coordinates as before; test/origins.js boots both and compares every vertex and instance (0.12 mm apart at
+ours, 0.98 at 36 km, the old floats' rounding). Not moved: the snow, blood and debris points near the camera.
+
 ## The far layer
 
 `far.js`. The water map and the landmarks exist for the whole world at once; the regions stream (v11.58: built nearest first within `FAR_R`

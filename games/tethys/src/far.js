@@ -245,7 +245,7 @@ function farCellDrawn(i,j){const reg=regions[Math.floor((i-GRID0)/FR)*FNR+Math.f
 const FR=4,FNR=GRIDN/FR,FQ=Q.farQ,FS=CH_RES/FQ,FSTEP=STEP*FS,FG=FR*FQ+1; // FQ quads per cell, FS fine steps per far step
 const regions=new Array(FNR*FNR).fill(null),farList=[];let farGen=null,farBuilt=0,visibleRegions=0; // regions[ri·FNR + rj], region (ri, rj) from cell GRID0 + 4ri (v11.106: 164² over the world, so the built ones are also a list, farList, for the loops each frame)
 function* genRegion(ri,rj){
-  const ci0=GRID0+ri*FR,cj0=GRID0+rj*FR,x0=ci0*CELL-HALF,z0=cj0*CELL-HALF;
+  const ci0=GRID0+ri*FR,cj0=GRID0+rj*FR,x0=ci0*CELL-HALF,z0=cj0*CELL-HALF,[ox,oz]=originOf(x0,z0); // v11.110: the region's group at its corner, everything in it local
   // the water map block first: the fog reads it every frame
   const tn=FR*6,ti=WM_C0+ri*tn-WM_I0,tj=WM_C0+rj*tn-WM_J0,a0=Math.max(0,ti),a1=Math.min(WM_N,ti+tn),b0=Math.max(0,tj),b1=Math.min(WM_N,tj+tn); // the region's block on the window (v11.104), clipped to it
   if(a0<a1&&b0<b1){for(let j=b0;j<b1;j+=6){wmFill(a0,a1,j,Math.min(b1,j+6),1);yield;}wmBlur(a0-1,a1+1,b0-1,b1+1);yield;}
@@ -259,17 +259,17 @@ function* genRegion(ri,rj){
   const pos=new Float32Array(FG*FG*3),col=new Float32Array(FG*FG*3),idx=[];
   for(let jj=0;jj<FG;jj++){
     for(let ii=0;ii<FG;ii++){const n=jj*FG+ii,k=(jj+1)*N+(ii+1),gx=ci0*CH_RES+ii*FS,gz=cj0*CH_RES+jj*FS,x=gx*STEP-HALF,z=gz*STEP-HALF,h=hg[k];
-      pos[n*3]=x;pos[n*3+1]=h;pos[n*3+2]=z;
+      pos[n*3]=x-ox;pos[n*3+1]=h;pos[n*3+2]=z-oz;
       const sl=Math.hypot((hg[k+1]-hg[k-1])/(2*FSTEP),(hg[k+N]-hg[k-N])/(2*FSTEP));terrainColor(x,z,h,fixF(fg.subarray(k*NF,(k+1)*NF),sl),sl,col,n);}
     if(jj%8===7)yield;
   }
   for(let jj=0;jj<FG-1;jj++)for(let ii=0;ii<FG-1;ii++){const a=jj*FG+ii,b=a+1,c=a+FG,d=c+1;idx.push(a,c,b,b,c,d);}
   let P=pos,Cl=col,ext=0;
-  if(ri===0||rj===0||ri===FNR-1||rj===FNR-1){P=Array.from(pos);Cl=Array.from(col);ext=apronGen(ri,rj,x0,z0,P,Cl,idx);P=new Float32Array(P);Cl=new Float32Array(Cl);yield;} // the world's edge: the terrain carried on past the far plane (v11.27)
+  if(ri===0||rj===0||ri===FNR-1||rj===FNR-1){P=Array.from(pos);Cl=Array.from(col);ext=apronGen(ri,rj,x0,z0,P,Cl,idx,ox,oz);P=new Float32Array(P);Cl=new Float32Array(Cl);yield;} // the world's edge: the terrain carried on past the far plane (v11.27)
   const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(P,3));geo.setAttribute('color',new THREE.BufferAttribute(Cl,3));geo.setIndex(idx);
   geo.computeVertexNormals();
   const mesh=new THREE.Mesh(geo,TERRAIN_MAT);mesh.frustumCulled=false;
-  const reg={ri:ri,rj:rj,ci0:ci0,cj0:cj0,cx:x0+FR*CELL/2,cz:z0+FR*CELL/2,hg:hg,N:N,geo:geo,group:new THREE.Group(),sphere:null,imps:[],ext:ext};
+  const reg={ri:ri,rj:rj,ci0:ci0,cj0:cj0,cx:x0+FR*CELL/2,cz:z0+FR*CELL/2,hg:hg,N:N,geo:geo,group:new THREE.Group(),sphere:null,imps:[],ext:ext};reg.group.position.set(ox,0,oz);
   reg.group.add(mesh);
   const top=Math.max(maxH,0)+120; // structures stand up to ~100 over the ground
   reg.sphere=new THREE.Sphere(new THREE.Vector3(reg.cx,(minH+top)/2,reg.cz),Math.hypot(FR*CELL*0.71+80+ext,(top-minH)/2+(ext?600:0))); // an edge region's sphere takes its apron in (the void floor is ~550 under the apron)
@@ -279,7 +279,7 @@ function* genRegion(ri,rj){
   for(let dj=0;dj<FR;dj++)for(let di=0;di<FR;di++){for(const s of (yield* bigsGen(ci0+di,cj0+dj))){let L=byGeo.get(s.f.geo);if(!L){L=[];byGeo.set(s.f.geo,L);}L.push(s);}yield;}
   const c=new THREE.Color();
   byGeo.forEach((L,g)=>{const im=new THREE.InstancedMesh(g,MATROCKB,L.length);im.frustumCulled=false;
-    for(let i=0;i<L.length;i++){im.setMatrixAt(i,L[i].m);c.setRGB(L[i].col[0],L[i].col[1],L[i].col[2]);im.setColorAt(i,c);}
+    for(let i=0;i<L.length;i++){im.setMatrixAt(i,L[i].m);c.setRGB(L[i].col[0],L[i].col[1],L[i].col[2]);im.setColorAt(i,c);}instLocal(im,L,ox,oz,q=>q.m);
     im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;reg.group.add(im);});
   yield;
   // the impostors, one instanced mesh per kind, instances grouped by cell so a cell's run can be zeroed when it loads
@@ -289,7 +289,7 @@ function* genRegion(ri,rj){
     for(let k=0;k<FR*FR;k++){let cnt=0;for(const e of cellL[k])if(e.si===si)cnt++;if(cnt){ranges[k]=[total,cnt];total+=cnt;}}
     if(!total)return;
     const im=new THREE.InstancedMesh(sp.geo,MATFAR,total);im.frustumCulled=false;const mats=new Float32Array(total*16);let n=0;
-    for(let k=0;k<FR*FR;k++)for(const e of cellL[k]){if(e.si!==si)continue;im.setMatrixAt(n,e.m);mats.set(e.m.elements,n*16);c.setRGB(e.col[0],e.col[1],e.col[2]);im.setColorAt(n,c);n++;}
+    for(let k=0;k<FR*FR;k++)for(const e of cellL[k]){if(e.si!==si)continue;im.setMatrixAt(n,e.m);mats.set(e.m.elements,n*16);mats[n*16+12]=e.m.elements[12]-ox;mats[n*16+14]=e.m.elements[14]-oz;im.instanceMatrix.array.set(mats.subarray(n*16,n*16+16),n*16);c.setRGB(e.col[0],e.col[1],e.col[2]);im.setColorAt(n,c);n++;}
     im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;reg.group.add(im);
     if(sp.f.y==='surface')im.tide=true;else if(sp.f.reach)im.reach=true; // the raft and colony discs ride the tide (cullFar lifts them each frame); the kelp and bladder cards stand on the floor and reach mean level — at a low tide they follow the water down (v11.2), as the real stipes are folded to it
     reg.imps.push({im:im,mats:mats,ranges:ranges});
@@ -304,10 +304,10 @@ function* genRegion(ri,rj){
 // it — a straight silhouette 25 m past the player's clamp, and the dome a shade darker than any terrain beside it (scene.js FOG_CUT).
 // The last offset must exceed FAR from the clamp (WHALF-25): at 2000 it does on both tiers. ~600 vertices on an edge region, ~1000 on a corner.
 const APRON=[60,150,330,700,1300,2000];
-function apronGen(ri,rj,x0,z0,pos,col,idx){ // appends to pos/col (plain arrays) and idx; returns the apron's reach beyond the edge
+function apronGen(ri,rj,x0,z0,pos,col,idx,ox,oz){ // appends to pos/col (plain arrays) and idx; returns the apron's reach beyond the edge
   const sides=[ri===0,ri===FNR-1,rj===0,rj===FNR-1]; // -x,+x,-z,+z
   const fT=new Float32Array(NF),cT=new Float32Array(3);let n=pos.length/3;
-  const addV=(x,z)=>{const s=sample(x,z,fT);terrainColor(x,z,s.h,fixF(fT,0),0,cT,0);pos.push(x,s.h,z);col.push(cT[0],cT[1],cT[2]);return n++;};
+  const addV=(x,z)=>{const s=sample(x,z,fT);terrainColor(x,z,s.h,fixF(fT,0),0,cT,0);pos.push(x-ox,s.h,z-oz);col.push(cT[0],cT[1],cT[2]);return n++;};
   const L=FR*CELL,K=APRON.length,quad=(a,b,c,d)=>idx.push(a,c,b,b,c,d); // a→b along +x, a→c along +z: the interior's winding
   const strip={}; // strip['x+'][k][jj]: the vertex at level k beyond the +x edge on row jj (and so on)
   for(const sx of [-1,1]){if(!sides[sx<0?0:1])continue;const xe=sx<0?x0:x0+L,S=strip[sx<0?'x-':'x+']=[];

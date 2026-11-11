@@ -18,8 +18,8 @@ function hOut(ch,x,z){return x<ch.x0||x>ch.x0+CELL||z<ch.z0||z>ch.z0+CELL?sample
 // underCanopy (v11.13–v11.80: the water's look, the light, the shafts and the sound under the canopy mask) went with the canopy's paint (v11.81, PLANKTON.md §12).
 
 function makeChunk(i,j){
-  const x0=i*CELL-HALF,z0=j*CELL-HALF,hg=new Float32Array(GR*GR),fg=new Float32Array(GR*GR*NF);
-  return {i:i,j:j,k:ckey(i,j),x0:x0,z0:z0,cx:x0+CELL/2,cz:z0+CELL/2,hg:hg,fg:fg,landN:0,minH:0,maxH:-1e9,group:new THREE.Group(),creatures:[],schools:[],eggs:[],meshes:[],plumes:[],lightSrc:[],solids:[],seeps:[],hash:makeHash(),solidR:0,sphere:null,terrain:null,shBig:[], // terrain, shBig (v11.30): the ground's mesh and the structures' shadow proxies, casters into the world's map (scene.js updateShadowS)
+  const x0=i*CELL-HALF,z0=j*CELL-HALF,hg=new Float32Array(GR*GR),fg=new Float32Array(GR*GR*NF),[ox,oz]=originOf(x0,z0),group=new THREE.Group();group.position.set(ox,0,oz); // v11.110: the group at the cell's corner, everything in it local to that (ox, oz)
+  return {i:i,j:j,k:ckey(i,j),x0:x0,z0:z0,ox:ox,oz:oz,cx:x0+CELL/2,cz:z0+CELL/2,hg:hg,fg:fg,landN:0,minH:0,maxH:-1e9,group:group,creatures:[],schools:[],eggs:[],meshes:[],plumes:[],lightSrc:[],solids:[],seeps:[],hash:makeHash(),solidR:0,sphere:null,terrain:null,shBig:[], // terrain, shBig (v11.30): the ground's mesh and the structures' shadow proxies, casters into the world's map (scene.js updateShadowS)
     pooled:[],flora:[],near:true,ac:new Float32Array(16),sheds:[], // sheds (v11.66): the cast carapaces dropped in this cell in play (creatures_ai.js dropShed) // pooled (v11.52): the species pools this cell has written a block into (poolAdd); taken out on unload // ac: the swaying flora's height summed in a 4×4 grid of the cell — the forest's sound (audio.js) // flora: the instanced meshes hidden once the cell is past FLORA_FAR (v11.12, cullChunks); near: whether they are drawn now
     h:function(x,z){let fx=clamp((x-x0)/STEP,0,CH_RES-0.001),fz=clamp((z-z0)/STEP,0,CH_RES-0.001);const ix=Math.floor(fx),iz=Math.floor(fz),tx=fx-ix,tz=fz-iz;const a=hg[iz*GR+ix],b=hg[iz*GR+ix+1],c=hg[(iz+1)*GR+ix],d=hg[(iz+1)*GR+ix+1];return a+(b-a)*tx+(c-a)*tz+(a-b-c+d)*tx*tz;},
     f:function(x,z){const ix=clamp(Math.round((x-x0)/STEP),0,CH_RES),iz=clamp(Math.round((z-z0)/STEP),0,CH_RES);return fg.subarray((iz*GR+ix)*NF,(iz*GR+ix+1)*NF);}, // the conditions at the nearest vertex
@@ -88,7 +88,7 @@ function* buildTerrain(ch){
   const tp=tg.attributes.position,tc=new Float32Array(tp.count*3);
   for(let jj=0;jj<GR;jj++){for(let ii=0;ii<GR;ii++){
     const n=jj*GR+ii,x=(ch.i*CH_RES+ii)*STEP-HALF,z=(ch.j*CH_RES+jj)*STEP-HALF;
-    tp.setXYZ(n,x,ch.hg[n],z);terrainColor(x,z,ch.hg[n],ch.fg.subarray(n*NF,(n+1)*NF),ch.slope(x,z),tc,n);
+    tp.setXYZ(n,x-ch.ox,ch.hg[n],z-ch.oz);terrainColor(x,z,ch.hg[n],ch.fg.subarray(n*NF,(n+1)*NF),ch.slope(x,z),tc,n);
   }if(jj%8===7)yield;}
   // ambient occlusion by the shape of the ground (v11.13): a vertex lower than the mean of its four neighbours at one and two grid steps
   // (4.5 and 9 m) is in a gully or at the foot of a wall and darkens by up to 30%; one higher (a ridge, a crest) lightens by half as much.
@@ -113,7 +113,7 @@ function makeInstanced(ch,rng,geo,mat,tints,list,dip,vars,f){
     for(let i=0;i<list.length;i++){const p=list[i];if(p.y>0.5||mat.land)continue;steadyOf(ch,p.x,p.z,p.y+8,CURV);a[i*2]=CURV.x;a[i*2+1]=CURV.z;tidalAt(p.x,p.z,CURV);b[i*2]=CURV.x;b[i*2+1]=CURV.z;} // nothing on land (the tussock) leans to the water
     geo.setAttribute('aCur',new THREE.InstancedBufferAttribute(a,2));geo.setAttribute('aTide',new THREE.InstancedBufferAttribute(b,2));} // the steady current and the tidal stream at full flood (world.js): the shader sums them with the tide's rate
   const im=new THREE.InstancedMesh(geo,mat,list.length);im.frustumCulled=false;const col=new THREE.Color();
-  for(let i=0;i<list.length;i++){im.setMatrixAt(i,list[i].m);let tc=list[i].tint||tints[Math.floor(rng()*tints.length)];const q=list[i].chem;if(q)tc=[lerp(tc[0],q[0],q[3]),lerp(tc[1],q[1],q[3]),lerp(tc[2],q[2],q[3])];col.setRGB(tc[0]*(0.85+rng()*0.25),tc[1]*(0.85+rng()*0.25),tc[2]*(0.85+rng()*0.25));im.setColorAt(i,col);} // chem (v11.67): the place's stain over the pick (grow.js tintBy), before the jitter
+  for(let i=0;i<list.length;i++){im.setMatrixAt(i,list[i].m);const e=list[i].m.elements,a=im.instanceMatrix.array;a[i*16+12]=e[12]-ch.ox;a[i*16+14]=e[14]-ch.oz;let tc=list[i].tint||tints[Math.floor(rng()*tints.length)];const q=list[i].chem;if(q)tc=[lerp(tc[0],q[0],q[3]),lerp(tc[1],q[1],q[3]),lerp(tc[2],q[2],q[3])];col.setRGB(tc[0]*(0.85+rng()*0.25),tc[1]*(0.85+rng()*0.25),tc[2]*(0.85+rng()*0.25));im.setColorAt(i,col);} // chem (v11.67): the place's stain over the pick (grow.js tintBy), before the jitter
   im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;ch.group.add(im);ch.meshes.push(im);if(mat!==GLOW){ch.flora.push(im);shadowCaster(im,mat,ch.sphere);}return im; // the glow clouds stay lit at any range (and cast nothing); everything else hides past FLORA_FAR (cullChunks) and casts into the world's map (v11.30)
 }
 // ---------- the flora pools (v11.52): one instanced mesh per species across every loaded cell ----------
@@ -130,7 +130,26 @@ function makeInstanced(ch,rng,geo,mat,tints,list,dip,vars,f){
 // the rafts keep aDip per cell (physics.js updatePads), the glow clouds their GLOW mesh. A pool grows by doubling into a fresh geometry
 // clone (the old one disposed, so no GL buffer is left behind); it casts into the world's shadow map whole (scene.js updateShadowS) with a
 // bounds sphere that covers the island and never camS's box 500 km up.
-const POOLS=new Map(),poolGroup=new THREE.Group();scene.add(poolGroup); // entry → pool
+// ---------- local origins (v11.110, GLOBE §10.1: the engine before the province) ----------
+// The GPU works in float32: a vertex written at x = 70,000 m holds it to 8 mm, at 300 km to 3 cm, and the model-view product cancels the
+// camera's large translation against it there, so the error shows as the ground swimming a few millimetres or centimetres as the camera moves.
+// three composes an object's model-view matrix in doubles, so an object placed at a large position with small vertices loses nothing. So every
+// mesh that held world coordinates holds them local to its own corner and is placed there: a cell's group at the cell's corner (its terrain,
+// its own flora, its structures' shadow proxies, its plumes, its falls), a far region's at the region's (its terrain and apron, structures and
+// cards), each horizon member at a lattice point by it (horizon.js); and the flora pools, which span the loaded cells, relative to a render
+// origin (ORIGIN.x, z) that re-snaps to the camera's ORIGIN.grid square once it is ORIGIN.snap away (every pooled instance's translation
+// shifted once, poolSnap). Each local number is taken from the double the world one was, not from the stored float. The shaders need nothing:
+// the fog's world position is the camera's plus the view-space offset (scene.js fog_vertex), the texels' and the sway's go through modelMatrix.
+// ORIGIN.on false writes world coordinates as before (test/origins.js compares the two).
+const ORIGIN={on:true,x:0,z:0,snap:4000,grid:1000};
+const POOLS=new Map(),poolGroup=new THREE.Group();scene.add(poolGroup); // entry → pool (the group at the render origin, v11.110)
+function poolSnap(px,pz){if(!ORIGIN.on||(Math.abs(px-ORIGIN.x)<ORIGIN.snap&&Math.abs(pz-ORIGIN.z)<ORIGIN.snap))return false; // the render origin to the camera's square; every pooled instance moved by the change
+  const nx=Math.round(px/ORIGIN.grid)*ORIGIN.grid,nz=Math.round(pz/ORIGIN.grid)*ORIGIN.grid,dx=nx-ORIGIN.x,dz=nz-ORIGIN.z;
+  for(const P of POOLS.values()){const M=P.im.instanceMatrix.array;for(let k=0;k<P.n;k++){M[k*16+12]-=dx;M[k*16+14]-=dz;}if(P.n)poolTouch(P,0,P.n);}
+  ORIGIN.x=nx;ORIGIN.z=nz;poolGroup.position.set(nx,0,nz);poolGroup.updateMatrixWorld(true);return true;}
+// a cell's or a region's group at its corner (ORIGIN.on), and an instanced mesh's translations made local from the doubles they came from
+function originOf(x0,z0){return ORIGIN.on?[x0,z0]:[0,0];}
+function instLocal(im,list,ox,oz,get){const a=im.instanceMatrix.array;for(let i=0;i<list.length;i++){const e=get(list[i]).elements;a[i*16+12]=e[12]-ox;a[i*16+14]=e[14]-oz;}}
 const POOL_SPHERE=new THREE.Sphere(new THREE.Vector3(0,0,0),WHALF*2+2000);
 function poolFor(f,geo,mat,vars,cur){let P=POOLS.get(f);if(P)return P;P={f:f,src:geo,mat:mat,vars:!!vars,cur:cur,cap:0,n:0,nVis:0,blocks:[],geo:null,im:null};poolAlloc(P,Math.max(64,Math.round((f.per||60)*Q.flora*12)));POOLS.set(f,P);return P;}
 function poolAlloc(P,cap){ // the pool's mesh at capacity cap, what is written carried over; the old geometry disposed
@@ -150,7 +169,7 @@ function poolTouch(P,s,c){ // the range [s,s+c) uploaded at the next draw, joine
 function poolAdd(P,ch,rng,tints,list,mat){ // the cell's instances as one block at the pool's end (the rng in makeInstanced's order: the tint's pick, then three jitters)
   if(P.n+list.length>P.cap)poolAlloc(P,Math.max(P.cap*2,P.n+list.length));
   const s=P.n,M=P.im.instanceMatrix.array,C=P.im.instanceColor.array,V=P.vars?P.geo.attributes.aVar.array:null,A=P.cur?P.geo.attributes.aCur.array:null,B=P.cur?P.geo.attributes.aTide.array:null;
-  for(let i=0;i<list.length;i++){const p=list[i],k=s+i;M.set(p.m.elements,k*16);let tc=p.tint||tints[Math.floor(rng()*tints.length)];const q=p.chem;if(q)tc=[lerp(tc[0],q[0],q[3]),lerp(tc[1],q[1],q[3]),lerp(tc[2],q[2],q[3])];C[k*3]=tc[0]*(0.85+rng()*0.25);C[k*3+1]=tc[1]*(0.85+rng()*0.25);C[k*3+2]=tc[2]*(0.85+rng()*0.25);if(V)V[k]=p.v; // chem (v11.67): the place's stain over the pick (grow.js tintBy), before the jitter
+  for(let i=0;i<list.length;i++){const p=list[i],k=s+i;M.set(p.m.elements,k*16);M[k*16+12]=p.m.elements[12]-ORIGIN.x;M[k*16+14]=p.m.elements[14]-ORIGIN.z;let tc=p.tint||tints[Math.floor(rng()*tints.length)];const q=p.chem;if(q)tc=[lerp(tc[0],q[0],q[3]),lerp(tc[1],q[1],q[3]),lerp(tc[2],q[2],q[3])];C[k*3]=tc[0]*(0.85+rng()*0.25);C[k*3+1]=tc[1]*(0.85+rng()*0.25);C[k*3+2]=tc[2]*(0.85+rng()*0.25);if(V)V[k]=p.v; // chem (v11.67): the place's stain over the pick (grow.js tintBy), before the jitter
     if(A){if(p.y>0.5||mat.land){A[k*2]=A[k*2+1]=B[k*2]=B[k*2+1]=0;continue;}steadyOf(ch,p.x,p.z,p.y+8,CURV);A[k*2]=CURV.x;A[k*2+1]=CURV.z;tidalAt(p.x,p.z,CURV);B[k*2]=CURV.x;B[k*2+1]=CURV.z;}} // nothing on land (the tussock) leans to the water
   P.n+=list.length;P.blocks.push({ch:ch,start:s,count:list.length,vis:false});ch.pooled.push(P);poolTouch(P,s,list.length); // hidden until poolCull sees its cell (this frame: cullChunks runs after the streaming)
 }
@@ -235,7 +254,7 @@ function placeBigSolids(ch){
   // camera (the far layer draws them), only into the world's shadow map when the cell is in its box (scene.js updateShadowS). The
   // region's mesh holds a whole region's structures and would submit them all; this submits the cell's
   const c=new THREE.Color();byGeo.forEach((L,g)=>{const im=new THREE.InstancedMesh(g,MATROCKB,L.length);im.layers.set(1);shadowCaster(im,MATROCKB,ch.sphere);
-    for(let i=0;i<L.length;i++){im.setMatrixAt(i,L[i].m);c.setRGB(L[i].col[0],L[i].col[1],L[i].col[2]);im.setColorAt(i,c);} // the colour is never seen; it keeps the depth program the warm-up compiled (instancingColor is in its key)
+    for(let i=0;i<L.length;i++){im.setMatrixAt(i,L[i].m);c.setRGB(L[i].col[0],L[i].col[1],L[i].col[2]);im.setColorAt(i,c);}instLocal(im,L,ch.ox,ch.oz,q=>q.m); // the colour is never seen; it keeps the depth program the warm-up compiled (instancingColor is in its key)
     im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;ch.group.add(im);ch.meshes.push(im);ch.shBig.push(im);});
   // v11.22: the neighbours' structures that reach into this cell, registered here too, so the clearance test sees them (a structure may
   // reach a cell past its owner). A lump ends up in two hashes near a cell line; a push from two copies of one rock is the push from one.
@@ -312,6 +331,7 @@ function placeCliffs(ch,rng){
 function addLight(ch,x,y,z,color,intensity,distance){const s={x:x,y:y,z:z,color:color,intensity:intensity,distance:distance,d:0};ch.lightSrc.push(s);lightSources.push(s);}
 function addPlume(ch,tops,n,size){
   const vp=new Float32Array(n*3);
+  tops=tops.map(p=>V3(p.x-ch.ox,p.y,p.z-ch.oz)); // the cell's own frame (v11.110)
   for(let i=0;i<n;i++){const tp=tops[i%tops.length];vp[i*3]=tp.x+rnd(-1,1);vp[i*3+1]=tp.y+rnd(0,25);vp[i*3+2]=tp.z+rnd(-1,1);}
   const vg=new THREE.BufferGeometry();vg.setAttribute('position',new THREE.BufferAttribute(vp,3));
   const pts=new THREE.Points(vg,new THREE.PointsMaterial({color:0x8a8a90,size:size||0.7,transparent:true,opacity:0.35,depthWrite:false}));pts.frustumCulled=false;
@@ -426,7 +446,7 @@ function unloadChunk(ch){
 }
 let activeGen=null,activeKey=null;
 function manageChunks(budgetMs){
-  const t0=performance.now();
+  const t0=performance.now();poolSnap(player.pos.x,player.pos.z); // the pools' render origin follows the player (v11.110)
   const ci=cellOf(player.pos.x),cj=cellOf(player.pos.z);
   for(const ch of chunks.values())if(Math.max(Math.abs(ch.i-ci),Math.abs(ch.j-cj))>LOAD_R+1){unloadChunk(ch);break;} // one a frame (v11.12): crossing a cell line used to drop a whole column at once — forty creatures and two dozen geometries each
   if(!activeGen){

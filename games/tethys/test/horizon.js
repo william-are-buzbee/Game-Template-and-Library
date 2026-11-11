@@ -14,7 +14,7 @@ function build(one){let src=js;if(one)for(const [a,b] of P){if(!src.includes(a))
   src+='\nglobal.__HZ'+(one?1:0)+'={run(x,z){const g=hzGen(x,z);let n=0;for(;;){const r=g.next();n++;if(r.done)break;}return {land:hzLand,steps:n};},ISLANDS,Q};';
   const tmp=path.join(os.tmpdir(),'tethys_horizon'+(one?'_one':'')+'.js');fs.writeFileSync(tmp,'(function(){"use strict";\n'+src+'\n})();');require(tmp);return global['__HZ'+(one?1:0)];}
 process.env.PICK='1';require('./stub.js');
-const tris=land=>{const out=[];for(const m of land.children){const p=m.geometry.attributes.position.array,ix=m.geometry.index.array||m.geometry.index;const k=v=>p[3*v]+','+p[3*v+1]+','+p[3*v+2];
+const tris=land=>{const out=[];for(const m of land.children){const p=m.geometry.attributes.position.array,ix=m.geometry.index.array||m.geometry.index,o=m.position;const k=v=>(o.x+p[3*v]).toFixed(4)+','+p[3*v+1]+','+(o.z+p[3*v+2]).toFixed(4); // the world's position (v11.110: each mesh local to a lattice point by it)
   for(let t=0;t<ix.length;t+=3){const a=[k(ix[t]),k(ix[t+1]),k(ix[t+2])],r=a.indexOf([...a].sort()[0]);out.push([a[r],a[(r+1)%3],a[(r+2)%3]].join('|')+'@'+m.name);}}return out;};
 const N=build(false),t1=Date.now(),rn=N.run(0,0),msN=Date.now()-t1;
 const O=build(true),t2=Date.now(),ro=O.run(0,0),msO=Date.now()-t2;
@@ -24,8 +24,8 @@ const seen=new Map();let dup=0;for(const t of tn){const b=bare(t);if(seen.has(b)
 ok(dup===0,`every triangle in one member's mesh (${tn.length} triangles, ${dup} in two)`);
 const so=new Set(to.map(bare));let miss=0,extra=0;for(const t of to)if(!seen.has(bare(t)))miss++;for(const b of seen.keys())if(!so.has(b))extra++;
 ok(miss===0&&extra===0&&tn.length===to.length,`the members' triangles are the one mesh's, each with its winding: ${to.length} against ${tn.length} (${miss} missing, ${extra} more)`);
-const S=N.Q.hz;let off=0;for(const m of rn.land.children){const p=m.geometry.attributes.position.array;for(let k=0;k<p.length;k+=3){const fx=(p[k]-p[0])/S,fz=(p[k+2]-p[2])/S;if(Math.abs(fx-Math.round(fx))>1e-6||Math.abs(fz-Math.round(fz))>1e-6)off++;}}
-ok(off===0,'every vertex on the lattice ('+off+' off it)');
+const S=N.Q.hz;let off=0;for(const m of rn.land.children){const p=m.geometry.attributes.position.array;for(let k=0;k<p.length;k+=3){const fx=p[k]/S,fz=p[k+2]/S; /* local: whole steps from the mesh's lattice point (v11.110) */if(Math.abs(fx-Math.round(fx))>1e-6||Math.abs(fz-Math.round(fz))>1e-6)off++;}}
+ok(off===0,'every vertex on the lattice, whole steps from its mesh\'s place ('+off+' off it)');
 const R=n=>N.ISLANDS.find(q=>q.id===n),edge=m=>{const r=R(m.name);return Math.hypot(r.x,r.z);};
 const names=rn.land.children.map(m=>m.name);ok(names[0]==='home'&&names.indexOf('giant')>=0&&names.indexOf('giant')<names.indexOf('m153'),`built nearest first from ours: ${names.slice(0,6).join(', ')} … (${names.length})`);
 {let cum=0,tot=0,at={};for(const m of rn.land.children)tot+=m.geometry.index.length/3;for(const m of rn.land.children){cum+=m.geometry.index.length/3;at[m.name]=cum/tot;} // the work by the triangles built (the stub's clock stands within a frame, so the build never yields here)

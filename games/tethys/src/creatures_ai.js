@@ -267,15 +267,15 @@ function fallShow(F,ch){if(F.mesh)return;const st=fallState(F,nowD());if(st.gone
     if(i>=2&&i<=6){const r=L*(0.13-0.012*Math.abs(i-4));P.push(part(new THREE.TorusGeometry(r,L*0.012,4,10,Math.PI*0.9),x,groundAt(x,z)+L*0.02,z,FALL_BONE,{r:[HPI,F.yaw+(i&1?0.08:-0.08),HPI*0.9]}));}}
   {const [x,z]=at(-L*0.5,0);P.push(part(G.box(L*0.16,L*0.08,L*0.1),x,groundAt(x,z)+L*0.04,z,FALL_BONE,{r:[0,F.yaw,0.1]}));}
   const nm=Math.round(28*st.mat);for(let k=0;k<nm;k++){const u=(rg()-0.5)*L,v=(rg()-0.5)*L*0.35,[x,z]=at(u,v),s=L*(0.02+0.03*rg());P.push(part(G.cone(s,s*1.6,4),x,groundAt(x,z)+s*0.6,z,FALL_MATS[k%3]));}
-  const geo=merge(P);geo.computeBoundingSphere();const m=new THREE.Mesh(geo,MATLM),grp=new THREE.Group();grp.add(m);ch.meshes.push(m);
-  if(st.rich>0.02){const pm=new THREE.Mesh(fallPatch(F,st.rich,at),MATLM);grp.add(pm);ch.meshes.push(pm);}
+  const geo=merge(P);{const q=geo.attributes.position.array;for(let k=0;k<q.length;k+=3){q[k]-=ch.ox;q[k+2]-=ch.oz;}}geo.computeBoundingSphere();const m=new THREE.Mesh(geo,MATLM),grp=new THREE.Group();grp.add(m);ch.meshes.push(m); // the cell's frame (v11.110; from the merged floats: a few mm baked in at most, never a swim)
+  if(st.rich>0.02){const pm=new THREE.Mesh(fallPatch(F,st.rich,at,ch.ox,ch.oz),MATLM);grp.add(pm);ch.meshes.push(pm);}
   ch.group.add(grp);F.mesh=grp;F.ch=ch;F.shownT=nowD();}
 // the enriched patch: one mesh draped on the ground (an ellipse 1.8 × 1.1 of the body's length), its colour the floor's own (terrainColor)
 // darkened toward the rotting fat's by the stage, fading out to the floor at its edge — a stain in the mud, not a mat laid on it
 const FALL_FT=new Float32Array(9),FALL_TC=new Float32Array(3);
-function fallPatch(F,k,at){const n=9,R=F.size*0.9,pos=[],col=[],idx=[];
+function fallPatch(F,k,at,ox,oz){const n=9,R=F.size*0.9,pos=[],col=[],idx=[];
   for(let b=0;b<=n;b++)for(let a=0;a<=n;a++){const u=(a/n-0.5)*2*R,v=(b/n-0.5)*2*R*0.6,[x,z]=at(u,v),s=sample(x,z,FALL_FT),e=u*u/(R*R)+v*v/(R*R*0.36),w=k*clamp(1-e,0,1)*(0.75+0.25*fbm(x*0.3,z*0.3,2));
-    terrainColor(x,z,s.h,FALL_FT,0,FALL_TC,0);pos.push(x,groundAt(x,z)+0.12,z);col.push(lerp(FALL_TC[0],FALL_RICH[0],w),lerp(FALL_TC[1],FALL_RICH[1],w),lerp(FALL_TC[2],FALL_RICH[2],w));}
+    terrainColor(x,z,s.h,FALL_FT,0,FALL_TC,0);pos.push(x-ox,groundAt(x,z)+0.12,z-oz);col.push(lerp(FALL_TC[0],FALL_RICH[0],w),lerp(FALL_TC[1],FALL_RICH[1],w),lerp(FALL_TC[2],FALL_RICH[2],w));}
   for(let b=0;b<n;b++)for(let a=0;a<n;a++){const i=b*(n+1)+a;idx.push(i,i+n+1,i+1,i+1,i+n+1,i+n+2);}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(pos),3));g.setAttribute('color',new THREE.BufferAttribute(new Float32Array(col),3));g.setIndex(idx);g.computeVertexNormals();g.computeBoundingSphere();return g;}
 // once a game hour or so (ecology.js ecoTick): the buried go; a shown fall whose stage moved on is rebuilt
