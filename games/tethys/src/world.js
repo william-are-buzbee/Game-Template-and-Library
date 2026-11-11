@@ -588,8 +588,7 @@ function findSpot(rng,ok,r0,r1){
 }
 const LM={};
 (function(){const rng=mulberry(4242);
-  const mud=s=>s.h<-230&&s.h>OXY.top&&s.f[FI.sub]<0.35&&s.f[FI.heat]<0.1; // OXY.top was CHEMO (-450) to v11.95: the same number, so the bones lie where they lay
-  LM.bones=findSpot(rng,mud,1290,1430);
+  // the bones (a ~100 m ribcage on the mud, searched first with this rng) struck v11.100 (the person: a holdover; bones are the falls' now, DEEP §4)
   {const vr=(VENT.r0+VENT.r1)/2,x=Math.cos(VENT.a)*vr,z=Math.sin(VENT.a)*vr;LM.chimney={x:x,z:z,h:sample(x,z).h};} // on the fissure
     LM.all=Object.keys(LM).map(k=>LM[k]);})();
 // ---------- the water's oxygen and the basins' chemoclines (v11.96, DEEP.md §2, §9) ----------

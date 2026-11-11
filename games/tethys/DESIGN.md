@@ -152,7 +152,7 @@ day depth by it.
 
 `world.js`: the chimney sits where the geology puts it (rift arm 0, the fissure's middle; the pit crater was the other until v11.95); the
 rest are searched (`findSpot(rng, ok, r0, r1)`: the flattest patch in the band whose sample passes `ok`, seed 4242, fixed
-sequence — new ones on the end): the bones, the lantern heart and the great lantern on mud with no heat; the neck
+sequence — new ones on the end): the bones (struck v11.100: a holdover; the falls are the bones now, DEEP §4), the lantern heart and the great lantern on mud with no heat; the neck
 (`LM.neck`, v10.2; the colossal spire's search, so it stands where that stood) on a dike crest: `flora.js neckGeo`, one
 kit at 26× — a fat core, a ring of columns, two cap blocks, a talus — ~65 m across, 43 m above its crest, 130 with the
 talus; its lumps are the cell's solids through `LMK.neck.matrix`. Meshes are built once at boot (`far.js` `LMK`); a cell registers only the solids, lights and plumes of
@@ -162,7 +162,7 @@ and the massif are gone (v10).
 ## Landmarks
 
 `world.js` `findSpot` searches the terrain for a flat patch of a given biome in a radius band; `LM` is set
-once at load with seed 4242, in a fixed sequence (bones, chimney now; the pit, the arches, the spire, the heart and the lantern are gone — **new ones
+once at load with seed 4242, in a fixed sequence (the chimney now; the bones (v11.100), the pit, the arches, the spire, the heart and the lantern are gone — **new ones
 go on the end** so earlier positions don't move). `findSpot` takes an optional `minDepth`, used so the great arch lands
 on deep ground. Because positions are searched, they survive terrain tweaks.
 
@@ -993,7 +993,7 @@ get only the sun/hemi (the light pool is assigned by distance), so distant vents
   and slabs; 103k before) — near and far alike; the cell only registers their `lumps` as solids from the same cached
   list (`placeBigSolids`). `CAIRNS` (flora.js, struck v11.95 with the pit) were placed structures in world space appended to their cell's list through
   the same `bigPlace`. Nothing pops when a cell loads; `placeFloraType` returns immediately for `big`.
-- **Landmarks** (`LMK`): the ribcage, the neck, the chimney (the arches, the great lantern and
+- **Landmarks** (`LMK`): the chimney (the ribcage struck v11.100; the neck gone before) (the arches, the great lantern and
   the heart are built at boot with `gridH` for their ground height and kept; the cell registers solids/lights/plumes.
   The great lantern's and heart's glow meshes are persistent, drawn whenever in frustum.
 - **Impostors** (`FAR_IMP`, `impostorsFor`). The flora that exists only in loaded cells (the stipe forest at 900/cell,

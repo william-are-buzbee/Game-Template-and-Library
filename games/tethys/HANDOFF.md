@@ -1,5 +1,10 @@
 # HANDOFF — tethys
 
+**v11.100 (11 Nov 2026): the veil, the tread and the great age and die; the bones landmark struck.** The person's two calls on v11.99:
+the three immortal kinds are mortal now (the ledger's natural death, falls — the veil's ~2.4 a game day — and wounds like anything else; the
+census holds them steady); the ~100 m ribcage landmark is gone, a holdover. **Ask first** about a veil's fall in play, then whether hunters
+now going after the three reads right. Next: the player's oxygen (DEEP §9), then the square from the model (GLOBE §8 step 5), then the engine.
+
 **v11.99 (11 Nov 2026): carcass falls** (DEEP.md §4, step 5). A big body (5 m or more) killed in sight, or dead off-screen in the
 ledger (~5 a game day over the world), is a fall: a record in the save that outlives its cell — flesh for 1–3 game days as a carcass the
 scavengers eat at, then the bones with the enriched patch (~10 days) and the mats (to ~40), until buried (60 days on an apron, 150 on ooze).

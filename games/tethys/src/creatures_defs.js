@@ -1,5 +1,7 @@
 // creatures_defs.js — species stats and where they spawn. This is the file to edit for ecology changes.
 // v11.55 (COMBAT.md): there are no hit points. hp keeps two meanings only — ≤1 is forage (dies at the touch), ≥1e8 is immortal (takes no wound);
+// v11.100 (the person, 11 Nov 2026): the veil, the tread and the great age and die like the rest (they were immortal; DEEP §4: a veil's
+// fall is the one the deep was written for) — their hp is now an ordinary mortal's, meaning nothing but that;
 // any other value is nothing. dmg is a bite's size for the blood and the debris. venom {kind: 'paralyse' (t seconds, against: clades) | 'sting'}
 // is the clade's chemistry (§3b): the lurker's beak paralyses, the basker's and the grazer's spines sting whatever clamps them. immune: the
 // abyssal eats combs that fed at the chemocline without sickening (v11.56; the garter snake's answer to the newt — its comb is its whole diet).
@@ -37,8 +39,8 @@ const DEFS={
   glim:{build:()=>compile(SPECS.glim),size:0.55,pace:0.6,flee:true,hp:1,edible:true,food:12,role:'boid'},
   arrow:{build:()=>compile(SPECS.arrow),size:1.0,hp:1,edible:true,food:24,role:'hunter',prey:['darter','flicker','scuttle','sifter'],detect:14,reach:0.9,dmg:0,biteCD:1,home:26,cruise:8,cruiseF:0.5,cool:2},
   grazer:{build:()=>compile(SPECS.grazer),stock:3,size:2.6,venom:{kind:'sting'},pace:0.55,flee:true,hp:70,role:'graze',home:32,floor:true}, // mortal since v11.26: the ridge's and the sickle's meal (it was 1e9 and every hunt ended bored)
-  veil:{build:()=>compile(SPECS.veil),size:16,pace:0.19,hp:1e9,role:'wander',home:200,cruise:70,cruiseF:1},
-  great:{build:()=>compile(SPECS.great),size:6,pace:0.14,ram:5,dmg:12,radius:9,reach:5.2,hp:1e9,role:'coil',home:45,cruise:10,cruiseF:1},
+  veil:{build:()=>compile(SPECS.veil),size:16,pace:0.19,hp:900,role:'wander',home:200,cruise:70,cruiseF:1},
+  great:{build:()=>compile(SPECS.great),size:6,pace:0.14,ram:5,dmg:12,radius:9,reach:5.2,hp:600,role:'coil',home:45,cruise:10,cruiseF:1},
   ridge:{build:()=>compile(SPECS.ridge),size:9,hp:140,role:'hunter',prey:['player','grazer','picker','plough'],detect:46,reach:6.6,dmg:32,biteCD:1.5,home:240,cruise:60,cruiseF:0.4,cool:5},
   ortho:{build:()=>compile(SPECS.ortho),size:8,hp:90,role:'hunter',prey:['player','needle','darter','grazer','picker'],detect:40,reach:5.6,dmg:24,biteCD:1.2,home:220,cruise:70,cruiseF:0.4,cool:5},
   abyssal:{build:()=>compile(SPECS.abyssal),size:15,immune:true,hp:400,role:'hunter',prey:['player','comb'],cycle:10,detect:85,reach:10,dmg:55,biteCD:1.8,home:420,cruise:200,cruiseF:0.45,cool:6},
@@ -62,7 +64,7 @@ const DEFS={
   crusher:{build:()=>compile(SPECS.crusher),size:4,hp:110,role:'hunter',prey:['rasp','scuttle','player','wedge'],preyClade:'coil',scav:40,detect:24,reach:4.2,dmg:28,biteCD:1.5,strike:{tell:0.3,dur:0.35,speed:9,range:1.7},home:50,cruise:14,cruiseF:0.4,cool:4},
   trap:{build:()=>compile(SPECS.trap),size:2,hp:60,role:'trap',prey:['player','flicker','needle','darter','scuttle','sifter'],detect:4.5,reach:3.3,dmg:24,strike:{tell:0.35,dur:0.3},cool:3,floor:true,clear:0.45},
   hook:{build:()=>compile(SPECS.hook),size:2.5,hp:50,role:'ambush',prey:['player','flicker','darter','needle'],hang:true,radius:11,lunge:11,reach:2.8,dmg:18},
-  tread:{build:()=>compile(SPECS.tread),size:7,pace:0.17,hp:1e9,role:'graze',calm:true,home:90,floor:true,legs:true,cruiseF:1},
+  tread:{build:()=>compile(SPECS.tread),size:7,pace:0.17,hp:800,role:'graze',calm:true,home:90,floor:true,legs:true,cruiseF:1},
   picker:{build:()=>compile(SPECS.picker),stock:3,size:1.5,pace:0.62,flee:true,hp:1,edible:true,food:10,role:'graze',home:40,floor:true,legs:true,cruiseF:0.6,scav:90},
   flicker:{build:()=>compile(SPECS.flicker),stock:8,size:0.4,pace:0.51,flee:true,hp:1,edible:true,food:6,role:'boid'},
   hose:{build:()=>compile(SPECS.hose),size:1.5,hp:30,role:'hunter',prey:['flicker','darter'],detect:14,reach:2.2,dmg:0,biteCD:1.2,strike:{tell:0.25,dur:0.25,speed:9,range:1.8},burst:{on:0.45,off:0.9},home:30,cruise:10,cruiseF:0.5,cool:2},

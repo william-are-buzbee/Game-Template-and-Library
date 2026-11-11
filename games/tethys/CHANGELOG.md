@@ -6417,3 +6417,20 @@ its census fills the world's cells over the first minutes (`eco 370/57600` headl
 **Unseen, ask in this order:** a fall found in play (`falls()`, then its `tp`); the carcass with scavengers at it; whether ~5 a day over the
 world is too few or too many to meet; the veil (and the tread and the great) never dying off-screen, so never falling (DEEP §4, open); the
 bones landmark — a permanent ~100 m ribcage where bones now go in 60–150 days (DEEP §4, open).
+
+
+## v11.100 — the veil, the tread and the great age and die; the bones landmark struck (11 Nov 2026)
+
+The person, on v11.99's two open calls (DEEP §4): the immortal kinds should age and die — "Yes"; and the bones landmark "is a holdover for
+now, we can get rid of it. Maybe later we add fantastically large animals and bones, but for now, no."
+
+- **creatures_defs.js:** the veil, the tread and the great were immortal (`hp` 1e9: the ledger never killed them, combat never wounded them),
+  so the fall DEEP was written for — a veil's — never came. They are mortal now (`hp` an ordinary value, which since v11.55 means only that):
+  the ledger's natural death takes them, they fall (the veils ~2.4 a game day over the world, on the ~5.4 of v11.99), and a hunter's edge
+  can wound them as it can anything. The 120-day census holds them: veil 1,469 → 1,642, tread 77 → 82, great 152 → 161.
+- **world.js, far.js:** the bones landmark struck — a permanent ribcage ~100 m long on the mud, from an animal no bigger than 16 m that this
+  planet has, where the falls' bones are now buried in 60–150 days. It was the first search on the landmarks' rng; nothing searched came
+  after it, so nothing else moved (the chimney is placed by the geology).
+
+**Unseen, ask in this order:** a veil's fall in play (`falls()`); whether a hunter now goes after a veil, a tread or a great, and whether that
+reads right — they were untouchable before.

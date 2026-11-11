@@ -107,10 +107,11 @@ bodies and bones lie as they fell — the graveyard.
   mats grow. None in the world yet (no basin), so unseen.
 - **`falls()`** in the console: the nearest falls, their stage and the `tp()` to each. The ledger's census fills the world's cells over the
   first minutes of a game, and off-screen falls start where it has.
-- **Open for the person:** the veil, the tread and the great are immortal in the ledger (`hp` 1e9), so the iconic fall — "a veil's carcass
-  feeding the island for days" — never happens off-screen; whether they should age and die is a roster call. And the bones landmark
-  (`LM.bones`, far.js): a permanent ribcage ~100 m long, from an animal no larger than 16 m that this planet has, lying where bones are now
-  buried in 60–150 days — a holdover like the pit, or kept?
+- **Answered by the person (11 Nov 2026):** the veil, the tread and the great **age and die** (they were immortal in the ledger, `hp` 1e9 —
+  so the veil's fall never came); since v11.100 they are mortal: the ledger's natural death takes them (veil 1,469 → 1,642 over the 120-day
+  census, tread 77 → 82, great 152 → 161 — steady), they fall (the veils ~2.4 a game day over the world), and like everything else they can
+  be wounded. **The bones landmark** (a permanent ~100 m ribcage) **was a holdover**: struck v11.100 — "maybe later we add fantastically large
+  animals and bones, but for now, no."
 
 ## 5. The basin 28 km west — the dark, at scale
 
