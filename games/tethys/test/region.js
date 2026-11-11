@@ -8,7 +8,7 @@ const util=fs.readFileSync(path.join(root,'vendor/wb-core.global.js'),'utf8')+'\
 let world=fs.readFileSync(path.join(root,'src/world.js'),'utf8');const cut=world.indexOf('// ---------- the light');if(cut>0)world=world.slice(0,cut); // the geology and the fields (test/map.js's cut)
 const region=fs.readFileSync(path.join(root,'src/region.js'),'utf8');
 const THREE={Vector3:class{constructor(x,y,z){this.x=x;this.y=y;this.z=z;}},Matrix4:class{},Quaternion:class{}};
-const G=new Function('THREE',util+'\n'+world+'\n'+region+'\nreturn {sample,HALF,ISLANDS,REGION_K,REGION_PINS,RG_STATE,regionModel,regionGrid,regionBasins,regionSeen,rgKei,rgSea,rgTrack,OXY,chemoAt,oxyAt,underChemo,chemoB:()=>CHEMO_B};')(THREE);
+const G=new Function('THREE',util+'\n'+world+'\n'+region+'\nreturn {sample,HALF,ISLANDS,REGION_K,REGION_PINS,RG_STATE,regionModel,regionGrid,regionBasins,regionSeen,rgKei,rgSea,rgTrack,OXY,chemoAt,oxyAt,underChemo,chemoB:()=>CHEMO_B,apronAt};')(THREE);
 let fails=0;const ok=(c,msg)=>{console.log((c?'  ok   ':'  FAIL ')+msg);if(!c)fails++;};
 console.log('region: the pieces');
 // kei(x) (A&S Table 9.12): 1 → −0.494991, 2 → −0.202400, 3 → −0.051123, 4 → +0.002198; the table is kei/kei(0), kei(0) = −π/4
@@ -53,6 +53,11 @@ ok(o50===1&&o300<1&&o650<o300&&o1100>o650,`the profile over the fed water 3 km e
 ok(o650>=G.OXY.min[0]-1e-9&&o650<=G.OXY.min[1]+1e-9&&Math.abs(o1100-G.OXY.deep)<1e-9,'the core within the table\'s minimum, the floor at its deep value — survivable everywhere (the person, 10 Nov 2026)');
 const near=G.oxyAt(3000,-650,0),far=G.oxyAt(15000,-650,-15000);
 ok(near<far,`the core lower under the island's fed water (${near.toFixed(2)} 3 km out) than in the open basin (${far.toFixed(2)})`);
+// the floor's supply (v11.97, DEEP §2): the islands' aprons by their land, the open floor beyond them
+const ap=(x,z)=>G.apronAt(x,z),aFoot=ap(6000,0),aOurs=ap(8500,0),aFar=ap(15000,-15000),aGiant=ap(-15400+14000,9200),aGap=ap(Math.cos(5.44)*13000,Math.sin(5.44)*13000);
+ok(aFoot===1&&aOurs<0.4&&aFar===0,`ours' apron: ${aFoot.toFixed(2)} at its foot (6 km), ${aOurs.toFixed(2)} at 8.5 km (a rim with almost no land sheds little), ${aFar.toFixed(2)} 21 km out`);
+ok(aGiant>0.7,`the giant's apron 14 km from its centre, past its foot: ${aGiant.toFixed(2)} (7 km of rainy land supply it)`);
+ok(aGap<0.5,`the sill's gap is beyond the aprons' main supply (${aGap.toFixed(2)}): the inflow sweeps it to pavement`);
 // the log: what the default province is
 const cnt={};let land=0;for(const m of M){cnt[m.state]=(cnt[m.state]||0)+1;land+=m.land;}
 console.log(`\n  ${M.length} members in ${ms} ms (seed ${K.seed}; the grid ${t2-t1} ms, the flood ${t3-t2} ms):`);

@@ -72,7 +72,7 @@ consequence of "a young oceanic shield volcano, almost drowned", and world.js `s
   the same rule. The honest stretch is the tides: tidal mixing over sills is what ventilates fjords, and these are 6–9 m. The gaps are few,
   narrow and deep (tidal streams concentrate in shallow passes, not a 450 m gap), and the basin's volume — its far shores hundreds of km
   beyond the map — swamps what leaks in. The game's floor: the flank meets an abyssal plain at −1100 (pelagic mud over hills of ±60 m,
-  manganese-black, anoxic, ~9 °C) through a sediment apron 3.7 km out; the sill's nearest segment crosses the north-east corner, crest
+  manganese-black, anoxic, ~9 °C — to v11.95; DEEP §2 since: oxic, pale ooze beyond the aprons) through a sediment apron 3.7 km out; the sill's nearest segment crosses the north-east corner, crest
   13 km out with drowned summits to −150 and saddles at −410, the sill proper at −430 (20 m over the chemocline: the water under it never
   leaves), the main gap on the current's axis — the inflow through it is what strikes the north-east flank, so the upwelling is the gap's.
   Beyond the crest the outer flank goes on down toward the plate: the ordinary ocean, whose deep is oxic; the game's chemocline is the
@@ -84,7 +84,7 @@ consequence of "a young oceanic shield volcano, almost drowned", and world.js `s
   young edifice), easing to 5–10° low down, with the archipelagic apron — landslide debris and volcaniclastic turbidites — feathering
   out at 1–3° onto the plain for tens of km. The plate itself: a young plate lies ~3 km down and sinks with age (d ≈ 2500 + 350·√Ma m:
   3.6 km at 10 Ma, 5 km at 50 Ma); its floor is abyssal plain — flat pelagic sediment over abyssal hills of a hundred metres, cold
-  (~3 °C), lightless, oxic on Earth but here **below the chemocline** (−450), so anoxic, ferrous, manganese-black. A big island also
+  (~3 °C), lightless, oxic on Earth but here **below the chemocline** (−450), so anoxic, ferrous, manganese-black (to v11.95; oxic since v11.96, pale ooze since v11.97 — DEEP §2). A big island also
   flexes the plate into a moat and an arch, 50–150 km out — nothing at this scale. So the game's floor past the apron's toe (r ≈ 1560,
   wavy) goes on down at 16.7° easing to 12.4° (world.js `FLANK_*`): −320 at the square's edge on an axis, ~−580 at a corner, −850
   2 km out, the plate at ~−3800 some 15 km out. **The dark inside the square is the lower flank and the floor now** (the pit struck v11.95). When the world grows
@@ -234,9 +234,9 @@ radial, stinging, eyeless; bells in the water, floats on the surface (the button
 - **Blood pigment is the tint family:** copper (ringmouths), iron (slowbloods), pale (hingeshells). Three clades
   distinguishable by colour alone.
 - **Shell colour is water chemistry**, read by place: cream calcite on the reef; rust where dissolved iron meets
-  oxygen near the basalt (rockfall, shallows); black iron sulfide below the chemocline and at the vents (the one real
-  iron-shelled animal, the scaly-foot snail, is black); manganese black on the plain (abyssal plains grow manganese
-  nodules). Real shell colour is mostly pigment, but the rule is legible, which is what matters.
+  oxygen near the basalt (rockfall, shallows); black iron sulfide under a basin's chemocline and at the vents (the one real
+  iron-shelled animal, the scaly-foot snail, is black); manganese black where the floor is swept bare or the rock is old
+  (v11.97, DEEP §2: pavement and crust; the open floor is pale ooze, not a nodule plain). Real shell colour is mostly pigment, but the rule is legible, which is what matters.
 - **Geometry language:** ringmouths are spheres and chains, slowbloods are lathes, hingeshells are boxes and cones
   with the joints showing. Nearly true already; make it a rule.
 - **Niches are shared, not divided.** Every niche has a winner and lesser representatives ("the largest or safest
@@ -344,7 +344,7 @@ needle's spine, the grazer's rake, the crusher's plate).
 | ridge | ridgebacks | player-size predator, mixotherm | the drop, terraces, plain, the arch | 9 | exists; forward eyes |
 | abyssal | ridgebacks | apex, gigantotherm | **the rim** of the dark, forays below | 15 | exists; home moves to the rim |
 | eel | longbacks | structure hunter | kelp towers | 4 | exists |
-| **stone** | platebacks | floor ambush, torpid, bite | plain, terraces, lanterns | 3 | a plated lump the colour of its floor (manganese-black on the plain), two eyes on top; sits for minutes, bites what touches it |
+| **stone** | platebacks | floor ambush, torpid, bite | plain, terraces, lanterns | 3 | a plated lump the colour of its floor (v11.97: pale on ooze, black on pavement and crust; once manganese-black on the plain), two eyes on top; sits for minutes, bites what touches it |
 | **crusher** | platebacks | shell-eater | rockfall, reef, kelp | 4 | short, thick, plated; plate jaws; hunts rasps and coilshells — the coilshell player's particular enemy (withdrawing won't save you; mechanic later) |
 
 ### Hingeshells

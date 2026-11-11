@@ -610,3 +610,9 @@ function underChemo(x,y,z){const c=chemoAt(x,z);return c!==null&&y<c;} // in a b
 function oxyAt(x,y,z,nut){if(underChemo(x,y,z))return 0;const d=-y;if(d<=-OXY.photic)return 1;if(nut===undefined)nut=sample(x,z).f[FI.nut];
   const k=clamp((nut-0.12)/0.4,0,1),m=OXY.min[1]-(OXY.min[1]-OXY.min[0])*k;
   return 1-(1-m)*smooth(-OXY.photic,-OXY.core[0],d)+(OXY.deep-m)*smooth(-OXY.core[1],-OXY.floor,d);}
+// ---------- the floor's supply (v11.97, DEEP.md §2) ----------
+// How much of the floor at (x,z) is an island's apron — volcanic sand and silt shed off its flanks, laid faster than anything else can grow
+// on it — 1 at the flank's foot (the record's fade[1]) fading over the supply's run-out: 2 km for any island, and 1.3 m for every metre of
+// land radius on top (the rain on its land is the supply; ours, a rim with almost no land left, sheds little, and what it shed when it
+// stood high is under 2-3 Myr of pelagic ooze; the giant's 7 km of rainy land reach ~11 km past its foot). Read by chunks.js terrainColor.
+function apronAt(x,z){let a=0;for(const R of ISLANDS){const foot=R.fade?R.fade[1]:6000,L=2000+(R.land?1.3*R.land.r:0),d=Math.hypot(x-R.x,z-R.z);if(d<foot+L)a=Math.max(a,smooth(foot+L,foot,d));}return a;}

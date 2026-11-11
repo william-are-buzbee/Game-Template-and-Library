@@ -1713,7 +1713,7 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   `scaledDef` chaining a def with the size-dependent numbers scaled (size, reach ×k, dmg ×k², speed/flee/lunge ×√k, detect/radius/clear ×k, food;
   the routine the juvenile uses at `ECO.juv`), the hit capsules through the group's scale, the gape ×k; a **coat class** from the place's
   chemistry (creatures_spec.js `coatClassAt(h, y, f, clade)`: sulfide under a basin's chemocline (`cz`, world.js `chemoAt`; below `CHEMO` −450 to v11.95) or at `heat` > 0.3, lime on rock above −26 with `expo` >
-  0.35, rust on rock above −80, manganese on mud below −200, a `d` suffix at `young` > 0.4; `coatChem` shifts the kind's `PAL` preset in HSL by
+  0.35, rust on rock above −80, manganese on swept pavement (`flow` > 0.6) or old rock (`sub` > 0.55, `young` < 0.3) below −250 (v11.97; any mud below −200 to v11.96), a `d` suffix at `young` > 0.4; `coatChem` shifts the kind's `PAL` preset in HSL by
   `COAT_CLASSES`, on the keys `COAT_CHEM_KEYS[clade]` — the hingeshells' whole exoskeleton; the pale joints hold their lightness, the eyes and
   mouths never move, PAL_FIXED as palVariant; `''` for a clade with no keys), a geometry per kind, age and class in `KIND_GEO` (`kind~@cls`;
   buildKind swaps the preset for the build and puts it back); and, for a clade with `GRAMMAR.moult`, the **soft state**. `coatFor` takes the

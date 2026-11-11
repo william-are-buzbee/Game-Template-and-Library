@@ -1,5 +1,12 @@
 # HANDOFF — tethys
 
+**v11.97 (11 Nov 2026): the floor** (DEEP.md §2, step 3). Below the light the mud is now three grounds: the islands' aprons, dark
+grey-brown, by their land (world.js `apronAt`); the open floor's foraminiferal ooze, pale (a tropical floor at −1100 is far above the
+carbonate compensation depth — the draft's nodule plain was wrong, DEEP §2 says why); black iron-manganese pavement where the current sweeps
+it bare (the sill's gap). Old rock below the light takes a crust darkening with depth. The manganese coat follows (pavement and crust only).
+**Ask first** whether the pale deep floor reads right after the minimum they liked, then the giant's apron and the gap. Next: DEEP step 4,
+the deep gardens.
+
 **v11.96 (11 Nov 2026): the water's oxygen — no chemocline round ours** (DEEP.md §11 step 2). `CHEMO` (−450 under the whole world) is
 `OXY`/`oxyAt`/`chemoAt` (world.js): oxic to the floor with an oxygen minimum (0.25 in the core over the fed water, 0.5 in the open basin), a
 chemocline only where region.js's flood finds a silled basin in the game's own ground — none in today's square. The fog's plate and brown

@@ -287,7 +287,7 @@ the trait that wins its spot. Earth appears there only as the proof.
 | **frond** | blades (quilted) | 10, 9, 7 deep | 1–3 | a quilted frond on a holdfast: no mouth, no light; it absorbs what dissolves | see above: the deep's cheapest animal |
 | **glass** | axis + cup | 10 | 1–3 | a cup sac on a long glass stalk rooted in mud by a tuft | at 3 °C things grow for millennia and stand on stalks to clear the silt |
 | lily | | 10 | | sparse, on hard ground | |
-| **nodule** | (boulder tint) | 10 | | the plain's boulders manganese-black | PLANET's shell rule, applied to the rock. A tint, not a species |
+| **nodule** | (terrain, v11.97) | 10 | | not the plain's: the open floor is pale ooze; nodules speckle the swept pavement (the sill's gap) and old rock crusts (DEEP §2) | PLANET's shell rule, applied to the rock. A tint, not a species |
 | **mat** | tuft (flat) | 10, 9, 8, 11 | patches | white, yellow, grey fuzz on the floor; terrain tint plus a sparse short tuft | sulfur mats where there is seepage |
 
 ### The vents (8), hot

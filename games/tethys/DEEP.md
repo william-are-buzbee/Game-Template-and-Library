@@ -1,6 +1,6 @@
 # DEEP.md — the deep under the region model (10 Nov 2026)
 
-Status: **designed; §8 (the pit and the cairns struck) built v11.95; the oxygen field and the re-homing (§11 step 2) v11.96.** The person's decisions are in §10; the build is §11. Read PLANET.md first (The ocean, the head note on The
+Status: **designed; §8 (the pit and the cairns struck) built v11.95; the oxygen field and the re-homing (§11 step 2) v11.96; the floor (§2, step 3) v11.97.** The person's decisions are in §10; the build is §11. Read PLANET.md first (The ocean, the head note on The
 basin), then GLOBE.md §9.1 (the region model and its basins), FLORA.md (the deep floor, the vents, the rim) and SEAFLOOR.md §4. The rule
 stands: nothing has a name or a biome; every species places itself by envelope over the fields; nothing glows or moves without a reason.
 
@@ -36,15 +36,19 @@ shelf's base (~−60), ~15 at −200, ~9 at −450, ~5.5 at −800, ~4.5 at the 
 - **The relict** keeps its ground: old bare rock below the light — the model's drowned members (the guyots that replace the hand-built
   sill, GLOBE §9.1).
 
-**The floor.** Three grounds where there was one black plain:
-- **The apron near ours** — volcanic sand and mud from the island's own flanks, grey-brown, laid fast. Manganese cannot grow where sediment
-  buries it this quickly, so the near floor is not black: chunks.js's −600 → −900 blackening (v11.58) is backwards here.
-- **The far plain** — pelagic mud laid a few millimetres a thousand years, tens of kilometres out: **manganese nodules** (a nucleus, a few
-  millimetres a million years, only where the bottom water has oxygen — so the old "manganese-black anoxic plain" was chemically
-  backwards; this one is right). The black plain stays black, further out, for the right reason.
-- **Crusts on rock** — iron-manganese crust grows 1–5 mm a million years on rock left bare in oxic water, so it reads the rock's age: a
-  dark stain on ours at 3 Ma, black on the old members' guyots, none on fresh flows. The field exists (`young`); SEAFLOOR §4's crusts are
-  right at last (they were placed below the chemocline, where they cannot form).
+**The floor.** Where there was one black plain (**built v11.97**, chunks.js `terrainColor`, `FLOOR_COL`, world.js `apronAt` — revised when it was
+built, 11 Nov 2026: the draft put nodules on "the far plain", and a floor at −1100 in the tropics grows none):
+- **The islands' aprons** — volcanic sand and silt off their flanks, dark grey-brown, laid fast, so manganese cannot grow on them. The supply
+  is the rain on an island's land: `apronAt` is 1 at a record's foot and fades over 2 km plus 1.3 m for every metre of land radius. Ours, a
+  rim with almost no land left, sheds little (what it shed standing high is under 2–3 Myr of ooze); the giant's reaches ~11 km past its foot.
+- **The open floor: foraminiferal ooze**, pale grey-cream. A tropical floor above the carbonate compensation depth (Earth's ~4.5 km) is
+  carbonate ooze; nodules belong to the abyssal plains under it, or to floors kept bare. So beyond the aprons this floor is pale, not black.
+- **Pavement where the current keeps the floor bare** — iron-manganese on rubble, nodules speckling it, black: the sill's gap, where the
+  inflow (`flow` 0.94) sweeps it (the Blake Plateau's pavement lies at ~800 m under the Gulf Stream for the same reason).
+- **Crusts on rock** — iron-manganese grows 1–5 mm a million years on rock left bare in oxic water, thickest in the crust zone just under an
+  oxygen minimum (the manganese the minimum releases comes out there): old rock below the light darkens with depth, to 0.6 of the way; fresh
+  flows (`young`) carry none. SEAFLOOR §4's crusts are right at last (they were placed below the chemocline, where they cannot form).
+- **The coat follows** (creatures_spec.js `coatClassAt`): manganese on pavement and crusted rock below −250; on ooze and apron the preset.
 
 ## 3. The deep gardens (sessile; no new fauna)
 
@@ -162,7 +166,7 @@ plate and black flakes by the camera's column; the seep and the grey mats on a b
 struck (it returns about a basin, §5); the poison and the sulfide coat under a basin's chemocline; the pall in the core over the fed deep
 (`h` −1200..−560, `nut` ≥ 0.25: 3,222 cells against 6,023); the readout's `oxy`. The silled rule refined (region.js): a sill between −100 and
 −1100 — the inflow the minimum's water, not the ventilated deep's — and 10 km² or more; seed 32's only big dark is then the basin west.
-Not in step 2: the player's oxygen (§9), the swarms' day depth by it. Nothing open (answered 10 Nov 2026, §10). Left out on purpose: the patterns in the sediment round the constructors' dens (§6), for a later pass.
+Not in step 2: the player's oxygen (§9), the swarms' day depth by it. **Built v11.97 (step 3):** the floor (§2). Nothing open (answered 10 Nov 2026, §10). Left out on purpose: the patterns in the sediment round the constructors' dens (§6), for a later pass.
 
 The build, proposed, in order: (1) strike the pit; (2) the oxygen field and `chemoAt` — the −450 plate goes round ours and the envelopes
 move (the pall, the picker, the seep, the cinder's seep range, the grey mats, the poison, the sulfide coat); (3) the floor: the apron, the

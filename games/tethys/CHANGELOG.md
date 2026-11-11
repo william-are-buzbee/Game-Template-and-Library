@@ -6326,3 +6326,32 @@ filter feeders below and above me in one shot … Love both areas." **Still unse
 whether the deep round ours reads right without the plate (a blue that only darkens, the minimum invisible —
 oxygen has no colour); the palls, fewer and over the deep water near the islands now, not on the flank; whether the readout's `oxy` is
 worth keeping on. Not in this version: the player's oxygen (DEEP §9 — a slow, recoverable deficit in the core), the swarms' day depth by it.
+
+
+## v11.97 — the floor: aprons, pale ooze, pavement, crust (11 Nov 2026)
+
+DEEP.md §11 step 3. The person: "start step 3, the floor". To v11.96 every floor below −600 darkened toward "manganese-black pelagic mud
+under the anoxic water" (v11.58) — wrong twice since v11.96 (manganese dissolves without oxygen, and there is none to lack round ours now)
+and wrong in kind besides: a tropical floor at −1100 lies far above the carbonate compensation depth (Earth's ~4.5 km), so it is
+foraminiferal ooze, pale, unless something buries it faster or keeps it bare. DEEP §2's draft put manganese nodules on "the far plain";
+building it found they belong under the compensation depth or on swept ground, and the doc says so now.
+
+- **chunks.js `terrainColor` (one place: the near cells, the far layer, the horizon and the silt all read it).** Mud below the light, by
+  three grounds: the islands' **apron**, dark grey-brown, where world.js `apronAt` says an island still sheds (`FLOOR_COL.apron`); the open
+  floor's **ooze**, pale grey-cream, beyond it (`.ooze`); **pavement**, black with a nodule speckle, where the current keeps the floor bare
+  (`flow` over 0.6 — the sill's gap at 0.94; the Blake Plateau's pavement under the Gulf Stream is the precedent) (`.pave`). And on rock, the
+  **crust**: old rock (`young` under 0.4) below −250 darkens toward the crust zone under the oxygen minimum, to 0.6 by −900 (`.crust`).
+- **world.js `apronAt(x,z)`.** 1 at an island record's foot (`fade[1]`), fading over 2 km plus 1.3 m for each metre of land radius: the
+  rain on the land is the supply. Ours (a rim, almost no land) to ~8 km from its centre; the giant (7 km of rainy land) ~11 km past its foot.
+- **The coat** (creatures_spec.js `coatClassAt`): manganese now on pavement and crusted old rock below −250; on ooze and apron the kind's
+  preset (to v11.96 any mud below −200 — the stone's "manganese-black on the plain").
+- **Tests.** test/region.js: ours' apron 1 at its foot and 0 at 8.5 km, the giant's 0.97 14 km from its centre, the sill's gap outside
+  every apron's supply.
+  test/combat.js's coat classes: the deep mud (ooze) the preset now, swept pavement and crusted old rock manganese (it read "the deep mud
+  manganese" and failed on the change, as it should).
+
+Seen: the real build in headless Chromium (three.js r128 from npm), `tp` to the open floor 11 km east at −1091 (pale ooze, dark rocks on
+it), the giant's apron at −920 (a dark grey-brown slope), the sill's gap at −541 (black pavement); a shot meant for the crust landed on mud.
+
+**Unseen, ask in this order:** the deep floor is pale now where it was near-black — whether that reads right after the minimum the person
+liked; the giant's dark apron against the pale floor beyond it; the black pavement in the gap; the crust on the old rock faces below the light.
