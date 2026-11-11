@@ -1,5 +1,10 @@
 # HANDOFF — tethys
 
+**v11.101 (11 Nov 2026): the player's oxygen** (DEEP §9). Under the body's tolerance (0.5; slowbloods 0.3) an oxygen debt builds in the
+minimum — at the core a soft-arm fills it in ~200 s — taking the sprint, then the ability, then speed, the view closing in; it clears in
+~25 s above, and in the minimum it never kills. Under a basin's chemocline it kills in under a minute (no basin yet). **Ask first** about the
+debt's pace in play and the vignette. Next: the square from the model (GLOBE §8 step 5), then the engine for a bigger world (GLOBE §10).
+
 **v11.100 (11 Nov 2026): the veil, the tread and the great age and die; the bones landmark struck.** The person's two calls on v11.99:
 the three immortal kinds are mortal now (the ledger's natural death, falls — the veil's ~2.4 a game day — and wounds like anything else; the
 census holds them steady); the ~100 m ribcage landmark is gone, a holdover. **Ask first** about a veil's fall in play, then whether hunters

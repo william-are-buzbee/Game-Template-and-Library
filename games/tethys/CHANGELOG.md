@@ -6434,3 +6434,23 @@ now, we can get rid of it. Maybe later we add fantastically large animals and bo
 
 **Unseen, ask in this order:** a veil's fall in play (`falls()`); whether a hunter now goes after a veil, a tread or a great, and whether that
 reads right — they were untouchable before.
+
+
+## v11.101 — the player's oxygen: a debt in the minimum (11 Nov 2026)
+
+DEEP.md §9; the person (10 Nov 2026): "let's make it survivable if we can"; (11 Nov 2026) "yes, perfect". PLANET had decided a slow drain
+below −450 and never built it; the drain is now the water's oxygen (world.js `oxyAt`), not a depth.
+
+- **player.js `OXYD`, `oxyTick`:** under the body's tolerance (0.5 of the surface's oxygen; a slowblood 0.3 — low metabolism, PLANET; the deep
+  line's residents, the pall's row, 0.12) a debt builds by how far under: at the core's 0.25 over the fed water the soft-arm's fills in
+  ~200 s (0.30 after a minute); above the tolerance it clears in ~25 s. The sprint goes at 0.35, the body's ability at 0.6, and past 0.85
+  it slows, to 0.7 at full. **In the minimum it never kills** — ten minutes at full debt and alive. Under a basin's chemocline (no oxygen)
+  it fills in 35 s and, full for 20 s more, kills: "suffocated under the chemocline" (no basin in the world yet).
+- **The view** (shell.html `#oxy`): a dark vignette closing in by the debt, to 0.8 at full. The readout's stomach line shows the debt.
+- **test/player.js:** the soft-arm in the core (0.30 at a minute, full at 200 s, alive after ten minutes more, slowed to 0.70, its ink
+  refused), clear above the light in 26 s; the finback at 0.33 in the same 200 s; under a chemocline set by hand, dead inside 80 s.
+- world.js: `findSpot` marked as kept for the next landmark (nothing is searched since v11.100).
+
+Seen: the real build in headless Chromium (three.js r128 from npm), the soft-arm in the minimum's core 3 km east of ours at −650, the debt
+set to 0.8: the view's edges darken over the floor. **Unseen, ask in this order:** the debt's pace in play (does three minutes in the core
+feel right before the sprint goes and the view closes); whether the dark vignette reads as breathlessness or just as dark.

@@ -9,6 +9,7 @@ html,body{margin:0;height:100%;overflow:hidden;background:#03080f;font-family:Ge
 canvas{display:block;outline:none;touch-action:none}
 .layer{position:fixed;inset:0;pointer-events:none}
 #vig{background:radial-gradient(ellipse at center,rgba(0,0,0,0) 58%,rgba(0,0,0,.5) 100%)}
+#oxy{background:radial-gradient(ellipse at center,rgba(0,0,0,0) 30%,rgba(2,6,14,.9) 100%);opacity:0;transition:opacity .6s} /* v11.101: the oxygen debt closing the view */
 #hurt{background:radial-gradient(ellipse at center,rgba(0,0,0,0) 40%,rgba(110,8,8,.8) 100%);opacity:0;transition:opacity .3s}
 #fade{background:#000;opacity:1;transition:opacity 1.8s}
 #biome{position:fixed;bottom:26px;right:32px;font-size:13px;text-shadow:0 0 6px rgba(0,0,0,.9),0 1px 2px rgba(0,0,0,.9);letter-spacing:.3em;font-weight:300;opacity:0;transition:opacity .8s;color:rgba(220,230,235,.75);pointer-events:none;font-variant-numeric:tabular-nums}
@@ -135,6 +136,7 @@ canvas{display:block;outline:none;touch-action:none}
 <body>
 <canvas id="c"></canvas>
 <div id="vig" class="layer"></div>
+<div id="oxy" class="layer"></div>
 <div id="hurt" class="layer"></div>
 <div id="biome"></div>
 <div id="hint"></div>

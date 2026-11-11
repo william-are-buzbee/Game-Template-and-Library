@@ -1,6 +1,6 @@
 # DEEP.md — the deep under the region model (10 Nov 2026)
 
-Status: **designed; §8 (the pit and the cairns struck) built v11.95; the oxygen field and the re-homing (§11 step 2) v11.96; the floor (§2, step 3) v11.97; the deep gardens (§3, step 4) v11.98; carcass falls (§4, step 5) v11.99.** The person's decisions are in §10; the build is §11. Read PLANET.md first (The ocean, the head note on The
+Status: **designed; §8 (the pit and the cairns struck) built v11.95; the oxygen field and the re-homing (§11 step 2) v11.96; the floor (§2, step 3) v11.97; the deep gardens (§3, step 4) v11.98; carcass falls (§4, step 5) v11.99; the player's oxygen (§9) v11.101.** The person's decisions are in §10; the build is §11. Read PLANET.md first (The ocean, the head note on The
 basin), then GLOBE.md §9.1 (the region model and its basins), FLORA.md (the deep floor, the vents, the rim) and SEAFLOOR.md §4. The rule
 stands: nothing has a name or a biome; every species places itself by envelope over the fields; nothing glows or moves without a reason.
 
@@ -175,6 +175,12 @@ game's grain from `sample()` at load, by region.js's flood; a few chemocline dis
 (survivable): nothing above ~0.5; in the minimum's core a slow, recoverable deficit (the sprint and the body's ability first), gone again above
 it; below a chemocline a hard drain — the basin is entered on reserves (DIRECTION's reserves and the sulfur symbiont have their door). The
 slowbloods and the low-metabolism residents shrug it off (PLANET, decided). Envelopes gain an `oxy` term beside `h`.
+
+**The player's oxygen, built v11.101** (player.js `OXYD`, `oxyTick`): under the body's tolerance (0.5 of the surface's; a slowblood's 0.3;
+the deep line's residents' 0.12) a debt builds by how far under — at the core's 0.25 a soft-arm fills it in ~200 s, a finback runs up a third
+of it — and clears in ~25 s above. The sprint goes at 0.35, the ability at 0.6, and past 0.85 the body slows to 0.7; the view closes in, dark
+(`#oxy`). In the minimum it never kills. Under a basin's chemocline the debt fills in 35 s and, full for 20 s more, kills ("suffocated under
+the chemocline") — no basin in the world yet; test/player.js sets one by hand. The readout's stomach line shows the debt.
 
 **The 21 uses of `CHEMO`.** scene.js's plate and browner water → the chemocline discs; atmosphere.js's snow layer → the minimum's top
 edge or none; chunks.js's "nothing sessile below the chemocline" → oxygen and the chemocline; far.js's two skips; combat.js `POISON.deep` →

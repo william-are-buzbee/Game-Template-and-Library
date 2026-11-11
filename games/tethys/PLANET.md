@@ -272,7 +272,7 @@ The jelly is an outsider (a cnidarian analogue); "all clades represented" does n
 | green `grass` on the terraces (`per[7]:250`), kelp/bladder tints | to change: grass off biome 7; kelp and bladder browner |
 | the ortho spawns in the dark (`SPAWN[11]`) | to change: shell, pressure and oxygen all say no; a soft black ringmouth takes the dark, the ortho moves up |
 | the abyssal as a *resident* of the dark | to change: a resident of the rim at the chemocline, hunting the oxic side and diving in |
-| "no oxygen" (the player) | **decided:** the player stays a water-breather, but below −450 it takes a slow drain; big slowbloods and the dark's residents shrug it off. Not built |
+| "no oxygen" (the player) | **decided:** the player stays a water-breather, but below −450 it takes a slow drain; big slowbloods and the dark's residents shrug it off. **Built v11.101 as the oxygen debt** (DEEP §9): by the water's oxygen, not a depth — survivable in the minimum, a death only under a basin's chemocline |
 | `detect:85` in the dark by sight | deferred (detection modes, a later pass) |
 | day/night | not a conflict yet; a hook |
 
