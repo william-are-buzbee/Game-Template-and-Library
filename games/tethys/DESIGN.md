@@ -175,7 +175,8 @@ game's own ground at `OXY.G` (400 m), built on the first call (~70 ms), the worl
 (its sill between −100 and `OXY.floor`, 150 m deep behind it, 10 km² or more). None in the square to v11.101; since v11.102 the model's members
 enclose one: 12 km² behind −1010, its chemocline −1030, its floor −1170, 20 km north-north-east of ours between the drowned atoll (m131), the
 atoll east (m141) and the bank's flank (test/region.js lists it). **Since v11.106 the flood is the world's** (353² at 400 m from the world's
-corner, ~0.3 s on the first call; v11.112 the world's rectangle, `nx` × `nz`) and finds five: that one (13 km² behind −1007), 38 km² behind −927 at 24.7 km east, two small ones far east
+corner, ~0.3 s on the first call; v11.112 the world's rectangle, `nx` × `nz`; v11.113 eight rows a slice, `chemoStep(4)` a frame from the menu on, finished at once by
+anything that asks first) and finds five: that one (13 km² behind −1007), 38 km² behind −927 at 24.7 km east, two small ones far east
 (−604, −616), and **603 km² behind −999 — the moat round ours joined to DEEP §5's basin 28 km west** (the sill an atoll's foot 33 km east-south-
 east; to v11.105 the square's edge let the moat out). **Since v11.108 a silled basin is anoxic only when its food outruns its inflow**
 (`chemoD(sill, nut)` = `OXY.anox` 2.4 × the basin's mean `nut` × (−sill/100)^−0.86, Martin's curve for the food that reaches the sill, over
@@ -1018,7 +1019,10 @@ the pools' group placed there) that re-snaps to the player's `grid` (1 km) squar
 translation shifted once, one ranged upload a pool. Each local number is taken from the double the world one was. The shaders needed nothing:
 the fog's world position is the camera's plus the view-space offset (`fog_vertex`), the texels' and the sway's go through `modelMatrix`.
 `ORIGIN.on` false writes world coordinates as before; test/origins.js boots both and compares every vertex and instance (0.12 mm apart at
-ours, 0.98 at 36 km, the old floats' rounding). Not moved: the snow, blood and debris points near the camera.
+ours, 0.98 at 36 km, the old floats' rounding). *v11.113:* the render origin follows the camera, not the player (they are metres apart in
+third person); the snow (atmosphere.js `pp`), the debris (fx.js `fxP`) and the blood (combat.js `blP`) simulate in doubles and give the GPU
+float32 copies against the origin (`ppG`, `fxPG`, `blPG`), the points placed there, and the player's light `plU` is against it too; the
+sun shafts' quads likewise; the rain's streaks are about the camera, its lines placed there; a splash's spray and bubbles local to the splash.
 
 ## The far layer
 
@@ -1086,7 +1090,11 @@ cell belongs to the record it lies deepest inside, each member's cells are one m
 edge when the build starts — from ours the giant's land is done after 5.4% of the build, the 308 m island's after 8.9% (all of it ~2.3 s of
 CPU, ~6 s at 60 fps) — and culled by its own sphere widened by `HZ_DROP` (4 km) for the curvature. The members' meshes are v11.107's one mesh to
 the bit (603,994 triangles; test/horizon.js), boundary vertices sampled once for each side; up to 35 draws where the one mesh was one, fewer
-with the culling. Two rules it depends on:
+with the culling. *v11.113 (the province): by sight.* `hzSetup` fixes the lattice and the members' tops at the first surfacing; each frame
+above the water `hzWatch` queues the members whose top could stand above the camera's horizon (`hzSight`: 3.57 km·√h for the camera's height
+and the top's, plus the top's radius), nearest first, and `hzStep` builds them one at a time (`hzMember`, its own sample caches, nothing kept
+between members). From the water at ours that is 6 of the 35 (ours, the giant, the 308 m, the awesome shield, the 820 m and the 243 m); from
+the awesome shield's summit 41. `hzGen` still builds them all, for the test. Two rules it depends on:
 the main scene's `background` is nulled for the frame (three clears to it regardless of `autoClear`), and the near plane is short (near-plane
 clipping is by view depth). Under water the pass is skipped and the dome goes back. Seen (CHANGELOG v11.64): the giant on the horizon from open
 water, its foot in the haze; the seam where the disc meets the surface mesh's far end is a shade lighter, left.

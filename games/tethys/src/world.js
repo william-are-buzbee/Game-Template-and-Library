@@ -676,13 +676,18 @@ const LM={};
 // minimum's water). OXY.anox puts those two over the line and Santa Monica's (740 m, hypoxic) and San Clemente's (1800 m) under it. In the
 // world today no basin is: the moat round ours and DEEP §5's west basin are one water behind −999 (0.09), the two small ones east behind −604
 // and −616 under fed water the nearest (0.80, 0.70). Built on the first call, once (~0.3 s); region.js (after this file in order.txt) holds the flood.
-let CHEMO_B=null;
+let CHEMO_B=null,CHEMO_G=null;
 function chemoD(sill,nut){return OXY.anox*nut*Math.pow(-sill/100,-0.86)/Math.max(0.01,oxyProf(sill,nut));} // a silled basin's food over its oxygen: anoxic at 1
-function chemoInit(){const G=OXY.G,nx=Math.ceil((WX1-WX0)/G),nz=Math.ceil((WZ1-WZ0)/G),x0=WX0,z0=WZ0,H=new Float32Array(nx*nz); // the world's ground from its corner (v11.106: ±WHALF; the old square to v11.105; v11.112 the rectangle)
-  const Nu=new Float32Array(nx*nz);for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const s=sample(x0+(i+0.5)*G,z0+(j+0.5)*G);H[j*nx+i]=s.h;Nu[j*nx+i]=s.f[FI.nut];}
+function* chemoGen(){const G=OXY.G,nx=Math.ceil((WX1-WX0)/G),nz=Math.ceil((WZ1-WZ0)/G),x0=WX0,z0=WZ0,H=new Float32Array(nx*nz); // the world's ground from its corner (v11.106: ±WHALF; the old square to v11.105; v11.112 the rectangle)
+  const Nu=new Float32Array(nx*nz);for(let j=0;j<nz;j++){for(let i=0;i<nx;i++){const s=sample(x0+(i+0.5)*G,z0+(j+0.5)*G);H[j*nx+i]=s.h;Nu[j*nx+i]=s.f[FI.nut];}if((j&7)===7)yield;}
   const R=regionBasins(H,nx,G,1,nz),sn=new Float64Array(R.B.length);for(let k=0;k<nx*nz;k++){const l=R.lab[k];if(l>=0)sn[l]+=Nu[k];}
   for(const b of R.B){b.nut=sn[b.id]/b.cells;b.D=b.silled?chemoD(b.sill,b.nut):0;b.anox=b.silled&&b.D>=1;} // v11.108: the basin's food (its cells' mean nut) against its inflow
   CHEMO_B={nx,nz,x0,z0,G,lab:R.lab,ch:R.B.map(b=>b.anox?b.chemo:null),B:R.B};}
+// v11.113 (the province): the flood's samples a slice a frame from the menu on (main.js loop: chemoStep), so at a province's size (~0.5 M
+// samples, a second or more) nothing stalls; anything that asks before it is done finishes it at once (chemoInit), so the answer is never a
+// partial one. In the tests nothing slices: the first chemoAt builds it whole, as before.
+function chemoInit(){if(CHEMO_B)return;if(!CHEMO_G)CHEMO_G=chemoGen();while(!CHEMO_G.next().done){}CHEMO_G=null;}
+function chemoStep(ms){if(CHEMO_B)return;if(!CHEMO_G)CHEMO_G=chemoGen();const t0=performance.now();do{if(CHEMO_G.next().done){CHEMO_G=null;return;}}while(performance.now()-t0<ms);}
 function chemoAt(x,z){if(!CHEMO_B)chemoInit();const B=CHEMO_B,i=Math.floor((x-B.x0)/B.G),j=Math.floor((z-B.z0)/B.G);if(i<0||j<0||i>=B.nx||j>=B.nz)return null;const l=B.lab[j*B.nx+i];return l>=0?B.ch[l]:null;} // a basin's chemocline over (x,z), or null
 function underChemo(x,y,z){const c=chemoAt(x,z);return c!==null&&y<c;} // in a basin's anoxic water
 // oxygen at a point, as a share of the surface's: 0 under a chemocline; else the profile, its core lower where the food rains (nut: the fields'

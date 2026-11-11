@@ -3,9 +3,9 @@
 // cloud in the clade's colour; the breach's foam and its bubble puff stay in player.js splash (v11.46). Everything here is a term in the
 // numbers the game already has: a body on the floor, a jet near the sand, a strike out of it, a bite, a seep. Nothing glows. The points are
 // the snow's kind (atmosphere.js pm: squares, lit like the snow and by the player's light, alpha by distance), one draw for all of it.
-const FX_N=Q.tier==='low'?320:720,fxP=new Float32Array(FX_N*3),fxV=new Float32Array(FX_N*3),fxC=new Float32Array(FX_N*3),fxS=new Float32Array(FX_N*2),fxL=new Float32Array(FX_N),fxA=new Float32Array(FX_N),fxK=new Uint8Array(FX_N),fxW=new Float32Array(FX_N);let fxNext=0,fxLive=0;
+const FX_N=Q.tier==='low'?320:720,fxP=new Float64Array(FX_N*3),fxPG=new Float32Array(FX_N*3),fxV=new Float32Array(FX_N*3),fxC=new Float32Array(FX_N*3),fxS=new Float32Array(FX_N*2),fxL=new Float32Array(FX_N),fxA=new Float32Array(FX_N),fxK=new Uint8Array(FX_N),fxW=new Float32Array(FX_N);let fxNext=0,fxLive=0;
 const FXK=[{life:[3,4.5],fall:0.15,size:[0.7,1.3],grow:0.25,alpha:0.7},{life:[6,9],fall:-0.9,size:[0.35,0.6],grow:0.06,alpha:0.6},{life:[2.5,3.5],fall:0.3,size:[0.5,0.9],grow:0,alpha:0.85}]; // life (s), fall (m/s; bubbles rise), size × the material's, growth (size/s), alpha
-const fxG=new THREE.BufferGeometry();fxG.setAttribute('position',new THREE.BufferAttribute(fxP,3));fxG.setAttribute('color',new THREE.BufferAttribute(fxC,3));fxG.setAttribute('aSz',new THREE.BufferAttribute(fxS,2));
+const fxG=new THREE.BufferGeometry();fxG.setAttribute('position',new THREE.BufferAttribute(fxPG,3));/* v11.113: fxP the simulation in doubles, fxPG the GPU's copy against the render origin (atmosphere.js, the snow) */fxG.setAttribute('color',new THREE.BufferAttribute(fxC,3));fxG.setAttribute('aSz',new THREE.BufferAttribute(fxS,2));
 const fxM=new THREE.PointsMaterial({color:0xcfe6ee,size:0.24,transparent:true,opacity:0.8,depthWrite:false,vertexColors:true});
 fxM.onBeforeCompile=function(sh){sh.uniforms.uPL=plU;sh.uniforms.uPLc=plCU;let n=0; // the snow's patch (atmosphere.js pm): a size and an alpha per point, the player's light
   sh.vertexShader=sh.vertexShader.replace('uniform float size;',()=>{n++;return 'attribute vec2 aSz;uniform vec4 uPL;varying float vA;varying float vL;uniform float size;';})
@@ -62,7 +62,7 @@ function updateDebris(dt){
     if(k===0){const g=groundAt(x,z)+0.05;if(ny<g){ny=g;fxV[i3+1]=0;}} // silt settles on the floor
     fxP[i3]=x+fxV[i3]*dt;fxP[i3+1]=ny;fxP[i3+2]=z+fxV[i3+2]*dt;
     const f=fxA[i]/fxL[i];fxS[i*2]+=dt*K.grow;fxS[i*2+1]=K.alpha*Math.min(1,f*3)*(k===2?0.7+0.3*Math.sin(fxA[i]*18+fxW[i]):1);} // a scrap tumbles: its size flickers
-  fxLive=live;fxG.attributes.position.needsUpdate=true;fxG.attributes.aSz.needsUpdate=true;fxG.attributes.color.needsUpdate=true;
+  fxLive=live;{const ox=ORIGIN.x,oz=ORIGIN.z;for(let i=0;i<FX_N;i++){fxPG[i*3]=fxP[i*3]-ox;fxPG[i*3+1]=fxP[i*3+1];fxPG[i*3+2]=fxP[i*3+2]-oz;}fxPts.position.set(ox,0,oz);}fxG.attributes.position.needsUpdate=true;fxG.attributes.aSz.needsUpdate=true;fxG.attributes.color.needsUpdate=true;
 }
 function fxStats(){let n=0,nan=0,k=[0,0,0];for(let i=0;i<FX_N;i++){if(fxS[i*2+1]<=0)continue;n++;k[fxK[i]]++;const i3=i*3;if(!isFinite(fxP[i3]+fxP[i3+1]+fxP[i3+2]+fxV[i3]+fxV[i3+1]+fxV[i3+2]))nan++;}return {live:n,nan:nan,silt:k[0],bubbles:k[1],scraps:k[2]};} // the tests
 // ---------- the flush (POLISH 24): a flinch of pallor on a bitten body for FLUSH_T, off by default (the person, 9 Sep: faint, easy to strike) ----------

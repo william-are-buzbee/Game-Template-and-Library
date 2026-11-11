@@ -455,8 +455,8 @@ function bledOut(o){const by=lastWounder(o);
 // ---------- blood ----------
 // one point cloud for all the blood in the water (like the snow, atmosphere.js: a size and an alpha per point through the same points
 // patch, lit like the snow and by the player's light); each point drifts with the current and the flow round the bodies, spreads, and fades
-const BL_N=Q.tier==='low'?240:480,blP=new Float32Array(BL_N*3),blV=new Float32Array(BL_N*3),blC=new Float32Array(BL_N*3),blS=new Float32Array(BL_N*2),blL=new Float32Array(BL_N),blA=new Float32Array(BL_N);let blNext=0,blLive=0;
-const blG=new THREE.BufferGeometry();blG.setAttribute('position',new THREE.BufferAttribute(blP,3));blG.setAttribute('color',new THREE.BufferAttribute(blC,3));blG.setAttribute('aSz',new THREE.BufferAttribute(blS,2));
+const BL_N=Q.tier==='low'?240:480,blP=new Float64Array(BL_N*3),blPG=new Float32Array(BL_N*3),blV=new Float32Array(BL_N*3),blC=new Float32Array(BL_N*3),blS=new Float32Array(BL_N*2),blL=new Float32Array(BL_N),blA=new Float32Array(BL_N);let blNext=0,blLive=0;
+const blG=new THREE.BufferGeometry();blG.setAttribute('position',new THREE.BufferAttribute(blPG,3));/* v11.113: blP the simulation in doubles, blPG the GPU's copy against the render origin (atmosphere.js, the snow) */blG.setAttribute('color',new THREE.BufferAttribute(blC,3));blG.setAttribute('aSz',new THREE.BufferAttribute(blS,2));
 const blM=new THREE.PointsMaterial({color:0xcfe6ee,size:0.3,transparent:true,opacity:0.8,depthWrite:false,vertexColors:true});
 blM.onBeforeCompile=function(sh){sh.uniforms.uPL=plU;sh.uniforms.uPLc=plCU;let n=0;
   sh.vertexShader=sh.vertexShader.replace('uniform float size;',()=>{n++;return 'attribute vec2 aSz;uniform vec4 uPL;varying float vA;varying float vL;uniform float size;';})
@@ -485,7 +485,7 @@ function updateBlood(dt){
     blV[i3]=(blV[i3]+(HV.x+CURV.x-blV[i3])*kf)*ks;blV[i3+1]=(blV[i3+1]+(HV.y+CURV.y-0.04-blV[i3+1])*kf)*ks;blV[i3+2]=(blV[i3+2]+(HV.z+CURV.z-blV[i3+2])*kf)*ks;
     blP[i3]=x+blV[i3]*dt;blP[i3+1]=y+blV[i3+1]*dt;blP[i3+2]=z+blV[i3+2]*dt;
     const f=blA[i]/blL[i];blS[i*2]+=dt*0.9;blS[i*2+1]=Math.min(1,f*2.5)*0.85;}
-  blLive=live;blG.attributes.position.needsUpdate=true;blG.attributes.aSz.needsUpdate=true;blG.attributes.color.needsUpdate=true;
+  blLive=live;{const ox=ORIGIN.x,oz=ORIGIN.z;for(let i=0;i<BL_N;i++){blPG[i*3]=blP[i*3]-ox;blPG[i*3+1]=blP[i*3+1];blPG[i*3+2]=blP[i*3+2]-oz;}blood.position.set(ox,0,oz);}blG.attributes.position.needsUpdate=true;blG.attributes.aSz.needsUpdate=true;blG.attributes.color.needsUpdate=true;
 }
 // ---------- the player ----------
 // the grab (right mouse or r, held): the arms or the jaws take hold of the nearest thing within reach ahead and keep it while the key is

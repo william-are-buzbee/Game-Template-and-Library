@@ -447,7 +447,7 @@ function unloadChunk(ch){
 }
 let activeGen=null,activeKey=null;
 function manageChunks(budgetMs){
-  const t0=performance.now();poolSnap(player.pos.x,player.pos.z); // the pools' render origin follows the player (v11.110)
+  const t0=performance.now();poolSnap(camera.position.x,camera.position.z); // the render origin follows the camera (v11.110; v11.113 the camera, not the player: the GPU's numbers matter round the eye)
   const ci=cellOf(player.pos.x),cj=cellOf(player.pos.z);
   for(const ch of chunks.values())if(Math.max(Math.abs(ch.i-ci),Math.abs(ch.j-cj))>LOAD_R+1){unloadChunk(ch);break;} // one a frame (v11.12): crossing a cell line used to drop a whole column at once — forty creatures and two dozen geometries each
   if(!activeGen){

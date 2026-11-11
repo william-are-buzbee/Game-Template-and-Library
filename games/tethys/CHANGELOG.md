@@ -6849,3 +6849,34 @@ them, not a square round ours (one ±305 km square would be mostly empty, and th
   censused patches and the near ones. test/region.js, cells.js, maps.js, map.js through the rectangle.
 
 Seen: the identity above; the suite. **Unseen:** nothing should look or play differently.
+
+## v11.113 — the horizon by sight, the flood over frames, the particles on the render origin (11 Nov 2026)
+
+The province, step 2 of 3 (the person, 11 Nov 2026: "go ahead with the province"). The engine's last pieces that held the whole world at
+once or held world numbers in float32. Invisible today: the world is still ±70.5 km.
+
+- **horizon.js, by sight:** `hzSetup` fixes the lattice and every member's top (`h`, its height) at the first surfacing; each frame above the
+  water `hzWatch` queues the members whose top the camera could see from its height (`hzSight`: 3.57 km·√h each way, the camera's and the top's,
+  and the top's own radius), nearest first, and `hzStep` builds them one at a time (`hzMember`, each with its own sample caches, so nothing of
+  the samples is kept between members). From the water at ours that is 6 members (ours, the giant, the 308 m island, the awesome shield, the
+  820 m and 243 m islands) of v11.112's 35; the atolls' 6 m rims are under the horizon past ~17 km, and the curvature's drop hid them anyway.
+  From the awesome shield's summit 41 come into sight. `hzGen(x, z)` still builds every member nearest first (test/horizon.js: the union is
+  v11.107's one mesh to the bit).
+- **world.js, the flood over frames:** the basins' flood (`chemoGen`) samples its grid eight rows a slice; main.js's loop runs `chemoStep(4)` a
+  frame from the menu on, so a province's ~0.5 M samples never stall a frame. Anything that asks before it is done (`chemoAt`, `chemoInit`)
+  finishes it at once: the answer is never a partial one. The tests, which never run the loop, build it whole on the first call as before.
+- **The particles against the render origin** (v11.110's left-overs): the snow, the debris (fx.js) and the blood (combat.js) simulate in doubles
+  (`pp`, `fxP`, `blP`) and hand the GPU float32 copies against `ORIGIN` (`ppG`, `fxPG`, `blPG`), the points placed there; the sun-shaft quads
+  likewise; the rain's streaks are about the camera, the lines placed at it; a splash's spray and bubbles are local to the splash. `plU` (the
+  player's light, which the points read) is against the origin too. At 300 km a float32 point holds 3 cm, and a flake drifting a millimetre a
+  frame would not have moved.
+- **chunks.js:** the render origin follows the camera, not the player (`poolSnap(camera…)`): the GPU's numbers matter round the eye, and in
+  third person the camera is metres off.
+- **test/horizon.js:** from the water at ours the queue holds the giant, the 308 m island and the awesome shield and not the low island 62 km
+  west (seen 38 km off); from the awesome shield's summit it does. **test/origins.js:** 36 km out, the snow, debris and blood within 2 km of the
+  camera (1,806 points) are within 73 m of the render origin and their copies the doubles' to under 0.01 mm. test/player.js's basin fake through
+  `chemoInit`.
+
+Seen: the suite; headless, the shelf at −8 m 420 m east of ours (the snow and shafts), and from the water 3.3 km off ours the giant on the
+horizon, built from the queue. **Unseen:** a far member coming in as you climb (a leap, a summit); the rain after a long swim; frame time on
+the GPU (the CPU's per frame unchanged in node).

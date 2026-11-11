@@ -71,7 +71,7 @@ function warmShaders(){
 }
 let last=performance.now();
 function loop(now){
-  requestAnimationFrame(loop);
+  requestAnimationFrame(loop);chemoStep(4); // the basins' flood a slice a frame until it is built (v11.113, world.js)
   const f0=performance.now(),dt=clamp((now-last)/1000,0,0.05);last=now;t+=dt;timeU.value=t;FOG_TC[0]=t;
   clockH=t*CLOCK_RATE;TIDE=tideAt(clockH);tideU.value=TIDE;tideRU.value=tideRate(clockH);tintU.value.x=TIDE;FOG_W[0]=TIDE; // the clock and the tide (world.js), once a frame, before anything reads the water level (FOG_W[0]: the fog chunk's copy, v11.32 — the daylight curve measures depth from it)
   readTouch();

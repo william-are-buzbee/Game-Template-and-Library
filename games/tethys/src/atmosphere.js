@@ -341,10 +341,11 @@ function updateShafts(above,wk){
     const g=groundAt(x,z),avail=top-g-1.5,len=Math.min(SH_L,Math.max(avail,0.1));
     let a=clamp((avail-4)/12,0,1)*(1-smooth(R*0.32,R*0.5,Math.hypot(x-cx,z-cz)))*smooth(1.5,5,Math.hypot(x-px,z-pz));
     const bx=x-sx/sy*len,bz=z-sz/sy*len,vx=px-x,vz=pz-z,vl=Math.max(Math.hypot(vx,vz),1e-3),rx=-vz/vl*w*0.5,rz=vx/vl*w*0.5,b=n*4,k=n*12;
-    shP[k]=x-rx;shP[k+1]=top;shP[k+2]=z-rz;shP[k+3]=x+rx;shP[k+4]=top;shP[k+5]=z+rz;shP[k+6]=bx+rx;shP[k+7]=top-len;shP[k+8]=bz+rz;shP[k+9]=bx-rx;shP[k+10]=top-len;shP[k+11]=bz-rz;
+    const ox=ORIGIN.x,oz=ORIGIN.z; // v11.113: the quads local to the render origin, the mesh placed there
+    shP[k]=x-rx-ox;shP[k+1]=top;shP[k+2]=z-rz-oz;shP[k+3]=x+rx-ox;shP[k+4]=top;shP[k+5]=z+rz-oz;shP[k+6]=bx+rx-ox;shP[k+7]=top-len;shP[k+8]=bz+rz-oz;shP[k+9]=bx-rx-ox;shP[k+10]=top-len;shP[k+11]=bz-rz-oz;
     if(a>0)a*=clamp(0.25+0.5*cauFocus(x,z,SH_FOC,t),0.2,1.6); // the surface's focusing over this shaft (v11.39)
     shA[b]=shA[b+1]=shA[b+2]=shA[b+3]=a;const ph=shHash(ci,cj,4)*TAU;shPh[b]=shPh[b+1]=shPh[b+2]=shPh[b+3]=ph;n++;}
-  shG.attributes.position.needsUpdate=true;shG.attributes.aA.needsUpdate=true;shG.attributes.aPh.needsUpdate=true;
+  shafts.position.set(ORIGIN.x,0,ORIGIN.z);shG.attributes.position.needsUpdate=true;shG.attributes.aA.needsUpdate=true;shG.attributes.aPh.needsUpdate=true;
   shU.uK.value=SH_A*SUN_W[3]*K.skyL*wk*(1-smooth(30,70,TIDE-camera.position.y)); // and gone for a camera deeper than ~50 m: rays are a thing of the top of the column
   shU.uCol.value.setRGB(0.55*K.lumC[0],0.72*K.lumC[1],0.8*K.lumC[2]); // the shafts take the lamp's colour (v11.31.4): warm at a low sun, silver under the moon
 }
@@ -364,8 +365,8 @@ function updateRain(dt,above){const K=SKY,on=above&&K.rainA>0.02&&FX.rain&&FX.cl
   const cx=camera.position.x,cy=camera.position.y,cz=camera.position.z,vx=K.wind[0]*0.5,vz=K.wind[1]*0.5,R=RAIN_R,W=2*R;
   for(let i=0;i<RAIN_N;i++){const q=i*5,vy=-rainQ[q+3],L=rainQ[q+4];let x=rainQ[q]+vx*dt,y=rainQ[q+1]+vy*dt,z=rainQ[q+2]+vz*dt;
     if(x>R)x-=W;else if(x<-R)x+=W;if(z>R)z-=W;else if(z<-R)z+=W;if(y<-6)y+=18;
-    rainQ[q]=x;rainQ[q+1]=y;rainQ[q+2]=z;const k=i*6;rainP[k]=cx+x;rainP[k+1]=cy+y;rainP[k+2]=cz+z;rainP[k+3]=cx+x-vx*L;rainP[k+4]=cy+y-vy*L;rainP[k+5]=cz+z-vz*L;}
-  rainG.attributes.position.needsUpdate=true;const c=0.5+0.45*Math.min(1,K.skyL);rainM.uniforms.uCol.value.setRGB(c*0.9,c*0.95,c);rainM.uniforms.uOp.value=0.6*K.rainA;} // lit by the sky: grey by day, dim by night
+    rainQ[q]=x;rainQ[q+1]=y;rainQ[q+2]=z;const k=i*6;rainP[k]=x;rainP[k+1]=y;rainP[k+2]=z;rainP[k+3]=x-vx*L;rainP[k+4]=y-vy*L;rainP[k+5]=z-vz*L;}
+  rainL.position.set(cx,cy,cz);/* the streaks about the camera, the lines placed there (v11.113: to v11.112 written at the world's numbers) */rainG.attributes.position.needsUpdate=true;const c=0.5+0.45*Math.min(1,K.skyL);rainM.uniforms.uCol.value.setRGB(c*0.9,c*0.95,c);rainM.uniforms.uOp.value=0.6*K.rainA;} // lit by the sky: grey by day, dim by night
 // Under water the "sky" is the fog itself: a black dome just inside the far plane, fogged like everything else, so the last
 // of the water in every direction is the water's colour there (the map) at its daylight — dark toward the deep, sunlit
 // toward the shallows and the surface — instead of one flat background colour with a visible edge against the surface.
@@ -416,7 +417,7 @@ const waterDome=(function(){const mat=new THREE.MeshBasicMaterial({color:0x00000
 // by depth and daylight, updateAtmosphere) plus the player's light by distance — so the snow shows in a torch's reach in the
 // dark and is invisible outside it. The shader patch reads r128's points chunks; if a line isn't found it warns and the snow
 // draws uniform (the old look) rather than not at all.
-const PN=Q.snow,SN_SW=Math.min(480,Math.floor(PN*0.25)),SN_SWN=6,SN_SWP=SN_SW/SN_SWN,PN_SN=PN-SN_SW,SN_HW=30,pp=new Float32Array(PN*3),pv=new Float32Array(PN*3),pc=new Float32Array(PN*3),ps=new Float32Array(PN*2),pk=new Uint8Array(PN),pr=new Float32Array(PN),ph=new Float32Array(PN),pf=new Float32Array(PN*10),snL=new Uint16Array(PN); // pf (v11.82): the six fields, then the maps' texel (the two crops, X, the floor); snL: a chain follower's leader (its own index otherwise)
+const PN=Q.snow,SN_SW=Math.min(480,Math.floor(PN*0.25)),SN_SWN=6,SN_SWP=SN_SW/SN_SWN,PN_SN=PN-SN_SW,SN_HW=30,pp=new Float64Array(PN*3),ppG=new Float32Array(PN*3),pv=new Float32Array(PN*3),pc=new Float32Array(PN*3),ps=new Float32Array(PN*2),pk=new Uint8Array(PN),pr=new Float32Array(PN),ph=new Float32Array(PN),pf=new Float32Array(PN*10),snL=new Uint16Array(PN); // pf (v11.82): the six fields, then the maps' texel (the two crops, X, the floor); snL: a chain follower's leader (its own index otherwise)
 const SN_K=[{sz:0.5,fall:0.005},{sz:1.0,fall:0.02},{sz:0.6,fall:0.05},{sz:0.55,fall:-0.28},{sz:1.35,fall:0.006},{sz:0.5,fall:0.012}]; // size × the material's, m/s down; 5 the chain (v11.82)
 const SN_PIG=[[0.70,0.86,0.62],[0.86,0.78,0.48],[0.78,0.62,0.68]],SN_PALE=[0.82,0.90,0.78],SN_CHAIN=[0.80,0.78,0.66],SN_CK=0.6,SN_CHW=0.12;
 // The swarm block (v11.84, PLANKTON.md §10): the last SN_SW points of the snow's own buffer are the swarms' — SN_SWN swarms nearest the camera
@@ -441,7 +442,10 @@ function swBlock(k,c){ // a block seeded for a swarm: offsets in a flattened clo
   snDirty=true;
 } // the live kind's colour by pigment kind (green, gold, red) and in poor water; the chain's; the crop (mg/m³) at which the live kind is half its full weight; the chains' share of the live weight
 const SN_TH=-64,SN_W0=0.9,SN_GAIN=3.0,SN_REF=63;let SN_CH=-1e5; // the thermocline (y); SN_CH the chemocline under the camera (world.js chemoAt, set each frame in updatePlankton; -1e5 where there is none — round ours since v11.96, DEEP §2: no plate, no black flakes; the -450 to v11.95); the weight that fills the count; weight → alpha; the refresh mask (one point in 64 a frame: a point re-rolls about once a second)
-const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(pp,3));pg.setAttribute('color',new THREE.BufferAttribute(pc,3));pg.setAttribute('aSz',new THREE.BufferAttribute(ps,2));
+// v11.113 (GLOBE §10.1, the province): the snow's simulation is pp, in doubles at the world's numbers; what the GPU gets is ppG, against the
+// render origin (chunks.js ORIGIN), the points placed there — a float32 point 300 km out holds 3 cm, and a flake drifting a millimetre a frame
+// would not move at all
+const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(ppG,3));pg.setAttribute('color',new THREE.BufferAttribute(pc,3));pg.setAttribute('aSz',new THREE.BufferAttribute(ps,2));
 const plU={value:new THREE.Vector4(0,0,0,0)},plCU={value:new THREE.Color(0x6fbfe0)},snAU={value:new THREE.Vector4(0,1/2.5,0,0)}; // snAU (v11.82.1): the tide, 1/the depth the snow fades over seen from the air, 1 with the camera in air
 // square on purpose (the person, 13 Sep 2026): an untextured PointsMaterial writes the whole quad, and a round sprite would cost a
 // texture fetch per fragment or a discard — squares are both the cheaper option and the one that suits the flat-shaded art
@@ -544,8 +548,9 @@ function updatePlankton(dt){
     pp[i*3]=x;pp[i*3+1]=y;pp[i*3+2]=z;pv[i*3]=vx;pv[i*3+1]=vy;pv[i*3+2]=vz;
     if((i&SN_REF)===ref&&snL[i]===i)snowSeed(i,x,y,z,true);else if(y>TIDE-0.3||y<ph[i])ps[i*2+1]=0; // a chain's follower is not refreshed on its own: it goes when its leader does (snFree) // out of the water or into the floor between refreshes: hidden // the refresh: every point re-rolls where it is (keeping its look if the kind holds), so the live share tracks the water's density and a point that has sunk out of its layer changes kind
   }
+  {const ox=ORIGIN.x,oz=ORIGIN.z;for(let i=0;i<PN;i++){ppG[i*3]=pp[i*3]-ox;ppG[i*3+1]=pp[i*3+1];ppG[i*3+2]=pp[i*3+2]-oz;}plankton.position.set(ox,0,oz);}
   pg.attributes.position.needsUpdate=true;pg.attributes.aSz.needsUpdate=true;if(snDirty){pg.attributes.color.needsUpdate=true;snDirty=false;}
-  plU.value.set(plight.position.x,plight.position.y,plight.position.z,plight.intensity*1.6);
+  plU.value.set(plight.position.x-ORIGIN.x,plight.position.y,plight.position.z-ORIGIN.z,plight.intensity*1.6); // against the render origin (v11.113): the snow, the debris and the blood read it beside their points'
 }
 
 const fogTarget=new THREE.Color(),hemiSkyA=new THREE.Color(AIR.hemiSky),hemiGroundA=new THREE.Color(AIR.hemiGround),wmHere=[0,0,0,0],skyT=new THREE.Color(),skyT2=new THREE.Color(),WHITE=new THREE.Color(1,1,1);
