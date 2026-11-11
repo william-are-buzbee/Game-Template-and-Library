@@ -6514,3 +6514,29 @@ with the giant's kit is acceptable there until its own pass; the 308 m island an
 the bank's edge in the north-east corner; the first anoxic basin; the horizon's land arriving a few seconds after surfacing. **Open for the
 person:** the darkrind (let it go, or its clear water somewhere the model has: a drowned summit up-current, past the square); the deep
 gardens' place in the model's world (the banks' and atolls' deep slopes, as the Bahamas' coral mounds at 500–800 m; the seamounts' flanks).
+
+## v11.103 — the records' index (11 Nov 2026)
+
+GLOBE §10 step 1; the person (11 Nov 2026): "get started on the engine work". Invisible by design: the world is v11.102's to the bit.
+
+- **world.js `RIX`, `rixBuild`, `recsAt`:** a grid of 2 km buckets over every record's range (its reach, or its apron's run-out where longer:
+  `rixRange`), each listing the records that touch it in ISLANDS order, so every loop meets them as before. `sample()`, `apronAt` and `coneK`
+  (both per vertex in terrainColor) read the bucket at their point instead of every record. Built on first use and again when ISLANDS grows:
+  the chimney's `sample()` at load builds it for ours and the giant, and the first call after region.js has pushed the model's records builds
+  it for all 22 — 68 × 60 buckets over 136 × 120 km, 1.2 records a bucket on average. A record whose `core` passes its reach throws (the floor's
+  skip would leave the index's ground). `APRON_L` moved up beside `BASIN`: the index's first build reads it before world.js reached it (a TDZ
+  error, which test/records.js found).
+- **Cost:** `sample()` 1.21 µs against 1.99 over the index's extent (the mean at test/records.js's points; most of the box is open floor
+  far from any record, which is what the world will mostly be as it grows).
+- **test/records.js** (new, in `--test`, ~2 s): `sample()`'s ground and nine fields, `apronAt` and `coneK` the same to the bit with the index
+  and with `RIX.on` false (the loop over every record) at ~110,000 points — a grid over the extent and 3 km past it, random ones, the buckets'
+  edges and corners at ±1e-7, 20,000 round ours; every bucket in ISLANDS order; every record whose range holds a point in that point's
+  bucket (30,000 points); the cost both ways. Against v11.102's own code (main): 150,000 points the same, the chimney's height the same.
+- **A NaN found on the way** (not this version's, and not fixed here): the snow's swarm block (atmosphere.js `updatePlankton`) can carry a point
+  whose position is NaN — `TIER=low node test/steer.js`, the coilshell at ~184 s, a point assigned to a swarm with its offset never seeded —
+  and hands it to `groundAt`. The loop over every record let a NaN through (NaN ground, the point drawn); the index's first cut threw on it.
+  `recsAt` takes a NaN as no bucket, so the ground is NaN as before, and test/records.js pins it. The point itself is left for a pass of its own.
+- CLAUDE.md: the test's row; the Architecture's basement and the cells' description brought past the sill (stale since v11.102); the side
+  runs eighteen.
+
+Seen: nothing on screen changes, by construction; the identity at ~260,000 points. **Unseen:** none of it shows.

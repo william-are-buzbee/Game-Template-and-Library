@@ -266,7 +266,7 @@ Not yet: the members past the square that show over the horizon (the 820 m m154 
 the rest wait for §10's per-member horizon meshes); the young members' fresh surface and the colonisation times (§8 step 6); the fed face's
 reef (`fedK`, still open).
 
-## 10. A world that size (10 Nov 2026, proposed)
+## 10. A world that size (10 Nov 2026; agreed — the person, 11 Nov 2026: "engine work for a bigger world is great", "get started" — being built, §10.1)
 
 What is already unbounded: `sample()` is analytic, and JavaScript's numbers are doubles, so the sim, the physics, the ledger's values and the
 saves are exact at any distance. The limits are what is kept per cell for the whole world, and what the GPU gets as float32.
@@ -286,3 +286,14 @@ saves are exact at any distance. The limits are what is kept per cell for the wh
   the cell hash; the ledger's tiers; the windows. Then the world grows to what §9 gives.
 
 Not proposed: separate windows per cluster with a fade between them. The crossing is part of the world.
+
+### 10.1 As built
+
+- **Step 1, the records' index (v11.103).** world.js `RIX`, `recsAt`: a grid of 2 km buckets, each with the records (in ISLANDS order) whose
+  reach or apron's run-out touches it; `sample()`, `apronAt` and `coneK` read their bucket instead of every record. Seed 32: 22 records in
+  68 × 60 buckets over 136 × 120 km, 1.2 a bucket on average; `sample()` 1.21 µs against 1.99 over that extent. The world is v11.102's to
+  the bit (test/records.js, the index against the old loop at ~110,000 points; and against v11.102's own code at 150,000). What v11.102 taught
+  the rest of the plan: `sample()`'s cost is the island records it must compute where they overlap, not the loop — each record's bound table
+  (v11.102, region.js `rgBound`) is what keeps that down, and a world of the whole province is mostly open floor between clusters, so the
+  per-sample cost should not grow with it; the horizon tier's one mesh does (1.1 s of build for 20 records), which is why its per-member
+  meshes are in the windows' step.

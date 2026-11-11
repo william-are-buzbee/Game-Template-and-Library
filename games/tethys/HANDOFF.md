@@ -1,11 +1,15 @@
 # HANDOFF — tethys
 
+**v11.103 (11 Nov 2026): the records' index** (GLOBE §10 step 1, §10.1). `sample()`, `apronAt` and `coneK` find the records near a point
+through 2 km buckets instead of testing every record; the world is v11.102's to the bit (test/records.js). Nothing to look at. Next: §10
+step 2, the local origins (the GPU's float32 far from the origin).
+
 **v11.102 (11 Nov 2026): the square from the model** (GLOBE §8 step 5, §9.2). The game's ground is the region model's: 20 members as
 records (the awesome shield's coast across the north-west corner, the 308 m island 20 km north, ten atolls, two banks, three seamounts, a
 guyot), the floor the model's, the sill gone; one silled basin in the square now (12 km² behind −1010, NNE). sample() ~3× its cost (an exact
 skip keeps it there); the seamount effect blended (no seams); the relief's reference follows the flank. **Lost with the sill:** most of the
 deep gardens' ground, the relict's paper ground (3), the darkrind's home — **ask** what the person wants for those, then about the north-west
-corner and the atolls in play. Next: the engine for a bigger world (GLOBE §10), then DEEP's last step.
+corner and the atolls in play.
 
 **v11.101 (11 Nov 2026): the player's oxygen** (DEEP §9). Under the body's tolerance (0.5; slowbloods 0.3) an oxygen debt builds in the
 minimum — at the core a soft-arm fills it in ~200 s — taking the sprint, then the ability, then speed, the view closing in; it clears in

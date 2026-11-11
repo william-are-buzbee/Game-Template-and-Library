@@ -2,7 +2,7 @@
 // build.js — the build in Node (a port of build.py, so one runtime builds and tests; the outputs are byte-identical).
 //
 //   node build.js          tethys.html (single file, everything inlined), dev.html (loads src/*.js separately), src/INDEX.md
-//   node build.js --test   the same, then node test/lint.js, node test/physics.js, node test/anim.js, node test/steer.js, node test/audio.js, node test/snow.js, node test/sky.js, node test/plankton.js, node test/combat.js, node test/pool.js, node test/registry.js, node test/census.js 40, node test/player.js, node test/live.js and node test/smoke.js (steer, player, live and smoke on both tiers): the four that time themselves first, alone, the rest side by side (JOBS at a time, default the cores, eight at most); SHARD=k/n runs the k-th of n parts; exit 1 on any failure
+//   node build.js --test   the same, then node test/lint.js, node test/physics.js, node test/anim.js, node test/steer.js, node test/audio.js, node test/snow.js, node test/sky.js, node test/plankton.js, node test/records.js, node test/combat.js, node test/pool.js, node test/registry.js, node test/census.js 40, node test/player.js, node test/live.js and node test/smoke.js (steer, player, live and smoke on both tiers): the four that time themselves first, alone, the rest side by side (JOBS at a time, default the cores, eight at most); SHARD=k/n runs the k-th of n parts; exit 1 on any failure
 //
 // Build order comes from src/order.txt. src/INDEX.md is generated: every top-level name, its file and line. Do not edit
 // INDEX.md by hand; it is rewritten on every build. build.py is kept for the sandbox sessions; keep the two in step.
@@ -88,7 +88,7 @@ console.log('built tethys.html, dev.html, src/INDEX.md ('+ORDER.length+' files, 
 if(process.argv.includes('--test')){
   const os=require('os'),{spawn}=require('child_process');
   const ALONE=[[['test/physics.js'],{},4],[['test/audio.js'],{},20],[['test/snow.js'],{},38],[['test/sky.js'],{},2]]; // the third number: its seconds one at a time on a sandbox CPU (v11.93.3), for the shards
-  const SIDE=[[['test/smoke.js'],{},156],[['test/smoke.js'],{TIER:'low'},103],[['test/live.js'],{},89],[['test/live.js'],{TIER:'low'},87],[['test/player.js'],{},56],[['test/census.js','40'],{},55],[['test/falls.js'],{},52],[['test/player.js'],{TIER:'low'},41],[['test/steer.js'],{},25],[['test/steer.js'],{TIER:'low'},18],[['test/anim.js'],{},17],[['test/combat.js'],{},9],[['test/registry.js'],{},5],[['test/pool.js'],{},4],[['test/plankton.js'],{},2],[['test/region.js'],{},1],[['test/lint.js'],{},1]]; // longest first
+  const SIDE=[[['test/smoke.js'],{},156],[['test/smoke.js'],{TIER:'low'},103],[['test/live.js'],{},89],[['test/live.js'],{TIER:'low'},87],[['test/player.js'],{},56],[['test/census.js','40'],{},55],[['test/falls.js'],{},52],[['test/player.js'],{TIER:'low'},41],[['test/steer.js'],{},25],[['test/steer.js'],{TIER:'low'},18],[['test/anim.js'],{},17],[['test/combat.js'],{},9],[['test/registry.js'],{},5],[['test/pool.js'],{},4],[['test/plankton.js'],{},2],[['test/records.js'],{},2],[['test/region.js'],{},1],[['test/lint.js'],{},1]]; // longest first
   // v11.93.4: SHARD=k/n (CI: package.json's "shards", one machine a part) runs the k-th of n parts. The runs are dealt longest first to the part
   // with the fewest seconds so far, ties to the lower part; build.py deals them the same. Each part runs its own timed runs first and alone.
   const SH=/^(\d+)\/(\d+)$/.exec(process.env.SHARD||'');

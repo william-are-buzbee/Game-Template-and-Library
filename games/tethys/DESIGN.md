@@ -153,6 +153,14 @@ weighted by them, where to v11.101 the highest record's alone counted and two ne
 surface (`hs`, the relief's reference) goes down the lower flank with the ground: to v11.101 it stayed at the apron's −290, so the relief
 read 0 on every lower flank and on the floor inside every record's reach.
 
+**The records' index (v11.103, GLOBE §10 step 1; world.js `RIX`, `rixBuild`, `recsAt`).** The lookups by place — `sample()`, and per vertex
+`apronAt` and `coneK` — take the records near a point from a grid of `RIX.B` (2 km) buckets, each listing in ISLANDS order the records whose
+range (the reach, or the apron's run-out where longer: `rixRange`) touches it. Built on first use and again whenever ISLANDS has grown (the
+chimney's `sample()` at load builds it for ours and the giant; region.js's records rebuild it). Seed 32: 68 × 60 buckets, 1.2 records each on
+average; `sample()` 1.21 µs over the index's extent against 1.99 over every record. `RIX.on` false is the loop over every record: test/records.js
+holds the two to the bit. A new lookup by place reads `recsAt`, never a loop over ISLANDS. `APRON_L` moved up beside `BASIN` (the index's
+first build, at the chimney, reads it).
+
 
 ## The water's oxygen
 

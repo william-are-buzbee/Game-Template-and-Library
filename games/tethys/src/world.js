@@ -30,7 +30,7 @@ const ISLE={x:Math.cos(5.5)*500,z:Math.sin(5.5)*500}; // a flank cone on rift ar
 // here runs toward the caldera rim, and its reach is v11.85's 200 so the saddle between the cone and the rim is untouched. The tuff is
 // palagonite, tan (chunks.js terrainColor, coneK), and the cone is cold: no plume (the strike above).
 const CONE={r:70,wIn:16,wOut:60,h:30,lean:0.6,gapA:0.8,gapH:-2.5,floor:0.8,flat:-0.6,plat:-3,flatR:120,spit:80,leeR:40}; // the rim's radius and its inner and outer widths (m), its height and the downwind lean; the breach's half-angle (rad) and floor; the crater floor; the lee flat, the windward platform; the flat's reach and its extra down-current and downwind
-function coneK(x,z){let k=0;for(const R of ISLANDS){if(!R.isle)continue;let lx=x-R.x,lz=z-R.z;if(R.rot){const c=Math.cos(R.rot),s=Math.sin(R.rot),tx=lx*c+lz*s;lz=lz*c-lx*s;lx=tx;}if(R.sc!==1){lx/=R.sc;lz/=R.sc;}
+function coneK(x,z){let k=0;for(const i of recsAt(x,z)){const R=ISLANDS[i];if(!R.isle)continue;let lx=x-R.x,lz=z-R.z;if(R.rot){const c=Math.cos(R.rot),s=Math.sin(R.rot),tx=lx*c+lz*s;lz=lz*c-lx*s;lx=tx;}if(R.sc!==1){lx/=R.sc;lz/=R.sc;}
   k=Math.max(k,smooth(CONE.r+CONE.wOut*1.6,CONE.r+CONE.wOut*0.4,Math.hypot(lx-R.isle.x,lz-R.isle.z)));}return k;} // 1 on the ring, 0 past its foot: the tuff's colour (chunks.js)
 // ---------- the floor (v11.58; the model's since v11.102) ----------
 // PLANET, The basin: the islands stand on the province's plateau, pelagic mud over abyssal hills of ±BASIN.hill, ~1.5 km across, and each
@@ -42,6 +42,7 @@ function coneK(x,z){let k=0;for(const R of ISLANDS){if(!R.isle)continue;let lx=x
 // is the model's own members, each a record in ISLANDS. BASIN.h is the floor beside ours (the pin's), read where a floor must be named.
 // Nothing inside a record's `core` changes (ours and the giant: 2400): the flank there is above -600, the floor under -1040, and smax is exact past its knee.
 const BASIN={h:-1100,hill:60,knee:200,fade:[3000,6000]}; // the floor beside ours; the hills' amplitude; the apron's blend band; where the island's upwelling fades, in rw
+const APRON_L=[2000,1.3,11100]; // the floor's supply (v11.97/v11.102, apronR below): the apron's run-out past an island's foot — 2 km, and 1.3 m for every metre of land radius, at most the giant's 11.1 km
 // the condition fields, by index in sample().f
 const FI={sub:0,flow:1,expo:2,nut:3,turb:4,young:5,heat:6,shel:7,rel:8},NF=9;
 // ---------- the clock and the tide ----------
@@ -387,11 +388,27 @@ const _iw={isl:0,upW:0};
 function islandW(R,x,z){let lx=x-R.x,lz=z-R.z;if(R.rot){const c=Math.cos(R.rot),s=Math.sin(R.rot),tx=lx*c+lz*s;lz=lz*c-lx*s;lx=tx;}if(R.sc!==1){lx/=R.sc;lz/=R.sc;}
   const ns=R.ns,an=R.an,r=Math.hypot(lx,lz),a=Math.atan2(lz,lx),aw=a+0.32*(an?anT(an,0,a):angNoise(a,1.6,11+ns))+0.22*(fbm(lx*0.0035+80+ns,lz*0.0035+20,3)-0.5)*2,rw=r*(1+0.16*(an?anT(an,1,aw):angNoise(aw,1.2,29+ns)));
   const ag=R.rot?a+R.rot:a;_iw.isl=smooth(R.fade[1],R.fade[0],rw);_iw.upW=0.5-0.5*(Math.cos(ag)*Math.cos(CUR_A)+Math.sin(ag)*Math.sin(CUR_A));return _iw;}
+// ---------- the records' index (v11.103, GLOBE §10 step 1) ----------
+// The lookups by place — sample(), and per vertex apronAt and coneK — take the records near a point from a grid of RIX.B-metre buckets, each
+// holding (in ISLANDS order, so every loop meets them as before) the records whose reach or apron's run-out, the larger, touches it. To v11.102
+// each lookup tested every record: two dozen now, the province's 159 and more as the world grows (GLOBE §10). Built on first use: ISLANDS is
+// fixed once region.js has pushed the model's records at load (rgBuild, which grows the pins' reach too). RIX.on false is the old loop over
+// every record, which test/records.js holds the index to, to the bit.
+const RIX={on:true,B:2000,n:-1,x0:0,z0:0,nx:0,nz:0,L:null,all:null,none:[]};
+function rixRange(R){const foot=R.fade?R.fade[1]:6000;return Math.max(R.reach*R.sc,foot+Math.min(APRON_L[2],APRON_L[0]+(R.land?APRON_L[1]*R.land.r:0)));} // apronR's run-out, as it reads it
+function rixBuild(){const B=RIX.B,N=ISLANDS.length,rg=ISLANDS.map(rixRange);let x0=1e18,x1=-1e18,z0=1e18,z1=-1e18;
+  ISLANDS.forEach((R,i)=>{if(R.core&&R.core>R.reach*R.sc)throw new Error('the records\' index: '+R.id+'\'s core is past its reach');x0=Math.min(x0,R.x-rg[i]);x1=Math.max(x1,R.x+rg[i]);z0=Math.min(z0,R.z-rg[i]);z1=Math.max(z1,R.z+rg[i]);});
+  x0=Math.floor(x0/B)*B;z0=Math.floor(z0/B)*B;const nx=Math.max(1,Math.ceil((x1-x0)/B)),nz=Math.max(1,Math.ceil((z1-z0)/B)),L=new Array(nx*nz);for(let k=0;k<L.length;k++)L[k]=[];
+  ISLANDS.forEach((R,i)=>{const r=rg[i],i0=Math.max(0,Math.floor((R.x-r-x0)/B)),i1=Math.min(nx-1,Math.floor((R.x+r-x0)/B)),j0=Math.max(0,Math.floor((R.z-r-z0)/B)),j1=Math.min(nz-1,Math.floor((R.z+r-z0)/B));
+    for(let j=j0;j<=j1;j++)for(let ii=i0;ii<=i1;ii++){const bx=x0+ii*B,bz=z0+j*B,dx=Math.max(bx-R.x,0,R.x-bx-B),dz=Math.max(bz-R.z,0,R.z-bz-B);if(dx*dx+dz*dz<=r*r)L[j*nx+ii].push(i);}}); // the bucket's nearest point to the centre within the range
+  Object.assign(RIX,{n:N,x0,z0,nx,nz,L,all:ISLANDS.map((R,i)=>i)});}
+// the indices of the records that can matter at (x, z), in ISLANDS order
+function recsAt(x,z){if(RIX.n!==ISLANDS.length)rixBuild();if(!RIX.on)return RIX.all;const i=Math.floor((x-RIX.x0)/RIX.B),j=Math.floor((z-RIX.z0)/RIX.B);return i>=0&&j>=0&&i<RIX.nx&&j<RIX.nz?RIX.L[j*RIX.nx+i]:RIX.none;} // a NaN point is in no bucket: no records, and sample()'s ground is NaN as the loop over every record left it
 const _isD=[],_isI=[],_isB=[],_isE=[]; // the records' squared distances in this sample; those in reach, highest bound first, and their bounds (v11.102)
 function sample(x,z,out){
   // the islands: the highest in reach wins the conditions; the rest raise the ground under it through smax (a volcano on another's flank)
-  let o=_islA,spare=_islB,best=null,h=-1e9,hSmooth=-1e9,rNear=1e9,core=false,n=0;const N=ISLANDS.length;
-  for(let i=0;i<N;i++){const R=ISLANDS[i],dx=x-R.x,dz=z-R.z,d2=dx*dx+dz*dz;_isD[i]=d2;if(d2<rNear)rNear=d2;if(R.core&&d2<R.core*R.core)core=true; // squared: Math.hypot is slow, and two dozen records a sample
+  let o=_islA,spare=_islB,best=null,h=-1e9,hSmooth=-1e9,rNear=1e9,core=false,n=0;const LR=recsAt(x,z),N=LR.length; // the records near here (v11.103: the index's; rNear is theirs, read only where no record is in reach and nothing then uses it)
+  for(let q0=0;q0<N;q0++){const i=LR[q0],R=ISLANDS[i],dx=x-R.x,dz=z-R.z,d2=dx*dx+dz*dz;_isD[i]=d2;if(d2<rNear)rNear=d2;if(R.core&&d2<R.core*R.core)core=true; // squared: Math.hypot is slow, and two dozen records a sample
     const rr=R.reach*R.sc;if(d2>rr*rr)continue;
     // a record with a bound table (region.js rgBound: the model's and the giant) by the most its ground can stand here; ours, with no table, first
     const b=R.hi?R.hi[Math.min(R.hi.length-1,Math.floor(Math.sqrt(d2)/R.hiS))]:Infinity;let k=n++;while(k>0&&_isB[k-1]<b){_isI[k]=_isI[k-1];_isB[k]=_isB[k-1];k--;}_isI[k]=i;_isB[k]=b;}
@@ -643,6 +660,7 @@ function oxyProf(y,nut){const d=-y;if(d<=-OXY.photic)return 1;const k=clamp((nut
 // stood high is under 2-3 Myr of pelagic ooze; the giant's 7 km of rainy land reach ~11 km past its foot). Read by chunks.js terrainColor.
 // v11.102: the run-out stops at the giant's — more land feeds a thicker apron, not a longer one: past ~11 km the turbidites pond in the
 // shield's own moat, and the floor rises out of it (the awesome shield's 21 km of land would otherwise have laid its apron over the whole square).
-const APRON_L=[2000,1.3,11100];
+// APRON_L (the apron's run-out: 2 km, 1.3 m a metre of land radius, at most 11.1 km) is declared with BASIN above: the records' index reads it
+// on its first build, which the chimney's sample() at load makes
 function apronR(R,d){const foot=R.fade?R.fade[1]:6000,L=Math.min(APRON_L[2],APRON_L[0]+(R.land?APRON_L[1]*R.land.r:0));return d<foot+L?smooth(foot+L,foot,d):0;}
-function apronAt(x,z){let a=0;for(const R of ISLANDS){const v=apronR(R,Math.hypot(x-R.x,z-R.z));if(v>a)a=v;}return a;}
+function apronAt(x,z){let a=0;for(const i of recsAt(x,z)){const R=ISLANDS[i];const v=apronR(R,Math.hypot(x-R.x,z-R.z));if(v>a)a=v;}return a;}
