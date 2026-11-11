@@ -339,8 +339,15 @@ const CELL=215,NCELL=240,HALF=CELL*NCELL/2; // v11.65 (ARCHIPELAGO step 4): 240 
 // grid is the same: cell (0, 0) is still the v11.65 square's corner and HALF its anchor, so every cell's place (i·CELL − HALF), every seed by
 // cell and every number of the old square is as it was; the new cells go round it, from −208 to 447. NCELL and HALF are the old square's (the
 // fine ledger's box, the maps' anchor); the world's extent is WHALF (a dense table over the world's cells was indexed by gridIdx, v11.106–110).
-const GRID0=-208,GRIDN=656,WHALF=CELL*GRIDN/2;
-function gridIn(i,j){return i>=GRID0&&j>=GRID0&&i<GRID0+GRIDN&&j<GRID0+GRIDN;}
+// v11.112 (GLOBE §10.1, the province): the world is a rectangle — cells [WORLD.i0, WORLD.i1) by [WORLD.j0, WORLD.j1), x from WX0 to WX1 and
+// z from WZ0 to WZ1 — since the province is not centred on ours (its old members trail 300 km east); to v11.111 a square, GRID0 −208, GRIDN
+// 656, ±WHALF 70,520: the same today, so nothing moves. Each bound a multiple of 8 cells (the ledger's patches, the far regions' 4).
+const WORLD={i0:-208,i1:448,j0:-208,j1:448};
+const WX0=WORLD.i0*CELL-HALF,WX1=WORLD.i1*CELL-HALF,WZ0=WORLD.j0*CELL-HALF,WZ1=WORLD.j1*CELL-HALF;
+function gridIn(i,j){return i>=WORLD.i0&&j>=WORLD.j0&&i<WORLD.i1&&j<WORLD.j1;}
+function inWorld(x,z,m){return x>WX0+m&&x<WX1-m&&z>WZ0+m&&z<WZ1-m;} // (x, z) at least m inside the world's edge
+function worldX(x,m){return clamp(x,WX0+m,WX1-m);} // the clamp, m inside the edge
+function worldZ(z,m){return clamp(z,WZ0+m,WZ1-m);}
 // v11.111 (GLOBE §10.1, the cell hash): nothing is indexed by gridIdx any more — every table of cells is a Map keyed by chunks.js ckey(i, j),
 // sized by what is in it, not by the world; gridIn is the world's bounds (the clamp) alone
 // the geology's parameters: angles are radians from +x toward +z
@@ -994,14 +1001,19 @@ const LM={};
 // minimum's water). OXY.anox puts those two over the line and Santa Monica's (740 m, hypoxic) and San Clemente's (1800 m) under it. In the
 // world today no basin is: the moat round ours and DEEP §5's west basin are one water behind −999 (0.09), the two small ones east behind −604
 // and −616 under fed water the nearest (0.80, 0.70). Built on the first call, once (~0.3 s); region.js (after this file in order.txt) holds the flood.
-let CHEMO_B=null;
+let CHEMO_B=null,CHEMO_G=null;
 function chemoD(sill,nut){return OXY.anox*nut*Math.pow(-sill/100,-0.86)/Math.max(0.01,oxyProf(sill,nut));} // a silled basin's food over its oxygen: anoxic at 1
-function chemoInit(){const G=OXY.G,n=Math.ceil(2*WHALF/G),x0=-WHALF,H=new Float32Array(n*n); // the world's ground (v11.106: ±WHALF; the old square to v11.105)
-  const Nu=new Float32Array(n*n);for(let j=0;j<n;j++)for(let i=0;i<n;i++){const s=sample(x0+(i+0.5)*G,x0+(j+0.5)*G);H[j*n+i]=s.h;Nu[j*n+i]=s.f[FI.nut];}
-  const R=regionBasins(H,n,G,1),sn=new Float64Array(R.B.length);for(let k=0;k<n*n;k++){const l=R.lab[k];if(l>=0)sn[l]+=Nu[k];}
+function* chemoGen(){const G=OXY.G,nx=Math.ceil((WX1-WX0)/G),nz=Math.ceil((WZ1-WZ0)/G),x0=WX0,z0=WZ0,H=new Float32Array(nx*nz); // the world's ground from its corner (v11.106: ±WHALF; the old square to v11.105; v11.112 the rectangle)
+  const Nu=new Float32Array(nx*nz);for(let j=0;j<nz;j++){for(let i=0;i<nx;i++){const s=sample(x0+(i+0.5)*G,z0+(j+0.5)*G);H[j*nx+i]=s.h;Nu[j*nx+i]=s.f[FI.nut];}if((j&7)===7)yield;}
+  const R=regionBasins(H,nx,G,1,nz),sn=new Float64Array(R.B.length);for(let k=0;k<nx*nz;k++){const l=R.lab[k];if(l>=0)sn[l]+=Nu[k];}
   for(const b of R.B){b.nut=sn[b.id]/b.cells;b.D=b.silled?chemoD(b.sill,b.nut):0;b.anox=b.silled&&b.D>=1;} // v11.108: the basin's food (its cells' mean nut) against its inflow
-  CHEMO_B={n,x0,G,lab:R.lab,ch:R.B.map(b=>b.anox?b.chemo:null),B:R.B};}
-function chemoAt(x,z){if(!CHEMO_B)chemoInit();const B=CHEMO_B,i=Math.floor((x-B.x0)/B.G),j=Math.floor((z-B.x0)/B.G);if(i<0||j<0||i>=B.n||j>=B.n)return null;const l=B.lab[j*B.n+i];return l>=0?B.ch[l]:null;} // a basin's chemocline over (x,z), or null
+  CHEMO_B={nx,nz,x0,z0,G,lab:R.lab,ch:R.B.map(b=>b.anox?b.chemo:null),B:R.B};}
+// v11.113 (the province): the flood's samples a slice a frame from the menu on (main.js loop: chemoStep), so at a province's size (~0.5 M
+// samples, a second or more) nothing stalls; anything that asks before it is done finishes it at once (chemoInit), so the answer is never a
+// partial one. In the tests nothing slices: the first chemoAt builds it whole, as before.
+function chemoInit(){if(CHEMO_B)return;if(!CHEMO_G)CHEMO_G=chemoGen();while(!CHEMO_G.next().done){}CHEMO_G=null;}
+function chemoStep(ms){if(CHEMO_B)return;if(!CHEMO_G)CHEMO_G=chemoGen();const t0=performance.now();do{if(CHEMO_G.next().done){CHEMO_G=null;return;}}while(performance.now()-t0<ms);}
+function chemoAt(x,z){if(!CHEMO_B)chemoInit();const B=CHEMO_B,i=Math.floor((x-B.x0)/B.G),j=Math.floor((z-B.z0)/B.G);if(i<0||j<0||i>=B.nx||j>=B.nz)return null;const l=B.lab[j*B.nx+i];return l>=0?B.ch[l]:null;} // a basin's chemocline over (x,z), or null
 function underChemo(x,y,z){const c=chemoAt(x,z);return c!==null&&y<c;} // in a basin's anoxic water
 // oxygen at a point, as a share of the surface's: 0 under a chemocline; else the profile, its core lower where the food rains (nut: the fields'
 // at x,z, read from sample() when not given)
@@ -1094,14 +1106,14 @@ function regionModel(Kin){
   const flux=t=>{let f=K.base;for(const p of pulses){const u=(t-p.t)/K.pulseW;f+=p.a*Math.exp(-u*u);}return f;};
   // the births: a Poisson count every 10 kyr by the flux, each scattered about the plume's centre, some drawn onto a fracture zone, its volume by
 // the size law and the flux. Births inside the game's world are kept and marked (inSq; region.html rings them): since v11.102 each is a
-// record there unless another buries it (rgBuild); none within a pin's foot. The world is ±WHALF since v11.106 (the square ±HALF to v11.105)
-  const sq=typeof WHALF==='number'?WHALF:70520,M=[],nfx=-Math.sin(K.fracA),nfz=Math.cos(K.fracA),sp=K.fracSp*1000,ph0=rng()*sp,sg=K.foot*500,o={x:0,z:0};
+// record there unless another buries it (rgBuild); none within a pin's foot. The world is ±WHALF since v11.106 (the square ±HALF to v11.105), a rectangle since v11.112
+  const sq=typeof WX0==='number'?[WX0,WX1,WZ0,WZ1]:[-70520,70520,-70520,70520],M=[],nfx=-Math.sin(K.fracA),nfz=Math.cos(K.fracA),sp=K.fracSp*1000,ph0=rng()*sp,sg=K.foot*500,o={x:0,z:0};
   pin.forEach((p,i)=>{const m={id:p.id,pin:i,x:p.x,z:p.z,age:i?tg:K.ageOurs,V:(i?600:60)*1e9,target:p.sum};M.push(m);});
   for(let k=Math.round(K.span/0.01);k>0;k--){const t=k*0.01,lam=K.rate*flux(t)*0.01,L=Math.exp(-lam);let n=-1,p=1;do{n++;p*=rng();}while(p>L);
     for(let b=0;b<n;b++){T(t,o);let x=o.x+sg*rgGauss(rng),z=o.z+sg*rgGauss(rng);const V=Math.min(K.vMax,K.vol*Math.pow(flux(t),1.3)*Math.pow(Math.max(1e-9,rng()),-1/K.beta))*1e9,pull=rng()<K.fracPull;
       if(pull){const s=nfx*x+nfz*z,c=ph0+sp*Math.round((s-ph0)/sp);x-=(s-c)*nfx;z-=(s-c)*nfz;}
       const m={id:'m'+M.length,pin:-1,x,z,age:t+0.01*rng(),V,frac:pull};rgShape(m);
-      if(pin.some(q=>Math.hypot(x-q.x,z-q.z)<q.excl+0.4*m.R))continue;m.inSq=Math.abs(x)<sq&&Math.abs(z)<sq;M.push(m);}}
+      if(pin.some(q=>Math.hypot(x-q.x,z-q.z)<q.excl+0.4*m.R))continue;m.inSq=x>sq[0]&&x<sq[1]&&z>sq[2]&&z<sq[3];M.push(m);}}
   M.forEach(rgShape);
   // the plateau: a band about the track and the head's disc at its old end, the plate beyond; its level solved below so the floor beside ours is K.floor
   const TP=[];for(let t=0;t<=K.span+1e-9;t+=0.25)TP.push(T(t));const head=T(K.span);
@@ -1167,7 +1179,8 @@ function regionSeen(R,x,z){const out=[];for(const m of R.M){if(m.top<=0)continue
 // the province today as heights on an n² grid of `span` metres whose corner is (x0, z0), at cell centres: the floor (the plateau, the swell, the moats
 // and arches, the hills) under every member's cone, flat top, reef ring and lagoon; `inner(x,z)` (optional) is the game's own ground, which takes over
 // inside its square of half-side `half` past a 3 km blend (so the picture and the basins carry the records as the game has them)
-function regionGrid(R,x0,z0,span,n,inner,half){const H=new Float32Array(n*n),c=span/n,K=R.K,M=R.M,st=4,nc=Math.ceil(n/st)+2,C=new Float32Array(nc*nc);
+function regionGrid(R,x0,z0,span,n,inner,half){const HB=typeof half==='number'?[-half,half,-half,half]:half; // the game's ground inside ±half, or a rectangle [x0, x1, z0, z1] (v11.112)
+  const H=new Float32Array(n*n),c=span/n,K=R.K,M=R.M,st=4,nc=Math.ceil(n/st)+2,C=new Float32Array(nc*nc);
   for(let j=0;j<nc;j++)for(let i=0;i<nc;i++)C[j*nc+i]=R.floorAt(x0+(i*st+0.5)*c,z0+(j*st+0.5)*c); // the plateau, the swell and the flexure are smooth over km: every 4th cell, then bilinear
   for(let j=0;j<n;j++){const z=z0+(j+0.5)*c,fj=j/st,j0=fj|0,v=fj-j0;for(let i=0;i<n;i++){const x=x0+(i+0.5)*c,fi=i/st,i0=fi|0,u=fi-i0,k=j0*nc+i0;
     H[j*n+i]=(C[k]*(1-u)+C[k+1]*u)*(1-v)+(C[k+nc]*(1-u)+C[k+nc+1]*u)*v+(typeof fbm==='function'?(fbm(x*0.00012+7,z*0.00012+3,3)-0.5)*2*K.hill:0);}}
@@ -1177,7 +1190,7 @@ function regionGrid(R,x0,z0,span,n,inner,half){const H=new Float32Array(n*n),c=s
       let g=s>0?(r<rt+s/RG_SA?s-Math.max(0,r-rt)*RG_SA:-(r-rt-s/RG_SA)*RG_S):s-Math.max(0,r-rt)*RG_S;
       if(ring)g=Math.max(g,r<=m.ring?m.rt-Math.min(lag,Math.max(0,m.ring-400-r)*0.05):m.rt-(r-m.ring)*0.6); // the crest 400 m wide at the ring, the lagoon (a bank's flat) inside, the fore-reef's talus outside
       const q=j*n+i;if(g>H[q])H[q]=g;}}
-  if(inner)for(let j=0;j<n;j++){const z=z0+(j+0.5)*c;for(let i=0;i<n;i++){const x=x0+(i+0.5)*c,e=Math.min(half-Math.abs(x),half-Math.abs(z));if(e>0){const w=smooth(0,3000,e),q=j*n+i;H[q]+=(inner(x,z)-H[q])*w;}}}
+  if(inner)for(let j=0;j<n;j++){const z=z0+(j+0.5)*c;for(let i=0;i<n;i++){const x=x0+(i+0.5)*c,e=Math.min(x-HB[0],HB[1]-x,z-HB[2],HB[3]-z);if(e>0){const w=smooth(0,3000,e),q=j*n+i;H[q]+=(inner(x,z)-H[q])*w;}}}
   return H;}
 // the water each cell exchanges with the open ocean through: the shallowest point on its deepest way to the grid's edge (a priority flood from the
 // edge, lowest first). A cell whose floor lies under that (by th, 30 m unless given; world.js chemoInit passes 1, so a basin's walls are its) is
@@ -1186,16 +1199,17 @@ function regionGrid(R,x0,z0,span,n,inner,half){const H=new Float32Array(n*n),c=s
 // OXY.floor (-1100; Santa Barbara Basin goes anoxic behind a 475 m sill on the minimum's water) and below -100 (a lagoon the tide flushes) — when
 // its floor lies 150 m or more under the sill, and when it is 10 km² or more (v11.96: a hollow smaller is stirred clean; the outer flank's
 // ribbing made 0.5-1.6 km² "basins" at -2500 to -3500)
-function regionBasins(H,n,cell,th){if(th===undefined)th=30;const N=n*n,F=new Float32Array(N).fill(Infinity),hp=new Int32Array(N),lab=new Int32Array(N).fill(-1);let hn=0;
+function regionBasins(H,n,cell,th,nz){if(th===undefined)th=30;if(nz===undefined)nz=n;const N=n*nz,F=new Float32Array(N).fill(Infinity),hp=new Int32Array(N),lab=new Int32Array(N).fill(-1);let hn=0;
   const up=k=>{const v=hp[k];while(k>0){const p=(k-1)>>1;if(F[hp[p]]<=F[v])break;hp[k]=hp[p];k=p;}hp[k]=v;},
     down=()=>{const v=hp[--hn];let k=0;for(;;){let c=2*k+1;if(c>=hn)break;if(c+1<hn&&F[hp[c+1]]<F[hp[c]])c++;if(F[hp[c]]>=F[v])break;hp[k]=hp[c];k=c;}hp[k]=v;};
   const push=i=>{hp[hn]=i;up(hn++);};
-  for(let i=0;i<n;i++)for(const k of [i,(n-1)*n+i,i*n,i*n+n-1])if(F[k]===Infinity){F[k]=H[k];push(k);}
+  const seed=k=>{if(F[k]===Infinity){F[k]=H[k];push(k);}}; // the edge: the open ocean (v11.112: an n × nz grid; a square's order as before)
+  for(let i=0;i<Math.max(n,nz);i++){if(i<n){seed(i);seed((nz-1)*n+i);}if(i<nz){seed(i*n);seed(i*n+n-1);}}
   while(hn){const k=hp[0];if(hn>1)down();else hn=0;const x=k%n,y=(k/n)|0,f=F[k];
-    for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=n||yy>=n)continue;const q=yy*n+xx;if(F[q]!==Infinity)continue;F[q]=Math.max(H[q],f);push(q);}}
+    for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=n||yy>=nz)continue;const q=yy*n+xx;if(F[q]!==Infinity)continue;F[q]=Math.max(H[q],f);push(q);}}
   const B=[];for(let k=0;k<N;k++){if(lab[k]>=0||F[k]-H[k]<th||F[k]>=0)continue;const b={id:B.length,sill:F[k],floor:H[k],cells:0,sx:0,sz:0},st=[k];lab[k]=b.id;
     while(st.length){const q=st.pop(),x=q%n,y=(q/n)|0;b.cells++;b.sx+=x;b.sz+=y;if(H[q]<b.floor)b.floor=H[q];
-      for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=n||yy>=n)continue;const r=yy*n+xx;if(lab[r]>=0||F[r]-H[r]<th||Math.abs(F[r]-b.sill)>1)continue;lab[r]=b.id;st.push(r);}}
+      for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=n||yy>=nz)continue;const r=yy*n+xx;if(lab[r]>=0||F[r]-H[r]<th||Math.abs(F[r]-b.sill)>1)continue;lab[r]=b.id;st.push(r);}}
     // silled: still water behind its sill; anoxic only if world.js chemoD says its food outruns its inflow (v11.108) — b.chemo is where the line would be
     b.area=b.cells*cell*cell/1e6;b.cx=b.sx/b.cells;b.cz=b.sz/b.cells;b.silled=b.sill<-100&&b.sill>(typeof OXY==='object'?OXY.floor:-1100)&&b.sill-b.floor>=150&&b.area>=10;b.chemo=b.silled?b.sill-20:null;B.push(b);}
   return {F,lab,B};}
@@ -1263,9 +1277,9 @@ function rgRecord(m,k,K,rng){const ns=1000+37*k,R={id:m.id,x:m.x,z:m.z,rot:0,sc:
 // v11.106 (GLOBE §10.1 step 4, the world to ±WHALF): in two passes, so the old square's records are v11.102's to the bit — first the members
 // that reach the old square (HALF + 2 km, as v11.102–105 built them: the same list, order, rng and noise seeds), then the rest that reach the
 // world, by their own rng, their seeds after; the floor's grid is v11.102's lattice grown by whole nodes, so every node it had is the same node
-function rgBuild(Rg){const K=Rg.K,rng=mulberry(K.seed*104729+7),rng2=mulberry(K.seed*104729+11),W0=HALF+2000,W=WHALF+2000,box=(x,z,r,w)=>Math.max(Math.abs(x),Math.abs(z))-r<w;
+function rgBuild(Rg){const K=Rg.K,rng=mulberry(K.seed*104729+7),rng2=mulberry(K.seed*104729+11),W0=[-HALF-2000,HALF+2000,-HALF-2000,HALF+2000],W=[WX0-2000,WX1+2000,WZ0-2000,WZ1+2000],box=(x,z,r,w)=>x+r>w[0]&&x-r<w[1]&&z+r>w[2]&&z-r<w[3]; // the boxes as rectangles (v11.112; a square's test the same decisions)
   const cand=w=>Rg.M.filter(m=>m.pin<0&&box(m.x,m.z,m.R*1.6+3000,w)).sort((a,b)=>b.top-a.top),c0=cand(W0),c1=cand(W);
-  const ext=(L,w)=>{let x0=-w-5000,x1=w+5000,z0=-w-5000,z1=w+5000;for(const m of L){const r=Math.max(m.shore,m.ring,m.R)+6000;x0=Math.min(x0,m.x-r);x1=Math.max(x1,m.x+r);z0=Math.min(z0,m.z-r);z1=Math.max(z1,m.z+r);}return [x0,z0,x1,z1];};
+  const ext=(L,w)=>{let x0=w[0]-5000,x1=w[1]+5000,z0=w[2]-5000,z1=w[3]+5000;for(const m of L){const r=Math.max(m.shore,m.ring,m.R)+6000;x0=Math.min(x0,m.x-r);x1=Math.max(x1,m.x+r);z0=Math.min(z0,m.z-r);z1=Math.max(z1,m.z+r);}return [x0,z0,x1,z1];};
   const e0=ext(c0,W0),e1=ext(c1,W),G=RG_FLG,ox=e0[0]-G,oz=e0[1]-G; // v11.102's origin: its x0 less a node
   rgFloorInit(Rg,ox,oz,Math.ceil(Math.max(0,e0[0]-e1[0])/G),Math.ceil(Math.max(0,e0[1]-e1[1])/G),Math.max(e1[2],e0[2]),Math.max(e1[3],e0[3]));
   const foot=R=>{const f0=rgFloor(R.x,R.z)-BASIN.knee-200;let r=0;while(r<80000&&rgRadial(R,r)>f0)r+=50;return r;};
@@ -9261,7 +9275,7 @@ function seekAway(c,from,speed,dt){speed*=slowOf(c);T1.copy(c.pos).sub(from);T1.
 function setWander(c){
   const d=c.def,R=d.home||30;let p,fh;
   for(let k=0;k<6;k++){ // swimmers steer for wet ground only; a legged creature goes where it likes
-    p=c.home.clone().add(V3(rnd(-R,R),0,rnd(-R,R)));p.x=clamp(p.x,-WHALF+30,WHALF-30);p.z=clamp(p.z,-WHALF+30,WHALF-30);
+    p=c.home.clone().add(V3(rnd(-R,R),0,rnd(-R,R)));p.x=worldX(p.x,30);p.z=worldZ(p.z,30);
     fh=groundAt(p.x,p.z);if(d.legs||fh<-3-d.size*0.6)break;
   }
   if(d.floor)p.y=fh+rnd(0.5,2.5)+d.size*0.4;
@@ -9682,7 +9696,7 @@ function updateCreatures(dt0){
       if(c.flopT<=0){c.flopT=rnd(0.7,1.3);const gx=groundAt(c.pos.x+1,c.pos.z)-groundAt(c.pos.x-1,c.pos.z),gz=groundAt(c.pos.x,c.pos.z+1)-groundAt(c.pos.x,c.pos.z-1),gl=Math.hypot(gx,gz)||1;
         c.vel.x+=-gx/gl*3.4+rnd(-0.5,0.5);c.vel.z+=-gz/gl*3.4+rnd(-0.5,0.5);c.vel.y=3.6+d.size*0.25;}}
     const wet=sub>0.5;if(wet!==c.wet){if(dp<160&&Math.abs(c.vel.y)>2.5)splash(c.pos,Math.abs(c.vel.y)*(0.5+d.size*0.12));c.wet=wet;}
-    c.pos.x=clamp(c.pos.x,-WHALF+12,WHALF-12);c.pos.z=clamp(c.pos.z,-WHALF+12,WHALF-12);
+    c.pos.x=worldX(c.pos.x,12);c.pos.z=worldZ(c.pos.z,12);
     if(!d.noOrient){if(c.shook){_q.setFromAxisAngle(UP,-c.shook);c.g.quaternion.multiply(_q);c.shook=0;} // the shake (v11.93, combat.js holderWork): last frame's head yaw taken off before the facing is steered, and this frame's put on after — a yaw about the body's own up, composed on the facing, never fought by it
       if(c.face){_m.lookAt(c.face,c.pos,UP);_q.setFromRotationMatrix(_m);c.g.quaternion.slerp(_q,1-Math.exp(-(d.turn||2)*(c.turnK||1)*(c.commitT>0||c.strikeT>0?TURN_STRIKE:2)*dt));} // in a strike the head snaps to the point (TURN_STRIKE, v11.92): the mouth dips to a prey under it // turning to a thing (the tell, the watcher's stare)
       else if(c.vel.lengthSq()>0.02){T2.copy(c.pos).add(c.vel);_m.lookAt(T2,c.pos,UP);_q.setFromRotationMatrix(_m);c.g.quaternion.slerp(_q,1-Math.exp(-(d.turn||2)*(c.turnK||1)*(c.turnedF===frameNo?TURN_FACE:(d.top?clamp(c.vel.length()/d.top,TURN_MIN,1):1))*(c.hold?kgOf(c)/(kgOf(c)+kgOf(c.hold.b)):1)*dt));} // v11.92: a body steered by seekTurn already turns its velocity at its rate, so its facing follows the velocity TURN_FACE times faster (it points where it goes; the lunge's low steering is seekTurn's); holding, the pair turns by the holder's share of its mass // v11.92: in the committed lunge the steering is STRIKE.steer of the rate (it overshoots a dodge); holding, the pair turns by the holder's share of its mass // v11.71: d.turn is the rate at the top speed (derive); a turn is speed over a radius that goes as the length, so an ambling body comes round at its pace's share of it, floored at TURN_MIN
@@ -9860,7 +9874,7 @@ function poolSnap(px,pz){if(!ORIGIN.on||(Math.abs(px-ORIGIN.x)<ORIGIN.snap&&Math
 // a cell's or a region's group at its corner (ORIGIN.on), and an instanced mesh's translations made local from the doubles they came from
 function originOf(x0,z0){return ORIGIN.on?[x0,z0]:[0,0];}
 function instLocal(im,list,ox,oz,get){const a=im.instanceMatrix.array;for(let i=0;i<list.length;i++){const e=get(list[i]).elements;a[i*16+12]=e[12]-ox;a[i*16+14]=e[14]-oz;}}
-const POOL_SPHERE=new THREE.Sphere(new THREE.Vector3(0,0,0),WHALF*2+2000);
+const POOL_SPHERE=new THREE.Sphere(new THREE.Vector3(0,0,0),2*Math.max(-WX0,WX1,-WZ0,WZ1)+2000);
 function poolFor(f,geo,mat,vars,cur){let P=POOLS.get(f);if(P)return P;P={f:f,src:geo,mat:mat,vars:!!vars,cur:cur,cap:0,n:0,nVis:0,blocks:[],geo:null,im:null};poolAlloc(P,Math.max(64,Math.round((f.per||60)*Q.flora*12)));POOLS.set(f,P);return P;}
 function poolAlloc(P,cap){ // the pool's mesh at capacity cap, what is written carried over; the old geometry disposed
   const old=P.im,g=P.src.clone();
@@ -10156,7 +10170,7 @@ function unloadChunk(ch){
 }
 let activeGen=null,activeKey=null;
 function manageChunks(budgetMs){
-  const t0=performance.now();poolSnap(player.pos.x,player.pos.z); // the pools' render origin follows the player (v11.110)
+  const t0=performance.now();poolSnap(camera.position.x,camera.position.z); // the render origin follows the camera (v11.110; v11.113 the camera, not the player: the GPU's numbers matter round the eye)
   const ci=cellOf(player.pos.x),cj=cellOf(player.pos.z);
   for(const ch of chunks.values())if(Math.max(Math.abs(ch.i-ci),Math.abs(ch.j-cj))>LOAD_R+1){unloadChunk(ch);break;} // one a frame (v11.12): crossing a cell line used to drop a whole column at once — forty creatures and two dozen geometries each
   if(!activeGen){
@@ -10202,8 +10216,8 @@ const ECO_STEP=3; // real seconds between ticks of the model
 // kept at the end of the fine tables, its count laid on them by each cell's own capacity (ecoSplit) — and merges back when the player has gone
 // (ecoMerge). A loaded cell is always fine. Every lookup by cell goes through ecoId(i, j) and ecoIJ(c); in the fine box they are the old
 // i*NCELL + j. The patches tile the world from cell GRID0 (ecoPI, ecoPJ, ecoPOf), 82² of them, 5,824 coarse round the box (v11.106).
-const ECO_FB={i0:0,j0:0,w:NCELL},PATCH=8,ECO_R=[2500,4000]; // the fine box; a patch's side in cells; split within, merge past (m from the player to the patch)
-const ECO_FINE=ECO_FB.w*ECO_FB.w,ECO_COARSE=ECO_FB.i0>GRID0||ECO_FB.j0>GRID0||ECO_FB.i0+ECO_FB.w<GRID0+GRIDN||ECO_FB.j0+ECO_FB.w<GRID0+GRIDN,ECO_SLOTS=ECO_COARSE?64:0;
+const ECO_FB={i0:0,j0:0,w:NCELL},PATCH=8,ECO_R=[2500,4000],ECO_PR=40000,ECO_PN=8; // the fine box; a patch's side in cells; split within, merge past (m from the player to the patch); ECO_PR (v11.112): the coarse patches censused — at boot those within it of the player, nearest first, and as the player travels ECO_PN a tick (ecoCensusNear); past it a patch waits uncensused and out of the model, its animals at their equilibrium until the player comes
+const ECO_FINE=ECO_FB.w*ECO_FB.w,ECO_COARSE=ECO_FB.i0>WORLD.i0||ECO_FB.j0>WORLD.j0||ECO_FB.i0+ECO_FB.w<WORLD.i1||ECO_FB.j0+ECO_FB.w<WORLD.j1,ECO_SLOTS=ECO_COARSE?64:0;
 const ECO_CELLS=ECO_FINE+ECO_SLOTS*PATCH*PATCH,DAY_S=DAY_H/CLOCK_RATE; // cells: the fine box's and the slots'; real seconds in a game day (2400)
 // the knobs (per game day unless said): r0 the birth rate at unit mass, m the natural death as a fraction of r, cyc the hunger
 // clock at unit mass (days from fed to starving), q0 a hunter's intake a day as a fraction of its own mass at unit mass (Earth's
@@ -10234,13 +10248,13 @@ const POP={n:[],k:[],ke:[],cd:[],ow:[],done:new Uint8Array(ECO_CELLS),byKind:{},
 // the cells by place and the places by cell (v11.105): ecoId(i, j) is a world cell's index in the ledger's fine tables, or -1 (off the world, or
 // in a coarse patch not split); ecoIJ(c) writes the world cell of index c into ECO_IJ. ECO_PT: the coarse patches — per entry n, k, ke, cd over
 // them, their census (done), whether each is outside the fine box (coarse), the slot it is split into (blk, -1 none) and each slot's patch (bp)
-const ECO_IJ=new Int32Array(2),ECO_PT={on:ECO_COARSE,nw:Math.ceil(GRIDN/PATCH),np:0,coarse:null,blk:null,bp:new Int32Array(ECO_SLOTS).fill(-1),free:[],n:[],k:[],ke:[],cd:[],rc:[],bref:[],done:null,cells:[],mark:[],B:{},T:{},D:[]};
-ECO_PT.np=ECO_PT.nw*ECO_PT.nw;
-function ecoPI(p){return GRID0+Math.floor(p/ECO_PT.nw)*PATCH;} // patch p's first cell (i); the patches tile the world from GRID0, a multiple of PATCH, so they sit on v11.105's
-function ecoPJ(p){return GRID0+(p%ECO_PT.nw)*PATCH;}
-function ecoPOf(i,j){return Math.floor((i-GRID0)/PATCH)*ECO_PT.nw+Math.floor((j-GRID0)/PATCH);} // the patch a world cell is in
+const ECO_IJ=new Int32Array(2),ECO_PT={on:ECO_COARSE,nx:Math.ceil((WORLD.i1-WORLD.i0)/PATCH),nz:Math.ceil((WORLD.j1-WORLD.j0)/PATCH),np:0,coarse:null,blk:null,bp:new Int32Array(ECO_SLOTS).fill(-1),free:[],n:[],k:[],ke:[],cd:[],rc:[],bref:[],done:null,cells:[],mark:[],B:{},T:{},D:[]};
+ECO_PT.np=ECO_PT.nx*ECO_PT.nz; // patch p is (⌊p/nz⌋, p mod nz) on the world's patch grid (v11.112: nx along i, nz along j; a square's nw to v11.111)
+function ecoPI(p){return WORLD.i0+Math.floor(p/ECO_PT.nz)*PATCH;} // patch p's first cell (i); the patches tile the world from its corner, a multiple of PATCH, so they sit on v11.105's
+function ecoPJ(p){return WORLD.j0+(p%ECO_PT.nz)*PATCH;}
+function ecoPOf(i,j){return Math.floor((i-WORLD.i0)/PATCH)*ECO_PT.nz+Math.floor((j-WORLD.j0)/PATCH);} // the patch a world cell is in
 function ecoId(i,j){const a=i-ECO_FB.i0,b=j-ECO_FB.j0;if(a>=0&&b>=0&&a<ECO_FB.w&&b<ECO_FB.w)return a*ECO_FB.w+b;return ecoIdOut(i,j);}
-function ecoIdOut(i,j){if(!ECO_PT.on||!gridIn(i,j))return -1;const s=ECO_PT.blk[ecoPOf(i,j)];return s<0?-1:ECO_FINE+s*64+((i-GRID0)%PATCH)*PATCH+((j-GRID0)%PATCH);}
+function ecoIdOut(i,j){if(!ECO_PT.on||!gridIn(i,j))return -1;const s=ECO_PT.blk[ecoPOf(i,j)];return s<0?-1:ECO_FINE+s*64+((i-WORLD.i0)%PATCH)*PATCH+((j-WORLD.j0)%PATCH);}
 function ecoIJ(c){if(c<ECO_FINE){ECO_IJ[0]=ECO_FB.i0+Math.floor(c/ECO_FB.w);ECO_IJ[1]=ECO_FB.j0+c%ECO_FB.w;}else{const s=(c-ECO_FINE)>>6,l=(c-ECO_FINE)&63,p=ECO_PT.bp[s];ECO_IJ[0]=ecoPI(p)+(l>>3);ECO_IJ[1]=ecoPJ(p)+(l&7);}return ECO_IJ;}
 // is ledger cell c loaded (the game's isLoaded for the model): its world cell's chunk (chunkGrid[c] itself to v11.105, while the box was the world)
 function ecoLoaded(c){ecoIJ(c);return !!chunkIJ(ECO_IJ[0],ECO_IJ[1]);}
@@ -10282,7 +10296,10 @@ function ecoCap(c,ch){
 }
 // the paper census of the unloaded world, 32 cells a step, run in the frame's gaps after boot (main.js); a cell that loads
 // first is done from its grid (chunks.js) and skipped here
-function* ecoGen(load){let fresh=!load;if(!load)for(let c=0;c<ECO_FINE;c++){if(!POP.done[c])ecoCap(c,null);if((c&31)===31)yield;}if(ECO_PT.on)for(let p=0;p<ECO_PT.np;p++){const P=ECO_PT;if(P.coarse[p]&&P.blk[p]<0){if(!P.done[p]){ecoPatchCap(p);fresh=true;}else if(!P.rt[p])ecoPatchCap(p,true);}if((p&3)===3)yield;}if(fresh)ecoSettle(ecoLoaded,load);} // v11.105: the fine box's cells (the slots are censused as they split), then the coarse patches, 4 a step (a patch is 256 samples); v11.106 (load: after a save, popLoad): the fine cells are the save's, a patch from it gets its hunters' tables back (they are not saved) and nothing else, one it lacks its census and the settle, the patches' alone // 32 cells a step since v11.58 (~1.3 ms; a cell is ~42 µs): the basin's 14,400 cells in eight seconds, not a minute
+function* ecoGen(load){let fresh=!load,n=0;if(!load)for(let c=0;c<ECO_FINE;c++){if(!POP.done[c])ecoCap(c,null);if((c&31)===31)yield;}
+  if(ECO_PT.on){const P=ECO_PT;if(load)for(let p=0;p<P.np;p++){if(P.coarse[p]&&P.blk[p]<0&&P.done[p]&&!P.rt[p]){ecoPatchCap(p,true);if((++n&3)===0)yield;}} // a save's patches: their hunters' tables back, nothing else
+    for(const p of ecoNear(player.pos.x,player.pos.z,ECO_PR)){ecoPatchCap(p);if(load)ecoPatchSettle(p);else fresh=true;if((++n&3)===0)yield;}} // the patches within ECO_PR, nearest first (v11.112; every one to v11.111)
+  if(fresh)ecoSettle(ecoLoaded,false);} // v11.105: the fine box's cells (the slots are censused as they split), then the coarse patches, 4 a step (a patch is 256 samples); v11.106 (load: after a save, popLoad): the fine cells are the save's, a patch from it gets its hunters' tables back (they are not saved) and nothing else, one it lacks (within ECO_PR) its census and its own settle (ecoPatchSettle, v11.112) // 32 cells a step since v11.58 (~1.3 ms; a cell is ~42 µs): the basin's 14,400 cells in eight seconds, not a minute
 // the census done, the hunters of the unloaded cells start at what their prey allows (ke, from one step of the model), not at the
 // envelope's full number — a ridge over a terrace with no grazers in reach was starving from the first day otherwise
 function ecoSettle(isLoaded,onlyP){ecoModel(1e-4,isLoaded);for(let ei=0;ei<SPAWN.length;ei++){if(!ecoOf(SPAWN[ei].kind).hunter)continue;const N=POP.n[ei],KE=POP.ke[ei],CL=POP.cells[ei];if(!onlyP)for(const c of CL)if(!isLoaded(c))N[c]=Math.min(N[c],KE[c]*0.8);
@@ -10406,8 +10423,8 @@ function* ecoPatchGen(dt){const P=ECO_PT;if(!P.on)return;const E=SPAWN.length,NP
       n=n+b-d;if(!K.hunter&&cap>0&&n>cap*1.25)n=cap*1.25;N[p]=Math.max(0,n);}
     yield;}
   for(let ei=0;ei<E;ei++){const K=ecoOf(SPAWN[ei].kind);if(!K.mortal)continue;const N=P.n[ei],Cp=K.hunter?P.ke[ei]:P.k[ei];let D=P.D[ei];if(!D)D=P.D[ei]=new Float32Array(NP);D.fill(0);
-    for(const p of P.cells[ei]){if(!live(p))continue;const n=N[p];if(n<0.02)continue;const pi=Math.floor(p/P.nw),pj=p%P.nw;let f=0;
-      for(let k=0;k<4;k++){const qi=k===0?pi-1:k===1?pi+1:pi,qj=k===2?pj-1:k===3?pj+1:pj;if(qi<0||qj<0||qi>=P.nw||qj>=P.nw)continue;const q=qi*P.nw+qj;if(!P.coarse[q]||!live(q))continue;
+    for(const p of P.cells[ei]){if(!live(p))continue;const n=N[p];if(n<0.02)continue;const pi=Math.floor(p/P.nz),pj=p%P.nz;let f=0;
+      for(let k=0;k<4;k++){const qi=k===0?pi-1:k===1?pi+1:pi,qj=k===2?pj-1:k===3?pj+1:pj;if(qi<0||qj<0||qi>=P.nx||qj>=P.nz)continue;const q=qi*P.nz+qj;if(!P.coarse[q]||!live(q))continue;
         const free=Cp[q]>0.05?Math.max(0,(Cp[q]-N[q])/Cp[q]):0;if(free>0){const m=ECO.mig/PATCH*(K.hunter?1+4*(1-P.cd[ei][p]):1)*dt*n*free*0.25;D[q]+=m;f+=m;}}D[p]-=f;}
     for(const p of P.cells[ei])N[p]=Math.max(0,N[p]+D[p]);yield;}
 }
@@ -10428,10 +10445,21 @@ function ecoPatchLoaded(p){const i0=ecoPI(p),j0=ecoPJ(p);for(let a=0;a<PATCH;a++
 function ecoPatchDist(p,px,pz){const W=PATCH*CELL,x0=ecoPI(p)*CELL-HALF,z0=ecoPJ(p)*CELL-HALF,dx=Math.max(x0-px,0,px-x0-W),dz=Math.max(z0-pz,0,pz-z0-W);return Math.sqrt(dx*dx+dz*dz);}
 function ecoMergeFarthest(){const P=ECO_PT;let best=-1,bd=-1;for(let s=0;s<ECO_SLOTS;s++){const p=P.bp[s];if(p<0||ecoPatchLoaded(p))continue;const d=ecoPatchDist(p,player.pos.x,player.pos.z);if(d>bd){bd=d;best=p;}}if(best>=0)ecoMerge(best);}
 // the bubble, every tick: the split patches the player has left merge, and the nearest coarse patch within ECO_R[0] splits (one a tick: ~10 ms)
+// the coarse patches within R of (px, pz) not yet censused, nearest first (v11.112)
+function ecoNear(px,pz,R){const P=ECO_PT,W=PATCH*CELL,L=[];if(!P.on)return L;const a0=Math.max(0,Math.floor((px-WX0-R)/W)),a1=Math.min(P.nx-1,Math.floor((px-WX0+R)/W)),b0=Math.max(0,Math.floor((pz-WZ0-R)/W)),b1=Math.min(P.nz-1,Math.floor((pz-WZ0+R)/W));
+  for(let a=a0;a<=a1;a++)for(let b=b0;b<=b1;b++){const p=a*P.nz+b;if(!P.coarse[p]||P.done[p]||P.blk[p]>=0)continue;const d=ecoPatchDist(p,px,pz);if(d<=R)L.push([d,p]);}
+  L.sort((x,y)=>x[0]-y[0]);return L.map(q=>q[1]);}
+// a patch censused after the boot (v11.112): its hunters start at what its prey allows, as ecoSettle does at boot — the response off its own table
+// at its prey's biomass now, ke from it, the count no more than 0.8 of that
+function ecoPatchSettle(p){const P=ECO_PT,E=SPAWN.length;for(let ei=0;ei<E;ei++){const K=ecoOf(SPAWN[ei].kind);if(!K.hunter||!(P.k[ei][p]>0))continue;let Bt=0;
+    for(let x=0;x<E;x++)if(K.prey.indexOf(SPAWN[x].kind)>=0)Bt+=P.n[x][p]*ecoOf(SPAWN[x].kind).food;
+    const ke=P.k[ei][p]*(0.1+0.9*ecoPatchResp(ei,p,Bt));P.ke[ei][p]=ke;P.n[ei][p]=Math.min(P.n[ei][p],ke*0.8);}}
+// as the player travels: the nearest ECO_PN patches within ECO_PR not yet censused, censused and settled (each tick, once the boot's census is done)
+function ecoCensusNear(px,pz){if(!ECO_PT.on||POP.gen)return 0;const L=ecoNear(px,pz,ECO_PR);let n=0;for(const p of L){if(n>=ECO_PN)break;ecoPatchCap(p);ecoPatchSettle(p);n++;}return n;}
 function ecoBubble(px,pz){const P=ECO_PT;if(!P.on)return;
   for(let s=0;s<ECO_SLOTS;s++){const p=P.bp[s];if(p>=0&&ecoPatchDist(p,px,pz)>ECO_R[1]&&!ecoPatchLoaded(p))ecoMerge(p);}
-  const W=PATCH*CELL,a0=Math.floor((px+WHALF-ECO_R[0])/W),a1=Math.floor((px+WHALF+ECO_R[0])/W),b0=Math.floor((pz+WHALF-ECO_R[0])/W),b1=Math.floor((pz+WHALF+ECO_R[0])/W);let best=-1,bd=ECO_R[0];
-  for(let a=Math.max(0,a0);a<=Math.min(P.nw-1,a1);a++)for(let b=Math.max(0,b0);b<=Math.min(P.nw-1,b1);b++){const p=a*P.nw+b;if(!P.coarse[p]||P.blk[p]>=0)continue;const d=ecoPatchDist(p,px,pz);if(d<bd){bd=d;best=p;}}
+  const W=PATCH*CELL,a0=Math.floor((px-WX0-ECO_R[0])/W),a1=Math.floor((px-WX0+ECO_R[0])/W),b0=Math.floor((pz-WZ0-ECO_R[0])/W),b1=Math.floor((pz-WZ0+ECO_R[0])/W);let best=-1,bd=ECO_R[0];
+  for(let a=Math.max(0,a0);a<=Math.min(P.nx-1,a1);a++)for(let b=Math.max(0,b0);b<=Math.min(P.nz-1,b1);b++){const p=a*P.nz+b;if(!P.coarse[p]||P.blk[p]>=0)continue;const d=ecoPatchDist(p,px,pz);if(d<bd){bd=d;best=p;}}
   if(best>=0){if(!P.free.length)ecoMergeFarthest();ecoSplit(best);}}
 // ---------- the tick (main.js, once a frame) ----------
 // runs the model every ECO_STEP real seconds over the game hours that passed, then squares the loaded cells with the ledger: where the
@@ -10442,7 +10470,7 @@ const ECO_CNT=new Float32Array(64);
 function ecoTick(dt0){
   if(POP.gen){const r=POP.gen.next();if(r.done)POP.gen=null;}
   if(POP.model){if(!POP.model.next().done)return;POP.model=null;} // a piece of the model a frame, the reconcile when it is done
-  else{POP.acc+=dt0;if(POP.acc<ECO_STEP)return;fallsTick();const dtDays=(clockH-POP.last)/DAY_H;POP.acc=0;if(dtDays<=0)return;const use=Math.min(dtDays,ECO_MAX_STEP);POP.last=clockH-(dtDays-use)*DAY_H;ecoBubble(player.pos.x,player.pos.z);POP.model=ecoModelGen(use,ecoLoaded);return;}
+  else{POP.acc+=dt0;if(POP.acc<ECO_STEP)return;fallsTick();const dtDays=(clockH-POP.last)/DAY_H;POP.acc=0;if(dtDays<=0)return;const use=Math.min(dtDays,ECO_MAX_STEP);POP.last=clockH-(dtDays-use)*DAY_H;ecoBubble(player.pos.x,player.pos.z);ecoCensusNear(player.pos.x,player.pos.z);POP.model=ecoModelGen(use,ecoLoaded);return;}
   for(const ch of chunks.values()){const c=ecoId(ch.i,ch.j);if(c<0||!POP.done[c])continue;ECO_CNT.fill(0);for(const o of ch.creatures)if(o.alive&&o.ent>=0)ECO_CNT[o.ent]+=1;for(const g of ch.eggs)if(g.ent>=0)ECO_CNT[g.ent]+=g.n;
     for(let ei=0;ei<SPAWN.length;ei++){const e=SPAWN[ei],K=ecoOf(e.kind);if(!K.mortal)continue;
       const gap=POP.n[ei][c]*Q.creatures-ECO_CNT[ei],ow=POP.ow[ei][c]*Q.creatures,extra=Math.floor(gap+ow+1e-4); // the ledger's own shortfall (a reload rounded down, a creature wandered out) plus the births the cell has been owed since it loaded, both in animals the cell actually shows (Q.creatures)
@@ -10545,7 +10573,7 @@ wmFill(0,WM_N,0,WM_N,4);wmBlur(0,WM_N,0,WM_N);
 // 24 texels. The overlap is rolled (every map, raw and blurred), the centre and the texture move together, and the uncovered strips — at least a
 // quarter of the window from the player, where no far region stands (they are dropped at FAR_DROP) — are filled coarse a slice a frame and
 // blurred; the regions refine them when they are built there, as at boot. Only when the world is wider than the window: since v11.106 (±WHALF).
-const WM_MOVE=WHALF>WM_HALF;let wmGen=null,wmShifts=0;
+const WM_MOVE=Math.max(WX1-WX0,WZ1-WZ0)>2*WM_HALF;let wmGen=null,wmShifts=0;
 function wmRecentre(px,pz){if(!WM_MOVE||wmGen)return;if(Math.max(Math.abs(px-WM_O[0]),Math.abs(pz-WM_O[1]))<WM_HALF/2)return;
   const I=Math.round(((px-WM_A)/WM_T-WM_N/2)/24)*24,J=Math.round(((pz-WM_A)/WM_T-WM_N/2)/24)*24;if(I!==WM_I0||J!==WM_J0)wmGen=wmShiftGen(I-WM_I0,J-WM_J0);}
 function* wmShiftGen(di,dj){const N=WM_N;
@@ -10710,7 +10738,7 @@ function farCellDrawn(i,j){const reg=regions.get(ckey(Math.floor(i/FR),Math.floo
 // the loaded block stay, so the far mesh runs up to the fine mesh's edge and dives under it.
 const FR=4,FQ=Q.farQ,FS=CH_RES/FQ,FSTEP=STEP*FS,FG=FR*FQ+1; // FQ quads per cell, FS fine steps per far step
 const regions=new Map(),farList=[];let farGen=null,farBuilt=0,visibleRegions=0; // the built regions by ckey(ri, rj), region (ri, rj) the cells from 4ri, 4rj (v11.111: by number from cell 0, any size of world; to v11.110 a dense array from GRID0), and as a list, farList, for the loops each frame
-const RG0=GRID0/FR,RG1=(GRID0+GRIDN)/FR-1; // the world's regions, its bounds the clamp's (gridIn)
+const RX0=WORLD.i0/FR,RX1=WORLD.i1/FR-1,RZ0=WORLD.j0/FR,RZ1=WORLD.j1/FR-1; // the world's regions, its bounds the clamp's (gridIn; v11.112 per axis, the world a rectangle)
 function* genRegion(ri,rj){
   const ci0=ri*FR,cj0=rj*FR,x0=ci0*CELL-HALF,z0=cj0*CELL-HALF,[ox,oz]=originOf(x0,z0); // v11.110: the region's group at its corner, everything in it local
   // the water map block first: the fog reads it every frame
@@ -10732,7 +10760,7 @@ function* genRegion(ri,rj){
   }
   for(let jj=0;jj<FG-1;jj++)for(let ii=0;ii<FG-1;ii++){const a=jj*FG+ii,b=a+1,c=a+FG,d=c+1;idx.push(a,c,b,b,c,d);}
   let P=pos,Cl=col,ext=0;
-  if(ri===RG0||rj===RG0||ri===RG1||rj===RG1){P=Array.from(pos);Cl=Array.from(col);ext=apronGen(ri,rj,x0,z0,P,Cl,idx,ox,oz);P=new Float32Array(P);Cl=new Float32Array(Cl);yield;} // the world's edge: the terrain carried on past the far plane (v11.27)
+  if(ri===RX0||rj===RZ0||ri===RX1||rj===RZ1){P=Array.from(pos);Cl=Array.from(col);ext=apronGen(ri,rj,x0,z0,P,Cl,idx,ox,oz);P=new Float32Array(P);Cl=new Float32Array(Cl);yield;} // the world's edge: the terrain carried on past the far plane (v11.27)
   const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(P,3));geo.setAttribute('color',new THREE.BufferAttribute(Cl,3));geo.setIndex(idx);
   geo.computeVertexNormals();
   const mesh=new THREE.Mesh(geo,TERRAIN_MAT);mesh.frustumCulled=false;
@@ -10769,10 +10797,10 @@ function* genRegion(ri,rj){
 // of vertices beyond the edge at these offsets, sampled from the same sample() (the void's floor at ~-810 runs out flat), in the same
 // mesh as the region, so the edge of the world has no edge. Before this the far mesh stopped at ±HALF and the black dome stood beyond
 // it — a straight silhouette 25 m past the player's clamp, and the dome a shade darker than any terrain beside it (scene.js FOG_CUT).
-// The last offset must exceed FAR from the clamp (WHALF-25): at 2000 it does on both tiers. ~600 vertices on an edge region, ~1000 on a corner.
+// The last offset must exceed FAR from the clamp (25 inside the world's edge): at 2000 it does on both tiers. ~600 vertices on an edge region, ~1000 on a corner.
 const APRON=[60,150,330,700,1300,2000];
 function apronGen(ri,rj,x0,z0,pos,col,idx,ox,oz){ // appends to pos/col (plain arrays) and idx; returns the apron's reach beyond the edge
-  const sides=[ri===RG0,ri===RG1,rj===RG0,rj===RG1]; // -x,+x,-z,+z: the world's edge
+  const sides=[ri===RX0,ri===RX1,rj===RZ0,rj===RZ1]; // -x,+x,-z,+z: the world's edge
   const fT=new Float32Array(NF),cT=new Float32Array(3);let n=pos.length/3;
   const addV=(x,z)=>{const s=sample(x,z,fT);terrainColor(x,z,s.h,fixF(fT,0),0,cT,0);pos.push(x-ox,s.h,z-oz);col.push(cT[0],cT[1],cT[2]);return n++;};
   const L=FR*CELL,K=APRON.length,quad=(a,b,c,d)=>idx.push(a,c,b,b,c,d); // a→b along +x, a→c along +z: the interior's winding
@@ -10827,7 +10855,7 @@ function manageFar(budgetMs){
   const t0=performance.now(),px=player.pos.x,pz=player.pos.z;
   wmRecentre(px,pz);while(wmGen&&performance.now()-t0<budgetMs){if(wmGen.next().done)wmGen=null;} // the maps' window first (v11.104): never moves yet
   if(!farGen){let best=null,bd=FAR_R*FAR_R;
-    const L=FR*CELL,a0=Math.max(RG0,Math.floor((px-FAR_R+HALF)/L)),a1=Math.min(RG1,Math.floor((px+FAR_R+HALF)/L)),b0=Math.max(RG0,Math.floor((pz-FAR_R+HALF)/L)),b1=Math.min(RG1,Math.floor((pz+FAR_R+HALF)/L));
+    const L=FR*CELL,a0=Math.max(RX0,Math.floor((px-FAR_R+HALF)/L)),a1=Math.min(RX1,Math.floor((px+FAR_R+HALF)/L)),b0=Math.max(RZ0,Math.floor((pz-FAR_R+HALF)/L)),b1=Math.min(RZ1,Math.floor((pz+FAR_R+HALF)/L));
     for(let rj=b0;rj<=b1;rj++)for(let ri=a0;ri<=a1;ri++){if(regions.has(ckey(ri,rj)))continue;const dx=(ri+0.5)*L-HALF-px,dz=(rj+0.5)*L-HALF-pz,d=dx*dx+dz*dz;if(d<bd){bd=d;best=[ri,rj];}}
     if(best)farGen=genRegion(best[0],best[1]);}
   while(farGen&&performance.now()-t0<budgetMs){if(farGen.next().done){farGen=null;break;}}
@@ -11000,9 +11028,10 @@ function updateInks(dt){for(let i=inks.length-1;i>=0;i--){const k=inks[i];k.t+=d
 const splashes=[];
 function splash(pos,v){
   const n=28,arr=new Float32Array(n*3),vel=new Float32Array(n*3),y0=waveH(pos.x,pos.z);
-  for(let i=0;i<n;i++){arr[i*3]=pos.x+rnd(-0.6,0.6);arr[i*3+1]=y0;arr[i*3+2]=pos.z+rnd(-0.6,0.6);vel[i*3]=rnd(-1,1)*v*0.35;vel[i*3+1]=rnd(0.4,1)*v*0.55;vel[i*3+2]=rnd(-1,1)*v*0.35;}
+  for(let i=0;i<n;i++){arr[i*3]=rnd(-0.6,0.6);arr[i*3+1]=y0;arr[i*3+2]=rnd(-0.6,0.6); // local to the splash's place, the points placed there (v11.113)
+    vel[i*3]=rnd(-1,1)*v*0.35;vel[i*3+1]=rnd(0.4,1)*v*0.55;vel[i*3+2]=rnd(-1,1)*v*0.35;}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(arr,3));
-  const pts=new THREE.Points(g,new THREE.PointsMaterial({color:0xe8f4f8,size:0.22,transparent:true,opacity:0.9,depthWrite:false}));pts.frustumCulled=false;pts.renderOrder=2;scene.add(pts); // over the surface: the spray is thrown above it
+  const pts=new THREE.Points(g,new THREE.PointsMaterial({color:0xe8f4f8,size:0.22,transparent:true,opacity:0.9,depthWrite:false}));pts.frustumCulled=false;pts.renderOrder=2;pts.position.set(pos.x,0,pos.z);scene.add(pts); // over the surface: the spray is thrown above it
   splashes.push({g:g,pts:pts,vel:vel,t:0,n:n,life:1.1,grav:1});
   // The residue (v11.46, WATER.md I): a foam patch on the water where the body crossed — an irregular ten-gon, growing over RES_T and fading, riding the
   // wave: white in the sky's light from above (RES_UP over the surface, drawn after it; hidden from below by the opaque underside's depth) and a grey patch
@@ -11017,8 +11046,8 @@ function splash(pos,v){
     const gg=new THREE.BufferGeometry();gg.setAttribute('position',new THREE.BufferAttribute(pa,3));gg.setIndex(idx);const mm=new THREE.Mesh(gg,new THREE.MeshBasicMaterial({color:new THREE.Color(0.92*K.tint[0]*lit,0.95*K.tint[1]*lit,0.95*K.tint[2]*lit),transparent:true,opacity:0.5,depthWrite:false,side:THREE.DoubleSide}));mm.renderOrder=1.5;mm.frustumCulled=false;mm.position.set(pos.x,y0+RES_UP+0.02,pos.z);mm.scale.set(r0,1,r0);scene.add(mm);return mm;})();
   residues.push({up:mk(RES_UP,0.90,0.93,0.93,1.5),dn:mk(-RES_DN,0.70,0.74,0.74,-0.5),ring:ring,x:pos.x,z:pos.z,r0:r0,t:0});
   if(residues.length>RES_N)dropRes(residues.shift());
-  const nb=20,ba=new Float32Array(nb*3),bv=new Float32Array(nb*3);for(let i=0;i<nb;i++){ba[i*3]=pos.x+rnd(-0.5,0.5);ba[i*3+1]=y0-rnd(0.3,1.8);ba[i*3+2]=pos.z+rnd(-0.5,0.5);bv[i*3]=rnd(-0.15,0.15);bv[i*3+1]=rnd(0.2,0.35);bv[i*3+2]=rnd(-0.15,0.15);}
-  const bg=new THREE.BufferGeometry();bg.setAttribute('position',new THREE.BufferAttribute(ba,3));const bp=new THREE.Points(bg,new THREE.PointsMaterial({color:0xdde8ec,size:0.07,transparent:true,opacity:0.5,depthWrite:false}));bp.frustumCulled=false;bp.renderOrder=0;scene.add(bp);
+  const nb=20,ba=new Float32Array(nb*3),bv=new Float32Array(nb*3);for(let i=0;i<nb;i++){ba[i*3]=rnd(-0.5,0.5);ba[i*3+1]=y0-rnd(0.3,1.8);ba[i*3+2]=rnd(-0.5,0.5);bv[i*3]=rnd(-0.15,0.15);bv[i*3+1]=rnd(0.2,0.35);bv[i*3+2]=rnd(-0.15,0.15);}
+  const bg=new THREE.BufferGeometry();bg.setAttribute('position',new THREE.BufferAttribute(ba,3));const bp=new THREE.Points(bg,new THREE.PointsMaterial({color:0xdde8ec,size:0.07,transparent:true,opacity:0.5,depthWrite:false}));bp.frustumCulled=false;bp.renderOrder=0;bp.position.set(pos.x,0,pos.z);scene.add(bp);
   splashes.push({g:bg,pts:bp,vel:bv,t:0,n:nb,life:4.0,grav:0,cap:y0-0.05});
 }
 const residues=[],RES_N=16,RES_T=6.0,RES_UP=0.06,RES_DN=0.10; // the patches alive at once; a patch's life (s); the foam's height over the wave and the grey patch's depth under it (clear of the surface's depth either side)
@@ -11120,7 +11149,7 @@ function updatePlayer(dt){
   P.onPad=pad;if(pad){P.grounded=true;loadPad(pad,clamp(0.6/pad.r,0.03,0.45));}
   // crossing the surface at speed throws spray
   const wet=sub>0.5;if(wet!==P.wet){P.wet=wet;const v=Math.abs(P.vel.y)+P.spd*0.3;if(v>2.5&&!P.dead){splash(P.pos,v);thump(clamp(v/14,0.15,0.6),260,40,null,2.5,0.3);}} // the spray's hiss over the slap
-  P.pos.x=clamp(P.pos.x,-WHALF+25,WHALF-25);P.pos.z=clamp(P.pos.z,-WHALF+25,WHALF-25); // the world's edge (±WHALF since v11.106)
+  P.pos.x=worldX(P.pos.x,25);P.pos.z=worldZ(P.pos.z,25); // the world's edge (±WHALF since v11.106, a rectangle since v11.112)
   P.g.position.copy(P.pos);P.g.updateMatrix();worldShapes(P); // the orientation was set above (faceQ), before the thrust read the body's axis
   playerGrab(!P.dead&&!P.withdrawn&&!!(keys.KeyR||mouseGrab||touchGrab),dt); // the grab (combat.js): held while the key is; last, with the shapes fresh (it uses the temps)
 }
@@ -11509,10 +11538,11 @@ function updateShafts(above,wk){
     const g=groundAt(x,z),avail=top-g-1.5,len=Math.min(SH_L,Math.max(avail,0.1));
     let a=clamp((avail-4)/12,0,1)*(1-smooth(R*0.32,R*0.5,Math.hypot(x-cx,z-cz)))*smooth(1.5,5,Math.hypot(x-px,z-pz));
     const bx=x-sx/sy*len,bz=z-sz/sy*len,vx=px-x,vz=pz-z,vl=Math.max(Math.hypot(vx,vz),1e-3),rx=-vz/vl*w*0.5,rz=vx/vl*w*0.5,b=n*4,k=n*12;
-    shP[k]=x-rx;shP[k+1]=top;shP[k+2]=z-rz;shP[k+3]=x+rx;shP[k+4]=top;shP[k+5]=z+rz;shP[k+6]=bx+rx;shP[k+7]=top-len;shP[k+8]=bz+rz;shP[k+9]=bx-rx;shP[k+10]=top-len;shP[k+11]=bz-rz;
+    const ox=ORIGIN.x,oz=ORIGIN.z; // v11.113: the quads local to the render origin, the mesh placed there
+    shP[k]=x-rx-ox;shP[k+1]=top;shP[k+2]=z-rz-oz;shP[k+3]=x+rx-ox;shP[k+4]=top;shP[k+5]=z+rz-oz;shP[k+6]=bx+rx-ox;shP[k+7]=top-len;shP[k+8]=bz+rz-oz;shP[k+9]=bx-rx-ox;shP[k+10]=top-len;shP[k+11]=bz-rz-oz;
     if(a>0)a*=clamp(0.25+0.5*cauFocus(x,z,SH_FOC,t),0.2,1.6); // the surface's focusing over this shaft (v11.39)
     shA[b]=shA[b+1]=shA[b+2]=shA[b+3]=a;const ph=shHash(ci,cj,4)*TAU;shPh[b]=shPh[b+1]=shPh[b+2]=shPh[b+3]=ph;n++;}
-  shG.attributes.position.needsUpdate=true;shG.attributes.aA.needsUpdate=true;shG.attributes.aPh.needsUpdate=true;
+  shafts.position.set(ORIGIN.x,0,ORIGIN.z);shG.attributes.position.needsUpdate=true;shG.attributes.aA.needsUpdate=true;shG.attributes.aPh.needsUpdate=true;
   shU.uK.value=SH_A*SUN_W[3]*K.skyL*wk*(1-smooth(30,70,TIDE-camera.position.y)); // and gone for a camera deeper than ~50 m: rays are a thing of the top of the column
   shU.uCol.value.setRGB(0.55*K.lumC[0],0.72*K.lumC[1],0.8*K.lumC[2]); // the shafts take the lamp's colour (v11.31.4): warm at a low sun, silver under the moon
 }
@@ -11532,8 +11562,8 @@ function updateRain(dt,above){const K=SKY,on=above&&K.rainA>0.02&&FX.rain&&FX.cl
   const cx=camera.position.x,cy=camera.position.y,cz=camera.position.z,vx=K.wind[0]*0.5,vz=K.wind[1]*0.5,R=RAIN_R,W=2*R;
   for(let i=0;i<RAIN_N;i++){const q=i*5,vy=-rainQ[q+3],L=rainQ[q+4];let x=rainQ[q]+vx*dt,y=rainQ[q+1]+vy*dt,z=rainQ[q+2]+vz*dt;
     if(x>R)x-=W;else if(x<-R)x+=W;if(z>R)z-=W;else if(z<-R)z+=W;if(y<-6)y+=18;
-    rainQ[q]=x;rainQ[q+1]=y;rainQ[q+2]=z;const k=i*6;rainP[k]=cx+x;rainP[k+1]=cy+y;rainP[k+2]=cz+z;rainP[k+3]=cx+x-vx*L;rainP[k+4]=cy+y-vy*L;rainP[k+5]=cz+z-vz*L;}
-  rainG.attributes.position.needsUpdate=true;const c=0.5+0.45*Math.min(1,K.skyL);rainM.uniforms.uCol.value.setRGB(c*0.9,c*0.95,c);rainM.uniforms.uOp.value=0.6*K.rainA;} // lit by the sky: grey by day, dim by night
+    rainQ[q]=x;rainQ[q+1]=y;rainQ[q+2]=z;const k=i*6;rainP[k]=x;rainP[k+1]=y;rainP[k+2]=z;rainP[k+3]=x-vx*L;rainP[k+4]=y-vy*L;rainP[k+5]=z-vz*L;}
+  rainL.position.set(cx,cy,cz);/* the streaks about the camera, the lines placed there (v11.113: to v11.112 written at the world's numbers) */rainG.attributes.position.needsUpdate=true;const c=0.5+0.45*Math.min(1,K.skyL);rainM.uniforms.uCol.value.setRGB(c*0.9,c*0.95,c);rainM.uniforms.uOp.value=0.6*K.rainA;} // lit by the sky: grey by day, dim by night
 // Under water the "sky" is the fog itself: a black dome just inside the far plane, fogged like everything else, so the last
 // of the water in every direction is the water's colour there (the map) at its daylight — dark toward the deep, sunlit
 // toward the shallows and the surface — instead of one flat background colour with a visible edge against the surface.
@@ -11584,7 +11614,7 @@ const waterDome=(function(){const mat=new THREE.MeshBasicMaterial({color:0x00000
 // by depth and daylight, updateAtmosphere) plus the player's light by distance — so the snow shows in a torch's reach in the
 // dark and is invisible outside it. The shader patch reads r128's points chunks; if a line isn't found it warns and the snow
 // draws uniform (the old look) rather than not at all.
-const PN=Q.snow,SN_SW=Math.min(480,Math.floor(PN*0.25)),SN_SWN=6,SN_SWP=SN_SW/SN_SWN,PN_SN=PN-SN_SW,SN_HW=30,pp=new Float32Array(PN*3),pv=new Float32Array(PN*3),pc=new Float32Array(PN*3),ps=new Float32Array(PN*2),pk=new Uint8Array(PN),pr=new Float32Array(PN),ph=new Float32Array(PN),pf=new Float32Array(PN*10),snL=new Uint16Array(PN); // pf (v11.82): the six fields, then the maps' texel (the two crops, X, the floor); snL: a chain follower's leader (its own index otherwise)
+const PN=Q.snow,SN_SW=Math.min(480,Math.floor(PN*0.25)),SN_SWN=6,SN_SWP=SN_SW/SN_SWN,PN_SN=PN-SN_SW,SN_HW=30,pp=new Float64Array(PN*3),ppG=new Float32Array(PN*3),pv=new Float32Array(PN*3),pc=new Float32Array(PN*3),ps=new Float32Array(PN*2),pk=new Uint8Array(PN),pr=new Float32Array(PN),ph=new Float32Array(PN),pf=new Float32Array(PN*10),snL=new Uint16Array(PN); // pf (v11.82): the six fields, then the maps' texel (the two crops, X, the floor); snL: a chain follower's leader (its own index otherwise)
 const SN_K=[{sz:0.5,fall:0.005},{sz:1.0,fall:0.02},{sz:0.6,fall:0.05},{sz:0.55,fall:-0.28},{sz:1.35,fall:0.006},{sz:0.5,fall:0.012}]; // size × the material's, m/s down; 5 the chain (v11.82)
 const SN_PIG=[[0.70,0.86,0.62],[0.86,0.78,0.48],[0.78,0.62,0.68]],SN_PALE=[0.82,0.90,0.78],SN_CHAIN=[0.80,0.78,0.66],SN_CK=0.6,SN_CHW=0.12;
 // The swarm block (v11.84, PLANKTON.md §10): the last SN_SW points of the snow's own buffer are the swarms' — SN_SWN swarms nearest the camera
@@ -11609,7 +11639,10 @@ function swBlock(k,c){ // a block seeded for a swarm: offsets in a flattened clo
   snDirty=true;
 } // the live kind's colour by pigment kind (green, gold, red) and in poor water; the chain's; the crop (mg/m³) at which the live kind is half its full weight; the chains' share of the live weight
 const SN_TH=-64,SN_W0=0.9,SN_GAIN=3.0,SN_REF=63;let SN_CH=-1e5; // the thermocline (y); SN_CH the chemocline under the camera (world.js chemoAt, set each frame in updatePlankton; -1e5 where there is none — round ours since v11.96, DEEP §2: no plate, no black flakes; the -450 to v11.95); the weight that fills the count; weight → alpha; the refresh mask (one point in 64 a frame: a point re-rolls about once a second)
-const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(pp,3));pg.setAttribute('color',new THREE.BufferAttribute(pc,3));pg.setAttribute('aSz',new THREE.BufferAttribute(ps,2));
+// v11.113 (GLOBE §10.1, the province): the snow's simulation is pp, in doubles at the world's numbers; what the GPU gets is ppG, against the
+// render origin (chunks.js ORIGIN), the points placed there — a float32 point 300 km out holds 3 cm, and a flake drifting a millimetre a frame
+// would not move at all
+const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(ppG,3));pg.setAttribute('color',new THREE.BufferAttribute(pc,3));pg.setAttribute('aSz',new THREE.BufferAttribute(ps,2));
 const plU={value:new THREE.Vector4(0,0,0,0)},plCU={value:new THREE.Color(0x6fbfe0)},snAU={value:new THREE.Vector4(0,1/2.5,0,0)}; // snAU (v11.82.1): the tide, 1/the depth the snow fades over seen from the air, 1 with the camera in air
 // square on purpose (the person, 13 Sep 2026): an untextured PointsMaterial writes the whole quad, and a round sprite would cost a
 // texture fetch per fragment or a discard — squares are both the cheaper option and the one that suits the flat-shaded art
@@ -11712,8 +11745,9 @@ function updatePlankton(dt){
     pp[i*3]=x;pp[i*3+1]=y;pp[i*3+2]=z;pv[i*3]=vx;pv[i*3+1]=vy;pv[i*3+2]=vz;
     if((i&SN_REF)===ref&&snL[i]===i)snowSeed(i,x,y,z,true);else if(y>TIDE-0.3||y<ph[i])ps[i*2+1]=0; // a chain's follower is not refreshed on its own: it goes when its leader does (snFree) // out of the water or into the floor between refreshes: hidden // the refresh: every point re-rolls where it is (keeping its look if the kind holds), so the live share tracks the water's density and a point that has sunk out of its layer changes kind
   }
+  {const ox=ORIGIN.x,oz=ORIGIN.z;for(let i=0;i<PN;i++){ppG[i*3]=pp[i*3]-ox;ppG[i*3+1]=pp[i*3+1];ppG[i*3+2]=pp[i*3+2]-oz;}plankton.position.set(ox,0,oz);}
   pg.attributes.position.needsUpdate=true;pg.attributes.aSz.needsUpdate=true;if(snDirty){pg.attributes.color.needsUpdate=true;snDirty=false;}
-  plU.value.set(plight.position.x,plight.position.y,plight.position.z,plight.intensity*1.6);
+  plU.value.set(plight.position.x-ORIGIN.x,plight.position.y,plight.position.z-ORIGIN.z,plight.intensity*1.6); // against the render origin (v11.113): the snow, the debris and the blood read it beside their points'
 }
 
 const fogTarget=new THREE.Color(),hemiSkyA=new THREE.Color(AIR.hemiSky),hemiGroundA=new THREE.Color(AIR.hemiGround),wmHere=[0,0,0,0],skyT=new THREE.Color(),skyT2=new THREE.Color(),WHITE=new THREE.Color(1,1,1);
@@ -11838,7 +11872,7 @@ const HZ_SEA_MAT=hzMat(HZ_VS_HEAD+'void main(){vec4 wp=modelMatrix*vec4(position
   'vec3 col=vec3(0.07,0.23,0.30)*dl*0.22*(1.0-R)*uHzSea.z+skyLite(Rw)*R+vec3(0.04,0.14,0.22)*dl*(1.0-a)*uHzSea.y;col=fogAir(col,uFogC,rd,d,1.0);gl_FragColor=vec4(dithering(col),1.0);}'); // the surface's topside rule at its far end (atmosphere.js SURF_MAT: the Fresnel weight on the mean normal, the sky reflected at R, the body at uBody 0.22 of the rest) and, since the surface is a transparent mesh whose alpha a = uBody+R-uBody·R leaves the rest of the pixel to the water column beneath, the column as a dark blue at (1-a): without it the disc stood a shade lighter than the surface's far end from any height (v11.65). At grazing R → the ceiling: the sky a few degrees up, darker than the horizon's band — the sea line
 HZ_SEA_MAT.uniforms.uHzSea=HZ_SEA_U;
 // the extent: the world's square with its apron, and every island record's land or rim with a margin
-function hzExtent(){let x0=-WHALF-2000,x1=WHALF+2000,z0=-WHALF-2000,z1=WHALF+2000;for(const R of ISLANDS){const r=((R.land?R.land.r:R.rimR||0)+3000)*R.sc;x0=Math.min(x0,R.x-r);x1=Math.max(x1,R.x+r);z0=Math.min(z0,R.z-r);z1=Math.max(z1,R.z+r);}return [x0,x1,z0,z1];}
+function hzExtent(){let x0=WX0-2000,x1=WX1+2000,z0=WZ0-2000,z1=WZ1+2000;for(const R of ISLANDS){const r=((R.land?R.land.r:R.rimR||0)+3000)*R.sc;x0=Math.min(x0,R.x-r);x1=Math.max(x1,R.x+r);z0=Math.min(z0,R.z-r);z1=Math.max(z1,R.z+r);}return [x0,x1,z0,z1];}
 // v11.102: the box grew with the model's records (111 × 98 km for seed 32, against the square's 56) and most of it is open sea, so the mesh is no
 // longer sampled whole. A coarse pass at HZ_C·Q.hz, only inside some record's land, rim or cone, finds the cells that can hold something over
 // HZ_CUT — a corner over it, or a reef's rim through it (a ring narrower than the coarse step) — and only those are sampled at Q.hz; the rest
@@ -11852,43 +11886,54 @@ const HZ_C=4,HZ_MS=6;
 // point sampled for both, so they meet exactly; the cells, their quads and their vertices are v11.102's, and the union is its one mesh
 // triangle for triangle (test/horizon.js). Each mesh is culled by its own sphere, widened by HZ_DROP for the curvature's drop.
 const HZ_DROP=4000; // m: the most the vertex shader lowers a point a camera in the world can see (~200 km off: d²/2R ≈ 3.1 km), on each mesh's bounding sphere
-function* hzGen(cx0,cz0){const E=hzExtent(),S=Q.hz,C=S*HZ_C,x0=E[0],z0=E[2],nx=Math.ceil((E[1]-x0)/S)+1,nz=Math.ceil((E[3]-z0)/S)+1,cx=Math.ceil((nx-1)/HZ_C),cz=Math.ceil((nz-1)/HZ_C),t0=performance.now();
+// v11.113 (GLOBE §10.1, the province): the members are built as they come into sight, not all at the first surfacing. HZ is the lattice and every
+// member's top, fixed by hzSetup at the first build; hzWatch, each frame above the water, queues the members whose top the camera could see
+// from its height (hzSight: the two horizon distances, 3.57 km·√h each way, and the top's own radius) nearest first; hzStep builds them one at a
+// time (hzMember), each with its own sample caches, so a province's members cost what is near and nothing is kept of the samples. hzGen(cx, cz)
+// builds every member nearest first, as v11.109–112 did at the first surfacing (test/horizon.js).
+let HZ=null,hzG=null;
+function hzSetup(){if(HZ)return HZ;const E=hzExtent(),S=Q.hz,C=S*HZ_C,x0=E[0],z0=E[2],nx=Math.ceil((E[1]-x0)/S)+1,nz=Math.ceil((E[3]-z0)/S)+1;
   // what can stand over HZ_CUT is inside a record's land, rim or cone (its radius warped +16%, and a coarse cell's diagonal): only those cells
   // (v11.107: and a bare summit over the sea, to its terraces' foot — the low island m150, 50 m, the first record with no land or rim above water)
-  // are sampled at all; of them, a cell is live with a corner over the cut or a rim through it
-  const tops=ISLANDS.map(R=>({x:R.x,z:R.z,t:((R.land?R.land.r:R.rimR!==undefined?R.rimR+R.rimW:R.h0>0&&R.terr?R.terr.r1:0)*1.16+(R.isle?2000:0))*R.sc+C*0.75,r:(R.rimR||0)*R.sc,w:(R.rimW||0)*R.sc+C,id:R.id})).filter(q=>q.t>C*0.75);
+  // are sampled at all; of them, a cell is live with a corner over the cut or a rim through it. h: the top's height for its sight (v11.113)
+  const tops=ISLANDS.map(R=>({x:R.x,z:R.z,t:((R.land?R.land.r:R.rimR!==undefined?R.rimR+R.rimW:R.h0>0&&R.terr?R.terr.r1:0)*1.16+(R.isle?2000:0))*R.sc+C*0.75,r:(R.rimR||0)*R.sc,w:(R.rimW||0)*R.sc+C,id:R.id,
+    h:R.land?R.land.h:R.rimR!==undefined?(R.rimH||0)+6:R.h0+(R.knob||0)})).filter(q=>q.t>C*0.75);
+  HZ={S,C,x0,z0,nx,nz,cx:Math.ceil((nx-1)/HZ_C),cz:Math.ceil((nz-1)/HZ_C),tops,built:new Set(),queue:[],n:{cells:0,v:0,t:0,ms:0}};return HZ;}
+function hzSight(q,cy){return 3570*(Math.sqrt(Math.max(cy,2))+Math.sqrt(Math.max(q.h,1)))+q.t;} // m: how far off the member's top can stand above the camera's horizon
+function hzWatch(x,y,z){const H=hzSetup();let added=false;for(const q of H.tops){if(H.built.has(q)||q.queued)continue;if(Math.hypot(q.x-x,q.z-z)<hzSight(q,y)){q.queued=true;H.queue.push(q);added=true;}}
+  if(added)H.queue.sort((a,b)=>(Math.hypot(a.x-x,a.z-z)-a.t)-(Math.hypot(b.x-x,b.z-z)-b.t));}
+function* hzMember(m){const H=hzSetup(),{S,C,x0,z0,nx,nz,cx,cz,tops}=H,t0=performance.now();let tq=t0;
   const CH=new Map(),cH=(i,j)=>{const k=j*(cx+1)+i;let h=CH.get(k);if(h===undefined){h=sample(x0+i*C,z0+j*C).h;CH.set(k,h);}return h;};
-  const H=new Map(),hAt=(i,j)=>{const k=j*nx+i;let h=H.get(k);if(h===undefined){h=sample(x0+i*S,z0+j*S).h;H.set(k,h);}return h;};
-  const cT=new Float32Array(3),f=new Float32Array(NF),order=tops.slice().sort((a,b)=>(Math.hypot(a.x-cx0,a.z-cz0)-a.t)-(Math.hypot(b.x-cx0,b.z-cz0)-b.t));
-  let nl=0,nv=0,nt=0,tq=performance.now();
-  for(const m of order){
-    const cells=[],i0=Math.max(0,Math.floor((m.x-m.t-x0)/C)),i1=Math.min(cx-1,Math.floor((m.x+m.t-x0)/C)),j0=Math.max(0,Math.floor((m.z-m.t-z0)/C)),j1=Math.min(cz-1,Math.floor((m.z+m.t-z0)/C));
-    for(let j=j0;j<=j1;j++){for(let i=i0;i<=i1;i++){const mx=x0+(i+0.5)*C,mz=z0+(j+0.5)*C;let own=null,bu=2,rim=false;
-        for(const q of tops){const d=Math.hypot(mx-q.x,mz-q.z);if(d<q.t){const u=d/q.t;if(u<bu){bu=u;own=q;}if(q.r>0&&Math.abs(d-q.r)<q.w)rim=true;}}
-        if(own!==m)continue;if(rim||Math.max(cH(i,j),cH(i+1,j),cH(i,j+1),cH(i+1,j+1))>HZ_CUT)cells.push(i,j);}
-      if(performance.now()-tq>HZ_MS){yield;tq=performance.now();}}
-    const keep=new Map(),pos=[],col=[],nrm=[],idx=[],li=Math.round((m.x-x0)/S),lj=Math.round((m.z-z0)/S),[ox,oz]=originOf(x0+li*S,z0+lj*S),OL=ORIGIN.on; // v11.110: the mesh at a lattice point by the member, its vertices whole steps from it
-    const use=(i,j)=>{const k=j*nx+i;let v=keep.get(k);if(v!==undefined)return v;const x=x0+i*S,z=z0+j*S,h=sample(x,z,f).h;
-      const gx=(hAt(Math.min(i+1,nx-1),j)-hAt(Math.max(i-1,0),j))/(2*S),gz=(hAt(i,Math.min(j+1,nz-1))-hAt(i,Math.max(j-1,0)))/(2*S),sl=Math.sqrt(gx*gx+gz*gz),L=Math.sqrt(gx*gx+1+gz*gz);
-      terrainColor(x,z,h,fixF(f,sl),sl,cT,0);v=pos.length/3;pos.push(OL?(i-li)*S:x,h,OL?(j-lj)*S:z);col.push(cT[0],cT[1],cT[2]);nrm.push(-gx/L,1/L,-gz/L);keep.set(k,v);return v;};
-    for(let c=0;c<cells.length;c+=2){const ci=cells[c],cj=cells[c+1];
-      for(let j=cj*HZ_C;j<Math.min((cj+1)*HZ_C,nz-1);j++)for(let i=ci*HZ_C;i<Math.min((ci+1)*HZ_C,nx-1);i++){if(hAt(i,j)<HZ_CUT&&hAt(i+1,j)<HZ_CUT&&hAt(i,j+1)<HZ_CUT&&hAt(i+1,j+1)<HZ_CUT)continue;const A=use(i,j),B=use(i+1,j),Cc=use(i,j+1),D=use(i+1,j+1);idx.push(A,Cc,B,B,Cc,D);} // a→b along +x, a→c along +z, the far layer's winding
-      if(performance.now()-tq>HZ_MS){yield;tq=performance.now();}}
-    nl+=cells.length/2;if(!idx.length)continue;
-    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(nrm,3));g.setIndex(idx);
-    g.computeBoundingSphere();if(g.boundingSphere)g.boundingSphere.radius+=HZ_DROP;
-    const mesh=new THREE.Mesh(g,HZ_TERRAIN_MAT);mesh.name=m.id;mesh.position.set(ox,0,oz);hzLand.add(mesh);nv+=pos.length/3;nt+=idx.length/3;}
-  console.log('horizon: '+nx+'×'+nz+' at '+S+' m, '+nl+' coarse cells live of '+(cx*cz)+', '+hzLand.children.length+' members, '+(CH.size+H.size)+' samples, '+nv+' vertices, '+nt+' triangles, '+(performance.now()-t0).toFixed(0)+' ms over the frames');}
+  const HH=new Map(),hAt=(i,j)=>{const k=j*nx+i;let h=HH.get(k);if(h===undefined){h=sample(x0+i*S,z0+j*S).h;HH.set(k,h);}return h;};
+  const cT=new Float32Array(3),f=new Float32Array(NF);
+  const cells=[],i0=Math.max(0,Math.floor((m.x-m.t-x0)/C)),i1=Math.min(cx-1,Math.floor((m.x+m.t-x0)/C)),j0=Math.max(0,Math.floor((m.z-m.t-z0)/C)),j1=Math.min(cz-1,Math.floor((m.z+m.t-z0)/C));
+  for(let j=j0;j<=j1;j++){for(let i=i0;i<=i1;i++){const mx=x0+(i+0.5)*C,mz=z0+(j+0.5)*C;let own=null,bu=2,rim=false;
+      for(const q of tops){const d=Math.hypot(mx-q.x,mz-q.z);if(d<q.t){const u=d/q.t;if(u<bu){bu=u;own=q;}if(q.r>0&&Math.abs(d-q.r)<q.w)rim=true;}}
+      if(own!==m)continue;if(rim||Math.max(cH(i,j),cH(i+1,j),cH(i,j+1),cH(i+1,j+1))>HZ_CUT)cells.push(i,j);}
+    if(performance.now()-tq>HZ_MS){yield;tq=performance.now();}}
+  const keep=new Map(),pos=[],col=[],nrm=[],idx=[],li=Math.round((m.x-x0)/S),lj=Math.round((m.z-z0)/S),[ox,oz]=originOf(x0+li*S,z0+lj*S),OL=ORIGIN.on; // v11.110: the mesh at a lattice point by the member, its vertices whole steps from it
+  const use=(i,j)=>{const k=j*nx+i;let v=keep.get(k);if(v!==undefined)return v;const x=x0+i*S,z=z0+j*S,h=sample(x,z,f).h;
+    const gx=(hAt(Math.min(i+1,nx-1),j)-hAt(Math.max(i-1,0),j))/(2*S),gz=(hAt(i,Math.min(j+1,nz-1))-hAt(i,Math.max(j-1,0)))/(2*S),sl=Math.sqrt(gx*gx+gz*gz),L=Math.sqrt(gx*gx+1+gz*gz);
+    terrainColor(x,z,h,fixF(f,sl),sl,cT,0);v=pos.length/3;pos.push(OL?(i-li)*S:x,h,OL?(j-lj)*S:z);col.push(cT[0],cT[1],cT[2]);nrm.push(-gx/L,1/L,-gz/L);keep.set(k,v);return v;};
+  for(let c=0;c<cells.length;c+=2){const ci=cells[c],cj=cells[c+1];
+    for(let j=cj*HZ_C;j<Math.min((cj+1)*HZ_C,nz-1);j++)for(let i=ci*HZ_C;i<Math.min((ci+1)*HZ_C,nx-1);i++){if(hAt(i,j)<HZ_CUT&&hAt(i+1,j)<HZ_CUT&&hAt(i,j+1)<HZ_CUT&&hAt(i+1,j+1)<HZ_CUT)continue;const A=use(i,j),B=use(i+1,j),Cc=use(i,j+1),D=use(i+1,j+1);idx.push(A,Cc,B,B,Cc,D);} // a→b along +x, a→c along +z, the far layer's winding
+    if(performance.now()-tq>HZ_MS){yield;tq=performance.now();}}
+  H.built.add(m);H.n.cells+=cells.length/2;H.n.ms+=performance.now()-t0;if(!idx.length)return;
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(nrm,3));g.setIndex(idx);
+  g.computeBoundingSphere();if(g.boundingSphere)g.boundingSphere.radius+=HZ_DROP;
+  const mesh=new THREE.Mesh(g,HZ_TERRAIN_MAT);mesh.name=m.id;mesh.position.set(ox,0,oz);hzLand.add(mesh);H.n.v+=pos.length/3;H.n.t+=idx.length/3;}
+function* hzGen(cx0,cz0){const H=hzSetup(),order=H.tops.slice().sort((a,b)=>(Math.hypot(a.x-cx0,a.z-cz0)-a.t)-(Math.hypot(b.x-cx0,b.z-cz0)-b.t));
+  for(const m of order)yield* hzMember(m);
+  console.log('horizon: '+H.nx+'×'+H.nz+' at '+H.S+' m, '+H.n.cells+' coarse cells live, '+hzLand.children.length+' members, '+H.n.v+' vertices, '+H.n.t+' triangles, '+H.n.ms.toFixed(0)+' ms');}
 // the sea disc: rings from HZ_SEA0·FAR to HZ_FAR, spaced by a power so the near rings are fine, about the camera each frame (the drop is the shader's)
 function hzSeaBuild(){const K=18,NS=96,r0=FAR*HZ_SEA0,p=[],c=[],ix=[];for(let k=0;k<=K;k++){const r=r0*Math.pow(HZ_FAR/r0,k/K);for(let s=0;s<NS;s++){const a=s/NS*TAU;p.push(Math.cos(a)*r,0,Math.sin(a)*r);c.push(1,1,1);}}
   for(let k=0;k<K;k++)for(let s=0;s<NS;s++){const a=k*NS+s,b=k*NS+(s+1)%NS,cc=a+NS,d=b+NS;ix.push(a,cc,b,b,cc,d);}
   const sgm=new THREE.BufferGeometry();sgm.setAttribute('position',new THREE.Float32BufferAttribute(p,3));sgm.setAttribute('color',new THREE.Float32BufferAttribute(c,3));sgm.setIndex(ix);hzSea=new THREE.Mesh(sgm,HZ_SEA_MAT);hzSea.frustumCulled=false;hzScene.add(hzSea);}
-let hzG=null;
-function hzStep(){if(!hzG)return;const t0=performance.now();try{while(performance.now()-t0<HZ_MS){if(hzG.next().done){hzG=null;break;}}}catch(e){hzG=null;console.warn('the horizon tier could not build: '+e.message);}}
+function hzStep(){if(!HZ)return;const t0=performance.now();try{while(performance.now()-t0<HZ_MS){if(!hzG){const q=HZ.queue.shift();if(!q)return;q.queued=false;if(HZ.built.has(q))continue;hzG=hzMember(q);}if(hzG.next().done)hzG=null;}}catch(e){hzG=null;console.warn('the horizon tier could not build: '+e.message);}} // the queue's members one at a time, HZ_MS a frame (v11.113)
 // the frame's render (main.js): above the water the horizon pass first, then the world over it with the depth cleared; below, the world alone
 function renderFrame(){const above=wasAbove===true&&!!renderer.clearDepth;
-  if(above&&!hzTried){hzTried=true;try{hzSeaBuild();hzG=hzGen(camera.position.x,camera.position.z);}catch(e){console.warn('the horizon tier could not build: '+e.message);}}
-  if(above)hzStep();
+  if(above&&!hzTried){hzTried=true;try{hzSeaBuild();hzSetup();}catch(e){console.warn('the horizon tier could not build: '+e.message);}}
+  if(above&&HZ){hzWatch(camera.position.x,camera.position.y,camera.position.z);hzStep();}
   if(above&&hzSea){if(sky.parent!==hzScene)hzScene.add(sky);
     hzCam.position.copy(camera.position);hzCam.quaternion.copy(camera.quaternion);if(hzCam.fov!==camera.fov||hzCam.aspect!==camera.aspect){hzCam.fov=camera.fov;hzCam.aspect=camera.aspect;hzCam.updateProjectionMatrix();}hzCam.updateMatrixWorld();
     hzSea.position.set(camera.position.x,TIDE,camera.position.z);
@@ -12353,8 +12398,8 @@ function bledOut(o){const by=lastWounder(o);
 // ---------- blood ----------
 // one point cloud for all the blood in the water (like the snow, atmosphere.js: a size and an alpha per point through the same points
 // patch, lit like the snow and by the player's light); each point drifts with the current and the flow round the bodies, spreads, and fades
-const BL_N=Q.tier==='low'?240:480,blP=new Float32Array(BL_N*3),blV=new Float32Array(BL_N*3),blC=new Float32Array(BL_N*3),blS=new Float32Array(BL_N*2),blL=new Float32Array(BL_N),blA=new Float32Array(BL_N);let blNext=0,blLive=0;
-const blG=new THREE.BufferGeometry();blG.setAttribute('position',new THREE.BufferAttribute(blP,3));blG.setAttribute('color',new THREE.BufferAttribute(blC,3));blG.setAttribute('aSz',new THREE.BufferAttribute(blS,2));
+const BL_N=Q.tier==='low'?240:480,blP=new Float64Array(BL_N*3),blPG=new Float32Array(BL_N*3),blV=new Float32Array(BL_N*3),blC=new Float32Array(BL_N*3),blS=new Float32Array(BL_N*2),blL=new Float32Array(BL_N),blA=new Float32Array(BL_N);let blNext=0,blLive=0;
+const blG=new THREE.BufferGeometry();blG.setAttribute('position',new THREE.BufferAttribute(blPG,3));/* v11.113: blP the simulation in doubles, blPG the GPU's copy against the render origin (atmosphere.js, the snow) */blG.setAttribute('color',new THREE.BufferAttribute(blC,3));blG.setAttribute('aSz',new THREE.BufferAttribute(blS,2));
 const blM=new THREE.PointsMaterial({color:0xcfe6ee,size:0.3,transparent:true,opacity:0.8,depthWrite:false,vertexColors:true});
 blM.onBeforeCompile=function(sh){sh.uniforms.uPL=plU;sh.uniforms.uPLc=plCU;let n=0;
   sh.vertexShader=sh.vertexShader.replace('uniform float size;',()=>{n++;return 'attribute vec2 aSz;uniform vec4 uPL;varying float vA;varying float vL;uniform float size;';})
@@ -12383,7 +12428,7 @@ function updateBlood(dt){
     blV[i3]=(blV[i3]+(HV.x+CURV.x-blV[i3])*kf)*ks;blV[i3+1]=(blV[i3+1]+(HV.y+CURV.y-0.04-blV[i3+1])*kf)*ks;blV[i3+2]=(blV[i3+2]+(HV.z+CURV.z-blV[i3+2])*kf)*ks;
     blP[i3]=x+blV[i3]*dt;blP[i3+1]=y+blV[i3+1]*dt;blP[i3+2]=z+blV[i3+2]*dt;
     const f=blA[i]/blL[i];blS[i*2]+=dt*0.9;blS[i*2+1]=Math.min(1,f*2.5)*0.85;}
-  blLive=live;blG.attributes.position.needsUpdate=true;blG.attributes.aSz.needsUpdate=true;blG.attributes.color.needsUpdate=true;
+  blLive=live;{const ox=ORIGIN.x,oz=ORIGIN.z;for(let i=0;i<BL_N;i++){blPG[i*3]=blP[i*3]-ox;blPG[i*3+1]=blP[i*3+1];blPG[i*3+2]=blP[i*3+2]-oz;}blood.position.set(ox,0,oz);}blG.attributes.position.needsUpdate=true;blG.attributes.aSz.needsUpdate=true;blG.attributes.color.needsUpdate=true;
 }
 // ---------- the player ----------
 // the grab (right mouse or r, held): the arms or the jaws take hold of the nearest thing within reach ahead and keep it while the key is
@@ -12426,9 +12471,9 @@ function playerBite(){
 // cloud in the clade's colour; the breach's foam and its bubble puff stay in player.js splash (v11.46). Everything here is a term in the
 // numbers the game already has: a body on the floor, a jet near the sand, a strike out of it, a bite, a seep. Nothing glows. The points are
 // the snow's kind (atmosphere.js pm: squares, lit like the snow and by the player's light, alpha by distance), one draw for all of it.
-const FX_N=Q.tier==='low'?320:720,fxP=new Float32Array(FX_N*3),fxV=new Float32Array(FX_N*3),fxC=new Float32Array(FX_N*3),fxS=new Float32Array(FX_N*2),fxL=new Float32Array(FX_N),fxA=new Float32Array(FX_N),fxK=new Uint8Array(FX_N),fxW=new Float32Array(FX_N);let fxNext=0,fxLive=0;
+const FX_N=Q.tier==='low'?320:720,fxP=new Float64Array(FX_N*3),fxPG=new Float32Array(FX_N*3),fxV=new Float32Array(FX_N*3),fxC=new Float32Array(FX_N*3),fxS=new Float32Array(FX_N*2),fxL=new Float32Array(FX_N),fxA=new Float32Array(FX_N),fxK=new Uint8Array(FX_N),fxW=new Float32Array(FX_N);let fxNext=0,fxLive=0;
 const FXK=[{life:[3,4.5],fall:0.15,size:[0.7,1.3],grow:0.25,alpha:0.7},{life:[6,9],fall:-0.9,size:[0.35,0.6],grow:0.06,alpha:0.6},{life:[2.5,3.5],fall:0.3,size:[0.5,0.9],grow:0,alpha:0.85}]; // life (s), fall (m/s; bubbles rise), size × the material's, growth (size/s), alpha
-const fxG=new THREE.BufferGeometry();fxG.setAttribute('position',new THREE.BufferAttribute(fxP,3));fxG.setAttribute('color',new THREE.BufferAttribute(fxC,3));fxG.setAttribute('aSz',new THREE.BufferAttribute(fxS,2));
+const fxG=new THREE.BufferGeometry();fxG.setAttribute('position',new THREE.BufferAttribute(fxPG,3));/* v11.113: fxP the simulation in doubles, fxPG the GPU's copy against the render origin (atmosphere.js, the snow) */fxG.setAttribute('color',new THREE.BufferAttribute(fxC,3));fxG.setAttribute('aSz',new THREE.BufferAttribute(fxS,2));
 const fxM=new THREE.PointsMaterial({color:0xcfe6ee,size:0.24,transparent:true,opacity:0.8,depthWrite:false,vertexColors:true});
 fxM.onBeforeCompile=function(sh){sh.uniforms.uPL=plU;sh.uniforms.uPLc=plCU;let n=0; // the snow's patch (atmosphere.js pm): a size and an alpha per point, the player's light
   sh.vertexShader=sh.vertexShader.replace('uniform float size;',()=>{n++;return 'attribute vec2 aSz;uniform vec4 uPL;varying float vA;varying float vL;uniform float size;';})
@@ -12485,7 +12530,7 @@ function updateDebris(dt){
     if(k===0){const g=groundAt(x,z)+0.05;if(ny<g){ny=g;fxV[i3+1]=0;}} // silt settles on the floor
     fxP[i3]=x+fxV[i3]*dt;fxP[i3+1]=ny;fxP[i3+2]=z+fxV[i3+2]*dt;
     const f=fxA[i]/fxL[i];fxS[i*2]+=dt*K.grow;fxS[i*2+1]=K.alpha*Math.min(1,f*3)*(k===2?0.7+0.3*Math.sin(fxA[i]*18+fxW[i]):1);} // a scrap tumbles: its size flickers
-  fxLive=live;fxG.attributes.position.needsUpdate=true;fxG.attributes.aSz.needsUpdate=true;fxG.attributes.color.needsUpdate=true;
+  fxLive=live;{const ox=ORIGIN.x,oz=ORIGIN.z;for(let i=0;i<FX_N;i++){fxPG[i*3]=fxP[i*3]-ox;fxPG[i*3+1]=fxP[i*3+1];fxPG[i*3+2]=fxP[i*3+2]-oz;}fxPts.position.set(ox,0,oz);}fxG.attributes.position.needsUpdate=true;fxG.attributes.aSz.needsUpdate=true;fxG.attributes.color.needsUpdate=true;
 }
 function fxStats(){let n=0,nan=0,k=[0,0,0];for(let i=0;i<FX_N;i++){if(fxS[i*2+1]<=0)continue;n++;k[fxK[i]]++;const i3=i*3;if(!isFinite(fxP[i3]+fxP[i3+1]+fxP[i3+2]+fxV[i3]+fxV[i3+1]+fxV[i3+2]))nan++;}return {live:n,nan:nan,silt:k[0],bubbles:k[1],scraps:k[2]};} // the tests
 // ---------- the flush (POLISH 24): a flinch of pallor on a bitten body for FLUSH_T, off by default (the person, 9 Sep: faint, easy to strike) ----------
@@ -12576,6 +12621,7 @@ const WMAP_N=512,WMAP_Z=320,WMAP_REST=180; // the world picture's side in sample
 const WMAP_BANDS=[[0,[0.55,0.52,0.40]],[-6,[0.62,0.78,0.72]],[-60,[0.30,0.62,0.66]],[-150,[0.18,0.42,0.56]],[-450,[0.12,0.26,0.44]],[-800,[0.10,0.17,0.30]],[-1100,[0.08,0.11,0.20]],[-3000,[0.04,0.05,0.10]]];
 const WMAP_CONT=[0,-60,-150,OXY.top,-800,-1000]; // the sea, the shelf's edge, the light's end, the oxygen minimum's top (the chemocline to v11.95), the deep, the floor's top (the hills cross -1100 everywhere)
 const wmapEl=document.getElementById('wmap'),wmapC=document.getElementById('wmapc'),wmapL=document.getElementById('wmapl');
+const WMAP_W=[(WX0+WX1)/2,(WZ0+WZ1)/2,Math.max(WX1-WX0,WZ1-WZ0)]; // the world's picture: its middle and the side of the square that holds it (v11.112: the world a rectangle)
 const wmap={open:false,cx:0,cz:0,span:2*HALF,base:null,win:null,winKey:'',rest:0,drag:null,moved:0,mx:0,mz:0,hover:false};
 function wmapBand(h){if(h>=0)return h>4?[0.42,0.40,0.32]:WMAP_BANDS[0][1];for(let k=1;k<WMAP_BANDS.length;k++)if(h>=WMAP_BANDS[k][0]){const a=WMAP_BANDS[k-1][1],b=WMAP_BANDS[k][1],t=(WMAP_BANDS[k-1][0]-h)/(WMAP_BANDS[k-1][0]-WMAP_BANDS[k][0]);return [a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];}return WMAP_BANDS[WMAP_BANDS.length-1][1];}
 // the picture of the square of side span about cx,cz, W pixels a side: heights on a (W+2)² grid (a ring for the shade), lit from the north-west and low, a contour where a band is crossed toward the right or down (test/map.js, the same numbers)
@@ -12589,20 +12635,20 @@ function wmapPicture(cx,cz,span,W){const N=W+2,M=span/W,x0=cx-span/2,z0=cz-span/
   g.putImageData(img,0,0);return cv;}
 function wmapKey(){return Math.round(wmap.cx)+','+Math.round(wmap.cz)+','+Math.round(wmap.span);}
 function wmapShow(on){if(on===wmap.open)return;if(on&&mode!=='play'&&mode!=='menu')return;wmap.open=on;wmapEl.classList.toggle('on',on);
-  if(on){try{const W=Math.max(200,Math.min(innerWidth,innerHeight)-90);wmapC.width=W;wmapC.height=W;if(!wmap.base)wmap.base=wmapPicture(0,0,2*WHALF,WMAP_N);wmap.win=null;wmap.rest=1;
-      if(mode==='play'&&player.clade){wmap.cx=player.pos.x;wmap.cz=player.pos.z;if(wmap.span>=2*WHALF)wmap.span=2*WHALF;} // opened in play: centred on you, the world whole (a zoom is kept between openings)
+  if(on){try{const W=Math.max(200,Math.min(innerWidth,innerHeight)-90);wmapC.width=W;wmapC.height=W;if(!wmap.base)wmap.base=wmapPicture(WMAP_W[0],WMAP_W[1],WMAP_W[2],WMAP_N);wmap.win=null;wmap.rest=1;
+      if(mode==='play'&&player.clade){wmap.cx=player.pos.x;wmap.cz=player.pos.z;if(wmap.span>=WMAP_W[2])wmap.span=WMAP_W[2];} // opened in play: centred on you, the world whole (a zoom is kept between openings)
       wmapDraw();}catch(e){console.warn('the world map could not draw: '+e.message);wmap.open=false;wmapEl.classList.toggle('on',false);return;}
     if(mode==='play'&&locked)unlock();}
   else if(mode==='play'&&!isTouch)tryLock();}
 function wmapDraw(){if(!wmap.open)return;const W=wmapC.width,g=wmapC.getContext('2d'),S=wmap.span,x0=wmap.cx-S/2,z0=wmap.cz-S/2,px=x=>(x-x0)/S*W,pz=z=>(z-z0)/S*W;
   g.fillStyle='#03080f';g.fillRect(0,0,W,W);
   const win=wmap.win&&wmap.winKey===wmapKey()?wmap.win:null;
-  if(win)g.drawImage(win,0,0,W,W);else{const k=WMAP_N/(2*WHALF);g.imageSmoothingEnabled=S>=WHALF;g.drawImage(wmap.base,(x0+WHALF)*k,(z0+WHALF)*k,S*k,S*k,0,0,W,W);} // the world's picture, or the window's when it is fresh; a coarse zoom of the world shows its blocks rather than a blur
+  if(win)g.drawImage(win,0,0,W,W);else{const k=WMAP_N/WMAP_W[2];g.imageSmoothingEnabled=S>=WMAP_W[2]/2;g.drawImage(wmap.base,(x0-WMAP_W[0]+WMAP_W[2]/2)*k,(z0-WMAP_W[1]+WMAP_W[2]/2)*k,S*k,S*k,0,0,W,W);} // the world's picture, or the window's when it is fresh; a coarse zoom of the world shows its blocks rather than a blur
   const ring=(x,z,r,col,dash)=>{g.strokeStyle=col;g.setLineDash(dash||[]);g.beginPath();g.arc(px(x),pz(z),r/S*W,0,TAU);g.stroke();g.setLineDash([]);};
   const rect=(xa,za,xb,zb,col,dash)=>{g.strokeStyle=col;g.setLineDash(dash||[]);g.strokeRect(px(xa),pz(za),(xb-xa)/S*W,(zb-za)/S*W);g.setLineDash([]);};
   g.lineWidth=1;
   for(const ch of chunks.values())rect(ch.x0,ch.z0,ch.x0+CELL,ch.z0+CELL,'rgba(200,215,225,0.22)'); // the loaded cells
-  rect(-WHALF+25,-WHALF+25,WHALF-25,WHALF-25,'rgba(150,150,150,0.6)',[6,6]); // the clamp
+  rect(WX0+25,WZ0+25,WX1-25,WZ1-25,'rgba(150,150,150,0.6)',[6,6]); // the clamp
   rect(-HALF,-HALF,HALF,HALF,'rgba(250,220,90,0.35)',[2,6]); // the old square (v11.65–105's world)
   rect(-1720,-1720,1720,1720,'rgba(250,220,90,0.55)',[4,4]); // the island's square (v11.57's world)
   for(const R of ISLANDS){ring(R.x,R.z,R.reach*R.sc,'rgba(150,150,150,0.5)',[4,6]);if(R.land)ring(R.x,R.z,R.land.r*R.sc,'rgba(200,210,230,0.7)');} // the island records: the reach, the land
@@ -12617,7 +12663,7 @@ function wmapDraw(){if(!wmap.open)return;const W=wmapC.width,g=wmapC.getContext(
   s+='      n close  ·  click go  ·  wheel zoom  ·  drag pan';wmapL.textContent=s;}
 // after the loop's frame (main.js): the dot moves, the loaded cells change; a zoomed window is sampled once the view has rested
 function updateWMap(dt){if(!wmap.open)return;if(mode!=='play'&&mode!=='menu'){wmapShow(false);return;}
-  if(wmap.rest>0){wmap.rest-=dt*1000;if(wmap.rest<=0&&wmap.span<2*WHALF*0.6&&wmap.winKey!==wmapKey()){try{wmap.win=wmapPicture(wmap.cx,wmap.cz,wmap.span,WMAP_Z);wmap.winKey=wmapKey();}catch(e){wmap.win=null;}}}
+  if(wmap.rest>0){wmap.rest-=dt*1000;if(wmap.rest<=0&&wmap.span<WMAP_W[2]*0.6&&wmap.winKey!==wmapKey()){try{wmap.win=wmapPicture(wmap.cx,wmap.cz,wmap.span,WMAP_Z);wmap.winKey=wmapKey();}catch(e){wmap.win=null;}}}
   wmapDraw();}
 function wmapAt(e){const r=wmapC.getBoundingClientRect(),W=wmapC.width,u=(e.clientX-r.left)/r.width,v=(e.clientY-r.top)/r.height;return [wmap.cx-wmap.span/2+u*wmap.span,wmap.cz-wmap.span/2+v*wmap.span,u*W,v*W];}
 wmapC.addEventListener('mousedown',e=>{if(e.button!==0)return;wmap.drag={x:e.clientX,y:e.clientY,cx:wmap.cx,cz:wmap.cz};wmap.moved=0;e.preventDefault();});
@@ -12625,7 +12671,7 @@ addEventListener('mousemove',e=>{if(!wmap.open)return;if(wmap.drag){const r=wmap
   const r=wmapC.getBoundingClientRect();wmap.hover=e.clientX>=r.left&&e.clientX<r.right&&e.clientY>=r.top&&e.clientY<r.bottom;if(wmap.hover){const p=wmapAt(e);wmap.mx=p[0];wmap.mz=p[1];}});
 addEventListener('mouseup',e=>{if(!wmap.open||!wmap.drag)return;const d=wmap.drag;wmap.drag=null;if(wmap.moved>4)return; // a drag panned; a click goes
   if(mode==='play'&&player.clade){const p=wmapAt(e);window.tp(p[0],p[1]);wmapShow(false);}});
-wmapC.addEventListener('wheel',e=>{if(!wmap.open)return;e.preventDefault();const p=wmapAt(e),k=Math.pow(1.25,e.deltaY>0?1:-1),S=clamp(wmap.span*k,300,2*WHALF*1.25); // zoom about the cursor: the place under it stays under it
+wmapC.addEventListener('wheel',e=>{if(!wmap.open)return;e.preventDefault();const p=wmapAt(e),k=Math.pow(1.25,e.deltaY>0?1:-1),S=clamp(wmap.span*k,300,WMAP_W[2]*1.25); // zoom about the cursor: the place under it stays under it
   wmap.cx=p[0]-(p[0]-wmap.cx)*S/wmap.span;wmap.cz=p[1]-(p[1]-wmap.cz)*S/wmap.span;wmap.span=S;wmap.rest=WMAP_REST;},{passive:false});
 addEventListener('keydown',e=>{if(e.code==='KeyN'&&(mode==='play'||mode==='menu')&&!showStats)wmapShow(!wmap.open);else if(e.code==='Escape'&&wmap.open){wmapShow(false);e.preventDefault();}}); // with the readout open n is the fog tuner's (main.js FOG_TUNE dlAt), so the map stands down then; the default prevented: menu.js's esc (play to the menu) runs after this and stands down
 document.addEventListener('pointerlockchange',()=>{if(wmap.open&&document.pointerLockElement===canvas)wmapShow(false);}); // a click on the game's canvas took the pointer back: the map is done with
@@ -12727,7 +12773,7 @@ function saveRefresh(cb){ // the slots read again; first, a shadow the page left
 // position and look direction go to localStorage synchronously at every one of those events (saveNow, saveShadow, player.js die) — a few
 // dozen bytes, the one thing here that must survive even a hard close — and menu.js reads it at boot (menuCam). Nothing until the first game.
 function camNote(){try{const ls=window.localStorage;if(!ls||mode!=='play')return;const d=V3(0,0,-1).applyQuaternion(camera.quaternion);ls.setItem('tethys.cam',JSON.stringify({p:[r3(camera.position.x),r3(camera.position.y),r3(camera.position.z)],d:[r3(d.x),r3(d.y),r3(d.z)],t:Date.now()}));}catch(e){}}
-function camRead(){try{const ls=window.localStorage,s=ls&&ls.getItem('tethys.cam');if(!s)return null;const o=JSON.parse(s);if(!Array.isArray(o.p)||!Array.isArray(o.d)||o.p.length!==3||o.d.length!==3)return null;const p=o.p.map(v=>+v||0),d=o.d.map(v=>+v||0);if(Math.abs(p[0])>WHALF+2000||Math.abs(p[2])>WHALF+2000||!(d[0]*d[0]+d[1]*d[1]+d[2]*d[2]>0.1))return null;return {p:p,d:d};}catch(e){return null;}}
+function camRead(){try{const ls=window.localStorage,s=ls&&ls.getItem('tethys.cam');if(!s)return null;const o=JSON.parse(s);if(!Array.isArray(o.p)||!Array.isArray(o.d)||o.p.length!==3||o.d.length!==3)return null;const p=o.p.map(v=>+v||0),d=o.d.map(v=>+v||0);if(!inWorld(p[0],p[2],-2000)||!(d[0]*d[0]+d[1]*d[1]+d[2]*d[2]>0.1))return null;return {p:p,d:d};}catch(e){return null;}}
 function saveShadow(){if(!curSave||mode!=='play'||player.dead||!player.clade)return;camNote();try{const ls=window.localStorage;if(ls)ls.setItem('tethys.last',JSON.stringify(saveRecord()));}catch(e){}} // the page going away (v11.47.1): IndexedDB's put may not finish before it does, localStorage's write is synchronous and does; read back by saveRefresh at the next boot
 function saveName(){let n=0;for(const r of saveList){const m=/^game (\d+)$/.exec(r.name||'');if(m&&+m[1]>n)n=+m[1];}return 'game '+(n+1);}
 function saveImport(txt,cb){ // a file back in (menu.js): checked as far as the shape goes, given a new id if its own is taken, stored
@@ -12760,7 +12806,7 @@ function startFrom(rec){ // continue a slot (menu.js): the clock and the ledger 
   worldClear();t=Math.max(0,+rec.t||0);clockH=t*CLOCK_RATE;TIDE=tideAt(clockH);popLoad(rec.pop);fallsIn(rec.falls); // the falls (v11.99; none in an older save)
   curSave={id:rec.id,name:rec.name,made:rec.made,played:rec.played,playT:+rec.playT||0,deaths:Array.isArray(rec.deaths)?rec.deaths.slice():[]};playT=curSave.playT;
   lineLoadRec(rec,C);const L=lineCur();if(L&&(lineScale(L)<1||lineSoft(L)))C=lifeClade(L,lineScale(L)); // the line (line.js); a hatchling still small (v11.76: at its moults' step), a moulting body still soft
-  const p=Array.isArray(rec.pos)?V3(+rec.pos[0]||0,+rec.pos[1]||0,+rec.pos[2]||0):V3(0,dispY,0);if(Math.abs(p.x)>WHALF+1500||Math.abs(p.z)>WHALF+1500)p.set(0,dispY,0);
+  const p=Array.isArray(rec.pos)?V3(+rec.pos[0]||0,+rec.pos[1]||0,+rec.pos[2]||0):V3(0,dispY,0);if(!inWorld(p.x,p.z,-1500))p.set(0,dispY,0);
   choose(C,p,rec.yaw,rec.pitch);injuriesLoad(rec);player.hunger=clamp(+rec.hunger||0,0,1);player.starveT=Math.max(0,+rec.starveT||0);player.soft=lineSoft(L);return true; // the stomach (v11.73); a record from before it comes back fed. soft (v11.76): through a moult as it was
 }
 // the body swapped in place (v11.69: a hatchling grown, line.js lineTick): where it is, moving as it was, its wounds kept, the camera left where it is
@@ -14423,7 +14469,7 @@ function warmShaders(){
 }
 let last=performance.now();
 function loop(now){
-  requestAnimationFrame(loop);
+  requestAnimationFrame(loop);chemoStep(4); // the basins' flood a slice a frame until it is built (v11.113, world.js)
   const f0=performance.now(),dt=clamp((now-last)/1000,0,0.05);last=now;t+=dt;timeU.value=t;FOG_TC[0]=t;
   clockH=t*CLOCK_RATE;TIDE=tideAt(clockH);tideU.value=TIDE;tideRU.value=tideRate(clockH);tintU.value.x=TIDE;FOG_W[0]=TIDE; // the clock and the tide (world.js), once a frame, before anything reads the water level (FOG_W[0]: the fog chunk's copy, v11.32 — the daylight curve measures depth from it)
   readTouch();
@@ -14446,7 +14492,7 @@ setTimeout(()=>{fadeEl.style.opacity=0;},400);
 // tp(x,z,y) from the browser's console (v11.60.2): the player put at x,z (east +, south +), y above the ground there (10 by default; a depth
 // is a negative absolute y), still, the camera with it, the cells round it loaded now. The bundle is one IIFE, so this is the one way in
 // from tethys.html; the map's stat line gives x,z in km under the mouse. A dev tool, not a feature: nothing saves it, nothing reads it.
-window.tp=function(x,z,y){if(mode!=='play'||!player.clade)return 'start a game first';const L=WHALF-25,cx=clamp(x,-L,L),cz=clamp(z,-L,L),held=cx!==x||cz!==z;x=cx;z=cz;const g=groundAt(x,z),py=y===undefined?g+10:y<0?y:g+y;player.pos.set(x,py,z);player.vel.set(0,0,0);player.hold=null;camera.position.copy(player.pos).add(V3(-6,3,-6));cellsAround();return (held?'outside the world (±'+L+'): held at ':'at ')+x.toFixed(0)+', '+z.toFixed(0)+', y '+py.toFixed(0)+' (ground '+g.toFixed(0)+')';};
+window.tp=function(x,z,y){if(mode!=='play'||!player.clade)return 'start a game first';const cx=worldX(x,25),cz=worldZ(z,25),held=cx!==x||cz!==z;x=cx;z=cz;const g=groundAt(x,z),py=y===undefined?g+10:y<0?y:g+y;player.pos.set(x,py,z);player.vel.set(0,0,0);player.hold=null;camera.position.copy(player.pos).add(V3(-6,3,-6));cellsAround();return (held?'outside the world (x '+Math.round(WX0)+'…'+Math.round(WX1)+', z '+Math.round(WZ0)+'…'+Math.round(WZ1)+'): held at ':'at ')+x.toFixed(0)+', '+z.toFixed(0)+', y '+py.toFixed(0)+' (ground '+g.toFixed(0)+')';};
 // skip(days) from the console (v11.76): the world clock moved on by that many game days, in play — for looking at what a clock brings (a moult, a hatch, a
 // brood's losses) without waiting for it; the ledger's model catches up over its next ticks (ecology.js ECO_MAX_STEP), the broods lazily (line.js
 // broodCatchUp). A dev tool beside tp: nothing saves it, nothing reads it

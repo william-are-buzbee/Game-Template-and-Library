@@ -14,8 +14,15 @@ const CELL=215,NCELL=240,HALF=CELL*NCELL/2; // v11.65 (ARCHIPELAGO step 4): 240 
 // grid is the same: cell (0, 0) is still the v11.65 square's corner and HALF its anchor, so every cell's place (i·CELL − HALF), every seed by
 // cell and every number of the old square is as it was; the new cells go round it, from −208 to 447. NCELL and HALF are the old square's (the
 // fine ledger's box, the maps' anchor); the world's extent is WHALF (a dense table over the world's cells was indexed by gridIdx, v11.106–110).
-const GRID0=-208,GRIDN=656,WHALF=CELL*GRIDN/2;
-function gridIn(i,j){return i>=GRID0&&j>=GRID0&&i<GRID0+GRIDN&&j<GRID0+GRIDN;}
+// v11.112 (GLOBE §10.1, the province): the world is a rectangle — cells [WORLD.i0, WORLD.i1) by [WORLD.j0, WORLD.j1), x from WX0 to WX1 and
+// z from WZ0 to WZ1 — since the province is not centred on ours (its old members trail 300 km east); to v11.111 a square, GRID0 −208, GRIDN
+// 656, ±WHALF 70,520: the same today, so nothing moves. Each bound a multiple of 8 cells (the ledger's patches, the far regions' 4).
+const WORLD={i0:-208,i1:448,j0:-208,j1:448};
+const WX0=WORLD.i0*CELL-HALF,WX1=WORLD.i1*CELL-HALF,WZ0=WORLD.j0*CELL-HALF,WZ1=WORLD.j1*CELL-HALF;
+function gridIn(i,j){return i>=WORLD.i0&&j>=WORLD.j0&&i<WORLD.i1&&j<WORLD.j1;}
+function inWorld(x,z,m){return x>WX0+m&&x<WX1-m&&z>WZ0+m&&z<WZ1-m;} // (x, z) at least m inside the world's edge
+function worldX(x,m){return clamp(x,WX0+m,WX1-m);} // the clamp, m inside the edge
+function worldZ(z,m){return clamp(z,WZ0+m,WZ1-m);}
 // v11.111 (GLOBE §10.1, the cell hash): nothing is indexed by gridIdx any more — every table of cells is a Map keyed by chunks.js ckey(i, j),
 // sized by what is in it, not by the world; gridIn is the world's bounds (the clamp) alone
 // the geology's parameters: angles are radians from +x toward +z
@@ -669,14 +676,19 @@ const LM={};
 // minimum's water). OXY.anox puts those two over the line and Santa Monica's (740 m, hypoxic) and San Clemente's (1800 m) under it. In the
 // world today no basin is: the moat round ours and DEEP §5's west basin are one water behind −999 (0.09), the two small ones east behind −604
 // and −616 under fed water the nearest (0.80, 0.70). Built on the first call, once (~0.3 s); region.js (after this file in order.txt) holds the flood.
-let CHEMO_B=null;
+let CHEMO_B=null,CHEMO_G=null;
 function chemoD(sill,nut){return OXY.anox*nut*Math.pow(-sill/100,-0.86)/Math.max(0.01,oxyProf(sill,nut));} // a silled basin's food over its oxygen: anoxic at 1
-function chemoInit(){const G=OXY.G,n=Math.ceil(2*WHALF/G),x0=-WHALF,H=new Float32Array(n*n); // the world's ground (v11.106: ±WHALF; the old square to v11.105)
-  const Nu=new Float32Array(n*n);for(let j=0;j<n;j++)for(let i=0;i<n;i++){const s=sample(x0+(i+0.5)*G,x0+(j+0.5)*G);H[j*n+i]=s.h;Nu[j*n+i]=s.f[FI.nut];}
-  const R=regionBasins(H,n,G,1),sn=new Float64Array(R.B.length);for(let k=0;k<n*n;k++){const l=R.lab[k];if(l>=0)sn[l]+=Nu[k];}
+function* chemoGen(){const G=OXY.G,nx=Math.ceil((WX1-WX0)/G),nz=Math.ceil((WZ1-WZ0)/G),x0=WX0,z0=WZ0,H=new Float32Array(nx*nz); // the world's ground from its corner (v11.106: ±WHALF; the old square to v11.105; v11.112 the rectangle)
+  const Nu=new Float32Array(nx*nz);for(let j=0;j<nz;j++){for(let i=0;i<nx;i++){const s=sample(x0+(i+0.5)*G,z0+(j+0.5)*G);H[j*nx+i]=s.h;Nu[j*nx+i]=s.f[FI.nut];}if((j&7)===7)yield;}
+  const R=regionBasins(H,nx,G,1,nz),sn=new Float64Array(R.B.length);for(let k=0;k<nx*nz;k++){const l=R.lab[k];if(l>=0)sn[l]+=Nu[k];}
   for(const b of R.B){b.nut=sn[b.id]/b.cells;b.D=b.silled?chemoD(b.sill,b.nut):0;b.anox=b.silled&&b.D>=1;} // v11.108: the basin's food (its cells' mean nut) against its inflow
-  CHEMO_B={n,x0,G,lab:R.lab,ch:R.B.map(b=>b.anox?b.chemo:null),B:R.B};}
-function chemoAt(x,z){if(!CHEMO_B)chemoInit();const B=CHEMO_B,i=Math.floor((x-B.x0)/B.G),j=Math.floor((z-B.x0)/B.G);if(i<0||j<0||i>=B.n||j>=B.n)return null;const l=B.lab[j*B.n+i];return l>=0?B.ch[l]:null;} // a basin's chemocline over (x,z), or null
+  CHEMO_B={nx,nz,x0,z0,G,lab:R.lab,ch:R.B.map(b=>b.anox?b.chemo:null),B:R.B};}
+// v11.113 (the province): the flood's samples a slice a frame from the menu on (main.js loop: chemoStep), so at a province's size (~0.5 M
+// samples, a second or more) nothing stalls; anything that asks before it is done finishes it at once (chemoInit), so the answer is never a
+// partial one. In the tests nothing slices: the first chemoAt builds it whole, as before.
+function chemoInit(){if(CHEMO_B)return;if(!CHEMO_G)CHEMO_G=chemoGen();while(!CHEMO_G.next().done){}CHEMO_G=null;}
+function chemoStep(ms){if(CHEMO_B)return;if(!CHEMO_G)CHEMO_G=chemoGen();const t0=performance.now();do{if(CHEMO_G.next().done){CHEMO_G=null;return;}}while(performance.now()-t0<ms);}
+function chemoAt(x,z){if(!CHEMO_B)chemoInit();const B=CHEMO_B,i=Math.floor((x-B.x0)/B.G),j=Math.floor((z-B.z0)/B.G);if(i<0||j<0||i>=B.nx||j>=B.nz)return null;const l=B.lab[j*B.nx+i];return l>=0?B.ch[l]:null;} // a basin's chemocline over (x,z), or null
 function underChemo(x,y,z){const c=chemoAt(x,z);return c!==null&&y<c;} // in a basin's anoxic water
 // oxygen at a point, as a share of the surface's: 0 under a chemocline; else the profile, its core lower where the food rains (nut: the fields'
 // at x,z, read from sample() when not given)
