@@ -320,3 +320,15 @@ a horizon mesh per member.
   are always fine, and a patch splits into cells by capacity before any of them loads. While the world is the square there are no patches:
   v11.104's ledger to the bit (test/ledger.js; and with the box patched smaller, the coarse ring against the fine within a few percent for
   every kind but the two rare deep hunters).
+- **Step 4, the growth to ±70 km (v11.106; the person, 11 Nov 2026: "go ahead with the growth to ±70 km").** world.js `GRID0` −208,
+  `GRIDN` 656, `WHALF` 70,520: the world is cells −208…447, 141 km a side. Cell (0, 0) is still the v11.65 square's corner and `HALF` its
+  anchor, so every cell keeps its place and its seeds; `gridIn`, `gridIdx` index the dense tables over the world (the loaded cells, the far
+  layer's structure and card caches: 430,336 cells). The far regions are 164² (a window round the player for the scan, a list for the loops),
+  the ledger's patches 82² (5,824 coarse round the box), the maps' window moves, the clamp is ±WHALF. The records (region.js `rgBuild`) are
+  built in two passes — the 20 that reach the old square as v11.102 built them, then the 25 the world alone reaches (the low island m150 58 km
+  west, banks and atolls), by an rng of their own — and the floor's lattice is v11.102's grown by whole nodes. The old square is v11.105's
+  to the bit: its ground and nine fields at 150,000 points, its maps to the byte, its ledger to the float (every kind, 40 days), the chimney.
+  **What it changed: the chemocline's flood**, now over the world at the game's grain. The moat round ours and DEEP §5's basin 28 km west are
+  one water there, 603 km² behind a sill at −999 (an atoll's foot 33 km east-south-east, 25 m over the model's floor; to v11.105 the square's
+  edge let the moat out east), its chemocline −1019, its floor −1384: 414 km² of the old square's floor under it, 127 km² within 10 km of
+  ours. The model's own grid still has ours open (its cones are not the records' flanks). The person's call, asked in v11.106's pull request.

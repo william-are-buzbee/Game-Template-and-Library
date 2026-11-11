@@ -9,7 +9,7 @@ const ROOT=path.join(__dirname,'..');
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
 let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n');
 js+='\nglobal.__T={upd:0n,n:0};{const o=updatePlankton;updatePlankton=function(a){const t0=process.hrtime.bigint();o(a);__T.upd+=process.hrtime.bigint()-t0;__T.n++;};}';
-js+='\nglobal.__sn={set:(x,y,z)=>{player.pos.set(x,y,z);player.vel.set(0,0,0);camera.position.set(x,y+2,z+8);const ci=cellOf(x),cj=cellOf(z);for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++)if(ci+di>=0&&cj+dj>=0&&ci+di<NCELL&&cj+dj<NCELL)loadChunkNow(ci+di,cj+dj);},'+
+js+='\nglobal.__sn={set:(x,y,z)=>{player.pos.set(x,y,z);player.vel.set(0,0,0);camera.position.set(x,y+2,z+8);const ci=cellOf(x),cj=cellOf(z);for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++)if(gridIn(ci+di,cj+dj))loadChunkNow(ci+di,cj+dj);},'+
   'ground:(x,z)=>groundAt(x,z),lm:()=>LM,tide:()=>TIDE,n:()=>PN_SN,'+
   'stats:()=>{const o={live:0,kinds:[0,0,0,0,0,0],alpha:0,size:0,fall:0,nan:0,ymin:1e9,ymax:-1e9};for(let i=0;i<PN_SN;i++){const x=pp[i*3],y=pp[i*3+1],z=pp[i*3+2];if(x!==x||y!==y||z!==z)o.nan++;if(pk[i]===255||pk[i]===254)continue;o.live++;o.kinds[pk[i]]++;o.alpha+=ps[i*2+1];o.size+=ps[i*2];o.fall+=SN_K[pk[i]].fall;if(y<o.ymin)o.ymin=y;if(y>o.ymax)o.ymax=y;}'+
   'if(o.live){o.alpha/=o.live;o.size/=o.live;o.fall/=o.live;}o.share=o.live/PN_SN;return o;},'+

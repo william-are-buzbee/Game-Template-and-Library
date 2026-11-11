@@ -6612,3 +6612,68 @@ v11.104's exact hash. The model's step ~6% dearer for the lookups (21.6 s agains
 test/anim.js's "coilshell: and not flung by the joint limit while coasting" (16.38 max, side by side), never again in eight runs here — six of
 them four at a time, three on this tree and three on v11.104, 0.15–0.20 — an unseeded run's rare fling, as v11.93.2's soft-arm one was. **Unseen:** nothing on screen;
 the coarse tier runs in the game only once the world grows (the next step).
+
+## v11.106 — the world to ±70 km (11 Nov 2026)
+
+GLOBE §10.1 step 4; the person (11 Nov 2026): "go ahead with the growth to ±70 km". The world is 141 km a side, and every member that shows
+from ours is in it: the giant, the 308 m island, the awesome shield whole, the 820 m island 48 km west, the 243 m island 39 km south-south-west.
+The old square (v11.65–105's world) is v11.105's to the bit. One thing in it changes, and it is the person's call: the chemocline (below).
+
+- **world.js, the grid:** `GRID0` −208, `GRIDN` 656, `WHALF` 70,520; `gridIn(i, j)`, `gridIdx(i, j)`. Cell (0, 0) is still the old square's corner
+  and `HALF` the anchor (`cellOf`, every cell's place `i·CELL − HALF`), so the old square's cells, seeds and numbers are as they were; `NCELL` and
+  `HALF` now name the old square — the fine ledger's box, the maps' anchor. A dense table over the world's cells (the loaded cells `chunkGrid`, the
+  far layer's `bigCache` and `impCache`: 430,336 cells) is indexed by `gridIdx`; physics.js, audio.js, chunks.js, far.js and ecology.js go through it.
+- **The edge:** the clamp (player.js, creatures_ai.js, `tp`), the save's position and camera bounds and the apron are at ±`WHALF`.
+- **The records (region.js `rgBuild`):** two passes, so the old square's records are v11.102's to the bit — the 20 that reach it (the old box, the
+  old order, the old rng, their noise seeds), then the 25 the world alone reaches, by an rng of their own: the low island m150 (62 km west), six
+  banks, fifteen atolls, a drowned bank, a guyot, a growing seamount. 45 records and the two pins. The floor's grid (`rgFloorInit`) is v11.102's
+  lattice grown by whole nodes from its old origin (`mi`, `mj`), so a node it had is the same double and a read in the old square the same
+  arithmetic — a first try that rebuilt the lattice from the new corner moved 4,372 of 150,000 samples by the last bit.
+- **far.js:** 164² regions from cell `GRID0`; `manageFar` scans only those within `FAR_R`, the built ones are a list (`farList`) for the drop and
+  `cullFar`, `farCellChanged` visits a cell's own region and its neighbours. `WM_C0` the world's corner on the maps' grid (−1248), and the maps'
+  window moves now (`WM_MOVE`: the world is wider than it). A read's texel and weights come from the anchor's grid with the window's corner taken
+  off after (`wmAt`, `WM_R`): `u − WM_I0` rounded the weight once the corner went negative, and a read after a move differed from before it in the
+  last bit (17 of 72 places in the new test); at the anchor it is v11.103's.
+- **ecology.js:** the patches tile the world from `GRID0` (`ecoPI`, `ecoPJ`, `ecoPOf`): 82², 5,824 coarse round the fine box, censused at boot after
+  the box (4 a frame, ~4 s of CPU in all). A cell outside the old square seeds its census by a hash of its place. The fine box's census is
+  v11.105's to the float: nothing crosses between the tiers.
+- **A fix the growth exposed:** a save's coarse patches loaded without their hunters' response tables (they are not saved), and the patch model
+  would have thrown on the first step after a load — unseen in v11.105, which had no patches as built. A load now runs the census's load pass
+  (`ecoGen(true)`): a patch from the save gets its tables back and nothing else (`ecoPatchCap(p, true)`, `P.rt`; the model waits for them), one the
+  save lacks is censused and settled. A save from before v11.106 (its tables 57,600 cells, no patches) keeps its cells; to now it would have
+  been refused and the world started fresh.
+- **The falls:** past `FALL.max` (400) the farthest from the player go, not the oldest bones — the world's dead are seven times the old square's,
+  and the old rule would have thinned the falls round the player as much.
+- **The rest:** the brood's cell in the save (line.js `lineCell`: the old `i·NCELL + j` in the old square, so old saves read the same; a number of
+  its own past it); horizon.js's box (209 × 145 km, from 111 × 98), and a bare summit over the sea in its mesh (the low island m150, 50 m, is the first
+  record with no land or rim above water; it was missing from the horizon); the chemocline's flood over the world (below); the world map (`n`: the world
+  sampled whole, opened on a view the old square's size round the player and sampled at once, the old square drawn), map.html and region.html
+  (the world's square, the old one faint; region.html's "in the game's square: a proposal" was stale since v11.102), test/map.js's default span.
+- **The chemocline (world.js `chemoInit`, over ±WHALF on the old square's 400 m lattice):** five silled basins. The moat round ours and DEEP §5's
+  basin 28 km west are one water at the game's grain: 603 km² behind a sill at −999.2 — an atoll's foot (m127) 33 km east-south-east, 25 m over
+  the model's own floor there; to v11.105 the square's east edge let the moat out — its chemocline −1019, its floor −1384. 414 km² of the old
+  square's floor is under it, 127 km² within 10 km of ours; the floor east and south of ours past ~4.7 km. What that does: no sessile life
+  under −1019 there, the straddlers' line and the plate at −1019 round the moat's walls, hingeshells fed below it poison, the player suffocates
+  under it in under a minute. The ledger does not read the chemocline, so the census is unchanged. The region model's own grid (its cones, not the
+  records' flanks) still has ours open and the west basin apart (333 km² behind −988). Also: 38 km² behind −927 at 24.7 km east (new: the old
+  edge cut it), and v11.102's 13 km² behind −1007 as before.
+- **Tests:** test/region.js (the records in two passes; the world's basins; the moat in the −999 basin pinned as built; "none within 8 km of ours"
+  is gone); test/maps.js (as built the window boots at the anchor, its reads v11.103's at 4,000 places, and a swim 36 km out moves it with every
+  read in both windows the same); test/ledger.js (as built 5,824 patches all censused; the comparison over the old square's 704; after a load the
+  tables rebuilt, every count the save's and five days of the model; a pre-v11.106 save loaded); test/physics.js, combat.js, audio.js, snow.js
+  through `gridIdx`/`gridIn`. The shards' seconds (build.js, build.py) by the runs here against v11.105's on this sandbox: smoke +5%, live
+  +13%, census and falls +11–14%, ledger 135 s.
+
+Seen: the old square against v11.105 — `sample()`'s ground and nine fields, `apronAt` and `coneK` at 150,000 points, none differ; the 22 old
+records identical; the chimney where it was; the booted maps' bytes (water `c043b464`, floor `2f8267a3`, both trees); the census of the fine box
+after 40 days, every kind's capacity and count the same (764,786 and 596,725). Costs: the flood ~0.3 s on its first call (70 ms); the horizon's
+`sample()` work 1.5 s (0.73) and its mesh 604k triangles (366k), sliced over frames as before; the census's patches ~4 s of CPU at boot, a
+frame's slice as the box's; the model's step +13% (the census's 40 days, 143 s against 127); `sample()` 1.37 µs over the index's extent.
+Looked at, the real build in headless Chromium, no page errors: the moat's floor at −1100 under the new chemocline, bare, the dark flakes
+falling; its wall at −985 above it, rock and stalks; the 820 m island's beach, pale sand and grass rising inland; the 243 m island's shore from the
+water, its plants on the skyline; the maps' window following (two moves). Not seen: the islands' summits on the horizon — the horizon mesh
+builds a slice a frame and the headless page ran at a frame every few seconds (in node a frame's CPU is v11.105's: 4.6 ms against 4.8); its
+contents were checked in node instead — the 820 m island's land in it to 803 m at 100 m, the 243 m's to 240, the low island's to 79.
+**Unseen, ask in this order:** whether the moat round ours stays anoxic (the decision above; `tp(6000,0,-1100)`); the frame rate on the 4060
+above water with the bigger horizon mesh, and how long after surfacing the far land arrives (~6 s at 60 fps by the CPU, against ~3); the new
+islands up close (`tp(-38045,-13100,47)`, `tp(-19362,30669,109)`); a long swim across the maps' window and the far regions for seams; sound.

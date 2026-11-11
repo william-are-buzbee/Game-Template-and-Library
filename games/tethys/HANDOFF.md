@@ -1,9 +1,16 @@
 # HANDOFF — tethys
 
+**v11.106 (11 Nov 2026): the world to ±70 km** (GLOBE §10.1 step 4). 656² cells (`GRID0`, `GRIDN`, `WHALF`), the old square still the
+grid's anchor; 25 more of the model's members are records (45), the maps' window moves, the ledger's patches cover the world, the far
+regions stream over it. The old square is v11.105's to the bit (ground, maps, ledger). **What changed: the chemocline's flood over the
+world joins the moat round ours to the basin 28 km west** (603 km² behind −999, chemocline −1019): the deep floor round ours past ~4.7 km is
+now anoxic. **Ask first** whether that stands (DEEP §5, GLOBE §10.1); then the new islands in play. Next: DEEP's basin step (the
+constructors' structures), or the province (local origins, the cell hash, a horizon mesh per member).
+
 **v11.105 (11 Nov 2026): the ledger in tiers** (GLOBE §10.1 step 3). The fine box (the v11.65 square) keeps its cells; past it coarse 8×8-cell
 patches run the same model (each hunter's response tabulated from its cells), split round the player and merged back. No patches while the
 world is the square: the ledger is v11.104's to the bit (test/ledger.js; with the box patched smaller, the coarse ring within a few percent of
-the fine for every kind but the abyssal 0.75 and the sickle 0.57). Next: the growth to ±70 km.
+the fine for every kind but the abyssal 0.75 and the sickle 0.57).
 
 **v11.104 (11 Nov 2026): the maps as a window** (GLOBE §10.1 step 2). The water and floor maps are a window on a fixed texel grid, read
 relative to its centre in every shader; it re-centres on the player by whole regions once the world is wider than it — not yet, so nothing
@@ -22,7 +29,7 @@ corner and the atolls in play.
 
 **v11.101 (11 Nov 2026): the player's oxygen** (DEEP §9). Under the body's tolerance (0.5; slowbloods 0.3) an oxygen debt builds in the
 minimum — at the core a soft-arm fills it in ~200 s — taking the sprint, then the ability, then speed, the view closing in; it clears in
-~25 s above, and in the minimum it never kills. Under a basin's chemocline it kills in under a minute (no basin yet). **Ask first** about the
+~25 s above, and in the minimum it never kills. Under a basin's chemocline it kills in under a minute (since v11.106 the moat round ours is one). **Ask first** about the
 debt's pace in play and the vignette. Next: the square from the model (GLOBE §8 step 5), then the engine for a bigger world (GLOBE §10).
 
 **v11.100 (11 Nov 2026): the veil, the tread and the great age and die; the bones landmark struck.** The person's two calls on v11.99:

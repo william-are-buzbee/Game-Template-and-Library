@@ -80,7 +80,7 @@ function initAudio(){
 // ---------- the space ----------
 // Is the point inside a solid? The hash physics.js keeps (spheres, capsules, ellipsoids, twelve-plane rocks; pads are rafts: nothing to sound)
 function auSolid(x,y,z){
-  const i=cellOf(x),j=cellOf(z);if(i<0||j<0||i>=NCELL||j>=NCELL)return false;const ch=chunkGrid[i*NCELL+j];if(!ch||!ch.solids.length)return false;
+  const i=cellOf(x),j=cellOf(z);if(!gridIn(i,j))return false;const ch=chunkGrid[gridIdx(i,j)];if(!ch||!ch.solids.length)return false;
   const B=ch.hash[clamp(Math.floor((z-ch.z0)/HB),0,HN-1)*HN+clamp(Math.floor((x-ch.x0)/HB),0,HN-1)];if(!B)return false;
   for(let k=0;k<B.length;k++){const s=B[k];if(s.t===2)continue;
     const dx=x-s.x,dy=y-s.y,dz=z-s.z;
@@ -168,7 +168,7 @@ function auTick(dt,P,play){
   AU.boil=clamp((AU.boil||0.7)+(Math.random()-0.5)*0.3,0.4,1);AU.ventR.a=B*0.9*(1-k);AU.ventB.a=B*0.4*AU.boil*(1-k);
   // 7 the forest: the flora's height in the cells' 4×4 buckets (chunks.js), summed with a reach of 30 m; placed at the weighted centre; loud in a stream, near silent in slack water
   let fw=0,fx=0,fz=0;const ci=cellOf(lx),cj=cellOf(lz);
-  for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const i=ci+di,j=cj+dj;if(i<0||j<0||i>=NCELL||j>=NCELL)continue;const c=chunkGrid[i*NCELL+j];if(!c||!c.ac)continue;
+  for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const i=ci+di,j=cj+dj;if(!gridIn(i,j))continue;const c=chunkGrid[gridIdx(i,j)];if(!c||!c.ac)continue;
     for(let b=0;b<16;b++){const w=c.ac[b];if(w<=0)continue;const bx=c.x0+((b&3)+0.5)*CELL/4,bz=c.z0+((b>>2)+0.5)*CELL/4,dh=bx-lx,dv=bz-lz;if(dh*dh+dv*dv>14400)continue;const d=Math.sqrt(dh*dh+dv*dv+Math.pow(c.h(bx,bz)+4-ly,2)),q=w/(1+d/30);fw+=q;fx+=bx*q;fz+=bz*q;}} // the plants stand on their ground: the rim's weed 100 m over the pit's floor is 100 m off
   const fd=clamp(Math.sqrt(fw/6000),0,1);AU_LINE.forest=fd; // fw is metres of plant within reach: the shelf's stipe forest sums to ~6000, the peak's lawn to ~300
   if(fw>0){AU.forest.x=fx/fw;AU.forest.z=fz/fw;AU.forest.y=groundAt(AU.forest.x,AU.forest.z)+6;}else{AU.forest.x=lx;AU.forest.z=lz;AU.forest.y=ly;}

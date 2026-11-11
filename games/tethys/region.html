@@ -84,12 +84,12 @@ function compute(){$('busy').style.display='block';clearTimeout(busyT);busyT=set
   let x0=1e18,x1=-1e18,z0=1e18,z1=-1e18;const o={x:0,z:0},grow=(x,z,r)=>{x0=Math.min(x0,x-r);x1=Math.max(x1,x+r);z0=Math.min(z0,z-r);z1=Math.max(z1,z+r);};
   for(const m of R.M)grow(m.x,m.z,m.R);for(let t=0;t<=R.K.span;t+=0.5){R.track(t,o);grow(o.x,o.z,R.K.platW*1000);}
   const span=Math.max(x1-x0,z1-z0)+60e3,n=Math.round(Math.min(560,Math.max(240,span/1100)));win={x0:(x0+x1)/2-span/2,z0:(z0+z1)/2-span/2,span,n};
-  G=regionGrid(R,win.x0,win.z0,span,n,inner(),HALF);Bs=regionBasins(G,n,span/n);img=shade(G,n,span/n,Bs.lab);detail=null;
+  G=regionGrid(R,win.x0,win.z0,span,n,inner(),WHALF);Bs=regionBasins(G,n,span/n);img=shade(G,n,span/n,Bs.lab);detail=null;
   if(!view)view={cx:win.x0+span/2,cz:win.z0+span/2,span:span};
   R.ms=[t1-t0,performance.now()-t1];$('busy').style.display='none';summary();list();detailPanel();knobs();out();draw();},20);}
 function refine(){ // zoomed in: the view again at the screen's grain, once the wheel rests
   if(!R||!view||view.span>win.span*0.45){detail=null;draw();return;}const n=Math.round(Math.min(480,Math.max(160,W/2))),x0=view.cx-view.span/2,z0=view.cz-view.span/2;
-  const Hg=regionGrid(R,x0,z0,view.span,n,inner(),HALF);detail={x0,z0,span:view.span,cv:shade(Hg,n,view.span/n,null),H:Hg,n};draw();}
+  const Hg=regionGrid(R,x0,z0,view.span,n,inner(),WHALF);detail={x0,z0,span:view.span,cv:shade(Hg,n,view.span/n,null),H:Hg,n};draw();}
 let refT=0;const later=()=>{clearTimeout(refT);refT=setTimeout(refine,300);};
 const mpp=()=>view.span/W,toPx=(x,z)=>[(x-view.cx)/mpp()+W/2,(z-view.cz)/mpp()+H/2],toW=(px,py)=>[view.cx+(px-W/2)*mpp(),view.cz+(py-H/2)*mpp()];
 function fit(){W=cv.clientWidth;H=cv.clientHeight;cv.width=W;cv.height=H;draw();}
@@ -97,7 +97,7 @@ function draw(){ctx.fillStyle='#03050c';ctx.fillRect(0,0,W,H);if(!R)return;ctx.i
   const blit=(c,x0,z0,span)=>{const [a,b]=toPx(x0,z0);ctx.drawImage(c,a,b,span/mpp(),span/mpp());};
   blit(img,win.x0,win.z0,win.span);if(detail)blit(detail.cv,detail.x0,detail.z0,detail.span);
   // the game's square, the visibility from ours, the track and its ages, the plume now
-  let [a,b]=toPx(-HALF,-HALF);ctx.strokeStyle='rgba(240,208,96,0.9)';ctx.lineWidth=1.2;ctx.strokeRect(a,b,2*HALF/mpp(),2*HALF/mpp());
+  let [a,b]=toPx(-WHALF,-WHALF);ctx.strokeStyle='rgba(240,208,96,0.9)';ctx.lineWidth=1.2;ctx.strokeRect(a,b,2*WHALF/mpp(),2*WHALF/mpp());[a,b]=toPx(-HALF,-HALF);ctx.strokeStyle='rgba(240,208,96,0.4)';ctx.strokeRect(a,b,2*HALF/mpp(),2*HALF/mpp()); // the game's world (±WHALF since v11.106), the old square faint
   ctx.setLineDash([4,5]);ctx.strokeStyle='rgba(220,230,240,0.35)';for(const r of [30000,110000]){const [p,q]=toPx(0,0);ctx.beginPath();ctx.arc(p,q,r/mpp(),0,TAU);ctx.stroke();}
   const o={x:0,z:0};ctx.strokeStyle='rgba(255,140,90,0.75)';ctx.setLineDash([]);ctx.lineWidth=1.5;ctx.beginPath();for(let t=0;t<=R.K.span;t+=0.1){R.track(t,o);const [p,q]=toPx(o.x,o.z);t?ctx.lineTo(p,q):ctx.moveTo(p,q);}ctx.stroke();
   ctx.font='11px Georgia';ctx.fillStyle='rgba(255,170,120,0.95)';for(let t=0;t<=R.K.span;t+=5){R.track(t,o);const [p,q]=toPx(o.x,o.z);ctx.beginPath();ctx.arc(p,q,2.5,0,TAU);ctx.fill();ctx.fillText(t?t+' Ma':'the plume now',p+5,q-4);}
@@ -131,7 +131,7 @@ function detailPanel(){const D=$('det');if(sel<0||!R.M[sel]){D.innerHTML='';retu
   h+='its summit rose to '+Math.round(m.peak)+' and stands at '+Math.round(m.zv)+' now; '+Math.round(m.E)+' m worn and planed off'+(m.rtop>500?' (a flat top '+km(m.rtop)+' km across its radius)':'')+'; the loads bend the plate '+Math.round(m.fl)+' m under it. ';
   h+=m.fed?'on the fed face — the open ocean\'s water, the weed\'s shallows, no reef. ':m.reef?'a reef '+(m.alive?'living':'drowned '+(m.died!==null?m.died.toFixed(2)+' Ma':''))+', its top at '+Math.round(m.rt)+', its ring '+km(m.ring)+' km; above the sea '+(m.exp).toFixed(2)+' Myr of its life at the lowstands (karst). ':'no reef. ';
   h+='in the light since '+f(m.lit)+(m.lit!==null?(m.src>=0?', settled from '+esc(nm(R.M[m.src]))+' '+km(m.srcD)+' km off':', settled from afar (the founders)'):'')+'; above the sea since '+f(m.surf)+'.';
-  if(m.inSq&&m.pin<0)h+=' <span class="warn">inside the game\'s square, where the game has only floor: a proposal for GLOBE §8 step 5.</span>';
+  if(m.inSq&&m.pin<0)h+=' <span class="warn">inside the game\'s world: a record there unless another member buries it (since v11.102; the world ±70.5 km since v11.106).</span>';
   D.innerHTML=h+'</div>';}
 function knobs(){const P=$('knobs');if(P.dataset.built){for(const k in REGION_K){const e=$('k_'+k);if(e&&document.activeElement!==e)e.value=k in K?K[k]:REGION_K[k];}return;}P.dataset.built=1;
   for(const [g,ks] of GROUPS){const d=document.createElement('details');if(g==='the plate and the plume')d.open=true;d.innerHTML='<summary>'+g+'</summary>';
@@ -145,9 +145,9 @@ $('survey').onclick=()=>{const S=$('sv'),rows=[],base=+(K.seed||REGION_K.seed),N
       rows.push({seed:s,land:L.length,top:Math.max(...L.map(m=>m.zv)),great:L.filter(m=>m.zv>=800).length,seen:regionSeen(Rs,0,0).length,act:Rs.M.filter(m=>m.state==='shield').length,
         drown:Rs.M.filter(m=>['guyot','drowned','seamount'].includes(m.state)).length,ring:Rs.M.filter(m=>['atoll','bank'].includes(m.state)).length,sq:L.filter(m=>m.inSq&&m.pin<0).length,km2:Math.round(Rs.M.reduce((a,m)=>a+m.land,0))});s++;}
     if(s<=N){S.querySelector('.small').textContent='running… '+(s-1)+' of '+N;setTimeout(step,0);return;}
-    let h='<h2>the survey (the knobs as they are, seeds 1–'+N+')</h2><table><tr><th>seed</th><th>land</th><th>tallest</th><th>≥800</th><th>seen</th><th>active</th><th>rings</th><th>drowned</th><th>in sq</th><th>km²</th></tr>';
+    let h='<h2>the survey (the knobs as they are, seeds 1–'+N+')</h2><table><tr><th>seed</th><th>land</th><th>tallest</th><th>≥800</th><th>seen</th><th>active</th><th>rings</th><th>drowned</th><th>in world</th><th>km²</th></tr>';
     for(const r of rows)h+='<tr class="pick" data-s="'+r.seed+'"'+(r.seed===base?' style="color:#f0d060"':'')+'><td>'+r.seed+'</td><td>'+r.land+'</td><td>'+Math.round(r.top)+'</td><td>'+r.great+'</td><td>'+r.seen+'</td><td>'+r.act+'</td><td>'+r.ring+'</td><td>'+r.drown+'</td><td>'+r.sq+'</td><td>'+r.km2+'</td></tr>';
-    S.innerHTML=h+'</table><div class="small">land: members above the sea; seen: over the horizon from ours; rings: atolls and banks; drowned: guyots, drowned banks, seamounts; in sq: land inside the game\'s square. click a row.</div>';
+    S.innerHTML=h+'</table><div class="small">land: members above the sea; seen: over the horizon from ours; rings: atolls and banks; drowned: guyots, drowned banks, seamounts; in world: members inside the game\'s world. click a row.</div>';
     S.querySelectorAll('tr.pick').forEach(tr=>tr.onclick=()=>{K.seed=+tr.dataset.s;if(K.seed===REGION_K.seed)delete K.seed;sel=-1;save();compute();});};
   setTimeout(step,0);};
 // ---------- the controls ----------

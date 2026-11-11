@@ -62,19 +62,19 @@ function popRows(){ // the ledger's tables as arrays, the loaded cells counted a
 function popLoad(p){ // the ledger from a record; a save from another roster (SPAWN's kinds differ) gets a fresh census instead, and the player and the clock still load
   ecoReset();
   const D={};let ok=p&&Array.isArray(p.ents)&&p.ents.length===SPAWN.length&&p.ents.every((k,i)=>k===SPAWN[i].kind);
-  if(ok)for(const k of ['n','k','ke','cd','ow']){const T=Array.isArray(p[k])&&p[k].length===SPAWN.length?p[k].map(unrle):null;if(!T||!T.every(a=>a&&a.length===ECO_CELLS)){ok=false;break;}D[k]=T;}
-  if(ok){D.done=unrle(p.done);if(!D.done||D.done.length!==ECO_CELLS)ok=false;}
+  if(ok)for(const k of ['n','k','ke','cd','ow']){const T=Array.isArray(p[k])&&p[k].length===SPAWN.length?p[k].map(unrle):null;if(!T||!T.every(a=>a&&(a.length===ECO_CELLS||a.length===ECO_FINE))){ok=false;break;}D[k]=T;} // ECO_FINE: a save from before v11.106, when the box was the world and there were no slots — the same cells, the slots empty
+  if(ok){D.done=unrle(p.done);if(!D.done||(D.done.length!==ECO_CELLS&&D.done.length!==ECO_FINE))ok=false;}
   if(!ok){if(p)console.warn('save: the roster or the world changed since this save; the world starts fresh');return false;}
   for(let ei=0;ei<SPAWN.length;ei++){POP.n[ei].set(D.n[ei]);POP.k[ei].set(D.k[ei]);POP.ke[ei].set(D.ke[ei]);POP.cd[ei].set(D.cd[ei]);POP.ow[ei].set(D.ow[ei]);}
   POP.done.set(D.done);POP.last=+p.last||0;const T=Array.isArray(p.tally)?p.tally:[];[POP.births,POP.deaths,POP.kills,POP.starved,POP.eaten,POP.recruits,POP.laid,POP.hatched]=[0,1,2,3,4,5,6,7].map(i=>+T[i]||0);
-  let ptOK=!ECO_PT.on; // the coarse patches (v11.105): from the record if it has them whole, else the paper census does them again
+  // the coarse patches (v11.105): from the record if it has them whole, else the load pass of the paper census does them again (v11.106)
   if(ECO_PT.on&&p.pt){const P=ECO_PT,q=p.pt,T={};let good=Array.isArray(q.bp)&&q.bp.length===ECO_SLOTS;
     for(const k of ['n','k','ke','cd']){T[k]=good&&Array.isArray(q[k])&&q[k].length===SPAWN.length?q[k].map(unrle):null;if(!T[k]||!T[k].every(a=>a&&a.length===P.np))good=false;}
     const dn=good?unrle(q.done):null;if(!dn||dn.length!==P.np)good=false;
     if(good){for(let ei=0;ei<SPAWN.length;ei++){P.n[ei].set(T.n[ei]);P.k[ei].set(T.k[ei]);P.ke[ei].set(T.ke[ei]);P.cd[ei].set(T.cd[ei]);for(let x=0;x<P.np;x++)if(!(P.n[ei][x]>=0))P.n[ei][x]=0;}P.done.set(dn);
       P.blk.fill(-1);P.free=[];for(let s2=ECO_SLOTS-1;s2>=0;s2--){const pp=q.bp[s2];if(Number.isInteger(pp)&&pp>=0&&pp<P.np&&P.coarse[pp]&&P.blk[pp]<0){P.bp[s2]=pp;P.blk[pp]=s2;}else{P.bp[s2]=-1;P.free.push(s2);}}
-      for(let ei=0;ei<SPAWN.length;ei++){P.cells[ei].length=0;P.mark[ei].fill(0);for(let x=0;x<P.np;x++)if(P.k[ei][x]>0||P.n[ei][x]>0){P.mark[ei][x]=1;P.cells[ei].push(x);}}ptOK=true;}}
-  let all=true;for(let c=0;c<ECO_FINE;c++)if(!POP.done[c]){all=false;break;}if(all&&ptOK)POP.gen=null; // the paper census was done in the saved game; the settle after it is boot's, not a load's
+      for(let ei=0;ei<SPAWN.length;ei++){P.cells[ei].length=0;P.mark[ei].fill(0);for(let x=0;x<P.np;x++)if(P.k[ei][x]>0||P.n[ei][x]>0){P.mark[ei][x]=1;P.cells[ei].push(x);}}}}
+  let all=true;for(let c=0;c<ECO_FINE;c++)if(!POP.done[c]){all=false;break;}if(all)POP.gen=ECO_PT.on?ecoGen(true):null; // the paper census was done in the saved game; the settle after it is boot's, not a load's (v11.106: the patches still want their hunters' tables, or a census if the save had none — ecoGen's load pass)
   for(let ei=0;ei<SPAWN.length;ei++){const N=POP.n[ei];for(let c=0;c<ECO_CELLS;c++)if(!(N[c]>=0))N[c]=0;} // a hand-edited file: nothing negative or NaN into the model
   ecoIndexAll(); // the ledger's index from the loaded tables (v11.65)
   return true;
@@ -95,7 +95,7 @@ function saveRefresh(cb){ // the slots read again; first, a shadow the page left
 // position and look direction go to localStorage synchronously at every one of those events (saveNow, saveShadow, player.js die) — a few
 // dozen bytes, the one thing here that must survive even a hard close — and menu.js reads it at boot (menuCam). Nothing until the first game.
 function camNote(){try{const ls=window.localStorage;if(!ls||mode!=='play')return;const d=V3(0,0,-1).applyQuaternion(camera.quaternion);ls.setItem('tethys.cam',JSON.stringify({p:[r3(camera.position.x),r3(camera.position.y),r3(camera.position.z)],d:[r3(d.x),r3(d.y),r3(d.z)],t:Date.now()}));}catch(e){}}
-function camRead(){try{const ls=window.localStorage,s=ls&&ls.getItem('tethys.cam');if(!s)return null;const o=JSON.parse(s);if(!Array.isArray(o.p)||!Array.isArray(o.d)||o.p.length!==3||o.d.length!==3)return null;const p=o.p.map(v=>+v||0),d=o.d.map(v=>+v||0);if(Math.abs(p[0])>HALF+2000||Math.abs(p[2])>HALF+2000||!(d[0]*d[0]+d[1]*d[1]+d[2]*d[2]>0.1))return null;return {p:p,d:d};}catch(e){return null;}}
+function camRead(){try{const ls=window.localStorage,s=ls&&ls.getItem('tethys.cam');if(!s)return null;const o=JSON.parse(s);if(!Array.isArray(o.p)||!Array.isArray(o.d)||o.p.length!==3||o.d.length!==3)return null;const p=o.p.map(v=>+v||0),d=o.d.map(v=>+v||0);if(Math.abs(p[0])>WHALF+2000||Math.abs(p[2])>WHALF+2000||!(d[0]*d[0]+d[1]*d[1]+d[2]*d[2]>0.1))return null;return {p:p,d:d};}catch(e){return null;}}
 function saveShadow(){if(!curSave||mode!=='play'||player.dead||!player.clade)return;camNote();try{const ls=window.localStorage;if(ls)ls.setItem('tethys.last',JSON.stringify(saveRecord()));}catch(e){}} // the page going away (v11.47.1): IndexedDB's put may not finish before it does, localStorage's write is synchronous and does; read back by saveRefresh at the next boot
 function saveName(){let n=0;for(const r of saveList){const m=/^game (\d+)$/.exec(r.name||'');if(m&&+m[1]>n)n=+m[1];}return 'game '+(n+1);}
 function saveImport(txt,cb){ // a file back in (menu.js): checked as far as the shape goes, given a new id if its own is taken, stored
@@ -109,7 +109,7 @@ function worldClear(){ // every cell out (the living written into the ledger), a
   activeGen=null;activeKey=null;for(const ch of Array.from(chunks.values()))unloadChunk(ch);
   for(const g of eggs.slice())removeEgg(g);for(const s of sheds.slice())removeShed(s);for(const c of creatures)disposeCreature(c);creatures.length=0;carcasses.length=0;schools.length=0; // the sheds too (v11.66)
 }
-function cellsAround(){const ci=cellOf(player.pos.x),cj=cellOf(player.pos.z);for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const i=ci+di,j=cj+dj;if(i>=0&&j>=0&&i<NCELL&&j<NCELL)loadChunkNow(i,j);}shadowDirty();} // the 3×3 round the player before the first frame (boot, a game starting, the menu); the rest streams
+function cellsAround(){const ci=cellOf(player.pos.x),cj=cellOf(player.pos.z);for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const i=ci+di,j=cj+dj;if(gridIn(i,j))loadChunkNow(i,j);}shadowDirty();} // the 3×3 round the player before the first frame (boot, a game starting, the menu); the rest streams
 function playerBody(C,pos,yaw,pitch){ // the player's body built and placed as the clade; the old one disposed
   const P=player;playerDrop();const b=C.build();castOn(b.g);scene.add(b.g);
   P.clade=C;P.b=b;P.g=b.g;P.anim=b.anim;P.mass=C.mass;P.def.size=C.size;P.paraT=0;P.stungT=0;P.sickT=0;P.hunger=0;P.starveT=0;P.waste=0;P.armsLost=0;P.regrow=null;P.cause='';P.live=null;P.lost=null;P.speedK=1;P.turnK=1;
@@ -128,7 +128,7 @@ function startFrom(rec){ // continue a slot (menu.js): the clock and the ledger 
   worldClear();t=Math.max(0,+rec.t||0);clockH=t*CLOCK_RATE;TIDE=tideAt(clockH);popLoad(rec.pop);fallsIn(rec.falls); // the falls (v11.99; none in an older save)
   curSave={id:rec.id,name:rec.name,made:rec.made,played:rec.played,playT:+rec.playT||0,deaths:Array.isArray(rec.deaths)?rec.deaths.slice():[]};playT=curSave.playT;
   lineLoadRec(rec,C);const L=lineCur();if(L&&(lineScale(L)<1||lineSoft(L)))C=lifeClade(L,lineScale(L)); // the line (line.js); a hatchling still small (v11.76: at its moults' step), a moulting body still soft
-  const p=Array.isArray(rec.pos)?V3(+rec.pos[0]||0,+rec.pos[1]||0,+rec.pos[2]||0):V3(0,dispY,0);if(Math.abs(p.x)>HALF+1500||Math.abs(p.z)>HALF+1500)p.set(0,dispY,0);
+  const p=Array.isArray(rec.pos)?V3(+rec.pos[0]||0,+rec.pos[1]||0,+rec.pos[2]||0):V3(0,dispY,0);if(Math.abs(p.x)>WHALF+1500||Math.abs(p.z)>WHALF+1500)p.set(0,dispY,0);
   choose(C,p,rec.yaw,rec.pitch);injuriesLoad(rec);player.hunger=clamp(+rec.hunger||0,0,1);player.starveT=Math.max(0,+rec.starveT||0);player.soft=lineSoft(L);return true; // the stomach (v11.73); a record from before it comes back fed. soft (v11.76): through a moult as it was
 }
 // the body swapped in place (v11.69: a hatchling grown, line.js lineTick): where it is, moving as it was, its wounds kept, the camera left where it is

@@ -8,7 +8,7 @@ const util=fs.readFileSync(path.join(root,'vendor/wb-core.global.js'),'utf8')+'\
 let world=fs.readFileSync(path.join(root,'src/world.js'),'utf8');const cut=world.indexOf('// ---------- the light');if(cut>0)world=world.slice(0,cut); // the geology and the fields (test/map.js's cut)
 const region=fs.readFileSync(path.join(root,'src/region.js'),'utf8');
 const THREE={Vector3:class{constructor(x,y,z){this.x=x;this.y=y;this.z=z;}},Matrix4:class{},Quaternion:class{}};
-const G=new Function('THREE',util+'\n'+world+'\n'+region+'\nreturn {sample,HALF,ISLANDS,REGION_K,REGION_PINS,RG_STATE,regionModel,regionGrid,regionBasins,regionSeen,rgKei,rgSea,rgTrack,OXY,chemoAt,oxyAt,underChemo,chemoB:()=>CHEMO_B,apronAt,apronR,RG_BUILT,rgFloor,BASIN,islandH};')(THREE);
+const G=new Function('THREE',util+'\n'+world+'\n'+region+'\nreturn {sample,HALF,WHALF,ISLANDS,REGION_K,REGION_PINS,RG_STATE,regionModel,regionGrid,regionBasins,regionSeen,rgKei,rgSea,rgTrack,OXY,chemoAt,oxyAt,underChemo,chemoB:()=>CHEMO_B,apronAt,apronR,RG_BUILT,rgFloor,BASIN,islandH};')(THREE);
 let fails=0;const ok=(c,msg)=>{console.log((c?'  ok   ':'  FAIL ')+msg);if(!c)fails++;};
 console.log('region: the pieces');
 // kei(x) (A&S Table 9.12): 1 → −0.494991, 2 → −0.202400, 3 → −0.051123, 4 → +0.002198; the table is kei/kei(0), kei(0) = −π/4
@@ -38,13 +38,19 @@ const span=520e3,n=260,x0=-140e3,z0=-260e3,t1=Date.now(),H=G.regionGrid(R,x0,z0,
 let fin=true,under=0;for(let k=0;k<n*n;k++){if(!Number.isFinite(H[k]))fin=false;if(B.F[k]<H[k]-1e-3)under++;}
 ok(fin,`${n}² heights, all finite`);ok(under===0,'the flood\'s fill is never under the ground');
 let edge=true;for(let i=0;i<n;i++)for(const k of [i,(n-1)*n+i,i*n,i*n+n-1])if(B.F[k]!==H[k])edge=false;ok(edge,'the grid\'s edge is the open ocean: its fill is its ground');
-const f9=new Float32Array(9),Hg=G.regionGrid(R,x0,z0,span,n,(x,z)=>G.sample(x,z,f9).h,G.HALF),ci=Math.floor((6000-x0)/(span/n)),cj=Math.floor(-z0/(span/n));
-ok(Math.abs(Hg[cj*n+ci]-G.sample(6000+0.5*span/n-((6000-x0)%(span/n)),0.5*span/n-(-z0%(span/n)),f9).h)<1,'inside the game\'s square the grid is the game\'s own ground');
+const f9=new Float32Array(9),Hg=G.regionGrid(R,x0,z0,span,n,(x,z)=>G.sample(x,z,f9).h,G.WHALF),ci=Math.floor((6000-x0)/(span/n)),cj=Math.floor(-z0/(span/n));
+ok(Math.abs(Hg[cj*n+ci]-G.sample(6000+0.5*span/n-((6000-x0)%(span/n)),0.5*span/n-(-z0%(span/n)),f9).h)<1,'inside the game\'s world the grid is the game\'s own ground');
 console.log('region: the game\'s own water (v11.96, DEEP §2, §9)');
-// the basins of the game's own ground (v11.102: the model's members in it): those silled by region.js's rule, none over ours or the giant
+// the basins of the game's own ground (v11.102: the model's members in it; v11.106: the world's, ±WHALF): those silled by region.js's rule
 const t4=Date.now();G.chemoAt(0,0);const CB=G.chemoB(),silled=CB.B.filter(b=>b.silled),bXZ=b=>[CB.x0+(b.cx+0.5)*CB.G,CB.x0+(b.cz+0.5)*CB.G];
-ok(silled.every(b=>{const p=bXZ(b);return Math.hypot(p[0],p[1])>8000&&Math.hypot(p[0]+15400,p[1]-9200)>8000;}),`the square's ground at ${CB.G} m (${CB.n}², ${Date.now()-t4} ms): ${CB.B.length} hollows and lagoons, ${silled.length} silled by region.js's rule (`+silled.map(b=>{const p=bXZ(b);return `${b.area.toFixed(0)} km² behind ${b.sill.toFixed(0)} at ${(p[0]/1000).toFixed(1)}, ${(p[1]/1000).toFixed(1)} km`;}).join('; ')+'), none within 8 km of ours or the giant');
-const spots=[[0,0,'ours'],[6000,0,'the floor east'],[-15400,9200,'the giant'],[-400,-11100,'the drowned atoll north'],[20000,20000,'a far corner']];
+console.log(`  the world's ground at ${CB.G} m (${CB.n}², ${Date.now()-t4} ms): ${CB.B.length} hollows and lagoons, ${silled.length} silled by region.js's rule: `+silled.map(b=>{const p=bXZ(b);return `${b.area.toFixed(0)} km² behind ${b.sill.toFixed(0)} at ${(p[0]/1000).toFixed(1)}, ${(p[1]/1000).toFixed(1)} km`;}).join('; '));
+// v11.106: at the game's grain over the world the moat round ours and DEEP §5's basin 28 km west are one water behind a sill at about −999 (an
+// atoll's foot 33 km east-south-east, 25 m over the model's floor; to v11.105 the square's edge let the moat out), so the floor east of ours lies
+// under its chemocline — the person's call (CHANGELOG v11.106); these pin it as built
+const labAt=(x,z)=>{const i=Math.floor((x-CB.x0)/CB.G),j=Math.floor((z-CB.x0)/CB.G);return CB.lab[j*CB.n+i];},mo=CB.B[labAt(6000,0)];
+let west=false;if(mo)for(let k=0;k<CB.n*CB.n;k++)if(CB.lab[k]===mo.id&&CB.x0+(k%CB.n+0.5)*CB.G<-30000){west=true;break;}
+ok(mo&&mo.silled&&mo.sill<-990&&mo.sill>-1010&&mo.area>500&&mo.floor<-1300&&west&&G.chemoAt(6000,0)===mo.chemo,`the floor east of ours is in a silled basin: ${mo?mo.area.toFixed(0):'-'} km² behind ${mo?mo.sill.toFixed(1):'-'}, its chemocline ${mo?mo.chemo.toFixed(0):'-'}, its floor ${mo?mo.floor.toFixed(0):'-'} — the moat round ours joined to the basin 28 km west (it reaches past x −30 km: ${west})`);
+const spots=[[0,0,'ours'],[-15400,9200,'the giant'],[-400,-11100,'the drowned atoll north'],[20000,20000,'a far corner'],[15000,-15000,'the open floor north-east']];
 ok(spots.every(([x,z])=>G.chemoAt(x,z)===null),'no chemocline over '+spots.map(p=>p[2]).join(', '));
 ok(!G.underChemo(6000,-1000,0),'the floor east of ours at -1000 is not under a chemocline');
 // the profile: 1 in the light, the core's minimum, back to half at the floor; the core lower where the food rains
@@ -62,6 +68,8 @@ ok(aw&&G.apronR(aw,aw.fade[1]+11000)>0&&G.apronR(aw,aw.fade[1]+11200)===0,'the a
   ok(ap>deep/2&&none>0,`the square's floor under -700: ${(100*ap/deep).toFixed(0)}% apron (the archipelago's debris), ${(100*none/deep).toFixed(0)}% open floor beyond every apron`);}
 // the records (v11.102, GLOBE §8 step 5): every member whose ground reaches the world, the buried struck, ours and the giant unchanged inside their cores
 const RB=G.RG_BUILT;ok(RB.recs.length>=15&&RB.recs.every(r=>Number.isFinite(r.reach)&&r.hi&&r.hi.length>0&&r.an),`${RB.recs.length} of the model's members are records (${RB.recs.map(r=>r.id+' '+r.state).join(', ')}), each with its bound and its angular tables`);
+{const inB=(r,w)=>Math.max(Math.abs(r.x),Math.abs(r.z))-r.reach<w,o=RB.recs.slice(0,RB.n0),w=RB.recs.slice(RB.n0); // v11.106: the old square's first, as v11.102 built them, then the world's
+  ok(RB.n0===20&&o.every(r=>inB(r,G.HALF+2000))&&w.every(r=>inB(r,G.WHALF+2000)&&!inB(r,G.HALF+2000)),`the first ${RB.n0} reach the old square (v11.102's, in its order), the ${w.length} after them the world alone (±${(G.WHALF/1000).toFixed(1)} km): ${w.map(r=>r.id+' '+r.state).join(', ')}`);}
 ok(RB.struck.every(q=>RB.recs.some(r=>r.id===q.by)||q.by==='home'||q.by==='giant'),`${RB.struck.length} struck as inside another's ground: `+RB.struck.map(q=>q.id+' in '+q.by).join(', '));
 {let bad=0;const f9b=new Float32Array(9);for(const R of RB.recs)for(let r=0;r<R.reach;r+=97)for(let k=0;k<12;k++){const a=k/12*Math.PI*2+r*0.01,x=R.x+Math.cos(a)*r,z=R.z+Math.sin(a)*r,I={};G.islandH(R,x,z,I);if(I.h>R.hi[Math.min(R.hi.length-1,Math.floor(r/R.hiS))]||I.hs>R.hi[Math.min(R.hi.length-1,Math.floor(r/R.hiS))])bad++;}
   ok(bad===0,`every record's ground stays under its bound table (world.js sample skips by it): ${bad} over`);}
@@ -71,9 +79,9 @@ const cnt={};let land=0;for(const m of M){cnt[m.state]=(cnt[m.state]||0)+1;land+
 console.log(`\n  ${M.length} members in ${ms} ms (seed ${K.seed}; the grid ${t2-t1} ms, the flood ${t3-t2} ms):`);
 for(const s in G.RG_STATE)if(cnt[s])console.log(`    ${String(cnt[s]).padStart(3)}  ${G.RG_STATE[s]}`);
 console.log(`  land ${land.toFixed(0)} km² (discs); above the sea:`);
-for(const m of M.filter(m=>m.zv>0).sort((a,b)=>b.zv-a.zv))console.log(`    ${m.id.padEnd(6)} ${G.RG_STATE[m.state].padEnd(18)} ${String(Math.round(m.zv)).padStart(5)} m  ${m.age.toFixed(2).padStart(5)} Ma  ${String(Math.round(m.V/1e9)).padStart(5)} km³  ${String(Math.round(m.land)).padStart(5)} km²  at ${(m.x/1000).toFixed(1)}, ${(m.z/1000).toFixed(1)} km${m.inSq&&m.pin<0?'  (inside the game\'s square: a proposal)':''}`);
+for(const m of M.filter(m=>m.zv>0).sort((a,b)=>b.zv-a.zv))console.log(`    ${m.id.padEnd(6)} ${G.RG_STATE[m.state].padEnd(18)} ${String(Math.round(m.zv)).padStart(5)} m  ${m.age.toFixed(2).padStart(5)} Ma  ${String(Math.round(m.V/1e9)).padStart(5)} km³  ${String(Math.round(m.land)).padStart(5)} km²  at ${(m.x/1000).toFixed(1)}, ${(m.z/1000).toFixed(1)} km${m.inSq&&m.pin<0?'  (in the game\'s world)':''}`);
 const seen=G.regionSeen(R,0,0);console.log(`  from ours: ${seen.map(s=>`${s.m.id} ${(s.d/1000).toFixed(0)} km${s.haze?'':s.clear?' (clear days)':' (never)'}`).join(', ')}`);
-const k0=cj*n+ci;console.log(`  the water beside ours (the game's ground inside its square): floor ${Hg[k0].toFixed(0)}, its way out tops at ${regionFill(Hg,n,span,k0).toFixed(0)}`);
+const k0=cj*n+ci;console.log(`  the water beside ours on the model's grid (the game's ground inside its world): floor ${Hg[k0].toFixed(0)}, its way out tops at ${regionFill(Hg,n,span,k0).toFixed(0)}`);
 function regionFill(Hh,nn,sp,k){return G.regionBasins(Hh,nn,sp/nn).F[k];}
 for(const b of B.B.filter(b=>b.silled).sort((a,b)=>b.area-a.area).slice(0,4))console.log(`  a silled basin: ${b.area.toFixed(0)} km², sill ${b.sill.toFixed(0)}, floor ${b.floor.toFixed(0)}, chemocline ${b.chemo.toFixed(0)}`);
 console.log(fails?`\nregion: ${fails} FAILED`:'\nregion: all passed');process.exit(fails?1:0);

@@ -71,9 +71,9 @@ function regionModel(Kin){
   const pulses=[{t:tg,a:1}];for(let t=tg+K.period*(0.5+rng());t<K.span+K.period;t+=K.period*(0.5+rng()))pulses.push({t,a:0.4+0.6*rng()});if(K.young>0)pulses.push({t:0.25,a:K.young});else for(let t=tg-K.period*(0.5+rng());t>-K.period;t-=K.period*(0.5+rng()))pulses.push({t,a:0.4+0.6*rng()});
   const flux=t=>{let f=K.base;for(const p of pulses){const u=(t-p.t)/K.pulseW;f+=p.a*Math.exp(-u*u);}return f;};
   // the births: a Poisson count every 10 kyr by the flux, each scattered about the plume's centre, some drawn onto a fracture zone, its volume by
-// the size law and the flux. Births inside the game's square are kept and marked (inSq): the game has only floor there, so each is a proposal
-// for GLOBE §8 step 5 to judge by §7's test; none within a pin's foot
-  const sq=typeof HALF==='number'?HALF:25800,M=[],nfx=-Math.sin(K.fracA),nfz=Math.cos(K.fracA),sp=K.fracSp*1000,ph0=rng()*sp,sg=K.foot*500,o={x:0,z:0};
+// the size law and the flux. Births inside the game's world are kept and marked (inSq; region.html rings them): since v11.102 each is a
+// record there unless another buries it (rgBuild); none within a pin's foot. The world is ±WHALF since v11.106 (the square ±HALF to v11.105)
+  const sq=typeof WHALF==='number'?WHALF:70520,M=[],nfx=-Math.sin(K.fracA),nfz=Math.cos(K.fracA),sp=K.fracSp*1000,ph0=rng()*sp,sg=K.foot*500,o={x:0,z:0};
   pin.forEach((p,i)=>{const m={id:p.id,pin:i,x:p.x,z:p.z,age:i?tg:K.ageOurs,V:(i?600:60)*1e9,target:p.sum};M.push(m);});
   for(let k=Math.round(K.span/0.01);k>0;k--){const t=k*0.01,lam=K.rate*flux(t)*0.01,L=Math.exp(-lam);let n=-1,p=1;do{n++;p*=rng();}while(p>L);
     for(let b=0;b<n;b++){T(t,o);let x=o.x+sg*rgGauss(rng),z=o.z+sg*rgGauss(rng);const V=Math.min(K.vMax,K.vol*Math.pow(flux(t),1.3)*Math.pow(Math.max(1e-9,rng()),-1/K.beta))*1e9,pull=rng()<K.fracPull;
@@ -197,12 +197,14 @@ function regionBasins(H,n,cell,th){if(th===undefined)th=30;const N=n*n,F=new Flo
 // inside the drowned atoll at the west edge — and a guyot under the awesome shield's flank).
 const RG_FLG=1000; // the floor's grid (m): the moats and the swell are smooth over tens of km; a Catmull-Rom patch reads it with no crease at a line
 let RG_FL=null;
-function rgFloorInit(R,x0,z0,x1,z1){const G=RG_FLG,nx=Math.ceil((x1-x0)/G)+3,nz=Math.ceil((z1-z0)/G)+3,H=new Float32Array(nx*nz),gx=x0-G,gz=z0-G;
-  for(let j=0;j<nz;j++)for(let i=0;i<nx;i++)H[j*nx+i]=R.floorAt(gx+i*G,gz+j*G);RG_FL={G,x0:gx,z0:gz,nx,nz,H};}
+// v11.106: the lattice is fixed by its origin (ox, oz: v11.102's, the old square's members' extent less a node) and may start mi, mj nodes
+// before it, so a node the old grid had is the same double, and a read in the old square the same arithmetic, to the bit
+function rgFloorInit(R,ox,oz,mi,mj,x1,z1){const G=RG_FLG,nx=mi+Math.ceil((x1-ox)/G)+2,nz=mj+Math.ceil((z1-oz)/G)+2,H=new Float32Array(nx*nz);
+  for(let j=0;j<nz;j++)for(let i=0;i<nx;i++)H[j*nx+i]=R.floorAt(ox+(i-mi)*G,oz+(j-mj)*G);RG_FL={G,x0:ox,z0:oz,mi,mj,nx,nz,H};}
 function rgCR(a,b,c,d,t){return b+0.5*t*(c-a+t*(2*a-5*b+4*c-d+t*(3*(b-c)+d-a)));}
 // the model's floor at (x, z) (world.js sample's basement): the grid's patch, its edge held beyond it
-function rgFloor(x,z){const F=RG_FL;if(!F)return BASIN.h;const u=clamp((x-F.x0)/F.G,1,F.nx-2.000001),v=clamp((z-F.z0)/F.G,1,F.nz-2.000001),i=Math.floor(u),j=Math.floor(v),tu=u-i,tv=v-j,H=F.H,n=F.nx;
-  let k=(j-1)*n+i;const a=rgCR(H[k-1],H[k],H[k+1],H[k+2],tu);k+=n;const b=rgCR(H[k-1],H[k],H[k+1],H[k+2],tu);k+=n;const c=rgCR(H[k-1],H[k],H[k+1],H[k+2],tu);k+=n;
+function rgFloor(x,z){const F=RG_FL;if(!F)return BASIN.h;const u=clamp((x-F.x0)/F.G,1-F.mi,F.nx-F.mi-2.000001),v=clamp((z-F.z0)/F.G,1-F.mj,F.nz-F.mj-2.000001),i=Math.floor(u),j=Math.floor(v),tu=u-i,tv=v-j,H=F.H,n=F.nx;
+  let k=(j+F.mj-1)*n+i+F.mi;const a=rgCR(H[k-1],H[k],H[k+1],H[k+2],tu);k+=n;const b=rgCR(H[k-1],H[k],H[k+1],H[k+2],tu);k+=n;const c=rgCR(H[k-1],H[k],H[k+1],H[k+2],tu);k+=n;
   return rgCR(a,b,c,rgCR(H[k-1],H[k],H[k+1],H[k+2],tu),tv);}
 // a record's ground along a radius with no noise and no warp: islandH's profile, terraces, land, rim and lagoon, and lower flank (the foot, the reach, the burial)
 function rgRadial(R,r){let h=R.h0;for(const s of R.prof)h-=s[2]*smooth(s[0],s[1],r);const T=R.terr;h-=T.n*T.step*smooth(T.r0,T.r1,r);
@@ -234,16 +236,21 @@ function rgRecord(m,k,K,rng){const ns=1000+37*k,R={id:m.id,x:m.x,z:m.z,rot:0,sc:
     R.prof=[[rr+0.3*W,rr+85,6],[rr+85,rr+455,40],[rr+755,rr+955,94],[rr+955,rr+1355,40]];R.terr={r0:rr+455,r1:rr+755,n:8,step:12};R.flank={r:rr+1315,w:250,s0:0.30,s1:0.22,a:600,b:2600};R.fade=[rr+2800,rr+5800];}
   else{const rS=m.state==='guyot'?Math.max(200,m.rtop):clamp(0.05*m.R,120,300);R.h0=Math.round(m.zv);R.prof=m.state==='guyot'?[]:[[0,2*rS,20]];R.terr={r0:rS,r1:rS+400,n:0,step:0};R.flank={r:rS,w:300,s0:0.36,s1:0.22,a:600,b:2000};R.bare=R.h0;R.knob=30;R.fade=[rS+1500,rS+4000];}
   return R;}
-// the records: shaped, the buried struck, the rest kept if their foot reaches the world; the floor's grid over the world and every kept record's land
-function rgBuild(Rg){const K=Rg.K,rng=mulberry(K.seed*104729+7),W=HALF+2000,box=(x,z,r)=>Math.max(Math.abs(x),Math.abs(z))-r<W;
-  const cand=Rg.M.filter(m=>m.pin<0&&box(m.x,m.z,m.R*1.6+3000)).sort((a,b)=>b.top-a.top);
-  let x0=-W-5000,x1=W+5000,z0=-W-5000,z1=W+5000;for(const m of cand){const r=Math.max(m.shore,m.ring,m.R)+6000;x0=Math.min(x0,m.x-r);x1=Math.max(x1,m.x+r);z0=Math.min(z0,m.z-r);z1=Math.max(z1,m.z+r);}
-  rgFloorInit(Rg,x0,z0,x1,z1);
+// the records: shaped, the buried struck, the rest kept if their foot reaches the world; the floor's grid over the world and every kept record's land.
+// v11.106 (GLOBE §10.1 step 4, the world to ±WHALF): in two passes, so the old square's records are v11.102's to the bit — first the members
+// that reach the old square (HALF + 2 km, as v11.102–105 built them: the same list, order, rng and noise seeds), then the rest that reach the
+// world, by their own rng, their seeds after; the floor's grid is v11.102's lattice grown by whole nodes, so every node it had is the same node
+function rgBuild(Rg){const K=Rg.K,rng=mulberry(K.seed*104729+7),rng2=mulberry(K.seed*104729+11),W0=HALF+2000,W=WHALF+2000,box=(x,z,r,w)=>Math.max(Math.abs(x),Math.abs(z))-r<w;
+  const cand=w=>Rg.M.filter(m=>m.pin<0&&box(m.x,m.z,m.R*1.6+3000,w)).sort((a,b)=>b.top-a.top),c0=cand(W0),c1=cand(W);
+  const ext=(L,w)=>{let x0=-w-5000,x1=w+5000,z0=-w-5000,z1=w+5000;for(const m of L){const r=Math.max(m.shore,m.ring,m.R)+6000;x0=Math.min(x0,m.x-r);x1=Math.max(x1,m.x+r);z0=Math.min(z0,m.z-r);z1=Math.max(z1,m.z+r);}return [x0,z0,x1,z1];};
+  const e0=ext(c0,W0),e1=ext(c1,W),G=RG_FLG,ox=e0[0]-G,oz=e0[1]-G; // v11.102's origin: its x0 less a node
+  rgFloorInit(Rg,ox,oz,Math.ceil(Math.max(0,e0[0]-e1[0])/G),Math.ceil(Math.max(0,e0[1]-e1[1])/G),Math.max(e1[2],e0[2]),Math.max(e1[3],e0[3]));
   const foot=R=>{const f0=rgFloor(R.x,R.z)-BASIN.knee-200;let r=0;while(r<80000&&rgRadial(R,r)>f0)r+=50;return r;};
-  const kept=ISLANDS.slice(),out=[],struck=[];
-  for(const m of cand){const R=rgRecord(m,out.length,K,rng),top=R.land?R.land.h:R.rimR!==undefined?R.rimH:R.h0;
+  const kept=ISLANDS.slice(),out=[],struck=[],later=new Set(c1.filter(m=>!c0.includes(m)));
+  const pass=(L,rg,w)=>{for(const m of L){const R=rgRecord(m,out.length,K,rg),top=R.land?R.land.h:R.rimR!==undefined?R.rimH:R.h0;
     const by=kept.find(B=>rgRadial(B,Math.hypot(B.x-R.x,B.z-R.z))>top-20);if(by){struck.push({id:m.id,by:by.id});continue;}
-    const f=foot(R);R.reach=Math.round(Math.max(1.2*f,R.fade[1])+500);if(!box(R.x,R.z,R.reach))continue;rgBound(R);R.an=anTables(R.ns);kept.push(R);out.push(R);}
-  for(const R of ISLANDS){const f=foot(R),need=Math.round(1.2*f+500);if(need>R.reach)R.reach=need;if(R.id==='giant')rgBound(R);} // the pins: their flanks go on down to the model's floor; the giant's kit is the model's (land, rifts, flows: no collapse, dikes, vent or cone), so it takes a bound table too
-  return {recs:out,struck};}
+    const f=foot(R);R.reach=Math.round(Math.max(1.2*f,R.fade[1])+500);if(!box(R.x,R.z,R.reach,w)){later.add(m);continue;}rgBound(R);R.an=anTables(R.ns);kept.push(R);out.push(R);}};
+  pass(c0,rng,W0);const n0=out.length;pass(c1.filter(m=>later.has(m)),rng2,W); // the old square's, then the world's (a member of the first list kept by the world alone is shaped again, by the second rng)
+  for(const R of ISLANDS){const f=foot(R),need=Math.round(1.2*f+500);if(need>R.reach)R.reach=need;if(R.id==='giant')rgBound(R);} // the pins: their flanks go on down to the model's floor; the giant's kit is the model's (land, rifts, flows: no collapse, dikes, 
+  return {recs:out,struck,n0};}
 const REGION=regionModel(),RG_BUILT=rgBuild(REGION);for(const R of RG_BUILT.recs)ISLANDS.push(R);

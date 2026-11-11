@@ -10,6 +10,13 @@
 // at a point (substrate, current, wave exposure, food, turbidity, the age of the rock, heat, shelter, relief), and every
 // species — sessile or swimming — has a tolerance envelope over those (envW). Nothing downstream reads a label.
 const CELL=215,NCELL=240,HALF=CELL*NCELL/2; // v11.65 (ARCHIPELAGO step 4): 240 cells, 51.6 km — the giant whole (its centre 15.4 km out, its foot to 29) and the sill's crest with 23 km of the ocean's flank beyond it; 120 (25.8 km) from v11.58, 16 (3.4 km) to v11.57. Must divide by 4 (far.js regions)
+// v11.106 (GLOBE §10.1 step 4; the person, 11 Nov 2026: "±70 km first"): the world is GRIDN cells a side from cell GRID0 — 140 km, ±WHALF. The
+// grid is the same: cell (0, 0) is still the v11.65 square's corner and HALF its anchor, so every cell's place (i·CELL − HALF), every seed by
+// cell and every number of the old square is as it was; the new cells go round it, from −208 to 447. NCELL and HALF are the old square's (the
+// fine ledger's box, the maps' anchor); the world's extent is WHALF, and a dense table over the world's cells is indexed by gridIdx.
+const GRID0=-208,GRIDN=656,WHALF=CELL*GRIDN/2;
+function gridIn(i,j){return i>=GRID0&&j>=GRID0&&i<GRID0+GRIDN&&j<GRID0+GRIDN;}
+function gridIdx(i,j){return (i-GRID0)*GRIDN+(j-GRID0);}
 // the geology's parameters: angles are radians from +x toward +z
 const WIND_A=3.49,CUR_A=2.3; // the directions the wind (so the waves) and the ocean current travel toward: the waves strike the old flank (0.35), the current the north-east flank (5.44), the lee is the collapse's side
 const RIFT_A=[2.6,5.6]; // the two rift arms
@@ -643,7 +650,7 @@ const LM={};
 // None today — the square's ground encloses no such basin (test/region.js says so); the basin 28 km west comes with its members (DEEP §5).
 // Built on the first call, once (~70 ms); region.js (after this file in order.txt) holds the flood.
 let CHEMO_B=null;
-function chemoInit(){const G=OXY.G,n=Math.ceil(2*HALF/G),x0=-HALF,H=new Float32Array(n*n);
+function chemoInit(){const G=OXY.G,n=Math.ceil(2*WHALF/G),x0=-WHALF,H=new Float32Array(n*n); // the world's ground (v11.106: ±WHALF; the old square to v11.105)
   for(let j=0;j<n;j++)for(let i=0;i<n;i++)H[j*n+i]=sample(x0+(i+0.5)*G,x0+(j+0.5)*G).h;
   const R=regionBasins(H,n,G,1);CHEMO_B={n,x0,G,lab:R.lab,ch:R.B.map(b=>b.silled?b.chemo:null),B:R.B};}
 function chemoAt(x,z){if(!CHEMO_B)chemoInit();const B=CHEMO_B,i=Math.floor((x-B.x0)/B.G),j=Math.floor((z-B.x0)/B.G);if(i<0||j<0||i>=B.n||j>=B.n)return null;const l=B.lab[j*B.n+i];return l>=0?B.ch[l]:null;} // a basin's chemocline over (x,z), or null

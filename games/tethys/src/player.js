@@ -278,7 +278,7 @@ function updatePlayer(dt){
   P.onPad=pad;if(pad){P.grounded=true;loadPad(pad,clamp(0.6/pad.r,0.03,0.45));}
   // crossing the surface at speed throws spray
   const wet=sub>0.5;if(wet!==P.wet){P.wet=wet;const v=Math.abs(P.vel.y)+P.spd*0.3;if(v>2.5&&!P.dead){splash(P.pos,v);thump(clamp(v/14,0.15,0.6),260,40,null,2.5,0.3);}} // the spray's hiss over the slap
-  P.pos.x=clamp(P.pos.x,-HALF+25,HALF-25);P.pos.z=clamp(P.pos.z,-HALF+25,HALF-25);
+  P.pos.x=clamp(P.pos.x,-WHALF+25,WHALF-25);P.pos.z=clamp(P.pos.z,-WHALF+25,WHALF-25); // the world's edge (±WHALF since v11.106)
   P.g.position.copy(P.pos);P.g.updateMatrix();worldShapes(P); // the orientation was set above (faceQ), before the thrust read the body's axis
   playerGrab(!P.dead&&!P.withdrawn&&!!(keys.KeyR||mouseGrab||touchGrab),dt); // the grab (combat.js): held while the key is; last, with the shapes fresh (it uses the temps)
 }
