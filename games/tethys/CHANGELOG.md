@@ -6677,3 +6677,32 @@ contents were checked in node instead — the 820 m island's land in it to 803 m
 **Unseen, ask in this order:** whether the moat round ours stays anoxic (the decision above; `tp(6000,0,-1100)`); the frame rate on the 4060
 above water with the bigger horizon mesh, and how long after surfacing the far land arrives (~6 s at 60 fps by the CPU, against ~3); the new
 islands up close (`tp(-38045,-13100,47)`, `tp(-19362,30669,109)`); a long swim across the maps' window and the far regions for seams; sound.
+
+## v11.107 — the reefs' deep slopes: the gardens and the relict (11 Nov 2026)
+
+The person (11 Nov 2026), on what v11.102 lost with the sill: the deep gardens onto the banks' and atolls' deep slopes, "sounds fantastic";
+the relict "should be increased a bit"; the darkrind "fine being off for now" (unchanged: it keeps its envelope and stands nowhere).
+
+- **The reefs' carbonate cap (world.js `CARB`, islandH's `carb`, region.js `R.carb`; DEEP §3).** An atoll or a bank is limestone over its
+  volcano, and its slope below the reef is the cap's flank. In the fields those slopes were uniform mud (`sub` 0.15, `rel` a flat 0.5 at
+  500–800 m on every one), so no envelope that wants rock could find them. Now, from the terraces' foot to −1000: spurs every `sp` 320 m
+  round the record (`R.carb.n` of them), `A` 30 m from chute to crest, each spur's height by a noise (0.6–1) and meandering; the crests hard (the
+  cover less `k` 0.75: `sub` to ~0.9) and convex (`rel` to ~0.95), the chutes the reef's shed sand and mud (`rel` ~0.2). 34 records: the
+  atolls, the banks and the drowned banks. Ours, the giant, the seamounts and the guyots have none. The bound table carries the spurs
+  (`rgBound`: 0.6·`A`).
+- **No envelope changed.** The gardens' own find the crests: the thicket 116 km² of ground in the old square (5.5 in v11.106; 59 when the sill
+  stood), the mounds 38.5 (0.6; 63). 24 m spurs gave the mounds 4 km², crests too low for their `rel` ≥ 0.85: 30 m was taken.
+- **The relict** (bare rock −280..−450) gets the reefs' upper slopes: 74 km² of ground (14), and on paper — the ledger sees the cap's `sub`,
+  not the slope that made the loaded cells' walls rock — 81 in the old square after 40 days (3; 82 before v11.102), 306 over the world (5).
+  More than "a bit": its old number, by its old ground's kind. Its density `n` 0.12 is the knob if it should be fewer.
+- **What else moved, in the old square** (ground, loaded cells): the hard deep life up — barrel +23%, vase +16%, `boulder2` +46%, the seep +26%,
+  the lurker +11% (count +3%); the mud's down where the spurs took it — pen, glass, frond −21%, the tread −12% and the stone −13% by count.
+  `sample()` differs from v11.106 at 18% of the old square's points, every one within a reef record's reach (the nearest 5.9 km from ours,
+  m139's slope; none round the giant); the chimney where it was.
+- **test/region.js:** 34 reef records carry the cap and ours, the giant and the seamounts none; their slopes at 500–800 m 35% hard convex spur,
+  47% soft chute; ours' deep flanks still mud.
+
+Seen: in headless Chromium, no page errors, on m139's slope 8 km north of ours at −556: the thicket's pale branches over the slope among rock,
+across the spurs and up toward the reef; a hunter passing. **Unseen, ask in this order:** the slope in play (`tp(670,-8127,-530)`, across and
+up it); the mounds there — big structures, drawn by the far regions, which do not build at a headless frame rate; whether the relict's 81 is
+"a bit"; the spurs' look from a distance (30 m of relief every 320 m).

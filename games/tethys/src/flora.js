@@ -1084,6 +1084,7 @@ const FLORA = [
   // Earth's cold-water corals (Lophelia, 200-1000 m, 4-12 °C) — white to pale ochre; on hard ground where the water quickens over an edge: the
   // relief stands for it below the light, where the flow field (surface- and tide-driven) is the deep's flat 0.22 and knows no internal tide
   // (terrace lips, dike walls, a drowned summit's rim: rel), above it the flow itself; thinning in the oxygen minimum's core (oxy)
+  // v11.107: and the reefs' carbonate cap — the atolls' and banks' spur crests below the terraces (world.js CARB), 116 km² in the old square
   species('thicket', {mat: MATV, tints: [[0.93, 0.91, 0.85], [0.9, 0.82, 0.64], [0.96, 0.94, 0.9]], s: [0.9, 2.2], tilt: true, per: 160, env: {h: [-1100, -150], sub: [0.55, 1], rel: [0.6, 1], flow: [0.2, 1], oxy: [0.32, 1]}, maxSlope: 1.4, field: 0.012}, hornB),
   species(
     'dome',

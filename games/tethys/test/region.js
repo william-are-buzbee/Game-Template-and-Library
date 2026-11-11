@@ -8,7 +8,7 @@ const util=fs.readFileSync(path.join(root,'vendor/wb-core.global.js'),'utf8')+'\
 let world=fs.readFileSync(path.join(root,'src/world.js'),'utf8');const cut=world.indexOf('// ---------- the light');if(cut>0)world=world.slice(0,cut); // the geology and the fields (test/map.js's cut)
 const region=fs.readFileSync(path.join(root,'src/region.js'),'utf8');
 const THREE={Vector3:class{constructor(x,y,z){this.x=x;this.y=y;this.z=z;}},Matrix4:class{},Quaternion:class{}};
-const G=new Function('THREE',util+'\n'+world+'\n'+region+'\nreturn {sample,HALF,WHALF,ISLANDS,REGION_K,REGION_PINS,RG_STATE,regionModel,regionGrid,regionBasins,regionSeen,rgKei,rgSea,rgTrack,OXY,chemoAt,oxyAt,underChemo,chemoB:()=>CHEMO_B,apronAt,apronR,RG_BUILT,rgFloor,BASIN,islandH};')(THREE);
+const G=new Function('THREE',util+'\n'+world+'\n'+region+'\nreturn {sample,HALF,WHALF,FI,ISLANDS,REGION_K,REGION_PINS,RG_STATE,regionModel,regionGrid,regionBasins,regionSeen,rgKei,rgSea,rgTrack,OXY,chemoAt,oxyAt,underChemo,chemoB:()=>CHEMO_B,apronAt,apronR,RG_BUILT,rgFloor,BASIN,islandH};')(THREE);
 let fails=0;const ok=(c,msg)=>{console.log((c?'  ok   ':'  FAIL ')+msg);if(!c)fails++;};
 console.log('region: the pieces');
 // kei(x) (A&S Table 9.12): 1 → −0.494991, 2 → −0.202400, 3 → −0.051123, 4 → +0.002198; the table is kei/kei(0), kei(0) = −π/4
@@ -59,6 +59,15 @@ ok(o50===1&&o300<1&&o650<o300&&o1100>o650,`the profile over the fed water 3 km e
 ok(o650>=G.OXY.min[0]-1e-9&&o650<=G.OXY.min[1]+1e-9&&Math.abs(o1100-G.OXY.deep)<1e-9,'the core within the table\'s minimum, the floor at its deep value — survivable everywhere (the person, 10 Nov 2026)');
 const near=G.oxyAt(3000,-650,0),far=G.oxyAt(15000,-650,-15000);
 ok(near<far,`the core lower under the island's fed water (${near.toFixed(2)} 3 km out) than in the open basin (${far.toFixed(2)})`);
+// the reefs' carbonate cap (v11.107, DEEP §3; world.js CARB): an atoll's or a bank's slope below its terraces is spurs and chutes down to
+// CARB.base — the crests hard and proud of the smoothed slope, the chutes mud and hollow; ours, the giant and the seamounts have none
+{const reefs=G.ISLANDS.filter(R=>R.carb),f9c=new Float32Array(9);let n=0,crest=0,chute=0,deep=0;
+  for(const R of reefs)for(let a=0;a<64;a++){const t=a/64*Math.PI*2;for(let d=R.rimR+1400;d<R.rimR+9000;d+=37){const x=R.x+Math.cos(t)*d,z=R.z+Math.sin(t)*d,s=G.sample(x,z,f9c);
+    if(s.h>-500)continue;if(s.h<-800)break;n++;if(f9c[G.FI.sub]>=0.55&&f9c[G.FI.rel]>=0.6)crest++;if(f9c[G.FI.sub]<=0.3&&f9c[G.FI.rel]<0.5)chute++;}}
+  for(let x=-1200;x<=1200;x+=400)for(let z=-1200;z<=1200;z+=400){const s=G.sample(x+(x<0?-5200:5200),z,f9c);if(s.h<-260&&f9c[G.FI.sub]>=0.55)deep++;}
+  ok(reefs.length>=30&&reefs.every(R=>R.state==='atoll'||R.state==='bank'||R.state==='drowned')&&!G.ISLANDS[0].carb&&!G.ISLANDS[1].carb&&!G.ISLANDS.some(R=>R.carb&&R.bare!==undefined),`${reefs.length} reef records carry the cap (atolls, banks, drowned banks); ours, the giant and the seamounts none`);
+  ok(n>2000&&crest>0.15*n&&chute>0.2*n,`their slopes at 500–800 m (${n} samples): ${(100*crest/n).toFixed(0)}% hard convex spur, ${(100*chute/n).toFixed(0)}% soft chute`);
+  ok(deep===0,'ours\' own deep flanks 5 km out are mud, as before ('+deep+' hard samples)');}
 // the floor's supply (v11.97, DEEP §2): the islands' aprons by their land, the open floor beyond them
 const hR=G.ISLANDS[0],gi=G.ISLANDS[1],aFoot=G.apronR(hR,6000),aOurs=G.apronR(hR,8500),aGiant=G.apronR(gi,14000),aw=G.ISLANDS.find(r=>r.id==='m153');
 ok(aFoot===1&&aOurs<0.4,`ours' apron: ${aFoot.toFixed(2)} at its foot (6 km), ${aOurs.toFixed(2)} at 8.5 km (a rim with almost no land sheds little)`);

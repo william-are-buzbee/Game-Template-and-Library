@@ -54,7 +54,10 @@ wind, to −30), `nut` food (upwelling on the struck flank, the shelf break, the
 plankton in fed lit water, a vent's plume), `young` fresh basalt (the fan, the rift flows, the fissure), `heat` (the
 fissure), `shel` (the lagoon), `rel` relief (0.5 flat, 1 a crest: the dikes). Steepness goes into `sub` afterwards
 (`fixF(f,slope)`: a steep face is bare rock) — the cell from its grid, far.js from two extra samples. Light, temperature,
-pressure and oxygen are functions of depth and need no field.
+pressure and oxygen are functions of depth and need no field. **A reef's carbonate cap (v11.107, world.js `CARB`, islandH's `carb`;
+DEEP §3):** on an atoll's, a bank's or a drowned bank's slope from its terraces' foot to −1000, spurs every 320 m round the record, 30 m from
+chute to crest on the ground alone (a crest reads `rel` up to ~0.95, a chute ~0.2), the crests hard (`cover` less 0.75 by `carb`, sub to
+~0.9) and the chutes the reef's shed sand and mud; the bound table carries 0.6·`CARB.A` for them (region.js `rgBound`).
 
 **Envelopes.** `envW(env,h,slope,f)` is a species' tolerance: the product over the envelope's keys (`h`, `slope`, any field)
 of a plateau `[lo,hi]` with a soft edge (`[lo,hi,edge]`; default 15% of the range, at most 10 m for `h`). Density = `per` ×
@@ -1110,7 +1113,8 @@ limpet) take none. *The progression rule:* stipe, ladder, ribbon, bladder and ti
 the fan (0.5–1) and the giant's flows (0.7) read bare and encrusted between two forests. Two habitat-only species: **paddle** (a green of
 the runner line, `turb` ≥ 0.3 in the light on sand to mixed ground, 600 a cell: 5 ha on ours, 760 on the giant's windward shelf) and
 **darkrind** (the reds' crust at −172..−142 on bare rock in water with `nut` ≤ 0.2: 85 ha on the sill's summits, none on an island; v11.102:
-the sill gone, 4 ha in the square — every bare rock that high lies in some island's fed water now — open for the person, GLOBE §9.1). The
+the sill gone, 4 ha in the square — every bare rock that high lies in some island's fed water now; the person, 11 Nov 2026: "fine being off
+for now"). The
 forest at (330, 0), like for like in the app's pane with the loop driven by hand (25 cells): 184 → 185 draws, 4.88 → 5.05 M triangles.
 
 **The table.** Per species: `per` (instances per cell at full tolerance) and `env` (World shape, envelopes; v10 — the per-biome counts are gone), scale range, tilt, sink, `field`, `rim`,
@@ -1180,7 +1184,7 @@ with the one basalt palette `ROCKT` and `MATROCK`):
 | **heap** | fifteen alike blocks piled two courses (`heapGeo`, 3600 tris) | `crag` 8–20 (h −180..−60), `crag2` 6–14 (h −300..−150), on the fan (`young` ≥ 0.8, `heat` ≤ 0.05), `fit` [0.35, 0.5]; `crag3` 4–10 under a face (`face` [16, 8], `sub` ≥ 0.6) | the fan's hummocks; a rockfall cone at a face's foot |
 | **sheet** | seven flat lumps, shingled (`sheetGeo`, 5.6 wide) | `slab` 6–14 (h −170..−60), `slab2` 5–12 (h −230..−100), on the fan, `fit` [0.3, 0.55] | the slide's coherent blocks (toreva blocks) lying in the fan where it can carry them |
 | **stack** | struck v11.95 with the pit and its seven cairns (the person: a holdover) | — | — |
-| **mound** (v11.98, DEEP §3) | the heap kit (`HEAP_B`) in the deep reef former's pale rubble | `mound` 6–14, `per` 2, h −900..−200 on old (`young` ≤ 0.2), sharply convex (`rel` ≥ 0.85) hard ground, `oxy` ≥ 0.35 | the deep gardens' own rubble on the drowned summits |
+| **mound** (v11.98, DEEP §3) | the heap kit (`HEAP_B`) in the deep reef former's pale rubble | `mound` 6–14, `per` 2, h −900..−200 on old (`young` ≤ 0.2), sharply convex (`rel` ≥ 0.85) hard ground, `oxy` ≥ 0.35 | the deep gardens' own rubble on the drowned summits; since v11.107 the reefs' spur crests (38.5 km² in the old square) |
 | **ledge** | three flat lumps in a row (`ledgeGeo`) | `ledge`, `per` 0: `placeCliffs` lays them along the contour on steep faces | strata on a cliff |
 
 The blocks are per-cell flora; heaps, sheets and stacks are structures (`big:true`: placed once for the whole world by
