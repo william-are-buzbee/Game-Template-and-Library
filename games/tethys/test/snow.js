@@ -36,9 +36,9 @@ const sites=[
   {name:'mid-water over the slope',x:Math.cos(5.44)*1000,z:Math.sin(5.44)*1000,y:-110},
   {name:'the deep floor: the nepheloid layer',x:Math.cos(1.5)*1500,z:Math.sin(1.5)*1500,dy:3},
   {name:'the deep, 60 m over the same floor',x:Math.cos(1.5)*1500,z:Math.sin(1.5)*1500,dy:60},
-  {name:'the chemocline over the floor east of ours',x:6000,z:0,y:-450}, // v11.95: over the open floor (-1100); the pit, struck, was the column to v11.94
-  {name:'40 m above the chemocline',x:6000,z:0,y:-410},
-  {name:'below the chemocline',x:6000,z:0,y:-520},
+  {name:'the old chemocline\'s depth over the floor east of ours',x:6000,z:0,y:-450}, // v11.96: no chemocline round ours (DEEP §2) — the column checks there is no plate and no black flakes; over the pit (struck v11.95) to v11.94
+  {name:'40 m above it',x:6000,z:0,y:-410},
+  {name:'70 m below it, in the oxygen minimum',x:6000,z:0,y:-520},
   {name:'the vent field, 6 m over the fissure',x:Math.cos(2.68)*1300,z:Math.sin(2.68)*1300,dy:6}, // the heat field sits at the warped angle, 2.66-2.7 raw; the chimney landmark at 2.60 is just outside it
   {name:'the front ring at a side break (v11.82)',x:622,z:579,y:-20},
   {name:'the slope beside it, the same depth',x:951,z:886,y:-20},
@@ -59,10 +59,10 @@ ok(sh(sites[6],3)===0&&sh(sites[7],3)===0,'no bubbles in the mid-water or the de
 ok(sites[5].W.w[1]>sites[6].W.w[1],'the thermocline holds more floc than the water under it ('+sites[5].W.w[1]+' vs '+sites[6].W.w[1]+'; by the weight since v11.82: the live kind is the field\'s now and its share moves)');
 ok(sites[7].W.w[2]>sites[7].W.w[1]&&sh(sites[7],2)>0.2,'the nepheloid layer over the deep mud is silt (the layer '+sites[7].W.w[2]+' vs floc '+sites[7].W.w[1]+'; the box '+(100*sh(sites[7],2)).toFixed(0)+'%)');
 ok(sites[7].S.share>sites[8].S.share,'the bed is denser than 60 m over it ('+(100*sites[7].S.share).toFixed(0)+'% vs '+(100*sites[8].S.share).toFixed(0)+'%)');
-ok(sites[9].S.share>sites[10].S.share,'the plate is denser than 40 m above it ('+(100*sites[9].S.share).toFixed(0)+'% vs '+(100*sites[10].S.share).toFixed(0)+'%)');
-ok(sh(sites[11],4)>0.7&&sh(sites[11],1)<0.2,'below the chemocline it is black flakes ('+(100*sh(sites[11],4)).toFixed(0)+'%)');
+ok(sites[9].S.share<=sites[10].S.share*1.15,'no plate at -450 round ours: no denser than 40 m above it ('+(100*sites[9].S.share).toFixed(0)+'% vs '+(100*sites[10].S.share).toFixed(0)+'%; v11.96 — the plate is a basin\'s now)');
+ok(sh(sites[11],4)===0&&sh(sites[9],4)===0,'no black flakes in the oxygen minimum round ours (v11.96: they fall only under a basin\'s chemocline)');
 ok(sh(sites[10],4)===0&&sh(sites[6],4)===0,'no black flakes in oxic water away from a vent');
-ok(sites[11].W.W<sites[9].W.W*0.7,'the anoxic water is sparser than the plate (the column\'s weight '+sites[11].W.W+' vs '+sites[9].W.W+')'); // v11.28: by the column's weight, not the cloud's share — over the pit the site is 34 m off the bed and the nepheloid layer is in the box; the void, 280 m over its floor, is a flank now
+ok(sites[11].W.W<=sites[10].W.W,'the snow thins with depth through the minimum (the column\'s weight '+sites[11].W.W+' at -520 vs '+sites[10].W.W+' at -410)'); // v11.28: by the column's weight, not the cloud's share — over the pit the site is 34 m off the bed and the nepheloid layer is in the box; the void, 280 m over its floor, is a flank now
 ok(sh(sites[12],4)>0.15,'the vent field has its sulfide grains ('+(100*sh(sites[12],4)).toFixed(0)+'%)');
 // v11.82 (PLANKTON.md §9): the snow's life follows the field
 ok(sites[13].W.w[0]>sites[14].W.w[0]*1.5&&sites[13].S.share>sites[14].S.share,'the ring at the break holds more life than the slope beside it (the live weight '+sites[13].W.w[0]+' vs '+sites[14].W.w[0]+'; the box '+(100*sites[13].S.share).toFixed(0)+'% vs '+(100*sites[14].S.share).toFixed(0)+'%)');

@@ -31,7 +31,7 @@ truth. Everything (cell grids, the far terrain, landmark search, structure and f
 it. `CELL=215, NCELL=240, HALF=25800` (v11.65; 120 and 12900 from v11.58, 16 and 1720 to v11.57 — the island's own square is the middle 16 cells and is untouched to the bit, verified over 185,761 samples at every change — but once, on purpose: v11.95 struck the pit, and the 491 samples within 130 m of it are all that moved; the whole 25.8 km world of v11.64 likewise at 50 m). The geology it encodes is PLANET.md's Geology section (the caldera and its rim, the
 shield profile, the terraces as rings, the collapse scarp and fan, the dike ridges, the rift arms with the
 fissure, the flank cone); its parameters are the constants at the top of world.js (`WIND_A`, `CUR_A`, `RIFT_A`, `COLL`,
-`DIKE`, `RIM_R`, `VENT`, `ISLE`, `FLANK_*`; `PIT` until v11.95) — and since v11.61 those constants are one record, `ISLANDS[0]`: an island is a record
+`DIKE`, `RIM_R`, `VENT`, `SEEP` (v11.96), `ISLE`, `FLANK_*`; `PIT` until v11.95) — and since v11.61 those constants are one record, `ISLANDS[0]`: an island is a record
 (place, turn, radial scale, noise offset, the profile as steps, the terraces, the rim, the collapse, the dikes, the rifts, the fissure, the cone,
 the lower flank, its reach), `islandH()` is the geology in the island's own frame, and `sample()` takes the smooth max of every island in reach over
 the basement with the highest island's conditions (the saddle between two is the max of both). Proved bit-identical for ours over the old square
@@ -132,6 +132,21 @@ past `photic`, none on the fed face (`fedL`, `fedK`). The pins' volumes are tune
 member ends with a state (`RG_STATE`), its flat top, its shore, its first light and the neighbour it was settled from. `regionGrid` draws the
 province (and the game's own ground inside its square), `regionBasins` floods it from the edge for every cell's sill and the basins,
 `regionSeen` what clears the horizon from a point. ~0.3 s a run; `test/region.js` pins it.
+
+
+## The water's oxygen
+
+`world.js` (v11.96, DEEP.md §2, §9): `OXY` replaces `CHEMO` (the chemocline at −450 under the whole world, to v11.95). `oxyAt(x,y,z,nut)` is
+the water's oxygen as a share of the surface's: 1 to the light's base (`OXY.photic` −150), falling through the minimum's core (`OXY.core`
+−500..−800) to `OXY.min` — 0.25 where the island's food rains (`nut` 0.52 and over), 0.5 in the open basin (`nut` 0.12) — and back to
+`OXY.deep` 0.5 by `OXY.floor` (−1100); 0 under a basin's chemocline. `chemoAt(x,z)` is that chemocline (or null): region.js's flood over the
+game's own ground at `OXY.G` (400 m), built on the first call (~70 ms), the world's edge the open ocean; a basin is silled by region.js's rule
+(its sill between −100 and `OXY.floor`, 150 m deep behind it, 10 km² or more). None in today's square (test/region.js). `OXY.top` (−450) is
+the minimum's upper edge: where the open water's life is squeezed above it (`openY`, the mid flora's and the schools' depths over the deep) —
+the old −450's number with its new reason. Readers: chunks.js (sessile life, `f.chemo` bands for the seep and the grey mats), far.js,
+combat.js `POISON`, creatures_spec.js `coatClassAt`'s `cz`, atmosphere.js `SN_CH` (the snow's plate and black flakes, by the camera's column),
+the pall's placement in the core, worldmap.js and the maps' contour, the readout's `oxy`. Not yet: the player's oxygen (DEEP §9), the swarms'
+day depth by it.
 
 ## Landmarks
 
@@ -902,7 +917,7 @@ phase from the instance's x,z — tubes, cups, lilies, tulips, chains, burrs, lo
 (`MATFAR`, `farMaterial`): 1.2 m at 25 m up on the sway materials' phase, so the hand-off at `FLORA_FAR` is not a forest going still;
 the raft discs (y 0) don't move.
 
-**The chemocline (the fog chunk, PLANET's ask).** A thin milky plate at −450: the ray's length inside [−452, −448] in closed form from
+**The chemocline (the fog chunk, PLANET's ask). Struck from the fog v11.96 (DEEP.md §2):** no chemocline round ours; the plate and the brown come back as a basin's, by uniforms, when one is in the world (DEEP §9). What it was: a thin milky plate at −450: the ray's length inside [−452, −448] in closed form from
 the camera's and the fragment's heights, an extinction of 0.25 a metre toward a pale grey (`0.62·skyL·0.5`, mixed 60% over the veil);
 below it the veil's colour is warmed and darkened (×(1.12, 0.92, 0.72) by the bounded point's depth): browner, as PLANET says. Seen from
 inside the plate the whole horizon is milk. The drain itself is not built.
@@ -1345,7 +1360,7 @@ them or *parked* (at the camera, clipped) where the water is sparse — so `Q.sn
 | floc | the aggregates: dead cells, mucus, pellets, grey-white to brown with depth, rust in the 25 m over the chemocline, milky in the plate | `(0.4+0.6·nut)(1+1.2·canopy)·[form·Martin + 0.9·gauss((y+64)/6) + 1.6·gauss((y+450)/7)]·0.9`, form = smooth(4,45,d), Martin = (max(d,90)/90)^−0.86; gone below −465 | 1.0 | 2 cm/s (×0.6–1.4 by size) |
 | silt | the bed lifted, the colour of the bed (olivine sand, grey-brown mud, dark at a vent) | `(1−sub)·[expo·(0.35+0.65·chop)·(0.3+0.7·e^{−hf/12}) + (0.15+0.85·flow)·(1.2·e^{−hf/6}+0.4·e^{−hf/30}) + 0.4·shel·e^{−hf/10}]·(1+0.5·heat)` — the surf's column, the nepheloid layer over any mud, the lagoon's fines | 0.6 | 5 cm/s |
 | bubble | breakers and whitecaps, rain on the surface; white | `max(expo·(0.3+0.7·chop), 0.25·smooth(0.45,1,chop))·e^{−d/2.2} + 0.35·rain·e^{−d/1.2}` | 0.55 | rises 28 cm/s |
-| black | iron sulfide flakes under the chemocline (the water is ferrous and sulfidic); the plume's sulfide grains at a vent, 30% white | `0.45·smooth(−448,−464,y) + 1.3·heat·e^{−hf/70}` | 1.35 | 0.6 cm/s |
+| black | iron sulfide flakes under a basin's chemocline (`SN_CH`, the camera's column, world.js `chemoAt`; none round ours since v11.96) (the water is ferrous and sulfidic); the plume's sulfide grains at a vent, 30% white | `0.45·smooth(−448,−464,y) + 1.3·heat·e^{−hf/70}` | 1.35 | 0.6 cm/s |
 
 **The particles are square, on purpose** (the person, 13 Sep 2026): an untextured `PointsMaterial` writes the whole quad, and
 rounding them would cost *more* — a texture fetch per fragment for a sprite, or a distance test and a `discard`. They read as blocky
@@ -1697,7 +1712,7 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   draws from the cell's own stream: a **size** within `VARY.spread` ±0.15 of its kind's — an instance scale on the group over the shared geometry,
   `scaledDef` chaining a def with the size-dependent numbers scaled (size, reach ×k, dmg ×k², speed/flee/lunge ×√k, detect/radius/clear ×k, food;
   the routine the juvenile uses at `ECO.juv`), the hit capsules through the group's scale, the gape ×k; a **coat class** from the place's
-  chemistry (creatures_spec.js `coatClassAt(h, y, f, clade)`: sulfide below `CHEMO` or at `heat` > 0.3, lime on rock above −26 with `expo` >
+  chemistry (creatures_spec.js `coatClassAt(h, y, f, clade)`: sulfide under a basin's chemocline (`cz`, world.js `chemoAt`; below `CHEMO` −450 to v11.95) or at `heat` > 0.3, lime on rock above −26 with `expo` >
   0.35, rust on rock above −80, manganese on mud below −200, a `d` suffix at `young` > 0.4; `coatChem` shifts the kind's `PAL` preset in HSL by
   `COAT_CLASSES`, on the keys `COAT_CHEM_KEYS[clade]` — the hingeshells' whole exoskeleton; the pale joints hold their lightness, the eyes and
   mouths never move, PAL_FIXED as palVariant; `''` for a clade with no keys), a geometry per kind, age and class in `KIND_GEO` (`kind~@cls`;

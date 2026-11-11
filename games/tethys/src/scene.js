@@ -186,10 +186,10 @@ const MIST_GLSL='float mistL(float cy,float dy,float d,float rho,float ih){float
     'w0.rgb=bloomTint(w0.rgb,bloomC(vec3(f0.ba,w0.a),f0.r*'+FM_SCALE.toFixed(1)+',uFogW.x-o.y));w1.rgb=bloomTint(w1.rgb,bloomC(vec3(f1.ba,w1.a),f1.r*'+FM_SCALE.toFixed(1)+',uFogW.x-sp.y));'+
     'vec4 wm=mix(w0,w1,uFogP.z);float y=mix(o.y,sp.y,uFogW.z);float dl='+DL_GLSL('y')+';float sg=pow(max(dot(rd,uFogS.xyz),0.0),6.0);'+
     'vec3 fc=wm.rgb*uFogW.y*(0.3+0.7*dl)*(1.0+uFogS.w*sg*dl)*uFogT.x*mix(vec3(1.0),uFogT.yzw,smoothstep(-40.0,0.0,y));'+
-    'fc*=mix(vec3(1.0),vec3(1.12,0.92,0.72),smoothstep('+CHEMO_TINT[0].toFixed(1)+','+CHEMO_TINT[1].toFixed(1)+',y));return fc;}\n'+
-    // the water segment: the chemocline's milky plate by the ray's length inside it, then the veil by the two-population transmittance (uFogP.y the material's share); dn: the downward darkening from above; ck: the far cut, on the camera's segment only
-    'vec3 fogWater(vec3 col,vec3 o,vec3 rd,float L,vec3 dn,float ck){vec3 fc=fogVeil(o,rd,L)*dn;float dy=rd.y*L;if(abs(dy)<1e-3)dy=1e-3;float sl=abs(clamp(('+(CHEMO+CHEMO_PLATE).toFixed(1)+'-o.y)/dy,0.0,1.0)-clamp(('+(CHEMO-CHEMO_PLATE).toFixed(1)+'-o.y)/dy,0.0,1.0))*L;'+
-    'col=mix(col,mix(fc,vec3(0.62,0.64,0.60)*uFogT.x*0.5,0.6),1.0-exp(-0.25*sl));float tr=mix(exp(-uFogP.x*L),exp(-uFogA.w*uFogA.w*L*L),uFogP.y)*ck;return mix(col,fc,1.0-tr);}\n'+
+    'return fc;}\n'+ // v11.96: the chemocline's brown below -450 is gone with it (DEEP §2); it comes back as a basin's, by uniforms, when one is in the world (DEEP §9)
+    // the water segment (v11.96: the chemocline's milky plate is gone from it with the -450 — DEEP §2; a basin's comes back by uniforms, DEEP §9): the veil by the two-population transmittance (uFogP.y the material's share); dn: the downward darkening from above; ck: the far cut, on the camera's segment only
+    'vec3 fogWater(vec3 col,vec3 o,vec3 rd,float L,vec3 dn,float ck){vec3 fc=fogVeil(o,rd,L)*dn;'+
+    'float tr=mix(exp(-uFogP.x*L),exp(-uFogA.w*uFogA.w*L*L),uFogP.y)*ck;return mix(col,fc,1.0-tr);}\n'+
     // the air segment: the mist on the water integrated over the segment (MIST_GLSL, heights over the water level), glowing toward the light, then the haze toward the sky's horizon colour
     'vec3 fogAir(vec3 col,vec3 o,vec3 rd,float L,float ck){float mo=mistRay(o.y-uMistW.x,o.y+rd.y*L-uMistW.x,L);col=mix(col,uMistC.rgb*(1.0+uMistC.w*pow(max(dot(rd,uFogS.xyz),0.0),6.0)),1.0-exp(-mo));'+
     'float tr=mix(exp(-uFogA.x*L),exp(-uFogA.z*uFogA.z*L*L),uFogA.y)*ck;return mix(col,skyFar(rd,o.y-uMistW.x),1.0-tr);}\n#endif'; // the far colour is the sky in the ray's direction with the haze to infinity (v11.45, skyFar), not uFogAC's constant: at the cut a fragment is the dome exactly, so the far sea, the kelp cards and the shore end in the sky behind them and the sea's edge is no longer a pale rim (WATER.md Part 3)

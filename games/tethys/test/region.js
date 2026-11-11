@@ -8,7 +8,7 @@ const util=fs.readFileSync(path.join(root,'vendor/wb-core.global.js'),'utf8')+'\
 let world=fs.readFileSync(path.join(root,'src/world.js'),'utf8');const cut=world.indexOf('// ---------- the light');if(cut>0)world=world.slice(0,cut); // the geology and the fields (test/map.js's cut)
 const region=fs.readFileSync(path.join(root,'src/region.js'),'utf8');
 const THREE={Vector3:class{constructor(x,y,z){this.x=x;this.y=y;this.z=z;}},Matrix4:class{},Quaternion:class{}};
-const G=new Function('THREE',util+'\n'+world+'\n'+region+'\nreturn {sample,HALF,ISLANDS,REGION_K,REGION_PINS,RG_STATE,regionModel,regionGrid,regionBasins,regionSeen,rgKei,rgSea,rgTrack};')(THREE);
+const G=new Function('THREE',util+'\n'+world+'\n'+region+'\nreturn {sample,HALF,ISLANDS,REGION_K,REGION_PINS,RG_STATE,regionModel,regionGrid,regionBasins,regionSeen,rgKei,rgSea,rgTrack,OXY,chemoAt,oxyAt,underChemo,chemoB:()=>CHEMO_B};')(THREE);
 let fails=0;const ok=(c,msg)=>{console.log((c?'  ok   ':'  FAIL ')+msg);if(!c)fails++;};
 console.log('region: the pieces');
 // kei(x) (A&S Table 9.12): 1 → −0.494991, 2 → −0.202400, 3 → −0.051123, 4 → +0.002198; the table is kei/kei(0), kei(0) = −π/4
@@ -40,6 +40,19 @@ ok(fin,`${n}² heights, all finite`);ok(under===0,'the flood\'s fill is never un
 let edge=true;for(let i=0;i<n;i++)for(const k of [i,(n-1)*n+i,i*n,i*n+n-1])if(B.F[k]!==H[k])edge=false;ok(edge,'the grid\'s edge is the open ocean: its fill is its ground');
 const f9=new Float32Array(9),Hg=G.regionGrid(R,x0,z0,span,n,(x,z)=>G.sample(x,z,f9).h,G.HALF),ci=Math.floor((6000-x0)/(span/n)),cj=Math.floor(-z0/(span/n));
 ok(Math.abs(Hg[cj*n+ci]-G.sample(6000+0.5*span/n-((6000-x0)%(span/n)),0.5*span/n-(-z0%(span/n)),f9).h)<1,'inside the game\'s square the grid is the game\'s own ground');
+console.log('region: the game\'s own water (v11.96, DEEP §2, §9)');
+// the basins of the game's own ground: none silled today (the model's basin 28 km west comes with its members, DEEP §5)
+const t4=Date.now();G.chemoAt(0,0);const CB=G.chemoB(),silled=CB.B.filter(b=>b.silled);
+ok(silled.length===0,`the square's ground at ${CB.G} m (${CB.n}², ${Date.now()-t4} ms): no silled basin — ${CB.B.length} hollows and lagoons, none silled by region.js's rule`);
+const spots=[[0,0,'ours'],[6000,0,'the floor east'],[-15400,9200,'the giant'],[Math.cos(5.44)*13000,Math.sin(5.44)*13000,'the sill'],[20000,20000,'a far corner']];
+ok(spots.every(([x,z])=>G.chemoAt(x,z)===null),'no chemocline over '+spots.map(p=>p[2]).join(', '));
+ok(!G.underChemo(6000,-1000,0),'the floor east of ours at -1000 is not under a chemocline');
+// the profile: 1 in the light, the core's minimum, back to half at the floor; the core lower where the food rains
+const ox=y=>G.oxyAt(3000,y,0),o50=ox(-50),o300=ox(-300),o650=ox(-650),o1100=ox(-1100);
+ok(o50===1&&o300<1&&o650<o300&&o1100>o650,`the profile over the fed water 3 km east of ours (6 km out, the open basin's, the core is the mild 0.5 and the floor's): ${o50.toFixed(2)} at -50, ${o300.toFixed(2)} at -300, ${o650.toFixed(2)} at -650 (the core), ${o1100.toFixed(2)} at -1100`);
+ok(o650>=G.OXY.min[0]-1e-9&&o650<=G.OXY.min[1]+1e-9&&Math.abs(o1100-G.OXY.deep)<1e-9,'the core within the table\'s minimum, the floor at its deep value — survivable everywhere (the person, 10 Nov 2026)');
+const near=G.oxyAt(3000,-650,0),far=G.oxyAt(15000,-650,-15000);
+ok(near<far,`the core lower under the island's fed water (${near.toFixed(2)} 3 km out) than in the open basin (${far.toFixed(2)})`);
 // the log: what the default province is
 const cnt={};let land=0;for(const m of M){cnt[m.state]=(cnt[m.state]||0)+1;land+=m.land;}
 console.log(`\n  ${M.length} members in ${ms} ms (seed ${K.seed}; the grid ${t2-t1} ms, the flood ${t3-t2} ms):`);

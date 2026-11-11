@@ -143,9 +143,10 @@ const SPAWN=[
   {kind:'basker',n:4,env:{heat:[0.3,1]}}, // the vents (one cell of them)
   {kind:'picker',n:3,env:{h:[-800,-300]}}, // the lower flank's mud down into the dark (v11.28: to -400 while the void stood; the dark inside the square is the pit and the corners now, and the stone's and basker's food went with it)
   {kind:'picker',n:12,env:{heat:[0.3,1]}}, // and at the vents, in a swarm, picking at the mats (Earth's vent shrimp swarms): the basker's food (20 before the cinder took its share, v11.66)
-  {kind:'cinder',n:8,env:{heat:[0.25,1]}}, // v11.66: the seep walker on the vent field's mats; the basker's other meal, and poison to eat (combat.js POISON) — the basker eats the field's down to a couple
-  {kind:'cinder',n:1.5,env:{h:[-470,-440]}}, // and thinly along the seep line at the chemocline round every island (the sulfide's other home; the greymat's upper edge), where nothing hunts it — the kind's reservoir (v11.66)
-  {kind:'pall',n:0.4,env:{h:[-800,CHEMO-20]}}, // the dark
+  {kind:'cinder',n:8,env:{heat:[0.06,1,0.03]}}, // v11.96: and the arm's seeps (world.js SEEP, heat 0.06-0.14: under the basker's reach — the kind's reservoir now the seep line is gone, DEEP §2; heat ≥ 0.25 to v11.95) // v11.66: the seep walker on the vent field's mats; the basker's other meal, and poison to eat (combat.js POISON) — the basker eats the field's down to a couple
+  // v11.96 (DEEP §2): the seep line's row struck — round ours there is no chemocline for a seep line; it comes back about a basin's (DEEP §5).
+  // To v11.95: {kind:'cinder',n:1.5,env:{h:[-470,-440]}}, // and thinly along the seep line at the chemocline round every island (the sulfide's other home; the greymat's upper edge), where nothing hunts it — the kind's reservoir (v11.66)
+  {kind:'pall',n:0.4,env:{h:[-1200,-560],nut:[0.25,1]}}, // the oxygen minimum's core over the deep, where the island's food rains into it (v11.96, DEEP §2: the vampire-squid precedent; below the chemocline over the flank, h -800..-470, to v11.95) — 3,222 cells against 6,023
   {kind:'arrow',grp:5,n:3.75,env:{h:[-62,-5]}}, // arrow squid hunt the shallows and the shelf in packs
   {kind:'great',n:0.1,env:{h:[-150,-8]}},
   {kind:'jelly',n:2,env:{h:[-800,-15]}},

@@ -399,7 +399,7 @@ const waterDome=(function(){const mat=new THREE.MeshBasicMaterial({color:0x00000
 //            mud or sand the current stirs a bottom nepheloid layer (7 m e-folding); the lagoon's still water holds its fines.
 //            Nothing over bare rock (`sub` 1). The colour of the bed: olivine sand, grey-brown mud, dark at the vents.
 //   bubble — from breakers and whitecaps in the top 2 m, and rain on the surface: white, rising (28 cm/s: mm bubbles).
-//   black  — below the chemocline the water is ferrous and sulfidic and iron sulfide falls out: black flakes, big, sparse,
+//   black  — under a basin's chemocline (none round ours since v11.96: SN_CH) the water is ferrous and sulfidic and iron sulfide falls out: black flakes, big, sparse,
 //            nearly still (the deep is stratified, no turbulence); and at a vent field the sulfide grains of the plume, dark with
 //            a white share (anhydrite, bacterial floc), carried up by the field's convection near the floor and settling downwind.
 // The column (per frame, cheap): settling slowed at the two density steps (particles pile up there — that is why thin layers
@@ -440,7 +440,7 @@ function swBlock(k,c){ // a block seeded for a swarm: offsets in a flattened clo
     const j=(Math.random()-0.5)*0.08;pc[i*3]=col[0]+j;pc[i*3+1]=col[1]+j;pc[i*3+2]=col[2]+j;ps[i*2]=SW_SZ*(0.7+0.6*Math.random());ps[i*2+1]=0.85;pk[i]=254;snL[i]=i;}
   snDirty=true;
 } // the live kind's colour by pigment kind (green, gold, red) and in poor water; the chain's; the crop (mg/m³) at which the live kind is half its full weight; the chains' share of the live weight
-const SN_TH=-64,SN_CH=CHEMO,SN_W0=0.9,SN_GAIN=3.0,SN_REF=63; // the thermocline, the chemocline (y); the weight that fills the count; weight → alpha; the refresh mask (one point in 64 a frame: a point re-rolls about once a second)
+const SN_TH=-64,SN_W0=0.9,SN_GAIN=3.0,SN_REF=63;let SN_CH=-1e5; // the thermocline (y); SN_CH the chemocline under the camera (world.js chemoAt, set each frame in updatePlankton; -1e5 where there is none — round ours since v11.96, DEEP §2: no plate, no black flakes; the -450 to v11.95); the weight that fills the count; weight → alpha; the refresh mask (one point in 64 a frame: a point re-rolls about once a second)
 const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(pp,3));pg.setAttribute('color',new THREE.BufferAttribute(pc,3));pg.setAttribute('aSz',new THREE.BufferAttribute(ps,2));
 const plU={value:new THREE.Vector4(0,0,0,0)},plCU={value:new THREE.Color(0x6fbfe0)},snAU={value:new THREE.Vector4(0,1/2.5,0,0)}; // snAU (v11.82.1): the tide, 1/the depth the snow fades over seen from the air, 1 with the camera in air
 // square on purpose (the person, 13 Sep 2026): an untextured PointsMaterial writes the whole quad, and a round sprite would cost a
@@ -505,6 +505,7 @@ function snowSeed(i,x,y,z,keep){
 for(let i=0;i<PN;i++){pk[i]=255;snL[i]=i;pf.fill(0,i*10,i*10+10);} // all parked until the first frame under water seeds them where the camera is; the swarm block (i ≥ PN_SN) is assigned by swAssign
 function updatePlankton(dt){
   const cx=camera.position.x,cy=camera.position.y,cz=camera.position.z,kd=Math.exp(-2.5*dt),kf=Math.min(1,8*dt),K=SKY;
+  {const c=chemoAt(cx,cz);SN_CH=c===null?-1e5:c;} // the snow is the camera's column: its plate and its black flakes are this basin's, if any
   currentAt(cx,cz,cy,CURV);const cux=CURV.x*dt,cuz=CURV.z*dt; // the snow drifts with the current
   const w0=WAVES[0],w1=WAVES[1],e0=w0.A*w0.w,e1=w1.A*w1.w,t0=w0.w*t-w0.ph,t1=w1.w*t-w1.ph,wind=0.35+0.65*K.windK;
   snFrame++;const ref=snFrame&SN_REF;

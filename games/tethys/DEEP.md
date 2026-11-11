@@ -1,6 +1,6 @@
 # DEEP.md — the deep under the region model (10 Nov 2026)
 
-Status: **designed; §8 (the pit and the cairns struck) built v11.95.** The person's decisions are in §10; the build is §11. Read PLANET.md first (The ocean, the head note on The
+Status: **designed; §8 (the pit and the cairns struck) built v11.95; the oxygen field and the re-homing (§11 step 2) v11.96.** The person's decisions are in §10; the build is §11. Read PLANET.md first (The ocean, the head note on The
 basin), then GLOBE.md §9.1 (the region model and its basins), FLORA.md (the deep floor, the vents, the rim) and SEAFLOOR.md §4. The rule
 stands: nothing has a name or a biome; every species places itself by envelope over the fields; nothing glows or moves without a reason.
 
@@ -111,7 +111,8 @@ Ours is 3 Ma and its shield is long finished, so a hot fissure (−250 to −280
 Hawaii's older islands erupt again a million years and more after their shields (the Honolulu Volcanics on Oahu, Koloa on Kauai);
 Diamond Head is one of that stage's tuff cones — and so is ours (the flank cone, a tuff ring since v11.86). Vents in oxic water are Earth's
 normal. The basker, the vent ranges of the picker and the cinder, the plume and the hair, the poison by heat and the black sulfide
-shells at the vents all stand.
+shells at the vents all stand. **v11.96:** the same stage's diffuse seeps through the arm's fresh rock (SEAFLOOR §4; world.js `SEEP`, heat
+≤ 0.14) are the cinder's reservoir, under the basker's reach, now the seep line is gone — the census found the vent field alone eaten out.
 
 ## 8. The pit, struck
 
@@ -156,7 +157,12 @@ seep and the grey mats re-homed.
 
 ## 11. Open, and the build
 
-Nothing open (answered 10 Nov 2026, §10). Left out on purpose: the patterns in the sediment round the constructors' dens (§6), for a later pass.
+**Built v11.96 (step 2):** `OXY`, `oxyAt`, `chemoAt` (world.js; DESIGN, The water's oxygen); the plate and the brown struck from the fog; the snow's
+plate and black flakes by the camera's column; the seep and the grey mats on a band about a basin's chemocline; the cinder's seep-line row
+struck (it returns about a basin, §5); the poison and the sulfide coat under a basin's chemocline; the pall in the core over the fed deep
+(`h` −1200..−560, `nut` ≥ 0.25: 3,222 cells against 6,023); the readout's `oxy`. The silled rule refined (region.js): a sill between −100 and
+−1100 — the inflow the minimum's water, not the ventilated deep's — and 10 km² or more; seed 32's only big dark is then the basin west.
+Not in step 2: the player's oxygen (§9), the swarms' day depth by it. Nothing open (answered 10 Nov 2026, §10). Left out on purpose: the patterns in the sediment round the constructors' dens (§6), for a later pass.
 
 The build, proposed, in order: (1) strike the pit; (2) the oxygen field and `chemoAt` — the −450 plate goes round ours and the envelopes
 move (the pall, the picker, the seep, the cinder's seep range, the grey mats, the poison, the sulfide coat); (3) the floor: the apron, the

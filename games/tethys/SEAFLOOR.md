@@ -88,7 +88,8 @@ Every item has a mechanism and a job for the life. Struck things (arches, the ma
 
 - **Struck 10 Nov 2026 (DEEP.md §8): an extinct rift keeps no open pit.** Pit craters along the rift, not only the one. A collapse pit is a cylinder with a flat floor and vertical walls: a sheltered bowl with its
   own water.
-- **Diffuse warm-vent fields** away from the chimney: low-temperature seeps through fresh rock, marked by rust mats and shimmer, no chimneys.
+- **Diffuse warm-vent fields** (built on ours v11.96: world.js `SEEP`, patches along rift arm 0 inside the fissure, heat ≤ 0.14 — the
+  cinder's ground, DEEP §7) away from the chimney: low-temperature seeps through fresh rock, marked by rust mats and shimmer, no chimneys.
   Cheap, and they dot the young shield.
 - **Iron and manganese crusts** on old rock below the chemocline, and ochre iron domes where reduced water meets oxygen at the chemocline's edge.
   The colour reads the chemistry.

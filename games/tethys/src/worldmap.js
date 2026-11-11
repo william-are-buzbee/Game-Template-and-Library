@@ -8,7 +8,7 @@
 // back when it closes, as the effects list does (effects.js fxShow). The bands and contours are test/map.js's, kept in step by hand.
 const WMAP_N=512,WMAP_Z=320,WMAP_REST=180; // the world picture's side in samples; the zoomed window's; the rest (ms) after a wheel or drag before the window re-samples
 const WMAP_BANDS=[[0,[0.55,0.52,0.40]],[-6,[0.62,0.78,0.72]],[-60,[0.30,0.62,0.66]],[-150,[0.18,0.42,0.56]],[-450,[0.12,0.26,0.44]],[-800,[0.10,0.17,0.30]],[-1100,[0.08,0.11,0.20]],[-3000,[0.04,0.05,0.10]]];
-const WMAP_CONT=[0,-60,-150,CHEMO,-800,-1000]; // the sea, the shelf's edge, the light's end, the chemocline, the deep, the floor's top (the hills cross -1100 everywhere)
+const WMAP_CONT=[0,-60,-150,OXY.top,-800,-1000]; // the sea, the shelf's edge, the light's end, the oxygen minimum's top (the chemocline to v11.95), the deep, the floor's top (the hills cross -1100 everywhere)
 const wmapEl=document.getElementById('wmap'),wmapC=document.getElementById('wmapc'),wmapL=document.getElementById('wmapl');
 const wmap={open:false,cx:0,cz:0,span:2*HALF,base:null,win:null,winKey:'',rest:0,drag:null,moved:0,mx:0,mz:0,hover:false};
 function wmapBand(h){if(h>=0)return h>4?[0.42,0.40,0.32]:WMAP_BANDS[0][1];for(let k=1;k<WMAP_BANDS.length;k++)if(h>=WMAP_BANDS[k][0]){const a=WMAP_BANDS[k-1][1],b=WMAP_BANDS[k][1],t=(WMAP_BANDS[k-1][0]-h)/(WMAP_BANDS[k-1][0]-WMAP_BANDS[k][0]);return [a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];}return WMAP_BANDS[WMAP_BANDS.length-1][1];}
@@ -18,7 +18,7 @@ function wmapPicture(cx,cz,span,W){const N=W+2,M=span/W,x0=cx-span/2,z0=cz-span/
   const cv=document.createElement('canvas');cv.width=W;cv.height=W;const g=cv.getContext('2d'),img=g.createImageData(W,W),d=img.data;
   for(let y=0;y<W;y++)for(let x=0;x<W;x++){const k=(y+1)*N+(x+1),h=H[k],dx=(H[k+1]-H[k-1])/(2*M),dz=(H[k+N]-H[k-N])/(2*M);
     const len=Math.sqrt(dx*dx+1+dz*dz),nd=(0.55*dx+0.35+0.55*dz)/len/0.75,sh=0.55+0.55*Math.max(0,Math.min(1.4,nd)),c=wmapBand(h);let r=c[0]*sh,gr=c[1]*sh,b=c[2]*sh;
-    const hr=H[k+1],hd=H[k+N];for(const cl of WMAP_CONT){if((h-cl)*(hr-cl)<0||(h-cl)*(hd-cl)<0){const w=cl===CHEMO?0.35:cl===0?0.6:0.5,l=cl===CHEMO?0.6:0.95;r=r*(1-w)+l*w;gr=gr*(1-w)+l*w;b=b*(1-w)+l*w;if(cl===CHEMO)r+=0.15;}}
+    const hr=H[k+1],hd=H[k+N];for(const cl of WMAP_CONT){if((h-cl)*(hr-cl)<0||(h-cl)*(hd-cl)<0){const w=cl===OXY.top?0.35:cl===0?0.6:0.5,l=cl===OXY.top?0.6:0.95;r=r*(1-w)+l*w;gr=gr*(1-w)+l*w;b=b*(1-w)+l*w;if(cl===OXY.top)r+=0.15;}}
     const o=(y*W+x)*4;d[o]=Math.min(255,r*255);d[o+1]=Math.min(255,gr*255);d[o+2]=Math.min(255,b*255);d[o+3]=255;}
   g.putImageData(img,0,0);return cv;}
 function wmapKey(){return Math.round(wmap.cx)+','+Math.round(wmap.cz)+','+Math.round(wmap.span);}

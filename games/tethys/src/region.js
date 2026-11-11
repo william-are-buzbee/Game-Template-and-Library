@@ -3,7 +3,8 @@
 // member's rise and fall (the swell it rides off, the plate's cooling, flexure under every load, erosion and the waves' planing); the reef against
 // Earth's sea level deciding its state; and, on a grid, the basins the ridges enclose with each one's sill. Pure data: no THREE, no page. Ours and
 // the giant (ISLANDS[0], [1]) are pinned — the track passes through them at their ages, their volumes are tuned until their summits today are the
-// records', and the floor beside ours until it is the basin's −1100. Not read by the game yet: region.html draws it, test/region.js checks it, and
+// records', and the floor beside ours until it is the basin's −1100. The game reads only the flood (v11.96: world.js chemoInit, the basins'
+// chemoclines); region.html draws the rest, test/region.js checks it, and
 // its records go into ISLANDS with GLOBE §8 step 5. Frame: x east, z south, metres; ages in Ma (millions of years before now), t counting back.
 // ---------- the knobs ----------
 const REGION_K={
@@ -156,18 +157,21 @@ function regionGrid(R,x0,z0,span,n,inner,half){const H=new Float32Array(n*n),c=s
   if(inner)for(let j=0;j<n;j++){const z=z0+(j+0.5)*c;for(let i=0;i<n;i++){const x=x0+(i+0.5)*c,e=Math.min(half-Math.abs(x),half-Math.abs(z));if(e>0){const w=smooth(0,3000,e),q=j*n+i;H[q]+=(inner(x,z)-H[q])*w;}}}
   return H;}
 // the water each cell exchanges with the open ocean through: the shallowest point on its deepest way to the grid's edge (a priority flood from the
-// edge, lowest first). A cell whose floor lies under that is enclosed; the enclosed cells in one piece are a basin with that sill. A basin whose sill
-// is deeper than −100 and whose floor lies 150 m or more under it is silled as ours is (PLANET, the basin: anoxic under the sill, its chemocline
-// 20 m below it); shallower ones are lagoons and hollows the tide flushes
-function regionBasins(H,n,cell){const N=n*n,F=new Float32Array(N).fill(Infinity),hp=new Int32Array(N),lab=new Int32Array(N).fill(-1);let hn=0;
+// edge, lowest first). A cell whose floor lies under that (by th, 30 m unless given; world.js chemoInit passes 1, so a basin's walls are its) is
+// enclosed; the enclosed cells in one piece are a basin with that sill. A basin is silled as ours was (PLANET, the basin: anoxic under the sill,
+// its chemocline 20 m below it) when the water coming in over its sill is the oxygen minimum's, not the ventilated deep's — the sill above
+// OXY.floor (-1100; Santa Barbara Basin goes anoxic behind a 475 m sill on the minimum's water) and below -100 (a lagoon the tide flushes) — when
+// its floor lies 150 m or more under the sill, and when it is 10 km² or more (v11.96: a hollow smaller is stirred clean; the outer flank's
+// ribbing made 0.5-1.6 km² "basins" at -2500 to -3500)
+function regionBasins(H,n,cell,th){if(th===undefined)th=30;const N=n*n,F=new Float32Array(N).fill(Infinity),hp=new Int32Array(N),lab=new Int32Array(N).fill(-1);let hn=0;
   const up=k=>{const v=hp[k];while(k>0){const p=(k-1)>>1;if(F[hp[p]]<=F[v])break;hp[k]=hp[p];k=p;}hp[k]=v;},
     down=()=>{const v=hp[--hn];let k=0;for(;;){let c=2*k+1;if(c>=hn)break;if(c+1<hn&&F[hp[c+1]]<F[hp[c]])c++;if(F[hp[c]]>=F[v])break;hp[k]=hp[c];k=c;}hp[k]=v;};
   const push=i=>{hp[hn]=i;up(hn++);};
   for(let i=0;i<n;i++)for(const k of [i,(n-1)*n+i,i*n,i*n+n-1])if(F[k]===Infinity){F[k]=H[k];push(k);}
   while(hn){const k=hp[0];if(hn>1)down();else hn=0;const x=k%n,y=(k/n)|0,f=F[k];
     for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=n||yy>=n)continue;const q=yy*n+xx;if(F[q]!==Infinity)continue;F[q]=Math.max(H[q],f);push(q);}}
-  const B=[];for(let k=0;k<N;k++){if(lab[k]>=0||F[k]-H[k]<30||F[k]>=0)continue;const b={id:B.length,sill:F[k],floor:H[k],cells:0,sx:0,sz:0},st=[k];lab[k]=b.id;
+  const B=[];for(let k=0;k<N;k++){if(lab[k]>=0||F[k]-H[k]<th||F[k]>=0)continue;const b={id:B.length,sill:F[k],floor:H[k],cells:0,sx:0,sz:0},st=[k];lab[k]=b.id;
     while(st.length){const q=st.pop(),x=q%n,y=(q/n)|0;b.cells++;b.sx+=x;b.sz+=y;if(H[q]<b.floor)b.floor=H[q];
-      for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=n||yy>=n)continue;const r=yy*n+xx;if(lab[r]>=0||F[r]-H[r]<30||Math.abs(F[r]-b.sill)>1)continue;lab[r]=b.id;st.push(r);}}
-    b.area=b.cells*cell*cell/1e6;b.cx=b.sx/b.cells;b.cz=b.sz/b.cells;b.silled=b.sill<-100&&b.sill-b.floor>=150;b.chemo=b.silled?b.sill-20:null;B.push(b);}
+      for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=n||yy>=n)continue;const r=yy*n+xx;if(lab[r]>=0||F[r]-H[r]<th||Math.abs(F[r]-b.sill)>1)continue;lab[r]=b.id;st.push(r);}}
+    b.area=b.cells*cell*cell/1e6;b.cx=b.sx/b.cells;b.cz=b.sz/b.cells;b.silled=b.sill<-100&&b.sill>(typeof OXY==='object'?OXY.floor:-1100)&&b.sill-b.floor>=150&&b.area>=10;b.chemo=b.silled?b.sill-20:null;B.push(b);}
   return {F,lab,B};}

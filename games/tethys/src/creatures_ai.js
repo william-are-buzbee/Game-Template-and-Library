@@ -98,7 +98,7 @@ function spawn(ch,kind,pos,rng,opt){
   // the individual (v11.66, above): the size band, the coat class of the place, the soft state; plain outside the ledger
   const k=vary?1+VARY.spread*(2*rng()-1):1,d=k!==1?scaledDef(D,k):D;
   const soft=vary&&!juv&&moults(kind)&&D.role!=='boid'&&(opt&&opt.soft!==undefined?!!opt.soft:rng()<MOULT.frac);
-  const f=vary&&ch?ch.f(pos.x,pos.z):null,cls=soft?'soft':f&&SPECS[kind]?coatClassAt(ch.h(pos.x,pos.z),pos.y,f,SPECS[kind].clade):'';
+  const f=vary&&ch?ch.f(pos.x,pos.z):null,cls=soft?'soft':f&&SPECS[kind]?coatClassAt(ch.h(pos.x,pos.z),pos.y,f,SPECS[kind].clade,chemoAt(pos.x,pos.z)):'';
   const b=buildKind(D,kind,cls);if(k!==1){b.g.scale.multiplyScalar(k);b.gape*=k;}
   const c={kind:kind,def:d,g:b.g,anim:b.anim,pos:pos.clone(),vel:V3(0,0,0),home:pos.clone(),hp:d.hp,state:'wander',t0:rng()*100,lastSpd:0,lastYaw:0,roll:0,rollV:0,sq:0,stunSide:rng()<0.5?-1:1,target:null,biteT:0,wanderT:0,wander:pos.clone(),alive:true,gone:false,stun:0,bored:0,cool:rng()*3,scanT:rng()*0.5,alarm:0,fleeT:0,lungeT:0,ramT:0,school:null,off:null,offT:0,chunk:ch,lod:-1,parts:null,lodMeshes:null,sub:1,wet:true,grounded:false,flopT:0,
     b:b,mass:0,mass0:0,bound:0,reach:0,shapesW:null,chainW:null,grab:null,holding:0,hold:null,held:0,bleed:0,blood:0,wounds:null,paraT:0,stungT:0,armsLost:0,regrow:null,sickT:0,poison:0,poisT:rng()*2,commitT:0,coastT:0,missN:0,speedK:1,turnK:1,live:null,lost:null,cWith:null,d6:0,par:creatures.length&1, // hold: the hold it has on something, held: how many have hold of it, bleed: the rate its wounds drain at, blood: the share of its blood lost (combat.js, v11.91); mass: kg (combat.js kgOfBody; 1e6 while it sits), mass0 its own
@@ -177,8 +177,8 @@ function setWander(c){
     fh=groundAt(p.x,p.z);if(d.legs||fh<-3-d.size*0.6)break;
   }
   if(d.floor)p.y=fh+rnd(0.5,2.5)+d.size*0.4;
-  else if(d.deep)p.y=clamp(c.home.y+rnd(-60,60),fh+8,CHEMO-8); // the pall: below the chemocline, off the mud
-  else if(fh<CHEMO)p.y=clamp(c.home.y+rnd(-80,80),-420,-30);
+  else if(d.deep)p.y=clamp(c.home.y+rnd(-60,60),Math.max(fh+8,OXY.core[1]),OXY.core[0]); // the pall: in the oxygen minimum's core, off the mud (v11.96, DEEP §2)
+  else if(fh<OXY.top)p.y=clamp(c.home.y+rnd(-80,80),-420,-30); // over the deep: above the minimum
   else p.y=clamp(fh+rnd(4,d.cruise||30),fh+3,-4-d.size*0.4);
   c.wander.copy(p);c.wanderT=rnd(6,14);
 }
@@ -362,7 +362,7 @@ function updateSchools(dt){
     let n=0;T1.set(0,0,0);for(const c of s.members)if(c.alive){n++;T1.add(c.pos);}if(n)s.pos.copy(T1.multiplyScalar(1/n));
     s.t-=dt;
     if(s.t<=0||s.pos.distanceTo(s.target)<3){if(s.sw&&s.sw.alive){const R=swarmR(s.sw);s.t=rnd(3,6);s.target.set(s.sw.pos.x+(Math.random()-0.5)*R,s.sw.pos.y+(Math.random()-0.5)*R*0.4,s.sw.pos.z+(Math.random()-0.5)*R);} // v11.85: a hungry school of filter feeders moves through the swarm it found
-      else{s.t=rnd(5,12);const p=s.home.clone().add(V3(rnd(-30,30),0,rnd(-30,30)));const fh=groundAt(p.x,p.z),mid=s.members.length&&s.members[0].def.mid;p.y=fh<CHEMO?clamp(s.home.y+rnd(-30,30),-400,-20):mid?clamp(s.home.y+rnd(-12,12),fh+8,-8):clamp(fh+rnd(1.5,8),fh+1.5,-3);s.target.copy(p);}} // mid (v11.66): a swarm of the water column keeps its own depth
+      else{s.t=rnd(5,12);const p=s.home.clone().add(V3(rnd(-30,30),0,rnd(-30,30)));const fh=groundAt(p.x,p.z),mid=s.members.length&&s.members[0].def.mid;p.y=fh<OXY.top?clamp(s.home.y+rnd(-30,30),-400,-20):mid?clamp(s.home.y+rnd(-12,12),fh+8,-8):clamp(fh+rnd(1.5,8),fh+1.5,-3);s.target.copy(p);}} // mid (v11.66): a swarm of the water column keeps its own depth
     // threats: the player, and any hunter of the members' kind, scanned four times a second (every member reading every creature
     // was a thousand by a thousand a frame)
     s.scanT=(s.scanT||0)-dt;if(s.scanT<=0){s.scanT=0.25;let th=null,td=14;const kind=s.members.length?s.members[0].kind:'';

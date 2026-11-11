@@ -928,7 +928,8 @@ function darkrindB(rg,k){const P=[],n=1+(k%2);
 // photo: a weed — tinted by pigment(ground depth) per instance (grow.js). flow: turned across the current by flowYaw. band: [lo,hi] of
 // ground height the species stands in. vars: from species() — each variant's own col/pads; top: the tallest variant's highest
 // point, and anything that would stand into the air is shortened in y or skipped (rigid things, ladder, ribbon).
-// field: noise scale that modulates density (thick and thin forests).
+// field: noise scale that modulates density (thick and thin forests). chemo: [lo,hi] of ground height about a basin's chemocline (world.js
+// chemoAt, v11.96): the species stands only there, so nowhere a basin does not hold its water.
 // maxSlope: steepest ground an instance may stand on (default 0.9; rocks 1.9; structures unlimited, they sink on slopes).
 // leePer: density where the retention field (world.js leeW) is 1 (v11.81; canopyPer to v11.80). ys: y for surface flora (default -0.45).
 // pocket: noise scale; the base density applies fully only inside pockets of that noise (~15% of area) and at 10% elsewhere.
@@ -1154,9 +1155,9 @@ const FLORA = [
   species('plume', {mat: MATV, tints: [[1, 1, 1], [0.96, 0.94, 0.92]], s: [0.7, 1.6], per: 110, env: {heat: [0.3, 1]}, field: 0.03, maxSlope: 1.4, chem: false}, plumeB), // the vents; chem:false (v11.67): the sulfur stain would wash the crown's iron-blood red, the thing to see
   species(
     'seep',
-    {mat: MATV, tints: [[1, 1, 1], [0.9, 0.9, 0.92]], s: [0.8, 1.5], per: 70, env: {h: [-464, -444], sub: [0.3, 1]}, band: [-464, -444], field: 0.02, maxSlope: 1.4},
+    {mat: MATV, tints: [[1, 1, 1], [0.9, 0.9, 0.92]], s: [0.8, 1.5], per: 70, env: {sub: [0.3, 1]}, chemo: [-14, 6], field: 0.02, maxSlope: 1.4},
     seepB
-  ), // the rim: a line round the world at the chemocline
+  ), // the straddlers: a line round a basin's walls at its chemocline (chemo: the band about chemoAt) — v11.96, DEEP §5: none round ours, where there is none; to v11.95 a line round the world at -450
   species(
     'stilt',
     {mat: MATV, tints: [[1, 1, 1], [0.95, 0.9, 0.84], [0.82, 0.62, 0.5]], s: [0.7, 1.6], flow: true, per: 40, env: {h: [-150, -5], sub: [0.3, 0.85], flow: [0.25, 1]}, field: 0.02},
@@ -1218,7 +1219,7 @@ const FLORA = [
   species('beard', {mat: MATV, tints: RUSTB, s: [0.7, 1.8], per: 200, env: {h: [-150, -3], young: [0.5, 1], sub: [0.55, 1]}, maxSlope: 1.6}, beardB),
   species('iron', {mat: MATV, tints: RUSTB, s: [0.7, 1.8], tilt: true, sx: [0.8, 1.3], per: 22, env: {h: [-150, -10], young: [0.5, 1]}}, ironB),
   species('mat', {mat: MATV, tints: [[1, 1, 0.95], [1, 0.95, 0.55], [0.95, 0.9, 0.75]], s: [0.8, 1.6], per: 260, env: {heat: [0.18, 1]}, field: 0.03, maxSlope: 1.6}, matB([0.95, 0.94, 0.8])), // sulfur: white and yellow round the vents
-  species('greymat', {mat: MATV, tints: [[0.6, 0.6, 0.62], [0.5, 0.5, 0.5], [0.42, 0.4, 0.42]], s: [0.8, 1.6], per: 220, env: {h: [-800, -452]}, band: [-800, -452], field: 0.03, maxSlope: 1.6}, matB([0.8, 0.8, 0.82])), // below the chemocline: grey and black, and nothing else
+  species('greymat', {mat: MATV, tints: [[0.6, 0.6, 0.62], [0.5, 0.5, 0.5], [0.42, 0.4, 0.42]], s: [0.8, 1.6], per: 220, chemo: [-400, -2], field: 0.03, maxSlope: 1.6}, matB([0.8, 0.8, 0.82])), // under a basin's chemocline: grey and black, and nothing else (v11.96: none round ours; the vents' and the carcass falls' mats are DEEP §4's; to v11.95 under the -450 everywhere)
   // the reds (TAXA): a rind, the light's floor and the reef's glue. rind paints the slope's rock red-purple from the greens' edge to −150;
   // limerind is the same crust laying lime in the bright pounded water of the crest and the skerries (pink; a real reef's crest is this,
   // not polyps); sandball is a lime rind that let go; redblade the reds' one sheet
