@@ -299,6 +299,8 @@ the trait that wins its spot. Earth appears there only as the proof.
 | chimney, limpet (exist) | | 8 | | geology and a grazer; keep | |
 
 ### The rim (ground within ±20 of −450) and the dark (11)
+
+**Revised in design 10 Nov 2026 (DEEP.md):** no chemocline round ours — the seep line and the mats move to the basin 28 km west, the mats to the vents and the carcass falls too; the deep floor (−150 to −1100) gets the deep gardens (DEEP §3). The table stands until that pass.
 | species | bauplan | where | size | what it is | why it wins |
 |---|---|---|---|---|---|
 | **seep** | cup + axis + crown | the rim band | 2–5 | tubes rooted *below* the chemocline where the sulfide is, crowns *above* it where the oxygen is | a straddler; here the boundary is a depth, so the straddlers make a visible line round the whole rim. The one sessile multicellular thing that touches the dark |
@@ -340,7 +342,7 @@ world) or the largest variant of a species. Proposed, with the first built:
 - **Earth's eras as a frame** — gone. The bands are what the conditions make them.
 
 Everything the person has praised survives by re-reading: the canopy (a colony), the towers (two species), the
-lanterns (lure-feeders), the rockfall's rust (living), the pit and the dark (empty of sessile life, and now for a reason).
+lanterns (lure-feeders), the rockfall's rust (living), the dark (empty of sessile life, and now for a reason; the pit struck v11.95).
 
 ## Hooks (derived here, not built)
 - **Withdrawal**: crowns fold into their stalks within a radius of a body (a per-instance attribute the vertex shader

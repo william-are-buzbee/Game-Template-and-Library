@@ -6199,3 +6199,80 @@ part 1's smoke.js on a fast runner), so the weights are a sandbox's, good to a m
 minutes on the sandbox: six boots and a long swim), so a fourth part buys little.
 
 Not changed: any test, its order within a part (alone first, then longest first), the whole suite locally. Unseen: nothing in the game.
+
+## v11.94 — the region as a plume's history: src/region.js, region.html (10 Nov 2026)
+
+The person, on GLOBE.md §9's stages: "That looks awesome. Go ahead and build it." Their answers of the same day: a second basin may have its
+own sill and chemocline; ours is not young — whatever age gives the most variety. This is GLOBE §8 step 1: the model and the page the person
+picks the layout on. Nothing in the game changed: region.js is in `order.txt` (lint reads it) but nothing calls it; its records go into
+`ISLANDS` with step 5.
+
+- **src/region.js.** `regionModel(K)` runs the plume under the plate for 30 Myr in 2 kyr steps: the track through ours at 3 Ma and the giant
+  at 1.31 (1.06 cm/yr, turning 3°/Myr); the flux's pulses (one at the giant's birth, one waxing now — ARCHIPELAGO's active young shield); births
+  on a power law, scattered over the plume's footprint and drawn onto old fracture zones; each member's base the plateau plus the plate's
+  cooling, the swell and the flexure of every load (a thin plate's kei, A&S 9.9.12); erosion and the waves' planing; the reef against Earth's
+  sea level, its growth falling off with depth, drowned past 50 m. The pins' volumes are tuned by secant (7 rounds) until ours stands at
+  +4.4 and the giant at 900, and the plateau's level until the floor beside ours is −1100. `regionGrid`, `regionBasins` (a priority flood
+  from the edge: every cell's sill and the enclosed basins) and `regionSeen` (over the horizon from a point). Knobs: `REGION_K`, every one
+  commented. ~0.3 s a run.
+- **What the running taught (GLOBE §9.1).** On a plate this slow no reef ever drowns: the loads are small, subsidence is ~0.05 mm/yr, and the
+  sea comes back up to every reef top at each deglaciation — so the province was all atolls and the game's own sill could not exist. What
+  stops a reef here is PLANET's rule that the lime polyps win only in clear water: members on the upstream face, where the current brings
+  the open ocean's water in, get no reef (`fedL`, `fedK`), are planed and sink — the guyots. Flexure's arch is metres at these sizes: no
+  raised atoll comes out. And **the model does not make our basin**: its ridges are saddles at −1000 to −1500, so the water beside ours
+  reaches the open ocean over ~−1060; the game's chemocline at −450 needs a sill near −430 all round. That one is the person's.
+- **The default, seed 32**, the nearest of 60 to the person's picture of 25 Sep: 159 members — an active shield of 2,533 m 47 km north-west of
+  ours (the awesome one), the giant and an 820 (the great), a 308 and a 243 (the fine), a 50 and ours; 67 atolls, 36 banks, 28 guyots, 18
+  seamounts; 2,005 km² of land; five peaks over the horizon from ours. A 308 m island 20 km north of ours falls inside the game's square,
+  where the game has floor: flagged as a proposal.
+- **region.html** beside map.html (and on the site, tools/dist.js): the province shaded, the silled basins washed violet with their sills, the
+  track with its ages, the plume now, the game's square with its own ground inside (or the model's), the haze's 30 km and the clear day's
+  110 from ours; a click tells a member's story; every knob; a survey of 30 seeds; the recipe for `REGION_K`.
+- **test/region.js**, in `--test` (`SIDE`, 1 s, in build.js and build.py alike): kei against A&S's table, the sea, the track through the
+  pins, the pins' summits and the floor, determinism, no NaN, the grid, the flood; then the default province as a table.
+
+Seen: region.html in headless Chromium at 1500×900 from the file, no page errors — the province whole (the plateau's peanut outline, the
+atoll and bank mass at the old end, the violet basin in the middle, the curved track) and zoomed to the awesome shield, its moat's
+neighbours and the game's own square with the sill across its corner.
+
+**Unseen, ask in this order:** whether seed 32 reads as the archipelago they pictured, or which row of the survey does; the basin — keep the
+−450 as a stretch, give it another cause, or let the model's basins say where the dark is; the 308 m island north of ours (a proposal); whether
+the old end's mass of atolls and banks is too much of one thing (it is what a warm, slow, keep-up province makes — the Tuamotus) or wants the
+fed face wider; the page on the person's screen (the labels crowd inside the square).
+
+The person, on the open list (10 Nov 2026): the model's basins decide where the dark is ("how it naturally should play out"); seed 32; the
+proposals inside the square accepted ("we are going to need to make some big changes, so that's ok"). Recorded in GLOBE §9.1, PLANET (The
+basin) and CLAUDE.md's rule.
+
+
+## v11.95 — the pit and the cairns struck (10 Nov 2026)
+
+DEEP.md §8, step 1 of its build. The person: the pit is "a silly holdover of an older time period and can be removed since it clearly
+breaks believability and sets a bad precedent"; the cairns are "another holdover from a time when there were cool looking things in the game
+for the fuck of it. Let them go as well"; where it was "should look like it was never there, like the rest of the environment around it".
+The geology agrees: pit craters stand open on an active rift, and ours went quiet ~2.5 Myr ago — talus, sand and reef fill a 500 m shaft.
+
+- **world.js.** The pit's term in `islandH` (520 m off the floor inside 130 m), `PIT`, `ISLANDS[0].pit` and `LM.pit` are gone, and the
+  comments that described them say so. Nothing else in the geology changed: the rift arm's low ridge runs on over the place.
+- **flora.js, far.js, chunks.js.** The cairns (seven tors in a ring on the rim, `CAIRNS`, seed 4343), the tor and its stack builder
+  (`stackGeo`, `STACK`: nothing else used them), the cairns' loop in `bigsGen`, and the rim boost round the pit (`f.rim`: the boulders'
+  0.7 and the 60 tries a cell near it). The other species and cells are untouched: the rim drew no numbers from any cell's sequence.
+- **Ours is no longer bit-identical, on purpose** — the first deliberate change to `ISLANDS[0]` (GLOBE §7's test: its reason given).
+  The old world.js against the new over the old square (ARCHIPELAGO step 1's 185,761 samples at 8 m): 491 differ, every one within 130 m
+  of the pit; the ground and the nine fields identical everywhere else; the bones and the chimney unmoved. The pit's centre is −34 now
+  (was −554), the ring round it −28 to −59, as the shelf round it is.
+- **The tests that stood in the pit.** test/audio.js's closed place is the caldera inside its rim against open water over the flank (0.46
+  against 0.00); test/snow.js's chemocline column (the plate, above it, below it) is over the open floor east of ours — the −450 stays until
+  DEEP's step 2.
+- **The docs**: PLANET (the rift arms, the dark, the praised list, the pall's and the picker's ground), FLORA, DESIGN (the shape, the
+  landmarks, the structures, the stack row), SEAFLOOR (pit craters along the rift struck too), AUDIO, README, CLAUDE.md (the landmarks,
+  the seeds, the identity rule with its one exception), DEEP's status.
+
+Seen: `node test/map.js` over the place before and after (`test/preview/pit_before.png`, `pit_after.png`: the hole gone, the arm's ridge
+unbroken); the real build in headless Chromium with three.js r128 from npm (cdnjs is refused in this session), a new game as the soft-arm,
+`tp` over the old centre at 12 and 14 m: the shelf's sand, weed tufts and boulders, nothing that marks the place; no page error but pointer
+lock's, which needs a real click.
+
+The person's look (11 Nov 2026), over the old centre at 22 m: "seems fine from what I can tell" — the shelf, the weed, a slowblood
+going by, 120 fps. **Unseen:** that nothing they relied on stood there (the pit was the dark inside the square: below −450 is now only the lower flank and the floor, until DEEP's step 2
+re-homes the dark).

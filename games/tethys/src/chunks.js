@@ -175,7 +175,6 @@ function* placeFloraType(ch,rng,f){
   if(f.big)return; // structures are placed and drawn once for the whole world (far.js); placeBigSolids adds their collision
   const rock=f.mat===MATROCK; // the rock is placed first (genChunk) and never asks; everything after it does
   let maxN=f.per||0; // the density at full tolerance (per cell); the envelope scales it per try
-  if(f.rim){const pd=Math.hypot(ch.cx-PIT[0],ch.cz-PIT[1]);if(pd<300)maxN=Math.max(maxN,60);}
   const cw=f.leePer?cellLee(ch):0;if(cw>0.03)maxN=Math.max(maxN,f.leePer);
   if(!maxN)return;
   const tries=Math.round(maxN*Q.flora),list=[],d=new THREE.Object3D(),maxSlope=f.maxSlope!==undefined?f.maxSlope:(f.big?9:0.9);
@@ -184,7 +183,6 @@ function* placeFloraType(ch,rng,f){
     if(n%200===199)yield;
     const x=ch.x0+rng()*CELL,z=ch.z0+rng()*CELL;
     let p=(f.per||0)/maxN*(f.envs?envsW(ch,f.envs,x,z):f.env?ch.w(f.env,x,z):1);if(f.rare)p*=f.rare; // envs, rare (v11.66): the best of several envelopes (a shed lies where its kind lives), and a chance under one for a thing rarer than one try a cell
-    if(f.rim){const pd=Math.hypot(x-PIT[0],z-PIT[1]);if(pd>98&&pd<150)p=Math.max(p,f.rim);}
     if(f.pocket)p*=0.1+smooth(0.6,0.72,fbm(x*f.pocket+53,z*f.pocket+29,2));
     if(cw>0.03)p=Math.max(p,leeW(x,z)*f.leePer/maxN);
     if(f.field)p*=clamp(0.1+4*Math.pow(fbm(x*f.field+31,z*f.field+17,2),2.5),0,1.6);

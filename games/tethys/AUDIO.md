@@ -21,7 +21,7 @@ output with no position. Nothing is placed, nothing reflects, nothing is occlude
 - **Distance and delay.** Sound travels ~1480 m/s here (1 unit = 1 m): a bite 150 m off arrives 0.1 s after it is seen. Free
   to model on one-shots; a small honesty.
 - **Reflection.** Open water reverberates almost not at all — but a rock wall two metres away slaps every sound back, a hole
-  in the reef hums, the pit crater rings. This is Thief's "room" idea, but the rooms are not authored: they are *read from the
+  in the reef hums, the pit crater rang (struck v11.95). This is Thief's "room" idea, but the rooms are not authored: they are *read from the
   geometry* around the listener (below, The space). The person asked for exactly this.
 - **Occlusion.** A ridge between you and the vent muffles it and a wall between you and a passing body muffles that. Cheap:
   march the line between source and listener through the terrain and the collider hash, count what it passes through.
@@ -148,7 +148,7 @@ lines move into `updateAudio`), `main.js` (`updateAudio(dt)` after the camera, a
 tables above and in DESIGN, The sound (new section), where the person can ask for a change by name.
 
 **Unseen and unheard**: the sandbox has no audio output. What can be proved here: the graph builds, every path runs
-headlessly, no NaN reaches a param, the probe's numbers are sane at the peak, on the shelf, in the pit and at the vent (printed
+headlessly, no NaN reaches a param, the probe's numbers are sane at the peak, on the shelf, over open water (the pit until v11.95) and at the vent (printed
 by the smoke test). What can't: whether it sounds like water. The person listens; the first things to ask are whether the
 slosh follows the chop, whether a rock face is audible on its side, and whether anything is too loud.
 

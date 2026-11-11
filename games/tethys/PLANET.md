@@ -37,9 +37,9 @@ been answered is in [Open](#open), and is not to be decided by Claude.
   few founding lineages reached it and radiated into every niche (the Galápagos rule), so there are endemics, giants
   and dwarfs, and the family tree is lopsided and the species count modest. The above-water part of the world is due
   an overhaul later; this paragraph is what it must agree with.
-- **The ocean.** Oxic to about **−450, then a chemocline**: below it the water is anoxic, ferrous and sulfidic (the
+- **The ocean.** (**Revised in design 10 Nov 2026, DEEP.md:** round ours the water is oxic to the floor with a survivable oxygen minimum at −500 to −800; the chemocline is a basin's — the nearest 28 km west at −1000; the pit is struck. What follows is built until those passes.) Oxic to about **−450, then a chemocline**: below it the water is anoxic, ferrous and sulfidic (the
   Proterozoic ferruginous ocean; the Black Sea today). This is the real reason **the dark** is different. The
-  chemocline is a *depth*, not a floor biome: the pit's floor is −550 and the flank crosses −450 at the square's corners (the
+  chemocline is a *depth*, not a floor biome: the flank crosses −450 at the square's corners (the pit, whose floor was −550, struck v11.95) (the
   void at −800 is gone since v11.28: the flank goes on down to the plate instead), "the dark" is ground < −450, and the water over
   it at −200 is still oxic. Only low-metabolism animals live below it; hunters visit. It is where ferrous iron is
   dissolved (only possible without oxygen), so iron chemistry reads by depth (see shell colour).
@@ -60,6 +60,9 @@ consequence of "a young oceanic shield volcano, almost drowned", and world.js `s
 - **The shield.** Gentle flanks: the shelf is the upper flank at 4–6°, −20 to −60 out to r 700; the slope ring to −250 at
   r 1200; the apron of the volcano's own debris to −290 at 1600. Basalt everywhere: olivine-green sand.
 - **The basin** (15 Sep 2026, built v11.58; the person chose it over the plate on the condition that it is a real thing, and it is).
+  **Decided 10 Nov 2026 (the person; GLOBE.md §9.1): the region model's basins decide where the dark is.** The province does not enclose ours
+  (its ridges are saddles at −1000 to −1500): the water round ours is open to the floor, the nearest silled basin 28 km west (chemocline
+  −1000). The paragraph below is what is built until that pass.
   The island stands in a **silled basin** far larger than the world (DIRECTION, 12 Sep). What is real: the Cariaco Basin is 1,400 m deep behind
   a 146 m sill and has been anoxic below ~250 m for 14,000 years; the Black Sea the same at 2,200 m; in both the chemocline sits at or below
   the sill. A volcanic ridge with a sill near −450 is real too: the Iceland-Faroe Ridge is the hotspot's older track, subsided to a 480 m
@@ -84,7 +87,7 @@ consequence of "a young oceanic shield volcano, almost drowned", and world.js `s
   (~3 °C), lightless, oxic on Earth but here **below the chemocline** (−450), so anoxic, ferrous, manganese-black. A big island also
   flexes the plate into a moat and an arch, 50–150 km out — nothing at this scale. So the game's floor past the apron's toe (r ≈ 1560,
   wavy) goes on down at 16.7° easing to 12.4° (world.js `FLANK_*`): −320 at the square's edge on an axis, ~−580 at a corner, −850
-  2 km out, the plate at ~−3800 some 15 km out. **The dark inside the square is the pit and the corners now.** When the world grows
+  2 km out, the plate at ~−3800 some 15 km out. **The dark inside the square is the lower flank and the floor now** (the pit struck v11.95). When the world grows
   it grows outward down this flank: the plate is one biome — open water over dark mud, cold, sparse, the same for kilometres — and the
   island a hotspot of light, relief and upwelling on it; there is then no wall to hit, only more of the same going down.
 - **The caldera.** The summit is a caldera: a flat sandy floor at −22 inside a rim of land (the last land: +2..+6, r ≈245)
@@ -105,8 +108,8 @@ consequence of "a young oceanic shield volcano, almost drowned", and world.js `s
   megaspires on the crests, called "necks", up to 160 m tall and nearly at the surface; v10.2–10.4 tried walls of dike rock
   and one neck in their place; all struck by the person, 8 Sep 2026: "no more spires, no more weird special spire
   replacement rocks — just normal geography based on what's nearby".)
-- **The rift arms.** Two, at 2.6 and 5.6 rad: low ridges of younger flows from the summit out. Arm 0 carries a **pit
-  crater** at r 470 (the pit) and, at its deep end (r 1200–1420), the **hydrothermal fissure**: a line of chimneys,
+- **The rift arms.** Two, at 2.6 and 5.6 rad: low ridges of younger flows from the summit out. Arm 0 carries, at its deep end (r 1200–1420), the **hydrothermal fissure** — the rejuvenated stage on a 3 Ma
+  island (DEEP.md §7; its pit crater at r 470 struck v11.95, DEEP §8): a line of chimneys,
   sulfur mats, the warm water the straightshells visit. Arm 1 carries a **flank cone** at r 500: the island — a tuff cone since v11.86 (23 Sep 2026): a breached ring round a tidal crater, high downwind where the ash fell, cliffed to windward, cold (a monogenetic vent, erupted once into shallow water; the fumarole of 10 Sep is struck).
 - **Wind and current.** One prevailing wind: the waves strike the old flank (0.35 rad) — surf, cones, stirred sand; the lee
   (3.5 rad, the collapse's side) is where sand settles: the flats. One prevailing current: it strikes the north-east flank
@@ -134,10 +137,10 @@ red that eats green. Green is therefore a shallow thing, and the gradient is the
 | −20 to −60 (shelf) | olive to gold-brown | kelp-like algae | kelp towers (push browner), bladder forest (gold) |
 | −60 to ~−150 (upper slope) | red-purple crusts, thinning | encrusting algae; then nothing | the drop, upper terraces |
 | below −150 | none | **animals and mats**: whips are sea-pen-like sessile animals; lanterns are animals with light-making symbionts (blue-green, 470–500 nm, because that carries furthest); vent stalks are tube-worm analogues; fans on the reef are coral | spires, terraces, vent field, lantern fields, plain |
-| below −450 (chemocline) | none | chemosynthetic mats, scavengers; residents have low metabolism | the dark, the pit |
+| below −450 (chemocline) | none | chemosynthetic mats, scavengers; residents have low metabolism | the dark |
 
-Everything the person has praised survives by re-reading, not removal: the phosphorescent deep, the canopy, the pit,
-the lanterns. What does not survive: green grass on the terraces (biome 7, −60 to −250). The sessile life itself — the forms, the
+Everything the person has praised survives by re-reading, not removal: the phosphorescent deep, the canopy, the pit (struck 10 Nov 2026 by
+the person: a holdover that broke believability, DEEP §8), the lanterns. What does not survive: green grass on the terraces (biome 7, −60 to −250). The sessile life itself — the forms, the
 roster by band and the generator — is `FLORA.md`, downstream of this section.
 
 ## The three clades
@@ -200,7 +203,7 @@ radial, stinging, eyeless; bells in the water, floats on the surface (the button
 ### Hingeshells — exoskeletal, Cambrian, machine-like
 
 - **Deep decision:** an exoskeleton that must be shed. Moulting is the clade's cost and its story: shed carapaces on
-  the floor, dens in the massif and the pit, and a *soft* state after each moult — pale, hiding, and the only time a
+  the floor, dens in the rock, and a *soft* state after each moult — pale, hiding, and the only time a
   hingeshell is edible. Juveniles are soft; adults rarely unarmoured; some carry a mineral shell over the chitin too.
   (Built v11.66, creatures_ai.js `MOULT`: the soft state — pale, valves clamped, laid against a solid, skin to any edge — a twentieth of the
   placed adults and every adult on its own clock out of sight; the cast carapace beside it, and old sheds as debris by the kind's envelopes.
@@ -320,7 +323,7 @@ the clever ones) and **the deep line** (below the light, low metabolism, webbed 
 | arrow | jetters | small-prey hunter, pack | the shelf | 1.0 | exists; forward eyes |
 | lurker | crawlers | floor ambush, grab | kelp, rockfall, spires, the arch | 2.4 | exists |
 | **watcher** | crawlers | none — a curious omnivore | kelp towers, bladders, terraces | 1.8 | walks on four arms with four held up; a raised head with a forward cluster of five eyes that tracks whatever is near; teal flesh, a gladius ridge under the skin of the back; never attacks, never flees far. Low priority |
-| **pall** | the deep line | the dark's resident | below −450: the void, the pit | 9 | black; the arms webbed into a net held open; twelve pale eyes in a ring round the mantle; drifts more than swims; the vampire-squid precedent |
+| **pall** | the deep line | the dark's resident | below −450: the void (DEEP §2: the oxygen minimum's core) | 9 | black; the arms webbed into a net held open; twelve pale eyes in a ring round the mantle; drifts more than swims; the vampire-squid precedent |
 | veil | the deep line | big filter feeder | the drop, lanterns, plain, the rim | 16 | exists; skirt = arms, glow ring = eye ring. **Placement unconfirmed** |
 
 ### Slowbloods
@@ -355,7 +358,7 @@ water column).
 | **trap** | walkers | floor ambush, strike | flats, shallows | 2 | buried to the eyestalks in sand; a pair of folded raptorial arms that unfold in a fifth of a second (the mantis-shrimp strike); the tell is the eyestalks rising; rust-red shell |
 | **hook** | walkers | structure hunter | kelp towers, the massif, spires | 2.5 | hooked legs; climbs stalks and rock faces, hangs, drops on what passes below; pale joints; eight eyes in two rows |
 | **tread** | walkers | sediment feeder, the giant | terraces, plain, the massif | 7 | the Ohmu-class walker: a long low arched carapace of overlapping plates, fourteen legs, feeding combs under the front, a row of eyes along the shield's edge; walking pace; nothing hunts it; a few in the whole world |
-| **picker** | walkers | scavenger at the rim of the dark | the pit, the rim, below −450 | 1.5 | long thin legs, hypoxia-tolerant; picks at what sinks. Sparse |
+| **picker** | walkers | scavenger at the rim of the dark | the rim, below −450 | 1.5 | long thin legs, hypoxia-tolerant; picks at what sinks. Sparse |
 | **flicker** | paddlers | small forage | shallows, flats, kelp, bladders | 0.4 | shrimp-like, translucent, tail-flick escape; the floor of the food web with the darters; edible |
 | **hose** | paddlers | small-prey hunter | kelp towers, bladders, the drop | 1.5 | opabinia: five stalked eyes; a flexible proboscis with a claw at its end that picks flickers off the stalks; flaps down the sides, a tail fan |
 | **sickle** | paddlers | player-size predator, burst | spires, rockfall, terraces, the arch | 5 | anomalocaris: a pair of jointed frontal claws, a ring mouth of plates, rows of lateral flaps, a tail fan; burst and coast, cannot corner; dark carapace, yellow joints. The insectoid the person asked for |

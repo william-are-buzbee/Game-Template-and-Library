@@ -724,31 +724,6 @@ function sheetGeo(seed) {
   }
   return kit(P, lumps);
 }
-// stack: five lumps stacked, the "snowman" — only the cairns on the pit's rim (CAIRNS): the person liked it as an oddity, once
-function stackGeo(seed) {
-  const rg = mulberry(seed),
-    P = [],
-    lumps = [];
-  rockLump(P, lumps, 1.2, 0, 0.2, 0, 1.3, 0.6, 1.3, [0, rg() * TAU, 0], 0.9, rg);
-  const ys = [0.55, 1.45, 2.25, 2.9],
-    rs = [1.0, 0.85, 0.7, 0.5];
-  for (let i = 0; i < 4; i++)
-    rockLump(
-      P,
-      lumps,
-      rs[i],
-      (rg() - 0.5) * 0.3,
-      ys[i],
-      (rg() - 0.5) * 0.3,
-      0.9 + rg() * 0.3,
-      0.85 + rg() * 0.3,
-      0.9 + rg() * 0.3,
-      [rg() * 0.3, rg() * TAU, rg() * 0.3],
-      0.88 + rg() * 0.2,
-      rg
-    );
-  return kit(P, lumps);
-}
 // ledge: three flat lumps in a row with a chunk under them — strata on a steep face, laid along the contour (chunks.js placeCliffs)
 function ledgeGeo(seed) {
   const rg = mulberry(seed),
@@ -777,7 +752,6 @@ const HEAP_A = heapGeo(7),
   HEAP_B = heapGeo(19),
   SHEET_A = sheetGeo(41),
   SHEET_B = sheetGeo(53),
-  STACK = stackGeo(3),
   LEDGE = ledgeGeo(23);
 const ROCKT = [
   [0.34, 0.37, 0.41],
@@ -954,7 +928,7 @@ function darkrindB(rg,k){const P=[],n=1+(k%2);
 // photo: a weed — tinted by pigment(ground depth) per instance (grow.js). flow: turned across the current by flowYaw. band: [lo,hi] of
 // ground height the species stands in. vars: from species() — each variant's own col/pads; top: the tallest variant's highest
 // point, and anything that would stand into the air is shortened in y or skipped (rigid things, ladder, ribbon).
-// field: noise scale that modulates density (thick and thin forests). rim: extra chance around the pit.
+// field: noise scale that modulates density (thick and thin forests).
 // maxSlope: steepest ground an instance may stand on (default 0.9; rocks 1.9; structures unlimited, they sink on slopes).
 // leePer: density where the retention field (world.js leeW) is 1 (v11.81; canopyPer to v11.80). ys: y for surface flora (default -0.45).
 // pocket: noise scale; the base density applies fully only inside pockets of that noise (~15% of area) and at 10% elsewhere.
@@ -1257,7 +1231,7 @@ const FLORA = [
   // the fan's boulder field and the rift arms' rubble (young), a scatter on bare rock that a block can rest on (sub; maxSlope 1.2:
   // nothing sits on a face), a few on sand and mud, and talus — blocks at the foot of a face (`face`: the ground rises 6 within 14),
   // which is where the risers, the scarp, the dike flanks and the rim shed to
-  rock('boulder', null, {s: [1, 4.5], sink: 0.35, tilt: true, maxSlope: 1.9, per: 330, env: {sub: [0.55, 0.78], young: [0.4, 1]}, rim: 0.7}), // the fan's boulder field (and a ring round the pit)
+  rock('boulder', null, {s: [1, 4.5], sink: 0.35, tilt: true, maxSlope: 1.9, per: 330, env: {sub: [0.55, 0.78], young: [0.4, 1]}}), // the fan's boulder field (and a ring round the pit)
   rock('boulder2', null, {s: [1, 4], sink: 0.35, tilt: true, maxSlope: 1.2, per: 60, env: {sub: [0.72, 1]}}), // the odd block on bare rock
   rock('boulder3', null, {s: [1, 3.5], sink: 0.45, tilt: true, maxSlope: 1.9, per: 12, env: {sub: [0.05, 0.5]}}), // the odd one on sand and mud
   rock('talus', null, {s: [0.8, 3.2], sink: 0.4, tilt: true, maxSlope: 1.2, per: 420, env: {sub: [0.2, 1], young: [0, 0.5]}, face: [14, 6]}), // at the foot of every face: the terraces' risers, the scarp, the dikes, the rim (the fan and the arms have their own rubble)
@@ -1315,7 +1289,6 @@ const FLORA = [
   rock('crag3', HEAP_B, {s: [4, 10], sink: 0.25, per: 1.5, env: {h: [-300, 3], sub: [0.6, 1]}, face: [16, 8], fit: [0.4, 0.5], big: true}), // a rockfall cone at the foot of a face: the dikes, the risers, the rim
   rock('slab', SHEET_A, {s: [6, 14], sink: 0.16, per: 12, env: {h: [-170, -60], young: [0.8, 1], heat: [0, 0.05], sub: [0.5, 0.85]}, field: 0.009, fit: [0.3, 0.55], big: true}), // the slide's coherent blocks, near the scarp
   rock('slab2', SHEET_B, {s: [5, 12], sink: 0.16, per: 10, env: {h: [-230, -100], young: [0.8, 1], heat: [0, 0.05], sub: [0.5, 0.85]}, field: 0.009, fit: [0.3, 0.55], big: true}),
-  rock('tor', STACK, {s: [13, 28], sink: 0.15, per: 0, big: true}), // never by density: the cairns (CAIRNS) only
   {
     id: 'olddome',
     geo: OLDDOME.geo,
@@ -1342,27 +1315,3 @@ const FLORA_BY_ID = {};
 FLORA.forEach(f => {
   FLORA_BY_ID[f.id] = f;
 });
-// The cairns: seven tors — the stacked "snowmen" — in a ring on the pit's rim, among its rubble, where the pillars read as
-// something put there. Placed structures: world space, appended to their cell's structure list by far.js bigsFor (same
-// surface clamp and slope sink as any structure), so they draw with the far layer and collide as the cell's solids.
-const CAIRNS = (function () {
-  const rg = mulberry(4343),
-    out = [],
-    f = FLORA_BY_ID.tor;
-  for (let k = 0; k < 7; k++) {
-    const a = (k / 7) * TAU + (rg() - 0.5) * 0.35,
-      d = 118 + rg() * 20;
-    rg();
-    out.push({
-      f: f,
-      x: PIT[0] + Math.cos(a) * d,
-      z: PIT[1] + Math.sin(a) * d,
-      sc: 10.5 + rg() * 3,
-      yaw: rg() * TAU,
-      sx: 0.95 + rg() * 0.1,
-      sz: 0.95 + rg() * 0.1
-    });
-    rg();
-  }
-  return out;
-})();

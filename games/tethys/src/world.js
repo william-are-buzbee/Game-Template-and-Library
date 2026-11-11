@@ -4,7 +4,8 @@
 // the island's own square the middle 16. The summit is a caldera whose rim is the
 // last land; the shelf is the shield's upper flank; the slope ring carries drowned shorelines (terraces) as rings; one flank
 // has collapsed (a scarp and a debris fan: the rockfall); the oldest flank has its radial dikes exhumed as ridges;
-// two rift arms run from the summit, one with a pit crater on it and a hydrothermal fissure at its deep end; beyond the apron
+// two rift arms run from the summit, one with a hydrothermal fissure at its deep end (the pit crater on it struck v11.95, DEEP.md §8: an
+// extinct rift keeps no open shaft — talus and sand fill it); beyond the apron
 // the floor goes on down the seamount's flank toward the plate (v11.28; to v11.27 a cliff into a void at -810). There are no biomes: sample(x,z) returns the ground height and the physical CONDITIONS
 // at a point (substrate, current, wave exposure, food, turbidity, the age of the rock, heat, shelter, relief), and every
 // species — sessile or swimming — has a tolerance envelope over those (envW). Nothing downstream reads a label.
@@ -30,7 +31,6 @@ const ISLE={x:Math.cos(5.5)*500,z:Math.sin(5.5)*500}; // a flank cone on rift ar
 const CONE={r:70,wIn:16,wOut:60,h:30,lean:0.6,gapA:0.8,gapH:-2.5,floor:0.8,flat:-0.6,plat:-3,flatR:120,spit:80,leeR:40}; // the rim's radius and its inner and outer widths (m), its height and the downwind lean; the breach's half-angle (rad) and floor; the crater floor; the lee flat, the windward platform; the flat's reach and its extra down-current and downwind
 function coneK(x,z){let k=0;for(const R of ISLANDS){if(!R.isle)continue;let lx=x-R.x,lz=z-R.z;if(R.rot){const c=Math.cos(R.rot),s=Math.sin(R.rot),tx=lx*c+lz*s;lz=lz*c-lx*s;lx=tx;}if(R.sc!==1){lx/=R.sc;lz/=R.sc;}
   k=Math.max(k,smooth(CONE.r+CONE.wOut*1.6,CONE.r+CONE.wOut*0.4,Math.hypot(lx-R.isle.x,lz-R.isle.z)));}return k;} // 1 on the ring, 0 past its foot: the tuff's colour (chunks.js)
-const PIT=[Math.cos(2.6)*470,Math.sin(2.6)*470]; // a pit crater on rift arm 0
 // ---------- the basin and the sill (v11.58) ----------
 // DIRECTION.md (12 Sep) and PLANET, The basin: the island stands in a silled basin far larger than the world. The floor is abyssal
 // plain at BASIN.h — pelagic mud over abyssal hills of ±BASIN.hill, ~1.5 km across — and the flank meets it through a sediment apron
@@ -244,7 +244,7 @@ function sectorW(a,c,hw,fade){let d=(a-c)%TAU;if(d<0)d+=TAU;if(d>Math.PI)d-=TAU;
 // ---------- the islands as records (v11.61) ----------
 // The archipelago (the person, 15 Sep 2026: one chain south-west along the rift axis, ages rising north-east toward the sill). An island is a
 // record: where it stands, how it is turned, its radial scale, and every number its geology had as a constant to v11.60 — the shield's
-// profile as steps, the terraces, the rim and the lagoon, the collapse, the dikes, the rift arms, the fissure, the pit, the flank cone, the
+// profile as steps, the terraces, the rim and the lagoon, the collapse, the dikes, the rift arms, the fissure, the flank cone, the
 // lower flank. islandH() is the old sample() body in the island's own frame; sample() takes the smooth max of every island in reach over the
 // basement (the basin and the sill), and the conditions from the island that stands highest there. ISLANDS[0] is our island, its record
 // the old constants exactly, so its ground and fields are the same doubles as v11.60's (test/ident-style check, CHANGELOG v11.61). A
@@ -254,7 +254,7 @@ function sectorW(a,c,hw,fade){let d=(a-c)%TAU;if(d<0)d+=TAU;if(d>Math.PI)d-=TAU;
 // kit lacked, the subaerial shield (islandH, below). Ours carries its old numbers by name, so its doubles are v11.61's.
 const ISLANDS=[
   {id:'home',x:0,z:0,rot:0,sc:1,ns:0,h0:-14,prof:[[RIM_R+RIM_W*0.3,330,6],[330,700,40],[1000,1200,94],[1200,1600,40]],terr:{r0:700,r1:1000,n:8,step:12},
-   rimR:RIM_R,rimW:RIM_W,lagH:-22,coll:COLL,dike:DIKE,rifts:RIFT_A,riftR:[280,340,1600,1300],vent:VENT,pit:PIT,isle:ISLE,flank:{r:FLANK_R,w:FLANK_W,s0:FLANK_S0,s1:FLANK_S1,a:FLANK_A,b:FLANK_B},fade:BASIN.fade,reach:8500},
+   rimR:RIM_R,rimW:RIM_W,lagH:-22,coll:COLL,dike:DIKE,rifts:RIFT_A,riftR:[280,340,1600,1300],vent:VENT,isle:ISLE,flank:{r:FLANK_R,w:FLANK_W,s0:FLANK_S0,s1:FLANK_S1,a:FLANK_A,b:FLANK_B},fade:BASIN.fade,reach:8500},
   // The giant (v11.62; ARCHIPELAGO's table, the person's plan of 15 Sep 2026): 18 km south-west along the chain at 2.6 rad, the member one step
   // behind the hotspot — its shield just finished, so it is the biggest and now only loses. 14 km of land (r 7000, the coast wavy ±16% of that
   // by the kit) rising to 900 m with a summit caldera 1.4 km across and 110 m deep; rain gullies down the windward flank (the wind is the
@@ -333,7 +333,7 @@ function islandH(R,x,z,o){
       h+=lnd;hSmooth+=lndS;}}
   if(R.rifts){const RR=R.riftR;for(let k=0;k<R.rifts.length;k++){const rwk=sectorW(awn,R.rifts[k],0.13,0.09)*smooth(RR[0],RR[1],rw)*smooth(RR[2],RR[3],rw);h+=8*rwk;young=Math.max(young,0.7*rwk);}} // the arms' radial extent is the record's (v11.62)
   if(R.vent){const V=R.vent,vw=sectorW(awn,V.a,0.1,0.07)*smooth(V.r0-70,V.r0,rw)*smooth(V.r1+70,V.r1,rw);if(vw>0){heat=vw;h+=22*vw*Math.pow(fbm(lx*0.03+50+ns,lz*0.03+50,3),3)*1.6;young=Math.max(young,vw);}}
-  // the lower flank beyond the apron (v11.28; PLANET, The shield), and the pit crater. To v11.27 the floor fell 520 m in 90-250 m here —
+  // the lower flank beyond the apron (v11.28; PLANET, The shield). To v11.27 the floor fell 520 m in 90-250 m here —
   // a cliff into "the void" at -810, the world's rocky wrapping (the person, 10 Sep: "an artificial border to wrap the world up in rocky
   // bubble wrap"). A seamount whose summit reaches the surface stands 3-4 km off the plate on flanks of 10-20°; the apron of its own
   // debris is a local thickening on that flank, not its foot. So past the apron's toe (FLANK_R, wavy: gullies and slide scars) the
@@ -344,7 +344,6 @@ function islandH(R,x,z,o){
   if(rf>0){const t=Math.min(rf/F.w,1),d0=rf<F.w?F.w*(t*t*t-0.5*t*t*t*t):rf-0.5*F.w; // ∫smoothstep(0,W): the ramp's drop
     const u=clamp((rf-F.a)/(F.b-F.a),0,1),d1=rf<F.a?0:rf<F.b?(F.b-F.a)*(u*u*u-0.5*u*u*u*u):rf-0.5*(F.a+F.b); // ∫smoothstep(A,B): the easing's
     h-=(F.s0*d0-(F.s0-F.s1)*d1)*(1+0.15*angNoise(aw,3.0,131+ns));}
-  if(R.pit){const pd=Math.hypot(lx-R.pit[0],lz-R.pit[1]);if(pd<130)h-=520*smooth(100,40,pd);}
   // the caldera: a flat sandy floor at -22 inside a rim of land broken by passes (the passes run at -14: the lagoon's flushing)
   let lag=0,rimA=0,rimK=0;
   if(R.rimR!==undefined){lag=smooth(R.rimR-R.rimW*0.4,R.rimR-R.rimW*1.6,rw); // a record without a rim has no lagoon and no passes (v11.62: the giant)
@@ -444,7 +443,7 @@ function wcolAt(d){d=clamp(d,0,WCOL_D);let c=WCOL[WCOL.length-1][1];
   return c;}
 const WCOL_GLSL='vec3 wcol(float d){vec3 c=vec3('+WCOL[0][1].map(v=>v.toFixed(3)).join(',')+');'+WCOL.slice(1).map((e,i)=>'c=mix(c,vec3('+e[1].map(v=>v.toFixed(3)).join(',')+'),clamp((d-'+WCOL[i][0].toFixed(1)+')/'+(e[0]-WCOL[i][0]).toFixed(1)+',0.0,1.0));').join('')+'return c;}'; // the chain of mixes is the piecewise line exactly: each clamp saturates before the next begins
 // The floor's say in the veil (v11.27). WCOL is indexed by the *floor's* depth, which made the veil's colour a map of the floor: over the
-// void (h -800, the table's last entry, near black) and the pit the water read black in every direction from 260 units off, and the
+// void (h -800, the table's last entry, near black) and the pit (struck v11.95) the water read black in every direction from 260 units off, and the
 // void's edge stood on the horizon as a dark band — "the edge of the world" (the person, 10 Sep). Now the veil at a point is the table
 // at the point's own depth (never brighter than the table at OPEN_D: the sand's bounce is the floor's, not open water's) blended toward
 // the floor's entry (with its turbidity, plankton and heat) by exp(-(height above the floor - FLOOR_FREE)/FLOOR_H): the floor's colour
@@ -567,7 +566,7 @@ const SKYC=[ // [sinAlt, zenith, horizon, glow, sunlight]
   [0.35,AIR.zenith,AIR.fog,[0.30,0.24,0.14],[1.0,0.94,0.84]]];
 const MOONC=[0.72,0.80,0.96],MOONL=0.28,GREYC=[0.52,0.55,0.59],STARL=0.035; // moonlight's colour and its strength at full; the overcast sky; a moonless night's floor (starlight, airglow)
 // ---------- landmarks ----------
-// The one-offs are placed by the geology where the geology names the place (the pit crater and the chimney on rift arm 0) and
+// The one-offs are placed by the geology where the geology names the place (the chimney on rift arm 0; the pit crater was the other until v11.95) and
 // searched for on the analytic terrain otherwise (seed 4242, a fixed sequence — new ones go on the end so earlier ones don't
 // move). findSpot(rng, ok, r0, r1): the flattest patch in the radius band whose sample passes ok(s), checked over ±36.
 function findSpot(rng,ok,r0,r1){
@@ -585,7 +584,6 @@ function findSpot(rng,ok,r0,r1){
 }
 const LM={};
 (function(){const rng=mulberry(4242);
-  LM.pit={x:PIT[0],z:PIT[1],h:sample(PIT[0],PIT[1]).h,r:190}; // r: structures keep this clear (the hole is 130 across the rim; a 60 m plate at 111 hung over it)
   const mud=s=>s.h<-230&&s.h>CHEMO&&s.f[FI.sub]<0.35&&s.f[FI.heat]<0.1;
   LM.bones=findSpot(rng,mud,1290,1430);
   {const vr=(VENT.r0+VENT.r1)/2,x=Math.cos(VENT.a)*vr,z=Math.sin(VENT.a)*vr;LM.chimney={x:x,z:z,h:sample(x,z).h};} // on the fissure

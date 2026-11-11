@@ -18,7 +18,7 @@ or a biome; every item is a mechanism the geology already has, and every species
   the crab.
 - **Land is the extreme case** (one founder to thirty species across islands: the silverswords), and it is not this doc.
 - **What a swimmer actually notices is habitat, not the species list.** The giant has rivers, a shelf, reef, a cloud top and a dry lee; the
-  young shield has black flows, no shelf and fresh sulfidic rock; ours has the drowning terraces, the lagoon, the pit and the chimney; the
+  young shield has black flows, no shelf and fresh sulfidic rock; ours has the drowning terraces, the lagoon and the chimney (the pit struck v11.95); the
   sill has deep relict ground. "This shore is all black rock and encrusters" reads long before a different crab does.
 
 ## 2. Flora
@@ -86,7 +86,7 @@ Every item has a mechanism and a job for the life. Struck things (arches, the ma
 
 ### Volcanic and hydrothermal
 
-- **Pit craters along the rift**, not only the one. A collapse pit is a cylinder with a flat floor and vertical walls: a sheltered bowl with its
+- **Struck 10 Nov 2026 (DEEP.md §8): an extinct rift keeps no open pit.** Pit craters along the rift, not only the one. A collapse pit is a cylinder with a flat floor and vertical walls: a sheltered bowl with its
   own water.
 - **Diffuse warm-vent fields** away from the chimney: low-temperature seeps through fresh rock, marked by rust mats and shimmer, no chimneys.
   Cheap, and they dot the young shield.

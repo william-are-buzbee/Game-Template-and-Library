@@ -90,7 +90,7 @@ stages the way the fabricator opens on blueprints.
 - **The base is a den.** Real: a ringmouth's crevice with a midden wall, then a garden (damselfish farm patches; octopuses keep
   gardens), then a pen of live prey; a hingeshell burrows; a slowblood holds a territory round a crevice. Heal, store, hide the clutch,
   return at night and on the spring flood. It escalates with mass and the clade's intelligence and never needs a wrench.
-- **What is at the bottom:** the constructing species. The deep-line ringmouths as the clever clade's clever end — arranged things at
+- **What is at the bottom:** (10 Nov 2026: its address is the rim of the basin 28 km west, its structures first — DEEP.md §6.) the constructing species. The deep-line ringmouths as the clever clade's clever end — arranged things at
   the rim that should not be arranged, a veil that lets them near. Never explained. The abyssal the guard, the seep line the corridor,
   the symbiont the key, the reward a sight. The person: "cool".
 - **Events by physics, not scripts** (the person: "just correct, things that will eventually be in the project"): a veil's carcass
