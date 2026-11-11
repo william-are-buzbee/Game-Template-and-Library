@@ -7,7 +7,7 @@ cairns; chunks.js the boulders' rim boost; far.js the cairns' loop. Ours is no l
 185,761 samples moved, all within 130 m of the pit, the ground and the nine fields identical elsewhere, the landmarks unmoved. Seen: the
 map before and after (test/preview/pit_*.png) and the real build over the place in headless Chromium (three.js r128 from npm: cdnjs is
 refused here) — the shelf's sand, weed and boulders, nothing to mark it. test/audio.js's closed place is the caldera now, test/snow.js's
-chemocline column the open floor east of ours. **Ask first** whether the rift arm reads right where the shaft was. The deep's design is
+chemocline column the open floor east of ours. The person's look (11 Nov 2026, over the old centre at 22 m, the readout's 120 fps): "seems fine from what I can tell". The deep's design is
 DEEP.md (the person's answers in §10, the patterns in the sediment left out); next, its build's step 2: the oxygen field and `chemoAt`.
 
 **v11.94 (10 Nov 2026): the region as a plume's history** (GLOBE.md §9.1; §7–10 are the design and the person's answers). `src/region.js`

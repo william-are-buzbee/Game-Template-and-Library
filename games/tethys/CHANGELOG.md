@@ -6273,6 +6273,6 @@ unbroken); the real build in headless Chromium with three.js r128 from npm (cdnj
 `tp` over the old centre at 12 and 14 m: the shelf's sand, weed tufts and boulders, nothing that marks the place; no page error but pointer
 lock's, which needs a real click.
 
-**Unseen, ask in this order:** whether the rift arm reads as ordinary shelf where the shaft was, in the person's own play; that nothing they
-relied on stood there (the pit was the dark inside the square: below −450 is now only the lower flank and the floor, until DEEP's step 2
+The person's look (11 Nov 2026), over the old centre at 22 m: "seems fine from what I can tell" — the shelf, the weed, a slowblood
+going by, 120 fps. **Unseen:** that nothing they relied on stood there (the pit was the dark inside the square: below −450 is now only the lower flank and the floor, until DEEP's step 2
 re-homes the dark).
