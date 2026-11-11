@@ -1,5 +1,9 @@
 # HANDOFF — tethys
 
+**v11.114 (11 Nov 2026): no false land where banks meet.** The records' smooth max filled the meeting of two banks' lagoons up to +90 m —
+361 km² of plateau in the ±70.5 km world, ~4,000 over the province, that the model has not got. The fill now stops at −20 (`FILL_TOP`); ours and
+the old square's land are untouched. **Ask first** whether anything seen east of ours changed. Next: the growth.
+
 **v11.113 (11 Nov 2026): the horizon by sight, the flood over frames, the particles on the render origin** (GLOBE §10.1, the province,
 step 2 of 3). The horizon builds a member once its top could stand above the camera's horizon (from the water at ours 6 of 35); the basins'
 flood is sampled a slice a frame from the menu on; the snow, debris and blood keep doubles and hand the GPU copies against the render origin,

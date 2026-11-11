@@ -6880,3 +6880,26 @@ once or held world numbers in float32. Invisible today: the world is still ±70.
 Seen: the suite; headless, the shelf at −8 m 420 m east of ours (the snow and shafts), and from the water 3.3 km off ours the giant on the
 horizon, built from the queue. **Unseen:** a far member coming in as you climb (a leap, a summit); the rain after a long swim; frame time on
 the GPU (the CPU's per frame unchanged in node).
+
+## v11.114 — no false land where banks meet (11 Nov 2026)
+
+Found on the province's map while building the growth: brown plateaus inside the banks east of ours, land the region model has not got.
+`sample()` blends overlapping records by `smax` with `BASIN.knee` (200 m), which fills the corner where two grounds meet by up to a quarter of
+the knee — meant for the sediment apron in a saddle between two flanks on the deep floor (v11.58, v11.102). Where two banks' lagoons met at −20
+it filled them to +30, three to up to +90: in the ±70.5 km world 361 km² of plateau 20–90 m above the sea on coalesced banks — m109's 822 km²
+at 108 km east (in reach of the world's edge), m125's 280 at 55 km, m107's 382, m122's 126 by the old square's north-east corner — and over the
+province it would have been ~4,000 km². None of those members has land: each is a living reef at the sea with a lagoon at −20. In the game
+since v11.102 (in the old square's reach) and v11.106 (the world's).
+
+- **world.js `FILL_TOP` (−20) and `fillK(a, b)`:** where two records meet, the knee shrinks so the fill never rises past a bank's lagoon floor
+  (top + k/4 ≤ `FILL_TOP`); above it the grounds meet at their plain max, the highest record's own. A meeting deeper than −70 is as before.
+  `sample()`'s skip of a record that cannot raise the ground stays exact (the knee only shrinks).
+- **What moved:** over ±70.5 km at 200 m, 2.3% of places, every one lower, by up to 78 m; land 2,137 → 1,776 km² (each bank keeps its rim's
+  crest, a few metres). In the old square 2.8 km² of a shallow saddle between the 308 m island's shelf, the atoll 8 km north (m139) and the
+  drowned atoll (m131), −70 … −12, now up to 17 m lower; its land, ours and everything within 10 km of ours identical. The horizon mesh 604k → 396k
+  triangles (33 members with land, from 35).
+- **test/region.js:** above `FILL_TOP` the ground is the highest record's own at every place at 400 m over the world (18,537); v11.113 fails it at
+  2,741 places, the worst 78 m.
+
+Seen: the identity above; the suite. **Unseen, ask in this order:** whether anything you have looked at east of ours changed (m122's plateau
+was 40 km north-east, perhaps on the horizon from a summit); the shallow saddle north of ours in play.

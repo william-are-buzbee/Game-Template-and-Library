@@ -39,7 +39,10 @@ and the whole world; the archipelago is more records. **The land term** (v11.62,
 does not fall into a void but goes on down the seamount's flank — the slope ramps with no crease from the apron's 5.7° to 16.7° over 250 m
 (`FLANK_S0`, `FLANK_W`), eases to 12.4° between 600 and 2600 m beyond the toe (`FLANK_S1`, `FLANK_A/B`), ribbed ±15% by sector — −320 at the
 old square's edge on an axis, ~−580 at a corner. **The floor** (v11.58, PLANET The basin; world.js `BASIN`, `smax` in util.js; the model's since v11.102, region.js `rgFloor`):
-past r 2400 the flank meets the floor through a 200 m knee — `smax`, exact past the knee, so nothing inside the old square changes; the floor is
+past r 2400 the flank meets the floor through a 200 m knee — `smax`, exact past the knee, so nothing inside the old square changes (two
+records meet through the same knee, a saddle's sediment fill; since v11.114 the fill stops at `FILL_TOP` −20, a bank's lagoon floor — `fillK`
+shrinks the knee so the corner never rises past it, and above it two grounds meet at their plain max: to v11.113 coalesced banks' lagoons met
+at up to +90, ~360 km² of plateau in the ±70.5 km world that no member of the model has); the floor is
 the model's (the plateau, the swell, every load's moat: −1100 beside ours by the pin, −1730 in the awesome shield's moat at the north-west
 corner, −820 at the south-west) with abyssal hills ±60 m at ~1.5 km; the seamount effect (`nut`'s upwelling, the current's wake) is every
 record's, each fading over its own `fade` (ours rw 3–6 km), blended (The region, below). To v11.101 the floor was a flat −1100 and a hand-built
