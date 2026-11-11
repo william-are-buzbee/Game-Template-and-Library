@@ -30,7 +30,7 @@ const HZ_SEA_MAT=hzMat(HZ_VS_HEAD+'void main(){vec4 wp=modelMatrix*vec4(position
   'vec3 col=vec3(0.07,0.23,0.30)*dl*0.22*(1.0-R)*uHzSea.z+skyLite(Rw)*R+vec3(0.04,0.14,0.22)*dl*(1.0-a)*uHzSea.y;col=fogAir(col,uFogC,rd,d,1.0);gl_FragColor=vec4(dithering(col),1.0);}'); // the surface's topside rule at its far end (atmosphere.js SURF_MAT: the Fresnel weight on the mean normal, the sky reflected at R, the body at uBody 0.22 of the rest) and, since the surface is a transparent mesh whose alpha a = uBody+R-uBody·R leaves the rest of the pixel to the water column beneath, the column as a dark blue at (1-a): without it the disc stood a shade lighter than the surface's far end from any height (v11.65). At grazing R → the ceiling: the sky a few degrees up, darker than the horizon's band — the sea line
 HZ_SEA_MAT.uniforms.uHzSea=HZ_SEA_U;
 // the extent: the world's square with its apron, and every island record's land or rim with a margin
-function hzExtent(){let x0=-WHALF-2000,x1=WHALF+2000,z0=-WHALF-2000,z1=WHALF+2000;for(const R of ISLANDS){const r=((R.land?R.land.r:R.rimR||0)+3000)*R.sc;x0=Math.min(x0,R.x-r);x1=Math.max(x1,R.x+r);z0=Math.min(z0,R.z-r);z1=Math.max(z1,R.z+r);}return [x0,x1,z0,z1];}
+function hzExtent(){let x0=WX0-2000,x1=WX1+2000,z0=WZ0-2000,z1=WZ1+2000;for(const R of ISLANDS){const r=((R.land?R.land.r:R.rimR||0)+3000)*R.sc;x0=Math.min(x0,R.x-r);x1=Math.max(x1,R.x+r);z0=Math.min(z0,R.z-r);z1=Math.max(z1,R.z+r);}return [x0,x1,z0,z1];}
 // v11.102: the box grew with the model's records (111 × 98 km for seed 32, against the square's 56) and most of it is open sea, so the mesh is no
 // longer sampled whole. A coarse pass at HZ_C·Q.hz, only inside some record's land, rim or cone, finds the cells that can hold something over
 // HZ_CUT — a corner over it, or a reef's rim through it (a ring narrower than the coarse step) — and only those are sampled at Q.hz; the rest
@@ -44,43 +44,54 @@ const HZ_C=4,HZ_MS=6;
 // point sampled for both, so they meet exactly; the cells, their quads and their vertices are v11.102's, and the union is its one mesh
 // triangle for triangle (test/horizon.js). Each mesh is culled by its own sphere, widened by HZ_DROP for the curvature's drop.
 const HZ_DROP=4000; // m: the most the vertex shader lowers a point a camera in the world can see (~200 km off: d²/2R ≈ 3.1 km), on each mesh's bounding sphere
-function* hzGen(cx0,cz0){const E=hzExtent(),S=Q.hz,C=S*HZ_C,x0=E[0],z0=E[2],nx=Math.ceil((E[1]-x0)/S)+1,nz=Math.ceil((E[3]-z0)/S)+1,cx=Math.ceil((nx-1)/HZ_C),cz=Math.ceil((nz-1)/HZ_C),t0=performance.now();
+// v11.113 (GLOBE §10.1, the province): the members are built as they come into sight, not all at the first surfacing. HZ is the lattice and every
+// member's top, fixed by hzSetup at the first build; hzWatch, each frame above the water, queues the members whose top the camera could see
+// from its height (hzSight: the two horizon distances, 3.57 km·√h each way, and the top's own radius) nearest first; hzStep builds them one at a
+// time (hzMember), each with its own sample caches, so a province's members cost what is near and nothing is kept of the samples. hzGen(cx, cz)
+// builds every member nearest first, as v11.109–112 did at the first surfacing (test/horizon.js).
+let HZ=null,hzG=null;
+function hzSetup(){if(HZ)return HZ;const E=hzExtent(),S=Q.hz,C=S*HZ_C,x0=E[0],z0=E[2],nx=Math.ceil((E[1]-x0)/S)+1,nz=Math.ceil((E[3]-z0)/S)+1;
   // what can stand over HZ_CUT is inside a record's land, rim or cone (its radius warped +16%, and a coarse cell's diagonal): only those cells
   // (v11.107: and a bare summit over the sea, to its terraces' foot — the low island m150, 50 m, the first record with no land or rim above water)
-  // are sampled at all; of them, a cell is live with a corner over the cut or a rim through it
-  const tops=ISLANDS.map(R=>({x:R.x,z:R.z,t:((R.land?R.land.r:R.rimR!==undefined?R.rimR+R.rimW:R.h0>0&&R.terr?R.terr.r1:0)*1.16+(R.isle?2000:0))*R.sc+C*0.75,r:(R.rimR||0)*R.sc,w:(R.rimW||0)*R.sc+C,id:R.id})).filter(q=>q.t>C*0.75);
+  // are sampled at all; of them, a cell is live with a corner over the cut or a rim through it. h: the top's height for its sight (v11.113)
+  const tops=ISLANDS.map(R=>({x:R.x,z:R.z,t:((R.land?R.land.r:R.rimR!==undefined?R.rimR+R.rimW:R.h0>0&&R.terr?R.terr.r1:0)*1.16+(R.isle?2000:0))*R.sc+C*0.75,r:(R.rimR||0)*R.sc,w:(R.rimW||0)*R.sc+C,id:R.id,
+    h:R.land?R.land.h:R.rimR!==undefined?(R.rimH||0)+6:R.h0+(R.knob||0)})).filter(q=>q.t>C*0.75);
+  HZ={S,C,x0,z0,nx,nz,cx:Math.ceil((nx-1)/HZ_C),cz:Math.ceil((nz-1)/HZ_C),tops,built:new Set(),queue:[],n:{cells:0,v:0,t:0,ms:0}};return HZ;}
+function hzSight(q,cy){return 3570*(Math.sqrt(Math.max(cy,2))+Math.sqrt(Math.max(q.h,1)))+q.t;} // m: how far off the member's top can stand above the camera's horizon
+function hzWatch(x,y,z){const H=hzSetup();let added=false;for(const q of H.tops){if(H.built.has(q)||q.queued)continue;if(Math.hypot(q.x-x,q.z-z)<hzSight(q,y)){q.queued=true;H.queue.push(q);added=true;}}
+  if(added)H.queue.sort((a,b)=>(Math.hypot(a.x-x,a.z-z)-a.t)-(Math.hypot(b.x-x,b.z-z)-b.t));}
+function* hzMember(m){const H=hzSetup(),{S,C,x0,z0,nx,nz,cx,cz,tops}=H,t0=performance.now();let tq=t0;
   const CH=new Map(),cH=(i,j)=>{const k=j*(cx+1)+i;let h=CH.get(k);if(h===undefined){h=sample(x0+i*C,z0+j*C).h;CH.set(k,h);}return h;};
-  const H=new Map(),hAt=(i,j)=>{const k=j*nx+i;let h=H.get(k);if(h===undefined){h=sample(x0+i*S,z0+j*S).h;H.set(k,h);}return h;};
-  const cT=new Float32Array(3),f=new Float32Array(NF),order=tops.slice().sort((a,b)=>(Math.hypot(a.x-cx0,a.z-cz0)-a.t)-(Math.hypot(b.x-cx0,b.z-cz0)-b.t));
-  let nl=0,nv=0,nt=0,tq=performance.now();
-  for(const m of order){
-    const cells=[],i0=Math.max(0,Math.floor((m.x-m.t-x0)/C)),i1=Math.min(cx-1,Math.floor((m.x+m.t-x0)/C)),j0=Math.max(0,Math.floor((m.z-m.t-z0)/C)),j1=Math.min(cz-1,Math.floor((m.z+m.t-z0)/C));
-    for(let j=j0;j<=j1;j++){for(let i=i0;i<=i1;i++){const mx=x0+(i+0.5)*C,mz=z0+(j+0.5)*C;let own=null,bu=2,rim=false;
-        for(const q of tops){const d=Math.hypot(mx-q.x,mz-q.z);if(d<q.t){const u=d/q.t;if(u<bu){bu=u;own=q;}if(q.r>0&&Math.abs(d-q.r)<q.w)rim=true;}}
-        if(own!==m)continue;if(rim||Math.max(cH(i,j),cH(i+1,j),cH(i,j+1),cH(i+1,j+1))>HZ_CUT)cells.push(i,j);}
-      if(performance.now()-tq>HZ_MS){yield;tq=performance.now();}}
-    const keep=new Map(),pos=[],col=[],nrm=[],idx=[],li=Math.round((m.x-x0)/S),lj=Math.round((m.z-z0)/S),[ox,oz]=originOf(x0+li*S,z0+lj*S),OL=ORIGIN.on; // v11.110: the mesh at a lattice point by the member, its vertices whole steps from it
-    const use=(i,j)=>{const k=j*nx+i;let v=keep.get(k);if(v!==undefined)return v;const x=x0+i*S,z=z0+j*S,h=sample(x,z,f).h;
-      const gx=(hAt(Math.min(i+1,nx-1),j)-hAt(Math.max(i-1,0),j))/(2*S),gz=(hAt(i,Math.min(j+1,nz-1))-hAt(i,Math.max(j-1,0)))/(2*S),sl=Math.sqrt(gx*gx+gz*gz),L=Math.sqrt(gx*gx+1+gz*gz);
-      terrainColor(x,z,h,fixF(f,sl),sl,cT,0);v=pos.length/3;pos.push(OL?(i-li)*S:x,h,OL?(j-lj)*S:z);col.push(cT[0],cT[1],cT[2]);nrm.push(-gx/L,1/L,-gz/L);keep.set(k,v);return v;};
-    for(let c=0;c<cells.length;c+=2){const ci=cells[c],cj=cells[c+1];
-      for(let j=cj*HZ_C;j<Math.min((cj+1)*HZ_C,nz-1);j++)for(let i=ci*HZ_C;i<Math.min((ci+1)*HZ_C,nx-1);i++){if(hAt(i,j)<HZ_CUT&&hAt(i+1,j)<HZ_CUT&&hAt(i,j+1)<HZ_CUT&&hAt(i+1,j+1)<HZ_CUT)continue;const A=use(i,j),B=use(i+1,j),Cc=use(i,j+1),D=use(i+1,j+1);idx.push(A,Cc,B,B,Cc,D);} // a→b along +x, a→c along +z, the far layer's winding
-      if(performance.now()-tq>HZ_MS){yield;tq=performance.now();}}
-    nl+=cells.length/2;if(!idx.length)continue;
-    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(nrm,3));g.setIndex(idx);
-    g.computeBoundingSphere();if(g.boundingSphere)g.boundingSphere.radius+=HZ_DROP;
-    const mesh=new THREE.Mesh(g,HZ_TERRAIN_MAT);mesh.name=m.id;mesh.position.set(ox,0,oz);hzLand.add(mesh);nv+=pos.length/3;nt+=idx.length/3;}
-  console.log('horizon: '+nx+'×'+nz+' at '+S+' m, '+nl+' coarse cells live of '+(cx*cz)+', '+hzLand.children.length+' members, '+(CH.size+H.size)+' samples, '+nv+' vertices, '+nt+' triangles, '+(performance.now()-t0).toFixed(0)+' ms over the frames');}
+  const HH=new Map(),hAt=(i,j)=>{const k=j*nx+i;let h=HH.get(k);if(h===undefined){h=sample(x0+i*S,z0+j*S).h;HH.set(k,h);}return h;};
+  const cT=new Float32Array(3),f=new Float32Array(NF);
+  const cells=[],i0=Math.max(0,Math.floor((m.x-m.t-x0)/C)),i1=Math.min(cx-1,Math.floor((m.x+m.t-x0)/C)),j0=Math.max(0,Math.floor((m.z-m.t-z0)/C)),j1=Math.min(cz-1,Math.floor((m.z+m.t-z0)/C));
+  for(let j=j0;j<=j1;j++){for(let i=i0;i<=i1;i++){const mx=x0+(i+0.5)*C,mz=z0+(j+0.5)*C;let own=null,bu=2,rim=false;
+      for(const q of tops){const d=Math.hypot(mx-q.x,mz-q.z);if(d<q.t){const u=d/q.t;if(u<bu){bu=u;own=q;}if(q.r>0&&Math.abs(d-q.r)<q.w)rim=true;}}
+      if(own!==m)continue;if(rim||Math.max(cH(i,j),cH(i+1,j),cH(i,j+1),cH(i+1,j+1))>HZ_CUT)cells.push(i,j);}
+    if(performance.now()-tq>HZ_MS){yield;tq=performance.now();}}
+  const keep=new Map(),pos=[],col=[],nrm=[],idx=[],li=Math.round((m.x-x0)/S),lj=Math.round((m.z-z0)/S),[ox,oz]=originOf(x0+li*S,z0+lj*S),OL=ORIGIN.on; // v11.110: the mesh at a lattice point by the member, its vertices whole steps from it
+  const use=(i,j)=>{const k=j*nx+i;let v=keep.get(k);if(v!==undefined)return v;const x=x0+i*S,z=z0+j*S,h=sample(x,z,f).h;
+    const gx=(hAt(Math.min(i+1,nx-1),j)-hAt(Math.max(i-1,0),j))/(2*S),gz=(hAt(i,Math.min(j+1,nz-1))-hAt(i,Math.max(j-1,0)))/(2*S),sl=Math.sqrt(gx*gx+gz*gz),L=Math.sqrt(gx*gx+1+gz*gz);
+    terrainColor(x,z,h,fixF(f,sl),sl,cT,0);v=pos.length/3;pos.push(OL?(i-li)*S:x,h,OL?(j-lj)*S:z);col.push(cT[0],cT[1],cT[2]);nrm.push(-gx/L,1/L,-gz/L);keep.set(k,v);return v;};
+  for(let c=0;c<cells.length;c+=2){const ci=cells[c],cj=cells[c+1];
+    for(let j=cj*HZ_C;j<Math.min((cj+1)*HZ_C,nz-1);j++)for(let i=ci*HZ_C;i<Math.min((ci+1)*HZ_C,nx-1);i++){if(hAt(i,j)<HZ_CUT&&hAt(i+1,j)<HZ_CUT&&hAt(i,j+1)<HZ_CUT&&hAt(i+1,j+1)<HZ_CUT)continue;const A=use(i,j),B=use(i+1,j),Cc=use(i,j+1),D=use(i+1,j+1);idx.push(A,Cc,B,B,Cc,D);} // a→b along +x, a→c along +z, the far layer's winding
+    if(performance.now()-tq>HZ_MS){yield;tq=performance.now();}}
+  H.built.add(m);H.n.cells+=cells.length/2;H.n.ms+=performance.now()-t0;if(!idx.length)return;
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(nrm,3));g.setIndex(idx);
+  g.computeBoundingSphere();if(g.boundingSphere)g.boundingSphere.radius+=HZ_DROP;
+  const mesh=new THREE.Mesh(g,HZ_TERRAIN_MAT);mesh.name=m.id;mesh.position.set(ox,0,oz);hzLand.add(mesh);H.n.v+=pos.length/3;H.n.t+=idx.length/3;}
+function* hzGen(cx0,cz0){const H=hzSetup(),order=H.tops.slice().sort((a,b)=>(Math.hypot(a.x-cx0,a.z-cz0)-a.t)-(Math.hypot(b.x-cx0,b.z-cz0)-b.t));
+  for(const m of order)yield* hzMember(m);
+  console.log('horizon: '+H.nx+'×'+H.nz+' at '+H.S+' m, '+H.n.cells+' coarse cells live, '+hzLand.children.length+' members, '+H.n.v+' vertices, '+H.n.t+' triangles, '+H.n.ms.toFixed(0)+' ms');}
 // the sea disc: rings from HZ_SEA0·FAR to HZ_FAR, spaced by a power so the near rings are fine, about the camera each frame (the drop is the shader's)
 function hzSeaBuild(){const K=18,NS=96,r0=FAR*HZ_SEA0,p=[],c=[],ix=[];for(let k=0;k<=K;k++){const r=r0*Math.pow(HZ_FAR/r0,k/K);for(let s=0;s<NS;s++){const a=s/NS*TAU;p.push(Math.cos(a)*r,0,Math.sin(a)*r);c.push(1,1,1);}}
   for(let k=0;k<K;k++)for(let s=0;s<NS;s++){const a=k*NS+s,b=k*NS+(s+1)%NS,cc=a+NS,d=b+NS;ix.push(a,cc,b,b,cc,d);}
   const sgm=new THREE.BufferGeometry();sgm.setAttribute('position',new THREE.Float32BufferAttribute(p,3));sgm.setAttribute('color',new THREE.Float32BufferAttribute(c,3));sgm.setIndex(ix);hzSea=new THREE.Mesh(sgm,HZ_SEA_MAT);hzSea.frustumCulled=false;hzScene.add(hzSea);}
-let hzG=null;
-function hzStep(){if(!hzG)return;const t0=performance.now();try{while(performance.now()-t0<HZ_MS){if(hzG.next().done){hzG=null;break;}}}catch(e){hzG=null;console.warn('the horizon tier could not build: '+e.message);}}
+function hzStep(){if(!HZ)return;const t0=performance.now();try{while(performance.now()-t0<HZ_MS){if(!hzG){const q=HZ.queue.shift();if(!q)return;q.queued=false;if(HZ.built.has(q))continue;hzG=hzMember(q);}if(hzG.next().done)hzG=null;}}catch(e){hzG=null;console.warn('the horizon tier could not build: '+e.message);}} // the queue's members one at a time, HZ_MS a frame (v11.113)
 // the frame's render (main.js): above the water the horizon pass first, then the world over it with the depth cleared; below, the world alone
 function renderFrame(){const above=wasAbove===true&&!!renderer.clearDepth;
-  if(above&&!hzTried){hzTried=true;try{hzSeaBuild();hzG=hzGen(camera.position.x,camera.position.z);}catch(e){console.warn('the horizon tier could not build: '+e.message);}}
-  if(above)hzStep();
+  if(above&&!hzTried){hzTried=true;try{hzSeaBuild();hzSetup();}catch(e){console.warn('the horizon tier could not build: '+e.message);}}
+  if(above&&HZ){hzWatch(camera.position.x,camera.position.y,camera.position.z);hzStep();}
   if(above&&hzSea){if(sky.parent!==hzScene)hzScene.add(sky);
     hzCam.position.copy(camera.position);hzCam.quaternion.copy(camera.quaternion);if(hzCam.fov!==camera.fov||hzCam.aspect!==camera.aspect){hzCam.fov=camera.fov;hzCam.aspect=camera.aspect;hzCam.updateProjectionMatrix();}hzCam.updateMatrixWorld();
     hzSea.position.set(camera.position.x,TIDE,camera.position.z);

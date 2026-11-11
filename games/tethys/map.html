@@ -29,7 +29,7 @@ textarea{height:90px}
 <h1>tethys — the map</h1>
 <div class="small">drag to pan, wheel to zoom. drag an island's centre to move it, its land ring to resize it. n adds an island where the mouse is, delete removes the selected one. the islands the game already has (world.js ISLANDS) show as "built" with their reach ring; the yellow ones are the plan.</div>
 <h2>the world</h2>
-<div class="row"><label>cells a side (GRIDN, ÷4)</label><input type="number" id="ncell" step="4" min="16" value="656"></div>
+<div class="row"><label>cells a side (a square proposal, ÷4)</label><input type="number" id="ncell" step="4" min="16" value="656"></div>
 <div class="row"><label>cell (m)</label><input type="number" id="cell" value="215" disabled></div>
 <div id="worldStat" class="small"></div>
 <h2>planned islands</h2>
@@ -65,7 +65,7 @@ const cv=document.getElementById('cv'),ctx=cv.getContext('2d'),side=document.get
 const $=id=>document.getElementById(id);
 const BASIN_H=typeof BASIN==='object'?BASIN.h:-1100,R_PLANET=6371000; // the basin floor for the foot; an Earth-sized planet for the horizon (PLANET: 1 g)
 // ---------- the view ----------
-let view={cx:0,cz:0,span:2*WHALF*1.15}; // metres; span is the canvas's width in metres
+let view={cx:(WX0+WX1)/2,cz:(WZ0+WZ1)/2,span:Math.max(WX1-WX0,WZ1-WZ0)*1.15}; // metres; span is the canvas's width in metres
 let W=800,H=600;
 function fit(){W=cv.clientWidth;H=cv.clientHeight;cv.width=W;cv.height=H;base=null;schedule();}
 const mpp=()=>view.span/W;
@@ -122,10 +122,10 @@ function draw(){ctx.fillStyle='#0b1020';ctx.fillRect(0,0,W,H);
   if(base){const b=base.view,s=mpp()/(b.span/W); // the base picture, re-placed for the current view while a fresh one renders
     const [bx,by]=toPx(b.cx-b.span/2,b.cz-b.span/2*H/W);ctx.imageSmoothingEnabled=base.sc>1||s!==1;ctx.drawImage(base.cv,bx,by,W/s,H/s);}
   ctx.lineWidth=1;ctx.font='11px monospace';
-  const n=+$('ncell').value||GRIDN,half=n*CELL/2;
+  const n=+$('ncell').value||656,half=n*CELL/2;
   if(view.span<40000&&n<=200){ctx.strokeStyle='rgba(120,140,170,0.18)';ctx.beginPath();for(let k=0;k<=n;k+=4){const v=-half+k*CELL;let a=toPx(v,-half),b=toPx(v,half);ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);a=toPx(-half,v);b=toPx(half,v);ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);}ctx.stroke();}
-  rect(-WHALF+25,-WHALF+25,WHALF-25,WHALF-25,'rgba(200,200,200,0.7)',[6,6]);text(-WHALF+25,-WHALF+25,'the world now, '+(2*WHALF/1000).toFixed(1)+' km','rgba(200,200,200,0.9)',4,-6);rect(-HALF,-HALF,HALF,HALF,'rgba(200,200,200,0.4)',[2,6]);text(-HALF,-HALF,'the old square, '+(2*HALF/1000).toFixed(1)+' km','rgba(200,200,200,0.6)',4,-6);
-  if(n*CELL/2!==WHALF){rect(-half,-half,half,half,'rgba(240,220,120,0.8)',[10,6]);text(-half,-half,'proposed world, '+(n*CELL/1000).toFixed(1)+' km','#f0dc78',4,-6);}
+  rect(WX0+25,WZ0+25,WX1-25,WZ1-25,'rgba(200,200,200,0.7)',[6,6]);text(WX0+25,WZ0+25,'the world now, '+((WX1-WX0)/1000).toFixed(1)+' × '+((WZ1-WZ0)/1000).toFixed(1)+' km','rgba(200,200,200,0.9)',4,-6);rect(-HALF,-HALF,HALF,HALF,'rgba(200,200,200,0.4)',[2,6]);text(-HALF,-HALF,'the old square, '+(2*HALF/1000).toFixed(1)+' km','rgba(200,200,200,0.6)',4,-6);
+  if(n!==656){rect(-half,-half,half,half,'rgba(240,220,120,0.8)',[10,6]);text(-half,-half,'proposed world, '+(n*CELL/1000).toFixed(1)+' km','#f0dc78',4,-6);}
   rect(-1720,-1720,1720,1720,'#f0d060',[4,4]);
   for(const k in LM){if(k==='all')continue;const p=LM[k];ring(p.x,p.z,Math.max(60,3*mpp()),'#f0f0e6');text(p.x,p.z,k+' '+Math.round(p.h),'#f0f0e6',7,-4);}
   ring(ISLE.x,ISLE.z,120,'#f0f0e6');
@@ -163,9 +163,9 @@ $('ncell').addEventListener('input',()=>{save();list();draw();});
 $('copyPlan').onclick=()=>{outMode='plan';output();$('out').select();try{navigator.clipboard.writeText($('out').value);}catch(e){}};
 $('copyJson').onclick=()=>{outMode='json';output();$('out').select();try{navigator.clipboard.writeText($('out').value);}catch(e){}};
 $('load').onclick=()=>{try{const o=JSON.parse($('out').value);if(Array.isArray(o.plan)){plan=o.plan.map(I=>({name:String(I.name||'island'),x:+I.x||0,z:+I.z||0,land:+I.land||2000,summit:+I.summit||200,slope:+I.slope||12}));if(o.ncell)$('ncell').value=o.ncell;sel=-1;save();list();draw();}}catch(e){$('hint').textContent='that was not the map\'s json';}};
-$('fit').onclick=()=>{view={cx:0,cz:0,span:2*WHALF*1.15};draw();schedule();};
+$('fit').onclick=()=>{view={cx:(WX0+WX1)/2,cz:(WZ0+WZ1)/2,span:Math.max(WX1-WX0,WZ1-WZ0)*1.15};draw();schedule();};
 $('isl').onclick=()=>{view={cx:0,cz:0,span:4400};draw();schedule();};
-$('all').onclick=()=>{let r=WHALF;for(const I of plan)r=Math.max(r,Math.hypot(I.x,I.z)+foot(I));view={cx:0,cz:0,span:r*2.2};draw();schedule();};
+$('all').onclick=()=>{let r=Math.max(-WX0,WX1,-WZ0,WZ1);for(const I of plan)r=Math.max(r,Math.hypot(I.x,I.z)+foot(I));view={cx:0,cz:0,span:r*2.2};draw();schedule();};
 addEventListener('resize',fit);
 load();fit();list();
 })();

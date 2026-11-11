@@ -1,8 +1,18 @@
 # HANDOFF — tethys
 
+**v11.113 (11 Nov 2026): the horizon by sight, the flood over frames, the particles on the render origin** (GLOBE §10.1, the province,
+step 2 of 3). The horizon builds a member once its top could stand above the camera's horizon (from the water at ours 6 of 35); the basins'
+flood is sampled a slice a frame from the menu on; the snow, debris and blood keep doubles and hand the GPU copies against the render origin,
+which now follows the camera. Invisible at ±70.5 km. **Ask first** whether the far land arrives when climbing (a leap, a summit). Next: the
+growth.
+
+**v11.112 (11 Nov 2026): the world as a rectangle; the ledger's patches censused near the player** (GLOBE §10.1, the province, step 1
+of 3). The province is lopsided (69 km west of ours to 300 km east), so the world's bounds are per axis (`WORLD`, `WX0`…`WZ1`) — still ±70.5 km,
+nothing moves — and the coarse patches are censused within 40 km of the player and as it travels. Next: the horizon by sight, the flood over
+frames, the particles on the render origin; then the growth.
+
 **v11.111 (11 Nov 2026): the cell hash** (GLOBE §10.1, step 3 of 3 — the engine work before the province done). Every table of cells
-is a `Map` by `ckey(i, j)`; none is the world's size. Invisible: the same cells, regions and contents as v11.110 (test/cells.js). Next, the
-province itself, whose list is in GLOBE §10.1 (the bounds lifted, the ledger's patches, the horizon streaming, the particles, the flood).
+is a `Map` by `ckey(i, j)`; none is the world's size. Invisible: the same cells, regions and contents as v11.110 (test/cells.js).
 
 **v11.110 (11 Nov 2026): local origins** (GLOBE §10.1, step 2 of 3). Every mesh that held world coordinates is local to its own corner and
 placed there (cells, far regions, horizon members); the flora pools against a render origin that re-snaps every 4 km. Invisible: the world

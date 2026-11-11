@@ -151,7 +151,7 @@ function poolSnap(px,pz){if(!ORIGIN.on||(Math.abs(px-ORIGIN.x)<ORIGIN.snap&&Math
 // a cell's or a region's group at its corner (ORIGIN.on), and an instanced mesh's translations made local from the doubles they came from
 function originOf(x0,z0){return ORIGIN.on?[x0,z0]:[0,0];}
 function instLocal(im,list,ox,oz,get){const a=im.instanceMatrix.array;for(let i=0;i<list.length;i++){const e=get(list[i]).elements;a[i*16+12]=e[12]-ox;a[i*16+14]=e[14]-oz;}}
-const POOL_SPHERE=new THREE.Sphere(new THREE.Vector3(0,0,0),WHALF*2+2000);
+const POOL_SPHERE=new THREE.Sphere(new THREE.Vector3(0,0,0),2*Math.max(-WX0,WX1,-WZ0,WZ1)+2000);
 function poolFor(f,geo,mat,vars,cur){let P=POOLS.get(f);if(P)return P;P={f:f,src:geo,mat:mat,vars:!!vars,cur:cur,cap:0,n:0,nVis:0,blocks:[],geo:null,im:null};poolAlloc(P,Math.max(64,Math.round((f.per||60)*Q.flora*12)));POOLS.set(f,P);return P;}
 function poolAlloc(P,cap){ // the pool's mesh at capacity cap, what is written carried over; the old geometry disposed
   const old=P.im,g=P.src.clone();
@@ -447,7 +447,7 @@ function unloadChunk(ch){
 }
 let activeGen=null,activeKey=null;
 function manageChunks(budgetMs){
-  const t0=performance.now();poolSnap(player.pos.x,player.pos.z); // the pools' render origin follows the player (v11.110)
+  const t0=performance.now();poolSnap(camera.position.x,camera.position.z); // the render origin follows the camera (v11.110; v11.113 the camera, not the player: the GPU's numbers matter round the eye)
   const ci=cellOf(player.pos.x),cj=cellOf(player.pos.z);
   for(const ch of chunks.values())if(Math.max(Math.abs(ch.i-ci),Math.abs(ch.j-cj))>LOAD_R+1){unloadChunk(ch);break;} // one a frame (v11.12): crossing a cell line used to drop a whole column at once — forty creatures and two dozen geometries each
   if(!activeGen){

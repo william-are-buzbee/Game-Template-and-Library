@@ -11,7 +11,7 @@ const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n'
 let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n');
 if(HALFW){const a='const WM_HALF=CELL*120,';if(!js.includes(a))throw new Error('scene.js WM_HALF not as expected');js=js.replace(a,'const WM_HALF=CELL*60,');}
 js+='\nglobal.__M={get I0(){return WM_I0;},get J0(){return WM_J0;},get shifts(){return wmShifts;},get gen(){return wmGen;},WM_O,WM_A,WM_N,WM_HALF,WM_MOVE,get WM_T(){return WM_T;},wmRaw,fmRaw,wfRaw,pgRaw,pfRaw,WM_DATA,FM_DATA,'
-  +'wmSample,wmFloor,wmWave,wmBloom,wmAt,WM_R,sample,waterColor,waveEnergy,plankTexel,FM_SCALE,HALF,WHALF,player,cellsAround,tp:(x,z)=>{player.pos.set(x,dispY,z);cellsAround();}};';
+  +'wmSample,wmFloor,wmWave,wmBloom,wmAt,WM_R,sample,waterColor,waveEnergy,plankTexel,FM_SCALE,HALF,WX0,WX1,WZ0,WZ1,player,cellsAround,tp:(x,z)=>{player.pos.set(x,dispY,z);cellsAround();}};';
 const tmp=path.join(os.tmpdir(),'tethys_maps'+(HALFW?'_half':'')+'.js');fs.writeFileSync(tmp,'(function(){"use strict";\n'+js+'\n})();');
 process.env.PICK='1';require('./stub.js');require(tmp);
 const M=__M;let fails=0;const ok=(c,m)=>{console.log((c?'  ok   ':'  FAIL ')+m);if(!c)fails++;};
@@ -23,7 +23,7 @@ if(!HALFW){
   {let bad=0;for(let k=0;k<4000;k++){const x=-M.HALF+2*M.HALF*((k*0.6180339887)%1),z=-M.HALF+2*M.HALF*((k*0.4142135624)%1),u=(x+M.HALF)/M.WM_T-0.5,v=(z+M.HALF)/M.WM_T-0.5,i0=Math.min(Math.max(Math.floor(u),0),M.WM_N-1),j0=Math.min(Math.max(Math.floor(v),0),M.WM_N-1);
     M.wmAt(x,z);if(M.WM_R[0]!==i0||M.WM_R[1]!==j0||!Object.is(M.WM_R[2],Math.min(Math.max(u-i0,0),1))||!Object.is(M.WM_R[3],Math.min(Math.max(v-j0,0),1)))bad++;}
     ok(bad===0,`a read's texel and weights at boot are v11.103's to the bit at 4000 places (wmAt against (x + HALF)/WM_T − 0.5: ${bad} differ)`);}
-  ok(M.WM_MOVE&&M.WHALF>M.WM_HALF,'and it moves: the world is wider than it (WHALF '+M.WHALF+', WM_HALF '+M.WM_HALF+')');
+  ok(M.WM_MOVE&&M.WX1-M.WX0>2*M.WM_HALF,'and it moves: the world is wider than it ('+(M.WX1-M.WX0)+' m across, the window '+2*M.WM_HALF+')');
   // a swim 36 km out (a teleport): the window follows by whole regions; reads in both windows, far from the regions built at either end, unchanged
   const Q=[];for(let x=8000;x<=22000;x+=2000)for(let z=-22000;z<=2000;z+=3000)Q.push([x,z]);const b0=Q.map(([x,z])=>reads(x,z));
   M.tp(30000,-20000);__step(200);

@@ -11,7 +11,7 @@ const ROOT=path.join(__dirname,'..'),OFF=process.env.ORIGINS==='off';
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
 let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n');
 if(OFF){const a='const ORIGIN={on:true,';if(!js.includes(a))throw new Error('chunks.js ORIGIN not as expected');js=js.replace(a,'const ORIGIN={on:false,');}
-js+='\nglobal.__O={ORIGIN,chunks,POOLS,poolGroup,farList,player,cellsAround,CELL,FR,tp:(x,z)=>{player.pos.set(x,dispY,z);cellsAround();}};';
+js+='\nglobal.__O={ORIGIN,chunks,POOLS,poolGroup,farList,player,cellsAround,CELL,FR,pp,ppG,plankton,fxP,fxPG,fxPts,blP,blPG,blood,plU,camera,tp:(x,z)=>{player.pos.set(x,dispY,z);camera.position.set(x-6,dispY+3,z-6);cellsAround();}};'; // the camera with the player, as main.js tp puts it (the render origin follows the camera, v11.113)
 const tmp=path.join(os.tmpdir(),'tethys_origins'+(OFF?'_off':'')+'.js');fs.writeFileSync(tmp,'(function(){"use strict";\n'+js+'\n})();');
 process.env.PICK='1';require('./stub.js');require(tmp);const O=__O;
 // the world positions, in doubles: a mesh's vertices and an instanced mesh's translations, each plus its parents' places
@@ -26,6 +26,10 @@ function dump(){const D={},L={cell:0,reg:0,pool:0};
   for(const r of O.farList){const key='r'+r.ri+','+r.rj;r.group.children.forEach((m,q)=>{if(m.isInstancedMesh)D[key+':i'+q]=Array.from(insts(m));else if(m.geometry){D[key+':t']=Array.from(verts(m));L.reg=Math.max(L.reg,big(m.geometry.attributes.position.array));}});}
   return {D,L,origin:[O.ORIGIN.x,O.ORIGIN.z]};}
 __step(240);const A=dump();O.tp(30000,-20000);__step(240);const B=dump();
+// v11.113: the snow, the debris and the blood — simulations in doubles, the GPU's copies against the render origin, the points placed there
+const parts=()=>{let worst=0,big=0,placed=true,n=0;for(const [sim,gpu,obj] of [[O.pp,O.ppG,O.plankton],[O.fxP,O.fxPG,O.fxPts],[O.blP,O.blPG,O.blood]]){if(obj.visible&&(obj.position.x!==O.ORIGIN.x||obj.position.z!==O.ORIGIN.z))placed=false; /* a hidden one (no debris or blood alive) is placed when it next draws */
+  for(let k=0;k<sim.length;k+=3){if(sim[k+1]<-5000||Math.hypot(sim[k]-O.camera.position.x,sim[k+2]-O.camera.position.z)>2000)continue; /* the points that can be seen: a teleport leaves some 30 km back until they are reseeded */n++;worst=Math.max(worst,Math.abs(sim[k]-(gpu[k]+O.ORIGIN.x)),Math.abs(sim[k+2]-(gpu[k+2]+O.ORIGIN.z)));big=Math.max(big,Math.abs(gpu[k]),Math.abs(gpu[k+2]));}}return {worst,big,placed,n};};
+const PB=parts();
 if(OFF){fs.writeFileSync(process.env.ORIGINS_OUT,JSON.stringify({A,B}));process.exit(0);}
 let fails=0;const ok=(c,m)=>{console.log((c?'  ok   ':'  FAIL ')+m);if(!c)fails++;};
 console.log('origins: as built against world coordinates (ORIGIN.on false, a child run)');
@@ -37,4 +41,5 @@ const cmp=(X,Y,tag)=>{let keys=0,vals=0,bad=0,worst=0,lenBad=0;const kinds={c:0,
 cmp(A,W.A,'at ours');cmp(B,W.B,'36 km out, the render origin re-snapped');
 ok(A.origin[0]===0&&A.origin[1]===0&&Math.abs(B.origin[0]-30000)<=O.ORIGIN.grid&&Math.abs(B.origin[1]+20000)<=O.ORIGIN.grid,`the pools' render origin: (${A.origin}) at ours, (${B.origin}) after the swim`);
 ok(A.L.cell<=O.CELL+1e-6&&B.L.cell<=O.CELL+1e-6&&A.L.reg<O.FR*O.CELL+2100&&B.L.reg<O.FR*O.CELL+2100&&A.L.pool<O.ORIGIN.snap+3000&&B.L.pool<O.ORIGIN.snap+3000,`the local numbers small: a cell's to ${Math.max(A.L.cell,B.L.cell).toFixed(0)} m, a region's to ${Math.max(A.L.reg,B.L.reg).toFixed(0)}, a pool's to ${Math.max(A.L.pool,B.L.pool).toFixed(0)} (to v11.109 the world's, ${Math.max(W.A.L.cell,W.B.L.cell).toFixed(0)} at 36 km)`);
+ok(PB.placed&&PB.n>100&&PB.worst<0.01&&PB.big<3000,`the snow, debris and blood 36 km out: the points at the render origin, the ${PB.n} within 2 km of the camera within ${PB.big.toFixed(0)} m of it, the doubles their copy's to ${(PB.worst*1000).toFixed(2)} mm (to v11.112 float32 at 36 km: 3.9 mm a step)`);
 console.log(fails?`origins: ${fails} FAILED`:'origins: ok');process.exit(fails?1:0);

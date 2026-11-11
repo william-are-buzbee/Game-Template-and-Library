@@ -8,7 +8,7 @@ const util=fs.readFileSync(path.join(root,'vendor/wb-core.global.js'),'utf8')+'\
 let world=fs.readFileSync(path.join(root,'src/world.js'),'utf8');const cut=world.indexOf('// ---------- the light');if(cut>0)world=world.slice(0,cut); // the geology and the fields (test/map.js's cut)
 const region=fs.readFileSync(path.join(root,'src/region.js'),'utf8');
 const THREE={Vector3:class{constructor(x,y,z){this.x=x;this.y=y;this.z=z;}},Matrix4:class{},Quaternion:class{}};
-const G=new Function('THREE',util+'\n'+world+'\n'+region+'\nreturn {sample,HALF,WHALF,FI,ISLANDS,REGION_K,REGION_PINS,RG_STATE,regionModel,regionGrid,regionBasins,regionSeen,rgKei,rgSea,rgTrack,OXY,chemoAt,chemoD,oxyAt,underChemo,chemoB:()=>CHEMO_B,apronAt,apronR,RG_BUILT,rgFloor,BASIN,islandH};')(THREE);
+const G=new Function('THREE',util+'\n'+world+'\n'+region+'\nreturn {sample,HALF,WX0,WX1,WZ0,WZ1,FI,ISLANDS,REGION_K,REGION_PINS,RG_STATE,regionModel,regionGrid,regionBasins,regionSeen,rgKei,rgSea,rgTrack,OXY,chemoAt,chemoD,oxyAt,underChemo,chemoB:()=>CHEMO_B,apronAt,apronR,RG_BUILT,rgFloor,BASIN,islandH};')(THREE);
 let fails=0;const ok=(c,msg)=>{console.log((c?'  ok   ':'  FAIL ')+msg);if(!c)fails++;};
 console.log('region: the pieces');
 // kei(x) (A&S Table 9.12): 1 → −0.494991, 2 → −0.202400, 3 → −0.051123, 4 → +0.002198; the table is kei/kei(0), kei(0) = −π/4
@@ -38,19 +38,19 @@ const span=520e3,n=260,x0=-140e3,z0=-260e3,t1=Date.now(),H=G.regionGrid(R,x0,z0,
 let fin=true,under=0;for(let k=0;k<n*n;k++){if(!Number.isFinite(H[k]))fin=false;if(B.F[k]<H[k]-1e-3)under++;}
 ok(fin,`${n}² heights, all finite`);ok(under===0,'the flood\'s fill is never under the ground');
 let edge=true;for(let i=0;i<n;i++)for(const k of [i,(n-1)*n+i,i*n,i*n+n-1])if(B.F[k]!==H[k])edge=false;ok(edge,'the grid\'s edge is the open ocean: its fill is its ground');
-const f9=new Float32Array(9),Hg=G.regionGrid(R,x0,z0,span,n,(x,z)=>G.sample(x,z,f9).h,G.WHALF),ci=Math.floor((6000-x0)/(span/n)),cj=Math.floor(-z0/(span/n));
+const f9=new Float32Array(9),Hg=G.regionGrid(R,x0,z0,span,n,(x,z)=>G.sample(x,z,f9).h,[G.WX0,G.WX1,G.WZ0,G.WZ1]),ci=Math.floor((6000-x0)/(span/n)),cj=Math.floor(-z0/(span/n));
 ok(Math.abs(Hg[cj*n+ci]-G.sample(6000+0.5*span/n-((6000-x0)%(span/n)),0.5*span/n-(-z0%(span/n)),f9).h)<1,'inside the game\'s world the grid is the game\'s own ground');
 console.log('region: the game\'s own water (v11.96, DEEP §2, §9)');
 // the basins of the game's own ground (v11.102: the model's members in it; v11.106: the world's, ±WHALF): those silled by region.js's rule
-const t4=Date.now();G.chemoAt(0,0);const CB=G.chemoB(),silled=CB.B.filter(b=>b.silled),bXZ=b=>[CB.x0+(b.cx+0.5)*CB.G,CB.x0+(b.cz+0.5)*CB.G];
-console.log(`  the world's ground at ${CB.G} m (${CB.n}², ${Date.now()-t4} ms): ${CB.B.length} hollows and lagoons, ${silled.length} silled by region.js's rule: `+silled.map(b=>{const p=bXZ(b);return `${b.area.toFixed(0)} km² behind ${b.sill.toFixed(0)} at ${(p[0]/1000).toFixed(1)}, ${(p[1]/1000).toFixed(1)} km (nut ${b.nut.toFixed(2)}, food over oxygen ${b.D.toFixed(2)})`;}).join('; '));
+const t4=Date.now();G.chemoAt(0,0);const CB=G.chemoB(),silled=CB.B.filter(b=>b.silled),bXZ=b=>[CB.x0+(b.cx+0.5)*CB.G,CB.z0+(b.cz+0.5)*CB.G];
+console.log(`  the world's ground at ${CB.G} m (${CB.nx}×${CB.nz}, ${Date.now()-t4} ms): ${CB.B.length} hollows and lagoons, ${silled.length} silled by region.js's rule: `+silled.map(b=>{const p=bXZ(b);return `${b.area.toFixed(0)} km² behind ${b.sill.toFixed(0)} at ${(p[0]/1000).toFixed(1)}, ${(p[1]/1000).toFixed(1)} km (nut ${b.nut.toFixed(2)}, food over oxygen ${b.D.toFixed(2)})`;}).join('; '));
 // v11.108 (the person, 11 Nov 2026: "believability is the deciding factor"): a silled basin's still water goes anoxic only when the food raining
 // onto its sill outweighs the oxygen its inflow brings (world.js chemoD, OXY.anox). The rule against Earth's basins on the game's profile, then
 // the world: the moat round ours and the basin 28 km west are one silled water behind −999 (v11.106) — oxic; no basin in the world is anoxic
 const E=[['Cariaco',-146,0.6,true],['Santa Barbara',-475,0.5,true],['Santa Monica',-740,0.5,false],['San Clemente',-1800,0.3,false]];
 ok(E.every(([n,sl,nu,an])=>(G.chemoD(sl,nu)>=1)===an),'the rule on Earth\'s basins: '+E.map(([n,sl,nu])=>n+' '+G.chemoD(sl,nu).toFixed(2)).join(', ')+' (anoxic at 1: the first two are, the last two are not)');
-const labAt=(x,z)=>{const i=Math.floor((x-CB.x0)/CB.G),j=Math.floor((z-CB.x0)/CB.G);return CB.lab[j*CB.n+i];},mo=CB.B[labAt(6000,0)];
-let west=false;if(mo)for(let k=0;k<CB.n*CB.n;k++)if(CB.lab[k]===mo.id&&CB.x0+(k%CB.n+0.5)*CB.G<-30000){west=true;break;}
+const labAt=(x,z)=>{const i=Math.floor((x-CB.x0)/CB.G),j=Math.floor((z-CB.z0)/CB.G);return CB.lab[j*CB.nx+i];},mo=CB.B[labAt(6000,0)];
+let west=false;if(mo)for(let k=0;k<CB.nx*CB.nz;k++)if(CB.lab[k]===mo.id&&CB.x0+(k%CB.nx+0.5)*CB.G<-30000){west=true;break;}
 ok(mo&&mo.silled&&mo.sill<-990&&mo.sill>-1010&&mo.area>500&&west&&!mo.anox&&mo.D<0.5,`the floor east of ours is in a silled basin — ${mo?mo.area.toFixed(0):'-'} km² behind ${mo?mo.sill.toFixed(1):'-'}, the moat joined to the basin 28 km west — and it is oxic: its food over its oxygen ${mo?mo.D.toFixed(2):'-'} (open water, nut ${mo?mo.nut.toFixed(2):'-'}, the sill deep)`);
 ok(silled.every(b=>!b.anox)&&CB.ch.every(c=>c===null),`no basin in the world is anoxic (the nearest ${Math.max(...silled.map(b=>b.D)).toFixed(2)}): no chemocline anywhere`);
 const spots=[[0,0,'ours'],[6000,0,'the floor east'],[-15400,9200,'the giant'],[-400,-11100,'the drowned atoll north'],[20000,20000,'a far corner'],[-27900,-5100,'the basin west']];
@@ -80,8 +80,8 @@ ok(aw&&G.apronR(aw,aw.fade[1]+11000)>0&&G.apronR(aw,aw.fade[1]+11200)===0,'the a
   ok(ap>deep/2&&none>0,`the square's floor under -700: ${(100*ap/deep).toFixed(0)}% apron (the archipelago's debris), ${(100*none/deep).toFixed(0)}% open floor beyond every apron`);}
 // the records (v11.102, GLOBE §8 step 5): every member whose ground reaches the world, the buried struck, ours and the giant unchanged inside their cores
 const RB=G.RG_BUILT;ok(RB.recs.length>=15&&RB.recs.every(r=>Number.isFinite(r.reach)&&r.hi&&r.hi.length>0&&r.an),`${RB.recs.length} of the model's members are records (${RB.recs.map(r=>r.id+' '+r.state).join(', ')}), each with its bound and its angular tables`);
-{const inB=(r,w)=>Math.max(Math.abs(r.x),Math.abs(r.z))-r.reach<w,o=RB.recs.slice(0,RB.n0),w=RB.recs.slice(RB.n0); // v11.106: the old square's first, as v11.102 built them, then the world's
-  ok(RB.n0===20&&o.every(r=>inB(r,G.HALF+2000))&&w.every(r=>inB(r,G.WHALF+2000)&&!inB(r,G.HALF+2000)),`the first ${RB.n0} reach the old square (v11.102's, in its order), the ${w.length} after them the world alone (±${(G.WHALF/1000).toFixed(1)} km): ${w.map(r=>r.id+' '+r.state).join(', ')}`);}
+{const inB=(r,w)=>typeof w==='number'?Math.max(Math.abs(r.x),Math.abs(r.z))-r.reach<w:r.x+r.reach>w[0]&&r.x-r.reach<w[1]&&r.z+r.reach>w[2]&&r.z-r.reach<w[3],o=RB.recs.slice(0,RB.n0),w=RB.recs.slice(RB.n0); // v11.106: the old square's first, as v11.102 built them, then the world's
+  ok(RB.n0===20&&o.every(r=>inB(r,G.HALF+2000))&&w.every(r=>inB(r,[G.WX0-2000,G.WX1+2000,G.WZ0-2000,G.WZ1+2000])&&!inB(r,G.HALF+2000)),`the first ${RB.n0} reach the old square (v11.102's, in its order), the ${w.length} after them the world alone (x ${(G.WX0/1000).toFixed(1)}…${(G.WX1/1000).toFixed(1)}, z ${(G.WZ0/1000).toFixed(1)}…${(G.WZ1/1000).toFixed(1)} km): ${w.map(r=>r.id+' '+r.state).join(', ')}`);}
 ok(RB.struck.every(q=>RB.recs.some(r=>r.id===q.by)||q.by==='home'||q.by==='giant'),`${RB.struck.length} struck as inside another's ground: `+RB.struck.map(q=>q.id+' in '+q.by).join(', '));
 {let bad=0;const f9b=new Float32Array(9);for(const R of RB.recs)for(let r=0;r<R.reach;r+=97)for(let k=0;k<12;k++){const a=k/12*Math.PI*2+r*0.01,x=R.x+Math.cos(a)*r,z=R.z+Math.sin(a)*r,I={};G.islandH(R,x,z,I);if(I.h>R.hi[Math.min(R.hi.length-1,Math.floor(r/R.hiS))]||I.hs>R.hi[Math.min(R.hi.length-1,Math.floor(r/R.hiS))])bad++;}
   ok(bad===0,`every record's ground stays under its bound table (world.js sample skips by it): ${bad} over`);}

@@ -8,10 +8,10 @@ const fs=require('fs'),path=require('path'),os=require('os');
 const ROOT=path.join(__dirname,'..'),ONE=process.env.HZ==='one';
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
 let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n');
-const P=[['for(const m of order){','for(const m of [order[0]]){'],['const cells=[],i0=Math.max(0,Math.floor((m.x-m.t-x0)/C)),i1=Math.min(cx-1,Math.floor((m.x+m.t-x0)/C)),j0=Math.max(0,Math.floor((m.z-m.t-z0)/C)),j1=Math.min(cz-1,Math.floor((m.z+m.t-z0)/C));','const cells=[],i0=0,i1=cx-1,j0=0,j1=cz-1;'],['if(own!==m)continue;','if(!own)continue;']];
+const P=[['for(const m of order)yield* hzMember(m);','yield* hzMember(order[0]);'],['const cells=[],i0=Math.max(0,Math.floor((m.x-m.t-x0)/C)),i1=Math.min(cx-1,Math.floor((m.x+m.t-x0)/C)),j0=Math.max(0,Math.floor((m.z-m.t-z0)/C)),j1=Math.min(cz-1,Math.floor((m.z+m.t-z0)/C));','const cells=[],i0=0,i1=cx-1,j0=0,j1=cz-1;'],['if(own!==m)continue;','if(!own)continue;']];
 let fails=0;const ok=(c,m)=>{console.log((c?'  ok   ':'  FAIL ')+m);if(!c)fails++;};
 function build(one){let src=js;if(one)for(const [a,b] of P){if(!src.includes(a))throw new Error('horizon.js not as expected: '+a.slice(0,50));src=src.replace(a,b);}
-  src+='\nglobal.__HZ'+(one?1:0)+'={run(x,z){const g=hzGen(x,z);let n=0;for(;;){const r=g.next();n++;if(r.done)break;}return {land:hzLand,steps:n};},ISLANDS,Q};';
+  src+='\nglobal.__HZ'+(one?1:0)+'={run(x,z){const g=hzGen(x,z);let n=0;for(;;){const r=g.next();n++;if(r.done)break;}return {land:hzLand,steps:n};},watch:(x,y,z)=>{const H=hzSetup();H.built.clear();H.queue.length=0;for(const q of H.tops)q.queued=false;hzWatch(x,y,z);return H.queue.map(q=>q.id);},sight:(id,y)=>{const q=hzSetup().tops.find(t=>t.id===id);return q?hzSight(q,y):null;},ISLANDS,Q};';
   const tmp=path.join(os.tmpdir(),'tethys_horizon'+(one?'_one':'')+'.js');fs.writeFileSync(tmp,'(function(){"use strict";\n'+src+'\n})();');require(tmp);return global['__HZ'+(one?1:0)];}
 process.env.PICK='1';require('./stub.js');
 const tris=land=>{const out=[];for(const m of land.children){const p=m.geometry.attributes.position.array,ix=m.geometry.index.array||m.geometry.index,o=m.position;const k=v=>(o.x+p[3*v]).toFixed(4)+','+p[3*v+1]+','+(o.z+p[3*v+2]).toFixed(4); // the world's position (v11.110: each mesh local to a lattice point by it)
@@ -30,4 +30,8 @@ const R=n=>N.ISLANDS.find(q=>q.id===n),edge=m=>{const r=R(m.name);return Math.hy
 const names=rn.land.children.map(m=>m.name);ok(names[0]==='home'&&names.indexOf('giant')>=0&&names.indexOf('giant')<names.indexOf('m153'),`built nearest first from ours: ${names.slice(0,6).join(', ')} … (${names.length})`);
 {let cum=0,tot=0,at={};for(const m of rn.land.children)tot+=m.geometry.index.length/3;for(const m of rn.land.children){cum+=m.geometry.index.length/3;at[m.name]=cum/tot;} // the work by the triangles built (the stub's clock stands within a frame, so the build never yields here)
   ok(at.giant<0.1,`the giant's land done after ${(100*at.giant).toFixed(1)}% of the build's triangles, the 308 m island's after ${(100*at.m138).toFixed(1)}% (the awesome shield's after ${(100*at.m153).toFixed(0)}%)`);}
+// v11.113: by sight — from 2 m up at ours the queue holds the near land (the giant, the 308 m island, the awesome shield) and not the low
+// island 62 km west (50 m: ~30 km of sight from the water), which comes in from the awesome shield's summit
+{const q0=N.watch(0,2,0),low=N.sight('m150',2);ok(q0.includes('giant')&&q0.includes('m138')&&q0.includes('m153')&&!q0.includes('m150')&&low>25000&&low<40000,`by sight from the water at ours: ${q0.length} members queued, the giant first among the land (${q0.slice(0,4).join(', ')} …), the low island not (seen ${(low/1000).toFixed(0)} km off; it is 62)`);
+  const q1=N.watch(-30005,2500,-36615);ok(q1.includes('m150'),'from the awesome shield\'s summit (2.5 km up) the low island comes into sight: '+q1.length+' queued');}
 console.log(fails?`horizon: ${fails} FAILED`:'horizon: ok');process.exit(fails?1:0);

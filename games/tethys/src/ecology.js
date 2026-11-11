@@ -20,8 +20,8 @@ const ECO_STEP=3; // real seconds between ticks of the model
 // kept at the end of the fine tables, its count laid on them by each cell's own capacity (ecoSplit) — and merges back when the player has gone
 // (ecoMerge). A loaded cell is always fine. Every lookup by cell goes through ecoId(i, j) and ecoIJ(c); in the fine box they are the old
 // i*NCELL + j. The patches tile the world from cell GRID0 (ecoPI, ecoPJ, ecoPOf), 82² of them, 5,824 coarse round the box (v11.106).
-const ECO_FB={i0:0,j0:0,w:NCELL},PATCH=8,ECO_R=[2500,4000]; // the fine box; a patch's side in cells; split within, merge past (m from the player to the patch)
-const ECO_FINE=ECO_FB.w*ECO_FB.w,ECO_COARSE=ECO_FB.i0>GRID0||ECO_FB.j0>GRID0||ECO_FB.i0+ECO_FB.w<GRID0+GRIDN||ECO_FB.j0+ECO_FB.w<GRID0+GRIDN,ECO_SLOTS=ECO_COARSE?64:0;
+const ECO_FB={i0:0,j0:0,w:NCELL},PATCH=8,ECO_R=[2500,4000],ECO_PR=40000,ECO_PN=8; // the fine box; a patch's side in cells; split within, merge past (m from the player to the patch); ECO_PR (v11.112): the coarse patches censused — at boot those within it of the player, nearest first, and as the player travels ECO_PN a tick (ecoCensusNear); past it a patch waits uncensused and out of the model, its animals at their equilibrium until the player comes
+const ECO_FINE=ECO_FB.w*ECO_FB.w,ECO_COARSE=ECO_FB.i0>WORLD.i0||ECO_FB.j0>WORLD.j0||ECO_FB.i0+ECO_FB.w<WORLD.i1||ECO_FB.j0+ECO_FB.w<WORLD.j1,ECO_SLOTS=ECO_COARSE?64:0;
 const ECO_CELLS=ECO_FINE+ECO_SLOTS*PATCH*PATCH,DAY_S=DAY_H/CLOCK_RATE; // cells: the fine box's and the slots'; real seconds in a game day (2400)
 // the knobs (per game day unless said): r0 the birth rate at unit mass, m the natural death as a fraction of r, cyc the hunger
 // clock at unit mass (days from fed to starving), q0 a hunter's intake a day as a fraction of its own mass at unit mass (Earth's
@@ -52,13 +52,13 @@ const POP={n:[],k:[],ke:[],cd:[],ow:[],done:new Uint8Array(ECO_CELLS),byKind:{},
 // the cells by place and the places by cell (v11.105): ecoId(i, j) is a world cell's index in the ledger's fine tables, or -1 (off the world, or
 // in a coarse patch not split); ecoIJ(c) writes the world cell of index c into ECO_IJ. ECO_PT: the coarse patches — per entry n, k, ke, cd over
 // them, their census (done), whether each is outside the fine box (coarse), the slot it is split into (blk, -1 none) and each slot's patch (bp)
-const ECO_IJ=new Int32Array(2),ECO_PT={on:ECO_COARSE,nw:Math.ceil(GRIDN/PATCH),np:0,coarse:null,blk:null,bp:new Int32Array(ECO_SLOTS).fill(-1),free:[],n:[],k:[],ke:[],cd:[],rc:[],bref:[],done:null,cells:[],mark:[],B:{},T:{},D:[]};
-ECO_PT.np=ECO_PT.nw*ECO_PT.nw;
-function ecoPI(p){return GRID0+Math.floor(p/ECO_PT.nw)*PATCH;} // patch p's first cell (i); the patches tile the world from GRID0, a multiple of PATCH, so they sit on v11.105's
-function ecoPJ(p){return GRID0+(p%ECO_PT.nw)*PATCH;}
-function ecoPOf(i,j){return Math.floor((i-GRID0)/PATCH)*ECO_PT.nw+Math.floor((j-GRID0)/PATCH);} // the patch a world cell is in
+const ECO_IJ=new Int32Array(2),ECO_PT={on:ECO_COARSE,nx:Math.ceil((WORLD.i1-WORLD.i0)/PATCH),nz:Math.ceil((WORLD.j1-WORLD.j0)/PATCH),np:0,coarse:null,blk:null,bp:new Int32Array(ECO_SLOTS).fill(-1),free:[],n:[],k:[],ke:[],cd:[],rc:[],bref:[],done:null,cells:[],mark:[],B:{},T:{},D:[]};
+ECO_PT.np=ECO_PT.nx*ECO_PT.nz; // patch p is (⌊p/nz⌋, p mod nz) on the world's patch grid (v11.112: nx along i, nz along j; a square's nw to v11.111)
+function ecoPI(p){return WORLD.i0+Math.floor(p/ECO_PT.nz)*PATCH;} // patch p's first cell (i); the patches tile the world from its corner, a multiple of PATCH, so they sit on v11.105's
+function ecoPJ(p){return WORLD.j0+(p%ECO_PT.nz)*PATCH;}
+function ecoPOf(i,j){return Math.floor((i-WORLD.i0)/PATCH)*ECO_PT.nz+Math.floor((j-WORLD.j0)/PATCH);} // the patch a world cell is in
 function ecoId(i,j){const a=i-ECO_FB.i0,b=j-ECO_FB.j0;if(a>=0&&b>=0&&a<ECO_FB.w&&b<ECO_FB.w)return a*ECO_FB.w+b;return ecoIdOut(i,j);}
-function ecoIdOut(i,j){if(!ECO_PT.on||!gridIn(i,j))return -1;const s=ECO_PT.blk[ecoPOf(i,j)];return s<0?-1:ECO_FINE+s*64+((i-GRID0)%PATCH)*PATCH+((j-GRID0)%PATCH);}
+function ecoIdOut(i,j){if(!ECO_PT.on||!gridIn(i,j))return -1;const s=ECO_PT.blk[ecoPOf(i,j)];return s<0?-1:ECO_FINE+s*64+((i-WORLD.i0)%PATCH)*PATCH+((j-WORLD.j0)%PATCH);}
 function ecoIJ(c){if(c<ECO_FINE){ECO_IJ[0]=ECO_FB.i0+Math.floor(c/ECO_FB.w);ECO_IJ[1]=ECO_FB.j0+c%ECO_FB.w;}else{const s=(c-ECO_FINE)>>6,l=(c-ECO_FINE)&63,p=ECO_PT.bp[s];ECO_IJ[0]=ecoPI(p)+(l>>3);ECO_IJ[1]=ecoPJ(p)+(l&7);}return ECO_IJ;}
 // is ledger cell c loaded (the game's isLoaded for the model): its world cell's chunk (chunkGrid[c] itself to v11.105, while the box was the world)
 function ecoLoaded(c){ecoIJ(c);return !!chunkIJ(ECO_IJ[0],ECO_IJ[1]);}
@@ -100,7 +100,10 @@ function ecoCap(c,ch){
 }
 // the paper census of the unloaded world, 32 cells a step, run in the frame's gaps after boot (main.js); a cell that loads
 // first is done from its grid (chunks.js) and skipped here
-function* ecoGen(load){let fresh=!load;if(!load)for(let c=0;c<ECO_FINE;c++){if(!POP.done[c])ecoCap(c,null);if((c&31)===31)yield;}if(ECO_PT.on)for(let p=0;p<ECO_PT.np;p++){const P=ECO_PT;if(P.coarse[p]&&P.blk[p]<0){if(!P.done[p]){ecoPatchCap(p);fresh=true;}else if(!P.rt[p])ecoPatchCap(p,true);}if((p&3)===3)yield;}if(fresh)ecoSettle(ecoLoaded,load);} // v11.105: the fine box's cells (the slots are censused as they split), then the coarse patches, 4 a step (a patch is 256 samples); v11.106 (load: after a save, popLoad): the fine cells are the save's, a patch from it gets its hunters' tables back (they are not saved) and nothing else, one it lacks its census and the settle, the patches' alone // 32 cells a step since v11.58 (~1.3 ms; a cell is ~42 µs): the basin's 14,400 cells in eight seconds, not a minute
+function* ecoGen(load){let fresh=!load,n=0;if(!load)for(let c=0;c<ECO_FINE;c++){if(!POP.done[c])ecoCap(c,null);if((c&31)===31)yield;}
+  if(ECO_PT.on){const P=ECO_PT;if(load)for(let p=0;p<P.np;p++){if(P.coarse[p]&&P.blk[p]<0&&P.done[p]&&!P.rt[p]){ecoPatchCap(p,true);if((++n&3)===0)yield;}} // a save's patches: their hunters' tables back, nothing else
+    for(const p of ecoNear(player.pos.x,player.pos.z,ECO_PR)){ecoPatchCap(p);if(load)ecoPatchSettle(p);else fresh=true;if((++n&3)===0)yield;}} // the patches within ECO_PR, nearest first (v11.112; every one to v11.111)
+  if(fresh)ecoSettle(ecoLoaded,false);} // v11.105: the fine box's cells (the slots are censused as they split), then the coarse patches, 4 a step (a patch is 256 samples); v11.106 (load: after a save, popLoad): the fine cells are the save's, a patch from it gets its hunters' tables back (they are not saved) and nothing else, one it lacks (within ECO_PR) its census and its own settle (ecoPatchSettle, v11.112) // 32 cells a step since v11.58 (~1.3 ms; a cell is ~42 µs): the basin's 14,400 cells in eight seconds, not a minute
 // the census done, the hunters of the unloaded cells start at what their prey allows (ke, from one step of the model), not at the
 // envelope's full number — a ridge over a terrace with no grazers in reach was starving from the first day otherwise
 function ecoSettle(isLoaded,onlyP){ecoModel(1e-4,isLoaded);for(let ei=0;ei<SPAWN.length;ei++){if(!ecoOf(SPAWN[ei].kind).hunter)continue;const N=POP.n[ei],KE=POP.ke[ei],CL=POP.cells[ei];if(!onlyP)for(const c of CL)if(!isLoaded(c))N[c]=Math.min(N[c],KE[c]*0.8);
@@ -224,8 +227,8 @@ function* ecoPatchGen(dt){const P=ECO_PT;if(!P.on)return;const E=SPAWN.length,NP
       n=n+b-d;if(!K.hunter&&cap>0&&n>cap*1.25)n=cap*1.25;N[p]=Math.max(0,n);}
     yield;}
   for(let ei=0;ei<E;ei++){const K=ecoOf(SPAWN[ei].kind);if(!K.mortal)continue;const N=P.n[ei],Cp=K.hunter?P.ke[ei]:P.k[ei];let D=P.D[ei];if(!D)D=P.D[ei]=new Float32Array(NP);D.fill(0);
-    for(const p of P.cells[ei]){if(!live(p))continue;const n=N[p];if(n<0.02)continue;const pi=Math.floor(p/P.nw),pj=p%P.nw;let f=0;
-      for(let k=0;k<4;k++){const qi=k===0?pi-1:k===1?pi+1:pi,qj=k===2?pj-1:k===3?pj+1:pj;if(qi<0||qj<0||qi>=P.nw||qj>=P.nw)continue;const q=qi*P.nw+qj;if(!P.coarse[q]||!live(q))continue;
+    for(const p of P.cells[ei]){if(!live(p))continue;const n=N[p];if(n<0.02)continue;const pi=Math.floor(p/P.nz),pj=p%P.nz;let f=0;
+      for(let k=0;k<4;k++){const qi=k===0?pi-1:k===1?pi+1:pi,qj=k===2?pj-1:k===3?pj+1:pj;if(qi<0||qj<0||qi>=P.nx||qj>=P.nz)continue;const q=qi*P.nz+qj;if(!P.coarse[q]||!live(q))continue;
         const free=Cp[q]>0.05?Math.max(0,(Cp[q]-N[q])/Cp[q]):0;if(free>0){const m=ECO.mig/PATCH*(K.hunter?1+4*(1-P.cd[ei][p]):1)*dt*n*free*0.25;D[q]+=m;f+=m;}}D[p]-=f;}
     for(const p of P.cells[ei])N[p]=Math.max(0,N[p]+D[p]);yield;}
 }
@@ -246,10 +249,21 @@ function ecoPatchLoaded(p){const i0=ecoPI(p),j0=ecoPJ(p);for(let a=0;a<PATCH;a++
 function ecoPatchDist(p,px,pz){const W=PATCH*CELL,x0=ecoPI(p)*CELL-HALF,z0=ecoPJ(p)*CELL-HALF,dx=Math.max(x0-px,0,px-x0-W),dz=Math.max(z0-pz,0,pz-z0-W);return Math.sqrt(dx*dx+dz*dz);}
 function ecoMergeFarthest(){const P=ECO_PT;let best=-1,bd=-1;for(let s=0;s<ECO_SLOTS;s++){const p=P.bp[s];if(p<0||ecoPatchLoaded(p))continue;const d=ecoPatchDist(p,player.pos.x,player.pos.z);if(d>bd){bd=d;best=p;}}if(best>=0)ecoMerge(best);}
 // the bubble, every tick: the split patches the player has left merge, and the nearest coarse patch within ECO_R[0] splits (one a tick: ~10 ms)
+// the coarse patches within R of (px, pz) not yet censused, nearest first (v11.112)
+function ecoNear(px,pz,R){const P=ECO_PT,W=PATCH*CELL,L=[];if(!P.on)return L;const a0=Math.max(0,Math.floor((px-WX0-R)/W)),a1=Math.min(P.nx-1,Math.floor((px-WX0+R)/W)),b0=Math.max(0,Math.floor((pz-WZ0-R)/W)),b1=Math.min(P.nz-1,Math.floor((pz-WZ0+R)/W));
+  for(let a=a0;a<=a1;a++)for(let b=b0;b<=b1;b++){const p=a*P.nz+b;if(!P.coarse[p]||P.done[p]||P.blk[p]>=0)continue;const d=ecoPatchDist(p,px,pz);if(d<=R)L.push([d,p]);}
+  L.sort((x,y)=>x[0]-y[0]);return L.map(q=>q[1]);}
+// a patch censused after the boot (v11.112): its hunters start at what its prey allows, as ecoSettle does at boot — the response off its own table
+// at its prey's biomass now, ke from it, the count no more than 0.8 of that
+function ecoPatchSettle(p){const P=ECO_PT,E=SPAWN.length;for(let ei=0;ei<E;ei++){const K=ecoOf(SPAWN[ei].kind);if(!K.hunter||!(P.k[ei][p]>0))continue;let Bt=0;
+    for(let x=0;x<E;x++)if(K.prey.indexOf(SPAWN[x].kind)>=0)Bt+=P.n[x][p]*ecoOf(SPAWN[x].kind).food;
+    const ke=P.k[ei][p]*(0.1+0.9*ecoPatchResp(ei,p,Bt));P.ke[ei][p]=ke;P.n[ei][p]=Math.min(P.n[ei][p],ke*0.8);}}
+// as the player travels: the nearest ECO_PN patches within ECO_PR not yet censused, censused and settled (each tick, once the boot's census is done)
+function ecoCensusNear(px,pz){if(!ECO_PT.on||POP.gen)return 0;const L=ecoNear(px,pz,ECO_PR);let n=0;for(const p of L){if(n>=ECO_PN)break;ecoPatchCap(p);ecoPatchSettle(p);n++;}return n;}
 function ecoBubble(px,pz){const P=ECO_PT;if(!P.on)return;
   for(let s=0;s<ECO_SLOTS;s++){const p=P.bp[s];if(p>=0&&ecoPatchDist(p,px,pz)>ECO_R[1]&&!ecoPatchLoaded(p))ecoMerge(p);}
-  const W=PATCH*CELL,a0=Math.floor((px+WHALF-ECO_R[0])/W),a1=Math.floor((px+WHALF+ECO_R[0])/W),b0=Math.floor((pz+WHALF-ECO_R[0])/W),b1=Math.floor((pz+WHALF+ECO_R[0])/W);let best=-1,bd=ECO_R[0];
-  for(let a=Math.max(0,a0);a<=Math.min(P.nw-1,a1);a++)for(let b=Math.max(0,b0);b<=Math.min(P.nw-1,b1);b++){const p=a*P.nw+b;if(!P.coarse[p]||P.blk[p]>=0)continue;const d=ecoPatchDist(p,px,pz);if(d<bd){bd=d;best=p;}}
+  const W=PATCH*CELL,a0=Math.floor((px-WX0-ECO_R[0])/W),a1=Math.floor((px-WX0+ECO_R[0])/W),b0=Math.floor((pz-WZ0-ECO_R[0])/W),b1=Math.floor((pz-WZ0+ECO_R[0])/W);let best=-1,bd=ECO_R[0];
+  for(let a=Math.max(0,a0);a<=Math.min(P.nx-1,a1);a++)for(let b=Math.max(0,b0);b<=Math.min(P.nz-1,b1);b++){const p=a*P.nz+b;if(!P.coarse[p]||P.blk[p]>=0)continue;const d=ecoPatchDist(p,px,pz);if(d<bd){bd=d;best=p;}}
   if(best>=0){if(!P.free.length)ecoMergeFarthest();ecoSplit(best);}}
 // ---------- the tick (main.js, once a frame) ----------
 // runs the model every ECO_STEP real seconds over the game hours that passed, then squares the loaded cells with the ledger: where the
@@ -260,7 +274,7 @@ const ECO_CNT=new Float32Array(64);
 function ecoTick(dt0){
   if(POP.gen){const r=POP.gen.next();if(r.done)POP.gen=null;}
   if(POP.model){if(!POP.model.next().done)return;POP.model=null;} // a piece of the model a frame, the reconcile when it is done
-  else{POP.acc+=dt0;if(POP.acc<ECO_STEP)return;fallsTick();const dtDays=(clockH-POP.last)/DAY_H;POP.acc=0;if(dtDays<=0)return;const use=Math.min(dtDays,ECO_MAX_STEP);POP.last=clockH-(dtDays-use)*DAY_H;ecoBubble(player.pos.x,player.pos.z);POP.model=ecoModelGen(use,ecoLoaded);return;}
+  else{POP.acc+=dt0;if(POP.acc<ECO_STEP)return;fallsTick();const dtDays=(clockH-POP.last)/DAY_H;POP.acc=0;if(dtDays<=0)return;const use=Math.min(dtDays,ECO_MAX_STEP);POP.last=clockH-(dtDays-use)*DAY_H;ecoBubble(player.pos.x,player.pos.z);ecoCensusNear(player.pos.x,player.pos.z);POP.model=ecoModelGen(use,ecoLoaded);return;}
   for(const ch of chunks.values()){const c=ecoId(ch.i,ch.j);if(c<0||!POP.done[c])continue;ECO_CNT.fill(0);for(const o of ch.creatures)if(o.alive&&o.ent>=0)ECO_CNT[o.ent]+=1;for(const g of ch.eggs)if(g.ent>=0)ECO_CNT[g.ent]+=g.n;
     for(let ei=0;ei<SPAWN.length;ei++){const e=SPAWN[ei],K=ecoOf(e.kind);if(!K.mortal)continue;
       const gap=POP.n[ei][c]*Q.creatures-ECO_CNT[ei],ow=POP.ow[ei][c]*Q.creatures,extra=Math.floor(gap+ow+1e-4); // the ledger's own shortfall (a reload rounded down, a creature wandered out) plus the births the cell has been owed since it loaded, both in animals the cell actually shows (Q.creatures)

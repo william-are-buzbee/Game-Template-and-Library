@@ -158,9 +158,10 @@ function updateInks(dt){for(let i=inks.length-1;i>=0;i--){const k=inks[i];k.t+=d
 const splashes=[];
 function splash(pos,v){
   const n=28,arr=new Float32Array(n*3),vel=new Float32Array(n*3),y0=waveH(pos.x,pos.z);
-  for(let i=0;i<n;i++){arr[i*3]=pos.x+rnd(-0.6,0.6);arr[i*3+1]=y0;arr[i*3+2]=pos.z+rnd(-0.6,0.6);vel[i*3]=rnd(-1,1)*v*0.35;vel[i*3+1]=rnd(0.4,1)*v*0.55;vel[i*3+2]=rnd(-1,1)*v*0.35;}
+  for(let i=0;i<n;i++){arr[i*3]=rnd(-0.6,0.6);arr[i*3+1]=y0;arr[i*3+2]=rnd(-0.6,0.6); // local to the splash's place, the points placed there (v11.113)
+    vel[i*3]=rnd(-1,1)*v*0.35;vel[i*3+1]=rnd(0.4,1)*v*0.55;vel[i*3+2]=rnd(-1,1)*v*0.35;}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(arr,3));
-  const pts=new THREE.Points(g,new THREE.PointsMaterial({color:0xe8f4f8,size:0.22,transparent:true,opacity:0.9,depthWrite:false}));pts.frustumCulled=false;pts.renderOrder=2;scene.add(pts); // over the surface: the spray is thrown above it
+  const pts=new THREE.Points(g,new THREE.PointsMaterial({color:0xe8f4f8,size:0.22,transparent:true,opacity:0.9,depthWrite:false}));pts.frustumCulled=false;pts.renderOrder=2;pts.position.set(pos.x,0,pos.z);scene.add(pts); // over the surface: the spray is thrown above it
   splashes.push({g:g,pts:pts,vel:vel,t:0,n:n,life:1.1,grav:1});
   // The residue (v11.46, WATER.md I): a foam patch on the water where the body crossed — an irregular ten-gon, growing over RES_T and fading, riding the
   // wave: white in the sky's light from above (RES_UP over the surface, drawn after it; hidden from below by the opaque underside's depth) and a grey patch
@@ -175,8 +176,8 @@ function splash(pos,v){
     const gg=new THREE.BufferGeometry();gg.setAttribute('position',new THREE.BufferAttribute(pa,3));gg.setIndex(idx);const mm=new THREE.Mesh(gg,new THREE.MeshBasicMaterial({color:new THREE.Color(0.92*K.tint[0]*lit,0.95*K.tint[1]*lit,0.95*K.tint[2]*lit),transparent:true,opacity:0.5,depthWrite:false,side:THREE.DoubleSide}));mm.renderOrder=1.5;mm.frustumCulled=false;mm.position.set(pos.x,y0+RES_UP+0.02,pos.z);mm.scale.set(r0,1,r0);scene.add(mm);return mm;})();
   residues.push({up:mk(RES_UP,0.90,0.93,0.93,1.5),dn:mk(-RES_DN,0.70,0.74,0.74,-0.5),ring:ring,x:pos.x,z:pos.z,r0:r0,t:0});
   if(residues.length>RES_N)dropRes(residues.shift());
-  const nb=20,ba=new Float32Array(nb*3),bv=new Float32Array(nb*3);for(let i=0;i<nb;i++){ba[i*3]=pos.x+rnd(-0.5,0.5);ba[i*3+1]=y0-rnd(0.3,1.8);ba[i*3+2]=pos.z+rnd(-0.5,0.5);bv[i*3]=rnd(-0.15,0.15);bv[i*3+1]=rnd(0.2,0.35);bv[i*3+2]=rnd(-0.15,0.15);}
-  const bg=new THREE.BufferGeometry();bg.setAttribute('position',new THREE.BufferAttribute(ba,3));const bp=new THREE.Points(bg,new THREE.PointsMaterial({color:0xdde8ec,size:0.07,transparent:true,opacity:0.5,depthWrite:false}));bp.frustumCulled=false;bp.renderOrder=0;scene.add(bp);
+  const nb=20,ba=new Float32Array(nb*3),bv=new Float32Array(nb*3);for(let i=0;i<nb;i++){ba[i*3]=rnd(-0.5,0.5);ba[i*3+1]=y0-rnd(0.3,1.8);ba[i*3+2]=rnd(-0.5,0.5);bv[i*3]=rnd(-0.15,0.15);bv[i*3+1]=rnd(0.2,0.35);bv[i*3+2]=rnd(-0.15,0.15);}
+  const bg=new THREE.BufferGeometry();bg.setAttribute('position',new THREE.BufferAttribute(ba,3));const bp=new THREE.Points(bg,new THREE.PointsMaterial({color:0xdde8ec,size:0.07,transparent:true,opacity:0.5,depthWrite:false}));bp.frustumCulled=false;bp.renderOrder=0;bp.position.set(pos.x,0,pos.z);scene.add(bp);
   splashes.push({g:bg,pts:bp,vel:bv,t:0,n:nb,life:4.0,grav:0,cap:y0-0.05});
 }
 const residues=[],RES_N=16,RES_T=6.0,RES_UP=0.06,RES_DN=0.10; // the patches alive at once; a patch's life (s); the foam's height over the wave and the grey patch's depth under it (clear of the surface's depth either side)
@@ -278,7 +279,7 @@ function updatePlayer(dt){
   P.onPad=pad;if(pad){P.grounded=true;loadPad(pad,clamp(0.6/pad.r,0.03,0.45));}
   // crossing the surface at speed throws spray
   const wet=sub>0.5;if(wet!==P.wet){P.wet=wet;const v=Math.abs(P.vel.y)+P.spd*0.3;if(v>2.5&&!P.dead){splash(P.pos,v);thump(clamp(v/14,0.15,0.6),260,40,null,2.5,0.3);}} // the spray's hiss over the slap
-  P.pos.x=clamp(P.pos.x,-WHALF+25,WHALF-25);P.pos.z=clamp(P.pos.z,-WHALF+25,WHALF-25); // the world's edge (±WHALF since v11.106)
+  P.pos.x=worldX(P.pos.x,25);P.pos.z=worldZ(P.pos.z,25); // the world's edge (±WHALF since v11.106, a rectangle since v11.112)
   P.g.position.copy(P.pos);P.g.updateMatrix();worldShapes(P); // the orientation was set above (faceQ), before the thrust read the body's axis
   playerGrab(!P.dead&&!P.withdrawn&&!!(keys.KeyR||mouseGrab||touchGrab),dt); // the grab (combat.js): held while the key is; last, with the shapes fresh (it uses the temps)
 }

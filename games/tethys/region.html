@@ -84,12 +84,12 @@ function compute(){$('busy').style.display='block';clearTimeout(busyT);busyT=set
   let x0=1e18,x1=-1e18,z0=1e18,z1=-1e18;const o={x:0,z:0},grow=(x,z,r)=>{x0=Math.min(x0,x-r);x1=Math.max(x1,x+r);z0=Math.min(z0,z-r);z1=Math.max(z1,z+r);};
   for(const m of R.M)grow(m.x,m.z,m.R);for(let t=0;t<=R.K.span;t+=0.5){R.track(t,o);grow(o.x,o.z,R.K.platW*1000);}
   const span=Math.max(x1-x0,z1-z0)+60e3,n=Math.round(Math.min(560,Math.max(240,span/1100)));win={x0:(x0+x1)/2-span/2,z0:(z0+z1)/2-span/2,span,n};
-  G=regionGrid(R,win.x0,win.z0,span,n,inner(),WHALF);Bs=regionBasins(G,n,span/n);img=shade(G,n,span/n,Bs.lab);detail=null;
+  G=regionGrid(R,win.x0,win.z0,span,n,inner(),[WX0,WX1,WZ0,WZ1]);Bs=regionBasins(G,n,span/n);img=shade(G,n,span/n,Bs.lab);detail=null;
   if(!view)view={cx:win.x0+span/2,cz:win.z0+span/2,span:span};
   R.ms=[t1-t0,performance.now()-t1];$('busy').style.display='none';summary();list();detailPanel();knobs();out();draw();},20);}
 function refine(){ // zoomed in: the view again at the screen's grain, once the wheel rests
   if(!R||!view||view.span>win.span*0.45){detail=null;draw();return;}const n=Math.round(Math.min(480,Math.max(160,W/2))),x0=view.cx-view.span/2,z0=view.cz-view.span/2;
-  const Hg=regionGrid(R,x0,z0,view.span,n,inner(),WHALF);detail={x0,z0,span:view.span,cv:shade(Hg,n,view.span/n,null),H:Hg,n};draw();}
+  const Hg=regionGrid(R,x0,z0,view.span,n,inner(),[WX0,WX1,WZ0,WZ1]);detail={x0,z0,span:view.span,cv:shade(Hg,n,view.span/n,null),H:Hg,n};draw();}
 let refT=0;const later=()=>{clearTimeout(refT);refT=setTimeout(refine,300);};
 const mpp=()=>view.span/W,toPx=(x,z)=>[(x-view.cx)/mpp()+W/2,(z-view.cz)/mpp()+H/2],toW=(px,py)=>[view.cx+(px-W/2)*mpp(),view.cz+(py-H/2)*mpp()];
 function fit(){W=cv.clientWidth;H=cv.clientHeight;cv.width=W;cv.height=H;draw();}
@@ -97,7 +97,7 @@ function draw(){ctx.fillStyle='#03050c';ctx.fillRect(0,0,W,H);if(!R)return;ctx.i
   const blit=(c,x0,z0,span)=>{const [a,b]=toPx(x0,z0);ctx.drawImage(c,a,b,span/mpp(),span/mpp());};
   blit(img,win.x0,win.z0,win.span);if(detail)blit(detail.cv,detail.x0,detail.z0,detail.span);
   // the game's square, the visibility from ours, the track and its ages, the plume now
-  let [a,b]=toPx(-WHALF,-WHALF);ctx.strokeStyle='rgba(240,208,96,0.9)';ctx.lineWidth=1.2;ctx.strokeRect(a,b,2*WHALF/mpp(),2*WHALF/mpp());[a,b]=toPx(-HALF,-HALF);ctx.strokeStyle='rgba(240,208,96,0.4)';ctx.strokeRect(a,b,2*HALF/mpp(),2*HALF/mpp()); // the game's world (±WHALF since v11.106), the old square faint
+  let [a,b]=toPx(WX0,WZ0);ctx.strokeStyle='rgba(240,208,96,0.9)';ctx.lineWidth=1.2;ctx.strokeRect(a,b,(WX1-WX0)/mpp(),(WZ1-WZ0)/mpp());[a,b]=toPx(-HALF,-HALF);ctx.strokeStyle='rgba(240,208,96,0.4)';ctx.strokeRect(a,b,2*HALF/mpp(),2*HALF/mpp()); // the game's world (±WHALF since v11.106), the old square faint
   ctx.setLineDash([4,5]);ctx.strokeStyle='rgba(220,230,240,0.35)';for(const r of [30000,110000]){const [p,q]=toPx(0,0);ctx.beginPath();ctx.arc(p,q,r/mpp(),0,TAU);ctx.stroke();}
   const o={x:0,z:0};ctx.strokeStyle='rgba(255,140,90,0.75)';ctx.setLineDash([]);ctx.lineWidth=1.5;ctx.beginPath();for(let t=0;t<=R.K.span;t+=0.1){R.track(t,o);const [p,q]=toPx(o.x,o.z);t?ctx.lineTo(p,q):ctx.moveTo(p,q);}ctx.stroke();
   ctx.font='11px Georgia';ctx.fillStyle='rgba(255,170,120,0.95)';for(let t=0;t<=R.K.span;t+=5){R.track(t,o);const [p,q]=toPx(o.x,o.z);ctx.beginPath();ctx.arc(p,q,2.5,0,TAU);ctx.fill();ctx.fillText(t?t+' Ma':'the plume now',p+5,q-4);}

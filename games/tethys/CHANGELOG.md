@@ -6822,3 +6822,61 @@ GLOBE §10.1, the engine work before the province, step 3 of 3 (the person: "go 
   and the chemocline's flood over a window.
 
 Seen: the comparison above; the suite. **Unseen:** nothing should look or play differently.
+
+## v11.112 — the world as a rectangle; the ledger's patches censused near the player (11 Nov 2026)
+
+The province, step 1 of 3 (the person, 11 Nov 2026: "go ahead with the province"). The region model's 159 members' feet run from 69 km west of
+ours to 300 km east and from 93 km north to 121 km south — lopsided, the old members trailing east — so the world will be a rectangle round
+them, not a square round ours (one ±305 km square would be mostly empty, and the ledger's coarse patches over it ~100 MB). Invisible today.
+
+- **world.js `WORLD`** (cells [i0, i1) × [j0, j1)), **`WX0`, `WX1`, `WZ0`, `WZ1`** (its extent), `gridIn`, `inWorld(x, z, m)`, `worldX`/`worldZ` (the
+  clamp, m inside the edge) replace `GRID0`, `GRIDN` and `WHALF`; the values are v11.106's square. Every user per axis: the clamps (player.js,
+  creatures_ai.js, main.js `tp`, save.js's bounds), chunks.js's pool sphere, far.js (`WM_MOVE`; the world's regions `RX0`, `RX1`, `RZ0`, `RZ1` for
+  the scan and the apron's sides), horizon.js's box, region.js (`rgBuild`'s boxes as rectangles — a square's test makes the same decisions — and
+  `inSq`; `regionGrid` takes a rectangle for the game's ground, `regionBasins` an nx × nz grid, a square's edge seeded in the same order),
+  world.js `chemoInit`/`chemoAt` (`nx`, `nz`, `x0`, `z0`), ecology.js's patch grid (`nx` along i, `nz` along j), worldmap.js (the world's picture
+  the square that holds the rectangle, `WMAP_W`), map.html, region.html.
+- **The same world:** against v11.110's tree, `sample()` at 150,000 points over the world none differ; the 47 records identical; the flood's
+  3,427 hollows and labels the same, its silled basins and their scores the same; region.js's `inSq` flags the same.
+- **ecology.js, the coarse patches censused near the player:** at boot the fine box, then the coarse patches within `ECO_PR` (40 km) of the
+  player, nearest first (`ecoNear`; all 5,824 to v11.111); as the player travels, the nearest `ECO_PN` (8) not yet censused within `ECO_PR` each
+  tick (`ecoCensusNear`), each settled on its own (`ecoPatchSettle`: its hunters at no more than 0.8 of what its prey allows, off its own table at
+  its prey's biomass — the boot's `ecoSettle`, for one patch). Past `ECO_PR` a patch waits uncensused and out of the model; its animals are its
+  equilibrium when the player comes. A load's pass rebuilds a saved patch's tables and censuses the near ones it lacks, each settled on its
+  own (to v11.111 the settle capped every patch's hunters, the save's too).
+- **test/ledger.js:** in the game, the boot's census is the 1,348 coarse patches within 40 km of ours and none of the 4,660 past it (the box
+  patched small); gone to the far corner, 161 patches censused as the ledger ticked, every one within 3 km; the load checks count the
+  censused patches and the near ones. test/region.js, cells.js, maps.js, map.js through the rectangle.
+
+Seen: the identity above; the suite. **Unseen:** nothing should look or play differently.
+
+## v11.113 — the horizon by sight, the flood over frames, the particles on the render origin (11 Nov 2026)
+
+The province, step 2 of 3 (the person, 11 Nov 2026: "go ahead with the province"). The engine's last pieces that held the whole world at
+once or held world numbers in float32. Invisible today: the world is still ±70.5 km.
+
+- **horizon.js, by sight:** `hzSetup` fixes the lattice and every member's top (`h`, its height) at the first surfacing; each frame above the
+  water `hzWatch` queues the members whose top the camera could see from its height (`hzSight`: 3.57 km·√h each way, the camera's and the top's,
+  and the top's own radius), nearest first, and `hzStep` builds them one at a time (`hzMember`, each with its own sample caches, so nothing of
+  the samples is kept between members). From the water at ours that is 6 members (ours, the giant, the 308 m island, the awesome shield, the
+  820 m and 243 m islands) of v11.112's 35; the atolls' 6 m rims are under the horizon past ~17 km, and the curvature's drop hid them anyway.
+  From the awesome shield's summit 41 come into sight. `hzGen(x, z)` still builds every member nearest first (test/horizon.js: the union is
+  v11.107's one mesh to the bit).
+- **world.js, the flood over frames:** the basins' flood (`chemoGen`) samples its grid eight rows a slice; main.js's loop runs `chemoStep(4)` a
+  frame from the menu on, so a province's ~0.5 M samples never stall a frame. Anything that asks before it is done (`chemoAt`, `chemoInit`)
+  finishes it at once: the answer is never a partial one. The tests, which never run the loop, build it whole on the first call as before.
+- **The particles against the render origin** (v11.110's left-overs): the snow, the debris (fx.js) and the blood (combat.js) simulate in doubles
+  (`pp`, `fxP`, `blP`) and hand the GPU float32 copies against `ORIGIN` (`ppG`, `fxPG`, `blPG`), the points placed there; the sun-shaft quads
+  likewise; the rain's streaks are about the camera, the lines placed at it; a splash's spray and bubbles are local to the splash. `plU` (the
+  player's light, which the points read) is against the origin too. At 300 km a float32 point holds 3 cm, and a flake drifting a millimetre a
+  frame would not have moved.
+- **chunks.js:** the render origin follows the camera, not the player (`poolSnap(camera…)`): the GPU's numbers matter round the eye, and in
+  third person the camera is metres off.
+- **test/horizon.js:** from the water at ours the queue holds the giant, the 308 m island and the awesome shield and not the low island 62 km
+  west (seen 38 km off); from the awesome shield's summit it does. **test/origins.js:** 36 km out, the snow, debris and blood within 2 km of the
+  camera (1,806 points) are within 73 m of the render origin and their copies the doubles' to under 0.01 mm. test/player.js's basin fake through
+  `chemoInit`.
+
+Seen: the suite; headless, the shelf at −8 m 420 m east of ours (the snow and shafts), and from the water 3.3 km off ours the giant on the
+horizon, built from the queue. **Unseen:** a far member coming in as you climb (a leap, a summit); the rain after a long swim; frame time on
+the GPU (the CPU's per frame unchanged in node).

@@ -346,7 +346,7 @@ a horizon mesh per member.
   once 4 km off (chunks.js `ORIGIN`, `poolSnap`). three composes the model-view matrix in doubles, so the GPU never cancels a large
   translation against a large vertex: at 300 km that would have been ~3 cm of swim. The shaders needed nothing. Everything is where it was to
   within the old floats' rounding (test/origins.js: as built against world coordinates, at ours and 36 km out). Not moved: the snow, blood
-  and debris points near the camera (8 mm at 70 km; for the province). Next: the cell hash.
+  and debris points near the camera (8 mm at 70 km; for the province — moved in v11.113). Next: the cell hash.
 - **The cell hash (v11.111).** No table is the world's size any more: the loaded cells (chunks.js `chunks`, one `Map` by `ckey(i, j)`, a
   number for any cell within 112,000 km; `chunkIJ`, `chunkAt`), the far layer's structure and card caches and its regions (far.js; a region
   numbered from cell 0, the world's edge `RG0`/`RG1`) — to v11.110 dense arrays of 430,336 cells and 26,896 regions, which a province would
@@ -355,3 +355,13 @@ a horizon mesh per member.
   (`gridIn`, `WHALF`), the apron at the edge — with the model's own floor as the edge; the ledger's coarse patches, dense over the world (82²
   today, a tier coarser again or a hash past a few hundred km); the members beyond `HZ_FAR` left out of the horizon until they come in; the
   near particles (snow, blood, debris) against the render origin; the records' index and the chemocline's flood over a window, not the world.
+- **The province (the person, 11 Nov 2026: "go ahead with the province").** The model's 159 members' feet run from 69 km west of ours to
+  300 km east and from 93 km north to 121 km south: lopsided, its old members trailing east. A square round ours big enough would be ±305 km
+  and mostly empty, and the ledger's coarse patches over it ~100 MB; so the world becomes a rectangle round the province. Three steps:
+  **v11.112, the world as a rectangle** (world.js `WORLD`, `WX0`…`WZ1`, `inWorld`, `worldX`/`worldZ`; every user per axis; ±70.5 km still,
+  so nothing moves — the ground at 150,000 points, the records, the flood the same) **and the ledger's coarse patches censused near the
+  player** (ecology.js `ECO_PR` 40 km at boot, nearest first, `ECO_PN` a tick as the player travels; the rest wait, out of the model, at
+  their equilibrium). **v11.113, the horizon by sight** (horizon.js `hzWatch`, `hzSight`, `hzStep`: a member is built once its top could
+stand above the camera's horizon, nearest first, one at a time; from the water at ours 6 of the 35), **the flood over frames** (world.js
+`chemoGen`, `chemoStep` a slice a frame; anything that asks first finishes it) **and the particles on the render origin** (the snow, debris
+and blood in doubles, their GPU copies against `ORIGIN`; the rain about the camera; the origin follows the camera). Next: the growth.
