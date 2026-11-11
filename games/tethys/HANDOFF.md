@@ -1,5 +1,12 @@
 # HANDOFF — tethys
 
+**v11.99 (11 Nov 2026): carcass falls** (DEEP.md §4, step 5). A big body (5 m or more) killed in sight, or dead off-screen in the
+ledger (~5 a game day over the world), is a fall: a record in the save that outlives its cell — flesh for 1–3 game days as a carcass the
+scavengers eat at, then the bones with the enriched patch (~10 days) and the mats (to ~40), until buried (60 days on an apron, 150 on ooze).
+`falls()` in the console finds them. **Ask first** about a fall in play, then two open calls (DEEP §4): the veil, the tread and the great are
+immortal in the ledger, so they never fall; and the bones landmark, a permanent ~100 m ribcage, against the falls' logic. Next: DEEP step 6,
+the basin and the constructors' structures (after GLOBE §8 step 5 and a world that reaches the basin).
+
 **v11.98 (11 Nov 2026): the deep gardens** (DEEP.md §3, step 4). `thicket` — the horn's line without its partner, pale ochre — on convex
 hard ground below the light (the relief stands for the quickening current: the flow field is flat at depth), richest on the sill's drowned
 summits; its rubble `mound`, a pale heap with collision; `glass`, `frond`, `pen` down to −1100 over the fed water; envW's `oxy` term thins

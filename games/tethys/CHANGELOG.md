@@ -6382,3 +6382,38 @@ ours at −904.
 
 **Unseen, ask in this order:** whether the sill's gardens read as gardens (density, the pale against the dark); the mounds up close; whether
 the deep's sponges and pens near ours read as life or litter; the far layer's cost with the mounds on the person's 4060.
+
+
+## v11.99 — carcass falls (11 Nov 2026)
+
+DEEP.md §11 step 5. The person: "start step 5, the carcass falls". DEEP §4 and the clock the person agreed (10 Nov 2026): on an oxic floor a
+big carcass goes through Earth's whale-fall stages — the scavengers strip it (1–3 game days), the sediment round it is enriched (~10), mats
+live on the sulfide from the bones' fats (~40), and the bones lie until buried. To v11.98 every carcass lay 0.45 game days whatever its size,
+and went with its cell.
+
+- **creatures_ai.js: a fall is a record** (`FALLS`: plain data, in the save) that outlives its cell. While a cell holds it its flesh is a
+  carcass the scavengers and the player eat at (outside the ledger), its flesh going by the record's own clock at the scavengers' rate
+  (`FALL.scav`: 1 day for a 5 m body, 3 for the abyssal's 15) and by what eats; spent, its bones are a mesh — spine, ribs and skull, pale mat
+  tufts by the mats' stage, and the enriched patch draped on the ground (`fallPatch`: the floor's own colour darkened toward the rotting fat,
+  fading at its edge — first built as flat tiles, which read as a checkerboard). Unloaded and reloaded, the carcass comes back with the flesh
+  the clock left. The bones go when buried: 60 days on an apron, 150 on the ooze (`FALL.bury`).
+- **Where falls come from:** a body of 5 m or more killed in sight and not eaten whole (`kill`), and the ledger's dead off-screen
+  (ecology.js `fallDeath`: natural deaths and the starved, in unloaded cells, each whole one a fall at a place in its cell). The first run gave
+  96 in two game days — the plankton's swarm (a 6 m "kind" with no body) was falling; without it, ~5.4 a game day over the world (ortho
+  2.7, ridge 1.7, sickle 0.7, comb 0.3). `FALL.max` 400 records: ~74 days, the oldest bones first.
+- **The graveyard:** under a basin's chemocline no scavenger finds a fall, the flesh goes at a twentieth of the rate, no mats. No basin in the
+  world yet: unseen.
+- **`falls()`** in the console: the nearest falls, their stage, the `tp()` to go and look. The readout's ecology line counts `falls`.
+- **test/falls.js** (in `--test`, `SIDE`, 52 s, build.js and build.py alike): the ridge killed in sight is a fall and sinks to the floor; half
+  a game day takes the clock's flesh; two more and it is bones with a mesh; the patch's and the mats' stages; the abyssal's record through
+  its cell's unload and reload, back with the flesh the clock left; the save out and in, and a bad record refused; two game days of the
+  model put falls of the big mortal kinds on the floor; bones 200 days down buried. ecology.js runs its falls behind `FALL_ON` so
+  test/census.js (which loads no creatures_ai.js) runs the paper model without them.
+
+Seen: the real build in headless Chromium (three.js r128 from npm), a ridge killed 22 m ahead on the fed deep at −909, `skip()` past its
+flesh: the skeleton with its mat tufts on a dark stain fading into the mud. The ledger's own off-screen falls were not seen in the browser:
+its census fills the world's cells over the first minutes (`eco 370/57600` headless), and falls start only where it has.
+
+**Unseen, ask in this order:** a fall found in play (`falls()`, then its `tp`); the carcass with scavengers at it; whether ~5 a day over the
+world is too few or too many to meet; the veil (and the tread and the great) never dying off-screen, so never falling (DEEP §4, open); the
+bones landmark — a permanent ~100 m ribcage where bones now go in 60–150 days (DEEP §4, open).

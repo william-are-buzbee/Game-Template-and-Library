@@ -1,6 +1,6 @@
 # DEEP.md — the deep under the region model (10 Nov 2026)
 
-Status: **designed; §8 (the pit and the cairns struck) built v11.95; the oxygen field and the re-homing (§11 step 2) v11.96; the floor (§2, step 3) v11.97; the deep gardens (§3, step 4) v11.98.** The person's decisions are in §10; the build is §11. Read PLANET.md first (The ocean, the head note on The
+Status: **designed; §8 (the pit and the cairns struck) built v11.95; the oxygen field and the re-homing (§11 step 2) v11.96; the floor (§2, step 3) v11.97; the deep gardens (§3, step 4) v11.98; carcass falls (§4, step 5) v11.99.** The person's decisions are in §10; the build is §11. Read PLANET.md first (The ocean, the head note on The
 basin), then GLOBE.md §9.1 (the region model and its basins), FLORA.md (the deep floor, the vents, the rim) and SEAFLOOR.md §4. The rule
 stands: nothing has a name or a biome; every species places itself by envelope over the fields; nothing glows or moves without a reason.
 
@@ -90,6 +90,27 @@ with stages on the game's clock: scavengers (the picker, any hungry hunter by `S
 its mats — **the grey mats move here** (and to the vents; §6). The carcass model exists (creatures_ai.js, DIRECTION's "a veil's carcass
 feeding the island for days"); the sinking, the floor and the stages are new. Below a chemocline (the basin, §5) there are no scavengers:
 bodies and bones lie as they fell — the graveyard.
+
+**Built v11.99** (creatures_ai.js `FALL`, `FALLS`; the person: "start step 5, the carcass falls"):
+- **A fall is a record** (plain data, in the save: `fallsOut`/`fallsIn`) that outlives its cell: while a cell holds it, its flesh is a carcass
+  (outside the ledger) the scavengers and the player eat at; its bones a mesh. Unloaded and reloaded, the carcass comes back with the flesh
+  the clock left. The flesh goes at the scavengers' rate by the record's own clock — 1 game day for a 5 m body, 3 for the abyssal's 15
+  (`FALL.scav`) — plus whatever eats at it while it is in sight.
+- **The stages, on the person's clock:** the enriched patch for ~10 days after the flesh (a stain draped on the ground, the floor's own
+  colour darkened toward rotting fat, fading at its edge); the mats from day 3 to ~40 (pale tufts on and round the bones); the bones until
+  buried — 60 days on an island's apron, 150 on the ooze (`FALL.bury`). A shown fall is rebuilt as its stage moves (once a game day).
+- **Where they come from:** a body of 5 m or more killed in sight and not eaten whole; and the ledger's off-screen dead of the big mortal
+  kinds (ecology.js: natural deaths and the starved, in cells not loaded), each whole one a fall at a place in its cell, on the floor —
+  ~5.4 a game day over the world (ortho 2.7, ridge 1.7, sickle 0.7, comb 0.3). Not the swarms (no body). `FALL.max` 400 records keeps ~74
+  days of them; the oldest bones go first.
+- **The graveyard:** a fall under a basin's chemocline draws no scavenger (`findCarcass`), its flesh goes at a twentieth of the rate and no
+  mats grow. None in the world yet (no basin), so unseen.
+- **`falls()`** in the console: the nearest falls, their stage and the `tp()` to each. The ledger's census fills the world's cells over the
+  first minutes of a game, and off-screen falls start where it has.
+- **Open for the person:** the veil, the tread and the great are immortal in the ledger (`hp` 1e9), so the iconic fall — "a veil's carcass
+  feeding the island for days" — never happens off-screen; whether they should age and die is a roster call. And the bones landmark
+  (`LM.bones`, far.js): a permanent ribcage ~100 m long, from an animal no larger than 16 m that this planet has, lying where bones are now
+  buried in 60–150 days — a holdover like the pit, or kept?
 
 ## 5. The basin 28 km west — the dark, at scale
 

@@ -139,7 +139,7 @@ function* makeSchool(ch,kind,p,n,rng,opt){ // a generator (v11.12): one member a
   const sz=DEFS[kind].size*3;
   for(let i=0;i<n;i++){const c=spawn(ch,kind,p.clone().add(V3((rng()-0.5)*sz,(rng()-0.5)*sz*0.4,(rng()-0.5)*sz)),rng,opt);c.school=s;s.members.push(c);c.vel.set((rng()-0.5)*2,0,(rng()-0.5)*2);yield;}
 }
-function disposeCreature(c){c.alive=false;c.gone=true;releaseAll(c);scene.remove(c.g);c.g.traverse(o=>{if(o.geometry&&!SHARED_GEO.has(o.geometry))o.geometry.dispose();});} // a kind's shared body and bake stay (spawn)
+function disposeCreature(c){if(c.fall&&c.fall.c===c)c.fall.c=null;c.alive=false;c.gone=true;releaseAll(c);scene.remove(c.g);c.g.traverse(o=>{if(o.geometry&&!SHARED_GEO.has(o.geometry))o.geometry.dispose();});} // a kind's shared body and bake stay (spawn)
 // a creature leaving the world mid-life (eaten away, grown up): disposed and struck from every list it is on
 function removeCreature(c){disposeCreature(c);let k=creatures.indexOf(c);if(k>=0)creatures.splice(k,1);if(c.chunk){k=c.chunk.creatures.indexOf(c);if(k>=0)c.chunk.creatures.splice(k,1);}
   if(c.school){k=c.school.members.indexOf(c);if(k>=0)c.school.members.splice(k,1);}k=carcasses.indexOf(c);if(k>=0)carcasses.splice(k,1);}
@@ -199,6 +199,7 @@ function kill(c,by,whole){if(!c.alive)return;c.alive=false;c.target=null;c.grab=
   if(by){const K=eaterK(by),food=ecoOf(c.kind).food;if(c.poison>POISON.min&&!by.def.immune)sicken(by);else if(feeds(by)){by.hunger=Math.max(0,by.hunger-food/K.meal);by.starveT=0;}if(mass<=K.meal*0.35)whole=true;} // a body fed at the seeps is no meal: the eater is sick (combat.js POISON, v11.56). v11.73: the player's stomach is fed by the same line — its kind's meal, the prey's food. v11.74: a brooding ringmouth kills and is not fed (line.js feeds)
   if(whole||c.def.role==='boid'&&c.def.size<0.5){removeCreature(c);return;}
   c.dead=true;c.flesh=mass;c.deadT=0;c.vel.multiplyScalar(0.3);carcasses.push(c);
+  if(c.def.size>=FALL.size){c.fall=fallAdd(c.kind,c.pos.x,c.pos.y,c.pos.z,mass,c.def.size,Math.atan2(c.vel.x,c.vel.z)||0,(POP.kills*7919)>>>0);c.fall.c=c;} // a fall (v11.99, DEEP §4): its record outlives the cell
   _q.setFromAxisAngle(V3(0,0,1),c.t0>50?HPI:-HPI);c.lieQ=c.g.quaternion.clone().multiply(_q); // rolled onto its side
   if(c.b.rigs)for(const r of c.b.rigs)rigRest(r);
   if(by&&by!==player){by.state='feed';by.feedAt=c;by.feedT=12+mass*0.4*(1+Math.random());by.target=null;by.grab=null;}
@@ -208,9 +209,12 @@ function updateCarcass(c,dt,dp){
   c.deadT+=dt;if(!c.grounded){c.vel.y=Math.max(c.vel.y-1.2*dt,-1.6);c.vel.x*=Math.exp(-0.8*dt);c.vel.z*=Math.exp(-0.8*dt);}else c.vel.set(0,0,0);
   c.pos.addScaledVector(c.vel,dt);const fh=groundAt(c.pos.x,c.pos.z)+c.def.size*0.3;c.grounded=false;if(c.pos.y<fh){c.pos.y=fh;c.vel.y=0;c.grounded=true;}
   if(c.lieQ)c.g.quaternion.slerp(c.lieQ,1-Math.exp(-1.5*dt));c.g.position.copy(c.pos);
-  const mass=bioMass(c.def);c.flesh-=mass*dt/(ECO.carc*DAY_S);
+  const mass=bioMass(c.def),F=c.fall;
+  if(F){const t=nowD(),fl=fallFleshNow(F,t);if(fl<c.flesh)c.flesh=fl;if(c.grounded){F.x=c.pos.x;F.y=c.pos.y;F.z=c.pos.z;}F.flesh=Math.max(0,c.flesh);F.tF=t; // the clock is the record's (it ran on while the cell was away or the camera far); what ate at it since is in c.flesh
+    if(c.flesh<=0){F.flesh=0;F.tB=t;F.c=null;POP.eaten+=1;const ch=c.chunk;removeCreature(c);if(ch&&chunks.get(ch.k)===ch)fallShow(F,ch);return;}}
+  else c.flesh-=mass*dt/(ECO.carc*DAY_S);
   const vis=dp<c.lodFar;c.g.visible=vis;if(vis){visibleCreatures++;setLOD(c,dp<c.lodNear?0:1);if(dp<c.nearR)nearList.push(c);} // a body to push against (c.nearR: 90, or size×5 for a giant — v11.67.2)
-  if(c.flesh<=0||c.deadT>ECO.carc*DAY_S*1.5){POP.eaten+=1;removeCreature(c);}
+  if(!F&&(c.flesh<=0||c.deadT>ECO.carc*DAY_S*1.5)){POP.eaten+=1;removeCreature(c);}
 }
 // eating at a carcass: a mouthful a second scaled to the eater; the eater's hunger falls with it
 function eatAt(o,c,dt){if(!feeds(o))return;if(c.poison>POISON.min&&!o.def.immune){if(!(o.sickT>0))sicken(o);return;} // a poisoned carcass sickens its scavenger (v11.56); a brooding ringmouth has stopped feeding (line.js, v11.74)
@@ -218,8 +222,69 @@ function eatAt(o,c,dt){if(!feeds(o))return;if(c.poison>POISON.min&&!o.def.immune
 // the eater's numbers in the ledger's terms (v11.73): a creature's kind, or the player's line kind — the player's stomach is the model every creature runs (the person, 21 Sep 2026: one rule, not a special case)
 function eaterK(o){return ecoOf(o===player?lineKind(o.clade.spec):o.kind);}
 // the nearest carcass within R of o, still worth eating
-function findCarcass(o,R){let best=null,bd=R;for(const c of carcasses){if(c.gone||c.flesh<=0)continue;const d=o.pos.distanceTo(c.pos);if(d<bd){bd=d;best=c;}}
+function findCarcass(o,R){let best=null,bd=R;for(const c of carcasses){if(c.gone||c.flesh<=0||c.fall&&c.fall.anox)continue; // a fall under a chemocline draws nothing (DEEP §4: the graveyard)
+    const d=o.pos.distanceTo(c.pos);if(d<bd){bd=d;best=c;}}
   for(const g of eggs){if(g.gone||g.flesh<=0||g.kind===o.kind||(g.brood&&broodGuarded(g.brood)))continue;const d=o.pos.distanceTo(g.pos);if(d<bd*0.5){bd=d;best=g;}}return best;} // a clutch too (not its own kind's), from half the distance; never one its parent is brooding over (line.js broodGuarded, v11.74)
+// ---------- carcass falls (v11.99, DEEP.md §4) ----------
+// A big body that dies and is not eaten whole sinks and is a fall: on an oxic floor it goes through Earth's whale-fall stages on the game's
+// clock (the person, 10 Nov 2026) — the scavengers strip it (1-3 game days by its size), the sediment round it is enriched (~10 days), bacterial
+// mats live on the sulfide from the bones' fats (from day 3 to ~40), and the bones lie until the floor buries them (fast on an island's apron,
+// slow on the ooze). Under a basin's chemocline nothing scavenges and the flesh barely goes (the graveyard). A fall is a record (FALLS: plain
+// data, in the save) that outlives its cell: while a cell holds it, its flesh is a carcass the scavengers and the player eat at, its bones a mesh.
+// They come from deaths in sight (kill) and from the ledger's off-screen deaths of the big mortal kinds (ecology.js: natural and starved).
+const FALL={size:5,scav:[1,3],rich:10,mat:[3,40],bury:[60,150],max:400,anoxK:0.05}; // the smallest body (m) that falls; the scavengers' days, smallest to largest (the abyssal's 15 m); the enriched patch's days after the flesh; the mats' window after it; days the bones lie on an apron / on ooze; records kept (the oldest bones go first: ~5 falls a game day off-screen, so ~74 days of them); the graveyard's flesh rate as a share
+const FALLS=[],FALL_ACC=[],FALL_RNG=mulberry(7171);let FALL_E=null; // the records; the ledger's dead owed a fall, per entry; the off-screen falls' places; which entries fall
+function nowD(){return clockH/DAY_H;} // game days
+function fallScavDays(F){return clamp(FALL.scav[0]+(FALL.scav[1]-FALL.scav[0])*(F.size-FALL.size)/(15-FALL.size),FALL.scav[0],FALL.scav[1]);}
+function fallRate(F){return F.m0/fallScavDays(F)*(F.anox?FALL.anoxK:1);} // flesh a day
+function fallFleshNow(F,t){return F.flesh>0?Math.max(0,F.flesh-fallRate(F)*(t-F.tF)):0;}
+function fallBoneT(F){return F.flesh>0?F.tF+F.flesh/fallRate(F):F.tB;} // when the flesh is (or will be) gone
+// what a fall is at day t: flesh left, or its bones' stages as 0..1 (the enriched patch, the mats) and whether the floor has buried it
+function fallState(F,t){const fl=fallFleshNow(F,t);if(fl>0)return {flesh:fl,rich:0,mat:0,gone:false};const a=t-fallBoneT(F);
+  return {flesh:0,age:a,rich:smooth(0,1,a)*(1-smooth(FALL.rich*0.5,FALL.rich,a)),mat:F.anox?0:smooth(FALL.mat[0],FALL.mat[0]+4,a)*(1-smooth(FALL.mat[1]-10,FALL.mat[1],a)),gone:a>(F.apron?FALL.bury[0]:FALL.bury[1])};}
+function fallAdd(kind,x,y,z,m0,size,yaw,seed){const t=nowD(),F={kind,x,y,z,m0,size,yaw,seed:seed>>>0,flesh:m0,tF:t,t0:t,tB:0,anox:underChemo(x,y+1,z),apron:apronAt(x,z)>0.5,c:null,mesh:null,ch:null};
+  FALLS.push(F);if(FALLS.length>FALL.max){let k=-1,bt=1e18;for(let i=0;i<FALLS.length;i++){const G=FALLS[i];if(G.c)continue;const tb=fallBoneT(G);if(tb<bt){bt=tb;k=i;}}if(k>=0)fallRemove(FALLS[k]);}
+  return F;}
+function fallRemove(F){const k=FALLS.indexOf(F);if(k>=0)FALLS.splice(k,1);fallHide(F);}
+// the ledger's dead (ecology.js, off-screen cells): n of a big mortal entry died in cell c; each whole one is a fall at a place in the cell
+function fallDeath(ei,c,n){if(!FALL_E)FALL_E=SPAWN.map(e=>{const d=DEFS[e.kind];return !!d&&d.size>=FALL.size&&d.role!=='swarm'&&!d.ghost&&ecoOf(e.kind).mortal;}); // a body: not the plankton's swarms (no body to fall)
+  if(!FALL_E[ei]||!(n>0))return;
+  FALL_ACC[ei]=(FALL_ACC[ei]||0)+n;while(FALL_ACC[ei]>=1){FALL_ACC[ei]-=1;const kind=SPAWN[ei].kind,i=Math.floor(c/NCELL),j=c%NCELL,x=(i+FALL_RNG())*CELL-HALF,z=(j+FALL_RNG())*CELL-HALF,h=sample(x,z).h;
+    if(h>-6)continue;fallAdd(kind,x,h+DEFS[kind].size*0.3,z,bioMass(DEFS[kind]),DEFS[kind].size,FALL_RNG()*TAU,(FALL_RNG()*4294967296)>>>0);}}
+// the falls a cell holds, as it loads: the flesh as a carcass (outside the ledger), the bones as a mesh
+function fallsLoad(ch){const t=nowD();for(const F of FALLS){if(F.c||F.mesh||cellOf(F.x)!==ch.i||cellOf(F.z)!==ch.j)continue;const st=fallState(F,t);if(st.gone)continue;
+  if(st.flesh>0){const c=spawn(ch,F.kind,V3(F.x,F.y,F.z),mulberry(F.seed),{ent:-1});c.alive=false;c.dead=true;c.flesh=st.flesh;c.deadT=0;c.vel.set(0,0,0);c.fall=F;F.c=c;carcasses.push(c);
+    c.g.rotation.set(0,F.yaw,0);_q.setFromAxisAngle(V3(0,0,1),(F.seed&1)?HPI:-HPI);c.lieQ=c.g.quaternion.clone().multiply(_q);c.g.quaternion.copy(c.lieQ);if(c.b.rigs)for(const r of c.b.rigs)rigRest(r);}
+  else fallShow(F,ch);}}
+function fallsUnload(ch){for(const F of FALLS)if(F.ch===ch){F.mesh=null;F.ch=null;}} // the mesh went with the cell's group
+// the bones as a mesh in the cell: a spine, ribs on its middle, a skull; the mats as pale tufts on and round them by the mats' stage; the
+// enriched patch a dark ring of sediment draped on the ground under them, by its stage. Built when shown (a cell's load, the flesh's end)
+const FALL_BONE=[0.85,0.82,0.72],FALL_RICH=[0.13,0.11,0.09],FALL_MATS=[[0.92,0.92,0.9],[0.8,0.8,0.8],[0.62,0.62,0.64]];
+function fallShow(F,ch){if(F.mesh)return;const st=fallState(F,nowD());if(st.gone||st.flesh>0)return;const rg=mulberry(F.seed^0x5f3759df),L=F.size,P=[],cy=Math.cos(F.yaw),sy=Math.sin(F.yaw);
+  const at=(u,v)=>[F.x+u*cy+v*sy,F.z-u*sy+v*cy];
+  for(let i=0;i<10;i++){const u=(i/9-0.5)*L*0.9,v=L*0.04*Math.sin(i*0.7+F.seed%7),[x,z]=at(u,v);P.push(part(G.sph(L*0.035*(1-0.3*Math.abs(i/9-0.4)),5,4),x,groundAt(x,z)+L*0.03,z,FALL_BONE));
+    if(i>=2&&i<=6){const r=L*(0.13-0.012*Math.abs(i-4));P.push(part(new THREE.TorusGeometry(r,L*0.012,4,10,Math.PI*0.9),x,groundAt(x,z)+L*0.02,z,FALL_BONE,{r:[HPI,F.yaw+(i&1?0.08:-0.08),HPI*0.9]}));}}
+  {const [x,z]=at(-L*0.5,0);P.push(part(G.box(L*0.16,L*0.08,L*0.1),x,groundAt(x,z)+L*0.04,z,FALL_BONE,{r:[0,F.yaw,0.1]}));}
+  const nm=Math.round(28*st.mat);for(let k=0;k<nm;k++){const u=(rg()-0.5)*L,v=(rg()-0.5)*L*0.35,[x,z]=at(u,v),s=L*(0.02+0.03*rg());P.push(part(G.cone(s,s*1.6,4),x,groundAt(x,z)+s*0.6,z,FALL_MATS[k%3]));}
+  const geo=merge(P);geo.computeBoundingSphere();const m=new THREE.Mesh(geo,MATLM),grp=new THREE.Group();grp.add(m);ch.meshes.push(m);
+  if(st.rich>0.02){const pm=new THREE.Mesh(fallPatch(F,st.rich,at),MATLM);grp.add(pm);ch.meshes.push(pm);}
+  ch.group.add(grp);F.mesh=grp;F.ch=ch;F.shownT=nowD();}
+// the enriched patch: one mesh draped on the ground (an ellipse 1.8 × 1.1 of the body's length), its colour the floor's own (terrainColor)
+// darkened toward the rotting fat's by the stage, fading out to the floor at its edge — a stain in the mud, not a mat laid on it
+const FALL_FT=new Float32Array(9),FALL_TC=new Float32Array(3);
+function fallPatch(F,k,at){const n=9,R=F.size*0.9,pos=[],col=[],idx=[];
+  for(let b=0;b<=n;b++)for(let a=0;a<=n;a++){const u=(a/n-0.5)*2*R,v=(b/n-0.5)*2*R*0.6,[x,z]=at(u,v),s=sample(x,z,FALL_FT),e=u*u/(R*R)+v*v/(R*R*0.36),w=k*clamp(1-e,0,1)*(0.75+0.25*fbm(x*0.3,z*0.3,2));
+    terrainColor(x,z,s.h,FALL_FT,0,FALL_TC,0);pos.push(x,groundAt(x,z)+0.12,z);col.push(lerp(FALL_TC[0],FALL_RICH[0],w),lerp(FALL_TC[1],FALL_RICH[1],w),lerp(FALL_TC[2],FALL_RICH[2],w));}
+  for(let b=0;b<n;b++)for(let a=0;a<n;a++){const i=b*(n+1)+a;idx.push(i,i+n+1,i+1,i+1,i+n+1,i+n+2);}
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(pos),3));g.setAttribute('color',new THREE.BufferAttribute(new Float32Array(col),3));g.setIndex(idx);g.computeVertexNormals();g.computeBoundingSphere();return g;}
+// once a game hour or so (ecology.js ecoTick): the buried go; a shown fall whose stage moved on is rebuilt
+function fallsTick(){const t=nowD();for(let i=FALLS.length-1;i>=0;i--){const F=FALLS[i],st=fallState(F,t);if(st.gone&&!F.c){fallRemove(F);continue;}
+    if(F.mesh&&F.ch&&t-(F.shownT||0)>1){const ch=F.ch;fallHide(F);fallShow(F,ch);}}} // the stages move over days: a day's change is worth a rebuild
+function fallHide(F){if(F.mesh&&F.ch){F.ch.group.remove(F.mesh);for(const m of F.mesh.children){m.geometry.dispose();const i=F.ch.meshes.indexOf(m);if(i>=0)F.ch.meshes.splice(i,1);}}F.mesh=null;F.ch=null;}
+// the save (save.js): the records as plain data, and back
+function fallsOut(){const r=v=>Math.round(v*1000)/1000;return FALLS.map(F=>({kind:F.kind,x:r(F.x),y:r(F.y),z:r(F.z),m0:r(F.m0),size:r(F.size),yaw:r(F.yaw),seed:F.seed,flesh:r(F.flesh),tF:r(F.tF),t0:r(F.t0),tB:r(F.tB),anox:!!F.anox,apron:!!F.apron}));}
+function fallsIn(a){FALLS.length=0;FALL_ACC.length=0;if(!Array.isArray(a))return;for(const o of a){if(!o||!DEFS[o.kind])continue;const F={kind:o.kind,c:null,mesh:null,ch:null};
+  for(const k of ['x','y','z','m0','size','yaw','flesh','tF','t0','tB']){const v=+o[k];if(!Number.isFinite(v)){F.bad=true;break;}F[k]=v;}if(F.bad)continue;F.seed=(+o.seed)>>>0;F.anox=!!o.anox;F.apron=!!o.apron;FALLS.push(F);if(FALLS.length>=FALL.max)break;}}
 
 // ---------- behaviours ----------
 // Burst and coast (PLANET, hingeshells: paddles in a metachronal wave; nothing they do is a steady swim): a hunter or wanderer

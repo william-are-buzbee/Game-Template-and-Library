@@ -99,4 +99,6 @@ window.tp=function(x,z,y){if(mode!=='play'||!player.clade)return 'start a game f
 // brood's losses) without waiting for it; the ledger's model catches up over its next ticks (ecology.js ECO_MAX_STEP), the broods lazily (line.js
 // broodCatchUp). A dev tool beside tp: nothing saves it, nothing reads it
 window.skip=function(days){if(mode!=='play'||!player.clade)return 'start a game first';t+=(+days||0)*DAY_S;clockH=t*CLOCK_RATE;TIDE=tideAt(clockH);return 'day '+(clockH/DAY_H).toFixed(2);};
+// falls() from the console (v11.99, DEEP §4): the nearest carcass falls — kind, how far, what stage, and the tp() to go and look. A dev tool beside tp() and skip()
+window.falls=function(n){const t=nowD(),p=player.pos;return FALLS.map(F=>{const s=fallState(F,t);return {kind:F.kind,m:Math.round(Math.hypot(F.x-p.x,F.z-p.z)),depth:Math.round(-F.y),stage:s.flesh>0?'flesh '+(100*s.flesh/F.m0).toFixed(0)+'%':s.mat>0.3?'bones, mats':s.rich>0.3?'bones, enriched':'bones',tp:'tp('+Math.round(F.x)+','+Math.round(F.z)+',8)'};}).sort((a,b)=>a.m-b.m).slice(0,n||8);};
 requestAnimationFrame(loop);
