@@ -1,8 +1,13 @@
 # HANDOFF — tethys
 
+**v11.104 (11 Nov 2026): the maps as a window** (GLOBE §10.1 step 2). The water and floor maps are a window on a fixed texel grid, read
+relative to its centre in every shader; it re-centres on the player by whole regions once the world is wider than it — not yet, so nothing
+changes (test/maps.js, and the maps' bytes against v11.103). The person chose ±70 km first (11 Nov 2026). Next: the ledger in tiers, then the
+growth to ±70 km.
+
 **v11.103 (11 Nov 2026): the records' index** (GLOBE §10 step 1, §10.1). `sample()`, `apronAt` and `coneK` find the records near a point
 through 2 km buckets instead of testing every record; the world is v11.102's to the bit (test/records.js). Nothing to look at. Next: §10
-step 2, the local origins (the GPU's float32 far from the origin).
+step 2 (as the person's ±70 km reordered it: the maps).
 
 **v11.102 (11 Nov 2026): the square from the model** (GLOBE §8 step 5, §9.2). The game's ground is the region model's: 20 members as
 records (the awesome shield's coast across the north-west corner, the 308 m island 20 km north, ten atolls, two banks, three seamounts, a

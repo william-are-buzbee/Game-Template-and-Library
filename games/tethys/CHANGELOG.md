@@ -6540,3 +6540,34 @@ GLOBE §10 step 1; the person (11 Nov 2026): "get started on the engine work". I
   runs eighteen.
 
 Seen: nothing on screen changes, by construction; the identity at ~260,000 points. **Unseen:** none of it shows.
+
+## v11.104 — the maps as a window (11 Nov 2026)
+
+GLOBE §10.1 step 2; the person (11 Nov 2026): "yes, ±70 km first." At that size the maps are one of two things that stop the world growing
+(1440² over 51.6 km now; at the same 36 m over 140 km, ~490 MB of the CPU's arrays and a texture past what a phone takes), so they become a
+window round the player. Invisible today: the window is the world's square and never moves.
+
+- **scene.js:** `WM_HALF` (120 cells, the v11.65 square's half-width) is the maps' own size, no longer the world's; `WM_N` six texels a cell of
+  it (1440, as before); `WM_O`, the window's centre, a shared typed-array uniform (`uWmO`, beside every `uFloorMap` declaration and in the
+  ShaderLib set; horizon.js's list); every shader reads a map at `(p − uWmO)·WM_SCALE + 0.5` — the veil's two reads, the scatter's, the wave
+  depth (`WAVE_DEP_GLSL`) and the surface's two (atmosphere.js).
+- **far.js:** a fixed grid of texels anchored at the v11.65 square's corner (`WM_A`, −25,800), so a texel is a fixed place; the window's corner
+  on it (`WM_I0`, `WM_J0`), at boot centred on the world's middle by whole regions; `WM_C0`, the world's cell grid's corner on the anchor's
+  grid. The fill, the four CPU reads (`wmSample`, `wmFloor`, `wmWave`, `wmBloom`) and a region's refine block go through them; a region's
+  block is clipped to the window. `wmRecentre` (from `manageFar`, first): once the player is half a half-width from the centre, the window is
+  centred on them again, snapped to a region's 24 texels; `wmShiftGen` rolls every map (raw and blurred), moves the centre with the texels in
+  the same step, then fills the uncovered strips coarse — a quarter of the window from the player at least, where no far region stands — a
+  slice a frame and blurs them; regions refine them when they are built there, as at boot. `WM_MOVE`: only when the world is wider than the
+  window — not yet.
+- **test/maps.js** (new, in `--test`, ~21 s): as built, the window is the square at the anchor, centred at 0, unmoved by a swim to two far
+  corners, a read's texel coordinate v11.103's to the bit; then a child run with the window patched to half the square — booted centred on
+  the middle (corner at texel 360), a teleport 10 km east moving it once by 288 texels (10.32 km), the shaders' centre with it, every read at
+  154 places in both windows the same to the bit, the uncovered strip's 4,635 checked texels as a coarse fill puts them. Against v11.103: the
+  maps' bytes after boot and 400 frames of refinement the same (an FNV hash of both maps).
+- GLOBE §10.1: the person's ±70 km, and the order it gives — the maps, the ledger's tiers, then the growth; the local origins, the cell hash
+  and a horizon mesh per member before the province (at 70 km float32 holds the ground to 8 mm, and a 652² cell grid is a plain array).
+
+Seen: test/maps.js; the maps' bytes against v11.103; the real build in headless Chromium with no shader error — the weed forest at (330, 0)
+under water (the veil's colour and the caustics as before) and our cone from the surface 900 m east (the waves over the shallows, which read the
+floor map, as before). **Unseen:** nothing changes on screen by
+construction; a moving window has never run in a browser (it cannot, until the world grows).

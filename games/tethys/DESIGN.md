@@ -688,7 +688,12 @@ before anything compiles:
    floor. **There is one density per medium**; `WATER` is a colour that belongs to the place, not a veil you walk into.
 3. **Under water the veil's colour comes from `waterMap`**, a 96×96 world-space RGBA map (`WATER` by floor biome, the
    dark for the void, canopy weight in alpha; ~36 units per texel, box-blurred so borders blend over ~70 units; filled by
-   `far.js` `wmFill/wmBlur`, a coarse pass at boot and a refinement per region), sampled at the camera and at a point
+   `far.js` `wmFill/wmBlur`, a coarse pass at boot and a refinement per region; 1440² over the world's square since v11.65; **since v11.104 a
+   window**, GLOBE §10.1 — scene.js `WM_HALF` 120 cells either side, its centre `WM_O`/`uWmO`, every shader reading at `(p − uWmO)·WM_SCALE +
+   0.5`; on the CPU a fixed grid of texels anchored at the v11.65 square's corner (far.js `WM_A`) with the window's corner on it (`WM_I0`,
+   `WM_J0`); `wmRecentre` centres it on the player again, by whole regions (24 texels), once they are half a half-width from its centre —
+   `wmShiftGen` rolls every map and fills the uncovered strips coarse a slice a frame — and only when the world is wider than the window,
+   which it is not yet: the maps are v11.103's to the byte, test/maps.js), sampled at the camera and at a point
    **at most `reach` (260) units along the ray** (or at the fragment if it is nearer): `1−placeMix` (0.6) of the camera's
    sample, `placeMix` (0.4) of the bounded one. **The floor's say in it fades with height** (v11.27): the map's colour is the
    `WATER` table at the *floor's* depth, which painted the void and the pit near-black into every ray that reached them

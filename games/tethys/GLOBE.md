@@ -289,6 +289,15 @@ Not proposed: separate windows per cluster with a fade between them. The crossin
 
 ### 10.1 As built
 
+**The person (11 Nov 2026): "yes, ±70 km first."** The world grows first to ±70 km (140 km a side), which holds every member that shows from
+ours (the giant, the 308 m island, the awesome shield, the 820 and 243 m islands); the province (300+ km of track) later. That size changes the
+order. At 70 km float32 still holds the ground to 8 mm, so the local origins wait for the province, and a cell grid of 652² is a plain larger
+array, so the cell hash waits too. What stands in the way at ±70 km is what is kept per area of the world: the maps (1440² over the square at
+36 m; 490 MB of the CPU's arrays at that grain over 140 km) and the ledger (50 entries × 21 bytes × 425,000 cells, ~425 MB, and a paper census
+of every cell at boot). So: (2) the maps as a window round the player; (3) the ledger in tiers; (4) the growth to ±70 km — the cell grid, the
+clamp, the records reaching the new edge, the chemocline's flood, the horizon's box. Then, before the province: the local origins, the cell hash,
+a horizon mesh per member.
+
 - **Step 1, the records' index (v11.103).** world.js `RIX`, `recsAt`: a grid of 2 km buckets, each with the records (in ISLANDS order) whose
   reach or apron's run-out touches it; `sample()`, `apronAt` and `coneK` read their bucket instead of every record. Seed 32: 22 records in
   68 × 60 buckets over 136 × 120 km, 1.2 a bucket on average; `sample()` 1.21 µs against 1.99 over that extent. The world is v11.102's to
@@ -297,3 +306,10 @@ Not proposed: separate windows per cluster with a fade between them. The crossin
   (v11.102, region.js `rgBound`) is what keeps that down, and a world of the whole province is mostly open floor between clusters, so the
   per-sample cost should not grow with it; the horizon tier's one mesh does (1.1 s of build for 20 records), which is why its per-member
   meshes are in the windows' step.
+- **Step 2, the maps as a window (v11.104).** scene.js `WM_HALF` (120 cells, the v11.65 square), `WM_O` (the window's centre, the shaders'
+  `uWmO`); far.js `WM_A` (the anchor: the v11.65 square's corner, a fixed grid of 36 m texels), `WM_I0`/`WM_J0` (the window's corner on it),
+  `wmRecentre`, `wmShiftGen`. Every map read is relative to the window; once the player is half a half-width from its centre the window is
+  centred on them again by whole regions — the overlap rolled, the uncovered strips (a quarter of the window away at least, where no far region
+  stands) filled coarse a slice a frame — so a moved window holds at a place exactly what one filled there would. It moves only when the world
+  is wider than it: not yet, so the maps are v11.103's to the byte (test/maps.js; with the window patched to half the square, a move of 10 km
+  leaves every read in the overlap the same to the bit and the strip as a boot fill puts it).

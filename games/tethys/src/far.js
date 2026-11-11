@@ -9,10 +9,15 @@
 // ---------- the water map ----------
 // waterColor() of the floor's conditions (world.js), the front's X in alpha (v11.81), one texel per ~36 units, box-blurred so borders
 // blend over ~70 units. A coarse pass at boot (every 4th texel); each region refines its own block as it is built.
-const WM_T=2*HALF/WM_N,wmRaw=new Float32Array(WM_N*WM_N*4),fmRaw=new Float32Array(WM_N*WM_N),wfRaw=new Float32Array(WM_N*WM_N),pgRaw=new Float32Array(WM_N*WM_N),pfRaw=new Float32Array(WM_N*WM_N),wmTx=[0,0,0]; // fmRaw (v11.27): the floor's depth, 0..1 of FM_SCALE, filled and blurred beside the colour; wfRaw (v11.44): the place's wave energy (world.js waveFac) in the floor map's green; pgRaw, pfRaw (v11.81): the plankton's green and gold crops (world.js plankTexel) in its blue and alpha, X in the water map's alpha
+// v11.104 (GLOBE §10, the windows): the maps are a window (scene.js WM_HALF, WM_O) on a fixed grid of texels anchored at WM_A, the v11.65 square's
+// corner, so a texel is a fixed place: the window's corner is the texel (WM_I0, WM_J0) of that grid, and moving it moves whole texels — what a
+// moved window holds at a place is what it would hold had it been filled there (wmShiftGen). While the world is the window's square it never moves.
+const WM_A=-CELL*120,WM_C0=Math.round((-HALF-WM_A)/(2*WM_HALF/WM_N)); // the anchor; the world's cell grid's corner on it (0 while the world is the window's square)
+let WM_I0=Math.round(((0-WM_A)/(2*WM_HALF/WM_N)-WM_N/2)/24)*24,WM_J0=WM_I0; // the window's corner on the anchor's grid, at boot centred on the world's middle (0 today), a region's 24 texels to a step
+const WM_T=2*WM_HALF/WM_N,wmRaw=new Float32Array(WM_N*WM_N*4),fmRaw=new Float32Array(WM_N*WM_N),wfRaw=new Float32Array(WM_N*WM_N),pgRaw=new Float32Array(WM_N*WM_N),pfRaw=new Float32Array(WM_N*WM_N),wmTx=[0,0,0]; // fmRaw (v11.27): the floor's depth, 0..1 of FM_SCALE, filled and blurred beside the colour; wfRaw (v11.44): the place's wave energy (world.js waveFac) in the floor map's green; pgRaw, pfRaw (v11.81): the plankton's green and gold crops (world.js plankTexel) in its blue and alpha, X in the water map's alpha
 function wmFill(i0,i1,j0,j1,step){
   for(let j=j0;j<j1;j+=step)for(let i=i0;i<i1;i+=step){
-    const x=-HALF+(i+0.5*step)*WM_T,z=-HALF+(j+0.5*step)*WM_T,s=sample(x,z),c=waterColor(s),fd=clamp(-s.h/FM_SCALE,0,1),wf=waveEnergy(x,z,s),p=plankTexel(x,z,s,wmTx);
+    const x=WM_A+(WM_I0+i+0.5*step)*WM_T,z=WM_A+(WM_J0+j+0.5*step)*WM_T,s=sample(x,z),c=waterColor(s),fd=clamp(-s.h/FM_SCALE,0,1),wf=waveEnergy(x,z,s),p=plankTexel(x,z,s,wmTx);
     for(let jj=j;jj<Math.min(j1,j+step);jj++)for(let ii=i;ii<Math.min(i1,i+step);ii++){const n=(jj*WM_N+ii)*4,m=jj*WM_N+ii;wmRaw[n]=c[0];wmRaw[n+1]=c[1];wmRaw[n+2]=c[2];wmRaw[n+3]=p[2];fmRaw[m]=fd;wfRaw[m]=wf;pgRaw[m]=p[0];pfRaw[m]=p[1];} // alpha: the canopy's weight to v11.80, the front's X since v11.81
   }
 }
@@ -23,7 +28,7 @@ function wmFill(i0,i1,j0,j1,step){
 // place; the clock's part — the ring's breathing with the spring–neap cycle and the storm's pulse — is uFogB (world.js FOG_B), written per frame by bloomTick.
 // the maps at a point, bilinear like the GPU reads them: out = [green enc, gold enc, X enc, the floor's depth in m]
 function wmBloom(x,z,out){
-  const u=(x+HALF)/WM_T-0.5,v=(z+HALF)/WM_T-0.5,i0=clamp(Math.floor(u),0,WM_N-1),j0=clamp(Math.floor(v),0,WM_N-1),i1=Math.min(i0+1,WM_N-1),j1=Math.min(j0+1,WM_N-1);
+  const u=(x-WM_A)/WM_T-WM_I0-0.5,v=(z-WM_A)/WM_T-WM_J0-0.5,i0=clamp(Math.floor(u),0,WM_N-1),j0=clamp(Math.floor(v),0,WM_N-1),i1=Math.min(i0+1,WM_N-1),j1=Math.min(j0+1,WM_N-1);
   const fu=clamp(u-i0,0,1),fv=clamp(v-j0,0,1),F=FM_DATA,W=WM_DATA,bl=(D,c)=>{const a=D[(j0*WM_N+i0)*4+c]*(1-fu)+D[(j0*WM_N+i1)*4+c]*fu,b=D[(j1*WM_N+i0)*4+c]*(1-fu)+D[(j1*WM_N+i1)*4+c]*fu;return (a*(1-fv)+b*fv)/255;};
   out[0]=bl(F,2);out[1]=bl(F,3);out[2]=bl(W,3);out[3]=bl(F,0)*FM_SCALE;return out;
 }
@@ -40,19 +45,19 @@ function bloomTick(){
 }
 // the floor's depth at a point as the shader reads it (bilinear on the blurred map), in units (v11.27)
 function wmFloor(x,z){
-  const u=(x+HALF)/WM_T-0.5,v=(z+HALF)/WM_T-0.5,i0=clamp(Math.floor(u),0,WM_N-1),j0=clamp(Math.floor(v),0,WM_N-1),i1=Math.min(i0+1,WM_N-1),j1=Math.min(j0+1,WM_N-1);
+  const u=(x-WM_A)/WM_T-WM_I0-0.5,v=(z-WM_A)/WM_T-WM_J0-0.5,i0=clamp(Math.floor(u),0,WM_N-1),j0=clamp(Math.floor(v),0,WM_N-1),i1=Math.min(i0+1,WM_N-1),j1=Math.min(j0+1,WM_N-1);
   const fu=clamp(u-i0,0,1),fv=clamp(v-j0,0,1),D=FM_DATA;
   const a=D[(j0*WM_N+i0)*4]*(1-fu)+D[(j0*WM_N+i1)*4]*fu,b=D[(j1*WM_N+i0)*4]*(1-fu)+D[(j1*WM_N+i1)*4]*fu;return (a*(1-fv)+b*fv)/255*FM_SCALE;
 }
 // the place's wave energy at a point (v11.44, the floor map's green), bilinear like the GPU reads it
 function wmWave(x,z){
-  const u=(x+HALF)/WM_T-0.5,v=(z+HALF)/WM_T-0.5,i0=clamp(Math.floor(u),0,WM_N-1),j0=clamp(Math.floor(v),0,WM_N-1),i1=Math.min(i0+1,WM_N-1),j1=Math.min(j0+1,WM_N-1);
+  const u=(x-WM_A)/WM_T-WM_I0-0.5,v=(z-WM_A)/WM_T-WM_J0-0.5,i0=clamp(Math.floor(u),0,WM_N-1),j0=clamp(Math.floor(v),0,WM_N-1),i1=Math.min(i0+1,WM_N-1),j1=Math.min(j0+1,WM_N-1);
   const fu=clamp(u-i0,0,1),fv=clamp(v-j0,0,1),D=FM_DATA;
   const a=D[(j0*WM_N+i0)*4+1]*(1-fu)+D[(j0*WM_N+i1)*4+1]*fu,b=D[(j1*WM_N+i0)*4+1]*(1-fu)+D[(j1*WM_N+i1)*4+1]*fu;return (a*(1-fv)+b*fv)/255;
 }
 // the map at a point, bilinear like the GPU reads it: rgb the floor's water, a the front's X (0..1 floats)
 function wmSample(x,z,out){
-  const u=(x+HALF)/WM_T-0.5,v=(z+HALF)/WM_T-0.5,i0=clamp(Math.floor(u),0,WM_N-1),j0=clamp(Math.floor(v),0,WM_N-1),i1=Math.min(i0+1,WM_N-1),j1=Math.min(j0+1,WM_N-1);
+  const u=(x-WM_A)/WM_T-WM_I0-0.5,v=(z-WM_A)/WM_T-WM_J0-0.5,i0=clamp(Math.floor(u),0,WM_N-1),j0=clamp(Math.floor(v),0,WM_N-1),i1=Math.min(i0+1,WM_N-1),j1=Math.min(j0+1,WM_N-1);
   const fu=clamp(u-i0,0,1),fv=clamp(v-j0,0,1),D=WM_DATA;
   for(let c=0;c<4;c++){const a=D[(j0*WM_N+i0)*4+c]*(1-fu)+D[(j0*WM_N+i1)*4+c]*fu,b=D[(j1*WM_N+i0)*4+c]*(1-fu)+D[(j1*WM_N+i1)*4+c]*fu;out[c]=(a*(1-fv)+b*fv)/255;}
   return out;
@@ -66,7 +71,21 @@ function wmBlur(i0,i1,j0,j1){
   }
   waterMap.needsUpdate=true;floorMap.needsUpdate=true;
 }
+WM_O[0]=WM_A+WM_I0*WM_T+WM_HALF;WM_O[1]=WM_A+WM_J0*WM_T+WM_HALF; // the window's centre, the shaders' uWmO (0 today: −25800 + 0 + 25800)
 wmFill(0,WM_N,0,WM_N,4);wmBlur(0,WM_N,0,WM_N);
+// moving the window (v11.104): once the player is half a window's half-width from its centre, it is centred on them again, snapped to a region's
+// 24 texels. The overlap is rolled (every map, raw and blurred), the centre and the texture move together, and the uncovered strips — at least a
+// quarter of the window from the player, where no far region stands (they are dropped at FAR_DROP) — are filled coarse a slice a frame and
+// blurred; the regions refine them when they are built there, as at boot. Only when the world is wider than the window: never yet.
+const WM_MOVE=HALF>WM_HALF;let wmGen=null,wmShifts=0;
+function wmRecentre(px,pz){if(!WM_MOVE||wmGen)return;if(Math.max(Math.abs(px-WM_O[0]),Math.abs(pz-WM_O[1]))<WM_HALF/2)return;
+  const I=Math.round(((px-WM_A)/WM_T-WM_N/2)/24)*24,J=Math.round(((pz-WM_A)/WM_T-WM_N/2)/24)*24;if(I!==WM_I0||J!==WM_J0)wmGen=wmShiftGen(I-WM_I0,J-WM_J0);}
+function* wmShiftGen(di,dj){const N=WM_N;
+  for(const [A,c] of [[wmRaw,4],[fmRaw,1],[wfRaw,1],[pgRaw,1],[pfRaw,1],[WM_DATA,4],[FM_DATA,4]]){const T=A.slice(),i0=Math.max(0,-di),i1=Math.min(N,N-di);
+    for(let j=0;j<N;j++){const sj=j+dj;if(sj<0||sj>=N||i0>=i1)continue;A.set(T.subarray((sj*N+i0+di)*c,(sj*N+i1+di)*c),(j*N+i0)*c);}}
+  WM_I0+=di;WM_J0+=dj;WM_O[0]=WM_A+WM_I0*WM_T+WM_HALF;WM_O[1]=WM_A+WM_J0*WM_T+WM_HALF;wmShifts++;waterMap.needsUpdate=true;floorMap.needsUpdate=true;yield;
+  const strips=[];if(di>0)strips.push([Math.max(0,N-di),N,0,N]);if(di<0)strips.push([0,Math.min(N,-di),0,N]);if(dj>0)strips.push([0,N,Math.max(0,N-dj),N]);if(dj<0)strips.push([0,N,0,Math.min(N,-dj)]);
+  for(const [a0,a1,b0,b1] of strips){for(let j=b0;j<b1;j+=4){wmFill(a0,a1,j,Math.min(b1,j+4),4);if(((j-b0)&31)===28)yield;}wmBlur(a0-1,a1+1,b0-1,b1+1);yield;}}
 
 // The height the cell terrain has at a point: bilinear on the fine grid, from the same samples the cell takes, so a
 // landmark placed with this sits on the near mesh exactly (sample() alone is off by the interpolation error).
@@ -226,9 +245,8 @@ const regions=new Array(FNR*FNR).fill(null);let farGen=null,farBuilt=0,visibleRe
 function* genRegion(ri,rj){
   const ci0=ri*FR,cj0=rj*FR,x0=ci0*CELL-HALF,z0=cj0*CELL-HALF;
   // the water map block first: the fog reads it every frame
-  const tn=WM_N/FNR,ti=ri*tn,tj=rj*tn;
-  for(let j=0;j<tn;j+=6){wmFill(ti,ti+tn,tj+j,Math.min(tj+tn,tj+j+6),1);yield;}
-  wmBlur(ti-1,ti+tn+1,tj-1,tj+tn+1);yield;
+  const tn=FR*6,ti=WM_C0+ri*tn-WM_I0,tj=WM_C0+rj*tn-WM_J0,a0=Math.max(0,ti),a1=Math.min(WM_N,ti+tn),b0=Math.max(0,tj),b1=Math.min(WM_N,tj+tn); // the region's block on the window (v11.104), clipped to it
+  if(a0<a1&&b0<b1){for(let j=b0;j<b1;j+=6){wmFill(a0,a1,j,Math.min(b1,j+6),1);yield;}wmBlur(a0-1,a1+1,b0-1,b1+1);yield;}
   // heights on the region's grid plus a one-vertex ring outside it (for slopes at the edge)
   const N=FG+2,hg=new Float32Array(N*N),fg=new Float32Array(N*N*NF);let minH=1e9,maxH=-1e9;
   for(let jj=0;jj<N;jj++){
@@ -337,6 +355,7 @@ function farCellChanged(i,j){
 const FAR_R=FAR+FR*CELL*0.71+500,FAR_DROP=FAR_R+900;
 function manageFar(budgetMs){
   const t0=performance.now(),px=player.pos.x,pz=player.pos.z;
+  wmRecentre(px,pz);while(wmGen&&performance.now()-t0<budgetMs){if(wmGen.next().done)wmGen=null;} // the maps' window first (v11.104): never moves yet
   if(!farGen){let best=null,bd=FAR_R*FAR_R;
     for(let rj=0;rj<FNR;rj++)for(let ri=0;ri<FNR;ri++){if(regions[ri*FNR+rj])continue;const dx=(ri+0.5)*FR*CELL-HALF-px,dz=(rj+0.5)*FR*CELL-HALF-pz,d=dx*dx+dz*dz;if(d<bd){bd=d;best=[ri,rj];}}
     if(best)farGen=genRegion(best[0],best[1]);}
