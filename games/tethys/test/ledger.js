@@ -18,7 +18,7 @@ function ecoBundle(patched){ // the model alone, as test/census.js loads it
   require('./stub.js');let js=['../vendor/wb-core.global','util','world','region','physics','scene','parts','grow','creatures_builders','creatures_spec','creatures_defs','ecology'].map(src).join('\n');
   if(patched){if(!js.includes(BOX))throw new Error('ecology.js ECO_FB not as expected');js=js.replace(BOX,BOXP);}
   const pre='function chunkIJ(){return undefined;}const chunks=new Map(),creatures=[],carcasses=[],player={pos:{x:0,y:0,z:0}};function cellOf(v){return Math.floor((v+HALF)/CELL);}function placeKind(){}\n';
-  return new Function('return (function(){"use strict";'+pre+js+'\nreturn {SPAWN,POP,ECO_PT,ECO_FB,ECO_FINE,ECO_CELLS,ECO_SLOTS,ECO_COARSE,ECO_R,PATCH,NCELL,CELL,HALF,GRID0,GRIDN,ecoPI,ecoPJ,ecoPOf,ecoPatchDist,ecoId,ecoIJ,ecoCap,ecoPatchCap,ecoSum,ecoModel,ecoSettle,ecoSplit,ecoMerge,ecoBubble,ecoCellOf,ecoOf,player,sample};})()')();}
+  return new Function('return (function(){"use strict";'+pre+js+'\nreturn {SPAWN,POP,ECO_PT,ECO_FB,ECO_FINE,ECO_CELLS,ECO_SLOTS,ECO_COARSE,ECO_R,PATCH,NCELL,CELL,HALF,WORLD,ecoPI,ecoPJ,ecoPOf,ecoPatchDist,ecoId,ecoIJ,ecoCap,ecoPatchCap,ecoSum,ecoModel,ecoSettle,ecoSplit,ecoMerge,ecoBubble,ecoCellOf,ecoOf,player,sample};})()')();}
 const kindTot=(W,field)=>{const m={};W.SPAWN.forEach((e,ei)=>{let s=0;const A=W.POP[field][ei];for(let c=0;c<W.ECO_CELLS;c++)s+=A[c];if(W.ECO_PT.on){const P=W.ECO_PT;for(let p=0;p<P.np;p++)if(P.blk[p]<0)s+=P[field][ei][p];}m[e.kind]=(m[e.kind]||0)+s;});return m;};
 const inSq=(W,p)=>{const i=W.ecoPI(p),j=W.ecoPJ(p);return i>=0&&j>=0&&i<W.NCELL&&j<W.NCELL;}; // a patch of the old square (v11.106: the world's are round it)
 const ringTot=(W,field,coarse)=>{const m={};W.SPAWN.forEach((e,ei)=>{let s=0;const A=W.POP[field][ei];
@@ -29,11 +29,11 @@ function census(W){for(let c=0;c<W.ECO_FINE;c++)W.ecoCap(c,null);if(W.ECO_PT.on)
 function run(W,days,coarse){const K=ringTot(W,'k',coarse),N0=ringTot(W,'n',coarse);for(let d=0;d<days-1e-9;d+=0.05)W.ecoModel(0.05,()=>false);return {K,N0,N:ringTot(W,'n',coarse)};} // coarse: the patched box's ring (v11.106: as built has patches too, round the old square)
 
 if(MODE===''){
-  console.log('ledger: as built (the fine box the old square, the world ±WHALF round it)');
+  console.log('ledger: as built (the fine box the old square, the world round it)');
   const W=ecoBundle(false),nc=W.ECO_PT.coarse?null:null;
-  ok(W.ECO_COARSE&&W.ECO_PT.on&&W.ECO_SLOTS===64&&W.ECO_FINE===W.NCELL*W.NCELL&&W.ECO_PT.np===(W.GRIDN/8)**2,`the box ${W.ECO_FB.w}² from (${W.ECO_FB.i0}, ${W.ECO_FB.j0}), ${W.ECO_FINE} cells; ${W.ECO_PT.np} patches over the world from cell ${W.GRID0}, ${W.ECO_SLOTS} slots`);
+  ok(W.ECO_COARSE&&W.ECO_PT.on&&W.ECO_SLOTS===64&&W.ECO_FINE===W.NCELL*W.NCELL&&W.ECO_PT.np===W.ECO_PT.nx*W.ECO_PT.nz,`the box ${W.ECO_FB.w}² from (${W.ECO_FB.i0}, ${W.ECO_FB.j0}), ${W.ECO_FINE} cells; ${W.ECO_PT.np} patches over the world from cell (${W.WORLD.i0}, ${W.WORLD.j0}), ${W.ECO_SLOTS} slots`);
   let bad=0;for(let k=0;k<20000;k++){const i=(k*7919)%W.NCELL,j=(k*104729)%W.NCELL,c=W.ecoId(i,j);W.ecoIJ(c);if(c!==i*W.NCELL+j||W.ecoIJ(c)[0]!==i||W.ecoIJ(c)[1]!==j)bad++;}
-  ok(bad===0&&W.ecoId(-1,5)===-1&&W.ecoId(5,W.NCELL)===-1&&W.ecoId(W.GRID0-1,0)===-1&&W.ecoId(W.GRID0+W.GRIDN,0)===-1,'in the box ecoId is i*NCELL+j and ecoIJ its inverse (20,000 cells); past it a coarse cell not split, and off the world, -1');
+  ok(bad===0&&W.ecoId(-1,5)===-1&&W.ecoId(5,W.NCELL)===-1&&W.ecoId(W.WORLD.i0-1,0)===-1&&W.ecoId(W.WORLD.i1,0)===-1,'in the box ecoId is i*NCELL+j and ecoIJ its inverse (20,000 cells); past it a coarse cell not split, and off the world, -1');
   census(W);{const P=W.ECO_PT;let n=0;for(let p=0;p<P.np;p++)n+=P.coarse[p];ok(n===5824&&P.done.reduce((a,b)=>a+b,0)===5824,`the census: ${n} coarse patches round the box, every one censused`);}const fine=run(W,DAYS,false);
   const kid=(mode,extra)=>{const r=cp.spawnSync(process.execPath,[__filename],{env:Object.assign({},process.env,{LEDGER:mode},extra||{}),encoding:'utf8',maxBuffer:1<<26});
     process.stdout.write(r.stdout.split('\n').filter(l=>/^ {2}(ok|FAIL|  )|^ledger/.test(l)).join('\n')+'\n');if(r.status!==0){fails++;if(r.stderr)console.log(r.stderr.slice(-3000));}};
@@ -43,7 +43,7 @@ if(MODE===''){
 if(MODE==='model'){
   console.log('ledger: the fine box the middle 112² cells (patched), the model alone');
   const W=ecoBundle(true),P=W.ECO_PT,E=W.SPAWN.length;
-  const nc=P.coarse.reduce((a,b)=>a+b,0);ok(W.ECO_COARSE&&P.on&&nc===(W.GRIDN/8)**2-196&&W.ECO_FINE===112*112&&W.ECO_SLOTS===64,`${nc} coarse patches of ${W.PATCH}², the box ${W.ECO_FINE} cells, ${W.ECO_SLOTS} slots of 64`);
+  const nc=P.coarse.reduce((a,b)=>a+b,0);ok(W.ECO_COARSE&&P.on&&nc===P.np-196&&W.ECO_FINE===112*112&&W.ECO_SLOTS===64,`${nc} coarse patches of ${W.PATCH}², the box ${W.ECO_FINE} cells, ${W.ECO_SLOTS} slots of 64`);
   let bad=0;for(let c=0;c<W.ECO_FINE;c++){const ij=W.ecoIJ(c);if(W.ecoId(ij[0],ij[1])!==c)bad++;}ok(bad===0&&W.ecoId(0,0)===-1,'the box\'s cells round-trip through ecoIJ and ecoId; a coarse cell not split is -1');
   census(W);
   // a split and a merge: the count laid on the cells and summed back
@@ -56,7 +56,7 @@ if(MODE==='model'){
   // the bubble: round the player within ECO_R[0], merged past ECO_R[1]; the world's count the same through it
   const sum=()=>W.SPAWN.map((e,ei)=>W.ecoSum(ei)),S0=sum();
   W.player.pos.x=-W.HALF+3000;W.player.pos.z=-W.HALF+3000;for(let k=0;k<80;k++)W.ecoBubble(W.player.pos.x,W.player.pos.z);
-  const used=()=>P.bp.reduce((a,b)=>a+(b>=0?1:0),0),u1=used();let within=0,split=0;for(let p=0;p<P.np;p++){if(!P.coarse[p])continue;const W8=8*W.CELL,x0=(W.GRID0+Math.floor(p/P.nw)*8)*W.CELL-W.HALF,z0=(W.GRID0+(p%P.nw)*8)*W.CELL-W.HALF,dx=Math.max(x0-W.player.pos.x,0,W.player.pos.x-x0-W8),dz=Math.max(z0-W.player.pos.z,0,W.player.pos.z-z0-W8);if(Math.hypot(dx,dz)<W.ECO_R[0]){within++;if(P.blk[p]>=0)split++;}}
+  const used=()=>P.bp.reduce((a,b)=>a+(b>=0?1:0),0),u1=used();let within=0,split=0;for(let p=0;p<P.np;p++){if(!P.coarse[p])continue;const W8=8*W.CELL,x0=(W.WORLD.i0+Math.floor(p/P.nz)*8)*W.CELL-W.HALF,z0=(W.WORLD.j0+(p%P.nz)*8)*W.CELL-W.HALF,dx=Math.max(x0-W.player.pos.x,0,W.player.pos.x-x0-W8),dz=Math.max(z0-W.player.pos.z,0,W.player.pos.z-z0-W8);if(Math.hypot(dx,dz)<W.ECO_R[0]){within++;if(P.blk[p]>=0)split++;}}
   ok(u1>0&&split===within&&u1<=W.ECO_SLOTS,`at the old square's north-west corner: the ${within} coarse patches within ${W.ECO_R[0]} m all split (${u1} slots in use)`);
   const S1=sum();ok(S1.every((v,ei)=>Math.abs(v-S0[ei])<=1e-3*Math.max(1,S0[ei])),'the world\'s count the same through the splits, every entry');
   for(let d=0;d<5;d+=0.05)W.ecoModel(0.05,()=>false);const S2=sum();ok(S2.every(v=>Number.isFinite(v)&&v>=0),'five days of the model over the fine box, the split cells and the patches side by side: every count finite');
@@ -80,9 +80,12 @@ if(MODE==='game'){
   console.log('ledger: the fine box patched in the whole game');
   const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
   let js=ORDER.map(src).join('\n');if(!js.includes(BOX))throw new Error('ecology.js ECO_FB not as expected');js=js.replace(BOX,BOXP);
-  js+='\nglobal.__G={POP,ECO_PT,ECO_FINE,ECO_SLOTS,ecoId,ecoSum,ecoOf,popRows,popLoad,chunks,SPAWN,player,cellsAround,HALF,CELL,go:(x,z)=>{player.pos.set(x,dispY,z);cellsAround();},day:(h,st)=>{for(let k=0;k<h;k+=st){clockH+=st;POP.acc=ECO_STEP;ecoTick(ECO_STEP);let g=0;while(POP.model&&g++<5000)ecoTick(0);}}};';
+  js+='\nglobal.__G={POP,ECO_PT,ECO_FINE,ECO_SLOTS,ECO_PR,ECO_PN,ecoPatchDist,ecoNear,ecoCensusNear,WX1,WZ1,get clock(){return clockH;},sync:()=>{if(clockH<POP.last)clockH=POP.last;},ecoId,ecoSum,ecoOf,popRows,popLoad,chunks,SPAWN,player,cellsAround,HALF,CELL,go:(x,z)=>{player.pos.set(x,dispY,z);cellsAround();},day:(h,st)=>{for(let k=0;k<h;k+=st){clockH+=st;POP.acc=ECO_STEP;ecoTick(ECO_STEP);let g=0;while(POP.model&&g++<5000)ecoTick(0);}}};';
   const tmp=path.join(os.tmpdir(),'tethys_ledger_game.js');fs.writeFileSync(tmp,'(function(){"use strict";\n'+js+'\n})();');process.env.PICK='1';require('./stub.js');require(tmp);
   const G=__G,P=G.ECO_PT;__step(200);let g=0;while(G.POP.gen&&g++<200000){const r=G.POP.gen.next();if(r.done)G.POP.gen=null;}
+  // v11.112: the boot's census is the coarse patches within ECO_PR of the player, nearest first; past it they wait
+  {let near=0,nearC=0,farC=0,far=0;for(let p=0;p<P.np;p++){if(!P.coarse[p])continue;const d=G.ecoPatchDist(p,0,0);if(d<G.ECO_PR-3000){near++;if(P.done[p])nearC++;}else if(d>G.ECO_PR+3000){far++;if(P.done[p])farC++;}}
+    ok(near>0&&nearC===near&&far>0&&farC===0,`the boot's census: the ${near} coarse patches within ${G.ECO_PR/1000} km of ours all censused, none of the ${far} past it`);}
   G.go(G.HALF-2500,2000);__step(400); // the coarse ring's east, by the seamount m147 (the north-west corner is the awesome shield's land)
   const loaded=[...G.chunks.values()];const ids=loaded.map(ch=>G.ecoId(ch.i,ch.j));
   ok(loaded.length>0&&ids.every(c=>c>=G.ECO_FINE),`${loaded.length} cells loaded in the coarse east, every one in a split patch's slot`);
@@ -95,7 +98,7 @@ if(MODE==='game'){
   ok(okLoad&&same&&Array.from(P.bp).every((v,x)=>v===bp[x]),'loaded back: every patch\'s count, capacity and condition to the save\'s rounding, the slots where they were');
   // v11.106: the hunters' response tables are not saved — the load pass rebuilds them, the counts untouched, and the model runs on
   {const n0=G.SPAWN.map((e,ei)=>Array.from(P.n[ei]));let g=0;while(G.POP.gen&&g++<200000){const r=G.POP.gen.next();if(r.done)G.POP.gen=null;}
-    let miss=0;for(let p=0;p<P.np;p++)if(P.coarse[p]&&P.blk[p]<0&&!P.rt[p])miss++;
+    let miss=0;for(let p=0;p<P.np;p++)if(P.coarse[p]&&P.blk[p]<0&&P.done[p]&&!P.rt[p])miss++; // a censused patch (v11.112: the rest wait)
     const kept=G.SPAWN.every((e,ei)=>P.n[ei].every((v,x)=>v===n0[ei][x]));
     let threw='';try{G.day(5,0.05);}catch(e){threw=e.message;}const fin=G.SPAWN.every((e,ei)=>Number.isFinite(G.ecoSum(ei)));
     ok(!G.POP.gen&&miss===0&&kept&&!threw&&fin,`after the load the patches' tables rebuilt (${miss} missing), every count the save's, and five days of the model run on${threw?' — threw: '+threw:''}`);}
@@ -103,7 +106,10 @@ if(MODE==='game'){
   {const old=JSON.parse(JSON.stringify(G.popRows()));delete old.pt;for(const k of ['n','k','ke','cd','ow'])old[k]=old[k].map(r=>{const a=[];for(const t of r){if(Array.isArray(t))for(let q=0;q<t[1];q++)a.push(t[0]);else a.push(t);}return a.slice(0,G.ECO_FINE);});
     {const a=[];for(const t of old.done){if(Array.isArray(t))for(let q=0;q<t[1];q++)a.push(t[0]);else a.push(t);}old.done=a.slice(0,G.ECO_FINE);}
     const cell=G.ecoId(100,100),want=G.SPAWN.map((e,ei)=>old.n[ei][cell]);const okOld=G.popLoad(old);let g=0;while(G.POP.gen&&g++<400000){const r=G.POP.gen.next();if(r.done)G.POP.gen=null;}
-    let und=0;for(let p=0;p<P.np;p++)if(P.coarse[p]&&!P.done[p])und++;
-    ok(okOld&&G.SPAWN.every((e,ei)=>G.ecoOf(e.kind).hunter||Math.abs(G.POP.n[ei][cell]-want[ei])<=1e-3)&&und===0,`a save from before v11.106 (its tables ${G.ECO_FINE} cells long, no patches): loaded, a cell's counts the save's, every patch censused again (${und} not)`);}
+    let und=0;const ux=G.player.pos.x,uz=G.player.pos.z;for(let p=0;p<P.np;p++)if(P.coarse[p]&&!P.done[p]&&G.ecoPatchDist(p,ux,uz)<G.ECO_PR-3000)und++; // within ECO_PR of the player (v11.112)
+    ok(okOld&&G.SPAWN.every((e,ei)=>G.ecoOf(e.kind).hunter||Math.abs(G.POP.n[ei][cell]-want[ei])<=1e-3)&&und===0,`a save from before v11.106 (its tables ${G.ECO_FINE} cells long, no patches): loaded, a cell's counts the save's, every patch within ${G.ECO_PR/1000} km censused again (${und} not)`);}
+  // v11.112: gone far out, the patches round the player there censused as the ledger ticks, ECO_PN a tick, nearest first
+  {const x=G.WX1-3000,z=G.WZ1-3000;G.go(x,z);__step(60);const before=P.done.reduce((a,b)=>a+b,0);G.sync();G.day(1,0.05); /* the clock to the ledger's last step first: popLoad above took the save's, and the test's clock is not a load's */let near=0,nearC=0;for(let p=0;p<P.np;p++){if(!P.coarse[p])continue;if(G.ecoPatchDist(p,x,z)<3000){near++;if(P.done[p])nearC++;}}
+    const after=P.done.reduce((a,b)=>a+b,0);ok(near>0&&nearC===near&&after>before,`gone to the far corner (${(x/1000).toFixed(0)}, ${(z/1000).toFixed(0)} km): ${after-before} patches censused as the ledger ticked, every one of the ${near} within 3 km`);}
   process.exit(fails?1:0);
 }

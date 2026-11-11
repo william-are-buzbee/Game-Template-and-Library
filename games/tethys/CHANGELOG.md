@@ -6822,3 +6822,30 @@ GLOBE §10.1, the engine work before the province, step 3 of 3 (the person: "go 
   and the chemocline's flood over a window.
 
 Seen: the comparison above; the suite. **Unseen:** nothing should look or play differently.
+
+## v11.112 — the world as a rectangle; the ledger's patches censused near the player (11 Nov 2026)
+
+The province, step 1 of 3 (the person, 11 Nov 2026: "go ahead with the province"). The region model's 159 members' feet run from 69 km west of
+ours to 300 km east and from 93 km north to 121 km south — lopsided, the old members trailing east — so the world will be a rectangle round
+them, not a square round ours (one ±305 km square would be mostly empty, and the ledger's coarse patches over it ~100 MB). Invisible today.
+
+- **world.js `WORLD`** (cells [i0, i1) × [j0, j1)), **`WX0`, `WX1`, `WZ0`, `WZ1`** (its extent), `gridIn`, `inWorld(x, z, m)`, `worldX`/`worldZ` (the
+  clamp, m inside the edge) replace `GRID0`, `GRIDN` and `WHALF`; the values are v11.106's square. Every user per axis: the clamps (player.js,
+  creatures_ai.js, main.js `tp`, save.js's bounds), chunks.js's pool sphere, far.js (`WM_MOVE`; the world's regions `RX0`, `RX1`, `RZ0`, `RZ1` for
+  the scan and the apron's sides), horizon.js's box, region.js (`rgBuild`'s boxes as rectangles — a square's test makes the same decisions — and
+  `inSq`; `regionGrid` takes a rectangle for the game's ground, `regionBasins` an nx × nz grid, a square's edge seeded in the same order),
+  world.js `chemoInit`/`chemoAt` (`nx`, `nz`, `x0`, `z0`), ecology.js's patch grid (`nx` along i, `nz` along j), worldmap.js (the world's picture
+  the square that holds the rectangle, `WMAP_W`), map.html, region.html.
+- **The same world:** against v11.110's tree, `sample()` at 150,000 points over the world none differ; the 47 records identical; the flood's
+  3,427 hollows and labels the same, its silled basins and their scores the same; region.js's `inSq` flags the same.
+- **ecology.js, the coarse patches censused near the player:** at boot the fine box, then the coarse patches within `ECO_PR` (40 km) of the
+  player, nearest first (`ecoNear`; all 5,824 to v11.111); as the player travels, the nearest `ECO_PN` (8) not yet censused within `ECO_PR` each
+  tick (`ecoCensusNear`), each settled on its own (`ecoPatchSettle`: its hunters at no more than 0.8 of what its prey allows, off its own table at
+  its prey's biomass — the boot's `ecoSettle`, for one patch). Past `ECO_PR` a patch waits uncensused and out of the model; its animals are its
+  equilibrium when the player comes. A load's pass rebuilds a saved patch's tables and censuses the near ones it lacks, each settled on its
+  own (to v11.111 the settle capped every patch's hunters, the save's too).
+- **test/ledger.js:** in the game, the boot's census is the 1,348 coarse patches within 40 km of ours and none of the 4,660 past it (the box
+  patched small); gone to the far corner, 161 patches censused as the ledger ticked, every one within 3 km; the load checks count the
+  censused patches and the near ones. test/region.js, cells.js, maps.js, map.js through the rectangle.
+
+Seen: the identity above; the suite. **Unseen:** nothing should look or play differently.

@@ -355,3 +355,10 @@ a horizon mesh per member.
   (`gridIn`, `WHALF`), the apron at the edge — with the model's own floor as the edge; the ledger's coarse patches, dense over the world (82²
   today, a tier coarser again or a hash past a few hundred km); the members beyond `HZ_FAR` left out of the horizon until they come in; the
   near particles (snow, blood, debris) against the render origin; the records' index and the chemocline's flood over a window, not the world.
+- **The province (the person, 11 Nov 2026: "go ahead with the province").** The model's 159 members' feet run from 69 km west of ours to
+  300 km east and from 93 km north to 121 km south: lopsided, its old members trailing east. A square round ours big enough would be ±305 km
+  and mostly empty, and the ledger's coarse patches over it ~100 MB; so the world becomes a rectangle round the province. Three steps:
+  **v11.112, the world as a rectangle** (world.js `WORLD`, `WX0`…`WZ1`, `inWorld`, `worldX`/`worldZ`; every user per axis; ±70.5 km still,
+  so nothing moves — the ground at 150,000 points, the records, the flood the same) **and the ledger's coarse patches censused near the
+  player** (ecology.js `ECO_PR` 40 km at boot, nearest first, `ECO_PN` a tick as the player travels; the rest wait, out of the model, at
+  their equilibrium). Next: the horizon by sight, the flood over frames, the particles on the render origin; then the growth.

@@ -28,7 +28,7 @@ holds the reasons, the numbers and what the person asked for. History and what h
 
 `world.js`: `sample(x,z) → {h,f}` is the analytic terrain and the **condition fields** at a point, and the single source of
 truth. Everything (cell grids, the far terrain, landmark search, structure and flora placement, spawns, the water map) reads
-it. **The world is ±`WHALF` 70,520 (v11.106, GLOBE §10.1 step 4): cells `GRID0` −208 … 447, `GRIDN` 656 a side, `gridIn`/`gridIdx` for the dense tables; `NCELL` and `HALF` are the old square's, the grid's anchor (cell (0, 0) its corner) and the fine ledger's box, and the old square is v11.105's to the bit over 150,000 samples.** `CELL=215, NCELL=240, HALF=25800` (v11.65; 120 and 12900 from v11.58, 16 and 1720 to v11.57 — the island's own square is the middle 16 cells and is untouched to the bit, verified over 185,761 samples at every change — but once, on purpose: v11.95 struck the pit, and the 491 samples within 130 m of it are all that moved; the whole 25.8 km world of v11.64 likewise at 50 m). The geology it encodes is PLANET.md's Geology section (the caldera and its rim, the
+it. **The world is a rectangle (v11.112, `WORLD`: cells [i0, i1) × [j0, j1), x `WX0`…`WX1`, z `WZ0`…`WZ1`; `gridIn`, `inWorld`, `worldX`/`worldZ` the clamp) — ±70,520 today (v11.106, GLOBE §10.1 step 4: cells −208 … 447, a square to v11.111); `NCELL` and `HALF` are the old square's, the grid's anchor (cell (0, 0) its corner) and the fine ledger's box, and the old square is v11.105's to the bit over 150,000 samples.** `CELL=215, NCELL=240, HALF=25800` (v11.65; 120 and 12900 from v11.58, 16 and 1720 to v11.57 — the island's own square is the middle 16 cells and is untouched to the bit, verified over 185,761 samples at every change — but once, on purpose: v11.95 struck the pit, and the 491 samples within 130 m of it are all that moved; the whole 25.8 km world of v11.64 likewise at 50 m). The geology it encodes is PLANET.md's Geology section (the caldera and its rim, the
 shield profile, the terraces as rings, the collapse scarp and fan, the dike ridges, the rift arms with the
 fissure, the flank cone); its parameters are the constants at the top of world.js (`WIND_A`, `CUR_A`, `RIFT_A`, `COLL`,
 `DIKE`, `RIM_R`, `VENT`, `SEEP` (v11.96), `ISLE`, `FLANK_*`; `PIT` until v11.95) — and since v11.61 those constants are one record, `ISLANDS[0]`: an island is a record
@@ -174,8 +174,8 @@ the water's oxygen as a share of the surface's: 1 to the light's base (`OXY.phot
 game's own ground at `OXY.G` (400 m), built on the first call (~70 ms), the world's edge the open ocean; a basin is silled by region.js's rule
 (its sill between −100 and `OXY.floor`, 150 m deep behind it, 10 km² or more). None in the square to v11.101; since v11.102 the model's members
 enclose one: 12 km² behind −1010, its chemocline −1030, its floor −1170, 20 km north-north-east of ours between the drowned atoll (m131), the
-atoll east (m141) and the bank's flank (test/region.js lists it). **Since v11.106 the flood is the world's** (353² at 400 m on the old square's
-lattice, ~0.3 s on the first call) and finds five: that one (13 km² behind −1007), 38 km² behind −927 at 24.7 km east, two small ones far east
+atoll east (m141) and the bank's flank (test/region.js lists it). **Since v11.106 the flood is the world's** (353² at 400 m from the world's
+corner, ~0.3 s on the first call; v11.112 the world's rectangle, `nx` × `nz`) and finds five: that one (13 km² behind −1007), 38 km² behind −927 at 24.7 km east, two small ones far east
 (−604, −616), and **603 km² behind −999 — the moat round ours joined to DEEP §5's basin 28 km west** (the sill an atoll's foot 33 km east-south-
 east; to v11.105 the square's edge let the moat out). **Since v11.108 a silled basin is anoxic only when its food outruns its inflow**
 (`chemoD(sill, nut)` = `OXY.anox` 2.4 × the basin's mean `nut` × (−sill/100)^−0.86, Martin's curve for the food that reaches the sill, over
@@ -1895,7 +1895,10 @@ the drift to the four neighbouring patches at `ECO.mig/PATCH`); nothing crosses 
 cells (`ecoSplit`: one of `ECO_SLOTS` 64 blocks of 64 at the end of the fine tables, each cell censused on paper, the patch's count laid on them
 by their capacities) — the nearest within `ECO_R[0]` 2.5 km each tick, and on demand when a cell loads in a coarse patch (`ecoCellOf`) — and
 merges back past `ECO_R[1]` 4 km with none of its cells loaded (`ecoMerge`: the counts summed, not what they were owed — a fresh cell's owed
-birth starts at a random phase and is not population). Every lookup by cell goes through `ecoId(i, j)` and `ecoIJ(c)` (the old `i·NCELL + j`
+birth starts at a random phase and is not population). **v11.112:** the coarse patches are censused near the player — at boot those within
+`ECO_PR` (40 km), nearest first (1,348 round ours with the box patched small; ~800 as built, against all 5,824 to v11.111), and as the player
+travels `ECO_PN` (8) a tick (`ecoCensusNear`), each settled on its own (`ecoPatchSettle`: its hunters at 0.8 of what its prey allows, off its own
+table); past it a patch waits uncensused and out of the model, its animals at their equilibrium until the player comes. Every lookup by cell goes through `ecoId(i, j)` and `ecoIJ(c)` (the old `i·NCELL + j`
 inside the box); the model's neighbours inside the box are the old arithmetic. The save carries the patches and the slots when there are any, but
 not the hunters' response tables: a load's pass of the paper census (`ecoGen(true)`) rebuilds them from the samples, the counts the save's, and a
 patch waits for its table before the model runs it (`P.rt`; v11.106 — a v11.105 save with patches would have thrown); a save from before v11.106

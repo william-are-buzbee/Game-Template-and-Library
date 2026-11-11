@@ -173,7 +173,7 @@ function seekAway(c,from,speed,dt){speed*=slowOf(c);T1.copy(c.pos).sub(from);T1.
 function setWander(c){
   const d=c.def,R=d.home||30;let p,fh;
   for(let k=0;k<6;k++){ // swimmers steer for wet ground only; a legged creature goes where it likes
-    p=c.home.clone().add(V3(rnd(-R,R),0,rnd(-R,R)));p.x=clamp(p.x,-WHALF+30,WHALF-30);p.z=clamp(p.z,-WHALF+30,WHALF-30);
+    p=c.home.clone().add(V3(rnd(-R,R),0,rnd(-R,R)));p.x=worldX(p.x,30);p.z=worldZ(p.z,30);
     fh=groundAt(p.x,p.z);if(d.legs||fh<-3-d.size*0.6)break;
   }
   if(d.floor)p.y=fh+rnd(0.5,2.5)+d.size*0.4;
@@ -594,7 +594,7 @@ function updateCreatures(dt0){
       if(c.flopT<=0){c.flopT=rnd(0.7,1.3);const gx=groundAt(c.pos.x+1,c.pos.z)-groundAt(c.pos.x-1,c.pos.z),gz=groundAt(c.pos.x,c.pos.z+1)-groundAt(c.pos.x,c.pos.z-1),gl=Math.hypot(gx,gz)||1;
         c.vel.x+=-gx/gl*3.4+rnd(-0.5,0.5);c.vel.z+=-gz/gl*3.4+rnd(-0.5,0.5);c.vel.y=3.6+d.size*0.25;}}
     const wet=sub>0.5;if(wet!==c.wet){if(dp<160&&Math.abs(c.vel.y)>2.5)splash(c.pos,Math.abs(c.vel.y)*(0.5+d.size*0.12));c.wet=wet;}
-    c.pos.x=clamp(c.pos.x,-WHALF+12,WHALF-12);c.pos.z=clamp(c.pos.z,-WHALF+12,WHALF-12);
+    c.pos.x=worldX(c.pos.x,12);c.pos.z=worldZ(c.pos.z,12);
     if(!d.noOrient){if(c.shook){_q.setFromAxisAngle(UP,-c.shook);c.g.quaternion.multiply(_q);c.shook=0;} // the shake (v11.93, combat.js holderWork): last frame's head yaw taken off before the facing is steered, and this frame's put on after — a yaw about the body's own up, composed on the facing, never fought by it
       if(c.face){_m.lookAt(c.face,c.pos,UP);_q.setFromRotationMatrix(_m);c.g.quaternion.slerp(_q,1-Math.exp(-(d.turn||2)*(c.turnK||1)*(c.commitT>0||c.strikeT>0?TURN_STRIKE:2)*dt));} // in a strike the head snaps to the point (TURN_STRIKE, v11.92): the mouth dips to a prey under it // turning to a thing (the tell, the watcher's stare)
       else if(c.vel.lengthSq()>0.02){T2.copy(c.pos).add(c.vel);_m.lookAt(T2,c.pos,UP);_q.setFromRotationMatrix(_m);c.g.quaternion.slerp(_q,1-Math.exp(-(d.turn||2)*(c.turnK||1)*(c.turnedF===frameNo?TURN_FACE:(d.top?clamp(c.vel.length()/d.top,TURN_MIN,1):1))*(c.hold?kgOf(c)/(kgOf(c)+kgOf(c.hold.b)):1)*dt));} // v11.92: a body steered by seekTurn already turns its velocity at its rate, so its facing follows the velocity TURN_FACE times faster (it points where it goes; the lunge's low steering is seekTurn's); holding, the pair turns by the holder's share of its mass // v11.92: in the committed lunge the steering is STRIKE.steer of the rate (it overshoots a dodge); holding, the pair turns by the holder's share of its mass // v11.71: d.turn is the rate at the top speed (derive); a turn is speed over a radius that goes as the length, so an ambling body comes round at its pace's share of it, floored at TURN_MIN

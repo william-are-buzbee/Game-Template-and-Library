@@ -79,7 +79,7 @@ wmFill(0,WM_N,0,WM_N,4);wmBlur(0,WM_N,0,WM_N);
 // 24 texels. The overlap is rolled (every map, raw and blurred), the centre and the texture move together, and the uncovered strips — at least a
 // quarter of the window from the player, where no far region stands (they are dropped at FAR_DROP) — are filled coarse a slice a frame and
 // blurred; the regions refine them when they are built there, as at boot. Only when the world is wider than the window: since v11.106 (±WHALF).
-const WM_MOVE=WHALF>WM_HALF;let wmGen=null,wmShifts=0;
+const WM_MOVE=Math.max(WX1-WX0,WZ1-WZ0)>2*WM_HALF;let wmGen=null,wmShifts=0;
 function wmRecentre(px,pz){if(!WM_MOVE||wmGen)return;if(Math.max(Math.abs(px-WM_O[0]),Math.abs(pz-WM_O[1]))<WM_HALF/2)return;
   const I=Math.round(((px-WM_A)/WM_T-WM_N/2)/24)*24,J=Math.round(((pz-WM_A)/WM_T-WM_N/2)/24)*24;if(I!==WM_I0||J!==WM_J0)wmGen=wmShiftGen(I-WM_I0,J-WM_J0);}
 function* wmShiftGen(di,dj){const N=WM_N;
@@ -244,7 +244,7 @@ function farCellDrawn(i,j){const reg=regions.get(ckey(Math.floor(i/FR),Math.floo
 // the loaded block stay, so the far mesh runs up to the fine mesh's edge and dives under it.
 const FR=4,FQ=Q.farQ,FS=CH_RES/FQ,FSTEP=STEP*FS,FG=FR*FQ+1; // FQ quads per cell, FS fine steps per far step
 const regions=new Map(),farList=[];let farGen=null,farBuilt=0,visibleRegions=0; // the built regions by ckey(ri, rj), region (ri, rj) the cells from 4ri, 4rj (v11.111: by number from cell 0, any size of world; to v11.110 a dense array from GRID0), and as a list, farList, for the loops each frame
-const RG0=GRID0/FR,RG1=(GRID0+GRIDN)/FR-1; // the world's regions, its bounds the clamp's (gridIn)
+const RX0=WORLD.i0/FR,RX1=WORLD.i1/FR-1,RZ0=WORLD.j0/FR,RZ1=WORLD.j1/FR-1; // the world's regions, its bounds the clamp's (gridIn; v11.112 per axis, the world a rectangle)
 function* genRegion(ri,rj){
   const ci0=ri*FR,cj0=rj*FR,x0=ci0*CELL-HALF,z0=cj0*CELL-HALF,[ox,oz]=originOf(x0,z0); // v11.110: the region's group at its corner, everything in it local
   // the water map block first: the fog reads it every frame
@@ -266,7 +266,7 @@ function* genRegion(ri,rj){
   }
   for(let jj=0;jj<FG-1;jj++)for(let ii=0;ii<FG-1;ii++){const a=jj*FG+ii,b=a+1,c=a+FG,d=c+1;idx.push(a,c,b,b,c,d);}
   let P=pos,Cl=col,ext=0;
-  if(ri===RG0||rj===RG0||ri===RG1||rj===RG1){P=Array.from(pos);Cl=Array.from(col);ext=apronGen(ri,rj,x0,z0,P,Cl,idx,ox,oz);P=new Float32Array(P);Cl=new Float32Array(Cl);yield;} // the world's edge: the terrain carried on past the far plane (v11.27)
+  if(ri===RX0||rj===RZ0||ri===RX1||rj===RZ1){P=Array.from(pos);Cl=Array.from(col);ext=apronGen(ri,rj,x0,z0,P,Cl,idx,ox,oz);P=new Float32Array(P);Cl=new Float32Array(Cl);yield;} // the world's edge: the terrain carried on past the far plane (v11.27)
   const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(P,3));geo.setAttribute('color',new THREE.BufferAttribute(Cl,3));geo.setIndex(idx);
   geo.computeVertexNormals();
   const mesh=new THREE.Mesh(geo,TERRAIN_MAT);mesh.frustumCulled=false;
@@ -303,10 +303,10 @@ function* genRegion(ri,rj){
 // of vertices beyond the edge at these offsets, sampled from the same sample() (the void's floor at ~-810 runs out flat), in the same
 // mesh as the region, so the edge of the world has no edge. Before this the far mesh stopped at ±HALF and the black dome stood beyond
 // it — a straight silhouette 25 m past the player's clamp, and the dome a shade darker than any terrain beside it (scene.js FOG_CUT).
-// The last offset must exceed FAR from the clamp (WHALF-25): at 2000 it does on both tiers. ~600 vertices on an edge region, ~1000 on a corner.
+// The last offset must exceed FAR from the clamp (25 inside the world's edge): at 2000 it does on both tiers. ~600 vertices on an edge region, ~1000 on a corner.
 const APRON=[60,150,330,700,1300,2000];
 function apronGen(ri,rj,x0,z0,pos,col,idx,ox,oz){ // appends to pos/col (plain arrays) and idx; returns the apron's reach beyond the edge
-  const sides=[ri===RG0,ri===RG1,rj===RG0,rj===RG1]; // -x,+x,-z,+z: the world's edge
+  const sides=[ri===RX0,ri===RX1,rj===RZ0,rj===RZ1]; // -x,+x,-z,+z: the world's edge
   const fT=new Float32Array(NF),cT=new Float32Array(3);let n=pos.length/3;
   const addV=(x,z)=>{const s=sample(x,z,fT);terrainColor(x,z,s.h,fixF(fT,0),0,cT,0);pos.push(x-ox,s.h,z-oz);col.push(cT[0],cT[1],cT[2]);return n++;};
   const L=FR*CELL,K=APRON.length,quad=(a,b,c,d)=>idx.push(a,c,b,b,c,d); // a→b along +x, a→c along +z: the interior's winding
@@ -361,7 +361,7 @@ function manageFar(budgetMs){
   const t0=performance.now(),px=player.pos.x,pz=player.pos.z;
   wmRecentre(px,pz);while(wmGen&&performance.now()-t0<budgetMs){if(wmGen.next().done)wmGen=null;} // the maps' window first (v11.104): never moves yet
   if(!farGen){let best=null,bd=FAR_R*FAR_R;
-    const L=FR*CELL,a0=Math.max(RG0,Math.floor((px-FAR_R+HALF)/L)),a1=Math.min(RG1,Math.floor((px+FAR_R+HALF)/L)),b0=Math.max(RG0,Math.floor((pz-FAR_R+HALF)/L)),b1=Math.min(RG1,Math.floor((pz+FAR_R+HALF)/L));
+    const L=FR*CELL,a0=Math.max(RX0,Math.floor((px-FAR_R+HALF)/L)),a1=Math.min(RX1,Math.floor((px+FAR_R+HALF)/L)),b0=Math.max(RZ0,Math.floor((pz-FAR_R+HALF)/L)),b1=Math.min(RZ1,Math.floor((pz+FAR_R+HALF)/L));
     for(let rj=b0;rj<=b1;rj++)for(let ri=a0;ri<=a1;ri++){if(regions.has(ckey(ri,rj)))continue;const dx=(ri+0.5)*L-HALF-px,dz=(rj+0.5)*L-HALF-pz,d=dx*dx+dz*dz;if(d<bd){bd=d;best=[ri,rj];}}
     if(best)farGen=genRegion(best[0],best[1]);}
   while(farGen&&performance.now()-t0<budgetMs){if(farGen.next().done){farGen=null;break;}}
