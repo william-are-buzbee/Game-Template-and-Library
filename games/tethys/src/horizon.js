@@ -15,7 +15,7 @@ const HZ_LIGHT=[0.62,1.15,1.0,0.85]; // the horizon mesh's light: the sky's ambi
 const hzScene=new THREE.Scene(),hzCam=new THREE.PerspectiveCamera(CAM_K.fov,innerWidth/innerHeight,HZ_NEAR,HZ_FAR);
 let hzMesh=null,hzSea=null,hzTried=false;
 // the shared fog and sky uniforms, the same objects the world's materials read (scene.js shares them through ShaderLib)
-function hzUniforms(){const L=(THREE.ShaderLib&&THREE.ShaderLib.lambert&&THREE.ShaderLib.lambert.uniforms)||{},u={};for(const k of ['uFogC','uFogR','uFogW','uFogP','uFogS','uFogT','uFogA','uFogAC','uMist','uMistC','uMistW','uWaterMap','uFloorMap','uFogB','uFogTC','uSkA','uSkB','uSkC','uSkD','uSkE','uSkF','uCld','uCldB','uCellA','uCellB'])if(L[k])u[k]=L[k];return u;}
+function hzUniforms(){const L=(THREE.ShaderLib&&THREE.ShaderLib.lambert&&THREE.ShaderLib.lambert.uniforms)||{},u={};for(const k of ['uFogC','uFogR','uFogW','uFogP','uFogS','uFogT','uFogA','uFogAC','uMist','uMistC','uMistW','uWaterMap','uFloorMap','uWmO','uFogB','uFogTC','uSkA','uSkB','uSkC','uSkD','uSkE','uSkF','uCld','uCldB','uCellA','uCellB'])if(L[k])u[k]=L[k];return u;}
 const HZ_VS_HEAD='uniform vec3 uFogC;uniform mat3 uFogR;uniform vec4 uFogW;varying float vFogDepth;varying vec3 vFogPos;\n'; // the fog's vertex stage by hand: vFogPos is the dropped world position
 const HZ_FS_HEAD='#define USE_FOG\n'+DITHER_PARS+'\n'; // then the chunk: fogAir, skyLite, the mist
 function hzMat(vs,fs){return new THREE.ShaderMaterial({uniforms:hzUniforms(),vertexShader:vs,fragmentShader:fs,vertexColors:true,side:THREE.DoubleSide,fog:false});}
@@ -29,7 +29,7 @@ const HZ_SEA_MAT=hzMat(HZ_VS_HEAD+'void main(){vec4 wp=modelMatrix*vec4(position
   'vec3 col=vec3(0.07,0.23,0.30)*dl*0.22*(1.0-R)*uHzSea.z+skyLite(Rw)*R+vec3(0.04,0.14,0.22)*dl*(1.0-a)*uHzSea.y;col=fogAir(col,uFogC,rd,d,1.0);gl_FragColor=vec4(dithering(col),1.0);}'); // the surface's topside rule at its far end (atmosphere.js SURF_MAT: the Fresnel weight on the mean normal, the sky reflected at R, the body at uBody 0.22 of the rest) and, since the surface is a transparent mesh whose alpha a = uBody+R-uBody·R leaves the rest of the pixel to the water column beneath, the column as a dark blue at (1-a): without it the disc stood a shade lighter than the surface's far end from any height (v11.65). At grazing R → the ceiling: the sky a few degrees up, darker than the horizon's band — the sea line
 HZ_SEA_MAT.uniforms.uHzSea=HZ_SEA_U;
 // the extent: the world's square with its apron, and every island record's land or rim with a margin
-function hzExtent(){let x0=-HALF-2000,x1=HALF+2000,z0=-HALF-2000,z1=HALF+2000;for(const R of ISLANDS){const r=((R.land?R.land.r:R.rimR||0)+3000)*R.sc;x0=Math.min(x0,R.x-r);x1=Math.max(x1,R.x+r);z0=Math.min(z0,R.z-r);z1=Math.max(z1,R.z+r);}return [x0,x1,z0,z1];}
+function hzExtent(){let x0=-WHALF-2000,x1=WHALF+2000,z0=-WHALF-2000,z1=WHALF+2000;for(const R of ISLANDS){const r=((R.land?R.land.r:R.rimR||0)+3000)*R.sc;x0=Math.min(x0,R.x-r);x1=Math.max(x1,R.x+r);z0=Math.min(z0,R.z-r);z1=Math.max(z1,R.z+r);}return [x0,x1,z0,z1];}
 // v11.102: the box grew with the model's records (111 × 98 km for seed 32, against the square's 56) and most of it is open sea, so the mesh is no
 // longer sampled whole. A coarse pass at HZ_C·Q.hz, only inside some record's land, rim or cone, finds the cells that can hold something over
 // HZ_CUT — a corner over it, or a reef's rim through it (a ring narrower than the coarse step) — and only those are sampled at Q.hz; the rest
@@ -38,8 +38,9 @@ function hzExtent(){let x0=-HALF-2000,x1=HALF+2000,z0=-HALF-2000,z1=HALF+2000;fo
 const HZ_C=4,HZ_MS=6;
 function* hzGen(){const E=hzExtent(),S=Q.hz,C=S*HZ_C,x0=E[0],z0=E[2],nx=Math.ceil((E[1]-x0)/S)+1,nz=Math.ceil((E[3]-z0)/S)+1,cx=Math.ceil((nx-1)/HZ_C),cz=Math.ceil((nz-1)/HZ_C),t0=performance.now();
   // what can stand over HZ_CUT is inside a record's land, rim or cone (its radius warped +16%, and a coarse cell's diagonal): only those cells
+  // (v11.106: and a bare summit over the sea, to its terraces' foot — the low island m150, 50 m, the first record with no land or rim above water)
   // are sampled at all; of them, a cell is live with a corner over the cut or a rim through it
-  const tops=ISLANDS.map(R=>({x:R.x,z:R.z,t:((R.land?R.land.r:R.rimR!==undefined?R.rimR+R.rimW:0)*1.16+(R.isle?2000:0))*R.sc+C*0.75,r:(R.rimR||0)*R.sc,w:(R.rimW||0)*R.sc+C})).filter(q=>q.t>C*0.75);
+  const tops=ISLANDS.map(R=>({x:R.x,z:R.z,t:((R.land?R.land.r:R.rimR!==undefined?R.rimR+R.rimW:R.h0>0&&R.terr?R.terr.r1:0)*1.16+(R.isle?2000:0))*R.sc+C*0.75,r:(R.rimR||0)*R.sc,w:(R.rimW||0)*R.sc+C})).filter(q=>q.t>C*0.75);
   const CH=new Map(),cH=(i,j)=>{const k=j*(cx+1)+i;let h=CH.get(k);if(h===undefined){h=sample(x0+i*C,z0+j*C).h;CH.set(k,h);}return h;};
   const live=new Uint8Array(cx*cz);let nl=0,tq=performance.now();
   for(let j=0;j<cz;j++){for(let i=0;i<cx;i++){const mx=x0+(i+0.5)*C,mz=z0+(j+0.5)*C;let near=false,rim=false;

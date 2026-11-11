@@ -1,13 +1,13 @@
 // chunks.js — the world is built cell by cell around the player and thrown away behind them.
 // A cell: a 48x48 grid of heights and condition fields (world.js), one terrain mesh, one instanced mesh per flora type, landmarks, creatures.
 const CH_RES=48,STEP=CELL/CH_RES,GR=CH_RES+1,LOAD_R=2;
-const chunks=new Map(),chunkGrid=new Array(NCELL*NCELL).fill(null); // same chunks, indexed by cell for cheap 3x3 lookups
+const chunks=new Map(),chunkGrid=new Array(GRIDN*GRIDN).fill(null); // same chunks, indexed by cell for cheap 3x3 lookups
 function ckey(i,j){return i+','+j;}
 function cellOf(v){return Math.floor((v+HALF)/CELL);}
 // the cell at a point, off the grid rather than through a built string key and a Map (v11.33): this is the per-frame ground
 // lookup — every creature, every chain point outside its own cell, the player five times, the audio rays, the snow — and it
 // allocated a string on each call. The range check is not optional: i=1,j=-1 would alias onto cell (0,15) in a flat array.
-function chunkAt(x,z){const i=cellOf(x),j=cellOf(z);return i<0||j<0||i>=NCELL||j>=NCELL?undefined:chunkGrid[i*NCELL+j]||undefined;}
+function chunkAt(x,z){const i=cellOf(x),j=cellOf(z);return gridIn(i,j)?chunkGrid[gridIdx(i,j)]||undefined:undefined;} // the world's grid (v11.106)
 function groundAt(x,z){const ch=chunkAt(x,z);return ch?ch.h(x,z):sample(x,z).h;}
 // hOut(ch,x,z): the ground for *placing* a thing from a cell being built — the cell's own grid inside it, sample() beyond its
 // edge. ch.h clamps at the grid edge, so a probe that reaches past a cell line reads the edge vertex again and every settleOn
@@ -131,7 +131,7 @@ function makeInstanced(ch,rng,geo,mat,tints,list,dip,vars,f){
 // clone (the old one disposed, so no GL buffer is left behind); it casts into the world's shadow map whole (scene.js updateShadowS) with a
 // bounds sphere that covers the island and never camS's box 500 km up.
 const POOLS=new Map(),poolGroup=new THREE.Group();scene.add(poolGroup); // entry → pool
-const POOL_SPHERE=new THREE.Sphere(new THREE.Vector3(0,0,0),HALF*2+2000);
+const POOL_SPHERE=new THREE.Sphere(new THREE.Vector3(0,0,0),WHALF*2+2000);
 function poolFor(f,geo,mat,vars,cur){let P=POOLS.get(f);if(P)return P;P={f:f,src:geo,mat:mat,vars:!!vars,cur:cur,cap:0,n:0,nVis:0,blocks:[],geo:null,im:null};poolAlloc(P,Math.max(64,Math.round((f.per||60)*Q.flora*12)));POOLS.set(f,P);return P;}
 function poolAlloc(P,cap){ // the pool's mesh at capacity cap, what is written carried over; the old geometry disposed
   const old=P.im,g=P.src.clone();
@@ -242,7 +242,7 @@ function placeBigSolids(ch){
   // v11.52: registered whether or not the neighbour is loaded — it was skipped for a loaded one and left to the 3×3 contact query, so what a
   // cell's placement saw depended on arrival order (test/pool.js: a tube placed in a structure's foot on a revisit); clearOf reads the
   // cell's own hash alone now (solidPush own), and this makes that hash complete
-  for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){if(!di&&!dj)continue;const i=ch.i+di,j=ch.j+dj;if(i<0||j<0||i>=NCELL||j>=NCELL)continue;
+  for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){if(!di&&!dj)continue;const i=ch.i+di,j=ch.j+dj;if(!gridIn(i,j))continue;
     for(const s of bigsFor(i,j)){const e=s.m.elements,sc=len3(e[4],e[5],e[6]),R=(s.f.foot||1)*sc*1.3;
       if(e[12]+R<ch.x0||e[12]-R>ch.x0+CELL||e[14]+R<ch.z0||e[14]-R>ch.z0+CELL)continue;addLumps(ch,s.f.lumps,s.m,s.rs);}}
 }
@@ -353,7 +353,7 @@ function openY(ch,p,rng,lo,hi){if(p.y<OXY.top)return -60-rng()*260; // over the 
 // ledger's recruits use (ecoTick), with off:true (out of the player's sight) and juv:true (born small). The sailers' fleets are the
 // lee's and outside the ledger: drifters die of nothing.
 function* spawnChunkCreatures(ch,rng){
-  const c=ch.i*NCELL+ch.j;ecoCap(c,ch);
+  const c=ecoCellOf(ch);if(c<0)return;ecoCap(c,ch); // the ledger's cell (v11.105: its patch split if it was coarse)
   // the sailers' fleets: where the eddies keep drifters (the retention field, world.js leeW), on the water, over deep ground; one great sailer in three cells
   const cw=cellLee(ch);if(cw>0.3){const n=Math.round((1+3*cw)*Q.creatures);let g=rng()<0.35;
     for(let k=0;k<n+(g?1:0);k++){let p=null;for(let tr=0;tr<12&&!p;tr++){const x=ch.x0+rng()*CELL,z=ch.z0+rng()*CELL;if(leeW(x,z)>0.3&&ch.h(x,z)<-40)p=V3(x,0,z);}if(!p)break;
@@ -408,7 +408,7 @@ function* genChunk(i,j){
   for(const f of FLORA){if(f.mat===MATROCK)continue;yield* placeFloraType(ch,mulberry((((i*73856093)^(j*19349663)^hashStr(f.id))>>>0)),f);yield;}
   placeLandmarks(ch);yield;
   yield* spawnChunkCreatures(ch,rng);lineLoad(ch);fallsLoad(ch); // the player's broods that lie in it (line.js, v11.69); the falls in it (v11.99)
-  scene.add(ch.group);chunks.set(ch.k,ch);chunkGrid[i*NCELL+j]=ch;farCellChanged(i,j);shadowDirty(ch);
+  scene.add(ch.group);chunks.set(ch.k,ch);chunkGrid[gridIdx(i,j)]=ch;farCellChanged(i,j);shadowDirty(ch);
 }
 function loadChunkNow(i,j){if(chunks.has(ckey(i,j)))return;const g=genChunk(i,j);while(!g.next().done){}}
 function unloadChunk(ch){
@@ -422,7 +422,7 @@ function unloadChunk(ch){
   for(let i=creatures.length-1;i>=0;i--)if(creatures[i].gone)creatures.splice(i,1);
   for(let i=carcasses.length-1;i>=0;i--)if(carcasses[i].gone)carcasses.splice(i,1);
   for(let i=schools.length-1;i>=0;i--)if(schools[i].chunk===ch)schools.splice(i,1);
-  chunks.delete(ch.k);chunkGrid[ch.i*NCELL+ch.j]=null;farCellChanged(ch.i,ch.j);shadowDirty(ch);
+  chunks.delete(ch.k);chunkGrid[gridIdx(ch.i,ch.j)]=null;farCellChanged(ch.i,ch.j);shadowDirty(ch);
 }
 let activeGen=null,activeKey=null;
 function manageChunks(budgetMs){
@@ -431,7 +431,7 @@ function manageChunks(budgetMs){
   for(const ch of chunks.values())if(Math.max(Math.abs(ch.i-ci),Math.abs(ch.j-cj))>LOAD_R+1){unloadChunk(ch);break;} // one a frame (v11.12): crossing a cell line used to drop a whole column at once — forty creatures and two dozen geometries each
   if(!activeGen){
     let best=null,bd=1e9;
-    for(let dj=-LOAD_R;dj<=LOAD_R;dj++)for(let di=-LOAD_R;di<=LOAD_R;di++){const i=ci+di,j=cj+dj;if(i<0||j<0||i>=NCELL||j>=NCELL)continue;if(chunks.has(ckey(i,j)))continue;const d=di*di+dj*dj;if(d<bd){bd=d;best=[i,j];}}
+    for(let dj=-LOAD_R;dj<=LOAD_R;dj++)for(let di=-LOAD_R;di<=LOAD_R;di++){const i=ci+di,j=cj+dj;if(!gridIn(i,j))continue;if(chunks.has(ckey(i,j)))continue;const d=di*di+dj*dj;if(d<bd){bd=d;best=[i,j];}}
     if(!best)return;
     activeGen=genChunk(best[0],best[1]);activeKey=ckey(best[0],best[1]);
   }

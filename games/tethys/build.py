@@ -2,7 +2,7 @@
 """Builds the game and the name index.
 
   python3 build.py          tethys.html (single file, everything inlined), dev.html (loads src/*.js separately), src/INDEX.md
-  python3 build.py --test   the same, then node test/lint.js, node test/physics.js, node test/anim.js, node test/steer.js, node test/audio.js, node test/snow.js, node test/sky.js, node test/plankton.js, node test/combat.js, node test/pool.js, node test/registry.js, node test/census.js 40, node test/player.js, node test/live.js and node test/smoke.js (steer, player, live and smoke on both tiers): the four that time themselves first, alone, the rest side by side (JOBS at a time, default the cores, eight at most); SHARD=k/n runs the k-th of n parts; exit 1 on any failure
+  python3 build.py --test   the same, then node test/lint.js, node test/physics.js, node test/anim.js, node test/steer.js, node test/audio.js, node test/snow.js, node test/sky.js, node test/plankton.js, node test/records.js, node test/maps.js, node test/ledger.js, node test/combat.js, node test/pool.js, node test/registry.js, node test/census.js 40, node test/player.js, node test/live.js and node test/smoke.js (steer, player, live and smoke on both tiers): the four that time themselves first, alone, the rest side by side (JOBS at a time, default the cores, eight at most); SHARD=k/n runs the k-th of n parts; exit 1 on any failure
 
 Build order comes from src/order.txt. src/INDEX.md is generated: every top-level name, its file and line, and which other
 files use it. Do not edit INDEX.md by hand; it is rewritten on every build.
@@ -106,7 +106,7 @@ if '--test' in sys.argv:
     import shutil, tempfile, threading, time
     from concurrent.futures import ThreadPoolExecutor
     ALONE = [(['test/physics.js'], {}, 4), (['test/audio.js'], {}, 20), (['test/snow.js'], {}, 38), (['test/sky.js'], {}, 2)]  # the third number: its seconds one at a time, as build.js
-    SIDE = [(['test/smoke.js'], {}, 156), (['test/smoke.js'], {'TIER': 'low'}, 103), (['test/live.js'], {}, 89), (['test/live.js'], {'TIER': 'low'}, 87), (['test/player.js'], {}, 56), (['test/census.js', '40'], {}, 55), (['test/falls.js'], {}, 52), (['test/player.js'], {'TIER': 'low'}, 41), (['test/steer.js'], {}, 25), (['test/steer.js'], {'TIER': 'low'}, 18), (['test/anim.js'], {}, 17), (['test/combat.js'], {}, 9), (['test/registry.js'], {}, 5), (['test/pool.js'], {}, 4), (['test/plankton.js'], {}, 2), (['test/region.js'], {}, 1), (['test/lint.js'], {}, 1)]
+    SIDE = [(['test/smoke.js'], {}, 164), (['test/smoke.js'], {'TIER': 'low'}, 108), (['test/live.js'], {}, 100), (['test/live.js'], {'TIER': 'low'}, 98), (['test/player.js'], {}, 56), (['test/census.js', '40'], {}, 61), (['test/ledger.js'], {}, 135), (['test/falls.js'], {}, 59), (['test/maps.js'], {}, 20), (['test/player.js'], {'TIER': 'low'}, 41), (['test/steer.js'], {}, 25), (['test/steer.js'], {'TIER': 'low'}, 18), (['test/anim.js'], {}, 17), (['test/combat.js'], {}, 9), (['test/registry.js'], {}, 5), (['test/pool.js'], {}, 4), (['test/plankton.js'], {}, 2), (['test/records.js'], {}, 2), (['test/region.js'], {}, 1), (['test/lint.js'], {}, 1)]
     # v11.93.4: SHARD=k/n runs the k-th of n parts, dealt as build.js deals them: longest first to the part with the fewest seconds, ties low
     SH = re.match(r'^(\d+)/(\d+)$', os.environ.get('SHARD', ''))
     if os.environ.get('SHARD') and not (SH and 1 <= int(SH.group(1)) <= int(SH.group(2))):

@@ -7,11 +7,11 @@ const ROOT=path.join(__dirname,'..');
 require('./stub.js');
 const src=['../vendor/wb-core.global','util','world','region','physics','scene','parts','grow','creatures_builders','creatures_spec','creatures_defs','ecology'].map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n'); // v11.85: the spec compiler too, so every kind's sieve (derive's filter, creatures_defs.js defPhysics) is on its row and the filter feeders hunt the swarms on paper
 const pre='const chunkGrid=[],chunks=new Map(),creatures=[],carcasses=[],player={pos:{}};function cellOf(v){return Math.floor((v+HALF)/CELL);}function placeKind(){}\n';
-const W=new Function('return (function(){"use strict";'+pre+src+'\nreturn {SPAWN,DEFS,POP,ECO,ECO_CELLS,ecoCap,ecoModel,ecoOf,ecoSettle};})()')();
-const {SPAWN,DEFS,POP,ECO,ECO_CELLS,ecoCap,ecoModel,ecoOf,ecoSettle}=W;
-for(let c=0;c<ECO_CELLS;c++)ecoCap(c,null);ecoSettle(()=>false);
-const tot=()=>{const m={};SPAWN.forEach((e,ei)=>{let s=0;for(let c=0;c<ECO_CELLS;c++)s+=POP.n[ei][c];m[e.kind]=(m[e.kind]||0)+s;});return m;};
-const cap=()=>{const m={};SPAWN.forEach((e,ei)=>{let s=0;for(let c=0;c<ECO_CELLS;c++)s+=POP.k[ei][c];m[e.kind]=(m[e.kind]||0)+s;});return m;};
+const W=new Function('return (function(){"use strict";'+pre+src+'\nreturn {SPAWN,DEFS,POP,ECO,ECO_CELLS,ECO_FINE,ECO_PT,ecoCap,ecoPatchCap,ecoSum,ecoModel,ecoOf,ecoSettle};})()')();
+const {SPAWN,DEFS,POP,ECO,ECO_CELLS,ECO_FINE,ECO_PT,ecoCap,ecoPatchCap,ecoSum,ecoModel,ecoOf,ecoSettle}=W;
+for(let c=0;c<ECO_FINE;c++)ecoCap(c,null);if(ECO_PT.on)for(let p=0;p<ECO_PT.np;p++)if(ECO_PT.coarse[p])ecoPatchCap(p);ecoSettle(()=>false); // v11.105: the fine box, then the coarse patches (none while the box is the world)
+const tot=()=>{const m={};SPAWN.forEach((e,ei)=>{m[e.kind]=(m[e.kind]||0)+ecoSum(ei);});return m;}; // the fine tables and the patches (v11.105)
+const cap=()=>{const m={};SPAWN.forEach((e,ei)=>{let s=0;for(let c=0;c<ECO_CELLS;c++)s+=POP.k[ei][c];if(ECO_PT.on)for(let p=0;p<ECO_PT.np;p++)if(ECO_PT.blk[p]<0)s+=ECO_PT.k[ei][p];m[e.kind]=(m[e.kind]||0)+s;});return m;};
 if(process.argv[2]==='json'){console.log(JSON.stringify(tot()));process.exit(0);}
 const days=+process.argv[2]||60,step=0.02,K0=cap(),T0=tot(),kinds=Object.keys(T0).sort((a,b)=>K0[b]-K0[a]);
 console.log('kind          K     day0    mass  r/day  cycle   meal    need  prey');

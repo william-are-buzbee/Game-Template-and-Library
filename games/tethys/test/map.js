@@ -9,8 +9,8 @@ const util=fs.readFileSync(path.join(root,'vendor/wb-core.global.js'),'utf8')+'\
 const cut=world.indexOf('// ---------- the light');if(cut>0)world=world.slice(0,cut); // the geology, the fields and the landmarks; nothing that needs the scene
 world+='\n'+fs.readFileSync(path.join(root,'src/region.js'),'utf8'); // v11.102: the model's members and floor (region.js at load)
 const THREE={Vector3:class{constructor(x,y,z){this.x=x;this.y=y;this.z=z;}},Matrix4:class{},Quaternion:class{}};
-const Wd=new Function('THREE',util+'\n'+world+'\nreturn {sample,HALF,CELL,NCELL,LM,CUR_A,WIND_A,OXY,FI,ISLE,ISLANDS:typeof ISLANDS==="object"?ISLANDS:[],BASIN:typeof BASIN==="object"?BASIN:null};')(THREE);
-const W=+(process.env.W||1200),SPAN=+(process.env.SPAN||2*Wd.HALF),CX=+(process.env.CX||0),CZ=+(process.env.CZ||0),OUT=process.env.OUT||'map.png';
+const Wd=new Function('THREE',util+'\n'+world+'\nreturn {sample,HALF,WHALF,GRID0,GRIDN,CELL,NCELL,LM,CUR_A,WIND_A,OXY,FI,ISLE,ISLANDS:typeof ISLANDS==="object"?ISLANDS:[],BASIN:typeof BASIN==="object"?BASIN:null};')(THREE);
+const W=+(process.env.W||1200),SPAN=+(process.env.SPAN||2*Wd.WHALF),CX=+(process.env.CX||0),CZ=+(process.env.CZ||0),OUT=process.env.OUT||'map.png';
 const M=SPAN/W; // metres a pixel
 const x0=CX-SPAN/2,z0=CZ-SPAN/2,px=(x)=>(x-x0)/M,pz=(z)=>(z-z0)/M;
 // heights on a (W+2)² grid with a one-pixel ring for the shade
@@ -36,8 +36,9 @@ function ring(x,z,r,col,dash){const n=Math.max(64,Math.ceil(2*Math.PI*r/M/3));fo
 function label(x,y,s,col,sc){sc=sc||1;text(img,W,W,x+1,y+1,s,[0,0,0],sc);text(img,W,W,x,y,s,col,sc);}
 const WHITE=[240,240,230],GREY=[150,150,150],YEL=[250,220,90],RED=[240,110,90];
 // the region grid, faint (4 cells), and the cell count on it
-const CELL=Wd.CELL,FR=4;for(let k=0;k<=Wd.NCELL;k+=FR){const v=-Wd.HALF+k*CELL;line(px(v),pz(-Wd.HALF),px(v),pz(Wd.HALF),[70,80,90],2);line(px(-Wd.HALF),pz(v),px(Wd.HALF),pz(v),[70,80,90],2);}
-rect(-Wd.HALF+25,-Wd.HALF+25,Wd.HALF-25,Wd.HALF-25,GREY,6); // the clamp
+const CELL=Wd.CELL,FR=4,WH=Wd.WHALF;if(SPAN<=60000)for(let k=0;k<=Wd.GRIDN;k+=FR){const v=-WH+k*CELL;line(px(v),pz(-WH),px(v),pz(WH),[70,80,90],2);line(px(-WH),pz(v),px(WH),pz(v),[70,80,90],2);} // the regions' lines, zoomed in (v11.106: over the world)
+rect(-WH+25,-WH+25,WH-25,WH-25,GREY,6); // the clamp
+rect(-Wd.HALF,-Wd.HALF,Wd.HALF,Wd.HALF,GREY,3);label(px(-Wd.HALF)+4,pz(-Wd.HALF)-10,'the old square (v11.65–105\'s world, 51.6 km)',GREY);
 rect(-1720,-1720,1720,1720,YEL,4);label(px(-1720)+4,pz(-1720)-10,'the island\'s square (v11.57\'s world, 3.4 km)',YEL); // the old world
 // landmarks
 for(const k in Wd.LM){if(k==='all')continue;const p=Wd.LM[k];ring(p.x,p.z,Math.max(60,3*M),WHITE);label(px(p.x)+6,pz(p.z)-4,k+' '+Math.round(p.h),WHITE);}
@@ -51,7 +52,7 @@ if(process.env.PLAN)for(const p of process.env.PLAN.split(';')){const [x,z,rl,rf
 // the scale bar, the key, the numbers
 const sb=SPAN>=20000?5000:SPAN>=5000?1000:500,sbp=sb/M;line(20,W-30,20+sbp,W-30,WHITE);line(20,W-36,20,W-24,WHITE);line(20+sbp,W-36,20+sbp,W-24,WHITE);label(24,W-50,(sb/1000)+' km',WHITE);
 let ky=20;for(const [lo,name] of [[0,'land'],[-6,'the shallows'],[-60,'the lit slope'],[-150,'the twilight'],[-450,'the minimum (oxygen)'],[-800,'the deep'],[-1100,'the floor']]){const c=bandCol(lo-0.5).map(v=>Math.min(255,v*255));for(let y=0;y<10;y++)for(let x=0;x<18;x++)dot(20+x,ky+y,c);label(44,ky+2,name+(lo<0?' '+lo:''),WHITE);ky+=14;}
-label(20,ky+6,'N up  '+(SPAN/1000).toFixed(1)+' km a side  '+Wd.NCELL+' cells of '+CELL+' m',WHITE);
+label(20,ky+6,'N up  '+(SPAN/1000).toFixed(1)+' km a side  '+Wd.GRIDN+' cells of '+CELL+' m',WHITE);
 const out=path.join(__dirname,'preview');if(!fs.existsSync(out))fs.mkdirSync(out);fs.writeFileSync(path.join(out,OUT),png(img,W,W));
 const A=M*M/1e6;console.log('wrote test/preview/'+OUT+': '+W+' px, '+(SPAN/1000).toFixed(1)+' km a side, '+M.toFixed(1)+' m a pixel');
 console.log('land '+(above*A).toFixed(2)+' km²  below the oxygen minimum\'s top '+(dark*A).toFixed(0)+' km²  the floor (< -1000) '+(floor*A).toFixed(0)+' km²  of '+(W*W*A).toFixed(0)+' km²;  height '+minH.toFixed(0)+' … +'+maxH.toFixed(0));

@@ -107,8 +107,9 @@ bodies and bones lie as they fell — the graveyard.
   buried — 60 days on an island's apron, 150 on the ooze (`FALL.bury`). A shown fall is rebuilt as its stage moves (once a game day).
 - **Where they come from:** a body of 5 m or more killed in sight and not eaten whole; and the ledger's off-screen dead of the big mortal
   kinds (ecology.js: natural deaths and the starved, in cells not loaded), each whole one a fall at a place in its cell, on the floor —
-  ~5.4 a game day over the world (ortho 2.7, ridge 1.7, sickle 0.7, comb 0.3). Not the swarms (no body). `FALL.max` 400 records keeps ~74
-  days of them; the oldest bones go first.
+  ~5.4 a game day over the world (ortho 2.7, ridge 1.7, sickle 0.7, comb 0.3). Not the swarms (no body). `FALL.max` 400 records kept ~74
+  days of them, the oldest bones first; since v11.106 (the world ±70 km, ~40 falls a game day) the farthest from the player go first, so
+  round the player they are the world's own density out to ~25 km.
 - **The graveyard:** a fall under a basin's chemocline draws no scavenger (`findCarcass`), its flesh goes at a twentieth of the rate and no
   mats grow. None in the world yet (no basin), so unseen.
 - **`falls()`** in the console: the nearest falls, their stage and the `tp()` to each. The ledger's census fills the world's cells over the
@@ -130,8 +131,11 @@ line**, the straddlers rooted below with crowns above, round the basin's walls w
 water meets oxygen; black iron-sulfide shells; the poison by feeding below it (COMBAT §3b); grey and black mats; the graveyard (§4).
 DIRECTION's "what is at the bottom" has its address on the rim (§6).
 
-Its centre lies at x ≈ −27 km, just past the square's west edge (−25.8): half of it is inside the world today. All of it needs the world
-grown west (GLOBE §10, or `NCELL` alone).
+Its centre lies at x ≈ −27 km, just past the old square's west edge (−25.8). **v11.106: all of it is in the world (±70.5 km)** — and at the
+game's grain (world.js `chemoAt`, 400 m over the world's own ground) it is not alone: the moat round ours joins it under one sill, −999 (an
+atoll's foot 33 km east-south-east), 603 km², its chemocline −1019, its floor −1384, so the deep floor round ours (127 km² within 10 km) is
+under the chemocline too. The model's coarse grid keeps them apart (333 km² behind −988 at 400 m; ours open). Whether that stands is the
+person's (CHANGELOG v11.106).
 
 ## 6. The constructors' structures (the person: their structures first, the fauna later)
 

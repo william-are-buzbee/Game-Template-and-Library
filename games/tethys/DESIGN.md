@@ -28,7 +28,7 @@ holds the reasons, the numbers and what the person asked for. History and what h
 
 `world.js`: `sample(x,z) → {h,f}` is the analytic terrain and the **condition fields** at a point, and the single source of
 truth. Everything (cell grids, the far terrain, landmark search, structure and flora placement, spawns, the water map) reads
-it. `CELL=215, NCELL=240, HALF=25800` (v11.65; 120 and 12900 from v11.58, 16 and 1720 to v11.57 — the island's own square is the middle 16 cells and is untouched to the bit, verified over 185,761 samples at every change — but once, on purpose: v11.95 struck the pit, and the 491 samples within 130 m of it are all that moved; the whole 25.8 km world of v11.64 likewise at 50 m). The geology it encodes is PLANET.md's Geology section (the caldera and its rim, the
+it. **The world is ±`WHALF` 70,520 (v11.106, GLOBE §10.1 step 4): cells `GRID0` −208 … 447, `GRIDN` 656 a side, `gridIn`/`gridIdx` for the dense tables; `NCELL` and `HALF` are the old square's, the grid's anchor (cell (0, 0) its corner) and the fine ledger's box, and the old square is v11.105's to the bit over 150,000 samples.** `CELL=215, NCELL=240, HALF=25800` (v11.65; 120 and 12900 from v11.58, 16 and 1720 to v11.57 — the island's own square is the middle 16 cells and is untouched to the bit, verified over 185,761 samples at every change — but once, on purpose: v11.95 struck the pit, and the 491 samples within 130 m of it are all that moved; the whole 25.8 km world of v11.64 likewise at 50 m). The geology it encodes is PLANET.md's Geology section (the caldera and its rim, the
 shield profile, the terraces as rings, the collapse scarp and fan, the dike ridges, the rift arms with the
 fissure, the flank cone); its parameters are the constants at the top of world.js (`WIND_A`, `CUR_A`, `RIFT_A`, `COLL`,
 `DIKE`, `RIM_R`, `VENT`, `SEEP` (v11.96), `ISLE`, `FLANK_*`; `PIT` until v11.95) — and since v11.61 those constants are one record, `ISLANDS[0]`: an island is a record
@@ -153,6 +153,14 @@ weighted by them, where to v11.101 the highest record's alone counted and two ne
 surface (`hs`, the relief's reference) goes down the lower flank with the ground: to v11.101 it stayed at the apron's −290, so the relief
 read 0 on every lower flank and on the floor inside every record's reach.
 
+**The records' index (v11.103, GLOBE §10 step 1; world.js `RIX`, `rixBuild`, `recsAt`).** The lookups by place — `sample()`, and per vertex
+`apronAt` and `coneK` — take the records near a point from a grid of `RIX.B` (2 km) buckets, each listing in ISLANDS order the records whose
+range (the reach, or the apron's run-out where longer: `rixRange`) touches it. Built on first use and again whenever ISLANDS has grown (the
+chimney's `sample()` at load builds it for ours and the giant; region.js's records rebuild it). Seed 32: 68 × 60 buckets, 1.2 records each on
+average; `sample()` 1.21 µs over the index's extent against 1.99 over every record. `RIX.on` false is the loop over every record: test/records.js
+holds the two to the bit. A new lookup by place reads `recsAt`, never a loop over ISLANDS. `APRON_L` moved up beside `BASIN` (the index's
+first build, at the chimney, reads it).
+
 
 ## The water's oxygen
 
@@ -163,7 +171,11 @@ the water's oxygen as a share of the surface's: 1 to the light's base (`OXY.phot
 game's own ground at `OXY.G` (400 m), built on the first call (~70 ms), the world's edge the open ocean; a basin is silled by region.js's rule
 (its sill between −100 and `OXY.floor`, 150 m deep behind it, 10 km² or more). None in the square to v11.101; since v11.102 the model's members
 enclose one: 12 km² behind −1010, its chemocline −1030, its floor −1170, 20 km north-north-east of ours between the drowned atoll (m131), the
-atoll east (m141) and the bank's flank (test/region.js lists it). `OXY.top` (−450) is
+atoll east (m141) and the bank's flank (test/region.js lists it). **Since v11.106 the flood is the world's** (353² at 400 m on the old square's
+lattice, ~0.3 s on the first call) and finds five: that one (13 km² behind −1007), 38 km² behind −927 at 24.7 km east, two small ones far east
+(−610, −629), and **603 km² behind −999 — the moat round ours joined to DEEP §5's basin 28 km west** (the sill an atoll's foot 33 km east-south-
+east; to v11.105 the square's edge let the moat out), its chemocline −1019, its floor −1384: the floor east and south of ours past ~4.7 km lies
+under it (414 km² of the old square, 127 within 10 km of ours). The person's call (CHANGELOG v11.106); the ledger does not read the chemocline. `OXY.top` (−450) is
 the minimum's upper edge: where the open water's life is squeezed above it (`openY`, the mid flora's and the schools' depths over the deep) —
 the old −450's number with its new reason. Readers: chunks.js (sessile life, `f.chemo` bands for the seep and the grey mats), far.js,
 combat.js `POISON`, creatures_spec.js `coatClassAt`'s `cz`, atmosphere.js `SN_CH` (the snow's plate and black flakes, by the camera's column),
@@ -680,7 +692,12 @@ before anything compiles:
    floor. **There is one density per medium**; `WATER` is a colour that belongs to the place, not a veil you walk into.
 3. **Under water the veil's colour comes from `waterMap`**, a 96×96 world-space RGBA map (`WATER` by floor biome, the
    dark for the void, canopy weight in alpha; ~36 units per texel, box-blurred so borders blend over ~70 units; filled by
-   `far.js` `wmFill/wmBlur`, a coarse pass at boot and a refinement per region), sampled at the camera and at a point
+   `far.js` `wmFill/wmBlur`, a coarse pass at boot and a refinement per region; 1440² over the world's square since v11.65; **since v11.104 a
+   window**, GLOBE §10.1 — scene.js `WM_HALF` 120 cells either side, its centre `WM_O`/`uWmO`, every shader reading at `(p − uWmO)·WM_SCALE +
+   0.5`; on the CPU a fixed grid of texels anchored at the v11.65 square's corner (far.js `WM_A`) with the window's corner on it (`WM_I0`,
+   `WM_J0`); `wmRecentre` centres it on the player again, by whole regions (24 texels), once they are half a half-width from its centre —
+   `wmShiftGen` rolls every map and fills the uncovered strips coarse a slice a frame — and only when the world is wider than the window,
+   which it is not yet: the maps are v11.103's to the byte, test/maps.js), sampled at the camera and at a point
    **at most `reach` (260) units along the ray** (or at the fragment if it is nearer): `1−placeMix` (0.6) of the camera's
    sample, `placeMix` (0.4) of the bounded one. **The floor's say in it fades with height** (v11.27): the map's colour is the
    `WATER` table at the *floor's* depth, which painted the void and the pit near-black into every ray that reached them
@@ -992,11 +1009,11 @@ the menu and `Q.farMs` (3/2) in play, nearest region first — the ring beyond t
 boot; if the person clicks within the first second the outer ring appears in play over the next few seconds. Far things
 get only the sun/hemi (the light pool is assigned by distance), so distant vents don't glow.
 
-- **The apron** (v11.27). The world is a square of ±HALF and the far mesh ended there, with the black dome beyond — a straight
+- **The apron** (v11.27). The world is a square (±HALF to v11.105, ±WHALF since v11.106) and the far mesh ended there, with the black dome beyond — a straight
   silhouette 25 m past the player's clamp. A region on the world's edge carries its terrain on: six more columns of vertices beyond
   the edge at `APRON` offsets (60…2000, doubling), a block on a corner, from the same `sample()` (the lower flank, v11.28, going on down to ~−850), in the region's own mesh (`apronGen`), so there is no seam; `reg.ext` widens the sphere and the distance test in `cullFar`.
   The last offset must exceed FAR from the clamp on both tiers.
-- **Far terrain.** 900 **regions** of 4×4 cells (`FR`, `regions`; ~35 live round the player, built by `genRegion` under a budget in `manageFar`, dropped by `dropRegion`),
+- **Far terrain.** 26,896 **regions** of 4×4 cells since v11.106 (164², from cell `GRID0`; 3,600 to v11.105, 900 before; `FR`, `regions`, and the built ones in `farList` for the loops each frame — `manageFar` scans only the regions within `FAR_R` of the player, `farCellChanged` only a cell's own and its neighbours; ~35 live round the player, built by `genRegion` under a budget in `manageFar`, dropped by `dropRegion`),
   each one mesh on an 18-unit grid (36 on low) — every 4th vertex of the fine grid from the *same* `sample()` calls, so
   far and near heights are bit-identical where they share a vertex (verified); coloured by the same `terrainColor`.
   Under loaded cells it is pushed 80 down (`farPushVertex/farCellChanged`; a vertex goes under only when *every* cell
@@ -1835,6 +1852,29 @@ The world's population is a ledger (`src/ecology.js`, v11.26), not a spawn table
 `POP.n[entry][cell]` holds the count that lives there now. A cell that loads spawns its count (`ecoTake`, rounded by its rng; the ledger
 keeps what stood) through `chunks.js placeKind`, the one placement routine per kind; a cell that unloads writes its living back; a death
 debits. Nothing respawns. The unloaded cells run the model; the loaded cells run the same ecology live.
+
+**The tiers (v11.105, GLOBE §10.1 step 3; ecology.js `ECO_FB`, `ECO_PT`, `PATCH`, `ECO_R`, `ECO_SLOTS`).** The ledger keeps cells one by one inside
+the fine box (`ECO_FB`, aligned to patches: the v11.65 square; while the world was that square, v11.105, all of it, with no patches). Since
+v11.106 the patches tile the world from cell `GRID0` (`ecoPI`, `ecoPJ`, `ecoPOf`; 82², 5,824 coarse round the box), and the box is v11.105's
+ledger to the float (40 days of the census, every kind: nothing crosses between the tiers). Past it the world is coarse: patches of `PATCH` 8×8 cells (1.72 km), each one ledger cell (`ECO_PT`: n, k, ke, cd per
+entry). A patch's census (`ecoPatchCap`) samples a 16×16 grid, 2×2 a cell, caps each cell at the entry's `max` and sums the 64; for each hunter
+entry it tabulates the response its cells would give (`P.rc`, `RC_S`: the mean over its cells, weighted by its capacity, of the type-III
+response to the prey its reach meets with the prey laid as their capacities lie, against the patch's prey biomass over that reference) — the
+response is not linear and a hunter that lives apart from its prey meets less than an even mix gives. The patches run the model at their scale
+(`ecoPatchGen`: the hunt read off the table, `ecoPatchResp`; the take, the cap, the births, the deaths, the starving and the falls as a cell's;
+the drift to the four neighbouring patches at `ECO.mig/PATCH`); nothing crosses between the tiers. Near the player a patch splits into its
+cells (`ecoSplit`: one of `ECO_SLOTS` 64 blocks of 64 at the end of the fine tables, each cell censused on paper, the patch's count laid on them
+by their capacities) — the nearest within `ECO_R[0]` 2.5 km each tick, and on demand when a cell loads in a coarse patch (`ecoCellOf`) — and
+merges back past `ECO_R[1]` 4 km with none of its cells loaded (`ecoMerge`: the counts summed, not what they were owed — a fresh cell's owed
+birth starts at a random phase and is not population). Every lookup by cell goes through `ecoId(i, j)` and `ecoIJ(c)` (the old `i·NCELL + j`
+inside the box); the model's neighbours inside the box are the old arithmetic. The save carries the patches and the slots when there are any, but
+not the hunters' response tables: a load's pass of the paper census (`ecoGen(true)`) rebuilds them from the samples, the counts the save's, and a
+patch waits for its table before the model runs it (`P.rt`; v11.106 — a v11.105 save with patches would have thrown); a save from before v11.106
+(its tables 57,600 cells, no patches) keeps its cells and has its patches censused.
+test/ledger.js, with the box patched to the middle 112² cells: the 704 coarse patches' capacities 0.999 of the same cells' fine census (every
+kind within 1%), their counts after 40 days 1.026 of the fine model's — every kind within 10% but the deep hunters the abyssal (0.75) and the
+sickle (0.57); split and merge conserve every entry; the bubble keeps within its slots; a cell loaded in a coarse patch splits it and spawns;
+the save brings it all back. The model's step costs ~6% more for the lookups (the census's 6 days: 21.6 s against 20.3).
 
 - **The model** (`ecoModelGen`, a piece a frame every `ECO_STEP` 3 s). Per game day: births `r·n·(1−n/K)` with `r = r0·mass^-¼`
   (`ECO.r0` 0.12), natural death `m = 0.1·r`; a hunter kind's need `q0·mass^¾` (`ECO.q0` 0.05: five percent of its mass a day at unit

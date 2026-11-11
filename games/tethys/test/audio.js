@@ -7,7 +7,7 @@ const ROOT=path.join(__dirname,'..');
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
 let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n');
 js+='\nglobal.__T={upd:0n,n:0};{const o=updateAudio;updateAudio=function(a){const t0=process.hrtime.bigint();o(a);__T.upd+=process.hrtime.bigint()-t0;__T.n++;};}';
-js+='\nglobal.__au={line:()=>audioLine(),A:()=>AU_LINE,on:()=>AU.on,set:(x,y,z)=>{player.pos.set(x,y,z);player.vel.set(0,0,0);camera.position.set(x,y+2,z+8);const ci=cellOf(x),cj=cellOf(z);for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++)if(ci+di>=0&&cj+dj>=0&&ci+di<NCELL&&cj+dj<NCELL)loadChunkNow(ci+di,cj+dj);},'+
+js+='\nglobal.__au={line:()=>audioLine(),A:()=>AU_LINE,on:()=>AU.on,set:(x,y,z)=>{player.pos.set(x,y,z);player.vel.set(0,0,0);camera.position.set(x,y+2,z+8);const ci=cellOf(x),cj=cellOf(z);for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++)if(gridIn(ci+di,cj+dj))loadChunkNow(ci+di,cj+dj);},'+
   'ground:(x,z)=>groundAt(x,z),lm:()=>LM,tide:()=>TIDE,hurt:()=>hurtPlayer(1,creatures[0]&&creatures[0].pos),mute:()=>toggleMute(),off:()=>{AU.on=false;},voices:()=>AU.voices.filter(v=>v.em).map(v=>v.em===AU.slosh?"slosh":v.em===AU.sloshB?"sloshB":v.em===AU.rain?"rain":v.em===AU.surf?"surf":v.em===AU.surfW?"surfW":v.em===AU.ventR?"ventR":v.em===AU.ventB?"ventB":v.em===AU.forest?"forest":"body")};';
 const tmp=path.join(require('os').tmpdir(),'tethys_audio_bundle.js');
 fs.writeFileSync(tmp,'(function(){"use strict";\n'+js+'\n})();');

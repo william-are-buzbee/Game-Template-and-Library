@@ -202,9 +202,10 @@ function conceiveClose(decline){ // the window closed: the clutch laid as the ch
   const child=pr.total>0?JSON.parse(specToJSON(lab.v)):cv.parent;if(pr.total>0&&(!child.id||child.id===cv.parent.id))child.id=(cv.parent.id||'line').replace(/-\d+$/,'')+'-'+(cv.gen+1);
   const fuel=clutchHunger(child);if(player.hunger+fuel>=1){const m='not fed enough for this child ('+fuel.toFixed(2)+' of the stomach, '+(1-player.hunger).toFixed(2)+' in it): a smaller one, or decline';hintEl.textContent=m;hintEl.style.opacity=1;labRender();labMsg(m);return false;} // v11.73: the fuel half of the bill (LINEAGE §6) — the stomach must hold the eggs; a copy always can (playerLay checked)
   lab.conceive=null;labLeave();return layClutch(child,pr,cv);}
+function lineCell(i,j){return i>=0&&j>=0&&i<NCELL&&j<NCELL?i*NCELL+j:NCELL*NCELL+gridIdx(i,j);} // a brood's cell as the save keeps it: the old square's i·NCELL + j as before v11.106 (old saves read the same), past it a number of its own
 function layClutch(child,pr,cv){ // the clutch on the floor where the window opened, carrying the child's spec
   const L=lineCur(),P=player,ch=chunkAt(cv.at.x,cv.at.z),m=lifeBreed(L)||BREED.slowbloods;if(!L||!ch)return false;
-  const b={cell:ch.i*NCELL+ch.j,pos:[r3(cv.at.x),r3(cv.at.y),r3(cv.at.z)],n:m.n,born:r3(t),hatch:r3(t+hatchS(child)*(m.hatchK||1)),spec:child,gen:cv.gen+1,price:pr.total,hatched:false,at:r3(t),_ch:ch,_egg:null};
+  const b={cell:lineCell(ch.i,ch.j),pos:[r3(cv.at.x),r3(cv.at.y),r3(cv.at.z)],n:m.n,born:r3(t),hatch:r3(t+hatchS(child)*(m.hatchK||1)),spec:child,gen:cv.gen+1,price:pr.total,hatched:false,at:r3(t),_ch:ch,_egg:null};
   L.broods.push(b);L.lay=r3(t);b.fuel=r3(clutchCost(child));P.hunger=Math.min(1,P.hunger+clutchHunger(child));broodEgg(ch,b);P.pulse=1;thump(0.3,90,40,null,0.6,0.05); // v11.73: the eggs' material off the stomach (the record keeps it in tonnes)
   if(m.once){const msg='the clutch: '+m.n+' eggs, the hatch in '+((b.hatch-t)/DAY_S).toFixed(2)+' days — you will not feed again; stay by it, or not';hintEl.textContent=msg;hintEl.style.opacity=1;setTimeout(()=>{if(hintEl.textContent===msg)hintEl.style.opacity=0;},6000);} // v11.74: the brood begins
   if(pr.total>0)sparkStart(cv.at);saveNow();return true;} // the sparkle: only a changed child is the magic (§7); a copy is what any animal lays
@@ -223,7 +224,7 @@ function broodSpawn(ch,b,n){ // the young at the clutch, as old as the brood is 
 }
 function broodCatchUp(b){if(b._ch)return;const d=(t-b.at)/DAY_S;if(d<=0)return;if(!b.hatched&&t>=b.hatch)b.hatched=true;b.n*=Math.pow(broodBreed(b).survive,d);b.at=r3(t);} // an unloaded brood, lazily: its hatch by the clock, its losses by its mode's knob (BREED.survive, v11.74)
 function lineLoad(ch){ // a cell loaded (chunks.js genChunk): every brood of the line that lies in it is put back — the clutch, or its living young
-  if(!curSave||!curSave.line)return;const ci=ch.i*NCELL+ch.j;
+  if(!curSave||!curSave.line)return;const ci=lineCell(ch.i,ch.j);
   for(const L of curSave.line)for(const b of L.broods){if(b.cell!==ci||b._ch)continue;broodCatchUp(b);const n=Math.round(b.n);if(n<1){b.n=0;continue;}b._ch=ch;
     if(!b.hatched)broodEgg(ch,b);else{b.n=n;broodSpawn(ch,b,n);}}
 }

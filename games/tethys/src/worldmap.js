@@ -4,7 +4,8 @@
 // dot with its facing; under the picture the cursor's place and the ground there, and the player's. The wheel zooms about the cursor, a drag
 // pans, a click goes there (tp, in play) and closes; esc or n closes. The world's picture is WMAP_N² samples made on first opening (~0.3 s,
 // once, a stall the person will notice and a dev tool may have); zoomed in, the window is re-sampled at WMAP_Z² when the wheel or the drag
-// rests, so the island's square reads at its own scale rather than as 66 px of the world. The pointer is released while it is open and taken
+// rests, so the island's square reads at its own scale rather than as 66 px of the world. Since v11.106 the world is ±WHALF (141 km): the map opens
+// on a view the old square's size (51.6 km) and samples it at once; the wheel goes out to the whole world. The pointer is released while it is open and taken
 // back when it closes, as the effects list does (effects.js fxShow). The bands and contours are test/map.js's, kept in step by hand.
 const WMAP_N=512,WMAP_Z=320,WMAP_REST=180; // the world picture's side in samples; the zoomed window's; the rest (ms) after a wheel or drag before the window re-samples
 const WMAP_BANDS=[[0,[0.55,0.52,0.40]],[-6,[0.62,0.78,0.72]],[-60,[0.30,0.62,0.66]],[-150,[0.18,0.42,0.56]],[-450,[0.12,0.26,0.44]],[-800,[0.10,0.17,0.30]],[-1100,[0.08,0.11,0.20]],[-3000,[0.04,0.05,0.10]]];
@@ -23,20 +24,21 @@ function wmapPicture(cx,cz,span,W){const N=W+2,M=span/W,x0=cx-span/2,z0=cz-span/
   g.putImageData(img,0,0);return cv;}
 function wmapKey(){return Math.round(wmap.cx)+','+Math.round(wmap.cz)+','+Math.round(wmap.span);}
 function wmapShow(on){if(on===wmap.open)return;if(on&&mode!=='play'&&mode!=='menu')return;wmap.open=on;wmapEl.classList.toggle('on',on);
-  if(on){try{const W=Math.max(200,Math.min(innerWidth,innerHeight)-90);wmapC.width=W;wmapC.height=W;if(!wmap.base)wmap.base=wmapPicture(0,0,2*HALF,WMAP_N);wmap.win=null;wmap.rest=0;
-      if(mode==='play'&&player.clade){wmap.cx=player.pos.x;wmap.cz=player.pos.z;if(wmap.span>=2*HALF)wmap.span=2*HALF;} // opened in play: centred on you, the world whole (a zoom is kept between openings)
+  if(on){try{const W=Math.max(200,Math.min(innerWidth,innerHeight)-90);wmapC.width=W;wmapC.height=W;if(!wmap.base)wmap.base=wmapPicture(0,0,2*WHALF,WMAP_N);wmap.win=null;wmap.rest=1;
+      if(mode==='play'&&player.clade){wmap.cx=player.pos.x;wmap.cz=player.pos.z;if(wmap.span>=2*WHALF)wmap.span=2*WHALF;} // opened in play: centred on you, the world whole (a zoom is kept between openings)
       wmapDraw();}catch(e){console.warn('the world map could not draw: '+e.message);wmap.open=false;wmapEl.classList.toggle('on',false);return;}
     if(mode==='play'&&locked)unlock();}
   else if(mode==='play'&&!isTouch)tryLock();}
 function wmapDraw(){if(!wmap.open)return;const W=wmapC.width,g=wmapC.getContext('2d'),S=wmap.span,x0=wmap.cx-S/2,z0=wmap.cz-S/2,px=x=>(x-x0)/S*W,pz=z=>(z-z0)/S*W;
   g.fillStyle='#03080f';g.fillRect(0,0,W,W);
   const win=wmap.win&&wmap.winKey===wmapKey()?wmap.win:null;
-  if(win)g.drawImage(win,0,0,W,W);else{const k=WMAP_N/(2*HALF);g.imageSmoothingEnabled=S>=HALF;g.drawImage(wmap.base,(x0+HALF)*k,(z0+HALF)*k,S*k,S*k,0,0,W,W);} // the world's picture, or the window's when it is fresh; a coarse zoom of the world shows its blocks rather than a blur
+  if(win)g.drawImage(win,0,0,W,W);else{const k=WMAP_N/(2*WHALF);g.imageSmoothingEnabled=S>=WHALF;g.drawImage(wmap.base,(x0+WHALF)*k,(z0+WHALF)*k,S*k,S*k,0,0,W,W);} // the world's picture, or the window's when it is fresh; a coarse zoom of the world shows its blocks rather than a blur
   const ring=(x,z,r,col,dash)=>{g.strokeStyle=col;g.setLineDash(dash||[]);g.beginPath();g.arc(px(x),pz(z),r/S*W,0,TAU);g.stroke();g.setLineDash([]);};
   const rect=(xa,za,xb,zb,col,dash)=>{g.strokeStyle=col;g.setLineDash(dash||[]);g.strokeRect(px(xa),pz(za),(xb-xa)/S*W,(zb-za)/S*W);g.setLineDash([]);};
   g.lineWidth=1;
   for(const ch of chunks.values())rect(ch.x0,ch.z0,ch.x0+CELL,ch.z0+CELL,'rgba(200,215,225,0.22)'); // the loaded cells
-  rect(-HALF+25,-HALF+25,HALF-25,HALF-25,'rgba(150,150,150,0.6)',[6,6]); // the clamp
+  rect(-WHALF+25,-WHALF+25,WHALF-25,WHALF-25,'rgba(150,150,150,0.6)',[6,6]); // the clamp
+  rect(-HALF,-HALF,HALF,HALF,'rgba(250,220,90,0.35)',[2,6]); // the old square (v11.65–105's world)
   rect(-1720,-1720,1720,1720,'rgba(250,220,90,0.55)',[4,4]); // the island's square (v11.57's world)
   for(const R of ISLANDS){ring(R.x,R.z,R.reach*R.sc,'rgba(150,150,150,0.5)',[4,6]);if(R.land)ring(R.x,R.z,R.land.r*R.sc,'rgba(200,210,230,0.7)');} // the island records: the reach, the land
   g.fillStyle='rgba(240,240,230,0.9)';for(const p of LM.all){g.beginPath();g.arc(px(p.x),pz(p.z),2,0,TAU);g.fill();} // the landmarks
@@ -50,7 +52,7 @@ function wmapDraw(){if(!wmap.open)return;const W=wmapC.width,g=wmapC.getContext(
   s+='      n close  ·  click go  ·  wheel zoom  ·  drag pan';wmapL.textContent=s;}
 // after the loop's frame (main.js): the dot moves, the loaded cells change; a zoomed window is sampled once the view has rested
 function updateWMap(dt){if(!wmap.open)return;if(mode!=='play'&&mode!=='menu'){wmapShow(false);return;}
-  if(wmap.rest>0){wmap.rest-=dt*1000;if(wmap.rest<=0&&wmap.span<2*HALF*0.6&&wmap.winKey!==wmapKey()){try{wmap.win=wmapPicture(wmap.cx,wmap.cz,wmap.span,WMAP_Z);wmap.winKey=wmapKey();}catch(e){wmap.win=null;}}}
+  if(wmap.rest>0){wmap.rest-=dt*1000;if(wmap.rest<=0&&wmap.span<2*WHALF*0.6&&wmap.winKey!==wmapKey()){try{wmap.win=wmapPicture(wmap.cx,wmap.cz,wmap.span,WMAP_Z);wmap.winKey=wmapKey();}catch(e){wmap.win=null;}}}
   wmapDraw();}
 function wmapAt(e){const r=wmapC.getBoundingClientRect(),W=wmapC.width,u=(e.clientX-r.left)/r.width,v=(e.clientY-r.top)/r.height;return [wmap.cx-wmap.span/2+u*wmap.span,wmap.cz-wmap.span/2+v*wmap.span,u*W,v*W];}
 wmapC.addEventListener('mousedown',e=>{if(e.button!==0)return;wmap.drag={x:e.clientX,y:e.clientY,cx:wmap.cx,cz:wmap.cz};wmap.moved=0;e.preventDefault();});
@@ -58,7 +60,7 @@ addEventListener('mousemove',e=>{if(!wmap.open)return;if(wmap.drag){const r=wmap
   const r=wmapC.getBoundingClientRect();wmap.hover=e.clientX>=r.left&&e.clientX<r.right&&e.clientY>=r.top&&e.clientY<r.bottom;if(wmap.hover){const p=wmapAt(e);wmap.mx=p[0];wmap.mz=p[1];}});
 addEventListener('mouseup',e=>{if(!wmap.open||!wmap.drag)return;const d=wmap.drag;wmap.drag=null;if(wmap.moved>4)return; // a drag panned; a click goes
   if(mode==='play'&&player.clade){const p=wmapAt(e);window.tp(p[0],p[1]);wmapShow(false);}});
-wmapC.addEventListener('wheel',e=>{if(!wmap.open)return;e.preventDefault();const p=wmapAt(e),k=Math.pow(1.25,e.deltaY>0?1:-1),S=clamp(wmap.span*k,300,2*HALF*1.25); // zoom about the cursor: the place under it stays under it
+wmapC.addEventListener('wheel',e=>{if(!wmap.open)return;e.preventDefault();const p=wmapAt(e),k=Math.pow(1.25,e.deltaY>0?1:-1),S=clamp(wmap.span*k,300,2*WHALF*1.25); // zoom about the cursor: the place under it stays under it
   wmap.cx=p[0]-(p[0]-wmap.cx)*S/wmap.span;wmap.cz=p[1]-(p[1]-wmap.cz)*S/wmap.span;wmap.span=S;wmap.rest=WMAP_REST;},{passive:false});
 addEventListener('keydown',e=>{if(e.code==='KeyN'&&(mode==='play'||mode==='menu')&&!showStats)wmapShow(!wmap.open);else if(e.code==='Escape'&&wmap.open){wmapShow(false);e.preventDefault();}}); // with the readout open n is the fog tuner's (main.js FOG_TUNE dlAt), so the map stands down then; the default prevented: menu.js's esc (play to the menu) runs after this and stands down
 document.addEventListener('pointerlockchange',()=>{if(wmap.open&&document.pointerLockElement===canvas)wmapShow(false);}); // a click on the game's canvas took the pointer back: the map is done with

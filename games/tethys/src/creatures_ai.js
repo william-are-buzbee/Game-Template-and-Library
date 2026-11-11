@@ -20,7 +20,7 @@ function layEggs(ch,e,ei,n,rng){
 function removeEgg(g){g.gone=true;if(g.brood&&g.brood._egg===g)g.brood._egg=null;scene.remove(g.mesh);let k=eggs.indexOf(g);if(k>=0)eggs.splice(k,1);k=g.chunk.eggs.indexOf(g);if(k>=0)g.chunk.eggs.splice(k,1);}
 function updateEggs(dt){
   for(let i=eggs.length-1;i>=0;i--){const g=eggs[i];
-    if(g.flesh<g.flesh0){const left=Math.ceil(g.n0*Math.max(0,g.flesh)/g.flesh0);if(left<g.n){if(g.ent>=0){const c=g.chunk.i*NCELL+g.chunk.j;POP.n[g.ent][c]=Math.max(0,POP.n[g.ent][c]-(g.n-left)/Q.creatures);}POP.eaten+=g.n-left;g.n=left;if(g.brood)g.brood.n=left;} // a brood's clutch (line.js, v11.69) is outside the ledger: its record is debited instead
+    if(g.flesh<g.flesh0){const left=Math.ceil(g.n0*Math.max(0,g.flesh)/g.flesh0);if(left<g.n){if(g.ent>=0){const c=ecoId(g.chunk.i,g.chunk.j);if(c>=0)POP.n[g.ent][c]=Math.max(0,POP.n[g.ent][c]-(g.n-left)/Q.creatures);}POP.eaten+=g.n-left;g.n=left;if(g.brood)g.brood.n=left;} // a brood's clutch (line.js, v11.69) is outside the ledger: its record is debited instead
       if(g.n<=0){removeEgg(g);continue;}}
     g.t-=dt;if(g.t<=0&&g.brood){broodHatch(g);removeEgg(g);continue;}if(g.t<=0){const r=placeKind(g.chunk,g.e,g.n,mulberry((g.pos.x*131+g.pos.z*7)|0),{ent:g.ent,juv:true,at:g.pos});let q=r.next();while(!q.done)q=r.next();POP.hatched+=q.value||0;removeEgg(g);}}
 }
@@ -173,7 +173,7 @@ function seekAway(c,from,speed,dt){speed*=slowOf(c);T1.copy(c.pos).sub(from);T1.
 function setWander(c){
   const d=c.def,R=d.home||30;let p,fh;
   for(let k=0;k<6;k++){ // swimmers steer for wet ground only; a legged creature goes where it likes
-    p=c.home.clone().add(V3(rnd(-R,R),0,rnd(-R,R)));p.x=clamp(p.x,-HALF+30,HALF-30);p.z=clamp(p.z,-HALF+30,HALF-30);
+    p=c.home.clone().add(V3(rnd(-R,R),0,rnd(-R,R)));p.x=clamp(p.x,-WHALF+30,WHALF-30);p.z=clamp(p.z,-WHALF+30,WHALF-30);
     fh=groundAt(p.x,p.z);if(d.legs||fh<-3-d.size*0.6)break;
   }
   if(d.floor)p.y=fh+rnd(0.5,2.5)+d.size*0.4;
@@ -232,7 +232,7 @@ function findCarcass(o,R){let best=null,bd=R;for(const c of carcasses){if(c.gone
 // slow on the ooze). Under a basin's chemocline nothing scavenges and the flesh barely goes (the graveyard). A fall is a record (FALLS: plain
 // data, in the save) that outlives its cell: while a cell holds it, its flesh is a carcass the scavengers and the player eat at, its bones a mesh.
 // They come from deaths in sight (kill) and from the ledger's off-screen deaths of the big mortal kinds (ecology.js: natural and starved).
-const FALL={size:5,scav:[1,3],rich:10,mat:[3,40],bury:[60,150],max:400,anoxK:0.05}; // the smallest body (m) that falls; the scavengers' days, smallest to largest (the abyssal's 15 m); the enriched patch's days after the flesh; the mats' window after it; days the bones lie on an apron / on ooze; records kept (the oldest bones go first: ~5 falls a game day off-screen, so ~74 days of them); the graveyard's flesh rate as a share
+const FALL={size:5,scav:[1,3],rich:10,mat:[3,40],bury:[60,150],max:400,anoxK:0.05}; // the smallest body (m) that falls; the scavengers' days, smallest to largest (the abyssal's 15 m); the enriched patch's days after the flesh; the mats' window after it; days the bones lie on an apron / on ooze; records kept (v11.106: the farthest from the player go first — the world is ±70 km, ~40 falls a game day off-screen, and the oldest-first rule of v11.99–105 would have thinned the falls round the player sevenfold; kept so, they are the world's own density out to ~25 km); the graveyard's flesh rate as a share
 const FALLS=[],FALL_ACC=[],FALL_RNG=mulberry(7171);let FALL_E=null; // the records; the ledger's dead owed a fall, per entry; the off-screen falls' places; which entries fall
 function nowD(){return clockH/DAY_H;} // game days
 function fallScavDays(F){return clamp(FALL.scav[0]+(FALL.scav[1]-FALL.scav[0])*(F.size-FALL.size)/(15-FALL.size),FALL.scav[0],FALL.scav[1]);}
@@ -243,13 +243,14 @@ function fallBoneT(F){return F.flesh>0?F.tF+F.flesh/fallRate(F):F.tB;} // when t
 function fallState(F,t){const fl=fallFleshNow(F,t);if(fl>0)return {flesh:fl,rich:0,mat:0,gone:false};const a=t-fallBoneT(F);
   return {flesh:0,age:a,rich:smooth(0,1,a)*(1-smooth(FALL.rich*0.5,FALL.rich,a)),mat:F.anox?0:smooth(FALL.mat[0],FALL.mat[0]+4,a)*(1-smooth(FALL.mat[1]-10,FALL.mat[1],a)),gone:a>(F.apron?FALL.bury[0]:FALL.bury[1])};}
 function fallAdd(kind,x,y,z,m0,size,yaw,seed){const t=nowD(),F={kind,x,y,z,m0,size,yaw,seed:seed>>>0,flesh:m0,tF:t,t0:t,tB:0,anox:underChemo(x,y+1,z),apron:apronAt(x,z)>0.5,c:null,mesh:null,ch:null};
-  FALLS.push(F);if(FALLS.length>FALL.max){let k=-1,bt=1e18;for(let i=0;i<FALLS.length;i++){const G=FALLS[i];if(G.c)continue;const tb=fallBoneT(G);if(tb<bt){bt=tb;k=i;}}if(k>=0)fallRemove(FALLS[k]);}
+  FALLS.push(F);if(FALLS.length>FALL.max){const px=player.pos.x,pz=player.pos.z;let k=-1,bd=-1;for(let i=0;i<FALLS.length;i++){const G=FALLS[i];if(G.c||G.mesh)continue;const d=(G.x-px)*(G.x-px)+(G.z-pz)*(G.z-pz);if(d>bd){bd=d;k=i;}}if(k>=0)fallRemove(FALLS[k]);}
   return F;}
 function fallRemove(F){const k=FALLS.indexOf(F);if(k>=0)FALLS.splice(k,1);fallHide(F);}
 // the ledger's dead (ecology.js, off-screen cells): n of a big mortal entry died in cell c; each whole one is a fall at a place in the cell
-function fallDeath(ei,c,n){if(!FALL_E)FALL_E=SPAWN.map(e=>{const d=DEFS[e.kind];return !!d&&d.size>=FALL.size&&d.role!=='swarm'&&!d.ghost&&ecoOf(e.kind).mortal;}); // a body: not the plankton's swarms (no body to fall)
+function fallDeath(ei,c,n){ecoIJ(c);fallDeathIJ(ei,ECO_IJ[0],ECO_IJ[1],1,n);} // v11.105: the cell by the ledger's lookup; a coarse patch's dead are fallDeathIJ's with its side
+function fallDeathIJ(ei,i,j,span,n){if(!FALL_E)FALL_E=SPAWN.map(e=>{const d=DEFS[e.kind];return !!d&&d.size>=FALL.size&&d.role!=='swarm'&&!d.ghost&&ecoOf(e.kind).mortal;}); // a body: not the plankton's swarms (no body to fall)
   if(!FALL_E[ei]||!(n>0))return;
-  FALL_ACC[ei]=(FALL_ACC[ei]||0)+n;while(FALL_ACC[ei]>=1){FALL_ACC[ei]-=1;const kind=SPAWN[ei].kind,i=Math.floor(c/NCELL),j=c%NCELL,x=(i+FALL_RNG())*CELL-HALF,z=(j+FALL_RNG())*CELL-HALF,h=sample(x,z).h;
+  FALL_ACC[ei]=(FALL_ACC[ei]||0)+n;while(FALL_ACC[ei]>=1){FALL_ACC[ei]-=1;const kind=SPAWN[ei].kind,x=(i+FALL_RNG()*span)*CELL-HALF,z=(j+FALL_RNG()*span)*CELL-HALF,h=sample(x,z).h;
     if(h>-6)continue;fallAdd(kind,x,h+DEFS[kind].size*0.3,z,bioMass(DEFS[kind]),DEFS[kind].size,FALL_RNG()*TAU,(FALL_RNG()*4294967296)>>>0);}}
 // the falls a cell holds, as it loads: the flesh as a carcass (outside the ledger), the bones as a mesh
 function fallsLoad(ch){const t=nowD();for(const F of FALLS){if(F.c||F.mesh||cellOf(F.x)!==ch.i||cellOf(F.z)!==ch.j)continue;const st=fallState(F,t);if(st.gone)continue;
@@ -593,7 +594,7 @@ function updateCreatures(dt0){
       if(c.flopT<=0){c.flopT=rnd(0.7,1.3);const gx=groundAt(c.pos.x+1,c.pos.z)-groundAt(c.pos.x-1,c.pos.z),gz=groundAt(c.pos.x,c.pos.z+1)-groundAt(c.pos.x,c.pos.z-1),gl=Math.hypot(gx,gz)||1;
         c.vel.x+=-gx/gl*3.4+rnd(-0.5,0.5);c.vel.z+=-gz/gl*3.4+rnd(-0.5,0.5);c.vel.y=3.6+d.size*0.25;}}
     const wet=sub>0.5;if(wet!==c.wet){if(dp<160&&Math.abs(c.vel.y)>2.5)splash(c.pos,Math.abs(c.vel.y)*(0.5+d.size*0.12));c.wet=wet;}
-    c.pos.x=clamp(c.pos.x,-HALF+12,HALF-12);c.pos.z=clamp(c.pos.z,-HALF+12,HALF-12);
+    c.pos.x=clamp(c.pos.x,-WHALF+12,WHALF-12);c.pos.z=clamp(c.pos.z,-WHALF+12,WHALF-12);
     if(!d.noOrient){if(c.shook){_q.setFromAxisAngle(UP,-c.shook);c.g.quaternion.multiply(_q);c.shook=0;} // the shake (v11.93, combat.js holderWork): last frame's head yaw taken off before the facing is steered, and this frame's put on after — a yaw about the body's own up, composed on the facing, never fought by it
       if(c.face){_m.lookAt(c.face,c.pos,UP);_q.setFromRotationMatrix(_m);c.g.quaternion.slerp(_q,1-Math.exp(-(d.turn||2)*(c.turnK||1)*(c.commitT>0||c.strikeT>0?TURN_STRIKE:2)*dt));} // in a strike the head snaps to the point (TURN_STRIKE, v11.92): the mouth dips to a prey under it // turning to a thing (the tell, the watcher's stare)
       else if(c.vel.lengthSq()>0.02){T2.copy(c.pos).add(c.vel);_m.lookAt(T2,c.pos,UP);_q.setFromRotationMatrix(_m);c.g.quaternion.slerp(_q,1-Math.exp(-(d.turn||2)*(c.turnK||1)*(c.turnedF===frameNo?TURN_FACE:(d.top?clamp(c.vel.length()/d.top,TURN_MIN,1):1))*(c.hold?kgOf(c)/(kgOf(c)+kgOf(c.hold.b)):1)*dt));} // v11.92: a body steered by seekTurn already turns its velocity at its rate, so its facing follows the velocity TURN_FACE times faster (it points where it goes; the lunge's low steering is seekTurn's); holding, the pair turns by the holder's share of its mass // v11.92: in the committed lunge the steering is STRIKE.steer of the rate (it overshoots a dodge); holding, the pair turns by the holder's share of its mass // v11.71: d.turn is the rate at the top speed (derive); a turn is speed over a radius that goes as the length, so an ambling body comes round at its pace's share of it, floored at TURN_MIN

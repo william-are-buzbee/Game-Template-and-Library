@@ -266,7 +266,7 @@ Not yet: the members past the square that show over the horizon (the 820 m m154 
 the rest wait for §10's per-member horizon meshes); the young members' fresh surface and the colonisation times (§8 step 6); the fed face's
 reef (`fedK`, still open).
 
-## 10. A world that size (10 Nov 2026, proposed)
+## 10. A world that size (10 Nov 2026; agreed — the person, 11 Nov 2026: "engine work for a bigger world is great", "get started" — being built, §10.1)
 
 What is already unbounded: `sample()` is analytic, and JavaScript's numbers are doubles, so the sim, the physics, the ledger's values and the
 saves are exact at any distance. The limits are what is kept per cell for the whole world, and what the GPU gets as float32.
@@ -286,3 +286,49 @@ saves are exact at any distance. The limits are what is kept per cell for the wh
   the cell hash; the ledger's tiers; the windows. Then the world grows to what §9 gives.
 
 Not proposed: separate windows per cluster with a fade between them. The crossing is part of the world.
+
+### 10.1 As built
+
+**The person (11 Nov 2026): "yes, ±70 km first."** The world grows first to ±70 km (140 km a side), which holds every member that shows from
+ours (the giant, the 308 m island, the awesome shield, the 820 and 243 m islands); the province (300+ km of track) later. That size changes the
+order. At 70 km float32 still holds the ground to 8 mm, so the local origins wait for the province, and a cell grid of 652² is a plain larger
+array, so the cell hash waits too. What stands in the way at ±70 km is what is kept per area of the world: the maps (1440² over the square at
+36 m; 490 MB of the CPU's arrays at that grain over 140 km) and the ledger (50 entries × 21 bytes × 425,000 cells, ~425 MB, and a paper census
+of every cell at boot). So: (2) the maps as a window round the player; (3) the ledger in tiers; (4) the growth to ±70 km — the cell grid, the
+clamp, the records reaching the new edge, the chemocline's flood, the horizon's box. Then, before the province: the local origins, the cell hash,
+a horizon mesh per member.
+
+- **Step 1, the records' index (v11.103).** world.js `RIX`, `recsAt`: a grid of 2 km buckets, each with the records (in ISLANDS order) whose
+  reach or apron's run-out touches it; `sample()`, `apronAt` and `coneK` read their bucket instead of every record. Seed 32: 22 records in
+  68 × 60 buckets over 136 × 120 km, 1.2 a bucket on average; `sample()` 1.21 µs against 1.99 over that extent. The world is v11.102's to
+  the bit (test/records.js, the index against the old loop at ~110,000 points; and against v11.102's own code at 150,000). What v11.102 taught
+  the rest of the plan: `sample()`'s cost is the island records it must compute where they overlap, not the loop — each record's bound table
+  (v11.102, region.js `rgBound`) is what keeps that down, and a world of the whole province is mostly open floor between clusters, so the
+  per-sample cost should not grow with it; the horizon tier's one mesh does (1.1 s of build for 20 records), which is why its per-member
+  meshes are in the windows' step.
+- **Step 2, the maps as a window (v11.104).** scene.js `WM_HALF` (120 cells, the v11.65 square), `WM_O` (the window's centre, the shaders'
+  `uWmO`); far.js `WM_A` (the anchor: the v11.65 square's corner, a fixed grid of 36 m texels), `WM_I0`/`WM_J0` (the window's corner on it),
+  `wmRecentre`, `wmShiftGen`. Every map read is relative to the window; once the player is half a half-width from its centre the window is
+  centred on them again by whole regions — the overlap rolled, the uncovered strips (a quarter of the window away at least, where no far region
+  stands) filled coarse a slice a frame — so a moved window holds at a place exactly what one filled there would. It moves only when the world
+  is wider than it: not yet, so the maps are v11.103's to the byte (test/maps.js; with the window patched to half the square, a move of 10 km
+  leaves every read in the overlap the same to the bit and the strip as a boot fill puts it).
+- **Step 3, the ledger in tiers (v11.105).** ecology.js: the fine box (the v11.65 square) keeps its cells; past it coarse patches of 8×8 cells
+  run the same model, each hunter's response tabulated from its cells at the census so a patch's mixing does not feed it prey it would not
+  reach; a patch near the player splits into its cells and merges back when they have gone (DESIGN, The ecology). The person (11 Nov 2026),
+  asked whether a coarse patch looks different: it does not — a coarse patch is only how a far place's animals are counted; the loaded cells
+  are always fine, and a patch splits into cells by capacity before any of them loads. While the world is the square there are no patches:
+  v11.104's ledger to the bit (test/ledger.js; and with the box patched smaller, the coarse ring against the fine within a few percent for
+  every kind but the two rare deep hunters).
+- **Step 4, the growth to ±70 km (v11.106; the person, 11 Nov 2026: "go ahead with the growth to ±70 km").** world.js `GRID0` −208,
+  `GRIDN` 656, `WHALF` 70,520: the world is cells −208…447, 141 km a side. Cell (0, 0) is still the v11.65 square's corner and `HALF` its
+  anchor, so every cell keeps its place and its seeds; `gridIn`, `gridIdx` index the dense tables over the world (the loaded cells, the far
+  layer's structure and card caches: 430,336 cells). The far regions are 164² (a window round the player for the scan, a list for the loops),
+  the ledger's patches 82² (5,824 coarse round the box), the maps' window moves, the clamp is ±WHALF. The records (region.js `rgBuild`) are
+  built in two passes — the 20 that reach the old square as v11.102 built them, then the 25 the world alone reaches (the low island m150 58 km
+  west, banks and atolls), by an rng of their own — and the floor's lattice is v11.102's grown by whole nodes. The old square is v11.105's
+  to the bit: its ground and nine fields at 150,000 points, its maps to the byte, its ledger to the float (every kind, 40 days), the chimney.
+  **What it changed: the chemocline's flood**, now over the world at the game's grain. The moat round ours and DEEP §5's basin 28 km west are
+  one water there, 603 km² behind a sill at −999 (an atoll's foot 33 km east-south-east, 25 m over the model's floor; to v11.105 the square's
+  edge let the moat out east), its chemocline −1019, its floor −1384: 414 km² of the old square's floor under it, 127 km² within 10 km of
+  ours. The model's own grid still has ours open (its cones are not the records' flanks). The person's call, asked in v11.106's pull request.
