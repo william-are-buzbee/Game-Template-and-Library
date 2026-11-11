@@ -145,7 +145,7 @@ game's own ground at `OXY.G` (400 m), built on the first call (~70 ms), the worl
 the minimum's upper edge: where the open water's life is squeezed above it (`openY`, the mid flora's and the schools' depths over the deep) —
 the old −450's number with its new reason. Readers: chunks.js (sessile life, `f.chemo` bands for the seep and the grey mats), far.js,
 combat.js `POISON`, creatures_spec.js `coatClassAt`'s `cz`, atmosphere.js `SN_CH` (the snow's plate and black flakes, by the camera's column),
-the pall's placement in the core, worldmap.js and the maps' contour, the readout's `oxy`. Not yet: the player's oxygen (DEEP §9), the swarms'
+the pall's placement in the core, worldmap.js and the maps' contour, the readout's `oxy`; and (v11.98) envW's `oxy` term, `oxyProf(h, nut)` at the ground, for the deep gardens' envelopes. Not yet: the player's oxygen (DEEP §9), the swarms'
 day depth by it.
 
 ## Landmarks
@@ -1140,6 +1140,7 @@ with the one basalt palette `ROCKT` and `MATROCK`):
 | **heap** | fifteen alike blocks piled two courses (`heapGeo`, 3600 tris) | `crag` 8–20 (h −180..−60), `crag2` 6–14 (h −300..−150), on the fan (`young` ≥ 0.8, `heat` ≤ 0.05), `fit` [0.35, 0.5]; `crag3` 4–10 under a face (`face` [16, 8], `sub` ≥ 0.6) | the fan's hummocks; a rockfall cone at a face's foot |
 | **sheet** | seven flat lumps, shingled (`sheetGeo`, 5.6 wide) | `slab` 6–14 (h −170..−60), `slab2` 5–12 (h −230..−100), on the fan, `fit` [0.3, 0.55] | the slide's coherent blocks (toreva blocks) lying in the fan where it can carry them |
 | **stack** | struck v11.95 with the pit and its seven cairns (the person: a holdover) | — | — |
+| **mound** (v11.98, DEEP §3) | the heap kit (`HEAP_B`) in the deep reef former's pale rubble | `mound` 6–14, `per` 2, h −900..−200 on old (`young` ≤ 0.2), sharply convex (`rel` ≥ 0.85) hard ground, `oxy` ≥ 0.35 | the deep gardens' own rubble on the drowned summits |
 | **ledge** | three flat lumps in a row (`ledgeGeo`) | `ledge`, `per` 0: `placeCliffs` lays them along the contour on steep faces | strata on a cliff |
 
 The blocks are per-cell flora; heaps, sheets and stacks are structures (`big:true`: placed once for the whole world by

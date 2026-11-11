@@ -1,6 +1,6 @@
 # DEEP.md — the deep under the region model (10 Nov 2026)
 
-Status: **designed; §8 (the pit and the cairns struck) built v11.95; the oxygen field and the re-homing (§11 step 2) v11.96; the floor (§2, step 3) v11.97.** The person's decisions are in §10; the build is §11. Read PLANET.md first (The ocean, the head note on The
+Status: **designed; §8 (the pit and the cairns struck) built v11.95; the oxygen field and the re-homing (§11 step 2) v11.96; the floor (§2, step 3) v11.97; the deep gardens (§3, step 4) v11.98.** The person's decisions are in §10; the build is §11. Read PLANET.md first (The ocean, the head note on The
 basin), then GLOBE.md §9.1 (the region model and its basins), FLORA.md (the deep floor, the vents, the rim) and SEAFLOOR.md §4. The rule
 stands: nothing has a name or a biome; every species places itself by envelope over the fields; nothing glows or moves without a reason.
 
@@ -63,6 +63,21 @@ hard ground (`sub`), fast water (`flow`), the edges where the current accelerate
 −150 to −1100 with a thinning in the minimum's core (oxygen under ~0.35), and age (`young` low): **mounds only where the ground has had time**,
 so the old members' rims are the richest and ours' flanks (3 Ma) carry thickets, not mounds. Big mounds are structures with collision in the
 far layer (`bigsFor`); the small are pooled species with cut materials (FLORA_FAR's rules).
+
+**Built v11.98** (flora.js; the person: "start step 4, the deep gardens"):
+- **`thicket`** — the horn's bauplan (`hornB`), white to pale ochre, 0.9–2.2×, `per` 160, on `h` −1100..−150, `sub` ≥ 0.55, `rel` ≥ 0.6, `flow` ≥ 0.2,
+  `oxy` ≥ 0.32, slopes to 1.4. **The relief stands for the quickening water below the light:** the flow field is surface- and tide-driven and
+  reads a flat 0.22 everywhere below −300 — no internal tide over an edge — so below the light "where the current accelerates" is the convex
+  hard ground (`rel`, the ground over its smoothed self); above −300 the flow itself still counts. 59 km² of ground: the sill's drowned summits
+  north-east (the old members' rims, as designed) and the giant's shelf edge; none on ours' own flanks, which are mud below the light.
+- **`mound`** — the thicket's rubble: a pale heap (`HEAP_B`, 6–14×, collision, the far layer's), `per` 2, on old (`young` ≤ 0.2), sharply convex
+  (`rel` ≥ 0.85) hard ground, −900..−200, out of the minimum's core (`oxy` ≥ 0.35).
+- **`glass`, `frond`, `pen` carried down to −1100** over the fed water (`nut` ≥ 0.18 with a taper of 0.04, so the open basin's 0.12 is out —
+  the default 15% taper had let it in: 1,100–1,400 km² of the plain), thin in the core (`oxy` ≥ 0.3): `glass` 136 → 259 km², `pen` 67 → 230.
+  `lily`, `vase` and `barrel` keep their ranges (their flow gates hold them above the deep's 0.22). The lure-feeders `stalk` and `ltree` named
+  above exist nowhere in the game; nothing was revived.
+- **envW's `oxy` term** (world.js `oxyProf`): the open water's oxygen at the ground's depth by the fields' `nut` — the profile `oxyAt` uses, without
+  a basin's chemocline (the chemo gate does that).
 
 ## 4. Carcass falls
 

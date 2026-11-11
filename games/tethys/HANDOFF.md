@@ -1,5 +1,11 @@
 # HANDOFF — tethys
 
+**v11.98 (11 Nov 2026): the deep gardens** (DEEP.md §3, step 4). `thicket` — the horn's line without its partner, pale ochre — on convex
+hard ground below the light (the relief stands for the quickening current: the flow field is flat at depth), richest on the sill's drowned
+summits; its rubble `mound`, a pale heap with collision; `glass`, `frond`, `pen` down to −1100 over the fed water; envW's `oxy` term thins
+them in the minimum's core. **Ask first** whether the sill's gardens read as gardens (`tp(4200,-12400)`, `tp(16200,-3600)`), then the mounds,
+then the frame time over the sill. Next: DEEP step 5, carcass falls.
+
 **v11.97 (11 Nov 2026): the floor** (DEEP.md §2, step 3). Below the light the mud is now three grounds: the islands' aprons, dark
 grey-brown, by their land (world.js `apronAt`); the open floor's foraminiferal ooze, pale (a tropical floor at −1100 is far above the
 carbonate compensation depth — the draft's nodule plain was wrong, DEEP §2 says why); black iron-manganese pavement where the current sweeps

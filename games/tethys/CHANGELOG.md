@@ -6355,3 +6355,30 @@ it), the giant's apron at −920 (a dark grey-brown slope), the sill's gap at �
 
 **Unseen, ask in this order:** the deep floor is pale now where it was near-black — whether that reads right after the minimum the person
 liked; the giant's dark apron against the pale floor beyond it; the black pavement in the gap; the crust on the old rock faces below the light.
+
+
+## v11.98 — the deep gardens (11 Nov 2026)
+
+DEEP.md §11 step 4. The person: "start step 4, the deep gardens". DEEP §3: the lime polyps' line without its green partner builds in the
+dark on plankton alone, as Earth's cold-water corals do (Lophelia, 200–1000 m, 4–12 °C), densest where the water quickens over an edge,
+thin in an oxygen minimum's core.
+
+- **`thicket`** (flora.js): the horn's bauplan, white to pale ochre, 0.9–2.2×, `per` 160 (70 read as scattered, not a garden), on hard
+  (`sub` ≥ 0.55), convex (`rel` ≥ 0.6) ground from −150 to −1100, `flow` ≥ 0.2, `oxy` ≥ 0.32. **The relief stands for the current below the
+  light**: a survey found no hard ground with `flow` over 0.4 below −300 — the field is the surface's and the tide's, a flat 0.22 at depth with
+  no internal tide over the edges where real deep reefs grow — and the hard ground there is nearly all convex (`rel` 1.0): the sill's
+  drowned summits north-east, which DEEP §3 said would be richest. 59 km² in all, with the giant's shelf edge above −300.
+- **`mound`**: the thicket's rubble, a pale heap (the heap kit, 6–14×, with collision, in the far layer), `per` 2, on old (`young` ≤ 0.2),
+  sharply convex hard ground from −900 to −200, out of the minimum's core.
+- **`glass`, `frond`, `pen` carried down to −1100** (to −450 since the chemocline): over the fed water only (`nut` ≥ 0.18 with an explicit taper
+  of 0.04 — the default 15% let the open basin's 0.12 in and put them on 1,100–1,400 km² of plain) and thin in the core (`oxy` ≥ 0.3); the
+  pen's flow gate eased to 0.2 for the deep. `glass` 136 → 259 km², `pen` 67 → 230.
+- **world.js: `oxyProf(y, nut)`**, the open water's profile, and envW's `oxy` term reading it at the ground — so a species can thin in the core.
+  `oxyAt` is `oxyProf` under the chemocline's gate. DEEP §3's lure-feeders (`stalk`, `ltree`) exist nowhere in the game: not revived.
+
+Seen: the real build in headless Chromium (three.js r128 from npm): the sill's summits at −353 and −217 — pale ochre antlers across the
+slope, sponges and sea lilies among them, a pale rubble mound; the giant's lit shelf edge at −140; sponges and pens on the fed deep near
+ours at −904.
+
+**Unseen, ask in this order:** whether the sill's gardens read as gardens (density, the pale against the dark); the mounds up close; whether
+the deep's sponges and pens near ours read as life or litter; the far layer's cost with the mounds on the person's 4060.

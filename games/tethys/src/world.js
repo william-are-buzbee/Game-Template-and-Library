@@ -417,7 +417,7 @@ function fixF(f,sl){f[0]=Math.max(f[0],smooth(0.35,0.8,sl));return f;}
 // (r[2]; default 15% of the range, and for h at most 10 m — a band of 700 m must not bleed 100 m past its edge). Keys: h (ground
 // height), slope, and the fields of FI. No key: 1.
 function envW(env,h,sl,f){let w=1;
-  for(const k in env){const r=env[k],v=k==='h'?h:k==='slope'?sl:f[FI[k]],lo=r[0],hi=r[1],e=r[2]!==undefined?r[2]:k==='h'?Math.min(10,(hi-lo)*0.15):(hi-lo)*0.15;
+  for(const k in env){const r=env[k],v=k==='h'?h:k==='slope'?sl:k==='oxy'?oxyProf(h,f[FI.nut]):f[FI[k]],lo=r[0],hi=r[1],e=r[2]!==undefined?r[2]:k==='h'?Math.min(10,(hi-lo)*0.15):(hi-lo)*0.15;
     if(v<lo)w*=clamp(1-(lo-v)/e,0,1);else if(v>hi)w*=clamp(1-(v-hi)/e,0,1);if(w<=0)return 0;}
   return w;}
 // The retention field (v11.81, PLANKTON.md §12; the canopy mask `canopyW` to v11.80): three eddies in the seamount's wake — downstream of
@@ -607,8 +607,8 @@ function chemoAt(x,z){if(!CHEMO_B)chemoInit();const B=CHEMO_B,i=Math.floor((x-B.
 function underChemo(x,y,z){const c=chemoAt(x,z);return c!==null&&y<c;} // in a basin's anoxic water
 // oxygen at a point, as a share of the surface's: 0 under a chemocline; else the profile, its core lower where the food rains (nut: the fields'
 // at x,z, read from sample() when not given)
-function oxyAt(x,y,z,nut){if(underChemo(x,y,z))return 0;const d=-y;if(d<=-OXY.photic)return 1;if(nut===undefined)nut=sample(x,z).f[FI.nut];
-  const k=clamp((nut-0.12)/0.4,0,1),m=OXY.min[1]-(OXY.min[1]-OXY.min[0])*k;
+function oxyAt(x,y,z,nut){if(underChemo(x,y,z))return 0;if(-y<=-OXY.photic)return 1;return oxyProf(y,nut===undefined?sample(x,z).f[FI.nut]:nut);}
+function oxyProf(y,nut){const d=-y;if(d<=-OXY.photic)return 1;const k=clamp((nut-0.12)/0.4,0,1),m=OXY.min[1]-(OXY.min[1]-OXY.min[0])*k; // the open water's profile at a depth, its core by the food (nut); envW's oxy term (v11.98) reads it at the ground
   return 1-(1-m)*smooth(-OXY.photic,-OXY.core[0],d)+(OXY.deep-m)*smooth(-OXY.core[1],-OXY.floor,d);}
 // ---------- the floor's supply (v11.97, DEEP.md §2) ----------
 // How much of the floor at (x,z) is an island's apron — volcanic sand and silt shed off its flanks, laid faster than anything else can grow

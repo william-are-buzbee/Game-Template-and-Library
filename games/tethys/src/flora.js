@@ -1079,6 +1079,11 @@ const FLORA = [
   species('table', {mat: MATV, tints: VIVID, s: [0.6, 1.6], tilt: true, per: 55, env: {h: [-24, -6], sub: [0.6, 1], nut: [0, 0.55]}}, tableB),
   species('horn', {mat: MATV, tints: VIVID, s: [0.6, 1.6], tilt: true, per: 90, env: {h: [-24, -6], sub: [0.6, 1], nut: [0, 0.55]}}, hornB),
   species('rusthorn', {mat: MATV, tints: RUSTS, s: [0.6, 1.5], tilt: true, per: 36, env: {h: [-150, -4], young: [0.4, 1], sub: [0.5, 1]}}, hornB),
+  // the deep gardens (v11.98, DEEP.md §3): the horn's line without its green partner — the lime polyps' fixed stage on plankton alone, as
+  // Earth's cold-water corals (Lophelia, 200-1000 m, 4-12 °C) — white to pale ochre; on hard ground where the water quickens over an edge: the
+  // relief stands for it below the light, where the flow field (surface- and tide-driven) is the deep's flat 0.22 and knows no internal tide
+  // (terrace lips, dike walls, a drowned summit's rim: rel), above it the flow itself; thinning in the oxygen minimum's core (oxy)
+  species('thicket', {mat: MATV, tints: [[0.93, 0.91, 0.85], [0.9, 0.82, 0.64], [0.96, 0.94, 0.9]], s: [0.9, 2.2], tilt: true, per: 160, env: {h: [-1100, -150], sub: [0.55, 1], rel: [0.6, 1], flow: [0.2, 1], oxy: [0.32, 1]}, maxSlope: 1.4, field: 0.012}, hornB),
   species(
     'dome',
     {mat: MATV, tints: VIVID2, s: [0.6, 1.8], tilt: true, sx: [0.8, 1.25], per: 26, env: {h: [-24, -6], sub: [0.6, 1], nut: [0, 0.55]}},
@@ -1125,7 +1130,7 @@ const FLORA = [
       s: [0.7, 1.6],
       flow: true,
       per: 110,
-      env: {h: [-450, -18], flow: [0.3, 1], sub: [0, 0.4]}
+      env: {h: [-1100, -18], flow: [0.2, 1], sub: [0, 0.4], nut: [0.18, 1, 0.04], oxy: [0.3, 1]} // v11.98 (DEEP §3): sea pens on soft ground down to the floor where the water moves, thin in the minimum's core (-450 and flow ≥ 0.3 to v11.97)
     },
     penB
   ),
@@ -1196,7 +1201,7 @@ const FLORA = [
       ],
       s: [0.8, 1.8],
       per: 40,
-      env: {h: [-450, -140], sub: [0, 0.5], heat: [0, 0.2]}
+      env: {h: [-1100, -140], sub: [0, 0.5], heat: [0, 0.2], nut: [0.18, 1, 0.04], oxy: [0.3, 1]} // v11.98 (DEEP §3): down to the floor over the fed water, thin in the minimum's core (-450 to v11.97, the chemocline)
     },
     glassB
   ),
@@ -1210,7 +1215,7 @@ const FLORA = [
       ],
       s: [0.7, 1.6],
       per: 60,
-      env: {h: [-450, -140], sub: [0, 0.6], heat: [0, 0.2]}
+      env: {h: [-1100, -140], sub: [0, 0.6], heat: [0, 0.2], nut: [0.18, 1, 0.04], oxy: [0.3, 1]} // v11.98 (DEEP §3): as the glass
     },
     frondB
   ),
@@ -1290,6 +1295,9 @@ const FLORA = [
   rock('crag3', HEAP_B, {s: [4, 10], sink: 0.25, per: 1.5, env: {h: [-300, 3], sub: [0.6, 1]}, face: [16, 8], fit: [0.4, 0.5], big: true}), // a rockfall cone at the foot of a face: the dikes, the risers, the rim
   rock('slab', SHEET_A, {s: [6, 14], sink: 0.16, per: 12, env: {h: [-170, -60], young: [0.8, 1], heat: [0, 0.05], sub: [0.5, 0.85]}, field: 0.009, fit: [0.3, 0.55], big: true}), // the slide's coherent blocks, near the scarp
   rock('slab2', SHEET_B, {s: [5, 12], sink: 0.16, per: 10, env: {h: [-230, -100], young: [0.8, 1], heat: [0, 0.05], sub: [0.5, 0.85]}, field: 0.009, fit: [0.3, 0.55], big: true}),
+  // the mounds (v11.98, DEEP §3): the deep reef former's own rubble — dead branches bound by the living, piling where it has had time; a
+  // structure with collision, on old (young low), convex hard ground below the light, out of the minimum's core: the drowned summits' rims
+  rock('mound', HEAP_B, {tints: [[0.82, 0.8, 0.74], [0.78, 0.72, 0.6], [0.86, 0.84, 0.8]], s: [6, 14], sink: 0.3, per: 2, env: {h: [-900, -200], sub: [0.55, 1], rel: [0.85, 1, 0.05], young: [0, 0.2], oxy: [0.35, 1]}, field: 0.01, fit: [0.35, 0.5], big: true}),
   {
     id: 'olddome',
     geo: OLDDOME.geo,
