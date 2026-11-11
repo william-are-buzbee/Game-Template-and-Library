@@ -1,5 +1,9 @@
 # HANDOFF — tethys
 
+**v11.109 (11 Nov 2026): a horizon mesh per island** (GLOBE §10.1, the engine work before the province, step 1 of 3). The far land is a
+mesh per member, built nearest first: from ours the giant's land after ~5% of the build, not after all of it. The same triangles as before,
+to the bit (test/horizon.js). **Ask first** how soon the far land shows after surfacing. Next: the local origins, then the cell hash.
+
 **v11.108 (11 Nov 2026): no basin is anoxic** (DEEP §5; the person: "believability is the deciding factor"). A silled basin goes dark
 only when the food raining onto its sill outruns its inflow's oxygen (`chemoD`, calibrated on Earth's four basins); none in the world does,
 so the moat round ours (v11.106's) is still water, oxic, and the dark has no place in the region. **Ask first** where the constructors'

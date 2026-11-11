@@ -335,3 +335,8 @@ a horizon mesh per member.
   ours. The model's own grid still has ours open (its cones are not the records' flanks). The person (11 Nov 2026): "believability is the
   deciding factor". Built v11.108 (DEEP §5): a silled basin is anoxic only when the food raining onto its sill outruns its inflow's oxygen,
   and none in the world does — the moat round ours is still water, oxic.
+- **Before the province (the person, 11 Nov 2026: "go ahead and do the engine work"): a horizon mesh per member (v11.109).** horizon.js:
+  each live coarse cell of v11.102's pass belongs to the record it lies deepest inside, each member is a mesh, built nearest first (from ours
+  the giant's land after 5.4% of the build) and culled by its own sphere; the union is v11.107's one mesh to the bit (test/horizon.js). For
+  the province the members beyond `HZ_FAR` will be left unbuilt and built as they come in; nothing streams yet. Next: the local origins,
+  then the cell hash.

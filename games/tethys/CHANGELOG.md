@@ -6735,3 +6735,30 @@ behind −999: "believability is the deciding factor … it's very ok if it turn
 
 Seen: in headless Chromium, no page errors, the moat's floor at −1100 east of ours — quiet mud, a few animals, no black flakes. **Unseen,
 ask in this order:** where the constructors go (DEEP §11); the moat's floor in play (`tp(6000,0,-1100)`), now with the deep's ordinary life.
+
+## v11.109 — a horizon mesh per island (11 Nov 2026)
+
+GLOBE §10.1, the engine work before the province; the person (11 Nov 2026): "go ahead and do the engine work". The first of three steps
+(a horizon mesh per member; the local origins; the cell hash), each invisible in the world and pinned by a test.
+
+- **horizon.js `hzGen(cx, cz)`, `hzLand`.** The land past the far plane was one mesh of every island, ~2.3 s of `sample()` since v11.106's
+  world (~6 s at 60 fps, a slice of `HZ_MS` a frame), drawn when all of it was done. Now each live coarse cell of v11.102's pass belongs to
+  one member — of the records whose top holds its centre, the one it lies deepest inside (distance over the top's radius least; the first
+  in `ISLANDS` on a tie) — and each member's cells are a mesh of their own, the members built in order of the camera's distance to their
+  tops' edge when the build starts. From ours: ours, the giant, the 308 m island, the atolls east … the awesome shield (35 members). The
+  giant's land is done after 5.4% of the build, the 308 m island's after 8.9% (~0.3 and ~0.5 s at 60 fps); the awesome shield is half of it.
+- **The same land.** A vertex on a boundary between two members is the same lattice point sampled for both, so the meshes meet exactly;
+  against v11.107's one mesh (node, the old code's build against this one's), every one of its 603,994 triangles is in the members', with
+  their positions, colours and normals to the bit and nothing more.
+- **Culling:** each member's mesh by its own bounding sphere widened by `HZ_DROP` 4 km (the curvature's drop in the vertex shader, ~3.1 km at
+  200 km), so the islands behind the camera are not drawn; up to 35 draws in the horizon pass where there was one.
+- **test/horizon.js** (new, in `--test`, ~13 s): the build from ours to its end, then with the members collapsed to one (the source patched,
+  as v11.102–108 built it): every triangle in one member's mesh, the members' triangles the one mesh's with their winding, every vertex on the
+  lattice, the members nearest first, the giant's land after ~5% of the build's triangles (the stub's clock stands still within a frame, so
+  the build never yields there).
+
+Seen: the identity above; and in headless Chromium (no page errors), surfacing 3 km east of ours: ours' mesh at once, the giant's ~40 s
+later at the headless frame rate (a frame every few seconds) and on the horizon in the shot, the 308 m island and the east atoll next — where
+v11.106's one mesh had not appeared after 30 minutes. **Unseen, ask in this order:** how soon the far land shows at your frame rate (~0.3 s
+for the giant by the CPU's count); the frame rate above water with up to 35 draws in the horizon pass instead of one (the culling drops those
+behind you).

@@ -1064,7 +1064,13 @@ of every island's land sampled once from `sample()` at `Q.hz` metres (100 high, 
 `terrainColor`'s colours — through a camera from `HZ_NEAR` (20 m) to 80 km — the land mesh itself only past `uHzMin` = `FAR` × `HZ_SEA0` (v11.86.1: nearer, its coarse triangles can stand over the camera in a hollow the fine ground has and the mesh does not — the tuff cone's crater — and nothing in the main pass covers the sky; the sea disc starts there too and the far regions reach past the far plane, so the handover is covered); then the main pass over it with the depth cleared. The planet's curvature
 is a vertex-shader drop of d²/2R from the camera's foot on both (`HZ_R` Earth's). The mesh is lit from the sky's uniforms (`HZ_LIGHT`: ambient by the
 normal's tilt between horizon and zenith, the sun by dayK) and fogged by the same `fogAir` as the world without the cut; the disc is the surface's
-topside rule at its far end with the water column the surface's alpha leaves to what is beneath (v11.65, `HZ_SEA_U`, tuned against the surface mesh from 300 m: three levels apart). Built on the first frame above the water (~17k vertices, ~100 ms) and kept; three draws. Two rules it depends on:
+topside rule at its far end with the water column the surface's alpha leaves to what is beneath (v11.65, `HZ_SEA_U`, tuned against the surface mesh from 300 m: three levels apart). Built on the first frame above the water (~17k vertices, ~100 ms) and kept; three draws. *v11.102:* coarse
+first (`HZ_C`), only in the records' tops, a slice of `HZ_MS` a frame. *v11.109 (GLOBE §10.1): a mesh per member* (`hzLand`): each live coarse
+cell belongs to the record it lies deepest inside, each member's cells are one mesh, built in order of the camera's distance to their tops'
+edge when the build starts — from ours the giant's land is done after 5.4% of the build, the 308 m island's after 8.9% (all of it ~2.3 s of
+CPU, ~6 s at 60 fps) — and culled by its own sphere widened by `HZ_DROP` (4 km) for the curvature. The members' meshes are v11.107's one mesh to
+the bit (603,994 triangles; test/horizon.js), boundary vertices sampled once for each side; up to 35 draws where the one mesh was one, fewer
+with the culling. Two rules it depends on:
 the main scene's `background` is nulled for the frame (three clears to it regardless of `autoClear`), and the near plane is short (near-plane
 clipping is by view depth). Under water the pass is skipped and the dome goes back. Seen (CHANGELOG v11.64): the giant on the horizon from open
 water, its foot in the haze; the seam where the disc meets the surface mesh's far end is a shade lighter, left.
