@@ -76,6 +76,14 @@ far layer (`bigsFor`); the small are pooled species with cut materials (FLORA_FA
   model's seamounts' summits, bare and knobbed with pillow mounds 30 m high (region.js `knob`), and the atolls' terrace edges. Open for the
   person: the gardens' place in the model's world — on Earth the next is the banks' and atolls' deep slopes (Lophelia mounds on the Bahamas'
   slopes at 500–800 m) and the seamounts' flanks; a pass of its own.
+  *v11.107 (the person, 11 Nov 2026: "sounds fantastic"): the reefs' carbonate cap.* An atoll or a bank is limestone over its volcano, and
+  its slope below the reef is the cap's flank: spurs of cemented limestone the current keeps clean, the reef's shed sand running down the chutes
+  between them (world.js `CARB`: from the terraces' foot to −1000, spurs every 320 m round the record, 30 m chute to crest; the crests hard,
+  `cover` less 0.75; region.js `R.carb` on atolls, banks and drowned banks — 34 records). The relief is on the ground, so a crest reads as
+  convex (`rel`) and the gardens' own envelopes find it — no envelope changed. In the old square the thicket's ground is 116 km² (5.5), the
+  mounds' 38.5 (0.6). Ours, the giant and the seamounts have no cap.
+  What it moved: the hard-ground life on those slopes up (barrel +23%, vase +16%, lurker +11%, the relict ×5), the mud's down where the
+  spurs took it (pen, glass, frond −21%, the tread −12% and the stone −13% by count).
 - **`mound`** — the thicket's rubble: a pale heap (`HEAP_B`, 6–14×, collision, the far layer's), `per` 2, on old (`young` ≤ 0.2), sharply convex
   (`rel` ≥ 0.85) hard ground, −900..−200, out of the minimum's core (`oxy` ≥ 0.35).
 - **`glass`, `frond`, `pen` carried down to −1100** over the fed water (`nut` ≥ 0.18 with a taper of 0.04, so the open basin's 0.12 is out —
@@ -211,6 +219,11 @@ seep and the grey mats re-homed.
   arm's ground as if the pit had never been cut (§8).
 - **The carcass fall's clock as proposed:** scavengers 1–3 game days, the enriched patch ~10, the mats ~40, the bones until buried (§4).
 - **The constructors: dens, walls and middens, yes; the patterns in the sediment are left out of this pass**, noted for a later one (§6).
+
+**The person (11 Nov 2026), on what v11.102 lost with the sill:**
+- **The deep gardens onto the banks' and atolls' deep slopes: "sounds fantastic"** (§3; built v11.107).
+- **The relict: "should be increased a bit"** (built v11.107, by the same ground: the reefs' limestone walls below the light).
+- **The darkrind: "fine being off for now."** It keeps its envelope and stands nowhere; nothing was changed for it.
 
 ## 11. Open, and the build
 

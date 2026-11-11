@@ -260,7 +260,8 @@ against 205,000: the atolls, the banks and the high island's shelf are reef and 
 cells see slope), but on paper only the summits (the ledger sees no slope), so it starts the off-screen model at 3. **The darkrind** (the
 reds' crust at the light's floor in the clearest water, FLORA) loses its home: 4 ha against 252 — every bare rock that high now lies in some
 island's fed water. Open for the person: let the darkrind go, or let its clear water be somewhere the model has (a drowned summit up-current,
-past the square: §10).
+past the square: §10). **The person (11 Nov 2026): the darkrind "fine being off for now"; the relict "increased a bit" and the deep gardens
+onto the banks' and atolls' deep slopes — both by the reefs' carbonate cap, v11.107 (DEEP §3): the relict 81 on paper in the old square (3).**
 
 Not yet: the members past the square that show over the horizon (the 820 m m154 and the 243 m m155 are built because their feet reach in;
 the rest wait for §10's per-member horizon meshes); the young members' fresh surface and the colonisation times (§8 step 6); the fed face's
