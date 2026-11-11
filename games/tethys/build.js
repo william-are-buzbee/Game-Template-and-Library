@@ -88,7 +88,7 @@ console.log('built tethys.html, dev.html, src/INDEX.md ('+ORDER.length+' files, 
 if(process.argv.includes('--test')){
   const os=require('os'),{spawn}=require('child_process');
   const ALONE=[[['test/physics.js'],{},4],[['test/audio.js'],{},20],[['test/snow.js'],{},38],[['test/sky.js'],{},2]]; // the third number: its seconds one at a time on a sandbox CPU (v11.93.3), for the shards
-  const SIDE=[[['test/smoke.js'],{},156],[['test/smoke.js'],{TIER:'low'},103],[['test/live.js'],{},89],[['test/live.js'],{TIER:'low'},87],[['test/player.js'],{},56],[['test/census.js','40'],{},55],[['test/player.js'],{TIER:'low'},41],[['test/steer.js'],{},25],[['test/steer.js'],{TIER:'low'},18],[['test/anim.js'],{},17],[['test/combat.js'],{},9],[['test/registry.js'],{},5],[['test/pool.js'],{},4],[['test/plankton.js'],{},2],[['test/region.js'],{},1],[['test/lint.js'],{},1]]; // longest first
+  const SIDE=[[['test/smoke.js'],{},156],[['test/smoke.js'],{TIER:'low'},103],[['test/live.js'],{},89],[['test/live.js'],{TIER:'low'},87],[['test/player.js'],{},56],[['test/census.js','40'],{},55],[['test/falls.js'],{},52],[['test/player.js'],{TIER:'low'},41],[['test/steer.js'],{},25],[['test/steer.js'],{TIER:'low'},18],[['test/anim.js'],{},17],[['test/combat.js'],{},9],[['test/registry.js'],{},5],[['test/pool.js'],{},4],[['test/plankton.js'],{},2],[['test/region.js'],{},1],[['test/lint.js'],{},1]]; // longest first
   // v11.93.4: SHARD=k/n (CI: package.json's "shards", one machine a part) runs the k-th of n parts. The runs are dealt longest first to the part
   // with the fewest seconds so far, ties to the lower part; build.py deals them the same. Each part runs its own timed runs first and alone.
   const SH=/^(\d+)\/(\d+)$/.exec(process.env.SHARD||'');

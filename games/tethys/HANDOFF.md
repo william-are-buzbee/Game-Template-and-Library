@@ -1,5 +1,42 @@
 # HANDOFF — tethys
 
+**v11.102 (11 Nov 2026): the square from the model** (GLOBE §8 step 5, §9.2). The game's ground is the region model's: 20 members as
+records (the awesome shield's coast across the north-west corner, the 308 m island 20 km north, ten atolls, two banks, three seamounts, a
+guyot), the floor the model's, the sill gone; one silled basin in the square now (12 km² behind −1010, NNE). sample() ~3× its cost (an exact
+skip keeps it there); the seamount effect blended (no seams); the relief's reference follows the flank. **Lost with the sill:** most of the
+deep gardens' ground, the relict's paper ground (3), the darkrind's home — **ask** what the person wants for those, then about the north-west
+corner and the atolls in play. Next: the engine for a bigger world (GLOBE §10), then DEEP's last step.
+
+**v11.101 (11 Nov 2026): the player's oxygen** (DEEP §9). Under the body's tolerance (0.5; slowbloods 0.3) an oxygen debt builds in the
+minimum — at the core a soft-arm fills it in ~200 s — taking the sprint, then the ability, then speed, the view closing in; it clears in
+~25 s above, and in the minimum it never kills. Under a basin's chemocline it kills in under a minute (no basin yet). **Ask first** about the
+debt's pace in play and the vignette. Next: the square from the model (GLOBE §8 step 5), then the engine for a bigger world (GLOBE §10).
+
+**v11.100 (11 Nov 2026): the veil, the tread and the great age and die; the bones landmark struck.** The person's two calls on v11.99:
+the three immortal kinds are mortal now (the ledger's natural death, falls — the veil's ~2.4 a game day — and wounds like anything else; the
+census holds them steady); the ~100 m ribcage landmark is gone, a holdover. **Ask first** about a veil's fall in play, then whether hunters
+now going after the three reads right. Next: the player's oxygen (DEEP §9), then the square from the model (GLOBE §8 step 5), then the engine.
+
+**v11.99 (11 Nov 2026): carcass falls** (DEEP.md §4, step 5). A big body (5 m or more) killed in sight, or dead off-screen in the
+ledger (~5 a game day over the world), is a fall: a record in the save that outlives its cell — flesh for 1–3 game days as a carcass the
+scavengers eat at, then the bones with the enriched patch (~10 days) and the mats (to ~40), until buried (60 days on an apron, 150 on ooze).
+`falls()` in the console finds them. **Ask first** about a fall in play, then two open calls (DEEP §4): the veil, the tread and the great are
+immortal in the ledger, so they never fall; and the bones landmark, a permanent ~100 m ribcage, against the falls' logic. Next: DEEP step 6,
+the basin and the constructors' structures (after GLOBE §8 step 5 and a world that reaches the basin).
+
+**v11.98 (11 Nov 2026): the deep gardens** (DEEP.md §3, step 4). `thicket` — the horn's line without its partner, pale ochre — on convex
+hard ground below the light (the relief stands for the quickening current: the flow field is flat at depth), richest on the sill's drowned
+summits; its rubble `mound`, a pale heap with collision; `glass`, `frond`, `pen` down to −1100 over the fed water; envW's `oxy` term thins
+them in the minimum's core. **Ask first** whether the sill's gardens read as gardens (`tp(4200,-12400)`, `tp(16200,-3600)`), then the mounds,
+then the frame time over the sill. Next: DEEP step 5, carcass falls.
+
+**v11.97 (11 Nov 2026): the floor** (DEEP.md §2, step 3). Below the light the mud is now three grounds: the islands' aprons, dark
+grey-brown, by their land (world.js `apronAt`); the open floor's foraminiferal ooze, pale (a tropical floor at −1100 is far above the
+carbonate compensation depth — the draft's nodule plain was wrong, DEEP §2 says why); black iron-manganese pavement where the current sweeps
+it bare (the sill's gap). Old rock below the light takes a crust darkening with depth. The manganese coat follows (pavement and crust only).
+**Ask first** whether the pale deep floor reads right after the minimum they liked, then the giant's apron and the gap. Next: DEEP step 4,
+the deep gardens.
+
 **v11.96 (11 Nov 2026): the water's oxygen — no chemocline round ours** (DEEP.md §11 step 2). `CHEMO` (−450 under the whole world) is
 `OXY`/`oxyAt`/`chemoAt` (world.js): oxic to the floor with an oxygen minimum (0.25 in the core over the fed water, 0.5 in the open basin), a
 chemocline only where region.js's flood finds a silled basin in the game's own ground — none in today's square. The fog's plate and brown
@@ -8,7 +45,8 @@ seep row struck; the pall in the core over the fed deep. The silled rule refined
 water), 10 km² or more — the outer flank's tiny hollows are not basins. The cinder lost its reservoir with the seep line and the census
 caught it dying out at the vents; SEAFLOOR §4's diffuse seeps on rift arm 0 (world.js `SEEP`, heat ≤ 0.14, under the basker's reach) are its
 ground now — cinder ~4 and basker ~1.4 at a balance over 200 days. Seen in the real build: deep blue, no sheet, `oxy` on the readout.
-**Ask first** about the seeps on rift arm 0 (`tp(-700,420)`), then whether the deep reads right without the plate, then the palls' new ground. Next: DEEP step 3, the floor (the apron near
+The person's look (11 Nov 2026, ten minutes in the minimum and on the seeps): "I really enjoy the low oxygen area. It looks awesome visually
+… seeing the filter feeders below and above me in one shot … Love both areas." Next: DEEP step 3, the floor (the apron near
 ours, nodules far out, crusts by age); the player's oxygen when the person wants it.
 
 **v11.95 (10 Nov 2026): the pit and the cairns struck** (DEEP.md §8; the person: "a silly holdover of an older time period … it

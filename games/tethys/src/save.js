@@ -73,7 +73,7 @@ function popLoad(p){ // the ledger from a record; a save from another roster (SP
 }
 function saveRecord(){ // the game as it stands, as a record for the store
   const P=player,s=curSave;
-  return {id:s.id,kind:'save',v:SAVE_V,name:s.name,made:s.made,played:Date.now(),playT:Math.round(playT),clade:P.clade.id,spec:JSON.parse(specToJSON(P.clade.spec)),pos:[r3(P.pos.x),r3(P.pos.y),r3(P.pos.z)],yaw:r3(P.yaw),pitch:r3(P.pitch),deaths:s.deaths||[],arms:P.armsLost||0,regrow:(P.regrow||[]).map(r3),bleed:r3(P.bleed||0),blood:r3(P.blood||0),eaten:r3(P.eaten||0),wounds:(P.wounds||[]).map(w=>({ci:w.ci|0,at:w.at.map(r3),q:+w.q.toFixed(6),tau:r3(w.tau)})),lost:(P.lost||[]).slice(),hunger:r3(P.hunger||0),starveT:r3(P.starveT||0),t:r3(t),line:lineOut(),over:!!s.over,pop:popRows()}; // hunger, starveT (v11.73): the stomach as it was // blood, wounds (v11.91): the blood lost and every open wound with its rate // arms, regrow, bleed (v11.56): the animal's injuries — a dropped arm is still dropped when you come back, and regrows by the world's clock // deaths (v11.55): the slot's animals that died, {cause, day, playT}
+  return {id:s.id,kind:'save',v:SAVE_V,name:s.name,made:s.made,played:Date.now(),playT:Math.round(playT),clade:P.clade.id,spec:JSON.parse(specToJSON(P.clade.spec)),pos:[r3(P.pos.x),r3(P.pos.y),r3(P.pos.z)],yaw:r3(P.yaw),pitch:r3(P.pitch),deaths:s.deaths||[],arms:P.armsLost||0,regrow:(P.regrow||[]).map(r3),bleed:r3(P.bleed||0),blood:r3(P.blood||0),eaten:r3(P.eaten||0),wounds:(P.wounds||[]).map(w=>({ci:w.ci|0,at:w.at.map(r3),q:+w.q.toFixed(6),tau:r3(w.tau)})),lost:(P.lost||[]).slice(),hunger:r3(P.hunger||0),starveT:r3(P.starveT||0),t:r3(t),line:lineOut(),over:!!s.over,pop:popRows(),falls:fallsOut()}; // hunger, starveT (v11.73): the stomach as it was // blood, wounds (v11.91): the blood lost and every open wound with its rate // arms, regrow, bleed (v11.56): the animal's injuries — a dropped arm is still dropped when you come back, and regrows by the world's clock // deaths (v11.55): the slot's animals that died, {cause, day, playT}
 }
 function lineOut(){const L=curSave.line;if(!L)return [];for(const M of L)for(const b of M.broods)if(b._ch){b.n=b.hatched?broodLive(b):b._egg?b._egg.n:0;b.at=r3(t);}return JSON.parse(JSON.stringify(L,(k,v)=>k[0]==='_'?undefined:v));} // the line as data (line.js): the loaded broods counted first, the runtime links dropped. at (v11.76, found by the test): a loaded brood's count is current at the save, so its catch-up starts here — to v11.75 it started at the hatch, and a continue took the unloaded losses off young that had been in view the whole time
 function saveNow(){if(!curSave||mode!=='play'||player.dead||!player.clade)return false;camNote();const rec=saveRecord();curSave.played=rec.played;curSave.playT=rec.playT;storePut(rec);if(profileDirty)profileSave();saveT=SAVE_EVERY;return true;}
@@ -110,14 +110,14 @@ function playerBody(C,pos,yaw,pitch){ // the player's body built and placed as t
 }
 function playerDrop(){const P=player;if(!P.g)return;releaseAll(P);for(const c of creatures)if(c.target===P)dropTarget(c);ghostBody(P.g,false);scene.remove(P.g);P.g.traverse(o=>{if(o.geometry)o.geometry.dispose();});P.g=null;P.b=null;P.anim=null;P.dead=true;P.fp=false;P.hold=null;P.held=0;P.grab=null;}
 function startNew(C){ // a new game (menu.js): a fresh ledger, the clock at boot, the player at the peak as the clade, a new slot written at once so continue lists it
-  worldClear();ecoReset();t=0;clockH=0;TIDE=tideAt(0);
+  worldClear();ecoReset();fallsIn([]);t=0;clockH=0;TIDE=tideAt(0);
   curSave={id:'s'+Date.now().toString(36)+Math.floor(Math.random()*1296).toString(36),name:saveName(),made:Date.now(),played:Date.now(),playT:0};playT=0;
   lineStart(C);choose(C);saveNow();saveRefresh();
 }
 function startFrom(rec){ // continue a slot (menu.js): the clock and the ledger as saved, the player where it was
   if(rec.over)return false; // the line ended (v11.69): nothing to continue as
   let C=cladeOfRec(rec);
-  worldClear();t=Math.max(0,+rec.t||0);clockH=t*CLOCK_RATE;TIDE=tideAt(clockH);popLoad(rec.pop);
+  worldClear();t=Math.max(0,+rec.t||0);clockH=t*CLOCK_RATE;TIDE=tideAt(clockH);popLoad(rec.pop);fallsIn(rec.falls); // the falls (v11.99; none in an older save)
   curSave={id:rec.id,name:rec.name,made:rec.made,played:rec.played,playT:+rec.playT||0,deaths:Array.isArray(rec.deaths)?rec.deaths.slice():[]};playT=curSave.playT;
   lineLoadRec(rec,C);const L=lineCur();if(L&&(lineScale(L)<1||lineSoft(L)))C=lifeClade(L,lineScale(L)); // the line (line.js); a hatchling still small (v11.76: at its moults' step), a moulting body still soft
   const p=Array.isArray(rec.pos)?V3(+rec.pos[0]||0,+rec.pos[1]||0,+rec.pos[2]||0):V3(0,dispY,0);if(Math.abs(p.x)>HALF+1500||Math.abs(p.z)>HALF+1500)p.set(0,dispY,0);

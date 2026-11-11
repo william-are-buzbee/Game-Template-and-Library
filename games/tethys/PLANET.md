@@ -62,7 +62,10 @@ consequence of "a young oceanic shield volcano, almost drowned", and world.js `s
 - **The basin** (15 Sep 2026, built v11.58; the person chose it over the plate on the condition that it is a real thing, and it is).
   **Decided 10 Nov 2026 (the person; GLOBE.md §9.1): the region model's basins decide where the dark is.** The province does not enclose ours
   (its ridges are saddles at −1000 to −1500): the water round ours is open to the floor, the nearest silled basin 28 km west (chemocline
-  −1000). The paragraph below is what is built until that pass.
+  −1000). **Built v11.102 (GLOBE §9.2):** the square's ground is the model's members on the model's floor (−1100 beside ours, −1730 in the
+  awesome shield's moat, −820 at the south-west corner); the sill is gone, and the dark is where the members' ridges enclose it — one small
+  basin 20 km north-north-east of ours (12 km² behind −1010, its chemocline −1030). The paragraph below is the sill as it was built
+  (v11.58–v11.101): the reasoning stands for any silled basin, the ridge across the north-east corner does not.
   The island stands in a **silled basin** far larger than the world (DIRECTION, 12 Sep). What is real: the Cariaco Basin is 1,400 m deep behind
   a 146 m sill and has been anoxic below ~250 m for 14,000 years; the Black Sea the same at 2,200 m; in both the chemocline sits at or below
   the sill. A volcanic ridge with a sill near −450 is real too: the Iceland-Faroe Ridge is the hotspot's older track, subsided to a 480 m
@@ -72,7 +75,7 @@ consequence of "a young oceanic shield volcano, almost drowned", and world.js `s
   the same rule. The honest stretch is the tides: tidal mixing over sills is what ventilates fjords, and these are 6–9 m. The gaps are few,
   narrow and deep (tidal streams concentrate in shallow passes, not a 450 m gap), and the basin's volume — its far shores hundreds of km
   beyond the map — swamps what leaks in. The game's floor: the flank meets an abyssal plain at −1100 (pelagic mud over hills of ±60 m,
-  manganese-black, anoxic, ~9 °C) through a sediment apron 3.7 km out; the sill's nearest segment crosses the north-east corner, crest
+  manganese-black, anoxic, ~9 °C — to v11.95; DEEP §2 since: oxic, pale ooze beyond the aprons) through a sediment apron 3.7 km out; the sill's nearest segment crosses the north-east corner, crest
   13 km out with drowned summits to −150 and saddles at −410, the sill proper at −430 (20 m over the chemocline: the water under it never
   leaves), the main gap on the current's axis — the inflow through it is what strikes the north-east flank, so the upwelling is the gap's.
   Beyond the crest the outer flank goes on down toward the plate: the ordinary ocean, whose deep is oxic; the game's chemocline is the
@@ -84,7 +87,7 @@ consequence of "a young oceanic shield volcano, almost drowned", and world.js `s
   young edifice), easing to 5–10° low down, with the archipelagic apron — landslide debris and volcaniclastic turbidites — feathering
   out at 1–3° onto the plain for tens of km. The plate itself: a young plate lies ~3 km down and sinks with age (d ≈ 2500 + 350·√Ma m:
   3.6 km at 10 Ma, 5 km at 50 Ma); its floor is abyssal plain — flat pelagic sediment over abyssal hills of a hundred metres, cold
-  (~3 °C), lightless, oxic on Earth but here **below the chemocline** (−450), so anoxic, ferrous, manganese-black. A big island also
+  (~3 °C), lightless, oxic on Earth but here **below the chemocline** (−450), so anoxic, ferrous, manganese-black (to v11.95; oxic since v11.96, pale ooze since v11.97 — DEEP §2). A big island also
   flexes the plate into a moat and an arch, 50–150 km out — nothing at this scale. So the game's floor past the apron's toe (r ≈ 1560,
   wavy) goes on down at 16.7° easing to 12.4° (world.js `FLANK_*`): −320 at the square's edge on an axis, ~−580 at a corner, −850
   2 km out, the plate at ~−3800 some 15 km out. **The dark inside the square is the lower flank and the floor now** (the pit struck v11.95). When the world grows
@@ -234,9 +237,9 @@ radial, stinging, eyeless; bells in the water, floats on the surface (the button
 - **Blood pigment is the tint family:** copper (ringmouths), iron (slowbloods), pale (hingeshells). Three clades
   distinguishable by colour alone.
 - **Shell colour is water chemistry**, read by place: cream calcite on the reef; rust where dissolved iron meets
-  oxygen near the basalt (rockfall, shallows); black iron sulfide below the chemocline and at the vents (the one real
-  iron-shelled animal, the scaly-foot snail, is black); manganese black on the plain (abyssal plains grow manganese
-  nodules). Real shell colour is mostly pigment, but the rule is legible, which is what matters.
+  oxygen near the basalt (rockfall, shallows); black iron sulfide under a basin's chemocline and at the vents (the one real
+  iron-shelled animal, the scaly-foot snail, is black); manganese black where the floor is swept bare or the rock is old
+  (v11.97, DEEP §2: pavement and crust; the open floor is pale ooze, not a nodule plain). Real shell colour is mostly pigment, but the rule is legible, which is what matters.
 - **Geometry language:** ringmouths are spheres and chains, slowbloods are lathes, hingeshells are boxes and cones
   with the joints showing. Nearly true already; make it a rule.
 - **Niches are shared, not divided.** Every niche has a winner and lesser representatives ("the largest or safest
@@ -272,7 +275,7 @@ The jelly is an outsider (a cnidarian analogue); "all clades represented" does n
 | green `grass` on the terraces (`per[7]:250`), kelp/bladder tints | to change: grass off biome 7; kelp and bladder browner |
 | the ortho spawns in the dark (`SPAWN[11]`) | to change: shell, pressure and oxygen all say no; a soft black ringmouth takes the dark, the ortho moves up |
 | the abyssal as a *resident* of the dark | to change: a resident of the rim at the chemocline, hunting the oxic side and diving in |
-| "no oxygen" (the player) | **decided:** the player stays a water-breather, but below −450 it takes a slow drain; big slowbloods and the dark's residents shrug it off. Not built |
+| "no oxygen" (the player) | **decided:** the player stays a water-breather, but below −450 it takes a slow drain; big slowbloods and the dark's residents shrug it off. **Built v11.101 as the oxygen debt** (DEEP §9): by the water's oxygen, not a depth — survivable in the minimum, a death only under a basin's chemocline |
 | `detect:85` in the dark by sight | deferred (detection modes, a later pass) |
 | day/night | not a conflict yet; a hook |
 
@@ -344,7 +347,7 @@ needle's spine, the grazer's rake, the crusher's plate).
 | ridge | ridgebacks | player-size predator, mixotherm | the drop, terraces, plain, the arch | 9 | exists; forward eyes |
 | abyssal | ridgebacks | apex, gigantotherm | **the rim** of the dark, forays below | 15 | exists; home moves to the rim |
 | eel | longbacks | structure hunter | kelp towers | 4 | exists |
-| **stone** | platebacks | floor ambush, torpid, bite | plain, terraces, lanterns | 3 | a plated lump the colour of its floor (manganese-black on the plain), two eyes on top; sits for minutes, bites what touches it |
+| **stone** | platebacks | floor ambush, torpid, bite | plain, terraces, lanterns | 3 | a plated lump the colour of its floor (v11.97: pale on ooze, black on pavement and crust; once manganese-black on the plain), two eyes on top; sits for minutes, bites what touches it |
 | **crusher** | platebacks | shell-eater | rockfall, reef, kelp | 4 | short, thick, plated; plate jaws; hunts rasps and coilshells — the coilshell player's particular enemy (withdrawing won't save you; mechanic later) |
 
 ### Hingeshells
@@ -370,7 +373,7 @@ water column).
 | **cinder** | walkers | the seep walker | the vent field's mats; the chemocline's seep line | 1.2 | v11.66: the picker's cousin, plated where the picker is stilted, black in the sulfide it lives in; poison to eat by its diet (COMBAT §3b); forage of the basker |
 | **wedge** | walkers | the surf zone's walker | the rock the waves strike, −12 to +2 | 0.9 | v11.66: the scuttle's exposure ecotype (SEAFLOOR §2): a low wide shield, short paddle legs, valves twice as thick; the crusher's and the lurker's |
 | **plough** | walkers | deposit feeder of the flats | the sand the grazers pasture, the lagoon's floor | 1.6 | v11.66: feeding combs under the front, the mouth under, no weapon — the burrower that is not the trap; the ridge's and the stone's by gape |
-| **relict** | paddlers | the sill relict | bare rock below the light off the fresh flows: the sill's drowned summits | 4 | v11.66 (SEAFLOOR §3): the hose's line stranded as its island sank — larger, pale, small-eyed, a large comb; its proboscis picks pickers off the rock |
+| **relict** | paddlers | the sill relict | bare rock below the light off the fresh flows: the sill's drowned summits (v11.102: the seamounts' summits and the drowned atolls' walls) | 4 | v11.66 (SEAFLOOR §3): the hose's line stranded as its island sank — larger, pale, small-eyed, a large comb; its proboscis picks pickers off the rock |
 
 ### Drifters
 | jelly, deepbell, sailer, greatsailer | drifters | drift; the surface | the water column; the surface | 1.4–4.5 | `DRIFTERS.md` (v11.16) |

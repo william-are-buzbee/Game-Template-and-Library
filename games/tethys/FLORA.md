@@ -285,9 +285,10 @@ the trait that wins its spot. Earth appears there only as the proof.
 |---|---|---|---|---|---|
 | stalk, ltree (exist) | axis, branch | 9, 10 | 4–9 | **lure-feeders**: polyps whose symbionts' blue-green light draws the plankton they eat | zooplankton swim to light; glowing for nothing is what PLANET forbids, glowing for dinner is not |
 | **frond** | blades (quilted) | 10, 9, 7 deep | 1–3 | a quilted frond on a holdfast: no mouth, no light; it absorbs what dissolves | see above: the deep's cheapest animal |
+| **thicket** (v11.98, DEEP §3) | branch (the horn's) | the drowned summits, the shelf's edge, −150..−1100 | 0.9–2.2 | the lime polyps' line without its green partner: the deep reef former, white to pale ochre, on convex hard ground; its rubble the `mound` | Earth's cold-water corals: plankton alone, where the water quickens over an edge |
 | **glass** | axis + cup | 10 | 1–3 | a cup sac on a long glass stalk rooted in mud by a tuft | at 3 °C things grow for millennia and stand on stalks to clear the silt |
 | lily | | 10 | | sparse, on hard ground | |
-| **nodule** | (boulder tint) | 10 | | the plain's boulders manganese-black | PLANET's shell rule, applied to the rock. A tint, not a species |
+| **nodule** | (terrain, v11.97) | 10 | | not the plain's: the open floor is pale ooze; nodules speckle the swept pavement (the sill's gap) and old rock crusts (DEEP §2) | PLANET's shell rule, applied to the rock. A tint, not a species |
 | **mat** | tuft (flat) | 10, 9, 8, 11 | patches | white, yellow, grey fuzz on the floor; terrain tint plus a sparse short tuft | sulfur mats where there is seepage |
 
 ### The vents (8), hot

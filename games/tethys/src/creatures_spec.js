@@ -3202,7 +3202,7 @@ function coatClassAt(h, y, f, clade, cz) { // cz: a basin's chemocline over the 
   const sulf = (cz !== undefined && cz !== null && y < cz) || f[FI.heat] > 0.3, // under a chemocline or at the vents (v11.96: the -450 to v11.95)
     lime = h > -26 && f[FI.sub] > 0.55 && f[FI.expo] > 0.35,
     rust = !lime && f[FI.sub] > 0.55 && h > -80,
-    mn = !sulf && h < -200 && f[FI.sub] < 0.35;
+    mn = !sulf && h < -250 && (f[FI.flow] > 0.6 || (f[FI.sub] > 0.55 && f[FI.young] < 0.3)); // v11.97 (DEEP §2): manganese where the floor is swept pavement or crusted old rock; the ooze and the apron leave the preset (to v11.96 any mud below -200)
   let cls = sulf ? 'sulfide' : lime ? 'lime' : rust ? 'rust' : mn ? 'mn' : '';
   if (f[FI.young] > 0.4 && !sulf) cls += 'd';
   return cls;

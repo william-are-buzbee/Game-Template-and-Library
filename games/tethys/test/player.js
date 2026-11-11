@@ -9,6 +9,7 @@ const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n'
 let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n');
 js+='\nglobal.__pl={CLADES,SPECS,DEFS,derive,statsOf,playerClade,player,startNew,startFrom,saveNow,saveRefresh,get saveList(){return saveList;},get curSave(){return curSave;},get mode(){return mode;},SAVE_V,specToJSON,founderClade,founderList,founderOf,abilitiesOf,lineKind,keys,CAM_BODY,DERIVE_K,PROFILE,seeSpec};';
 js+='\nglobal.__line={get t(){return t;},setT(v){t=v;clockH=t*CLOCK_RATE;},DAY_S,LINE,BREED,MOULT_P,MOULT,kindOf:()=>lineKind(player.clade.spec),moultAt:(n)=>moultAt(lineCur(),n),moultN:(v)=>moultN(lineCur(),v),scale:()=>lineScale(lineCur()),soft:()=>lineSoft(lineCur()),sheds:()=>sheds,denAt:(x,z)=>{const ch=chunkAt(x,z),h=groundAt(x,z);return !!ch&&denAt(V3(x,h,z),ch,BREED.hingeshells.den);},solidNear:(x,z,r)=>{const ch=chunkAt(x,z),h=groundAt(x,z);return !!ch&&!!solidPush(V3(x,h+0.6,z),r,null,ch,true);},shel:(x,z)=>{const ch=chunkAt(x,z);return ch?ch.f(x,z)[FI.shel]:-1;},breed:()=>lifeBreed(lineCur()),brooding:()=>lineBrooding(),guarded:(b)=>broodGuarded(b),lifeS:()=>lifeS(lineCur()),hint:()=>hintEl.textContent,findCarcass:(c,R)=>findCarcass(c,R),groundAt,lay:()=>playerLay()&&conceiveClose(true),eggs:()=>eggs,cur:()=>lineCur(),line:()=>curSave?curSave.line:null,die:(c)=>die(c),live:(b)=>broodLive(b),young:(b)=>creatures.filter(c=>c.alive&&c.brood===b),tick:(dt)=>lineTick(dt),children:()=>lineChildren(),clear:()=>worldClear(),cells:()=>cellsAround()};';
+js+='\nglobal.__ox={oxyTick,oxySlow,oxyTol,OXYD,oxyAt,ability:()=>ability(),chemoHere:(x,z,c)=>{chemoAt(0,0);const B=CHEMO_B,i=Math.floor((x-B.x0)/B.G),j=Math.floor((z-B.x0)/B.G);B.lab[j*B.n+i]=B.ch.length;B.ch.push(c);},chemoClear:()=>{CHEMO_B=null;}};';
 js+='\nglobal.__cb={coverAt,thruOf,MOULT,sheds,softPrey,findPrey,spawn,chunkAt,solidPush,V3,creatures,FI,groundAt};';
 js+='\nglobal.__cv={lab,open:()=>playerLay(),close:(d)=>conceiveClose(d),build:()=>labBuild(),load:(sp)=>labLoad(sp),price:(a,b)=>conceivePrice(a,b),budget:(g)=>conceiveBudget(g),BUDGET,paramOf,frame:(sp)=>compileFrame(sp),spark:()=>spark,gone:()=>playerGone(),hunter:(kind,dx)=>{const p=V3(player.pos.x+dx,player.pos.y+1,player.pos.z),c=spawn(chunkAt(p.x,p.z),kind,p,mulberry(11),{ent:-1});c.hunger=1;return c;},noSpark:()=>{spark=null;},bite:()=>{player.biteCD=0;playerBite();},put:(kind,dx,dz)=>{const p=V3(player.pos.x+dx,player.pos.y,player.pos.z+dz);return spawn(chunkAt(p.x,p.z),kind,p,mulberry(12),{ent:-1});},kill:(c,by)=>kill(c,by),eco:(k)=>ecoOf(k),K:()=>eaterK(player),carc:()=>carcasses,tick:(dt)=>hungerTick(player,dt),EAT,STARVE_T,ECO,cost:(s)=>clutchCost(s),fuel:(s)=>clutchHunger(s),hline:()=>hungerLine()};';
 const tmp=path.join(require('os').tmpdir(),'tethys_player.js');
@@ -307,5 +308,23 @@ const Cf=X.player.clade;check(['speed','accel','turn','mass','bite','cam','sprin
     X.startNew(hose);floor();const id3=X.curSave.id,Ln=L.cur();L.setT(L.moultAt(Ln.moults+1)+1);L.tick(0.5);check(P.soft===true,'a founder moulted, soft, with no child');
     L.die('the test: killed soft, no young');X.saveRefresh();const r3=X.saveList.find(r=>r.id===id3);check(X.mode==='menu'&&r3&&r3.over===true,'killed soft with no child: the save is over');}
 }
+// ---- the oxygen debt (v11.101, DEEP §9): survivable in the minimum, a death only under a chemocline ----
+{const O=global.__ox,P=X.player,soft=X.CLADES.find(c=>c.id==='soft'),fin=X.CLADES.find(c=>c.id==='fin');
+  const at=(x,y,z)=>{P.pos.set(x,y,z);P.vel.set(0,0,0);P.sub=1;P.dead=false;},run=(sec)=>{for(let k=0;k<sec*10;k++){if(O.oxyTick(P,0.1))return true;}return false;};
+  X.startNew(soft);at(3200,-650,600);P.oxyD=0;const o=O.oxyAt(3200,-650,600),tol=O.oxyTol(P);
+  check(o<0.3&&tol===0.5,'the soft-arm in the minimum\'s core over the fed water: oxygen '+o.toFixed(2)+' against its tolerance '+tol);
+  run(60);const d60=P.oxyD;run(140);const d200=P.oxyD;
+  check(d60>0.25&&d60<0.4&&d200>0.95,'its debt: '+d60.toFixed(2)+' after a minute, '+d200.toFixed(2)+' after 200 s (full in ~200 s at one tolerance-width under)');
+  check(!P.dead&&!run(600)&&!P.dead&&P.oxyD===1,'ten minutes more in the core: full debt and alive — the minimum never kills (the person: survivable)');
+  check(O.oxySlow(P)<0.75&&O.oxySlow(P)>=0.7,'at full debt the body is slowed to '+O.oxySlow(P).toFixed(2));
+  const cd0=P.cd;P.cd=0;O.ability();check(P.cd===0,'and its ability does not answer (the ink is not thrown)');P.cd=cd0;
+  at(3200,-80,600);run(26);check(P.oxyD===0,'above the light again, the debt is gone in under 26 s');
+  X.startNew(fin);at(3200,-650,600);P.oxyD=0;run(200);const fd=P.oxyD;
+  check(O.oxyTol(P)===0.3&&fd<0.4,'the finback (a slowblood, tolerance '+O.oxyTol(P)+') runs up '+fd.toFixed(2)+' in the same 200 s');
+  // under a chemocline (none in the world: one set by hand over the floor east of ours)
+  X.startNew(soft);O.chemoHere(6000,0,-700);at(6000,-750,0);P.oxyD=0;const dead0=X.saveList.length;
+  check(O.oxyAt(6000,-750,0)===0,'under a chemocline the water has no oxygen');
+  const died=run(80);check(died,'the soft-arm under it: full in 35 s, dead 20 s later (it took '+(died?'under 80 s':'more than 80 s')+')');
+  O.chemoClear();}
 console.log(fails?'player: '+fails+' FAILED':'player: all ok');
 process.exit(fails?1:0);

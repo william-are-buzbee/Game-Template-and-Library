@@ -38,13 +38,14 @@ the basement with the highest island's conditions (the saddle between two is the
 and the whole world; the archipelago is more records. **The land term** (v11.62, ARCHIPELAGO step 2): a record's `land` block is the subaerial shield inside `land.r` — the surface a mix of a cone and an S-curve to the summit `land.h` (4° at the shore and the summit, 9° mid-flank), a wave-cut cliff `land.cliff` where `expoW` is high, rain gullies `land.gully` (`n` valleys on their own angle, cut toward a graded floor `h·t^1.8`, the planezes flat between, the depth the rain — 1 windward, `lee` in the lee — times a per-valley draw), the last flows `land.flows` as low young ridges within `hw` of a rift, a summit caldera `land.cald`; `hSmooth` carries the surface less a third of the cut. The kit's last constants went into the record too: `riftR`, the shelf edge off the terraces' band, the upwelling's `fade`, no lagoon without `rimR`. **The giant** is `ISLANDS[1]` at (−15400, 9200): land r 7000 to 900 m with a caldera (r 700, 110 m), 36 gullies, flows on rifts 2.6 and 5.74, a 1 km shelf, the terraces 8000–8800, the flank at 12° to the floor at ~13.8 km, `reach` 16000; its foot reaches ours (the saddle −927 at 4.5 km from our centre); its centre is 2.5 km past the edge until `NCELL` grows (step 4). **The lower flank** (v11.28): beyond the apron's toe (`FLANK_R` 1560, wavy) the floor
 does not fall into a void but goes on down the seamount's flank — the slope ramps with no crease from the apron's 5.7° to 16.7° over 250 m
 (`FLANK_S0`, `FLANK_W`), eases to 12.4° between 600 and 2600 m beyond the toe (`FLANK_S1`, `FLANK_A/B`), ribbed ±15% by sector — −320 at the
-old square's edge on an axis, ~−580 at a corner. **The basin and the sill** (v11.58, PLANET The basin; world.js `BASIN`, `SILL`, `smax` in util.js):
-past r 2400 the flank meets an abyssal plain at −1100 (hills ±60 m at ~1.5 km) through a 200 m knee — `smax`, exact past the knee, so nothing
-inside the old square changes; the seamount effect (`nut`'s upwelling, the current's wake) fades to the basin's water over rw 3–6 km. The sill's
-nearest segment crosses the north-east corner: a ridge of drowned older shields with its normal the current's source, crest 13 km out (±450 m
-wander), summits to −150 (bare rock), saddles −410, the sill proper −430 (20 m over the chemocline), the main gap on the current's axis with
-the inflow's jet (`gapF`: flow 0.95, nut +0.35), flanks at 12° both sides, the outer flank going on down beyond the crest to the plate (`SILL.plate` −3800, v11.65: the ridge's window is one-sided, open outward, and the ridge's own flank meets the plate ~16 km past the crest; the world reaches 23 km past it, and PLANET's note stands — the deep beyond the sill is the ocean's and oxic, the game's chemocline the basin's). The dark
-(ground < −450) is the basin and the ridge's lower flanks (the pit struck v11.95). **There are no biomes** (since v10): no ids, no names, no sector tables. The fan's hummocks are
+old square's edge on an axis, ~−580 at a corner. **The floor** (v11.58, PLANET The basin; world.js `BASIN`, `smax` in util.js; the model's since v11.102, region.js `rgFloor`):
+past r 2400 the flank meets the floor through a 200 m knee — `smax`, exact past the knee, so nothing inside the old square changes; the floor is
+the model's (the plateau, the swell, every load's moat: −1100 beside ours by the pin, −1730 in the awesome shield's moat at the north-west
+corner, −820 at the south-west) with abyssal hills ±60 m at ~1.5 km; the seamount effect (`nut`'s upwelling, the current's wake) is every
+record's, each fading over its own `fade` (ours rw 3–6 km), blended (The region, below). To v11.101 the floor was a flat −1100 and a hand-built
+sill (`SILL`, v11.58) crossed the north-east corner — a ridge of drowned older shields 13 km out, summits to −150, the gap's jet (`gapF`: flow
+0.95, nut +0.35), the outer flank to the plate at −3800 (v11.65); since v11.102 what it stood for (older members of the province up-current) is
+the model's own members. Below the light (ground < −450) is the floor and the islands' lower flanks (the pit struck v11.95). **There are no biomes** (since v10): no ids, no names, no sector tables. The fan's hummocks are
 rounded mounds — `smooth(0.5, 0.68, fbm)` (v11.19.1; a tent's crease before, which everything settled on it clipped through).
 
 **The fields** (`FI`, nine floats 0..1 in `s.f`): `sub` substrate (0 mud, ⅓ sand, ⅔ rubble, 1 rock), `flow` current (the
@@ -121,7 +122,7 @@ swarms, filter feeding, the bloom night.
 
 ## The region
 
-`region.js` (v11.94, GLOBE.md §9–9.1): the province as a plume's history, pure data, not yet read by the game. `regionModel(K)` runs the
+`region.js` (v11.94, GLOBE.md §9–9.1): the province as a plume's history, pure data; since v11.102 the game's world is built from it (below). `regionModel(K)` runs the
 plume under the plate for `REGION_K.span` (30 Myr) in steps of `RG_DT` (2 kyr): the track through ours (`ageOurs` 3 Ma) and the giant (1.31 Ma
 at `v` 1.06 cm/yr, turning `turn` 3°/Myr); births by the flux (`base` 0.3 and the pulses: one at the giant's birth, `young` waxing now) on a
 power law (`vol` 6 km³, `beta` 0.75, `vMax` 3000), scattered over `foot` 40 km and drawn onto fracture zones (`fracSp`, `fracA`, `fracPull`);
@@ -133,6 +134,25 @@ member ends with a state (`RG_STATE`), its flat top, its shore, its first light 
 province (and the game's own ground inside its square), `regionBasins` floods it from the edge for every cell's sill and the basins,
 `regionSeen` what clears the horizon from a point. ~0.3 s a run; `test/region.js` pins it.
 
+**The square from the model (v11.102, GLOBE §8 step 5).** At load (`REGION`, `rgBuild`) every member whose ground reaches the world (the
+square and the far layer's 2 km past it) becomes a record in `ISLANDS`, shaped by its state with islandH's kit (`rgRecord`): a high island or
+an active shield as land (`land`: shore and height the model's, gullies, a caldera and flows down two rift zones on the fracture grain when
+young), its shelf cut into the land by its age with the flank where the model's 12° cone puts it; an atoll or a bank as ours scaled to its reef's
+ring (`rimR`, `rimH` the reef's top today, `lagH` deeper on a wider ring); a seamount or guyot as a cone, its upper 200 m swept bare (`bare`)
+and knobbed with pillow mounds 30 m high (`knob`). A member whose summit lies under another's ground at its centre is struck (the model draws
+every cone from the plateau). Seed 32: 20 records (the awesome shield's southern side in the north-west corner, the 308 m island 20 km north,
+the 243 and 820 m islands past the south-west and west edges, ten atolls and two banks, three seamounts and a guyot), 8 struck. The floor
+under them is the model's (`rgFloor`: plateau, swell, every load's moat, on a 1 km grid read by a Catmull-Rom patch), −1100 beside ours by the
+pin; the hand-built sill (`SILL`, v11.58–v11.101) is gone. Ours and the giant are their own records, unchanged inside their cores (2400 m)
+to the bit; past them the model's floor and neighbours. Cost: `sample()` ~2.3 µs over the square (0.74 in v11.101) — far more of the square
+is island now — kept there by an exact skip: each model record (and the giant) carries a table of the most its ground can stand by radius
+(`rgBound`), and sample() evaluates the records in reach highest bound first, stopping once none can raise the ground or be the highest;
+one under the ground past its features gives only its influence (`islandW`). The model's records read their six angular noises from tables
+(`R.an`, `anT`). The seamount effect is blended (v11.102): every record's influence `isl` joined as 1−Π(1−isl), the current's aspect
+weighted by them, where to v11.101 the highest record's alone counted and two neighbours' halos met on a straight seam. And the smooth
+surface (`hs`, the relief's reference) goes down the lower flank with the ground: to v11.101 it stayed at the apron's −290, so the relief
+read 0 on every lower flank and on the floor inside every record's reach.
+
 
 ## The water's oxygen
 
@@ -141,18 +161,20 @@ the water's oxygen as a share of the surface's: 1 to the light's base (`OXY.phot
 −500..−800) to `OXY.min` — 0.25 where the island's food rains (`nut` 0.52 and over), 0.5 in the open basin (`nut` 0.12) — and back to
 `OXY.deep` 0.5 by `OXY.floor` (−1100); 0 under a basin's chemocline. `chemoAt(x,z)` is that chemocline (or null): region.js's flood over the
 game's own ground at `OXY.G` (400 m), built on the first call (~70 ms), the world's edge the open ocean; a basin is silled by region.js's rule
-(its sill between −100 and `OXY.floor`, 150 m deep behind it, 10 km² or more). None in today's square (test/region.js). `OXY.top` (−450) is
+(its sill between −100 and `OXY.floor`, 150 m deep behind it, 10 km² or more). None in the square to v11.101; since v11.102 the model's members
+enclose one: 12 km² behind −1010, its chemocline −1030, its floor −1170, 20 km north-north-east of ours between the drowned atoll (m131), the
+atoll east (m141) and the bank's flank (test/region.js lists it). `OXY.top` (−450) is
 the minimum's upper edge: where the open water's life is squeezed above it (`openY`, the mid flora's and the schools' depths over the deep) —
 the old −450's number with its new reason. Readers: chunks.js (sessile life, `f.chemo` bands for the seep and the grey mats), far.js,
 combat.js `POISON`, creatures_spec.js `coatClassAt`'s `cz`, atmosphere.js `SN_CH` (the snow's plate and black flakes, by the camera's column),
-the pall's placement in the core, worldmap.js and the maps' contour, the readout's `oxy`. Not yet: the player's oxygen (DEEP §9), the swarms'
+the pall's placement in the core, worldmap.js and the maps' contour, the readout's `oxy`; and (v11.98) envW's `oxy` term, `oxyProf(h, nut)` at the ground, for the deep gardens' envelopes; (v11.101) the player's oxygen (DEEP §9). Not yet: the swarms'
 day depth by it.
 
 ## Landmarks
 
 `world.js`: the chimney sits where the geology puts it (rift arm 0, the fissure's middle; the pit crater was the other until v11.95); the
 rest are searched (`findSpot(rng, ok, r0, r1)`: the flattest patch in the band whose sample passes `ok`, seed 4242, fixed
-sequence — new ones on the end): the bones, the lantern heart and the great lantern on mud with no heat; the neck
+sequence — new ones on the end): the bones (struck v11.100: a holdover; the falls are the bones now, DEEP §4), the lantern heart and the great lantern on mud with no heat; the neck
 (`LM.neck`, v10.2; the colossal spire's search, so it stands where that stood) on a dike crest: `flora.js neckGeo`, one
 kit at 26× — a fat core, a ring of columns, two cap blocks, a talus — ~65 m across, 43 m above its crest, 130 with the
 talus; its lumps are the cell's solids through `LMK.neck.matrix`. Meshes are built once at boot (`far.js` `LMK`); a cell registers only the solids, lights and plumes of
@@ -162,7 +184,7 @@ and the massif are gone (v10).
 ## Landmarks
 
 `world.js` `findSpot` searches the terrain for a flat patch of a given biome in a radius band; `LM` is set
-once at load with seed 4242, in a fixed sequence (bones, chimney now; the pit, the arches, the spire, the heart and the lantern are gone — **new ones
+once at load with seed 4242, in a fixed sequence (the chimney now; the bones (v11.100), the pit, the arches, the spire, the heart and the lantern are gone — **new ones
 go on the end** so earlier positions don't move). `findSpot` takes an optional `minDepth`, used so the great arch lands
 on deep ground. Because positions are searched, they survive terrain tweaks.
 
@@ -993,7 +1015,7 @@ get only the sun/hemi (the light pool is assigned by distance), so distant vents
   and slabs; 103k before) — near and far alike; the cell only registers their `lumps` as solids from the same cached
   list (`placeBigSolids`). `CAIRNS` (flora.js, struck v11.95 with the pit) were placed structures in world space appended to their cell's list through
   the same `bigPlace`. Nothing pops when a cell loads; `placeFloraType` returns immediately for `big`.
-- **Landmarks** (`LMK`): the ribcage, the neck, the chimney (the arches, the great lantern and
+- **Landmarks** (`LMK`): the chimney (the ribcage struck v11.100; the neck gone before) (the arches, the great lantern and
   the heart are built at boot with `gridH` for their ground height and kept; the cell registers solids/lights/plumes.
   The great lantern's and heart's glow meshes are persistent, drawn whenever in frustum.
 - **Impostors** (`FAR_IMP`, `impostorsFor`). The flora that exists only in loaded cells (the stipe forest at 900/cell,
@@ -1070,7 +1092,8 @@ plus the clear-water term it lacks — cover 0.4, never on a weed) into one `[r,
 limpet) take none. *The progression rule:* stipe, ladder, ribbon, bladder and tidetree carry `young: [0, 0.45]`, so the rift arms (0.7),
 the fan (0.5–1) and the giant's flows (0.7) read bare and encrusted between two forests. Two habitat-only species: **paddle** (a green of
 the runner line, `turb` ≥ 0.3 in the light on sand to mixed ground, 600 a cell: 5 ha on ours, 760 on the giant's windward shelf) and
-**darkrind** (the reds' crust at −172..−142 on bare rock in water with `nut` ≤ 0.2: 85 ha on the sill's summits, none on an island). The
+**darkrind** (the reds' crust at −172..−142 on bare rock in water with `nut` ≤ 0.2: 85 ha on the sill's summits, none on an island; v11.102:
+the sill gone, 4 ha in the square — every bare rock that high lies in some island's fed water now — open for the person, GLOBE §9.1). The
 forest at (330, 0), like for like in the app's pane with the loop driven by hand (25 cells): 184 → 185 draws, 4.88 → 5.05 M triangles.
 
 **The table.** Per species: `per` (instances per cell at full tolerance) and `env` (World shape, envelopes; v10 — the per-biome counts are gone), scale range, tilt, sink, `field`, `rim`,
@@ -1140,6 +1163,7 @@ with the one basalt palette `ROCKT` and `MATROCK`):
 | **heap** | fifteen alike blocks piled two courses (`heapGeo`, 3600 tris) | `crag` 8–20 (h −180..−60), `crag2` 6–14 (h −300..−150), on the fan (`young` ≥ 0.8, `heat` ≤ 0.05), `fit` [0.35, 0.5]; `crag3` 4–10 under a face (`face` [16, 8], `sub` ≥ 0.6) | the fan's hummocks; a rockfall cone at a face's foot |
 | **sheet** | seven flat lumps, shingled (`sheetGeo`, 5.6 wide) | `slab` 6–14 (h −170..−60), `slab2` 5–12 (h −230..−100), on the fan, `fit` [0.3, 0.55] | the slide's coherent blocks (toreva blocks) lying in the fan where it can carry them |
 | **stack** | struck v11.95 with the pit and its seven cairns (the person: a holdover) | — | — |
+| **mound** (v11.98, DEEP §3) | the heap kit (`HEAP_B`) in the deep reef former's pale rubble | `mound` 6–14, `per` 2, h −900..−200 on old (`young` ≤ 0.2), sharply convex (`rel` ≥ 0.85) hard ground, `oxy` ≥ 0.35 | the deep gardens' own rubble on the drowned summits |
 | **ledge** | three flat lumps in a row (`ledgeGeo`) | `ledge`, `per` 0: `placeCliffs` lays them along the contour on steep faces | strata on a cliff |
 
 The blocks are per-cell flora; heaps, sheets and stacks are structures (`big:true`: placed once for the whole world by
@@ -1713,7 +1737,7 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   `scaledDef` chaining a def with the size-dependent numbers scaled (size, reach ×k, dmg ×k², speed/flee/lunge ×√k, detect/radius/clear ×k, food;
   the routine the juvenile uses at `ECO.juv`), the hit capsules through the group's scale, the gape ×k; a **coat class** from the place's
   chemistry (creatures_spec.js `coatClassAt(h, y, f, clade)`: sulfide under a basin's chemocline (`cz`, world.js `chemoAt`; below `CHEMO` −450 to v11.95) or at `heat` > 0.3, lime on rock above −26 with `expo` >
-  0.35, rust on rock above −80, manganese on mud below −200, a `d` suffix at `young` > 0.4; `coatChem` shifts the kind's `PAL` preset in HSL by
+  0.35, rust on rock above −80, manganese on swept pavement (`flow` > 0.6) or old rock (`sub` > 0.55, `young` < 0.3) below −250 (v11.97; any mud below −200 to v11.96), a `d` suffix at `young` > 0.4; `coatChem` shifts the kind's `PAL` preset in HSL by
   `COAT_CLASSES`, on the keys `COAT_CHEM_KEYS[clade]` — the hingeshells' whole exoskeleton; the pale joints hold their lightness, the eyes and
   mouths never move, PAL_FIXED as palVariant; `''` for a clade with no keys), a geometry per kind, age and class in `KIND_GEO` (`kind~@cls`;
   buildKind swaps the preset for the build and puts it back); and, for a clade with `GRAMMAR.moult`, the **soft state**. `coatFor` takes the
@@ -1878,6 +1902,16 @@ drift walks `POP.cells[ei]`, the cells the entry has any capacity or count in (`
 cell when `ecoCap` first knows it or a later capacity is above zero; a cell never leaves; `ecoIndexAll` rebuilds the lists from the tables after
 a save loads. The breeding loop is per entry over its list. The cost is the habitat's: the basin's 43,000 new cells add two or three floor kinds'
 lists, not 37 entries' worth. The paper census (`ecoGen`, 32 cells a frame) takes ~30 s after boot over 57,600 cells.
+
+
+### Carcass falls (v11.99, DEEP.md §4)
+
+creatures_ai.js: `FALL` (`size` 5 m, `scav` 1–3 days by size, `rich` 10, `mat` [3, 40], `bury` [60 apron, 150 ooze], `max` 400, `anoxK` 0.05), `FALLS`
+(records: kind, place, `m0` and `flesh` in the ledger's mass, `tF` its clock, `tB` the flesh's end, `yaw`, `seed`, `anox`, `apron`). `fallState` is a
+fall at a day; `kill` makes one from a big carcass (the carcass's flesh then by the record's clock, `updateCarcass`); `fallDeath` from the
+ledger's dead off-screen (ecology.js, behind `FALL_ON` so test/census.js runs without it); `fallsLoad`/`fallsUnload` with the cell
+(chunks.js); `fallShow` the bones, mats and the draped patch (`fallPatch`) as a group in the cell; `fallsTick` each `ECO_STEP` buries and
+rebuilds; the save's `falls`; `falls()` in the console.
 
 ## The player
 

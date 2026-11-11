@@ -91,7 +91,7 @@ Every item has a mechanism and a job for the life. Struck things (arches, the ma
 - **Diffuse warm-vent fields** (built on ours v11.96: world.js `SEEP`, patches along rift arm 0 inside the fissure, heat ≤ 0.14 — the
   cinder's ground, DEEP §7) away from the chimney: low-temperature seeps through fresh rock, marked by rust mats and shimmer, no chimneys.
   Cheap, and they dot the young shield.
-- **Iron and manganese crusts** on old rock below the chemocline, and ochre iron domes where reduced water meets oxygen at the chemocline's edge.
+- **Iron and manganese crusts** (built v11.97, DEEP §2: on old rock below the light, thickest toward the crust zone under the oxygen minimum — not below a chemocline, where they cannot form) on old rock below the chemocline, and ochre iron domes where reduced water meets oxygen at the chemocline's edge.
   The colour reads the chemistry.
 - **A submarine landslide lobe.** Big shields fail; the giant's old side gets a debris avalanche running out onto the basin floor as a field of
   blocks, some hundreds of metres across, in the anoxic dark — the largest structures in the world and the only relief on the plain.

@@ -1,6 +1,6 @@
 # DEEP.md — the deep under the region model (10 Nov 2026)
 
-Status: **designed; §8 (the pit and the cairns struck) built v11.95; the oxygen field and the re-homing (§11 step 2) v11.96.** The person's decisions are in §10; the build is §11. Read PLANET.md first (The ocean, the head note on The
+Status: **designed; §8 (the pit and the cairns struck) built v11.95; the oxygen field and the re-homing (§11 step 2) v11.96; the floor (§2, step 3) v11.97; the deep gardens (§3, step 4) v11.98; carcass falls (§4, step 5) v11.99; the player's oxygen (§9) v11.101.** The person's decisions are in §10; the build is §11. Read PLANET.md first (The ocean, the head note on The
 basin), then GLOBE.md §9.1 (the region model and its basins), FLORA.md (the deep floor, the vents, the rim) and SEAFLOOR.md §4. The rule
 stands: nothing has a name or a biome; every species places itself by envelope over the fields; nothing glows or moves without a reason.
 
@@ -34,17 +34,23 @@ shelf's base (~−60), ~15 at −200, ~9 at −450, ~5.5 at −800, ~4.5 at the 
 - **The swarms' day depth.** Earth's migrators shelter in the minimum by day, out of the hunters' reach; the swarms' day layer (v11.84)
   reads the oxygen field.
 - **The relict** keeps its ground: old bare rock below the light — the model's drowned members (the guyots that replace the hand-built
-  sill, GLOBE §9.1).
+  sill, GLOBE §9.1). *v11.102 (GLOBE §9.2):* in the square that is two seamounts' summits and the drowned atolls' walls — 14 km² against the
+  sill's 38 once walls count as rock; on paper (the ledger sees no slope) the summits alone, so the off-screen model starts it at 3.
 
-**The floor.** Three grounds where there was one black plain:
-- **The apron near ours** — volcanic sand and mud from the island's own flanks, grey-brown, laid fast. Manganese cannot grow where sediment
-  buries it this quickly, so the near floor is not black: chunks.js's −600 → −900 blackening (v11.58) is backwards here.
-- **The far plain** — pelagic mud laid a few millimetres a thousand years, tens of kilometres out: **manganese nodules** (a nucleus, a few
-  millimetres a million years, only where the bottom water has oxygen — so the old "manganese-black anoxic plain" was chemically
-  backwards; this one is right). The black plain stays black, further out, for the right reason.
-- **Crusts on rock** — iron-manganese crust grows 1–5 mm a million years on rock left bare in oxic water, so it reads the rock's age: a
-  dark stain on ours at 3 Ma, black on the old members' guyots, none on fresh flows. The field exists (`young`); SEAFLOOR §4's crusts are
-  right at last (they were placed below the chemocline, where they cannot form).
+**The floor.** Where there was one black plain (**built v11.97**, chunks.js `terrainColor`, `FLOOR_COL`, world.js `apronAt` — revised when it was
+built, 11 Nov 2026: the draft put nodules on "the far plain", and a floor at −1100 in the tropics grows none):
+- **The islands' aprons** — volcanic sand and silt off their flanks, dark grey-brown, laid fast, so manganese cannot grow on them. The supply
+  is the rain on an island's land: `apronAt` is 1 at a record's foot and fades over 2 km plus 1.3 m for every metre of land radius. Ours, a
+  rim with almost no land left, sheds little (what it shed standing high is under 2–3 Myr of ooze); the giant's reaches ~11 km past its foot.
+- **The open floor: foraminiferal ooze**, pale grey-cream. A tropical floor above the carbonate compensation depth (Earth's ~4.5 km) is
+  carbonate ooze; nodules belong to the abyssal plains under it, or to floors kept bare. So beyond the aprons this floor is pale, not black.
+- **Pavement where the current keeps the floor bare** — iron-manganese on rubble, nodules speckling it, black: the sill's gap, where the
+  inflow (`flow` 0.94) sweeps it (the Blake Plateau's pavement lies at ~800 m under the Gulf Stream for the same reason). *v11.102:* the gap
+  went with the sill; what is left is where an upstream shelf edge's flow passes 0.6 below the light.
+- **Crusts on rock** — iron-manganese grows 1–5 mm a million years on rock left bare in oxic water, thickest in the crust zone just under an
+  oxygen minimum (the manganese the minimum releases comes out there): old rock below the light darkens with depth, to 0.6 of the way; fresh
+  flows (`young`) carry none. SEAFLOOR §4's crusts are right at last (they were placed below the chemocline, where they cannot form).
+- **The coat follows** (creatures_spec.js `coatClassAt`): manganese on pavement and crusted rock below −250; on ooze and apron the preset.
 
 ## 3. The deep gardens (sessile; no new fauna)
 
@@ -60,6 +66,25 @@ hard ground (`sub`), fast water (`flow`), the edges where the current accelerate
 so the old members' rims are the richest and ours' flanks (3 Ma) carry thickets, not mounds. Big mounds are structures with collision in the
 far layer (`bigsFor`); the small are pooled species with cut materials (FLORA_FAR's rules).
 
+**Built v11.98** (flora.js; the person: "start step 4, the deep gardens"):
+- **`thicket`** — the horn's bauplan (`hornB`), white to pale ochre, 0.9–2.2×, `per` 160, on `h` −1100..−150, `sub` ≥ 0.55, `rel` ≥ 0.6, `flow` ≥ 0.2,
+  `oxy` ≥ 0.32, slopes to 1.4. **The relief stands for the quickening water below the light:** the flow field is surface- and tide-driven and
+  reads a flat 0.22 everywhere below −300 — no internal tide over an edge — so below the light "where the current accelerates" is the convex
+  hard ground (`rel`, the ground over its smoothed self); above −300 the flow itself still counts. 59 km² of ground: the sill's drowned summits
+  north-east (the old members' rims, as designed) and the giant's shelf edge; none on ours' own flanks, which are mud below the light.
+  *v11.102 (GLOBE §9.2):* the sill gone, the thicket's ground is 5.5 km² (70 with walls counted, v11.101) and the mound's 0.6 (63): the
+  model's seamounts' summits, bare and knobbed with pillow mounds 30 m high (region.js `knob`), and the atolls' terrace edges. Open for the
+  person: the gardens' place in the model's world — on Earth the next is the banks' and atolls' deep slopes (Lophelia mounds on the Bahamas'
+  slopes at 500–800 m) and the seamounts' flanks; a pass of its own.
+- **`mound`** — the thicket's rubble: a pale heap (`HEAP_B`, 6–14×, collision, the far layer's), `per` 2, on old (`young` ≤ 0.2), sharply convex
+  (`rel` ≥ 0.85) hard ground, −900..−200, out of the minimum's core (`oxy` ≥ 0.35).
+- **`glass`, `frond`, `pen` carried down to −1100** over the fed water (`nut` ≥ 0.18 with a taper of 0.04, so the open basin's 0.12 is out —
+  the default 15% taper had let it in: 1,100–1,400 km² of the plain), thin in the core (`oxy` ≥ 0.3): `glass` 136 → 259 km², `pen` 67 → 230.
+  `lily`, `vase` and `barrel` keep their ranges (their flow gates hold them above the deep's 0.22). The lure-feeders `stalk` and `ltree` named
+  above exist nowhere in the game; nothing was revived.
+- **envW's `oxy` term** (world.js `oxyProf`): the open water's oxygen at the ground's depth by the fields' `nut` — the profile `oxyAt` uses, without
+  a basin's chemocline (the chemo gate does that).
+
 ## 4. Carcass falls
 
 **Earth** (whale falls): a large carcass on an oxic floor goes through stages — mobile scavengers strip it (months to two years), then
@@ -71,6 +96,28 @@ with stages on the game's clock: scavengers (the picker, any hungry hunter by `S
 its mats — **the grey mats move here** (and to the vents; §6). The carcass model exists (creatures_ai.js, DIRECTION's "a veil's carcass
 feeding the island for days"); the sinking, the floor and the stages are new. Below a chemocline (the basin, §5) there are no scavengers:
 bodies and bones lie as they fell — the graveyard.
+
+**Built v11.99** (creatures_ai.js `FALL`, `FALLS`; the person: "start step 5, the carcass falls"):
+- **A fall is a record** (plain data, in the save: `fallsOut`/`fallsIn`) that outlives its cell: while a cell holds it, its flesh is a carcass
+  (outside the ledger) the scavengers and the player eat at; its bones a mesh. Unloaded and reloaded, the carcass comes back with the flesh
+  the clock left. The flesh goes at the scavengers' rate by the record's own clock — 1 game day for a 5 m body, 3 for the abyssal's 15
+  (`FALL.scav`) — plus whatever eats at it while it is in sight.
+- **The stages, on the person's clock:** the enriched patch for ~10 days after the flesh (a stain draped on the ground, the floor's own
+  colour darkened toward rotting fat, fading at its edge); the mats from day 3 to ~40 (pale tufts on and round the bones); the bones until
+  buried — 60 days on an island's apron, 150 on the ooze (`FALL.bury`). A shown fall is rebuilt as its stage moves (once a game day).
+- **Where they come from:** a body of 5 m or more killed in sight and not eaten whole; and the ledger's off-screen dead of the big mortal
+  kinds (ecology.js: natural deaths and the starved, in cells not loaded), each whole one a fall at a place in its cell, on the floor —
+  ~5.4 a game day over the world (ortho 2.7, ridge 1.7, sickle 0.7, comb 0.3). Not the swarms (no body). `FALL.max` 400 records keeps ~74
+  days of them; the oldest bones go first.
+- **The graveyard:** a fall under a basin's chemocline draws no scavenger (`findCarcass`), its flesh goes at a twentieth of the rate and no
+  mats grow. None in the world yet (no basin), so unseen.
+- **`falls()`** in the console: the nearest falls, their stage and the `tp()` to each. The ledger's census fills the world's cells over the
+  first minutes of a game, and off-screen falls start where it has.
+- **Answered by the person (11 Nov 2026):** the veil, the tread and the great **age and die** (they were immortal in the ledger, `hp` 1e9 —
+  so the veil's fall never came); since v11.100 they are mortal: the ledger's natural death takes them (veil 1,469 → 1,642 over the 120-day
+  census, tread 77 → 82, great 152 → 161 — steady), they fall (the veils ~2.4 a game day over the world), and like everything else they can
+  be wounded. **The bones landmark** (a permanent ~100 m ribcage) **was a holdover**: struck v11.100 — "maybe later we add fantastically large
+  animals and bones, but for now, no."
 
 ## 5. The basin 28 km west — the dark, at scale
 
@@ -135,6 +182,12 @@ game's grain from `sample()` at load, by region.js's flood; a few chemocline dis
 it; below a chemocline a hard drain — the basin is entered on reserves (DIRECTION's reserves and the sulfur symbiont have their door). The
 slowbloods and the low-metabolism residents shrug it off (PLANET, decided). Envelopes gain an `oxy` term beside `h`.
 
+**The player's oxygen, built v11.101** (player.js `OXYD`, `oxyTick`): under the body's tolerance (0.5 of the surface's; a slowblood's 0.3;
+the deep line's residents' 0.12) a debt builds by how far under — at the core's 0.25 a soft-arm fills it in ~200 s, a finback runs up a third
+of it — and clears in ~25 s above. The sprint goes at 0.35, the ability at 0.6, and past 0.85 the body slows to 0.7; the view closes in, dark
+(`#oxy`). In the minimum it never kills. Under a basin's chemocline the debt fills in 35 s and, full for 20 s more, kills ("suffocated under
+the chemocline") — no basin in the world yet; test/player.js sets one by hand. The readout's stomach line shows the debt.
+
 **The 21 uses of `CHEMO`.** scene.js's plate and browner water → the chemocline discs; atmosphere.js's snow layer → the minimum's top
 edge or none; chunks.js's "nothing sessile below the chemocline" → oxygen and the chemocline; far.js's two skips; combat.js `POISON.deep` →
 `chemoAt`; creatures_spec.js's sulfide coat → `chemoAt` or heat; creatures_ai.js's depth clamps for the pall and schools → oxygen;
@@ -162,7 +215,7 @@ plate and black flakes by the camera's column; the seep and the grey mats on a b
 struck (it returns about a basin, §5); the poison and the sulfide coat under a basin's chemocline; the pall in the core over the fed deep
 (`h` −1200..−560, `nut` ≥ 0.25: 3,222 cells against 6,023); the readout's `oxy`. The silled rule refined (region.js): a sill between −100 and
 −1100 — the inflow the minimum's water, not the ventilated deep's — and 10 km² or more; seed 32's only big dark is then the basin west.
-Not in step 2: the player's oxygen (§9), the swarms' day depth by it. Nothing open (answered 10 Nov 2026, §10). Left out on purpose: the patterns in the sediment round the constructors' dens (§6), for a later pass.
+Not in step 2: the player's oxygen (§9), the swarms' day depth by it. **Built v11.97 (step 3):** the floor (§2). Nothing open (answered 10 Nov 2026, §10). Left out on purpose: the patterns in the sediment round the constructors' dens (§6), for a later pass.
 
 The build, proposed, in order: (1) strike the pit; (2) the oxygen field and `chemoAt` — the −450 plate goes round ours and the envelopes
 move (the pall, the picker, the seep, the cinder's seep range, the grey mats, the poison, the sulfide coat); (3) the floor: the apron, the

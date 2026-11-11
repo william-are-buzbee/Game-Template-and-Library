@@ -6321,7 +6321,196 @@ Seen: the real build in headless Chromium (three.js r128 from npm; cdnjs is refu
 minimum's core 3 km east of ours at −620 (`oxy 0.25`) and to −445 over the open floor 5 km out (`oxy 0.50`): deep blue darkening by depth,
 no milky sheet, no brown; no shader error (the fog's chunk compiled without the plate).
 
-**Unseen, ask in this order:** the seeps on rift arm 0 (the vent mats in patches between the old pit's place and the fissure, `tp(-700,420)`)
-and whether the cinder belongs there; whether the deep round ours reads right without the plate (a blue that only darkens, the minimum invisible —
+The person's look (11 Nov 2026), ten minutes in both places: "I really enjoy the low oxygen area. It looks awesome visually … seeing the
+filter feeders below and above me in one shot … Love both areas." **Still unseen:** whether the cinder reads as belonging on the seeps;
+whether the deep round ours reads right without the plate (a blue that only darkens, the minimum invisible —
 oxygen has no colour); the palls, fewer and over the deep water near the islands now, not on the flank; whether the readout's `oxy` is
 worth keeping on. Not in this version: the player's oxygen (DEEP §9 — a slow, recoverable deficit in the core), the swarms' day depth by it.
+
+
+## v11.97 — the floor: aprons, pale ooze, pavement, crust (11 Nov 2026)
+
+DEEP.md §11 step 3. The person: "start step 3, the floor". To v11.96 every floor below −600 darkened toward "manganese-black pelagic mud
+under the anoxic water" (v11.58) — wrong twice since v11.96 (manganese dissolves without oxygen, and there is none to lack round ours now)
+and wrong in kind besides: a tropical floor at −1100 lies far above the carbonate compensation depth (Earth's ~4.5 km), so it is
+foraminiferal ooze, pale, unless something buries it faster or keeps it bare. DEEP §2's draft put manganese nodules on "the far plain";
+building it found they belong under the compensation depth or on swept ground, and the doc says so now.
+
+- **chunks.js `terrainColor` (one place: the near cells, the far layer, the horizon and the silt all read it).** Mud below the light, by
+  three grounds: the islands' **apron**, dark grey-brown, where world.js `apronAt` says an island still sheds (`FLOOR_COL.apron`); the open
+  floor's **ooze**, pale grey-cream, beyond it (`.ooze`); **pavement**, black with a nodule speckle, where the current keeps the floor bare
+  (`flow` over 0.6 — the sill's gap at 0.94; the Blake Plateau's pavement under the Gulf Stream is the precedent) (`.pave`). And on rock, the
+  **crust**: old rock (`young` under 0.4) below −250 darkens toward the crust zone under the oxygen minimum, to 0.6 by −900 (`.crust`).
+- **world.js `apronAt(x,z)`.** 1 at an island record's foot (`fade[1]`), fading over 2 km plus 1.3 m for each metre of land radius: the
+  rain on the land is the supply. Ours (a rim, almost no land) to ~8 km from its centre; the giant (7 km of rainy land) ~11 km past its foot.
+- **The coat** (creatures_spec.js `coatClassAt`): manganese now on pavement and crusted old rock below −250; on ooze and apron the kind's
+  preset (to v11.96 any mud below −200 — the stone's "manganese-black on the plain").
+- **Tests.** test/region.js: ours' apron 1 at its foot and 0 at 8.5 km, the giant's 0.97 14 km from its centre, the sill's gap outside
+  every apron's supply.
+  test/combat.js's coat classes: the deep mud (ooze) the preset now, swept pavement and crusted old rock manganese (it read "the deep mud
+  manganese" and failed on the change, as it should).
+
+Seen: the real build in headless Chromium (three.js r128 from npm), `tp` to the open floor 11 km east at −1091 (pale ooze, dark rocks on
+it), the giant's apron at −920 (a dark grey-brown slope), the sill's gap at −541 (black pavement); a shot meant for the crust landed on mud.
+
+**Unseen, ask in this order:** the deep floor is pale now where it was near-black — whether that reads right after the minimum the person
+liked; the giant's dark apron against the pale floor beyond it; the black pavement in the gap; the crust on the old rock faces below the light.
+
+
+## v11.98 — the deep gardens (11 Nov 2026)
+
+DEEP.md §11 step 4. The person: "start step 4, the deep gardens". DEEP §3: the lime polyps' line without its green partner builds in the
+dark on plankton alone, as Earth's cold-water corals do (Lophelia, 200–1000 m, 4–12 °C), densest where the water quickens over an edge,
+thin in an oxygen minimum's core.
+
+- **`thicket`** (flora.js): the horn's bauplan, white to pale ochre, 0.9–2.2×, `per` 160 (70 read as scattered, not a garden), on hard
+  (`sub` ≥ 0.55), convex (`rel` ≥ 0.6) ground from −150 to −1100, `flow` ≥ 0.2, `oxy` ≥ 0.32. **The relief stands for the current below the
+  light**: a survey found no hard ground with `flow` over 0.4 below −300 — the field is the surface's and the tide's, a flat 0.22 at depth with
+  no internal tide over the edges where real deep reefs grow — and the hard ground there is nearly all convex (`rel` 1.0): the sill's
+  drowned summits north-east, which DEEP §3 said would be richest. 59 km² in all, with the giant's shelf edge above −300.
+- **`mound`**: the thicket's rubble, a pale heap (the heap kit, 6–14×, with collision, in the far layer), `per` 2, on old (`young` ≤ 0.2),
+  sharply convex hard ground from −900 to −200, out of the minimum's core.
+- **`glass`, `frond`, `pen` carried down to −1100** (to −450 since the chemocline): over the fed water only (`nut` ≥ 0.18 with an explicit taper
+  of 0.04 — the default 15% let the open basin's 0.12 in and put them on 1,100–1,400 km² of plain) and thin in the core (`oxy` ≥ 0.3); the
+  pen's flow gate eased to 0.2 for the deep. `glass` 136 → 259 km², `pen` 67 → 230.
+- **world.js: `oxyProf(y, nut)`**, the open water's profile, and envW's `oxy` term reading it at the ground — so a species can thin in the core.
+  `oxyAt` is `oxyProf` under the chemocline's gate. DEEP §3's lure-feeders (`stalk`, `ltree`) exist nowhere in the game: not revived.
+
+Seen: the real build in headless Chromium (three.js r128 from npm): the sill's summits at −353 and −217 — pale ochre antlers across the
+slope, sponges and sea lilies among them, a pale rubble mound; the giant's lit shelf edge at −140; sponges and pens on the fed deep near
+ours at −904.
+
+**Unseen, ask in this order:** whether the sill's gardens read as gardens (density, the pale against the dark); the mounds up close; whether
+the deep's sponges and pens near ours read as life or litter; the far layer's cost with the mounds on the person's 4060.
+
+
+## v11.99 — carcass falls (11 Nov 2026)
+
+DEEP.md §11 step 5. The person: "start step 5, the carcass falls". DEEP §4 and the clock the person agreed (10 Nov 2026): on an oxic floor a
+big carcass goes through Earth's whale-fall stages — the scavengers strip it (1–3 game days), the sediment round it is enriched (~10), mats
+live on the sulfide from the bones' fats (~40), and the bones lie until buried. To v11.98 every carcass lay 0.45 game days whatever its size,
+and went with its cell.
+
+- **creatures_ai.js: a fall is a record** (`FALLS`: plain data, in the save) that outlives its cell. While a cell holds it its flesh is a
+  carcass the scavengers and the player eat at (outside the ledger), its flesh going by the record's own clock at the scavengers' rate
+  (`FALL.scav`: 1 day for a 5 m body, 3 for the abyssal's 15) and by what eats; spent, its bones are a mesh — spine, ribs and skull, pale mat
+  tufts by the mats' stage, and the enriched patch draped on the ground (`fallPatch`: the floor's own colour darkened toward the rotting fat,
+  fading at its edge — first built as flat tiles, which read as a checkerboard). Unloaded and reloaded, the carcass comes back with the flesh
+  the clock left. The bones go when buried: 60 days on an apron, 150 on the ooze (`FALL.bury`).
+- **Where falls come from:** a body of 5 m or more killed in sight and not eaten whole (`kill`), and the ledger's dead off-screen
+  (ecology.js `fallDeath`: natural deaths and the starved, in unloaded cells, each whole one a fall at a place in its cell). The first run gave
+  96 in two game days — the plankton's swarm (a 6 m "kind" with no body) was falling; without it, ~5.4 a game day over the world (ortho
+  2.7, ridge 1.7, sickle 0.7, comb 0.3). `FALL.max` 400 records: ~74 days, the oldest bones first.
+- **The graveyard:** under a basin's chemocline no scavenger finds a fall, the flesh goes at a twentieth of the rate, no mats. No basin in the
+  world yet: unseen.
+- **`falls()`** in the console: the nearest falls, their stage, the `tp()` to go and look. The readout's ecology line counts `falls`.
+- **test/falls.js** (in `--test`, `SIDE`, 52 s, build.js and build.py alike): the ridge killed in sight is a fall and sinks to the floor; half
+  a game day takes the clock's flesh; two more and it is bones with a mesh; the patch's and the mats' stages; the abyssal's record through
+  its cell's unload and reload, back with the flesh the clock left; the save out and in, and a bad record refused; two game days of the
+  model put falls of the big mortal kinds on the floor; bones 200 days down buried. ecology.js runs its falls behind `FALL_ON` so
+  test/census.js (which loads no creatures_ai.js) runs the paper model without them.
+
+Seen: the real build in headless Chromium (three.js r128 from npm), a ridge killed 22 m ahead on the fed deep at −909, `skip()` past its
+flesh: the skeleton with its mat tufts on a dark stain fading into the mud. The ledger's own off-screen falls were not seen in the browser:
+its census fills the world's cells over the first minutes (`eco 370/57600` headless), and falls start only where it has.
+
+**Unseen, ask in this order:** a fall found in play (`falls()`, then its `tp`); the carcass with scavengers at it; whether ~5 a day over the
+world is too few or too many to meet; the veil (and the tread and the great) never dying off-screen, so never falling (DEEP §4, open); the
+bones landmark — a permanent ~100 m ribcage where bones now go in 60–150 days (DEEP §4, open).
+
+
+## v11.100 — the veil, the tread and the great age and die; the bones landmark struck (11 Nov 2026)
+
+The person, on v11.99's two open calls (DEEP §4): the immortal kinds should age and die — "Yes"; and the bones landmark "is a holdover for
+now, we can get rid of it. Maybe later we add fantastically large animals and bones, but for now, no."
+
+- **creatures_defs.js:** the veil, the tread and the great were immortal (`hp` 1e9: the ledger never killed them, combat never wounded them),
+  so the fall DEEP was written for — a veil's — never came. They are mortal now (`hp` an ordinary value, which since v11.55 means only that):
+  the ledger's natural death takes them, they fall (the veils ~2.4 a game day over the world, on the ~5.4 of v11.99), and a hunter's edge
+  can wound them as it can anything. The 120-day census holds them: veil 1,469 → 1,642, tread 77 → 82, great 152 → 161.
+- **world.js, far.js:** the bones landmark struck — a permanent ribcage ~100 m long on the mud, from an animal no bigger than 16 m that this
+  planet has, where the falls' bones are now buried in 60–150 days. It was the first search on the landmarks' rng; nothing searched came
+  after it, so nothing else moved (the chimney is placed by the geology).
+
+**Unseen, ask in this order:** a veil's fall in play (`falls()`); whether a hunter now goes after a veil, a tread or a great, and whether that
+reads right — they were untouchable before.
+
+
+## v11.101 — the player's oxygen: a debt in the minimum (11 Nov 2026)
+
+DEEP.md §9; the person (10 Nov 2026): "let's make it survivable if we can"; (11 Nov 2026) "yes, perfect". PLANET had decided a slow drain
+below −450 and never built it; the drain is now the water's oxygen (world.js `oxyAt`), not a depth.
+
+- **player.js `OXYD`, `oxyTick`:** under the body's tolerance (0.5 of the surface's oxygen; a slowblood 0.3 — low metabolism, PLANET; the deep
+  line's residents, the pall's row, 0.12) a debt builds by how far under: at the core's 0.25 over the fed water the soft-arm's fills in
+  ~200 s (0.30 after a minute); above the tolerance it clears in ~25 s. The sprint goes at 0.35, the body's ability at 0.6, and past 0.85
+  it slows, to 0.7 at full. **In the minimum it never kills** — ten minutes at full debt and alive. Under a basin's chemocline (no oxygen)
+  it fills in 35 s and, full for 20 s more, kills: "suffocated under the chemocline" (no basin in the world yet).
+- **The view** (shell.html `#oxy`): a dark vignette closing in by the debt, to 0.8 at full. The readout's stomach line shows the debt.
+- **test/player.js:** the soft-arm in the core (0.30 at a minute, full at 200 s, alive after ten minutes more, slowed to 0.70, its ink
+  refused), clear above the light in 26 s; the finback at 0.33 in the same 200 s; under a chemocline set by hand, dead inside 80 s.
+- world.js: `findSpot` marked as kept for the next landmark (nothing is searched since v11.100).
+
+Seen: the real build in headless Chromium (three.js r128 from npm), the soft-arm in the minimum's core 3 km east of ours at −650, the debt
+set to 0.8: the view's edges darken over the floor. **Unseen, ask in this order:** the debt's pace in play (does three minutes in the core
+feel right before the sprint goes and the view closes); whether the dark vignette reads as breathlessness or just as dark.
+
+## v11.102 — the square from the model (11 Nov 2026)
+
+GLOBE §8 step 5, §9.2; the person (11 Nov 2026): "go ahead, start rebuilding the square"; (10 Nov 2026) the proposals inside the square
+accepted — "the world we have now is nice but we are going to need to make some big changes, so that's ok" — and "let the model's basins
+decide". The game's ground is the region model's (seed 32): its members are records, its floor is the floor, and the hand-built sill is gone.
+
+- **region.js `rgBuild`, `rgRecord` (at load):** every member whose ground reaches the world (the square and the far layer's 2 km past it)
+  becomes a record in `ISLANDS`, its shape by its state with islandH's kit — a high island or an active shield as land (the model's shore and
+  height; gullies; a caldera and flows down two rift zones on the fracture grain when young; a shelf cut into the land by its age, the flank
+  where the model's 12° cone puts it), an atoll or a bank as ours scaled to its reef's ring (the rim at the reef's top today, `rimH`; the lagoon
+  deeper on a wider ring), a seamount or a guyot as a cone with its upper 200 m bare (`bare`) and knobbed with pillow mounds 30 m high
+  (`knob`). A member whose summit lies under another's ground at its centre is struck (the model draws every cone from the plateau). Seed 32:
+  20 records — the awesome shield's southern side across the north-west corner, the 308 m island 20 km north, the 820 and 243 m islands past
+  the west and south-west edges, ten atolls (two awash in the square's south and south-east, one 5 m under to the east, two drowned 17 and
+  22 m under to the north), two banks (the north-east corner is one's edge, its flat 20 m under), three seamounts and a guyot — and 8 struck.
+- **The floor is the model's** (`rgFloor`: the plateau, the swell and every load's moat on a 1 km grid, read by a Catmull-Rom patch):
+  −1100 beside ours by the pin, −1730 in the awesome's moat, −820 at the south-west corner. **`SILL` is gone** (world.js), with its gap's jet
+  (flow 0.95, nut +0.35), its summits' bare rock (`summitK`) and its outer flank to the plate; ours and the giant (`core` 2400) unchanged
+  to the bit inside 3.2 and 9.4 km, past that the model's floor and neighbours. Their reach grows where the floor lies deeper than their flanks
+  were cut for.
+- **The dark by the basins:** chemoInit floods the new ground and finds one silled basin in the square — 12 km² behind −1010 between the
+  drowned atoll north-north-east, the atoll east and the bank's flank, its chemocline −1030, its floor −1170: the first anoxic water a player
+  can reach. Ours, the giant and the floor between are open.
+- **The seamount effect blended** (world.js sample): every record's influence `isl` joined as 1−Π(1−isl), the current's aspect weighted by
+  them; to v11.101 the highest record's alone counted, and two neighbours' halos met on a straight seam (ours and the giant's had one).
+  `islandW` gives a record's influence without its ground.
+- **The relief's reference follows the flank** (islandH `hSmooth`): to v11.101 it stayed at the apron's −290, so `rel` read 0 on every lower
+  flank and on the floor inside every record's reach — a seam at each reach circle. Ours' lower flank reads 0.5 now (flat), no envelope's edge.
+- **The cost** (sample() 0.74 → ~2.3 µs over the square: far more of it is island). An exact skip: each model record and the giant carry the
+  most their ground can stand by radius (`rgBound`); sample() takes the records in reach highest bound first and stops once none can raise
+  the ground or be the highest, and computes one under the ground past its features for its influence only. The model's records read their
+  six angular noises from tables (`anTables`, `anT`). Squared distances in the record loop (Math.hypot was ~0.3 µs a sample at two dozen).
+- **The horizon** (horizon.js): the box grew to 111 × 98 km, so the mesh is sampled coarse first, only inside a record's land, rim or cone, and
+  fine only where something stands over the cut — ~1 s of sample() against v11.101's ~0.25 — and built a slice at a time (6 ms a frame, the
+  sea disc and the sky from the first frame); it was one frame's work.
+- **The apron's run-out** capped at the giant's 11.1 km past the foot (`APRON_L`, `apronR`): the awesome's 21 km of land would have laid its
+  apron over the whole square; its turbidites pond in its own moat. 87% of the square's floor under −700 is apron now (the archipelago's debris).
+- **The harnesses** load region.js (test/census.js, test/map.js, map.html); test/map.js labels the records by summit or reef, draws no sill;
+  test/plankton.js's gap site is another island's fed flank (the east atoll's: gold 2.35 over green 1.04, an upwelling flank like ours').
+- **test/region.js:** the records (20, each with its bound and tables), the struck, every record's ground under its bound table on rings every
+  97 m to its reach, the model's floor beside ours (−1099.9), the square's silled basins none within 8 km of ours or the giant, the aprons per record
+  (ours', the giant's, the awesome's run-out), the square's floor mostly apron with some open floor.
+
+**What the sill's life became** (census, 200 days, nothing loaded: every kind holds; capacity 205,000 → 765,000, the atolls', banks' and
+high island's reef and shelf): **the relict** keeps 14 km² of its 38 once walls count as rock (the seamounts' summits, the drowned atolls'
+walls) but on paper the summits alone (the ledger sees no slope), so the off-screen model holds it at 3 (82 in v11.101); **the deep gardens**
+shrink — the thicket's ground 70 → 5.5 km², the mound's 63 → 0.6 — to the seamounts' knobbed summits and the atolls' terrace edges; **the
+darkrind** loses its home (2.5 km² → 0.04: every bare rock at the light's floor now lies in some island's fed water).
+
+Seen: the map (test/map.js) and the fields (nut, flow, sub) over the square, before and after the blend; the census at 200 days, ok, beside
+v11.101's; the real build in headless Chromium (no page errors): from the surface 3 km east of ours the 308 m island low on the north-west
+horizon with the awesome shield's broad mountain behind it in the haze; the seamount m146's summit at −338, knobbed, the thicket on the knobs;
+the east atoll's reef flat 5 m under, thick with life; the 308 m island's coast, its tidal forest on pale flats; the anoxic basin's floor at
+−1120, dark. Boot (headless, to the page's load) 21.7 s against v11.101's 20.9; the horizon's build 1.14 s of CPU against 0.2, now spread
+at 6 ms a frame (~3 s at 60 fps before the far land shows). **Unseen, ask in this order:** the north-west corner — the awesome shield's coast and flank, and whether a 2.5 km mountain built
+with the giant's kit is acceptable there until its own pass; the 308 m island and its shelf; the atolls' rims (awash with islets, or under);
+the bank's edge in the north-east corner; the first anoxic basin; the horizon's land arriving a few seconds after surfacing. **Open for the
+person:** the darkrind (let it go, or its clear water somewhere the model has: a drowned summit up-current, past the square); the deep
+gardens' place in the model's world (the banks' and atolls' deep slopes, as the Bahamas' coral mounds at 500–800 m; the seamounts' flanks).

@@ -49,12 +49,18 @@ function nearLandmark(x,z,r){for(const p of LM.all)for(const q of (p.keep||[p]))
 // hand it is measured differently — see ch.slope — so a face's rock tint can differ by a shade across the seam). Writes rgb into tc at n.
 const ROCK_COL=[0.30,0.31,0.33];
 const SUB_COL=[[0.20,0.23,0.26],[0.70,0.66,0.48],[0.36,0.39,0.41],[0.30,0.31,0.33]]; // mud, sand, rubble, rock
+const FLOOR_COL={apron:[0.30,0.28,0.24],ooze:[0.56,0.55,0.50],pave:[0.11,0.10,0.09],crust:[0.12,0.10,0.09]}; // v11.97 (DEEP §2): the islands' volcanic apron, dark grey-brown with olivine; the open floor's foraminiferal ooze, pale grey-cream (above the carbonate compensation depth, as all of this floor is); iron-manganese pavement and nodules where the current keeps the floor bare; the crust on old rock
 function terrainColor(x,z,h,f,sl,tc,n){
     const rock=ROCK_COL,m=fbm(x*0.07+5,z*0.07+9,3),k=0.78+0.45*m,sub=f[FI.sub],light=smooth(-150,-10,h);
     const sv=clamp(sub*3,0,2.999),si=Math.floor(sv),st=sv-si,c0=SUB_COL[si],c1=SUB_COL[si+1];
     let r=lerp(c0[0],c1[0],st)*k,g=lerp(c0[1],c1[1],st)*k,bl=lerp(c0[2],c1[2],st)*k;
     if(sub<0.5&&h<-90){r*=0.9;g*=0.95;} // the deep's mud, bluer
-    if(h<-600){const q=smooth(-600,-900,h);r*=1-0.3*q;g*=1-0.3*q;bl*=1-0.25*q;} // the basin floor (v11.58, PLANET The basin): manganese-black pelagic mud under the anoxic water; starts under the pit's floor (-550) so nothing inside the old square changes
+    // the floor below the light (v11.97, DEEP §2; to v11.96 the mud darkened to "manganese-black" from -600, which no floor at this depth is:
+    // manganese dissolves without oxygen, and with it a floor this shallow is carbonate ooze unless something keeps it bare)
+    if(h<-150&&sub<0.5){const mud=smooth(0.45,0.2,sub),dp=smooth(-150,-350,h),ap=apronAt(x,z),sw=smooth(0.6,0.85,f[FI.flow]),F=FLOOR_COL;
+      const oz=dp*mud*(1-ap)*(1-sw),aq=dp*mud*ap*(1-sw)*0.8; // the ooze where the islands' supply fades; their apron near them
+      r=lerp(r,F.ooze[0]*k,oz);g=lerp(g,F.ooze[1]*k,oz);bl=lerp(bl,F.ooze[2]*k,oz);r=lerp(r,F.apron[0]*k,aq);g=lerp(g,F.apron[1]*k,aq);bl=lerp(bl,F.apron[2]*k,aq);
+      if(sw>0){const pq=dp*sw*(0.7+0.3*smooth(0.5,0.7,fbm(x*0.9+3,z*0.9+7,2)));r=lerp(r,F.pave[0]*k,pq);g=lerp(g,F.pave[1]*k,pq);bl=lerp(bl,F.pave[2]*k,pq);}} // the pavement: the sill's gap, where the inflow sweeps the floor bare (Blake Plateau's, under the Gulf Stream at ~800 m), nodules speckling it
     if(sub>0.6&&light>0.7&&f[FI.nut]<0.5&&m>0.6){const q=(m-0.6)*4*light;r=lerp(r,0.85,q);g=lerp(g,0.42,q);bl=lerp(bl,0.5,q);} // lime on clear bright rock
     const yg=f[FI.young];if(yg>0.3){const q=smooth(0.3,0.8,yg);r=lerp(r,0.26*k,q*0.5);g=lerp(g,0.24*k,q*0.5);bl=lerp(bl,0.22*k,q*0.5);if(m>0.62){const rq=(m-0.62)*3*q;r=lerp(r,0.55,rq);g=lerp(g,0.28,rq);bl=lerp(bl,0.1,rq);}} // young basalt, rust where the mat is
     const ht=f[FI.heat];if(ht>0.2){const v=fbm(x*0.03+50,z*0.03+50,3);if(v>0.55){const q=Math.min(1,(v-0.55)*5)*smooth(0.2,0.7,ht);r=lerp(r,0.62,q);g=lerp(g,0.5,q);bl=lerp(bl,0.16,q);}} // sulfur round the fissure
@@ -70,6 +76,10 @@ function terrainColor(x,z,h,f,sl,tc,n){
       const kt=coneK(x,z)*smooth(1.5,4,h);if(kt>0){const tuff=[0.62,0.50,0.32],q=kt*(0.85+0.15*m);r=lerp(r,tuff[0]*k,q);g=lerp(g,tuff[1]*k,q);bl=lerp(bl,tuff[2]*k,q);}} // the tuff cone (v11.86, world.js CONE): palagonite — ash altered by hot water — is tan to ochre, Diamond Head's colour, from the strand up; the same rule on the far terrain
     const q=smooth(0.9,1.9,sl);
     r=lerp(r,rock[0]*k,q);g=lerp(g,rock[1]*k,q);bl=lerp(bl,rock[2]*k,q);
+    // the crust (v11.97, DEEP §2): iron-manganese grows on rock left bare in oxic water, 1-5 mm a million years, thickest in the crust zone
+    // just under the oxygen minimum — so old rock below the light darkens with depth; fresh flows (young) carry none. Ours is 3 Ma: a stain
+    const cq=smooth(0.4,0.05,f[FI.young])*smooth(-250,-900,h)*Math.max(smooth(0.55,0.8,sub),q)*0.6;
+    if(cq>0){r=lerp(r,FLOOR_COL.crust[0]*k,cq);g=lerp(g,FLOOR_COL.crust[1]*k,cq);bl=lerp(bl,FLOOR_COL.crust[2]*k,cq);}
     tc[n*3]=r;tc[n*3+1]=g;tc[n*3+2]=bl;
 }
 // a generator (v11.12): the colouring is 2401 vertices with three or four fbm each, ~10 ms in one step against a 6 ms budget; eight rows a step
@@ -397,7 +407,7 @@ function* genChunk(i,j){
   for(const f of FLORA){if(f.mat!==MATROCK)continue;yield* placeFloraType(ch,mulberry((((i*73856093)^(j*19349663)^hashStr(f.id))>>>0)),f);yield;}
   for(const f of FLORA){if(f.mat===MATROCK)continue;yield* placeFloraType(ch,mulberry((((i*73856093)^(j*19349663)^hashStr(f.id))>>>0)),f);yield;}
   placeLandmarks(ch);yield;
-  yield* spawnChunkCreatures(ch,rng);lineLoad(ch); // the player's broods that lie in it (line.js, v11.69)
+  yield* spawnChunkCreatures(ch,rng);lineLoad(ch);fallsLoad(ch); // the player's broods that lie in it (line.js, v11.69); the falls in it (v11.99)
   scene.add(ch.group);chunks.set(ch.k,ch);chunkGrid[i*NCELL+j]=ch;farCellChanged(i,j);shadowDirty(ch);
 }
 function loadChunkNow(i,j){if(chunks.has(ckey(i,j)))return;const g=genChunk(i,j);while(!g.next().done){}}
@@ -405,7 +415,7 @@ function unloadChunk(ch){
   scene.remove(ch.group);for(const P of ch.pooled)poolRemove(P,ch);ch.pooled.length=0; // the cell's blocks out of the species pools (v11.52)
   for(const m of ch.meshes){if(m.geometry&&!FLORA.some(f=>f.geo===m.geometry||(f.glow&&f.glow.geo===m.geometry)))m.geometry.dispose();if(m.isInstancedMesh)m.dispose();if(m.isPoints&&m.material)m.material.dispose();}
   for(const s of ch.lightSrc){const k=lightSources.indexOf(s);if(k>=0)lightSources.splice(k,1);}
-  lineUnload(ch);ecoWriteBack(ch); // the player's broods counted (line.js, v11.69); the living go back into the ledger (v11.26); the dead stay dead
+  lineUnload(ch);ecoWriteBack(ch);fallsUnload(ch); // the player's broods counted (line.js, v11.69); the living go back into the ledger (v11.26); the dead stay dead
   for(let i=ch.eggs.length-1;i>=0;i--)removeEgg(ch.eggs[i]); // the clutches go with the cell; the ledger keeps their count
   for(let i=ch.sheds.length-1;i>=0;i--)removeShed(ch.sheds[i]); // and the sheds dropped in it (v11.66)
   for(const c of ch.creatures)disposeCreature(c);

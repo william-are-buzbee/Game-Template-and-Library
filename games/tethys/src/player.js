@@ -54,7 +54,24 @@ function playerGone(){return player.dead||!!player.away;}
 // the person's to decide (CHANGELOG v11.73, Unseen).
 const EAT={bite:1}; // s of the world's feeding rate one bite (click) at a carcass is worth — the player's jaw is deliberate: 20 bites fill a stomach from starving
 let hlSpec=null,hlCost=0;
-function hungerLine(){const P=player,C=P.clade;if(!C||mode!=='play')return '';const K=eaterK(P);if(hlSpec!==C.spec){hlSpec=C.spec;hlCost=clutchHunger(C.spec);}
+// ---------- the oxygen debt (v11.101, DEEP.md §9; the person, 10 Nov 2026: the oxygen minimum survivable) ----------
+// Below the light the water holds less oxygen (world.js oxyAt: ~0.25 of the surface's in the minimum's core over the island's fed water).
+// Under the body's tolerance a debt builds — slowly, by how far under — and clears again above it: the sprint goes first, then the body's
+// ability, then its speed; in the minimum it never kills. Under a basin's chemocline (no oxygen at all) it fills fast and, full, kills.
+// The tolerance is the body's: a slowblood (low metabolism, PLANET) asks less; the deep line's residents (the pall's row, `deep`) almost none.
+const OXYD={tol:{other:0.5,slow:0.3,deep:0.12},fill:100,rec:25,sprint:0.35,ability:0.6,slow:0.85,slowK:0.7,drain:35,choke:20}; // tolerances (share of the surface's); s to fill at one tolerance-width under (0.25 against 0.5 fills in 200 s); s to clear from full; the debt at which the sprint, the ability and then speed go; the speed left at full debt; s to fill under a chemocline; s full there before death
+const oxyEl=document.getElementById('oxy');let oxyShown=-1;
+function oxyTol(P){const sp=P.clade.spec,D=DEFS[lineKind(sp)];return D&&D.deep?OXYD.tol.deep:sp.clade==='slowbloods'?OXYD.tol.slow:OXYD.tol.other;}
+function oxyTick(P,dt){if(P.sub<0.3)return false; // in the air the gills are not the question
+  const o=oxyAt(P.pos.x,P.pos.y,P.pos.z),an=o<=0&&underChemo(P.pos.x,P.pos.y,P.pos.z),tol=oxyTol(P);let D=P.oxyD||0;
+  if(an)D+=dt/OXYD.drain;else if(o<tol)D+=(tol-o)/tol*dt/OXYD.fill;else D-=dt/OXYD.rec;
+  P.oxyD=D=clamp(D,0,1);
+  if(an&&D>=1){P.chokeT=(P.chokeT||0)+dt;if(P.chokeT>OXYD.choke){P.oxyD=0;P.chokeT=0;oxyView(0);die('suffocated under the chemocline');return true;}}else P.chokeT=0;
+  oxyView(D);return false;}
+function oxySlow(P){const D=P.oxyD||0;return D>OXYD.slow?lerp(1,OXYD.slowK,smooth(OXYD.slow,1,D)):1;}
+function oxyView(D){const v=0.8*smooth(0.15,1,D);if(Math.abs(v-oxyShown)>0.01&&oxyEl){oxyEl.style.opacity=v.toFixed(2);oxyShown=v;}} // the view closes in, dark, as the debt grows
+function hungerLine(){const P=player,C=P.clade;if(!C||mode!=='play')return '';if((P.oxyD||0)>0.005)return hungerLine0()+'  oxygen debt '+P.oxyD.toFixed(2)+(P.chokeT>0?' choking '+P.chokeT.toFixed(0)+'s':'');return hungerLine0();}
+function hungerLine0(){const P=player,C=P.clade;const K=eaterK(P);if(hlSpec!==C.spec){hlSpec=C.spec;hlCost=clutchHunger(C.spec);}
   const left=P.hunger>=1?'starving '+(P.starveT/(K.cycle*DAY_S*STARVE_T)).toFixed(2):'starving in '+((1-P.hunger)*K.cycle).toFixed(2)+' d';
   const L=lineCur(),m=lifeBreed(L),b=lineBrooding();let ex=''; // v11.74: the age, and the brood
   if(L)ex+='  age '+((t-L.born)/DAY_S).toFixed(2)+' d'+(m&&m.life?' of '+(lifeS(L)/DAY_S).toFixed(2):'');
@@ -126,7 +143,7 @@ function die(cause){ // v11.55: a placed act (combat.js killBy) — swallowed, o
 }
 function bite(){playerBite();} // v11.31: combat.js — a gulp, a mouthful of a carcass, or a wound (a tear on what you hold)
 function ability(){
-  const P=player,C=P.clade;if(mode!=='play'||P.dead||!C||P.cd>0||P.paraT>0||collapsed(P))return; // paralysed, nothing answers (v11.55); collapsed by blood loss, nothing either (v11.91)
+  const P=player,C=P.clade;if(mode!=='play'||P.dead||!C||P.cd>0||P.paraT>0||collapsed(P)||(P.oxyD||0)>OXYD.ability)return; // paralysed, nothing answers (v11.55); collapsed by blood loss, nothing either (v11.91); deep in the oxygen debt, nothing (v11.101)
   if(C.ability==='ink'){spawnInk(P.pos);P.inkT=6;P.cd=12;for(const c of creatures){if(c.target===player)dropTarget(c,6);}} // v11.31.1: dropTarget lets go of the arms too, not only the target
   else if(C.ability==='stun'){let hit=false;for(const c of creatures){if(!c.alive)continue;const r=c.def.role;if(!(r==='hunter'||r==='ambush'||r==='coil'))continue;if(c.pos.distanceTo(P.pos)<6+c.def.size*0.3){c.stun=2.5;T1.copy(c.pos).sub(P.pos).normalize();c.vel.addScaledVector(T1,9);dropTarget(c,5);hit=true;}}P.cd=hit?9:1.5;P.pulse=1;thump(0.7,60,25,null,0.25,0.12);}
   else if(C.ability==='ram'){const tg=playerTarget(false);P.pulse=1;P.snapT=0.1; // v11.75: the ram's blow, the world's rule on the striker (combat.js combatBite, RAM): a knock on what is ahead in reach — stunned, thrown, nothing through
@@ -176,6 +193,7 @@ function updatePlayer(dt){
   const P=player,C=P.clade;
   P.cd=Math.max(0,P.cd-dt);P.biteCD=Math.max(0,P.biteCD-dt);P.inkT=Math.max(0,P.inkT-dt);P.hurtT=Math.max(0,P.hurtT-dt);
   if(!P.dead&&!P.away&&C&&eaterK(P).hunter&&hungerTick(P,dt))return; // the stomach (v11.73): the ledger's clock on the player's line kind, and starvation is a death like any other. v11.75: a body whose founder hunts nothing (a grazer) feeds off the model as the world's grazers do — no clock, as they have none. v11.85: a body with a sieve is a hunter of the swarms (ecoOf) and runs the clock
+  if(!P.dead&&!P.away&&C&&oxyTick(P,dt))return; // v11.101 (DEEP §9): the oxygen debt — survivable in the minimum, a death only under a chemocline
   if(!P.dead&&!P.away&&C)filterPlayer(dt); // v11.85 (PLANKTON §11): the sieve, if the body has one, fills the stomach from a swarm it is inside (creatures_ai.js)
   let mx=0,mz=0,my=0,sprint=false;
   if(!P.dead){
@@ -185,6 +203,7 @@ function updatePlayer(dt){
     P.withdrawn=C.ability==='withdraw'&&(!!keys.KeyQ||touchAbility)&&!(P.paraT>0);
     P.shut=C.ability==='shut'&&(!!keys.KeyQ||touchAbility)&&!(P.paraT>0); // v11.75: the valves clamped while Q is held — still, sinking, shell to every edge (combat.js coverAt); not the withdraw's invulnerability
     if(P.withdrawn||P.shut)sprint=false;
+    if((P.oxyD||0)>OXYD.sprint)sprint=false; // the debt takes the sprint first (v11.101)
     P.sprint=sprint;
   }else{P.withdrawn=false;P.shut=false;P.sprint=false;}
   // The medium. sub is how much of the body is under the local water level: 1 swimming, 0 in the air or on the strand.
@@ -216,7 +235,7 @@ function updatePlayer(dt){
   const th=still||!swims?0:dirK?al:mz<0?-rev:0,brake=!still&&mz<0&&!walker&&!dirK&&P.vel.dot(bf)>0; // any direction key drives it forward along the body it is turning; s alone backs — and while the body is still going forward that thrust is a brake, so it stops at STEER.brake and then swims backwards (v11.79)
   const move=T1.copy(bf).multiplyScalar(th);
   const moving=th!==0;
-  let spd=walker?(C.landSpeed||4):C.speed;if(!walker&&C.sprint&&sprint&&!collapsed(P))spd*=C.sprint; // a walker's Froude speed is its ceiling (v11.75); collapsed by blood loss there is no burst (v11.91)
+  let spd=walker?(C.landSpeed||4):C.speed;if(!walker&&C.sprint&&sprint&&!collapsed(P))spd*=C.sprint;spd*=oxySlow(P); // v11.101: the debt's last stage slows the body // a walker's Froude speed is its ceiling (v11.75); collapsed by blood loss there is no burst (v11.91)
   P.heldT=Math.max(0,P.heldT-dt);if(P.heldT>0)spd*=0.8; // brushed by something's arms
   spd*=P.heldK||1; // held (combat.js updateHolds sets it): in jaws or claws you thrash, in arms you barely swim
   spd*=slowOf(P); // bleeding, or stung (combat.js, v11.55)
