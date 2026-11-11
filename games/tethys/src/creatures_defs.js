@@ -141,7 +141,7 @@ const SPAWN=[
   {kind:'stone',n:0.6,env:{h:[-320,-60],sub:[0,0.6]}}, // the plain, the terraces' sand
   {kind:'tread',n:0.06,env:{h:[-320,-60],sub:[0,0.4]}}, // a few in the whole world, on the mud (v11.66: sub to 0.4)
   {kind:'comb',n:0.2,env:{h:[-320,-150],nut:[0.3,1]}}, // the plain, the lantern fields, where the water is fed (v11.66); the abyssal's meal
-  {kind:'relict',n:0.12,env:{h:[-450,-280],sub:[0.55,1],young:[0,0.3]}}, // v11.66 (SEAFLOOR §3): bare rock below the light and off the fresh flows — the sill's drowned summits, swept clean by the current; nowhere else has it
+  {kind:'relict',n:0.12,env:{h:[-450,-280],sub:[0.55,1],young:[0,0.3]}}, // v11.66 (SEAFLOOR §3): bare rock below the light and off the fresh flows — the sill's drowned summits, swept clean by the current; nowhere else has it (v11.102: the sill gone, the model's seamounts' summits and the drowned atolls' walls, GLOBE §9.2)
   {kind:'basker',n:4,env:{heat:[0.3,1]}}, // the vents (one cell of them)
   {kind:'picker',n:3,env:{h:[-800,-300]}}, // the lower flank's mud down into the dark (v11.28: to -400 while the void stood; the dark inside the square is the pit and the corners now, and the stone's and basker's food went with it)
   {kind:'picker',n:12,env:{heat:[0.3,1]}}, // and at the vents, in a swarm, picking at the mats (Earth's vent shrimp swarms): the basker's food (20 before the cinder took its share, v11.66)

@@ -1,5 +1,5 @@
 // Headless plankton check (v11.81, PLANKTON.md §13 pass 1): the field at the sites the doc names — the fed flank, the shelf break's ring,
-// the lagoon, the lee (the old canopy patches), the basin, the gap and the vent — printed as a table: the column's crops by kind (world.js
+// the lagoon, the lee (the old canopy patches), the basin, another island's fed flank (the sill's gap to v11.101) and the vent — printed as a table: the column's crops by kind (world.js
 // plank), the front's criterion X, then the crops at three depths through bloomC by the clock (the surface, the thermocline, the deep
 // maximum), and the water's tint from them (bloomTint on the table's shelf colour). Then the invariants: no NaN anywhere on a grid across
 // the world; every texel encodes within 0..1; the basin poorer than island water poorer than the fed flank, on the doc's numbers (a gyre
@@ -31,7 +31,7 @@ const sites=[
   {name:'the lee, the first eddy',a:2.3,r:1420},
   {name:'the lee, past the eddies',a:dn,r:2000},
   {name:'the vent field',a:2.6,r:1310},
-  {name:'the gap in the sill',a:up,r:13000},
+  {name:'the east atoll\'s fed flank',x:Math.round(15300+Math.cos(5.44)*2800),z:Math.round(-5600+Math.sin(5.44)*2800)}, // v11.102: the sill's gap went with the sill; another member's own upwelling (m141, its rim at r 1891, region.js)
   {name:'the basin',x:4000,z:4000},
 ];
 for(const s of sites){if(s.x===undefined){s.x=Math.round(Math.cos(s.a)*s.r);s.z=Math.round(Math.sin(s.a)*s.r);}}
@@ -60,8 +60,8 @@ for(const s of sites){const sm=P.sample(s.x,s.z),c=P.plank(s.x,s.z,sm),tx=P.plan
   ok(lag[0]>lag[1]*3,'the lagoon is green (green '+lag[0].toFixed(3)+' vs gold '+lag[1].toFixed(3)+')');
   ok(rows['the fed flank, the slope'].c[3]>0.2&&rows['the lagoon'].c[3]<0.01,'the red is the deep column\'s: '+rows['the fed flank, the slope'].c[3].toFixed(2)+' at 95 m over the fed slope, '+rows['the lagoon'].c[3].toFixed(3)+' over the lagoon\'s floor');
   ok(flank[1]>flank[0],'the fed flank is gold (gold '+flank[1].toFixed(2)+' vs green '+flank[0].toFixed(2)+')');
-  const v=rows['the vent field'],g=rows['the gap in the sill'].c;ok(v.c[0]+v.c[1]<0.3,'the vent field grows no bloom of its own (the heat\'s food is chemosynthetic: '+(v.c[0]+v.c[1]).toFixed(3)+')');
-  ok(g[1]>g[0],'the gap\'s jet is stirred: gold ('+g[1].toFixed(2)+') over green ('+g[0].toFixed(2)+')');}
+  const v=rows['the vent field'],g=rows['the east atoll\'s fed flank'].c;ok(v.c[0]+v.c[1]<0.3,'the vent field grows no bloom of its own (the heat\'s food is chemosynthetic: '+(v.c[0]+v.c[1]).toFixed(3)+')');
+  ok(g[1]>g[0]&&g[0]+g[1]>1,'another island\'s fed flank is an upwelling flank too, stirred: gold ('+g[1].toFixed(2)+') over green ('+g[0].toFixed(2)+') — the seamount effect is every member\'s (v11.102; to v11.101 this was the sill\'s gap)');}
 // the vertical: the red is deepest, the green shallowest, and nothing at 200
 {const R=rows['the fed flank, the slope'],tx=R.tx,at=d=>P.bloomC(tx,-R.h,d,[0,0,0]);const s3=at(3),s95=at(95),s200=at(200);
   ok(s3[0]>s95[0]*5&&s95[2]>s3[2]*5,'the green lives in the mixed layer and the red in the deep maximum (green 3 m '+s3[0].toFixed(2)+' / 95 m '+s95[0].toFixed(3)+'; red '+s3[2].toFixed(3)+' / '+s95[2].toFixed(2)+')');

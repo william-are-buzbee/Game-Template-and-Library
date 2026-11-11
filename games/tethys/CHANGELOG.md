@@ -6454,3 +6454,63 @@ below −450 and never built it; the drain is now the water's oxygen (world.js `
 Seen: the real build in headless Chromium (three.js r128 from npm), the soft-arm in the minimum's core 3 km east of ours at −650, the debt
 set to 0.8: the view's edges darken over the floor. **Unseen, ask in this order:** the debt's pace in play (does three minutes in the core
 feel right before the sprint goes and the view closes); whether the dark vignette reads as breathlessness or just as dark.
+
+## v11.102 — the square from the model (11 Nov 2026)
+
+GLOBE §8 step 5, §9.2; the person (11 Nov 2026): "go ahead, start rebuilding the square"; (10 Nov 2026) the proposals inside the square
+accepted — "the world we have now is nice but we are going to need to make some big changes, so that's ok" — and "let the model's basins
+decide". The game's ground is the region model's (seed 32): its members are records, its floor is the floor, and the hand-built sill is gone.
+
+- **region.js `rgBuild`, `rgRecord` (at load):** every member whose ground reaches the world (the square and the far layer's 2 km past it)
+  becomes a record in `ISLANDS`, its shape by its state with islandH's kit — a high island or an active shield as land (the model's shore and
+  height; gullies; a caldera and flows down two rift zones on the fracture grain when young; a shelf cut into the land by its age, the flank
+  where the model's 12° cone puts it), an atoll or a bank as ours scaled to its reef's ring (the rim at the reef's top today, `rimH`; the lagoon
+  deeper on a wider ring), a seamount or a guyot as a cone with its upper 200 m bare (`bare`) and knobbed with pillow mounds 30 m high
+  (`knob`). A member whose summit lies under another's ground at its centre is struck (the model draws every cone from the plateau). Seed 32:
+  20 records — the awesome shield's southern side across the north-west corner, the 308 m island 20 km north, the 820 and 243 m islands past
+  the west and south-west edges, ten atolls (two awash in the square's south and south-east, one 5 m under to the east, two drowned 17 and
+  22 m under to the north), two banks (the north-east corner is one's edge, its flat 20 m under), three seamounts and a guyot — and 8 struck.
+- **The floor is the model's** (`rgFloor`: the plateau, the swell and every load's moat on a 1 km grid, read by a Catmull-Rom patch):
+  −1100 beside ours by the pin, −1730 in the awesome's moat, −820 at the south-west corner. **`SILL` is gone** (world.js), with its gap's jet
+  (flow 0.95, nut +0.35), its summits' bare rock (`summitK`) and its outer flank to the plate; ours and the giant (`core` 2400) unchanged
+  to the bit inside 3.2 and 9.4 km, past that the model's floor and neighbours. Their reach grows where the floor lies deeper than their flanks
+  were cut for.
+- **The dark by the basins:** chemoInit floods the new ground and finds one silled basin in the square — 12 km² behind −1010 between the
+  drowned atoll north-north-east, the atoll east and the bank's flank, its chemocline −1030, its floor −1170: the first anoxic water a player
+  can reach. Ours, the giant and the floor between are open.
+- **The seamount effect blended** (world.js sample): every record's influence `isl` joined as 1−Π(1−isl), the current's aspect weighted by
+  them; to v11.101 the highest record's alone counted, and two neighbours' halos met on a straight seam (ours and the giant's had one).
+  `islandW` gives a record's influence without its ground.
+- **The relief's reference follows the flank** (islandH `hSmooth`): to v11.101 it stayed at the apron's −290, so `rel` read 0 on every lower
+  flank and on the floor inside every record's reach — a seam at each reach circle. Ours' lower flank reads 0.5 now (flat), no envelope's edge.
+- **The cost** (sample() 0.74 → ~2.3 µs over the square: far more of it is island). An exact skip: each model record and the giant carry the
+  most their ground can stand by radius (`rgBound`); sample() takes the records in reach highest bound first and stops once none can raise
+  the ground or be the highest, and computes one under the ground past its features for its influence only. The model's records read their
+  six angular noises from tables (`anTables`, `anT`). Squared distances in the record loop (Math.hypot was ~0.3 µs a sample at two dozen).
+- **The horizon** (horizon.js): the box grew to 111 × 98 km, so the mesh is sampled coarse first, only inside a record's land, rim or cone, and
+  fine only where something stands over the cut — ~1 s of sample() against v11.101's ~0.25 — and built a slice at a time (6 ms a frame, the
+  sea disc and the sky from the first frame); it was one frame's work.
+- **The apron's run-out** capped at the giant's 11.1 km past the foot (`APRON_L`, `apronR`): the awesome's 21 km of land would have laid its
+  apron over the whole square; its turbidites pond in its own moat. 87% of the square's floor under −700 is apron now (the archipelago's debris).
+- **The harnesses** load region.js (test/census.js, test/map.js, map.html); test/map.js labels the records by summit or reef, draws no sill;
+  test/plankton.js's gap site is another island's fed flank (the east atoll's: gold 2.35 over green 1.04, an upwelling flank like ours').
+- **test/region.js:** the records (20, each with its bound and tables), the struck, every record's ground under its bound table on rings every
+  97 m to its reach, the model's floor beside ours (−1099.9), the square's silled basins none within 8 km of ours or the giant, the aprons per record
+  (ours', the giant's, the awesome's run-out), the square's floor mostly apron with some open floor.
+
+**What the sill's life became** (census, 200 days, nothing loaded: every kind holds; capacity 205,000 → 765,000, the atolls', banks' and
+high island's reef and shelf): **the relict** keeps 14 km² of its 38 once walls count as rock (the seamounts' summits, the drowned atolls'
+walls) but on paper the summits alone (the ledger sees no slope), so the off-screen model holds it at 3 (82 in v11.101); **the deep gardens**
+shrink — the thicket's ground 70 → 5.5 km², the mound's 63 → 0.6 — to the seamounts' knobbed summits and the atolls' terrace edges; **the
+darkrind** loses its home (2.5 km² → 0.04: every bare rock at the light's floor now lies in some island's fed water).
+
+Seen: the map (test/map.js) and the fields (nut, flow, sub) over the square, before and after the blend; the census at 200 days, ok, beside
+v11.101's; the real build in headless Chromium (no page errors): from the surface 3 km east of ours the 308 m island low on the north-west
+horizon with the awesome shield's broad mountain behind it in the haze; the seamount m146's summit at −338, knobbed, the thicket on the knobs;
+the east atoll's reef flat 5 m under, thick with life; the 308 m island's coast, its tidal forest on pale flats; the anoxic basin's floor at
+−1120, dark. Boot (headless, to the page's load) 21.7 s against v11.101's 20.9; the horizon's build 1.14 s of CPU against 0.2, now spread
+at 6 ms a frame (~3 s at 60 fps before the far land shows). **Unseen, ask in this order:** the north-west corner — the awesome shield's coast and flank, and whether a 2.5 km mountain built
+with the giant's kit is acceptable there until its own pass; the 308 m island and its shelf; the atolls' rims (awash with islets, or under);
+the bank's edge in the north-east corner; the first anoxic basin; the horizon's land arriving a few seconds after surfacing. **Open for the
+person:** the darkrind (let it go, or its clear water somewhere the model has: a drowned summit up-current, past the square); the deep
+gardens' place in the model's world (the banks' and atolls' deep slopes, as the Bahamas' coral mounds at 500–800 m; the seamounts' flanks).

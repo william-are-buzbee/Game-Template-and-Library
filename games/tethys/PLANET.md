@@ -62,7 +62,10 @@ consequence of "a young oceanic shield volcano, almost drowned", and world.js `s
 - **The basin** (15 Sep 2026, built v11.58; the person chose it over the plate on the condition that it is a real thing, and it is).
   **Decided 10 Nov 2026 (the person; GLOBE.md §9.1): the region model's basins decide where the dark is.** The province does not enclose ours
   (its ridges are saddles at −1000 to −1500): the water round ours is open to the floor, the nearest silled basin 28 km west (chemocline
-  −1000). The paragraph below is what is built until that pass.
+  −1000). **Built v11.102 (GLOBE §9.2):** the square's ground is the model's members on the model's floor (−1100 beside ours, −1730 in the
+  awesome shield's moat, −820 at the south-west corner); the sill is gone, and the dark is where the members' ridges enclose it — one small
+  basin 20 km north-north-east of ours (12 km² behind −1010, its chemocline −1030). The paragraph below is the sill as it was built
+  (v11.58–v11.101): the reasoning stands for any silled basin, the ridge across the north-east corner does not.
   The island stands in a **silled basin** far larger than the world (DIRECTION, 12 Sep). What is real: the Cariaco Basin is 1,400 m deep behind
   a 146 m sill and has been anoxic below ~250 m for 14,000 years; the Black Sea the same at 2,200 m; in both the chemocline sits at or below
   the sill. A volcanic ridge with a sill near −450 is real too: the Iceland-Faroe Ridge is the hotspot's older track, subsided to a 480 m
@@ -370,7 +373,7 @@ water column).
 | **cinder** | walkers | the seep walker | the vent field's mats; the chemocline's seep line | 1.2 | v11.66: the picker's cousin, plated where the picker is stilted, black in the sulfide it lives in; poison to eat by its diet (COMBAT §3b); forage of the basker |
 | **wedge** | walkers | the surf zone's walker | the rock the waves strike, −12 to +2 | 0.9 | v11.66: the scuttle's exposure ecotype (SEAFLOOR §2): a low wide shield, short paddle legs, valves twice as thick; the crusher's and the lurker's |
 | **plough** | walkers | deposit feeder of the flats | the sand the grazers pasture, the lagoon's floor | 1.6 | v11.66: feeding combs under the front, the mouth under, no weapon — the burrower that is not the trap; the ridge's and the stone's by gape |
-| **relict** | paddlers | the sill relict | bare rock below the light off the fresh flows: the sill's drowned summits | 4 | v11.66 (SEAFLOOR §3): the hose's line stranded as its island sank — larger, pale, small-eyed, a large comb; its proboscis picks pickers off the rock |
+| **relict** | paddlers | the sill relict | bare rock below the light off the fresh flows: the sill's drowned summits (v11.102: the seamounts' summits and the drowned atolls' walls) | 4 | v11.66 (SEAFLOOR §3): the hose's line stranded as its island sank — larger, pale, small-eyed, a large comb; its proboscis picks pickers off the rock |
 
 ### Drifters
 | jelly, deepbell, sailer, greatsailer | drifters | drift; the surface | the water column; the surface | 1.4–4.5 | `DRIFTERS.md` (v11.16) |

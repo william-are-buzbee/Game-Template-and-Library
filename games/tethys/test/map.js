@@ -7,8 +7,9 @@
 const fs=require('fs'),path=require('path'),root=path.join(__dirname,'..'),{png,text,textW}=require('./png.js');
 const util=fs.readFileSync(path.join(root,'vendor/wb-core.global.js'),'utf8')+'\n'+fs.readFileSync(path.join(root,'src/util.js'),'utf8');let world=fs.readFileSync(path.join(root,'src/world.js'),'utf8');
 const cut=world.indexOf('// ---------- the light');if(cut>0)world=world.slice(0,cut); // the geology, the fields and the landmarks; nothing that needs the scene
+world+='\n'+fs.readFileSync(path.join(root,'src/region.js'),'utf8'); // v11.102: the model's members and floor (region.js at load)
 const THREE={Vector3:class{constructor(x,y,z){this.x=x;this.y=y;this.z=z;}},Matrix4:class{},Quaternion:class{}};
-const Wd=new Function('THREE',util+'\n'+world+'\nreturn {sample,HALF,CELL,NCELL,LM,CUR_A,WIND_A,OXY,FI,ISLE,ISLANDS:typeof ISLANDS==="object"?ISLANDS:[],BASIN:typeof BASIN==="object"?BASIN:null,SILL:typeof SILL==="object"?SILL:null};')(THREE);
+const Wd=new Function('THREE',util+'\n'+world+'\nreturn {sample,HALF,CELL,NCELL,LM,CUR_A,WIND_A,OXY,FI,ISLE,ISLANDS:typeof ISLANDS==="object"?ISLANDS:[],BASIN:typeof BASIN==="object"?BASIN:null};')(THREE);
 const W=+(process.env.W||1200),SPAN=+(process.env.SPAN||2*Wd.HALF),CX=+(process.env.CX||0),CZ=+(process.env.CZ||0),OUT=process.env.OUT||'map.png';
 const M=SPAN/W; // metres a pixel
 const x0=CX-SPAN/2,z0=CZ-SPAN/2,px=(x)=>(x-x0)/M,pz=(z)=>(z-z0)/M;
@@ -41,10 +42,7 @@ rect(-1720,-1720,1720,1720,YEL,4);label(px(-1720)+4,pz(-1720)-10,'the island\'s 
 // landmarks
 for(const k in Wd.LM){if(k==='all')continue;const p=Wd.LM[k];ring(p.x,p.z,Math.max(60,3*M),WHITE);label(px(p.x)+6,pz(p.z)-4,k+' '+Math.round(p.h),WHITE);}
 ring(Wd.ISLE.x,Wd.ISLE.z,120,WHITE);label(px(Wd.ISLE.x)+6,pz(Wd.ISLE.z)+6,'the isle',WHITE);
-for(const R of Wd.ISLANDS){ring(R.x,R.z,R.reach*R.sc,GREY,4);if(R.land)ring(R.x,R.z,R.land.r*R.sc,GREY);label(px(R.x)+8,pz(R.z)+16,'built: '+R.id+(R.land?' +'+R.land.h:''),GREY);} // the game's island records (v11.61): the centre and the reach; the land's radius and summit (v11.62)
-// the sill's crest line and gap, if the basin is built
-if(Wd.SILL){const S=Wd.SILL,c=Math.cos(S.a),s=Math.sin(S.a);for(let t=-20000;t<=20000;t+=M){const x=c*S.d-s*t,z=s*S.d+c*t;if(Math.abs(x)<=SPAN/2+CX&&Math.abs(z)<=SPAN/2+CZ)dot(px(x),pz(z),RED);}
-  const gx=c*S.d,gz=s*S.d;ring(gx,gz,700,RED,3);label(px(gx)-textW('the gap',1)/2,pz(gz)+12,'the gap',RED);label(px(c*(S.d+900)-s*4000),pz(s*(S.d+900)+c*4000),'the sill\'s crest '+S.crest,RED);}
+for(const R of Wd.ISLANDS){ring(R.x,R.z,R.reach*R.sc,GREY,4);if(R.land)ring(R.x,R.z,R.land.r*R.sc,GREY);label(px(R.x)+8,pz(R.z)+16,'built: '+R.id+(R.land?' +'+Math.round(R.land.h):R.rimR!==undefined&&R.rimH!==undefined?' reef '+R.rimH:R.bare!==undefined?' '+R.bare:''),GREY);} // the game's island records (v11.61): the centre and the reach; the land's radius and summit (v11.62)
 // the current and the wind: arrows from the corner
 function arrow(x,y,a,len,col,name){const dx=Math.cos(a)*len,dy=Math.sin(a)*len;line(x,y,x+dx,y+dy,col);for(const s of [-1,1]){line(x+dx,y+dy,x+dx-Math.cos(a+s*0.5)*10,y+dy-Math.sin(a+s*0.5)*10,col);}label(x+dx+6,y+dy-4,name,col);}
 arrow(W-160,W-150,Wd.CUR_A,60,WHITE,'current');arrow(W-60,W-150,Wd.WIND_A,60,[200,220,255],'wind');

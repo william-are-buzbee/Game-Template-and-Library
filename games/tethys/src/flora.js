@@ -917,6 +917,7 @@ function redbladeB(rg, k) {
 // basin's sparse water (`nut` 0.12, the clearest in the world) and reach exactly −150, so a rind that pays there pays a little deeper — one or
 // two wide plates a finger thick, dark (all pigment for no light) with a pale growing edge, on bare rock swept clean. The one photosynthesis
 // that touches the drowned shields. Nothing on ours or the giant lies in water clear enough: the pool draws nowhere but the sill
+// (v11.102: the sill gone, 4 ha in the square — every bare rock that high lies in some island's fed water now; GLOBE §9.2, open for the person)
 function darkrindB(rg,k){const P=[],n=1+(k%2);
   for(let i=0;i<n;i++){const r=0.42+rg()*0.28,d=i?0.3+rg()*0.25:0,a=rg()*TAU,x=Math.cos(a)*d,z=Math.sin(a)*d;
     P.push(part(G.cyl(r*1.1,r*1.02,0.016,8),x,0.008+i*0.012,z,[1.7,1.45,1.5],{r:[0,rg()*TAU,0]})); // the growing edge: a wider thinner disc under the plate, paler, showing as a rim

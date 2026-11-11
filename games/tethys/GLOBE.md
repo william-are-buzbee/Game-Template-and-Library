@@ -134,7 +134,7 @@ The build, in order (rewritten 10 Nov 2026; the old one began with `globe.html`)
 pinned (built v11.94, §9.1); (2) the person's layout (seed 32, 10 Nov 2026); (3) SEAFLOOR §4's formations as `islandH` terms by a member's age and state, each passing §7's test on our
 island before it lands there; (4) the engine for a world that size (§10), every step invisible; (5) the records into `ISLANDS`, the horizon tier
 first, then reachable — the game's own square first (its eleven members, the sill as the model's old track, the chemocline by the basins:
-it needs no engine work, the square exists); (6) the colonisation times (SEAFLOOR §6) and the young members' surface (SEAFLOOR §5). The giant's land is its own pass.
+it needs no engine work, the square exists; **built v11.102**, §9.2); (6) the colonisation times (SEAFLOOR §6) and the young members' surface (SEAFLOOR §5). The giant's land is its own pass.
 
 ## 9. The region as a plume's history (10 Nov 2026; agreed in principle, the stages proposed)
 
@@ -224,6 +224,47 @@ stages became, and what running them taught:
   seamounts; the hand-built sill (world.js `SILL`) is to become the model's own old track.
 - Still open: whether the reef on the fed face is none (`fedK` 0) or a little.
 - What the deep becomes under the basins, the pit struck and the constructors' structures: **DEEP.md** (designed 10 Nov 2026).
+
+### 9.2 The square from the model (v11.102, 11 Nov 2026; the person: "go ahead, start rebuilding the square")
+
+Every member whose ground reaches the world (the square and the far layer's 2 km past it) is a record in `ISLANDS`, made at load from the seed
+and the knobs (region.js `rgBuild`; DESIGN, The region). Not only the square's eleven: a member outside whose flank reaches in is the square's
+ground there, and leaving it out would have left a flat floor where the model has a mountain. Seed 32, what that is:
+
+- **The north-west corner is the awesome shield's southern side** — its coast crosses the corner (land from (−25.8, −16) to (−12.5, −25.8) km),
+  its flank down to its moat at −1730. The model's active shield of 2,533 m, 47 km off, built with the giant's kit (an "awkward brown
+  mountain" for now, as the giant was: the person, 10 Nov 2026), a caldera, flows down two rift zones on the fracture grain (one pointing at
+  the 308 m island), no shelf (its lava reaches the sea). Its own pass, like the giant's, is later.
+- **The 308 m island 20 km north** (m138, 3.1 Ma, older than ours): land 5.4 km in radius on a 4 km shelf cut by the waves into it — the model
+  drew its coast at 8.3 km and no shelf; the shelf is cut into the land, so the flank stays where the model's 12° cone puts it (to have
+  added it outside put its foot 3 km from ours). Two younger seamounts the model put on its land (0.99 and 2.62 Ma) are not built: the model
+  draws every cone from the plateau, and a birth on another member's flank there is a cone inside it.
+- **Ten atolls and two banks**: ours scaled to each reef's ring, the rim at the reef's top today — awash with islets to +6 (m134 south-east,
+  m140 south, m115, m124, m152 past the edges), or under (m141 −5 east, m131 −17 north-north-east, m139 −22 on the 308 m island's shelf edge, m133
+  −21 and m148 −46 past the west edge) — and the lagoons deeper on a wider ring. The north-east corner is the edge of a carbonate bank 32 km
+  across (m122), its flat 20 m under; another (m127) lies past the east edge.
+- **Three seamounts and a guyot**: m146 (−371) and m147 (−348) east of ours, m143 (−607) on m141's flank; the guyot m136 (−370) past the north
+  edge. Their upper 200 m bare and knobbed with pillow mounds 30 m high: the deep gardens and the relict's rock, which to v11.101 were the
+  sill's summits.
+- **The floor is the model's**: −1100 beside ours (the pin), −1730 in the awesome's moat, −820 at the south-west corner. **The sill is
+  gone**, and its gap's jet with it; the current's upwelling is every member's own (each upstream flank), blended where two meet.
+- **The basins decide the dark** (the person, 10 Nov 2026): one silled basin in the square now, 12 km² behind −1010 between m131, m141 and
+  the bank's flank (its chemocline −1030, its floor −1170) — the first anoxic water the player can reach. Ours, the giant and the floor
+  between are open.
+- **The apron** covers 87% of the floor under −700 (every island's debris; the ooze the rest). The awesome shield's run-out is capped at
+  the giant's 11 km: more land feeds a thicker apron, not a longer one (its turbidites pond in its own moat).
+
+What the sill's own life became (census, 200 days, nothing loaded): every kind holds; the square's capacity is 3.7× v11.101's (765,000
+against 205,000: the atolls, the banks and the high island's shelf are reef and shelf). **The relict** (SEAFLOOR §3: bare rock −280..−450,
+"the sill's") keeps 14 km² of the 38 it had once walls count as rock (the drowned atolls' walls, the two seamounts' summits; the loaded
+cells see slope), but on paper only the summits (the ledger sees no slope), so it starts the off-screen model at 3. **The darkrind** (the
+reds' crust at the light's floor in the clearest water, FLORA) loses its home: 4 ha against 252 — every bare rock that high now lies in some
+island's fed water. Open for the person: let the darkrind go, or let its clear water be somewhere the model has (a drowned summit up-current,
+past the square: §10).
+
+Not yet: the members past the square that show over the horizon (the 820 m m154 and the 243 m m155 are built because their feet reach in;
+the rest wait for §10's per-member horizon meshes); the young members' fresh surface and the colonisation times (§8 step 6); the fed face's
+reef (`fedK`, still open).
 
 ## 10. A world that size (10 Nov 2026, proposed)
 

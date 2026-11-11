@@ -34,7 +34,8 @@ shelf's base (~−60), ~15 at −200, ~9 at −450, ~5.5 at −800, ~4.5 at the 
 - **The swarms' day depth.** Earth's migrators shelter in the minimum by day, out of the hunters' reach; the swarms' day layer (v11.84)
   reads the oxygen field.
 - **The relict** keeps its ground: old bare rock below the light — the model's drowned members (the guyots that replace the hand-built
-  sill, GLOBE §9.1).
+  sill, GLOBE §9.1). *v11.102 (GLOBE §9.2):* in the square that is two seamounts' summits and the drowned atolls' walls — 14 km² against the
+  sill's 38 once walls count as rock; on paper (the ledger sees no slope) the summits alone, so the off-screen model starts it at 3.
 
 **The floor.** Where there was one black plain (**built v11.97**, chunks.js `terrainColor`, `FLOOR_COL`, world.js `apronAt` — revised when it was
 built, 11 Nov 2026: the draft put nodules on "the far plain", and a floor at −1100 in the tropics grows none):
@@ -44,7 +45,8 @@ built, 11 Nov 2026: the draft put nodules on "the far plain", and a floor at −
 - **The open floor: foraminiferal ooze**, pale grey-cream. A tropical floor above the carbonate compensation depth (Earth's ~4.5 km) is
   carbonate ooze; nodules belong to the abyssal plains under it, or to floors kept bare. So beyond the aprons this floor is pale, not black.
 - **Pavement where the current keeps the floor bare** — iron-manganese on rubble, nodules speckling it, black: the sill's gap, where the
-  inflow (`flow` 0.94) sweeps it (the Blake Plateau's pavement lies at ~800 m under the Gulf Stream for the same reason).
+  inflow (`flow` 0.94) sweeps it (the Blake Plateau's pavement lies at ~800 m under the Gulf Stream for the same reason). *v11.102:* the gap
+  went with the sill; what is left is where an upstream shelf edge's flow passes 0.6 below the light.
 - **Crusts on rock** — iron-manganese grows 1–5 mm a million years on rock left bare in oxic water, thickest in the crust zone just under an
   oxygen minimum (the manganese the minimum releases comes out there): old rock below the light darkens with depth, to 0.6 of the way; fresh
   flows (`young`) carry none. SEAFLOOR §4's crusts are right at last (they were placed below the chemocline, where they cannot form).
@@ -70,6 +72,10 @@ far layer (`bigsFor`); the small are pooled species with cut materials (FLORA_FA
   reads a flat 0.22 everywhere below −300 — no internal tide over an edge — so below the light "where the current accelerates" is the convex
   hard ground (`rel`, the ground over its smoothed self); above −300 the flow itself still counts. 59 km² of ground: the sill's drowned summits
   north-east (the old members' rims, as designed) and the giant's shelf edge; none on ours' own flanks, which are mud below the light.
+  *v11.102 (GLOBE §9.2):* the sill gone, the thicket's ground is 5.5 km² (70 with walls counted, v11.101) and the mound's 0.6 (63): the
+  model's seamounts' summits, bare and knobbed with pillow mounds 30 m high (region.js `knob`), and the atolls' terrace edges. Open for the
+  person: the gardens' place in the model's world — on Earth the next is the banks' and atolls' deep slopes (Lophelia mounds on the Bahamas'
+  slopes at 500–800 m) and the seamounts' flanks; a pass of its own.
 - **`mound`** — the thicket's rubble: a pale heap (`HEAP_B`, 6–14×, collision, the far layer's), `per` 2, on old (`young` ≤ 0.2), sharply convex
   (`rel` ≥ 0.85) hard ground, −900..−200, out of the minimum's core (`oxy` ≥ 0.35).
 - **`glass`, `frond`, `pen` carried down to −1100** over the fed water (`nut` ≥ 0.18 with a taper of 0.04, so the open basin's 0.12 is out —
