@@ -338,10 +338,11 @@ const CELL=215,NCELL=240,HALF=CELL*NCELL/2; // v11.65 (ARCHIPELAGO step 4): 240 
 // v11.106 (GLOBE §10.1 step 4; the person, 11 Nov 2026: "±70 km first"): the world is GRIDN cells a side from cell GRID0 — 140 km, ±WHALF. The
 // grid is the same: cell (0, 0) is still the v11.65 square's corner and HALF its anchor, so every cell's place (i·CELL − HALF), every seed by
 // cell and every number of the old square is as it was; the new cells go round it, from −208 to 447. NCELL and HALF are the old square's (the
-// fine ledger's box, the maps' anchor); the world's extent is WHALF, and a dense table over the world's cells is indexed by gridIdx.
+// fine ledger's box, the maps' anchor); the world's extent is WHALF (a dense table over the world's cells was indexed by gridIdx, v11.106–110).
 const GRID0=-208,GRIDN=656,WHALF=CELL*GRIDN/2;
 function gridIn(i,j){return i>=GRID0&&j>=GRID0&&i<GRID0+GRIDN&&j<GRID0+GRIDN;}
-function gridIdx(i,j){return (i-GRID0)*GRIDN+(j-GRID0);}
+// v11.111 (GLOBE §10.1, the cell hash): nothing is indexed by gridIdx any more — every table of cells is a Map keyed by chunks.js ckey(i, j),
+// sized by what is in it, not by the world; gridIn is the world's bounds (the clamp) alone
 // the geology's parameters: angles are radians from +x toward +z
 const WIND_A=3.49,CUR_A=2.3; // the directions the wind (so the waves) and the ocean current travel toward: the waves strike the old flank (0.35), the current the north-east flank (5.44), the lee is the collapse's side
 const RIFT_A=[2.6,5.6]; // the two rift arms
@@ -375,6 +376,15 @@ function coneK(x,z){let k=0;for(const i of recsAt(x,z)){const R=ISLANDS[i];if(!R
 // Nothing inside a record's `core` changes (ours and the giant: 2400): the flank there is above -600, the floor under -1040, and smax is exact past its knee.
 const BASIN={h:-1100,hill:60,knee:200,fade:[3000,6000]}; // the floor beside ours; the hills' amplitude; the apron's blend band; where the island's upwelling fades, in rw
 const APRON_L=[2000,1.3,11100]; // the floor's supply (v11.97/v11.102, apronR below): the apron's run-out past an island's foot — 2 km, and 1.3 m for every metre of land radius, at most the giant's 11.1 km
+// v11.107 (DEEP §3, the person, 11 Nov 2026: the deep gardens onto the banks' and atolls' deep slopes, "sounds fantastic"): a reef's carbonate
+// cap. An atoll or a bank is limestone over its volcano, hundreds of metres to over a kilometre of it (Enewetak's 1.4 km), and its slope below
+// the reef is the cap's flank — spurs of cemented limestone, swept by the current and sediment-starved, with the reef's shed sand running down
+// the chutes between them (the Bahamas' slopes, where the cold-water coral mounds stand at 500–800 m on the hardgrounds). From the terraces'
+// foot down to `base` (smoothed), spurs every `sp` m round the record, `A` m from chute to crest (each spur's height by a noise, 0.6–1), hard on
+// their crests: the cover there less `k` (islandH `o.carb`, sample's `cover`). The relief is on h alone, so a spur's crest reads as convex
+// ground (`rel`) and its chute as a hollow. Atolls, banks and drowned banks (region.js rgRecord `R.carb`); ours, the giant, the seamounts and
+// guyots none.
+const CARB={base:-1000,A:30,sp:320,k:0.75};
 // the condition fields, by index in sample().f
 const FI={sub:0,flow:1,expo:2,nut:3,turb:4,young:5,heat:6,shel:7,rel:8},NF=9;
 // ---------- the clock and the tide ----------
@@ -418,7 +428,7 @@ function daylightAt(y){return clamp(1+Math.min(0,y-TIDE)/DL_REF,DL_MIN,1);}
 // CHEMO, a chemocline at -450 under the whole world; the model encloses nothing round ours, so round ours the water is oxic to the floor with
 // an oxygen minimum under the island's food (Earth's tropical open oceans have one at 400-900 m without any wall), and a chemocline exists only
 // where a basin's sill holds its water (chemoAt, at the end of this file). The table (as a share of the surface's oxygen):
-const OXY={photic:-150,top:-450,core:[-500,-800],floor:-1100,min:[0.25,0.5],deep:0.5,G:400}; // 1 to the light's base; falling to the core's minimum (0.25 where the food rains, the island's fed water; 0.5 in the open basin's) through -500..-800; back to 0.5 by the floor (deep water ventilated from far off). top: the minimum's upper edge — where the open water's life is squeezed up above it (the hunters work that edge: DEEP §2) and the bands the old -450 drew. G: the basins' flood grain (m)
+const OXY={photic:-150,top:-450,core:[-500,-800],floor:-1100,min:[0.25,0.5],deep:0.5,G:400,anox:2.4}; // 1 to the light's base; falling to the core's minimum (0.25 where the food rains, the island's fed water; 0.5 in the open basin's) through -500..-800; back to 0.5 by the floor (deep water ventilated from far off). top: the minimum's upper edge — where the open water's life is squeezed up above it (the hunters work that edge: DEEP §2) and the bands the old -450 drew. G: the basins' flood grain (m). anox (v11.108): a silled basin goes anoxic when the food raining onto its sill outweighs the oxygen its inflow brings, by this factor (chemoD below)
 // ---------- the sky's clock: the sun, the moon, the weather (v11) ----------
 // Day and night run on the same clock as the tide (PLANET, Moon: a 30 h day, bright nights under the big moon). The island is
 // tropical (a 26–28 °C mixed layer), so it sits at a low latitude LAT and the sun passes nearly overhead; no axial tilt has
@@ -683,6 +693,10 @@ function islandH(R,x,z,o){
   if(rf>0){const t=Math.min(rf/F.w,1),d0=rf<F.w?F.w*(t*t*t-0.5*t*t*t*t):rf-0.5*F.w; // ∫smoothstep(0,W): the ramp's drop
     const u=clamp((rf-F.a)/(F.b-F.a),0,1),d1=rf<F.a?0:rf<F.b?(F.b-F.a)*(u*u*u-0.5*u*u*u*u):rf-0.5*(F.a+F.b); // ∫smoothstep(A,B): the easing's
     const fd=(F.s0*d0-(F.s0-F.s1)*d1)*(1+0.15*(an?anT(an,4,aw):angNoise(aw,3.0,131+ns)));h-=fd;hSmooth-=fd;} // v11.102: the smooth surface goes down with the flank (to v11.101 it stayed at the apron's -290, so the relief read 0 on every lower flank and on the floor inside every record's reach)
+  // the carbonate cap's flank (v11.107, CARB above): spurs and chutes down the reef's slope, the crests hard
+  let carb=0;if(R.carb){const capZ=smooth(T.r1+150,T.r1+450,rw)*smooth(CARB.base,CARB.base+150,hSmooth);
+    if(capZ>0){const q0=awn*R.carb.n/TAU+0.35*(fbm(lx*0.0011+5+ns,lz*0.0011+9,2)-0.5)*2,q=((q0%1)+1)%1,s=smooth(0.2,0.9,1-Math.abs(2*q-1)),amp=0.6+0.4*fbm(lx*0.002+31+ns,lz*0.002+47,2);
+      h+=CARB.A*capZ*amp*(s-0.4);carb=capZ*smooth(0.45,0.8,s);}}
   // the caldera: a flat sandy floor at -22 inside a rim of land broken by passes (the passes run at -14: the lagoon's flushing)
   let lag=0,rimA=0,rimK=0;
   if(R.rimR!==undefined){lag=smooth(R.rimR-R.rimW*0.4,R.rimR-R.rimW*1.6,rw); // a record without a rim has no lagoon and no passes (v11.62: the giant)
@@ -709,7 +723,7 @@ function islandH(R,x,z,o){
   // and the mounds on them, DEEP §3: the sill's knobs did this to v11.101)
   let bare=0;if(R.bare!==undefined){const zone=smooth(R.bare-260,R.bare-140,h);bare=zone*smooth(0.3,0.5,fbm(lx*0.004+44+ns,lz*0.004+19,2));if(R.knob&&zone>0)h+=R.knob*zone*smooth(0.5,0.75,fbm(lx*0.008+17+ns,lz*0.008+63,3));}
   o.isl=smooth(R.fade[1],R.fade[0],rw); // the island's influence here (v11.102: sample blends every record's)
-  o.bare=bare;o.coneRock=coneRock;o.h=h;o.hs=hSmooth;o.rw=rw;o.cw=cw;o.dkr=dkr;o.young=young;o.heat=heat;o.lag=lag;o.rimK=rimK;o.rimA=rimA;o.pass=(1-rimA)*rimK;o.shelfEdge=smooth(T.r0-50,T.r0+30,rw)*smooth(T.r1+150,T.r1-50,rw);o.upW=upW;o.expoW=expoW;
+  o.bare=bare;o.carb=carb;o.coneRock=coneRock;o.h=h;o.hs=hSmooth;o.rw=rw;o.cw=cw;o.dkr=dkr;o.young=young;o.heat=heat;o.lag=lag;o.rimK=rimK;o.rimA=rimA;o.pass=(1-rimA)*rimK;o.shelfEdge=smooth(T.r0-50,T.r0+30,rw)*smooth(T.r1+150,T.r1-50,rw);o.upW=upW;o.expoW=expoW;
   return h;
 }
 // sample(x,z) → {h, f}: the ground and the conditions. `out` may be passed to reuse the field array.
@@ -759,8 +773,8 @@ function sample(x,z,out){
     _isE[q]=1;if(w.isl>0){iS+=w.isl;iU+=w.isl*w.upW;iP*=1-w.isl;iN++;iU1=w.upW;iI1=w.isl;}}
   for(let q=0;q<n;q++){if(_isE[q])continue;const i=_isI[q],R=ISLANDS[i],fq=R.fade[1]/0.84;if(_isD[i]>fq*fq)continue; // the rest: their influence alone
     const w=islandW(R,x,z);if(w.isl>0){iS+=w.isl;iU+=w.isl*w.upW;iP*=1-w.isl;iN++;iU1=w.upW;iI1=w.isl;}}
-  if(!best){o.rw=rNear;o.cw=0;o.dkr=0;o.young=0;o.heat=0;o.lag=0;o.rimK=0;o.rimA=0;o.pass=0;o.shelfEdge=0;o.upW=0;o.expoW=0;o.coneRock=0;o.bare=0;} // open water: the floor's conditions alone
-  const rw=o.rw,cw=o.cw,dkr=o.dkr,heat=o.heat,lag=o.lag,rimK=o.rimK,pass=o.pass,shelfEdge=o.shelfEdge,upW=iN===1?iU1:iN?iU/iS:0,expoW=o.expoW,coneRock=o.coneRock,bare=o.bare;let young=o.young; // upW: the blend's (one record alone: its own, to the bit)
+  if(!best){o.rw=rNear;o.carb=0;o.cw=0;o.dkr=0;o.young=0;o.heat=0;o.lag=0;o.rimK=0;o.rimA=0;o.pass=0;o.shelfEdge=0;o.upW=0;o.expoW=0;o.coneRock=0;o.bare=0;} // open water: the floor's conditions alone
+  const rw=o.rw,cw=o.cw,dkr=o.dkr,carb=o.carb,heat=o.heat,lag=o.lag,rimK=o.rimK,pass=o.pass,shelfEdge=o.shelfEdge,upW=iN===1?iU1:iN?iU/iS:0,expoW=o.expoW,coneRock=o.coneRock,bare=o.bare;let young=o.young; // upW: the blend's (one record alone: its own, to the bit)
   // the floor (fl, above) with its hills under every record. Skipped inside a record's core (ours and the
   // giant's 2400: the warped radius is under 2900 there, the flank above -600, the floor under -1040, and smax is exact past its knee — the
   // island is untouched to the bit)
@@ -776,6 +790,7 @@ function sample(x,z,out){
   // stays on the fan's fresh blocks or the dikes' crests
   const shelfS=smooth(-75,-12,h);
   let cover=0.1+0.75*smooth(-90,-260,h)+shelfS*(0.65*Math.pow(1-expoW,1.3)+0.25*(fbm(x*0.008+41,z*0.008+23,3)-0.5)*2)+0.45*lag-0.5*cw-0.6*dkr;
+  if(carb>0)cover-=CARB.k*carb; // the cap's spurs: cemented limestone the current keeps clean (v11.107)
   let sub=clamp(1-cover,0,1);sub=lerp(sub,0.66,cw*(1-0.5*smooth(500,1000,rw)));sub=lerp(sub,0.33,lag); // the fan is rubble; the lagoon floor is sand
   sub=Math.max(sub,Math.min(1,dkr*1.6),rimK,Math.min(1,1.6*cw*smooth(350,430,rw)*smooth(470,430,rw))); // bare rock: the dikes' crests, the rim band, the fan's blocks near the scarp (v11.12: a lost newline had left this line inside the comment above, so it never ran)
   if(h>0.5)sub=Math.max(sub,0.3);
@@ -972,12 +987,20 @@ const LM={};
 // game's own ground at OXY.G m, the world's edge the open ocean (the province beyond encloses nothing round ours). A basin is silled — anoxic
 // under its sill, its chemocline 20 m below it (PLANET, The basin) — by region.js's rule: its sill between -100 and OXY.floor (the inflow is the
 // minimum's water), 150 m deep behind it, 10 km² or more.
-// None today — the square's ground encloses no such basin (test/region.js says so); the basin 28 km west comes with its members (DEEP §5).
-// Built on the first call, once (~70 ms); region.js (after this file in order.txt) holds the flood.
+// v11.106: over the world (±WHALF) on the old square's lattice. v11.108 (the person, 11 Nov 2026: "believability is the deciding factor"): a
+// basin region.js finds silled holds still water, and that water goes anoxic only when the food raining into it uses up the oxygen its inflow
+// brings (chemoD). Most of the food is eaten on the way down (Martin's curve: (z/100)^−0.86 of what leaves the surface reaches z — a seventh at
+// 1000 m), so a deep sill under open water never does; a shallow sill under rich water does (Cariaco, sill 146 m; Santa Barbara, 475 m on the
+// minimum's water). OXY.anox puts those two over the line and Santa Monica's (740 m, hypoxic) and San Clemente's (1800 m) under it. In the
+// world today no basin is: the moat round ours and DEEP §5's west basin are one water behind −999 (0.09), the two small ones east behind −604
+// and −616 under fed water the nearest (0.80, 0.70). Built on the first call, once (~0.3 s); region.js (after this file in order.txt) holds the flood.
 let CHEMO_B=null;
+function chemoD(sill,nut){return OXY.anox*nut*Math.pow(-sill/100,-0.86)/Math.max(0.01,oxyProf(sill,nut));} // a silled basin's food over its oxygen: anoxic at 1
 function chemoInit(){const G=OXY.G,n=Math.ceil(2*WHALF/G),x0=-WHALF,H=new Float32Array(n*n); // the world's ground (v11.106: ±WHALF; the old square to v11.105)
-  for(let j=0;j<n;j++)for(let i=0;i<n;i++)H[j*n+i]=sample(x0+(i+0.5)*G,x0+(j+0.5)*G).h;
-  const R=regionBasins(H,n,G,1);CHEMO_B={n,x0,G,lab:R.lab,ch:R.B.map(b=>b.silled?b.chemo:null),B:R.B};}
+  const Nu=new Float32Array(n*n);for(let j=0;j<n;j++)for(let i=0;i<n;i++){const s=sample(x0+(i+0.5)*G,x0+(j+0.5)*G);H[j*n+i]=s.h;Nu[j*n+i]=s.f[FI.nut];}
+  const R=regionBasins(H,n,G,1),sn=new Float64Array(R.B.length);for(let k=0;k<n*n;k++){const l=R.lab[k];if(l>=0)sn[l]+=Nu[k];}
+  for(const b of R.B){b.nut=sn[b.id]/b.cells;b.D=b.silled?chemoD(b.sill,b.nut):0;b.anox=b.silled&&b.D>=1;} // v11.108: the basin's food (its cells' mean nut) against its inflow
+  CHEMO_B={n,x0,G,lab:R.lab,ch:R.B.map(b=>b.anox?b.chemo:null),B:R.B};}
 function chemoAt(x,z){if(!CHEMO_B)chemoInit();const B=CHEMO_B,i=Math.floor((x-B.x0)/B.G),j=Math.floor((z-B.x0)/B.G);if(i<0||j<0||i>=B.n||j>=B.n)return null;const l=B.lab[j*B.n+i];return l>=0?B.ch[l]:null;} // a basin's chemocline over (x,z), or null
 function underChemo(x,y,z){const c=chemoAt(x,z);return c!==null&&y<c;} // in a basin's anoxic water
 // oxygen at a point, as a share of the surface's: 0 under a chemocline; else the profile, its core lower where the food rains (nut: the fields'
@@ -1173,6 +1196,7 @@ function regionBasins(H,n,cell,th){if(th===undefined)th=30;const N=n*n,F=new Flo
   const B=[];for(let k=0;k<N;k++){if(lab[k]>=0||F[k]-H[k]<th||F[k]>=0)continue;const b={id:B.length,sill:F[k],floor:H[k],cells:0,sx:0,sz:0},st=[k];lab[k]=b.id;
     while(st.length){const q=st.pop(),x=q%n,y=(q/n)|0;b.cells++;b.sx+=x;b.sz+=y;if(H[q]<b.floor)b.floor=H[q];
       for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=n||yy>=n)continue;const r=yy*n+xx;if(lab[r]>=0||F[r]-H[r]<th||Math.abs(F[r]-b.sill)>1)continue;lab[r]=b.id;st.push(r);}}
+    // silled: still water behind its sill; anoxic only if world.js chemoD says its food outruns its inflow (v11.108) — b.chemo is where the line would be
     b.area=b.cells*cell*cell/1e6;b.cx=b.sx/b.cells;b.cz=b.sz/b.cells;b.silled=b.sill<-100&&b.sill>(typeof OXY==='object'?OXY.floor:-1100)&&b.sill-b.floor>=150&&b.area>=10;b.chemo=b.silled?b.sill-20:null;B.push(b);}
   return {F,lab,B};}
 // ---------- the region in the game (v11.102, GLOBE §8 step 5) ----------
@@ -1214,10 +1238,10 @@ function rgRadial(R,r){let h=R.h0;for(const s of R.prof)h-=s[2]*smooth(s[0],s[1]
 // the most a record's ground (h or the smooth hs) can stand at a distance d from its centre, on a table of RG_HIS steps (world.js sample skips a
 // record that cannot raise the ground or give the conditions): its radius warped ±16% (islandH's rw), its flank's toe ±60 and the drop ribbed
 // +15%, and what the radial profile leaves out — the hills (10.5), the rift ridges (8), a terrace's step (12), the rim's noise (3.5), a
-// seamount's knobs, the land's cliff and flows — with 5 to spare. `quiet`: past it every field the record gives but its influence is open water's (its shelf edge, rim, land,
+// seamount's knobs, a reef's spurs (v11.107: 0.6·CARB.A over the smooth flank), the land's cliff and flows — with 5 to spare. `quiet`: past it every field the record gives but its influence is open water's (its shelf edge, rim, land,
 // rift arms); the influence sample() takes from islandW alone (world.js).
 const RG_HIS=50;
-function rgBound(R){const F=R.flank,L=R.land,ex=10.5+8+12+4+5+(R.knob||0)+(L?L.cliff+(L.flows?L.flows.h:0):0),n=Math.ceil(R.reach/RG_HIS)+1,hi=new Float32Array(n);
+function rgBound(R){const F=R.flank,L=R.land,ex=10.5+8+12+4+5+(R.knob||0)+(R.carb?0.6*CARB.A:0)+(L?L.cliff+(L.flows?L.flows.h:0):0),n=Math.ceil(R.reach/RG_HIS)+1,hi=new Float32Array(n);
   const at=r=>{const rf=r-(F.r+60);let d=0;if(rf>0){const t=Math.min(rf/F.w,1),d0=rf<F.w?F.w*(t*t*t-0.5*t*t*t*t):rf-0.5*F.w,u=clamp((rf-F.a)/(F.b-F.a),0,1),d1=rf<F.a?0:rf<F.b?(F.b-F.a)*(u*u*u-0.5*u*u*u*u):rf-0.5*(F.a+F.b);d=F.s0*d0-(F.s0-F.s1)*d1;}
     const Q=Object.assign({},R,{flank:Object.assign({},F,{r:1e9})});return rgRadial(Q,r)-0.85*d;};
   for(let k=0;k<n;k++){const a=0.84*k*RG_HIS,b=1.16*(k+1)*RG_HIS;let m=-1e9;for(let q=0;q<=8;q++){const v=at(a+(b-a)*q/8);if(v>m)m=v;}hi[k]=m+ex;}
@@ -1232,7 +1256,7 @@ function rgRecord(m,k,K,rng){const ns=1000+37*k,R={id:m.id,x:m.x,z:m.z,rot:0,sc:
     else{const w=v=>Math.round(v*q),c=Math.round(Math.min(sh,Math.max(0.5*sh,sh+1380-w(2800))));L.r=c;R.h0=0;R.prof=[[c,c+w(300),8],[c+w(300),c+w(1000),52],[c+w(1800),c+w(2300),94],[c+w(2300),c+w(2800),40]];R.terr={r0:c+w(1000),r1:c+w(1800),n:8,step:12};R.flank={r:c+w(2800),w:250,s0:0.21,s1:0.21,a:600,b:2600};}
     R.land=L;R.fade=[R.flank.r,R.flank.r+3000];R.core=Math.round(Math.min(L.r,R.fade[0]/1.2));}
   else if(m.reef&&m.state!=='guyot'){const rr=Math.round(m.ring),rt=Math.round(m.rt),W=clamp(0.06*rr,40,300);R.h0=rt-14;R.rimR=rr;R.rimW=W;R.rimH=rt;R.lagH=rt-(rr>6000?20:Math.min(40,18+6*rr/1000));
-    R.prof=[[rr+0.3*W,rr+85,6],[rr+85,rr+455,40],[rr+755,rr+955,94],[rr+955,rr+1355,40]];R.terr={r0:rr+455,r1:rr+755,n:8,step:12};R.flank={r:rr+1315,w:250,s0:0.30,s1:0.22,a:600,b:2600};R.fade=[rr+2800,rr+5800];}
+    R.prof=[[rr+0.3*W,rr+85,6],[rr+85,rr+455,40],[rr+755,rr+955,94],[rr+955,rr+1355,40]];R.terr={r0:rr+455,r1:rr+755,n:8,step:12};R.flank={r:rr+1315,w:250,s0:0.30,s1:0.22,a:600,b:2600};R.fade=[rr+2800,rr+5800];R.carb={n:Math.max(24,Math.round(TAU*(rr+1500)/CARB.sp))};} // carb (v11.107): the cap's spurs round it, every CARB.sp m at the slope's top
   else{const rS=m.state==='guyot'?Math.max(200,m.rtop):clamp(0.05*m.R,120,300);R.h0=Math.round(m.zv);R.prof=m.state==='guyot'?[]:[[0,2*rS,20]];R.terr={r0:rS,r1:rS+400,n:0,step:0};R.flank={r:rS,w:300,s0:0.36,s1:0.22,a:600,b:2000};R.bare=R.h0;R.knob=30;R.fade=[rS+1500,rS+4000];}
   return R;}
 // the records: shaped, the buried struck, the rest kept if their foot reaches the world; the floor's grid over the world and every kept record's land.
@@ -1336,7 +1360,7 @@ function solidPush(p,pad,vel,extra,noPad,own){ // own (v11.52): only extra's has
   for(let pass=0;pass<3;pass++){
     let moved=false;
     for(let n=-1;n<=(own?-1:8);n++){
-      let ch;if(n<0)ch=extra;else{const i=ci+(n%3)-1,j=cj+((n/3)|0)-1;if(!gridIn(i,j))continue;ch=chunkGrid[gridIdx(i,j)];}
+      let ch;if(n<0)ch=extra;else{const i=ci+(n%3)-1,j=cj+((n/3)|0)-1;ch=chunkIJ(i,j);if(!ch)continue;}
       if(!ch||!ch.solids.length)continue;
       const mg=ch.solidR+pad;if(p.x<ch.x0-mg||p.x>ch.x0+CELL+mg||p.z<ch.z0-mg||p.z>ch.z0+CELL+mg)continue;
       const i0=clamp(Math.floor((p.x-pad-ch.x0)/HB),0,HN-1),i1=clamp(Math.floor((p.x+pad-ch.x0)/HB),0,HN-1),j0=clamp(Math.floor((p.z-pad-ch.z0)/HB),0,HN-1),j1=clamp(Math.floor((p.z+pad-ch.z0)/HB),0,HN-1);
@@ -8326,6 +8350,7 @@ const FLORA = [
   // Earth's cold-water corals (Lophelia, 200-1000 m, 4-12 °C) — white to pale ochre; on hard ground where the water quickens over an edge: the
   // relief stands for it below the light, where the flow field (surface- and tide-driven) is the deep's flat 0.22 and knows no internal tide
   // (terrace lips, dike walls, a drowned summit's rim: rel), above it the flow itself; thinning in the oxygen minimum's core (oxy)
+  // v11.107: and the reefs' carbonate cap — the atolls' and banks' spur crests below the terraces (world.js CARB), 116 km² in the old square
   species('thicket', {mat: MATV, tints: [[0.93, 0.91, 0.85], [0.9, 0.82, 0.64], [0.96, 0.94, 0.9]], s: [0.9, 2.2], tilt: true, per: 160, env: {h: [-1100, -150], sub: [0.55, 1], rel: [0.6, 1], flow: [0.2, 1], oxy: [0.32, 1]}, maxSlope: 1.4, field: 0.012}, hornB),
   species(
     'dome',
@@ -8754,7 +8779,7 @@ const SPAWN=[
   {kind:'stone',n:0.6,env:{h:[-320,-60],sub:[0,0.6]}}, // the plain, the terraces' sand
   {kind:'tread',n:0.06,env:{h:[-320,-60],sub:[0,0.4]}}, // a few in the whole world, on the mud (v11.66: sub to 0.4)
   {kind:'comb',n:0.2,env:{h:[-320,-150],nut:[0.3,1]}}, // the plain, the lantern fields, where the water is fed (v11.66); the abyssal's meal
-  {kind:'relict',n:0.12,env:{h:[-450,-280],sub:[0.55,1],young:[0,0.3]}}, // v11.66 (SEAFLOOR §3): bare rock below the light and off the fresh flows — the sill's drowned summits, swept clean by the current; nowhere else has it (v11.102: the sill gone, the model's seamounts' summits and the drowned atolls' walls, GLOBE §9.2)
+  {kind:'relict',n:0.12,env:{h:[-450,-280],sub:[0.55,1],young:[0,0.3]}}, // v11.66 (SEAFLOOR §3): bare rock below the light and off the fresh flows — the sill's drowned summits, swept clean by the current; nowhere else has it (v11.102: the sill gone, the model's seamounts' summits and the drowned atolls' walls, GLOBE §9.2; v11.107, the person: "increased a bit" — the reefs' limestone spurs below the light, world.js CARB: 81 on paper in the old square, 3 in v11.106)
   {kind:'basker',n:4,env:{heat:[0.3,1]}}, // the vents (one cell of them)
   {kind:'picker',n:3,env:{h:[-800,-300]}}, // the lower flank's mud down into the dark (v11.28: to -400 while the void stood; the dark inside the square is the pit and the corners now, and the stone's and basker's food went with it)
   {kind:'picker',n:12,env:{heat:[0.3,1]}}, // and at the vents, in a swarm, picking at the mats (Earth's vent shrimp swarms): the basker's food (20 before the cinder took its share, v11.66)
@@ -8911,7 +8936,7 @@ function initAudio(){
 // ---------- the space ----------
 // Is the point inside a solid? The hash physics.js keeps (spheres, capsules, ellipsoids, twelve-plane rocks; pads are rafts: nothing to sound)
 function auSolid(x,y,z){
-  const i=cellOf(x),j=cellOf(z);if(!gridIn(i,j))return false;const ch=chunkGrid[gridIdx(i,j)];if(!ch||!ch.solids.length)return false;
+  const ch=chunkAt(x,z);if(!ch||!ch.solids.length)return false;
   const B=ch.hash[clamp(Math.floor((z-ch.z0)/HB),0,HN-1)*HN+clamp(Math.floor((x-ch.x0)/HB),0,HN-1)];if(!B)return false;
   for(let k=0;k<B.length;k++){const s=B[k];if(s.t===2)continue;
     const dx=x-s.x,dy=y-s.y,dz=z-s.z;
@@ -8999,7 +9024,7 @@ function auTick(dt,P,play){
   AU.boil=clamp((AU.boil||0.7)+(Math.random()-0.5)*0.3,0.4,1);AU.ventR.a=B*0.9*(1-k);AU.ventB.a=B*0.4*AU.boil*(1-k);
   // 7 the forest: the flora's height in the cells' 4×4 buckets (chunks.js), summed with a reach of 30 m; placed at the weighted centre; loud in a stream, near silent in slack water
   let fw=0,fx=0,fz=0;const ci=cellOf(lx),cj=cellOf(lz);
-  for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const i=ci+di,j=cj+dj;if(!gridIn(i,j))continue;const c=chunkGrid[gridIdx(i,j)];if(!c||!c.ac)continue;
+  for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const c=chunkIJ(ci+di,cj+dj);if(!c||!c.ac)continue;
     for(let b=0;b<16;b++){const w=c.ac[b];if(w<=0)continue;const bx=c.x0+((b&3)+0.5)*CELL/4,bz=c.z0+((b>>2)+0.5)*CELL/4,dh=bx-lx,dv=bz-lz;if(dh*dh+dv*dv>14400)continue;const d=Math.sqrt(dh*dh+dv*dv+Math.pow(c.h(bx,bz)+4-ly,2)),q=w/(1+d/30);fw+=q;fx+=bx*q;fz+=bz*q;}} // the plants stand on their ground: the rim's weed 100 m over the pit's floor is 100 m off
   const fd=clamp(Math.sqrt(fw/6000),0,1);AU_LINE.forest=fd; // fw is metres of plant within reach: the shelf's stipe forest sums to ~6000, the peak's lawn to ~300
   if(fw>0){AU.forest.x=fx/fw;AU.forest.z=fz/fw;AU.forest.y=groundAt(AU.forest.x,AU.forest.z)+6;}else{AU.forest.x=lx;AU.forest.z=lz;AU.forest.y=ly;}
@@ -9330,15 +9355,15 @@ function fallShow(F,ch){if(F.mesh)return;const st=fallState(F,nowD());if(st.gone
     if(i>=2&&i<=6){const r=L*(0.13-0.012*Math.abs(i-4));P.push(part(new THREE.TorusGeometry(r,L*0.012,4,10,Math.PI*0.9),x,groundAt(x,z)+L*0.02,z,FALL_BONE,{r:[HPI,F.yaw+(i&1?0.08:-0.08),HPI*0.9]}));}}
   {const [x,z]=at(-L*0.5,0);P.push(part(G.box(L*0.16,L*0.08,L*0.1),x,groundAt(x,z)+L*0.04,z,FALL_BONE,{r:[0,F.yaw,0.1]}));}
   const nm=Math.round(28*st.mat);for(let k=0;k<nm;k++){const u=(rg()-0.5)*L,v=(rg()-0.5)*L*0.35,[x,z]=at(u,v),s=L*(0.02+0.03*rg());P.push(part(G.cone(s,s*1.6,4),x,groundAt(x,z)+s*0.6,z,FALL_MATS[k%3]));}
-  const geo=merge(P);geo.computeBoundingSphere();const m=new THREE.Mesh(geo,MATLM),grp=new THREE.Group();grp.add(m);ch.meshes.push(m);
-  if(st.rich>0.02){const pm=new THREE.Mesh(fallPatch(F,st.rich,at),MATLM);grp.add(pm);ch.meshes.push(pm);}
+  const geo=merge(P);{const q=geo.attributes.position.array;for(let k=0;k<q.length;k+=3){q[k]-=ch.ox;q[k+2]-=ch.oz;}}geo.computeBoundingSphere();const m=new THREE.Mesh(geo,MATLM),grp=new THREE.Group();grp.add(m);ch.meshes.push(m); // the cell's frame (v11.110; from the merged floats: a few mm baked in at most, never a swim)
+  if(st.rich>0.02){const pm=new THREE.Mesh(fallPatch(F,st.rich,at,ch.ox,ch.oz),MATLM);grp.add(pm);ch.meshes.push(pm);}
   ch.group.add(grp);F.mesh=grp;F.ch=ch;F.shownT=nowD();}
 // the enriched patch: one mesh draped on the ground (an ellipse 1.8 × 1.1 of the body's length), its colour the floor's own (terrainColor)
 // darkened toward the rotting fat's by the stage, fading out to the floor at its edge — a stain in the mud, not a mat laid on it
 const FALL_FT=new Float32Array(9),FALL_TC=new Float32Array(3);
-function fallPatch(F,k,at){const n=9,R=F.size*0.9,pos=[],col=[],idx=[];
+function fallPatch(F,k,at,ox,oz){const n=9,R=F.size*0.9,pos=[],col=[],idx=[];
   for(let b=0;b<=n;b++)for(let a=0;a<=n;a++){const u=(a/n-0.5)*2*R,v=(b/n-0.5)*2*R*0.6,[x,z]=at(u,v),s=sample(x,z,FALL_FT),e=u*u/(R*R)+v*v/(R*R*0.36),w=k*clamp(1-e,0,1)*(0.75+0.25*fbm(x*0.3,z*0.3,2));
-    terrainColor(x,z,s.h,FALL_FT,0,FALL_TC,0);pos.push(x,groundAt(x,z)+0.12,z);col.push(lerp(FALL_TC[0],FALL_RICH[0],w),lerp(FALL_TC[1],FALL_RICH[1],w),lerp(FALL_TC[2],FALL_RICH[2],w));}
+    terrainColor(x,z,s.h,FALL_FT,0,FALL_TC,0);pos.push(x-ox,groundAt(x,z)+0.12,z-oz);col.push(lerp(FALL_TC[0],FALL_RICH[0],w),lerp(FALL_TC[1],FALL_RICH[1],w),lerp(FALL_TC[2],FALL_RICH[2],w));}
   for(let b=0;b<n;b++)for(let a=0;a<n;a++){const i=b*(n+1)+a;idx.push(i,i+n+1,i+1,i+1,i+n+1,i+n+2);}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(pos),3));g.setAttribute('color',new THREE.BufferAttribute(new Float32Array(col),3));g.setIndex(idx);g.computeVertexNormals();g.computeBoundingSphere();return g;}
 // once a game hour or so (ecology.js ecoTick): the buried go; a shown fall whose stage moved on is rebuilt
@@ -9685,13 +9710,14 @@ function updateCreatures(dt0){
 // chunks.js — the world is built cell by cell around the player and thrown away behind them.
 // A cell: a 48x48 grid of heights and condition fields (world.js), one terrain mesh, one instanced mesh per flora type, landmarks, creatures.
 const CH_RES=48,STEP=CELL/CH_RES,GR=CH_RES+1,LOAD_R=2;
-const chunks=new Map(),chunkGrid=new Array(GRIDN*GRIDN).fill(null); // same chunks, indexed by cell for cheap 3x3 lookups
-function ckey(i,j){return i+','+j;}
+const chunks=new Map(); // the loaded cells by ckey (v11.111: the one table; chunkGrid, a dense array over the world's cells for the 3×3 lookups, is gone)
+function ckey(i,j){return (i+524288)*1048576+(j+524288);} // a cell's key (v11.111: a number for any cell within ±524,288 of the anchor, 112,000 km; to v11.110 the string 'i,j')
+function chunkIJ(i,j){return chunks.get(ckey(i,j));} // the loaded cell (i, j), or undefined
 function cellOf(v){return Math.floor((v+HALF)/CELL);}
 // the cell at a point, off the grid rather than through a built string key and a Map (v11.33): this is the per-frame ground
 // lookup — every creature, every chain point outside its own cell, the player five times, the audio rays, the snow — and it
 // allocated a string on each call. The range check is not optional: i=1,j=-1 would alias onto cell (0,15) in a flat array.
-function chunkAt(x,z){const i=cellOf(x),j=cellOf(z);return gridIn(i,j)?chunkGrid[gridIdx(i,j)]||undefined:undefined;} // the world's grid (v11.106)
+function chunkAt(x,z){return chunks.get(ckey(cellOf(x),cellOf(z)));} // the loaded cell under (x, z), or undefined (only loaded cells are in the table: no bounds to test)
 function groundAt(x,z){const ch=chunkAt(x,z);return ch?ch.h(x,z):sample(x,z).h;}
 // hOut(ch,x,z): the ground for *placing* a thing from a cell being built — the cell's own grid inside it, sample() beyond its
 // edge. ch.h clamps at the grid edge, so a probe that reaches past a cell line reads the edge vertex again and every settleOn
@@ -9702,8 +9728,8 @@ function hOut(ch,x,z){return x<ch.x0||x>ch.x0+CELL||z<ch.z0||z>ch.z0+CELL?sample
 // underCanopy (v11.13–v11.80: the water's look, the light, the shafts and the sound under the canopy mask) went with the canopy's paint (v11.81, PLANKTON.md §12).
 
 function makeChunk(i,j){
-  const x0=i*CELL-HALF,z0=j*CELL-HALF,hg=new Float32Array(GR*GR),fg=new Float32Array(GR*GR*NF);
-  return {i:i,j:j,k:ckey(i,j),x0:x0,z0:z0,cx:x0+CELL/2,cz:z0+CELL/2,hg:hg,fg:fg,landN:0,minH:0,maxH:-1e9,group:new THREE.Group(),creatures:[],schools:[],eggs:[],meshes:[],plumes:[],lightSrc:[],solids:[],seeps:[],hash:makeHash(),solidR:0,sphere:null,terrain:null,shBig:[], // terrain, shBig (v11.30): the ground's mesh and the structures' shadow proxies, casters into the world's map (scene.js updateShadowS)
+  const x0=i*CELL-HALF,z0=j*CELL-HALF,hg=new Float32Array(GR*GR),fg=new Float32Array(GR*GR*NF),[ox,oz]=originOf(x0,z0),group=new THREE.Group();group.position.set(ox,0,oz); // v11.110: the group at the cell's corner, everything in it local to that (ox, oz)
+  return {i:i,j:j,k:ckey(i,j),x0:x0,z0:z0,ox:ox,oz:oz,cx:x0+CELL/2,cz:z0+CELL/2,hg:hg,fg:fg,landN:0,minH:0,maxH:-1e9,group:group,creatures:[],schools:[],eggs:[],meshes:[],plumes:[],lightSrc:[],solids:[],seeps:[],hash:makeHash(),solidR:0,sphere:null,terrain:null,shBig:[], // terrain, shBig (v11.30): the ground's mesh and the structures' shadow proxies, casters into the world's map (scene.js updateShadowS)
     pooled:[],flora:[],near:true,ac:new Float32Array(16),sheds:[], // sheds (v11.66): the cast carapaces dropped in this cell in play (creatures_ai.js dropShed) // pooled (v11.52): the species pools this cell has written a block into (poolAdd); taken out on unload // ac: the swaying flora's height summed in a 4×4 grid of the cell — the forest's sound (audio.js) // flora: the instanced meshes hidden once the cell is past FLORA_FAR (v11.12, cullChunks); near: whether they are drawn now
     h:function(x,z){let fx=clamp((x-x0)/STEP,0,CH_RES-0.001),fz=clamp((z-z0)/STEP,0,CH_RES-0.001);const ix=Math.floor(fx),iz=Math.floor(fz),tx=fx-ix,tz=fz-iz;const a=hg[iz*GR+ix],b=hg[iz*GR+ix+1],c=hg[(iz+1)*GR+ix],d=hg[(iz+1)*GR+ix+1];return a+(b-a)*tx+(c-a)*tz+(a-b-c+d)*tx*tz;},
     f:function(x,z){const ix=clamp(Math.round((x-x0)/STEP),0,CH_RES),iz=clamp(Math.round((z-z0)/STEP),0,CH_RES);return fg.subarray((iz*GR+ix)*NF,(iz*GR+ix+1)*NF);}, // the conditions at the nearest vertex
@@ -9772,7 +9798,7 @@ function* buildTerrain(ch){
   const tp=tg.attributes.position,tc=new Float32Array(tp.count*3);
   for(let jj=0;jj<GR;jj++){for(let ii=0;ii<GR;ii++){
     const n=jj*GR+ii,x=(ch.i*CH_RES+ii)*STEP-HALF,z=(ch.j*CH_RES+jj)*STEP-HALF;
-    tp.setXYZ(n,x,ch.hg[n],z);terrainColor(x,z,ch.hg[n],ch.fg.subarray(n*NF,(n+1)*NF),ch.slope(x,z),tc,n);
+    tp.setXYZ(n,x-ch.ox,ch.hg[n],z-ch.oz);terrainColor(x,z,ch.hg[n],ch.fg.subarray(n*NF,(n+1)*NF),ch.slope(x,z),tc,n);
   }if(jj%8===7)yield;}
   // ambient occlusion by the shape of the ground (v11.13): a vertex lower than the mean of its four neighbours at one and two grid steps
   // (4.5 and 9 m) is in a gully or at the foot of a wall and darkens by up to 30%; one higher (a ridge, a crest) lightens by half as much.
@@ -9797,7 +9823,7 @@ function makeInstanced(ch,rng,geo,mat,tints,list,dip,vars,f){
     for(let i=0;i<list.length;i++){const p=list[i];if(p.y>0.5||mat.land)continue;steadyOf(ch,p.x,p.z,p.y+8,CURV);a[i*2]=CURV.x;a[i*2+1]=CURV.z;tidalAt(p.x,p.z,CURV);b[i*2]=CURV.x;b[i*2+1]=CURV.z;} // nothing on land (the tussock) leans to the water
     geo.setAttribute('aCur',new THREE.InstancedBufferAttribute(a,2));geo.setAttribute('aTide',new THREE.InstancedBufferAttribute(b,2));} // the steady current and the tidal stream at full flood (world.js): the shader sums them with the tide's rate
   const im=new THREE.InstancedMesh(geo,mat,list.length);im.frustumCulled=false;const col=new THREE.Color();
-  for(let i=0;i<list.length;i++){im.setMatrixAt(i,list[i].m);let tc=list[i].tint||tints[Math.floor(rng()*tints.length)];const q=list[i].chem;if(q)tc=[lerp(tc[0],q[0],q[3]),lerp(tc[1],q[1],q[3]),lerp(tc[2],q[2],q[3])];col.setRGB(tc[0]*(0.85+rng()*0.25),tc[1]*(0.85+rng()*0.25),tc[2]*(0.85+rng()*0.25));im.setColorAt(i,col);} // chem (v11.67): the place's stain over the pick (grow.js tintBy), before the jitter
+  for(let i=0;i<list.length;i++){im.setMatrixAt(i,list[i].m);const e=list[i].m.elements,a=im.instanceMatrix.array;a[i*16+12]=e[12]-ch.ox;a[i*16+14]=e[14]-ch.oz;let tc=list[i].tint||tints[Math.floor(rng()*tints.length)];const q=list[i].chem;if(q)tc=[lerp(tc[0],q[0],q[3]),lerp(tc[1],q[1],q[3]),lerp(tc[2],q[2],q[3])];col.setRGB(tc[0]*(0.85+rng()*0.25),tc[1]*(0.85+rng()*0.25),tc[2]*(0.85+rng()*0.25));im.setColorAt(i,col);} // chem (v11.67): the place's stain over the pick (grow.js tintBy), before the jitter
   im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;ch.group.add(im);ch.meshes.push(im);if(mat!==GLOW){ch.flora.push(im);shadowCaster(im,mat,ch.sphere);}return im; // the glow clouds stay lit at any range (and cast nothing); everything else hides past FLORA_FAR (cullChunks) and casts into the world's map (v11.30)
 }
 // ---------- the flora pools (v11.52): one instanced mesh per species across every loaded cell ----------
@@ -9814,7 +9840,26 @@ function makeInstanced(ch,rng,geo,mat,tints,list,dip,vars,f){
 // the rafts keep aDip per cell (physics.js updatePads), the glow clouds their GLOW mesh. A pool grows by doubling into a fresh geometry
 // clone (the old one disposed, so no GL buffer is left behind); it casts into the world's shadow map whole (scene.js updateShadowS) with a
 // bounds sphere that covers the island and never camS's box 500 km up.
-const POOLS=new Map(),poolGroup=new THREE.Group();scene.add(poolGroup); // entry → pool
+// ---------- local origins (v11.110, GLOBE §10.1: the engine before the province) ----------
+// The GPU works in float32: a vertex written at x = 70,000 m holds it to 8 mm, at 300 km to 3 cm, and the model-view product cancels the
+// camera's large translation against it there, so the error shows as the ground swimming a few millimetres or centimetres as the camera moves.
+// three composes an object's model-view matrix in doubles, so an object placed at a large position with small vertices loses nothing. So every
+// mesh that held world coordinates holds them local to its own corner and is placed there: a cell's group at the cell's corner (its terrain,
+// its own flora, its structures' shadow proxies, its plumes, its falls), a far region's at the region's (its terrain and apron, structures and
+// cards), each horizon member at a lattice point by it (horizon.js); and the flora pools, which span the loaded cells, relative to a render
+// origin (ORIGIN.x, z) that re-snaps to the camera's ORIGIN.grid square once it is ORIGIN.snap away (every pooled instance's translation
+// shifted once, poolSnap). Each local number is taken from the double the world one was, not from the stored float. The shaders need nothing:
+// the fog's world position is the camera's plus the view-space offset (scene.js fog_vertex), the texels' and the sway's go through modelMatrix.
+// ORIGIN.on false writes world coordinates as before (test/origins.js compares the two).
+const ORIGIN={on:true,x:0,z:0,snap:4000,grid:1000};
+const POOLS=new Map(),poolGroup=new THREE.Group();scene.add(poolGroup); // entry → pool (the group at the render origin, v11.110)
+function poolSnap(px,pz){if(!ORIGIN.on||(Math.abs(px-ORIGIN.x)<ORIGIN.snap&&Math.abs(pz-ORIGIN.z)<ORIGIN.snap))return false; // the render origin to the camera's square; every pooled instance moved by the change
+  const nx=Math.round(px/ORIGIN.grid)*ORIGIN.grid,nz=Math.round(pz/ORIGIN.grid)*ORIGIN.grid,dx=nx-ORIGIN.x,dz=nz-ORIGIN.z;
+  for(const P of POOLS.values()){const M=P.im.instanceMatrix.array;for(let k=0;k<P.n;k++){M[k*16+12]-=dx;M[k*16+14]-=dz;}if(P.n)poolTouch(P,0,P.n);}
+  ORIGIN.x=nx;ORIGIN.z=nz;poolGroup.position.set(nx,0,nz);poolGroup.updateMatrixWorld(true);return true;}
+// a cell's or a region's group at its corner (ORIGIN.on), and an instanced mesh's translations made local from the doubles they came from
+function originOf(x0,z0){return ORIGIN.on?[x0,z0]:[0,0];}
+function instLocal(im,list,ox,oz,get){const a=im.instanceMatrix.array;for(let i=0;i<list.length;i++){const e=get(list[i]).elements;a[i*16+12]=e[12]-ox;a[i*16+14]=e[14]-oz;}}
 const POOL_SPHERE=new THREE.Sphere(new THREE.Vector3(0,0,0),WHALF*2+2000);
 function poolFor(f,geo,mat,vars,cur){let P=POOLS.get(f);if(P)return P;P={f:f,src:geo,mat:mat,vars:!!vars,cur:cur,cap:0,n:0,nVis:0,blocks:[],geo:null,im:null};poolAlloc(P,Math.max(64,Math.round((f.per||60)*Q.flora*12)));POOLS.set(f,P);return P;}
 function poolAlloc(P,cap){ // the pool's mesh at capacity cap, what is written carried over; the old geometry disposed
@@ -9834,7 +9879,7 @@ function poolTouch(P,s,c){ // the range [s,s+c) uploaded at the next draw, joine
 function poolAdd(P,ch,rng,tints,list,mat){ // the cell's instances as one block at the pool's end (the rng in makeInstanced's order: the tint's pick, then three jitters)
   if(P.n+list.length>P.cap)poolAlloc(P,Math.max(P.cap*2,P.n+list.length));
   const s=P.n,M=P.im.instanceMatrix.array,C=P.im.instanceColor.array,V=P.vars?P.geo.attributes.aVar.array:null,A=P.cur?P.geo.attributes.aCur.array:null,B=P.cur?P.geo.attributes.aTide.array:null;
-  for(let i=0;i<list.length;i++){const p=list[i],k=s+i;M.set(p.m.elements,k*16);let tc=p.tint||tints[Math.floor(rng()*tints.length)];const q=p.chem;if(q)tc=[lerp(tc[0],q[0],q[3]),lerp(tc[1],q[1],q[3]),lerp(tc[2],q[2],q[3])];C[k*3]=tc[0]*(0.85+rng()*0.25);C[k*3+1]=tc[1]*(0.85+rng()*0.25);C[k*3+2]=tc[2]*(0.85+rng()*0.25);if(V)V[k]=p.v; // chem (v11.67): the place's stain over the pick (grow.js tintBy), before the jitter
+  for(let i=0;i<list.length;i++){const p=list[i],k=s+i;M.set(p.m.elements,k*16);M[k*16+12]=p.m.elements[12]-ORIGIN.x;M[k*16+14]=p.m.elements[14]-ORIGIN.z;let tc=p.tint||tints[Math.floor(rng()*tints.length)];const q=p.chem;if(q)tc=[lerp(tc[0],q[0],q[3]),lerp(tc[1],q[1],q[3]),lerp(tc[2],q[2],q[3])];C[k*3]=tc[0]*(0.85+rng()*0.25);C[k*3+1]=tc[1]*(0.85+rng()*0.25);C[k*3+2]=tc[2]*(0.85+rng()*0.25);if(V)V[k]=p.v; // chem (v11.67): the place's stain over the pick (grow.js tintBy), before the jitter
     if(A){if(p.y>0.5||mat.land){A[k*2]=A[k*2+1]=B[k*2]=B[k*2+1]=0;continue;}steadyOf(ch,p.x,p.z,p.y+8,CURV);A[k*2]=CURV.x;A[k*2+1]=CURV.z;tidalAt(p.x,p.z,CURV);B[k*2]=CURV.x;B[k*2+1]=CURV.z;}} // nothing on land (the tussock) leans to the water
   P.n+=list.length;P.blocks.push({ch:ch,start:s,count:list.length,vis:false});ch.pooled.push(P);poolTouch(P,s,list.length); // hidden until poolCull sees its cell (this frame: cullChunks runs after the streaming)
 }
@@ -9919,7 +9964,7 @@ function placeBigSolids(ch){
   // camera (the far layer draws them), only into the world's shadow map when the cell is in its box (scene.js updateShadowS). The
   // region's mesh holds a whole region's structures and would submit them all; this submits the cell's
   const c=new THREE.Color();byGeo.forEach((L,g)=>{const im=new THREE.InstancedMesh(g,MATROCKB,L.length);im.layers.set(1);shadowCaster(im,MATROCKB,ch.sphere);
-    for(let i=0;i<L.length;i++){im.setMatrixAt(i,L[i].m);c.setRGB(L[i].col[0],L[i].col[1],L[i].col[2]);im.setColorAt(i,c);} // the colour is never seen; it keeps the depth program the warm-up compiled (instancingColor is in its key)
+    for(let i=0;i<L.length;i++){im.setMatrixAt(i,L[i].m);c.setRGB(L[i].col[0],L[i].col[1],L[i].col[2]);im.setColorAt(i,c);}instLocal(im,L,ch.ox,ch.oz,q=>q.m); // the colour is never seen; it keeps the depth program the warm-up compiled (instancingColor is in its key)
     im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;ch.group.add(im);ch.meshes.push(im);ch.shBig.push(im);});
   // v11.22: the neighbours' structures that reach into this cell, registered here too, so the clearance test sees them (a structure may
   // reach a cell past its owner). A lump ends up in two hashes near a cell line; a push from two copies of one rock is the push from one.
@@ -9996,6 +10041,7 @@ function placeCliffs(ch,rng){
 function addLight(ch,x,y,z,color,intensity,distance){const s={x:x,y:y,z:z,color:color,intensity:intensity,distance:distance,d:0};ch.lightSrc.push(s);lightSources.push(s);}
 function addPlume(ch,tops,n,size){
   const vp=new Float32Array(n*3);
+  tops=tops.map(p=>V3(p.x-ch.ox,p.y,p.z-ch.oz)); // the cell's own frame (v11.110)
   for(let i=0;i<n;i++){const tp=tops[i%tops.length];vp[i*3]=tp.x+rnd(-1,1);vp[i*3+1]=tp.y+rnd(0,25);vp[i*3+2]=tp.z+rnd(-1,1);}
   const vg=new THREE.BufferGeometry();vg.setAttribute('position',new THREE.BufferAttribute(vp,3));
   const pts=new THREE.Points(vg,new THREE.PointsMaterial({color:0x8a8a90,size:size||0.7,transparent:true,opacity:0.35,depthWrite:false}));pts.frustumCulled=false;
@@ -10092,7 +10138,7 @@ function* genChunk(i,j){
   for(const f of FLORA){if(f.mat===MATROCK)continue;yield* placeFloraType(ch,mulberry((((i*73856093)^(j*19349663)^hashStr(f.id))>>>0)),f);yield;}
   placeLandmarks(ch);yield;
   yield* spawnChunkCreatures(ch,rng);lineLoad(ch);fallsLoad(ch); // the player's broods that lie in it (line.js, v11.69); the falls in it (v11.99)
-  scene.add(ch.group);chunks.set(ch.k,ch);chunkGrid[gridIdx(i,j)]=ch;farCellChanged(i,j);shadowDirty(ch);
+  scene.add(ch.group);chunks.set(ch.k,ch);farCellChanged(i,j);shadowDirty(ch);
 }
 function loadChunkNow(i,j){if(chunks.has(ckey(i,j)))return;const g=genChunk(i,j);while(!g.next().done){}}
 function unloadChunk(ch){
@@ -10106,11 +10152,11 @@ function unloadChunk(ch){
   for(let i=creatures.length-1;i>=0;i--)if(creatures[i].gone)creatures.splice(i,1);
   for(let i=carcasses.length-1;i>=0;i--)if(carcasses[i].gone)carcasses.splice(i,1);
   for(let i=schools.length-1;i>=0;i--)if(schools[i].chunk===ch)schools.splice(i,1);
-  chunks.delete(ch.k);chunkGrid[gridIdx(ch.i,ch.j)]=null;farCellChanged(ch.i,ch.j);shadowDirty(ch);
+  chunks.delete(ch.k);farCellChanged(ch.i,ch.j);shadowDirty(ch);
 }
 let activeGen=null,activeKey=null;
 function manageChunks(budgetMs){
-  const t0=performance.now();
+  const t0=performance.now();poolSnap(player.pos.x,player.pos.z); // the pools' render origin follows the player (v11.110)
   const ci=cellOf(player.pos.x),cj=cellOf(player.pos.z);
   for(const ch of chunks.values())if(Math.max(Math.abs(ch.i-ci),Math.abs(ch.j-cj))>LOAD_R+1){unloadChunk(ch);break;} // one a frame (v11.12): crossing a cell line used to drop a whole column at once — forty creatures and two dozen geometries each
   if(!activeGen){
@@ -10197,7 +10243,7 @@ function ecoId(i,j){const a=i-ECO_FB.i0,b=j-ECO_FB.j0;if(a>=0&&b>=0&&a<ECO_FB.w&
 function ecoIdOut(i,j){if(!ECO_PT.on||!gridIn(i,j))return -1;const s=ECO_PT.blk[ecoPOf(i,j)];return s<0?-1:ECO_FINE+s*64+((i-GRID0)%PATCH)*PATCH+((j-GRID0)%PATCH);}
 function ecoIJ(c){if(c<ECO_FINE){ECO_IJ[0]=ECO_FB.i0+Math.floor(c/ECO_FB.w);ECO_IJ[1]=ECO_FB.j0+c%ECO_FB.w;}else{const s=(c-ECO_FINE)>>6,l=(c-ECO_FINE)&63,p=ECO_PT.bp[s];ECO_IJ[0]=ecoPI(p)+(l>>3);ECO_IJ[1]=ecoPJ(p)+(l&7);}return ECO_IJ;}
 // is ledger cell c loaded (the game's isLoaded for the model): its world cell's chunk (chunkGrid[c] itself to v11.105, while the box was the world)
-function ecoLoaded(c){ecoIJ(c);return !!chunkGrid[gridIdx(ECO_IJ[0],ECO_IJ[1])];}
+function ecoLoaded(c){ecoIJ(c);return !!chunkIJ(ECO_IJ[0],ECO_IJ[1]);}
 // a loading cell's index: its patch split first if it is coarse (the bubble splits ahead of the cells, so this is the rare case)
 function ecoCellOf(ch){let c=ecoId(ch.i,ch.j);if(c<0&&ECO_PT.on&&gridIn(ch.i,ch.j)){const p=ecoPOf(ch.i,ch.j);if(ECO_PT.coarse[p]){if(!ECO_PT.free.length)ecoMergeFarthest();ecoSplit(p);c=ecoId(ch.i,ch.j);}}return c;}
 // the ledger's count of an entry over the world: the fine tables (the slots' cells among them) and the coarse patches not split
@@ -10378,7 +10424,7 @@ function ecoMerge(p){const P=ECO_PT,s=P.blk[p];if(s<0)return;const base=ECO_FINE
   for(let ei=0;ei<SPAWN.length;ei++){let n=0,cw=0;for(let l=0;l<64;l++){const c=base+l,v=POP.n[ei][c];n+=v;cw+=v*POP.cd[ei][c];POP.n[ei][c]=0;POP.k[ei][c]=0;POP.ke[ei][c]=0;POP.ow[ei][c]=0;POP.cd[ei][c]=0.7;}
     P.n[ei][p]=n;if(n>0){P.cd[ei][p]=cw/n;if(!P.mark[ei][p]){P.mark[ei][p]=1;P.cells[ei].push(p);}}}
   for(let l=0;l<64;l++)POP.done[base+l]=0;P.blk[p]=-1;P.bp[s]=-1;P.free.push(s);}
-function ecoPatchLoaded(p){const i0=ecoPI(p),j0=ecoPJ(p);for(let a=0;a<PATCH;a++)for(let b=0;b<PATCH;b++){const i=i0+a,j=j0+b;if(gridIn(i,j)&&chunkGrid[gridIdx(i,j)])return true;}return false;}
+function ecoPatchLoaded(p){const i0=ecoPI(p),j0=ecoPJ(p);for(let a=0;a<PATCH;a++)for(let b=0;b<PATCH;b++){if(chunkIJ(i0+a,j0+b))return true;}return false;}
 function ecoPatchDist(p,px,pz){const W=PATCH*CELL,x0=ecoPI(p)*CELL-HALF,z0=ecoPJ(p)*CELL-HALF,dx=Math.max(x0-px,0,px-x0-W),dz=Math.max(z0-pz,0,pz-z0-W);return Math.sqrt(dx*dx+dz*dz);}
 function ecoMergeFarthest(){const P=ECO_PT;let best=-1,bd=-1;for(let s=0;s<ECO_SLOTS;s++){const p=P.bp[s];if(p<0||ecoPatchLoaded(p))continue;const d=ecoPatchDist(p,player.pos.x,player.pos.z);if(d>bd){bd=d;best=p;}}if(best>=0)ecoMerge(best);}
 // the bubble, every tick: the split patches the player has left merge, and the nearest coarse patch within ECO_R[0] splits (one a tick: ~10 ms)
@@ -10432,7 +10478,7 @@ function ecoLine(){
 // v11.104 (GLOBE §10, the windows): the maps are a window (scene.js WM_HALF, WM_O) on a fixed grid of texels anchored at WM_A, the v11.65 square's
 // corner, so a texel is a fixed place: the window's corner is the texel (WM_I0, WM_J0) of that grid, and moving it moves whole texels — what a
 // moved window holds at a place is what it would hold had it been filled there (wmShiftGen). While the world is the window's square it never moves.
-const WM_A=-CELL*120,WM_C0=Math.round((GRID0*CELL-HALF-WM_A)/(2*WM_HALF/WM_N)); // the anchor; the world's cell grid's corner on it (−1248 since v11.106: cell GRID0, six texels a cell; 0 while the world was the window's square)
+const WM_A=-CELL*120; // the anchor: cell 0's corner, six texels a cell, so cell i's first texel is 6i (v11.111; WM_C0, the world's corner on it, went with the regions' numbering from GRID0)
 let WM_I0=Math.round(((0-WM_A)/(2*WM_HALF/WM_N)-WM_N/2)/24)*24,WM_J0=WM_I0; // the window's corner on the anchor's grid, at boot centred on the world's middle (0 today), a region's 24 texels to a step
 const WM_T=2*WM_HALF/WM_N,wmRaw=new Float32Array(WM_N*WM_N*4),fmRaw=new Float32Array(WM_N*WM_N),wfRaw=new Float32Array(WM_N*WM_N),pgRaw=new Float32Array(WM_N*WM_N),pfRaw=new Float32Array(WM_N*WM_N),wmTx=[0,0,0]; // fmRaw (v11.27): the floor's depth, 0..1 of FM_SCALE, filled and blurred beside the colour; wfRaw (v11.44): the place's wave energy (world.js waveFac) in the floor map's green; pgRaw, pfRaw (v11.81): the plankton's green and gold crops (world.js plankTexel) in its blue and alpha, X in the water map's alpha
 function wmFill(i0,i1,j0,j1,step){
@@ -10523,7 +10569,7 @@ function gridH(x,z){
 // agree by construction. The rules are placeFloraType's for `big` entries: per-biome density (the biome checked only once
 // the cheap tests have passed, since a sample costs ~35 µs), field clustering, clear of landmarks, scaled to stay 12 under
 // the surface unless on the strand, sunk into slopes. rs is the collision radius scale (chunks.js addLumps).
-const BIG=FLORA.filter(f=>f.big),bigCache=new Array(GRIDN*GRIDN).fill(null),bigD=new THREE.Object3D();
+const BIG=FLORA.filter(f=>f.big),bigCache=new Map(),bigD=new THREE.Object3D();
 // One structure of f at (x,z) on ground h: the instance matrix and collision scale, or null if it cannot fit. Under water a
 // structure stays 12 under the surface (scaled down to); on the strand it stands as it likes. Set on the ground by the one
 // rule (chunks.js settleOn), the ground read from sample().
@@ -10544,7 +10590,7 @@ function bigPlace(f,x,z,h,sc,yaw,sx,sz,minSc){
 // measures 0.7 µs, 13 Sep — DESIGN "The far layer" already had it at ~2 µs warm.)
 const BIG_YIELD=16; // tries between yields: a try is ~3 samples, or ~11 with settleOn's eight probes, so a step stays near 0.1 ms
 function* bigsGen(i,j){
-  let L=bigCache[gridIdx(i,j)];if(L)return L;L=[];
+  const ck=ckey(i,j);let L=bigCache.get(ck);if(L)return L;L=[];
   const x0=i*CELL-HALF,z0=j*CELL-HALF;let tn=0; // tn: tries this cell over every entry — the yield's clock
   for(let fi=0;fi<BIG.length;fi++){const f=BIG[fi];
     const rng=mulberry((((i*73856093)^(j*19349663)^(fi*83492791)^0x2545f491)>>>0));
@@ -10567,7 +10613,7 @@ function* bigsGen(i,j){
       e.col=[tc[0]*(0.85+rng()*0.25),tc[1]*(0.85+rng()*0.25),tc[2]*(0.85+rng()*0.25)];L.push(e);
     }
   }
-  bigCache[gridIdx(i,j)]=L;return L;
+  bigCache.set(ck,L);return L;
 }
 function bigsFor(i,j){const g=bigsGen(i,j);let r;do r=g.next();while(!r.done);return r.value;}
 
@@ -10611,10 +10657,10 @@ const FAR_IMP=[
   {f:FLORA_BY_ID.tidetree,geo:farTreeGeo(),stride:2}
 ];
 for(const sp of FAR_IMP)sp.f.card=true; // v11.52: a card species keeps an instanced mesh per cell (chunks.js makeInstanced) — its cards take over per cell at FLORA_FAR; every other species is pooled
-const impCache=new Array(GRIDN*GRIDN).fill(null);
+const impCache=new Map(); // by ckey (v11.111; a dense array over the world's cells to v11.110)
 // a generator (v11.12), like bigsGen: a cell's impostors are hundreds of sample() calls and were one step of a region's build
 function* impostorsGen(i,j){
-  let L=impCache[gridIdx(i,j)];if(L)return L;L=[];
+  const ck=ckey(i,j);let L=impCache.get(ck);if(L)return L;L=[];
   const x0=i*CELL-HALF,z0=j*CELL-HALF,d=new THREE.Object3D();
   const cw=Math.max(leeW(x0+CELL/2,z0+CELL/2),leeW(x0,z0),leeW(x0+CELL,z0),leeW(x0,z0+CELL),leeW(x0+CELL,z0+CELL)); // the retention field (v11.81; the canopy mask to v11.80)
   for(let si=0;si<FAR_IMP.length;si++){const sp=FAR_IMP[si];
@@ -10644,30 +10690,31 @@ function* impostorsGen(i,j){
       const dm=sp.dim||1;L.push({si:si,m:d.matrix.clone(),col:[tc[0]*(0.85+rng()*0.25)*dm,tc[1]*(0.85+rng()*0.25)*dm,tc[2]*(0.85+rng()*0.25)*dm]});
     }
   }
-  impCache[gridIdx(i,j)]=L;return L;
+  impCache.set(ck,L);return L;
 }
 const ZERO16=new Float32Array(16);
 // show or hide one cell's impostors in a region: hidden (all-zero matrix, draws nothing) while the cell is loaded
 function farApplyCell(reg,i,j){
-  const ch=chunkGrid[gridIdx(i,j)],on=!ch||!ch.near,k=(j-reg.cj0)*FR+(i-reg.ci0); // on: not loaded, or loaded but past FLORA_FAR (v11.12: the cell's flora is hidden then and the cards stand in)
+  const ch=chunkIJ(i,j),on=!ch||!ch.near,k=(j-reg.cj0)*FR+(i-reg.ci0); // on: not loaded, or loaded but past FLORA_FAR (v11.12: the cell's flora is hidden then and the cards stand in)
   for(const imp of reg.imps){const rg=imp.ranges[k];if(!rg)continue;const arr=imp.im.instanceMatrix.array;
     for(let n=rg[0];n<rg[0]+rg[1];n++)arr.set(on?imp.mats.subarray(n*16,n*16+16):ZERO16,n*16);
     imp.im.instanceMatrix.needsUpdate=true;}
 }
 
 // a loaded cell went past FLORA_FAR or came back (chunks.js cullChunks): its impostors on or off, if its region is built
-function farCellDrawn(i,j){const reg=regions[Math.floor((i-GRID0)/FR)*FNR+Math.floor((j-GRID0)/FR)];if(reg)farApplyCell(reg,i,j);}
+function farCellDrawn(i,j){const reg=regions.get(ckey(Math.floor(i/FR),Math.floor(j/FR)));if(reg)farApplyCell(reg,i,j);}
 // ---------- the regions ----------
 // A region is 4x4 cells: one terrain mesh on an 18-unit grid (36 on low; every 4th (8th) vertex of the fine grid, the same samples, so the
 // two meet exactly at cell borders), and one instanced mesh per structure geometry holding every structure in the region.
 // Vertices whose every touching cell is loaded are pushed 80 under (the fine mesh covers them); the vertices on the edge of
 // the loaded block stay, so the far mesh runs up to the fine mesh's edge and dives under it.
-const FR=4,FNR=GRIDN/FR,FQ=Q.farQ,FS=CH_RES/FQ,FSTEP=STEP*FS,FG=FR*FQ+1; // FQ quads per cell, FS fine steps per far step
-const regions=new Array(FNR*FNR).fill(null),farList=[];let farGen=null,farBuilt=0,visibleRegions=0; // regions[ri·FNR + rj], region (ri, rj) from cell GRID0 + 4ri (v11.106: 164² over the world, so the built ones are also a list, farList, for the loops each frame)
+const FR=4,FQ=Q.farQ,FS=CH_RES/FQ,FSTEP=STEP*FS,FG=FR*FQ+1; // FQ quads per cell, FS fine steps per far step
+const regions=new Map(),farList=[];let farGen=null,farBuilt=0,visibleRegions=0; // the built regions by ckey(ri, rj), region (ri, rj) the cells from 4ri, 4rj (v11.111: by number from cell 0, any size of world; to v11.110 a dense array from GRID0), and as a list, farList, for the loops each frame
+const RG0=GRID0/FR,RG1=(GRID0+GRIDN)/FR-1; // the world's regions, its bounds the clamp's (gridIn)
 function* genRegion(ri,rj){
-  const ci0=GRID0+ri*FR,cj0=GRID0+rj*FR,x0=ci0*CELL-HALF,z0=cj0*CELL-HALF;
+  const ci0=ri*FR,cj0=rj*FR,x0=ci0*CELL-HALF,z0=cj0*CELL-HALF,[ox,oz]=originOf(x0,z0); // v11.110: the region's group at its corner, everything in it local
   // the water map block first: the fog reads it every frame
-  const tn=FR*6,ti=WM_C0+ri*tn-WM_I0,tj=WM_C0+rj*tn-WM_J0,a0=Math.max(0,ti),a1=Math.min(WM_N,ti+tn),b0=Math.max(0,tj),b1=Math.min(WM_N,tj+tn); // the region's block on the window (v11.104), clipped to it
+  const tn=FR*6,ti=ri*tn-WM_I0,tj=rj*tn-WM_J0,a0=Math.max(0,ti),a1=Math.min(WM_N,ti+tn),b0=Math.max(0,tj),b1=Math.min(WM_N,tj+tn); // the region's block on the window (v11.104), clipped to it
   if(a0<a1&&b0<b1){for(let j=b0;j<b1;j+=6){wmFill(a0,a1,j,Math.min(b1,j+6),1);yield;}wmBlur(a0-1,a1+1,b0-1,b1+1);yield;}
   // heights on the region's grid plus a one-vertex ring outside it (for slopes at the edge)
   const N=FG+2,hg=new Float32Array(N*N),fg=new Float32Array(N*N*NF);let minH=1e9,maxH=-1e9;
@@ -10679,17 +10726,17 @@ function* genRegion(ri,rj){
   const pos=new Float32Array(FG*FG*3),col=new Float32Array(FG*FG*3),idx=[];
   for(let jj=0;jj<FG;jj++){
     for(let ii=0;ii<FG;ii++){const n=jj*FG+ii,k=(jj+1)*N+(ii+1),gx=ci0*CH_RES+ii*FS,gz=cj0*CH_RES+jj*FS,x=gx*STEP-HALF,z=gz*STEP-HALF,h=hg[k];
-      pos[n*3]=x;pos[n*3+1]=h;pos[n*3+2]=z;
+      pos[n*3]=x-ox;pos[n*3+1]=h;pos[n*3+2]=z-oz;
       const sl=Math.hypot((hg[k+1]-hg[k-1])/(2*FSTEP),(hg[k+N]-hg[k-N])/(2*FSTEP));terrainColor(x,z,h,fixF(fg.subarray(k*NF,(k+1)*NF),sl),sl,col,n);}
     if(jj%8===7)yield;
   }
   for(let jj=0;jj<FG-1;jj++)for(let ii=0;ii<FG-1;ii++){const a=jj*FG+ii,b=a+1,c=a+FG,d=c+1;idx.push(a,c,b,b,c,d);}
   let P=pos,Cl=col,ext=0;
-  if(ri===0||rj===0||ri===FNR-1||rj===FNR-1){P=Array.from(pos);Cl=Array.from(col);ext=apronGen(ri,rj,x0,z0,P,Cl,idx);P=new Float32Array(P);Cl=new Float32Array(Cl);yield;} // the world's edge: the terrain carried on past the far plane (v11.27)
+  if(ri===RG0||rj===RG0||ri===RG1||rj===RG1){P=Array.from(pos);Cl=Array.from(col);ext=apronGen(ri,rj,x0,z0,P,Cl,idx,ox,oz);P=new Float32Array(P);Cl=new Float32Array(Cl);yield;} // the world's edge: the terrain carried on past the far plane (v11.27)
   const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(P,3));geo.setAttribute('color',new THREE.BufferAttribute(Cl,3));geo.setIndex(idx);
   geo.computeVertexNormals();
   const mesh=new THREE.Mesh(geo,TERRAIN_MAT);mesh.frustumCulled=false;
-  const reg={ri:ri,rj:rj,ci0:ci0,cj0:cj0,cx:x0+FR*CELL/2,cz:z0+FR*CELL/2,hg:hg,N:N,geo:geo,group:new THREE.Group(),sphere:null,imps:[],ext:ext};
+  const reg={ri:ri,rj:rj,ci0:ci0,cj0:cj0,cx:x0+FR*CELL/2,cz:z0+FR*CELL/2,hg:hg,N:N,geo:geo,group:new THREE.Group(),sphere:null,imps:[],ext:ext};reg.group.position.set(ox,0,oz);
   reg.group.add(mesh);
   const top=Math.max(maxH,0)+120; // structures stand up to ~100 over the ground
   reg.sphere=new THREE.Sphere(new THREE.Vector3(reg.cx,(minH+top)/2,reg.cz),Math.hypot(FR*CELL*0.71+80+ext,(top-minH)/2+(ext?600:0))); // an edge region's sphere takes its apron in (the void floor is ~550 under the apron)
@@ -10699,7 +10746,7 @@ function* genRegion(ri,rj){
   for(let dj=0;dj<FR;dj++)for(let di=0;di<FR;di++){for(const s of (yield* bigsGen(ci0+di,cj0+dj))){let L=byGeo.get(s.f.geo);if(!L){L=[];byGeo.set(s.f.geo,L);}L.push(s);}yield;}
   const c=new THREE.Color();
   byGeo.forEach((L,g)=>{const im=new THREE.InstancedMesh(g,MATROCKB,L.length);im.frustumCulled=false;
-    for(let i=0;i<L.length;i++){im.setMatrixAt(i,L[i].m);c.setRGB(L[i].col[0],L[i].col[1],L[i].col[2]);im.setColorAt(i,c);}
+    for(let i=0;i<L.length;i++){im.setMatrixAt(i,L[i].m);c.setRGB(L[i].col[0],L[i].col[1],L[i].col[2]);im.setColorAt(i,c);}instLocal(im,L,ox,oz,q=>q.m);
     im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;reg.group.add(im);});
   yield;
   // the impostors, one instanced mesh per kind, instances grouped by cell so a cell's run can be zeroed when it loads
@@ -10709,12 +10756,12 @@ function* genRegion(ri,rj){
     for(let k=0;k<FR*FR;k++){let cnt=0;for(const e of cellL[k])if(e.si===si)cnt++;if(cnt){ranges[k]=[total,cnt];total+=cnt;}}
     if(!total)return;
     const im=new THREE.InstancedMesh(sp.geo,MATFAR,total);im.frustumCulled=false;const mats=new Float32Array(total*16);let n=0;
-    for(let k=0;k<FR*FR;k++)for(const e of cellL[k]){if(e.si!==si)continue;im.setMatrixAt(n,e.m);mats.set(e.m.elements,n*16);c.setRGB(e.col[0],e.col[1],e.col[2]);im.setColorAt(n,c);n++;}
+    for(let k=0;k<FR*FR;k++)for(const e of cellL[k]){if(e.si!==si)continue;im.setMatrixAt(n,e.m);mats.set(e.m.elements,n*16);mats[n*16+12]=e.m.elements[12]-ox;mats[n*16+14]=e.m.elements[14]-oz;im.instanceMatrix.array.set(mats.subarray(n*16,n*16+16),n*16);c.setRGB(e.col[0],e.col[1],e.col[2]);im.setColorAt(n,c);n++;}
     im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;reg.group.add(im);
     if(sp.f.y==='surface')im.tide=true;else if(sp.f.reach)im.reach=true; // the raft and colony discs ride the tide (cullFar lifts them each frame); the kelp and bladder cards stand on the floor and reach mean level — at a low tide they follow the water down (v11.2), as the real stipes are folded to it
     reg.imps.push({im:im,mats:mats,ranges:ranges});
   });
-  scene.add(reg.group);regions[ri*FNR+rj]=reg;farList.push(reg);farBuilt++;
+  scene.add(reg.group);regions.set(ckey(ri,rj),reg);farList.push(reg);farBuilt++;
   farPushRegion(reg);
 }
 // ---------- the apron (v11.27) ----------
@@ -10724,10 +10771,10 @@ function* genRegion(ri,rj){
 // it — a straight silhouette 25 m past the player's clamp, and the dome a shade darker than any terrain beside it (scene.js FOG_CUT).
 // The last offset must exceed FAR from the clamp (WHALF-25): at 2000 it does on both tiers. ~600 vertices on an edge region, ~1000 on a corner.
 const APRON=[60,150,330,700,1300,2000];
-function apronGen(ri,rj,x0,z0,pos,col,idx){ // appends to pos/col (plain arrays) and idx; returns the apron's reach beyond the edge
-  const sides=[ri===0,ri===FNR-1,rj===0,rj===FNR-1]; // -x,+x,-z,+z
+function apronGen(ri,rj,x0,z0,pos,col,idx,ox,oz){ // appends to pos/col (plain arrays) and idx; returns the apron's reach beyond the edge
+  const sides=[ri===RG0,ri===RG1,rj===RG0,rj===RG1]; // -x,+x,-z,+z: the world's edge
   const fT=new Float32Array(NF),cT=new Float32Array(3);let n=pos.length/3;
-  const addV=(x,z)=>{const s=sample(x,z,fT);terrainColor(x,z,s.h,fixF(fT,0),0,cT,0);pos.push(x,s.h,z);col.push(cT[0],cT[1],cT[2]);return n++;};
+  const addV=(x,z)=>{const s=sample(x,z,fT);terrainColor(x,z,s.h,fixF(fT,0),0,cT,0);pos.push(x-ox,s.h,z-oz);col.push(cT[0],cT[1],cT[2]);return n++;};
   const L=FR*CELL,K=APRON.length,quad=(a,b,c,d)=>idx.push(a,c,b,b,c,d); // a→b along +x, a→c along +z: the interior's winding
   const strip={}; // strip['x+'][k][jj]: the vertex at level k beyond the +x edge on row jj (and so on)
   for(const sx of [-1,1]){if(!sides[sx<0?0:1])continue;const xe=sx<0?x0:x0+L,S=strip[sx<0?'x-':'x+']=[];
@@ -10753,7 +10800,7 @@ function farPushVertex(reg,ii,jj){
   const gx=reg.ci0*CH_RES+ii*FS,gz=reg.cj0*CH_RES+jj*FS,x=gx*STEP-HALF,z=gz*STEP-HALF;
   const i0=cellOf(x-0.01),i1=cellOf(x+0.01),j0=cellOf(z-0.01),j1=cellOf(z+0.01);
   let all=true,h=reg.hg[(jj+1)*reg.N+(ii+1)],lo=h;
-  for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){if(!gridIn(i,j))continue;const ch=chunkGrid[gridIdx(i,j)];if(!ch){all=false;continue;}
+  for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){if(!gridIn(i,j))continue;const ch=chunkIJ(i,j);if(!ch){all=false;continue;}
     const li=gx-i*CH_RES,lj=gz-j*CH_RES; // this vertex on the cell's fine grid; the min over the coarse quad's reach around it
     for(let b=Math.max(0,lj-FS);b<=Math.min(CH_RES,lj+FS);b++)for(let a=Math.max(0,li-FS);a<=Math.min(CH_RES,li+FS);a++){const v=ch.hg[b*GR+a];if(v<lo)lo=v;}}
   reg.geo.attributes.position.array[(jj*FG+ii)*3+1]=all?h-80:Math.max(lo,h-30); // 30 covers the coarse grid's worst overshoot; more would dig a trench at the pit's rim
@@ -10762,8 +10809,8 @@ function farPushRegion(reg){for(let jj=0;jj<FG;jj++)for(let ii=0;ii<FG;ii++)farP
   for(let dj=0;dj<FR;dj++)for(let di=0;di<FR;di++)farApplyCell(reg,reg.ci0+di,reg.cj0+dj);}
 // a cell loaded or unloaded: refresh the vertices of its block in every region that holds them (its edges are shared)
 function farCellChanged(i,j){ // the regions that can hold the cell's block: its own and the ones its edges touch (v11.106: not a walk over every region)
-  const R=FR*CH_RES,a=Math.floor((i-GRID0)/FR),b=Math.floor((j-GRID0)/FR);
-  for(let rj=b-1;rj<=b+1;rj++)for(let ri=a-1;ri<=a+1;ri++){if(ri<0||rj<0||ri>=FNR||rj>=FNR)continue;const reg=regions[ri*FNR+rj];if(!reg)continue;
+  const R=FR*CH_RES,a=Math.floor(i/FR),b=Math.floor(j/FR);
+  for(let rj=b-1;rj<=b+1;rj++)for(let ri=a-1;ri<=a+1;ri++){const reg=regions.get(ckey(ri,rj));if(!reg)continue;
     const g0=reg.ci0*CH_RES,h0=reg.cj0*CH_RES,lo=Math.max(i*CH_RES,g0),hi=Math.min((i+1)*CH_RES,g0+R),lz=Math.max(j*CH_RES,h0),hz=Math.min((j+1)*CH_RES,h0+R);
     if(lo>hi||lz>hz)continue;
     for(let gz=lz;gz<=hz;gz+=FS)for(let gx=lo;gx<=hi;gx+=FS)farPushVertex(reg,(gx-g0)/FS,(gz-h0)/FS);
@@ -10780,13 +10827,13 @@ function manageFar(budgetMs){
   const t0=performance.now(),px=player.pos.x,pz=player.pos.z;
   wmRecentre(px,pz);while(wmGen&&performance.now()-t0<budgetMs){if(wmGen.next().done)wmGen=null;} // the maps' window first (v11.104): never moves yet
   if(!farGen){let best=null,bd=FAR_R*FAR_R;
-    const L=FR*CELL,a0=Math.max(0,Math.floor((px-FAR_R+WHALF)/L)),a1=Math.min(FNR-1,Math.floor((px+FAR_R+WHALF)/L)),b0=Math.max(0,Math.floor((pz-FAR_R+WHALF)/L)),b1=Math.min(FNR-1,Math.floor((pz+FAR_R+WHALF)/L));
-    for(let rj=b0;rj<=b1;rj++)for(let ri=a0;ri<=a1;ri++){if(regions[ri*FNR+rj])continue;const dx=(ri+0.5)*L-WHALF-px,dz=(rj+0.5)*L-WHALF-pz,d=dx*dx+dz*dz;if(d<bd){bd=d;best=[ri,rj];}}
+    const L=FR*CELL,a0=Math.max(RG0,Math.floor((px-FAR_R+HALF)/L)),a1=Math.min(RG1,Math.floor((px+FAR_R+HALF)/L)),b0=Math.max(RG0,Math.floor((pz-FAR_R+HALF)/L)),b1=Math.min(RG1,Math.floor((pz+FAR_R+HALF)/L));
+    for(let rj=b0;rj<=b1;rj++)for(let ri=a0;ri<=a1;ri++){if(regions.has(ckey(ri,rj)))continue;const dx=(ri+0.5)*L-HALF-px,dz=(rj+0.5)*L-HALF-pz,d=dx*dx+dz*dz;if(d<bd){bd=d;best=[ri,rj];}}
     if(best)farGen=genRegion(best[0],best[1]);}
   while(farGen&&performance.now()-t0<budgetMs){if(farGen.next().done){farGen=null;break;}}
   for(const reg of farList){if(Math.hypot(reg.cx-px,reg.cz-pz)>FAR_DROP+reg.ext){dropRegion(reg);break;}}
 }
-function dropRegion(reg){scene.remove(reg.group);reg.geo.dispose();for(const o of reg.group.children)if(o.isInstancedMesh)o.dispose();regions[reg.ri*FNR+reg.rj]=null;farList.splice(farList.indexOf(reg),1);farBuilt--;} // the structure and card geometries are shared (FLORA's, FAR_IMP's): only the instance buffers go
+function dropRegion(reg){scene.remove(reg.group);reg.geo.dispose();for(const o of reg.group.children)if(o.isInstancedMesh)o.dispose();regions.delete(ckey(reg.ri,reg.rj));farList.splice(farList.indexOf(reg),1);farBuilt--;} // the structure and card geometries are shared (FLORA's, FAR_IMP's): only the instance buffers go
 // after cullChunks, which sets the frustum
 function cullFar(){
   visibleRegions=0;
@@ -11770,17 +11817,18 @@ function updateCompass(dt){
 // direction) without the far cut, so at 18 km the giant is the haze's contrast (~7% on a clear day, gone under a shower); the world's air was
 // made a trade-wind day for this (world.js AIR: visibility ~30 km, to v11.63 ~1 km, "a hazy coast" — the person's call, WATER.md P6). Under
 // water nothing changes: the pass is skipped and the dome goes back to the main scene. Built over the first frames above the water (v11.102: a
-// slice of HZ_MS a frame, ~1 s of sample() in all; to v11.101 ~0.3 s in one frame, behind the boot's fade) and kept; nothing streams. Not in the tests: the stub's renderer has no clear, so the pass never runs headless.
+// slice of HZ_MS a frame, ~1 s of sample() in all; to v11.101 ~0.3 s in one frame, behind the boot's fade; v11.109: a mesh per member, nearest
+// first) and kept; nothing streams yet. The pass is not in the tests (the stub's renderer has no clear, so it never runs headless); the land's build is (test/horizon.js, v11.109).
 const HZ_NEAR=20,HZ_FAR=250000,HZ_CUT=-5,HZ_R=6371000,HZ_SEA0=0.75; // the pass's near plane (m — not the far plane: near-plane clipping is by view depth, so a plane at FAR cut the dome and anything off-axis to a 32° cone; the main pass overdraws whatever the horizon pass drew nearer than FAR, since its depth is cleared between; 20 rather than 5 for the depth's resolution at 18 km, ~1 m); its far plane; the ground under which no triangle is kept (a triangle stays if any corner is above it, so every shore quad stays; the sea disc covers the rest — at -60 the shallows under the disc fought it for the depth at 18 km and showed as specks on the line); the planet's radius; the sea disc's inner radius as a fraction of FAR (under the surface mesh's edge at 1.05)
 const HZ_LIGHT=[0.62,1.15,1.0,0.85]; // the horizon mesh's light: the sky's ambient share (zenith over horizon by the normal's tilt), the sun's share by its cosine; the sea disc's water-column weight and its reflection's ceiling (the surface's 0.85) — tuned in the pane (v11.65) against the surface mesh's far end from 300 m up: with the column term at 1 the surface's own ceiling matches it to three levels of 255 (129,149,160 against 128,147,160); without the column the disc stood a shade lighter from any height
 const hzScene=new THREE.Scene(),hzCam=new THREE.PerspectiveCamera(CAM_K.fov,innerWidth/innerHeight,HZ_NEAR,HZ_FAR);
-let hzMesh=null,hzSea=null,hzTried=false;
+const hzLand=new THREE.Group();hzScene.add(hzLand);let hzSea=null,hzTried=false; // hzLand: the members' land meshes (v11.106: one mesh, hzMesh)
 // the shared fog and sky uniforms, the same objects the world's materials read (scene.js shares them through ShaderLib)
 function hzUniforms(){const L=(THREE.ShaderLib&&THREE.ShaderLib.lambert&&THREE.ShaderLib.lambert.uniforms)||{},u={};for(const k of ['uFogC','uFogR','uFogW','uFogP','uFogS','uFogT','uFogA','uFogAC','uMist','uMistC','uMistW','uWaterMap','uFloorMap','uWmO','uFogB','uFogTC','uSkA','uSkB','uSkC','uSkD','uSkE','uSkF','uCld','uCldB','uCellA','uCellB'])if(L[k])u[k]=L[k];return u;}
 const HZ_VS_HEAD='uniform vec3 uFogC;uniform mat3 uFogR;uniform vec4 uFogW;varying float vFogDepth;varying vec3 vFogPos;\n'; // the fog's vertex stage by hand: vFogPos is the dropped world position
 const HZ_FS_HEAD='#define USE_FOG\n'+DITHER_PARS+'\n'; // then the chunk: fogAir, skyLite, the mist
 function hzMat(vs,fs){return new THREE.ShaderMaterial({uniforms:hzUniforms(),vertexShader:vs,fragmentShader:fs,vertexColors:true,side:THREE.DoubleSide,fog:false});}
-const HZ_TERRAIN_MAT=hzMat(HZ_VS_HEAD+'varying vec3 vCol;varying vec3 vN;void main(){vec3 p=position;vec2 dd=p.xz-uFogC.xz;p.y-=dot(dd,dd)*'+(0.5/HZ_R).toExponential(6)+';vec4 mv=modelViewMatrix*vec4(p,1.0);vFogDepth=length(mv.xyz);vFogPos=p;vCol=color;vN=normal;gl_Position=projectionMatrix*mv;}',
+const HZ_TERRAIN_MAT=hzMat(HZ_VS_HEAD+'varying vec3 vCol;varying vec3 vN;void main(){vec3 w=(modelMatrix*vec4(position,1.0)).xyz;vec2 dd=w.xz-uFogC.xz;float dr=dot(dd,dd)*'+(0.5/HZ_R).toExponential(6)+';vec4 mv=modelViewMatrix*vec4(position.x,position.y-dr,position.z,1.0);vFogDepth=length(mv.xyz);vFogPos=vec3(w.x,w.y-dr,w.z);vCol=color;vN=normal;gl_Position=projectionMatrix*mv;}',
   HZ_FS_HEAD+THREE.ShaderChunk.fog_pars_fragment+'\nvarying vec3 vCol;varying vec3 vN;void main(){vec3 n=normalize(vN);float sd=max(dot(n,uSkE.xyz),0.0);vec3 amb=mix(uSkB.xyz,uSkA.xyz,0.5+0.5*n.y)*'+HZ_LIGHT[0].toFixed(3)+';vec3 col=vCol*(amb+uSkD.xyz*uSkA.w*sd*'+HZ_LIGHT[1].toFixed(3)+');'+
   'float d=vFogDepth;if(d<uHzMin)discard;vec3 rd=(vFogPos-uFogC)/max(d,1e-3);col=fogAir(col,uFogC,rd,d,1.0);gl_FragColor=vec4(dithering(col),1.0);}'); // lit by the sky's own uniforms (the zenith and horizon as the ambient, the sun's colour by dayK), an approximation of the world's hemisphere and sun that the haze at 1.3 km hides
 HZ_TERRAIN_MAT.uniforms.uHzMin={value:FAR*HZ_SEA0};HZ_TERRAIN_MAT.fragmentShader='uniform float uHzMin;\n'+HZ_TERRAIN_MAT.fragmentShader; // v11.86.1: the land mesh draws only past HZ_SEA0 of the far plane, where the sea disc starts and the main pass hands over — nearer, its Q.hz-metre triangles can stand over the camera where the fine ground is a hollow (the tuff cone's crater: from its floor the sky was the mesh's tan underside; the person, 23 Sep 2026), and nothing in the main pass covers the sky
@@ -11794,32 +11842,43 @@ function hzExtent(){let x0=-WHALF-2000,x1=WHALF+2000,z0=-WHALF-2000,z1=WHALF+200
 // v11.102: the box grew with the model's records (111 × 98 km for seed 32, against the square's 56) and most of it is open sea, so the mesh is no
 // longer sampled whole. A coarse pass at HZ_C·Q.hz, only inside some record's land, rim or cone, finds the cells that can hold something over
 // HZ_CUT — a corner over it, or a reef's rim through it (a ring narrower than the coarse step) — and only those are sampled at Q.hz; the rest
-// of the box is the sea disc's. ~1 s of sample() for seed 32 (node), against v11.101's ~0.25 for the square whole.
+// of the box is the sea disc's. ~1 s of sample() for seed 32 (node), against v11.101's ~0.25 for the square whole (v11.106's world: ~2.3 s).
 // And it is built a slice at a time (hzStep, HZ_MS a frame) rather than in one frame: the disc and the sky draw from the first, the land when done.
 const HZ_C=4,HZ_MS=6;
-function* hzGen(){const E=hzExtent(),S=Q.hz,C=S*HZ_C,x0=E[0],z0=E[2],nx=Math.ceil((E[1]-x0)/S)+1,nz=Math.ceil((E[3]-z0)/S)+1,cx=Math.ceil((nx-1)/HZ_C),cz=Math.ceil((nz-1)/HZ_C),t0=performance.now();
+// v11.109 (GLOBE §10.1, before the province: a horizon mesh per member): each live coarse cell belongs to one member — of the records whose
+// top holds its centre, the one it lies deepest inside (its distance over the top's radius least; the first in ISLANDS on a tie) — and each
+// member's cells are one mesh, the members built in order of the camera's distance to their tops' edge when the build starts, so the nearest
+// land shows first (the giant and the 308 m island in a fraction of the whole). A vertex on a boundary between two members is the same lattice
+// point sampled for both, so they meet exactly; the cells, their quads and their vertices are v11.102's, and the union is its one mesh
+// triangle for triangle (test/horizon.js). Each mesh is culled by its own sphere, widened by HZ_DROP for the curvature's drop.
+const HZ_DROP=4000; // m: the most the vertex shader lowers a point a camera in the world can see (~200 km off: d²/2R ≈ 3.1 km), on each mesh's bounding sphere
+function* hzGen(cx0,cz0){const E=hzExtent(),S=Q.hz,C=S*HZ_C,x0=E[0],z0=E[2],nx=Math.ceil((E[1]-x0)/S)+1,nz=Math.ceil((E[3]-z0)/S)+1,cx=Math.ceil((nx-1)/HZ_C),cz=Math.ceil((nz-1)/HZ_C),t0=performance.now();
   // what can stand over HZ_CUT is inside a record's land, rim or cone (its radius warped +16%, and a coarse cell's diagonal): only those cells
-  // (v11.106: and a bare summit over the sea, to its terraces' foot — the low island m150, 50 m, the first record with no land or rim above water)
+  // (v11.107: and a bare summit over the sea, to its terraces' foot — the low island m150, 50 m, the first record with no land or rim above water)
   // are sampled at all; of them, a cell is live with a corner over the cut or a rim through it
-  const tops=ISLANDS.map(R=>({x:R.x,z:R.z,t:((R.land?R.land.r:R.rimR!==undefined?R.rimR+R.rimW:R.h0>0&&R.terr?R.terr.r1:0)*1.16+(R.isle?2000:0))*R.sc+C*0.75,r:(R.rimR||0)*R.sc,w:(R.rimW||0)*R.sc+C})).filter(q=>q.t>C*0.75);
+  const tops=ISLANDS.map(R=>({x:R.x,z:R.z,t:((R.land?R.land.r:R.rimR!==undefined?R.rimR+R.rimW:R.h0>0&&R.terr?R.terr.r1:0)*1.16+(R.isle?2000:0))*R.sc+C*0.75,r:(R.rimR||0)*R.sc,w:(R.rimW||0)*R.sc+C,id:R.id})).filter(q=>q.t>C*0.75);
   const CH=new Map(),cH=(i,j)=>{const k=j*(cx+1)+i;let h=CH.get(k);if(h===undefined){h=sample(x0+i*C,z0+j*C).h;CH.set(k,h);}return h;};
-  const live=new Uint8Array(cx*cz);let nl=0,tq=performance.now();
-  for(let j=0;j<cz;j++){for(let i=0;i<cx;i++){const mx=x0+(i+0.5)*C,mz=z0+(j+0.5)*C;let near=false,rim=false;
-      for(const q of tops){const d=Math.hypot(mx-q.x,mz-q.z);if(d<q.t){near=true;if(q.r>0&&Math.abs(d-q.r)<q.w)rim=true;}}
-      if(!near)continue;if(rim||Math.max(cH(i,j),cH(i+1,j),cH(i,j+1),cH(i+1,j+1))>HZ_CUT){live[j*cx+i]=1;nl++;}}
-    if(performance.now()-tq>HZ_MS){yield;tq=performance.now();}}
   const H=new Map(),hAt=(i,j)=>{const k=j*nx+i;let h=H.get(k);if(h===undefined){h=sample(x0+i*S,z0+j*S).h;H.set(k,h);}return h;};
-  const keep=new Map(),pos=[],col=[],nrm=[],idx=[],cT=new Float32Array(3),f=new Float32Array(NF);
-  const use=(i,j)=>{const k=j*nx+i;let v=keep.get(k);if(v!==undefined)return v;const x=x0+i*S,z=z0+j*S,h=sample(x,z,f).h;
-    const gx=(hAt(Math.min(i+1,nx-1),j)-hAt(Math.max(i-1,0),j))/(2*S),gz=(hAt(i,Math.min(j+1,nz-1))-hAt(i,Math.max(j-1,0)))/(2*S),sl=Math.sqrt(gx*gx+gz*gz),L=Math.sqrt(gx*gx+1+gz*gz);
-    terrainColor(x,z,h,fixF(f,sl),sl,cT,0);v=pos.length/3;pos.push(x,h,z);col.push(cT[0],cT[1],cT[2]);nrm.push(-gx/L,1/L,-gz/L);keep.set(k,v);return v;};
-  tq=performance.now();
-  for(let cj=0;cj<cz;cj++)for(let ci=0;ci<cx;ci++){if(!live[cj*cx+ci])continue;
-    for(let j=cj*HZ_C;j<Math.min((cj+1)*HZ_C,nz-1);j++)for(let i=ci*HZ_C;i<Math.min((ci+1)*HZ_C,nx-1);i++){if(hAt(i,j)<HZ_CUT&&hAt(i+1,j)<HZ_CUT&&hAt(i,j+1)<HZ_CUT&&hAt(i+1,j+1)<HZ_CUT)continue;const A=use(i,j),B=use(i+1,j),Cc=use(i,j+1),D=use(i+1,j+1);idx.push(A,Cc,B,B,Cc,D);} // a→b along +x, a→c along +z, the far layer's winding
-    if(performance.now()-tq>HZ_MS){yield;tq=performance.now();}}
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(nrm,3));g.setIndex(idx);
-  hzMesh=new THREE.Mesh(g,HZ_TERRAIN_MAT);hzMesh.frustumCulled=false;hzScene.add(hzMesh);
-  console.log('horizon: '+nx+'×'+nz+' at '+S+' m, '+nl+' of '+(cx*cz)+' coarse cells live, '+(CH.size+H.size)+' samples, '+(pos.length/3)+' vertices, '+(idx.length/3)+' triangles, '+(performance.now()-t0).toFixed(0)+' ms over the frames');}
+  const cT=new Float32Array(3),f=new Float32Array(NF),order=tops.slice().sort((a,b)=>(Math.hypot(a.x-cx0,a.z-cz0)-a.t)-(Math.hypot(b.x-cx0,b.z-cz0)-b.t));
+  let nl=0,nv=0,nt=0,tq=performance.now();
+  for(const m of order){
+    const cells=[],i0=Math.max(0,Math.floor((m.x-m.t-x0)/C)),i1=Math.min(cx-1,Math.floor((m.x+m.t-x0)/C)),j0=Math.max(0,Math.floor((m.z-m.t-z0)/C)),j1=Math.min(cz-1,Math.floor((m.z+m.t-z0)/C));
+    for(let j=j0;j<=j1;j++){for(let i=i0;i<=i1;i++){const mx=x0+(i+0.5)*C,mz=z0+(j+0.5)*C;let own=null,bu=2,rim=false;
+        for(const q of tops){const d=Math.hypot(mx-q.x,mz-q.z);if(d<q.t){const u=d/q.t;if(u<bu){bu=u;own=q;}if(q.r>0&&Math.abs(d-q.r)<q.w)rim=true;}}
+        if(own!==m)continue;if(rim||Math.max(cH(i,j),cH(i+1,j),cH(i,j+1),cH(i+1,j+1))>HZ_CUT)cells.push(i,j);}
+      if(performance.now()-tq>HZ_MS){yield;tq=performance.now();}}
+    const keep=new Map(),pos=[],col=[],nrm=[],idx=[],li=Math.round((m.x-x0)/S),lj=Math.round((m.z-z0)/S),[ox,oz]=originOf(x0+li*S,z0+lj*S),OL=ORIGIN.on; // v11.110: the mesh at a lattice point by the member, its vertices whole steps from it
+    const use=(i,j)=>{const k=j*nx+i;let v=keep.get(k);if(v!==undefined)return v;const x=x0+i*S,z=z0+j*S,h=sample(x,z,f).h;
+      const gx=(hAt(Math.min(i+1,nx-1),j)-hAt(Math.max(i-1,0),j))/(2*S),gz=(hAt(i,Math.min(j+1,nz-1))-hAt(i,Math.max(j-1,0)))/(2*S),sl=Math.sqrt(gx*gx+gz*gz),L=Math.sqrt(gx*gx+1+gz*gz);
+      terrainColor(x,z,h,fixF(f,sl),sl,cT,0);v=pos.length/3;pos.push(OL?(i-li)*S:x,h,OL?(j-lj)*S:z);col.push(cT[0],cT[1],cT[2]);nrm.push(-gx/L,1/L,-gz/L);keep.set(k,v);return v;};
+    for(let c=0;c<cells.length;c+=2){const ci=cells[c],cj=cells[c+1];
+      for(let j=cj*HZ_C;j<Math.min((cj+1)*HZ_C,nz-1);j++)for(let i=ci*HZ_C;i<Math.min((ci+1)*HZ_C,nx-1);i++){if(hAt(i,j)<HZ_CUT&&hAt(i+1,j)<HZ_CUT&&hAt(i,j+1)<HZ_CUT&&hAt(i+1,j+1)<HZ_CUT)continue;const A=use(i,j),B=use(i+1,j),Cc=use(i,j+1),D=use(i+1,j+1);idx.push(A,Cc,B,B,Cc,D);} // a→b along +x, a→c along +z, the far layer's winding
+      if(performance.now()-tq>HZ_MS){yield;tq=performance.now();}}
+    nl+=cells.length/2;if(!idx.length)continue;
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(nrm,3));g.setIndex(idx);
+    g.computeBoundingSphere();if(g.boundingSphere)g.boundingSphere.radius+=HZ_DROP;
+    const mesh=new THREE.Mesh(g,HZ_TERRAIN_MAT);mesh.name=m.id;mesh.position.set(ox,0,oz);hzLand.add(mesh);nv+=pos.length/3;nt+=idx.length/3;}
+  console.log('horizon: '+nx+'×'+nz+' at '+S+' m, '+nl+' coarse cells live of '+(cx*cz)+', '+hzLand.children.length+' members, '+(CH.size+H.size)+' samples, '+nv+' vertices, '+nt+' triangles, '+(performance.now()-t0).toFixed(0)+' ms over the frames');}
 // the sea disc: rings from HZ_SEA0·FAR to HZ_FAR, spaced by a power so the near rings are fine, about the camera each frame (the drop is the shader's)
 function hzSeaBuild(){const K=18,NS=96,r0=FAR*HZ_SEA0,p=[],c=[],ix=[];for(let k=0;k<=K;k++){const r=r0*Math.pow(HZ_FAR/r0,k/K);for(let s=0;s<NS;s++){const a=s/NS*TAU;p.push(Math.cos(a)*r,0,Math.sin(a)*r);c.push(1,1,1);}}
   for(let k=0;k<K;k++)for(let s=0;s<NS;s++){const a=k*NS+s,b=k*NS+(s+1)%NS,cc=a+NS,d=b+NS;ix.push(a,cc,b,b,cc,d);}
@@ -11828,7 +11887,7 @@ let hzG=null;
 function hzStep(){if(!hzG)return;const t0=performance.now();try{while(performance.now()-t0<HZ_MS){if(hzG.next().done){hzG=null;break;}}}catch(e){hzG=null;console.warn('the horizon tier could not build: '+e.message);}}
 // the frame's render (main.js): above the water the horizon pass first, then the world over it with the depth cleared; below, the world alone
 function renderFrame(){const above=wasAbove===true&&!!renderer.clearDepth;
-  if(above&&!hzTried){hzTried=true;try{hzSeaBuild();hzG=hzGen();}catch(e){console.warn('the horizon tier could not build: '+e.message);}}
+  if(above&&!hzTried){hzTried=true;try{hzSeaBuild();hzG=hzGen(camera.position.x,camera.position.z);}catch(e){console.warn('the horizon tier could not build: '+e.message);}}
   if(above)hzStep();
   if(above&&hzSea){if(sky.parent!==hzScene)hzScene.add(sky);
     hzCam.position.copy(camera.position);hzCam.quaternion.copy(camera.quaternion);if(hzCam.fov!==camera.fov||hzCam.aspect!==camera.aspect){hzCam.fov=camera.fov;hzCam.aspect=camera.aspect;hzCam.updateProjectionMatrix();}hzCam.updateMatrixWorld();
@@ -12928,7 +12987,7 @@ function conceiveClose(decline){ // the window closed: the clutch laid as the ch
   const child=pr.total>0?JSON.parse(specToJSON(lab.v)):cv.parent;if(pr.total>0&&(!child.id||child.id===cv.parent.id))child.id=(cv.parent.id||'line').replace(/-\d+$/,'')+'-'+(cv.gen+1);
   const fuel=clutchHunger(child);if(player.hunger+fuel>=1){const m='not fed enough for this child ('+fuel.toFixed(2)+' of the stomach, '+(1-player.hunger).toFixed(2)+' in it): a smaller one, or decline';hintEl.textContent=m;hintEl.style.opacity=1;labRender();labMsg(m);return false;} // v11.73: the fuel half of the bill (LINEAGE §6) — the stomach must hold the eggs; a copy always can (playerLay checked)
   lab.conceive=null;labLeave();return layClutch(child,pr,cv);}
-function lineCell(i,j){return i>=0&&j>=0&&i<NCELL&&j<NCELL?i*NCELL+j:NCELL*NCELL+gridIdx(i,j);} // a brood's cell as the save keeps it: the old square's i·NCELL + j as before v11.106 (old saves read the same), past it a number of its own
+function lineCell(i,j){return i>=0&&j>=0&&i<NCELL&&j<NCELL?i*NCELL+j:NCELL*NCELL+ckey(i,j);} // a brood's cell as the save keeps it: the old square's i·NCELL + j as before v11.106 (past it NCELL² + the cell's key, v11.111: whatever size the world) (old saves read the same), past it a number of its own
 function layClutch(child,pr,cv){ // the clutch on the floor where the window opened, carrying the child's spec
   const L=lineCur(),P=player,ch=chunkAt(cv.at.x,cv.at.z),m=lifeBreed(L)||BREED.slowbloods;if(!L||!ch)return false;
   const b={cell:lineCell(ch.i,ch.j),pos:[r3(cv.at.x),r3(cv.at.y),r3(cv.at.z)],n:m.n,born:r3(t),hatch:r3(t+hatchS(child)*(m.hatchK||1)),spec:child,gen:cv.gen+1,price:pr.total,hatched:false,at:r3(t),_ch:ch,_egg:null};
