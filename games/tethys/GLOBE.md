@@ -313,3 +313,10 @@ a horizon mesh per member.
   stands) filled coarse a slice a frame — so a moved window holds at a place exactly what one filled there would. It moves only when the world
   is wider than it: not yet, so the maps are v11.103's to the byte (test/maps.js; with the window patched to half the square, a move of 10 km
   leaves every read in the overlap the same to the bit and the strip as a boot fill puts it).
+- **Step 3, the ledger in tiers (v11.105).** ecology.js: the fine box (the v11.65 square) keeps its cells; past it coarse patches of 8×8 cells
+  run the same model, each hunter's response tabulated from its cells at the census so a patch's mixing does not feed it prey it would not
+  reach; a patch near the player splits into its cells and merges back when they have gone (DESIGN, The ecology). The person (11 Nov 2026),
+  asked whether a coarse patch looks different: it does not — a coarse patch is only how a far place's animals are counted; the loaded cells
+  are always fine, and a patch splits into cells by capacity before any of them loads. While the world is the square there are no patches:
+  v11.104's ledger to the bit (test/ledger.js; and with the box patched smaller, the coarse ring against the fine within a few percent for
+  every kind but the two rare deep hunters).

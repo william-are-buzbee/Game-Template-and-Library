@@ -54,9 +54,10 @@ function rle(a){const o=[],n=a.length;let i=0;while(i<n){const v=r3(a[i]);let k=
 function unrle(a){if(!Array.isArray(a))return null;const o=[];for(const t of a){if(Array.isArray(t)){for(let k=0;k<t[1];k++)o.push(t[0]);}else o.push(t);}return o;}
 function popRows(){ // the ledger's tables as arrays, the loaded cells counted as ecoTick counts them (creatures alive on the ledger, and the eggs)
   const n=POP.n.map(a=>Array.from(a,r3));
-  for(const ch of chunks.values()){const c=ch.i*NCELL+ch.j;if(!POP.done[c])continue;const cnt=new Float32Array(SPAWN.length);for(const o of ch.creatures)if(o.alive&&o.ent>=0)cnt[o.ent]+=1;for(const g of ch.eggs)if(g.ent>=0)cnt[g.ent]+=g.n;for(let ei=0;ei<SPAWN.length;ei++)n[ei][c]=r3(cnt[ei]/Q.creatures);}
+  for(const ch of chunks.values()){const c=ecoId(ch.i,ch.j);if(c<0||!POP.done[c])continue;const cnt=new Float32Array(SPAWN.length);for(const o of ch.creatures)if(o.alive&&o.ent>=0)cnt[o.ent]+=1;for(const g of ch.eggs)if(g.ent>=0)cnt[g.ent]+=g.n;for(let ei=0;ei<SPAWN.length;ei++)n[ei][c]=r3(cnt[ei]/Q.creatures);}
   const R=T=>T.map(rle);
-  return {ents:SPAWN.map(e=>e.kind),n:R(n),k:R(POP.k),ke:R(POP.ke),cd:R(POP.cd),ow:R(POP.ow),done:rle(POP.done),last:POP.last,tally:[POP.births,POP.deaths,POP.kills,POP.starved,POP.eaten,POP.recruits,POP.laid,POP.hatched]};
+  const P=ECO_PT,pt=P.on?{n:R(P.n),k:R(P.k),ke:R(P.ke),cd:R(P.cd),done:rle(P.done),bp:Array.from(P.bp)}:undefined; // the coarse patches and the split slots (v11.105), only when the world has them
+  return {ents:SPAWN.map(e=>e.kind),n:R(n),k:R(POP.k),ke:R(POP.ke),cd:R(POP.cd),ow:R(POP.ow),done:rle(POP.done),pt,last:POP.last,tally:[POP.births,POP.deaths,POP.kills,POP.starved,POP.eaten,POP.recruits,POP.laid,POP.hatched]};
 }
 function popLoad(p){ // the ledger from a record; a save from another roster (SPAWN's kinds differ) gets a fresh census instead, and the player and the clock still load
   ecoReset();
@@ -66,7 +67,14 @@ function popLoad(p){ // the ledger from a record; a save from another roster (SP
   if(!ok){if(p)console.warn('save: the roster or the world changed since this save; the world starts fresh');return false;}
   for(let ei=0;ei<SPAWN.length;ei++){POP.n[ei].set(D.n[ei]);POP.k[ei].set(D.k[ei]);POP.ke[ei].set(D.ke[ei]);POP.cd[ei].set(D.cd[ei]);POP.ow[ei].set(D.ow[ei]);}
   POP.done.set(D.done);POP.last=+p.last||0;const T=Array.isArray(p.tally)?p.tally:[];[POP.births,POP.deaths,POP.kills,POP.starved,POP.eaten,POP.recruits,POP.laid,POP.hatched]=[0,1,2,3,4,5,6,7].map(i=>+T[i]||0);
-  let all=true;for(let c=0;c<ECO_CELLS;c++)if(!POP.done[c]){all=false;break;}if(all)POP.gen=null; // the paper census was done in the saved game; the settle after it is boot's, not a load's
+  let ptOK=!ECO_PT.on; // the coarse patches (v11.105): from the record if it has them whole, else the paper census does them again
+  if(ECO_PT.on&&p.pt){const P=ECO_PT,q=p.pt,T={};let good=Array.isArray(q.bp)&&q.bp.length===ECO_SLOTS;
+    for(const k of ['n','k','ke','cd']){T[k]=good&&Array.isArray(q[k])&&q[k].length===SPAWN.length?q[k].map(unrle):null;if(!T[k]||!T[k].every(a=>a&&a.length===P.np))good=false;}
+    const dn=good?unrle(q.done):null;if(!dn||dn.length!==P.np)good=false;
+    if(good){for(let ei=0;ei<SPAWN.length;ei++){P.n[ei].set(T.n[ei]);P.k[ei].set(T.k[ei]);P.ke[ei].set(T.ke[ei]);P.cd[ei].set(T.cd[ei]);for(let x=0;x<P.np;x++)if(!(P.n[ei][x]>=0))P.n[ei][x]=0;}P.done.set(dn);
+      P.blk.fill(-1);P.free=[];for(let s2=ECO_SLOTS-1;s2>=0;s2--){const pp=q.bp[s2];if(Number.isInteger(pp)&&pp>=0&&pp<P.np&&P.coarse[pp]&&P.blk[pp]<0){P.bp[s2]=pp;P.blk[pp]=s2;}else{P.bp[s2]=-1;P.free.push(s2);}}
+      for(let ei=0;ei<SPAWN.length;ei++){P.cells[ei].length=0;P.mark[ei].fill(0);for(let x=0;x<P.np;x++)if(P.k[ei][x]>0||P.n[ei][x]>0){P.mark[ei][x]=1;P.cells[ei].push(x);}}ptOK=true;}}
+  let all=true;for(let c=0;c<ECO_FINE;c++)if(!POP.done[c]){all=false;break;}if(all&&ptOK)POP.gen=null; // the paper census was done in the saved game; the settle after it is boot's, not a load's
   for(let ei=0;ei<SPAWN.length;ei++){const N=POP.n[ei];for(let c=0;c<ECO_CELLS;c++)if(!(N[c]>=0))N[c]=0;} // a hand-edited file: nothing negative or NaN into the model
   ecoIndexAll(); // the ledger's index from the loaded tables (v11.65)
   return true;

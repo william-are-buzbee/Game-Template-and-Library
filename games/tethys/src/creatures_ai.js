@@ -20,7 +20,7 @@ function layEggs(ch,e,ei,n,rng){
 function removeEgg(g){g.gone=true;if(g.brood&&g.brood._egg===g)g.brood._egg=null;scene.remove(g.mesh);let k=eggs.indexOf(g);if(k>=0)eggs.splice(k,1);k=g.chunk.eggs.indexOf(g);if(k>=0)g.chunk.eggs.splice(k,1);}
 function updateEggs(dt){
   for(let i=eggs.length-1;i>=0;i--){const g=eggs[i];
-    if(g.flesh<g.flesh0){const left=Math.ceil(g.n0*Math.max(0,g.flesh)/g.flesh0);if(left<g.n){if(g.ent>=0){const c=g.chunk.i*NCELL+g.chunk.j;POP.n[g.ent][c]=Math.max(0,POP.n[g.ent][c]-(g.n-left)/Q.creatures);}POP.eaten+=g.n-left;g.n=left;if(g.brood)g.brood.n=left;} // a brood's clutch (line.js, v11.69) is outside the ledger: its record is debited instead
+    if(g.flesh<g.flesh0){const left=Math.ceil(g.n0*Math.max(0,g.flesh)/g.flesh0);if(left<g.n){if(g.ent>=0){const c=ecoId(g.chunk.i,g.chunk.j);if(c>=0)POP.n[g.ent][c]=Math.max(0,POP.n[g.ent][c]-(g.n-left)/Q.creatures);}POP.eaten+=g.n-left;g.n=left;if(g.brood)g.brood.n=left;} // a brood's clutch (line.js, v11.69) is outside the ledger: its record is debited instead
       if(g.n<=0){removeEgg(g);continue;}}
     g.t-=dt;if(g.t<=0&&g.brood){broodHatch(g);removeEgg(g);continue;}if(g.t<=0){const r=placeKind(g.chunk,g.e,g.n,mulberry((g.pos.x*131+g.pos.z*7)|0),{ent:g.ent,juv:true,at:g.pos});let q=r.next();while(!q.done)q=r.next();POP.hatched+=q.value||0;removeEgg(g);}}
 }
@@ -247,9 +247,10 @@ function fallAdd(kind,x,y,z,m0,size,yaw,seed){const t=nowD(),F={kind,x,y,z,m0,si
   return F;}
 function fallRemove(F){const k=FALLS.indexOf(F);if(k>=0)FALLS.splice(k,1);fallHide(F);}
 // the ledger's dead (ecology.js, off-screen cells): n of a big mortal entry died in cell c; each whole one is a fall at a place in the cell
-function fallDeath(ei,c,n){if(!FALL_E)FALL_E=SPAWN.map(e=>{const d=DEFS[e.kind];return !!d&&d.size>=FALL.size&&d.role!=='swarm'&&!d.ghost&&ecoOf(e.kind).mortal;}); // a body: not the plankton's swarms (no body to fall)
+function fallDeath(ei,c,n){ecoIJ(c);fallDeathIJ(ei,ECO_IJ[0],ECO_IJ[1],1,n);} // v11.105: the cell by the ledger's lookup; a coarse patch's dead are fallDeathIJ's with its side
+function fallDeathIJ(ei,i,j,span,n){if(!FALL_E)FALL_E=SPAWN.map(e=>{const d=DEFS[e.kind];return !!d&&d.size>=FALL.size&&d.role!=='swarm'&&!d.ghost&&ecoOf(e.kind).mortal;}); // a body: not the plankton's swarms (no body to fall)
   if(!FALL_E[ei]||!(n>0))return;
-  FALL_ACC[ei]=(FALL_ACC[ei]||0)+n;while(FALL_ACC[ei]>=1){FALL_ACC[ei]-=1;const kind=SPAWN[ei].kind,i=Math.floor(c/NCELL),j=c%NCELL,x=(i+FALL_RNG())*CELL-HALF,z=(j+FALL_RNG())*CELL-HALF,h=sample(x,z).h;
+  FALL_ACC[ei]=(FALL_ACC[ei]||0)+n;while(FALL_ACC[ei]>=1){FALL_ACC[ei]-=1;const kind=SPAWN[ei].kind,x=(i+FALL_RNG()*span)*CELL-HALF,z=(j+FALL_RNG()*span)*CELL-HALF,h=sample(x,z).h;
     if(h>-6)continue;fallAdd(kind,x,h+DEFS[kind].size*0.3,z,bioMass(DEFS[kind]),DEFS[kind].size,FALL_RNG()*TAU,(FALL_RNG()*4294967296)>>>0);}}
 // the falls a cell holds, as it loads: the flesh as a carcass (outside the ledger), the bones as a mesh
 function fallsLoad(ch){const t=nowD();for(const F of FALLS){if(F.c||F.mesh||cellOf(F.x)!==ch.i||cellOf(F.z)!==ch.j)continue;const st=fallState(F,t);if(st.gone)continue;

@@ -1,9 +1,13 @@
 # HANDOFF — tethys
 
+**v11.105 (11 Nov 2026): the ledger in tiers** (GLOBE §10.1 step 3). The fine box (the v11.65 square) keeps its cells; past it coarse 8×8-cell
+patches run the same model (each hunter's response tabulated from its cells), split round the player and merged back. No patches while the
+world is the square: the ledger is v11.104's to the bit (test/ledger.js; with the box patched smaller, the coarse ring within a few percent of
+the fine for every kind but the abyssal 0.75 and the sickle 0.57). Next: the growth to ±70 km.
+
 **v11.104 (11 Nov 2026): the maps as a window** (GLOBE §10.1 step 2). The water and floor maps are a window on a fixed texel grid, read
 relative to its centre in every shader; it re-centres on the player by whole regions once the world is wider than it — not yet, so nothing
-changes (test/maps.js, and the maps' bytes against v11.103). The person chose ±70 km first (11 Nov 2026). Next: the ledger in tiers, then the
-growth to ±70 km.
+changes (test/maps.js, and the maps' bytes against v11.103). The person chose ±70 km first (11 Nov 2026).
 
 **v11.103 (11 Nov 2026): the records' index** (GLOBE §10 step 1, §10.1). `sample()`, `apronAt` and `coneK` find the records near a point
 through 2 km buckets instead of testing every record; the world is v11.102's to the bit (test/records.js). Nothing to look at. Next: §10

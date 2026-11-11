@@ -1849,6 +1849,25 @@ The world's population is a ledger (`src/ecology.js`, v11.26), not a spawn table
 keeps what stood) through `chunks.js placeKind`, the one placement routine per kind; a cell that unloads writes its living back; a death
 debits. Nothing respawns. The unloaded cells run the model; the loaded cells run the same ecology live.
 
+**The tiers (v11.105, GLOBE §10.1 step 3; ecology.js `ECO_FB`, `ECO_PT`, `PATCH`, `ECO_R`, `ECO_SLOTS`).** The ledger keeps cells one by one inside
+the fine box (`ECO_FB`, aligned to patches: the v11.65 square, and while the world is that square all of it — no patches, no slots, the ledger
+v11.104's to the bit). Past it the world is coarse: patches of `PATCH` 8×8 cells (1.72 km), each one ledger cell (`ECO_PT`: n, k, ke, cd per
+entry). A patch's census (`ecoPatchCap`) samples a 16×16 grid, 2×2 a cell, caps each cell at the entry's `max` and sums the 64; for each hunter
+entry it tabulates the response its cells would give (`P.rc`, `RC_S`: the mean over its cells, weighted by its capacity, of the type-III
+response to the prey its reach meets with the prey laid as their capacities lie, against the patch's prey biomass over that reference) — the
+response is not linear and a hunter that lives apart from its prey meets less than an even mix gives. The patches run the model at their scale
+(`ecoPatchGen`: the hunt read off the table, `ecoPatchResp`; the take, the cap, the births, the deaths, the starving and the falls as a cell's;
+the drift to the four neighbouring patches at `ECO.mig/PATCH`); nothing crosses between the tiers. Near the player a patch splits into its
+cells (`ecoSplit`: one of `ECO_SLOTS` 64 blocks of 64 at the end of the fine tables, each cell censused on paper, the patch's count laid on them
+by their capacities) — the nearest within `ECO_R[0]` 2.5 km each tick, and on demand when a cell loads in a coarse patch (`ecoCellOf`) — and
+merges back past `ECO_R[1]` 4 km with none of its cells loaded (`ecoMerge`: the counts summed, not what they were owed — a fresh cell's owed
+birth starts at a random phase and is not population). Every lookup by cell goes through `ecoId(i, j)` and `ecoIJ(c)` (the old `i·NCELL + j`
+inside the box); the model's neighbours inside the box are the old arithmetic. The save carries the patches and the slots when there are any.
+test/ledger.js, with the box patched to the middle 112² cells: the 704 coarse patches' capacities 0.999 of the same cells' fine census (every
+kind within 1%), their counts after 40 days 1.026 of the fine model's — every kind within 10% but the deep hunters the abyssal (0.75) and the
+sickle (0.57); split and merge conserve every entry; the bubble keeps within its slots; a cell loaded in a coarse patch splits it and spawns;
+the save brings it all back. The model's step costs ~6% more for the lookups (the census's 6 days: 21.6 s against 20.3).
+
 - **The model** (`ecoModelGen`, a piece a frame every `ECO_STEP` 3 s). Per game day: births `r·n·(1−n/K)` with `r = r0·mass^-¼`
   (`ECO.r0` 0.12), natural death `m = 0.1·r`; a hunter kind's need `q0·mass^¾` (`ECO.q0` 0.05: five percent of its mass a day at unit
   mass, less for the big), met times `A²/(A²+H²)` — A its prey's biomass (mass × `stock`) within its reach (`ecoReach`: the cell under

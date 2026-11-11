@@ -6571,3 +6571,44 @@ Seen: test/maps.js; the maps' bytes against v11.103; the real build in headless 
 under water (the veil's colour and the caustics as before) and our cone from the surface 900 m east (the waves over the shallows, which read the
 floor map, as before). **Unseen:** nothing changes on screen by
 construction; a moving window has never run in a browser (it cannot, until the world grows).
+
+## v11.105 — the ledger in tiers (11 Nov 2026)
+
+GLOBE §10.1 step 3; the person (11 Nov 2026): "go ahead with the ledger tiers" — and, asked, a coarse patch does not look different: it is only
+how a far place's animals are counted. At ±70 km a dense ledger would be ~425 MB and a census of 425,000 cells at boot; now the fine box keeps
+its cells and the rest is coarse. Invisible today: the fine box is the world, so there are no patches and the ledger is v11.104's to the bit.
+
+- **ecology.js, the tiers:** the fine box `ECO_FB` (the world's cells [i0, i0+w)², aligned to patches — the v11.65 square) keeps its cells one
+  by one; past it coarse patches of `PATCH` 8×8 cells (1.72 km), each one ledger cell (`ECO_PT`: n, k, ke, cd per entry, its census, whether it is
+  coarse, the slot it is split into). `ECO_COARSE` and `ECO_SLOTS` (64 blocks of 64 at the end of the fine tables) only when the world is wider
+  than the box: not yet, so `ECO_CELLS` is 57,600 as before.
+- **The lookups:** `ecoId(i, j)` (the old `i·NCELL + j` inside the box, else the split block's cell, or −1) and `ecoIJ(c)`; `ecoLoaded` (the old
+  `chunkGrid[c] !== null` while the box is the world); `ecoCellOf(ch)` (a loading cell's index, its patch split first if coarse); `ecoSum`. The
+  model's neighbours inside the box are the old arithmetic, inlined; outside, `ecoIdOut`. chunks.js (the spawn), creatures_ai.js (an egg's debit,
+  `fallDeath` and the new `fallDeathIJ` for a patch's dead), save.js (the patches and the slots in the record when there are any, restored, a
+  record without them censused again) go through them.
+- **A patch's census** (`ecoPatchCap`): 16×16 samples, 2×2 a cell, each cell capped at the entry's max, summed; and each hunter entry's response
+  tabulated from its cells (`P.rc`, `RC_S`: the type-III response to the prey its reach meets with the prey laid as their capacities lie, the mean
+  over its cells by its capacity, against the patch's prey biomass over that reference; `ecoPatchResp` reads it). The paper census does the box
+  and then the patches, 4 a step.
+- **The patches' model** (`ecoPatchGen`, at the end of `ecoModelGen`): the hunt off the table, the take, the cap, the births, the deaths, the
+  starving and the falls as a cell's, the drift to the four neighbours at `ECO.mig/PATCH`; nothing crosses between the tiers.
+- **The bubble** (`ecoBubble`, every tick): the nearest coarse patch within `ECO_R[0]` 2.5 km splits (`ecoSplit`: its 64 cells censused on paper,
+  the patch's count laid on them by their capacities, its hunters' condition on all), and a split patch past `ECO_R[1]` 4 km with none of its
+  cells loaded merges (`ecoMerge`: the counts summed — not what they were owed, a fresh cell's random first-clutch phase; the condition by count).
+- **test/ledger.js** (new, in `--test`, ~110 s): as built, no patches or slots and the lookups the old ones (20,000 cells); with the box patched to
+  the middle 112² cells — 704 patches; a split of a patch holding 42 kinds and its merge conserving every entry to the float; the bubble at the
+  north-west corner splitting all 13 patches within 2.5 km, merging them when the player goes to the south-east, never past its slots in eighty
+  round trips, the world's count the same throughout; five days of the model over three tiers finite; a loading cell in a coarse patch split on
+  demand; the coarse ring against the same cells fine after 40 days — capacity 0.999 (every kind within 1%), count 1.026 (every kind within 10%
+  but the abyssal 0.75 and the sickle 0.57, the two rare deep hunters); and in the whole game, 25 cells loaded in the coarse east all in split
+  slots, spawning, and the save carrying the patches and slots back.
+- On the way: the first patch model ran the hunters up to seven times the fine ledger's: a line that cut the hunters'
+  capacity and condition updates out (a comment placed mid-line in the first draft); with that found, a single mean response also overfed them, which the tables fixed.
+
+Seen: the census output against v11.104's, the same to the character (20 days); the booted game's ledger hash — a booted run is not
+deterministic headless (the same tree gives either of two hashes; something reads the wall clock, and it predates this), and this tree has given
+v11.104's exact hash. The model's step ~6% dearer for the lookups (21.6 s against 20.3 over the census's 6 days). One full check failed on
+test/anim.js's "coilshell: and not flung by the joint limit while coasting" (16.38 max, side by side), never again in eight runs here — six of
+them four at a time, three on this tree and three on v11.104, 0.15–0.20 — an unseeded run's rare fling, as v11.93.2's soft-arm one was. **Unseen:** nothing on screen;
+the coarse tier runs in the game only once the world grows (the next step).

@@ -353,7 +353,7 @@ function openY(ch,p,rng,lo,hi){if(p.y<OXY.top)return -60-rng()*260; // over the 
 // ledger's recruits use (ecoTick), with off:true (out of the player's sight) and juv:true (born small). The sailers' fleets are the
 // lee's and outside the ledger: drifters die of nothing.
 function* spawnChunkCreatures(ch,rng){
-  const c=ch.i*NCELL+ch.j;ecoCap(c,ch);
+  const c=ecoCellOf(ch);if(c<0)return;ecoCap(c,ch); // the ledger's cell (v11.105: its patch split if it was coarse)
   // the sailers' fleets: where the eddies keep drifters (the retention field, world.js leeW), on the water, over deep ground; one great sailer in three cells
   const cw=cellLee(ch);if(cw>0.3){const n=Math.round((1+3*cw)*Q.creatures);let g=rng()<0.35;
     for(let k=0;k<n+(g?1:0);k++){let p=null;for(let tr=0;tr<12&&!p;tr++){const x=ch.x0+rng()*CELL,z=ch.z0+rng()*CELL;if(leeW(x,z)>0.3&&ch.h(x,z)<-40)p=V3(x,0,z);}if(!p)break;
