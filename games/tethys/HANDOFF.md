@@ -1,5 +1,10 @@
 # HANDOFF — tethys
 
+**v11.120.2 (12 Nov 2026): the test stub's primitives are three's.** test/stub.js made every primitive random noise in [0,1) and ignored
+its transforms, so headless a species' `top` read ~1 m whatever the plant and the flora near the surface was not the game's; now each is
+three r128's own points, every top three's to the bit. Tests only; the game is byte-identical. **Ask first** whether the eel that misses a
+finback at rest for a whole minute on about half its draws (test/combat.js §3, CHANGELOG) wants a COMBAT pass.
+
 **v11.120 (12 Nov 2026): storm clearings and regrowth** (analysis_flora_diversity §5.7). A mosaic of storm-cleared patches over the
 exposed shallows (grow.js `DIST`, `distAge`), each species back by its own pace (`succ`): turfs and crusts at once, the kelp's young and the
 lime chain within a year or two, the canopy in a few, the reef's polyps last. Ours' reef top and forest have clearings now. **Ask first**

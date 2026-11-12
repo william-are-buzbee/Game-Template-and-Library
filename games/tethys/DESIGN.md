@@ -1900,7 +1900,7 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   (`profileLoaded`). Per person, not per save — open (HANDOFF). The creator's gate in the lab: `lab.player`, `labOk`, `labStyles`.
 - **Previewing a builder without the game** (`test/preview.js`): `node test/preview.js sickle trap` renders contact sheets to
   `test/preview/<id>.png` — four views (three-quarter, side, front, top), idle and action — with real geometry (`test/geo.js`
-  patches the stub's random primitives with the shapes three makes) and a software Lambert; the ground line in the side and
+  gives the stub's primitives — three's points since v11.120.2, random to v11.120.1 — the triangles three makes) and a software Lambert; the ground line in the side and
   front views is where the game clamps a floor species. Not the game's light or fog, but the shape, proportion, palette and pose
   are real; view the PNGs before asking the person to.
 

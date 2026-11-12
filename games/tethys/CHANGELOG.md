@@ -7085,3 +7085,42 @@ Seen headless (no page errors): ours' shelf at (160, 80) looking across a fresh 
 same picture: that ground was sand and turf in front of the forest, with no polyps or canopy to lose. **Unseen, ask in this order:** whether
 the clearings read at all on ours' reef top and in the forest at (330, 0) (`tp(0,300,-10)`, `tp(330,0,-11)`) — if they are too subtle,
 `DIST.share` (0.5) and the patch size (`DIST.f`) are the knobs; a far reef's mosaic (`tp(220400,19700,-6)`).
+
+## v11.120.2 — the stub's primitives are three's (12 Nov 2026)
+
+test/stub.js built every primitive as n×9 `Math.random()` numbers in [0,1), whatever its size; `applyMatrix4`, `translate` and `rotateX` did
+nothing; `setFromUnitVectors` was the identity; `setFromEuler` knew XYZ and YXZ; a `PlaneGeometry` with no segments was empty. grow.js
+`species()` takes a species' `top` off its merged geometry, and chunks.js `placeFloraType` reads it for the surface cap and `clearOf`'s pad
+(and the forest's sound its buckets), so headless flora near the surface was not the game's. Of the 85 entries with a top, 58 read 0.97–1.00 m
+whatever the plant (the ribbon is 15.4 m in the browser, the tidetree 14.6, the ladder 13.0; the mats and rinds 0.06–0.11), the turf and the
+wisp read 0 (planes), and the 25 rock kits and sheds set their own. The stipe's 1.0 was right by luck: it is a unit stalk the reach rule stretches.
+
+- **The gap, measured:** 12 shallow cells round ours (ground −25 to −1 m over most of each, two at the forest's edge by (147, −443)) placed with
+  the old tops and with the real ones: 3,017 of 20,709 placements gone, 2,351 new, 174 more the same place at another height — 23 of 58
+  species, most of it the turf (2,349 out, 1,719 in; its real 0.54 m meets the cap), then the strap, the tidetree, limerind, tussock, lily.
+  One placement skipped moves the rest of that species' stream in its cell, and a rigid plant moved moves what `clearOf` lets after it.
+- **The stub now:** each primitive is three r128's own vertices by its formulas and defaults (box, sphere, cylinder and cone with the caps'
+  centres, lathe, dodecahedron at detail 0, torus, plane upright in x–y), points without triangles or normals, under a token index so
+  parts.js `merge` copies one before it transforms it, as in the browser; `applyMatrix4`, `translate` and `rotateX` move the positions;
+  `setFromUnitVectors` and `setFromEuler` (every order) are three's. Every one of the 85 tops equals three's to the bit — checked against
+  three 0.128.0 itself (fetched into a scratch folder, not committed): the bundle run with three's primitives and maths. Nothing in `src/`
+  changed; `tethys.html` is byte-identical.
+- **Cost:** none measurable (the bundle's load 4.6 s either way; fewer points than the noise had).
+- **test/geo.js** keeps the triangles and the flat normals for the previews; its copies of the transforms and the quaternion maths are gone
+  (the stub's now). The previews are byte-identical (sickle, trap, and the reed, ribbon, ladder, turf and stipe sheets).
+- **What moved in the suite** (against v11.120's run on the same machine): pool.js's 3×3 at the forest 13,775 instances → 13,301 (turf 2,217 →
+  1,759), its 5×5 30,172 → 29,381; audio.js's forest at the peak 0.73 against 0.18 → 0.68 against 0.25 (its buckets read `f.top||3`, so the
+  turf and the wisp counted 3 m each); physics.js's probe cell 542 solids → 513, the pad it tests another one; origins.js 451,488 numbers →
+  450,789. snow.js, anim.js, smoke.js and live.js are not seeded: two runs of v11.120 differ as much as v11.120 and this (anim 9 of 37 lines,
+  snow 38 of 90), so nothing there is told apart.
+- **combat.js:** the primitives no longer draw from `Math.random`, so its seeded stream moved. With the stream kept (the new shapes drawing
+  the old count) its output is v11.120's to the line but the shed's vertex count: the geometry moves no fight. With it moved, §3's eel never
+  took hold of the player — and v11.120's stub does the same at seeds 12 and 13 of the eight tried (it misses a finback at rest every 2–3 s for
+  the whole minute; two of the four seeds tried for §3 alone). §3 has a stream of its own now (`mulberry(3)`), so a draw upstream no longer moves
+  it. §8 missed a bite that kills in the frame its hold forms (the vitals opened by the first bite, the hold gone before the loop looks); the
+  kill counts as that bite. The shed's check is `> 500` vertices (702 now: the stub's points; 2,616 as random triangles).
+- **test/origins.js** had two causes of its flakes (the two v11.120.1 pull requests, 57 and 58, found one each: the moults' draws and the
+  primitives' tops). This removes the second; the moults still draw from `Math.random`, so the seeding there still matters.
+
+Seen: the suite on both tiers, all ok (580 s, 4 at a time). **Unseen:** nothing in the game changed, so there is nothing to play for it.
+**Ask:** whether the eel's miss streak (above) is a COMBAT question worth its own pass.
