@@ -27,6 +27,13 @@ function pigment(h,line){const d=clamp(-h,0,150),T=PIG[line]||PIG.green;let c=T[
 // moves. A species with no reason to read the waves (a vent mat, a sac) keeps the random pick. The three stay one geometry: the cost is nothing.
 const ECO_LO=0.22,ECO_HI=0.5,ECO_MIX=0.24; // expo under ECO_LO sheltered, over ECO_HI exposed; each instance's thresholds wander ±ECO_MIX/2
 function ecoK(expo,u){const e=expo+(u-0.5)*ECO_MIX;return e<ECO_LO?0:e<ECO_HI?1:2;}
+// v11.116 (analysis_flora_diversity §5.3): the ecotype reads the water's motion, not the waves alone — the waves' or the current's, the more
+// (placeFloraType: max(expo, ECO_FLOW × flow)). Below the wave base (expo 0 by −30) every forest was the sheltered form; there the current
+// runs 0.27–0.51 (quartiles, hard fed ground at −30 to −80), and a current-swept kelp grows the surf's narrow blades as a wave-swept one does
+const ECO_FLOW=0.8;
+// the clone (v11.116): a runner species' variant is its patch's — a meadow spreads from one plant, so it is one habit; the patches of
+// `clone` frequency (~1/fq m) are thirds of the ground by fbm's terciles, the edges jittered by the draw the cell made anyway
+function cloneK(x,z,fq,u){const n=fbm(x*fq+11,z*fq+97,2)+(u-0.5)*0.06;return n<0.45?0:n<0.55?1:2;}
 // ---------- the tint by the place's chemistry (v11.67) ----------
 // tintBy(h,f,photo): PLANET's shell-colour rule read by the sessile life — a stain laid over the instance's tint (the pigment's, or the list's
 // pick) by the fields at its base: fresh basalt (`young`) puts dissolved iron in the water, so the animal forms go darker and rust (the

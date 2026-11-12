@@ -18,20 +18,17 @@ function turfB(rg,k){const P=[],ex=k/2;tuft(P,{n:4+k,len:lerp(0.42,0.24,ex),w:le
 function wispB(rg,k){const P=[],ex=k/2;tuft(P,{n:6+k,len:lerp(1.15,0.6,ex),w:lerp(0.05,0.08,ex),spread:lerp(0.6,1.0,ex),jit:0.25},rg,0,0,0);return {P:P};} // the floaters' founder: tall and loose in shelter, low and splayed where the waves reach
 // strap: two-ranked blades from a runner along the sand — six wide short blades leaning out both ways, so a runner reads as a tuft
 // of pasture and not (as the v9.5 four tall narrow blades did, seen from a body length away) as three dark lines from a point
-function strapB(rg) {
-  const P = [part(G.box(0.05, 0.03, 1.2), 0, 0.015, 0, WSTEM)];
-  for (let i = 0; i < 6; i++) {
-    const L = 0.9 + rg() * 0.5,
-      lean = (i % 2 ? 1 : -1) * (0.45 + rg() * 0.35);
-    P.push(
-      part(G.plane(0.24, L), (-Math.sin(lean) * L) / 2, (Math.cos(lean) * L) / 2, -0.5 + i * 0.2, W, {
-        r: [0.2 * (rg() - 0.5), 0.4 * (rg() - 0.5), lean],
-        order: 'YXZ'
-      })
-    );
-  }
-  return {P: P};
-}
+// v11.116 (analysis_flora_diversity §5.3): a runner green spreads by its runners, so a meadow is one clone and clones differ — k is the
+// meadow's (placeFloraType `clone`, grow.js cloneK), not the plant's: 0 the pasture (six wide short blades leaning out both ways, as to
+// v11.115), 1 the upright fan (four long narrow blades standing nearly straight from one sheath: turtle grass's habit), 2 the paired ovals
+// (small leaf pairs on short stalks at each node of a creeping runner: Halophila's, a low lace on the sand)
+function strapB(rg,k){const P=[];
+  if(k===1){P.push(part(G.box(0.07,0.12,0.07),0,0.06,0,WSTEM));for(let i=0;i<4;i++){const L=1.4+rg()*0.6,lean=(i-1.5)*0.16+(rg()-0.5)*0.1,pg=G.plane(0.16,L);pg.translate(0,L/2,0);P.push(part(pg,0,0.1,(rg()-0.5)*0.06,W,{r:[0.15*(rg()-0.5),(i-1.5)*0.55+0.3*(rg()-0.5),lean],order:'YXZ'}));}return {P:P};}
+  if(k===2){P.push(part(G.box(0.03,0.02,1.3),0,0.01,0,WSTEM));for(let i=0;i<5;i++){const z=-0.55+i*0.27;for(const s of [-1,1]){const a=s*(0.7+rg()*0.4),L=0.1+rg()*0.05,dx=Math.sin(a)*L,dy=0.02+Math.cos(a)*L;
+      P.push(part(G.box(0.012,L,0.012),dx/2,dy/2,z,WSTEM,{r:[0,0,-a]}));P.push(part(G.sph(0.09,4,2),dx,dy+0.01,z,W,{s:[1.1,0.18,1.8],r:[s*0.25,rg()*0.6,0]}));}}return {P:P};}
+  P.push(part(G.box(0.05,0.03,1.2),0,0.015,0,WSTEM));
+  for(let i=0;i<6;i++){const L=0.9+rg()*0.5,lean=(i%2?1:-1)*(0.45+rg()*0.35);P.push(part(G.plane(0.24,L),-Math.sin(lean)*L/2,Math.cos(lean)*L/2,-0.5+i*0.2,W,{r:[0.2*(rg()-0.5),0.4*(rg()-0.5),lean],order:'YXZ'}));}
+  return {P:P};}
 // paddle (v11.67, SEAFLOOR §2's turbidity form): the runner line's answer to stirred water — surf over sand, where the strap's thin blades are
 // scoured and shaded and the floaters' ropes snap. A runner with a few broad, short, thick blades (a box, not a plane: a rind-thick cuticle
 // that sheds sand and takes the scour) leaning downstream, low. Costs light per gram, so it holds only where `turb` is high in the light: a
@@ -49,28 +46,17 @@ function chainB(rg,k){const P=[],ex=k/2,nd=4-k;
   return {P:P};}
 // grape: a runner with a bunch of spheres piled at every node (a weed can be one giant cell and still do this). The bunch lies on the
 // runner; v9.5 stood three beads on a half-metre stick at each node, which read as a row of tiny trees
-function grapeB(rg) {
-  const P = [];
-  let x = 0,
-    z = 0,
-    a = rg() * TAU;
-  for (let s = 0; s < 3; s++) {
-    const L = 0.45,
-      nx = x + Math.cos(a) * L,
-      nz = z + Math.sin(a) * L;
-    P.push(part(G.box(0.03, 0.03, L), (x + nx) / 2, 0.03, (z + nz) / 2, WSTEM, {r: [0, HPI - a, 0]}));
-    for (let j = 0; j < 4; j++) {
-      const b = rg() * TAU,
-        d = j ? 0.07 + rg() * 0.06 : 0,
-        r = 0.075 + rg() * 0.035;
-      P.push(part(G.sph(r, 4, 2), nx + Math.cos(b) * d, r * 0.8 + (j ? 0 : 0.06), nz + Math.sin(b) * d, W));
-    }
-    x = nx;
-    z = nz;
-    a += (rg() - 0.5) * 1.4;
-  }
-  return {P: P};
-}
+// v11.116: k is the clone's as the strap's (a runner too): 0 the bunches (spheres piled at every node, as to v11.115), 1 the peltate discs
+// (small flat discs on short stalks, a cluster at each node), 2 the feathers (upright fronds of paired pinnules from the runner) — the three
+// habits Earth's one runner genus (Caulerpa) shows between its species
+function grapeB(rg,k){const P=[];let x=0,z=0,a=rg()*TAU;
+  for(let s=0;s<3;s++){const L=0.45,nx=x+Math.cos(a)*L,nz=z+Math.sin(a)*L;P.push(part(G.box(0.03,0.03,L),(x+nx)/2,0.03,(z+nz)/2,WSTEM,{r:[0,HPI-a,0]}));
+    if(k===1){for(let j=0;j<4;j++){const b=rg()*TAU,d=j?0.05+rg()*0.06:0,hh=0.07+rg()*0.1,px=nx+Math.cos(b)*d,pz=nz+Math.sin(b)*d;P.push(part(G.box(0.012,hh,0.012),px,hh/2,pz,WSTEM));P.push(part(G.cyl(0.07,0.065,0.014,6),px,hh+0.007,pz,W,{r:[(rg()-0.5)*0.5,0,(rg()-0.5)*0.5]}));}}
+    else if(k===2){for(let j=0;j<2;j++){const Lf=0.3+rg()*0.15,lean=(rg()-0.5)*0.5,yaw=rg()*TAU,c=Math.cos(yaw),sn=Math.sin(yaw);P.push(part(G.box(0.014,Lf,0.014),nx,Lf/2+0.02,nz,WSTEM,{r:[0,yaw,lean],order:'YXZ'}));
+      for(let q=0;q<4;q++){const y=0.08+q*Lf*0.2,w=0.1*(1-q*0.15);for(const sd of [-1,1])P.push(part(G.plane(w,0.035),nx+c*sd*w/2,y+0.02,nz-sn*sd*w/2,W,{r:[0,yaw,sd*0.35],order:'YXZ'}));}}}
+    else for(let j=0;j<4;j++){const b=rg()*TAU,d=j?0.07+rg()*0.06:0,r=0.075+rg()*0.035;P.push(part(G.sph(r,4,2),nx+Math.cos(b)*d,r*0.8+(j?0:0.06),nz+Math.sin(b)*d,W));}
+    x=nx;z=nz;a+=(rg()-0.5)*1.4;}
+  return {P:P};}
 // stipe: the tower kelp rebuilt — unit height, stretched to the surface by `reach` like the bladder, so everything is built flat and
 // thin (a float 0.03 thick here is 1 m at forty deep); a float at every other node, spiral blades, and at the top a whorl laid flat
 // under the surface: the canopy you swim under, never a stalk in the air
@@ -83,6 +69,14 @@ function stipeB(rg,k){const ex=k/2,P=[part(G.cyl(lerp(0.05,0.08,ex),lerp(0.13,0.
   P.push(part(G.sph(0.3,5,3),0,0.975,0,WFLOAT,{s:[1,0.04,1]}));
   const nc=6-k,cl=lerp(2.6,1.8,ex),cw=lerp(0.55,0.4,ex);
   for(let j=0;j<nc;j++){const L=cl+rg()*0.6,pg=G.plane(L,cw);pg.rotateX(-HPI);pg.translate(L/2,0,0);P.push(part(pg,0,0.985+j*0.002,0,W,{r:[0,j/nc*TAU+rg()*0.4,0],order:'YXZ'}));}
+  return {P:P};}
+// the young stipe (v11.116, analysis_flora_diversity §5.3): a forest has ages — under the canopy the recruits, a third to two-thirds of the
+// water tall (`reach` [lo, hi]): the adult's stalk and spiral blades, fewer and smaller, no float up top and no canopy whorl (the whorl is the
+// surface's; a young stipe's top is its growing blades — v11.116's first try shrank the adults, whorl and all, into ceiling fans). eco as the adult's
+function stipelingB(rg,k){const ex=k/2,P=[part(G.cyl(lerp(0.035,0.055,ex),lerp(0.09,0.13,ex),1,5,true),0,0.5,0,WSTEM),part(G.cone(lerp(0.25,0.4,ex),0.006,5),0,0.003,0,WHOLD)],nn=6-k,bl=lerp(1.5,0.9,ex),bw=lerp(0.42,0.26,ex);
+  for(let i=0;i<nn;i++){const y=0.2+i*(0.78/nn),sp=i*2.4+rg()*0.6;
+    if(i%2===1&&i<nn-1)P.push(part(G.sph(0.18,4,2),0,y+0.004,0,WFLOAT,{s:[1,0.03,1]}));
+    for(let j=0;j<2;j++){const L=bl*(i===nn-1?0.7:1)+rg()*0.4,pg=G.plane(L,bw);pg.rotateX(-HPI);pg.translate(L/2,0,0);P.push(part(pg,0,y,0,W,{r:[0,sp+j*Math.PI+(rg()-0.5)*0.5,0],order:'YXZ'}));}}
   return {P:P};}
 // ladder: two-ranked blades in one plane — a wall from the side, nothing edge-on. eco (v11.67): 13 m of long broad blades on a thin axis in
 // shelter, 8 m of short narrow ones on a thick axis and a wide holdfast in the surf
@@ -155,52 +149,28 @@ function tableB(rg, k) {
   return {P: P, col: col};
 }
 // horn: fast brittle antlers; the same builder with rust tints is the rockfall's iron-skeleton form
-function hornB(rg, k) {
-  const P = [],
-    col = [];
-  branch(
-    P,
-    {levels: 2, kids: [3, 3], angle: 0.55, ratio: 0.72, planar: 0.25, taper: 0.72, sides: 4, tip: polypTip, colLevels: 1},
-    rg,
-    V3(0, 0, 0),
-    V3(0, 1, 0),
-    0.7 + k * 0.15,
-    0.14,
-    0,
-    col
-  );
-  return {P: P, col: col};
-}
+// v11.116: the variants are growth forms, not sizes (analysis_flora_diversity §5.3): 0 the bushy antler (as to v11.115), 1 the tall sparse
+// horns of calm water (two forks, upright), 2 the fan (branching in one plane, broadside to the water) — the forms one branching lime
+// polyp takes on Earth by its place on the reef; the rust horn and the deep thicket are the same builder and take them too
+function hornB(rg,k){const P=[],col=[],o=k===1?{levels:2,kids:[3,2],angle:0.4,ratio:0.8,planar:0.2,taper:0.72,sides:4,tip:polypTip,colLevels:1}:k===2?{levels:3,kids:[3,2,2],angle:0.6,ratio:0.68,planar:0.92,taper:0.72,sides:4,tip:polypTip,colLevels:1}:{levels:2,kids:[3,3],angle:0.55,ratio:0.72,planar:0.25,taper:0.72,sides:4,tip:polypTip,colLevels:1};
+  branch(P,o,rg,V3(0,0,0),V3(0,1,0),k===1?1.05:k===2?0.55:0.7,k===0?0.14:0.12,0,col);return {P:P,col:col};}
 // dome: a massive banded mound, living rock (the "big polygonal rocks", alive)
-function domeB(rg, k) {
-  const P = [],
-    r = 0.9 + k * 0.35;
-  mound(P, {r: r, sq: 0.62, bands: 3, col: W}, rg, 0, 0, 0);
-  return {P: P, col: [{e: [0, r * 0.05, 0, r, r * 0.62, r]}]};
-}
+// v11.116: 0 the banded mound (as to v11.115), 1 the lobate colony (a cluster of smaller mounds grown together), 2 the plate-edged mound
+// (low, with a thin shelf of plate growing out round its foot) — the massive lime polyp's forms by light and sediment on Earth's reefs
+function domeB(rg,k){const P=[];
+  if(k===1){const col=[];mound(P,{r:0.7,sq:0.7,bands:2,col:W},rg,0,0,0);col.push({e:[0,0.04,0,0.7,0.49,0.7]});const a0=rg()*TAU;
+    for(let i=0;i<3;i++){const a=a0+i*TAU/3+(rg()-0.5)*0.6,d=0.55+rg()*0.15,r=0.42+rg()*0.14,x=Math.cos(a)*d,z=Math.sin(a)*d;mound(P,{r:r,sq:0.66,bands:2,col:W},rg,x,0,z);col.push({e:[x,0.03,z,r,r*0.66,r]});}
+    return {P:P,col:col};}
+  if(k===2){mound(P,{r:1.0,sq:0.42,bands:2,col:W},rg,0,0,0);P.push(part(G.cyl(1.4,1.3,0.07,7),0,0.08,0,W,{r:[(rg()-0.5)*0.12,rg()*TAU,(rg()-0.5)*0.12],s:[1,1,0.8+rg()*0.2]}));return {P:P,col:[{e:[0,0.03,0,1.0,0.42,1.0]},{e:[0,0.08,0,1.4,0.06,1.4]}]};}
+  const r=0.9;mound(P,{r:r,sq:0.62,bands:3,col:W},rg,0,0,0);return {P:P,col:[{e:[0,r*0.05,0,r,r*0.62,r]}]};}
 // bommie and tower: tiers with polyp spines. H the height, tiers the count — the bommie 3.6–4.6 in the passes, the tower 4.5–6 in the calm (v11.20)
-function bommieB(rg, k, H, tiers) {
-  const P = [],
-    col = [],
-    rr = H * 0.22;
-  let y = 0;
-  for (let i = 0; i < tiers; i++) {
-    const f = 1 - (i / tiers) * 0.65,
-      h = H / tiers,
-      r0 = rr * f,
-      r1 = rr * (1 - ((i + 1) / tiers) * 0.65);
-    P.push(part(G.cyl(r1 * 1.05, r0, h * 1.02, 6), 0, y + h / 2, 0, W));
-    for (let j = 0; j < 4; j++) {
-      const a = (j / 4) * TAU + i * 0.9 + rg() * 0.4,
-        v = V3(Math.cos(a), 0.25, Math.sin(a)).normalize(),
-        L = r0 * 0.9;
-      P.push(part(G.cone(r0 * 0.12, L, 4), v.x * (r0 * 0.9 + L / 2), y + h * 0.7, v.z * (r0 * 0.9 + L / 2), PTIP, {dir: v}));
-    }
-    if (i % 2 === 0) col.push({a: [0, y, 0], b: [0, Math.min(H, y + 2 * h), 0], r: r0 * 1.05});
-    y += h;
-  }
-  return {P: P, col: col};
-}
+// v11.116 (o, the bommie's variants): w the base radius over H (0.22 to v11.115, the tower's), flare the top tier spreading out over the
+// rest (a head that has reached the light and grows sideways: a mushroom's cap) — the bommie 0 as before, 1 squat and broad, 2 tall and capped
+function bommieB(rg,k,H,tiers,o){const P=[],col=[],rr=H*(o&&o.w||0.22),fl=!!(o&&o.flare);let y=0;
+  for(let i=0;i<tiers;i++){const f=1-(i/tiers)*0.65,h=H/tiers,r0=rr*f,r1=fl&&i===tiers-1?rr*0.66:rr*(1-((i+1)/tiers)*0.65);P.push(part(G.cyl(r1*1.05,r0,h*1.02,6),0,y+h/2,0,W));
+    for(let j=0;j<4;j++){const a=(j/4)*TAU+i*0.9+rg()*0.4,v=V3(Math.cos(a),0.25,Math.sin(a)).normalize(),L=r0*0.9;P.push(part(G.cone(r0*0.12,L,4),v.x*(r0*0.9+L/2),y+h*0.7,v.z*(r0*0.9+L/2),PTIP,{dir:v}));}
+    if(i%2===0)col.push({a:[0,y,0],b:[0,Math.min(H,y+2*h),0],r:Math.max(r0,fl&&i>=tiers-2?rr*0.66:0)*1.05});y+=h;}
+  return {P:P,col:col};}
 // pen: a polyp pen in the sand — a stalk with a feathered blade (the whip, its stiff cousin, was struck 9 Sep 2026: "way too earth like")
 function penB(rg, k) {
   const P = [],
@@ -1003,15 +973,15 @@ const FLORA = [
   // progression rule): a flow decades old carries crusts, turfs and rust, not a forest — kelp settles new lava within years but a tall canopy takes
   // longer than the rift arms, the fan's fresh blocks and the giant's flows have had; the turfs, the rinds and the rust forms keep their range
   species('turf', {mat: MATG, photo: true, line: 'green', tints: GREENT, s: [0.7, 1.5], per: 1200, env: {h: [-42, -1], sub: [0.5, 1]}, field: 0.02, eco: true}, turfB), // the greens' founder form and the reef's lawn; olive at its deep edge, then the floaters' wisp takes the ground
-  species('wisp', {mat: MATG, photo: true, line: 'float', tints: FLOATT, s: [0.4, 1.6], per: 420, env: {h: [-82, -16], sub: [0.3, 1]}, field: 0.02, eco: true}, wispB), // the floaters' founder form, small and large: the forests' ground layer and their middle
-  species('strap', {mat: MATG, photo: true, line: 'green', tints: GREENT, s: [0.6, 1.4], per: 2400, env: {h: [-42, -3], sub: [0.05, 0.45]}, field: 0.02}, strapB), // the flats' pasture only: dense, a lawn
+  species('wisp', {mat: MATG, photo: true, line: 'float', tints: FLOATT, s: [0.4, 1.6], per: 420, env: {h: [-82, -16], sub: [0.3, 1], nut: [0.3, 1]}, field: 0.02, eco: true}, wispB), // nut (v11.116): the floaters' line is the fed flanks' (TAXA) — to v11.115 the founder stood on every poor lagoon floor (nut 0.17–0.21) // the floaters' founder form, small and large: the forests' ground layer and their middle
+  species('strap', {mat: MATG, photo: true, line: 'green', tints: GREENT, s: [0.6, 1.4], per: 1400, env: {h: [-42, -3], sub: [0.05, 0.45]}, field: 0.02, meadow: [0.012, 0.42, 0.55], clone: 0.006}, strapB), // the flats' pasture. v11.116 (analysis_flora_diversity §5.1): meadows with bare sand between (`meadow`, about half the sand) and each meadow a clone (`clone`: its variant), not one lawn at 2400 tries a cell — 91% of every lagoon floor's view to v11.115
   species('paddle', {mat: MATG, photo: true, line: 'green', tints: GREENT, s: [0.7, 1.4], per: 600, env: {h: [-26, -3], turb: [0.3, 1], sub: [0.05, 0.62]}, field: 0.02, eco: true}, paddleB), // the turbidity form (v11.67): surf over sand — a scrap of our windward shallows, the giant's whole windward shelf
   species(
     'chain',
     {mat: MATV, photo: true, line: 'green', tints: GREENT, s: [0.7, 1.6], tilt: true, per: 120, env: {h: [-28, -1], sub: [0.5, 1], expo: [0.3, 1]}, eco: true},
     chainB
   ),
-  species('grape', {mat: MATV, photo: true, line: 'green', tints: GREENT, s: [0.7, 1.6], per: 140, env: {h: [-40, -6], sub: [0.15, 0.6]}, field: 0.02}, grapeB),
+  species('grape', {mat: MATV, photo: true, line: 'green', tints: GREENT, s: [0.7, 1.6], per: 140, env: {h: [-40, -6], sub: [0.15, 0.6]}, field: 0.02, clone: 0.006}, grapeB), // clone (v11.116): a runner too, its patches one habit each
   species(
     'stipe',
     {
@@ -1020,13 +990,14 @@ const FLORA = [
       line: 'float',
       tints: FLOATT,
       reach: true,
-      per: 900,
+      per: 700, // v11.116: 900 to v11.115 — 300 of them are the young now (stipeling)
       env: {h: [-54, -16], sub: [0.55, 1], nut: [0.45, 1], flow: [0.15, 0.85], young: [0, 0.45]},
       field: 0.012,
       eco: true
     },
     stipeB
   ),
+  species('stipeling', {mat: MATS, photo: true, line: 'float', tints: FLOATT, reach: [0.3, 0.7], per: 300, env: {h: [-54, -16], sub: [0.55, 1], nut: [0.45, 1], flow: [0.15, 0.85], young: [0, 0.45]}, field: 0.012, eco: true}, stipelingB), // v11.116 (analysis_flora_diversity §5.3): the forest's young, under the canopy
   species(
     'ladder',
     {mat: MATM, photo: true, line: 'float', tints: FLOATT, s: [0.7, 1.3], tilt: true, per: 130, env: {h: [-66, -16], sub: [0.5, 1], nut: [0.4, 1], young: [0, 0.45]}, field: 0.014, eco: true},
@@ -1096,9 +1067,7 @@ const FLORA = [
     {mat: MATV, tints: RUSTS, s: [0.7, 2.0], tilt: true, sx: [0.8, 1.25], per: 18, env: {h: [-150, -4], young: [0.4, 1], sub: [0.5, 1]}},
     domeB
   ),
-  species('bommie', {mat: MATV, tints: VIVID, s: [0.8, 1.5], per: 14, env: {h: [-24, -6], flow: [0.6, 1], sub: [0.5, 1]}}, (rg, k) =>
-    bommieB(rg, k, 3.6 + k * 0.5, 4)
-  ),
+  species('bommie', {mat: MATV, tints: VIVID, s: [0.8, 1.5], per: 14, env: {h: [-24, -6], flow: [0.6, 1], sub: [0.5, 1]}}, (rg,k)=>k===1?bommieB(rg,k,2.9,3,{w:0.3}):k===2?bommieB(rg,k,4.6,5,{flare:true}):bommieB(rg,k,3.6,4)), // v11.116: squat and broad, or tall and capped (bommieB's o)
   species(
     'tower',
     {mat: MATV, tints: DULL, s: [0.7, 1.2], tilt: true, per: 16, env: {h: [-150, -60], flow: [0, 0.4], sub: [0.5, 1], slope: [0, 0.5]}},

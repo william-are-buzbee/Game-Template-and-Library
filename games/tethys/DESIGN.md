@@ -1139,7 +1139,12 @@ instance's base (`ch.f(x,z)` in `placeFloraType`, the same nearest-vertex condit
 ecotype:* an `eco` entry's variant index is drawn from `expo` instead of at random (grow.js `ecoK`: sheltered under `ECO_LO` 0.22, exposed over
 `ECO_HI` 0.5, the thresholds jittered ±`ECO_MIX` 0.24/2 per instance, the one rng draw the random pick made so no cell's stream moves), and the
 builder reads k 0..2 as sheltered..exposed — turf, wisp, chain, stipe, ladder, ribbon, bladder (a `species()` since v11.67, `bladderB`; it was the
-last kept one-variant weed) and paddle. Since `expo` fades out by −30 (World shape), the coasts differ in the forest's top 25 m only. *The
+last kept one-variant weed) and paddle. Since `expo` fades out by −30 (World shape), the coasts differed in the forest's top 25 m only; since
+v11.116 the ecotype reads the water's motion, max(`expo`, `ECO_FLOW` 0.8 × `flow`), so below the wave base the current sorts the forest
+(quartiles 0.27–0.51 there). *The clone (v11.116):* a `clone` entry (the runners: strap, grape) draws its variant from its patch — grow.js
+`cloneK`, fbm at the `clone` frequency cut at its terciles — so a meadow is one habit and the next another. *The young (v11.116):* `reach`
+as [lo, hi] stands a reach entry at that share of the water column: the stipe's young, `stipeling` (300 a cell at 0.3–0.7, the adults 700),
+the adult's form without the canopy whorl. *The
 stain:* grow.js `tintBy(h,f,photo)` composes up to three stains (`TINT_CHEM`: rust [0.44,0.25,0.12] on the animals and dull [0.36,0.33,0.22]
 on the weeds by `young` smoothed in over 0.15–0.6, cover 0.55 / 0.45; sulfur [1,0.94,0.62] by `heat` over 0.1–0.5, cover 0.7; cream
 [0.92,0.86,0.72] on the shells where h > −22, `sub` > 0.65, `expo` > 0.45 and `nut` < 0.42 — the lime rind's water, and the coat class's rule
@@ -1154,7 +1159,8 @@ for now"). The
 forest at (330, 0), like for like in the app's pane with the loop driven by hand (25 cells): 184 → 185 draws, 4.88 → 5.05 M triangles.
 
 **The table.** Per species: `per` (instances per cell at full tolerance) and `env` (World shape, envelopes; v10 — the per-biome counts are gone), scale range, tilt, sink, `field`, `rim`,
-`y: 'floor'|'surface'|'mid'`, `ys`, `reach`, `glow`, `vent`, `maxSlope`, `minH`, `canopyPer`, `pocket`, `big`, and
+`y: 'floor'|'surface'|'mid'`, `ys`, `reach`, `glow`, `vent`, `maxSlope`, `minH`, `canopyPer`, `pocket`, `meadow` (v11.116: [frequency, lo, hi] —
+fbm patches over smooth(lo, hi), 6% between: the strap's meadows, about half the sand), `clone`, `big`, and
 since v9.5 `photo` (a weed: tinted by `pigment(ground depth, line)` per instance, `line` one of `green|float|red` since v11.15;
 the `tints` list then only colours the far impostors), `flow` (yaw from `flowYaw`, ±0.25 rad), `band:[lo,hi]` (ground height the species stands in) and the
 surface cap: a floor entry with `top` that would stand into the air is shortened in y to fit under −1.4 or skipped

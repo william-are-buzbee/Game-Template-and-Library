@@ -6936,3 +6936,51 @@ south (the sea, a cay on the horizon; through a pass in its rim), and m28's lago
 the cells loading and spawning as at home. Costs: the 75 records' build +0.5 s of CPU at load (0.77 → 1.25 s for the world and the region,
 node); a frame unchanged. **Unseen, ask in this order:** the far east in play (a swim there is
 hours: `tp`); the boot on your machine; the world map's whole view (`n`, the wheel out).
+
+## v11.116 — meadows, not a lawn; variants that read; a forest with ages (12 Nov 2026)
+
+The flora diversity pass's first two changes (analysis_flora_diversity.md §5.1 and §5.3; the person, 12 Nov 2026: "Yes go ahead with 1 and
+3"). The review found the roster plausible for a remote province and its layout not: one runner on every sandy floor, variants that were
+the same shape three sizes, and every forest one stipe to the surface. The analysis is committed with the person's decisions.
+
+- **Meadows** (flora.js strap; chunks.js `meadow`): strap 2,400 tries a cell → 1,400, grown in meadows — fbm at 0.012 (~80 m) over
+  smooth(0.42, 0.55), about half the sand, 6% of the density between them as scattered shoots. To v11.115 strap was 91% of what the eye saw
+  on every lagoon floor in the province.
+- **The clone** (grow.js `cloneK`, the `clone` key): a runner spreads by its runners, so a meadow is one plant and one habit; strap's and
+  grape's variant is their patch's (fbm at 0.006, ~160 m, cut at its terciles), not each plant's. The draw the cell made anyway jitters
+  the edges, so no cell's random stream moves.
+- **Variants with shapes, not sizes** (flora.js). Each variant 0 is v11.115's geometry to the draw.
+  - strap: the pasture; the upright fan (four long narrow blades from one sheath: turtle grass); the paired ovals (leaf pairs on short
+    stalks along a creeping runner: Halophila).
+  - grape: the bunches; the peltate discs on short stalks; the feathers (upright fronds of paired pinnules) — Caulerpa's three habits.
+  - horn: the bushy antler; tall sparse horns; the fan (branching in one plane). The rust horn and the deep thicket share it.
+  - dome: the banded mound; the lobate colony; the plate-edged mound (a low dome on a shelf of plate). The rust dome shares it.
+  - bommie: the head; squat and broad; tall and capped (the top tier spreading out).
+- **The ecotype reads the water's motion** (grow.js `ECO_FLOW` 0.8): max(`expo`, 0.8 × `flow`). Below the wave base `expo` is 0 and every
+  forest was the sheltered form (at m28's fed slope all 281 stipes were variant 0); the current there runs 0.27–0.51 (quartiles).
+- **A forest with ages** (flora.js `stipeling`, `stipelingB`; `reach` [lo, hi]): the forest's young as their own entry, 300 tries a cell at 0.3–0.7
+  of the water column, the adults 900 → 700 — the adult's stalk and spiral blades, fewer and smaller, no float up top and no canopy whorl. A
+  first try shrank a share of the adults instead, and their surface whorls stood mid-water like ceiling fans (seen headless).
+- **wisp off the lagoons:** `nut` [0.3, 1] — the floaters' line is the fed flanks' (TAXA); lagoon floors are 0.17–0.21.
+- **Docs:** analysis_flora_diversity.md (the review, its sources, the person's decisions); DESIGN (the keys, the clone, the young); FLORA.md's strap.
+Measured with the review's own census (genChunk on 3×3 cells at its 15 sites, every instance counted within 100 m; N2 the inverse
+Simpson by count, N2v by the eye's share):
+
+| site | instances | N2 | N2v | the strap's variants |
+|---|---|---|---|---|
+| ours, the lagoon | 1,748 → 410 | 1.73 → 3.77 | 1.18 → 2.10 | 5 / 23 / 155 (the ovals' clone) |
+| m140 atoll, lagoon | 1,435 → 540 | 1.72 → 2.22 | 1.18 → 1.49 | 167 / 79 / 107 |
+| m122 bank, the flat | 1,384 → 484 | 1.76 → 2.34 | 1.20 → 1.59 | 18 / 29 / 258 |
+| m28 atoll (217 km), lagoon | 1,501 → 713 | 1.79 → 2.03 | 1.20 → 1.40 | 369 / 67 / 55 (the pasture's) |
+| ours, the shelf forest (330, 0) | 1,653 → 1,689 | 5.95 → 6.45 | 1.29 → 1.67 | stipeling 10% of the view |
+| m138, shelf | 1,721 → 1,753 | 6.42 → 6.79 | 1.47 → 2.01 | |
+| m28, fed slope −56 | 1,160 → 1,198 | 8.51 → 10.58 | 1.57 → 2.08 | stipes 82 / 131 / 0 (all 0 to v11.115) |
+
+The reef tops, the terraces, the twilight and the deep are as they were (their N2 within ±0.5; nothing there changed but the variants'
+shapes). Every lagoon reads as its own: a different clone in each.
+
+Seen headless (software GL, no page errors): ours' lagoon from 18 m down — pale sand, scattered feathers and peltate grapes, a meadow's edge of
+upright fans further off, where v11.115 was strap to the fog; m28's lagoon a meadow of the pasture clone; the shelf forest at (330, 0) with its
+young among the adults. **Unseen, ask in this order:** a lagoon in play (`tp(0,0,-18)`), whether half the sand bare is too bare; the forest's
+young from inside it; the new shapes up close (the lobate and plate-edged domes, the fan horns, the capped bommies); the frame time in the
+forest (the young add ~300 instances a cell, one draw).
