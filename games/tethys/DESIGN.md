@@ -1153,7 +1153,7 @@ and no further; `PIG.float` olive to −15, gold-brown by −80, never green; `P
 (`makeInstanced`, an `InstancedBufferAttribute` like the rafts' `aDip` — every species geometry is cloned per cell and
 disposed with it) and the vertex shader collapses the other two variants to the instance origin (`VAR_GLSL`,
 `VAR_COLLAPSE`/`VAR_BRANCH` in scene.js: in the sway materials the collapse comes *first*, so a collapsed vertex skips
-the disturbance loop — two thirds of the vertices are collapsed and the loop is the cost; since v11.116 a collapsed vertex leaves the shader
+the disturbance loop — two thirds of the vertices are collapsed and the loop is the cost; since v11.125 a collapsed vertex leaves the shader
 there, `GONE`, skipping three's lighting and the fog as well — nothing it drew changes). One draw call per species;
 **the readout's tris figure counts the collapsed triangles too**, so flora shows ~3× its drawn count — the ms is the
 number to read. (Kept one-variant geometries on a variant-aware material carried a zero `vid`, `vid0`, until v11.67, when the bladder — the
@@ -2171,7 +2171,7 @@ uploads. `test/pool.js` checks it; `pools` on the readout counts them. The draw 
 *v11.52.1: the pool is partitioned by sight — the blocks of the cells cullChunks sees come first and `im.count` is their total (`poolCull`, `poolMove`), so the
 GPU draws what it drew per cell (4.7M tris at the spot, not 8.8M); the person's vsync had risen on v11.52 (16 ms in the air) where the pane's
 `gl.finish()` in a hidden tab, which never presents, had read the GPU as idle. The world's shadow pass draws every block.*
-*v11.116: by flags, not moves (the person, 12 Nov 2026: a lag spike turning in the kelp). v11.52.1 kept the seen blocks first by moving a
+*v11.125: by flags, not moves (the person, 12 Nov 2026: a lag spike turning in the kelp). v11.52.1 kept the seen blocks first by moving a
 block across the boundary whenever its cell entered or left the view — a memmove of the span between and its upload, in every pool — and a
 turn sweeps the outer cells through the view. Now each instance has a flag, `aHide` (`AHIDE` 2 out of sight, 0 seen), written for the crossing
 cell's own blocks only; every tinted material's vertex shader reads it first and a hidden instance leaves (`GONE`). A pool draws to the end
@@ -2179,7 +2179,7 @@ of its last seen block (`nDraw`); a pool whose flags have stood still for `POOL_
 packed, seen blocks first (`poolPack`, one pool a frame). At `tp(430,50,8)` (56 pools, 40k instances), a 1.5 s revolution: 36–43 of 90 frames
 re-sent pool data, up to 2.6 MB and 200 moves in a frame (three r128, headless); after, the worst frame 0.04 MB (0.09 in the stand at
 (2042, −18382), from 3.6), at the price of ~10k hidden instances drawn a frame mid-turn (16k in the stand), each vertex a fetch and a branch,
-packed a second after (CHANGELOG v11.116).*
+packed a second after (CHANGELOG v11.125).*
 
 **Where the frame goes, measured on the 4060 at the weed forest (330, 0), 13 Sep 2026.** The readout's `work` pair is the
 frame's own cost and the worst frame in the last quarter second (main.js, v11.32.1); `ms` and `fps` are the vsync interval and say

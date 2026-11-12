@@ -9,7 +9,7 @@ let showStats=false,statT=0,fpsEma=60,msEma=16,physEma=0,physMs=0,renderMs=0,ren
 // or a cell loads, and on those frames it adds its whole cost at once. An EMA hides that; a max does not. `gen` is the streaming's
 // share of the same frame. All three are CPU time: renderer.render is the submit, not the GPU's own execution.
 let frameEma=0,frameMax=0,genEma=0;
-function poolLine(){const p=poolStats();return p.draws+(p.hid>0?' +'+(p.hid/1000).toFixed(1)+'k hid':'');} // the pools' draws, and (v11.116) the hidden instances they draw until packed (chunks.js poolPack): they leave the shader at once but count in tris
+function poolLine(){const p=poolStats();return p.draws+(p.hid>0?' +'+(p.hid/1000).toFixed(1)+'k hid':'');} // the pools' draws, and (v11.125) the hidden instances they draw until packed (chunks.js poolPack): they leave the shader at once but count in tris
 function toggleStats(){showStats=!showStats;statsEl.style.display=showStats?'block':'none';statT=0;}
 // Fog tuner: while the readout is open, these keys nudge the sea fog live and the readout's second line shows the numbers,
 // so the look can be dialled in without a build — paste the line back and it gets baked into SEA_FOG (world.js).

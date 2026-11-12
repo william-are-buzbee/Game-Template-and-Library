@@ -1,7 +1,7 @@
 // Headless check of the flora pools (v11.52, chunks.js): one instanced mesh per species across the loaded cells. Cells are loaded and
 // unloaded by hand and the pools' bookkeeping is checked against them — every block contiguous and in order, the counts summing to the
 // mesh's count, no NaN in a matrix, a cell's block byte-identical whether it loads alone, first or last (the placement is the cell's own rng),
-// a removed cell leaving the others' blocks untouched, a card species never pooled, a pool growing without losing what it had; by sight (v11.116):
+// a removed cell leaving the others' blocks untouched, a card species never pooled, a pool growing without losing what it had; by sight (v11.125):
 // a cell coming into or out of view writing its own blocks' flags and nothing else, the blocks packed once the pool is still. It proves
 // the storage, not the look. Same bundle and stub as the smoke test.
 const fs=require('fs'),path=require('path');
@@ -17,7 +17,7 @@ const X=global.__pool;let fails=0;
 function ok(c,msg){console.log((c?'  ok   ':'  FAIL ')+msg);if(!c)fails++;}
 function check(label){ // the invariants over every pool
   let bad=[];for(const [f,P] of X.POOLS){let n=0,prev=0;for(const b of P.blocks){if(b.start!==prev)bad.push(f.id+': block at '+b.start+' expected '+prev);if(!X.chunks.has(b.ch.k))bad.push(f.id+': block of an unloaded cell');prev=b.start+b.count;n+=b.count;}
-    let nv=0,end=0;const H=P.geo.attributes.aHide.array;for(const b of P.blocks){if(b.vis){nv+=b.count;end=b.start+b.count;}for(let k=b.start;k<b.start+b.count;k++)if(H[k]!==(b.vis?0:2)){bad.push(f.id+': a flag not its block\'s sight');break;}} // v11.116: every instance's aHide its block's, the draw to the last seen block
+    let nv=0,end=0;const H=P.geo.attributes.aHide.array;for(const b of P.blocks){if(b.vis){nv+=b.count;end=b.start+b.count;}for(let k=b.start;k<b.start+b.count;k++)if(H[k]!==(b.vis?0:2)){bad.push(f.id+': a flag not its block\'s sight');break;}} // v11.125: every instance's aHide its block's, the draw to the last seen block
     if(n!==P.n||nv!==P.nVis||P.nDraw!==end||P.im.count!==P.nDraw)bad.push(f.id+': counts '+n+' '+P.n+' vis '+nv+' '+P.nVis+' draw '+end+' '+P.nDraw+' '+P.im.count);if(P.n>P.cap)bad.push(f.id+': over capacity');
     const M=P.im.instanceMatrix.array;for(let i=0;i<P.n*16;i++)if(M[i]!==M[i])bad.push(f.id+': NaN');
     if(P.f.card)bad.push(f.id+': a card species pooled');}
@@ -50,7 +50,7 @@ X.loadChunkNow(ci,cj);const mid3=X.chunks.get(X.ckey(ci,cj));let sameA=0,diffA=0
 // a cell alone against the same cell in a 3×3: the placement must not read the neighbours (DESIGN Determinism). A difference only in aCur (the lean
 // to the current, read through steadyOf) is the current's field reading a neighbour's grid — cosmetic; a matrix difference is a placement that read one.
 ok(diffs.every(d=>!d.slice(d.indexOf('(')+1,-1).split(',').some(k=>k==='m'||k==='v')),'loaded alone, its blocks match: '+sameA+' same, '+diffA+' different'+(diffs.length?' — '+diffs.join(' '):''));
-// by sight (v11.52.1; v11.116 by flags): every cell seen, then the middle hidden, then a corner — each change writing only that cell's flags,
+// by sight (v11.52.1; v11.125 by flags): every cell seen, then the middle hidden, then a corner — each change writing only that cell's flags,
 // no instance moved — then the pools still long enough to pack (the seen blocks first), then all back
 X.worldClear();for(const [i,j] of cells)X.loadChunkNow(i,j);const all=[...X.chunks.values()];for(const ch of all){ch.group.visible=true;ch.near=true;}X.poolCull(0);
 const snap=()=>{const L=[];for(const ch of all)for(const P of ch.pooled)L.push([P.f,ch,blockOf(P.f,ch)]);return L;};const s0=snap();

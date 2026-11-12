@@ -7214,7 +7214,7 @@ Seen: m109's lagoon merged with m85's and m62's into one floor round the island,
 **Unseen, ask in this order:** a lagoon's patch reefs from the water (`tp(108100,4000,-1)` then swim out), a blue hole from above and inside;
 an atoll's wall from beside it (`tp(1600,20100,-60)`, m140); whether the deep gardens' smaller ground on the walls matters (DEEP §3).
 
-## v11.116 — the turn in the kelp: the pools by flags, and what draws nothing leaves the shader (12 Nov 2026)
+## v11.125 — the turn in the kelp: the pools by flags, and what draws nothing leaves the shader (12 Nov 2026)
 
 The person, 12 Nov 2026: turning your head inside a kelp forest gives a significant lag spike. A performance pass; nothing drawn changes.
 
@@ -7247,7 +7247,7 @@ cells, 56 species pools holding 40k instances), two 1.5 s revolutions of the cam
   instances drawn fell 6%, the bytes sent rose 25-fold.) The world's shadow pass draws every block as before and ignores the flags.
 - **scene.js, `GONE`.** A vertex that draws nothing leaves the vertex shader at once with a position outside every clip plane, before three's
   lighting and the fog: a hidden pooled instance (`HIDE_GLSL`, in `addTint`, so in every tinted material; not in the depth pass), a species'
-  other variants (`VAR_COLLAPSE`, two thirds of every flora vertex — to v11.115 set to the instance's origin and run through the rest of the
+  other variants (`VAR_COLLAPSE`, two thirds of every flora vertex — to v11.124 set to the instance's origin and run through the rest of the
   shader) and a small plant past `FLORA_FAR` (`FAR_CUT`). The triangles were degenerate and are now clipped: the same pixels.
 - **The readout:** `pools 56 +12.4k hid` — the hidden instances the pools draw until they are packed; they count in `tris`, as the collapsed
   variants always have, and cost a branch each.

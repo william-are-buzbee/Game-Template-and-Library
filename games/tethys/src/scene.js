@@ -586,13 +586,13 @@ const LIGHT_GLSL=LIGHT_FX?'\n#ifdef USE_FOG\n{float dep=uTint.x-vFogPos.y;if(uSu
 const LIGHT_PARS=CAU_PARS+'uniform float uTime;uniform float uChop;uniform vec4 uSunW;uniform vec2 uLightK;uniform sampler2D uShMap;uniform mat4 uShMat;uniform vec4 uShP;uniform vec4 uShL;uniform sampler2D uShMapS;uniform mat4 uShMatS;uniform vec4 uShPS;uniform vec4 uShLS;\n'+
   'float shDepth(vec4 v){return dot(v,vec4(0.99609375/16777216.0,0.99609375/65536.0,0.99609375/256.0,0.99609375));}\n'+
   'float shTap(sampler2D m,vec2 uv,float z,float fd){float dz=z-shDepth(texture2D(m,uv));return dz>0.0?exp(-dz*uShL.w/fd):0.0;}\n'; // both maps are 2·SHM_D deep, so uShL.w serves the world's too
-// A vertex that draws nothing leaves the shader at once (v11.116): GONE puts it outside every clip plane and returns, before three's lighting,
+// A vertex that draws nothing leaves the shader at once (v11.125): GONE puts it outside every clip plane and returns, before three's lighting,
 // the fog and the tint's own vertex work, so all its triangles are dropped as the collapse to the instance's origin dropped them (degenerate),
 // at the cost of a branch. Three such: a pooled instance out of sight (chunks.js poolCull, `aHide` AHIDE — in every tinted material, so every
 // pool's has it; an instanced mesh without the attribute reads WebGL's default 0, shown, as a geometry without `vid` does — AHIDE is 2, not 1,
 // because the one other value a missing attribute can read is r128's (1,1,1) for a ShaderMaterial's missing `color`, set on whatever location
 // that program gave it; not in the shadow pass, which draws every block, seen or not: updateShadowS), a species' other variants (VAR_COLLAPSE — two thirds of every flora vertex) and
-// a small plant past FLORA_FAR (FAR_CUT). To v11.115 the last two set the vertex to the origin and ran the rest of the shader on it.
+// a small plant past FLORA_FAR (FAR_CUT). To v11.124 the last two set the vertex to the origin and ran the rest of the shader on it.
 const GONE='{gl_Position=vec4(2.0,2.0,2.0,1.0);return;}';
 const AHIDE=2;
 const HIDE_V='#ifdef USE_INSTANCING\nattribute float aHide;\n#endif\n',HIDE_GLSL='\n#if defined(USE_INSTANCING)&&!defined(DEPTH_PASS)\nif(aHide>1.5)'+GONE+'\n#endif\n';
@@ -671,7 +671,7 @@ const LEAN=3.0;
 // cell gives every instance `aVar`; vertices of the other variants collapse to the instance origin — degenerate triangles, no fill,
 // one draw call per species. A geometry without `vid` (rocks, the kept plants) reads 0 for both and is untouched.
 const VAR_GLSL='attribute float vid;attribute float aVar;\n',VAR_COLLAPSE='if(abs(vid-aVar)>0.5)'+GONE+'\n',
-  VAR_BRANCH=VAR_COLLAPSE; // in the sway shader the collapse comes first so a collapsed vertex skips the disturbance loop (two thirds of the vertices are collapsed; the loop is the cost); since v11.116 it skips everything after it (GONE)
+  VAR_BRANCH=VAR_COLLAPSE; // in the sway shader the collapse comes first so a collapsed vertex skips the disturbance loop (two thirds of the vertices are collapsed; the loop is the cost); since v11.125 it skips everything after it (GONE)
 // The flora's draw distance (v11.12). Small flora is collapsed per instance in the shader beyond FLORA_FAR (the variants' trick:
 // nothing drawn, and nothing pops as a cell), and a cell whose nearest edge is past it hides its instanced meshes and turns its far
 // impostors on (chunks.js cullChunks, far.js farApplyCell). At 450 the veil leaves 6.6% contrast (world.js SEA_FOG), so what goes was

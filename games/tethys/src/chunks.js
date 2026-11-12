@@ -157,7 +157,7 @@ function poolAlloc(P,cap){ // the pool's mesh at capacity cap, what is written c
   const old=P.im,g=P.src.clone();
   if(P.vars)g.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(cap),1));
   if(P.cur){g.setAttribute('aCur',new THREE.InstancedBufferAttribute(new Float32Array(cap*2),2));g.setAttribute('aTide',new THREE.InstancedBufferAttribute(new Float32Array(cap*2),2));}
-  g.setAttribute('aHide',new THREE.InstancedBufferAttribute(new Float32Array(cap).fill(AHIDE),1)); // v11.116: AHIDE an instance out of sight (poolCull), read first by every tinted material's vertex shader (scene.js HIDE_GLSL)
+  g.setAttribute('aHide',new THREE.InstancedBufferAttribute(new Float32Array(cap).fill(AHIDE),1)); // v11.125: AHIDE an instance out of sight (poolCull), read first by every tinted material's vertex shader (scene.js HIDE_GLSL)
   const im=new THREE.InstancedMesh(g,P.mat,cap);im.frustumCulled=false;im.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(cap*3),3);
   if(old){const n=P.n;im.instanceMatrix.array.set(old.instanceMatrix.array.subarray(0,n*16));im.instanceColor.array.set(old.instanceColor.array.subarray(0,n*3));
     if(P.vars)g.attributes.aVar.array.set(old.geometry.attributes.aVar.array.subarray(0,n));if(P.cur){g.attributes.aCur.array.set(old.geometry.attributes.aCur.array.subarray(0,n*2));g.attributes.aTide.array.set(old.geometry.attributes.aTide.array.subarray(0,n*2));}g.attributes.aHide.array.set(old.geometry.attributes.aHide.array.subarray(0,n));
@@ -187,7 +187,7 @@ function poolRemove(P,ch){ // the cell's block out: the tail moved down over it,
 // the person's vsync is the truth). So the blocks of the cells in view came first in the arrays and im.count was their total, a block moved to
 // the boundary whenever its cell came into or out of view — a memmove of the whole span between and its upload — and the world's shadow pass
 // draws every block (scene.js updateShadowS sets count to n and back).
-// v11.116: by sight without moving a byte (the person, 12 Nov 2026: "turning your head inside a kelp forest gives a significant lag spike").
+// v11.125: by sight without moving a byte (the person, 12 Nov 2026: "turning your head inside a kelp forest gives a significant lag spike").
 // Turning sweeps the outer cells through the view, and each crossing was that memmove and upload in every pool: in the shelf's forest at
 // (430, 50) — 56 pools, 40k pooled instances — with three r128 in headless Chromium, 36–43 of the 90 frames of a 1.5 s revolution re-sent
 // pool data, up to 2.6 MB, ~200 block moves (a fresh typed array per attribute each) and 3.2 ms of poolCull in one frame; the denser stand at (2042, −18382)
@@ -219,7 +219,7 @@ function poolCull(dt){ // after cullChunks has set every cell's visible and near
     P.im.count=P.nDraw;}
   if(best){poolPack(best);best.im.count=best.nDraw;}
 }
-function poolStats(){let draws=0,inst=0,hid=0;for(const P of POOLS.values()){if(P.n>0)draws++;inst+=P.n;hid+=P.nDraw-P.nVis;}return {pools:POOLS.size,draws:draws,inst:inst,hid:hid};} // the readout (main.js); hid (v11.116): instances drawn hidden, not yet packed
+function poolStats(){let draws=0,inst=0,hid=0;for(const P of POOLS.values()){if(P.n>0)draws++;inst+=P.n;hid+=P.nDraw-P.nVis;}return {pools:POOLS.size,draws:draws,inst:inst,hid:hid};} // the readout (main.js); hid (v11.125): instances drawn hidden, not yet packed
 function cellLee(ch){return Math.max(leeW(ch.cx,ch.cz),leeW(ch.x0,ch.z0),leeW(ch.x0+CELL,ch.z0),leeW(ch.x0,ch.z0+CELL),leeW(ch.x0+CELL,ch.z0+CELL));} // the retention field over the cell (v11.81; cellCanopy to v11.80)
 // a generator (v11.12): turf is 1200 tries a cell and the strap 2400, an envW and an fbm each; a yield every 200 keeps a step under the budget (the rng is untouched by a yield)
 // the cell's lineage range (v11.119, region.js rangeBuild): the record whose ground the cell's middle is most inside — its coast nearest
@@ -495,5 +495,5 @@ function cullChunks(dt){
     // already collapsed the small things one by one on the way out) and its far impostors come on in their place (far.js farApplyCell)
     const ex=Math.max(ch.x0-cx,cx-ch.x0-CELL,0),ez=Math.max(ch.z0-cz,cz-ch.z0-CELL,0),near=ex*ex+ez*ez<FLORA_FAR*FLORA_FAR;
     if(near!==ch.near){ch.near=near;for(const m of ch.flora)m.visible=near;farCellDrawn(ch.i,ch.j);}}
-  poolCull(dt); // the species pools follow the cells' visibility (v11.52.1; v11.116 by flags)
+  poolCull(dt); // the species pools follow the cells' visibility (v11.52.1; v11.125 by flags)
 }
