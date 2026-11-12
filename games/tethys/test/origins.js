@@ -13,6 +13,9 @@ let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join(
 if(OFF){const a='const ORIGIN={on:true,';if(!js.includes(a))throw new Error('chunks.js ORIGIN not as expected');js=js.replace(a,'const ORIGIN={on:false,');}
 js+='\nglobal.__O={ORIGIN,chunks,POOLS,poolGroup,farList,player,cellsAround,CELL,FR,pp,ppG,plankton,fxP,fxPG,fxPts,blP,blPG,blood,plU,camera,tp:(x,z)=>{player.pos.set(x,dispY,z);camera.position.set(x-6,dispY+3,z-6);cellsAround();}};'; // the camera with the player, as main.js tp puts it (the render origin follows the camera, v11.113)
 const tmp=path.join(os.tmpdir(),'tethys_origins'+(OFF?'_off':'')+'.js');fs.writeFileSync(tmp,'(function(){"use strict";\n'+js+'\n})();');
+// Math.random seeded, the same stream in both runs (v11.120.1): the creatures' moults and the snow draw from it, and a moult drops a shed
+// mesh into its cell (creatures_ai.js moult, dropShed) — an unseeded run now and then had a shed the other had not, "1 of another length"
+{let q=0x2545f491;Math.random=()=>{q=(q+0x6D2B79F5)|0;let t=Math.imul(q^q>>>15,1|q);t=t+Math.imul(t^t>>>7,61|t)^t;return ((t^t>>>14)>>>0)/4294967296;};}
 process.env.PICK='1';require('./stub.js');require(tmp);const O=__O;
 // the world positions, in doubles: a mesh's vertices and an instanced mesh's translations, each plus its parents' places
 const placeOf=o=>{let x=0,z=0;for(let q=o;q;q=q.parent){x+=q.position.x;z+=q.position.z;}return [x,z];};

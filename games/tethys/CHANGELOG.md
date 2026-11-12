@@ -7085,3 +7085,10 @@ Seen headless (no page errors): ours' shelf at (160, 80) looking across a fresh 
 same picture: that ground was sand and turf in front of the forest, with no polyps or canopy to lose. **Unseen, ask in this order:** whether
 the clearings read at all on ours' reef top and in the forest at (330, 0) (`tp(0,300,-10)`, `tp(330,0,-11)`) — if they are too subtle,
 `DIST.share` (0.5) and the patch size (`DIST.f`) are the knobs; a far reef's mosaic (`tp(220400,19700,-6)`).
+
+## v11.120.1 — the origins test seeded (12 Nov 2026)
+
+test/origins.js compares the game booted twice (local origins on and off) and failed now and then under `npm run check`: "1 of another
+length". Its two runs drew different `Math.random` streams, and the creatures' moults draw from it — a moult drops a shed mesh into its cell
+(creatures_ai.js `moult`, `dropShed`), so one run sometimes had a shed the other had not. The test now seeds `Math.random` the same in both
+runs (mulberry32); nothing in the game changed. Five runs: the same 451,488 numbers each time.
