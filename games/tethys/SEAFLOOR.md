@@ -156,6 +156,10 @@ ocean's surface is what feeds from the air (birds over a bait ball mark the fish
 
 ## 6. Open: the range term
 
+**Built v11.119** (the person, 12 Nov 2026: "YES", analysis_flora_diversity §5.6): the lineages by hops down the colonisation chain
+(region.js `RANGE`, `rangeBuild`), the brooding lines' sister species by stretch (flora.js `range`, chunks.js `chRange`) — the sessile
+lines first; the creatures' `SPAWN` and `ecoCap` are not ranged yet.
+
 Tolerance envelopes cannot express an endemic. A brooder's range is history, not conditions: where it evolved and how far it has crawled since.
 That wants a range term on a species — a circle round the island it belongs to, or a dispersal radius from a founding cell — the first thing
 in the roster the geology alone cannot give. Still derived, not magic: dispersal mode decides who gets one (brooders and direct developers

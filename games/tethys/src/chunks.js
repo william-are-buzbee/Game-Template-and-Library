@@ -201,8 +201,11 @@ function poolCull(){ // after cullChunks has set every cell's visible and near: 
 function poolStats(){let draws=0,inst=0;for(const P of POOLS.values()){if(P.n>0)draws++;inst+=P.n;}return {pools:POOLS.size,draws:draws,inst:inst};} // the readout (main.js)
 function cellLee(ch){return Math.max(leeW(ch.cx,ch.cz),leeW(ch.x0,ch.z0),leeW(ch.x0+CELL,ch.z0),leeW(ch.x0,ch.z0+CELL),leeW(ch.x0+CELL,ch.z0+CELL));} // the retention field over the cell (v11.81; cellCanopy to v11.80)
 // a generator (v11.12): turf is 1200 tries a cell and the strap 2400, an envW and an fbm each; a yield every 200 keeps a step under the budget (the rng is untouched by a yield)
+// the cell's lineage range (v11.119, region.js rangeBuild): the record whose ground the cell's middle is most inside — its coast nearest
+function chRange(ch){if(ch.rng!==undefined)return ch.rng;let best=null,bd=1e18;for(const i of recsAt(ch.cx,ch.cz)){const R=ISLANDS[i],d=Math.hypot(ch.cx-R.x,ch.cz-R.z)-shWidth(R);if(d<bd){bd=d;best=R;}}return ch.rng=best&&best.rng!==undefined?best.rng:2;}
 function* placeFloraType(ch,rng,f){
   if(f.big)return; // structures are placed and drawn once for the whole world (far.js); placeBigSolids adds their collision
+  if(f.range&&f.range.indexOf(chRange(ch))<0)return; // a brooding line's species keeps to its range (v11.119)
   const rock=f.mat===MATROCK; // the rock is placed first (genChunk) and never asks; everything after it does
   let maxN=f.per||0; // the density at full tolerance (per cell); the envelope scales it per try
   const cw=f.leePer?cellLee(ch):0;if(cw>0.03)maxN=Math.max(maxN,f.leePer);
@@ -214,8 +217,10 @@ function* placeFloraType(ch,rng,f){
     const x=ch.x0+rng()*CELL,z=ch.z0+rng()*CELL;
     let p=(f.per||0)/maxN*(f.envs?envsW(ch,f.envs,x,z):f.env?ch.w(f.env,x,z):1);if(f.rare)p*=f.rare; // envs, rare (v11.66): the best of several envelopes (a shed lies where its kind lives), and a chance under one for a thing rarer than one try a cell
     if(f.pocket)p*=0.1+smooth(0.6,0.72,fbm(x*f.pocket+53,z*f.pocket+29,2));
+    if(f.meadow){const o=f.meadow[3]||0;p*=0.06+0.94*smooth(f.meadow[1],f.meadow[2],fbm(x*f.meadow[0]+71+o,z*f.meadow[0]+43+o,2));} // v11.116: meadows [frequency, lo, hi] — a runner's patches with bare sand between and a few shoots in it
     if(cw>0.03)p=Math.max(p,leeW(x,z)*f.leePer/maxN);
     if(f.field)p*=clamp(0.1+4*Math.pow(fbm(x*f.field+31,z*f.field+17,2),2.5),0,1.6);
+    if(f.succ&&p>0)p*=smooth(f.succ[0],f.succ[1],distAge(x,z,ch.f(x,z)[FI.expo],ch.h(x,z))); // v11.120: the age of the storm's clearing here (grow.js distAge)
     if(rng()>=p)continue;
     const h=ch.h(x,z);
     if(f.y!=='surface'){const cz=chemoAt(x,z);if(f.chemo?cz===null||h<cz+f.chemo[0]||h>cz+f.chemo[1]:cz!==null&&h<cz)continue;} // nothing sessile under a basin's chemocline but what straddles or mats it (f.chemo: a band about the chemocline, so none where there is none: v11.96, DEEP §2 — to v11.95 the -450 under the whole world)
@@ -224,7 +229,7 @@ function* placeFloraType(ch,rng,f){
     if(f.band&&(h<f.band[0]||h>f.band[1]))continue; // a depth band on the ground (the cones' tide band, the straddlers at the rim)
     if(f.y!=='surface'&&f.y!=='mid'&&ch.slope(x,z)>maxSlope)continue; // nothing grows on a cliff face
     let y=h,sc=f.s?f.s[0]+rng()*(f.s[1]-f.s[0]):1,sy=sc;
-    if(f.reach){if(h>-14)continue;sy=-h-0.6;sc=1;}
+    if(f.reach){if(h>-14)continue;sy=-h-0.6;sc=1;if(f.reach.length)sy*=f.reach[0]+rng()*(f.reach[1]-f.reach[0]);} // reach [lo, hi] (v11.116): that share of the water column, the forest's young (stipeling)
     else if(f.y==='surface'){y=f.ys!==undefined?f.ys:-0.45;}
     else if(f.y==='mid'){if(h>-30)continue;y=h<OXY.top?-40-rng()*300:clamp(h+12+rng()*70,h+10,-14);} // over the deep, above the oxygen minimum (OXY.top; the chemocline's -450 to v11.95)
     // v11.31.4: the rule fired on land too, where the room to the surface is negative, so every land species was skipped at every try — tussock, scrub and stranded had never once been placed anywhere on the island. A plant whose minH is above 0 is not growing up through the water.
@@ -236,7 +241,7 @@ function* placeFloraType(ch,rng,f){
     const sx=f.sx?f.sx[0]+rng()*(f.sx[1]-f.sx[0]):1,sz=f.sx?f.sx[0]+rng()*(f.sx[1]-f.sx[0]):1;
     d.scale.set(sc*sx,sy,sc*sz);d.updateMatrix();
     const fx=ch.f(x,z); // the conditions at the instance (v11.67): an `eco` species' variant is its exposure ecotype (grow.js ecoK — the same one draw the random pick made, so no cell's stream moves), and the place's chemistry stains the tint (tintBy; not the rock, not a surface float, not an entry with chem:false)
-    list.push({m:d.matrix.clone(),x:x,y:y,z:z,sc:sy,v:f.vars?(f.eco?ecoK(fx[FI.expo],rng()):Math.floor(rng()*f.vars.length)):0,tint:f.photo?pigment(f.y==='surface'?0:h,f.line):null,chem:rock||f.y==='surface'||f.chem===false?null:tintBy(h,fx,!!f.photo)});
+    list.push({m:d.matrix.clone(),x:x,y:y,z:z,sc:sy,v:f.vars?(f.eco?ecoK(Math.max(fx[FI.expo],ECO_FLOW*fx[FI.flow]),rng()):f.clone?cloneK(x,z,f.clone,rng()):Math.floor(rng()*f.vars.length)):0,tint:f.photo?pigment(f.y==='surface'?0:h,f.line):null,chem:rock||f.y==='surface'||f.chem===false?null:tintBy(h,fx,!!f.photo)});
   }
   if(!list.length)return;
   const im=makeInstanced(ch,rng,f.geo,f.mat,f.tints,list,!!f.pads,!!f.vars,f),soft=!!(f.mat&&f.mat.sway&&!f.mat.land);

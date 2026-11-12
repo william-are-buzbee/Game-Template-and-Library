@@ -157,7 +157,16 @@ one under the ground past its features gives only its influence (`islandW`). The
 (`R.an`, `anT`). The seamount effect is blended (v11.102): every record's influence `isl` joined as 1−Π(1−isl), the current's aspect
 weighted by them, where to v11.101 the highest record's alone counted and two neighbours' halos met on a straight seam. And the smooth
 surface (`hs`, the relief's reference) goes down the lower flank with the ground: to v11.101 it stayed at the apron's −290, so the relief
-read 0 on every lower flank and on the floor inside every record's reach.
+read 0 on every lower flank and on the floor inside every record's reach. **The islands shelter each other (v11.117;
+analysis_flora_diversity §5.4; GLOBE §9 stage 5):** world.js `SHELTER`, `shelterBuild`, `shT`, `R.sh`. A record's aspect to the wind and
+the current was its own alone; now what stands upwind and upstream scales the water's `expoW` and `upW` at each face. A wave shadow: every
+other record at the surface upwind (tops from −25 to −3 count, a reef awash fully), e-fold `w.L` 30 km (the swell bent round it fills in, the
+trade sea grows back over its fetch), capped at 0.7. A wake: anything standing above −200 (−20 fully) up-current, e-fold 1.5× its width, at
+least 12 km, capped at 0.5 — slower water past it (`flow` reads `upW`), less upwelling on the next flank, so less food. Each shadow starts
+past the obstacle's width and spans its width plus `edge` 3 km across; per record a table of 32 angles at its coast, built once at load
+after `rgBuild`. Only the water's fields take it: `islandH` hands `upW`·(1−shelter) and `expoW`·(1−shelter) out, while the land's rain and
+its sea cliffs keep the record's own aspect (a first try sheltered those too and moved the land by up to 348 m). The pins (ours, the giant)
+take none — their fields were set by hand, already against the drowned atoll up-current of ours — and cast it on the others.
 
 **The records' index (v11.103, GLOBE §10 step 1; world.js `RIX`, `rixBuild`, `recsAt`).** The lookups by place — `sample()`, and per vertex
 `apronAt` and `coneK` — take the records near a point from a grid of `RIX.B` (2 km) buckets, each listing in ISLANDS order the records whose
@@ -1139,7 +1148,12 @@ instance's base (`ch.f(x,z)` in `placeFloraType`, the same nearest-vertex condit
 ecotype:* an `eco` entry's variant index is drawn from `expo` instead of at random (grow.js `ecoK`: sheltered under `ECO_LO` 0.22, exposed over
 `ECO_HI` 0.5, the thresholds jittered ±`ECO_MIX` 0.24/2 per instance, the one rng draw the random pick made so no cell's stream moves), and the
 builder reads k 0..2 as sheltered..exposed — turf, wisp, chain, stipe, ladder, ribbon, bladder (a `species()` since v11.67, `bladderB`; it was the
-last kept one-variant weed) and paddle. Since `expo` fades out by −30 (World shape), the coasts differ in the forest's top 25 m only. *The
+last kept one-variant weed) and paddle. Since `expo` fades out by −30 (World shape), the coasts differed in the forest's top 25 m only; since
+v11.116 the ecotype reads the water's motion, max(`expo`, `ECO_FLOW` 0.8 × `flow`), so below the wave base the current sorts the forest
+(quartiles 0.27–0.51 there). *The clone (v11.116):* a `clone` entry (the runners: strap, grape) draws its variant from its patch — grow.js
+`cloneK`, fbm at the `clone` frequency cut at its terciles — so a meadow is one habit and the next another. *The young (v11.116):* `reach`
+as [lo, hi] stands a reach entry at that share of the water column: the stipe's young, `stipeling` (300 a cell at 0.3–0.7, the adults 700),
+the adult's form without the canopy whorl. *The
 stain:* grow.js `tintBy(h,f,photo)` composes up to three stains (`TINT_CHEM`: rust [0.44,0.25,0.12] on the animals and dull [0.36,0.33,0.22]
 on the weeds by `young` smoothed in over 0.15–0.6, cover 0.55 / 0.45; sulfur [1,0.94,0.62] by `heat` over 0.1–0.5, cover 0.7; cream
 [0.92,0.86,0.72] on the shells where h > −22, `sub` > 0.65, `expo` > 0.45 and `nut` < 0.42 — the lime rind's water, and the coat class's rule
@@ -1154,7 +1168,12 @@ for now"). The
 forest at (330, 0), like for like in the app's pane with the loop driven by hand (25 cells): 184 → 185 draws, 4.88 → 5.05 M triangles.
 
 **The table.** Per species: `per` (instances per cell at full tolerance) and `env` (World shape, envelopes; v10 — the per-biome counts are gone), scale range, tilt, sink, `field`, `rim`,
-`y: 'floor'|'surface'|'mid'`, `ys`, `reach`, `glow`, `vent`, `maxSlope`, `minH`, `canopyPer`, `pocket`, `big`, and
+`y: 'floor'|'surface'|'mid'`, `ys`, `reach`, `glow`, `vent`, `maxSlope`, `minH`, `canopyPer`, `pocket`, `meadow` (v11.116: [frequency, lo, hi] —
+fbm patches over smooth(lo, hi), 6% between: the strap's meadows, about half the sand; v11.118 `meadow[3]` the noise's offset), `clone`, `range`
+(v11.119: the stretches of the colonisation chain a brooding line's species stands in — 0 the old east, 1 the middle, 2 the young west, by
+hops from the founder, region.js `RANGE`, `rangeBuild`; a cell's by the record whose ground its middle is most inside, chunks.js `chRange`), `succ` (v11.120: [lo, hi], the storm clearing's age a species needs — grow.js `DIST`, `distAge`: patches
+~60 m over 16–20% of the exposed hard shallows, their ages a mosaic; the reef's polyps 0.5–0.95, the canopy 0.3–0.6, its young and the lime
+chain at once; the turfs and crusts none), `big`, and
 since v9.5 `photo` (a weed: tinted by `pigment(ground depth, line)` per instance, `line` one of `green|float|red` since v11.15;
 the `tints` list then only colours the far impostors), `flow` (yaw from `flowYaw`, ±0.25 rad), `band:[lo,hi]` (ground height the species stands in) and the
 surface cap: a floor entry with `top` that would stand into the air is shortened in y to fit under −1.4 or skipped

@@ -6966,3 +6966,152 @@ middle and the blocks only in the new ring; past 229 km the 197 km window kept, 
 errors. **Unseen, ask in this order:** whether the flicker is gone on your machine (`n`, the wheel out a notch at a time from the opening view,
 then quickly; a drag); whether the stall when the window re-samples (the map frozen ~0.1–0.25 s, as before) is what read as "until you move
 the mouse" — if so, the sampling can go over frames as a generator; the kept window's edge past 229 km (615 m a pixel against the world's 746).
+
+## v11.116 — meadows, not a lawn; variants that read; a forest with ages (12 Nov 2026)
+
+The flora diversity pass's first two changes (analysis_flora_diversity.md §5.1 and §5.3; the person, 12 Nov 2026: "Yes go ahead with 1 and
+3"). The review found the roster plausible for a remote province and its layout not: one runner on every sandy floor, variants that were
+the same shape three sizes, and every forest one stipe to the surface. The analysis is committed with the person's decisions.
+
+- **Meadows** (flora.js strap; chunks.js `meadow`): strap 2,400 tries a cell → 1,400, grown in meadows — fbm at 0.012 (~80 m) over
+  smooth(0.42, 0.55), about half the sand, 6% of the density between them as scattered shoots. To v11.115 strap was 91% of what the eye saw
+  on every lagoon floor in the province.
+- **The clone** (grow.js `cloneK`, the `clone` key): a runner spreads by its runners, so a meadow is one plant and one habit; strap's and
+  grape's variant is their patch's (fbm at 0.006, ~160 m, cut at its terciles), not each plant's. The draw the cell made anyway jitters
+  the edges, so no cell's random stream moves.
+- **Variants with shapes, not sizes** (flora.js). Each variant 0 is v11.115's geometry to the draw.
+  - strap: the pasture; the upright fan (four long narrow blades from one sheath: turtle grass); the paired ovals (leaf pairs on short
+    stalks along a creeping runner: Halophila).
+  - grape: the bunches; the peltate discs on short stalks; the feathers (upright fronds of paired pinnules) — Caulerpa's three habits.
+  - horn: the bushy antler; tall sparse horns; the fan (branching in one plane). The rust horn and the deep thicket share it.
+  - dome: the banded mound; the lobate colony; the plate-edged mound (a low dome on a shelf of plate). The rust dome shares it.
+  - bommie: the head; squat and broad; tall and capped (the top tier spreading out).
+- **The ecotype reads the water's motion** (grow.js `ECO_FLOW` 0.8): max(`expo`, 0.8 × `flow`). Below the wave base `expo` is 0 and every
+  forest was the sheltered form (at m28's fed slope all 281 stipes were variant 0); the current there runs 0.27–0.51 (quartiles).
+- **A forest with ages** (flora.js `stipeling`, `stipelingB`; `reach` [lo, hi]): the forest's young as their own entry, 300 tries a cell at 0.3–0.7
+  of the water column, the adults 900 → 700 — the adult's stalk and spiral blades, fewer and smaller, no float up top and no canopy whorl. A
+  first try shrank a share of the adults instead, and their surface whorls stood mid-water like ceiling fans (seen headless).
+- **wisp off the lagoons:** `nut` [0.3, 1] — the floaters' line is the fed flanks' (TAXA); lagoon floors are 0.17–0.21.
+- **Docs:** analysis_flora_diversity.md (the review, its sources, the person's decisions); DESIGN (the keys, the clone, the young); FLORA.md's strap.
+Measured with the review's own census (genChunk on 3×3 cells at its 15 sites, every instance counted within 100 m; N2 the inverse
+Simpson by count, N2v by the eye's share):
+
+| site | instances | N2 | N2v | the strap's variants |
+|---|---|---|---|---|
+| ours, the lagoon | 1,748 → 410 | 1.73 → 3.77 | 1.18 → 2.10 | 5 / 23 / 155 (the ovals' clone) |
+| m140 atoll, lagoon | 1,435 → 540 | 1.72 → 2.22 | 1.18 → 1.49 | 167 / 79 / 107 |
+| m122 bank, the flat | 1,384 → 484 | 1.76 → 2.34 | 1.20 → 1.59 | 18 / 29 / 258 |
+| m28 atoll (217 km), lagoon | 1,501 → 713 | 1.79 → 2.03 | 1.20 → 1.40 | 369 / 67 / 55 (the pasture's) |
+| ours, the shelf forest (330, 0) | 1,653 → 1,689 | 5.95 → 6.45 | 1.29 → 1.67 | stipeling 10% of the view |
+| m138, shelf | 1,721 → 1,753 | 6.42 → 6.79 | 1.47 → 2.01 | |
+| m28, fed slope −56 | 1,160 → 1,198 | 8.51 → 10.58 | 1.57 → 2.08 | stipes 82 / 131 / 0 (all 0 to v11.115) |
+
+The reef tops, the terraces, the twilight and the deep are as they were (their N2 within ±0.5; nothing there changed but the variants'
+shapes). Every lagoon reads as its own: a different clone in each.
+
+Seen headless (software GL, no page errors): ours' lagoon from 18 m down — pale sand, scattered feathers and peltate grapes, a meadow's edge of
+upright fans further off, where v11.115 was strap to the fog; m28's lagoon a meadow of the pasture clone; the shelf forest at (330, 0) with its
+young among the adults. **Unseen, ask in this order:** a lagoon in play (`tp(0,0,-18)`), whether half the sand bare is too bare; the forest's
+young from inside it; the new shapes up close (the lobate and plate-edged domes, the fan horns, the capped bommies); the frame time in the
+forest (the young add ~300 instances a cell, one draw).
+
+## v11.117 — the islands shelter each other (12 Nov 2026)
+
+The flora diversity review's §5.4 (the person, 12 Nov 2026: "YES to islands shielding each other"). A record's aspect to the wind and the
+current was its own alone, so every atoll's windward face was surf and its fed face a forest, whatever stood upwind; GLOBE §9 stage 5 named
+the cure ("islands shelter one another's coasts and shade one another's wakes").
+
+- **world.js `SHELTER`, `shelterBuild`, `shT`; `R.sh`** (built once at load, region.js after `rgBuild`): per record, at its coast, by the world
+  angle (32 bins each), the shelter from every other record:
+  - **the wave shadow** of anything at the surface upwind (tops from −25 to −3 count, a reef awash fully), e-fold 30 km — the swell bent round
+    fills in and the trade sea grows back over its fetch — capped at 0.7;
+  - **the wake** of anything standing above −200 up-current (−20 fully), e-fold 1.5× its width and at least 12 km, capped at 0.5: slower water,
+    so less upwelling on the next flank and a slower current (`flow` reads `upW`).
+  Each shadow starts past the obstacle's own width and spans its width plus 3 km across.
+- **Only the water's fields take it:** `islandH` hands out `upW`·(1 − wake) and `expoW`·(1 − shadow); the land's rain and its sea cliffs keep the
+  record's own aspect. A first try sheltered those too and moved the land by up to 348 m.
+- **The pins take none:** ours and the giant cast shelter on the others and keep their own fields — set by hand, already against the drowned
+  atoll up-current of ours. Sheltered like the rest, ours' shelf forest at (330, 0) would fall from `nut` 0.60 to 0.45, the forest's edge:
+  the person's call (below).
+- **What moved:** 106 of 122 records sheltered over 0.3 somewhere; above −160 over ±70.5 km at 400 m, 92% of places' fields, the nearest 9.6 km
+  from ours (none of ours' or the giant's); the ground nowhere (test/region.js, 4,000 places, with it and without).
+- **The review's census** (its 15 sites, as v11.116's): ours and the giant unchanged; the 308 m island's windward shelf, in the bank m122's and
+  the atoll m139's wave shadow (0.53), from a forest to a mix — paddle 23%, strap 19%, turf 13% by count, N2 by the eye 2.01 → 7.02; m28's
+  reef top 23 → 27 species, N2 by the eye 2.59 → 4.17; m28's fed slope in a wake, the stipes 18% → 12% and the crusts and cups up; the lagoons
+  as they were. The review's island table moves little (atoll to atoll similarity, median 0.80 → 0.82): it counts individuals, and the lagoons,
+  which no shelter reaches, are most of them.
+- **Tests:** test/region.js the pins unsheltered, the 308 m island in a wave shadow, the east atoll m141 in a wake, m148 open, the ground the
+  same; test/plankton.js "another island's fed flank is gold" moved from m141 (now in the drowned atoll's and the bank's wake: gold 0.73 against
+  green 0.74) to the open m148 (gold 2.46), and pins the wake's loss.
+
+Seen headless (software GL, no page errors): the 308 m island's windward shelf at 9 m, before and after — grey rubble with stipes and cones
+to v11.116, pale sand with paddles, the strap's upright fans and grapes now (the shadow keeps the sand on the shelf: `sub` 0.72 → 0.45).
+**Unseen, ask in this order:** whether ours should take the shelter too (its forest at (330, 0) to its edge, `nut` 0.60 → 0.45 — the wake of the
+bank m122 41 km up-current and the drowned atoll m131); the 308 m island's shelf in play (`tp(-374,-23525,-9)`); a sheltered atoll's windward
+reef against an open one's.
+
+## v11.118 — a second sand flora (12 Nov 2026)
+
+The flora diversity review's §5.5 (the person, 12 Nov 2026: "YES to ... another sand flora"). Sand is the province's commonest lit ground
+and had the fewest species of its own: strap, sandball, pen and glass. Three more, each within TAXA's lines (TAXA and FLORA.md list them):
+
+- **tress** (the greens' runner; `tressB`): the strap's congener in the deep lagoons, −46 to −22 — the shade form, fewer, longer, narrower
+  uprights (single ribbons, ribbon pairs, or tufts of round leaves: Syringodium's), 600 a cell in its own meadows among the strap's
+  (`meadow[3]`, the noise's offset; chunks.js) and its own clones.
+- **coin** (the greens' lime chain; `coinB`): its lagoon form — a bulb in calm sand (`expo` under 0.35), a short stalk, lime coins chained
+  edge to edge in a fan, a bush or a low tuft: Halimeda's sand species hold so, where the rock-and-surf chain cannot.
+- **flask** (the sacs, mass in calm water; `flaskB`): a bottle sunk to its shoulders in the lagoon's sand, its neck up into the water —
+  one, a pair, or a squat jar — as Earth's sand-dwelling sponges and ascidians stand, pumping clear of the silt.
+
+The review's census (its 15 sites; tress at 900 a cell when measured, 600 since, so its shares below are high): every lagoon gains three
+species — ours 8 → 11, m140 7 → 10, m122's flat 7 → 10, m28's 7 → 10 — and N2 by count rises (ours 3.77 → 4.57, m140 2.12 → 3.53, m122 2.32 →
+3.83, m28 1.84 → 2.37); by the eye m140 1.45 → 2.03 and m122 1.58 → 2.56, but ours 2.10 → 1.82, where the tall tress took 37% of its deeper
+floor (the reason for 600). The reef tops gain the odd coin or flask; nothing else moves. Seen headless (no page errors): m140's lagoon at −27
+— the strap's upright fans, tress ribbons and tufts, grapes, sandballs, the coins and flasks among them — where v11.117 had strap and sand;
+ours' lagoon sand with feathers, sunk flasks and tress at its deeper edge. **Unseen, ask in this order:** a deep lagoon in play
+(`tp(3692,20109,-27)`); whether the flasks read as animals; the frame time (three species, three draws where they stand).
+
+## v11.119 — species by island group (12 Nov 2026)
+
+The flora diversity review's §5.6, SEAFLOOR §6's range term (the person, 12 Nov 2026: "YES ... the other two as well"). The review found
+atolls 1 and 30 Ma old with the same flora in the same proportions: the region model knew how the province was settled and the records threw
+it away.
+
+- **region.js `RANGE`, `rangeBuild`:** the model's first light (`lit`) and source (`src`) of every member make a colonisation chain from the
+  founder, m2 in the far east 30 Ma ago, down to ours in 20 hops (the median hop 11 km, the longest 54). A brooder crosses a gap rarely, so its
+  populations along the chain drift apart with the hops between them — isolation by distance. The chain cut by hops into three stretches,
+  each about a third of the records: the old east (≤ 7 hops: 42 records, x 146–293 km), the middle (8–14: 40, x 60–182 km) and the young west
+  (15+: 40, x −60–75 km; ours 20, the giant 20). `R.hops`, `R.rng` on every record; a member never lit takes its nearest lit record's.
+- **flora.js `range`, chunks.js `chRange`:** a species with a range stands only in cells of those stretches (a cell's: the record whose ground
+  its middle is most inside, cached on the cell). SEAFLOOR §6's rule picks the lines: the brooders — the sacs, the crowns, and the cones the
+  brooding hingeshells became; every line with larvae or spores stays one species over the province.
+- **The sisters** (flora.js; each keeps its line's envelope): the tube's — **pipe** (the middle's: organ pipes fused at a base) and **urn**
+  (the old east's: one or two fat waisted tubes with a flared lip); the lily's — **tier** (two arm rings up one stalk) and **rosette** (no
+  stalk, a crown on a low base with longer arms); the cone's — **column** (tall close columns) and **cap** (low wide caps). The base forms keep
+  the young west: every record within 50 km of ours (within ±70.5 km all but m99 and m100, 60 and 68 km east). The ranges are disjoint, so no
+  view draws more.
+- **Tests:** test/region.js the stretches, the founder east, ours west, every record within 50 km of ours west. TAXA, FLORA.md, SEAFLOOR §6
+  (built) and DESIGN carry the rest.
+
+## v11.120 — storm clearings and regrowth (12 Nov 2026)
+
+The flora diversity review's §5.7 (the person, 12 Nov 2026: "YES ... the other two as well"). The reef top and the forest were each one even
+stand. On Earth a storm every decade or so clears patches of the exposed shallows — the polyps broken to rubble, the kelp torn out to its
+holdfast — and they grow back in an order, so at any time the exposed shallows are a mosaic of patches of every age.
+
+- **grow.js `DIST`, `distAge(x, z, expo, h)`:** patches of ~60 m (fbm at 0.018) over a share of the ground by the waves' exposure (0.3–0.85)
+  and the storm's reach in depth (−35 to −4), at most half; each patch's age a second fbm, 0 just cleared, 1 grown back. Placement only — no
+  state, no rng: the same cell grows the same mosaic every time.
+- **The `succ` key** (chunks.js placeFloraType: the chance × smooth(lo, hi, age)): the reef's polyps last — table 0.55–0.9, horn 0.5–0.85, dome
+  and bommie 0.65–0.95; the canopy (stipe) 0.3–0.6; its young (stipeling) 0.08–0.25 and the lime chain 0.05–0.2, at once; the turfs, crusts,
+  rinds and cones none — the pioneers on the bare rock.
+- **What it does:** 23% of ours' exposed hard shallows in a clearing at 20 m (test/pool.js), about half of those young enough to lack the
+  polyps; a fresh one at (220, 50) by the shelf forest. The review's census, averaging 100 m round each site, moves by under 0.1 in N2: a
+  mosaic of 60 m patches over a fifth of the ground changes a view by its patches, not its list.
+- **Ours' reef top and forest take it** (unlike the shelter, this is placement, not the pins' fields): their patches have clearings now.
+- **Tests:** test/pool.js the share, the calm and the deep untouched, the fresh clearing, the species back in order.
+
+Seen headless (no page errors): ours' shelf at (160, 80) looking across a fresh clearing at (220, 50) to the forest, before and after — the
+same picture: that ground was sand and turf in front of the forest, with no polyps or canopy to lose. **Unseen, ask in this order:** whether
+the clearings read at all on ours' reef top and in the forest at (330, 0) (`tp(0,300,-10)`, `tp(330,0,-11)`) — if they are too subtle,
+`DIST.share` (0.5) and the patch size (`DIST.f`) are the knobs; a far reef's mosaic (`tp(220400,19700,-6)`).

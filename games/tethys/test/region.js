@@ -8,7 +8,7 @@ const util=fs.readFileSync(path.join(root,'vendor/wb-core.global.js'),'utf8')+'\
 let world=fs.readFileSync(path.join(root,'src/world.js'),'utf8');const cut=world.indexOf('// ---------- the light');if(cut>0)world=world.slice(0,cut); // the geology and the fields (test/map.js's cut)
 const region=fs.readFileSync(path.join(root,'src/region.js'),'utf8');
 const THREE={Vector3:class{constructor(x,y,z){this.x=x;this.y=y;this.z=z;}},Matrix4:class{},Quaternion:class{}};
-const G=new Function('THREE',util+'\n'+world+'\n'+region+'\nreturn {sample,HALF,WX0,WX1,WZ0,WZ1,WORLD70,CELL,FI,ISLANDS,REGION_K,REGION_PINS,RG_STATE,regionModel,regionGrid,regionBasins,regionSeen,rgKei,rgSea,rgTrack,OXY,chemoAt,chemoD,oxyAt,underChemo,chemoB:()=>CHEMO_B,apronAt,apronR,RG_BUILT,rgFloor,BASIN,islandH,recsAt,FILL_TOP};')(THREE);
+const G=new Function('THREE',util+'\n'+world+'\n'+region+'\nreturn {sample,HALF,WX0,WX1,WZ0,WZ1,WORLD70,CELL,FI,ISLANDS,REGION_K,REGION_PINS,RG_STATE,regionModel,regionGrid,regionBasins,regionSeen,rgKei,rgSea,rgTrack,OXY,chemoAt,chemoD,oxyAt,underChemo,chemoB:()=>CHEMO_B,apronAt,apronR,RG_BUILT,rgFloor,BASIN,islandH,recsAt,FILL_TOP,shT,SHELTER};')(THREE);
 let fails=0;const ok=(c,msg)=>{console.log((c?'  ok   ':'  FAIL ')+msg);if(!c)fails++;};
 console.log('region: the pieces');
 // kei(x) (A&S Table 9.12): 1 → −0.494991, 2 → −0.202400, 3 → −0.051123, 4 → +0.002198; the table is kei/kei(0), kei(0) = −π/4
@@ -94,6 +94,20 @@ ok(RB.struck.every(q=>RB.recs.some(r=>r.id===q.by)||q.by==='home'||q.by==='giant
     let own=-1e9;for(const i of G.recsAt(x,z)){const R=G.ISLANDS[i];if(Math.hypot(x-R.x,z-R.z)>R.reach*R.sc)continue;G.islandH(R,x,z,I);if(I.h>own)own=I.h;}
     if(h>own+0.01){over++;if(h-own>worst){worst=h-own;at=`(${(x/1000).toFixed(1)}, ${(z/1000).toFixed(1)}) km`;}}}
   ok(n>1000&&over===0,`above ${G.FILL_TOP} m the ground is the highest record's own: ${over} of ${n} places at 400 m over the world higher${over?' (the worst '+worst.toFixed(1)+' m at '+at+')':''}; ${(land*0.16).toFixed(0)} km² of land, every bit some record's`);}
+// v11.117 (analysis_flora_diversity §5.4; the person, 12 Nov 2026): the islands shelter each other — what stands at the surface upwind casts a
+// wave shadow, what stands up into the current a wake (world.js SHELTER, shelterBuild); the pins take none (their fields were set by hand); the
+// land is untouched (its rain and its sea cliffs read the record's own aspect, the shelter only the water's fields)
+{const I=id=>G.ISLANDS.find(R=>R.id===id),sh=(id,k,a)=>{const R=I(id);return R&&R.sh?G.shT(R.sh,k,a):0;},WA=Math.atan2(-Math.sin(3.49),-Math.cos(3.49)),CA=5.44;
+  ok(!G.ISLANDS[0].sh&&!G.ISLANDS[1].sh,'ours and the giant take no shelter (the pins: their fields are as v11.116\'s)');
+  const w138=sh('m138',0,WA),c141=sh('m141',1,CA),c148=sh('m148',1,CA),n=G.ISLANDS.filter(R=>R.sh&&[...R.sh].some(v=>v>0.3)).length;
+  ok(w138>0.4&&c141>0.3&&c148<0.1,`the 308 m island's windward face in a wave shadow (${w138.toFixed(2)}: the bank m122 and the atoll m139 upwind), the east atoll's fed face in a wake (${c141.toFixed(2)}), m148's open (${c148.toFixed(2)}); ${n} of ${G.ISLANDS.length} records sheltered over 0.3 somewhere`);
+  const pts=[];for(let k=0;k<4000;k++){const R=G.ISLANDS[2+k%(G.ISLANDS.length-2)],a=k*2.399,r=(R.land?R.land.r*1.2:R.rimR!==undefined?R.rimR+800:1500)*R.sc*((k%7)/7+0.2);pts.push([R.x+Math.cos(a)*r,R.z+Math.sin(a)*r]);}
+  const h1=pts.map(p=>G.sample(p[0],p[1]).h),keep=G.ISLANDS.map(R=>R.sh);for(const R of G.ISLANDS)R.sh=null;const h0=pts.map(p=>G.sample(p[0],p[1]).h);G.ISLANDS.forEach((R,i)=>{R.sh=keep[i];});
+  ok(h1.every((h,i)=>h===h0[i]),'the ground with the shelter and without it the same to the bit at 4,000 places over every record (the water\'s fields alone take it)');}
+// v11.119 (analysis_flora_diversity §5.6, SEAFLOOR §6): the lineages — hops down the colonisation chain from the founder, cut into the old
+// east, the middle and the young west (region.js RANGE, rangeBuild): a brooding line's sister species keep to theirs
+{const I=id=>G.ISLANDS.find(R=>R.id===id),n=[0,1,2].map(r=>G.ISLANDS.filter(R=>R.rng===r).length),w70=G.ISLANDS.filter(R=>Math.max(Math.abs(R.x),Math.abs(R.z))<70520),w50=G.ISLANDS.filter(R=>Math.hypot(R.x,R.z)<50000);
+  ok(I('m2').hops===0&&I('m2').rng===0&&I('home').hops===20&&I('home').rng===2&&n.every(v=>v>=30)&&w50.every(R=>R.rng===2),`the chain's stretches: ${n[0]} records in the old east, ${n[1]} in the middle, ${n[2]} in the young west; the founder m2 0 hops, ours ${I('home').hops}; every record within 50 km of ours the west's (${w50.length}: the brooders' forms there as they were), within ±70.5 km all but ${w70.filter(R=>R.rng!==2).map(R=>R.id+' '+(R.x/1000).toFixed(0)+' km east').join(', ')}`);}
 ok(Math.abs(G.rgFloor(6000,0)-G.BASIN.h)<0.5,`the model's floor read by the game beside ours: ${G.rgFloor(6000,0).toFixed(1)} (${G.BASIN.h})`);
 // the log: what the default province is
 const cnt={};let land=0;for(const m of M){cnt[m.state]=(cnt[m.state]||0)+1;land+=m.land;}

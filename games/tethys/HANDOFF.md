@@ -1,8 +1,35 @@
 # HANDOFF — tethys
 
+**v11.120 (12 Nov 2026): storm clearings and regrowth** (analysis_flora_diversity §5.7). A mosaic of storm-cleared patches over the
+exposed shallows (grow.js `DIST`, `distAge`), each species back by its own pace (`succ`): turfs and crusts at once, the kelp's young and the
+lime chain within a year or two, the canopy in a few, the reef's polyps last. Ours' reef top and forest have clearings now. **Ask first**
+whether the clearings read (`tp(0,300,-10)`, `tp(330,0,-11)`), then the patch reefs (review §5.2), left to consider.
+
+**v11.119 (12 Nov 2026): species by island group** (analysis_flora_diversity §5.6; SEAFLOOR §6, the range term). The chain cut by hops from
+its founder into the old east, the middle and the young west (region.js `RANGE`); the brooding lines (tube, lily, cone) have a sister species
+in each of the other two (pipe and urn, tier and rosette, column and cap). Ours' stretch keeps the forms it had. **Ask first** whether the
+east's forms read as their own species (`tp(216062,15200,-9)`).
+
+**v11.118 (12 Nov 2026): a second sand flora** (analysis_flora_diversity §5.5). tress (the deep lagoons' runner), coin (the lime chain's
+lagoon form) and flask (a sac sunk in the sand): every lagoon three species richer. **Ask first** how a deep lagoon reads (`tp(3692,20109,-27)`).
+
+**v11.117 (12 Nov 2026): the islands shelter each other** (analysis_flora_diversity §5.4; the person: "YES to islands shielding each
+other"). What stands at the surface upwind casts a wave shadow, what stands into the current a wake (world.js `SHELTER`): 106 of the 122
+records are sheltered somewhere. The water's fields only — the ground is the same to the bit — and the pins (ours, the giant) take none.
+**Ask first** whether ours should take it too (its forest at (330, 0) would thin to its edge), then the 308 m island's windward shelf.
+
+**v11.116 (12 Nov 2026): meadows, not a lawn; variants that read; a forest with ages** (analysis_flora_diversity.md §5.1, §5.3; the
+person: "Yes go ahead with 1 and 3"). The strap grows in meadows over about half the sand, each meadow one clone of one habit; the runners',
+the horn's, the dome's and the bommie's variants are growth forms, not sizes; the ecotype reads the current below the waves; the forest has
+its young (`stipeling`); wisp keeps to fed water. **Ask first** how a lagoon reads now (`tp(0,0,-18)`), then the forest at (330, 0).
+Next: the patch reefs, to consider (review §5.2).
+
 **v11.115.1 (12 Nov 2026): the world map's zoom without the flicker.** A notch of the wheel or a drag showed the world's 746 m picture until
 the new window was sampled (0.3–0.4 s a notch, the whole time the wheel turned); the last window now stays drawn in its place over it.
 **Ask first** whether zooming the map out (`n`, the wheel) still flickers, and whether the short freeze as it re-samples bothers you.
+
+**12 Nov 2026, after v11.115 merged:** the constructors' place waits (DEEP §11: "later once we have the islands down a bit more"). Next, in
+another chat: a believability pass over the archipelago as it now stands — size, scope, shape.
 
 **v11.115 (12 Nov 2026): the province** (GLOBE §10.1, step 3 of 3). The world is x −75.7 … 306.2 km, z −101.5 … 125.6 km (1,776 × 1,056 cells),
 every member of the region model that reaches it a record: 122, the new 75 atolls, banks and guyots east of ours. The ±70.5 km world is
