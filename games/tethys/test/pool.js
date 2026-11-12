@@ -8,7 +8,7 @@ const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..');
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
 let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n');
-js+='\nglobal.__pool={POOLS,poolStats,poolCull,chunks,ckey,cellOf,loadChunkNow,unloadChunk,worldClear,FLORA,FAR_IMP,player,Q,NCELL};';
+js+='\nglobal.__pool={POOLS,poolStats,poolCull,chunks,ckey,cellOf,loadChunkNow,unloadChunk,worldClear,FLORA,FAR_IMP,player,Q,NCELL,distAge,sample,FI};';
 const tmp=path.join(require('os').tmpdir(),'tethys_pool.js');
 fs.writeFileSync(tmp,'(function(){"use strict";\n'+js+'\n})();');
 process.env.PICK='0';
@@ -78,4 +78,13 @@ check('a 5×5 loaded');let grew=0;for(const P of X.POOLS.values())if(P.cap>(caps
 const mid4=X.chunks.get(X.ckey(ci,cj));let sameG=0,diffG=0;for(const [f,b] of before){if(same(b,blockOf(f,mid4)))sameG++;else diffG++;}ok(diffG===0,'the middle cell\'s blocks intact across the growth: '+sameG+' same, '+diffG+' different');
 const st=X.poolStats();console.log('  the 5×5: '+st.draws+' pool draws for '+st.inst+' instances; per cell it was '+[...X.chunks.values()].reduce((n,ch)=>n+ch.pooled.length,0)+' meshes');
 X.worldClear();
+// v11.120 (analysis_flora_diversity §5.7): the storm clearings — a mosaic of patch ages over the exposed shallows (grow.js distAge), each
+// species back at its own pace (`succ`): the reef's polyps last, the canopy after its young, the turfs and crusts at once
+{const f=new Float32Array(9),F=id=>X.FLORA.find(e=>e.id===id);let n=0,cl=0,deep=1,calm=1;
+  for(let x=-1500;x<1500;x+=20)for(let z=-1500;z<1500;z+=20){const h=X.sample(x,z,f).h;if(h<-60)deep=Math.min(deep,X.distAge(x,z,f[X.FI.expo],h));if(f[X.FI.expo]<0.25&&h<-3)calm=Math.min(calm,X.distAge(x,z,f[X.FI.expo],h));
+    if(h<-35||h>-3||f[X.FI.expo]<0.3||f[X.FI.sub]<0.5)continue;n++;if(X.distAge(x,z,f[X.FI.expo],h)<0.999)cl++;}
+  const fresh=X.distAge(220,50,X.sample(220,50,f)&&f[X.FI.expo],X.sample(220,50).h);
+  ok(deep===1&&calm===1&&cl>0.1*n&&cl<0.3*n&&fresh<0.05,`the clearings: ${(100*cl/n).toFixed(0)}% of ours' exposed hard shallows (${n} places at 20 m), none below the storms' reach or in calm water, a fresh one at (220, 50) by the shelf forest (age ${fresh.toFixed(2)})`);
+  const lo=id=>F(id)&&F(id).succ?F(id).succ[0]:null;
+  ok(['table','horn','dome','bommie'].every(id=>lo(id)>=0.5)&&lo('stipe')>=0.25&&lo('stipe')<0.5&&lo('stipeling')<lo('stipe')&&lo('chain')<0.15&&lo('turf')===null&&lo('limerind')===null,`back in order: the polyps at ${['table','horn','dome','bommie'].map(lo).join('/')}, the canopy ${lo('stipe')}, its young ${lo('stipeling')}, the lime chain ${lo('chain')}; the turf and the lime rind at once`);}
 console.log(fails?'\nFAIL '+fails:'\nALL OK');process.exit(fails?1:0);

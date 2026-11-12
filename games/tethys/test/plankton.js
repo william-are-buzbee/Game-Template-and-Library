@@ -32,6 +32,7 @@ const sites=[
   {name:'the lee, past the eddies',a:dn,r:2000},
   {name:'the vent field',a:2.6,r:1310},
   {name:'the east atoll\'s fed flank',x:Math.round(15300+Math.cos(5.44)*2800),z:Math.round(-5600+Math.sin(5.44)*2800)}, // v11.102: the sill's gap went with the sill; another member's own upwelling (m141, its rim at r 1891, region.js)
+  {name:'an open atoll\'s fed flank',x:-26991,z:-4341}, // v11.123: its shelf break 1.1 km out now, the reef's walls (1.4 to v11.122: -26789, -4580); v11.117: m148, 28 km west, its shelf break up-current — nothing up-current of it (its wake shelter 0.04: world.js shelterBuild)
   {name:'the basin',x:4000,z:4000},
 ];
 for(const s of sites){if(s.x===undefined){s.x=Math.round(Math.cos(s.a)*s.r);s.z=Math.round(Math.sin(s.a)*s.r);}}
@@ -61,7 +62,8 @@ for(const s of sites){const sm=P.sample(s.x,s.z),c=P.plank(s.x,s.z,sm),tx=P.plan
   ok(rows['the fed flank, the slope'].c[3]>0.2&&rows['the lagoon'].c[3]<0.01,'the red is the deep column\'s: '+rows['the fed flank, the slope'].c[3].toFixed(2)+' at 95 m over the fed slope, '+rows['the lagoon'].c[3].toFixed(3)+' over the lagoon\'s floor');
   ok(flank[1]>flank[0],'the fed flank is gold (gold '+flank[1].toFixed(2)+' vs green '+flank[0].toFixed(2)+')');
   const v=rows['the vent field'],g=rows['the east atoll\'s fed flank'].c;ok(v.c[0]+v.c[1]<0.3,'the vent field grows no bloom of its own (the heat\'s food is chemosynthetic: '+(v.c[0]+v.c[1]).toFixed(3)+')');
-  ok(g[1]>g[0]&&g[0]+g[1]>1,'another island\'s fed flank is an upwelling flank too, stirred: gold ('+g[1].toFixed(2)+') over green ('+g[0].toFixed(2)+') — the seamount effect is every member\'s (v11.102; to v11.101 this was the sill\'s gap)');}
+  const o=rows['an open atoll\'s fed flank'].c;ok(o[1]>o[0]&&o[0]+o[1]>1,'another island\'s fed flank is an upwelling flank too, stirred: gold ('+o[1].toFixed(2)+') over green ('+o[0].toFixed(2)+') at an open atoll\'s (m148) — the seamount effect is every member\'s (v11.102; to v11.101 this was the sill\'s gap)');
+  ok(g[1]<o[1],'and a member in another\'s wake upwells less (v11.117): the east atoll\'s fed flank, down-current of the drowned atoll and the bank, gold '+g[1].toFixed(2)+' against the open atoll\'s '+o[1].toFixed(2));}
 // the vertical: the red is deepest, the green shallowest, and nothing at 200
 {const R=rows['the fed flank, the slope'],tx=R.tx,at=d=>P.bloomC(tx,-R.h,d,[0,0,0]);const s3=at(3),s95=at(95),s200=at(200);
   ok(s3[0]>s95[0]*5&&s95[2]>s3[2]*5,'the green lives in the mixed layer and the red in the deep maximum (green 3 m '+s3[0].toFixed(2)+' / 95 m '+s95[0].toFixed(3)+'; red '+s3[2].toFixed(3)+' / '+s95[2].toFixed(2)+')');
