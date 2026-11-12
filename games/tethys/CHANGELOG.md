@@ -6936,3 +6936,34 @@ south (the sea, a cay on the horizon; through a pass in its rim), and m28's lago
 the cells loading and spawning as at home. Costs: the 75 records' build +0.5 s of CPU at load (0.77 → 1.25 s for the world and the region,
 node); a frame unchanged. **Unseen, ask in this order:** the far east in play (a swim there is
 hours: `tp`); the boot on your machine; the world map's whole view (`n`, the wheel out).
+
+## v11.116 — the far tidewood as the real one (12 Nov 2026)
+
+The person, 12 Nov 2026: the trees in the distance show "strange looking square LOD's", with a screenshot from the water at night: the
+shore's left half a fence of pale posts, the right half the real wood. The left half was the tidewood's far stand-in (far.js `FAR_IMP`,
+`farTreeGeo`), which takes over a cell's tidal forest once the cell is unloaded or past `FLORA_FAR`: a crossed pair of 1.2 m cards 9 m tall
+under a flat six-sided pad at 9 m, tinted from the species' list (`GREENT`) on olive vertex colours — dark posts with table tops at about
+40% of the real wood's brightness, beside a bright jointed tree whose crown is a goblet of whorls. The other plants on land (the reed, the
+scrub, the tussock) have no stand-in and are cut at `FLORA_FAR`; the horizon tier draws no plants; the stipe, bladder and raft cards are under
+water and unchanged.
+
+- **far.js `farTreeGeo`:** the real one's middle size (flora.js `tidewoodB`, H 9) in 37 triangles: a four-sided trunk 0.3 → 0.12 m to 9.6 (the
+  real 0.27 → 0.11), four props from 1–2.4 m up to the sand, and the whorls at 4.5, 6 and 7.5 m and the brush at 9 — 6, 7, 7 and 5 rods, each
+  one upright triangle from the trunk to where the real kinked rod ends (2.2, 2.5, 2.7 and 1.2 m out, 1.5–2.4 up), lengths and angles jittered
+  as the real ones are. A whorl reads as the real V from any side; the crown is the real goblet to 11 m. The trunk and props in `JOINT`, the
+  rods white, as the real.
+- **`FAR_IMP` `pig`:** the instance is tinted as the real ones are (chunks.js): `pigment(h, 'green')` at its ground with the place's stain
+  (`tintBy`), not a pick from `GREENT`. **`hs`:** one of the real three heights, 6, 9 or 12 m, drawn per instance on its scale (the card was the middle size for all).
+- **`impostorsGen`:** a species' own `maxSlope` and `minH`, as `placeFloraType` has them: the tidewood's 0.5 and −3.6 (the cards stood on
+  slopes to 0.9 and below the wet sand's edge). No other card species sets either.
+- **Costs:** 10 → 37 triangles a stand-in. Round ours 349 → 291 stand-ins (the slope and the sand), 3.5k → 10.8k triangles; off the giant's west
+  shore, where the far layer holds the most, 5,034 → 4,620 (50k → 171k), and that view's frame 3.04M → 3.10M triangles. Draws unchanged (the
+  same one instanced mesh per region).
+
+Seen (headless, the menu's camera placed from dev.html, the frames driven by hand): round ours from the water at 600 m, 1 km and 2 km by
+day and night, before and after; the swap — one camera 20 m either side of the cell line where the forest's cell loads (430 m): the stand-ins
+and the real wood alike in colour, height and crown, the stand-ins half as many (stride 2, as before) with fuller crowns, the stand about as
+dense; the giant's west shore from 1 km. **Unseen, ask in this order:** the swap in play on your screen (swim out from the tidal forest on the
+south rim, `tp(330,-900,-1)` and north, or round the giant's west shore, `tp(-23300,7400,-1)`) — whether anything still reads as a card or
+pops; the stand at dusk, when the rods are lit through (the far material passes 35% of the light through, the real trunks none); your frame
+rate off the giant.

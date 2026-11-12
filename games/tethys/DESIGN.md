@@ -312,7 +312,7 @@ by `pigment(h,'green')` at land light. `env {h:[−3.5,2.8], expo:[0,0.75]}`, `p
 rim and the island's tidal flat (~530 before the field noise; none on the surf side). The trunk and props are capsules
 (`col`), the crown is soft. Its material `MATTR` is a slow wind sway from the crown, never capped to the water (`air:true` in
 `placeFloraType` lets it stand into the air) and never leaning to the current (`MATTR.land`: `makeInstanced` gives it no `aCur`).
-A far impostor (`farTreeGeo`, stride 2) so the wood reads across the lagoon. Looked at in the preview rasterizer only. Land flora (`flora.js`): `tussock` (`minH:1.2`, per 1500), `scrub` (`minH:2`, per 110), `stranded` (`minH:0.4`, per 26 — a dead
+A far impostor (`farTreeGeo`, stride 2) so the wood reads across the lagoon. v11.116 (the person, 12 Nov 2026: "strange looking square LOD's"): it was a crossed pair of 1.2 m cards 9 m tall under a flat six-sided pad, olive on olive — from the water a fence of dark posts with plates at 40% of the real wood's brightness; it is now the real one's middle size in 37 triangles (10 the cards): a four-sided trunk 0.3 → 0.12 m, four props, and the whorls at 4.5, 6 and 7.5 m and the brush at 9 (6, 7, 7 and 5 rods), each rod one upright triangle from the trunk to where the real kinked rod ends (2.2, 2.5, 2.7 and 1.2 m out), so the crown is the real goblet from any side. It draws one of the real three heights (`hs`), keeps the real one's slope and wet-sand rules (`maxSlope` 0.5, `minH`), and is tinted as the real ones are (`pig`: `pigment(h,'green')` and `tintBy`) on JOINT and white. Looked at from the water at 450 m to 1.5 km by day and night, round ours and off the giant. Land flora (`flora.js`): `tussock` (`minH:1.2`, per 1500), `scrub` (`minH:2`, per 110), `stranded` (`minH:0.4`, per 26 — a dead
 sailer's float on the windward strand, `MATVD`), boulders, bigrock, and `crag` structures (on land they are not scaled down to stay under the surface; tors
 no longer grow on land — the person wanted none above the water). Surface rafts skip ground
 above −4; cliff ledges are allowed above the waterline.
@@ -1065,11 +1065,11 @@ get only the sun/hemi (the light pool is assigned by distance), so distant vents
   the heart are built at boot with `gridH` for their ground height and kept; the cell registers solids/lights/plumes.
   The great lantern's and heart's glow meshes are persistent, drawn whenever in frustum.
 - **Impostors** (`FAR_IMP`, `impostorsFor`). The flora that exists only in loaded cells (the stipe forest at 900/cell,
-  bladders, rafts, colonies) gets a sparse stand-in beyond them — every 5th stipe as a crossed pair of olive cards
+  bladders, rafts, colonies, the tidewood) gets a sparse stand-in beyond them — every 5th stipe as a crossed pair of olive cards
   stretched to 1.4 under mean level (under the deepest trough, v11.4) with a canopy pad on top (like the bladder's; the stipe is a `reach` entry since v9.5), every 3rd bladder as a thin crossed
   card the height of the water column with a six-sided pad on top (10 tris), every raft as a flat octagon the size of
   its pads (every 3rd small raft at 1.3× radius; the colonies one for one, in the skin's olive — the canopy's coverage comes
-  out the same, ~2× the cell area). Placed by `placeFloraType`'s density rules (biome, field, pocket, canopy, slope, depth) from
+  out the same, ~2× the cell area), every 2nd tidewood as a low-poly copy of the real one, not a card (37 tris, v11.116; the tidal forest above). Placed by `placeFloraType`'s density rules (biome, field, pocket, canopy, slope, depth) from
   a pure per-cell rng — they match the near flora in density, not one for one — and drawn per region with `MATFAR`
   (Lambert, double-sided, no sway, small-thing fog — the same as the real kelp's, so nothing pops at the swap). A loaded cell's run of instances is written as all-zero matrices (`farApplyCell`;
   draws nothing) and restored on unload. ~3.2k impostors / 20k tris for the whole world; +41 instanced meshes if every

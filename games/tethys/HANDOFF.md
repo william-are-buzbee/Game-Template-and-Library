@@ -1,5 +1,10 @@
 # HANDOFF — tethys
 
+**v11.116 (12 Nov 2026): the far tidewood as the real one.** The person's "square LOD's" were the tidewood's far cards (crossed 1.2 m posts
+under a flat plate, at 40% of the real wood's brightness). The stand-in is now the real tree's middle size in 37 triangles (trunk, props, whorls
+of rods), one of the real three heights, tinted as the real ones are. **Ask first** whether the swap still shows in play (swim out from the
+south rim's wood past ~430 m, or along the giant's west shore).
+
 **v11.115 (12 Nov 2026): the province** (GLOBE §10.1, step 3 of 3). The world is x −75.7 … 306.2 km, z −101.5 … 125.6 km (1,776 × 1,056 cells),
 every member of the region model that reaches it a record: 122, the new 75 atolls, banks and guyots east of ours. The ±70.5 km world is
 v11.114's to the bit; no basin is anoxic; the ledger waits uncensused past 40 km; an old save's patches move to their cells. **Ask first**
