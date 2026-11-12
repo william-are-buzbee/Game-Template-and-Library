@@ -1,5 +1,11 @@
 # HANDOFF — tethys
 
+**v11.123 (12 Nov 2026): one margin per reef, lagoons by their size, reef walls** (analysis_archipelago §6, step 3 of 3). Rims inside
+another's lagoon sink to it (`rgMargins`; faros kept), merged reefs share one floor, the saddle fill stops at −150 (`FILL_TOP`); lagoons
+deepen with their ring (`rgLagD`) and carry patch reefs and blue holes (`lagoonF`); reef slopes are walls with one −122 bench. **Ask
+first** how a lagoon reads from the water (`tp(108100,4000,-1)`), then a wall (`tp(1600,20100,-60)`) and a blue hole; the deep gardens'
+ground on the reefs' walls is a sixth of what it was.
+
 **v11.122 (12 Nov 2026): the plateau's platform** (analysis_archipelago §6, step 2 of 3). The members' reef rule run on the plateau's own
 surface (region.js `rgPlatform`, read by `rgPlat`; world.js `sample()` takes it): one carbonate platform of 29,259 km² over the east — a rim
 at the sea with islets and passes, a lagoon of 30–70 m behind it, a wall outside — and the 61 members on it buried in it. The ±70.5 km world

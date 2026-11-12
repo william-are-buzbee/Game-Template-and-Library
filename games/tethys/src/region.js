@@ -162,10 +162,10 @@ function regionGrid(R,x0,z0,span,n,inner,half){const HB=typeof half==='number'?[
   for(let j=0;j<n;j++){const z=z0+(j+0.5)*c,fj=j/st,j0=fj|0,v=fj-j0;for(let i=0;i<n;i++){const x=x0+(i+0.5)*c,fi=i/st,i0=fi|0,u=fi-i0,k=j0*nc+i0;
     H[j*n+i]=(C[k]*(1-u)+C[k+1]*u)*(1-v)+(C[k+nc]*(1-u)+C[k+nc+1]*u)*v+(typeof fbm==='function'?(fbm(x*0.00012+7,z*0.00012+3,3)-0.5)*2*K.hill:0);}}
   for(const m of M){const s=m.zv,rt=m.rtop,reach=m.R*1.6+3000,i0=Math.max(0,Math.floor((m.x-reach-x0)/c)),i1=Math.min(n-1,Math.ceil((m.x+reach-x0)/c)),j0=Math.max(0,Math.floor((m.z-reach-z0)/c)),j1=Math.min(n-1,Math.ceil((m.z+reach-z0)/c));
-    const ring=m.reef&&(m.state!=='high'&&m.state!=='shield'||m.alive&&m.rt>-K.photic&&m.ring>m.shore+400),lag=m.ring>6000?20:40; // v11.121: a high island's barrier too
+    const ring=m.reef&&(m.state!=='high'&&m.state!=='shield'||m.alive&&m.rt>-K.photic&&m.ring>m.shore+400),lag=rgLagD(m.ring); // v11.121: a high island's barrier too; v11.123 the lagoon by rgLagD
     for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const dx=x0+(i+0.5)*c-m.x,dz=z0+(j+0.5)*c-m.z,r=Math.sqrt(dx*dx+dz*dz);if(r>reach)continue;
       let g=s>0?(r<rt+s/RG_SA?s-Math.max(0,r-rt)*RG_SA:-(r-rt-s/RG_SA)*RG_S):s-Math.max(0,r-rt)*RG_S;
-      if(ring)g=Math.max(g,r<=m.ring?m.rt-Math.min(lag,Math.max(0,m.ring-400-r)*0.05):m.rt-(r-m.ring)*0.6); // the crest 400 m wide at the ring, the lagoon (a bank's flat) inside, the fore-reef's talus outside
+      if(ring)g=Math.max(g,r<=m.ring?m.rt-Math.min(lag,Math.max(0,m.ring-400-r)*0.05):m.rt-(r-m.ring)*0.9); // v11.123: the fore-reef 42° (31° to v11.122); the crest 400 m wide at the ring, the lagoon (a bank's flat) inside, the fore-reef's talus outside
       const q=j*n+i;if(g>H[q])H[q]=g;}}
   if(inner)for(let j=0;j<n;j++){const z=z0+(j+0.5)*c;for(let i=0;i<n;i++){const x=x0+(i+0.5)*c,e=Math.min(x-HB[0],HB[1]-x,z-HB[2],HB[3]-z);if(e>0){const w=smooth(0,3000,e),q=j*n+i;H[q]+=(inner(x,z)-H[q])*w;}}}
   return H;}
@@ -248,8 +248,35 @@ function rgBound(R){const F=R.flank,L=R.land,ex=10.5+8+12+4+5+(R.knob||0)+(R.car
   for(let k=0;k<n;k++){const a=0.84*k*RG_HIS,b=1.16*(k+1)*RG_HIS;let m=-1e9;for(let q=0;q<=8;q++){const v=at(a+(b-a)*q/8);if(v>m)m=v;}hi[k]=m+ex;}
   for(let k=n-2;k>=0;k--)if(hi[k]<hi[k+1])hi[k]=hi[k+1]; // never rising outward: a bump between the table's points is covered by the next
   R.hi=hi;R.hiS=RG_HIS;R.quiet=Math.max(R.terr.r1+150,R.riftR?R.riftR[2]:0,L?L.r:0,R.rimR!==undefined?R.rimR+R.rimW:0,R.barrier?R.barrier.r+R.barrier.w:0)/0.84+100;}
+// v11.123 (analysis_archipelago §1.4, §6 step 3): a lagoon's depth below its reef's top by its ring — a lagoon is mostly limestone the lowstands'
+// rain dissolved, so a wider catchment digs deeper (Purdy & Winterer 2001; Gischler et al. 2014, the Maldives: depth with area): 18 m on a
+// 1 km ring, ~31 on 4, ~40 on 9, ~50 on 21, at most 60. To v11.122 18 + 6 a km to 40, and a ring past 6 km (a 'bank') flat at 20: the widest the shallowest
+function rgLagD(rr){return clamp(10+13*Math.log(1+rr/1000),18,60);}
 // v11.121: a barrier at ring rr whose reef's top is rt today — the lagoon as an atoll's of that ring (rgRecord's reef branch), the crest as wide, the fore-reef 31°
-function rgBarrier(rr,rt){return {r:rr,w:Math.round(clamp(0.06*rr,40,300)),top:Math.round(rt),lag:Math.round(rt-Math.min(40,18+6*rr/1000)),s:0.6};}
+function rgBarrier(rr,rt){return {r:rr,w:Math.round(clamp(0.06*rr,40,300)),top:Math.round(rt),lag:Math.round(rt-rgLagD(rr)),s:0.9};} // v11.123: the lagoon by rgLagD, the fore-reef 42° (31° to v11.122)
+// v11.123 (analysis_archipelago §3.1, §6 step 3): one margin per reef. Every record drew its whole rim, so where two reefs met their rims ran on
+// across each other's lagoons (57 pairs crossing, 23 nested, three concentric to v11.120). A reef grows where it meets open water: an arc of a
+// rim that lies in another's lagoon (or the platform's) is that lagoon's floor, and coalesced reefs meet as one margin round their union
+// (Kwajalein's, Huvadhu's); a small reef (ring up to 2.5 km) wholly inside a wide lagoon keeps its rim, a faro (the Maldives'). R.rimM: the
+// rim's weight by the angle from its centre (RG_RM bins), 1 open, 0 inside another's lagoon; islandH scales the crest by it and fills the
+// crest's band toward the lagoon. Ours keeps its own
+const RG_RM=48;
+function rgMargins(L){const ring=R=>R.rimR!==undefined?[R.rimR,R.rimW]:R.barrier?[R.barrier.r,R.barrier.w]:null,Q=L.filter(R=>R.id!=='home'&&ring(R));
+  for(const A of Q){const [rA]=ring(A),T=new Float32Array(RG_RM+1);let any=false;
+    for(let k=0;k<=RG_RM;k++){const a=k/RG_RM*TAU,px=A.x+Math.cos(a)*rA,pz=A.z+Math.sin(a)*rA;let m=1;
+      for(const B of Q){if(B===A)continue;const [rB,wB]=ring(B),dAB=Math.hypot(A.x-B.x,A.z-B.z);if(dAB>rA+rB)continue;if(rA<=2500&&dAB+rA<rB-1.6*wB)continue; // a faro
+        m*=1-smooth(rB-wB*0.4,rB-wB*1.6,Math.hypot(px-B.x,pz-B.z));}
+      const sd=rgPlatSd(px,pz);if(sd>-1e8)m*=1-smooth(RG_PL_K.crest*0.4,RG_PL_K.crest*1.6,sd);T[k]=m;if(m<0.999)any=true;}
+    if(any)A.rimM=T;else delete A.rimM;}
+  // one floor: reefs that met share their deepest lagoon (the union is the wider lagoon, rgLagD's), so no member's floor stands as a disc inside
+  // another's; one that met the platform takes its lagoon's depth; a faro keeps its own shallow lagoon
+  const lagOf=R=>R.rimR!==undefined?R.lagH:R.barrier.lag,setLag=(R,v)=>{if(R.rimR!==undefined)R.lagH=v;else R.barrier.lag=v;},top=R=>R.rimR!==undefined?R.rimH:R.barrier.top;
+  const up=Q.map((R,i)=>i),find=i=>up[i]===i?i:(up[i]=find(up[i]));
+  for(let i=0;i<Q.length;i++)for(let j=i+1;j<Q.length;j++){const A=Q[i],B=Q[j],[rA]=ring(A),[rB,wB]=ring(B),[,wA]=ring(A),d=Math.hypot(A.x-B.x,A.z-B.z);
+    if(d>=rA+rB-Math.min(wA,wB)||rA<=2500&&d+rA<rB-1.6*wB||rB<=2500&&d+rB<rA-1.6*wA)continue;up[find(i)]=find(j);}
+  const deep=new Map();Q.forEach((R,i)=>{const g=find(i),v=Math.min(lagOf(R),R.rimM&&rgPlatSd(R.x,R.z)>-ring(R)[0]-RG_PL_K.crest*2?top(R)-RG_PL_K.lag:Infinity);deep.set(g,Math.min(deep.has(g)?deep.get(g):Infinity,v));});
+  Q.forEach((R,i)=>{const v=Math.round(deep.get(find(i)));if(v<lagOf(R))setLag(R,v);});}
+function rgAng(T,a){let u=a*(RG_RM/TAU);u-=Math.floor(u/RG_RM)*RG_RM;const i=Math.min(RG_RM-1,Math.floor(u)),t=u-i;return T[i]+(T[i+1]-T[i])*t;} // a rim table at world angle a
 // a member's record by its state (above); k its index among the built, for its noise offset
 function rgRecord(m,k,K,rng){const ns=1000+37*k,R={id:m.id,x:m.x,z:m.z,rot:0,sc:1,ns,state:m.state,age:m.age};
   const arms=()=>{const a=K.fracA+0.3*(rng()-0.5)*2;return [a,(a+Math.PI+0.3*(rng()-0.5)*2)%TAU];};
@@ -259,8 +286,12 @@ function rgRecord(m,k,K,rng){const ns=1000+37*k,R={id:m.id,x:m.x,z:m.z,rot:0,sc:
     else{const w=v=>Math.round(v*q),c=Math.round(Math.min(sh,Math.max(0.5*sh,sh+1380-w(2800))));L.r=c;R.h0=0;R.prof=[[c,c+w(300),8],[c+w(300),c+w(1000),52],[c+w(1800),c+w(2300),94],[c+w(2300),c+w(2800),40]];R.terr={r0:c+w(1000),r1:c+w(1800),n:8,step:12};R.flank={r:c+w(2800),w:250,s0:0.21,s1:0.21,a:600,b:2600};}
     R.land=L;R.fade=[R.flank.r,R.flank.r+3000];R.core=Math.round(Math.min(L.r,R.fade[0]/1.2));
     if(m.reef&&m.alive&&m.rt>-K.photic&&m.ring>L.r+400){const rr=Math.round(m.ring);R.barrier=rgBarrier(rr,m.rt);R.fade=[Math.max(R.fade[0],rr+1500),Math.max(R.fade[1],rr+4500)];}} // v11.121: a living ring off the coast (to v11.120 a rim island was drawn as an atoll, its land left out)
-  else if(m.reef&&m.state!=='guyot'){const rr=Math.round(m.ring),rt=Math.round(m.rt),W=clamp(0.06*rr,40,300);R.h0=rt-14;R.rimR=rr;R.rimW=W;R.rimH=rt;R.lagH=rt-(rr>6000?20:Math.min(40,18+6*rr/1000));
-    R.prof=[[rr+0.3*W,rr+85,6],[rr+85,rr+455,40],[rr+755,rr+955,94],[rr+955,rr+1355,40]];R.terr={r0:rr+455,r1:rr+755,n:8,step:12};R.flank={r:rr+1315,w:250,s0:0.30,s1:0.22,a:600,b:2600};R.fade=[rr+2800,rr+5800];R.carb={n:Math.max(24,Math.round(TAU*(rr+1500)/CARB.sp))};} // carb (v11.107): the cap's spurs round it, every CARB.sp m at the slope's top
+  else if(m.reef&&m.state!=='guyot'){const rr=Math.round(m.ring),rt=Math.round(m.rt),W=clamp(0.06*rr,40,300);R.h0=rt-14;R.rimR=rr;R.rimW=W;R.rimH=rt;R.lagH=rt-Math.round(rgLagD(rr));R.patch=1;
+    // v11.123 (analysis_archipelago §3.5–3.6): the outer slope a reef's, not a volcano's — the reef flat's edge to −20, the spur-and-groove terrace to −32,
+    // a wall to −122, the slow plate's one bench there (the last Myr's ten lowstands cut one shoreline over and over: ~5 m of sinking a cycle),
+    // the wall again to −580 and the talus at 35° easing to 17° onto the volcano (Enewetak's margin: under 10° on the reef plate, a slope from −16
+    // steepening to ~55° and easing to 35°, debris below). To v11.122 ours' basalt profile scaled (eight 12 m terraces, the flank 17° easing to 12°)
+    R.prof=[[rr+0.3*W,rr+90,6],[rr+80,rr+210,12],[rr+190,rr+310,90],[rr+390,rr+640,160],[rr+560,rr+1040,300]];R.terr={r0:rr+310,r1:rr+390,n:0,step:0};R.flank={r:rr+950,w:200,s0:0.70,s1:0.30,a:900,b:3200};R.fade=[rr+2800,rr+5800];R.carb={n:Math.max(24,Math.round(TAU*(rr+1500)/CARB.sp))};} // carb (v11.107): the cap's spurs round it, every CARB.sp m at the slope's top
   else{const rS=m.state==='guyot'?Math.max(200,m.rtop):clamp(0.05*m.R,120,300);R.h0=Math.round(m.zv);R.prof=m.state==='guyot'?[]:[[0,2*rS,20]];R.terr={r0:rS,r1:rS+400,n:0,step:0};R.flank={r:rS,w:300,s0:0.36,s1:0.22,a:600,b:2000};R.bare=R.h0;R.knob=30;R.fade=[rS+1500,rS+4000];}
   return R;}
 // the records: shaped, the buried struck, the rest kept if their foot reaches the world; the floor's grid over the world and every kept record's land.
@@ -285,6 +316,7 @@ function rgBuild(Rg){const K=Rg.K,rng=mulberry(K.seed*104729+7),rng2=mulberry(K.
     const f=foot(R);R.reach=Math.round(Math.max(1.2*f,R.fade[1])+500);if(!box(R.x,R.z,R.reach,w)){(w===W0?later:later2).add(m);continue;}rgBound(R);R.an=anTables(R.ns);kept.push(R);out.push(R);}};
   pass(c0,rng,W0);const n0=out.length;pass(c1.filter(m=>later.has(m)),rng2,W);const n1=out.length;pass(c2.filter(m=>later2.has(m)),rng3,W2); // the old square's, then the world's (a member of the first list kept by the world alone is shaped again, by the second rng)
   for(const R of ISLANDS){const f=foot(R),need=Math.round(1.2*f+500);if(need>R.reach)R.reach=need;if(R.id==='giant')rgBound(R);} // the pins: their flanks go on down to the model's floor; the giant's kit is the model's (land, rifts, flows: no collapse, dikes, 
+  rgMargins(kept); // v11.123: one margin per reef, once every record stands (the pins' barrier too; ours keeps its rim)
   return {recs:out,struck,n0,n1};}
 // ---------- the plateau's platform (v11.122; analysis_archipelago §2.3, §6 step 2; the person, 12 Nov 2026: "one carbonate platform") ----------
 // The model stepped a reef on every member and none on the plateau they stand on, though the plateau's old end — the head, on a plate 15–25 Myr
@@ -353,7 +385,7 @@ function rgPlat(x,z,o){const P=RG_PL;if(!P||x<P.bb[0]||x>P.bb[1]||z<P.bb[2]||z>P
   if(sd<K.lagW+K.warp+K.warp2)sd+=K.warp*(fbm(x*0.0004+311,z*0.0004+97,3)-0.5)*2+K.warp2*(fbm(x*0.003+51,z*0.003+13,2)-0.5)*2;
   const top=(T[k]*(1-tu)+T[k+1]*tu)*(1-tv)+(T[k+nx]*(1-tu)+T[k+nx+1]*tu)*tv,W=K.crest,n1=(fbm(x*0.02+5,z*0.02+3,2)-0.5)*2;
   const lagK=smooth(W*0.4,W*1.6,sd),crK=smooth(-W,-W*0.3,sd)*smooth(W,W*0.3,sd),ra=smooth(0.3,0.62,fbm(x*0.0012+11,z*0.0012+7,2)),lagD=18+(K.lag-18+K.karst*(fbm(x*0.00008+71,z*0.00008+29,3)-0.5)*2)*smooth(W,K.lagW,sd); // the lagoon deepening inward, its floor rolling ±karst over 10–15 km (the lowstands' dissolution; its patch reefs and holes are the next step's)
-  const gS=sd>=0?lerp(top-14,top-lagD,lagK):top-14+K.wall*sd;let g=sd>=0?lerp(top-14,top-lagD+1.5*n1,lagK):gS;g=lerp(g,top+2.5+3.5*n1,crK*ra)-3*(1-ra)*crK;
+  const gS=sd>=0?lerp(top-14,top-lagD,lagK):top-14+K.wall*sd;let g=sd>=0?lerp(top-14,lagK>0?lagoonF(x,z,top-lagD+1.5*n1,top):top-lagD,lagK):gS;g=lerp(g,top+2.5+3.5*n1,crK*ra)-3*(1-ra)*crK; // v11.123: the lagoon's patch reefs and blue holes (world.js lagoonF)
   o.lag=lagK;o.rimK=crK;o.rimA=ra;o.nx=-gx/gl;o.nz=-gz/gl;o.isl=smooth(-K.isl,0,sd);o.carb=smooth(-W*0.5,-W*1.5,sd)*smooth(-1000,-850,g);o.hs=lerp(gS,top+2.5,crK);o.sd=sd;return g;}
 // ---------- the islands' lineages (v11.119, analysis_flora_diversity §5.6; SEAFLOOR §6, the range term; the person, 12 Nov 2026) ----------
 // The model knows each member's first light (lit) and the lit member nearest it then (src): the province was settled from its oldest, in the

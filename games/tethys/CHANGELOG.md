@@ -7177,3 +7177,39 @@ Seen: the province's map whole and at the platform's west margin (`SPAN=40000 CX
 the rolling lagoon, the atolls beside it. **Unseen, ask in this order:** the platform from its lagoon (`tp(230000,20000,-1)`) and from its rim
 (`tp(146500,-14000,-1)`), whether 25,000 km² of lagoon at 30–70 m reads as a place or as emptiness (its patch reefs and blue holes are step
 3's); the wall from the deep (`tp(144000,-14000,-150)`); whether the boot feels slower (the platform adds ~0.25 s to the model's).
+
+## v11.123 — one margin per reef, lagoons by their size, reef walls (12 Nov 2026)
+
+Step 3 of the province review's three (`analysis_archipelago.md` §1.4, §3.1, §3.4–3.6, §6; the person, 12 Nov 2026: "go ahead with step 3").
+
+- **One margin per reef** (region.js `rgMargins`, `rgAng`, `R.rimM`; world.js islandH): every record drew its whole rim, so where reefs met
+  their rims ran across each other's lagoons (14 pairs crossing and 11 nested after v11.122). A reef grows where it meets open water: an arc of a
+  rim inside another's lagoon — or the platform's — is now that lagoon's floor (the crest's band filled to it), and reefs that met share one
+  margin round their union (Kwajalein's, Huvadhu's). A reef with a ring up to 2.5 km wholly inside a wide lagoon keeps its rim: a faro (the
+  Maldives'); 8 kept. Reefs that met share their deepest lagoon (the union is the wider one); one that met the platform takes its lagoon's.
+  22 of 72 rims lose an arc. Ours keeps its own.
+- **The saddle fill stops at −150** (world.js `FILL_TOP`, −20 to v11.122): the knee filled two merged lagoons' overlap to −20, a flat disc in
+  a lagoon where one floor runs on; the fill is a saddle's apron between flanks, below the light. Above −150 two grounds meet at their plain max.
+- **The lagoon by its size** (region.js `rgLagD`): 18 m on a 1 km ring, ~31 on 4, ~40 on 9, ~50 on 21, at most 60 — a lagoon is mostly
+  limestone the lowstands' rain dissolved, so a wider catchment digs deeper (Purdy & Winterer 2001; Gischler et al. 2014). To v11.122 it was
+  18 + 6 a km to 40, and a ring past 6 km (a 'bank') flat at 20: the widest the shallowest. Barriers and the model's grid take it too.
+- **Patch reefs and blue holes** (world.js `LAGF`, `lagoonF`): knolls and pinnacles grown from a lagoon's floor toward the low water over a
+  tenth of it, ~250 m apart; and blue holes, shafts 60–150 m across and 60–160 m deep in one 2.5 km cell of four (the Great Blue Hole is 318 m
+  across and 124 m deep, Dean's 202 m). In the model's atolls, banks and barriers and the platform's lagoon (11% patch reef there); not ours.
+- **The reef's walls and one bench** (rgRecord's reef branch): the reef flat's edge to −20, the spur-and-groove terrace to −32, a wall to −122,
+  the slow plate's one bench there (the last Myr's ten lowstands cut one shoreline over and over, ~5 m of sinking a cycle), the wall again to
+  −580, the talus at 35° easing to 17° onto the volcano — Enewetak's margin (under 10° on the reef plate, a slope from −16 steepening to ~55°
+  and easing to 35°). To v11.122 ours' basalt profile scaled: eight 12 m terraces and a flank of 17° easing to 12°. A barrier's fore-reef 42°.
+
+What moved: records 80 → 84 and struck 77 → 73 (the steeper walls bury fewer neighbours); the reefs' slopes at 500–800 m a sixth of the area
+they were (22,702 samples against 127,191: a wall, not a ramp), so DEEP's deep gardens and the relict on the reefs' spurs have that much less
+ground; no basin anoxic (the nearest 0.40); land 1,873 km² at 400 m. Ours, the giant's land and the high islands' kits unchanged.
+
+- **Tests:** test/region.js one margin (22 of 72 rims lose an arc, the ground under the crest at 888 of 977 places on them, 8 faros), the
+  lagoon's law at five rings, the platform's patch reefs (11%) and blue holes, the walls and the bench on 8 atolls; re-pinned: the barrier's
+  and the platform's lagoons allow their patch reefs and holes, the ground above −150 (not −20) the highest record's or the platform's; test/plankton.js m148's fed-flank site moved in to its shelf break, 1.1 km out now (1.4 to v11.122).
+
+Seen: m109's lagoon merged with m85's and m62's into one floor round the island, its patch reefs and holes, one margin round them
+(`SPAN=60000 CX=108000 CZ=-5000`); the atolls round ours with walls, patch reefs and a blue hole in m141 (`SPAN=40000 CX=8000 CZ=0`).
+**Unseen, ask in this order:** a lagoon's patch reefs from the water (`tp(108100,4000,-1)` then swim out), a blue hole from above and inside;
+an atoll's wall from beside it (`tp(1600,20100,-60)`, m140); whether the deep gardens' smaller ground on the walls matters (DEEP §3).

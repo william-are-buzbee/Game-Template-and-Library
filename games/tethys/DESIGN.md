@@ -168,6 +168,12 @@ top and a signed distance to its margin; `rgPlat` reads it with a warped margin 
 the lagoon to `lag` over `lagW` rolling ±`karst`, a wall at `wall` outside. `sample()` takes it where it stands above the records and the
 floor, with its own fields (lagoon, rim, the margin's aspect, the wall's spurs) and its influence outside within `isl`. A member on it is
 struck by 'platform' (`rgPlatSd`); a cell on it is the old east's range (chunks.js `chRange`). Seed 32: 29,259 km², 61 members buried.
+**Reefs (v11.123; analysis_archipelago §3):** a reef record's lagoon is `rgLagD` deep by its ring; its floor carries patch reefs and blue
+holes (world.js `LAGF`, `lagoonF`: the model's reefs, the barriers and the platform, not ours); its outer slope is a reef's — terrace, a wall
+to −122, the one lowstand bench, the wall to −580, the talus (rgRecord). `rgMargins` gives each reef record a rim table `R.rimM` by angle
+(`RG_RM` bins, `rgAng`): an arc inside another reef's lagoon or the platform's is that lagoon (islandH scales the crest and fills its band),
+small reefs wholly inside a wide lagoon kept as faros, merged reefs sharing their deepest lagoon. `FILL_TOP` −150: two grounds meet at their
+plain max above it.
 **The islands shelter each other (v11.117;
 analysis_flora_diversity §5.4; GLOBE §9 stage 5):** world.js `SHELTER`, `shelterBuild`, `shT`, `R.sh`. A record's aspect to the wind and
 the current was its own alone; now what stands upwind and upstream scales the water's `expoW` and `upW` at each face. A wave shadow: every
