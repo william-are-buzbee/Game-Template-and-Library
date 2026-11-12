@@ -1,5 +1,8 @@
 # HANDOFF — tethys
 
+**12 Nov 2026, after v11.115 merged:** the constructors' place waits (DEEP §11: "later once we have the islands down a bit more"). Next, in
+another chat: a believability pass over the archipelago as it now stands — size, scope, shape.
+
 **v11.115 (12 Nov 2026): the province** (GLOBE §10.1, step 3 of 3). The world is x −75.7 … 306.2 km, z −101.5 … 125.6 km (1,776 × 1,056 cells),
 every member of the region model that reaches it a record: 122, the new 75 atolls, banks and guyots east of ours. The ±70.5 km world is
 v11.114's to the bit; no basin is anoxic; the ledger waits uncensused past 40 km; an old save's patches move to their cells. **Ask first**
