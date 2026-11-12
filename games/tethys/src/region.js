@@ -262,4 +262,4 @@ function rgBuild(Rg){const K=Rg.K,rng=mulberry(K.seed*104729+7),rng2=mulberry(K.
   pass(c0,rng,W0);const n0=out.length;pass(c1.filter(m=>later.has(m)),rng2,W);const n1=out.length;pass(c2.filter(m=>later2.has(m)),rng3,W2); // the old square's, then the world's (a member of the first list kept by the world alone is shaped again, by the second rng)
   for(const R of ISLANDS){const f=foot(R),need=Math.round(1.2*f+500);if(need>R.reach)R.reach=need;if(R.id==='giant')rgBound(R);} // the pins: their flanks go on down to the model's floor; the giant's kit is the model's (land, rifts, flows: no collapse, dikes, 
   return {recs:out,struck,n0,n1};}
-const REGION=regionModel(),RG_BUILT=rgBuild(REGION);for(const R of RG_BUILT.recs)ISLANDS.push(R);
+const REGION=regionModel(),RG_BUILT=rgBuild(REGION);for(const R of RG_BUILT.recs)ISLANDS.push(R);shelterBuild(); // v11.117: the records' shelter of each other, once every record stands

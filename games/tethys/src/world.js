@@ -314,6 +314,7 @@ function islandH(R,x,z,o){
   const ag=R.rot?a+R.rot:a,ca=Math.cos(ag),sa=Math.sin(ag); // the wind and the current are the world's, so they read the unrotated angle (v11.62; rot 0 on both records, the same doubles)
   let expoW=0.5-0.5*(ca*Math.cos(WIND_A)+sa*Math.sin(WIND_A)); // 1 on the shore the waves strike (let since v11.86: the cone has its own aspect)
   const upW=0.5-0.5*(ca*Math.cos(CUR_A)+sa*Math.sin(CUR_A)); // 1 on the flank the current strikes (upwelling); 0 in its wake
+  const shw=R.sh?shT(R.sh,0,ag):0,shc=R.sh?shT(R.sh,1,ag):0; // v11.117: what stands upwind and upstream shelters this face (shelterBuild) — the water's fields only, at the output below: the land's rain and its sea cliffs keep the record's own aspect
   const C=R.coll,collW=C?sectorW(awn,C.a,C.hw*(1+0.55*smooth(380,1000,rw)),0.14):0,cw=C?collW*smooth(300,350,rw)*smooth(1250,1000,rw):0;
   const D=R.dike,dikeW=D?sectorW(awn,D.a,D.hw,0.2):0,dk=D?dikeW*smooth(700,790,rw)*smooth(1220,1080,rw):0;
   // the shield's bare profile: the steps of R.prof (ours: the rim's outer slope to -20 at 330, the shelf to -60 at 700, the slope to -156 at
@@ -408,7 +409,7 @@ function islandH(R,x,z,o){
   // and the mounds on them, DEEP §3: the sill's knobs did this to v11.101)
   let bare=0;if(R.bare!==undefined){const zone=smooth(R.bare-260,R.bare-140,h);bare=zone*smooth(0.3,0.5,fbm(lx*0.004+44+ns,lz*0.004+19,2));if(R.knob&&zone>0)h+=R.knob*zone*smooth(0.5,0.75,fbm(lx*0.008+17+ns,lz*0.008+63,3));}
   o.isl=smooth(R.fade[1],R.fade[0],rw); // the island's influence here (v11.102: sample blends every record's)
-  o.bare=bare;o.carb=carb;o.coneRock=coneRock;o.h=h;o.hs=hSmooth;o.rw=rw;o.cw=cw;o.dkr=dkr;o.young=young;o.heat=heat;o.lag=lag;o.rimK=rimK;o.rimA=rimA;o.pass=(1-rimA)*rimK;o.shelfEdge=smooth(T.r0-50,T.r0+30,rw)*smooth(T.r1+150,T.r1-50,rw);o.upW=upW;o.expoW=expoW;
+  o.bare=bare;o.carb=carb;o.coneRock=coneRock;o.h=h;o.hs=hSmooth;o.rw=rw;o.cw=cw;o.dkr=dkr;o.young=young;o.heat=heat;o.lag=lag;o.rimK=rimK;o.rimA=rimA;o.pass=(1-rimA)*rimK;o.shelfEdge=smooth(T.r0-50,T.r0+30,rw)*smooth(T.r1+150,T.r1-50,rw);o.upW=upW*(1-shc);o.expoW=expoW*(1-shw);
   return h;
 }
 // sample(x,z) → {h, f}: the ground and the conditions. `out` may be passed to reuse the field array.
@@ -418,7 +419,29 @@ function islandH(R,x,z,o){
 const _iw={isl:0,upW:0};
 function islandW(R,x,z){let lx=x-R.x,lz=z-R.z;if(R.rot){const c=Math.cos(R.rot),s=Math.sin(R.rot),tx=lx*c+lz*s;lz=lz*c-lx*s;lx=tx;}if(R.sc!==1){lx/=R.sc;lz/=R.sc;}
   const ns=R.ns,an=R.an,r=Math.hypot(lx,lz),a=Math.atan2(lz,lx),aw=a+0.32*(an?anT(an,0,a):angNoise(a,1.6,11+ns))+0.22*(fbm(lx*0.0035+80+ns,lz*0.0035+20,3)-0.5)*2,rw=r*(1+0.16*(an?anT(an,1,aw):angNoise(aw,1.2,29+ns)));
-  const ag=R.rot?a+R.rot:a;_iw.isl=smooth(R.fade[1],R.fade[0],rw);_iw.upW=0.5-0.5*(Math.cos(ag)*Math.cos(CUR_A)+Math.sin(ag)*Math.sin(CUR_A));return _iw;}
+  const ag=R.rot?a+R.rot:a;_iw.isl=smooth(R.fade[1],R.fade[0],rw);_iw.upW=(0.5-0.5*(Math.cos(ag)*Math.cos(CUR_A)+Math.sin(ag)*Math.sin(CUR_A)))*(R.sh?1-shT(R.sh,1,ag):1);return _iw;}
+// ---------- the islands' shelter of each other (v11.117; analysis_flora_diversity §5.4; the person, 12 Nov 2026: "YES to islands shielding each other") ----------
+// A record's aspect to the wind and the current (expoW, upW in islandH) was its own alone: every atoll's windward face surf and its fed face a
+// forest, whatever stood upwind — the review found atolls 1 and 30 Ma old with the same flora in the same proportions. An island or a reef at
+// the surface upwind casts a wave shadow: the swell bent round it fills in and the trade sea grows back over its fetch (SHELTER.w: e-fold L,
+// tops from lo to hi count, a reef awash fully). Anything that stands up into the current casts a wake: slower water past it, so less upwelling
+// on the next flank and a slower current (flow reads upW) — e-fold a few times the obstacle's width (SHELTER.c). A shadow starts past the
+// obstacle's own width (t − w), within its width plus `edge` across. Per record, at its coast, by the world angle: R.sh, SHELTER.n bins of
+// each, built once at load (shelterBuild, region.js after rgBuild) from every other record's place, width and top; islandH and islandW scale
+// expoW and upW by one less it. GLOBE §9 stage 5 names it: "where two members of one age stop being the same".
+const SHELTER={n:32,edge:3000,w:{L:30000,cap:0.7,lo:-25,hi:-3},c:{L0:12000,k:1.5,cap:0.5,lo:-200,hi:-20}}; // the pins (ours, the giant) cast shelter and take none: their fields were set by hand against what stands round them (the drowned atoll up-current of ours, GLOBE §9)
+function shWidth(R){return (R.land?R.land.r:R.rimR!==undefined?R.rimR+R.rimW:R.flank?R.flank.r:300)*(R.sc||1);}
+function shTop(R){const v=R.land?R.land.h:R.rimR!==undefined?R.rimH:(R.h0||0)+(R.knob||0);return Number.isFinite(v)?v:-1e4;}
+function shelterBuild(){const N=SHELTER.n,W=SHELTER.w,C=SHELTER.c,E=SHELTER.edge,wx=Math.cos(WIND_A),wz=Math.sin(WIND_A),cx=Math.cos(CUR_A),cz=Math.sin(CUR_A);
+  const Q=ISLANDS.map(R=>({R:R,x:R.x,z:R.z,w:shWidth(R),bw:smooth(W.lo,W.hi,shTop(R)),bc:smooth(C.lo,C.hi,shTop(R))}));
+  for(const A of Q){if(!A.R.state)continue;const T=new Float32Array(2*(N+1)); /* a pin: no table */
+    for(let i=0;i<=N;i++){const a=i/N*TAU,px=A.x+Math.cos(a)*A.w,pz=A.z+Math.sin(a)*A.w;let pw=1,pc=1;
+      for(const B of Q){if(B===A)continue;const dx=px-B.x,dz=pz-B.z;
+        if(B.bw>0){const t=dx*wx+dz*wz-B.w,c=Math.abs(dx*wz-dz*wx);if(t>0&&t<4*W.L&&c<B.w+E)pw*=1-B.bw*smooth(B.w+E,B.w,c)*Math.exp(-t/W.L);}
+        if(B.bc>0){const L=Math.max(C.L0,C.k*B.w),t=dx*cx+dz*cz-B.w,c=Math.abs(dx*cz-dz*cx);if(t>0&&t<4*L&&c<B.w+E)pc*=1-B.bc*smooth(B.w+E,B.w,c)*Math.exp(-t/L);}}
+      T[i]=W.cap*(1-pw);T[N+1+i]=C.cap*(1-pc);}
+    A.R.sh=T;}}
+function shT(T,k,a){const N=SHELTER.n;let u=a*(N/TAU);u-=Math.floor(u/N)*N;const i=Math.min(N-1,Math.floor(u)),t=u-i,q=k*(N+1)+i;return T[q]+(T[q+1]-T[q])*t;} // a record's shelter at world angle a: k 0 the waves', 1 the current's
 // ---------- the records' index (v11.103, GLOBE §10 step 1) ----------
 // The lookups by place — sample(), and per vertex apronAt and coneK — take the records near a point from a grid of RIX.B-metre buckets, each
 // holding (in ISLANDS order, so every loop meets them as before) the records whose reach or apron's run-out, the larger, touches it. To v11.102

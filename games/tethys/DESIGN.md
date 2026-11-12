@@ -157,7 +157,16 @@ one under the ground past its features gives only its influence (`islandW`). The
 (`R.an`, `anT`). The seamount effect is blended (v11.102): every record's influence `isl` joined as 1−Π(1−isl), the current's aspect
 weighted by them, where to v11.101 the highest record's alone counted and two neighbours' halos met on a straight seam. And the smooth
 surface (`hs`, the relief's reference) goes down the lower flank with the ground: to v11.101 it stayed at the apron's −290, so the relief
-read 0 on every lower flank and on the floor inside every record's reach.
+read 0 on every lower flank and on the floor inside every record's reach. **The islands shelter each other (v11.117;
+analysis_flora_diversity §5.4; GLOBE §9 stage 5):** world.js `SHELTER`, `shelterBuild`, `shT`, `R.sh`. A record's aspect to the wind and
+the current was its own alone; now what stands upwind and upstream scales the water's `expoW` and `upW` at each face. A wave shadow: every
+other record at the surface upwind (tops from −25 to −3 count, a reef awash fully), e-fold `w.L` 30 km (the swell bent round it fills in, the
+trade sea grows back over its fetch), capped at 0.7. A wake: anything standing above −200 (−20 fully) up-current, e-fold 1.5× its width, at
+least 12 km, capped at 0.5 — slower water past it (`flow` reads `upW`), less upwelling on the next flank, so less food. Each shadow starts
+past the obstacle's width and spans its width plus `edge` 3 km across; per record a table of 32 angles at its coast, built once at load
+after `rgBuild`. Only the water's fields take it: `islandH` hands `upW`·(1−shelter) and `expoW`·(1−shelter) out, while the land's rain and
+its sea cliffs keep the record's own aspect (a first try sheltered those too and moved the land by up to 348 m). The pins (ours, the giant)
+take none — their fields were set by hand, already against the drowned atoll up-current of ours — and cast it on the others.
 
 **The records' index (v11.103, GLOBE §10 step 1; world.js `RIX`, `rixBuild`, `recsAt`).** The lookups by place — `sample()`, and per vertex
 `apronAt` and `coneK` — take the records near a point from a grid of `RIX.B` (2 km) buckets, each listing in ISLANDS order the records whose

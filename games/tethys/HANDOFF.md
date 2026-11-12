@@ -1,10 +1,15 @@
 # HANDOFF — tethys
 
+**v11.117 (12 Nov 2026): the islands shelter each other** (analysis_flora_diversity §5.4; the person: "YES to islands shielding each
+other"). What stands at the surface upwind casts a wave shadow, what stands into the current a wake (world.js `SHELTER`): 106 of the 122
+records are sheltered somewhere. The water's fields only — the ground is the same to the bit — and the pins (ours, the giant) take none.
+**Ask first** whether ours should take it too (its forest at (330, 0) would thin to its edge), then the 308 m island's windward shelf.
+
 **v11.116 (12 Nov 2026): meadows, not a lawn; variants that read; a forest with ages** (analysis_flora_diversity.md §5.1, §5.3; the
 person: "Yes go ahead with 1 and 3"). The strap grows in meadows over about half the sand, each meadow one clone of one habit; the runners',
 the horn's, the dome's and the bommie's variants are growth forms, not sizes; the ecotype reads the current below the waves; the forest has
 its young (`stipeling`); wisp keeps to fed water. **Ask first** how a lagoon reads now (`tp(0,0,-18)`), then the forest at (330, 0).
-Next, as agreed: islands shielding each other, a second sand flora, species by island group, storm clearings; patch reefs to consider after.
+Next, as agreed: a second sand flora, species by island group, storm clearings; patch reefs to consider after.
 
 **12 Nov 2026, after v11.115 merged:** the constructors' place waits (DEEP §11: "later once we have the islands down a bit more"). Next, in
 another chat: a believability pass over the archipelago as it now stands — size, scope, shape.

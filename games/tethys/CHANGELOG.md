@@ -6984,3 +6984,38 @@ upright fans further off, where v11.115 was strap to the fog; m28's lagoon a mea
 young among the adults. **Unseen, ask in this order:** a lagoon in play (`tp(0,0,-18)`), whether half the sand bare is too bare; the forest's
 young from inside it; the new shapes up close (the lobate and plate-edged domes, the fan horns, the capped bommies); the frame time in the
 forest (the young add ~300 instances a cell, one draw).
+
+## v11.117 — the islands shelter each other (12 Nov 2026)
+
+The flora diversity review's §5.4 (the person, 12 Nov 2026: "YES to islands shielding each other"). A record's aspect to the wind and the
+current was its own alone, so every atoll's windward face was surf and its fed face a forest, whatever stood upwind; GLOBE §9 stage 5 named
+the cure ("islands shelter one another's coasts and shade one another's wakes").
+
+- **world.js `SHELTER`, `shelterBuild`, `shT`; `R.sh`** (built once at load, region.js after `rgBuild`): per record, at its coast, by the world
+  angle (32 bins each), the shelter from every other record:
+  - **the wave shadow** of anything at the surface upwind (tops from −25 to −3 count, a reef awash fully), e-fold 30 km — the swell bent round
+    fills in and the trade sea grows back over its fetch — capped at 0.7;
+  - **the wake** of anything standing above −200 up-current (−20 fully), e-fold 1.5× its width and at least 12 km, capped at 0.5: slower water,
+    so less upwelling on the next flank and a slower current (`flow` reads `upW`).
+  Each shadow starts past the obstacle's own width and spans its width plus 3 km across.
+- **Only the water's fields take it:** `islandH` hands out `upW`·(1 − wake) and `expoW`·(1 − shadow); the land's rain and its sea cliffs keep the
+  record's own aspect. A first try sheltered those too and moved the land by up to 348 m.
+- **The pins take none:** ours and the giant cast shelter on the others and keep their own fields — set by hand, already against the drowned
+  atoll up-current of ours. Sheltered like the rest, ours' shelf forest at (330, 0) would fall from `nut` 0.60 to 0.45, the forest's edge:
+  the person's call (below).
+- **What moved:** 106 of 122 records sheltered over 0.3 somewhere; above −160 over ±70.5 km at 400 m, 92% of places' fields, the nearest 9.6 km
+  from ours (none of ours' or the giant's); the ground nowhere (test/region.js, 4,000 places, with it and without).
+- **The review's census** (its 15 sites, as v11.116's): ours and the giant unchanged; the 308 m island's windward shelf, in the bank m122's and
+  the atoll m139's wave shadow (0.53), from a forest to a mix — paddle 23%, strap 19%, turf 13% by count, N2 by the eye 2.01 → 7.02; m28's
+  reef top 23 → 27 species, N2 by the eye 2.59 → 4.17; m28's fed slope in a wake, the stipes 18% → 12% and the crusts and cups up; the lagoons
+  as they were. The review's island table moves little (atoll to atoll similarity, median 0.80 → 0.82): it counts individuals, and the lagoons,
+  which no shelter reaches, are most of them.
+- **Tests:** test/region.js the pins unsheltered, the 308 m island in a wave shadow, the east atoll m141 in a wake, m148 open, the ground the
+  same; test/plankton.js "another island's fed flank is gold" moved from m141 (now in the drowned atoll's and the bank's wake: gold 0.73 against
+  green 0.74) to the open m148 (gold 2.46), and pins the wake's loss.
+
+Seen headless (software GL, no page errors): the 308 m island's windward shelf at 9 m, before and after — grey rubble with stipes and cones
+to v11.116, pale sand with paddles, the strap's upright fans and grapes now (the shadow keeps the sand on the shelf: `sub` 0.72 → 0.45).
+**Unseen, ask in this order:** whether ours should take the shelter too (its forest at (330, 0) to its edge, `nut` 0.60 → 0.45 — the wake of the
+bank m122 41 km up-current and the drowned atoll m131); the 308 m island's shelf in play (`tp(-374,-23525,-9)`); a sheltered atoll's windward
+reef against an open one's.
