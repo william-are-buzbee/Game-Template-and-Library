@@ -262,4 +262,18 @@ function rgBuild(Rg){const K=Rg.K,rng=mulberry(K.seed*104729+7),rng2=mulberry(K.
   pass(c0,rng,W0);const n0=out.length;pass(c1.filter(m=>later.has(m)),rng2,W);const n1=out.length;pass(c2.filter(m=>later2.has(m)),rng3,W2); // the old square's, then the world's (a member of the first list kept by the world alone is shaped again, by the second rng)
   for(const R of ISLANDS){const f=foot(R),need=Math.round(1.2*f+500);if(need>R.reach)R.reach=need;if(R.id==='giant')rgBound(R);} // the pins: their flanks go on down to the model's floor; the giant's kit is the model's (land, rifts, flows: no collapse, dikes, 
   return {recs:out,struck,n0,n1};}
-const REGION=regionModel(),RG_BUILT=rgBuild(REGION);for(const R of RG_BUILT.recs)ISLANDS.push(R);
+// ---------- the islands' lineages (v11.119, analysis_flora_diversity §5.6; SEAFLOOR §6, the range term; the person, 12 Nov 2026) ----------
+// The model knows each member's first light (lit) and the lit member nearest it then (src): the province was settled from its oldest, in the
+// far east, down the chain in hops of ~11 km (the median; 54 km the longest) over 30 Myr. A poor disperser — a brooder: the sacs, the crowns,
+// the cones the brooding hingeshells became — crosses a gap rarely, so its populations along the chain drift apart with the hops between them
+// (isolation by distance). RANGE cuts the chain by hops from the founder into three: the old east (≤ east), the middle (≤ mid) and the young
+// west, the rest (ours is 20 hops). R.hops, R.rng (0 east, 1 middle, 2 west) on every record, pins too; a member never lit takes its nearest
+// lit record's. A brooding line has a sister species by range (flora.js `range`, chunks.js chRange); every other line has larvae or spores
+// and is one species over the province.
+const RANGE={east:7,mid:14};
+function rangeBuild(Rg){const M=Rg.M,hop=new Array(M.length).fill(-1),by=new Map(M.map((m,i)=>[m.id,i]));
+  const depth=i=>{if(hop[i]!==-1)return hop[i];hop[i]=-3;const m=M[i];let d=-2;if(m.lit!==null){if(m.src<0)d=0;else{const p=depth(m.src);d=p>=0?p+1:-2;}}hop[i]=d;return d;};
+  for(const R of ISLANDS){const i=by.get(R.id);R.hops=i===undefined?-2:depth(i);}
+  for(const R of ISLANDS){if(R.hops>=0)continue;let bd=1e18,b=null;for(const Q of ISLANDS){if(Q.hops<0)continue;const d=Math.hypot(Q.x-R.x,Q.z-R.z);if(d<bd){bd=d;b=Q;}}R.hops=b?b.hops:99;}
+  for(const R of ISLANDS)R.rng=R.hops<=RANGE.east?0:R.hops<=RANGE.mid?1:2;}
+const REGION=regionModel(),RG_BUILT=rgBuild(REGION);for(const R of RG_BUILT.recs)ISLANDS.push(R);shelterBuild();rangeBuild(REGION); // v11.117: the records' shelter of each other, once every record stands; v11.119 their lineages
