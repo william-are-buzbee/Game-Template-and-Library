@@ -376,6 +376,6 @@ and blood in doubles, their GPU copies against `ORIGIN`; the rain about the came
 **The province reviewed (12 Nov 2026, `analysis_archipelago.md`).** The west believable; the east's circles wrong in shape — land discs wider
 than the volcanoes under them, reefs on the cones but none on the plateau that stood in the light at 24–30 Ma, rims crossing each other's
 lagoons. **The person (12 Nov 2026):** the east one carbonate platform; the land shrunk to the volumes; high islands lasting about 10 Myr
-(`erode` 0.15, "though I am not sure"); the giant's barrier reef with this work. Open: whether the volume-true shape keeps the summits
-(land at 12°) or Earth's slopes (summits ~40% lower). The build, three versions: the members' shape and clock with the high islands'
+(`erode` 0.15, "though I am not sure"); the giant's barrier reef with this work. The shape (12 Nov 2026): Earth's slopes (7° land on 12°
+flanks, summits ~40% lower), the awesome shield pinned at 2,533 m. The build, three versions: the members' shape and clock with the high islands'
 reefs; the plateau's platform; margins and lagoons (`analysis_archipelago.md` §6).

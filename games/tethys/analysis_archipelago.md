@@ -221,7 +221,7 @@ out of the model instead of being patched onto the records.
 - **The giant's barrier reef: with this work** (1).
 - Not answered, so taken as recommended (§5): one margin per platform (2), lagoon depth by size (3), reef walls (4).
 
-**Still open — the shape that holds the volume (asked 12 Nov 2026).** Both ways of shrinking give nearly the same land; they differ in height:
+**The shape that holds the volume — answered (c), 12 Nov 2026: Earth's slopes, with the awesome shield pinned at 2,533 m.** Both ways of shrinking give nearly the same land; they differ in height:
 
 | member | now | (a) summits kept, land at the 12° waterline | (b) Earth's slopes (7° land on 12° flanks), summits lower |
 |---|---|---|---|
