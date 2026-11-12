@@ -7019,3 +7019,24 @@ to v11.116, pale sand with paddles, the strap's upright fans and grapes now (the
 **Unseen, ask in this order:** whether ours should take the shelter too (its forest at (330, 0) to its edge, `nut` 0.60 → 0.45 — the wake of the
 bank m122 41 km up-current and the drowned atoll m131); the 308 m island's shelf in play (`tp(-374,-23525,-9)`); a sheltered atoll's windward
 reef against an open one's.
+
+## v11.118 — a second sand flora (12 Nov 2026)
+
+The flora diversity review's §5.5 (the person, 12 Nov 2026: "YES to ... another sand flora"). Sand is the province's commonest lit ground
+and had the fewest species of its own: strap, sandball, pen and glass. Three more, each within TAXA's lines (TAXA and FLORA.md list them):
+
+- **tress** (the greens' runner; `tressB`): the strap's congener in the deep lagoons, −46 to −22 — the shade form, fewer, longer, narrower
+  uprights (single ribbons, ribbon pairs, or tufts of round leaves: Syringodium's), 600 a cell in its own meadows among the strap's
+  (`meadow[3]`, the noise's offset; chunks.js) and its own clones.
+- **coin** (the greens' lime chain; `coinB`): its lagoon form — a bulb in calm sand (`expo` under 0.35), a short stalk, lime coins chained
+  edge to edge in a fan, a bush or a low tuft: Halimeda's sand species hold so, where the rock-and-surf chain cannot.
+- **flask** (the sacs, mass in calm water; `flaskB`): a bottle sunk to its shoulders in the lagoon's sand, its neck up into the water —
+  one, a pair, or a squat jar — as Earth's sand-dwelling sponges and ascidians stand, pumping clear of the silt.
+
+The review's census (its 15 sites; tress at 900 a cell when measured, 600 since, so its shares below are high): every lagoon gains three
+species — ours 8 → 11, m140 7 → 10, m122's flat 7 → 10, m28's 7 → 10 — and N2 by count rises (ours 3.77 → 4.57, m140 2.12 → 3.53, m122 2.32 →
+3.83, m28 1.84 → 2.37); by the eye m140 1.45 → 2.03 and m122 1.58 → 2.56, but ours 2.10 → 1.82, where the tall tress took 37% of its deeper
+floor (the reason for 600). The reef tops gain the odd coin or flask; nothing else moves. Seen headless (no page errors): m140's lagoon at −27
+— the strap's upright fans, tress ribbons and tufts, grapes, sandballs, the coins and flasks among them — where v11.117 had strap and sand;
+ours' lagoon sand with feathers, sunk flasks and tress at its deeper edge. **Unseen, ask in this order:** a deep lagoon in play
+(`tp(3692,20109,-27)`); whether the flasks read as animals; the frame time (three species, three draws where they stand).

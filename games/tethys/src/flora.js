@@ -44,6 +44,20 @@ function chainB(rg,k){const P=[],ex=k/2,nd=4-k;
     for(let q=0;q<nd;q++){d.x+=(rg()-0.5)*0.6;d.z+=(rg()-0.5)*0.6;d.normalize();p.add(d.clone().multiplyScalar(dr));const n=d.clone().cross(UP);if(n.lengthSq()<0.01)n.set(1,0,0);
       P.push(part(G.cyl(dr*1.05,dr*0.95,th,4),p.x,p.y,p.z,W,{dir:n}));p.add(d.clone().multiplyScalar(dr*0.9));}}
   return {P:P};}
+// tress (v11.118, analysis_flora_diversity §5.5; TAXA's greens, the runner): the strap's congener in the deep lagoons, −46 to −22, where
+// the light is a third of the shallows' — the shade form: fewer, longer, narrower uprights (more blade for the light per gram of runner).
+// k the clone's, as the strap's: 0 one ribbon at each node, 1 ribbon pairs, 2 the rush form (round leaves in tufts: Syringodium's)
+function tressB(rg,k){const P=[part(G.box(0.035,0.025,1.4),0,0.012,0,WSTEM)],nn=k===2?3:4;
+  for(let i=0;i<nn;i++){const z=-0.6+i*(1.2/(nn-1)),nb=k===0?1:k===1?2:4;
+    for(let j=0;j<nb;j++){const L=(k===2?1.0:1.6)+rg()*0.7,lean=(rg()-0.5)*(k===2?0.6:0.35),yaw=rg()*TAU,g=k===2?G.box(0.018,L,0.018):G.plane(0.075,L);g.translate(0,L/2,0);P.push(part(g,0,0.02,z,W,{r:[lean*0.5,yaw,lean],order:'YXZ'}));}}
+  return {P:P};}
+// coin (v11.118, §5.5; TAXA's greens, the stiffened axis with mineral): the chain's lagoon form — on Earth Halimeda's sand species hold by a
+// bulb of rhizoids and stand in calm lagoons, where the rock-and-surf chain cannot hold. A bulb in the sand, a short stalk, lime coins
+// chained edge to edge: 0 one flat fan, 1 a bush of fans, 2 a low tuft
+function coinB(rg,k){const P=[part(G.sph(0.06,5,3),0,-0.015,0,WHOLD,{s:[1,0.6,1]}),part(G.box(0.025,0.12,0.025),0,0.08,0,WSTEM)],nb=k===1?5:k===2?6:3,nd=k===2?2:4,dr=0.055,th=0.02;
+  for(let b=0;b<nb;b++){const yaw=k===0?(rg()-0.5)*0.3:b/nb*TAU+rg()*0.4,tilt=k===0?(b-(nb-1)/2)*0.42+(rg()-0.5)*0.15:0.35+rg()*0.4,p=V3(0,0.14,0),d=V3(Math.sin(tilt)*Math.cos(yaw),Math.cos(tilt),Math.sin(tilt)*Math.sin(yaw));
+    for(let q=0;q<nd;q++){d.x+=(rg()-0.5)*0.25;d.z+=(rg()-0.5)*0.25;d.normalize();p.add(d.clone().multiplyScalar(dr));const n=d.clone().cross(UP);if(n.lengthSq()<0.01)n.set(1,0,0);P.push(part(G.cyl(dr*1.05,dr*0.95,th,6),p.x,p.y,p.z,W,{dir:n}));p.add(d.clone().multiplyScalar(dr*0.9));}}
+  return {P:P};}
 // grape: a runner with a bunch of spheres piled at every node (a weed can be one giant cell and still do this). The bunch lies on the
 // runner; v9.5 stood three beads on a half-metre stick at each node, which read as a row of tiny trees
 // v11.116: k is the clone's as the strap's (a runner too): 0 the bunches (spheres piled at every node, as to v11.115), 1 the peltate discs
@@ -403,6 +417,12 @@ function starB(rg, k) {
 // vase: the sac line's tall vase — the kept `sponge` (a cylinder with a black lid and a stub, 230 a cell on the terraces: "vases stapled
 // to the floor") re-read through the grammar: a lathe with a waist, a flared lip and a hollow (an inner wall in a dark shade) so the mouth
 // reads as a hole. Variant 0 tall, 1 paired (a half-height bud fused to its side), 2 a squat wide urn. Field-clustered: gardens, not a sprinkle
+// flask (v11.118, analysis_flora_diversity §5.5; TAXA's sacs, mass in calm water): the sacs' sand form — a bottle sunk to its shoulders in
+// the lagoon's sand, its neck up into the water to clear the silt it pumps (Earth's sand-dwelling sponges and ascidians stand so). 0 one
+// flask, 1 a pair from one root, 2 a squat jar
+function flaskB(rg,k){const P=[],col=[],one=(x,z,h,r,nr,lean)=>{const y=r*0.05,L=h-r;P.push(part(G.sph(r,6,4),x,y,z,W,{s:[1,0.9,1]}));P.push(part(G.cyl(nr*0.9,nr,L,6,true),x+Math.sin(lean)*L*0.5,y+r*0.8+L/2,z,W,{r:[0,0,-lean]}));col.push({e:[x,y,z,r,r*0.9,r]});};
+  if(k===1){one(-0.12,0,0.55,0.15,0.05,-0.15);one(0.13,0.05,0.7,0.17,0.055,0.12);}else if(k===2)one(0,0,0.45,0.24,0.1,0);else one(0,0,0.75,0.2,0.06,(rg()-0.5)*0.2);
+  return {P:P,col:col};}
 function vaseB(rg, k) {
   const P = [],
     col = [];
@@ -982,6 +1002,10 @@ const FLORA = [
     chainB
   ),
   species('grape', {mat: MATV, photo: true, line: 'green', tints: GREENT, s: [0.7, 1.6], per: 140, env: {h: [-40, -6], sub: [0.15, 0.6]}, field: 0.02, clone: 0.006}, grapeB), // clone (v11.116): a runner too, its patches one habit each
+  // the second sand flora (v11.118, analysis_flora_diversity §5.5; the person, 12 Nov 2026: "YES to ... another sand flora"): sand was the
+  // commonest lit ground and had the fewest species of its own (strap, sandball, pen, glass)
+  species('tress', {mat: MATG, photo: true, line: 'green', tints: GREENT, s: [0.7, 1.3], per: 600, env: {h: [-46, -22], sub: [0.05, 0.45]}, field: 0.02, meadow: [0.012, 0.42, 0.55, 200], clone: 0.0053}, tressB), // the deep lagoons' runner: its own meadows (meadow[3] the noise's offset) among the strap's
+  species('coin', {mat: MATV, photo: true, line: 'green', tints: GREENT, s: [0.7, 1.5], tilt: true, per: 110, env: {h: [-40, -4], sub: [0.1, 0.45], expo: [0, 0.35]}, field: 0.02}, coinB), // the chain's lagoon form, calm sand
   species(
     'stipe',
     {
@@ -1162,6 +1186,7 @@ const FLORA = [
   species('burr', {mat: MATV, tints: SACT, s: [0.6, 1.6], per: 55, env: {h: [-150, -6], sub: [0.4, 1]}}, burrB),
   species('star', {mat: MATV, tints: SACT, s: [0.6, 1.5], per: 50, env: {h: [-150, -6], sub: [0.2, 0.7]}}, starB),
   species('vase', {mat: MATV, tints: SACT, s: [0.7, 1.5], per: 60, env: {h: [-300, -40], sub: [0.5, 1], flow: [0.1, 0.7]}, field: 0.02}, vaseB), // was `sponge` at 7:230
+  species('flask', {mat: MATV, tints: SACT, s: [0.7, 1.4], per: 45, env: {h: [-45, -5], sub: [0.05, 0.45], flow: [0.05, 0.6]}, field: 0.02}, flaskB), // v11.118: the sacs' sand form, the lagoons'
   species(
     'glass',
     {

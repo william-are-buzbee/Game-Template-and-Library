@@ -214,7 +214,7 @@ function* placeFloraType(ch,rng,f){
     const x=ch.x0+rng()*CELL,z=ch.z0+rng()*CELL;
     let p=(f.per||0)/maxN*(f.envs?envsW(ch,f.envs,x,z):f.env?ch.w(f.env,x,z):1);if(f.rare)p*=f.rare; // envs, rare (v11.66): the best of several envelopes (a shed lies where its kind lives), and a chance under one for a thing rarer than one try a cell
     if(f.pocket)p*=0.1+smooth(0.6,0.72,fbm(x*f.pocket+53,z*f.pocket+29,2));
-    if(f.meadow)p*=0.06+0.94*smooth(f.meadow[1],f.meadow[2],fbm(x*f.meadow[0]+71,z*f.meadow[0]+43,2)); // v11.116: meadows [frequency, lo, hi] — a runner's patches with bare sand between and a few shoots in it
+    if(f.meadow){const o=f.meadow[3]||0;p*=0.06+0.94*smooth(f.meadow[1],f.meadow[2],fbm(x*f.meadow[0]+71+o,z*f.meadow[0]+43+o,2));} // v11.116: meadows [frequency, lo, hi] — a runner's patches with bare sand between and a few shoots in it
     if(cw>0.03)p=Math.max(p,leeW(x,z)*f.leePer/maxN);
     if(f.field)p*=clamp(0.1+4*Math.pow(fbm(x*f.field+31,z*f.field+17,2),2.5),0,1.6);
     if(rng()>=p)continue;
