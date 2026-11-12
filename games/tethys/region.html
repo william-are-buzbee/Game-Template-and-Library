@@ -131,7 +131,7 @@ function detailPanel(){const D=$('det');if(sel<0||!R.M[sel]){D.innerHTML='';retu
   h+='its summit rose to '+Math.round(m.peak)+' and stands at '+Math.round(m.zv)+' now; '+Math.round(m.E)+' m worn and planed off'+(m.rtop>500?' (a flat top '+km(m.rtop)+' km across its radius)':'')+'; the loads bend the plate '+Math.round(m.fl)+' m under it. ';
   h+=m.fed?'on the fed face — the open ocean\'s water, the weed\'s shallows, no reef. ':m.reef?'a reef '+(m.alive?'living':'drowned '+(m.died!==null?m.died.toFixed(2)+' Ma':''))+', its top at '+Math.round(m.rt)+', its ring '+km(m.ring)+' km; above the sea '+(m.exp).toFixed(2)+' Myr of its life at the lowstands (karst). ':'no reef. ';
   h+='in the light since '+f(m.lit)+(m.lit!==null?(m.src>=0?', settled from '+esc(nm(R.M[m.src]))+' '+km(m.srcD)+' km off':', settled from afar (the founders)'):'')+'; above the sea since '+f(m.surf)+'.';
-  if(m.inSq&&m.pin<0)h+=' <span class="warn">inside the game\'s world: a record there unless another member buries it (since v11.102; the world ±70.5 km since v11.106).</span>';
+  if(m.inSq&&m.pin<0)h+=' <span class="warn">inside the game\'s world: a record there unless another member buries it (since v11.102; the world ±70.5 km since v11.106, the province since v11.115).</span>';
   D.innerHTML=h+'</div>';}
 function knobs(){const P=$('knobs');if(P.dataset.built){for(const k in REGION_K){const e=$('k_'+k);if(e&&document.activeElement!==e)e.value=k in K?K[k]:REGION_K[k];}return;}P.dataset.built=1;
   for(const [g,ks] of GROUPS){const d=document.createElement('details');if(g==='the plate and the plume')d.open=true;d.innerHTML='<summary>'+g+'</summary>';

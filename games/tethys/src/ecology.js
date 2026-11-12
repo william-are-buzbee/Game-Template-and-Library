@@ -19,7 +19,8 @@ const ECO_STEP=3; // real seconds between ticks of the model
 // ledger running the same model at its own scale (ecoPatchGen). A patch near the player splits into its cells — one of ECO_SLOTS blocks of 64
 // kept at the end of the fine tables, its count laid on them by each cell's own capacity (ecoSplit) — and merges back when the player has gone
 // (ecoMerge). A loaded cell is always fine. Every lookup by cell goes through ecoId(i, j) and ecoIJ(c); in the fine box they are the old
-// i*NCELL + j. The patches tile the world from cell GRID0 (ecoPI, ecoPJ, ecoPOf), 82² of them, 5,824 coarse round the box (v11.106).
+// i*NCELL + j. The patches tile the world from its corner (ecoPI, ecoPJ, ecoPOf): 82² of them to v11.114, 5,824 coarse round the box (v11.106);
+// since v11.115 the province's 222 × 132, 28,404 coarse, censused near the player (ecoNear) and their hunters' tables by row (ecoRow).
 const ECO_FB={i0:0,j0:0,w:NCELL},PATCH=8,ECO_R=[2500,4000],ECO_PR=40000,ECO_PN=8; // the fine box; a patch's side in cells; split within, merge past (m from the player to the patch); ECO_PR (v11.112): the coarse patches censused — at boot those within it of the player, nearest first, and as the player travels ECO_PN a tick (ecoCensusNear); past it a patch waits uncensused and out of the model, its animals at their equilibrium until the player comes
 const ECO_FINE=ECO_FB.w*ECO_FB.w,ECO_COARSE=ECO_FB.i0>WORLD.i0||ECO_FB.j0>WORLD.j0||ECO_FB.i0+ECO_FB.w<WORLD.i1||ECO_FB.j0+ECO_FB.w<WORLD.j1,ECO_SLOTS=ECO_COARSE?64:0;
 const ECO_CELLS=ECO_FINE+ECO_SLOTS*PATCH*PATCH,DAY_S=DAY_H/CLOCK_RATE; // cells: the fine box's and the slots'; real seconds in a game day (2400)
@@ -68,7 +69,7 @@ function ecoCellOf(ch){let c=ecoId(ch.i,ch.j);if(c<0&&ECO_PT.on&&gridIn(ch.i,ch.
 function ecoSum(ei){const N=POP.n[ei];let s=0;for(let c=0;c<ECO_CELLS;c++)s+=N[c];if(ECO_PT.on){const P=ECO_PT,M=P.n[ei];for(let p=0;p<P.np;p++)if(P.blk[p]<0)s+=M[p];}return s;}
 function ecoInit(){
   SPAWN.forEach((e,i)=>{POP.n[i]=new Float32Array(ECO_CELLS);POP.k[i]=new Float32Array(ECO_CELLS);POP.ke[i]=new Float32Array(ECO_CELLS);POP.cd[i]=new Float32Array(ECO_CELLS).fill(0.7);POP.ow[i]=new Float32Array(ECO_CELLS);(POP.byKind[e.kind]||(POP.byKind[e.kind]=[])).push(i);ecoOf(e.kind);POP.cells[i]=[];POP.mark[i]=new Uint8Array(ECO_CELLS);if(!POP.kcells[e.kind]){POP.kcells[e.kind]=[];POP.kmark[e.kind]=new Uint8Array(ECO_CELLS);}});
-  if(ECO_PT.on){const P=ECO_PT,B=ECO_FB;P.coarse=new Uint8Array(P.np);P.blk=new Int32Array(P.np).fill(-1);P.bp.fill(-1);P.free=[];for(let s=ECO_SLOTS-1;s>=0;s--)P.free.push(s);P.done=new Uint8Array(P.np);P.rt=new Uint8Array(P.np);
+  if(ECO_PT.on){const P=ECO_PT,B=ECO_FB;P.coarse=new Uint8Array(P.np);P.blk=new Int32Array(P.np).fill(-1);P.bp.fill(-1);P.free=[];for(let s=ECO_SLOTS-1;s>=0;s--)P.free.push(s);P.done=new Uint8Array(P.np);P.rt=new Uint8Array(P.np);P.row=new Int32Array(P.np).fill(-1);P.nrow=0;P.rcap=0;
     for(let p=0;p<P.np;p++){const i=ecoPI(p),j=ecoPJ(p);P.coarse[p]=i<B.i0||j<B.j0||i>=B.i0+B.w||j>=B.j0+B.w?1:0;}
     SPAWN.forEach((e,i)=>{P.n[i]=new Float32Array(P.np);P.k[i]=new Float32Array(P.np);P.ke[i]=new Float32Array(P.np);P.cd[i]=new Float32Array(P.np).fill(0.7);P.cells[i]=[];P.mark[i]=new Uint8Array(P.np);});}
   POP.gen=ecoGen();
@@ -195,12 +196,16 @@ function ecoPatchCap(p,tables){const P=ECO_PT,G=16,W=PATCH*CELL,x0=ecoPI(p)*CELL
   for(let ei=0;ei<E;ei++){const K=ecoOf(SPAWN[ei].kind);if(!K.hunter)continue;const R=ecoReach(SPAWN[ei].kind),kh=KC[ei],q=new Float32Array(64),Ac=new Float32Array(64);let tot=0,kt=0,sw=0;for(let r=0;r<R.n;r++)sw+=R.w[r];
     for(let x=0;x<E;x++)if(K.prey.indexOf(SPAWN[x].kind)>=0){const f=ecoOf(SPAWN[x].kind).food,kx=KC[x];for(let l=0;l<64;l++){q[l]+=kx[l]*f;tot+=kx[l]*f;}}
     for(let l=0;l<64;l++){kt+=kh[l];if(kh[l]<=0)continue;const ci=l>>3,cj=l&7;let a=0,w=0;for(let r=0;r<R.n;r++){const ii=ci+R.di[r],jj=cj+R.dj[r];if(ii<0||jj<0||ii>=PATCH||jj>=PATCH)continue;a+=R.w[r]*q[ii*8+jj];w+=R.w[r];}Ac[l]=w>0?a*sw/w:0;}
-    const rc=P.rc[ei]||(P.rc[ei]=new Float32Array(P.np*NS)),br=P.bref[ei]||(P.bref[ei]=new Float32Array(P.np)),H=K.need*ECO.H;br[p]=tot;
-    for(let m=0;m<NS;m++){let v=0;if(kt>0)for(let l=0;l<64;l++){if(kh[l]<=0)continue;const A=Ac[l]*RC_S[m];v+=kh[l]*A*A/(A*A+H*H+1e-9);}rc[p*NS+m]=kt>0?v/kt:0;}}
+    const w=ecoRow(p),rc=P.rc[ei]||(P.rc[ei]=new Float32Array(P.rcap*NS)),br=P.bref[ei]||(P.bref[ei]=new Float32Array(P.rcap)),H=K.need*ECO.H;br[w]=tot;
+    for(let m=0;m<NS;m++){let v=0;if(kt>0)for(let l=0;l<64;l++){if(kh[l]<=0)continue;const A=Ac[l]*RC_S[m];v+=kh[l]*A*A/(A*A+H*H+1e-9);}rc[w*NS+m]=kt>0?v/kt:0;}}
   P.done[p]=1;P.rt[p]=1;}
 // a hunter entry's response in patch p at prey biomass B (ecoPatchCap's table, linear between its points, held past the last)
-function ecoPatchResp(ei,p,B){const P=ECO_PT,br=P.bref[ei][p],NS=RC_S.length,rc=P.rc[ei];if(!(br>0))return 0;const s=B/br;if(s>=RC_S[NS-1])return rc[p*NS+NS-1];
-  let m=1;while(RC_S[m]<s)m++;const t=(s-RC_S[m-1])/(RC_S[m]-RC_S[m-1]);return rc[p*NS+m-1]+(rc[p*NS+m]-rc[p*NS+m-1])*t;}
+// v11.115 (the province): the hunters' tables by row, not by patch — a row (ecoRow) for each patch once censused, the tables grown as rows are
+// taken; over the province's 29,304 patches, a table for every one was 27 MB, and only those within ECO_PR of where the player has been are used
+function ecoRow(p){const P=ECO_PT;let r=P.row[p];if(r>=0)return r;r=P.nrow++;P.row[p]=r;if(r>=P.rcap){const c=Math.max(256,2*P.rcap),NS=RC_S.length;
+    for(let ei=0;ei<P.rc.length;ei++){if(P.rc[ei]){const a=new Float32Array(c*NS);a.set(P.rc[ei]);P.rc[ei]=a;}if(P.bref[ei]){const b=new Float32Array(c);b.set(P.bref[ei]);P.bref[ei]=b;}}P.rcap=c;}return r;}
+function ecoPatchResp(ei,p,B){const P=ECO_PT,w=P.row[p];if(w<0)return 0;const br=P.bref[ei][w],NS=RC_S.length,rc=P.rc[ei];if(!(br>0))return 0;const s=B/br;if(s>=RC_S[NS-1])return rc[w*NS+NS-1];
+  let m=1;while(RC_S[m]<s)m++;const t=(s-RC_S[m-1])/(RC_S[m]-RC_S[m-1]);return rc[w*NS+m-1]+(rc[w*NS+m]-rc[w*NS+m-1])*t;}
 // the patches' model: ecoModelGen's at a patch's scale. A hunter's reach (its cell, its 3×3 or its 5×5) is inside a patch, so the prey it meets
 // is read off its response table (ecoPatchCap, ecoPatchResp) at the patch's prey biomass now; the take, the cap, the births, the deaths and the starving as a cell's; the drift to
 // the four neighbouring patches at ECO.mig/PATCH (the same flux across a boundary PATCH cells long, out of PATCH² cells' count). A split patch is

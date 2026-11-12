@@ -6880,3 +6880,59 @@ once or held world numbers in float32. Invisible today: the world is still ±70.
 Seen: the suite; headless, the shelf at −8 m 420 m east of ours (the snow and shafts), and from the water 3.3 km off ours the giant on the
 horizon, built from the queue. **Unseen:** a far member coming in as you climb (a leap, a summit); the rain after a long swim; frame time on
 the GPU (the CPU's per frame unchanged in node).
+
+## v11.114 — no false land where banks meet (11 Nov 2026)
+
+Found on the province's map while building the growth: brown plateaus inside the banks east of ours, land the region model has not got.
+`sample()` blends overlapping records by `smax` with `BASIN.knee` (200 m), which fills the corner where two grounds meet by up to a quarter of
+the knee — meant for the sediment apron in a saddle between two flanks on the deep floor (v11.58, v11.102). Where two banks' lagoons met at −20
+it filled them to +30, three to up to +90: in the ±70.5 km world 361 km² of plateau 20–90 m above the sea on coalesced banks — m109's 822 km²
+at 108 km east (in reach of the world's edge), m125's 280 at 55 km, m107's 382, m122's 126 by the old square's north-east corner — and over the
+province it would have been ~4,000 km². None of those members has land: each is a living reef at the sea with a lagoon at −20. In the game
+since v11.102 (in the old square's reach) and v11.106 (the world's).
+
+- **world.js `FILL_TOP` (−20) and `fillK(a, b)`:** where two records meet, the knee shrinks so the fill never rises past a bank's lagoon floor
+  (top + k/4 ≤ `FILL_TOP`); above it the grounds meet at their plain max, the highest record's own. A meeting deeper than −70 is as before.
+  `sample()`'s skip of a record that cannot raise the ground stays exact (the knee only shrinks).
+- **What moved:** over ±70.5 km at 200 m, 2.3% of places, every one lower, by up to 78 m; land 2,137 → 1,776 km² (each bank keeps its rim's
+  crest, a few metres). In the old square 2.8 km² of a shallow saddle between the 308 m island's shelf, the atoll 8 km north (m139) and the
+  drowned atoll (m131), −70 … −12, now up to 17 m lower; its land, ours and everything within 10 km of ours identical. The horizon mesh 604k → 396k
+  triangles (33 members with land, from 35).
+- **test/region.js:** above `FILL_TOP` the ground is the highest record's own at every place at 400 m over the world (18,537); v11.113 fails it at
+  2,741 places, the worst 78 m.
+
+Seen: the identity above; the suite. **Unseen, ask in this order:** whether anything you have looked at east of ours changed (m122's plateau
+was 40 km north-east, perhaps on the horizon from a summit); the shallow saddle north of ours in play.
+
+## v11.115 — the province (12 Nov 2026)
+
+The province, step 3 of 3 (the person, 11 Nov 2026: "go ahead with the province"; 12 Nov: "go ahead with the growth"). The world is the
+region model's province: every member that reaches it is in the game.
+
+- **world.js `WORLD`:** cells −232 … 1543 by −352 … 703 — x −75.7 … 306.2 km, z −101.5 … 125.6 km, 382 × 227 km round the members' feet (x
+  −69 … 300 km, z −93 … 121 km), each bound a multiple of 8 cells. `WORLD70` is v11.106–114's ±70.5 km square, kept for three things below.
+- **region.js `rgBuild`, a third pass:** after the old square's members (20) and ±70.5 km's (25), those that reach the province and not
+  `WORLD70`, by a third rng: 75 more — 41 atolls, 25 banks, 9 guyots, all east of ours, 66 with the reefs' carbonate cap — 122 records with the
+  pins; 37 members struck under a neighbour's flank (15 to v11.114). No new land but the reefs' crests (1,990 km² over the province against
+  1,776 in ±70.5 km: the crests and the cays). None reaches ±70.5 km: there the ground is v11.114's to the bit (`sample()` at 150,000 points,
+  the 47 old records identical). The floor's grid grows to the province by whole nodes.
+- **world.js `chemoGen`, the flood:** on v11.106's lattice (`WORLD70`'s corner, a whole step past the province's), so the old world's samples
+  are its own: the moat round ours 603 km² behind −999, as before. 955 × 569 at 400 m, a row a slice (eight to v11.114) and region.js's flood
+  itself a generator (`rgBasinsGen`, yielding every 16k cells; `regionBasins` runs it whole): 1.1 s in 611 slices, the longest 19 ms (to v11.114
+  a 0.08 s piece at the end, 0.24 s at the province's size). Eleven silled basins, none anoxic (the nearest 0.81, 31 km² behind −416 68 km
+  east): the province has no dark water either.
+- **ecology.js, the ledger:** 222 × 132 coarse patches, 28,404 past the box; censused within 40 km of the player and as it travels (v11.112),
+  so the boot's census is as before. The hunters' response tables by row (`ecoRow`, `P.row`): a row for a patch once censused, the tables
+  grown as rows are taken — over every patch they were 27 MB of the patches' 52; now the patches' tables are 25 MB (12 at ±70.5 km).
+- **save.js:** a save names the world its patches tile (`pt.w`); one without (v11.106–114's) is `WORLD70`'s, and each patch moves to the same
+  cells' patch in the province, the slots with them — a save from before keeps its ledger. A free slot is cleared on a load.
+- **Comments:** worldmap.js, region.html, ecology.js's patch count, region.js's passes.
+- **Tests:** test/region.js the three passes (20, 25, 75), the first two's boxes; test/ledger.js censuses the ±70.5 km square's 5,824
+  patches as before (the province's 28,404 would be five times the work; the comparisons are the old square's) and loads a v11.106–114 save
+  into the province, every patch's count where it was. The rest unchanged and green.
+
+Seen: the identity above; the suite; the province's map (test/map.js); headless, no page errors: outside the atoll m6 at 234 km east, 112 km
+south (the sea, a cay on the horizon; through a pass in its rim), and m28's lagoon at 216 km east from 8 m down — seagrass, rocks and animals,
+the cells loading and spawning as at home. Costs: the 75 records' build +0.5 s of CPU at load (0.77 → 1.25 s for the world and the region,
+node); a frame unchanged. **Unseen, ask in this order:** the far east in play (a swim there is
+hours: `tp`); the boot on your machine; the world map's whole view (`n`, the wheel out).

@@ -4,7 +4,7 @@
 // dot with its facing; under the picture the cursor's place and the ground there, and the player's. The wheel zooms about the cursor, a drag
 // pans, a click goes there (tp, in play) and closes; esc or n closes. The world's picture is WMAP_N² samples made on first opening (~0.3 s,
 // once, a stall the person will notice and a dev tool may have); zoomed in, the window is re-sampled at WMAP_Z² when the wheel or the drag
-// rests, so the island's square reads at its own scale rather than as 66 px of the world. Since v11.106 the world is ±WHALF (141 km): the map opens
+// rests, so the island's square reads at its own scale rather than as 66 px of the world. Since v11.106 the world is wider (141 km; the province since v11.115, 382 × 227 km): the map opens
 // on a view the old square's size (51.6 km) and samples it at once; the wheel goes out to the whole world. The pointer is released while it is open and taken
 // back when it closes, as the effects list does (effects.js fxShow). The bands and contours are test/map.js's, kept in step by hand.
 const WMAP_N=512,WMAP_Z=320,WMAP_REST=180; // the world picture's side in samples; the zoomed window's; the rest (ms) after a wheel or drag before the window re-samples
