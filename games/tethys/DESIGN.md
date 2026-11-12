@@ -132,10 +132,12 @@ swarms, filter feeding, the bloom night.
 plume under the plate for `REGION_K.span` (30 Myr) in steps of `RG_DT` (2 kyr): the track through ours (`ageOurs` 3 Ma) and the giant (1.31 Ma
 at `v` 1.06 cm/yr, turning `turn` 3°/Myr); births by the flux (`base` 0.3 and the pulses: one at the giant's birth, `young` waxing now) on a
 power law (`vol` 6 km³, `beta` 0.75, `vMax` 3000), scattered over `foot` 40 km and drawn onto fracture zones (`fracSp`, `fracA`, `fracPull`);
-each member a cone of 12° holding its volume (`rgShape`), its base the plateau (`platW`, `headR`, solved so the floor beside ours is `floor`)
+each member, at its birth, the edifice that holds its volume by where its base lies below the sea — 12° under it, 7° above (`rgShape2`,
+v11.121; to v11.120 a 12° cone with a 7° land drawn over it, 2–2.6 V; `rgShape`'s 12° cone stays as the history's bound), its base the plateau (`platW`, `headR`, solved so the floor beside ours is `floor`)
 plus the plate's cooling (`plateAge`), the swell (`swell`, `swellW`) and the flexure of every load (`Te`, kei by `rgKei`); erosion (`erode`)
 and planing (`plane`, `wb`) after the shield; the reef by `rgSea` (Earth's sawtooth) at `reef` mm/yr decaying with depth (`light`), drowned
-past `photic`, none on the fed face (`fedL`, `fedK`). The pins' volumes are tuned by secant until their summits are `REGION_PINS`'s. Each
+past `photic`, none on the fed face (`fedL`, `fedK`). The pins' volumes are tuned by secant until their summits are `REGION_PINS`'s, and with them the members in `tune` (v11.121: the awesome
+shield's 2,533 m, the person's answer (c) — on Earth's slopes it needs `Te` 15, 6,290 km³). Each
 member ends with a state (`RG_STATE`), its flat top, its shore, its first light and the neighbour it was settled from. `regionGrid` draws the
 province (and the game's own ground inside its square), `regionBasins` floods it from the edge for every cell's sill and the basins,
 `regionSeen` what clears the horizon from a point. ~0.3 s a run; `test/region.js` pins it.
@@ -143,7 +145,9 @@ province (and the game's own ground inside its square), `regionBasins` floods it
 **The square from the model (v11.102, GLOBE §8 step 5).** At load (`REGION`, `rgBuild`) every member whose ground reaches the world (the
 square and the far layer's 2 km past it) becomes a record in `ISLANDS`, shaped by its state with islandH's kit (`rgRecord`): a high island or
 an active shield as land (`land`: shore and height the model's, gullies, a caldera and flows down two rift zones on the fracture grain when
-young), its shelf cut into the land by its age with the flank where the model's 12° cone puts it; an atoll or a bank as ours scaled to its reef's
+young), its shelf cut into the land by its age with the flank where the model's 12° cone puts it; a high or rim island with a living reef ring off its coast (v11.121) with its barrier reef (`R.barrier`, `rgBarrier`; `rgCap`
+and islandH's cap: by max over the island's ground, the lagoon to the ring, the crest awash or under with passes, a wall and a 31° fore-reef
+outside; the giant's from the model, −44 m, in the awesome shield's moat); an atoll or a bank as ours scaled to its reef's
 ring (`rimR`, `rimH` the reef's top today, `lagH` deeper on a wider ring); a seamount or guyot as a cone, its upper 200 m swept bare (`bare`)
 and knobbed with pillow mounds 30 m high (`knob`). A member whose summit lies under another's ground at its centre is struck (the model draws
 every cone from the plateau). Seed 32: 20 records (the awesome shield's southern side in the north-west corner, the 308 m island 20 km north,
@@ -157,7 +161,29 @@ one under the ground past its features gives only its influence (`islandW`). The
 (`R.an`, `anT`). The seamount effect is blended (v11.102): every record's influence `isl` joined as 1−Π(1−isl), the current's aspect
 weighted by them, where to v11.101 the highest record's alone counted and two neighbours' halos met on a straight seam. And the smooth
 surface (`hs`, the relief's reference) goes down the lower flank with the ground: to v11.101 it stayed at the apron's −290, so the relief
-read 0 on every lower flank and on the floor inside every record's reach.
+read 0 on every lower flank and on the floor inside every record's reach. **The plateau's platform (v11.122; analysis_archipelago §2.3):** region.js `rgPlatform` runs the members' reef rule on the plateau's own
+surface on a 3 km grid (`RG_PLG`; the plateau's level, cooling, swell and every load's moat, refreshed every `RG_PL_K.rf`; erosion and planing
+above the sea; steps of `RG_PL_K.dt`); no fed rule (the platform is its own up-current margin). `RG_PL` keeps where the reef lives today, its
+top and a signed distance to its margin; `rgPlat` reads it with a warped margin (`warp`, `warp2`): the rim at the top with islets and passes,
+the lagoon to `lag` over `lagW` rolling ±`karst`, a wall at `wall` outside. `sample()` takes it where it stands above the records and the
+floor, with its own fields (lagoon, rim, the margin's aspect, the wall's spurs) and its influence outside within `isl`. A member on it is
+struck by 'platform' (`rgPlatSd`); a cell on it is the old east's range (chunks.js `chRange`). Seed 32: 29,259 km², 61 members buried.
+**Reefs (v11.123; analysis_archipelago §3):** a reef record's lagoon is `rgLagD` deep by its ring; its floor carries patch reefs and blue
+holes (world.js `LAGF`, `lagoonF`: the model's reefs, the barriers and the platform, not ours); its outer slope is a reef's — terrace, a wall
+to −122, the one lowstand bench, the wall to −580, the talus (rgRecord). `rgMargins` gives each reef record a rim table `R.rimM` by angle
+(`RG_RM` bins, `rgAng`): an arc inside another reef's lagoon or the platform's is that lagoon (islandH scales the crest and fills its band),
+small reefs wholly inside a wide lagoon kept as faros, merged reefs sharing their deepest lagoon. `FILL_TOP` −150: two grounds meet at their
+plain max above it.
+**The islands shelter each other (v11.117;
+analysis_flora_diversity §5.4; GLOBE §9 stage 5):** world.js `SHELTER`, `shelterBuild`, `shT`, `R.sh`. A record's aspect to the wind and
+the current was its own alone; now what stands upwind and upstream scales the water's `expoW` and `upW` at each face. A wave shadow: every
+other record at the surface upwind (tops from −25 to −3 count, a reef awash fully), e-fold `w.L` 30 km (the swell bent round it fills in, the
+trade sea grows back over its fetch), capped at 0.7. A wake: anything standing above −200 (−20 fully) up-current, e-fold 1.5× its width, at
+least 12 km, capped at 0.5 — slower water past it (`flow` reads `upW`), less upwelling on the next flank, so less food. Each shadow starts
+past the obstacle's width and spans its width plus `edge` 3 km across; per record a table of 32 angles at its coast, built once at load
+after `rgBuild`. Only the water's fields take it: `islandH` hands `upW`·(1−shelter) and `expoW`·(1−shelter) out, while the land's rain and
+its sea cliffs keep the record's own aspect (a first try sheltered those too and moved the land by up to 348 m). The pins (ours, the giant)
+take none — their fields were set by hand, already against the drowned atoll up-current of ours — and cast it on the others.
 
 **The records' index (v11.103, GLOBE §10 step 1; world.js `RIX`, `rixBuild`, `recsAt`).** The lookups by place — `sample()`, and per vertex
 `apronAt` and `coneK` — take the records near a point from a grid of `RIX.B` (2 km) buckets, each listing in ISLANDS order the records whose
@@ -1139,7 +1165,12 @@ instance's base (`ch.f(x,z)` in `placeFloraType`, the same nearest-vertex condit
 ecotype:* an `eco` entry's variant index is drawn from `expo` instead of at random (grow.js `ecoK`: sheltered under `ECO_LO` 0.22, exposed over
 `ECO_HI` 0.5, the thresholds jittered ±`ECO_MIX` 0.24/2 per instance, the one rng draw the random pick made so no cell's stream moves), and the
 builder reads k 0..2 as sheltered..exposed — turf, wisp, chain, stipe, ladder, ribbon, bladder (a `species()` since v11.67, `bladderB`; it was the
-last kept one-variant weed) and paddle. Since `expo` fades out by −30 (World shape), the coasts differ in the forest's top 25 m only. *The
+last kept one-variant weed) and paddle. Since `expo` fades out by −30 (World shape), the coasts differed in the forest's top 25 m only; since
+v11.116 the ecotype reads the water's motion, max(`expo`, `ECO_FLOW` 0.8 × `flow`), so below the wave base the current sorts the forest
+(quartiles 0.27–0.51 there). *The clone (v11.116):* a `clone` entry (the runners: strap, grape) draws its variant from its patch — grow.js
+`cloneK`, fbm at the `clone` frequency cut at its terciles — so a meadow is one habit and the next another. *The young (v11.116):* `reach`
+as [lo, hi] stands a reach entry at that share of the water column: the stipe's young, `stipeling` (300 a cell at 0.3–0.7, the adults 700),
+the adult's form without the canopy whorl. *The
 stain:* grow.js `tintBy(h,f,photo)` composes up to three stains (`TINT_CHEM`: rust [0.44,0.25,0.12] on the animals and dull [0.36,0.33,0.22]
 on the weeds by `young` smoothed in over 0.15–0.6, cover 0.55 / 0.45; sulfur [1,0.94,0.62] by `heat` over 0.1–0.5, cover 0.7; cream
 [0.92,0.86,0.72] on the shells where h > −22, `sub` > 0.65, `expo` > 0.45 and `nut` < 0.42 — the lime rind's water, and the coat class's rule
@@ -1154,7 +1185,12 @@ for now"). The
 forest at (330, 0), like for like in the app's pane with the loop driven by hand (25 cells): 184 → 185 draws, 4.88 → 5.05 M triangles.
 
 **The table.** Per species: `per` (instances per cell at full tolerance) and `env` (World shape, envelopes; v10 — the per-biome counts are gone), scale range, tilt, sink, `field`, `rim`,
-`y: 'floor'|'surface'|'mid'`, `ys`, `reach`, `glow`, `vent`, `maxSlope`, `minH`, `canopyPer`, `pocket`, `big`, and
+`y: 'floor'|'surface'|'mid'`, `ys`, `reach`, `glow`, `vent`, `maxSlope`, `minH`, `canopyPer`, `pocket`, `meadow` (v11.116: [frequency, lo, hi] —
+fbm patches over smooth(lo, hi), 6% between: the strap's meadows, about half the sand; v11.118 `meadow[3]` the noise's offset), `clone`, `range`
+(v11.119: the stretches of the colonisation chain a brooding line's species stands in — 0 the old east, 1 the middle, 2 the young west, by
+hops from the founder, region.js `RANGE`, `rangeBuild`; a cell's by the record whose ground its middle is most inside, chunks.js `chRange`), `succ` (v11.120: [lo, hi], the storm clearing's age a species needs — grow.js `DIST`, `distAge`: patches
+~60 m over 16–20% of the exposed hard shallows, their ages a mosaic; the reef's polyps 0.5–0.95, the canopy 0.3–0.6, its young and the lime
+chain at once; the turfs and crusts none), `big`, and
 since v9.5 `photo` (a weed: tinted by `pigment(ground depth, line)` per instance, `line` one of `green|float|red` since v11.15;
 the `tints` list then only colours the far impostors), `flow` (yaw from `flowYaw`, ±0.25 rad), `band:[lo,hi]` (ground height the species stands in) and the
 surface cap: a floor entry with `top` that would stand into the air is shortened in y to fit under −1.4 or skipped

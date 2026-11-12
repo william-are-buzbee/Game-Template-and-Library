@@ -248,7 +248,8 @@ struck (it returns about a basin, §5); the poison and the sulfide coat under a 
 Not in step 2: the player's oxygen (§9), the swarms' day depth by it. **Built v11.97 (step 3):** the floor (§2). Nothing open (answered 10 Nov 2026, §10). Left out on purpose: the patterns in the sediment round the constructors' dens (§6), for a later pass.
 
 **Open (v11.108):** the constructors' structures (§6) were for the dark basin's rim; the basin west is still water now, oxic. Their place —
-that rim anyway (a quiet, deep, food-poor floor), or elsewhere — is the person's.
+that rim anyway (a quiet, deep, food-poor floor), or elsewhere — is the person's. **Deferred (the person, 12 Nov 2026):** "We can think about the
+constructors later once we have the islands down a bit more" — after a believability pass over the archipelago (its size, scope and shapes).
 
 The build, proposed, in order: (1) strike the pit; (2) the oxygen field and `chemoAt` — the −450 plate goes round ours and the envelopes
 move (the pall, the picker, the seep, the cinder's seep range, the grey mats, the poison, the sulfide coat); (3) the floor: the apron, the
