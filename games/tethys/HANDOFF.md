@@ -5,6 +5,11 @@ under a flat plate, at 40% of the real wood's brightness). The stand-in is now t
 of rods), one of the real three heights, tinted as the real ones are. **Ask first** whether the swap still shows in play (swim out from the
 south rim's wood past ~430 m, or along the giant's west shore).
 
+**v11.120.2 (12 Nov 2026): the test stub's primitives are three's.** test/stub.js made every primitive random noise in [0,1) and ignored
+its transforms, so headless a species' `top` read ~1 m whatever the plant and the flora near the surface was not the game's; now each is
+three r128's own points, every top three's to the bit. Tests only; the game is byte-identical. **Ask first** whether the eel that misses a
+finback at rest for a whole minute on about half its draws (test/combat.js §3, CHANGELOG) wants a COMBAT pass.
+
 **v11.123 (12 Nov 2026): one margin per reef, lagoons by their size, reef walls** (analysis_archipelago §6, step 3 of 3). Rims inside
 another's lagoon sink to it (`rgMargins`; faros kept), merged reefs share one floor, the saddle fill stops at −150 (`FILL_TOP`); lagoons
 deepen with their ring (`rgLagD`) and carry patch reefs and blue holes (`lagoonF`); reef slopes are walls with one −122 bench. **Ask
@@ -46,6 +51,10 @@ person: "Yes go ahead with 1 and 3"). The strap grows in meadows over about half
 the horn's, the dome's and the bommie's variants are growth forms, not sizes; the ecotype reads the current below the waves; the forest has
 its young (`stipeling`); wisp keeps to fed water. **Ask first** how a lagoon reads now (`tp(0,0,-18)`), then the forest at (330, 0).
 Next: the patch reefs, to consider (review §5.2).
+
+**v11.115.1 (12 Nov 2026): the world map's zoom without the flicker.** A notch of the wheel or a drag showed the world's 746 m picture until
+the new window was sampled (0.3–0.4 s a notch, the whole time the wheel turned); the last window now stays drawn in its place over it.
+**Ask first** whether zooming the map out (`n`, the wheel) still flickers, and whether the short freeze as it re-samples bothers you.
 
 **12 Nov 2026, after v11.115 merged:** the constructors' place waits (DEEP §11: "later once we have the islands down a bit more"). Next, in
 another chat: a believability pass over the archipelago as it now stands — size, scope, shape.

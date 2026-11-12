@@ -11,10 +11,17 @@ class Vector3{constructor(x=0,y=0,z=0){this.x=x;this.y=y;this.z=z;}
 class Vector2{constructor(x=0,y=0){this.x=x;this.y=y;} set(x,y){this.x=x;this.y=y;return this;}}
 class Vector4{constructor(x=0,y=0,z=0,w=0){this.x=x;this.y=y;this.z=z;this.w=w;} set(x,y,z,w){this.x=x;this.y=y;this.z=z;this.w=w;return this;}}
 class Quaternion{constructor(){this.x=0;this.y=0;this.z=0;this.w=1;} set(x,y,z,w){this.x=x;this.y=y;this.z=z;this.w=w;return this;} identity(){return this.set(0,0,0,1);}
- setFromEuler(e){const c1=Math.cos(e.x/2),c2=Math.cos(e.y/2),c3=Math.cos(e.z/2),s1=Math.sin(e.x/2),s2=Math.sin(e.y/2),s3=Math.sin(e.z/2);
-  if(e.order==='YXZ'){this.x=s1*c2*c3+c1*s2*s3;this.y=c1*s2*c3-s1*c2*s3;this.z=c1*c2*s3-s1*s2*c3;this.w=c1*c2*c3+s1*s2*s3;}
-  else{this.x=s1*c2*c3+c1*s2*s3;this.y=c1*s2*c3-s1*c2*s3;this.z=c1*c2*s3+s1*s2*c3;this.w=c1*c2*c3-s1*s2*s3;}return this;}
- setFromUnitVectors(){return this;} setFromRotationMatrix(m){const e=m.elements,m11=e[0],m12=e[4],m13=e[8],m21=e[1],m22=e[5],m23=e[9],m31=e[2],m32=e[6],m33=e[10],tr=m11+m22+m33;let s;
+ setFromEuler(e){const c1=Math.cos(e.x/2),c2=Math.cos(e.y/2),c3=Math.cos(e.z/2),s1=Math.sin(e.x/2),s2=Math.sin(e.y/2),s3=Math.sin(e.z/2); // every order, as three's (v11.120.2: XYZ and YXZ only before — a part turned 'ZXY', the tails' trio, was turned XYZ)
+  switch(e.order||'XYZ'){
+   case 'YXZ':this.x=s1*c2*c3+c1*s2*s3;this.y=c1*s2*c3-s1*c2*s3;this.z=c1*c2*s3-s1*s2*c3;this.w=c1*c2*c3+s1*s2*s3;break;
+   case 'ZXY':this.x=s1*c2*c3-c1*s2*s3;this.y=c1*s2*c3+s1*c2*s3;this.z=c1*c2*s3+s1*s2*c3;this.w=c1*c2*c3-s1*s2*s3;break;
+   case 'ZYX':this.x=s1*c2*c3-c1*s2*s3;this.y=c1*s2*c3+s1*c2*s3;this.z=c1*c2*s3-s1*s2*c3;this.w=c1*c2*c3+s1*s2*s3;break;
+   case 'YZX':this.x=s1*c2*c3+c1*s2*s3;this.y=c1*s2*c3+s1*c2*s3;this.z=c1*c2*s3-s1*s2*c3;this.w=c1*c2*c3-s1*s2*s3;break;
+   case 'XZY':this.x=s1*c2*c3-c1*s2*s3;this.y=c1*s2*c3-s1*c2*s3;this.z=c1*c2*s3+s1*s2*c3;this.w=c1*c2*c3+s1*s2*s3;break;
+   default:this.x=s1*c2*c3+c1*s2*s3;this.y=c1*s2*c3-s1*c2*s3;this.z=c1*c2*s3+s1*s2*c3;this.w=c1*c2*c3-s1*s2*s3;}return this;}
+ setFromUnitVectors(a,b){let r=a.x*b.x+a.y*b.y+a.z*b.z+1; // three's (v11.120.2: the identity before, so a part laid along `dir` — a stalk, a leg — stood upright)
+  if(r<Number.EPSILON){r=0;if(Math.abs(a.x)>Math.abs(a.z)){this.x=-a.y;this.y=a.x;this.z=0;}else{this.x=0;this.y=-a.z;this.z=a.y;}}else{this.x=a.y*b.z-a.z*b.y;this.y=a.z*b.x-a.x*b.z;this.z=a.x*b.y-a.y*b.x;}this.w=r;
+  let l=Math.sqrt(this.x*this.x+this.y*this.y+this.z*this.z+this.w*this.w);if(l===0)return this.set(0,0,0,1);l=1/l;this.x*=l;this.y*=l;this.z*=l;this.w*=l;return this;} setFromRotationMatrix(m){const e=m.elements,m11=e[0],m12=e[4],m13=e[8],m21=e[1],m22=e[5],m23=e[9],m31=e[2],m32=e[6],m33=e[10],tr=m11+m22+m33;let s;
   if(tr>0){s=0.5/Math.sqrt(tr+1);this.w=0.25/s;this.x=(m32-m23)*s;this.y=(m13-m31)*s;this.z=(m21-m12)*s;}else if(m11>m22&&m11>m33){s=2*Math.sqrt(1+m11-m22-m33);this.w=(m32-m23)/s;this.x=0.25*s;this.y=(m12+m21)/s;this.z=(m13+m31)/s;}else if(m22>m33){s=2*Math.sqrt(1+m22-m11-m33);this.w=(m13-m31)/s;this.x=(m12+m21)/s;this.y=0.25*s;this.z=(m23+m32)/s;}else{s=2*Math.sqrt(1+m33-m11-m22);this.w=(m21-m12)/s;this.x=(m13+m31)/s;this.y=(m23+m32)/s;this.z=0.25*s;}return this;} setFromAxisAngle(a,r){const s=Math.sin(r/2);this.x=a.x*s;this.y=a.y*s;this.z=a.z*s;this.w=Math.cos(r/2);return this;} slerp(qb,t){if(t===undefined||t>=1)return this.copy(qb);if(t<=0)return this;let x=this.x,y=this.y,z=this.z,w=this.w,cos=w*qb.w+x*qb.x+y*qb.y+z*qb.z,bx=qb.x,by=qb.y,bz=qb.z,bw=qb.w;if(cos<0){cos=-cos;bx=-bx;by=-by;bz=-bz;bw=-bw;}if(cos>=0.9995){this.x=x+t*(bx-x);this.y=y+t*(by-y);this.z=z+t*(bz-z);this.w=w+t*(bw-w);const l=Math.hypot(this.x,this.y,this.z,this.w)||1;this.x/=l;this.y/=l;this.z/=l;this.w/=l;return this;}const th=Math.acos(cos),sn=Math.sin(th),ra=Math.sin((1-t)*th)/sn,rb=Math.sin(t*th)/sn;this.x=x*ra+bx*rb;this.y=y*ra+by*rb;this.z=z*ra+bz*rb;this.w=w*ra+bw*rb;return this;} copy(q){if(q){this.x=q.x;this.y=q.y;this.z=q.z;this.w=q.w;}return this;} clone(){return new Quaternion().copy(this);} multiply(q){const ax=this.x,ay=this.y,az=this.z,aw=this.w,bx=q.x,by=q.y,bz=q.z,bw=q.w;this.x=ax*bw+aw*bx+ay*bz-az*by;this.y=ay*bw+aw*by+az*bx-ax*bz;this.z=az*bw+aw*bz+ax*by-ay*bx;this.w=aw*bw-ax*bx-ay*by-az*bz;return this;}}
 class Euler{constructor(x=0,y=0,z=0,o='XYZ'){this.x=x;this.y=y;this.z=z;this.order=o;} set(x,y,z,o){this.x=x;this.y=y;this.z=z;if(o)this.order=o;return this;}}
 class Matrix4{constructor(){this.e=[1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1];} get elements(){return this.e;}
@@ -33,18 +40,35 @@ class Float32BufferAttribute extends BufferAttribute{constructor(a,n){super(Floa
 class InstancedBufferAttribute extends BufferAttribute{}
 class BufferGeometry{constructor(){this.attributes={};this.index=null;}
  setAttribute(n,a){this.attributes[n]=a;return this;} setIndex(i){this.index=i;return this;} toNonIndexed(){const g=new BufferGeometry();g.attributes.position=new BufferAttribute(Float32Array.from(this.attributes.position.array),3);if(this.attributes.color)g.attributes.color=new BufferAttribute(Float32Array.from(this.attributes.color.array),3);return g;}
- applyMatrix4(){return this;} computeBoundingSphere(){} clone(){const g=new BufferGeometry();for(const k in this.attributes){const a=this.attributes[k];g.attributes[k]=new BufferAttribute(Float32Array.from(a.array),a.itemSize);}g.index=this.index;return g;} computeVertexNormals(){const n=this.attributes.position.array.length;this.attributes.normal=new BufferAttribute(new Float32Array(n).map((_,i)=>i%3===1?1:0),3);} dispose(){} rotateX(){return this;} translate(){return this;}}
-function prim(n){const g=new BufferGeometry();const a=new Float32Array(n*9);for(let i=0;i<a.length;i++)a[i]=Math.random();g.attributes.position=new BufferAttribute(a,3);g.index={};return g;}
-class BoxGeometry extends BufferGeometry{constructor(){super();Object.assign(this,prim(12));}}
-class SphereGeometry extends BufferGeometry{constructor(){super();Object.assign(this,prim(20));}}
-class CylinderGeometry extends BufferGeometry{constructor(){super();Object.assign(this,prim(16));}}
-class ConeGeometry extends BufferGeometry{constructor(){super();Object.assign(this,prim(8));}}
-class LatheGeometry extends BufferGeometry{constructor(pts,s){super();Object.assign(this,prim(pts.length*(s||8)));}}
-class DodecahedronGeometry extends BufferGeometry{constructor(){super();Object.assign(this,prim(36));this.index=null;}}
-class TorusGeometry extends BufferGeometry{constructor(){super();Object.assign(this,prim(40));}}
+ applyMatrix4(m){const e=m.elements,a=this.attributes.position.array;for(let i=0;i<a.length;i+=3){const x=a[i],y=a[i+1],z=a[i+2];a[i]=e[0]*x+e[4]*y+e[8]*z+e[12];a[i+1]=e[1]*x+e[5]*y+e[9]*z+e[13];a[i+2]=e[2]*x+e[6]*y+e[10]*z+e[14];}return this;} // the positions (v11.120.2; nothing before): merge's computeVertexNormals follows it
+ rotateX(t){const c=Math.cos(t),s=Math.sin(t),a=this.attributes.position.array;for(let i=0;i<a.length;i+=3){const y=a[i+1],z=a[i+2];a[i+1]=c*y-s*z;a[i+2]=s*y+c*z;}return this;} translate(x,y,z){const a=this.attributes.position.array;for(let i=0;i<a.length;i+=3){a[i]+=x;a[i+1]+=y;a[i+2]+=z;}return this;}
+ computeBoundingSphere(){} clone(){const g=new BufferGeometry();for(const k in this.attributes){const a=this.attributes[k];g.attributes[k]=new BufferAttribute(Float32Array.from(a.array),a.itemSize);}g.index=this.index;return g;} computeVertexNormals(){const n=this.attributes.position.array.length;this.attributes.normal=new BufferAttribute(new Float32Array(n).map((_,i)=>i%3===1?1:0),3);} dispose(){}}
+// The primitives (v11.120.2): three r128's own vertices for each, by its formulas and its defaults, without its triangles or normals — the
+// points, so a part's bounds after any transform are the game's: species()'s `top` (grow.js; the surface cap and clearOf's pad in chunks.js)
+// equals three's to the float at every one of the 85 entries. Before, a primitive was n×9 Math.random() numbers in [0,1) whatever its
+// size, applyMatrix4 and translate did nothing and a plane with no segments was empty: 57 tops read ~1 m (the tallest plant is 15),
+// two read 0, and every primitive drew from Math.random. Points are what a test needs: bounds, not looks (test/geo.js has the triangles).
+// A cylinder's or cone's points are its rings' and its caps' centres; a polyhedron's its corners (detail 0, the only one the game makes).
+// The index is a token: three's primitives are indexed, so parts.js merge copies one (toNonIndexed) before it transforms it, as in the browser.
+function pts(P){const g=new BufferGeometry();g.attributes.position=new BufferAttribute(Float32Array.from(P),3);g.index={};return g;}
+class BoxGeometry extends BufferGeometry{constructor(w=1,h=1,d=1){super();const P=[];for(const x of [-w/2,w/2])for(const y of [-h/2,h/2])for(const z of [-d/2,d/2])P.push(x,y,z);Object.assign(this,pts(P));}}
+class SphereGeometry extends BufferGeometry{constructor(r=1,ws=8,hs=6,p0=0,pl=Math.PI*2,t0=0,tl=Math.PI){super();ws=Math.max(3,Math.floor(ws));hs=Math.max(2,Math.floor(hs));const P=[];
+  for(let iy=0;iy<=hs;iy++){const v=iy/hs;for(let ix=0;ix<=ws;ix++){const u=ix/ws;P.push(-r*Math.cos(p0+u*pl)*Math.sin(t0+v*tl),r*Math.cos(t0+v*tl),r*Math.sin(p0+u*pl)*Math.sin(t0+v*tl));}}Object.assign(this,pts(P));}}
+class CylinderGeometry extends BufferGeometry{constructor(rt=1,rb=1,h=1,rs=8,hsg=1,open=false,t0=0,tl=Math.PI*2){super();rs=Math.floor(rs);hsg=Math.floor(hsg);const P=[];
+  for(let y=0;y<=hsg;y++){const v=y/hsg,R=v*(rb-rt)+rt;for(let x=0;x<=rs;x++){const th=x/rs*tl+t0;P.push(R*Math.sin(th),-v*h+h/2,R*Math.cos(th));}}
+  if(!open){if(rt>0)P.push(0,h/2,0);if(rb>0)P.push(0,-h/2,0);}Object.assign(this,pts(P));}}
+class ConeGeometry extends CylinderGeometry{constructor(r=1,h=1,rs=8,hsg=1,open=false,t0=0,tl=Math.PI*2){super(0,r,h,rs,hsg,open,t0,tl);}}
+class LatheGeometry extends BufferGeometry{constructor(pp,s=12,p0=0,pl=Math.PI*2){super();s=Math.floor(s);pl=Math.min(Math.max(pl,0),Math.PI*2);const P=[],k=1/s;
+  for(let i=0;i<=s;i++){const ph=p0+i*k*pl,sn=Math.sin(ph),cs=Math.cos(ph);for(const p of pp)P.push(p.x*sn,p.y,p.x*cs);}Object.assign(this,pts(P));}}
+class DodecahedronGeometry extends BufferGeometry{constructor(r=1){super();const t=(1+Math.sqrt(5))/2,q=1/t,V=[-1,-1,-1,-1,-1,1,-1,1,-1,-1,1,1,1,-1,-1,1,-1,1,1,1,-1,1,1,1,0,-q,-t,0,-q,t,0,q,-t,0,q,t,-q,-t,0,-q,t,0,q,-t,0,q,t,0,-t,0,-q,t,0,-q,-t,0,q,t,0,q],P=[];
+  for(let i=0;i<V.length;i+=3){const l=r/Math.sqrt(V[i]*V[i]+V[i+1]*V[i+1]+V[i+2]*V[i+2]);P.push(V[i]*l,V[i+1]*l,V[i+2]*l);}Object.assign(this,pts(P));}}
+class TorusGeometry extends BufferGeometry{constructor(r=1,tb=0.4,rs=8,ts=6,arc=Math.PI*2){super();rs=Math.floor(rs);ts=Math.floor(ts);const P=[];
+  for(let j=0;j<=rs;j++)for(let i=0;i<=ts;i++){const u=i/ts*arc,v=j/rs*Math.PI*2;P.push((r+tb*Math.cos(v))*Math.cos(u),(r+tb*Math.cos(v))*Math.sin(u),tb*Math.sin(v));}Object.assign(this,pts(P));}}
 class Sphere{constructor(c,r){this.center=c;this.radius=r;}}
 class Frustum{setFromProjectionMatrix(){return this;} intersectsSphere(){return true;}}
-class PlaneGeometry extends BufferGeometry{constructor(w,h,ws,hs){super();const n=(ws+1)*(hs+1);const a=new Float32Array(n*3);let k=0;for(let j=0;j<=hs;j++)for(let i=0;i<=ws;i++){a[k++]=-w/2+w*i/ws;a[k++]=0;a[k++]=-h/2+h*j/hs;}this.attributes.position=new BufferAttribute(a,3);this.index={};}}
+// three's grid, upright in x–y (v11.120.2: it lay in x–z with rotateX doing nothing, which came to the same for the terrain's, laid down and
+// then written over; and with no segments given it was empty — every blade, G.plane, so the turf's and the wisp's tops were 0)
+class PlaneGeometry extends BufferGeometry{constructor(w=1,h=1,ws=1,hs=1){super();ws=Math.floor(ws);hs=Math.floor(hs);const P=[];for(let iy=0;iy<=hs;iy++){const y=iy*h/hs-h/2;for(let ix=0;ix<=ws;ix++)P.push(ix*w/ws-w/2,-y,0);}Object.assign(this,pts(P));}}
 class Layers{constructor(){this.mask=1;} set(n){this.mask=1<<n;} enable(n){this.mask|=1<<n;} test(l){return (this.mask&l.mask)!==0;}} // v11.30: the world's shadow map draws layer 1
 class Object3D{constructor(){this.position=new Vector3();this.rotation=new Euler();this.quaternion=new Quaternion();this.scale=new Vector3(1,1,1);this.children=[];this.userData={};this.visible=true;this.matrix=new Matrix4();this.matrixWorld=new Matrix4();this.up=new Vector3(0,1,0);this.layers=new Layers();this.parent=null;}
  add(o){if(o&&o.parent)o.parent.remove(o);if(o)o.parent=this;this.children.push(o);return this;} traverse(f){f(this);const ch=this.children;for(let i=0,l=ch.length;i<l;i++){const c=ch[i];if(c.traverse)c.traverse(f);else f(c);}} updateMatrixWorld(){} remove(o){this.children=this.children.filter(c=>c!==o);if(o&&o.parent===this)o.parent=null;return this;} updateMatrix(){const q=this.quaternion,ident=q.x===0&&q.y===0&&q.z===0&&q.w===1;this.matrix.compose(this.position,ident?new Quaternion().setFromEuler(this.rotation):q,this.scale);} lookAt(){} }
