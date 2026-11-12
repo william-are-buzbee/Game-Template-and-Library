@@ -159,7 +159,8 @@ the sea-level curve (Earth's glacial cycles, §4) and the reef's growth rate.
 5. **The water.** The old tracks' ridges enclose basins on the plateau; under a basin's sill the water is the chemocline's (PLANET); outside, the
    flank's deep is oxic and cold. A member inside and one outside are different places below −450. The current enters through the gaps (the
    upwelling), islands shelter one another's coasts and shade one another's wakes, and a bank turns the tide into streams. These are where two
-   members of one age stop being the same.
+   members of one age stop being the same. (Built v11.117: the islands' wave shadows and wakes, world.js `SHELTER`; the gaps' jets and
+   the banks' tidal streams are not.)
 
 Out come records for `ISLANDS`, each with its age, volume and state, and each member's colonisation time (SEAFLOOR §6) with them. `ISLANDS[0]`
 and `[1]` are pinned: the model is tuned until they fall out of it, never overwritten. The model is a recipe (the repository's rule 3): run at

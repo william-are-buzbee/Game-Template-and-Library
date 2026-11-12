@@ -27,6 +27,23 @@ function pigment(h,line){const d=clamp(-h,0,150),T=PIG[line]||PIG.green;let c=T[
 // moves. A species with no reason to read the waves (a vent mat, a sac) keeps the random pick. The three stay one geometry: the cost is nothing.
 const ECO_LO=0.22,ECO_HI=0.5,ECO_MIX=0.24; // expo under ECO_LO sheltered, over ECO_HI exposed; each instance's thresholds wander ±ECO_MIX/2
 function ecoK(expo,u){const e=expo+(u-0.5)*ECO_MIX;return e<ECO_LO?0:e<ECO_HI?1:2;}
+// v11.116 (analysis_flora_diversity §5.3): the ecotype reads the water's motion, not the waves alone — the waves' or the current's, the more
+// (placeFloraType: max(expo, ECO_FLOW × flow)). Below the wave base (expo 0 by −30) every forest was the sheltered form; there the current
+// runs 0.27–0.51 (quartiles, hard fed ground at −30 to −80), and a current-swept kelp grows the surf's narrow blades as a wave-swept one does
+const ECO_FLOW=0.8;
+// ---------- storm clearings (v11.120, analysis_flora_diversity §5.7; the person, 12 Nov 2026: "YES ... the other two as well") ----------
+// The reef top and the forest were each one even stand. On Earth a storm every decade or so clears patches of the exposed shallows — the
+// polyps broken to rubble, the kelp torn out to its holdfast — and they grow back in an order: the turfs, the crusts and the lime chain at
+// once, the kelp's young within a year or two, the canopy in a few, the reef's polyps over decades. So at any time the exposed shallows are a
+// mosaic of patches of every age. DIST: the patches (fbm at `f`, ~60 m) cover a share of the ground by the waves' exposure (`expo`) and the
+// storm's reach in depth (`h`); each patch's age is a second fbm, 0 just cleared, 1 grown back. A species' `succ` [lo, hi] is the age it
+// needs (placeFloraType scales its chance by smooth(lo, hi, age)); the pioneers have none. Read at placement only, no state, no rng.
+const DIST={f:0.018,share:0.5,expo:[0.3,0.85],h:[-35,-4]};
+function distAge(x,z,expo,h){const w=DIST.share*smooth(DIST.expo[0],DIST.expo[1],expo)*smooth(DIST.h[0],DIST.h[1],h);if(w<=0)return 1;const t=0.25+0.5*w,v=fbm(x*DIST.f+151,z*DIST.f+313,2),inP=smooth(t+0.03,t-0.03,v);if(inP<=0)return 1;
+  const a=clamp((fbm(x*DIST.f*1.7+517,z*DIST.f*1.7+91,1)-0.3)/0.4,0,1);return lerp(1,a,inP);}
+// the clone (v11.116): a runner species' variant is its patch's — a meadow spreads from one plant, so it is one habit; the patches of
+// `clone` frequency (~1/fq m) are thirds of the ground by fbm's terciles, the edges jittered by the draw the cell made anyway
+function cloneK(x,z,fq,u){const n=fbm(x*fq+11,z*fq+97,2)+(u-0.5)*0.06;return n<0.45?0:n<0.55?1:2;}
 // ---------- the tint by the place's chemistry (v11.67) ----------
 // tintBy(h,f,photo): PLANET's shell-colour rule read by the sessile life — a stain laid over the instance's tint (the pigment's, or the list's
 // pick) by the fields at its base: fresh basalt (`young`) puts dissolved iron in the water, so the animal forms go darker and rust (the
