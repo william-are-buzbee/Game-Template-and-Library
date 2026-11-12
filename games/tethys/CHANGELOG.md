@@ -7040,3 +7040,25 @@ floor (the reason for 600). The reef tops gain the odd coin or flask; nothing el
 — the strap's upright fans, tress ribbons and tufts, grapes, sandballs, the coins and flasks among them — where v11.117 had strap and sand;
 ours' lagoon sand with feathers, sunk flasks and tress at its deeper edge. **Unseen, ask in this order:** a deep lagoon in play
 (`tp(3692,20109,-27)`); whether the flasks read as animals; the frame time (three species, three draws where they stand).
+
+## v11.119 — species by island group (12 Nov 2026)
+
+The flora diversity review's §5.6, SEAFLOOR §6's range term (the person, 12 Nov 2026: "YES ... the other two as well"). The review found
+atolls 1 and 30 Ma old with the same flora in the same proportions: the region model knew how the province was settled and the records threw
+it away.
+
+- **region.js `RANGE`, `rangeBuild`:** the model's first light (`lit`) and source (`src`) of every member make a colonisation chain from the
+  founder, m2 in the far east 30 Ma ago, down to ours in 20 hops (the median hop 11 km, the longest 54). A brooder crosses a gap rarely, so its
+  populations along the chain drift apart with the hops between them — isolation by distance. The chain cut by hops into three stretches,
+  each about a third of the records: the old east (≤ 7 hops: 42 records, x 146–293 km), the middle (8–14: 40, x 60–182 km) and the young west
+  (15+: 40, x −60–75 km; ours 20, the giant 20). `R.hops`, `R.rng` on every record; a member never lit takes its nearest lit record's.
+- **flora.js `range`, chunks.js `chRange`:** a species with a range stands only in cells of those stretches (a cell's: the record whose ground
+  its middle is most inside, cached on the cell). SEAFLOOR §6's rule picks the lines: the brooders — the sacs, the crowns, and the cones the
+  brooding hingeshells became; every line with larvae or spores stays one species over the province.
+- **The sisters** (flora.js; each keeps its line's envelope): the tube's — **pipe** (the middle's: organ pipes fused at a base) and **urn**
+  (the old east's: one or two fat waisted tubes with a flared lip); the lily's — **tier** (two arm rings up one stalk) and **rosette** (no
+  stalk, a crown on a low base with longer arms); the cone's — **column** (tall close columns) and **cap** (low wide caps). The base forms keep
+  the young west: every record within 50 km of ours (within ±70.5 km all but m99 and m100, 60 and 68 km east). The ranges are disjoint, so no
+  view draws more.
+- **Tests:** test/region.js the stretches, the founder east, ours west, every record within 50 km of ours west. TAXA, FLORA.md, SEAFLOOR §6
+  (built) and DESIGN carry the rest.

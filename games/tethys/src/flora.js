@@ -203,6 +203,13 @@ function lilyB(rg, k) {
   crown(P, V3(t.x, t.y, t.z), {n: 6, len: 0.7 + k * 0.2, w: 0.06, spread: 1.1, plane: true, rim: 0.09, col: CFLESH}, rg);
   return {P: P, col: [{a: [0, 0, 0], b: [t.x, t.y, t.z], r: 0.09}]};
 }
+// the lily's sisters (v11.119, the range term: region.js rangeBuild; analysis_flora_diversity §5.6). A crown broods, so the chain's three
+// stretches grew their own: tier (the middle's) two arm rings up one stalk, the lower smaller — two nets in the current at two heights;
+// rosette (the old east's) no stalk at all, a crown on a low fleshy base with longer, more arms laid out over the rock
+function tierB(rg,k){const P=[],N=axis(P,{segs:5,len:1.1+k*0.35,r0:0.065,r1:0.045,wander:0.1,lean:0.25,sides:5,open:true,col:CSTALK,rib:true},rg),m=N[Math.floor(N.length*0.55)],t=N[N.length-1];
+  crown(P,V3(m.x,m.y,m.z),{n:5,len:0.4+k*0.1,w:0.05,spread:1.0,plane:true,rim:0.07,col:CFLESH},rg);crown(P,V3(t.x,t.y,t.z),{n:6,len:0.7+k*0.2,w:0.06,spread:1.1,plane:true,rim:0.09,col:CFLESH},rg);
+  return {P:P,col:[{a:[0,0,0],b:[t.x,t.y,t.z],r:0.09}]};}
+function rosetteB(rg,k){const P=[];mound(P,{r:0.22,sq:0.5,bands:1,col:CSTALK},rg,0,0,0);crown(P,V3(0,0.1,0),{n:9+k,len:0.9+k*0.25,w:0.07,spread:1.25,rim:0.12,col:CFLESH},rg);return {P:P,col:[{e:[0,0.05,0,0.25,0.12,0.25]}]};}
 // tulip: a crown in a bulb with a slit mouth on a stalk, the eye ring round the neck
 function tulipB(rg, k) {
   const P = [],
@@ -337,6 +344,11 @@ function coneB(rg, k) {
   }
   return {P: P};
 }
+// the cone's sisters (v11.119, the range term): the hingeshells brood, and so did the cones they became — column (the middle's) tall
+// plated columns packed close, the clump of the crowded rock; cap (the old east's) low wide caps, plates spread flat, the limpet's answer to
+// the surf
+function columnB(rg,k){const P=[],n=3+k;for(let i=0;i<n;i++){const a=rg()*TAU,d=rg()*0.22,r=0.07+rg()*0.05;coneShell(P,{r:r,h:r*4.2,plates:3,legs:2,col:CPLATE,col2:CJOINT,col3:CLEG},rg,Math.cos(a)*d,0,Math.sin(a)*d);}return {P:P};}
+function capB(rg,k){const P=[],n=3+k;for(let i=0;i<n;i++){const a=rg()*TAU,d=rg()*0.5,r=0.15+rg()*0.1;coneShell(P,{r:r,h:r*0.75,plates:2,legs:2,col:CPLATE,col2:CJOINT,col3:CLEG},rg,Math.cos(a)*d,0,Math.sin(a)*d);}return {P:P};}
 // nod: the stalked cone — a hingeshell that sat down in the current and grew a flexible stalk to hold its comb up in it (the plates the
 // same; the moult still happens inside them)
 function nodB(rg, k) {
@@ -420,6 +432,15 @@ function starB(rg, k) {
 // flask (v11.118, analysis_flora_diversity §5.5; TAXA's sacs, mass in calm water): the sacs' sand form — a bottle sunk to its shoulders in
 // the lagoon's sand, its neck up into the water to clear the silt it pumps (Earth's sand-dwelling sponges and ascidians stand so). 0 one
 // flask, 1 a pair from one root, 2 a squat jar
+// the tube's sisters (v11.119, the range term): a sac broods, so its tubes went their own ways down the chain — pipe (the middle's) organ
+// pipes, many thin tubes fused at the base; urn (the old east's) one or two fat waisted tubes with a wide flared lip
+function pipeB(rg,k){const P=[],col=[],n=5+k;mound(P,{r:0.2,sq:0.4,bands:1,col:W},rg,0,0,0);
+  for(let i=0;i<n;i++){const a=i/n*TAU+rg()*0.6,d=i?0.07+rg()*0.13:0,h=0.7+rg()*0.8,r=0.06+rg()*0.035,x=Math.cos(a)*d,z=Math.sin(a)*d,N=axis(P,{x:x,z:z,segs:2,len:h,r0:r*1.1,r1:r,wander:0.04,lean:0.12,sides:5,open:true},rg),t=N[N.length-1];
+    P.push(part(G.cyl(r*1.2,r,0.05,5,true),t.x,t.y,t.z,[0.85,0.85,0.85],{dir:t.d}));}
+  col.push({a:[0,0,0],b:[0,1.1,0],r:0.25});return {P:P,col:col};}
+function urnB(rg,k){const P=[],col=[],n=k===2?2:1;
+  for(let i=0;i<n;i++){const x=i?0.42:0,z=i?0.1:0,h=0.65+rg()*0.4+k*0.1,rw=0.3+rg()*0.06;cup(P,{h:h,rm:rw*0.9,rw:rw,rb:0.14,lip:0.35,sides:7,col:W},rg,x,0,z);col.push({a:[x,0,z],b:[x,h,z],r:rw});}
+  return {P:P,col:col};}
 function flaskB(rg,k){const P=[],col=[],one=(x,z,h,r,nr,lean)=>{const y=r*0.05,L=h-r;P.push(part(G.sph(r,6,4),x,y,z,W,{s:[1,0.9,1]}));P.push(part(G.cyl(nr*0.9,nr,L,6,true),x+Math.sin(lean)*L*0.5,y+r*0.8+L/2,z,W,{r:[0,0,-lean]}));col.push({e:[x,y,z,r,r*0.9,r]});};
   if(k===1){one(-0.12,0,0.55,0.15,0.05,-0.15);one(0.13,0.05,0.7,0.17,0.055,0.12);}else if(k===2)one(0,0,0.45,0.24,0.1,0);else one(0,0,0.75,0.2,0.06,(rg()-0.5)*0.2);
   return {P:P,col:col};}
@@ -1132,9 +1153,12 @@ const FLORA = [
   // crowns
   species(
     'lily',
-    {mat: MATV, tints: CROWNT, s: [0.7, 1.6], flow: true, per: 140, env: {h: [-300, -50], flow: [0.4, 1], sub: [0.5, 1], slope: [0, 0.4]}},
+    {mat: MATV, tints: CROWNT, s: [0.7, 1.6], flow: true, per: 140, env: {h: [-300, -50], flow: [0.4, 1], sub: [0.5, 1], slope: [0, 0.4]}, range: [2]},
     lilyB
   ),
+  // v11.119: the brooding lines' sisters by the chain's stretch (region.js rangeBuild; the base forms keep the young west, ours' 40 records)
+  species('tier', {mat: MATV, tints: [[0.92, 0.95, 1], [0.86, 0.9, 1]], s: [0.7, 1.6], flow: true, per: 140, env: {h: [-300, -50], flow: [0.4, 1], sub: [0.5, 1], slope: [0, 0.4]}, range: [1]}, tierB),
+  species('rosette', {mat: MATV, tints: [[1, 0.9, 0.86], [1, 0.95, 0.9]], s: [0.7, 1.5], per: 120, env: {h: [-300, -50], flow: [0.3, 1], sub: [0.5, 1], slope: [0, 0.6]}, range: [0]}, rosetteB),
   species('tulip', {mat: MATV, tints: CROWNT, s: [0.7, 1.5], per: 45, env: {h: [-150, -15], sub: [0.3, 0.9]}}, tulipB),
   species(
     'loop',
@@ -1175,13 +1199,18 @@ const FLORA = [
       s: [1, 2.5],
       per: 180,
       env: {h: [-7, 2.6, 3], sub: [0.55, 1], expo: [0.5, 1]},
-      maxSlope: 1.6
+      maxSlope: 1.6,
+      range: [2]
     },
     coneB
   ),
+  species('column', {mat: MATV, tints: [[0.96, 0.94, 0.9], [0.9, 0.88, 0.84]], s: [1, 2.2], per: 160, env: {h: [-7, 2.6, 3], sub: [0.55, 1], expo: [0.5, 1]}, maxSlope: 1.6, range: [1]}, columnB), // v11.119: the cone's sisters by the chain's stretch
+  species('cap', {mat: MATV, tints: [[0.9, 0.88, 0.95], [0.85, 0.84, 0.9]], s: [1, 2.2], per: 160, env: {h: [-7, 2.6, 3], sub: [0.55, 1], expo: [0.5, 1]}, maxSlope: 1.6, range: [0]}, capB),
   species('nod', {mat: MATW, tints: [[1, 1, 1], [0.95, 0.92, 0.85]], s: [0.7, 1.5], flow: true, per: 90, env: {h: [-150, -8], flow: [0.55, 1], sub: [0.6, 1]}, field: 0.02}, nodB), // the stalked cone, in the jet
   // sacs
-  species('tube', {mat: MATV, tints: SACT, s: [0.5, 1.4], per: 120, env: {h: [-150, -6], sub: [0.5, 1], flow: [0.3, 1]}}, tubeB),
+  species('tube', {mat: MATV, tints: SACT, s: [0.5, 1.4], per: 120, env: {h: [-150, -6], sub: [0.5, 1], flow: [0.3, 1]}, range: [2]}, tubeB),
+  species('pipe', {mat: MATV, tints: [[0.78, 0.72, 0.8], [0.7, 0.66, 0.74]], s: [0.6, 1.4], per: 110, env: {h: [-150, -6], sub: [0.5, 1], flow: [0.3, 1]}, range: [1]}, pipeB), // v11.119: the tube's sisters by the chain's stretch
+  species('urn', {mat: MATV, tints: [[0.84, 0.66, 0.5], [0.76, 0.6, 0.48]], s: [0.6, 1.4], per: 90, env: {h: [-150, -6], sub: [0.5, 1], flow: [0.25, 1]}, range: [0]}, urnB),
   species('cup', {mat: MATV, tints: SACT, s: [0.6, 1.6], per: 110, env: {h: [-150, -6], sub: [0.4, 1]}}, cupB),
   species('burr', {mat: MATV, tints: SACT, s: [0.6, 1.6], per: 55, env: {h: [-150, -6], sub: [0.4, 1]}}, burrB),
   species('star', {mat: MATV, tints: SACT, s: [0.6, 1.5], per: 50, env: {h: [-150, -6], sub: [0.2, 0.7]}}, starB),

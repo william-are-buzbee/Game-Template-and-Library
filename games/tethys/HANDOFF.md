@@ -1,5 +1,10 @@
 # HANDOFF — tethys
 
+**v11.119 (12 Nov 2026): species by island group** (analysis_flora_diversity §5.6; SEAFLOOR §6, the range term). The chain cut by hops from
+its founder into the old east, the middle and the young west (region.js `RANGE`); the brooding lines (tube, lily, cone) have a sister species
+in each of the other two (pipe and urn, tier and rosette, column and cap). Ours' stretch keeps the forms it had. **Ask first** whether the
+east's forms read as their own species (`tp(216062,15200,-9)`).
+
 **v11.118 (12 Nov 2026): a second sand flora** (analysis_flora_diversity §5.5). tress (the deep lagoons' runner), coin (the lime chain's
 lagoon form) and flask (a sac sunk in the sand): every lagoon three species richer. **Ask first** how a deep lagoon reads (`tp(3692,20109,-27)`).
 
@@ -12,7 +17,7 @@ records are sheltered somewhere. The water's fields only — the ground is the s
 person: "Yes go ahead with 1 and 3"). The strap grows in meadows over about half the sand, each meadow one clone of one habit; the runners',
 the horn's, the dome's and the bommie's variants are growth forms, not sizes; the ecotype reads the current below the waves; the forest has
 its young (`stipeling`); wisp keeps to fed water. **Ask first** how a lagoon reads now (`tp(0,0,-18)`), then the forest at (330, 0).
-Next, as agreed: species by island group, storm clearings; patch reefs to consider after.
+Next, as agreed: storm clearings; patch reefs to consider after.
 
 **12 Nov 2026, after v11.115 merged:** the constructors' place waits (DEEP §11: "later once we have the islands down a bit more"). Next, in
 another chat: a believability pass over the archipelago as it now stands — size, scope, shape.

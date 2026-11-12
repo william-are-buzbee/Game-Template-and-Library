@@ -201,8 +201,11 @@ function poolCull(){ // after cullChunks has set every cell's visible and near: 
 function poolStats(){let draws=0,inst=0;for(const P of POOLS.values()){if(P.n>0)draws++;inst+=P.n;}return {pools:POOLS.size,draws:draws,inst:inst};} // the readout (main.js)
 function cellLee(ch){return Math.max(leeW(ch.cx,ch.cz),leeW(ch.x0,ch.z0),leeW(ch.x0+CELL,ch.z0),leeW(ch.x0,ch.z0+CELL),leeW(ch.x0+CELL,ch.z0+CELL));} // the retention field over the cell (v11.81; cellCanopy to v11.80)
 // a generator (v11.12): turf is 1200 tries a cell and the strap 2400, an envW and an fbm each; a yield every 200 keeps a step under the budget (the rng is untouched by a yield)
+// the cell's lineage range (v11.119, region.js rangeBuild): the record whose ground the cell's middle is most inside — its coast nearest
+function chRange(ch){if(ch.rng!==undefined)return ch.rng;let best=null,bd=1e18;for(const i of recsAt(ch.cx,ch.cz)){const R=ISLANDS[i],d=Math.hypot(ch.cx-R.x,ch.cz-R.z)-shWidth(R);if(d<bd){bd=d;best=R;}}return ch.rng=best&&best.rng!==undefined?best.rng:2;}
 function* placeFloraType(ch,rng,f){
   if(f.big)return; // structures are placed and drawn once for the whole world (far.js); placeBigSolids adds their collision
+  if(f.range&&f.range.indexOf(chRange(ch))<0)return; // a brooding line's species keeps to its range (v11.119)
   const rock=f.mat===MATROCK; // the rock is placed first (genChunk) and never asks; everything after it does
   let maxN=f.per||0; // the density at full tolerance (per cell); the envelope scales it per try
   const cw=f.leePer?cellLee(ch):0;if(cw>0.03)maxN=Math.max(maxN,f.leePer);
