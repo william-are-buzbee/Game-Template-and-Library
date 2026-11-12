@@ -7,7 +7,7 @@ then a ranked list of changes for the person to choose from (§5). Read GLOBE.md
 How it was measured: `node test/region.js` (the province's table); `node test/map.js`, whole and zoomed (`SPAN=70000 CX=205000 CZ=0`,
 `SPAN=70000 CX=105000 CZ=-10000`); scratch scripts over `regionModel()`'s members and over `sample()` — every member's numbers, radial
 profiles of 27 records along 16 directions, the depth bands over the world on a 400 m grid, every pair of reef rings, the plateau's history
-on a 2 km grid, the model under nine knob variants; and the real build in headless Chromium at five places (§6).
+on a 2 km grid, the model under nine knob variants; and the real build in headless Chromium at five places (§7).
 
 ## 0. The province in numbers
 
@@ -135,7 +135,7 @@ series; ours' own seeps and tuff cone). m151 (0.99 Ma, 11 km³) on m138 would be
 **2.8 Land — plausible, low.** 1,990 km²: the Society Islands' (~1,600), under GLOBE §3's own 5,000–20,000. It moves with §1.2 and §2.4.
 
 **2.9 What shows from the sea — plausible.** East of ours the rims stand +2 to +6, seen from the water to ~10 km; with no land plants the
-east is open sea over a flat weed floor (§6). Earth's atolls show at 15–20 km by their palms; land life is deferred, so this is correct.
+east is open sea over a flat weed floor (§7). Earth's atolls show at 15–20 km by their palms; land life is deferred, so this is correct.
 
 ## 3. Shape
 
@@ -202,13 +202,51 @@ it, and the person may want to know.
 (numbers), then decide 5–7 together, since each re-runs the province: 6 (A) is the biggest gain in believability and makes 2 and 3 fall
 out of the model instead of being patched onto the records.
 
-**The person's to decide:**
+**The person's to decide** (answered 12 Nov 2026, §6):
 - The east: one carbonate platform (6 A), a seamount and guyot field (6 B), or circles as now with 2–4 patched in?
 - Land and volume (5): shrink the land and rings to the volumes, or grow the volumes to the land?
 - Erosion (7): a slow plate's long-lived high islands, or the Society-speed clock as now?
 - The giant's barrier reef (1): now, or with the giant's own pass?
 
-## 6. What was looked at, and what was not
+## 6. The person's answers (12 Nov 2026), and the build they set
+
+- **The east: one carbonate platform** (6 A).
+- **Land and volume: shrink the land** (5).
+- **Erosion: "let's say 10, though I am not sure"** — high islands that last about 10 Myr (7). In numbers: `erode` 0.15/Myr. With the
+  land shrunk, the big members then keep more than 150 m to ~9–10 Ma (the oldest high island 9.3 Ma, m109); the plateau's own sinking
+  (1–1.6 km over 30 Myr) drowns them after that at any rate (0.10 gives 9.5 Ma), so ~10 Myr is about the most this plate allows. With
+  0.15 the province has 7 high islands and 5 inside a living reef ring (the Bora Bora and Mayotte stage, none today but ours), banks fall
+  from 36 to 7 and atolls rise from 67 to 87, land ~1,500 km²; the pins re-tune (ours' model volume 82 → 39 km³, the giant's 297 → 192).
+  A knob: easy to move once seen.
+- **The giant's barrier reef: with this work** (1).
+- Not answered, so taken as recommended (§5): one margin per platform (2), lagoon depth by size (3), reef walls (4).
+
+**Still open — the shape that holds the volume (asked 12 Nov 2026).** Both ways of shrinking give nearly the same land; they differ in height:
+
+| member | now | (a) summits kept, land at the 12° waterline | (b) Earth's slopes (7° land on 12° flanks), summits lower |
+|---|---|---|---|
+| the awesome shield m153 | 2,533 m, r 20.6 km | 2,533 m, r 11.9 km (446 km²) | ~1,530 m, r 12.4 km (486 km²) |
+| m138 at its peak | 1,878 m, r 15.3 km | 1,878 m, r 8.8 km | ~1,160 m, r 9.5 km |
+| m154 | 820 m, r 7.3 km | 820 m, r 4.2 km | ~540 m, r 4.4 km |
+| the giant (pinned 900 m) | model r 11.6 km | r 6.7 km | r 7.1 km — its hand record's 7.0 already |
+
+(a) is two lines, but its land stands at 12° on average, where Earth's subaerial shields run 4–8° (Lanai ~5°, Tahiti ~7°). (b) is the
+believable shape, but needs the member's height worked out at its birth from how deep its base lay, and every summit not pinned
+drops by ~40%. A third way: (b) with the awesome shield pinned at 2,533 m, as ours and the giant are — its volume grows to ~6,000 km³
+and its moat with it, and the person's "one awesome" stays.
+
+**The build, one version and one pull request each:**
+1. **The members' shape and clock** — the land and rings volume-true (by the answer above), `erode` 0.15, and a high island's reef: a
+   barrier reef and lagoon round the land (`rgRecord`'s high branch; `islandH`'s lagoon only where the ground lies under it, so ours is
+   untouched), the rim state built with its land, the giant's record given its reef (the model's ring at −11 m). Everything in the
+   ±70 km world near a member moves — m138, the atolls, the basins — so the tests that pin the province's numbers are re-pinned.
+2. **The plateau's platform** — the members' reef rule run on the floor grid: where the plateau reached the light it keeps a carbonate
+   top; its margin where it never did; its up-current edge drowned by the fed rule; the banks' fused flats replaced by it.
+3. **Margins and lagoons** — one margin per platform (rims inside another's lagoon become faros or patch reefs), lagoon depth by size
+   and time dry, reef walls, the slow plate's −120 bench — what step 2 does not already make.
+4. Later, unasked: rims by the wind, blue holes, rejuvenated cones, the fed rule in time, `Te` and the swell.
+
+## 7. What was looked at, and what was not
 
 Seen: the province's map whole and two zooms (the east at x 205 km, the middle at x 105 km); in the build (headless Chromium, software
 WebGL, by `tp()`): the surface over m6's lagoon (−40) and over m27's bank (−20), the 308 m island's summit, m6's outer slope at −70, the
