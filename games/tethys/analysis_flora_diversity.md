@@ -284,7 +284,7 @@ Ranked by how much of what a player sees each one changes, against its cost. "Th
 **Decisions (the person, 12 Nov 2026):** "Yes go ahead with 1 and 3 and then leave 2 for something to consider after. And these YES to
 islands shielding each other, another sand flora, the other two as well, yes." So: **1 and 3 built** (v11.116); **4** (islands shield
 each other), **5** (a second sand flora), **6** (species by island group) and **7** (storm clearings and regrowth) **yes**, in that
-order (v11.117–120); **2** (patch reefs) to consider after; **8** not asked.
+order (v11.117–120); **2** (patch reefs) to consider after; **8** not asked. **Built:** 1 and 3 v11.116, 4 v11.117, 5 v11.118, 6 v11.119, 7 v11.120.
 
 ## 6. What could not be checked
 

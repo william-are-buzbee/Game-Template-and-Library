@@ -220,6 +220,7 @@ function* placeFloraType(ch,rng,f){
     if(f.meadow){const o=f.meadow[3]||0;p*=0.06+0.94*smooth(f.meadow[1],f.meadow[2],fbm(x*f.meadow[0]+71+o,z*f.meadow[0]+43+o,2));} // v11.116: meadows [frequency, lo, hi] — a runner's patches with bare sand between and a few shoots in it
     if(cw>0.03)p=Math.max(p,leeW(x,z)*f.leePer/maxN);
     if(f.field)p*=clamp(0.1+4*Math.pow(fbm(x*f.field+31,z*f.field+17,2),2.5),0,1.6);
+    if(f.succ&&p>0)p*=smooth(f.succ[0],f.succ[1],distAge(x,z,ch.f(x,z)[FI.expo],ch.h(x,z))); // v11.120: the age of the storm's clearing here (grow.js distAge)
     if(rng()>=p)continue;
     const h=ch.h(x,z);
     if(f.y!=='surface'){const cz=chemoAt(x,z);if(f.chemo?cz===null||h<cz+f.chemo[0]||h>cz+f.chemo[1]:cz!==null&&h<cz)continue;} // nothing sessile under a basin's chemocline but what straddles or mats it (f.chemo: a band about the chemocline, so none where there is none: v11.96, DEEP §2 — to v11.95 the -450 under the whole world)

@@ -1171,7 +1171,9 @@ forest at (330, 0), like for like in the app's pane with the loop driven by hand
 `y: 'floor'|'surface'|'mid'`, `ys`, `reach`, `glow`, `vent`, `maxSlope`, `minH`, `canopyPer`, `pocket`, `meadow` (v11.116: [frequency, lo, hi] —
 fbm patches over smooth(lo, hi), 6% between: the strap's meadows, about half the sand; v11.118 `meadow[3]` the noise's offset), `clone`, `range`
 (v11.119: the stretches of the colonisation chain a brooding line's species stands in — 0 the old east, 1 the middle, 2 the young west, by
-hops from the founder, region.js `RANGE`, `rangeBuild`; a cell's by the record whose ground its middle is most inside, chunks.js `chRange`), `big`, and
+hops from the founder, region.js `RANGE`, `rangeBuild`; a cell's by the record whose ground its middle is most inside, chunks.js `chRange`), `succ` (v11.120: [lo, hi], the storm clearing's age a species needs — grow.js `DIST`, `distAge`: patches
+~60 m over 16–20% of the exposed hard shallows, their ages a mosaic; the reef's polyps 0.5–0.95, the canopy 0.3–0.6, its young and the lime
+chain at once; the turfs and crusts none), `big`, and
 since v9.5 `photo` (a weed: tinted by `pigment(ground depth, line)` per instance, `line` one of `green|float|red` since v11.15;
 the `tints` list then only colours the far impostors), `flow` (yaw from `flowYaw`, ±0.25 rad), `band:[lo,hi]` (ground height the species stands in) and the
 surface cap: a floor entry with `top` that would stand into the air is shortened in y to fit under −1.4 or skipped

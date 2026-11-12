@@ -1019,7 +1019,7 @@ const FLORA = [
   species('paddle', {mat: MATG, photo: true, line: 'green', tints: GREENT, s: [0.7, 1.4], per: 600, env: {h: [-26, -3], turb: [0.3, 1], sub: [0.05, 0.62]}, field: 0.02, eco: true}, paddleB), // the turbidity form (v11.67): surf over sand — a scrap of our windward shallows, the giant's whole windward shelf
   species(
     'chain',
-    {mat: MATV, photo: true, line: 'green', tints: GREENT, s: [0.7, 1.6], tilt: true, per: 120, env: {h: [-28, -1], sub: [0.5, 1], expo: [0.3, 1]}, eco: true},
+    {mat: MATV, photo: true, line: 'green', tints: GREENT, s: [0.7, 1.6], tilt: true, per: 120, env: {h: [-28, -1], sub: [0.5, 1], expo: [0.3, 1]}, eco: true, succ: [0.05, 0.2]},
     chainB
   ),
   species('grape', {mat: MATV, photo: true, line: 'green', tints: GREENT, s: [0.7, 1.6], per: 140, env: {h: [-40, -6], sub: [0.15, 0.6]}, field: 0.02, clone: 0.006}, grapeB), // clone (v11.116): a runner too, its patches one habit each
@@ -1038,11 +1038,12 @@ const FLORA = [
       per: 700, // v11.116: 900 to v11.115 — 300 of them are the young now (stipeling)
       env: {h: [-54, -16], sub: [0.55, 1], nut: [0.45, 1], flow: [0.15, 0.85], young: [0, 0.45]},
       field: 0.012,
-      eco: true
+      eco: true,
+      succ: [0.3, 0.6] // v11.120: the canopy back a few years after a storm
     },
     stipeB
   ),
-  species('stipeling', {mat: MATS, photo: true, line: 'float', tints: FLOATT, reach: [0.3, 0.7], per: 300, env: {h: [-54, -16], sub: [0.55, 1], nut: [0.45, 1], flow: [0.15, 0.85], young: [0, 0.45]}, field: 0.012, eco: true}, stipelingB), // v11.116 (analysis_flora_diversity §5.3): the forest's young, under the canopy
+  species('stipeling', {mat: MATS, photo: true, line: 'float', tints: FLOATT, reach: [0.3, 0.7], per: 300, env: {h: [-54, -16], sub: [0.55, 1], nut: [0.45, 1], flow: [0.15, 0.85], young: [0, 0.45]}, field: 0.012, eco: true, succ: [0.08, 0.25]}, stipelingB), // v11.116 (analysis_flora_diversity §5.3): the forest's young, under the canopy
   species(
     'ladder',
     {mat: MATM, photo: true, line: 'float', tints: FLOATT, s: [0.7, 1.3], tilt: true, per: 130, env: {h: [-66, -16], sub: [0.5, 1], nut: [0.4, 1], young: [0, 0.45]}, field: 0.014, eco: true},
@@ -1093,8 +1094,8 @@ const FLORA = [
     buttonB
   ),
   // polyps
-  species('table', {mat: MATV, tints: VIVID, s: [0.6, 1.6], tilt: true, per: 55, env: {h: [-24, -6], sub: [0.6, 1], nut: [0, 0.55]}}, tableB),
-  species('horn', {mat: MATV, tints: VIVID, s: [0.6, 1.6], tilt: true, per: 90, env: {h: [-24, -6], sub: [0.6, 1], nut: [0, 0.55]}}, hornB),
+  species('table', {mat: MATV, tints: VIVID, s: [0.6, 1.6], tilt: true, per: 55, env: {h: [-24, -6], sub: [0.6, 1], nut: [0, 0.55]}, succ: [0.55, 0.9]}, tableB), // succ (v11.120): the reef's polyps grow back last after a storm
+  species('horn', {mat: MATV, tints: VIVID, s: [0.6, 1.6], tilt: true, per: 90, env: {h: [-24, -6], sub: [0.6, 1], nut: [0, 0.55]}, succ: [0.5, 0.85]}, hornB),
   species('rusthorn', {mat: MATV, tints: RUSTS, s: [0.6, 1.5], tilt: true, per: 36, env: {h: [-150, -4], young: [0.4, 1], sub: [0.5, 1]}}, hornB),
   // the deep gardens (v11.98, DEEP.md §3): the horn's line without its green partner — the lime polyps' fixed stage on plankton alone, as
   // Earth's cold-water corals (Lophelia, 200-1000 m, 4-12 °C) — white to pale ochre; on hard ground where the water quickens over an edge: the
@@ -1104,7 +1105,7 @@ const FLORA = [
   species('thicket', {mat: MATV, tints: [[0.93, 0.91, 0.85], [0.9, 0.82, 0.64], [0.96, 0.94, 0.9]], s: [0.9, 2.2], tilt: true, per: 160, env: {h: [-1100, -150], sub: [0.55, 1], rel: [0.6, 1], flow: [0.2, 1], oxy: [0.32, 1]}, maxSlope: 1.4, field: 0.012}, hornB),
   species(
     'dome',
-    {mat: MATV, tints: VIVID2, s: [0.6, 1.8], tilt: true, sx: [0.8, 1.25], per: 26, env: {h: [-24, -6], sub: [0.6, 1], nut: [0, 0.55]}},
+    {mat: MATV, tints: VIVID2, s: [0.6, 1.8], tilt: true, sx: [0.8, 1.25], per: 26, env: {h: [-24, -6], sub: [0.6, 1], nut: [0, 0.55]}, succ: [0.65, 0.95]},
     domeB
   ),
   species(
@@ -1112,7 +1113,7 @@ const FLORA = [
     {mat: MATV, tints: RUSTS, s: [0.7, 2.0], tilt: true, sx: [0.8, 1.25], per: 18, env: {h: [-150, -4], young: [0.4, 1], sub: [0.5, 1]}},
     domeB
   ),
-  species('bommie', {mat: MATV, tints: VIVID, s: [0.8, 1.5], per: 14, env: {h: [-24, -6], flow: [0.6, 1], sub: [0.5, 1]}}, (rg,k)=>k===1?bommieB(rg,k,2.9,3,{w:0.3}):k===2?bommieB(rg,k,4.6,5,{flare:true}):bommieB(rg,k,3.6,4)), // v11.116: squat and broad, or tall and capped (bommieB's o)
+  species('bommie', {mat: MATV, tints: VIVID, s: [0.8, 1.5], per: 14, env: {h: [-24, -6], flow: [0.6, 1], sub: [0.5, 1]}, succ: [0.65, 0.95]}, (rg,k)=>k===1?bommieB(rg,k,2.9,3,{w:0.3}):k===2?bommieB(rg,k,4.6,5,{flare:true}):bommieB(rg,k,3.6,4)), // v11.116: squat and broad, or tall and capped (bommieB's o)
   species(
     'tower',
     {mat: MATV, tints: DULL, s: [0.7, 1.2], tilt: true, per: 16, env: {h: [-150, -60], flow: [0, 0.4], sub: [0.5, 1], slope: [0, 0.5]}},

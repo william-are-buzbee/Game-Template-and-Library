@@ -7062,3 +7062,26 @@ it away.
   view draws more.
 - **Tests:** test/region.js the stretches, the founder east, ours west, every record within 50 km of ours west. TAXA, FLORA.md, SEAFLOOR §6
   (built) and DESIGN carry the rest.
+
+## v11.120 — storm clearings and regrowth (12 Nov 2026)
+
+The flora diversity review's §5.7 (the person, 12 Nov 2026: "YES ... the other two as well"). The reef top and the forest were each one even
+stand. On Earth a storm every decade or so clears patches of the exposed shallows — the polyps broken to rubble, the kelp torn out to its
+holdfast — and they grow back in an order, so at any time the exposed shallows are a mosaic of patches of every age.
+
+- **grow.js `DIST`, `distAge(x, z, expo, h)`:** patches of ~60 m (fbm at 0.018) over a share of the ground by the waves' exposure (0.3–0.85)
+  and the storm's reach in depth (−35 to −4), at most half; each patch's age a second fbm, 0 just cleared, 1 grown back. Placement only — no
+  state, no rng: the same cell grows the same mosaic every time.
+- **The `succ` key** (chunks.js placeFloraType: the chance × smooth(lo, hi, age)): the reef's polyps last — table 0.55–0.9, horn 0.5–0.85, dome
+  and bommie 0.65–0.95; the canopy (stipe) 0.3–0.6; its young (stipeling) 0.08–0.25 and the lime chain 0.05–0.2, at once; the turfs, crusts,
+  rinds and cones none — the pioneers on the bare rock.
+- **What it does:** 23% of ours' exposed hard shallows in a clearing at 20 m (test/pool.js), about half of those young enough to lack the
+  polyps; a fresh one at (220, 50) by the shelf forest. The review's census, averaging 100 m round each site, moves by under 0.1 in N2: a
+  mosaic of 60 m patches over a fifth of the ground changes a view by its patches, not its list.
+- **Ours' reef top and forest take it** (unlike the shelter, this is placement, not the pins' fields): their patches have clearings now.
+- **Tests:** test/pool.js the share, the calm and the deep untouched, the fresh clearing, the species back in order.
+
+Seen headless (no page errors): ours' shelf at (160, 80) looking across a fresh clearing at (220, 50) to the forest, before and after — the
+same picture: that ground was sand and turf in front of the forest, with no polyps or canopy to lose. **Unseen, ask in this order:** whether
+the clearings read at all on ours' reef top and in the forest at (330, 0) (`tp(0,300,-10)`, `tp(330,0,-11)`) — if they are too subtle,
+`DIST.share` (0.5) and the patch size (`DIST.f`) are the knobs; a far reef's mosaic (`tp(220400,19700,-6)`).
