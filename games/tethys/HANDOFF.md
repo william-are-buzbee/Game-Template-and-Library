@@ -42,6 +42,10 @@ the horn's, the dome's and the bommie's variants are growth forms, not sizes; th
 its young (`stipeling`); wisp keeps to fed water. **Ask first** how a lagoon reads now (`tp(0,0,-18)`), then the forest at (330, 0).
 Next: the patch reefs, to consider (review §5.2).
 
+**v11.115.1 (12 Nov 2026): the world map's zoom without the flicker.** A notch of the wheel or a drag showed the world's 746 m picture until
+the new window was sampled (0.3–0.4 s a notch, the whole time the wheel turned); the last window now stays drawn in its place over it.
+**Ask first** whether zooming the map out (`n`, the wheel) still flickers, and whether the short freeze as it re-samples bothers you.
+
 **12 Nov 2026, after v11.115 merged:** the constructors' place waits (DEEP §11: "later once we have the islands down a bit more"). Next, in
 another chat: a believability pass over the archipelago as it now stands — size, scope, shape.
 
