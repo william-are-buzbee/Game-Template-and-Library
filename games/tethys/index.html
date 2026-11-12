@@ -342,7 +342,10 @@ const CELL=215,NCELL=240,HALF=CELL*NCELL/2; // v11.65 (ARCHIPELAGO step 4): 240 
 // v11.112 (GLOBE §10.1, the province): the world is a rectangle — cells [WORLD.i0, WORLD.i1) by [WORLD.j0, WORLD.j1), x from WX0 to WX1 and
 // z from WZ0 to WZ1 — since the province is not centred on ours (its old members trail 300 km east); to v11.111 a square, GRID0 −208, GRIDN
 // 656, ±WHALF 70,520: the same today, so nothing moves. Each bound a multiple of 8 cells (the ledger's patches, the far regions' 4).
-const WORLD={i0:-208,i1:448,j0:-208,j1:448};
+// v11.115 (GLOBE §10.1, the province grown): the rectangle round the region model's members' feet (x −69 … 300 km, z −93 … 121 km) —
+// x −75.7 … 306.2 km, z −101.5 … 125.6 km, 1,776 × 1,056 cells (382 × 227 km). WORLD70 is v11.106–113's ±70.5 km square: region.js's second
+// pass of records is its, so its 25 come out as they were, and world.js's flood keeps its lattice; a save's ledger patches without a world tile it.
+const WORLD={i0:-232,i1:1544,j0:-352,j1:704},WORLD70={i0:-208,i1:448,j0:-208,j1:448};
 const WX0=WORLD.i0*CELL-HALF,WX1=WORLD.i1*CELL-HALF,WZ0=WORLD.j0*CELL-HALF,WZ1=WORLD.j1*CELL-HALF;
 function gridIn(i,j){return i>=WORLD.i0&&j>=WORLD.j0&&i<WORLD.i1&&j<WORLD.j1;}
 function inWorld(x,z,m){return x>WX0+m&&x<WX1-m&&z>WZ0+m&&z<WZ1-m;} // (x, z) at least m inside the world's edge
@@ -757,6 +760,13 @@ function rixBuild(){const B=RIX.B,N=ISLANDS.length,rg=ISLANDS.map(rixRange);let 
   Object.assign(RIX,{n:N,x0,z0,nx,nz,L,all:ISLANDS.map((R,i)=>i)});}
 // the indices of the records that can matter at (x, z), in ISLANDS order
 function recsAt(x,z){if(RIX.n!==ISLANDS.length)rixBuild();if(!RIX.on)return RIX.all;const i=Math.floor((x-RIX.x0)/RIX.B),j=Math.floor((z-RIX.z0)/RIX.B);return i>=0&&j>=0&&i<RIX.nx&&j<RIX.nz?RIX.L[j*RIX.nx+i]:RIX.none;} // a NaN point is in no bucket: no records, and sample()'s ground is NaN as the loop over every record left it
+// v11.114: where two records' grounds meet, smax's knee fills the corner by up to a quarter of it — the sediment apron in a saddle between two
+// flanks (v11.58, BASIN.knee 200: up to 50 m). Near the sea the same fill made land: two banks' lagoons at −20 met at +30, three at up to +90,
+// plateaus of hundreds of km² on coalesced banks that no member of the model has (m122's 126 km² by the old square, m109's 822 at 108 km east;
+// seen on the province's map, 11 Nov 2026). The fill now stops at FILL_TOP, a bank's lagoon floor: the knee shrinks so the corner never rises
+// past it (top + k/4 ≤ FILL_TOP), and above it the grounds meet at their plain max. A meeting deeper than FILL_TOP − 50 is as before.
+const FILL_TOP=-20;
+function fillK(a,b){return Math.min(BASIN.knee,Math.max(0,4*(FILL_TOP-Math.max(a,b))));}
 const _isD=[],_isI=[],_isB=[],_isE=[]; // the records' squared distances in this sample; those in reach, highest bound first, and their bounds (v11.102)
 function sample(x,z,out){
   // the islands: the highest in reach wins the conditions; the rest raise the ground under it through smax (a volcano on another's flank)
@@ -775,7 +785,7 @@ function sample(x,z,out){
     // the ground whose fields but its influence are open water's there (past `quiet`) is not either. Exact: the ground is as if they were
     if(best&&b<Math.min(o.h,o.hs)-BASIN.knee)break;if(!core&&b<flo&&_isD[i]>R.quiet*R.quiet)continue;
     let w;
-    if(best){islandH(R,x,z,spare);w=spare;if(spare.h>o.h){h=smax(spare.h,h,BASIN.knee);hSmooth=smax(spare.hs,hSmooth,BASIN.knee);const t=o;o=spare;spare=t;best=R;}else{h=smax(h,spare.h,BASIN.knee);hSmooth=smax(hSmooth,spare.hs,BASIN.knee);}}
+    if(best){islandH(R,x,z,spare);w=spare;if(spare.h>o.h){h=smax(spare.h,h,fillK(spare.h,h));hSmooth=smax(spare.hs,hSmooth,fillK(spare.hs,hSmooth));const t=o;o=spare;spare=t;best=R;}else{h=smax(h,spare.h,fillK(h,spare.h));hSmooth=smax(hSmooth,spare.hs,fillK(hSmooth,spare.hs));}}
     else{h=islandH(R,x,z,o);hSmooth=o.hs;best=R;w=o;}
     _isE[q]=1;if(w.isl>0){iS+=w.isl;iU+=w.isl*w.upW;iP*=1-w.isl;iN++;iU1=w.upW;iI1=w.isl;}}
   for(let q=0;q<n;q++){if(_isE[q])continue;const i=_isI[q],R=ISLANDS[i],fq=R.fade[1]/0.84;if(_isD[i]>fq*fq)continue; // the rest: their influence alone
@@ -1003,9 +1013,9 @@ const LM={};
 // and −616 under fed water the nearest (0.80, 0.70). Built on the first call, once (~0.3 s); region.js (after this file in order.txt) holds the flood.
 let CHEMO_B=null,CHEMO_G=null;
 function chemoD(sill,nut){return OXY.anox*nut*Math.pow(-sill/100,-0.86)/Math.max(0.01,oxyProf(sill,nut));} // a silled basin's food over its oxygen: anoxic at 1
-function* chemoGen(){const G=OXY.G,nx=Math.ceil((WX1-WX0)/G),nz=Math.ceil((WZ1-WZ0)/G),x0=WX0,z0=WZ0,H=new Float32Array(nx*nz); // the world's ground from its corner (v11.106: ±WHALF; the old square to v11.105; v11.112 the rectangle)
-  const Nu=new Float32Array(nx*nz);for(let j=0;j<nz;j++){for(let i=0;i<nx;i++){const s=sample(x0+(i+0.5)*G,z0+(j+0.5)*G);H[j*nx+i]=s.h;Nu[j*nx+i]=s.f[FI.nut];}if((j&7)===7)yield;}
-  const R=regionBasins(H,nx,G,1,nz),sn=new Float64Array(R.B.length);for(let k=0;k<nx*nz;k++){const l=R.lab[k];if(l>=0)sn[l]+=Nu[k];}
+function* chemoGen(){const G=OXY.G,ax=WORLD70.i0*CELL-HALF,az=WORLD70.j0*CELL-HALF,x0=ax-Math.ceil((ax-WX0)/G)*G,z0=az-Math.ceil((az-WZ0)/G)*G,nx=Math.ceil((WX1-x0)/G),nz=Math.ceil((WZ1-z0)/G),H=new Float32Array(nx*nz); // the world's ground from its corner (v11.106: ±WHALF; the old square to v11.105; v11.112 the rectangle; v11.115 on v11.106's lattice, a whole step past the province's corner)
+  const Nu=new Float32Array(nx*nz);for(let j=0;j<nz;j++){for(let i=0;i<nx;i++){const s=sample(x0+(i+0.5)*G,z0+(j+0.5)*G);H[j*nx+i]=s.h;Nu[j*nx+i]=s.f[FI.nut];}yield;} /* a row a slice (v11.115; eight to v11.113) */
+  const R=yield* rgBasinsGen(H,nx,G,1,nz),sn=new Float64Array(R.B.length);for(let k=0;k<nx*nz;k++){const l=R.lab[k];if(l>=0)sn[l]+=Nu[k];}
   for(const b of R.B){b.nut=sn[b.id]/b.cells;b.D=b.silled?chemoD(b.sill,b.nut):0;b.anox=b.silled&&b.D>=1;} // v11.108: the basin's food (its cells' mean nut) against its inflow
   CHEMO_B={nx,nz,x0,z0,G,lab:R.lab,ch:R.B.map(b=>b.anox?b.chemo:null),B:R.B};}
 // v11.113 (the province): the flood's samples a slice a frame from the menu on (main.js loop: chemoStep), so at a province's size (~0.5 M
@@ -1199,15 +1209,18 @@ function regionGrid(R,x0,z0,span,n,inner,half){const HB=typeof half==='number'?[
 // OXY.floor (-1100; Santa Barbara Basin goes anoxic behind a 475 m sill on the minimum's water) and below -100 (a lagoon the tide flushes) — when
 // its floor lies 150 m or more under the sill, and when it is 10 km² or more (v11.96: a hollow smaller is stirred clean; the outer flank's
 // ribbing made 0.5-1.6 km² "basins" at -2500 to -3500)
-function regionBasins(H,n,cell,th,nz){if(th===undefined)th=30;if(nz===undefined)nz=n;const N=n*nz,F=new Float32Array(N).fill(Infinity),hp=new Int32Array(N),lab=new Int32Array(N).fill(-1);let hn=0;
+// v11.115 (the province): the flood a generator, yielding every 16k cells, so world.js chemoGen can spread it over frames (a 955 × 568 grid is
+// ~0.25 s at once); regionBasins runs it whole, the same answer
+function regionBasins(H,n,cell,th,nz){const g=rgBasinsGen(H,n,cell,th,nz);for(;;){const r=g.next();if(r.done)return r.value;}}
+function* rgBasinsGen(H,n,cell,th,nz){if(th===undefined)th=30;if(nz===undefined)nz=n;const N=n*nz,F=new Float32Array(N).fill(Infinity),hp=new Int32Array(N),lab=new Int32Array(N).fill(-1);let hn=0,yc=0;
   const up=k=>{const v=hp[k];while(k>0){const p=(k-1)>>1;if(F[hp[p]]<=F[v])break;hp[k]=hp[p];k=p;}hp[k]=v;},
     down=()=>{const v=hp[--hn];let k=0;for(;;){let c=2*k+1;if(c>=hn)break;if(c+1<hn&&F[hp[c+1]]<F[hp[c]])c++;if(F[hp[c]]>=F[v])break;hp[k]=hp[c];k=c;}hp[k]=v;};
   const push=i=>{hp[hn]=i;up(hn++);};
   const seed=k=>{if(F[k]===Infinity){F[k]=H[k];push(k);}}; // the edge: the open ocean (v11.112: an n × nz grid; a square's order as before)
   for(let i=0;i<Math.max(n,nz);i++){if(i<n){seed(i);seed((nz-1)*n+i);}if(i<nz){seed(i*n);seed(i*n+n-1);}}
-  while(hn){const k=hp[0];if(hn>1)down();else hn=0;const x=k%n,y=(k/n)|0,f=F[k];
+  while(hn){if((++yc&16383)===0)yield;const k=hp[0];if(hn>1)down();else hn=0;const x=k%n,y=(k/n)|0,f=F[k];
     for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=n||yy>=nz)continue;const q=yy*n+xx;if(F[q]!==Infinity)continue;F[q]=Math.max(H[q],f);push(q);}}
-  const B=[];for(let k=0;k<N;k++){if(lab[k]>=0||F[k]-H[k]<th||F[k]>=0)continue;const b={id:B.length,sill:F[k],floor:H[k],cells:0,sx:0,sz:0},st=[k];lab[k]=b.id;
+  const B=[];for(let k=0;k<N;k++){if((k&65535)===65535)yield;if(lab[k]>=0||F[k]-H[k]<th||F[k]>=0)continue;const b={id:B.length,sill:F[k],floor:H[k],cells:0,sx:0,sz:0},st=[k];lab[k]=b.id;
     while(st.length){const q=st.pop(),x=q%n,y=(q/n)|0;b.cells++;b.sx+=x;b.sz+=y;if(H[q]<b.floor)b.floor=H[q];
       for(const [dx,dy] of [[1,0],[-1,0],[0,1],[0,-1]]){const xx=x+dx,yy=y+dy;if(xx<0||yy<0||xx>=n||yy>=nz)continue;const r=yy*n+xx;if(lab[r]>=0||F[r]-H[r]<th||Math.abs(F[r]-b.sill)>1)continue;lab[r]=b.id;st.push(r);}}
     // silled: still water behind its sill; anoxic only if world.js chemoD says its food outruns its inflow (v11.108) — b.chemo is where the line would be
@@ -1277,19 +1290,22 @@ function rgRecord(m,k,K,rng){const ns=1000+37*k,R={id:m.id,x:m.x,z:m.z,rot:0,sc:
 // v11.106 (GLOBE §10.1 step 4, the world to ±WHALF): in two passes, so the old square's records are v11.102's to the bit — first the members
 // that reach the old square (HALF + 2 km, as v11.102–105 built them: the same list, order, rng and noise seeds), then the rest that reach the
 // world, by their own rng, their seeds after; the floor's grid is v11.102's lattice grown by whole nodes, so every node it had is the same node
-function rgBuild(Rg){const K=Rg.K,rng=mulberry(K.seed*104729+7),rng2=mulberry(K.seed*104729+11),W0=[-HALF-2000,HALF+2000,-HALF-2000,HALF+2000],W=[WX0-2000,WX1+2000,WZ0-2000,WZ1+2000],box=(x,z,r,w)=>x+r>w[0]&&x-r<w[1]&&z+r>w[2]&&z-r<w[3]; // the boxes as rectangles (v11.112; a square's test the same decisions)
-  const cand=w=>Rg.M.filter(m=>m.pin<0&&box(m.x,m.z,m.R*1.6+3000,w)).sort((a,b)=>b.top-a.top),c0=cand(W0),c1=cand(W);
+// v11.115 (GLOBE §10.1, the province grown): a third pass, the members that reach the province's rectangle and not v11.106's ±70.5 km
+// (WORLD70), by a third rng — 75 more, 122 records with the pins (37 members struck, buried under a neighbour's flank). None reaches ±70.5 km, so
+// the ground there is v11.114's to the bit; the floor's grid grows to the province by whole nodes again.
+function rgBuild(Rg){const K=Rg.K,rng=mulberry(K.seed*104729+7),rng2=mulberry(K.seed*104729+11),W0=[-HALF-2000,HALF+2000,-HALF-2000,HALF+2000],W=[WORLD70.i0*CELL-HALF-2000,WORLD70.i1*CELL-HALF+2000,WORLD70.j0*CELL-HALF-2000,WORLD70.j1*CELL-HALF+2000],W2=[WX0-2000,WX1+2000,WZ0-2000,WZ1+2000],rng3=mulberry(K.seed*104729+13),box=(x,z,r,w)=>x+r>w[0]&&x-r<w[1]&&z+r>w[2]&&z-r<w[3]; // the boxes as rectangles (v11.112; a square's test the same decisions)
+  const cand=w=>Rg.M.filter(m=>m.pin<0&&box(m.x,m.z,m.R*1.6+3000,w)).sort((a,b)=>b.top-a.top),c0=cand(W0),c1=cand(W),c2=cand(W2);
   const ext=(L,w)=>{let x0=w[0]-5000,x1=w[1]+5000,z0=w[2]-5000,z1=w[3]+5000;for(const m of L){const r=Math.max(m.shore,m.ring,m.R)+6000;x0=Math.min(x0,m.x-r);x1=Math.max(x1,m.x+r);z0=Math.min(z0,m.z-r);z1=Math.max(z1,m.z+r);}return [x0,z0,x1,z1];};
-  const e0=ext(c0,W0),e1=ext(c1,W),G=RG_FLG,ox=e0[0]-G,oz=e0[1]-G; // v11.102's origin: its x0 less a node
+  const e0=ext(c0,W0),e1=ext(c2,W2),G=RG_FLG,ox=e0[0]-G,oz=e0[1]-G; // v11.102's origin: its x0 less a node
   rgFloorInit(Rg,ox,oz,Math.ceil(Math.max(0,e0[0]-e1[0])/G),Math.ceil(Math.max(0,e0[1]-e1[1])/G),Math.max(e1[2],e0[2]),Math.max(e1[3],e0[3]));
   const foot=R=>{const f0=rgFloor(R.x,R.z)-BASIN.knee-200;let r=0;while(r<80000&&rgRadial(R,r)>f0)r+=50;return r;};
-  const kept=ISLANDS.slice(),out=[],struck=[],later=new Set(c1.filter(m=>!c0.includes(m)));
+  const kept=ISLANDS.slice(),out=[],struck=[],later=new Set(c1.filter(m=>!c0.includes(m))),later2=new Set(c2.filter(m=>!c1.includes(m)));
   const pass=(L,rg,w)=>{for(const m of L){const R=rgRecord(m,out.length,K,rg),top=R.land?R.land.h:R.rimR!==undefined?R.rimH:R.h0;
     const by=kept.find(B=>rgRadial(B,Math.hypot(B.x-R.x,B.z-R.z))>top-20);if(by){struck.push({id:m.id,by:by.id});continue;}
-    const f=foot(R);R.reach=Math.round(Math.max(1.2*f,R.fade[1])+500);if(!box(R.x,R.z,R.reach,w)){later.add(m);continue;}rgBound(R);R.an=anTables(R.ns);kept.push(R);out.push(R);}};
-  pass(c0,rng,W0);const n0=out.length;pass(c1.filter(m=>later.has(m)),rng2,W); // the old square's, then the world's (a member of the first list kept by the world alone is shaped again, by the second rng)
+    const f=foot(R);R.reach=Math.round(Math.max(1.2*f,R.fade[1])+500);if(!box(R.x,R.z,R.reach,w)){(w===W0?later:later2).add(m);continue;}rgBound(R);R.an=anTables(R.ns);kept.push(R);out.push(R);}};
+  pass(c0,rng,W0);const n0=out.length;pass(c1.filter(m=>later.has(m)),rng2,W);const n1=out.length;pass(c2.filter(m=>later2.has(m)),rng3,W2); // the old square's, then the world's (a member of the first list kept by the world alone is shaped again, by the second rng)
   for(const R of ISLANDS){const f=foot(R),need=Math.round(1.2*f+500);if(need>R.reach)R.reach=need;if(R.id==='giant')rgBound(R);} // the pins: their flanks go on down to the model's floor; the giant's kit is the model's (land, rifts, flows: no collapse, dikes, 
-  return {recs:out,struck,n0};}
+  return {recs:out,struck,n0,n1};}
 const REGION=regionModel(),RG_BUILT=rgBuild(REGION);for(const R of RG_BUILT.recs)ISLANDS.push(R);
 
 // physics.js — contact. Colliders in a per-cell hash (spheres, capsules, bobbing pads), body shapes (capsules) for every
@@ -10215,7 +10231,8 @@ const ECO_STEP=3; // real seconds between ticks of the model
 // ledger running the same model at its own scale (ecoPatchGen). A patch near the player splits into its cells — one of ECO_SLOTS blocks of 64
 // kept at the end of the fine tables, its count laid on them by each cell's own capacity (ecoSplit) — and merges back when the player has gone
 // (ecoMerge). A loaded cell is always fine. Every lookup by cell goes through ecoId(i, j) and ecoIJ(c); in the fine box they are the old
-// i*NCELL + j. The patches tile the world from cell GRID0 (ecoPI, ecoPJ, ecoPOf), 82² of them, 5,824 coarse round the box (v11.106).
+// i*NCELL + j. The patches tile the world from its corner (ecoPI, ecoPJ, ecoPOf): 82² of them to v11.114, 5,824 coarse round the box (v11.106);
+// since v11.115 the province's 222 × 132, 28,404 coarse, censused near the player (ecoNear) and their hunters' tables by row (ecoRow).
 const ECO_FB={i0:0,j0:0,w:NCELL},PATCH=8,ECO_R=[2500,4000],ECO_PR=40000,ECO_PN=8; // the fine box; a patch's side in cells; split within, merge past (m from the player to the patch); ECO_PR (v11.112): the coarse patches censused — at boot those within it of the player, nearest first, and as the player travels ECO_PN a tick (ecoCensusNear); past it a patch waits uncensused and out of the model, its animals at their equilibrium until the player comes
 const ECO_FINE=ECO_FB.w*ECO_FB.w,ECO_COARSE=ECO_FB.i0>WORLD.i0||ECO_FB.j0>WORLD.j0||ECO_FB.i0+ECO_FB.w<WORLD.i1||ECO_FB.j0+ECO_FB.w<WORLD.j1,ECO_SLOTS=ECO_COARSE?64:0;
 const ECO_CELLS=ECO_FINE+ECO_SLOTS*PATCH*PATCH,DAY_S=DAY_H/CLOCK_RATE; // cells: the fine box's and the slots'; real seconds in a game day (2400)
@@ -10264,7 +10281,7 @@ function ecoCellOf(ch){let c=ecoId(ch.i,ch.j);if(c<0&&ECO_PT.on&&gridIn(ch.i,ch.
 function ecoSum(ei){const N=POP.n[ei];let s=0;for(let c=0;c<ECO_CELLS;c++)s+=N[c];if(ECO_PT.on){const P=ECO_PT,M=P.n[ei];for(let p=0;p<P.np;p++)if(P.blk[p]<0)s+=M[p];}return s;}
 function ecoInit(){
   SPAWN.forEach((e,i)=>{POP.n[i]=new Float32Array(ECO_CELLS);POP.k[i]=new Float32Array(ECO_CELLS);POP.ke[i]=new Float32Array(ECO_CELLS);POP.cd[i]=new Float32Array(ECO_CELLS).fill(0.7);POP.ow[i]=new Float32Array(ECO_CELLS);(POP.byKind[e.kind]||(POP.byKind[e.kind]=[])).push(i);ecoOf(e.kind);POP.cells[i]=[];POP.mark[i]=new Uint8Array(ECO_CELLS);if(!POP.kcells[e.kind]){POP.kcells[e.kind]=[];POP.kmark[e.kind]=new Uint8Array(ECO_CELLS);}});
-  if(ECO_PT.on){const P=ECO_PT,B=ECO_FB;P.coarse=new Uint8Array(P.np);P.blk=new Int32Array(P.np).fill(-1);P.bp.fill(-1);P.free=[];for(let s=ECO_SLOTS-1;s>=0;s--)P.free.push(s);P.done=new Uint8Array(P.np);P.rt=new Uint8Array(P.np);
+  if(ECO_PT.on){const P=ECO_PT,B=ECO_FB;P.coarse=new Uint8Array(P.np);P.blk=new Int32Array(P.np).fill(-1);P.bp.fill(-1);P.free=[];for(let s=ECO_SLOTS-1;s>=0;s--)P.free.push(s);P.done=new Uint8Array(P.np);P.rt=new Uint8Array(P.np);P.row=new Int32Array(P.np).fill(-1);P.nrow=0;P.rcap=0;
     for(let p=0;p<P.np;p++){const i=ecoPI(p),j=ecoPJ(p);P.coarse[p]=i<B.i0||j<B.j0||i>=B.i0+B.w||j>=B.j0+B.w?1:0;}
     SPAWN.forEach((e,i)=>{P.n[i]=new Float32Array(P.np);P.k[i]=new Float32Array(P.np);P.ke[i]=new Float32Array(P.np);P.cd[i]=new Float32Array(P.np).fill(0.7);P.cells[i]=[];P.mark[i]=new Uint8Array(P.np);});}
   POP.gen=ecoGen();
@@ -10391,12 +10408,16 @@ function ecoPatchCap(p,tables){const P=ECO_PT,G=16,W=PATCH*CELL,x0=ecoPI(p)*CELL
   for(let ei=0;ei<E;ei++){const K=ecoOf(SPAWN[ei].kind);if(!K.hunter)continue;const R=ecoReach(SPAWN[ei].kind),kh=KC[ei],q=new Float32Array(64),Ac=new Float32Array(64);let tot=0,kt=0,sw=0;for(let r=0;r<R.n;r++)sw+=R.w[r];
     for(let x=0;x<E;x++)if(K.prey.indexOf(SPAWN[x].kind)>=0){const f=ecoOf(SPAWN[x].kind).food,kx=KC[x];for(let l=0;l<64;l++){q[l]+=kx[l]*f;tot+=kx[l]*f;}}
     for(let l=0;l<64;l++){kt+=kh[l];if(kh[l]<=0)continue;const ci=l>>3,cj=l&7;let a=0,w=0;for(let r=0;r<R.n;r++){const ii=ci+R.di[r],jj=cj+R.dj[r];if(ii<0||jj<0||ii>=PATCH||jj>=PATCH)continue;a+=R.w[r]*q[ii*8+jj];w+=R.w[r];}Ac[l]=w>0?a*sw/w:0;}
-    const rc=P.rc[ei]||(P.rc[ei]=new Float32Array(P.np*NS)),br=P.bref[ei]||(P.bref[ei]=new Float32Array(P.np)),H=K.need*ECO.H;br[p]=tot;
-    for(let m=0;m<NS;m++){let v=0;if(kt>0)for(let l=0;l<64;l++){if(kh[l]<=0)continue;const A=Ac[l]*RC_S[m];v+=kh[l]*A*A/(A*A+H*H+1e-9);}rc[p*NS+m]=kt>0?v/kt:0;}}
+    const w=ecoRow(p),rc=P.rc[ei]||(P.rc[ei]=new Float32Array(P.rcap*NS)),br=P.bref[ei]||(P.bref[ei]=new Float32Array(P.rcap)),H=K.need*ECO.H;br[w]=tot;
+    for(let m=0;m<NS;m++){let v=0;if(kt>0)for(let l=0;l<64;l++){if(kh[l]<=0)continue;const A=Ac[l]*RC_S[m];v+=kh[l]*A*A/(A*A+H*H+1e-9);}rc[w*NS+m]=kt>0?v/kt:0;}}
   P.done[p]=1;P.rt[p]=1;}
 // a hunter entry's response in patch p at prey biomass B (ecoPatchCap's table, linear between its points, held past the last)
-function ecoPatchResp(ei,p,B){const P=ECO_PT,br=P.bref[ei][p],NS=RC_S.length,rc=P.rc[ei];if(!(br>0))return 0;const s=B/br;if(s>=RC_S[NS-1])return rc[p*NS+NS-1];
-  let m=1;while(RC_S[m]<s)m++;const t=(s-RC_S[m-1])/(RC_S[m]-RC_S[m-1]);return rc[p*NS+m-1]+(rc[p*NS+m]-rc[p*NS+m-1])*t;}
+// v11.115 (the province): the hunters' tables by row, not by patch — a row (ecoRow) for each patch once censused, the tables grown as rows are
+// taken; over the province's 29,304 patches, a table for every one was 27 MB, and only those within ECO_PR of where the player has been are used
+function ecoRow(p){const P=ECO_PT;let r=P.row[p];if(r>=0)return r;r=P.nrow++;P.row[p]=r;if(r>=P.rcap){const c=Math.max(256,2*P.rcap),NS=RC_S.length;
+    for(let ei=0;ei<P.rc.length;ei++){if(P.rc[ei]){const a=new Float32Array(c*NS);a.set(P.rc[ei]);P.rc[ei]=a;}if(P.bref[ei]){const b=new Float32Array(c);b.set(P.bref[ei]);P.bref[ei]=b;}}P.rcap=c;}return r;}
+function ecoPatchResp(ei,p,B){const P=ECO_PT,w=P.row[p];if(w<0)return 0;const br=P.bref[ei][w],NS=RC_S.length,rc=P.rc[ei];if(!(br>0))return 0;const s=B/br;if(s>=RC_S[NS-1])return rc[w*NS+NS-1];
+  let m=1;while(RC_S[m]<s)m++;const t=(s-RC_S[m-1])/(RC_S[m]-RC_S[m-1]);return rc[w*NS+m-1]+(rc[w*NS+m]-rc[w*NS+m-1])*t;}
 // the patches' model: ecoModelGen's at a patch's scale. A hunter's reach (its cell, its 3×3 or its 5×5) is inside a patch, so the prey it meets
 // is read off its response table (ecoPatchCap, ecoPatchResp) at the patch's prey biomass now; the take, the cap, the births, the deaths and the starving as a cell's; the drift to
 // the four neighbouring patches at ECO.mig/PATCH (the same flux across a boundary PATCH cells long, out of PATCH² cells' count). A split patch is
@@ -12614,7 +12635,7 @@ fxApply();
 // dot with its facing; under the picture the cursor's place and the ground there, and the player's. The wheel zooms about the cursor, a drag
 // pans, a click goes there (tp, in play) and closes; esc or n closes. The world's picture is WMAP_N² samples made on first opening (~0.3 s,
 // once, a stall the person will notice and a dev tool may have); zoomed in, the window is re-sampled at WMAP_Z² when the wheel or the drag
-// rests, so the island's square reads at its own scale rather than as 66 px of the world. Since v11.106 the world is ±WHALF (141 km): the map opens
+// rests, so the island's square reads at its own scale rather than as 66 px of the world. Since v11.106 the world is wider (141 km; the province since v11.115, 382 × 227 km): the map opens
 // on a view the old square's size (51.6 km) and samples it at once; the wheel goes out to the whole world. The pointer is released while it is open and taken
 // back when it closes, as the effects list does (effects.js fxShow). The bands and contours are test/map.js's, kept in step by hand.
 const WMAP_N=512,WMAP_Z=320,WMAP_REST=180; // the world picture's side in samples; the zoomed window's; the rest (ms) after a wheel or drag before the window re-samples
@@ -12734,7 +12755,7 @@ function popRows(){ // the ledger's tables as arrays, the loaded cells counted a
   const n=POP.n.map(a=>Array.from(a,r3));
   for(const ch of chunks.values()){const c=ecoId(ch.i,ch.j);if(c<0||!POP.done[c])continue;const cnt=new Float32Array(SPAWN.length);for(const o of ch.creatures)if(o.alive&&o.ent>=0)cnt[o.ent]+=1;for(const g of ch.eggs)if(g.ent>=0)cnt[g.ent]+=g.n;for(let ei=0;ei<SPAWN.length;ei++)n[ei][c]=r3(cnt[ei]/Q.creatures);}
   const R=T=>T.map(rle);
-  const P=ECO_PT,pt=P.on?{n:R(P.n),k:R(P.k),ke:R(P.ke),cd:R(P.cd),done:rle(P.done),bp:Array.from(P.bp)}:undefined; // the coarse patches and the split slots (v11.105), only when the world has them
+  const P=ECO_PT,pt=P.on?{n:R(P.n),k:R(P.k),ke:R(P.ke),cd:R(P.cd),done:rle(P.done),bp:Array.from(P.bp),w:[WORLD.i0,WORLD.i1,WORLD.j0,WORLD.j1]}:undefined; // the coarse patches and the split slots (v11.105), only when the world has them; w: the world they tile (v11.115)
   return {ents:SPAWN.map(e=>e.kind),n:R(n),k:R(POP.k),ke:R(POP.ke),cd:R(POP.cd),ow:R(POP.ow),done:rle(POP.done),pt,last:POP.last,tally:[POP.births,POP.deaths,POP.kills,POP.starved,POP.eaten,POP.recruits,POP.laid,POP.hatched]};
 }
 function popLoad(p){ // the ledger from a record; a save from another roster (SPAWN's kinds differ) gets a fresh census instead, and the player and the clock still load
@@ -12746,11 +12767,17 @@ function popLoad(p){ // the ledger from a record; a save from another roster (SP
   for(let ei=0;ei<SPAWN.length;ei++){POP.n[ei].set(D.n[ei]);POP.k[ei].set(D.k[ei]);POP.ke[ei].set(D.ke[ei]);POP.cd[ei].set(D.cd[ei]);POP.ow[ei].set(D.ow[ei]);}
   POP.done.set(D.done);POP.last=+p.last||0;const T=Array.isArray(p.tally)?p.tally:[];[POP.births,POP.deaths,POP.kills,POP.starved,POP.eaten,POP.recruits,POP.laid,POP.hatched]=[0,1,2,3,4,5,6,7].map(i=>+T[i]||0);
   // the coarse patches (v11.105): from the record if it has them whole, else the load pass of the paper census does them again (v11.106)
-  if(ECO_PT.on&&p.pt){const P=ECO_PT,q=p.pt,T={};let good=Array.isArray(q.bp)&&q.bp.length===ECO_SLOTS;
-    for(const k of ['n','k','ke','cd']){T[k]=good&&Array.isArray(q[k])&&q[k].length===SPAWN.length?q[k].map(unrle):null;if(!T[k]||!T[k].every(a=>a&&a.length===P.np))good=false;}
-    const dn=good?unrle(q.done):null;if(!dn||dn.length!==P.np)good=false;
-    if(good){for(let ei=0;ei<SPAWN.length;ei++){P.n[ei].set(T.n[ei]);P.k[ei].set(T.k[ei]);P.ke[ei].set(T.ke[ei]);P.cd[ei].set(T.cd[ei]);for(let x=0;x<P.np;x++)if(!(P.n[ei][x]>=0))P.n[ei][x]=0;}P.done.set(dn);
-      P.blk.fill(-1);P.free=[];for(let s2=ECO_SLOTS-1;s2>=0;s2--){const pp=q.bp[s2];if(Number.isInteger(pp)&&pp>=0&&pp<P.np&&P.coarse[pp]&&P.blk[pp]<0){P.bp[s2]=pp;P.blk[pp]=s2;}else{P.bp[s2]=-1;P.free.push(s2);}}
+  // v11.115: a save's patches tile the world it was made in (pt.w; v11.106–113's ±70.5 km square, WORLD70, when it has none), each moved to
+  // the same cells' patch in this one; a patch past this world's edge is dropped
+  if(ECO_PT.on&&p.pt){const P=ECO_PT,q=p.pt,T={},sw=Array.isArray(q.w)&&q.w.length===4&&q.w.every(Number.isInteger)?q.w:[WORLD70.i0,WORLD70.i1,WORLD70.j0,WORLD70.j1],snz=Math.ceil((sw[3]-sw[2])/PATCH),snp=Math.ceil((sw[1]-sw[0])/PATCH)*snz;
+    const mv=x=>{const i=sw[0]+Math.floor(x/snz)*PATCH,j=sw[2]+(x%snz)*PATCH;return gridIn(i,j)&&(i-WORLD.i0)%PATCH===0&&(j-WORLD.j0)%PATCH===0?ecoPOf(i,j):-1;}; // the saved patch x's place in this world
+    let good=Array.isArray(q.bp)&&q.bp.length===ECO_SLOTS&&snp>0&&snp<1e7;
+    for(const k of ['n','k','ke','cd']){T[k]=good&&Array.isArray(q[k])&&q[k].length===SPAWN.length?q[k].map(unrle):null;if(!T[k]||!T[k].every(a=>a&&a.length===snp))good=false;}
+    const dn=good?unrle(q.done):null;if(!dn||dn.length!==snp)good=false;
+    if(good){const to=new Int32Array(snp);for(let x=0;x<snp;x++)to[x]=mv(x);
+      for(let ei=0;ei<SPAWN.length;ei++)for(let x=0;x<snp;x++){const y=to[x];if(y<0)continue;P.n[ei][y]=T.n[ei][x]>=0?T.n[ei][x]:0;P.k[ei][y]=T.k[ei][x];P.ke[ei][y]=T.ke[ei][x];P.cd[ei][y]=T.cd[ei][x];}
+      for(let x=0;x<snp;x++)if(to[x]>=0)P.done[to[x]]=dn[x];
+      P.blk.fill(-1);P.free=[];for(let s2=ECO_SLOTS-1;s2>=0;s2--){const p0=q.bp[s2],pp=Number.isInteger(p0)&&p0>=0&&p0<snp?to[p0]:-1;if(pp>=0&&P.coarse[pp]&&P.blk[pp]<0){P.bp[s2]=pp;P.blk[pp]=s2;}else{P.bp[s2]=-1;P.free.push(s2);const c0=ECO_FINE+s2*64;POP.done.fill(0,c0,c0+64);for(let ei=0;ei<SPAWN.length;ei++){POP.n[ei].fill(0,c0,c0+64);POP.ow[ei].fill(0,c0,c0+64);}}} /* a free slot holds nothing (v11.115: its patch may be past this world's edge) */
       for(let ei=0;ei<SPAWN.length;ei++){P.cells[ei].length=0;P.mark[ei].fill(0);for(let x=0;x<P.np;x++)if(P.k[ei][x]>0||P.n[ei][x]>0){P.mark[ei][x]=1;P.cells[ei].push(x);}}}}
   let all=true;for(let c=0;c<ECO_FINE;c++)if(!POP.done[c]){all=false;break;}if(all)POP.gen=ECO_PT.on?ecoGen(true):null; // the paper census was done in the saved game; the settle after it is boot's, not a load's (v11.106: the patches still want their hunters' tables, or a census if the save had none — ecoGen's load pass)
   for(let ei=0;ei<SPAWN.length;ei++){const N=POP.n[ei];for(let c=0;c<ECO_CELLS;c++)if(!(N[c]>=0))N[c]=0;} // a hand-edited file: nothing negative or NaN into the model

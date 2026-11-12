@@ -17,7 +17,10 @@ const CELL=215,NCELL=240,HALF=CELL*NCELL/2; // v11.65 (ARCHIPELAGO step 4): 240 
 // v11.112 (GLOBE §10.1, the province): the world is a rectangle — cells [WORLD.i0, WORLD.i1) by [WORLD.j0, WORLD.j1), x from WX0 to WX1 and
 // z from WZ0 to WZ1 — since the province is not centred on ours (its old members trail 300 km east); to v11.111 a square, GRID0 −208, GRIDN
 // 656, ±WHALF 70,520: the same today, so nothing moves. Each bound a multiple of 8 cells (the ledger's patches, the far regions' 4).
-const WORLD={i0:-208,i1:448,j0:-208,j1:448};
+// v11.115 (GLOBE §10.1, the province grown): the rectangle round the region model's members' feet (x −69 … 300 km, z −93 … 121 km) —
+// x −75.7 … 306.2 km, z −101.5 … 125.6 km, 1,776 × 1,056 cells (382 × 227 km). WORLD70 is v11.106–113's ±70.5 km square: region.js's second
+// pass of records is its, so its 25 come out as they were, and world.js's flood keeps its lattice; a save's ledger patches without a world tile it.
+const WORLD={i0:-232,i1:1544,j0:-352,j1:704},WORLD70={i0:-208,i1:448,j0:-208,j1:448};
 const WX0=WORLD.i0*CELL-HALF,WX1=WORLD.i1*CELL-HALF,WZ0=WORLD.j0*CELL-HALF,WZ1=WORLD.j1*CELL-HALF;
 function gridIn(i,j){return i>=WORLD.i0&&j>=WORLD.j0&&i<WORLD.i1&&j<WORLD.j1;}
 function inWorld(x,z,m){return x>WX0+m&&x<WX1-m&&z>WZ0+m&&z<WZ1-m;} // (x, z) at least m inside the world's edge
@@ -432,6 +435,13 @@ function rixBuild(){const B=RIX.B,N=ISLANDS.length,rg=ISLANDS.map(rixRange);let 
   Object.assign(RIX,{n:N,x0,z0,nx,nz,L,all:ISLANDS.map((R,i)=>i)});}
 // the indices of the records that can matter at (x, z), in ISLANDS order
 function recsAt(x,z){if(RIX.n!==ISLANDS.length)rixBuild();if(!RIX.on)return RIX.all;const i=Math.floor((x-RIX.x0)/RIX.B),j=Math.floor((z-RIX.z0)/RIX.B);return i>=0&&j>=0&&i<RIX.nx&&j<RIX.nz?RIX.L[j*RIX.nx+i]:RIX.none;} // a NaN point is in no bucket: no records, and sample()'s ground is NaN as the loop over every record left it
+// v11.114: where two records' grounds meet, smax's knee fills the corner by up to a quarter of it — the sediment apron in a saddle between two
+// flanks (v11.58, BASIN.knee 200: up to 50 m). Near the sea the same fill made land: two banks' lagoons at −20 met at +30, three at up to +90,
+// plateaus of hundreds of km² on coalesced banks that no member of the model has (m122's 126 km² by the old square, m109's 822 at 108 km east;
+// seen on the province's map, 11 Nov 2026). The fill now stops at FILL_TOP, a bank's lagoon floor: the knee shrinks so the corner never rises
+// past it (top + k/4 ≤ FILL_TOP), and above it the grounds meet at their plain max. A meeting deeper than FILL_TOP − 50 is as before.
+const FILL_TOP=-20;
+function fillK(a,b){return Math.min(BASIN.knee,Math.max(0,4*(FILL_TOP-Math.max(a,b))));}
 const _isD=[],_isI=[],_isB=[],_isE=[]; // the records' squared distances in this sample; those in reach, highest bound first, and their bounds (v11.102)
 function sample(x,z,out){
   // the islands: the highest in reach wins the conditions; the rest raise the ground under it through smax (a volcano on another's flank)
@@ -450,7 +460,7 @@ function sample(x,z,out){
     // the ground whose fields but its influence are open water's there (past `quiet`) is not either. Exact: the ground is as if they were
     if(best&&b<Math.min(o.h,o.hs)-BASIN.knee)break;if(!core&&b<flo&&_isD[i]>R.quiet*R.quiet)continue;
     let w;
-    if(best){islandH(R,x,z,spare);w=spare;if(spare.h>o.h){h=smax(spare.h,h,BASIN.knee);hSmooth=smax(spare.hs,hSmooth,BASIN.knee);const t=o;o=spare;spare=t;best=R;}else{h=smax(h,spare.h,BASIN.knee);hSmooth=smax(hSmooth,spare.hs,BASIN.knee);}}
+    if(best){islandH(R,x,z,spare);w=spare;if(spare.h>o.h){h=smax(spare.h,h,fillK(spare.h,h));hSmooth=smax(spare.hs,hSmooth,fillK(spare.hs,hSmooth));const t=o;o=spare;spare=t;best=R;}else{h=smax(h,spare.h,fillK(h,spare.h));hSmooth=smax(hSmooth,spare.hs,fillK(hSmooth,spare.hs));}}
     else{h=islandH(R,x,z,o);hSmooth=o.hs;best=R;w=o;}
     _isE[q]=1;if(w.isl>0){iS+=w.isl;iU+=w.isl*w.upW;iP*=1-w.isl;iN++;iU1=w.upW;iI1=w.isl;}}
   for(let q=0;q<n;q++){if(_isE[q])continue;const i=_isI[q],R=ISLANDS[i],fq=R.fade[1]/0.84;if(_isD[i]>fq*fq)continue; // the rest: their influence alone
@@ -678,9 +688,9 @@ const LM={};
 // and −616 under fed water the nearest (0.80, 0.70). Built on the first call, once (~0.3 s); region.js (after this file in order.txt) holds the flood.
 let CHEMO_B=null,CHEMO_G=null;
 function chemoD(sill,nut){return OXY.anox*nut*Math.pow(-sill/100,-0.86)/Math.max(0.01,oxyProf(sill,nut));} // a silled basin's food over its oxygen: anoxic at 1
-function* chemoGen(){const G=OXY.G,nx=Math.ceil((WX1-WX0)/G),nz=Math.ceil((WZ1-WZ0)/G),x0=WX0,z0=WZ0,H=new Float32Array(nx*nz); // the world's ground from its corner (v11.106: ±WHALF; the old square to v11.105; v11.112 the rectangle)
-  const Nu=new Float32Array(nx*nz);for(let j=0;j<nz;j++){for(let i=0;i<nx;i++){const s=sample(x0+(i+0.5)*G,z0+(j+0.5)*G);H[j*nx+i]=s.h;Nu[j*nx+i]=s.f[FI.nut];}if((j&7)===7)yield;}
-  const R=regionBasins(H,nx,G,1,nz),sn=new Float64Array(R.B.length);for(let k=0;k<nx*nz;k++){const l=R.lab[k];if(l>=0)sn[l]+=Nu[k];}
+function* chemoGen(){const G=OXY.G,ax=WORLD70.i0*CELL-HALF,az=WORLD70.j0*CELL-HALF,x0=ax-Math.ceil((ax-WX0)/G)*G,z0=az-Math.ceil((az-WZ0)/G)*G,nx=Math.ceil((WX1-x0)/G),nz=Math.ceil((WZ1-z0)/G),H=new Float32Array(nx*nz); // the world's ground from its corner (v11.106: ±WHALF; the old square to v11.105; v11.112 the rectangle; v11.115 on v11.106's lattice, a whole step past the province's corner)
+  const Nu=new Float32Array(nx*nz);for(let j=0;j<nz;j++){for(let i=0;i<nx;i++){const s=sample(x0+(i+0.5)*G,z0+(j+0.5)*G);H[j*nx+i]=s.h;Nu[j*nx+i]=s.f[FI.nut];}yield;} /* a row a slice (v11.115; eight to v11.113) */
+  const R=yield* rgBasinsGen(H,nx,G,1,nz),sn=new Float64Array(R.B.length);for(let k=0;k<nx*nz;k++){const l=R.lab[k];if(l>=0)sn[l]+=Nu[k];}
   for(const b of R.B){b.nut=sn[b.id]/b.cells;b.D=b.silled?chemoD(b.sill,b.nut):0;b.anox=b.silled&&b.D>=1;} // v11.108: the basin's food (its cells' mean nut) against its inflow
   CHEMO_B={nx,nz,x0,z0,G,lab:R.lab,ch:R.B.map(b=>b.anox?b.chemo:null),B:R.B};}
 // v11.113 (the province): the flood's samples a slice a frame from the menu on (main.js loop: chemoStep), so at a province's size (~0.5 M
