@@ -7085,3 +7085,131 @@ Seen headless (no page errors): ours' shelf at (160, 80) looking across a fresh 
 same picture: that ground was sand and turf in front of the forest, with no polyps or canopy to lose. **Unseen, ask in this order:** whether
 the clearings read at all on ours' reef top and in the forest at (330, 0) (`tp(0,300,-10)`, `tp(330,0,-11)`) — if they are too subtle,
 `DIST.share` (0.5) and the patch size (`DIST.f`) are the knobs; a far reef's mosaic (`tp(220400,19700,-6)`).
+
+## v11.121 — the province's shape and clock (12 Nov 2026)
+
+The province review (`analysis_archipelago.md`, PR 48) found the land of every member that surfaced drawn as a 7° cone on top of the 12° cone
+that held its volume — 2–2.6 times the volume, so the land and the reef rings 1.7× the volcano's waterline and 56 of 95 rings outside their own
+volcano's foot — and the islands worn down to atolls in ~4 Myr, a fast plate's clock on a slow plate. The person (12 Nov 2026): shrink the land
+to the volumes, with Earth's slopes and the awesome shield held at its summit (answer (c)); high islands that last "let's say 10" Myr; the
+giant's barrier reef with this. Step 1 of the review's three (§6); the plateau's platform and the margins are the next two.
+
+- **The edifice that holds its volume** (region.js `rgShape2`, at each member's birth in the history): 12° under the sea it was born under,
+  7° above it, the slope breaking at the shoreline it grew to; a base above the sea (the plateau's head stood at +270 m at 30 Ma) a 7° cone,
+  a cone that never reaches it the 12° one. `rgShape`'s 12° cone stays as the bound the history's shortcuts use (`deep`, `high`, the births'
+  exclusion). Every ring of a member born under the sea now lies within its own foot; 25 born on the dry plateau keep the plateau's shore,
+  which is the next step's (the platform).
+- **`REGION_K.tune`** `{m153: 2533}`: a member held to a summit as the pins are, its volume solved for it with them (the tuning now up to 40
+  rounds; seed 32 converges in 26, the run ~0.65 s). The awesome shield stands 2,533 m on 6,290 km³ (2,558 as the 12° cone).
+- **`Te` 6 → 15 km** — not asked, needed: at 6 a shield with Earth's slopes sinks under its own weight past ~1,500 m whatever its volume, so
+  (c) cannot stand; 15 is Earth's for loads on a plate 15–35 Myr old when loaded (the review's §1.8 already called 6 a stretch). The moats
+  are shallower and wider (α 31 km, 15.7 before).
+- **`erode` 0.45 → 0.15/Myr**: the big islands keep 150 m to ~10 Ma (m109, a 425 m island at 9.3 Ma); the plateau's own sinking drowns them
+  after that at any rate, so ~10 Myr is about the most this plate allows.
+- **The barrier reef** (region.js `rgBarrier`, `rgCap`; world.js islandH): a high island (or a rim island) with a living reef ring off its
+  coast gets it as a cap of reef over its ground by max — the lagoon from the coast to the ring (an atoll's of that ring: 18 m + 6 a km,
+  at most 40), the crest awash with islets or under, passes where the rim's noise is low, outside a wall and the fore-reef at 31° onto the
+  flank. The land stands above it, so the cap never lowers the island (test). A rim island (land under 150 m inside a living reef) is drawn
+  with its land now (to v11.120 it went to the atoll branch and lost it). `regionGrid` draws a high island's ring too.
+- **The giant's barrier** (rgBuild, from the model): its ring as far past its record's coast (7.0 km) as the model's is past the model's —
+  9.6 km — at the model's top, **−44 m**: the giant's reef is drowning in the awesome shield's moat, which the stiffer plate carries 60–100 km
+  out (Maui's and Lanai's drowned reefs under the Big Island's load). Its land, gullies and caldera unchanged; ours untouched.
+
+What moved (seed 32): records 120 → 131 and struck 37 → 26 (the moats shallower, fewer cones buried); states atoll 67 → 89, bank 36 → 20,
+guyot 28 → 31, seamount 18 → 5, high 4, rim islands 3 (m155, m122, m125) besides ours; six barrier reefs — m109 (a 425 m island inside a
+21 km ring at the sea: the Mayotte stage), m122 (−22), m125 (−9), m155 (−31), m154 (−45), the giant (−44); the 308 m island 20 km north of ours
+is 545 m now, its reef drowned at −71 (no barrier); the 820 m island west 493 m, the 243 m one 141 m. Land 2,005 → 2,180 km² (the model's
+discs). **The reefs near the awesome shield sink:** within 60–100 km of it the reef tops are 5–22 m under (all awash before), so the atolls
+round ours lie at −21 to −46 now. The moat round ours is no longer silled (open to the ocean, oxic); no basin anywhere is anoxic (nine silled,
+the nearest 0.70). The ±70.5 km world is no longer v11.114's to the bit — by the person's decision.
+
+- **A fix in `sample()`** (world.js, found by test/maps.js on m147's new atoll): the records' loop cleared each record's mark only up to its
+  break, so a record past it kept the last sample's mark and its influence on the fields (flow, nut) was dropped or kept by whatever had
+  been sampled before — 0.334 against 0.332 at one texel. Every mark is cleared now; `sample()` is a function of its point again. The ground
+  never took it (the marks only steer the influence); since v11.102.
+- **Tests:** test/region.js the awesome shield held, every ring of a member born under the sea inside its foot, the barriers (six, the
+  lagoon at its floor, the cap never lowering the ground, the giant's); sample() the same at a place whatever was sampled before (2 of 400 places differed without the fix); re-pinned to the new province: the moat's check (oxic, silled or not),
+  the passes' counts (21 and 46), the shelter's members (m133's windward shadow 0.51, m146's wake 0.42, m131 open).
+
+Seen: the province's map whole and zoomed (`node test/map.js`; `SPAN=60000 CX=108000 CZ=-5000`, `SPAN=36000 CX=-12000 CZ=4000`): m109's
+island inside its ring, the giant's drowned barrier as a pale ring 2.6 km off its coast. **Unseen, ask in this order:** whether the drowned
+atolls round ours read as a loss or as the moat's story (`tp(-400,-11100,-30)`, m139 at −46); m109 from its lagoon (`tp(108100,4000,-1)`);
+the giant's barrier from the water (`tp(-15400,-400,-30)`); whether the 308 m island at 545 m changes the view north from ours.
+
+## v11.122 — the plateau's platform (12 Nov 2026)
+
+Step 2 of the province review's three (`analysis_archipelago.md` §2.3, §6; the person, 12 Nov 2026: "one carbonate platform", "go ahead
+with step 2"). The model stepped a reef on every member and none on the plateau they stand on, though the plateau's old end — the head, on
+a plate 15–25 Myr old then, on the swell — stood within 25 m of the sea or above it at 24–30 Ma, sinking ~0.05–0.1 mm/yr after: by the
+members' own rule a carbonate platform today, as the Mascarene Plateau's banks are on the Réunion track (Saya de Malha 40,808 km²). The east
+was 100 circles instead, 57 pairs of rims crossing.
+
+- **region.js `rgPlatform`** runs the members' reef rule on the plateau's own surface over a 3 km grid (`RG_PLG`): the plateau's level, the
+  plate's cooling, the swell and every load's moat (loads growing over their shield's time, refreshed every 50 kyr and interpolated),
+  erosion and the waves' planing while it stands above the sea, the reef taking hold within 25 m of the sea and keeping to it by the light,
+  drowned past the photic; 20 kyr steps (the reef stands near a highstand's level when each rise comes). The fed rule is not applied: it
+  decides which single member the open ocean's water reaches first, and on a platform that is its own up-current margin (applied node by
+  node it cut the platform into streaks behind each member, which nothing on Earth does). Its load is not counted, as the members' reef caps'
+  are not. 0.2–0.3 s at load.
+- **What it keeps** (`RG_PL`): where the reef lives today, its top, a signed distance to its margin. **`rgPlat`** reads it with the margin
+  warped at 1.5 km and 300 m: the rim at the reef's top (awash, islets to +6, passes where its noise is low), the lagoon behind deepening
+  over 6 km to 50 m and rolling ±20 m over 10–15 km (`RG_PL_K.karst`: the lowstands' dissolution), outside a wall at 42° down onto the plateau.
+- **world.js `sample()`** takes it where it stands above the records and the floor, with its own conditions: the lagoon's shelter and sand,
+  the rim's rock and passes, the waves and the current by the margin's outward face, the wall's hard spurs; outside it its influence joins
+  the islands' (a margin is a coast). Its box starts 125 km east of ours: the ±70.5 km world is v11.121's to the bit.
+- **The burial** (rgBuild): a member whose centre lies on it (a reef's within half its ring) is struck, by 'platform' — 61 of them, their
+  reefs its own now, the founder m2 among them; members that stand above it as land would keep their land (none do: its high islands lie
+  west of it). Members off its margin keep their rings: atolls in the deep water beside it (the Maldives' look).
+- **chunks.js `chRange`:** a cell on the platform is the old east's (v11.119's ranges): the head, lit first.
+
+What moved: the platform **29,259 km²** from x 125 km to the world's east edge (it runs on 4 km past it); records 131 → 80, struck 26 → 77
+(61 by the platform); atolls 89 → 59 built, banks 20 → 3; the water under the oxygen minimum's top 131,088 → 109,363 km² of the world; eight
+silled basins, none anoxic (the nearest 0.59); land unchanged but the rim's islets. The east from the water is a lagoon at 30–70 m to every
+horizon, its rim a line of breakers and islets with passes, its wall a drop of 500–1,500 m onto the plateau within 1.5 km of the rim (~550 m on its west side, where the plateau stands highest).
+
+- **Tests:** test/region.js the platform (its area, its box clear of the ±70.5 km world, its cost), its lagoon 9 km in at −25…−80 at every
+  node, its crest within 20 m of the sea between the passes (379 of 400), its wall (374 of 400 places 1.5 km out 500 m lower), 61 members
+  buried and none with land; re-pinned: the province's pass (34 records), the struck may be the platform's, the ground above −20 the
+  highest record's or the platform's, the chain's stretches (the founder m2 on the platform; 4 records left in the old east, the platform
+  theirs).
+
+Seen: the province's map whole and at the platform's west margin (`SPAN=40000 CX=150000 CZ=-20000`): the rim with islets and passes, the wall,
+the rolling lagoon, the atolls beside it. **Unseen, ask in this order:** the platform from its lagoon (`tp(230000,20000,-1)`) and from its rim
+(`tp(146500,-14000,-1)`), whether 25,000 km² of lagoon at 30–70 m reads as a place or as emptiness (its patch reefs and blue holes are step
+3's); the wall from the deep (`tp(144000,-14000,-150)`); whether the boot feels slower (the platform adds ~0.25 s to the model's).
+
+## v11.123 — one margin per reef, lagoons by their size, reef walls (12 Nov 2026)
+
+Step 3 of the province review's three (`analysis_archipelago.md` §1.4, §3.1, §3.4–3.6, §6; the person, 12 Nov 2026: "go ahead with step 3").
+
+- **One margin per reef** (region.js `rgMargins`, `rgAng`, `R.rimM`; world.js islandH): every record drew its whole rim, so where reefs met
+  their rims ran across each other's lagoons (14 pairs crossing and 11 nested after v11.122). A reef grows where it meets open water: an arc of a
+  rim inside another's lagoon — or the platform's — is now that lagoon's floor (the crest's band filled to it), and reefs that met share one
+  margin round their union (Kwajalein's, Huvadhu's). A reef with a ring up to 2.5 km wholly inside a wide lagoon keeps its rim: a faro (the
+  Maldives'); 8 kept. Reefs that met share their deepest lagoon (the union is the wider one); one that met the platform takes its lagoon's.
+  22 of 72 rims lose an arc. Ours keeps its own.
+- **The saddle fill stops at −150** (world.js `FILL_TOP`, −20 to v11.122): the knee filled two merged lagoons' overlap to −20, a flat disc in
+  a lagoon where one floor runs on; the fill is a saddle's apron between flanks, below the light. Above −150 two grounds meet at their plain max.
+- **The lagoon by its size** (region.js `rgLagD`): 18 m on a 1 km ring, ~31 on 4, ~40 on 9, ~50 on 21, at most 60 — a lagoon is mostly
+  limestone the lowstands' rain dissolved, so a wider catchment digs deeper (Purdy & Winterer 2001; Gischler et al. 2014). To v11.122 it was
+  18 + 6 a km to 40, and a ring past 6 km (a 'bank') flat at 20: the widest the shallowest. Barriers and the model's grid take it too.
+- **Patch reefs and blue holes** (world.js `LAGF`, `lagoonF`): knolls and pinnacles grown from a lagoon's floor toward the low water over a
+  tenth of it, ~250 m apart; and blue holes, shafts 60–150 m across and 60–160 m deep in one 2.5 km cell of four (the Great Blue Hole is 318 m
+  across and 124 m deep, Dean's 202 m). In the model's atolls, banks and barriers and the platform's lagoon (11% patch reef there); not ours.
+- **The reef's walls and one bench** (rgRecord's reef branch): the reef flat's edge to −20, the spur-and-groove terrace to −32, a wall to −122,
+  the slow plate's one bench there (the last Myr's ten lowstands cut one shoreline over and over, ~5 m of sinking a cycle), the wall again to
+  −580, the talus at 35° easing to 17° onto the volcano — Enewetak's margin (under 10° on the reef plate, a slope from −16 steepening to ~55°
+  and easing to 35°). To v11.122 ours' basalt profile scaled: eight 12 m terraces and a flank of 17° easing to 12°. A barrier's fore-reef 42°.
+
+What moved: records 80 → 84 and struck 77 → 73 (the steeper walls bury fewer neighbours); the reefs' slopes at 500–800 m a sixth of the area
+they were (22,702 samples against 127,191: a wall, not a ramp), so DEEP's deep gardens and the relict on the reefs' spurs have that much less
+ground; no basin anoxic (the nearest 0.40); land 1,873 km² at 400 m. Ours, the giant's land and the high islands' kits unchanged.
+
+- **Tests:** test/region.js one margin (22 of 72 rims lose an arc, the ground under the crest at 888 of 977 places on them, 8 faros), the
+  lagoon's law at five rings, the platform's patch reefs (11%) and blue holes, the walls and the bench on 8 atolls; re-pinned: the barrier's
+  and the platform's lagoons allow their patch reefs and holes, the ground above −150 (not −20) the highest record's or the platform's; test/plankton.js m148's fed-flank site moved in to its shelf break, 1.1 km out now (1.4 to v11.122).
+
+Seen: m109's lagoon merged with m85's and m62's into one floor round the island, its patch reefs and holes, one margin round them
+(`SPAN=60000 CX=108000 CZ=-5000`); the atolls round ours with walls, patch reefs and a blue hole in m141 (`SPAN=40000 CX=8000 CZ=0`).
+**Unseen, ask in this order:** a lagoon's patch reefs from the water (`tp(108100,4000,-1)` then swim out), a blue hole from above and inside;
+an atoll's wall from beside it (`tp(1600,20100,-60)`, m140); whether the deep gardens' smaller ground on the walls matters (DEEP §3).
