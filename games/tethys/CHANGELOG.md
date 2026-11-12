@@ -7135,3 +7135,45 @@ Seen: the province's map whole and zoomed (`node test/map.js`; `SPAN=60000 CX=10
 island inside its ring, the giant's drowned barrier as a pale ring 2.6 km off its coast. **Unseen, ask in this order:** whether the drowned
 atolls round ours read as a loss or as the moat's story (`tp(-400,-11100,-30)`, m139 at −46); m109 from its lagoon (`tp(108100,4000,-1)`);
 the giant's barrier from the water (`tp(-15400,-400,-30)`); whether the 308 m island at 545 m changes the view north from ours.
+
+## v11.122 — the plateau's platform (12 Nov 2026)
+
+Step 2 of the province review's three (`analysis_archipelago.md` §2.3, §6; the person, 12 Nov 2026: "one carbonate platform", "go ahead
+with step 2"). The model stepped a reef on every member and none on the plateau they stand on, though the plateau's old end — the head, on
+a plate 15–25 Myr old then, on the swell — stood within 25 m of the sea or above it at 24–30 Ma, sinking ~0.05–0.1 mm/yr after: by the
+members' own rule a carbonate platform today, as the Mascarene Plateau's banks are on the Réunion track (Saya de Malha 40,808 km²). The east
+was 100 circles instead, 57 pairs of rims crossing.
+
+- **region.js `rgPlatform`** runs the members' reef rule on the plateau's own surface over a 3 km grid (`RG_PLG`): the plateau's level, the
+  plate's cooling, the swell and every load's moat (loads growing over their shield's time, refreshed every 50 kyr and interpolated),
+  erosion and the waves' planing while it stands above the sea, the reef taking hold within 25 m of the sea and keeping to it by the light,
+  drowned past the photic; 20 kyr steps (the reef stands near a highstand's level when each rise comes). The fed rule is not applied: it
+  decides which single member the open ocean's water reaches first, and on a platform that is its own up-current margin (applied node by
+  node it cut the platform into streaks behind each member, which nothing on Earth does). Its load is not counted, as the members' reef caps'
+  are not. 0.2–0.3 s at load.
+- **What it keeps** (`RG_PL`): where the reef lives today, its top, a signed distance to its margin. **`rgPlat`** reads it with the margin
+  warped at 1.5 km and 300 m: the rim at the reef's top (awash, islets to +6, passes where its noise is low), the lagoon behind deepening
+  over 6 km to 50 m and rolling ±20 m over 10–15 km (`RG_PL_K.karst`: the lowstands' dissolution), outside a wall at 42° down onto the plateau.
+- **world.js `sample()`** takes it where it stands above the records and the floor, with its own conditions: the lagoon's shelter and sand,
+  the rim's rock and passes, the waves and the current by the margin's outward face, the wall's hard spurs; outside it its influence joins
+  the islands' (a margin is a coast). Its box starts 125 km east of ours: the ±70.5 km world is v11.121's to the bit.
+- **The burial** (rgBuild): a member whose centre lies on it (a reef's within half its ring) is struck, by 'platform' — 61 of them, their
+  reefs its own now, the founder m2 among them; members that stand above it as land would keep their land (none do: its high islands lie
+  west of it). Members off its margin keep their rings: atolls in the deep water beside it (the Maldives' look).
+- **chunks.js `chRange`:** a cell on the platform is the old east's (v11.119's ranges): the head, lit first.
+
+What moved: the platform **29,259 km²** from x 125 km to the world's east edge (it runs on 4 km past it); records 131 → 80, struck 26 → 77
+(61 by the platform); atolls 89 → 59 built, banks 20 → 3; the water under the oxygen minimum's top 131,088 → 109,363 km² of the world; eight
+silled basins, none anoxic (the nearest 0.59); land unchanged but the rim's islets. The east from the water is a lagoon at 30–70 m to every
+horizon, its rim a line of breakers and islets with passes, its wall a drop of 500–1,500 m onto the plateau within 1.5 km of the rim (~550 m on its west side, where the plateau stands highest).
+
+- **Tests:** test/region.js the platform (its area, its box clear of the ±70.5 km world, its cost), its lagoon 9 km in at −25…−80 at every
+  node, its crest within 20 m of the sea between the passes (379 of 400), its wall (374 of 400 places 1.5 km out 500 m lower), 61 members
+  buried and none with land; re-pinned: the province's pass (34 records), the struck may be the platform's, the ground above −20 the
+  highest record's or the platform's, the chain's stretches (the founder m2 on the platform; 4 records left in the old east, the platform
+  theirs).
+
+Seen: the province's map whole and at the platform's west margin (`SPAN=40000 CX=150000 CZ=-20000`): the rim with islets and passes, the wall,
+the rolling lagoon, the atolls beside it. **Unseen, ask in this order:** the platform from its lagoon (`tp(230000,20000,-1)`) and from its rim
+(`tp(146500,-14000,-1)`), whether 25,000 km² of lagoon at 30–70 m reads as a place or as emptiness (its patch reefs and blue holes are step
+3's); the wall from the deep (`tp(144000,-14000,-150)`); whether the boot feels slower (the platform adds ~0.25 s to the model's).

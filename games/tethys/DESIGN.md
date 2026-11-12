@@ -161,7 +161,14 @@ one under the ground past its features gives only its influence (`islandW`). The
 (`R.an`, `anT`). The seamount effect is blended (v11.102): every record's influence `isl` joined as 1−Π(1−isl), the current's aspect
 weighted by them, where to v11.101 the highest record's alone counted and two neighbours' halos met on a straight seam. And the smooth
 surface (`hs`, the relief's reference) goes down the lower flank with the ground: to v11.101 it stayed at the apron's −290, so the relief
-read 0 on every lower flank and on the floor inside every record's reach. **The islands shelter each other (v11.117;
+read 0 on every lower flank and on the floor inside every record's reach. **The plateau's platform (v11.122; analysis_archipelago §2.3):** region.js `rgPlatform` runs the members' reef rule on the plateau's own
+surface on a 3 km grid (`RG_PLG`; the plateau's level, cooling, swell and every load's moat, refreshed every `RG_PL_K.rf`; erosion and planing
+above the sea; steps of `RG_PL_K.dt`); no fed rule (the platform is its own up-current margin). `RG_PL` keeps where the reef lives today, its
+top and a signed distance to its margin; `rgPlat` reads it with a warped margin (`warp`, `warp2`): the rim at the top with islets and passes,
+the lagoon to `lag` over `lagW` rolling ±`karst`, a wall at `wall` outside. `sample()` takes it where it stands above the records and the
+floor, with its own fields (lagoon, rim, the margin's aspect, the wall's spurs) and its influence outside within `isl`. A member on it is
+struck by 'platform' (`rgPlatSd`); a cell on it is the old east's range (chunks.js `chRange`). Seed 32: 29,259 km², 61 members buried.
+**The islands shelter each other (v11.117;
 analysis_flora_diversity §5.4; GLOBE §9 stage 5):** world.js `SHELTER`, `shelterBuild`, `shT`, `R.sh`. A record's aspect to the wind and
 the current was its own alone; now what stands upwind and upstream scales the water's `expoW` and `upW` at each face. A wave shadow: every
 other record at the surface upwind (tops from −25 to −3 count, a reef awash fully), e-fold `w.L` 30 km (the swell bent round it fills in, the

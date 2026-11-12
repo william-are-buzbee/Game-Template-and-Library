@@ -1,5 +1,11 @@
 # HANDOFF — tethys
 
+**v11.122 (12 Nov 2026): the plateau's platform** (analysis_archipelago §6, step 2 of 3). The members' reef rule run on the plateau's own
+surface (region.js `rgPlatform`, read by `rgPlat`; world.js `sample()` takes it): one carbonate platform of 29,259 km² over the east — a rim
+at the sea with islets and passes, a lagoon of 30–70 m behind it, a wall outside — and the 61 members on it buried in it. The ±70.5 km world
+is untouched. **Ask first** how it reads from its lagoon (`tp(230000,20000,-1)`) and its rim (`tp(146500,-14000,-1)`). Next: step 3, the
+margins and lagoons (one margin per platform, lagoon depth by size, reef walls, the patch reefs and blue holes).
+
 **v11.121 (12 Nov 2026): the province's shape and clock** (analysis_archipelago §6, step 1 of 3). Every member is the edifice that holds its
 volume (7° land on 12° flanks, `rgShape2`), the awesome shield held at 2,533 m (`REGION_K.tune`), `Te` 15 (needed for that), `erode` 0.15
 (high islands to ~10 Ma); high islands with a living reef ring get their barrier reef (`R.barrier`, `rgCap`), the giant's at −44 m. The
