@@ -1,7 +1,8 @@
 // Headless check of the flora pools (v11.52, chunks.js): one instanced mesh per species across the loaded cells. Cells are loaded and
 // unloaded by hand and the pools' bookkeeping is checked against them — every block contiguous and in order, the counts summing to the
 // mesh's count, no NaN in a matrix, a cell's block byte-identical whether it loads alone, first or last (the placement is the cell's own rng),
-// a removed cell leaving the others' blocks untouched, a card species never pooled, a pool growing without losing what it had. It proves
+// a removed cell leaving the others' blocks untouched, a card species never pooled, a pool growing without losing what it had; by sight (v11.116):
+// a cell coming into or out of view writing its own blocks' flags and nothing else, the blocks packed once the pool is still. It proves
 // the storage, not the look. Same bundle and stub as the smoke test.
 const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..');
@@ -16,8 +17,8 @@ const X=global.__pool;let fails=0;
 function ok(c,msg){console.log((c?'  ok   ':'  FAIL ')+msg);if(!c)fails++;}
 function check(label){ // the invariants over every pool
   let bad=[];for(const [f,P] of X.POOLS){let n=0,prev=0;for(const b of P.blocks){if(b.start!==prev)bad.push(f.id+': block at '+b.start+' expected '+prev);if(!X.chunks.has(b.ch.k))bad.push(f.id+': block of an unloaded cell');prev=b.start+b.count;n+=b.count;}
-    let nv=0,seenHidden=false;for(const b of P.blocks){if(b.vis){if(seenHidden)bad.push(f.id+': a seen block after a hidden one');nv+=b.count;}else seenHidden=true;}
-    if(n!==P.n||P.im.count!==P.nVis||nv!==P.nVis)bad.push(f.id+': counts '+n+' '+P.n+' vis '+nv+' '+P.nVis+' '+P.im.count);if(P.n>P.cap)bad.push(f.id+': over capacity');
+    let nv=0,end=0;const H=P.geo.attributes.aHide.array;for(const b of P.blocks){if(b.vis){nv+=b.count;end=b.start+b.count;}for(let k=b.start;k<b.start+b.count;k++)if(H[k]!==(b.vis?0:2)){bad.push(f.id+': a flag not its block\'s sight');break;}} // v11.116: every instance's aHide its block's, the draw to the last seen block
+    if(n!==P.n||nv!==P.nVis||P.nDraw!==end||P.im.count!==P.nDraw)bad.push(f.id+': counts '+n+' '+P.n+' vis '+nv+' '+P.nVis+' draw '+end+' '+P.nDraw+' '+P.im.count);if(P.n>P.cap)bad.push(f.id+': over capacity');
     const M=P.im.instanceMatrix.array;for(let i=0;i<P.n*16;i++)if(M[i]!==M[i])bad.push(f.id+': NaN');
     if(P.f.card)bad.push(f.id+': a card species pooled');}
   ok(bad.length===0,label+': '+X.POOLS.size+' pools, '+JSON.stringify(X.poolStats())+(bad.length?' — '+bad.slice(0,4).join('; '):''));}
@@ -49,15 +50,27 @@ X.loadChunkNow(ci,cj);const mid3=X.chunks.get(X.ckey(ci,cj));let sameA=0,diffA=0
 // a cell alone against the same cell in a 3×3: the placement must not read the neighbours (DESIGN Determinism). A difference only in aCur (the lean
 // to the current, read through steadyOf) is the current's field reading a neighbour's grid — cosmetic; a matrix difference is a placement that read one.
 ok(diffs.every(d=>!d.slice(d.indexOf('(')+1,-1).split(',').some(k=>k==='m'||k==='v')),'loaded alone, its blocks match: '+sameA+' same, '+diffA+' different'+(diffs.length?' — '+diffs.join(' '):''));
-// the partition by sight (v11.52.1): every cell seen, then the middle hidden, then a corner, then all back — the seen blocks first, the data intact
-X.worldClear();for(const [i,j] of cells)X.loadChunkNow(i,j);const all=[...X.chunks.values()];for(const ch of all){ch.group.visible=true;ch.near=true;}X.poolCull();
+// by sight (v11.52.1; v11.116 by flags): every cell seen, then the middle hidden, then a corner — each change writing only that cell's flags,
+// no instance moved — then the pools still long enough to pack (the seen blocks first), then all back
+X.worldClear();for(const [i,j] of cells)X.loadChunkNow(i,j);const all=[...X.chunks.values()];for(const ch of all){ch.group.visible=true;ch.near=true;}X.poolCull(0);
 const snap=()=>{const L=[];for(const ch of all)for(const P of ch.pooled)L.push([P.f,ch,blockOf(P.f,ch)]);return L;};const s0=snap();
-check('every cell in view');ok([...X.POOLS.values()].every(P=>P.nVis===P.n),'every block seen: nVis = n');
-const m5=X.chunks.get(X.ckey(ci,cj));m5.group.visible=false;X.poolCull();check('the middle cell out of view');
-ok([...X.POOLS.values()].every(P=>P.blocks.every(b=>(b.ch!==m5)===b.vis)),'only the middle cell\'s blocks hidden, and they sit last');
-ok(s0.every(([f,ch,b])=>same(b,blockOf(f,ch))),'every block\'s data intact after the moves');
-const c5=all.find(ch=>ch!==m5);c5.near=false;X.poolCull();check('a corner cell past FLORA_FAR too');ok(s0.every(([f,ch,b])=>same(b,blockOf(f,ch))),'intact again');
-m5.group.visible=true;c5.near=true;X.poolCull();check('all back in view');ok([...X.POOLS.values()].every(P=>P.nVis===P.n)&&s0.every(([f,ch,b])=>same(b,blockOf(f,ch))),'all seen again, data intact');
+const ATTRS=['aVar','aCur','aTide'];
+function sent(){ // the ranges pending upload, by attribute, then cleared as three's upload would
+  const r={data:0,hide:0};for(const P of X.POOLS.values()){const L=[[P.im.instanceMatrix,'data'],[P.geo.attributes.aHide,'hide']];if(P.im.instanceColor.updateRange)L.push([P.im.instanceColor,'data']);for(const a of ATTRS)if(P.geo.attributes[a])L.push([P.geo.attributes[a],'data']);
+    for(const [a,k] of L){const u=a.updateRange;if(u&&u.count>0){r[k]+=u.count*4;u.count=-1;u.offset=0;}}}return r;}
+const starts=()=>{const m=new Map();for(const P of X.POOLS.values())for(const b of P.blocks)m.set(b,b.start);return m;};
+sent();check('every cell in view');ok([...X.POOLS.values()].every(P=>P.nVis===P.n&&P.nDraw===P.n),'every block seen: nVis = nDraw = n');
+const m5=X.chunks.get(X.ckey(ci,cj)),st0=starts();let mb=0;for(const P of m5.pooled)mb+=P.blocks.find(b=>b.ch===m5).count*4;
+m5.group.visible=false;X.poolCull(0);check('the middle cell out of view');let u=sent();
+ok([...X.POOLS.values()].every(P=>P.blocks.every(b=>(b.ch!==m5)===b.vis)),'only the middle cell\'s blocks hidden');
+ok(u.data===0&&u.hide===mb&&[...st0].every(([b,s])=>b.start===s),'nothing moved: '+u.data+' bytes of instance data and '+u.hide+' of flags sent (its blocks\' '+mb+'), every block where it was');
+ok(s0.every(([f,ch,b])=>same(b,blockOf(f,ch))),'every block\'s data intact');
+const c5=all.find(ch=>ch!==m5);c5.near=false;X.poolCull(0);check('a corner cell past FLORA_FAR too');u=sent();ok(u.data===0&&s0.every(([f,ch,b])=>same(b,blockOf(f,ch))),'intact again, '+u.hide+' bytes of flags sent');
+// still: the pools pack one a frame once POOL_CALM has passed with an eighth of the draw hidden
+let frames=0;for(;frames<200;frames++){X.poolCull(0.05);if([...X.POOLS.values()].every(P=>(P.nDraw-P.nVis)*8<=P.nDraw))break;}check('the pools still, packed');
+ok([...X.POOLS.values()].every(P=>{let hid=false;for(const b of P.blocks){if(!b.vis)hid=true;else if(hid&&(P.nDraw-P.nVis)*8>P.nDraw)return false;}return true;}),'after '+frames+' frames every pool draws at most an eighth hidden: '+[...X.POOLS.values()].reduce((n,P)=>n+P.nDraw-P.nVis,0)+' hidden instances drawn, '+[...X.POOLS.values()].reduce((n,P)=>n+P.nVis,0)+' seen');
+ok(s0.every(([f,ch,b])=>same(b,blockOf(f,ch))),'every block\'s data intact after the packing');sent();
+m5.group.visible=true;c5.near=true;X.poolCull(0);check('all back in view');u=sent();ok([...X.POOLS.values()].every(P=>P.nVis===P.n&&P.nDraw===P.n)&&s0.every(([f,ch,b])=>same(b,blockOf(f,ch)))&&u.data===0,'all seen again, data intact, '+u.hide+' bytes of flags sent');
 // growth: a 5×5 forces some pools past their first capacity (12 cells' worth); nothing lost on the way
 const caps=new Map();for(const P of X.POOLS.values())caps.set(P.f,P.cap);
 X.worldClear();for(let dj=-2;dj<=2;dj++)for(let di=-2;di<=2;di++){const i=ci+di,j=cj+dj;if(i>=0&&j>=0&&i<X.NCELL&&j<X.NCELL)X.loadChunkNow(i,j);}
