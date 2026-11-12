@@ -1,19 +1,22 @@
 # HANDOFF — tethys
 
+**v11.115 (12 Nov 2026): the province** (GLOBE §10.1, step 3 of 3). The world is x −75.7 … 306.2 km, z −101.5 … 125.6 km (1,776 × 1,056 cells),
+every member of the region model that reaches it a record: 122, the new 75 atolls, banks and guyots east of ours. The ±70.5 km world is
+v11.114's to the bit; no basin is anoxic; the ledger waits uncensused past 40 km; an old save's patches move to their cells. **Ask first**
+how the far east plays (`tp(216062,15900,-8)`, m28's lagoon) and whether the boot feels slower.
+
 **v11.114 (11 Nov 2026): no false land where banks meet.** The records' smooth max filled the meeting of two banks' lagoons up to +90 m —
 361 km² of plateau in the ±70.5 km world, ~4,000 over the province, that the model has not got. The fill now stops at −20 (`FILL_TOP`); ours and
-the old square's land are untouched. **Ask first** whether anything seen east of ours changed. Next: the growth.
+the old square's land are untouched. **Ask first** whether anything seen east of ours changed.
 
 **v11.113 (11 Nov 2026): the horizon by sight, the flood over frames, the particles on the render origin** (GLOBE §10.1, the province,
 step 2 of 3). The horizon builds a member once its top could stand above the camera's horizon (from the water at ours 6 of 35); the basins'
 flood is sampled a slice a frame from the menu on; the snow, debris and blood keep doubles and hand the GPU copies against the render origin,
-which now follows the camera. Invisible at ±70.5 km. **Ask first** whether the far land arrives when climbing (a leap, a summit). Next: the
-growth.
+which now follows the camera. Invisible at ±70.5 km. **Ask first** whether the far land arrives when climbing (a leap, a summit).
 
 **v11.112 (11 Nov 2026): the world as a rectangle; the ledger's patches censused near the player** (GLOBE §10.1, the province, step 1
 of 3). The province is lopsided (69 km west of ours to 300 km east), so the world's bounds are per axis (`WORLD`, `WX0`…`WZ1`) — still ±70.5 km,
-nothing moves — and the coarse patches are censused within 40 km of the player and as it travels. Next: the horizon by sight, the flood over
-frames, the particles on the render origin; then the growth.
+nothing moves — and the coarse patches are censused within 40 km of the player and as it travels.
 
 **v11.111 (11 Nov 2026): the cell hash** (GLOBE §10.1, step 3 of 3 — the engine work before the province done). Every table of cells
 is a `Map` by `ckey(i, j)`; none is the world's size. Invisible: the same cells, regions and contents as v11.110 (test/cells.js).

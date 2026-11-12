@@ -6903,3 +6903,36 @@ since v11.102 (in the old square's reach) and v11.106 (the world's).
 
 Seen: the identity above; the suite. **Unseen, ask in this order:** whether anything you have looked at east of ours changed (m122's plateau
 was 40 km north-east, perhaps on the horizon from a summit); the shallow saddle north of ours in play.
+
+## v11.115 — the province (12 Nov 2026)
+
+The province, step 3 of 3 (the person, 11 Nov 2026: "go ahead with the province"; 12 Nov: "go ahead with the growth"). The world is the
+region model's province: every member that reaches it is in the game.
+
+- **world.js `WORLD`:** cells −232 … 1543 by −352 … 703 — x −75.7 … 306.2 km, z −101.5 … 125.6 km, 382 × 227 km round the members' feet (x
+  −69 … 300 km, z −93 … 121 km), each bound a multiple of 8 cells. `WORLD70` is v11.106–114's ±70.5 km square, kept for three things below.
+- **region.js `rgBuild`, a third pass:** after the old square's members (20) and ±70.5 km's (25), those that reach the province and not
+  `WORLD70`, by a third rng: 75 more — 41 atolls, 25 banks, 9 guyots, all east of ours, 66 with the reefs' carbonate cap — 122 records with the
+  pins; 37 members struck under a neighbour's flank (15 to v11.114). No new land but the reefs' crests (1,990 km² over the province against
+  1,776 in ±70.5 km: the crests and the cays). None reaches ±70.5 km: there the ground is v11.114's to the bit (`sample()` at 150,000 points,
+  the 47 old records identical). The floor's grid grows to the province by whole nodes.
+- **world.js `chemoGen`, the flood:** on v11.106's lattice (`WORLD70`'s corner, a whole step past the province's), so the old world's samples
+  are its own: the moat round ours 603 km² behind −999, as before. 955 × 569 at 400 m, a row a slice (eight to v11.114) and region.js's flood
+  itself a generator (`rgBasinsGen`, yielding every 16k cells; `regionBasins` runs it whole): 1.1 s in 611 slices, the longest 19 ms (to v11.114
+  a 0.08 s piece at the end, 0.24 s at the province's size). Eleven silled basins, none anoxic (the nearest 0.81, 31 km² behind −416 68 km
+  east): the province has no dark water either.
+- **ecology.js, the ledger:** 222 × 132 coarse patches, 28,404 past the box; censused within 40 km of the player and as it travels (v11.112),
+  so the boot's census is as before. The hunters' response tables by row (`ecoRow`, `P.row`): a row for a patch once censused, the tables
+  grown as rows are taken — over every patch they were 27 MB of the patches' 52; now the patches' tables are 25 MB (12 at ±70.5 km).
+- **save.js:** a save names the world its patches tile (`pt.w`); one without (v11.106–114's) is `WORLD70`'s, and each patch moves to the same
+  cells' patch in the province, the slots with them — a save from before keeps its ledger. A free slot is cleared on a load.
+- **Comments:** worldmap.js, region.html, ecology.js's patch count, region.js's passes.
+- **Tests:** test/region.js the three passes (20, 25, 75), the first two's boxes; test/ledger.js censuses the ±70.5 km square's 5,824
+  patches as before (the province's 28,404 would be five times the work; the comparisons are the old square's) and loads a v11.106–114 save
+  into the province, every patch's count where it was. The rest unchanged and green.
+
+Seen: the identity above; the suite; the province's map (test/map.js); headless, no page errors: outside the atoll m6 at 234 km east, 112 km
+south (the sea, a cay on the horizon; through a pass in its rim), and m28's lagoon at 216 km east from 8 m down — seagrass, rocks and animals,
+the cells loading and spawning as at home. Costs: the 75 records' build +0.5 s of CPU at load (0.77 → 1.25 s for the world and the region,
+node); a frame unchanged. **Unseen, ask in this order:** the far east in play (a swim there is
+hours: `tp`); the boot on your machine; the world map's whole view (`n`, the wheel out).

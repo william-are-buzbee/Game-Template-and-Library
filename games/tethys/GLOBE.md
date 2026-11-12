@@ -364,4 +364,11 @@ a horizon mesh per member.
   their equilibrium). **v11.113, the horizon by sight** (horizon.js `hzWatch`, `hzSight`, `hzStep`: a member is built once its top could
 stand above the camera's horizon, nearest first, one at a time; from the water at ours 6 of the 35), **the flood over frames** (world.js
 `chemoGen`, `chemoStep` a slice a frame; anything that asks first finishes it) **and the particles on the render origin** (the snow, debris
-and blood in doubles, their GPU copies against `ORIGIN`; the rain about the camera; the origin follows the camera). Next: the growth.
+and blood in doubles, their GPU copies against `ORIGIN`; the rain about the camera; the origin follows the camera). **v11.114** took the
+  records' fill off the banks (found on the province's map: their lagoons met at up to +90, ~4,000 km² of false land over the province).
+  **v11.115, the growth:** the world is the rectangle round the members' feet, x −75.7 … 306.2 km, z −101.5 … 125.6 km (1,776 × 1,056 cells,
+  382 × 227 km); every member that reaches it is a record (`rgBuild`'s third pass, after the old square's and ±70.5 km's, so those are as they
+  were): 122 records, 37 members struck under a neighbour's flank — the new 75 are 41 atolls, 25 banks and 9 guyots, all east of ours, no new
+  island above the sea but the reefs' crests. The ±70.5 km world is v11.114's to the bit; the flood keeps its lattice (the moat 603 km² behind
+  −999 as before) and finds eleven silled basins, none anoxic (the nearest 0.81); the ledger's 28,404 coarse patches wait uncensused past
+  40 km, their hunters' tables by row (25 MB, not 52); a save's patches move to the same cells. The province is the world.

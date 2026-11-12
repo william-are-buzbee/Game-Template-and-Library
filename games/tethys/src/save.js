@@ -56,7 +56,7 @@ function popRows(){ // the ledger's tables as arrays, the loaded cells counted a
   const n=POP.n.map(a=>Array.from(a,r3));
   for(const ch of chunks.values()){const c=ecoId(ch.i,ch.j);if(c<0||!POP.done[c])continue;const cnt=new Float32Array(SPAWN.length);for(const o of ch.creatures)if(o.alive&&o.ent>=0)cnt[o.ent]+=1;for(const g of ch.eggs)if(g.ent>=0)cnt[g.ent]+=g.n;for(let ei=0;ei<SPAWN.length;ei++)n[ei][c]=r3(cnt[ei]/Q.creatures);}
   const R=T=>T.map(rle);
-  const P=ECO_PT,pt=P.on?{n:R(P.n),k:R(P.k),ke:R(P.ke),cd:R(P.cd),done:rle(P.done),bp:Array.from(P.bp)}:undefined; // the coarse patches and the split slots (v11.105), only when the world has them
+  const P=ECO_PT,pt=P.on?{n:R(P.n),k:R(P.k),ke:R(P.ke),cd:R(P.cd),done:rle(P.done),bp:Array.from(P.bp),w:[WORLD.i0,WORLD.i1,WORLD.j0,WORLD.j1]}:undefined; // the coarse patches and the split slots (v11.105), only when the world has them; w: the world they tile (v11.115)
   return {ents:SPAWN.map(e=>e.kind),n:R(n),k:R(POP.k),ke:R(POP.ke),cd:R(POP.cd),ow:R(POP.ow),done:rle(POP.done),pt,last:POP.last,tally:[POP.births,POP.deaths,POP.kills,POP.starved,POP.eaten,POP.recruits,POP.laid,POP.hatched]};
 }
 function popLoad(p){ // the ledger from a record; a save from another roster (SPAWN's kinds differ) gets a fresh census instead, and the player and the clock still load
@@ -68,11 +68,17 @@ function popLoad(p){ // the ledger from a record; a save from another roster (SP
   for(let ei=0;ei<SPAWN.length;ei++){POP.n[ei].set(D.n[ei]);POP.k[ei].set(D.k[ei]);POP.ke[ei].set(D.ke[ei]);POP.cd[ei].set(D.cd[ei]);POP.ow[ei].set(D.ow[ei]);}
   POP.done.set(D.done);POP.last=+p.last||0;const T=Array.isArray(p.tally)?p.tally:[];[POP.births,POP.deaths,POP.kills,POP.starved,POP.eaten,POP.recruits,POP.laid,POP.hatched]=[0,1,2,3,4,5,6,7].map(i=>+T[i]||0);
   // the coarse patches (v11.105): from the record if it has them whole, else the load pass of the paper census does them again (v11.106)
-  if(ECO_PT.on&&p.pt){const P=ECO_PT,q=p.pt,T={};let good=Array.isArray(q.bp)&&q.bp.length===ECO_SLOTS;
-    for(const k of ['n','k','ke','cd']){T[k]=good&&Array.isArray(q[k])&&q[k].length===SPAWN.length?q[k].map(unrle):null;if(!T[k]||!T[k].every(a=>a&&a.length===P.np))good=false;}
-    const dn=good?unrle(q.done):null;if(!dn||dn.length!==P.np)good=false;
-    if(good){for(let ei=0;ei<SPAWN.length;ei++){P.n[ei].set(T.n[ei]);P.k[ei].set(T.k[ei]);P.ke[ei].set(T.ke[ei]);P.cd[ei].set(T.cd[ei]);for(let x=0;x<P.np;x++)if(!(P.n[ei][x]>=0))P.n[ei][x]=0;}P.done.set(dn);
-      P.blk.fill(-1);P.free=[];for(let s2=ECO_SLOTS-1;s2>=0;s2--){const pp=q.bp[s2];if(Number.isInteger(pp)&&pp>=0&&pp<P.np&&P.coarse[pp]&&P.blk[pp]<0){P.bp[s2]=pp;P.blk[pp]=s2;}else{P.bp[s2]=-1;P.free.push(s2);}}
+  // v11.115: a save's patches tile the world it was made in (pt.w; v11.106–113's ±70.5 km square, WORLD70, when it has none), each moved to
+  // the same cells' patch in this one; a patch past this world's edge is dropped
+  if(ECO_PT.on&&p.pt){const P=ECO_PT,q=p.pt,T={},sw=Array.isArray(q.w)&&q.w.length===4&&q.w.every(Number.isInteger)?q.w:[WORLD70.i0,WORLD70.i1,WORLD70.j0,WORLD70.j1],snz=Math.ceil((sw[3]-sw[2])/PATCH),snp=Math.ceil((sw[1]-sw[0])/PATCH)*snz;
+    const mv=x=>{const i=sw[0]+Math.floor(x/snz)*PATCH,j=sw[2]+(x%snz)*PATCH;return gridIn(i,j)&&(i-WORLD.i0)%PATCH===0&&(j-WORLD.j0)%PATCH===0?ecoPOf(i,j):-1;}; // the saved patch x's place in this world
+    let good=Array.isArray(q.bp)&&q.bp.length===ECO_SLOTS&&snp>0&&snp<1e7;
+    for(const k of ['n','k','ke','cd']){T[k]=good&&Array.isArray(q[k])&&q[k].length===SPAWN.length?q[k].map(unrle):null;if(!T[k]||!T[k].every(a=>a&&a.length===snp))good=false;}
+    const dn=good?unrle(q.done):null;if(!dn||dn.length!==snp)good=false;
+    if(good){const to=new Int32Array(snp);for(let x=0;x<snp;x++)to[x]=mv(x);
+      for(let ei=0;ei<SPAWN.length;ei++)for(let x=0;x<snp;x++){const y=to[x];if(y<0)continue;P.n[ei][y]=T.n[ei][x]>=0?T.n[ei][x]:0;P.k[ei][y]=T.k[ei][x];P.ke[ei][y]=T.ke[ei][x];P.cd[ei][y]=T.cd[ei][x];}
+      for(let x=0;x<snp;x++)if(to[x]>=0)P.done[to[x]]=dn[x];
+      P.blk.fill(-1);P.free=[];for(let s2=ECO_SLOTS-1;s2>=0;s2--){const p0=q.bp[s2],pp=Number.isInteger(p0)&&p0>=0&&p0<snp?to[p0]:-1;if(pp>=0&&P.coarse[pp]&&P.blk[pp]<0){P.bp[s2]=pp;P.blk[pp]=s2;}else{P.bp[s2]=-1;P.free.push(s2);const c0=ECO_FINE+s2*64;POP.done.fill(0,c0,c0+64);for(let ei=0;ei<SPAWN.length;ei++){POP.n[ei].fill(0,c0,c0+64);POP.ow[ei].fill(0,c0,c0+64);}}} /* a free slot holds nothing (v11.115: its patch may be past this world's edge) */
       for(let ei=0;ei<SPAWN.length;ei++){P.cells[ei].length=0;P.mark[ei].fill(0);for(let x=0;x<P.np;x++)if(P.k[ei][x]>0||P.n[ei][x]>0){P.mark[ei][x]=1;P.cells[ei].push(x);}}}}
   let all=true;for(let c=0;c<ECO_FINE;c++)if(!POP.done[c]){all=false;break;}if(all)POP.gen=ECO_PT.on?ecoGen(true):null; // the paper census was done in the saved game; the settle after it is boot's, not a load's (v11.106: the patches still want their hunters' tables, or a census if the save had none — ecoGen's load pass)
   for(let ei=0;ei<SPAWN.length;ei++){const N=POP.n[ei];for(let c=0;c<ECO_CELLS;c++)if(!(N[c]>=0))N[c]=0;} // a hand-edited file: nothing negative or NaN into the model
