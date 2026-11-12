@@ -6936,3 +6936,33 @@ south (the sea, a cay on the horizon; through a pass in its rim), and m28's lago
 the cells loading and spawning as at home. Costs: the 75 records' build +0.5 s of CPU at load (0.77 → 1.25 s for the world and the region,
 node); a frame unchanged. **Unseen, ask in this order:** the far east in play (a swim there is
 hours: `tp`); the boot on your machine; the world map's whole view (`n`, the wheel out).
+
+## v11.115.1 — the world map's zoom without the flicker (12 Nov 2026)
+
+The person (12 Nov 2026): "zooming out the map causes it to flicker to its lowest res until you move the mouse."
+
+- **The cause.** worldmap.js `wmapDraw` drew the zoomed window only while its key (`wmapKey`: the rounded cx, cz, span) was the view's, else
+  the world's picture (`wmap.base`, 512² over the 382 km square since v11.115: 746 m a pixel, its blocks unsmoothed under half the world's
+  side). Every notch of the wheel and every drag changes the key, so the map dropped to the world's picture for the rest (`WMAP_REST`, 180 ms)
+  and then the window's sampling (0.1–0.25 s headless, a stall that leaves that frame on screen): 310–415 ms a notch, and the whole time the
+  wheel turned, each notch restarting the rest. Zooming in did the same. Nothing waits on the mouse: the rest counts down every frame, in play
+  and in the menu, and headless, with no input after the wheel, the window came back every time below 0.6 of the world's side (229 km). The
+  "until you move the mouse" is most likely the stall: the cursor's cross stops with the picture, and both come back together.
+- **The fix, `wmapDraw`:** the world's picture under everything, and the last window over it in its own place (`wmap.winAt`: its cx, cz,
+  span), fresh or not, until the next is sampled. Zoomed out, the old window is the middle and only the ring the zoom revealed is coarse;
+  zoomed in, the old window magnified; dragged, shifted, the uncovered strip coarse. A fresh window covers the canvas exactly as before. The
+  window is cut to the world's picture's square, so one kept past 0.6 of the side (no window is sampled there: 320² is no finer than the world's
+  512) is no lit box in the dark beyond the world's west or east edge. Image smoothing is set once for both pictures (it was set for the world's
+  and leaked into the window's: the same in practice).
+- **`wmapShow`** keeps the window from one opening to the next (it dropped it): a reopening shows it in place until the view's is sampled, the
+  next frame, as before.
+- **Comments:** worldmap.js's head (the first opening's world picture is ~2 s in a sandbox's Chromium now, ~0.3 s at v11.63).
+
+Seen headless (Chromium, software GL; the map over play and over the menu; the map's canvas read every frame and pictured during the rest
+and after it): before, each notch out from the opening view the whole map in the world's blocks, then the window; after, the old window in the
+middle and the blocks only in the new ring; past 229 km the 197 km window kept, no box in the margin; a fast zoom in from 384 to 101 km the
+197 km window magnified until the new one; a drag the old window shifted; a reopening its window at once. A settled view is the picture it was
+(15–46 pixels differ of 372,100: single contour pixels, the sampling grid moved by the player's sub-metre drift between the runs). No page
+errors. **Unseen, ask in this order:** whether the flicker is gone on your machine (`n`, the wheel out a notch at a time from the opening view,
+then quickly; a drag); whether the stall when the window re-samples (the map frozen ~0.1–0.25 s, as before) is what read as "until you move
+the mouse" — if so, the sampling can go over frames as a generator; the kept window's edge past 229 km (615 m a pixel against the world's 746).
