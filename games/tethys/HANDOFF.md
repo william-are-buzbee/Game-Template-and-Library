@@ -1,6 +1,6 @@
 # HANDOFF — tethys
 
-**v11.116 (12 Nov 2026): the far tidewood as the real one.** The person's "square LOD's" were the tidewood's far cards (crossed 1.2 m posts
+**v11.124 (12 Nov 2026): the far tidewood as the real one.** The person's "square LOD's" were the tidewood's far cards (crossed 1.2 m posts
 under a flat plate, at 40% of the real wood's brightness). The stand-in is now the real tree's middle size in 37 triangles (trunk, props, whorls
 of rods), one of the real three heights, tinted as the real ones are. **Ask first** whether the swap still shows in play (swim out from the
 south rim's wood past ~430 m, or along the giant's west shore).

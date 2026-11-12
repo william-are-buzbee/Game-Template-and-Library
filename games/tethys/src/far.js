@@ -165,7 +165,7 @@ const LMK={meshes:[]};
 // The stipe forest (1100/cell), bladders, rafts and colonies are placed by the cell's rng and exist only in loaded cells, so from 600 units the
 // forest read as a green floor. A sparse stand-in for each: every 5th stipe as a crossed pair of olive cards stretched to
 // the surface with a canopy pad on top (a wall of stalks from afar), every 3rd bladder as a thin crossed card the height of the water
-// column with a pad on top, rafts and colonies as flat octagons, every 2nd tidewood as a low-poly copy of the real one (v11.116). Placed by the same density rules as
+// column with a pad on top, rafts and colonies as flat octagons, every 2nd tidewood as a low-poly copy of the real one (v11.124). Placed by the same density rules as
 // placeFloraType (biome, field, pocket, the lee) from a pure per-cell rng, drawn by the region, and zeroed inside loaded
 // cells the way the far terrain is sunk. They do not match the near flora one for one; only the density does.
 function impGeo(tris){ // tris: [[x,y,z]x3, [r,g,b]] with the normal from the winding
@@ -182,7 +182,7 @@ function crossCards(w,y0,y1,col,tris){ // two vertical quads at right angles, wi
 function farStipeGeo(){const T=[];crossCards(2.8,0,1,[0.42,0.44,0.17],T);const r=2.4,c=[0.5,0.5,0.2];for(let k=0;k<6;k++){const a0=k/6*TAU,a1=(k+1)/6*TAU;T.push([[0,1,0],[Math.cos(a0)*r,1,Math.sin(a0)*r],[Math.cos(a1)*r,1,Math.sin(a1)*r],c]);}return impGeo(T);} // the stipe: a unit card stretched to the surface like the bladder's, a canopy pad on top
 function farBladderGeo(){const T=[];crossCards(1.4,0,1,[0.5,0.56,0.26],T);const r=2.2,c=[0.68,0.72,0.36];for(let k=0;k<6;k++){const a0=k/6*TAU,a1=(k+1)/6*TAU;T.push([[0,1,0],[Math.cos(a0)*r,1,Math.sin(a0)*r],[Math.cos(a1)*r,1,Math.sin(a1)*r],c]);}return impGeo(T);}
 function farRaftGeo(col){const T=[];for(let k=0;k<8;k++){const a0=k/8*TAU+0.2,a1=(k+1)/8*TAU+0.2,r0=0.9+0.1*(k%2),r1=0.9+0.1*((k+1)%2);T.push([[0,0,0],[Math.cos(a0)*r0,0,Math.sin(a0)*r0],[Math.cos(a1)*r1,0,Math.sin(a1)*r1],col||W]);}return impGeo(T);}
-// The tidewood (v11.116; to v11.115 a crossed pair of 1.2 m cards 9 m tall under a flat six-sided pad, olive on olive: from the water a fence
+// The tidewood (v11.124; to v11.123 a crossed pair of 1.2 m cards 9 m tall under a flat six-sided pad, olive on olive: from the water a fence
 // of pale posts beside the real wood — "strange looking square LOD's", the person, 12 Nov 2026). Now the real one's middle size as flora.js
 // tidewoodB draws it (H 9): a tapering trunk, four props to the sand, and the whorls — every rod one upright triangle from the trunk to where
 // the real rod's kinked tip ends, so a whorl reads as the real one's V from any side and the crown is the real goblet (2.2 m out at 4.5,
@@ -201,7 +201,7 @@ function farTreeGeo(){
   return impGeo(T);
 }
 // stride: one impostor per that many of the real thing. w: card width factor on the kelp's scale. r: pad extent (local units of the real geometry) for rafts.
-// pig (v11.116): tinted as the real instances are — pigment(h, line) with the place's stain (grow.js tintBy) — not from the species' list. hs: the real
+// pig (v11.124): tinted as the real instances are — pigment(h, line) with the place's stain (grow.js tintBy) — not from the species' list. hs: the real
 // variants' heights on the geometry's, one drawn per instance.
 const FAR_IMP=[
   {f:FLORA_BY_ID.stipe,geo:farStipeGeo(),stride:5,dim:0.55}, // dim (v11.42.4): the card's tint against the real plant's — the stipe's pigment darkens with depth and its pads are silhouettes from below, and past the swap at FLORA_FAR the cards' residual through the fog read paler than the veil where the real kelp's read darker: a pale band with a bright line of pads along the far water level (the person's last 5%, 14 Sep)
@@ -233,10 +233,10 @@ function* impostorsGen(i,j){
       if(u>=Math.max((f.per||0)/maxN*(f.env?envW(f.env,h,sl,fixF(s.f,sl)):1)*pocket,cterm)*field)continue;
       if(floor&&underChemo(x,h,z))continue; // nothing on the floor under a basin's chemocline (v11.96; the -450 to v11.95)
       if(!floor&&h>-4)continue;
-      if(floor&&sl>(f.maxSlope!==undefined?f.maxSlope:0.9))continue; // placeFloraType's slope (v11.116: the tidewood's 0.5; no other card species sets one)
-      if(f.minH!==undefined&&h<f.minH)continue; // and its wet sand (v11.116: the tidewood's alone)
+      if(floor&&sl>(f.maxSlope!==undefined?f.maxSlope:0.9))continue; // placeFloraType's slope (v11.124: the tidewood's 0.5; no other card species sets one)
+      if(f.minH!==undefined&&h<f.minH)continue; // and its wet sand (v11.124: the tidewood's alone)
       let y=h,sc=f.s?f.s[0]+rng()*(f.s[1]-f.s[0]):1,sy=sc,sxz=sc;
-      if(sp.hs)sy*=sp.hs[Math.floor(rng()*sp.hs.length)]; // a real variant's height (v11.116)
+      if(sp.hs)sy*=sp.hs[Math.floor(rng()*sp.hs.length)]; // a real variant's height (v11.124)
       if(f.reach){if(h>-14)continue;sy=-h-1.4;sxz=1;} // to just under the deepest trough (v11.4): the real stipes are folded to the wave, a card is not, and one that reached mean level stood 0.6 m out of every trough
       else if(!floor){y=f.ys!==undefined?f.ys:-0.45;sy=1;sxz=sc*sp.r;}
       else sxz=sc*(sp.w||1);

@@ -7214,7 +7214,7 @@ Seen: m109's lagoon merged with m85's and m62's into one floor round the island,
 **Unseen, ask in this order:** a lagoon's patch reefs from the water (`tp(108100,4000,-1)` then swim out), a blue hole from above and inside;
 an atoll's wall from beside it (`tp(1600,20100,-60)`, m140); whether the deep gardens' smaller ground on the walls matters (DEEP §3).
 
-## v11.116 — the far tidewood as the real one (12 Nov 2026)
+## v11.124 — the far tidewood as the real one (12 Nov 2026)
 
 The person, 12 Nov 2026: the trees in the distance show "strange looking square LOD's", with a screenshot from the water at night: the
 shore's left half a fence of pale posts, the right half the real wood. The left half was the tidewood's far stand-in (far.js `FAR_IMP`,
