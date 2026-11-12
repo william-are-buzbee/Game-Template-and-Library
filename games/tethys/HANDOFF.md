@@ -1,5 +1,10 @@
 # HANDOFF — tethys
 
+**v11.120.2 (12 Nov 2026): the test stub's primitives are three's.** test/stub.js made every primitive random noise in [0,1) and ignored
+its transforms, so headless a species' `top` read ~1 m whatever the plant and the flora near the surface was not the game's; now each is
+three r128's own points, every top three's to the bit. Tests only; the game is byte-identical. **Ask first** whether the eel that misses a
+finback at rest for a whole minute on about half its draws (test/combat.js §3, CHANGELOG) wants a COMBAT pass.
+
 **v11.123 (12 Nov 2026): one margin per reef, lagoons by their size, reef walls** (analysis_archipelago §6, step 3 of 3). Rims inside
 another's lagoon sink to it (`rgMargins`; faros kept), merged reefs share one floor, the saddle fill stops at −150 (`FILL_TOP`); lagoons
 deepen with their ring (`rgLagD`) and carry patch reefs and blue holes (`lagoonF`); reef slopes are walls with one −122 bench. **Ask
