@@ -7085,3 +7085,7 @@ Seen headless (no page errors): ours' shelf at (160, 80) looking across a fresh 
 same picture: that ground was sand and turf in front of the forest, with no polyps or canopy to lose. **Unseen, ask in this order:** whether
 the clearings read at all on ours' reef top and in the forest at (330, 0) (`tp(0,300,-10)`, `tp(330,0,-11)`) — if they are too subtle,
 `DIST.share` (0.5) and the patch size (`DIST.f`) are the knobs; a far reef's mosaic (`tp(220400,19700,-6)`).
+
+## v11.120.1 — test/origins.js one world in both runs (12 Nov 2026)
+
+test/origins.js failed about one run in seven (12 Nov, `npm run check`): not the clock or the streaming (done by frame 31 of 240) but the stub — its primitives are `Math.random` noise and a species' `top` is read off them, so the two runs could place a plant at the surface cap differently (202 rinds in cell 123,117 against 204, its lilies moved); both runs now draw one seeded stream, and each dump waits for the streaming to finish.
