@@ -132,10 +132,12 @@ swarms, filter feeding, the bloom night.
 plume under the plate for `REGION_K.span` (30 Myr) in steps of `RG_DT` (2 kyr): the track through ours (`ageOurs` 3 Ma) and the giant (1.31 Ma
 at `v` 1.06 cm/yr, turning `turn` 3°/Myr); births by the flux (`base` 0.3 and the pulses: one at the giant's birth, `young` waxing now) on a
 power law (`vol` 6 km³, `beta` 0.75, `vMax` 3000), scattered over `foot` 40 km and drawn onto fracture zones (`fracSp`, `fracA`, `fracPull`);
-each member a cone of 12° holding its volume (`rgShape`), its base the plateau (`platW`, `headR`, solved so the floor beside ours is `floor`)
+each member, at its birth, the edifice that holds its volume by where its base lies below the sea — 12° under it, 7° above (`rgShape2`,
+v11.121; to v11.120 a 12° cone with a 7° land drawn over it, 2–2.6 V; `rgShape`'s 12° cone stays as the history's bound), its base the plateau (`platW`, `headR`, solved so the floor beside ours is `floor`)
 plus the plate's cooling (`plateAge`), the swell (`swell`, `swellW`) and the flexure of every load (`Te`, kei by `rgKei`); erosion (`erode`)
 and planing (`plane`, `wb`) after the shield; the reef by `rgSea` (Earth's sawtooth) at `reef` mm/yr decaying with depth (`light`), drowned
-past `photic`, none on the fed face (`fedL`, `fedK`). The pins' volumes are tuned by secant until their summits are `REGION_PINS`'s. Each
+past `photic`, none on the fed face (`fedL`, `fedK`). The pins' volumes are tuned by secant until their summits are `REGION_PINS`'s, and with them the members in `tune` (v11.121: the awesome
+shield's 2,533 m, the person's answer (c) — on Earth's slopes it needs `Te` 15, 6,290 km³). Each
 member ends with a state (`RG_STATE`), its flat top, its shore, its first light and the neighbour it was settled from. `regionGrid` draws the
 province (and the game's own ground inside its square), `regionBasins` floods it from the edge for every cell's sill and the basins,
 `regionSeen` what clears the horizon from a point. ~0.3 s a run; `test/region.js` pins it.
@@ -143,7 +145,9 @@ province (and the game's own ground inside its square), `regionBasins` floods it
 **The square from the model (v11.102, GLOBE §8 step 5).** At load (`REGION`, `rgBuild`) every member whose ground reaches the world (the
 square and the far layer's 2 km past it) becomes a record in `ISLANDS`, shaped by its state with islandH's kit (`rgRecord`): a high island or
 an active shield as land (`land`: shore and height the model's, gullies, a caldera and flows down two rift zones on the fracture grain when
-young), its shelf cut into the land by its age with the flank where the model's 12° cone puts it; an atoll or a bank as ours scaled to its reef's
+young), its shelf cut into the land by its age with the flank where the model's 12° cone puts it; a high or rim island with a living reef ring off its coast (v11.121) with its barrier reef (`R.barrier`, `rgBarrier`; `rgCap`
+and islandH's cap: by max over the island's ground, the lagoon to the ring, the crest awash or under with passes, a wall and a 31° fore-reef
+outside; the giant's from the model, −44 m, in the awesome shield's moat); an atoll or a bank as ours scaled to its reef's
 ring (`rimR`, `rimH` the reef's top today, `lagH` deeper on a wider ring); a seamount or guyot as a cone, its upper 200 m swept bare (`bare`)
 and knobbed with pillow mounds 30 m high (`knob`). A member whose summit lies under another's ground at its centre is struck (the model draws
 every cone from the plateau). Seed 32: 20 records (the awesome shield's southern side in the north-west corner, the 308 m island 20 km north,
@@ -157,7 +161,20 @@ one under the ground past its features gives only its influence (`islandW`). The
 (`R.an`, `anT`). The seamount effect is blended (v11.102): every record's influence `isl` joined as 1−Π(1−isl), the current's aspect
 weighted by them, where to v11.101 the highest record's alone counted and two neighbours' halos met on a straight seam. And the smooth
 surface (`hs`, the relief's reference) goes down the lower flank with the ground: to v11.101 it stayed at the apron's −290, so the relief
-read 0 on every lower flank and on the floor inside every record's reach. **The islands shelter each other (v11.117;
+read 0 on every lower flank and on the floor inside every record's reach. **The plateau's platform (v11.122; analysis_archipelago §2.3):** region.js `rgPlatform` runs the members' reef rule on the plateau's own
+surface on a 3 km grid (`RG_PLG`; the plateau's level, cooling, swell and every load's moat, refreshed every `RG_PL_K.rf`; erosion and planing
+above the sea; steps of `RG_PL_K.dt`); no fed rule (the platform is its own up-current margin). `RG_PL` keeps where the reef lives today, its
+top and a signed distance to its margin; `rgPlat` reads it with a warped margin (`warp`, `warp2`): the rim at the top with islets and passes,
+the lagoon to `lag` over `lagW` rolling ±`karst`, a wall at `wall` outside. `sample()` takes it where it stands above the records and the
+floor, with its own fields (lagoon, rim, the margin's aspect, the wall's spurs) and its influence outside within `isl`. A member on it is
+struck by 'platform' (`rgPlatSd`); a cell on it is the old east's range (chunks.js `chRange`). Seed 32: 29,259 km², 61 members buried.
+**Reefs (v11.123; analysis_archipelago §3):** a reef record's lagoon is `rgLagD` deep by its ring; its floor carries patch reefs and blue
+holes (world.js `LAGF`, `lagoonF`: the model's reefs, the barriers and the platform, not ours); its outer slope is a reef's — terrace, a wall
+to −122, the one lowstand bench, the wall to −580, the talus (rgRecord). `rgMargins` gives each reef record a rim table `R.rimM` by angle
+(`RG_RM` bins, `rgAng`): an arc inside another reef's lagoon or the platform's is that lagoon (islandH scales the crest and fills its band),
+small reefs wholly inside a wide lagoon kept as faros, merged reefs sharing their deepest lagoon. `FILL_TOP` −150: two grounds meet at their
+plain max above it.
+**The islands shelter each other (v11.117;
 analysis_flora_diversity §5.4; GLOBE §9 stage 5):** world.js `SHELTER`, `shelterBuild`, `shT`, `R.sh`. A record's aspect to the wind and
 the current was its own alone; now what stands upwind and upstream scales the water's `expoW` and `upW` at each face. A wave shadow: every
 other record at the surface upwind (tops from −25 to −3 count, a reef awash fully), e-fold `w.L` 30 km (the swell bent round it fills in, the

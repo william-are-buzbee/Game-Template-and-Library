@@ -194,6 +194,8 @@ stages became, and what running them taught:
   (the game's: the gap in the sill), and a member with nothing upstream to shelter it within 90 km (`fedL`) sits in the open ocean's fed water,
   where the weed takes its shallows: no reef (`fedK` 0), so it is planed and sinks — the guyots. Seed 32: all 28 guyots are fed; 103 atolls and
   banks in the lee.
+- *v11.121 (analysis_archipelago §6): `erode` 0.15 (high islands to ~10 Ma) and `Te` 15 (α 31 km); every member the edifice that holds its
+  volume (7° land on 12° flanks), the awesome shield held at 2,533 m; the high islands' barrier reefs built. The numbers in this list are v11.94's.*
 - **Flexure is small at these sizes** (α 15.7 km at Te 6 km): the arch is ~1.4% of the moat, metres. No raised atoll comes out of any seed;
   §9's Makatea needs a Tahiti-sized load. The awesome member's moat (735 m under a 2,600 km³ shield) is the largest effect.
 - **Colonisation comes free:** each member's first light and the nearest lit member then. Seed 32: median 11 km from a neighbour, the
@@ -373,3 +375,10 @@ and blood in doubles, their GPU copies against `ORIGIN`; the rain about the came
   island above the sea but the reefs' crests. The ±70.5 km world is v11.114's to the bit; the flood keeps its lattice (the moat 603 km² behind
   −999 as before) and finds eleven silled basins, none anoxic (the nearest 0.81); the ledger's 28,404 coarse patches wait uncensused past
   40 km, their hunters' tables by row (25 MB, not 52); a save's patches move to the same cells. The province is the world.
+
+**The province reviewed (12 Nov 2026, `analysis_archipelago.md`).** The west believable; the east's circles wrong in shape — land discs wider
+than the volcanoes under them, reefs on the cones but none on the plateau that stood in the light at 24–30 Ma, rims crossing each other's
+lagoons. **The person (12 Nov 2026):** the east one carbonate platform; the land shrunk to the volumes; high islands lasting about 10 Myr
+(`erode` 0.15, "though I am not sure"); the giant's barrier reef with this work. The shape (12 Nov 2026): Earth's slopes (7° land on 12°
+flanks, summits ~40% lower), the awesome shield pinned at 2,533 m. The build, three versions: the members' shape and clock with the high islands'
+reefs; the plateau's platform; margins and lagoons (`analysis_archipelago.md` §6).

@@ -5,6 +5,24 @@ its transforms, so headless a species' `top` read ~1 m whatever the plant and th
 three r128's own points, every top three's to the bit. Tests only; the game is byte-identical. **Ask first** whether the eel that misses a
 finback at rest for a whole minute on about half its draws (test/combat.js §3, CHANGELOG) wants a COMBAT pass.
 
+**v11.123 (12 Nov 2026): one margin per reef, lagoons by their size, reef walls** (analysis_archipelago §6, step 3 of 3). Rims inside
+another's lagoon sink to it (`rgMargins`; faros kept), merged reefs share one floor, the saddle fill stops at −150 (`FILL_TOP`); lagoons
+deepen with their ring (`rgLagD`) and carry patch reefs and blue holes (`lagoonF`); reef slopes are walls with one −122 bench. **Ask
+first** how a lagoon reads from the water (`tp(108100,4000,-1)`), then a wall (`tp(1600,20100,-60)`) and a blue hole; the deep gardens'
+ground on the reefs' walls is a sixth of what it was.
+
+**v11.122 (12 Nov 2026): the plateau's platform** (analysis_archipelago §6, step 2 of 3). The members' reef rule run on the plateau's own
+surface (region.js `rgPlatform`, read by `rgPlat`; world.js `sample()` takes it): one carbonate platform of 29,259 km² over the east — a rim
+at the sea with islets and passes, a lagoon of 30–70 m behind it, a wall outside — and the 61 members on it buried in it. The ±70.5 km world
+is untouched. **Ask first** how it reads from its lagoon (`tp(230000,20000,-1)`) and its rim (`tp(146500,-14000,-1)`). Next: step 3, the
+margins and lagoons (one margin per platform, lagoon depth by size, reef walls, the patch reefs and blue holes).
+
+**v11.121 (12 Nov 2026): the province's shape and clock** (analysis_archipelago §6, step 1 of 3). Every member is the edifice that holds its
+volume (7° land on 12° flanks, `rgShape2`), the awesome shield held at 2,533 m (`REGION_K.tune`), `Te` 15 (needed for that), `erode` 0.15
+(high islands to ~10 Ma); high islands with a living reef ring get their barrier reef (`R.barrier`, `rgCap`), the giant's at −44 m. The
+atolls round ours lie 21–46 m under now, in the awesome shield's moat. **Ask first** whether that reads as a loss (`tp(-400,-11100,-30)`),
+then m109 from its lagoon (`tp(108100,4000,-1)`). Next: the plateau's platform (step 2), then the margins and lagoons (step 3).
+
 **v11.120 (12 Nov 2026): storm clearings and regrowth** (analysis_flora_diversity §5.7). A mosaic of storm-cleared patches over the
 exposed shallows (grow.js `DIST`, `distAge`), each species back by its own pace (`succ`): turfs and crusts at once, the kelp's young and the
 lime chain within a year or two, the canopy in a few, the reef's polyps last. Ours' reef top and forest have clearings now. **Ask first**
