@@ -7085,3 +7085,53 @@ Seen headless (no page errors): ours' shelf at (160, 80) looking across a fresh 
 same picture: that ground was sand and turf in front of the forest, with no polyps or canopy to lose. **Unseen, ask in this order:** whether
 the clearings read at all on ours' reef top and in the forest at (330, 0) (`tp(0,300,-10)`, `tp(330,0,-11)`) — if they are too subtle,
 `DIST.share` (0.5) and the patch size (`DIST.f`) are the knobs; a far reef's mosaic (`tp(220400,19700,-6)`).
+
+## v11.121 — the province's shape and clock (12 Nov 2026)
+
+The province review (`analysis_archipelago.md`, PR 48) found the land of every member that surfaced drawn as a 7° cone on top of the 12° cone
+that held its volume — 2–2.6 times the volume, so the land and the reef rings 1.7× the volcano's waterline and 56 of 95 rings outside their own
+volcano's foot — and the islands worn down to atolls in ~4 Myr, a fast plate's clock on a slow plate. The person (12 Nov 2026): shrink the land
+to the volumes, with Earth's slopes and the awesome shield held at its summit (answer (c)); high islands that last "let's say 10" Myr; the
+giant's barrier reef with this. Step 1 of the review's three (§6); the plateau's platform and the margins are the next two.
+
+- **The edifice that holds its volume** (region.js `rgShape2`, at each member's birth in the history): 12° under the sea it was born under,
+  7° above it, the slope breaking at the shoreline it grew to; a base above the sea (the plateau's head stood at +270 m at 30 Ma) a 7° cone,
+  a cone that never reaches it the 12° one. `rgShape`'s 12° cone stays as the bound the history's shortcuts use (`deep`, `high`, the births'
+  exclusion). Every ring of a member born under the sea now lies within its own foot; 25 born on the dry plateau keep the plateau's shore,
+  which is the next step's (the platform).
+- **`REGION_K.tune`** `{m153: 2533}`: a member held to a summit as the pins are, its volume solved for it with them (the tuning now up to 40
+  rounds; seed 32 converges in 26, the run ~0.65 s). The awesome shield stands 2,533 m on 6,290 km³ (2,558 as the 12° cone).
+- **`Te` 6 → 15 km** — not asked, needed: at 6 a shield with Earth's slopes sinks under its own weight past ~1,500 m whatever its volume, so
+  (c) cannot stand; 15 is Earth's for loads on a plate 15–35 Myr old when loaded (the review's §1.8 already called 6 a stretch). The moats
+  are shallower and wider (α 31 km, 15.7 before).
+- **`erode` 0.45 → 0.15/Myr**: the big islands keep 150 m to ~10 Ma (m109, a 425 m island at 9.3 Ma); the plateau's own sinking drowns them
+  after that at any rate, so ~10 Myr is about the most this plate allows.
+- **The barrier reef** (region.js `rgBarrier`, `rgCap`; world.js islandH): a high island (or a rim island) with a living reef ring off its
+  coast gets it as a cap of reef over its ground by max — the lagoon from the coast to the ring (an atoll's of that ring: 18 m + 6 a km,
+  at most 40), the crest awash with islets or under, passes where the rim's noise is low, outside a wall and the fore-reef at 31° onto the
+  flank. The land stands above it, so the cap never lowers the island (test). A rim island (land under 150 m inside a living reef) is drawn
+  with its land now (to v11.120 it went to the atoll branch and lost it). `regionGrid` draws a high island's ring too.
+- **The giant's barrier** (rgBuild, from the model): its ring as far past its record's coast (7.0 km) as the model's is past the model's —
+  9.6 km — at the model's top, **−44 m**: the giant's reef is drowning in the awesome shield's moat, which the stiffer plate carries 60–100 km
+  out (Maui's and Lanai's drowned reefs under the Big Island's load). Its land, gullies and caldera unchanged; ours untouched.
+
+What moved (seed 32): records 120 → 131 and struck 37 → 26 (the moats shallower, fewer cones buried); states atoll 67 → 89, bank 36 → 20,
+guyot 28 → 31, seamount 18 → 5, high 4, rim islands 3 (m155, m122, m125) besides ours; six barrier reefs — m109 (a 425 m island inside a
+21 km ring at the sea: the Mayotte stage), m122 (−22), m125 (−9), m155 (−31), m154 (−45), the giant (−44); the 308 m island 20 km north of ours
+is 545 m now, its reef drowned at −71 (no barrier); the 820 m island west 493 m, the 243 m one 141 m. Land 2,005 → 2,180 km² (the model's
+discs). **The reefs near the awesome shield sink:** within 60–100 km of it the reef tops are 5–22 m under (all awash before), so the atolls
+round ours lie at −21 to −46 now. The moat round ours is no longer silled (open to the ocean, oxic); no basin anywhere is anoxic (nine silled,
+the nearest 0.70). The ±70.5 km world is no longer v11.114's to the bit — by the person's decision.
+
+- **A fix in `sample()`** (world.js, found by test/maps.js on m147's new atoll): the records' loop cleared each record's mark only up to its
+  break, so a record past it kept the last sample's mark and its influence on the fields (flow, nut) was dropped or kept by whatever had
+  been sampled before — 0.334 against 0.332 at one texel. Every mark is cleared now; `sample()` is a function of its point again. The ground
+  never took it (the marks only steer the influence); since v11.102.
+- **Tests:** test/region.js the awesome shield held, every ring of a member born under the sea inside its foot, the barriers (six, the
+  lagoon at its floor, the cap never lowering the ground, the giant's); sample() the same at a place whatever was sampled before (2 of 400 places differed without the fix); re-pinned to the new province: the moat's check (oxic, silled or not),
+  the passes' counts (21 and 46), the shelter's members (m133's windward shadow 0.51, m146's wake 0.42, m131 open).
+
+Seen: the province's map whole and zoomed (`node test/map.js`; `SPAN=60000 CX=108000 CZ=-5000`, `SPAN=36000 CX=-12000 CZ=4000`): m109's
+island inside its ring, the giant's drowned barrier as a pale ring 2.6 km off its coast. **Unseen, ask in this order:** whether the drowned
+atolls round ours read as a loss or as the moat's story (`tp(-400,-11100,-30)`, m139 at −46); m109 from its lagoon (`tp(108100,4000,-1)`);
+the giant's barrier from the water (`tp(-15400,-400,-30)`); whether the 308 m island at 545 m changes the view north from ours.

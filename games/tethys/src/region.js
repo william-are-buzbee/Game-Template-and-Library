@@ -25,7 +25,7 @@ const REGION_K={
   fracSp:26,      // km between the old fracture zones the births align on (Galápagos's lineaments)
   fracA:0.6,      // rad: the zones' heading, from +x toward +z (the old ridge's spreading direction)
   fracPull:0.45,  // the share of births drawn onto the nearest zone
-  Te:6,           // km: the plate's elastic thickness (flexure: a moat round each load, an arch beyond)
+  Te:15,          // km: the plate's elastic thickness (flexure: a moat round each load, an arch beyond). v11.121: 15, Earth's for loads on a plate 15–35 Myr old when loaded (analysis_archipelago §1.8; to v11.120 6, a ridge's) — at 6 a shield with Earth's slopes sinks under its own weight past ~1,500 m, so the awesome shield could not stand at its 2,533 m (K.tune)
   swell:600,      // m: the plume's swell at its centre
   swellW:110,     // km: the swell's 1/e radius
   plateAge:45,    // Myr: the plate's age today (its cooling, d ≈ 2500 + 350·√age: PLANET, the plate)
@@ -34,7 +34,8 @@ const REGION_K={
   photic:50,      // m: a reef left deeper than this gives up (drowns); it takes hold again only where rock or reef comes back into the shallows
   fedL:90,        // km: how far upstream (against world.js CUR_A) another member shelters one from the open ocean's water
   fedK:0,         // the reef's growth on a fed member, as a share of K.reef (PLANET: the lime polyps win only in clear, bright water; the weed takes fed shallows)
-  erode:0.45,     // per Myr: subaerial erosion (the land's height over the sea lost at this rate: 0.2 mm/yr at 450 m)
+  erode:0.15,     // per Myr: subaerial erosion (the land's height over the sea lost at this rate: 0.07 mm/yr at 450 m). v11.121 (analysis_archipelago §6; the person, 12 Nov 2026: "let's say 10"): high islands that last ~10 Myr, as a slow plate's do (Mauritius 828 m at ~8 Ma, Gran Canaria 1,956 m at 14.5); to v11.120 0.45, a fast plate's clock run on a slow one
+  tune:{m153:2533}, // v11.121 (the person, 12 Nov 2026, answer (c)): members held to a summit today as the pins are, their volume solved for it — seed 32's awesome shield at its 2,533 m, so the volume-true shape (rgShape2) leaves it the awesome one
   plane:0.3,      // mm/yr: the waves' planing of rock in the surf band, wave base to +30
   wb:10,          // m: wave base
   platW:70,       // km: the plateau's half-width about the track (the tail's aprons); it falls to the plate over the next 40
@@ -61,7 +62,15 @@ function rgTrack(K,a,b){const dx=a.x-b.x,dz=a.z-b.z,ch=Math.hypot(dx,dz),thc=Mat
   const P=(t,o)=>{o=o||{x:0,z:0};if(straight){o.x=a.x+v*(t-ta)*Math.cos(thc);o.z=a.z+v*(t-ta)*Math.sin(thc);}else{const T=th(t);o.x=a.x+v/w*(Math.sin(T)-s0);o.z=a.z-v/w*(Math.cos(T)-c0);}return o;};
   return {P,tg:ta-dt,v,w,th};}
 const rgGauss=r=>{const u=Math.max(1e-12,r()),v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(TAU*v);};
-function rgShape(m){m.H=Math.cbrt(3*m.V*RG_S*RG_S/Math.PI);m.R=m.H/RG_S;m.Ts=clamp(0.35*Math.cbrt(m.V/1e11),0.15,1.2);} // a cone of the mean slope holding V: its height over its base, its foot, its shield's duration (Myr)
+function rgShape(m){m.H=Math.cbrt(3*m.V*RG_S*RG_S/Math.PI);m.R=m.H/RG_S;m.H12=m.H;m.Ts=clamp(0.35*Math.cbrt(m.V/1e11),0.15,1.2);} // a cone of the mean slope holding V: its height over its base, its foot, its shield's duration (Myr)
+// v11.121 (analysis_archipelago §1.2, §6; the person, 12 Nov 2026: "shrink the land", answer (c)): the edifice that holds V, by where its base lay
+// below the sea when it was born (b, m): under the sea its flank is the submarine 12° (RG_S), above it the subaerial 7° (RG_SA) — the slope breaks at
+// the shoreline it grew to, as a shield's does. To v11.120 every member was the 12° cone and its land a 7° cone from its summit drawn on top,
+// 2–2.6 V in all: the land and the reef rings 1.7× the volcano's waterline, 56 of 95 rings outside their own volcano's foot. H over the base and
+// the foot R; a base above the sea (the plateau's head stood at +270 at 30 Ma) makes a 7° cone, a cone that never reaches it the 12°
+function rgShape2(m,b){m.b0=b;const V=m.V,c12=Math.cbrt(3*V*RG_S*RG_S/Math.PI);if(b<=0){m.H=Math.cbrt(3*V*RG_SA*RG_SA/Math.PI);m.R=m.H/RG_SA;return;}
+  if(c12<=b){m.H=c12;m.R=c12/RG_S;return;}const vol=s=>{const rs=s/RG_SA,rf=rs+b/RG_S;return Math.PI/3*(rs*rs*s+b*(rs*rs+rs*rf+rf*rf));};let lo=0,hi=c12-b;
+  for(let k=0;k<44;k++){const s=0.5*(lo+hi);if(vol(s)>V)hi=s;else lo=s;}const s=0.5*(lo+hi);m.H=b+s;m.R=s/RG_SA+b/RG_S;}
 // ---------- the model ----------
 function regionModel(Kin){
   const K=Object.assign({},REGION_K,Kin||{}),rng=mulberry(K.seed*7919+11);
@@ -81,6 +90,7 @@ function regionModel(Kin){
       const m={id:'m'+M.length,pin:-1,x,z,age:t+0.01*rng(),V,frac:pull};rgShape(m);
       if(pin.some(q=>Math.hypot(x-q.x,z-q.z)<q.excl+0.4*m.R))continue;m.inSq=x>sq[0]&&x<sq[1]&&z>sq[2]&&z<sq[3];M.push(m);}}
   M.forEach(rgShape);
+  for(const id in K.tune||{}){const m=M.find(q=>q.id===id);if(m){m.target=K.tune[id];m.tuned=true;}} // v11.121: members held to a summit (K.tune)
   // the plateau: a band about the track and the head's disc at its old end, the plate beyond; its level solved below so the floor beside ours is K.floor
   const TP=[];for(let t=0;t<=K.span+1e-9;t+=0.25)TP.push(T(t));const head=T(K.span);
   const dTrack=(x,z)=>{let d=1e18;for(let i=1;i<TP.length;i++){const a=TP[i-1],b=TP[i],ex=b.x-a.x,ez=b.z-a.z,l=ex*ex+ez*ez,u=l>0?clamp(((x-a.x)*ex+(z-a.z)*ez)/l,0,1):0,qx=a.x+ex*u-x,qz=a.z+ez*u-z,q=qx*qx+qz*qz;if(q<d)d=q;}return Math.sqrt(d);};
@@ -104,13 +114,14 @@ function regionModel(Kin){
   const deep=M.map(m=>K.plate+(K.floor-K.plate)*m.pw+cool(m.age)+K.swell+m.H<-120-K.photic-200);
   const ord=M.map((m,i)=>i).sort((a,b)=>M[b].age-M[a].age); // oldest first: the loads are born in this order
   const run=mask=>{const Fl=new Float64Array(n),Ld=new Float64Array(n),S=[],grow=[];let ob=0;for(let j=0;j<n;j++)if(mask[j])S.push(j);
-    M.forEach(m=>{m.plat=K.plate+(top-K.plate)*m.pw;m.E=0;m.peak=-1e9;m.reef=false;m.alive=false;m.rt=0;m.ring=0;m.lit=null;m.surf=null;m.src=-1;m.srcD=0;m.exp=0;m.died=null;m.lastB=null;m.litNow=false;m.zv=-1e9;});
+    M.forEach(m=>{m.plat=K.plate+(top-K.plate)*m.pw;m.born=false;m.E=0;m.peak=-1e9;m.reef=false;m.alive=false;m.rt=0;m.ring=0;m.lit=null;m.surf=null;m.src=-1;m.srcD=0;m.exp=0;m.died=null;m.lastB=null;m.litNow=false;m.zv=-1e9;});
     const litPrev=new Uint8Array(n);
     for(let k=Math.round(K.span/RG_DT);k>=0;k--){const t=k*RG_DT,sea=rgSea(t),C=cool(t);T(t,o);const px=o.x,pz=o.z;
       while(ob<n&&M[ord[ob]].age>t)grow.push(ord[ob++]);
       for(let g=grow.length-1;g>=0;g--){const i=grow[g],m=M[i],l=m.V*Math.min(1,(m.age-t)/m.Ts),dl=l-Ld[i];if(dl>0){for(const j of S)Fl[j]+=Kf[i*n+j]*dl;Ld[i]=l;}if(l>=m.V)grow.splice(g,1);}
       for(const j of S){const m=M[j];if(t>=m.age)continue;const dx=(m.x-px)/(K.swellW*1000),dz=(m.z-pz)/(K.swellW*1000);
         const base=m.plat+C+K.swell*Math.exp(-dx*dx-dz*dz)-Fl[j],gr=Math.min(1,(m.age-t)/m.Ts),dB=m.lastB===null?0:base-m.lastB;m.lastB=base;
+        if(!m.born){m.born=true;rgShape2(m,sea-base);} // v11.121: the edifice by where its base lies now, at its birth
         let zv=base+m.H*Math.cbrt(gr)-m.E;
         if(gr>=1){if(zv>sea)m.E+=K.erode*(zv-sea)*RG_DT;if(zv>sea-K.wb&&zv<sea+30&&!(m.alive&&m.rt>=zv-1))m.E+=K.plane*1000*RG_DT;zv=base+m.H-m.E;}
         if(zv>m.peak)m.peak=zv;m.zv=zv;
@@ -126,10 +137,10 @@ function regionModel(Kin){
     for(let j=0;j<n;j++){let f=0;for(let i=0;i<n;i++)f+=Kf[i*n+j]*Ld[i];M[j].fl=f;} // today's loads on every member, stepped or not
     let fr=0;for(let i=0;i<n;i++)fr+=refK[i]*M[i].V;return K.plate+(top-K.plate)*refW+swellAt(ref.x,ref.z,0)-fr;}; // the floor beside ours now
   // the pins: Newton then secant on each pinned volume (log) for its summit today, and the plateau's level for the floor beside ours
-  const pm=M.map(m=>m.pin>=0),all=M.map((m,i)=>!deep[i]),prev=M.map(()=>null);let it=0,err=1e9;
-  for(;it<16;it++){const fl=run(pm);top+=K.floor-fl;err=Math.abs(K.floor-fl);
-    for(const m of M){if(m.pin<0)continue;const e=m.zv-m.target,lv=Math.log(m.V),p=prev[m.pin];err=Math.max(err,Math.abs(e));
-      let d=p&&Math.abs(e-p.e)>1e-6?-e*(lv-p.lv)/(e-p.e):-e/Math.max(50,m.H/3*0.6);d=clamp(d,-1,1);prev[m.pin]={lv,e};m.V=Math.exp(lv+d);rgShape(m);}
+  const pm=M.map(m=>m.pin>=0||m.tuned),all=M.map((m,i)=>!deep[i]),prev=M.map(()=>null);let it=0,err=1e9;
+  for(;it<40;it++){const fl=run(pm);top+=K.floor-fl;err=Math.abs(K.floor-fl);
+    for(let q=0;q<M.length;q++){const m=M[q];if(m.pin<0&&!m.tuned)continue;const e=m.zv-m.target,lv=Math.log(m.V),p=prev[q];err=Math.max(err,Math.abs(e));
+      let d=p&&Math.abs(e-p.e)>1e-6?-e*(lv-p.lv)/(e-p.e):-e/Math.max(50,m.H/3*0.6);d=clamp(d,-1,1);prev[q]={lv,e};m.V=Math.exp(lv+d);rgShape(m);}
     if(err<1)break;}
   run(all);M.forEach((m,i)=>{if(deep[i]){m.zv=m.plat+swellAt(m.x,m.z,0)+m.H-m.fl;m.peak=m.zv;}}); // the unstepped: today's summit on today's swell, under today's loads
   // today: each member's state, its flat top, its shore, and what the history says of its life
@@ -151,7 +162,7 @@ function regionGrid(R,x0,z0,span,n,inner,half){const HB=typeof half==='number'?[
   for(let j=0;j<n;j++){const z=z0+(j+0.5)*c,fj=j/st,j0=fj|0,v=fj-j0;for(let i=0;i<n;i++){const x=x0+(i+0.5)*c,fi=i/st,i0=fi|0,u=fi-i0,k=j0*nc+i0;
     H[j*n+i]=(C[k]*(1-u)+C[k+1]*u)*(1-v)+(C[k+nc]*(1-u)+C[k+nc+1]*u)*v+(typeof fbm==='function'?(fbm(x*0.00012+7,z*0.00012+3,3)-0.5)*2*K.hill:0);}}
   for(const m of M){const s=m.zv,rt=m.rtop,reach=m.R*1.6+3000,i0=Math.max(0,Math.floor((m.x-reach-x0)/c)),i1=Math.min(n-1,Math.ceil((m.x+reach-x0)/c)),j0=Math.max(0,Math.floor((m.z-reach-z0)/c)),j1=Math.min(n-1,Math.ceil((m.z+reach-z0)/c));
-    const ring=m.reef&&m.state!=='high'&&m.state!=='shield',lag=m.ring>6000?20:40;
+    const ring=m.reef&&(m.state!=='high'&&m.state!=='shield'||m.alive&&m.rt>-K.photic&&m.ring>m.shore+400),lag=m.ring>6000?20:40; // v11.121: a high island's barrier too
     for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++){const dx=x0+(i+0.5)*c-m.x,dz=z0+(j+0.5)*c-m.z,r=Math.sqrt(dx*dx+dz*dz);if(r>reach)continue;
       let g=s>0?(r<rt+s/RG_SA?s-Math.max(0,r-rt)*RG_SA:-(r-rt-s/RG_SA)*RG_S):s-Math.max(0,r-rt)*RG_S;
       if(ring)g=Math.max(g,r<=m.ring?m.rt-Math.min(lag,Math.max(0,m.ring-400-r)*0.05):m.rt-(r-m.ring)*0.6); // the crest 400 m wide at the ring, the lagoon (a bank's flat) inside, the fore-reef's talus outside
@@ -217,7 +228,14 @@ function rgRadial(R,r){let h=R.h0;for(const s of R.prof)h-=s[2]*smooth(s[0],s[1]
   if(R.land&&r<R.land.r){const tl=1-r/R.land.r,S=tl*tl*(3-2*tl);h+=R.land.h*(0.55*tl+0.45*S);}
   const F=R.flank,rf=r-F.r;if(rf>0){const t=Math.min(rf/F.w,1),d0=rf<F.w?F.w*(t*t*t-0.5*t*t*t*t):rf-0.5*F.w,u=clamp((rf-F.a)/(F.b-F.a),0,1),d1=rf<F.a?0:rf<F.b?(F.b-F.a)*(u*u*u-0.5*u*u*u*u):rf-0.5*(F.a+F.b);h-=F.s0*d0-(F.s0-F.s1)*d1;}
   if(R.rimR!==undefined){h=lerp(h,R.lagH,smooth(R.rimR-R.rimW*0.4,R.rimR-R.rimW*1.6,r));h=lerp(h,(R.rimH||0)+2.5,smooth(R.rimR-R.rimW,R.rimR-R.rimW*0.3,r)*smooth(R.rimR+R.rimW,R.rimR+R.rimW*0.3,r));}
+  if(R.barrier){const c=rgCap(R.barrier,r);if(c>h)h=c;}
   return h;}
+// v11.121 (analysis_archipelago §2.5, §6; the person, 12 Nov 2026): a high island's barrier reef — R.barrier: its ring r, the crest's half-width w,
+// its top today, the lagoon's floor lag, the fore-reef's slope s. A cap of reef over the island's own ground, by max (the land stands above it):
+// the lagoon from the coast to the ring, the crest awash or under, outside a wall and the fore-reef at s down onto the island's flank. The
+// model gave four high islands a living ring off their coast that no record drew (Bora Bora's, Mayotte's stage). rgCap is it with no noise
+// (the radial profile, the bounds); world.js islandH's adds the crest's islets and its passes
+function rgCap(B,r){const c=r<=B.r?lerp(B.top-14,B.lag,smooth(B.r-B.w*0.4,B.r-B.w*1.6,r)):B.top-14-(r-B.r)*B.s;return lerp(c,B.top+2.5,smooth(B.r-B.w,B.r-B.w*0.3,r)*smooth(B.r+B.w,B.r+B.w*0.3,r));}
 // the most a record's ground (h or the smooth hs) can stand at a distance d from its centre, on a table of RG_HIS steps (world.js sample skips a
 // record that cannot raise the ground or give the conditions): its radius warped ±16% (islandH's rw), its flank's toe ±60 and the drop ribbed
 // +15%, and what the radial profile leaves out — the hills (10.5), the rift ridges (8), a terrace's step (12), the rim's noise (3.5), a
@@ -226,18 +244,21 @@ function rgRadial(R,r){let h=R.h0;for(const s of R.prof)h-=s[2]*smooth(s[0],s[1]
 const RG_HIS=50;
 function rgBound(R){const F=R.flank,L=R.land,ex=10.5+8+12+4+5+(R.knob||0)+(R.carb?0.6*CARB.A:0)+(L?L.cliff+(L.flows?L.flows.h:0):0),n=Math.ceil(R.reach/RG_HIS)+1,hi=new Float32Array(n);
   const at=r=>{const rf=r-(F.r+60);let d=0;if(rf>0){const t=Math.min(rf/F.w,1),d0=rf<F.w?F.w*(t*t*t-0.5*t*t*t*t):rf-0.5*F.w,u=clamp((rf-F.a)/(F.b-F.a),0,1),d1=rf<F.a?0:rf<F.b?(F.b-F.a)*(u*u*u-0.5*u*u*u*u):rf-0.5*(F.a+F.b);d=F.s0*d0-(F.s0-F.s1)*d1;}
-    const Q=Object.assign({},R,{flank:Object.assign({},F,{r:1e9})});return rgRadial(Q,r)-0.85*d;};
+    const Q=Object.assign({},R,{flank:Object.assign({},F,{r:1e9})});return Math.max(rgRadial(Q,r)-0.85*d,R.barrier?rgCap(R.barrier,r):-1e9);};
   for(let k=0;k<n;k++){const a=0.84*k*RG_HIS,b=1.16*(k+1)*RG_HIS;let m=-1e9;for(let q=0;q<=8;q++){const v=at(a+(b-a)*q/8);if(v>m)m=v;}hi[k]=m+ex;}
   for(let k=n-2;k>=0;k--)if(hi[k]<hi[k+1])hi[k]=hi[k+1]; // never rising outward: a bump between the table's points is covered by the next
-  R.hi=hi;R.hiS=RG_HIS;R.quiet=Math.max(R.terr.r1+150,R.riftR?R.riftR[2]:0,L?L.r:0,R.rimR!==undefined?R.rimR+R.rimW:0)/0.84+100;}
+  R.hi=hi;R.hiS=RG_HIS;R.quiet=Math.max(R.terr.r1+150,R.riftR?R.riftR[2]:0,L?L.r:0,R.rimR!==undefined?R.rimR+R.rimW:0,R.barrier?R.barrier.r+R.barrier.w:0)/0.84+100;}
+// v11.121: a barrier at ring rr whose reef's top is rt today — the lagoon as an atoll's of that ring (rgRecord's reef branch), the crest as wide, the fore-reef 31°
+function rgBarrier(rr,rt){return {r:rr,w:Math.round(clamp(0.06*rr,40,300)),top:Math.round(rt),lag:Math.round(rt-Math.min(40,18+6*rr/1000)),s:0.6};}
 // a member's record by its state (above); k its index among the built, for its noise offset
 function rgRecord(m,k,K,rng){const ns=1000+37*k,R={id:m.id,x:m.x,z:m.z,rot:0,sc:1,ns,state:m.state,age:m.age};
   const arms=()=>{const a=K.fracA+0.3*(rng()-0.5)*2;return [a,(a+Math.PI+0.3*(rng()-0.5)*2)%TAU];};
-  if(m.state==='high'||m.state==='shield'){const sh=Math.round(m.shore),act=m.state==='shield',yg=act||m.age<1,q=act?0:clamp(m.age/1.3,0.3,1.5),L={r:sh,h:Math.round(m.zv),cliff:act?15:yg?20:30,gully:{n:Math.round(clamp(sh/600,8,act?14:36)),lee:act?0.15:0.25}};
+  if(m.state==='high'||m.state==='shield'||m.state==='rim'){const sh=Math.round(m.shore),act=m.state==='shield',yg=act||m.age<1,q=act?0:clamp(m.age/1.3,0.3,1.5),L={r:sh,h:Math.round(m.zv),cliff:act?15:yg?20:30,gully:{n:Math.round(clamp(sh/600,8,act?14:36)),lee:act?0.15:0.25}};
     if(yg){L.cald={r:clamp(0.07*sh,150,1800),d:clamp(0.05*m.zv,20,150),w:clamp(0.004*sh,25,80)};L.flows={n:Math.round(clamp(sh/250,20,90)),h:act?10:5,hw:0.45};R.rifts=arms();R.riftR=[L.cald.r,L.cald.r+500,sh+(act?5000:800),sh+(act?2500:300)];}
     if(act){R.h0=0;R.prof=[[sh,sh+200,25],[sh+200,sh+900,150]];R.terr={r0:sh+200,r1:sh+900,n:0,step:0};R.flank={r:sh+900,w:300,s0:0.27,s1:0.21,a:800,b:4000};}
     else{const w=v=>Math.round(v*q),c=Math.round(Math.min(sh,Math.max(0.5*sh,sh+1380-w(2800))));L.r=c;R.h0=0;R.prof=[[c,c+w(300),8],[c+w(300),c+w(1000),52],[c+w(1800),c+w(2300),94],[c+w(2300),c+w(2800),40]];R.terr={r0:c+w(1000),r1:c+w(1800),n:8,step:12};R.flank={r:c+w(2800),w:250,s0:0.21,s1:0.21,a:600,b:2600};}
-    R.land=L;R.fade=[R.flank.r,R.flank.r+3000];R.core=Math.round(Math.min(L.r,R.fade[0]/1.2));}
+    R.land=L;R.fade=[R.flank.r,R.flank.r+3000];R.core=Math.round(Math.min(L.r,R.fade[0]/1.2));
+    if(m.reef&&m.alive&&m.rt>-K.photic&&m.ring>L.r+400){const rr=Math.round(m.ring);R.barrier=rgBarrier(rr,m.rt);R.fade=[Math.max(R.fade[0],rr+1500),Math.max(R.fade[1],rr+4500)];}} // v11.121: a living ring off the coast (to v11.120 a rim island was drawn as an atoll, its land left out)
   else if(m.reef&&m.state!=='guyot'){const rr=Math.round(m.ring),rt=Math.round(m.rt),W=clamp(0.06*rr,40,300);R.h0=rt-14;R.rimR=rr;R.rimW=W;R.rimH=rt;R.lagH=rt-(rr>6000?20:Math.min(40,18+6*rr/1000));
     R.prof=[[rr+0.3*W,rr+85,6],[rr+85,rr+455,40],[rr+755,rr+955,94],[rr+955,rr+1355,40]];R.terr={r0:rr+455,r1:rr+755,n:8,step:12};R.flank={r:rr+1315,w:250,s0:0.30,s1:0.22,a:600,b:2600};R.fade=[rr+2800,rr+5800];R.carb={n:Math.max(24,Math.round(TAU*(rr+1500)/CARB.sp))};} // carb (v11.107): the cap's spurs round it, every CARB.sp m at the slope's top
   else{const rS=m.state==='guyot'?Math.max(200,m.rtop):clamp(0.05*m.R,120,300);R.h0=Math.round(m.zv);R.prof=m.state==='guyot'?[]:[[0,2*rS,20]];R.terr={r0:rS,r1:rS+400,n:0,step:0};R.flank={r:rS,w:300,s0:0.36,s1:0.22,a:600,b:2000};R.bare=R.h0;R.knob=30;R.fade=[rS+1500,rS+4000];}
@@ -255,6 +276,8 @@ function rgBuild(Rg){const K=Rg.K,rng=mulberry(K.seed*104729+7),rng2=mulberry(K.
   const e0=ext(c0,W0),e1=ext(c2,W2),G=RG_FLG,ox=e0[0]-G,oz=e0[1]-G; // v11.102's origin: its x0 less a node
   rgFloorInit(Rg,ox,oz,Math.ceil(Math.max(0,e0[0]-e1[0])/G),Math.ceil(Math.max(0,e0[1]-e1[1])/G),Math.max(e1[2],e0[2]),Math.max(e1[3],e0[3]));
   const foot=R=>{const f0=rgFloor(R.x,R.z)-BASIN.knee-200;let r=0;while(r<80000&&rgRadial(R,r)>f0)r+=50;return r;};
+  {const gm=Rg.M.find(m=>m.id==='giant'),GR=ISLANDS.find(R=>R.id==='giant'); // v11.121 (the person, 12 Nov 2026: "along with this"): the giant's barrier reef, the model's — its top today, its ring as far past its record's coast as past the model's
+    if(gm&&GR&&GR.land&&gm.reef&&gm.alive&&gm.rt>-K.photic&&gm.ring>gm.shore)GR.barrier=rgBarrier(Math.round(GR.land.r+gm.ring-gm.shore),gm.rt);}
   const kept=ISLANDS.slice(),out=[],struck=[],later=new Set(c1.filter(m=>!c0.includes(m))),later2=new Set(c2.filter(m=>!c1.includes(m)));
   const pass=(L,rg,w)=>{for(const m of L){const R=rgRecord(m,out.length,K,rg),top=R.land?R.land.h:R.rimR!==undefined?R.rimH:R.h0;
     const by=kept.find(B=>rgRadial(B,Math.hypot(B.x-R.x,B.z-R.z))>top-20);if(by){struck.push({id:m.id,by:by.id});continue;}

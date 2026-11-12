@@ -1,5 +1,11 @@
 # HANDOFF — tethys
 
+**v11.121 (12 Nov 2026): the province's shape and clock** (analysis_archipelago §6, step 1 of 3). Every member is the edifice that holds its
+volume (7° land on 12° flanks, `rgShape2`), the awesome shield held at 2,533 m (`REGION_K.tune`), `Te` 15 (needed for that), `erode` 0.15
+(high islands to ~10 Ma); high islands with a living reef ring get their barrier reef (`R.barrier`, `rgCap`), the giant's at −44 m. The
+atolls round ours lie 21–46 m under now, in the awesome shield's moat. **Ask first** whether that reads as a loss (`tp(-400,-11100,-30)`),
+then m109 from its lagoon (`tp(108100,4000,-1)`). Next: the plateau's platform (step 2), then the margins and lagoons (step 3).
+
 **v11.120 (12 Nov 2026): storm clearings and regrowth** (analysis_flora_diversity §5.7). A mosaic of storm-cleared patches over the
 exposed shallows (grow.js `DIST`, `distAge`), each species back by its own pace (`succ`): turfs and crusts at once, the kelp's young and the
 lime chain within a year or two, the canopy in a few, the reef's polyps last. Ours' reef top and forest have clearings now. **Ask first**

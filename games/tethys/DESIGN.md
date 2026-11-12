@@ -132,10 +132,12 @@ swarms, filter feeding, the bloom night.
 plume under the plate for `REGION_K.span` (30 Myr) in steps of `RG_DT` (2 kyr): the track through ours (`ageOurs` 3 Ma) and the giant (1.31 Ma
 at `v` 1.06 cm/yr, turning `turn` 3°/Myr); births by the flux (`base` 0.3 and the pulses: one at the giant's birth, `young` waxing now) on a
 power law (`vol` 6 km³, `beta` 0.75, `vMax` 3000), scattered over `foot` 40 km and drawn onto fracture zones (`fracSp`, `fracA`, `fracPull`);
-each member a cone of 12° holding its volume (`rgShape`), its base the plateau (`platW`, `headR`, solved so the floor beside ours is `floor`)
+each member, at its birth, the edifice that holds its volume by where its base lies below the sea — 12° under it, 7° above (`rgShape2`,
+v11.121; to v11.120 a 12° cone with a 7° land drawn over it, 2–2.6 V; `rgShape`'s 12° cone stays as the history's bound), its base the plateau (`platW`, `headR`, solved so the floor beside ours is `floor`)
 plus the plate's cooling (`plateAge`), the swell (`swell`, `swellW`) and the flexure of every load (`Te`, kei by `rgKei`); erosion (`erode`)
 and planing (`plane`, `wb`) after the shield; the reef by `rgSea` (Earth's sawtooth) at `reef` mm/yr decaying with depth (`light`), drowned
-past `photic`, none on the fed face (`fedL`, `fedK`). The pins' volumes are tuned by secant until their summits are `REGION_PINS`'s. Each
+past `photic`, none on the fed face (`fedL`, `fedK`). The pins' volumes are tuned by secant until their summits are `REGION_PINS`'s, and with them the members in `tune` (v11.121: the awesome
+shield's 2,533 m, the person's answer (c) — on Earth's slopes it needs `Te` 15, 6,290 km³). Each
 member ends with a state (`RG_STATE`), its flat top, its shore, its first light and the neighbour it was settled from. `regionGrid` draws the
 province (and the game's own ground inside its square), `regionBasins` floods it from the edge for every cell's sill and the basins,
 `regionSeen` what clears the horizon from a point. ~0.3 s a run; `test/region.js` pins it.
@@ -143,7 +145,9 @@ province (and the game's own ground inside its square), `regionBasins` floods it
 **The square from the model (v11.102, GLOBE §8 step 5).** At load (`REGION`, `rgBuild`) every member whose ground reaches the world (the
 square and the far layer's 2 km past it) becomes a record in `ISLANDS`, shaped by its state with islandH's kit (`rgRecord`): a high island or
 an active shield as land (`land`: shore and height the model's, gullies, a caldera and flows down two rift zones on the fracture grain when
-young), its shelf cut into the land by its age with the flank where the model's 12° cone puts it; an atoll or a bank as ours scaled to its reef's
+young), its shelf cut into the land by its age with the flank where the model's 12° cone puts it; a high or rim island with a living reef ring off its coast (v11.121) with its barrier reef (`R.barrier`, `rgBarrier`; `rgCap`
+and islandH's cap: by max over the island's ground, the lagoon to the ring, the crest awash or under with passes, a wall and a 31° fore-reef
+outside; the giant's from the model, −44 m, in the awesome shield's moat); an atoll or a bank as ours scaled to its reef's
 ring (`rimR`, `rimH` the reef's top today, `lagH` deeper on a wider ring); a seamount or guyot as a cone, its upper 200 m swept bare (`bare`)
 and knobbed with pillow mounds 30 m high (`knob`). A member whose summit lies under another's ground at its centre is struck (the model draws
 every cone from the plateau). Seed 32: 20 records (the awesome shield's southern side in the north-west corner, the 308 m island 20 km north,

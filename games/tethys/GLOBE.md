@@ -194,6 +194,8 @@ stages became, and what running them taught:
   (the game's: the gap in the sill), and a member with nothing upstream to shelter it within 90 km (`fedL`) sits in the open ocean's fed water,
   where the weed takes its shallows: no reef (`fedK` 0), so it is planed and sinks — the guyots. Seed 32: all 28 guyots are fed; 103 atolls and
   banks in the lee.
+- *v11.121 (analysis_archipelago §6): `erode` 0.15 (high islands to ~10 Ma) and `Te` 15 (α 31 km); every member the edifice that holds its
+  volume (7° land on 12° flanks), the awesome shield held at 2,533 m; the high islands' barrier reefs built. The numbers in this list are v11.94's.*
 - **Flexure is small at these sizes** (α 15.7 km at Te 6 km): the arch is ~1.4% of the moat, metres. No raised atoll comes out of any seed;
   §9's Makatea needs a Tahiti-sized load. The awesome member's moat (735 m under a 2,600 km³ shield) is the largest effect.
 - **Colonisation comes free:** each member's first light and the nearest lit member then. Seed 32: median 11 km from a neighbour, the

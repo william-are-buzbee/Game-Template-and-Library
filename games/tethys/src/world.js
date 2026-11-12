@@ -389,6 +389,12 @@ function islandH(R,x,z,o){
     if(lag>0)h=lerp(h,R.lagH+1.5*(fbm(lx*0.02+5+ns,lz*0.02+3,2)-0.5)*2,lag);
     rimA=smooth(0.3,0.62,0.5+0.5*(an?anT(an,5,aw):angNoise(aw,2.4,77+ns)));rimK=smooth(R.rimR-R.rimW,R.rimR-R.rimW*0.3,rw)*smooth(R.rimR+R.rimW,R.rimR+R.rimW*0.3,rw);
     if(rimK>0){h=lerp(h,(R.rimH||0)+2.5+3.5*(fbm(lx*0.02+5+ns,lz*0.02+3,2)-0.5)*2,rimK*rimA);h-=3*(1-rimA)*rimK;}} // rimH (v11.102): the reef's top today, the model's (an atoll awash at 0, a drowned one under); ours none, so +2..+6
+  // a high island's barrier reef (v11.121, region.js rgCap): a cap of reef over the ground by max — the lagoon inside the ring (the land stands above
+  // it), the crest awash with islets where the noise is high and passes where it is low (an atoll's rim's), outside a wall and the fore-reef down
+  // onto the flank. Ours and the records with a rim have none, so nothing here moves them
+  if(R.barrier){const B=R.barrier,n1=(fbm(lx*0.02+5+ns,lz*0.02+3,2)-0.5)*2,inK=smooth(B.r-B.w*0.4,B.r-B.w*1.6,rw),crK=smooth(B.r-B.w,B.r-B.w*0.3,rw)*smooth(B.r+B.w,B.r+B.w*0.3,rw),ra=smooth(0.3,0.62,0.5+0.5*(an?anT(an,5,aw):angNoise(aw,2.4,77+ns)));
+    const c=lerp(rw<=B.r?lerp(B.top-14,B.lag+1.5*n1,inK):B.top-14-(rw-B.r)*B.s,B.top+2.5+3.5*n1,crK*ra)-3*(1-ra)*crK;
+    if(c>hSmooth)hSmooth=c;if(c>h){h=c;lag=inK;rimK=crK;rimA=ra;}}
   // the island: a tuff cone (v11.86, CONE above; to v11.85 a round 40 m hill on a round flat of bars and pools) — a breached ring round a tidal
   // crater, high downwind, cliffed to windward, the flat and its spit in the lee and down the current. Within 270 m of the cone only
   let coneRock=0;
@@ -478,6 +484,7 @@ function sample(x,z,out){
   // the seamount effect (v11.102): each record's influence (isl, its fade) and its current's aspect (upW), blended — the influences' union
   // 1-Π(1-isl), the aspect weighted by them — where to v11.101 the highest record's alone counted, and the halos of two neighbours met on a straight seam
   let iS=0,iU=0,iP=1,iN=0,iU1=0,iI1=0;
+  for(let q=0;q<n;q++)_isE[q]=0; // v11.121: every record's mark cleared, not only those the loop reaches before its break — to v11.120 a record past the break kept the last sample's mark, and its influence (flow, nut) was left out or not by whatever was sampled before
   for(let q=0;q<n;q++){const i=_isI[q],R=ISLANDS[i],b=_isB[q];_isE[q]=0;
     // v11.102: a record that can neither raise the ground nor be the highest is not computed, nor are the rest (their bounds are lower); one under
     // the ground whose fields but its influence are open water's there (past `quiet`) is not either. Exact: the ground is as if they were
