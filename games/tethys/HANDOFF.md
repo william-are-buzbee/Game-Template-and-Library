@@ -1,5 +1,10 @@
 # HANDOFF — tethys
 
+**v11.135 (13 Nov 2026): lobed outlines** (analysis_archipelago §9.7; the person: "The lobed is a solid idea"). Every volcano but the pins is
+lobed by its vents' cones and its rift zones (`R.lobe`, `RG_LOBE`), the area kept, softer on the deep flank; `sc` carries the farthest lobe, so
+the bounds hold. Against Earth every shape number is now in range. The awesome shield's south-east cape (m138's cone, a vent of it) now 10 km
+north of ours (22 to v11.134). **Ask first:** the view north from ours (`tp(0,0)`); whether m122 reads as a starfish. **Next:** the world's box.
+
 **v11.134 (13 Nov 2026): composite volcanoes** (analysis_archipelago §9.4 (a), §9.6; the person: "Let's go with a"). Births are vents; a vent within
 40 km of a volcano active in the last 2.5 Myr builds onto it (`K.comp`). 159 cones → 17 volcanoes, 136 records → 15; the ±70.5 km world holds ours,
 the giant, the awesome shield (now 1.63 long, m138 and m151 its vents), m154 (590 m, 48 km W), m122 (799 m, 48 km E) and the atoll m117. Against

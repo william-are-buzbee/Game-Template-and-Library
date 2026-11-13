@@ -189,6 +189,12 @@ that had a vent in the last `K.comp.tau` (2.5 Myr) builds onto it, else starts o
 vent's id and place, as a pin's), its first vent's age, the vents' volume-weighted centre, their volume, its shield done when its last vent's is
 (`Tspan`, which `rgShape` keeps), `m.vents`; its record an oval along their spread (`m.asp`, `m.rot`). The pins stand alone and a vent they would
 take is theirs. `K.comp` null draws the 159 separate cones of v11.133. The lineages' cuts are thirds of ours' own hops.
+**Lobed outlines (v11.135):** every record but the pins carries `R.lobe`, its outline over the turn in its own frame (after the turn and the
+squeeze): the union of its vents' cones and its rift zones' arms (`RG_LOBE`), its mean square 1 (the area kept). `lmax`, its farthest, multiplies
+`sc`, so every bound read by sc (the reach, the bound tables, `quiet`, horizon's tops, the shelter's width) stays a bound; world.js `lbF` gives the
+scale at an angle and unlobed radius, whole to `lbR` (its land's or rim's radius) and `far` of it two radii out; sample() reads each record's own
+radius (`recLoc`) for its core, reach, bound, quiet and influence, so the bounds are exact in every direction. islandH, islandW, rgLoc, rgAt (`rgLbFix`, the fixed point), rgAlong, shSupport and shRadius read it; clouds' caps and
+horizon's build order take the scale without it.
 **Young cones on old islands (v11.131):** a member's host (`m.host`) is the older, bigger one whose foot it is born inside and whose shield was
 built before its birth, highest there by their 12° shapes; each step its base is the host's surface there (`m.off`), so it sinks and wears with
 it. Its record's `R.sat` (`b` its base, `k`, `host`): islandH steepens its flank `k`-fold below `b` (the skirt; the host's record is the ground
