@@ -308,15 +308,17 @@ function rgLoc(R,x,z){let lx=x-R.x,lz=z-R.z;if(R.rot){const c=Math.cos(R.rot),s=
 function rgAt(R,r,a,o){let lx=r*Math.cos(a),lz=r*Math.sin(a);if(R.asq)lz/=R.asq;lx*=R.sc;lz*=R.sc;if(R.rot){const c=Math.cos(R.rot),s=Math.sin(R.rot);o.x=R.x+lx*c-lz*s;o.z=R.z+lx*s+lz*c;}else{o.x=R.x+lx;o.z=R.z+lz;}return o;}
 function rgAlong(R,r,ux,uz){if(!R.asq&&R.sc===1&&!R.rot)return r;const c=Math.cos(R.rot||0),s=Math.sin(R.rot||0),p=(ux*c+uz*s)/R.sc,q=(uz*c-ux*s)/R.sc*(R.asq||1);return r/Math.hypot(p,q);}
 function rgAng(T,a){let u=a*(RG_RM/TAU);u-=Math.floor(u/RG_RM)*RG_RM;const i=Math.min(RG_RM-1,Math.floor(u)),t=u-i;return T[i]+(T[i+1]-T[i])*t;} // a rim table at world angle a
-// a member's record by its state (above); k its index among the built, for its noise offset
+// a member's record by its state (above). v11.132 (the person, 13 Nov 2026: "make the noise seed follow the member's id"): its noise seed (ns) and its
+// rifts' draws by its own id, so a change to one member reshapes no other record (to v11.131 ns was its place among the built and the rifts drew
+// from the pass's one rng: a record in or out reseeded every record after it)
 // v11.129 (analysis_archipelago §3.3, §5; the person, 13 Nov 2026: "let's do 1"): a volcano born on an old fracture zone (m.frac, the births regionModel
 // draws onto them) is an oval along it — its record turned to the zones' heading (K.fracA, ±jit), squeezed across by its aspect (a0–a1, by a draw of its own
 // id) and stretched along by its root, so its area and its volume are the round one's (Rangiroa 80 × 32 km, long on its volcano's line; Hawaii's and the
 // Canaries' rift zones). The pins and a tuned member (the awesome shield) stay round; land: whether a member with land today takes it too.
-// Which members are records and which bury which stays decided by the round footprint of the same area, so no record's place (its ns) moves
+// Which members are records stays decided by the round footprint of the same area (the burials since v11.131 by the burier's own frame)
 const RG_SAT_K=3; // v11.131: a satellite's flank below its base falls this many times steeper — the skirt where its own cone meets its host's slope
 const RG_OVAL={on:true,land:true,a0:1.3,a1:2.4,jit:0.2};
-function rgRecord(m,k,K,rng){const ns=1000+37*k,R={id:m.id,x:m.x,z:m.z,rot:0,sc:1,ns,state:m.state,age:m.age};
+function rgRecord(m,K){const ns=1000+37*Number(m.id.slice(1)),rng=mulberry(WB.hashString('rifts:'+m.id)),R={id:m.id,x:m.x,z:m.z,rot:0,sc:1,ns,state:m.state,age:m.age};
   if(RG_OVAL.on&&m.frac&&m.pin<0&&!m.tuned&&(RG_OVAL.land||!(m.state==='high'||m.state==='shield'||m.state==='rim'||m.state==='low'))){const h=mulberry(WB.hashString('oval:'+m.id)),asp=RG_OVAL.a0+(RG_OVAL.a1-RG_OVAL.a0)*h();R.rot=K.fracA+RG_OVAL.jit*(h()-0.5)*2;R.sc=Math.sqrt(asp);R.asq=asp;}
   if(m.off>0)R.sat={b:Math.round(m.lastB),k:RG_SAT_K,host:m.hostId}; // v11.131: a satellite's base today (its host's surface at its birth, sunk since): its own flank ends there in a skirt
   const arms=()=>{const a=K.fracA+0.3*(rng()-0.5)*2;return [a,(a+Math.PI+0.3*(rng()-0.5)*2)%TAU];};
@@ -341,7 +343,8 @@ function rgRecord(m,k,K,rng){const ns=1000+37*k,R={id:m.id,x:m.x,z:m.z,rot:0,sc:
 // v11.115 (GLOBE §10.1, the province grown): a third pass, the members that reach the province's rectangle and not v11.106's ±70.5 km
 // (WORLD70), by a third rng — 75 more, 122 records with the pins (37 members struck, buried under a neighbour's flank). None reaches ±70.5 km, so
 // the ground there is v11.114's to the bit; the floor's grid grows to the province by whole nodes again.
-function rgBuild(Rg){const K=Rg.K,rng=mulberry(K.seed*104729+7),rng2=mulberry(K.seed*104729+11),W0=[-HALF-2000,HALF+2000,-HALF-2000,HALF+2000],W=[WORLD70.i0*CELL-HALF-2000,WORLD70.i1*CELL-HALF+2000,WORLD70.j0*CELL-HALF-2000,WORLD70.j1*CELL-HALF+2000],W2=[WX0-2000,WX1+2000,WZ0-2000,WZ1+2000],rng3=mulberry(K.seed*104729+13),box=(x,z,r,w)=>x+r>w[0]&&x-r<w[1]&&z+r>w[2]&&z-r<w[3]; // the boxes as rectangles (v11.112; a square's test the same decisions)
+// v11.132: the passes' rngs gone — each record's seed and rifts by its member's id (rgRecord), whatever list or pass it falls in.
+function rgBuild(Rg){const K=Rg.K,W0=[-HALF-2000,HALF+2000,-HALF-2000,HALF+2000],W=[WORLD70.i0*CELL-HALF-2000,WORLD70.i1*CELL-HALF+2000,WORLD70.j0*CELL-HALF-2000,WORLD70.j1*CELL-HALF+2000],W2=[WX0-2000,WX1+2000,WZ0-2000,WZ1+2000],box=(x,z,r,w)=>x+r>w[0]&&x-r<w[1]&&z+r>w[2]&&z-r<w[3]; // the boxes as rectangles (v11.112; a square's test the same decisions)
   const cand=w=>Rg.M.filter(m=>m.pin<0&&box(m.x,m.z,m.R*1.6+3000,w)).sort((a,b)=>b.top-a.top),c0=cand(W0),c1=cand(W),c2=cand(W2);
   const ext=(L,w)=>{let x0=w[0]-5000,x1=w[1]+5000,z0=w[2]-5000,z1=w[3]+5000;for(const m of L){const r=Math.max(m.shore,m.ring,m.R)+6000;x0=Math.min(x0,m.x-r);x1=Math.max(x1,m.x+r);z0=Math.min(z0,m.z-r);z1=Math.max(z1,m.z+r);}return [x0,z0,x1,z1];};
   const e0=ext(c0,W0),e1=ext(c2,W2),G=RG_FLG,ox=e0[0]-G,oz=e0[1]-G; // v11.102's origin: its x0 less a node
@@ -350,13 +353,13 @@ function rgBuild(Rg){const K=Rg.K,rng=mulberry(K.seed*104729+7),rng2=mulberry(K.
   {const gm=Rg.M.find(m=>m.id==='giant'),GR=ISLANDS.find(R=>R.id==='giant'); // v11.121 (the person, 12 Nov 2026: "along with this"): the giant's barrier reef, the model's — its top today, its ring as far past its record's coast as past the model's
     if(gm&&GR&&GR.land&&gm.reef&&gm.alive&&gm.rt>-K.photic&&gm.ring>gm.shore)GR.barrier=rgBarrier(Math.round(GR.land.r+gm.ring-gm.shore),gm.rt);}
   const kept=ISLANDS.slice(),out=[],struck=[],later=new Set(c1.filter(m=>!c0.includes(m))),later2=new Set(c2.filter(m=>!c1.includes(m)));
-  const pass=(L,rg,w)=>{for(const m of L){const R=rgRecord(m,out.length,K,rg),top=R.land?R.land.h:R.rimR!==undefined?R.rimH:R.h0;
+  const pass=(L,w)=>{for(const m of L){const R=rgRecord(m,K),top=R.land?R.land.h:R.rimR!==undefined?R.rimH:R.h0;
     if(m.off>0&&m.lastB>0&&m.zv-m.lastB<20){struck.push({id:m.id,by:m.hostId});continue;} // v11.131: a satellite on land worn to its base is its host's ground now
     if(!R.land&&rgPlatSd(m.x,m.z)>-(R.rimR!==undefined?0.5*R.rimR:0)){struck.push({id:m.id,by:'platform'});continue;} // v11.122: a member the platform grew over (its centre on it, a reef's within half its ring) is buried by it; land stands above it
     // v11.131: a satellite never buries its own host; the burier read in its own frame (an oval's: v11.129 kept the round distance so the list would not move)
     const by=kept.find(B=>!(B.sat&&B.sat.host===m.id)&&rgRadial(B,rgLoc(B,R.x,R.z))>top-20);if(by){struck.push({id:m.id,by:by.id});continue;}
     const f=foot(R);R.reach=Math.round(Math.max(1.2*f,R.fade[1])+500);if(!box(R.x,R.z,R.reach,w)){(w===W0?later:later2).add(m);continue;}rgBound(R);R.an=anTables(R.ns);kept.push(R);out.push(R);}};
-  pass(c0,rng,W0);const n0=out.length;pass(c1.filter(m=>later.has(m)),rng2,W);const n1=out.length;pass(c2.filter(m=>later2.has(m)),rng3,W2); // the old square's, then the world's (a member of the first list kept by the world alone is shaped again, by the second rng)
+  pass(c0,W0);const n0=out.length;pass(c1.filter(m=>later.has(m)),W);const n1=out.length;pass(c2.filter(m=>later2.has(m)),W2); // the old square's, then the world's (a member of the first list kept by the world alone is shaped again: v11.132 the same shape)
   for(const R of ISLANDS){const f=foot(R),need=Math.round(1.2*f+500);if(need>R.reach)R.reach=need;if(R.id==='giant')rgBound(R);} // the pins: their flanks go on down to the model's floor; the giant's kit is the model's (land, rifts, flows: no collapse, dikes, 
   rgMargins(kept); // v11.123: one margin per reef, once every record stands (the pins' barrier too; ours keeps its rim)
   return {recs:out,struck,n0,n1};}

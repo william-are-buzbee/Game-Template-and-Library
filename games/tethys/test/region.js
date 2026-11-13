@@ -8,7 +8,7 @@ const util=fs.readFileSync(path.join(root,'vendor/wb-core.global.js'),'utf8')+'\
 let world=fs.readFileSync(path.join(root,'src/world.js'),'utf8');const cut=world.indexOf('// ---------- the light');if(cut>0)world=world.slice(0,cut); // the geology and the fields (test/map.js's cut)
 const region=fs.readFileSync(path.join(root,'src/region.js'),'utf8');
 const THREE={Vector3:class{constructor(x,y,z){this.x=x;this.y=y;this.z=z;}},Matrix4:class{},Quaternion:class{}};
-const G=new Function('THREE',util+'\n'+world+'\n'+region+'\nreturn {WIND_A,rgAt,rgLoc,sample,HALF,WX0,WX1,WZ0,WZ1,WORLD70,CELL,FI,ISLANDS,REGION_K,REGION_PINS,RG_STATE,regionModel,regionGrid,regionBasins,regionSeen,rgKei,rgSea,rgTrack,OXY,chemoAt,chemoD,oxyAt,underChemo,chemoB:()=>CHEMO_B,apronAt,apronR,RG_BUILT,rgFloor,BASIN,islandH,recsAt,FILL_TOP,rgAng,rgLagD,rgRadial,rgPlat,rgPlatSd,rgPlatform,RG_PL:()=>RG_PL,RG_PL_K,shT,SHELTER};')(THREE);
+const G=new Function('THREE',util+'\n'+world+'\n'+region+'\nreturn {WIND_A,rgAt,rgLoc,rgRecord,sample,HALF,WX0,WX1,WZ0,WZ1,WORLD70,CELL,FI,ISLANDS,REGION_K,REGION_PINS,RG_STATE,regionModel,regionGrid,regionBasins,regionSeen,rgKei,rgSea,rgTrack,OXY,chemoAt,chemoD,oxyAt,underChemo,chemoB:()=>CHEMO_B,apronAt,apronR,RG_BUILT,rgFloor,BASIN,islandH,recsAt,FILL_TOP,rgAng,rgLagD,rgRadial,rgPlat,rgPlatSd,rgPlatform,RG_PL:()=>RG_PL,RG_PL_K,shT,SHELTER};')(THREE);
 let fails=0;const ok=(c,msg)=>{console.log((c?'  ok   ':'  FAIL ')+msg);if(!c)fails++;};
 console.log('region: the pieces');
 // kei(x) (A&S Table 9.12): 1 → −0.494991, 2 → −0.202400, 3 → −0.051123, 4 → +0.002198; the table is kei/kei(0), kei(0) = −π/4
@@ -204,6 +204,11 @@ ok(RB.struck.every(q=>RB.recs.some(r=>r.id===q.by)||q.by==='home'||q.by==='giant
   let on=0,nr=0,top=true;for(const R of land){if(G.sample(R.x,R.z).h<R.land.b+0.5*(R.land.h-R.land.b))top=false;
     for(let k=0;k<24;k++){const P=G.rgAt(R,1.3*R.land.r,k/24*Math.PI*2,{});nr++;if(G.sample(P.x,P.z).h>0)on++;}}
   ok(sat.length>=10&&hosts&&recs&&own&&land.length>=1&&top&&on>=0.9*nr&&land.every(R=>R.h0===R.land.b&&R.terr.n===0),`${sat.length} members born on an older one's finished shield, each on its surface (${G.ISLANDS.filter(R=>R.sat).length} records); on land ${land.map(R=>`${R.id} ${R.land.h} m on ${R.sat.host} at ${R.land.b}`).join(', ')}, its host's land all round (${on}/${nr} rays at 1.3× its shore); no host buried by its own satellite`);}
+// v11.132 (the person, 13 Nov 2026: "make the noise seed follow the member's id"): a record's noise seed and its rifts are its member's own, so a
+// change to one member reshapes no other record
+{const recs=G.ISLANDS.filter(R=>R.id!=='home'&&R.id!=='giant'),rf=recs.filter(R=>R.rifts);
+  const seeds=recs.every(R=>R.ns===1000+37*Number(R.id.slice(1))),rifts=rf.every(R=>{const Q=G.rgRecord(M.find(m=>m.id===R.id),K);return Q.rifts&&Q.rifts[0]===R.rifts[0]&&Q.rifts[1]===R.rifts[1];});
+  ok(seeds&&rf.length>0&&rifts&&new Set(G.ISLANDS.map(R=>R.ns)).size===G.ISLANDS.length,`${recs.length} records seeded by their member's id (ns 1000 + 37·n, none shared), the ${rf.length} with rifts drawing them alone`);}
 // v11.119 (analysis_flora_diversity §5.6, SEAFLOOR §6): the lineages — hops down the colonisation chain from the founder, cut into the old
 // east, the middle and the young west (region.js RANGE, rangeBuild): a brooding line's sister species keep to theirs
 {const I=id=>G.ISLANDS.find(R=>R.id===id),n=[0,1,2].map(r=>G.ISLANDS.filter(R=>R.rng===r).length),w70=G.ISLANDS.filter(R=>Math.max(Math.abs(R.x),Math.abs(R.z))<70520),w50=G.ISLANDS.filter(R=>Math.hypot(R.x,R.z)<50000);

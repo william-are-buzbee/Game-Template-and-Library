@@ -7580,3 +7580,22 @@ world's ground differs at 14% of a 1 km lattice. **Ours' square the same to the 
 Seen: the province before and after, member by member; m151's ground (657 m at its centre, its caldera; its host's land on 24 of 24 rays round it).
 **Unseen, ask in this order:** the view north from ours (`tp(0,0)`): m138 with a 714 m cone on its north-west end; whether the skirt (3× steeper
 below its base) reads as a cone standing on a slope or as a step; m151 close (`tp(-7000,-19000)`, on its flank).
+
+## v11.132 — a record's noise seed by its member's id (13 Nov 2026)
+
+The person, 13 Nov 2026: "make the noise seed follow the member's id" (asked in v11.130 and v11.131, each of which reseeded the ground past the
+records it changed). A record's noise seed (`ns`, the offset of every noise its ground draws: the flank's gullies, the rim's wander, the angular
+tables) was its place among the records built, and a young island's rifts drew from the pass's one rng, struck members' draws included — so a record
+in or out reshaped every record after it.
+
+- **region.js `rgRecord`:** `ns` = 1000 + 37·n for member m<n> (the same stride as before), the rifts from an rng of the member's own id, as the
+  ovals' draws already were. **`rgBuild`:** the three passes' rngs gone; a member shaped again by a later pass gets the same shape.
+
+What moved (seed 32): the same 136 records and 23 burials, in the same order; every record's seed but m66's (and the pins') new, so the details of
+every record's ground move once — 25% of a 1 km lattice over the ±70.5 km world by more than 0.5 m, 16.7% by more than 20 m. **Ours' square the
+same to the bit.** From here on a change to one member reshapes no other record.
+
+- **Tests:** test/region.js every record's seed its member's (none shared), and the four with rifts drawing them alone.
+
+Seen: the records and burials the same, the seeds by the ids, ours' square. **Unseen:** nothing new to look for — the same islands with other
+details (a gully, a pass, a rim's wander); anything the person had come to know by its exact shape near ours will differ.

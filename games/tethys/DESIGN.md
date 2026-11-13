@@ -143,7 +143,8 @@ province (and the game's own ground inside its square), `regionBasins` floods it
 `regionSeen` what clears the horizon from a point. ~0.3 s a run; `test/region.js` pins it.
 
 **The square from the model (v11.102, GLOBE §8 step 5).** At load (`REGION`, `rgBuild`) every member whose ground reaches the world (the
-square and the far layer's 2 km past it) becomes a record in `ISLANDS`, shaped by its state with islandH's kit (`rgRecord`): a high island or
+square and the far layer's 2 km past it) becomes a record in `ISLANDS`, shaped by its state with islandH's kit (`rgRecord`; its noise seed
+`ns` = 1000 + 37·n for member m<n> and its rifts' draws by its id, since v11.132, so no record reshapes another): a high island or
 an active shield as land (`land`: shore and height the model's, gullies, a caldera and flows down two rift zones on the fracture grain when
 young), its shelf cut into the land by its age with the flank where the model's 12° cone puts it; a high or rim island with a living reef ring off its coast (v11.121) with its barrier reef (`R.barrier`, `rgBarrier`; `rgCap`
 and islandH's cap: by max over the island's ground, the lagoon to the ring, the crest awash or under with passes, a wall and a 31° fore-reef
