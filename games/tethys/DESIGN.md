@@ -149,8 +149,8 @@ young), its shelf cut into the land by its age with the flank where the model's 
 and islandH's cap: by max over the island's ground, the lagoon to the ring, the crest awash or under with passes, a wall and a 31° fore-reef
 outside; the giant's from the model, −44 m, in the awesome shield's moat); an atoll or a bank as ours scaled to its reef's
 ring (`rimR`, `rimH` the reef's top today, `lagH` deeper on a wider ring); a seamount or guyot as a cone, its upper 200 m swept bare (`bare`)
-and knobbed with pillow mounds 30 m high (`knob`). A member whose summit lies under another's ground at its centre is struck (the model draws
-every cone from the plateau). Seed 32: 20 records (the awesome shield's southern side in the north-west corner, the 308 m island 20 km north,
+and knobbed with pillow mounds 30 m high (`knob`). A member whose summit lies under another's ground at its centre is struck (to v11.130
+the model drew every cone from the plateau; since v11.131 one born on an older member's finished shield stands on it). Seed 32: 20 records (the awesome shield's southern side in the north-west corner, the 308 m island 20 km north,
 the 243 and 820 m islands past the south-west and west edges, ten atolls and two banks, three seamounts and a guyot), 8 struck. The floor
 under them is the model's (`rgFloor`: plateau, swell, every load's moat, on a 1 km grid read by a Catmull-Rom patch), −1100 beside ours by the
 pin; the hand-built sill (`SILL`, v11.58–v11.101) is gone. Ours and the giant are their own records, unchanged inside their cores (2400 m)
@@ -167,7 +167,33 @@ above the sea; steps of `RG_PL_K.dt`); no fed rule (the platform is its own up-c
 top and a signed distance to its margin; `rgPlat` reads it with a warped margin (`warp`, `warp2`): the rim at the top with islets and passes,
 the lagoon to `lag` over `lagW` rolling ±`karst`, a wall at `wall` outside. `sample()` takes it where it stands above the records and the
 floor, with its own fields (lagoon, rim, the margin's aspect, the wall's spurs) and its influence outside within `isl`. A member on it is
-struck by 'platform' (`rgPlatSd`); a cell on it is the old east's range (chunks.js `chRange`). Seed 32: 29,259 km², 61 members buried.
+struck by 'platform' (`rgPlatSd`); a cell on it is the old east's range (chunks.js `chRange`). Seed 32 to v11.125: one platform of 29,259 km², 61 members buried.
+**The old end's relief and its necks (v11.126; analysis_archipelago §8):** the head's plateau `relief.C` m under platW's flat top past track age
+`t0`, with volcanic centres — `nh` where the head arrived, scattered over the plume's footprint, one at each pulse from `tmin` (none within `gap` of a
+stronger one) — grown from their pulses, overlapping ones by a 4-norm (regionModel `rlAt`, `rlT`: the members' bases, `high`, `floorAt` and the
+platform take it; nothing west of `t0` − 3). Where a point lies between two centres (`rlNeck`: the lesser's shape `sad` of the greater's, ±0.2) the
+reef is swept: it grows at `swept` of the rate and its top dissolves at `diss` mm/yr while the sea has left it (the platform's steps `RG_PL_K.dtf`
+from `tf` Ma; the members on a neck likewise), so it keeps up through the Pliocene's 30 m swings and gives up under the Pleistocene's 70–120 m.
+`RG_PL` keeps the carbonate too (`sd2`, `top2`), and `rgPlat` lays a drowned flat there, walled where it meets the plateau. Seed 32: 8,298 km² of
+banks (four over 300 km²) on 12,087 km² drowned, most at −72, two early necks at −430 and ~−1,000; 15 members buried, the 39 on necks drowned.
+**The banks' margins by their side (v11.127; analysis_archipelago §8.5 step 2):** `rgPlat` reads how squarely a margin faces the trade swell
+(its outward normal against `WIND_A`) and `RG_PL.fe`, the run of the bank's shallows upwind of it. Windward: the crest at the reef's top, its
+flat broader and its passes fewer, the atolls' wall outside (`wf`, through `rgFlank`). Lee: the crest `leeD`·(1 − e^(−fetch/`leeF`)) under the sea
+(never below the lagoon's floor + 15), no islets, a slope of 15° easing to 7° (`lf`). Each bank's lagoon `RG_PL.lg`, `rgLagD` of the disc of its
+area. `RG_PL.sd2`/`top2` hold the drowned carbonate alone (with the living, v11.126, its wall from the sea overrode their margins).
+**The fed rule by its time (v11.130):** a member's upstream ones (`m.up`, within `fedL` up-current across its foot) shelter it while one stands in
+the light (`litNow`, a step behind); fed now, its reef takes no hold and grows at `fedK`. `m.fed` is today's.
+**Young cones on old islands (v11.131):** a member's host (`m.host`) is the older, bigger one whose foot it is born inside and whose shield was
+built before its birth, highest there by their 12° shapes; each step its base is the host's surface there (`m.off`), so it sinks and wears with
+it. Its record's `R.sat` (`b` its base, `k`, `host`): islandH steepens its flank `k`-fold below `b` (the skirt; the host's record is the ground
+beyond); on land `land.b` and `h0` are its base, no terraces. A satellite never buries its own host; one on land worn to within 20 m of its base
+is struck by it.
+**Ovals (v11.129):** a member born on a fracture zone (`m.frac`) is an oval record along `K.fracA` (region.js `RG_OVAL`; `rot`, `sc` = √aspect, `asq` =
+aspect: islandH squeezes across after turning and scaling, so area and volume are the round one's); `rgLoc`, `rgAt`, `rgAlong` give a record's own frame to
+what compares world places with its radii (`rgMargins`), `shSupport`/`shRadius` its width to the shelter; the record list by the round footprint, the
+burials (v11.131) by the burier's own frame. A record's bound table and `quiet` are by its own radius: `sample()` reads them at the world distance over `sc`.
+**The atolls' rims by the wind (v11.128):** world.js `islandH` gives a model reef's rim (`R.patch`) and a barrier the same rule by `expoW` — windward a
+broader flat with fewer passes, leeward the crest `REEF_LEE` under the sea by the chord of its lagoon upwind, more passes; ours' rim as it was.
 **Reefs (v11.123; analysis_archipelago §3):** a reef record's lagoon is `rgLagD` deep by its ring; its floor carries patch reefs and blue
 holes (world.js `LAGF`, `lagoonF`: the model's reefs, the barriers and the platform, not ours); its outer slope is a reef's — terrace, a wall
 to −122, the one lowstand bench, the wall to −580, the talus (rgRecord). `rgMargins` gives each reef record a rim table `R.rimM` by angle

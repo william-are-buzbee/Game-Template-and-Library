@@ -381,4 +381,5 @@ than the volcanoes under them, reefs on the cones but none on the plateau that s
 lagoons. **The person (12 Nov 2026):** the east one carbonate platform; the land shrunk to the volumes; high islands lasting about 10 Myr
 (`erode` 0.15, "though I am not sure"); the giant's barrier reef with this work. The shape (12 Nov 2026): Earth's slopes (7° land on 12°
 flanks, summits ~40% lower), the awesome shield pinned at 2,533 m. The build, three versions: the members' shape and clock with the high islands'
-reefs; the plateau's platform; margins and lagoons (`analysis_archipelago.md` §6).
+reefs; the plateau's platform; margins and lagoons (`analysis_archipelago.md` §6). Then (13 Nov 2026, §8): the platform a chain of banks over
+drowned necks — the old end's relief and its necks swept (v11.126).

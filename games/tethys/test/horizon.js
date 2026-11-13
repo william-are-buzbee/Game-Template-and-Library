@@ -32,6 +32,6 @@ const names=rn.land.children.map(m=>m.name);ok(names[0]==='home'&&names.indexOf(
   ok(at.giant<0.1,`the giant's land done after ${(100*at.giant).toFixed(1)}% of the build's triangles, the 308 m island's after ${(100*at.m138).toFixed(1)}% (the awesome shield's after ${(100*at.m153).toFixed(0)}%)`);}
 // v11.113: by sight — from 2 m up at ours the queue holds the near land (the giant, the 308 m island, the awesome shield) and not the low
 // island 62 km west (50 m: ~30 km of sight from the water), which comes in from the awesome shield's summit
-{const q0=N.watch(0,2,0),low=N.sight('m150',2);ok(q0.includes('giant')&&q0.includes('m138')&&q0.includes('m153')&&!q0.includes('m150')&&low>25000&&low<40000,`by sight from the water at ours: ${q0.length} members queued, the giant first among the land (${q0.slice(0,4).join(', ')} …), the low island not (seen ${(low/1000).toFixed(0)} km off; it is 62)`);
-  const q1=N.watch(-30005,2500,-36615);ok(q1.includes('m150'),'from the awesome shield\'s summit (2.5 km up) the low island comes into sight: '+q1.length+' queued');}
+{const q0=N.watch(0,2,0),low=N.sight('m150',2);ok(q0.includes('giant')&&q0.includes('m138')&&q0.includes('m153')&&!q0.includes('m150')&&low>8000&&low<40000,`by sight from the water at ours: ${q0.length} members queued, the giant first among the land (${q0.slice(0,4).join(', ')} …), m150 not (seen ${(low/1000).toFixed(0)} km off; it is 62 — a 4 m rim island since v11.130, its reef no longer fed; a 50 m low island seen ~30 km off to v11.129)`);
+  const q1=N.watch(-30005,2500,-36615);ok(q1.includes('m150'),'from the awesome shield\'s summit (2.5 km up) m150 comes into sight: '+q1.length+' queued');}
 console.log(fails?`horizon: ${fails} FAILED`:'horizon: ok');process.exit(fails?1:0);

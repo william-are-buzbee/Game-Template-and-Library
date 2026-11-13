@@ -1,5 +1,44 @@
 # HANDOFF — tethys
 
+**v11.131 (13 Nov 2026): young cones on old islands** (analysis_archipelago §2.7, #8). A member born on an older one's finished shield stands on
+its surface and rides it down (region.js `m.host`, `m.off`; the record's `R.sat`, its flank a skirt below its base) instead of being struck inside
+it. 16 satellites, 14 records; m151 a 714 m cone on m138, 20 km north-north-west of ours. Burials now read the burier in its own frame (four
+records back). Records 136; ours' square the same to the bit. **Ask first:** the view north from ours (`tp(0,0)`); whether `ns` should follow the
+member's id (v11.130's question; this list changed again). Still the person's: `fedK`, 3b, and 4 (the swell's width).
+
+**v11.130 (13 Nov 2026): the fed rule by its time** (analysis_archipelago §2.6, 3a). A member is fed — no reef, the weed's shallows — only while
+nothing upstream stands in the light (to v11.129 once for all time, by what could ever stand above −300 m by today's floor). Fed 32 → 26, guyots 44 →
+29, atolls 69 → 86; near ours m115 and m137 are guyots now, m136 an atoll. Records 130; the ones after a change reseeded (`ns` is a place in the list).
+**Ask first:** whether `ns` should follow the member's id instead. Still the person's: `fedK` and the island-mass direction (3b).
+
+**v11.129 (13 Nov 2026): the volcanoes on the old fracture zones as ovals** (analysis_archipelago §3.3). 55 of the 128 records — every member born on a
+fracture zone — are ovals along the zones' heading (region.js `RG_OVAL`: aspect 1.3–2.4, area kept), m138 north of ours among them; ours, the giant and
+the awesome shield round; the records and their seeds unchanged. Fixed with it: `sample()` read the bound tables by the world distance (right only for
+`sc` 1). `RG_OVAL.land` false keeps the islands with land round. **Ask first:** the view north from ours (`tp(0,0)`), m138 longer now; m122's lagoon
+(`tp(41500,-20700,-1)`). Next to consider (the person, 13 Nov): 3a (the fed rule by its time), then 2 (young cones on old islands) and 4 (the swell).
+
+**v11.128 (13 Nov 2026): the atolls' rims by the wind** (analysis_archipelago §3.3, §5 #9). The model's atolls, banks and barriers carry
+their islets on the windward rim, a broader flat; the leeward rim is narrower, a few metres under (world.js `REEF_LEE`, v11.127's law, shared with
+the platform) and cut by passes. Ours' rim untouched to the bit. **Ask first:** m88 from its motu (`tp(77000,27400)`) and its lee crest (`tp(67600,27400,-1)`).
+
+**v11.127 (13 Nov 2026): the banks' margins by their side and their size** (analysis_archipelago §8.5, step 2). A windward margin (facing the
+trade swell) keeps its rim at the sea with the islets and the atolls' wall; a lee one lies under the sea by the bank's shallows upwind (`RG_PL_K.leeD`,
+`leeF`: −12 m behind 15 km, −25 behind 40+) and falls away as a slope of shed sand; each bank's lagoon by `rgLagD` of its area (41–57 m). Fixed with it:
+v11.126's carbonate field held the living banks, and its wall from the sea overrode their margins. **Ask first:** the big bank's lee edge
+(`tp(164000,60000,-1)`, swim west) — does a margin with no rim read as an edge? — then its windward rim (`tp(227300,60000)`).
+
+**v11.126 (13 Nov 2026): a chain of banks over drowned necks** (analysis_archipelago §8.5, step 1). The old end is a lower plateau with volcanic
+centres (four where the head arrived, three at the pulses: region.js `REGION_K.relief`, `rlAt`, `rlT`); where a point lies between two centres
+(`rlNeck`) the currents and the tides sweep its reef, which kept up through the Pliocene's small swings of the sea and gave up under the
+Pleistocene's. 8,298 km² of banks (four over 300 km²) on 12,087 km² of drowned carbonate, most at −72 m, two early necks at −430 and ~−1,000.
+The ±70.5 km world's ground the same to the bit; boot +0.19 s. **Ask first:** a bank's rim onto the drowned flat (`tp(223000,9000,-1)`, swim
+west), then the deep neck from the rim above it (`tp(236000,22000,-10)`, swim south). Step 2 built: v11.127 (above).
+
+**13 Nov 2026: the platform reviewed** (analysis_archipelago §8; nothing built). v11.122's platform is Saya de Malha's size (37,540 km² in
+the model, 27,540 in the world) but a disc — the head plateau's flat top — with no channels or basins, one margin all round, alive everywhere,
+and the world's box cutting its south and east. The person (13 Nov): a chain of banks; Earth's rims for the size; the box OK for now. On this
+slow plate volcanism alone makes one ridge-bank along the track (§8.4); the person chose its saddles drowned (13 Nov, (a)) — built v11.126.
+
 **v11.125 (12 Nov 2026): the turn in the kelp.** The person's lag spike turning in a kelp forest: the pools' partition by sight moved
 blocks across the boundary every time a cell crossed the view — up to 2.6 MB re-sent and 200 moves in one frame of a turn (three r128,
 headless). Now a crossing writes the cell's own flags (`aHide`) and nothing moves; a still pool is packed after 0.4 s. A vertex that draws
@@ -23,11 +62,8 @@ deepen with their ring (`rgLagD`) and carry patch reefs and blue holes (`lagoonF
 first** how a lagoon reads from the water (`tp(108100,4000,-1)`), then a wall (`tp(1600,20100,-60)`) and a blue hole; the deep gardens'
 ground on the reefs' walls is a sixth of what it was.
 
-**v11.122 (12 Nov 2026): the plateau's platform** (analysis_archipelago §6, step 2 of 3). The members' reef rule run on the plateau's own
-surface (region.js `rgPlatform`, read by `rgPlat`; world.js `sample()` takes it): one carbonate platform of 29,259 km² over the east — a rim
-at the sea with islets and passes, a lagoon of 30–70 m behind it, a wall outside — and the 61 members on it buried in it. The ±70.5 km world
-is untouched. **Ask first** how it reads from its lagoon (`tp(230000,20000,-1)`) and its rim (`tp(146500,-14000,-1)`). Next: step 3, the
-margins and lagoons (one margin per platform, lagoon depth by size, reef walls, the patch reefs and blue holes).
+**v11.122 (12 Nov 2026): the plateau's platform** (analysis_archipelago §6, step 2 of 3): the members' reef rule run on the plateau's own surface
+(region.js `rgPlatform`, read by `rgPlat`; world.js `sample()` takes it), the members on it buried. Since v11.126 a chain of banks over drowned necks (above).
 
 **v11.121 (12 Nov 2026): the province's shape and clock** (analysis_archipelago §6, step 1 of 3). Every member is the edifice that holds its
 volume (7° land on 12° flanks, `rgShape2`), the awesome shield held at 2,533 m (`REGION_K.tune`), `Te` 15 (needed for that), `erode` 0.15

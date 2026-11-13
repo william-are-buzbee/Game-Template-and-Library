@@ -7367,3 +7367,216 @@ same pixels — 0.8–1.9% of the pixels differ, all marine snow, a school and t
 **Unseen, ask in this order:** the turn on your machine — at `tp(430,50,8)` and `tp(2042,-18382,8)`, the readout open (backquote), a quick
 full turn with the mouse: `work`'s worst (after the slash) and `render`, against the live site's; `pools … hid` falling to nothing within a second
 of stopping; anything missing or flickering in the flora at the edges of the screen while turning.
+
+## v11.126 — a chain of banks over drowned necks (13 Nov 2026)
+
+The platform review (`analysis_archipelago.md` §8, PR 63) found v11.122's platform Saya de Malha's size but a disc: the head plateau's flat
+top (`platW` level inside 0.6 × `headR`), its margin that disc's edge on day one, no channel or basin in it, one margin all round, alive
+everywhere. The person, 13 Nov 2026: a chain of banks; Earth's rims for the size; the world's box is fine for now; and of §8.4's ways to a
+chain on this slow plate (its pulses' centres only 22–46 km apart, so they merge), (a) — the necks drowned: "the goal is clear".
+
+- **The old end's relief** (region.js `REGION_K.relief`, regionModel `rlAt`, `rlT`): the head's plateau `C` 350 m under `platW`'s flat top
+  past track age `t0` 19 Ma (tapered over the 3 Myr before; ±`B` 150 m of noise at `L` 40 km); `nh` 4 volcanic centres where the head arrived,
+  scattered over the plume's footprint as the births are (by an rng of their own: the births' draws untouched; 643–863 m, 55 km), and one at
+  each pulse from `tmin` 19 Ma (25.0, 22.3 and 19.9: 418–603 m by the pulse's strength, 40 km; none within `gap` 15 km of a stronger one —
+  the 29.3 pulse is the head's), each grown over 0.5 Myr from its pulse, overlapping ones by a 4-norm (a cluster stands about as high as its
+  tallest; summed, four head centres stood 2.1 km and the floor beside them, which knows no erosion, came out as a 453 m island). The members'
+  bases, the fed rule's `high`, `floorAt` and the platform all take it. All of it by the old end's weight: nothing west of track age 16 Ma.
+- **The necks** (`rlNeck`; `relief.sad` 0.7, `swept` 0.03, `diss` 0.05): where a point lies between two centres — the lesser's shape at least
+  `sad` of the greater's, the threshold wandering ±0.2 over ~12 km so a neck bends and pinches — the currents and the 6–9 m tides that cross
+  the ridge run over it, and its reef, swept, grows at 3% of the rate; a reef top the sea has left dissolves (karst, 0.05 mm/yr). A full-rate
+  reef regrows its loss each cycle; a swept one keeps up through the Pliocene's 30 m swings and gives up under the Pleistocene's 70–120 m, as
+  Saya de Malha's shallow production did under its current and the sea level (Betzler et al. 2021). The window is narrow and said so in the
+  knob: `swept` 0.025 drowns the necks by ~25 Ma (channels ~1 km deep), 0.04 leaves them at −64. The members on a neck are swept with it (the
+  karst stepped only for them: a full-rate reef regrows its ~1 m a cycle, and the young province stays the same to the bit).
+- **The platform's history** (`rgPlatform`): each node's relief by its age; steps of 20 kyr to `RG_PL_K.tf` 3 Ma, then `dtf` 5 kyr so the 41
+  and 100 kyr cycles are resolved for the necks' karst and regrowth. `RG_PL` keeps the carbonate too — every node a reef ever held, living or
+  drowned — as a second signed distance and top (`sd2`, `top2`); `rgPlat` lays a drowned flat there (±4 m), the banks' walls stopping on it, its
+  own wall where it meets the plateau, its top read through a ~1.5 km warp so the grid's steps do not show. `rgPlatSd(x, z, true)` is the
+  carbonate's (chunks.js `chRange`: the drowned is the old east's range with the living).
+
+What came of seed 32 (as built, the world's box and 4 km past it): **8,298 km² of banks** — four over 300 km² (4,320, 1,953, 882, 405) round
+the head and down the track, 7,325 of it in the world — **on 12,087 km² of drowned carbonate**, most at −72 m (drowned ~1 Ma), the neck between
+the head and the 25 Ma bank and the one west of 22.3 Ma at ~−1,000 and −430 (drowned earlier). Unswept, the same history is one platform of
+20,385 km². In all the carbonate stands where v11.122's did, two thirds of its area (29,259). Records 86 → 128 (members the disc buried stand
+again, between the banks), struck 77 → 31 (15 by the platform); the 39 members on a neck all drowned (23 guyots, 16 drowned banks at −77). No
+land east of 125 km but the rims' islets (~100 km²). **The ±70.5 km world:** its ground the same to the bit (53,361 places); its fields differ at
+734 of them (1.4%) through the islands' shelter of each other (v11.117) — what stands east of it changed. Ours and the pins untouched.
+**Cost:** `rgPlatform` 240 → 430 ms at load (the 5 kyr steps since 3 Ma); the region model the same.
+
+- **Tests:** test/region.js re-pinned to the chain — the platform a chain (≥3 banks over 300 km², living 5,000–25,000 km², the drowned past
+  5,000), the wall onto the plateau or 30 m onto the drowned carbonate, the rim within 20 m at 75% (80% to v11.125: the necks' sides), 15
+  buried, one margin per reef on the living rims (a drowned member's lies under the drowned flat), the lagoon's blue holes over more places, the
+  founder m2 on the carbonate, a ring outside its foot allowed for a member a centre lifted after its birth (m38, born at the 22.3 pulse); new:
+  the relief (7 centres, nothing within ±70.5 km), the drowned carbonate's top (median −72), the drowning the necks' (unswept, nothing drowns),
+  no living member on a neck and nothing over +10 m in the east.
+
+Seen: the model's whole platform against the world (`rgPlatform` over a box widened 250 km), its history as a time-lapse (the head an island
+29–25 Ma, the necks swept from their founding, drowned between 1 and 0.5 Ma), the world's map and the east at 150 km (`SPAN=150000 CX=225000
+CZ=40000 node test/map.js`): rimmed banks on a drowned flat, a deep drowned basin and a channel. **Unseen, ask in this order:** a bank's rim and
+the drowned flat beyond it from the water (`tp(223000,9000,-1)`, the rim, then swim west off it onto the flat at −72) — whether a 70 m drop
+onto a flat reads as a bank's edge; the deep drowned neck from the rim above it (`tp(236000,22000,-10)`, then south: −20 to −1,100 m in 3 km); whether the boot feels slower; the banks' rims face their drowned flats as
+they face the open sea — step 2 (margins by side and size) is next.
+
+## v11.127 — the banks' margins by their side and their size (13 Nov 2026)
+
+Step 2 of the platform review (`analysis_archipelago.md` §8.5; the person, 13 Nov 2026: "follow Earth's pattern for this size", "go ahead with
+step 2"). To v11.126 every bank's margin was the same all round — a rim at the sea with islets on half of it wherever the noise allowed, a plane
+at 42° outside, a lagoon 50 m deep in every bank. Earth's margins differ by their side: the windward rims of the Bahamas carry their islands,
+Saya de Malha's east (windward) flat stands at 30–35 m and its west at 50–55 behind 230 km of bank, a windward margin is a wall and a leeward one
+a slope of the sand the bank sheds (the Great Bahama Bank's west has built out 25 km since the late middle Miocene); and an atoll's lagoon
+deepens with its size (Purdy & Winterer 2001, Gischler et al. 2014).
+
+- **The side** (region.js `rgPlat`): `e`, how squarely a margin faces the trade swell, by its outward normal against `WIND_A`. A windward crest
+  stands at the reef's top, its flat broader (`crest` × 0.7–1.3) and its passes fewer; a lee crest lies under the sea by the bank's shallows
+  upwind of it — `RG_PL_K.leeD` 50 m × (1 − e^(−fetch/`leeF` 120 km)), never deeper than the lagoon's floor + 15 — its islets gone with its
+  depth. Outside, the windward wall is the atolls' (v11.123: the reef flat's edge, the terrace, a wall to −122, the bench, the wall to −580, the
+  talus 35° easing to 17°, `wf`), the lee a slope of 15° easing to 7° (`lf`); the wall's hard spurs (`carb`) windward only.
+- **The fetch** (`rgPlatform`, `RG_PL.fe`): at every node, the run of a bank's shallows upwind of it (against `WIND_A`), past at most two nodes of
+  its wall — 0 on a windward margin, the bank's breadth on a leeward one.
+- **The size** (`RG_PL.lg`): each bank's lagoon by `rgLagD` of the disc of its area — 57 m in the 4,320 km² bank, 52, 47, 43 and 41 in the next
+  (50 for all to v11.126) — carried outward with the top.
+- **`rgFlank`:** `rgRadial`'s flank as a function, the platform's walls reading it too (the atolls the same to the bit).
+- **A fix to v11.126:** its carbonate field held the living banks too, at the sea, so just outside a living margin its old 42° wall from the sea
+  stood over whatever the margin drew. It holds the drowned alone now; `rgPlatSd(x, z, true)` is the greater of the living's and the drowned's.
+
+What came of it (seed 32, the margin crossings in the world): the windward crest a median +3 m (islets at 76 of 107 crossings, 49 to v11.126),
+the lee −8 (islets at 4 of 123, 65 to v11.126) — −12 behind under 15 km of bank, −25 behind over 40; 1.5 km out onto the plateau the ground
+lies 565 m under a windward crest and 291 under a lee one (1,100 to v11.126). Across the big bank at z 60 km: the lee edge at −29 falling ~900 m
+over 8 km (6°), the windward rim with its islets stepping down onto the drowned flat. Land east of 125 km 114 km² (123 to v11.126). Nothing else
+moved: the ±70.5 km world the same to the bit, ground and fields (against v11.126); the banks, the drowned carbonate and the records as they were.
+
+- **Tests:** test/region.js the crest by its side (windward at the sea with most islets, the lee deeper behind more bank), the wall by its side
+  (the lee's drop under three quarters of the windward's), each bank's lagoon by `rgLagD` of its area; the test reads `WIND_A`.
+
+Seen: the east (`SPAN=150000 CX=225000 CZ=40000 node test/map.js`) and the big bank's lee side (`SPAN=50000 CX=180000 CZ=60000`): the lee
+edge's long slope with no islets, the windward rim with them. **Unseen, ask in this order:** the lee edge from the water (`tp(164000,60000,-1)`,
+then swim west down the slope) — whether a margin with no rim reads as a bank's edge or as nothing; the windward rim (`tp(227300,60000)`, an
+islet) and its wall; whether the lagoons of the small banks (41–47 m) and the big one (57) read different.
+
+## v11.128 — the atolls' rims by the wind (13 Nov 2026)
+
+The province review's §3.3 and §5 #9 (`analysis_archipelago.md`; the person, 13 Nov 2026: "yes do the atolls' rims by the wind next"). An
+atoll's islets and passes fell by angular noise alone, the same all round; Earth's atolls carry their islets (motu) on the windward rim, a
+broad reef flat the waves build, and their leeward rim is narrower, submerged and cut by passes. v11.127 gave the platform's banks that rule;
+this gives it to the model's atolls, banks and barrier reefs.
+
+- **world.js `islandH`:** a model reef's rim (`R.patch`) by its side — `expoW`, the shore the waves strike: windward a broader flat (`rimW` ×
+  0.7–1.3) at the reef's top, its passes fewer; leeward the crest under the sea by the chord of its own lagoon upwind (`REEF_LEE`: 50 m ×
+  (1 − e^(−fetch/120 km)), never deeper than the lagoon's floor + 15 — a 5 km ring's lee ~4 m down), its islets fading with the depth, its
+  passes more. A high island's barrier the same (Bora Bora's motu to windward, its pass to leeward). **Ours** (no `R.patch`) is its basalt rim
+  as it was, to the bit.
+- **`REEF_LEE`** (world.js): v11.127's law in one place; region.js `RG_PL_K.leeD`, `leeF` read it.
+
+What came of it (the 47 living atolls, banks and barriers in the world, 48 rays each): windward the crest a median +1.7 m with islets on 56% of
+rays (31% to v11.127), leeward −12 m with islets on 4% (34%); land the same (1,590 km² in the ±70 km world, the islets moved, not lost). m88
+(72.6, 27.4 km): its motu along the east and south-east rims now, the west rim a submerged flat (to v11.127 islets west, north and south-east).
+The giant's barrier, drowned at −44, a little deeper in its lee (−55 against −41). **Ours' square the same to the bit** (29,929 places, ground
+and fields); the ±70.5 km world's ground differs at 1,023 of 53,361 places (1.9%) — the atolls round ours, drowned in the shield's moat since
+v11.121, their lee rims narrower and lower — the east at 143 of 18,271.
+
+- **Tests:** test/region.js the rims by their side on the living reefs (windward at the sea with most islets, the lee under it with few).
+
+Seen: m88 before and after (`SPAN=14000 CX=72600 CZ=27400 node test/map.js`); the atolls round ours (no islets either way, drowned). **Unseen,
+ask in this order:** m88 from its windward rim (`tp(77000,27400)`, on its motu) and its lee (`tp(67600,27400,-1)`, over the submerged lee crest at −25) —
+whether the difference reads from the water; whether the lagoons' patch reefs that reach the sea (v11.123) now look out of place beside a lee rim
+that does not.
+
+## v11.129 — the volcanoes on the old fracture zones as ovals (13 Nov 2026)
+
+The province review's §3.3 (`analysis_archipelago.md`; the person, 13 Nov 2026: "yes please let's do 1"). Every record was round — a ring warped
+±16% — though the region model draws 45% of its births onto the old fracture zones (`fracPull`; 71 of 157 members). Earth's atolls are long on
+their volcano's line (Rangiroa 80 × 32 km) because the volcano is: a shield on a rift or a fissure is elongate (Hawaii's rift zones, La Palma's
+Cumbre Vieja, the Galápagos lineaments).
+
+- **region.js `RG_OVAL`, `rgRecord`:** a member born on a fracture zone (`m.frac`) is an oval along it — its record turned to the zones' heading
+  (`K.fracA` ± 0.2 rad), squeezed across by its aspect (`a0`–`a1`, 1.3–2.4, by a draw of its own id: no other draw moves) and stretched along by
+  its root, so its area and volume are the round one's. The pins and a tuned member (the awesome shield) stay round. `land` (true): a member with
+  land today takes it too — false keeps the islands round.
+- **world.js `islandH`, `islandW`:** the squeeze in the record's frame (`R.asq`, after `rot` and `sc`); the wind's and the current's aspect by the
+  world bearing from the centre on an oval.
+- **Which members are records, and which bury which, stays decided by the round footprint of the same area**, so no record's place in the list,
+  nor its noise seed (`ns`), moves: the 128 records and their ids and seeds are v11.128's.
+- **Fixed with it — a record's bound table read by world distance:** `sample()` indexed `R.hi` (built by the record's own radius) by the world
+  distance, and compared `R.quiet` with it; right only while `sc` was 1, as every record's was. Both read the world distance over `sc` now (never
+  more than the record's own radius, so the skip stays exact); a round record the same doubles.
+- **The shapes' other readers:** `rgMargins` (one margin per reef) places a reef's rim and reads another's lagoon in each record's own frame
+  (`rgLoc`, `rgAt`, `rgAlong`; two round ones by their old arithmetic, to the bit); the islands' shelter of each other (`shelterBuild`) takes
+  each one's half-width across the wind and the current and its half-length along them (`shSupport`, `shRadius`; a round one's all `shWidth`).
+
+What came of it (seed 32): 55 of the 128 records oval (26 atolls, 8 drowned banks, 13 guyots, 2 banks; m138 — the 545 m island 20 km north of
+ours, aspect 1.64 — m154 1.33, and the rim islands m122 1.91, m155 1.39, m125 1.38). The atolls round ours (m141, m146, m147) a line of ovals; in
+the east long lagoons along the grain. Land the same (1,591 km² in the ±70 km world; an oval island's 63.5 km² against its round 62.9). **Ours'
+square the same to the bit** (ground and fields); the ±70.5 km world's ground differs at 12% of places, its fields at 33% (the shelter's new
+shadows).
+
+- **Tests:** test/region.js the ovals (55, along the zones' heading, area kept, the rim on 204 of 240 rays of their own frames; ours, the giant
+  and the shield round); the bound tables read as `sample()` reads them (by the world distance over `sc`); the barriers' lagoon check half-way
+  out in each record's frame; test/plankton.js m148's fed-flank site moved in to its shelf break, 0.8 km out (m148 an oval, aspect 2.26, the current
+  coming across its axis; 1.1 km to v11.128).
+
+Seen: the near world (`SPAN=120000 CX=0 CZ=0 node test/map.js`) and m138 (`SPAN=24000 CX=-4000 CZ=-19000`): an oval island, its shelf and its
+drowned fringe following it, the gullies still to its summit. **Unseen, ask in this order:** the view north from ours — m138 is longer and
+narrower now (`tp(0,0)`, on ours, look north); m122's long lagoon (`tp(41500,-20700,-1)`); whether the ovals' line along the grain reads, or too
+regular (one heading ± 11°).
+
+## v11.130 — the fed rule by its time (13 Nov 2026)
+
+The province review's §2.6 and §5 #11, its timing half (`analysis_archipelago.md`; the person, 13 Nov 2026: "do 3a"). A member on the fed face —
+the current bringing the open ocean's nutrient in, the weed taking its shallows, no reef — was decided once for its whole history: fed unless any
+member upstream (within `fedL`, across its own foot) could ever stand above −300 m, judged by today's floor (−1,100) and whenever it was born. So a
+shelter born 10 Myr after a member sank still counted, and in the old east, whose plateau stood shallow then and deep now, almost nothing did.
+
+- **region.js `regionModel`:** each member's upstream ones (`m.up`: the same geometry) shelter it only while one of them stands in the light — its
+  top within `K.photic` of the sea, the history's own `litNow`, a step behind. Fed now: no reef takes hold, and a living one stops growing
+  (`fedK` 0, still open with the person, as is which way the island-mass effect turns the rule: §2.6, the review's 3b). `m.fed` is today's
+  (region.html's story reads it).
+
+What moved (seed 32): fed today 32 → 26 (12 guyots, 10 drowned banks, 3 atolls, the active shield); guyots 44 → 29, atolls 69 → 86, drowned 18 →
+20, banks 11 → 7; 29 members changed state, most of them guyots in the middle province become atolls (x 120–240 km), their old shelter now
+counted in its time. Near ours: m115 (29 km east) and m137 atolls become guyots, m136 a guyot become an atoll, m150 a low island become a rim.
+Records 128 → 130, struck 31 → 29 — the list changed, so the records after a change take new noise seeds (`ns` is a record's place in the
+list): the ±70.5 km world's ground differs at 8% of places. **Ours' square the same to the bit.**
+
+- **Tests:** test/region.js fed today exactly where nothing upstream stands in the light (26, none otherwise), the pins never. test/horizon.js:
+  m150, 62 km west, is a 4 m rim island now, seen 13 km off from the water at ours, not ~30 (still not queued there; still queued from the
+  awesome shield's summit).
+
+Seen: the province's states before and after, member by member. **Unseen, ask in this order:** the middle province's new atolls from the water
+(m70 `tp(141000,-39000,-1)`); whether a record's noise seed should follow its member's id rather than its place in the list, so a change to one
+member stops reseeding the others (one change to every record once, then none).
+
+## v11.131 — young cones on old islands (13 Nov 2026)
+
+The province review's §2.7 and §5 #8 (`analysis_archipelago.md`; the person, 13 Nov 2026: "do 2"). The model drew every cone from the plateau, so
+a member born on an older one's flank was a cone inside a cone, and the records struck it when its top stayed under its neighbour's ground (14 of
+v11.130's 29 burials; the other 15 the platform's). On Earth it erupts onto the flank: a satellite cone, or on an old island the rejuvenated stage
+(Diamond Head and Punchbowl on 2.6–3.7 Ma Oahu).
+
+- **region.js `regionModel`:** a member's host is the older one whose foot it is born inside (nearer than the host's radius less half its own),
+  bigger, its shield built before this one's birth, standing highest there by their 12° shapes. A vent on a shield still growing has no host — it
+  is that shield's flank and is buried as before (a first cut without this raised m139 on the growing m138, lifted its reef 100 m out of the sea
+  and left its rock at −5 m over a reef drowned at −94). Each step a satellite's base is its host's surface there (`m.off` over its own; the
+  host's summit falling straight to its base at its radius), so it sinks and wears with the host. The pins have none.
+- **`rgRecord`:** a satellite's record carries `R.sat` (`b` its base today, `k` 3, `host`). On land (its base above the sea) its land runs from
+  its summit down to its base (`land.b`, `h0` the base), the shore where the cone meets its pedestal, no wave-cut terraces (it never met the sea).
+- **world.js `islandH`:** below its base a satellite's flank falls `k` times steeper — the skirt where its cone meets the host's slope, the host's
+  record giving the ground beyond. The land's relief is over `h0` (`LH`).
+- **`rgBuild`:** a satellite never buries its own host; one on land worn to within 20 m of its base is its host's ground (struck by it). The
+  burier is read in its own frame (`rgLoc`): to v11.130 by the round distance, which buried members on an oval's narrow side that stand clear of
+  it — m135, m84, m47 and m51 are records again.
+
+What moved (seed 32, 159 members): 16 satellites, 14 of them records. **m151 on m138:** a 714 m cone on the 545 m island 20 km north-north-west of
+ours, its base at 295 m (to v11.130 a −330 m guyot struck inside m138). The rest are atolls, banks and guyots on old atolls in the middle and east,
+most 80–220 m higher than they were; the three on m27 (190 km east) 25–45 m lower (longer at the sea, longer planed). One member changed but not a
+satellite: m137 (40 km) an atoll at −388, not a guyot — m151 stands in the light upstream of it now (v11.130's rule). Records 130 → 136 (in: m151,
+m126, m129, m44 and the four above; out: m124 and m110), struck 29 → 23. Ours' chain from the founder 20 → 21 hops (m129, lit on m122, joins
+it); every record within 50 km of ours still the west's range. The list changed, so the records after a change take new noise seeds: the ±70.5 km
+world's ground differs at 14% of a 1 km lattice. **Ours' square the same to the bit.**
+
+- **Tests:** test/region.js the satellites (each host older, bigger, finished and under it; the records' `sat` the model's; on land a cone on its
+  host's land all round at 1.3× its shore, its summit standing; no host buried by its own satellite); ours 21 hops.
+
+Seen: the province before and after, member by member; m151's ground (657 m at its centre, its caldera; its host's land on 24 of 24 rays round it).
+**Unseen, ask in this order:** the view north from ours (`tp(0,0)`): m138 with a 714 m cone on its north-west end; whether the skirt (3× steeper
+below its base) reads as a cone standing on a slope or as a step; m151 close (`tp(-7000,-19000)`, on its flank).
