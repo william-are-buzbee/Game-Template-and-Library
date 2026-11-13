@@ -312,6 +312,7 @@ read as search extracts (the papers' hosts were outside the session's network); 
 - **The east: a chain of banks** (not one platform with channels and basins).
 - **The rim: Earth's pattern for this size.**
 - **The box: OK for now** — "eventually we expand".
+- **The way to a chain (§8.4): (a), drowned saddles.**
 
 **8.4 What a chain can be on this plate (a prototype, scratch only).** The plateau given relief before the reef sees it, `rgPlatform` re-run
 (its box widened, the members and the floor as built):
@@ -335,8 +336,8 @@ Saya de Malha's scale need something more:
 - **(c) smaller centres** (12–15 km): banks of a few hundred km², which is what the members' atolls already are;
 - **(d) a faster plate** (`v`): every member's age and place, the pins re-tuned — a province of its own.
 
-**Open with the person:** which of (a)–(d). Recommended: (a) — Earth's own way of breaking platforms this size, and it is answer 2's partial
-drowning too.
+**Answered (13 Nov 2026): (a), drowned saddles** (recommended: Earth's own way of breaking platforms this size, and answer 2's partial
+drowning too). The person: "I am happy to test new world generation however it comes out, but the goal is clear".
 
 **8.5 The build these set** (after §8.4's answer; one version and one pull request each):
 1. **The head's relief** — `platW`'s flat disc replaced by a lowered head with volcanic centres at the plume's pulses along the track
