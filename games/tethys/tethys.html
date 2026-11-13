@@ -2473,7 +2473,7 @@ function updateShadowS(dt,force){ // after updateShadow (shadowFrame has run); f
   try{renderer.setRenderTarget(shsRT);renderer.render(scene,camS);}catch(e){console.warn('world shadows: '+e.message);}
   renderer.setRenderTarget(rt);renderer.shadowMap.enabled=en;
   for(let i=0;i<shsVis.length;i+=2){const ch=shsVis[i];ch.group.visible=shsVis[i+1];for(const m of ch.flora)m.castShadow=false;for(const m of ch.shBig)m.castShadow=false;if(ch.terrain)ch.terrain.castShadow=false;}
-  for(const m of LMK.meshes)m.castShadow=false;for(const P of POOLS.values()){P.im.castShadow=false;P.im.count=P.nVis;}shsVis.length=0;
+  for(const m of LMK.meshes)m.castShadow=false;for(const P of POOLS.values()){P.im.castShadow=false;P.im.count=P.nDraw;}shsVis.length=0;
   shMapSU.value=sunS.shadow.map?sunS.shadow.map.texture:null;SHS_P[1]=sunS.shadow.map?1:0;
   shsDirty=false;shsT=SHS_GAP;shsN++;shsMs=performance.now()-t0;
 }
@@ -2498,10 +2498,21 @@ const LIGHT_GLSL=LIGHT_FX?'\n#ifdef USE_FOG\n{float dep=uTint.x-vFogPos.y;if(uSu
 const LIGHT_PARS=CAU_PARS+'uniform float uTime;uniform float uChop;uniform vec4 uSunW;uniform vec2 uLightK;uniform sampler2D uShMap;uniform mat4 uShMat;uniform vec4 uShP;uniform vec4 uShL;uniform sampler2D uShMapS;uniform mat4 uShMatS;uniform vec4 uShPS;uniform vec4 uShLS;\n'+
   'float shDepth(vec4 v){return dot(v,vec4(0.99609375/16777216.0,0.99609375/65536.0,0.99609375/256.0,0.99609375));}\n'+
   'float shTap(sampler2D m,vec2 uv,float z,float fd){float dz=z-shDepth(texture2D(m,uv));return dz>0.0?exp(-dz*uShL.w/fd):0.0;}\n'; // both maps are 2·SHM_D deep, so uShL.w serves the world's too
+// A vertex that draws nothing leaves the shader at once (v11.125): GONE puts it outside every clip plane and returns, before three's lighting,
+// the fog and the tint's own vertex work, so all its triangles are dropped as the collapse to the instance's origin dropped them (degenerate),
+// at the cost of a branch. Three such: a pooled instance out of sight (chunks.js poolCull, `aHide` AHIDE — in every tinted material, so every
+// pool's has it; an instanced mesh without the attribute reads WebGL's default 0, shown, as a geometry without `vid` does — AHIDE is 2, not 1,
+// because the one other value a missing attribute can read is r128's (1,1,1) for a ShaderMaterial's missing `color`, set on whatever location
+// that program gave it; not in the shadow pass, which draws every block, seen or not: updateShadowS), a species' other variants (VAR_COLLAPSE — two thirds of every flora vertex) and
+// a small plant past FLORA_FAR (FAR_CUT). To v11.124 the last two set the vertex to the origin and ran the rest of the shader on it.
+const GONE='{gl_Position=vec4(2.0,2.0,2.0,1.0);return;}';
+const AHIDE=2;
+const HIDE_V='#ifdef USE_INSTANCING\nattribute float aHide;\n#endif\n',HIDE_GLSL='\n#if defined(USE_INSTANCING)&&!defined(DEPTH_PASS)\nif(aHide>1.5)'+GONE+'\n#endif\n';
 function addTint(m,key,small,band,grid,cls){ // grid (v11.40): 'world' puts the de-res texels on the world grid; default the object's or instance's own. cls (v11.41): the texel pattern's class — terr, rock, plant, blade, card, body (PIX_CLASS)
   const prev=m.onBeforeCompile;
   m.onBeforeCompile=function(sh){
     if(prev)prev.call(m,sh);
+    sh.vertexShader=HIDE_V+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>'+HIDE_GLSL); // before the material's own code at begin_vertex (prev put it there first)
     sh.uniforms.uTint=tintU;if(small)sh.uniforms.uFogP={value:FOG_PS};
     const lit=LIGHT_FX&&key!=='glow';if(lit){sh.uniforms.uTime=timeU;sh.uniforms.uChop=chopU;sh.uniforms.uSunW={value:SUN_W};for(let i=0;i<CAU_TEX.length;i++){sh.uniforms['uCauS'+i]={value:CAU_TEX[i].s};sh.uniforms['uCauC'+i]={value:CAU_TEX[i].c};}sh.uniforms.uCauG={value:CAU_GTEX};sh.uniforms.uPix=pixU;sh.uniforms.uTex=texU;sh.uniforms.uTexL=texLU;sh.uniforms.uWindOff=windOffU;sh.uniforms.uLightK=lightKU;sh.uniforms.uShMap=shMapU;sh.uniforms.uShMat=shMatU;sh.uniforms.uShP=shPU;sh.uniforms.uShL=shLU;sh.uniforms.uShMapS=shMapSU;sh.uniforms.uShMatS=shMatSU;sh.uniforms.uShPS=shPSU;sh.uniforms.uShLS=shLSU;}
     sh.vertexShader='varying float vWy;'+(lit?'varying vec3 vGrid;':'')+(lit&&cls==='body'?'varying vec3 vPat;\n#ifndef USE_INSTANCING\nattribute vec3 aPat;\n#endif\n':'')+'\n'+(lit?sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvec3 pGrid=transformed;'):sh.vertexShader).replace('#include <worldpos_vertex>','#include <worldpos_vertex>\n{vec4 wpp=vec4(transformed,1.0);\n#ifdef USE_INSTANCING\nwpp=instanceMatrix*wpp;\n#endif\nvWy=(modelMatrix*wpp).y;'+(lit?PIX_GRID_V(grid):'')+(lit&&cls==='body'?'\n#ifdef USE_INSTANCING\nvPat=vec3(0.0);\n#else\nvPat=aPat;\n#endif\n':'')+'}');
@@ -2571,15 +2582,15 @@ const LEAN=3.0;
 // Species variants (grow.js): a flora geometry carries `vid` per vertex (which of its three variants a vertex belongs to) and the
 // cell gives every instance `aVar`; vertices of the other variants collapse to the instance origin — degenerate triangles, no fill,
 // one draw call per species. A geometry without `vid` (rocks, the kept plants) reads 0 for both and is untouched.
-const VAR_GLSL='attribute float vid;attribute float aVar;\n',VAR_COLLAPSE='if(abs(vid-aVar)>0.5)transformed=vec3(0.0);',
-  VAR_BRANCH='if(abs(vid-aVar)>0.5){transformed=vec3(0.0);}else'; // in the sway shader the collapse comes first so a collapsed vertex skips the disturbance loop (two thirds of the vertices are collapsed; the loop is the cost)
+const VAR_GLSL='attribute float vid;attribute float aVar;\n',VAR_COLLAPSE='if(abs(vid-aVar)>0.5)'+GONE+'\n',
+  VAR_BRANCH=VAR_COLLAPSE; // in the sway shader the collapse comes first so a collapsed vertex skips the disturbance loop (two thirds of the vertices are collapsed; the loop is the cost); since v11.125 it skips everything after it (GONE)
 // The flora's draw distance (v11.12). Small flora is collapsed per instance in the shader beyond FLORA_FAR (the variants' trick:
 // nothing drawn, and nothing pops as a cell), and a cell whose nearest edge is past it hides its instanced meshes and turns its far
 // impostors on (chunks.js cullChunks, far.js farApplyCell). At 450 the veil leaves 6.6% contrast (world.js SEA_FOG), so what goes was
 // already a ghost. The stipe, bladder, raft, colony and tidal-tree materials are not cut: their cards take over when the cell hides.
 // Measured in the shelf's weed forest on an RTX 4060, 1600x900: 6.3 → 3.0 ms a frame with the loop guard below, draws 418 → 263.
 const FLORA_FAR=450;
-const FAR_CUT='\n#ifdef USE_FOG\nif(distance((modelMatrix*vec4(instanceMatrix[3].xyz,1.0)).xyz,uFogC)>'+FLORA_FAR.toFixed(1)+'){transformed=vec3(0.0);}else\n#endif\n'; // uFogC: the camera (fog_pars_vertex)
+const FAR_CUT='\n#ifdef USE_FOG\nif(distance((modelMatrix*vec4(instanceMatrix[3].xyz,1.0)).xyz,uFogC)>'+FLORA_FAR.toFixed(1)+')'+GONE+'\n#endif\n'; // uFogC: the camera (fog_pars_vertex)
 // The disturbance loop runs only for plants within DIST_R of the camera: every disturber is within 70 of it (physics.js
 // updateDisturbers) plus a body. It ran for every vertex of every plant to the far plane; this alone was 6.3 → 4.6 ms in the forest.
 const DIST_R=90,DIST_GUARD='\n#ifdef USE_FOG\nif(distance(base,uFogC)<'+DIST_R.toFixed(1)+')\n#endif\n';
@@ -10124,53 +10135,74 @@ function poolSnap(px,pz){if(!ORIGIN.on||(Math.abs(px-ORIGIN.x)<ORIGIN.snap&&Math
 function originOf(x0,z0){return ORIGIN.on?[x0,z0]:[0,0];}
 function instLocal(im,list,ox,oz,get){const a=im.instanceMatrix.array;for(let i=0;i<list.length;i++){const e=get(list[i]).elements;a[i*16+12]=e[12]-ox;a[i*16+14]=e[14]-oz;}}
 const POOL_SPHERE=new THREE.Sphere(new THREE.Vector3(0,0,0),2*Math.max(-WX0,WX1,-WZ0,WZ1)+2000);
-function poolFor(f,geo,mat,vars,cur){let P=POOLS.get(f);if(P)return P;P={f:f,src:geo,mat:mat,vars:!!vars,cur:cur,cap:0,n:0,nVis:0,blocks:[],geo:null,im:null};poolAlloc(P,Math.max(64,Math.round((f.per||60)*Q.flora*12)));POOLS.set(f,P);return P;}
+function poolFor(f,geo,mat,vars,cur){let P=POOLS.get(f);if(P)return P;P={f:f,src:geo,mat:mat,vars:!!vars,cur:cur,cap:0,n:0,nVis:0,nDraw:0,calm:0,blocks:[],geo:null,im:null};poolAlloc(P,Math.max(64,Math.round((f.per||60)*Q.flora*12)));POOLS.set(f,P);return P;}
 function poolAlloc(P,cap){ // the pool's mesh at capacity cap, what is written carried over; the old geometry disposed
   const old=P.im,g=P.src.clone();
   if(P.vars)g.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(cap),1));
   if(P.cur){g.setAttribute('aCur',new THREE.InstancedBufferAttribute(new Float32Array(cap*2),2));g.setAttribute('aTide',new THREE.InstancedBufferAttribute(new Float32Array(cap*2),2));}
+  g.setAttribute('aHide',new THREE.InstancedBufferAttribute(new Float32Array(cap).fill(AHIDE),1)); // v11.125: AHIDE an instance out of sight (poolCull), read first by every tinted material's vertex shader (scene.js HIDE_GLSL)
   const im=new THREE.InstancedMesh(g,P.mat,cap);im.frustumCulled=false;im.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(cap*3),3);
   if(old){const n=P.n;im.instanceMatrix.array.set(old.instanceMatrix.array.subarray(0,n*16));im.instanceColor.array.set(old.instanceColor.array.subarray(0,n*3));
-    if(P.vars)g.attributes.aVar.array.set(old.geometry.attributes.aVar.array.subarray(0,n));if(P.cur){g.attributes.aCur.array.set(old.geometry.attributes.aCur.array.subarray(0,n*2));g.attributes.aTide.array.set(old.geometry.attributes.aTide.array.subarray(0,n*2));}
+    if(P.vars)g.attributes.aVar.array.set(old.geometry.attributes.aVar.array.subarray(0,n));if(P.cur){g.attributes.aCur.array.set(old.geometry.attributes.aCur.array.subarray(0,n*2));g.attributes.aTide.array.set(old.geometry.attributes.aTide.array.subarray(0,n*2));}g.attributes.aHide.array.set(old.geometry.attributes.aHide.array.subarray(0,n));
     poolGroup.remove(old);old.geometry.dispose();old.dispose();}
-  im.count=P.nVis;P.geo=g;P.im=im;P.cap=cap;shadowCaster(im,P.mat,POOL_SPHERE);poolGroup.add(im);
+  im.count=P.nDraw;P.geo=g;P.im=im;P.cap=cap;shadowCaster(im,P.mat,POOL_SPHERE);poolGroup.add(im);
 }
-function poolTouch(P,s,c){ // the range [s,s+c) uploaded at the next draw, joined to a range still pending
-  const up=(a,sz)=>{const r=a.updateRange;if(r.count>0){const lo=Math.min(r.offset,s*sz),hi=Math.max(r.offset+r.count,(s+c)*sz);r.offset=lo;r.count=hi-lo;}else{r.offset=s*sz;r.count=c*sz;}a.needsUpdate=true;};
-  up(P.im.instanceMatrix,16);up(P.im.instanceColor,3);if(P.vars)up(P.geo.attributes.aVar,1);if(P.cur){up(P.geo.attributes.aCur,2);up(P.geo.attributes.aTide,2);}
+function poolUp(a,s,c,sz){const r=a.updateRange;if(r.count>0){const lo=Math.min(r.offset,s*sz),hi=Math.max(r.offset+r.count,(s+c)*sz);r.offset=lo;r.count=hi-lo;}else{r.offset=s*sz;r.count=c*sz;}a.needsUpdate=true;} // one attribute's range [s,s+c) uploaded at the next draw, joined to a range still pending
+function poolTouch(P,s,c){ // every attribute's range [s,s+c)
+  poolUp(P.im.instanceMatrix,s,c,16);poolUp(P.im.instanceColor,s,c,3);if(P.vars)poolUp(P.geo.attributes.aVar,s,c,1);if(P.cur){poolUp(P.geo.attributes.aCur,s,c,2);poolUp(P.geo.attributes.aTide,s,c,2);}poolUp(P.geo.attributes.aHide,s,c,1);
 }
 function poolAdd(P,ch,rng,tints,list,mat){ // the cell's instances as one block at the pool's end (the rng in makeInstanced's order: the tint's pick, then three jitters)
   if(P.n+list.length>P.cap)poolAlloc(P,Math.max(P.cap*2,P.n+list.length));
-  const s=P.n,M=P.im.instanceMatrix.array,C=P.im.instanceColor.array,V=P.vars?P.geo.attributes.aVar.array:null,A=P.cur?P.geo.attributes.aCur.array:null,B=P.cur?P.geo.attributes.aTide.array:null;
+  const s=P.n,M=P.im.instanceMatrix.array,C=P.im.instanceColor.array;P.geo.attributes.aHide.array.fill(AHIDE,s,s+list.length);const V=P.vars?P.geo.attributes.aVar.array:null,A=P.cur?P.geo.attributes.aCur.array:null,B=P.cur?P.geo.attributes.aTide.array:null;
   for(let i=0;i<list.length;i++){const p=list[i],k=s+i;M.set(p.m.elements,k*16);M[k*16+12]=p.m.elements[12]-ORIGIN.x;M[k*16+14]=p.m.elements[14]-ORIGIN.z;let tc=p.tint||tints[Math.floor(rng()*tints.length)];const q=p.chem;if(q)tc=[lerp(tc[0],q[0],q[3]),lerp(tc[1],q[1],q[3]),lerp(tc[2],q[2],q[3])];C[k*3]=tc[0]*(0.85+rng()*0.25);C[k*3+1]=tc[1]*(0.85+rng()*0.25);C[k*3+2]=tc[2]*(0.85+rng()*0.25);if(V)V[k]=p.v; // chem (v11.67): the place's stain over the pick (grow.js tintBy), before the jitter
     if(A){if(p.y>0.5||mat.land){A[k*2]=A[k*2+1]=B[k*2]=B[k*2+1]=0;continue;}steadyOf(ch,p.x,p.z,p.y+8,CURV);A[k*2]=CURV.x;A[k*2+1]=CURV.z;tidalAt(p.x,p.z,CURV);B[k*2]=CURV.x;B[k*2+1]=CURV.z;}} // nothing on land (the tussock) leans to the water
-  P.n+=list.length;P.blocks.push({ch:ch,start:s,count:list.length,vis:false});ch.pooled.push(P);poolTouch(P,s,list.length); // hidden until poolCull sees its cell (this frame: cullChunks runs after the streaming)
+  P.n+=list.length;P.blocks.push({ch:ch,start:s,count:list.length,vis:false});ch.pooled.push(P);poolTouch(P,s,list.length); // hidden (aHide AHIDE, past nDraw) until poolCull sees its cell (this frame: cullChunks runs after the streaming)
 }
 function poolRemove(P,ch){ // the cell's block out: the tail moved down over it, the blocks after it re-based
   const bi=P.blocks.findIndex(b=>b.ch===ch);if(bi<0)return;const b=P.blocks[bi],e=b.start+b.count,n=P.n;
-  if(e<n){const mv=(a,sz)=>a.copyWithin(b.start*sz,e*sz,n*sz);mv(P.im.instanceMatrix.array,16);mv(P.im.instanceColor.array,3);if(P.vars)mv(P.geo.attributes.aVar.array,1);if(P.cur){mv(P.geo.attributes.aCur.array,2);mv(P.geo.attributes.aTide.array,2);}
+  if(e<n){for(const [a,sz] of poolArrays(P))a.copyWithin(b.start*sz,e*sz,n*sz);
     for(let i=bi+1;i<P.blocks.length;i++)P.blocks[i].start-=b.count;}
-  P.blocks.splice(bi,1);P.n-=b.count;if(b.vis){P.nVis-=b.count;P.im.count=P.nVis;}if(e<n)poolTouch(P,b.start,P.n-b.start);
+  P.blocks.splice(bi,1);P.n-=b.count;if(b.vis)P.nVis-=b.count;P.nDraw=poolEnd(P);P.im.count=P.nDraw;if(e<n)poolTouch(P,b.start,P.n-b.start);
 }
 // v11.52.1: the pools partitioned by sight. The person's readouts on v11.52: the CPU halved and the vsync interval rose (9.3 ms in the forest
 // against 8.7, 16 in the air over it) — a pool drew every loaded cell's instances, behind the camera and all (tris 4.7M → 9.6M), and their GPU
 // had no room for them at their resolution (the pane's gl.finish had said it did: a hidden tab never presents, so it under-reads the GPU;
-// the person's vsync is the truth). So the blocks of the cells in view come first in the arrays and im.count is their total: a block moves
-// to the boundary when its cell comes into or out of view (poolCull, from cullChunks) — a memmove of the span between the two and one ranged
-// upload, a few times a second at most — and the world's shadow pass draws every block (scene.js updateShadowS sets count to n and back).
-function poolArrays(P){const A=[[P.im.instanceMatrix.array,16],[P.im.instanceColor.array,3]];if(P.vars)A.push([P.geo.attributes.aVar.array,1]);if(P.cur){A.push([P.geo.attributes.aCur.array,2]);A.push([P.geo.attributes.aTide.array,2]);}return A;}
-function poolMove(P,i,j){ // block i to index j; the blocks between shift by its count; the span re-based and uploaded
-  if(i===j)return;const B=P.blocks,b=B[i],lo=Math.min(B[i].start,B[j].start),hi=Math.max(B[i].start+B[i].count,B[j].start+B[j].count);
-  for(const [a,sz] of poolArrays(P)){const tmp=a.slice(b.start*sz,(b.start+b.count)*sz);if(i<j){a.copyWithin(b.start*sz,(b.start+b.count)*sz,hi*sz);a.set(tmp,(hi-b.count)*sz);}else{a.copyWithin((lo+b.count)*sz,lo*sz,b.start*sz);a.set(tmp,lo*sz);}}
-  B.splice(i,1);B.splice(j,0,b);let s=lo;for(let k=Math.min(i,j);k<=Math.max(i,j);k++){B[k].start=s;s+=B[k].count;}
-  poolTouch(P,lo,hi-lo);
+// the person's vsync is the truth). So the blocks of the cells in view came first in the arrays and im.count was their total, a block moved to
+// the boundary whenever its cell came into or out of view — a memmove of the whole span between and its upload — and the world's shadow pass
+// draws every block (scene.js updateShadowS sets count to n and back).
+// v11.125: by sight without moving a byte (the person, 12 Nov 2026: "turning your head inside a kelp forest gives a significant lag spike").
+// Turning sweeps the outer cells through the view, and each crossing was that memmove and upload in every pool: in the shelf's forest at
+// (430, 50) — 56 pools, 40k pooled instances — with three r128 in headless Chromium, 36–43 of the 90 frames of a 1.5 s revolution re-sent
+// pool data, up to 2.6 MB, ~200 block moves (a fresh typed array per attribute each) and 3.2 ms of poolCull in one frame; the denser stand at (2042, −18382)
+// 3.6 MB on the headless model. Now a cell crossing the view writes one number per instance of its own
+// blocks, `aHide` (4 bytes, and only that range is uploaded); every tinted material's vertex shader reads it first and a hidden instance
+// leaves at once, drawing nothing (scene.js HIDE_GLSL; the shadow pass ignores it). A pool draws to the end of its last seen block (nDraw), so
+// hidden blocks before it cost their vertices' fetch and a branch; once a pool's flags have stood still for POOL_CALM and more than an eighth
+// of what it draws is hidden, its seen blocks are packed to the front (poolPack, the loosest such pool, one a frame) — after a turn, not during
+// one. (Packing the small pools mid-turn under a byte cap was tried: the hidden instances drawn fell 6%, the bytes sent rose 25-fold — the
+// turf, wisp and rind are most of them, 0.6–1.2 MB a pack.)
+const POOL_CALM=0.4; // s
+function poolArrays(P){const A=[[P.im.instanceMatrix.array,16],[P.im.instanceColor.array,3]];if(P.vars)A.push([P.geo.attributes.aVar.array,1]);if(P.cur){A.push([P.geo.attributes.aCur.array,2]);A.push([P.geo.attributes.aTide.array,2]);}A.push([P.geo.attributes.aHide.array,1]);return A;}
+function poolEnd(P){const B=P.blocks;for(let i=B.length-1;i>=0;i--)if(B[i].vis)return B[i].start+B[i].count;return 0;} // the end of the last seen block: what the pool draws
+let packTmp=new Float32Array(0);
+function poolPack(P){ // the seen blocks first, each side in its old order: one pass from the first block out of place through a scratch copy, one ranged upload
+  const B=P.blocks,O=[];for(const b of B)if(b.vis)O.push(b);for(const b of B)if(!b.vis)O.push(b);
+  let i=0;while(i<B.length&&O[i]===B[i])i++;if(i===B.length)return;
+  const s0=B[i].start,n=P.n;
+  for(const [a,sz] of poolArrays(P)){const len=(n-s0)*sz;if(packTmp.length<len)packTmp=new Float32Array(len);packTmp.set(a.subarray(s0*sz,n*sz));let s=s0;for(let k=i;k<O.length;k++){const b=O[k];a.set(packTmp.subarray((b.start-s0)*sz,(b.start-s0+b.count)*sz),s*sz);s+=b.count;}}
+  let s=s0;for(let k=i;k<O.length;k++){O[k].start=s;s+=O[k].count;}P.blocks=O;
+  poolTouch(P,s0,n-s0);P.nDraw=P.nVis;
 }
-function poolCull(){ // after cullChunks has set every cell's visible and near: the seen blocks first, count their total
-  for(const P of POOLS.values()){const B=P.blocks;let k=0,n=0;
-    for(let i=0;i<B.length;i++){const b=B[i],ch=b.ch;if(ch.group.visible&&ch.near){if(i!==k)poolMove(P,i,k);B[k].vis=true;n+=B[k].count;k++;}else b.vis=false;}
-    P.nVis=n;P.im.count=n;}
+function poolCull(dt){ // after cullChunks has set every cell's visible and near: each block's flags to its cell's sight, the count to the last seen block; the loosest pool packed
+  let best=null,bl=0;
+  for(const P of POOLS.values()){const B=P.blocks,H=P.geo.attributes.aHide;let moved=false;
+    for(let i=0;i<B.length;i++){const b=B[i],ch=b.ch,v=ch.group.visible&&ch.near;if(v===b.vis)continue;b.vis=v;H.array.fill(v?0:AHIDE,b.start,b.start+b.count);poolUp(H,b.start,b.count,1);P.nVis+=v?b.count:-b.count;moved=true;}
+    if(moved){P.calm=0;P.nDraw=poolEnd(P);}else P.calm+=dt||0;
+    const loose=P.nDraw-P.nVis;if(P.calm>=POOL_CALM&&loose*8>P.nDraw&&loose>bl){best=P;bl=loose;}
+    P.im.count=P.nDraw;}
+  if(best){poolPack(best);best.im.count=best.nDraw;}
 }
-function poolStats(){let draws=0,inst=0;for(const P of POOLS.values()){if(P.n>0)draws++;inst+=P.n;}return {pools:POOLS.size,draws:draws,inst:inst};} // the readout (main.js)
+function poolStats(){let draws=0,inst=0,hid=0;for(const P of POOLS.values()){if(P.n>0)draws++;inst+=P.n;hid+=P.nDraw-P.nVis;}return {pools:POOLS.size,draws:draws,inst:inst,hid:hid};} // the readout (main.js); hid (v11.125): instances drawn hidden, not yet packed
 function cellLee(ch){return Math.max(leeW(ch.cx,ch.cz),leeW(ch.x0,ch.z0),leeW(ch.x0+CELL,ch.z0),leeW(ch.x0,ch.z0+CELL),leeW(ch.x0+CELL,ch.z0+CELL));} // the retention field over the cell (v11.81; cellCanopy to v11.80)
 // a generator (v11.12): turf is 1200 tries a cell and the strap 2400, an envW and an fbm each; a yield every 200 keeps a step under the budget (the rng is untouched by a yield)
 // the cell's lineage range (v11.119, region.js rangeBuild): the record whose ground the cell's middle is most inside — its coast nearest
@@ -10446,7 +10478,7 @@ function cullChunks(dt){
     // already collapsed the small things one by one on the way out) and its far impostors come on in their place (far.js farApplyCell)
     const ex=Math.max(ch.x0-cx,cx-ch.x0-CELL,0),ez=Math.max(ch.z0-cz,cz-ch.z0-CELL,0),near=ex*ex+ez*ez<FLORA_FAR*FLORA_FAR;
     if(near!==ch.near){ch.near=near;for(const m of ch.flora)m.visible=near;farCellDrawn(ch.i,ch.j);}}
-  poolCull(); // the species pools follow the cells' visibility (v11.52.1)
+  poolCull(dt); // the species pools follow the cells' visibility (v11.52.1; v11.125 by flags)
 }
 
 // ecology.js — the world's population as a ledger (v11.26). Before this the world was frozen: a cell spawned the same animals
@@ -14696,6 +14728,7 @@ let showStats=false,statT=0,fpsEma=60,msEma=16,physEma=0,physMs=0,renderMs=0,ren
 // or a cell loads, and on those frames it adds its whole cost at once. An EMA hides that; a max does not. `gen` is the streaming's
 // share of the same frame. All three are CPU time: renderer.render is the submit, not the GPU's own execution.
 let frameEma=0,frameMax=0,genEma=0;
+function poolLine(){const p=poolStats();return p.draws+(p.hid>0?' +'+(p.hid/1000).toFixed(1)+'k hid':'');} // the pools' draws, and (v11.125) the hidden instances they draw until packed (chunks.js poolPack): they leave the shader at once but count in tris
 function toggleStats(){showStats=!showStats;statsEl.style.display=showStats?'block':'none';statT=0;}
 // Fog tuner: while the readout is open, these keys nudge the sea fog live and the readout's second line shows the numbers,
 // so the look can be dialled in without a build — paste the line back and it gets baked into SEA_FOG (world.js).
@@ -14733,7 +14766,7 @@ function updateStats(dt){
   statT-=dt;if(statT>0||!showStats)return;statT=0.25;
   const fMax=frameMax;frameMax=0; // read and reset: the max belongs to the quarter second just gone, not to the session
   const r=renderer.info.render;
-  statsEl.textContent=fpsEma.toFixed(0)+' fps  '+msEma.toFixed(1)+' ms  work '+frameEma.toFixed(1)+'/'+fMax.toFixed(1)+'ms'+(genEma>0.05?'  gen '+genEma.toFixed(1)+'ms':'')+'  draws '+r.calls+'  tris '+(r.triangles/1000).toFixed(0)+'k  cells '+visibleChunks+'/'+chunks.size+'  pools '+poolStats().draws+'  far '+visibleRegions+'/'+farBuilt+'  creatures '+visibleCreatures+'/'+creatures.length+'  phys '+physEma.toFixed(2)+'ms  render '+renderEma.toFixed(2)+'ms'+(SHS_P[1]>0?'  wshadow '+shsMs.toFixed(2)+'ms/'+shsN:'')+'  lights '+lightSources.length+(performance.memory?'  heap '+(performance.memory.usedJSHeapSize/1048576).toFixed(0)+'M':'')+'  '+Q.tier+'  '+(player.sub<0.5?(player.grounded?'strand':'air'):'sea')+'  '+player.pos.x.toFixed(0)+','+player.pos.y.toFixed(0)+','+player.pos.z.toFixed(0)+'  oxy '+oxyAt(player.pos.x,player.pos.y,player.pos.z).toFixed(2)+'  tide '+(TIDE>=0?'+':'')+TIDE.toFixed(1)+'m '+(tideRate(clockH)>0.02?'rising':tideRate(clockH)<-0.02?'falling':'slack')+' '+((clockH+SOLAR_H0)%DAY_H).toFixed(1)+'h  year '+yearPhase(clockH).toFixed(3)+(seasonAt(clockH)>0.3?' windy':seasonAt(clockH)<-0.3?' still':' between')+'  sun '+(Math.asin(SKY.sunAlt)*180/Math.PI).toFixed(0)+'°  moon '+(Math.asin(SKY.moonAlt)*180/Math.PI).toFixed(0)+'° '+(SKY.illum*100).toFixed(0)+'%  light '+SKY.skyL.toFixed(2)+(wasAbove===false?'/'+SKY.skyLw.toFixed(2):'')+'  cloud '+SKY.cover.toFixed(2)+(SKY.rainA>0.02?'  rain '+SKY.rainA.toFixed(2):'')+(SKY.windK<0.5?'  calm':'')+(SKY.eclL>0.02?'  eclipse '+SKY.eclL.toFixed(2):'')+(SKY.dawn>0.02?'  mist '+SKY.dawn.toFixed(2):'')+'\n'+fogLine()+'\n'+audioLine()+'\n'+camLine()+'\n'+(mode==='play'?hungerLine()+'\n':'')+ecoLine()+holdLine(); // the stomach's line (player.js, v11.73)
+  statsEl.textContent=fpsEma.toFixed(0)+' fps  '+msEma.toFixed(1)+' ms  work '+frameEma.toFixed(1)+'/'+fMax.toFixed(1)+'ms'+(genEma>0.05?'  gen '+genEma.toFixed(1)+'ms':'')+'  draws '+r.calls+'  tris '+(r.triangles/1000).toFixed(0)+'k  cells '+visibleChunks+'/'+chunks.size+'  pools '+poolLine()+'  far '+visibleRegions+'/'+farBuilt+'  creatures '+visibleCreatures+'/'+creatures.length+'  phys '+physEma.toFixed(2)+'ms  render '+renderEma.toFixed(2)+'ms'+(SHS_P[1]>0?'  wshadow '+shsMs.toFixed(2)+'ms/'+shsN:'')+'  lights '+lightSources.length+(performance.memory?'  heap '+(performance.memory.usedJSHeapSize/1048576).toFixed(0)+'M':'')+'  '+Q.tier+'  '+(player.sub<0.5?(player.grounded?'strand':'air'):'sea')+'  '+player.pos.x.toFixed(0)+','+player.pos.y.toFixed(0)+','+player.pos.z.toFixed(0)+'  oxy '+oxyAt(player.pos.x,player.pos.y,player.pos.z).toFixed(2)+'  tide '+(TIDE>=0?'+':'')+TIDE.toFixed(1)+'m '+(tideRate(clockH)>0.02?'rising':tideRate(clockH)<-0.02?'falling':'slack')+' '+((clockH+SOLAR_H0)%DAY_H).toFixed(1)+'h  year '+yearPhase(clockH).toFixed(3)+(seasonAt(clockH)>0.3?' windy':seasonAt(clockH)<-0.3?' still':' between')+'  sun '+(Math.asin(SKY.sunAlt)*180/Math.PI).toFixed(0)+'°  moon '+(Math.asin(SKY.moonAlt)*180/Math.PI).toFixed(0)+'° '+(SKY.illum*100).toFixed(0)+'%  light '+SKY.skyL.toFixed(2)+(wasAbove===false?'/'+SKY.skyLw.toFixed(2):'')+'  cloud '+SKY.cover.toFixed(2)+(SKY.rainA>0.02?'  rain '+SKY.rainA.toFixed(2):'')+(SKY.windK<0.5?'  calm':'')+(SKY.eclL>0.02?'  eclipse '+SKY.eclL.toFixed(2):'')+(SKY.dawn>0.02?'  mist '+SKY.dawn.toFixed(2):'')+'\n'+fogLine()+'\n'+audioLine()+'\n'+camLine()+'\n'+(mode==='play'?hungerLine()+'\n':'')+ecoLine()+holdLine(); // the stomach's line (player.js, v11.73)
 }
 // the first 3x3 cells are built before the first frame; the rest stream in under a per-frame time budget
 cellsAround(); // save.js: the 3×3 round the player (the peak, under the menu's camera)
