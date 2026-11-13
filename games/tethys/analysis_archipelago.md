@@ -454,3 +454,6 @@ Tethys v11.135               13    12    15.6      139   1.76   67%  0.91  0.84 
 Earth (the eight)          4–21   3–20  9–46     40–133  1.25–2.5 25–83% 0.82–0.92 0.68–0.93 19–91 4–58 2333–17740
 ```
 Every shape number now within Earth's range; the spacing (36 km) still a little under Earth's chains' 40–90. Left: the world's box.
+
+**9.8 The world's box (v11.136, 13 Nov 2026; the person: "go ahead with widening the world's edge").** The world now holds every member's reach and
+the whole platform with 30 km of open sea round them (473 × 289 km); the platform is no longer cut at the box (GLOBE §10.1).

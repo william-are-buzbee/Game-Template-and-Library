@@ -20,7 +20,7 @@ const ECO_STEP=3; // real seconds between ticks of the model
 // kept at the end of the fine tables, its count laid on them by each cell's own capacity (ecoSplit) — and merges back when the player has gone
 // (ecoMerge). A loaded cell is always fine. Every lookup by cell goes through ecoId(i, j) and ecoIJ(c); in the fine box they are the old
 // i*NCELL + j. The patches tile the world from its corner (ecoPI, ecoPJ, ecoPOf): 82² of them to v11.114, 5,824 coarse round the box (v11.106);
-// since v11.115 the province's 222 × 132, 28,404 coarse, censused near the player (ecoNear) and their hunters' tables by row (ecoRow).
+// since v11.115 the province's 222 × 132, 28,404 coarse (v11.136: 275 × 168, 45,300 over the wider world), censused near the player (ecoNear) and their hunters' tables by row (ecoRow).
 const ECO_FB={i0:0,j0:0,w:NCELL},PATCH=8,ECO_R=[2500,4000],ECO_PR=40000,ECO_PN=8; // the fine box; a patch's side in cells; split within, merge past (m from the player to the patch); ECO_PR (v11.112): the coarse patches censused — at boot those within it of the player, nearest first, and as the player travels ECO_PN a tick (ecoCensusNear); past it a patch waits uncensused and out of the model, its animals at their equilibrium until the player comes
 const ECO_FINE=ECO_FB.w*ECO_FB.w,ECO_COARSE=ECO_FB.i0>WORLD.i0||ECO_FB.j0>WORLD.j0||ECO_FB.i0+ECO_FB.w<WORLD.i1||ECO_FB.j0+ECO_FB.w<WORLD.j1,ECO_SLOTS=ECO_COARSE?64:0;
 const ECO_CELLS=ECO_FINE+ECO_SLOTS*PATCH*PATCH,DAY_S=DAY_H/CLOCK_RATE; // cells: the fine box's and the slots'; real seconds in a game day (2400)

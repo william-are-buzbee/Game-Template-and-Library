@@ -1,5 +1,10 @@
 # HANDOFF — tethys
 
+**v11.136 (13 Nov 2026): the world widened** (GLOBE §10.1; the person: "go ahead with widening the world's edge"). The world is every member's
+reach and the whole platform with 30 km of open sea round them: x −110.1 … 362.9 km, z −118.7 … 170.3 km (473 × 289 km, 57% more); the
+platform's grid grows by whole nodes; the old end's lowering no longer steps across the open plate. ±70.5 km the same to the bit. Costs: 45,300
+ledger patches (~40 MB), boot ~7%. **Ask first:** boot and memory in the browser; the new edge from the water.
+
 **v11.135 (13 Nov 2026): lobed outlines** (analysis_archipelago §9.7; the person: "The lobed is a solid idea"). Every volcano but the pins is
 lobed by its vents' cones and its rift zones (`R.lobe`, `RG_LOBE`), the area kept, softer on the deep flank; `sc` carries the farthest lobe, so
 the bounds hold. Against Earth every shape number is now in range. The awesome shield's south-east cape (m138's cone, a vent of it) now 10 km

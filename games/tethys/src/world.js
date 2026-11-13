@@ -20,7 +20,11 @@ const CELL=215,NCELL=240,HALF=CELL*NCELL/2; // v11.65 (ARCHIPELAGO step 4): 240 
 // v11.115 (GLOBE §10.1, the province grown): the rectangle round the region model's members' feet (x −69 … 300 km, z −93 … 121 km) —
 // x −75.7 … 306.2 km, z −101.5 … 125.6 km, 1,776 × 1,056 cells (382 × 227 km). WORLD70 is v11.106–113's ±70.5 km square: region.js's second
 // pass of records is its, so its 25 come out as they were, and world.js's flood keeps its lattice; a save's ledger patches without a world tile it.
-const WORLD={i0:-232,i1:1544,j0:-352,j1:704},WORLD70={i0:-208,i1:448,j0:-208,j1:448};
+// v11.136 (the person, 13 Nov 2026: "go ahead with widening the world's edge"): the rectangle round every member's reach (its foot 1.6 R + 3 km,
+// x −80 … 284, z −87 … 111 km since the composites) and the whole platform (x 170 … 332, z −17 … 139: to v11.135 the box cut it east and south),
+// with 30 km of open sea past the farthest, on the 8-cell grid — x −110.1 … 362.9 km, z −118.7 … 170.3 km, 2,200 × 1,344 cells (473 × 289 km;
+// 1,776 × 1,056 to v11.135). Every cell keeps its place; the platform's grid grows from its old corner by whole nodes (region.js rgPlatform).
+const WORLD={i0:-392,i1:1808,j0:-432,j1:912},WORLD70={i0:-208,i1:448,j0:-208,j1:448};
 const WX0=WORLD.i0*CELL-HALF,WX1=WORLD.i1*CELL-HALF,WZ0=WORLD.j0*CELL-HALF,WZ1=WORLD.j1*CELL-HALF;
 function gridIn(i,j){return i>=WORLD.i0&&j>=WORLD.j0&&i<WORLD.i1&&j<WORLD.j1;}
 function inWorld(x,z,m){return x>WX0+m&&x<WX1-m&&z>WZ0+m&&z<WZ1-m;} // (x, z) at least m inside the world's edge

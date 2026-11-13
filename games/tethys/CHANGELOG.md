@@ -7687,3 +7687,28 @@ cone stood, now 10 km north of ours (its coast 22 km off to v11.134; m138's own 
 
 Seen: the province and the ±75 km world as maps, the Earth sheet. **Unseen, ask in this order:** the view north from ours (`tp(0,0)`): the awesome
 shield's cape 10 km off; m122 from the water (`tp(45000,-5000)`), and whether its four lobes read as a starfish; the deep flanks' fade from the water.
+
+## v11.136 — the world widened (13 Nov 2026)
+
+The person, 13 Nov 2026: "go ahead with widening the world's edge." The box (v11.115: the rectangle round the members' feet) cut the platform
+east and south, and since the composites (v11.134) the chain's islands stand 30–50 km apart with its ends close to the edge.
+
+- **world.js `WORLD`:** the rectangle round every member's reach (x −80 … 284, z −87 … 111 km) and the whole platform (x 170 … 332, z −17 … 139)
+  with 30 km of open sea past the farthest, on the 8-cell grid (the ledger's patches, the far regions'): x −110.1 … 362.9 km, z −118.7 … 170.3 km,
+  2,200 × 1,344 cells, 473 × 289 km (1,776 × 1,056, 382 × 227 to v11.135; 57% more). Every cell keeps its place.
+- **region.js `rgPlatform`:** its grid anchored at v11.115–135's corner and grown by whole nodes (12 west, 6 north), so a node it had is the
+  same node.
+- **Fixed with it, `rlAt`:** the old end's 350 m lowering (v11.126) applied wherever the track's age past 16 Ma, the open plate included;
+  far from the curving track that age sweeps by in 2–4 km, so it stood as a straight 350–380 m step across the floor (x ~100–110 km, south and
+  north of the plateau; the new southern strip showed it whole). Now the plateau's alone (its weight's last quarter the fade). No member's
+  history moves.
+
+What moved: the ±70.5 km world the same to the bit (80,089 points) and ours' square; the same 15 records. The old box differs at 4.6% of a 1 km
+lattice — the platform whole where the box cut it (1.9% of the plateau), and the open plate past the old step back at the plate's depth (up to 419
+m). Costs: the ledger's coarse patches 28,404 → 45,300 (their tables ~40 MB, by v11.115's rate); boot ~7% longer (4.0–4.15 s → 4.3–4.46 s in node,
+the platform's grid); the flood and the horizon's setup unchanged; the suite's runs 2–18% longer (the census the most).
+
+- **Tests:** test/ledger.js the census's coarse patches 45,300 (28,404).
+
+Seen: the whole world as a map (the platform whole, open sea round the chain, the step gone), the step's profile before and after. **Unseen:** the
+new edge from the water (`tp(360000,0)`, `tp(0,168000)`); a game started and played — boot and memory in a browser.
