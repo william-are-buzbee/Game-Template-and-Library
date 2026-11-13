@@ -143,7 +143,8 @@ province (and the game's own ground inside its square), `regionBasins` floods it
 `regionSeen` what clears the horizon from a point. ~0.3 s a run; `test/region.js` pins it.
 
 **The square from the model (v11.102, GLOBE §8 step 5).** At load (`REGION`, `rgBuild`) every member whose ground reaches the world (the
-square and the far layer's 2 km past it) becomes a record in `ISLANDS`, shaped by its state with islandH's kit (`rgRecord`): a high island or
+square and the far layer's 2 km past it) becomes a record in `ISLANDS`, shaped by its state with islandH's kit (`rgRecord`; its noise seed
+`ns` = 1000 + 37·n for member m<n> and its rifts' draws by its id, since v11.132, so no record reshapes another): a high island or
 an active shield as land (`land`: shore and height the model's, gullies, a caldera and flows down two rift zones on the fracture grain when
 young), its shelf cut into the land by its age with the flank where the model's 12° cone puts it; a high or rim island with a living reef ring off its coast (v11.121) with its barrier reef (`R.barrier`, `rgBarrier`; `rgCap`
 and islandH's cap: by max over the island's ground, the lagoon to the ring, the crest awash or under with passes, a wall and a 31° fore-reef
@@ -183,6 +184,11 @@ flat broader and its passes fewer, the atolls' wall outside (`wf`, through `rgFl
 area. `RG_PL.sd2`/`top2` hold the drowned carbonate alone (with the living, v11.126, its wall from the sea overrode their margins).
 **The fed rule by its time (v11.130):** a member's upstream ones (`m.up`, within `fedL` up-current across its foot) shelter it while one stands in
 the light (`litNow`, a step behind); fed now, its reef takes no hold and grows at `fedK`. `m.fed` is today's.
+**Composite volcanoes (v11.134, analysis_archipelago §9):** the births are vents; oldest first a vent within `K.comp.C` (40 km) of a volcano
+that had a vent in the last `K.comp.tau` (2.5 Myr) builds onto it, else starts one. A volcano is one member: its largest vent's id (a tuned
+vent's id and place, as a pin's), its first vent's age, the vents' volume-weighted centre, their volume, its shield done when its last vent's is
+(`Tspan`, which `rgShape` keeps), `m.vents`; its record an oval along their spread (`m.asp`, `m.rot`). The pins stand alone and a vent they would
+take is theirs. `K.comp` null draws the 159 separate cones of v11.133. The lineages' cuts are thirds of ours' own hops.
 **Young cones on old islands (v11.131):** a member's host (`m.host`) is the older, bigger one whose foot it is born inside and whose shield was
 built before its birth, highest there by their 12° shapes; each step its base is the host's surface there (`m.off`), so it sinks and wears with
 it. Its record's `R.sat` (`b` its base, `k`, `host`): islandH steepens its flank `k`-fold below `b` (the skirt; the host's record is the ground

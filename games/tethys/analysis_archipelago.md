@@ -363,3 +363,81 @@ same square-cut quarter-disc). Not seen: the platform in play — headless Chrom
 ran out of memory on the first frame drawn after a game started, at ours too, so the session's renderer and not the platform; the real bundle
 in Node loads the platform's cells in 0.3 s at ~100 MB. v11.122's unseen list stands: `tp(230000,20000,-1)`, `tp(146500,-14000,-1)`,
 `tp(144000,-14000,-150)`.
+
+## 9. The province beside Earth's archipelagos (13 Nov 2026, v11.133)
+
+The person, 13 Nov 2026: "I enjoy how it looks ingame but I want it to be like, accurate to the point that it's undeniably 'real'", and on the
+proposal to set the province beside real archipelagos at the same scale: "yes go ahead with those six" (the Society Islands, the western
+Tuamotus, the Marshall Islands' Ralik chain, the Maldives, Chagos, Hawaii's Big Island and Maui); "crowded middle is a good point". The six grew
+on fast plates, the province's on a slow one (1.06 cm/yr), so the Canaries and Cape Verde, the slow plates' archipelagos, are beside them too.
+
+**9.1 How.** `test/earth.js`: each window 384 km a side, north up, real seafloor from GMRT (Lamont-Doherty's Global Multi-Resolution Topography:
+ship multibeam where surveyed, GEBCO's 15" grid, ~450 m, elsewhere) on a local flat projection, the province by `sample()`; all drawn by
+test/mapdraw.js, map.js's own bands, light and contours, so the only difference is the planet. The same numbers on each, at 274 m a pixel: an
+*edifice* is whatever stands above −80 m in one piece (a high island with its shelf, an atoll with its lagoon, a bank), counted from 2 km across
+(Earth's grid resolves no less). The sheet is `test/preview/earth.png`.
+
+```
+window                        n  land    D km  Dmax km  elong  long solid round NN km gap km <-60 km²
+-----------------------------------------------------------------------------------------------------
+Tethys                       57    33     5.2      146   1.08   30%  0.93  0.95  10.2    2.8  11619
+Society Islands               9     9    12.1       40   1.32   44%  0.88  0.87  50.0   21.8   2333
+Tuamotus                     21    20    16.9       49   1.79   58%  0.88  0.81  39.6   20.4   7893
+Marshall Islands              7     7    22.7       59   2.50   83%  0.82  0.68  90.9   58.3   5014
+Maldives                     15    13    26.9       59   1.68   69%  0.88  0.82  48.7   15.0  14170
+Chagos                       21    12     9.0      133   1.85   67%  0.87  0.84  18.8    4.4  17740
+Hawaii                        4     3    46.4      117   1.66   50%  0.86  0.77  72.4   31.0  15057
+Canary Islands                9     6    26.6       56   1.25   25%  0.92  0.93  77.4   46.1   7278
+Cape Verde                   10     9    27.1       51   1.80   80%  0.90  0.81  43.5   17.9   6387
+```
+D the median width (a disc of the same area); elong the long axis over the short (long: the share 1.5 or more); solid the area over its convex hull's; round 4πA/P² of the
+hull (1 a circle, 0.785 a square, 0.60 a triangle); NN centre to centre, gap edge to edge as discs; the last the water shallower than 60 m and land.
+
+**9.2 What it says.**
+1. **The middle is four to nine times too crowded.** Edifices 10 km apart, centre to centre (gaps 3 km), where Earth's chains keep 40–90 km (gaps
+   15–58), the Maldives — the densest atolls on Earth — 49, and the slow plates 44–77. Only Chagos's broken bank comes near (19 km, gaps 4), and
+   those are pieces of one drowned platform, not separate volcanoes. The ±70.5 km world holds 47 records (30 of them atolls); at Earth's spacing
+   it would hold 3–10 edifices.
+2. **The pieces are too small and too many.** Median 5 km across, against 9–46 on Earth and 17–27 for the atoll fields: the same shallow water
+   cut into five to ten times as many pieces.
+3. **Too round.** Elongation 1.08 (30% of edifices long) against 1.25–2.5 (the atoll fields 1.7–2.5 and 58–83% long, along their chain:
+   Tuamotus, Marshalls, Maldives); the hull's roundness 0.95 against 0.68–0.87. The Canaries are as round (0.93, 25% long): compact high islands
+   are real on a slow plate; long atolls are what is missing. v11.129's ovals are 44 of the 107 records above −80 m (aspect 1.83), so they are the
+   30%; the other 63 are round.
+4. **The lagoons are not the problem I told the person they were** (13 Nov, before this was drawn): at this scale and in these colours Earth's atolls read as filled shallow discs
+   too. Tethys's are speckled with patch reefs that GEBCO's grid is too coarse to show (the Maldives', from ship surveys, are speckled as well).
+5. **The east holds up.** Chagos in the same colours: one big bank broken into pieces round a drowned centre, at the same scale.
+6. **The awesome shield's size is right, its shape not:** the Big Island is 117 km across and three-armed by its rift zones; the shield a circle.
+
+**9.3 Why.** 159 volcanoes born over 30 Myr along 265 km of track, each drawn as a cone of its own scattered round it. On Earth vents that close
+build one edifice: the Big Island is five volcanoes, each Canary a pile of several shields, Tahiti two. A composite is bigger, longer along its
+rift zones and its chain, and irregular — so one cause sits under items 1–3 and 6. v11.131 made the first piece of this (a young cone on an old
+island); the rest is the same idea at scale.
+
+**9.4 Options (the person's).**
+- **(a) Composites:** a birth near a young edifice builds onto it (its volume added, its centre and rift zones shifting along the track) rather
+  than standing alone. Fewer, bigger, longer edifices; the middle's ~80 atolls perhaps 15–25. The realistic answer; a rebuild of the births.
+- **(b) Fewer, bigger births:** the rate down, the volumes up. Simple; spaces them out but leaves them round and separate.
+- **(c) Keep the middle dense,** as a game's licence: more to swim to.
+Either (a) or (b) means far fewer islands within reach of ours; the world would feel emptier, as the real Pacific is. My recommendation: (a), with
+the world's box grown when it lands, so the swim to the next island stays a journey rather than a gap.
+
+**Answered (13 Nov 2026): (a), composites** — the person: "Let's go with a". Built v11.134 (§9.6); the world's box is a step of its own after it.
+
+**9.5 Not looked at.** The in-game view; the windows are mine (chosen as analogues); GEBCO's ~450 m hides atolls under 2 km and every reef rim,
+so rims and lagoons are compared by eye only; the −80 m threshold joins edifices whose shelves touch (both sides alike).
+
+**9.6 Built v11.134 (13 Nov 2026): composite volcanoes.** The births are vents; oldest first, a vent within 40 km of a volcano that had a vent
+in the last 2.5 Myr builds onto it (`K.comp`): 40 km because the Big Island's volcanoes stand 33–40 km apart and build one island, 2.5 Myr because a
+slow plate holds an island over the plume longer (Tenerife's shields span several Myr). A volcano is one member, long along its vents' spread. Seed
+32: 159 cones → 17 volcanoes, 136 records → 15. The same numbers (test/earth.js):
+
+```
+window                        n  land    D km  Dmax km  elong  long solid round NN km gap km <-60 km²
+Tethys v11.133               57    33     5.2      146   1.08   30%  0.93  0.95  10.2    2.8  11619
+Tethys v11.134               13    12    15.5      139   1.61   58%  0.96  0.91  33.9   15.9  10310
+Earth (the eight)          4–21   3–20  9–46     40–133  1.25–2.5 25–83% 0.82–0.92 0.68–0.93 19–91 4–58 2333–17740
+```
+Size, length and the gaps now within Earth's range; the spacing (34 km) under Earth's chains (40–90) and over Chagos's broken bank (19). Still
+off: the outlines — each volcano a smooth ellipse (round 0.91; Earth's 0.68–0.87 but the Canaries' 0.93), where Earth's are lobed by their vents and
+rift zones. That is the next step (a record of several centres), and then the world's box (the person: "eventually").

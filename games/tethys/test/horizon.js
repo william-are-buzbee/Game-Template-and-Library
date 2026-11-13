@@ -29,9 +29,10 @@ ok(off===0,'every vertex on the lattice, whole steps from its mesh\'s place ('+o
 const R=n=>N.ISLANDS.find(q=>q.id===n),edge=m=>{const r=R(m.name);return Math.hypot(r.x,r.z);};
 const names=rn.land.children.map(m=>m.name);ok(names[0]==='home'&&names.indexOf('giant')>=0&&names.indexOf('giant')<names.indexOf('m153'),`built nearest first from ours: ${names.slice(0,6).join(', ')} … (${names.length})`);
 {let cum=0,tot=0,at={};for(const m of rn.land.children)tot+=m.geometry.index.length/3;for(const m of rn.land.children){cum+=m.geometry.index.length/3;at[m.name]=cum/tot;} // the work by the triangles built (the stub's clock stands within a frame, so the build never yields here)
-  ok(at.giant<0.1,`the giant's land done after ${(100*at.giant).toFixed(1)}% of the build's triangles, the 308 m island's after ${(100*at.m138).toFixed(1)}% (the awesome shield's after ${(100*at.m153).toFixed(0)}%)`);}
-// v11.113: by sight — from 2 m up at ours the queue holds the near land (the giant, the 308 m island, the awesome shield) and not the low
-// island 62 km west (50 m: ~30 km of sight from the water), which comes in from the awesome shield's summit
-{const q0=N.watch(0,2,0),low=N.sight('m150',2);ok(q0.includes('giant')&&q0.includes('m138')&&q0.includes('m153')&&!q0.includes('m150')&&low>8000&&low<40000,`by sight from the water at ours: ${q0.length} members queued, the giant first among the land (${q0.slice(0,4).join(', ')} …), m150 not (seen ${(low/1000).toFixed(0)} km off; it is 62 — a 4 m rim island since v11.130, its reef no longer fed; a 50 m low island seen ~30 km off to v11.129)`);
-  const q1=N.watch(-30005,2500,-36615);ok(q1.includes('m150'),'from the awesome shield\'s summit (2.5 km up) m150 comes into sight: '+q1.length+' queued');}
+  ok(at.giant<0.1,`the giant's land done after ${(100*at.giant).toFixed(1)}% of the build's triangles, the awesome shield's after ${(100*at.m153).toFixed(0)}% (v11.134: m138, the 308 m island, a vent of the awesome shield's now)`);}
+// v11.113: by sight — from 2 m up at ours the queue holds the near land (the giant, the awesome shield, the 799 m island m122 48 km east) and not
+// the atoll m117 87 km east-north-east (its rim a few metres up), which comes in from the awesome shield's summit. v11.134: to v11.133 the 308 m
+// island m138 and the low island m150 62 km west (a 50 m island seen ~30 km off to v11.129, a 4 m rim since v11.130), both vents of composites now
+{const q0=N.watch(0,2,0),low=N.sight('m117',2);ok(q0.includes('giant')&&q0.includes('m122')&&q0.includes('m153')&&!q0.includes('m117')&&low>5000&&low<40000,`by sight from the water at ours: ${q0.length} members queued, the giant first among the land (${q0.slice(0,4).join(', ')} …), the atoll m117 not (seen ${(low/1000).toFixed(0)} km off; it is 87)`);
+  const q1=N.watch(-30005,2500,-36615);ok(q1.includes('m117'),'from the awesome shield\'s summit (2.5 km up) the atoll m117 comes into sight: '+q1.length+' queued');}
 console.log(fails?`horizon: ${fails} FAILED`:'horizon: ok');process.exit(fails?1:0);

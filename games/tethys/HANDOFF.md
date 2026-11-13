@@ -1,15 +1,28 @@
 # HANDOFF — tethys
 
+**v11.134 (13 Nov 2026): composite volcanoes** (analysis_archipelago §9.4 (a), §9.6; the person: "Let's go with a"). Births are vents; a vent within
+40 km of a volcano active in the last 2.5 Myr builds onto it (`K.comp`). 159 cones → 17 volcanoes, 136 records → 15; the ±70.5 km world holds ours,
+the giant, the awesome shield (now 1.63 long, m138 and m151 its vents), m154 (590 m, 48 km W), m122 (799 m, 48 km E) and the atoll m117. Against
+Earth: size, length and gaps in range, spacing 34 km (Earth 40–90). Ours' square the same to the bit. **Ask first:** the view from ours (`tp(0,0)`).
+**Next:** lobed outlines (a record of several centres), then the world's box.
+
+**v11.133 (13 Nov 2026): the province beside Earth's archipelagos** (analysis_archipelago §9; a tool, the game unchanged). `node test/earth.js`
+draws nine real archipelagos (GMRT, fetched once) and the province alike, 384 km each, with the same numbers. The middle is 4–9× too crowded, its
+edifices too small and too round; the east holds up. **Ask first:** §9.4 — composites (a, recommended), fewer bigger births (b), or keep (c).
+
+**v11.132 (13 Nov 2026): a record's noise seed by its member's id** (the person, 13 Nov 2026: "make the noise seed follow the member's id"). `ns` =
+1000 + 37·n for member m<n>, the rifts drawn by the id: a change to one member reshapes no other record from here on. A one-time reshuffle of
+every record's details (the same records and burials; ours' square the same to the bit). Still the person's: `fedK`, 3b, and 4 (the swell's width).
+
 **v11.131 (13 Nov 2026): young cones on old islands** (analysis_archipelago §2.7, #8). A member born on an older one's finished shield stands on
 its surface and rides it down (region.js `m.host`, `m.off`; the record's `R.sat`, its flank a skirt below its base) instead of being struck inside
 it. 16 satellites, 14 records; m151 a 714 m cone on m138, 20 km north-north-west of ours. Burials now read the burier in its own frame (four
-records back). Records 136; ours' square the same to the bit. **Ask first:** the view north from ours (`tp(0,0)`); whether `ns` should follow the
-member's id (v11.130's question; this list changed again). Still the person's: `fedK`, 3b, and 4 (the swell's width).
+records back). Records 136; ours' square the same to the bit. **Ask first:** the view north from ours (`tp(0,0)`).
 
 **v11.130 (13 Nov 2026): the fed rule by its time** (analysis_archipelago §2.6, 3a). A member is fed — no reef, the weed's shallows — only while
 nothing upstream stands in the light (to v11.129 once for all time, by what could ever stand above −300 m by today's floor). Fed 32 → 26, guyots 44 →
 29, atolls 69 → 86; near ours m115 and m137 are guyots now, m136 an atoll. Records 130; the ones after a change reseeded (`ns` is a place in the list).
-**Ask first:** whether `ns` should follow the member's id instead. Still the person's: `fedK` and the island-mass direction (3b).
+(`ns` by the member's id: answered and built v11.132.) Still the person's: `fedK` and the island-mass direction (3b).
 
 **v11.129 (13 Nov 2026): the volcanoes on the old fracture zones as ovals** (analysis_archipelago §3.3). 55 of the 128 records — every member born on a
 fracture zone — are ovals along the zones' heading (region.js `RG_OVAL`: aspect 1.3–2.4, area kept), m138 north of ours among them; ours, the giant and
