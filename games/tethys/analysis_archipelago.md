@@ -1,6 +1,7 @@
 # analysis_archipelago.md — how believable the province is (12 Nov 2026, v11.115)
 
-Status: **a review, nothing built.** A believability pass over the region model's province as it stands at v11.115: its size, its scope and
+Status: **a review; §6's build done in v11.121–123** (the members' shape and clock, the plateau's platform, the margins and lagoons); §8 (13 Nov
+2026) reviews v11.122's platform against Earth's, nothing of it built. A believability pass over the region model's province as it stands at v11.115: its size, its scope and
 its shape, each finding ranked **plausible**, **stretch** or **wrong**, with numbers, an Earth comparison and the knob or code that sets it;
 then a ranked list of changes for the person to choose from (§5). Read GLOBE.md §9–10 first; this doc judges what they built.
 
@@ -256,3 +257,99 @@ blocks — §3.5 seen: no reef front, no wall. The summit view is the known brow
 Not seen: the person's GPU and frame rate (the software renderer drew ~0.5 frames a second), the far east in a long swim, sound.
 Sources for the Earth numbers: GLOBE.md §3's own, Betzler et al. 2021 (Saya de Malha), the USGS and Enewetak margin surveys, Gischler et
 al. 2014 and Purdy & Winterer 2001 (lagoon depth), and the standard figures for the islands named.
+
+## 8. The plateau's platform against Earth's (13 Nov 2026, v11.125)
+
+Status: **a review, nothing built.** v11.122's platform (`rgPlatform`, `rgPlat`) judged for its size and shape against Earth's isolated
+carbonate platforms; the person's answers (§8.3) and what they set (§8.5). Measured with `node test/map.js` (whole, `SPAN=40000 CX=150000
+CZ=-20000`, `SPAN=120000 CX=175000 CZ=-10000`), scratch scripts over `RG_PL` and `sample()`, `rgPlatform` re-run with its box widened 250 km
+past the world's (the whole platform the model makes), and the build's `map.html`.
+
+**8.1 The numbers.** Earth's from Betzler et al. 2021 (*Geology*) and 2023 (*Sedimentology*), Coopen et al. 2021, New et al. 2005, Sheppard
+et al. 2012, Naseer & Hatcher 2004, IODP 359, Gischler et al. 2014, Grammer & Ginsburg 1992, Eberli & Ginsburg 1987, Harris & Purkis 2014–16,
+read as search extracts (the papers' hosts were outside the session's network); the soft ones are marked.
+
+| | area, km² | size, km | rim | interior | land |
+|---|---|---|---|---|---|
+| the platform, the model's whole | 37,540 | 205 × 176, a disc (4πA/P² 0.84) | at the sea all round: islets on 53% of the margin, awash 32%, under 3 m 15% | −26 … −57 (median −48) | ~40 km² in the world |
+| the platform, in the world | 27,540 (29,259 with the 4 km past the edge) | a quarter-disc, cut by the box on the south and east | | | |
+| Saya de Malha | 40,808 (the South Bank ~35,000) | South Bank 230 × 290 | a horseshoe on the north and east, open to the south, never at the sea (≥8 m); the west flat 50–55 m, the east 30–35 | 70–150 m, depressions to 455 and 980 (Russian surveys) | 0 |
+| Great Chagos Bank | 12,642 (or ~13,500) | ~150 × 100 | mostly 5.5–15 m down; islands on the west and north rim, <5% of it | mean 75, max ~90 | 4.5 |
+| Maldives | 21,373 of atolls and lagoons | 900 × 100–125, a double chain round the Inner Sea | cut by many channels | 35–90 (Huvadhu 80–90) | 298 |
+| Great Bahama Bank | ~100,000 | irregular, cut by the Tongue of the Ocean (30 × 240) and Exuma Sound | islands ~8% of the platform, mostly windward, to 63 m (Cat Island's dunes) | 60% under 5 m | ~8% |
+
+**8.2 Findings, ranked.**
+- **Size — plausible.** Saya de Malha's area; 102 km from its middle to the nearest margin (Saya de Malha's South Bank is 230 km across).
+  Thickness 1.0–1.5 km in 30 Myr (0.03–0.05 mm/yr; the Maldives ~3 km since the Eocene); the plateau round it at −1,300 to −1,450; atolls in
+  kilometre-deep water off its margin, as Chagos's are. But the size is a knob's: see the next.
+- **A circle — wrong, at the map's scale.** The platform is the head plateau's flat top: `platW` is 1 inside 0.6 × `headR` (96 km) and falls to
+  the plate by `headR`, so the head stood level at +270–390 m at 30 Ma and the margin lies where that disc's edge fell through the reef's reach
+  — within a few km of the 96 km circle — plus a lobe north-west along the track (the swell's, founded 22–25 Ma). On 90% of it the reef took
+  hold at the history's first step (30.0 Ma), so the margin is the head's day-one edge, kept 30 Myr. Earth's platforms follow their basement's
+  grain, come in segments and move their margins (the Great Bahama Bank's leeward one has built out 25 km since the late middle Miocene). From
+  the water a 96 km radius reads straight; on the map (`n`, `map.html`) it is a round head.
+- **No breaks — wrong.** No enclosed basin, no channel. All four of Earth's have them: the Tongue of the Ocean (1,100–2,000 m) and Exuma Sound
+  (2,042); the Inner Sea (to ~550 m, drowned since the late middle Miocene); Saya de Malha's depressions and its 1,100 m channel to Nazareth
+  (8–10 km wide, a ~400 m sill); Chagos's banks in 1–2 km of water.
+- **The world's box cuts it — stretch, accepted (§8.3).** 73% of the model's platform is in the world; its south and east sides are the box
+  (165 and 123 km of straight edge on its grid) and the whole windward margin (the wind from the east-south-east, `WIND_A`) lies outside.
+  The only margins in reach are the west (leeward, down-current) and the north (where the current comes on, `CUR_A`).
+- **One margin all round — stretch.** The rim's height, islets and passes by noise; the wall the same on every side. Earth's differ by side:
+  Saya de Malha's rim stands on its north and east only, steep on the windward east and gentler to the west; the Bahamas' islands are windward
+  and their leeward margins prograde. The margin a player can reach is the leeward one, which should be the drowned, sandier, gentler one.
+- **Alive everywhere — stretch.** The reef's top is 0 at every node. Earth's platforms of this size are partly drowned — Saya de Malha by the
+  current and the sea level (Betzler et al. 2021), the Maldives' Inner Sea — and their rims are mostly under the sea. v11.122 left the fed rule
+  off the platform (`fedK` open since 10 Nov).
+- **The wall — plausible steepness, not the atolls'.** One plane at `RG_PL_K.wall` (42°) steepened by the margin's warps: the steepest 100 m of
+  each profile a median 66°, crest to toe 39°, the toe at −1,050 about 1.3 km out. Earth's: near-vertical to 100–150 m, then 30–50° (the Tongue
+  of the Ocean 35–45°; Chub Cay vertical to 140 m, then ~50°; the Maldives' outer slopes 20–30° to ~2,000 m). The atolls beside it have had
+  Enewetak's profile since v11.123 (the −122 bench, the talus easing to 17°); the platform has not.
+- **The lagoon — stretch, shallow.** Median −48 (p10 −57, p90 −26), patch reefs above −15 on 7.4%, blue holes 0.17%. `RG_PL_K.lag` 50, where
+  v11.123's own law (`rgLagD`) gives 60 for any ring past ~21 km: the province's widest lagoon is shallower than its widest atolls'. Chagos 75–90,
+  Huvadhu 80–90, Saya de Malha 70–150.
+
+**8.3 The person's answers (13 Nov 2026).**
+- **The east: a chain of banks** (not one platform with channels and basins).
+- **The rim: Earth's pattern for this size.**
+- **The box: OK for now** — "eventually we expand".
+
+**8.4 What a chain can be on this plate (a prototype, scratch only).** The plateau given relief before the reef sees it, `rgPlatform` re-run
+(its box widened, the members and the floor as built):
+
+| relief | the platform |
+|---|---|
+| none (as built) | 37,540 km², one disc |
+| noise ±800 m at 60–110 km, along the fracture grain, about the head's level | 33,400 km², one bank (relief about the level percolates) |
+| the same, the head lowered 150 / 250 / 330 / 450 m | 22,600 (one bank and two small) / 16,200 (one, elongate, embayed) / 10,800 (one) / 4,400 km² (two) — a sharp threshold |
+| the plume's flux along the whole track band | stripes across the track, 5,700 km² — wrong in kind |
+| a centre at each pulse on the track (29.3, 25.0, 22.3, 19.9 Ma), 45–55 km, on a head lowered 600–700 m | 10,400–16,100 km², **one ridge-bank along the track**, ~165 × 147 km, wholly in the world |
+| the same, centres 24–30 km, from 15 Ma | 5,600–8,400 km², one ribbon ~150 km long |
+
+The reason is the plate: at 1.06 cm/yr the pulses near the old end built their centres 22–46 km apart along the track (Earth's Mascarene banks
+lie along ~2,000 km of track built since ~64 Ma), so any centre big enough to carry a bank overlaps its neighbours, and a reef keeps up on
+whatever stood within its reach. Volcanism alone makes **one ridge-bank along the track**, its windward margin in the world; separate banks of
+Saya de Malha's scale need something more:
+- **(a) drowned saddles:** the ridge-bank cut where its centres meet, by the current — the saddles are its lows, where the flow across a bank
+  runs fastest (Saya de Malha's and the Maldives' drowning, Betzler et al.); a chain of banks over mesophotic saddles 50–200 m deep;
+- **(b) one ridge-bank, the chain the atolls west of it** (Great Chagos and the Chagos atolls round it);
+- **(c) smaller centres** (12–15 km): banks of a few hundred km², which is what the members' atolls already are;
+- **(d) a faster plate** (`v`): every member's age and place, the pins re-tuned — a province of its own.
+
+**Open with the person:** which of (a)–(d). Recommended: (a) — Earth's own way of breaking platforms this size, and it is answer 2's partial
+drowning too.
+
+**8.5 The build these set** (after §8.4's answer; one version and one pull request each):
+1. **The head's relief** — `platW`'s flat disc replaced by a lowered head with volcanic centres at the plume's pulses along the track
+   (`regionModel`; the floor beside ours re-solved, the pins re-tuned); the platform the ridge-bank that comes of it; the members it buries
+   with it. By §8.4's choice, the drowned saddles with it.
+2. **The margin by its side and its size** — the windward margin's rim near the sea with islets where wide, the leeward and the up-current
+   margins under the sea (20–55 m), the share of rim at the sea falling with the bank's size (Maldives' atolls → Chagos <5% → Saya de Malha 0);
+   the wall the atolls' (Enewetak's) on the windward side, a prograding gentler slope leeward; the lagoon by `rgLagD` or deeper (70–150) with a
+   few deep depressions.
+3. Later: the box, when the world expands (the person: "eventually").
+
+**8.6 What was looked at, and what was not.** Seen: the maps above, the model's whole platform against the world's box, `dist/map.html` (the
+same square-cut quarter-disc). Not seen: the platform in play — headless Chromium (software WebGL, three r128 from npm since cdnjs was blocked)
+ran out of memory on the first frame drawn after a game started, at ours too, so the session's renderer and not the platform; the real bundle
+in Node loads the platform's cells in 0.3 s at ~100 MB. v11.122's unseen list stands: `tp(230000,20000,-1)`, `tp(146500,-14000,-1)`,
+`tp(144000,-14000,-150)`.

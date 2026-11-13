@@ -1,5 +1,11 @@
 # HANDOFF — tethys
 
+**13 Nov 2026: the platform reviewed** (analysis_archipelago §8; nothing built). v11.122's platform is Saya de Malha's size (37,540 km² in
+the model, 27,540 in the world) but a disc — the head plateau's flat top — with no channels or basins, one margin all round, alive everywhere,
+and the world's box cutting its south and east. The person (13 Nov): a chain of banks; Earth's rims for the size; the box OK for now. On this
+slow plate volcanism alone makes one ridge-bank along the track (§8.4), so **ask first** which way to a chain — (a) drowned saddles
+(recommended), (b) one ridge-bank with the atolls as the chain, (c) smaller centres, (d) a faster plate — then build §8.5.
+
 **v11.125 (12 Nov 2026): the turn in the kelp.** The person's lag spike turning in a kelp forest: the pools' partition by sight moved
 blocks across the boundary every time a cell crossed the view — up to 2.6 MB re-sent and 200 moves in one frame of a turn (three r128,
 headless). Now a crossing writes the cell's own flags (`aHide`) and nothing moves; a still pool is packed after 0.4 s. A vertex that draws
