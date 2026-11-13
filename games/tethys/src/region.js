@@ -276,23 +276,37 @@ function rgBarrier(rr,rt){return {r:rr,w:Math.round(clamp(0.06*rr,40,300)),top:M
 // crest's band toward the lagoon. Ours keeps its own
 const RG_RM=48;
 function rgMargins(L){const ring=R=>R.rimR!==undefined?[R.rimR,R.rimW]:R.barrier?[R.barrier.r,R.barrier.w]:null,Q=L.filter(R=>R.id!=='home'&&ring(R));
+  const P_={x:0,z:0},faro=(A,B)=>{const [rA]=ring(A),[rB,wB]=ring(B);if(rA>2500)return false;if(!A.asq&&!B.asq)return Math.hypot(A.x-B.x,A.z-B.z)+rA<rB-1.6*wB; /* two round ones: as to v11.128, the same doubles */for(let k=0;k<8;k++){rgAt(A,rA,k/8*TAU,P_);if(rgLoc(B,P_.x,P_.z)>=rB-1.6*wB)return false;}return true;}; // v11.129: A wholly inside B's lagoon, by both frames
+  const meet=(A,B,slack)=>{const [rA]=ring(A),[rB]=ring(B),d=Math.hypot(A.x-B.x,A.z-B.z);if(!A.asq&&!B.asq)return d<rA+rB-slack;if(d<1)return true;const ux=(B.x-A.x)/d,uz=(B.z-A.z)/d;return d<rgAlong(A,rA,ux,uz)+rgAlong(B,rB,-ux,-uz)-slack;};
   for(const A of Q){const [rA]=ring(A),T=new Float32Array(RG_RM+1);let any=false;
-    for(let k=0;k<=RG_RM;k++){const a=k/RG_RM*TAU,px=A.x+Math.cos(a)*rA,pz=A.z+Math.sin(a)*rA;let m=1;
-      for(const B of Q){if(B===A)continue;const [rB,wB]=ring(B),dAB=Math.hypot(A.x-B.x,A.z-B.z);if(dAB>rA+rB)continue;if(rA<=2500&&dAB+rA<rB-1.6*wB)continue; // a faro
-        m*=1-smooth(rB-wB*0.4,rB-wB*1.6,Math.hypot(px-B.x,pz-B.z));}
+    for(let k=0;k<=RG_RM;k++){const a=k/RG_RM*TAU;rgAt(A,rA,a,P_);const px=P_.x,pz=P_.z;let m=1; // the rim's table by its own angle, as islandH reads it (an oval's local, a round one's the world's)
+      for(const B of Q){if(B===A)continue;const [rB,wB]=ring(B);if(!meet(A,B,0))continue;if(faro(A,B))continue; // a faro
+        m*=1-smooth(rB-wB*0.4,rB-wB*1.6,rgLoc(B,px,pz));}
       const sd=rgPlatSd(px,pz);if(sd>-1e8)m*=1-smooth(RG_PL_K.crest*0.4,RG_PL_K.crest*1.6,sd);T[k]=m;if(m<0.999)any=true;}
     if(any)A.rimM=T;else delete A.rimM;}
   // one floor: reefs that met share their deepest lagoon (the union is the wider lagoon, rgLagD's), so no member's floor stands as a disc inside
   // another's; one that met the platform takes its lagoon's depth; a faro keeps its own shallow lagoon
   const lagOf=R=>R.rimR!==undefined?R.lagH:R.barrier.lag,setLag=(R,v)=>{if(R.rimR!==undefined)R.lagH=v;else R.barrier.lag=v;},top=R=>R.rimR!==undefined?R.rimH:R.barrier.top;
   const up=Q.map((R,i)=>i),find=i=>up[i]===i?i:(up[i]=find(up[i]));
-  for(let i=0;i<Q.length;i++)for(let j=i+1;j<Q.length;j++){const A=Q[i],B=Q[j],[rA]=ring(A),[rB,wB]=ring(B),[,wA]=ring(A),d=Math.hypot(A.x-B.x,A.z-B.z);
-    if(d>=rA+rB-Math.min(wA,wB)||rA<=2500&&d+rA<rB-1.6*wB||rB<=2500&&d+rB<rA-1.6*wA)continue;up[find(i)]=find(j);}
+  for(let i=0;i<Q.length;i++)for(let j=i+1;j<Q.length;j++){const A=Q[i],B=Q[j],[,wA]=ring(A),[,wB]=ring(B);
+    if(!meet(A,B,Math.min(wA,wB))||faro(A,B)||faro(B,A))continue;up[find(i)]=find(j);}
   const deep=new Map();Q.forEach((R,i)=>{const g=find(i),v=Math.min(lagOf(R),R.rimM&&rgPlatSd(R.x,R.z)>-ring(R)[0]-RG_PL_K.crest*2?top(R)-RG_PL_K.lag:Infinity);deep.set(g,Math.min(deep.has(g)?deep.get(g):Infinity,v));});
   Q.forEach((R,i)=>{const v=Math.round(deep.get(find(i)));if(v<lagOf(R))setLag(R,v);});}
+// v11.129: a world point's radius in a record's own frame (islandH's turn, scale and squeeze, before its warps), the world point at a radius and angle in
+// it, and the record's world radius at a local radius toward a unit world direction
+function rgLoc(R,x,z){let lx=x-R.x,lz=z-R.z;if(R.rot){const c=Math.cos(R.rot),s=Math.sin(R.rot),tx=lx*c+lz*s;lz=lz*c-lx*s;lx=tx;}if(R.sc!==1){lx/=R.sc;lz/=R.sc;}if(R.asq)lz*=R.asq;return Math.hypot(lx,lz);}
+function rgAt(R,r,a,o){let lx=r*Math.cos(a),lz=r*Math.sin(a);if(R.asq)lz/=R.asq;lx*=R.sc;lz*=R.sc;if(R.rot){const c=Math.cos(R.rot),s=Math.sin(R.rot);o.x=R.x+lx*c-lz*s;o.z=R.z+lx*s+lz*c;}else{o.x=R.x+lx;o.z=R.z+lz;}return o;}
+function rgAlong(R,r,ux,uz){if(!R.asq&&R.sc===1&&!R.rot)return r;const c=Math.cos(R.rot||0),s=Math.sin(R.rot||0),p=(ux*c+uz*s)/R.sc,q=(uz*c-ux*s)/R.sc*(R.asq||1);return r/Math.hypot(p,q);}
 function rgAng(T,a){let u=a*(RG_RM/TAU);u-=Math.floor(u/RG_RM)*RG_RM;const i=Math.min(RG_RM-1,Math.floor(u)),t=u-i;return T[i]+(T[i+1]-T[i])*t;} // a rim table at world angle a
 // a member's record by its state (above); k its index among the built, for its noise offset
+// v11.129 (analysis_archipelago §3.3, §5; the person, 13 Nov 2026: "let's do 1"): a volcano born on an old fracture zone (m.frac, the births regionModel
+// draws onto them) is an oval along it — its record turned to the zones' heading (K.fracA, ±jit), squeezed across by its aspect (a0–a1, by a draw of its own
+// id) and stretched along by its root, so its area and its volume are the round one's (Rangiroa 80 × 32 km, long on its volcano's line; Hawaii's and the
+// Canaries' rift zones). The pins and a tuned member (the awesome shield) stay round; land: whether a member with land today takes it too.
+// Which members are records and which bury which stays decided by the round footprint of the same area, so no record's place (its ns) moves
+const RG_OVAL={on:true,land:true,a0:1.3,a1:2.4,jit:0.2};
 function rgRecord(m,k,K,rng){const ns=1000+37*k,R={id:m.id,x:m.x,z:m.z,rot:0,sc:1,ns,state:m.state,age:m.age};
+  if(RG_OVAL.on&&m.frac&&m.pin<0&&!m.tuned&&(RG_OVAL.land||!(m.state==='high'||m.state==='shield'||m.state==='rim'||m.state==='low'))){const h=mulberry(WB.hashString('oval:'+m.id)),asp=RG_OVAL.a0+(RG_OVAL.a1-RG_OVAL.a0)*h();R.rot=K.fracA+RG_OVAL.jit*(h()-0.5)*2;R.sc=Math.sqrt(asp);R.asq=asp;}
   const arms=()=>{const a=K.fracA+0.3*(rng()-0.5)*2;return [a,(a+Math.PI+0.3*(rng()-0.5)*2)%TAU];};
   if(m.state==='high'||m.state==='shield'||m.state==='rim'){const sh=Math.round(m.shore),act=m.state==='shield',yg=act||m.age<1,q=act?0:clamp(m.age/1.3,0.3,1.5),L={r:sh,h:Math.round(m.zv),cliff:act?15:yg?20:30,gully:{n:Math.round(clamp(sh/600,8,act?14:36)),lee:act?0.15:0.25}};
     if(yg){L.cald={r:clamp(0.07*sh,150,1800),d:clamp(0.05*m.zv,20,150),w:clamp(0.004*sh,25,80)};L.flows={n:Math.round(clamp(sh/250,20,90)),h:act?10:5,hw:0.45};R.rifts=arms();R.riftR=[L.cald.r,L.cald.r+500,sh+(act?5000:800),sh+(act?2500:300)];}

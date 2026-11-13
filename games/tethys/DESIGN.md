@@ -181,6 +181,10 @@ banks (four over 300 km²) on 12,087 km² drowned, most at −72, two early neck
 flat broader and its passes fewer, the atolls' wall outside (`wf`, through `rgFlank`). Lee: the crest `leeD`·(1 − e^(−fetch/`leeF`)) under the sea
 (never below the lagoon's floor + 15), no islets, a slope of 15° easing to 7° (`lf`). Each bank's lagoon `RG_PL.lg`, `rgLagD` of the disc of its
 area. `RG_PL.sd2`/`top2` hold the drowned carbonate alone (with the living, v11.126, its wall from the sea overrode their margins).
+**Ovals (v11.129):** a member born on a fracture zone (`m.frac`) is an oval record along `K.fracA` (region.js `RG_OVAL`; `rot`, `sc` = √aspect, `asq` =
+aspect: islandH squeezes across after turning and scaling, so area and volume are the round one's); `rgLoc`, `rgAt`, `rgAlong` give a record's own frame to
+what compares world places with its radii (`rgMargins`), `shSupport`/`shRadius` its width to the shelter; the record list and the burials by the round
+footprint. A record's bound table and `quiet` are by its own radius: `sample()` reads them at the world distance over `sc`.
 **The atolls' rims by the wind (v11.128):** world.js `islandH` gives a model reef's rim (`R.patch`) and a barrier the same rule by `expoW` — windward a
 broader flat with fewer passes, leeward the crest `REEF_LEE` under the sea by the chord of its lagoon upwind, more passes; ours' rim as it was.
 **Reefs (v11.123; analysis_archipelago §3):** a reef record's lagoon is `rgLagD` deep by its ring; its floor carries patch reefs and blue

@@ -316,12 +316,12 @@ const AN_N=1024,AN_K=[[1.6,11],[1.2,29],[2.2,150],[2.5,99],[3.0,131],[2.4,77]];
 function anTables(ns){const T=new Float32Array(AN_K.length*(AN_N+1));for(let k=0;k<AN_K.length;k++)for(let i=0;i<=AN_N;i++)T[k*(AN_N+1)+i]=angNoise(i/AN_N*TAU,AN_K[k][0],AN_K[k][1]+ns);return T;}
 function anT(T,k,a){let u=a*(AN_N/TAU);u-=Math.floor(u/AN_N)*AN_N;const i=Math.min(AN_N-1,Math.floor(u)),t=u-i,q=k*(AN_N+1)+i;return T[q]+(T[q+1]-T[q])*t;}
 function islandH(R,x,z,o){
-  let lx=x-R.x,lz=z-R.z;if(R.rot){const c=Math.cos(R.rot),s=Math.sin(R.rot),tx=lx*c+lz*s;lz=lz*c-lx*s;lx=tx;}if(R.sc!==1){lx/=R.sc;lz/=R.sc;}
+  let lx=x-R.x,lz=z-R.z;if(R.rot){const c=Math.cos(R.rot),s=Math.sin(R.rot),tx=lx*c+lz*s;lz=lz*c-lx*s;lx=tx;}if(R.sc!==1){lx/=R.sc;lz/=R.sc;}if(R.asq)lz*=R.asq; // v11.129: an oval record (region.js RG_OVAL) squeezed across its axis, its sc the long axis's
   const ns=R.ns,r=Math.hypot(lx,lz),a=Math.atan2(lz,lx);
   const an=R.an,aw=a+0.32*(an?anT(an,0,a):angNoise(a,1.6,11+ns))+0.22*(fbm(lx*0.0035+80+ns,lz*0.0035+20,3)-0.5)*2; // warped angle: wavy sectors
   const rw=r*(1+0.16*(an?anT(an,1,aw):angNoise(aw,1.2,29+ns))); // warped radius: wavy contours
   let awn=aw%TAU;if(awn<0)awn+=TAU;
-  const ag=R.rot?a+R.rot:a,ca=Math.cos(ag),sa=Math.sin(ag); // the wind and the current are the world's, so they read the unrotated angle (v11.62; rot 0 on both records, the same doubles)
+  const ag=R.asq?Math.atan2(z-R.z,x-R.x):R.rot?a+R.rot:a,ca=Math.cos(ag),sa=Math.sin(ag); // the wind and the current are the world's, so they read the unrotated angle (v11.62; rot 0 on both records, the same doubles); an oval's by its world bearing (v11.129)
   let expoW=0.5-0.5*(ca*Math.cos(WIND_A)+sa*Math.sin(WIND_A)); // 1 on the shore the waves strike (let since v11.86: the cone has its own aspect)
   const upW=0.5-0.5*(ca*Math.cos(CUR_A)+sa*Math.sin(CUR_A)); // 1 on the flank the current strikes (upwelling); 0 in its wake
   const shw=R.sh?shT(R.sh,0,ag):0,shc=R.sh?shT(R.sh,1,ag):0; // v11.117: what stands upwind and upstream shelters this face (shelterBuild) — the water's fields only, at the output below: the land's rain and its sea cliffs keep the record's own aspect
@@ -442,9 +442,9 @@ function islandH(R,x,z,o){
 // a record's influence at (x, z) without its ground (v11.102): the upwelling's fade by the warped radius and the current's aspect, as islandH has
 // them — for a record sample() need not compute whole (under the ground there), whose share of the seamount effect still counts
 const _iw={isl:0,upW:0};
-function islandW(R,x,z){let lx=x-R.x,lz=z-R.z;if(R.rot){const c=Math.cos(R.rot),s=Math.sin(R.rot),tx=lx*c+lz*s;lz=lz*c-lx*s;lx=tx;}if(R.sc!==1){lx/=R.sc;lz/=R.sc;}
+function islandW(R,x,z){let lx=x-R.x,lz=z-R.z;if(R.rot){const c=Math.cos(R.rot),s=Math.sin(R.rot),tx=lx*c+lz*s;lz=lz*c-lx*s;lx=tx;}if(R.sc!==1){lx/=R.sc;lz/=R.sc;}if(R.asq)lz*=R.asq;
   const ns=R.ns,an=R.an,r=Math.hypot(lx,lz),a=Math.atan2(lz,lx),aw=a+0.32*(an?anT(an,0,a):angNoise(a,1.6,11+ns))+0.22*(fbm(lx*0.0035+80+ns,lz*0.0035+20,3)-0.5)*2,rw=r*(1+0.16*(an?anT(an,1,aw):angNoise(aw,1.2,29+ns)));
-  const ag=R.rot?a+R.rot:a;_iw.isl=smooth(R.fade[1],R.fade[0],rw);_iw.upW=(0.5-0.5*(Math.cos(ag)*Math.cos(CUR_A)+Math.sin(ag)*Math.sin(CUR_A)))*(R.sh?1-shT(R.sh,1,ag):1);return _iw;}
+  const ag=R.asq?Math.atan2(z-R.z,x-R.x):R.rot?a+R.rot:a;_iw.isl=smooth(R.fade[1],R.fade[0],rw);_iw.upW=(0.5-0.5*(Math.cos(ag)*Math.cos(CUR_A)+Math.sin(ag)*Math.sin(CUR_A)))*(R.sh?1-shT(R.sh,1,ag):1);return _iw;}
 // ---------- the islands' shelter of each other (v11.117; analysis_flora_diversity §5.4; the person, 12 Nov 2026: "YES to islands shielding each other") ----------
 // A record's aspect to the wind and the current (expoW, upW in islandH) was its own alone: every atoll's windward face surf and its fed face a
 // forest, whatever stood upwind — the review found atolls 1 and 30 Ma old with the same flora in the same proportions. An island or a reef at
@@ -456,14 +456,18 @@ function islandW(R,x,z){let lx=x-R.x,lz=z-R.z;if(R.rot){const c=Math.cos(R.rot),
 // expoW and upW by one less it. GLOBE §9 stage 5 names it: "where two members of one age stop being the same".
 const SHELTER={n:32,edge:3000,w:{L:30000,cap:0.7,lo:-25,hi:-3},c:{L0:12000,k:1.5,cap:0.5,lo:-200,hi:-20}}; // the pins (ours, the giant) cast shelter and take none: their fields were set by hand against what stands round them (the drowned atoll up-current of ours, GLOBE §9)
 function shWidth(R){return (R.land?R.land.r:R.rimR!==undefined?R.rimR+R.rimW:R.flank?R.flank.r:300)*(R.sc||1);}
+// v11.129: an oval record's half-width along the unit world direction (ux, uz) — its support there; a round one's shWidth, the same doubles
+function shSupport(R,ux,uz){const w=shWidth(R);if(!R.asq)return w;const c=Math.cos(R.rot),s=Math.sin(R.rot),p=ux*c+uz*s,q=(uz*c-ux*s)/R.asq;return w*Math.sqrt(p*p+q*q);}
+// and its radius toward the unit world direction (ux, uz) — where its outline meets the ray from its centre
+function shRadius(R,ux,uz){const w=shWidth(R);if(!R.asq)return w;const c=Math.cos(R.rot),s=Math.sin(R.rot),p=ux*c+uz*s,q=(uz*c-ux*s)*R.asq;return w/Math.sqrt(p*p+q*q);}
 function shTop(R){const v=R.land?R.land.h:R.rimR!==undefined?R.rimH:(R.h0||0)+(R.knob||0);return Number.isFinite(v)?v:-1e4;}
 function shelterBuild(){const N=SHELTER.n,W=SHELTER.w,C=SHELTER.c,E=SHELTER.edge,wx=Math.cos(WIND_A),wz=Math.sin(WIND_A),cx=Math.cos(CUR_A),cz=Math.sin(CUR_A);
-  const Q=ISLANDS.map(R=>({R:R,x:R.x,z:R.z,w:shWidth(R),bw:smooth(W.lo,W.hi,shTop(R)),bc:smooth(C.lo,C.hi,shTop(R))}));
+  const Q=ISLANDS.map(R=>({R:R,x:R.x,z:R.z,w:shWidth(R),ww:shSupport(R,-wz,wx),lw:shSupport(R,wx,wz),wc:shSupport(R,-cz,cx),lc:shSupport(R,cx,cz),bw:smooth(W.lo,W.hi,shTop(R)),bc:smooth(C.lo,C.hi,shTop(R))})); // v11.129: each one's half-width across the wind and the current and its half-length along them (an oval's by its axis; a round one's all w)
   for(const A of Q){if(!A.R.state)continue;const T=new Float32Array(2*(N+1)); /* a pin: no table */
-    for(let i=0;i<=N;i++){const a=i/N*TAU,px=A.x+Math.cos(a)*A.w,pz=A.z+Math.sin(a)*A.w;let pw=1,pc=1;
+    for(let i=0;i<=N;i++){const a=i/N*TAU,ra=A.R.asq?shRadius(A.R,Math.cos(a),Math.sin(a)):A.w,px=A.x+Math.cos(a)*ra,pz=A.z+Math.sin(a)*ra;let pw=1,pc=1;
       for(const B of Q){if(B===A)continue;const dx=px-B.x,dz=pz-B.z;
-        if(B.bw>0){const t=dx*wx+dz*wz-B.w,c=Math.abs(dx*wz-dz*wx);if(t>0&&t<4*W.L&&c<B.w+E)pw*=1-B.bw*smooth(B.w+E,B.w,c)*Math.exp(-t/W.L);}
-        if(B.bc>0){const L=Math.max(C.L0,C.k*B.w),t=dx*cx+dz*cz-B.w,c=Math.abs(dx*cz-dz*cx);if(t>0&&t<4*L&&c<B.w+E)pc*=1-B.bc*smooth(B.w+E,B.w,c)*Math.exp(-t/L);}}
+        if(B.bw>0){const t=dx*wx+dz*wz-B.lw,c=Math.abs(dx*wz-dz*wx);if(t>0&&t<4*W.L&&c<B.ww+E)pw*=1-B.bw*smooth(B.ww+E,B.ww,c)*Math.exp(-t/W.L);}
+        if(B.bc>0){const L=Math.max(C.L0,C.k*B.wc),t=dx*cx+dz*cz-B.lc,c=Math.abs(dx*cz-dz*cx);if(t>0&&t<4*L&&c<B.wc+E)pc*=1-B.bc*smooth(B.wc+E,B.wc,c)*Math.exp(-t/L);}}
       T[i]=W.cap*(1-pw);T[N+1+i]=C.cap*(1-pc);}
     A.R.sh=T;}}
 function shT(T,k,a){const N=SHELTER.n;let u=a*(N/TAU);u-=Math.floor(u/N)*N;const i=Math.min(N-1,Math.floor(u)),t=u-i,q=k*(N+1)+i;return T[q]+(T[q+1]-T[q])*t;} // a record's shelter at world angle a: k 0 the waves', 1 the current's
@@ -500,8 +504,9 @@ function sample(x,z,out){
   let o=_islA,spare=_islB,best=null,h=-1e9,hSmooth=-1e9,rNear=1e9,core=false,n=0;const LR=recsAt(x,z),N=LR.length; // the records near here (v11.103: the index's; rNear is theirs, read only where no record is in reach and nothing then uses it)
   for(let q0=0;q0<N;q0++){const i=LR[q0],R=ISLANDS[i],dx=x-R.x,dz=z-R.z,d2=dx*dx+dz*dz;_isD[i]=d2;if(d2<rNear)rNear=d2;if(R.core&&d2<R.core*R.core)core=true; // squared: Math.hypot is slow, and two dozen records a sample
     const rr=R.reach*R.sc;if(d2>rr*rr)continue;
-    // a record with a bound table (region.js rgBound: the model's and the giant) by the most its ground can stand here; ours, with no table, first
-    const b=R.hi?R.hi[Math.min(R.hi.length-1,Math.floor(Math.sqrt(d2)/R.hiS))]:Infinity;let k=n++;while(k>0&&_isB[k-1]<b){_isI[k]=_isI[k-1];_isB[k]=_isB[k-1];k--;}_isI[k]=i;_isB[k]=b;}
+    // a record with a bound table (region.js rgBound: the model's and the giant) by the most its ground can stand here; ours, with no table, first. The table is by
+    // the record's own radius, which is never less than the world distance over its sc (v11.129: an oval's sc is its long axis's; every record's was 1 before)
+    const b=R.hi?R.hi[Math.min(R.hi.length-1,Math.floor(Math.sqrt(d2)/(R.hiS*R.sc)))]:Infinity;let k=n++;while(k>0&&_isB[k-1]<b){_isI[k]=_isI[k-1];_isB[k]=_isB[k-1];k--;}_isI[k]=i;_isB[k]=b;}
   rNear=Math.sqrt(rNear);
   const fl=core?0:rgFloor(x,z),flo=fl-BASIN.hill-2.5*BASIN.knee; // the model's floor (v11.102) and its lowest less 2.5 knees: a record under that is under the ground, smax exact
   // the seamount effect (v11.102): each record's influence (isl, its fade) and its current's aspect (upW), blended — the influences' union
@@ -511,7 +516,7 @@ function sample(x,z,out){
   for(let q=0;q<n;q++){const i=_isI[q],R=ISLANDS[i],b=_isB[q];_isE[q]=0;
     // v11.102: a record that can neither raise the ground nor be the highest is not computed, nor are the rest (their bounds are lower); one under
     // the ground whose fields but its influence are open water's there (past `quiet`) is not either. Exact: the ground is as if they were
-    if(best&&b<Math.min(o.h,o.hs)-BASIN.knee)break;if(!core&&b<flo&&_isD[i]>R.quiet*R.quiet)continue;
+    if(best&&b<Math.min(o.h,o.hs)-BASIN.knee)break;if(!core&&b<flo){const qs=R.quiet*R.sc;if(_isD[i]>qs*qs)continue;}
     let w;
     if(best){islandH(R,x,z,spare);w=spare;if(spare.h>o.h){h=smax(spare.h,h,fillK(spare.h,h));hSmooth=smax(spare.hs,hSmooth,fillK(spare.hs,hSmooth));const t=o;o=spare;spare=t;best=R;}else{h=smax(h,spare.h,fillK(h,spare.h));hSmooth=smax(hSmooth,spare.hs,fillK(hSmooth,spare.hs));}}
     else{h=islandH(R,x,z,o);hSmooth=o.hs;best=R;w=o;}

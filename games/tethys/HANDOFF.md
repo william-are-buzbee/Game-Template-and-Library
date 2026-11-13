@@ -1,5 +1,11 @@
 # HANDOFF — tethys
 
+**v11.129 (13 Nov 2026): the volcanoes on the old fracture zones as ovals** (analysis_archipelago §3.3). 55 of the 128 records — every member born on a
+fracture zone — are ovals along the zones' heading (region.js `RG_OVAL`: aspect 1.3–2.4, area kept), m138 north of ours among them; ours, the giant and
+the awesome shield round; the records and their seeds unchanged. Fixed with it: `sample()` read the bound tables by the world distance (right only for
+`sc` 1). `RG_OVAL.land` false keeps the islands with land round. **Ask first:** the view north from ours (`tp(0,0)`), m138 longer now; m122's lagoon
+(`tp(41500,-20700,-1)`). Next to consider (the person, 13 Nov): 3a (the fed rule by its time), then 2 (young cones on old islands) and 4 (the swell).
+
 **v11.128 (13 Nov 2026): the atolls' rims by the wind** (analysis_archipelago §3.3, §5 #9). The model's atolls, banks and barriers carry
 their islets on the windward rim, a broader flat; the leeward rim is narrower, a few metres under (world.js `REEF_LEE`, v11.127's law, shared with
 the platform) and cut by passes. Ours' rim untouched to the bit. **Ask first:** m88 from its motu (`tp(77000,27400)`) and its lee crest (`tp(67600,27400,-1)`).

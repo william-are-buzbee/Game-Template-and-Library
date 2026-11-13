@@ -7481,3 +7481,41 @@ Seen: m88 before and after (`SPAN=14000 CX=72600 CZ=27400 node test/map.js`); th
 ask in this order:** m88 from its windward rim (`tp(77000,27400)`, on its motu) and its lee (`tp(67600,27400,-1)`, over the submerged lee crest at −25) —
 whether the difference reads from the water; whether the lagoons' patch reefs that reach the sea (v11.123) now look out of place beside a lee rim
 that does not.
+
+## v11.129 — the volcanoes on the old fracture zones as ovals (13 Nov 2026)
+
+The province review's §3.3 (`analysis_archipelago.md`; the person, 13 Nov 2026: "yes please let's do 1"). Every record was round — a ring warped
+±16% — though the region model draws 45% of its births onto the old fracture zones (`fracPull`; 71 of 157 members). Earth's atolls are long on
+their volcano's line (Rangiroa 80 × 32 km) because the volcano is: a shield on a rift or a fissure is elongate (Hawaii's rift zones, La Palma's
+Cumbre Vieja, the Galápagos lineaments).
+
+- **region.js `RG_OVAL`, `rgRecord`:** a member born on a fracture zone (`m.frac`) is an oval along it — its record turned to the zones' heading
+  (`K.fracA` ± 0.2 rad), squeezed across by its aspect (`a0`–`a1`, 1.3–2.4, by a draw of its own id: no other draw moves) and stretched along by
+  its root, so its area and volume are the round one's. The pins and a tuned member (the awesome shield) stay round. `land` (true): a member with
+  land today takes it too — false keeps the islands round.
+- **world.js `islandH`, `islandW`:** the squeeze in the record's frame (`R.asq`, after `rot` and `sc`); the wind's and the current's aspect by the
+  world bearing from the centre on an oval.
+- **Which members are records, and which bury which, stays decided by the round footprint of the same area**, so no record's place in the list,
+  nor its noise seed (`ns`), moves: the 128 records and their ids and seeds are v11.128's.
+- **Fixed with it — a record's bound table read by world distance:** `sample()` indexed `R.hi` (built by the record's own radius) by the world
+  distance, and compared `R.quiet` with it; right only while `sc` was 1, as every record's was. Both read the world distance over `sc` now (never
+  more than the record's own radius, so the skip stays exact); a round record the same doubles.
+- **The shapes' other readers:** `rgMargins` (one margin per reef) places a reef's rim and reads another's lagoon in each record's own frame
+  (`rgLoc`, `rgAt`, `rgAlong`; two round ones by their old arithmetic, to the bit); the islands' shelter of each other (`shelterBuild`) takes
+  each one's half-width across the wind and the current and its half-length along them (`shSupport`, `shRadius`; a round one's all `shWidth`).
+
+What came of it (seed 32): 55 of the 128 records oval (26 atolls, 8 drowned banks, 13 guyots, 2 banks; m138 — the 545 m island 20 km north of
+ours, aspect 1.64 — m154 1.33, and the rim islands m122 1.91, m155 1.39, m125 1.38). The atolls round ours (m141, m146, m147) a line of ovals; in
+the east long lagoons along the grain. Land the same (1,591 km² in the ±70 km world; an oval island's 63.5 km² against its round 62.9). **Ours'
+square the same to the bit** (ground and fields); the ±70.5 km world's ground differs at 12% of places, its fields at 33% (the shelter's new
+shadows).
+
+- **Tests:** test/region.js the ovals (55, along the zones' heading, area kept, the rim on 204 of 240 rays of their own frames; ours, the giant
+  and the shield round); the bound tables read as `sample()` reads them (by the world distance over `sc`); the barriers' lagoon check half-way
+  out in each record's frame; test/plankton.js m148's fed-flank site moved in to its shelf break, 0.8 km out (m148 an oval, aspect 2.26, the current
+  coming across its axis; 1.1 km to v11.128).
+
+Seen: the near world (`SPAN=120000 CX=0 CZ=0 node test/map.js`) and m138 (`SPAN=24000 CX=-4000 CZ=-19000`): an oval island, its shelf and its
+drowned fringe following it, the gullies still to its summit. **Unseen, ask in this order:** the view north from ours — m138 is longer and
+narrower now (`tp(0,0)`, on ours, look north); m122's long lagoon (`tp(41500,-20700,-1)`); whether the ovals' line along the grain reads, or too
+regular (one heading ± 11°).

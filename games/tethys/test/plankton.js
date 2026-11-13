@@ -32,7 +32,7 @@ const sites=[
   {name:'the lee, past the eddies',a:dn,r:2000},
   {name:'the vent field',a:2.6,r:1310},
   {name:'the east atoll\'s fed flank',x:Math.round(15300+Math.cos(5.44)*2800),z:Math.round(-5600+Math.sin(5.44)*2800)}, // v11.102: the sill's gap went with the sill; another member's own upwelling (m141, its rim at r 1891, region.js)
-  {name:'an open atoll\'s fed flank',x:-26991,z:-4341}, // v11.123: its shelf break 1.1 km out now, the reef's walls (1.4 to v11.122: -26789, -4580); v11.117: m148, 28 km west, its shelf break up-current — nothing up-current of it (its wake shelter 0.04: world.js shelterBuild)
+  {name:'an open atoll\'s fed flank',x:-27179,z:-4140}, // v11.129: its shelf break 0.8 km out, m148 an oval (aspect 2.26) across whose axis the current comes (1.1 km to v11.128: -26991, -4341); v11.123: its shelf break 1.1 km out, the reef's walls (1.4 to v11.122: -26789, -4580); v11.117: m148, 28 km west, its shelf break up-current — nothing up-current of it (its wake shelter 0.04: world.js shelterBuild)
   {name:'the basin',x:4000,z:4000},
 ];
 for(const s of sites){if(s.x===undefined){s.x=Math.round(Math.cos(s.a)*s.r);s.z=Math.round(Math.sin(s.a)*s.r);}}
