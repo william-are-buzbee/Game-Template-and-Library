@@ -1,5 +1,11 @@
 # HANDOFF — tethys
 
+**v11.137 (13 Nov 2026): the yardstick and the blind test** (analysis_archipelago §10; a tool, the game unchanged). `test/earth.js`: fourteen
+windows (+ Réunion–Mauritius, the Mascarene banks, Kerguelen, the Azores, Galápagos), the province at Earth's detail, three more numbers — inside
+Earth's range on all; `BLIND=<seed>` the blind sheet (its key in test/preview, unread till the guesses). **The floor's rule (the person):**
+believability decides its depth. **Open:** the blind test's result (seed 20261113, sent 13 Nov); the near-ridge plume as the plateau's cause
+(§10.3) — keep the depth with a true cause, or an intraplate floor at 3–4 km.
+
 **v11.136 (13 Nov 2026): the world widened** (GLOBE §10.1; the person: "go ahead with widening the world's edge"). The world is every member's
 reach and the whole platform with 30 km of open sea round them: x −110.1 … 362.9 km, z −118.7 … 170.3 km (473 × 289 km, 57% more); the
 platform's grid grows by whole nodes; the old end's lowering no longer steps across the open plate. ±70.5 km the same to the bit. Costs: 45,300

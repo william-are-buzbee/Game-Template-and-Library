@@ -7712,3 +7712,23 @@ the platform's grid); the flood and the horizon's setup unchanged; the suite's r
 
 Seen: the whole world as a map (the platform whole, open sea round the chain, the step gone), the step's profile before and after. **Unseen:** the
 new edge from the water (`tp(360000,0)`, `tp(0,168000)`); a game started and played — boot and memory in a browser.
+
+## v11.137 — the yardstick and the blind test (13 Nov 2026)
+
+The person, 13 Nov 2026: "lets do the yardstick and blind testing first"; and on the floor: believability decides its depth (PLANET, the floor's
+depth; analysis_archipelago §10.3). A tool and an analysis; **the game unchanged**.
+
+- **test/earth.js:** five more windows of the province's own kind — Réunion and Mauritius, the Mascarene banks, Kerguelen, the Azores, Galápagos
+  (fourteen in all); every place a height function, drawn and measured alike; the province sampled on GEBCO's 15" grid (~463 m) and interpolated
+  as the Earth windows are (`RAW=1` the game's own detail); three more numbers — the floor's texture, the shallows', the shallow water round the
+  land; the sheet in three rows. `BLIND=<seed>`: the blind sheet — tiles 128 km a side that do not overlap, from every place by one rule, four of
+  the province's among one each from twelve Earth windows, shuffled and numbered; the key apart in test/preview (not committed, not shown).
+
+What it found (§10.1): at Earth's detail the province is inside Earth's range on every number, the floor's texture (14 m; Earth 7–36), the
+shallows' (1.3; 0.6–31) and the shallow water round its islands (1.5 times their land; 1.2–2.7) too. Two of the tells named in the discussion
+before it do not show at this detail (flat lagoons, wide barriers); the blind sheet is the test of the rest. The floor (§10.3): a plume ridge at
+Kerguelen's depth, believable as such; its cause in the model is the weak link (a plume under a 45 Myr plate builds none). Proposed: the plume
+near a spreading ridge as its cause — the person's to decide.
+
+Seen: every window, the blind sheet (well-formed: no labels, no island in two tiles; a first draw at 192 km repeated the province's islands
+across overlapping tiles, a tell of the test's own). **Unseen:** the person's guesses.
