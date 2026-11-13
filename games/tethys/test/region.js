@@ -195,11 +195,20 @@ ok(RB.struck.every(q=>RB.recs.some(r=>r.id===q.by)||q.by==='home'||q.by==='giant
 // stands in the light (to v11.129 once for all time, by what could ever stand above −300 m by today's floor: a shelter born after it sank still counted)
 {const lit=m=>Math.max(m.zv,m.reef?m.rt:-1e9)>-K.photic,mis=M.filter(m=>m.pin<0&&m.up.length&&m.fed!==!m.up.some(i=>lit(M[i]))),fed=M.filter(m=>m.fed);
   ok(M.every(m=>m.pin<0||!m.fed)&&mis.length<=2&&fed.length>5,`fed today: ${fed.length} members (${Object.entries(fed.reduce((o,m)=>(o[m.state]=(o[m.state]||0)+1,o),{})).map(([k,v])=>v+' '+k).join(', ')}), each with nothing upstream in the light now — ${mis.length} otherwise (the step's lag); the pins never`);}
+// v11.131 (analysis_archipelago §2.7, §5 #8; the person, 13 Nov 2026: "do 2"): a member born on an older one's finished shield stands on its surface
+// and rides it down — a satellite cone, or on an island the rejuvenated stage — and never buries its host
+{const sat=M.filter(m=>m.host>=0),RB=G.RG_BUILT,land=G.ISLANDS.filter(R=>R.sat&&R.land&&R.land.b>0);
+  const hosts=sat.every(m=>{const q=M[m.host];return q.age-m.age>=q.Ts-1e-9&&q.V>m.V&&Math.hypot(q.x-m.x,q.z-m.z)<q.R-0.5*m.R;})&&M.every(m=>m.pin<0||m.host<0);
+  const recs=G.ISLANDS.every(R=>{const m=M.find(m=>m.id===R.id);return !R.sat===!(m&&m.off>0)&&(!R.sat||R.sat.b===Math.round(m.lastB)&&R.sat.host===M[m.host].id);});
+  const own=RB.struck.every(q=>{const B=G.ISLANDS.find(R=>R.id===q.by);return !(B&&B.sat&&B.sat.host===q.id);});
+  let on=0,nr=0,top=true;for(const R of land){if(G.sample(R.x,R.z).h<R.land.b+0.5*(R.land.h-R.land.b))top=false;
+    for(let k=0;k<24;k++){const P=G.rgAt(R,1.3*R.land.r,k/24*Math.PI*2,{});nr++;if(G.sample(P.x,P.z).h>0)on++;}}
+  ok(sat.length>=10&&hosts&&recs&&own&&land.length>=1&&top&&on>=0.9*nr&&land.every(R=>R.h0===R.land.b&&R.terr.n===0),`${sat.length} members born on an older one's finished shield, each on its surface (${G.ISLANDS.filter(R=>R.sat).length} records); on land ${land.map(R=>`${R.id} ${R.land.h} m on ${R.sat.host} at ${R.land.b}`).join(', ')}, its host's land all round (${on}/${nr} rays at 1.3× its shore); no host buried by its own satellite`);}
 // v11.119 (analysis_flora_diversity §5.6, SEAFLOOR §6): the lineages — hops down the colonisation chain from the founder, cut into the old
 // east, the middle and the young west (region.js RANGE, rangeBuild): a brooding line's sister species keep to theirs
 {const I=id=>G.ISLANDS.find(R=>R.id===id),n=[0,1,2].map(r=>G.ISLANDS.filter(R=>R.rng===r).length),w70=G.ISLANDS.filter(R=>Math.max(Math.abs(R.x),Math.abs(R.z))<70520),w50=G.ISLANDS.filter(R=>Math.hypot(R.x,R.z)<50000);
   // v11.122: the founder m2 and most of the old east lie buried in the platform (chunks.js chRange gives the platform the old east's range)
-  const f2=M.find(m=>m.id==='m2');ok(f2&&f2.src<0&&G.rgPlatSd(f2.x,f2.z,true)>0&&I('home').hops===20&&I('home').rng===2&&n[0]>=1&&n[1]>=20&&n[2]>=20&&w50.every(R=>R.rng===2),`the chain's stretches: ${n[0]} records in the old east (and the platform), ${n[1]} in the middle, ${n[2]} in the young west; the founder m2 on the platform's carbonate, ours ${I('home').hops} hops; every record within 50 km of ours the west's (${w50.length}: the brooders' forms there as they were), within ±70.5 km all but ${w70.filter(R=>R.rng!==2).map(R=>R.id+' '+(R.x/1000).toFixed(0)+' km east').join(', ')}`);}
+  const f2=M.find(m=>m.id==='m2');ok(f2&&f2.src<0&&G.rgPlatSd(f2.x,f2.z,true)>0&&I('home').hops===21&&I('home').rng===2&&n[0]>=1&&n[1]>=20&&n[2]>=20&&w50.every(R=>R.rng===2),`the chain's stretches: ${n[0]} records in the old east (and the platform), ${n[1]} in the middle, ${n[2]} in the young west; the founder m2 on the platform's carbonate, ours ${I('home').hops} hops; every record within 50 km of ours the west's (${w50.length}: the brooders' forms there as they were), within ±70.5 km all but ${w70.filter(R=>R.rng!==2).map(R=>R.id+' '+(R.x/1000).toFixed(0)+' km east').join(', ')}`);}
 ok(Math.abs(G.rgFloor(6000,0)-G.BASIN.h)<0.5,`the model's floor read by the game beside ours: ${G.rgFloor(6000,0).toFixed(1)} (${G.BASIN.h})`);
 // the log: what the default province is
 const cnt={};let land=0;for(const m of M){cnt[m.state]=(cnt[m.state]||0)+1;land+=m.land;}

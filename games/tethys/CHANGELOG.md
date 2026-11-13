@@ -7545,3 +7545,38 @@ list): the ±70.5 km world's ground differs at 8% of places. **Ours' square the 
 Seen: the province's states before and after, member by member. **Unseen, ask in this order:** the middle province's new atolls from the water
 (m70 `tp(141000,-39000,-1)`); whether a record's noise seed should follow its member's id rather than its place in the list, so a change to one
 member stops reseeding the others (one change to every record once, then none).
+
+## v11.131 — young cones on old islands (13 Nov 2026)
+
+The province review's §2.7 and §5 #8 (`analysis_archipelago.md`; the person, 13 Nov 2026: "do 2"). The model drew every cone from the plateau, so
+a member born on an older one's flank was a cone inside a cone, and the records struck it when its top stayed under its neighbour's ground (14 of
+v11.130's 29 burials; the other 15 the platform's). On Earth it erupts onto the flank: a satellite cone, or on an old island the rejuvenated stage
+(Diamond Head and Punchbowl on 2.6–3.7 Ma Oahu).
+
+- **region.js `regionModel`:** a member's host is the older one whose foot it is born inside (nearer than the host's radius less half its own),
+  bigger, its shield built before this one's birth, standing highest there by their 12° shapes. A vent on a shield still growing has no host — it
+  is that shield's flank and is buried as before (a first cut without this raised m139 on the growing m138, lifted its reef 100 m out of the sea
+  and left its rock at −5 m over a reef drowned at −94). Each step a satellite's base is its host's surface there (`m.off` over its own; the
+  host's summit falling straight to its base at its radius), so it sinks and wears with the host. The pins have none.
+- **`rgRecord`:** a satellite's record carries `R.sat` (`b` its base today, `k` 3, `host`). On land (its base above the sea) its land runs from
+  its summit down to its base (`land.b`, `h0` the base), the shore where the cone meets its pedestal, no wave-cut terraces (it never met the sea).
+- **world.js `islandH`:** below its base a satellite's flank falls `k` times steeper — the skirt where its cone meets the host's slope, the host's
+  record giving the ground beyond. The land's relief is over `h0` (`LH`).
+- **`rgBuild`:** a satellite never buries its own host; one on land worn to within 20 m of its base is its host's ground (struck by it). The
+  burier is read in its own frame (`rgLoc`): to v11.130 by the round distance, which buried members on an oval's narrow side that stand clear of
+  it — m135, m84, m47 and m51 are records again.
+
+What moved (seed 32, 159 members): 16 satellites, 14 of them records. **m151 on m138:** a 714 m cone on the 545 m island 20 km north-north-west of
+ours, its base at 295 m (to v11.130 a −330 m guyot struck inside m138). The rest are atolls, banks and guyots on old atolls in the middle and east,
+most 80–220 m higher than they were; the three on m27 (190 km east) 25–45 m lower (longer at the sea, longer planed). One member changed but not a
+satellite: m137 (40 km) an atoll at −388, not a guyot — m151 stands in the light upstream of it now (v11.130's rule). Records 130 → 136 (in: m151,
+m126, m129, m44 and the four above; out: m124 and m110), struck 29 → 23. Ours' chain from the founder 20 → 21 hops (m129, lit on m122, joins
+it); every record within 50 km of ours still the west's range. The list changed, so the records after a change take new noise seeds: the ±70.5 km
+world's ground differs at 14% of a 1 km lattice. **Ours' square the same to the bit.**
+
+- **Tests:** test/region.js the satellites (each host older, bigger, finished and under it; the records' `sat` the model's; on land a cone on its
+  host's land all round at 1.3× its shore, its summit standing; no host buried by its own satellite); ours 21 hops.
+
+Seen: the province before and after, member by member; m151's ground (657 m at its centre, its caldera; its host's land on 24 of 24 rays round it).
+**Unseen, ask in this order:** the view north from ours (`tp(0,0)`): m138 with a 714 m cone on its north-west end; whether the skirt (3× steeper
+below its base) reads as a cone standing on a slope or as a step; m151 close (`tp(-7000,-19000)`, on its flank).

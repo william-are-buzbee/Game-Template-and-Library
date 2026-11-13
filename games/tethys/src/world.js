@@ -365,15 +365,15 @@ function islandH(R,x,z,o){
   // from the caldera's rim over the shore onto the shelf — and are fresh rock (young). A summit caldera (L.cald, the shield's normal end: Mauna
   // Loa's, Kilauea's): a flat floor L.cald.d under the rim, its wall L.cald.w wide, the valley heads that reach the rim notched into it. The
   // gullies go on h alone; hSmooth carries the surface less a third of the cut, so a valley floor reads as relief 0 and a planeze as a crest.
-  if(R.land){const L=R.land,u=rw/L.r;
-    if(u<1){const tl=1-u,S=tl*tl*(3-2*tl),ridge=L.h*(0.55*tl+0.45*S),cl=L.cliff*smooth(0.45,0.85,expoW)*smooth(0,0.008,tl);
+  if(R.land){const L=R.land,LH=L.b?L.h-L.b:L.h,u=rw/L.r; /* v11.131: LH the land's relief over h0 — a satellite's over its base (L.b), any other's L.h */
+    if(u<1){const tl=1-u,S=tl*tl*(3-2*tl),ridge=LH*(0.55*tl+0.45*S),cl=L.cliff*smooth(0.45,0.85,expoW)*smooth(0,0.008,tl);
       let fh=0;const FL=L.flows;
       if(FL&&R.rifts){let fw=0;for(const ra of R.rifts){const w=sectorW(awn,ra,FL.hw,FL.hw*0.6);if(w>fw)fw=w;}
         if(fw>0){const fq=aw*FL.n/TAU,fi=Math.floor(fq),ft=1-Math.abs(2*(fq-fi)-1);if(hash(fi&255,77+ns)>0.45){const flow=fw*smooth(0.55,1,ft)*(0.7+0.3*fbm(lx*0.004+23+ns,lz*0.004+61,2));fh=FL.h*flow;young=Math.max(young,0.6*flow);}}}
       const G=L.gully,av=a+0.12*(an?anT(an,2,a):angNoise(a,2.2,150+ns))+0.10*(fbm(lx*0.0012+31+ns,lz*0.0012+57,2)-0.5)*2,vq=av*G.n/TAU,vi=Math.floor(vq),tent=1-Math.abs(2*(vq-vi)-1);
-      const vw=smooth(0.3,1,tent),wet=lerp(G.lee,1,smooth(0.25,0.85,expoW)),draw=Math.min(1,wet*(0.45+0.9*hash(vi&255,150+ns))),top=ridge+cl+fh,deep=Math.max(0,top-L.h*Math.pow(tl,1.8))*draw;
+      const vw=smooth(0.3,1,tent),wet=lerp(G.lee,1,smooth(0.25,0.85,expoW)),draw=Math.min(1,wet*(0.45+0.9*hash(vi&255,150+ns))),top=ridge+cl+fh,deep=Math.max(0,top-LH*Math.pow(tl,1.8))*draw;
       let lnd=top-vw*deep,lndS=top-0.35*deep;
-      const K=L.cald;if(K){const ck=smooth(K.r+K.w,K.r-K.w,rw);if(ck>0){const tr=1-K.r/L.r,fl=L.h*(0.55*tr+0.45*tr*tr*(3-2*tr))-K.d;lnd=lerp(lnd,fl,ck);lndS=lerp(lndS,fl,ck);young=Math.max(young,0.5*ck);}}
+      const K=L.cald;if(K){const ck=smooth(K.r+K.w,K.r-K.w,rw);if(ck>0){const tr=1-K.r/L.r,fl=LH*(0.55*tr+0.45*tr*tr*(3-2*tr))-K.d;lnd=lerp(lnd,fl,ck);lndS=lerp(lndS,fl,ck);young=Math.max(young,0.5*ck);}}
       h+=lnd;hSmooth+=lndS;}}
   if(R.rifts){const RR=R.riftR;for(let k=0;k<R.rifts.length;k++){const rwk=sectorW(awn,R.rifts[k],0.13,0.09)*smooth(RR[0],RR[1],rw)*smooth(RR[2],RR[3],rw);h+=8*rwk;young=Math.max(young,0.7*rwk);}} // the arms' radial extent is the record's (v11.62)
   if(R.seep){const S=R.seep,sw=sectorW(awn,S.a,S.hw,0.06)*smooth(S.r0-60,S.r0,rw)*smooth(S.r1+40,S.r1,rw);if(sw>0)heat=Math.max(heat,S.h*sw*smooth(0.5,0.62,fbm(lx*0.011+70+ns,lz*0.011+30,3)));} // the seeps (SEEP), in patches
@@ -389,6 +389,7 @@ function islandH(R,x,z,o){
   if(rf>0){const t=Math.min(rf/F.w,1),d0=rf<F.w?F.w*(t*t*t-0.5*t*t*t*t):rf-0.5*F.w; // ∫smoothstep(0,W): the ramp's drop
     const u=clamp((rf-F.a)/(F.b-F.a),0,1),d1=rf<F.a?0:rf<F.b?(F.b-F.a)*(u*u*u-0.5*u*u*u*u):rf-0.5*(F.a+F.b); // ∫smoothstep(A,B): the easing's
     const fd=(F.s0*d0-(F.s0-F.s1)*d1)*(1+0.15*(an?anT(an,4,aw):angNoise(aw,3.0,131+ns)));h-=fd;hSmooth-=fd;} // v11.102: the smooth surface goes down with the flank (to v11.101 it stayed at the apron's -290, so the relief read 0 on every lower flank and on the floor inside every record's reach)
+  if(R.sat&&h<R.sat.b){h=R.sat.b+(h-R.sat.b)*R.sat.k;if(hSmooth<R.sat.b)hSmooth=R.sat.b+(hSmooth-R.sat.b)*R.sat.k;} // v11.131: a satellite (region.js rgRecord) ends at its base, its flank there a skirt onto its host
   // the carbonate cap's flank (v11.107, CARB above): spurs and chutes down the reef's slope, the crests hard
   let carb=0;if(R.carb){const capZ=smooth(T.r1+150,T.r1+450,rw)*smooth(CARB.base,CARB.base+150,hSmooth);
     if(capZ>0){const q0=awn*R.carb.n/TAU+0.35*(fbm(lx*0.0011+5+ns,lz*0.0011+9,2)-0.5)*2,q=((q0%1)+1)%1,s=smooth(0.2,0.9,1-Math.abs(2*q-1)),amp=0.6+0.4*fbm(lx*0.002+31+ns,lz*0.002+47,2);

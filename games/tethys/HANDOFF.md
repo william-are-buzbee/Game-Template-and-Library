@@ -1,5 +1,11 @@
 # HANDOFF — tethys
 
+**v11.131 (13 Nov 2026): young cones on old islands** (analysis_archipelago §2.7, #8). A member born on an older one's finished shield stands on
+its surface and rides it down (region.js `m.host`, `m.off`; the record's `R.sat`, its flank a skirt below its base) instead of being struck inside
+it. 16 satellites, 14 records; m151 a 714 m cone on m138, 20 km north-north-west of ours. Burials now read the burier in its own frame (four
+records back). Records 136; ours' square the same to the bit. **Ask first:** the view north from ours (`tp(0,0)`); whether `ns` should follow the
+member's id (v11.130's question; this list changed again). Still the person's: `fedK`, 3b, and 4 (the swell's width).
+
 **v11.130 (13 Nov 2026): the fed rule by its time** (analysis_archipelago §2.6, 3a). A member is fed — no reef, the weed's shallows — only while
 nothing upstream stands in the light (to v11.129 once for all time, by what could ever stand above −300 m by today's floor). Fed 32 → 26, guyots 44 →
 29, atolls 69 → 86; near ours m115 and m137 are guyots now, m136 an atoll. Records 130; the ones after a change reseeded (`ns` is a place in the list).

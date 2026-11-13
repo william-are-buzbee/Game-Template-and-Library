@@ -132,6 +132,8 @@ lowstand reef outrun by a deglaciation (Hawaii's −150 m reef). `fedK` has been
 from the plateau, so a birth on an older member's flank is a cone inside a cone and `rgBuild` deletes it (line 260). On Earth it erupts onto
 the flank: a satellite cone, or on an old island the rejuvenated stage (Diamond Head and Punchbowl on 2.6–3.7 Ma Oahu; Mauritius's younger
 series; ours' own seeps and tuff cone). m151 (0.99 Ma, 11 km³) on m138 would be a young cone on a 3 Ma island.
+*Built v11.131 (the person, 13 Nov 2026: "do 2"):* a member born on an older one's finished shield stands on its surface and rides it down. 16
+satellites, 14 records; m151 a 714 m cone on m138. A vent on a shield still growing stays its flank, buried.
 
 **2.8 Land — plausible, low.** 1,990 km²: the Society Islands' (~1,600), under GLOBE §3's own 5,000–20,000. It moves with §1.2 and §2.4.
 
@@ -245,7 +247,7 @@ and its moat with it, and the person's "one awesome" stays.
    top; its margin where it never did; its up-current edge drowned by the fed rule; the banks' fused flats replaced by it.
 3. **Margins and lagoons** — one margin per platform (rims inside another's lagoon become faros or patch reefs), lagoon depth by size
    and time dry, reef walls, the slow plate's −120 bench — what step 2 does not already make.
-4. Later, unasked: the shapes long along the grain (asked and built v11.129, 13 Nov 2026: the fracture zones' members as ovals), rims by the wind (asked and built v11.128, 13 Nov 2026), blue holes (v11.123), rejuvenated cones, the fed rule in time (built v11.130, 13 Nov 2026: the timing; the direction, 3b, and `fedK` still the person's), `Te` and the swell.
+4. Later, unasked: the shapes long along the grain (asked and built v11.129, 13 Nov 2026: the fracture zones' members as ovals), rims by the wind (asked and built v11.128, 13 Nov 2026), blue holes (v11.123), rejuvenated cones (built v11.131, 13 Nov 2026: §2.7), the fed rule in time (built v11.130, 13 Nov 2026: the timing; the direction, 3b, and `fedK` still the person's), `Te` and the swell.
 
 ## 7. What was looked at, and what was not
 

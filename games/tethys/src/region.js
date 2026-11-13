@@ -124,18 +124,24 @@ function regionModel(Kin){
   // was born — a shelter born 10 Myr after it sank still counted. Now each member's upstream ones (m.up: the same geometry) shelter it only while one
   // of them stands in the light (its top within K.photic of the sea, litNow) — a step behind; m.fed is today's
   const ca=typeof CUR_A==='number'?CUR_A:2.3,ux=-Math.cos(ca),uz=-Math.sin(ca);
+  // v11.131 (analysis_archipelago §2.7, §5 #8; the person, 13 Nov 2026: "do 2"): a birth's base is the ground already there. Its host: the older member whose foot
+  // it is born inside, its shield already built, and whose cone stands highest there (by their 12° shapes); at its birth its base is raised to the host's surface there (m.off), and it
+  // rides that surface as the host sinks and wears — a satellite cone, or on an old island the rejuvenated stage (Diamond Head and Punchbowl on Oahu). To v11.130 every member stood
+  // on the plateau, and one whose top stayed under an older neighbour's flank was struck
+  M.forEach((m,j)=>{m.host=-1;m.hd=0;if(m.pin>=0)return;let best=0;M.forEach((q,i)=>{if(i===j||q.age-m.age<q.Ts||q.V<=m.V)return;const d=Math.hypot(q.x-m.x,q.z-m.z);if(d>=q.R-0.5*m.R)return; /* bigger, its shield built before this one's birth (a vent on a shield still growing is its flank, buried as before), and it stands mostly on it */const s=q.H*(1-d/q.R);if(s>best){best=s;m.host=i;m.hd=d;m.hostId=q.id;}});});
   M.forEach((m,j)=>{m.up=m.pin<0?M.map((q,i)=>i).filter(i=>{if(i===j)return false;const q=M[i],rx=q.x-m.x,rz=q.z-m.z,al2=rx*ux+rz*uz,la=Math.abs(rx*uz-rz*ux);return al2>0&&al2<K.fedL*1000&&la<0.7*m.R+0.5*q.R;}):[];m.fed=false;});
   // a member that cannot come within 200 m of the lowest sea even at its birth, on the swell, unloaded, is a seamount whatever happens: not stepped
-  const deep=M.map(m=>K.plate+(K.floor-K.plate)*m.pw+Math.max(m.rl0,m.rl[0])+cool(m.age)+K.swell+m.H<-120-K.photic-200);
+  const deep=M.map(m=>m.host<0&&K.plate+(K.floor-K.plate)*m.pw+Math.max(m.rl0,m.rl[0])+cool(m.age)+K.swell+m.H<-120-K.photic-200);
   const ord=M.map((m,i)=>i).sort((a,b)=>M[b].age-M[a].age); // oldest first: the loads are born in this order
   const run=mask=>{const Fl=new Float64Array(n),Ld=new Float64Array(n),S=[],grow=[];let ob=0;for(let j=0;j<n;j++)if(mask[j])S.push(j);
-    M.forEach(m=>{m.plat=K.plate+(top-K.plate)*m.pw;m.born=false;m.E=0;m.peak=-1e9;m.reef=false;m.alive=false;m.rt=0;m.ring=0;m.lit=null;m.surf=null;m.src=-1;m.srcD=0;m.exp=0;m.died=null;m.lastB=null;m.litNow=false;m.zv=-1e9;});
+    M.forEach(m=>{m.plat=K.plate+(top-K.plate)*m.pw;m.off=0;m.born=false;m.E=0;m.peak=-1e9;m.reef=false;m.alive=false;m.rt=0;m.ring=0;m.lit=null;m.surf=null;m.src=-1;m.srcD=0;m.exp=0;m.died=null;m.lastB=null;m.litNow=false;m.zv=-1e9;});
     const litPrev=new Uint8Array(n);
     for(let k=Math.round(K.span/RG_DT);k>=0;k--){const t=k*RG_DT,sea=rgSea(t),C=cool(t);T(t,o);const px=o.x,pz=o.z;
       while(ob<n&&M[ord[ob]].age>t)grow.push(ord[ob++]);
       for(let g=grow.length-1;g>=0;g--){const i=grow[g],m=M[i],l=m.V*Math.min(1,(m.age-t)/m.Ts),dl=l-Ld[i];if(dl>0){for(const j of S)Fl[j]+=Kf[i*n+j]*dl;Ld[i]=l;}if(l>=m.V)grow.splice(g,1);}
       for(const j of S){const m=M[j];if(t>=m.age)continue;const dx=(m.x-px)/(K.swellW*1000),dz=(m.z-pz)/(K.swellW*1000);
-        const base=m.plat+(m.rl0||m.rl[0]?rlT(m.rl,t):0)+C+K.swell*Math.exp(-dx*dx-dz*dz)-Fl[j],gr=Math.min(1,(m.age-t)/m.Ts),dB=m.lastB===null?0:base-m.lastB;m.lastB=base;
+        const base0=m.plat+(m.rl0||m.rl[0]?rlT(m.rl,t):0)+C+K.swell*Math.exp(-dx*dx-dz*dz)-Fl[j];if(m.host>=0){const Hq=M[m.host];if(Hq.born&&Hq.lastB!==null)m.off=Math.max(0,Hq.lastB+(Hq.zv-Hq.lastB)*Math.max(0,1-m.hd/Hq.R)-base0);} // v11.131: on its host's surface, which sinks and wears as the host does
+        const base=base0+m.off,gr=Math.min(1,(m.age-t)/m.Ts),dB=m.lastB===null?0:base-m.lastB;m.lastB=base;
         if(!m.born){m.born=true;rgShape2(m,sea-base);} // v11.121: the edifice by where its base lies now, at its birth
         let zv=base+m.H*Math.cbrt(gr)-m.E;
         if(gr>=1){if(zv>sea)m.E+=K.erode*(zv-sea)*RG_DT;if(zv>sea-K.wb&&zv<sea+30&&!(m.alive&&m.rt>=zv-1))m.E+=K.plane*1000*RG_DT;zv=base+m.H-m.E;}
@@ -243,7 +249,7 @@ function rgFloor(x,z){const F=RG_FL;if(!F)return BASIN.h;const u=clamp((x-F.x0)/
 // a flank's drop rf m past its start: s0 eased in over w, easing to s1 between a and b (rgRadial's; v11.127 the platform's walls too)
 function rgFlank(rf,F){const t=Math.min(rf/F.w,1),d0=rf<F.w?F.w*(t*t*t-0.5*t*t*t*t):rf-0.5*F.w,u=clamp((rf-F.a)/(F.b-F.a),0,1),d1=rf<F.a?0:rf<F.b?(F.b-F.a)*(u*u*u-0.5*u*u*u*u):rf-0.5*(F.a+F.b);return F.s0*d0-(F.s0-F.s1)*d1;}
 function rgRadial(R,r){let h=R.h0;for(const s of R.prof)h-=s[2]*smooth(s[0],s[1],r);const T=R.terr;h-=T.n*T.step*smooth(T.r0,T.r1,r);
-  if(R.land&&r<R.land.r){const tl=1-r/R.land.r,S=tl*tl*(3-2*tl);h+=R.land.h*(0.55*tl+0.45*S);}
+  if(R.land&&r<R.land.r){const tl=1-r/R.land.r,S=tl*tl*(3-2*tl);h+=(R.land.b?R.land.h-R.land.b:R.land.h)*(0.55*tl+0.45*S);}
   const F=R.flank,rf=r-F.r;if(rf>0)h-=rgFlank(rf,F);
   if(R.rimR!==undefined){h=lerp(h,R.lagH,smooth(R.rimR-R.rimW*0.4,R.rimR-R.rimW*1.6,r));h=lerp(h,(R.rimH||0)+2.5,smooth(R.rimR-R.rimW,R.rimR-R.rimW*0.3,r)*smooth(R.rimR+R.rimW,R.rimR+R.rimW*0.3,r));}
   if(R.barrier){const c=rgCap(R.barrier,r);if(c>h)h=c;}
@@ -308,14 +314,16 @@ function rgAng(T,a){let u=a*(RG_RM/TAU);u-=Math.floor(u/RG_RM)*RG_RM;const i=Mat
 // id) and stretched along by its root, so its area and its volume are the round one's (Rangiroa 80 × 32 km, long on its volcano's line; Hawaii's and the
 // Canaries' rift zones). The pins and a tuned member (the awesome shield) stay round; land: whether a member with land today takes it too.
 // Which members are records and which bury which stays decided by the round footprint of the same area, so no record's place (its ns) moves
+const RG_SAT_K=3; // v11.131: a satellite's flank below its base falls this many times steeper — the skirt where its own cone meets its host's slope
 const RG_OVAL={on:true,land:true,a0:1.3,a1:2.4,jit:0.2};
 function rgRecord(m,k,K,rng){const ns=1000+37*k,R={id:m.id,x:m.x,z:m.z,rot:0,sc:1,ns,state:m.state,age:m.age};
   if(RG_OVAL.on&&m.frac&&m.pin<0&&!m.tuned&&(RG_OVAL.land||!(m.state==='high'||m.state==='shield'||m.state==='rim'||m.state==='low'))){const h=mulberry(WB.hashString('oval:'+m.id)),asp=RG_OVAL.a0+(RG_OVAL.a1-RG_OVAL.a0)*h();R.rot=K.fracA+RG_OVAL.jit*(h()-0.5)*2;R.sc=Math.sqrt(asp);R.asq=asp;}
+  if(m.off>0)R.sat={b:Math.round(m.lastB),k:RG_SAT_K,host:m.hostId}; // v11.131: a satellite's base today (its host's surface at its birth, sunk since): its own flank ends there in a skirt
   const arms=()=>{const a=K.fracA+0.3*(rng()-0.5)*2;return [a,(a+Math.PI+0.3*(rng()-0.5)*2)%TAU];};
-  if(m.state==='high'||m.state==='shield'||m.state==='rim'){const sh=Math.round(m.shore),act=m.state==='shield',yg=act||m.age<1,q=act?0:clamp(m.age/1.3,0.3,1.5),L={r:sh,h:Math.round(m.zv),cliff:act?15:yg?20:30,gully:{n:Math.round(clamp(sh/600,8,act?14:36)),lee:act?0.15:0.25}};
-    if(yg){L.cald={r:clamp(0.07*sh,150,1800),d:clamp(0.05*m.zv,20,150),w:clamp(0.004*sh,25,80)};L.flows={n:Math.round(clamp(sh/250,20,90)),h:act?10:5,hw:0.45};R.rifts=arms();R.riftR=[L.cald.r,L.cald.r+500,sh+(act?5000:800),sh+(act?2500:300)];}
-    if(act){R.h0=0;R.prof=[[sh,sh+200,25],[sh+200,sh+900,150]];R.terr={r0:sh+200,r1:sh+900,n:0,step:0};R.flank={r:sh+900,w:300,s0:0.27,s1:0.21,a:800,b:4000};}
-    else{const w=v=>Math.round(v*q),c=Math.round(Math.min(sh,Math.max(0.5*sh,sh+1380-w(2800))));L.r=c;R.h0=0;R.prof=[[c,c+w(300),8],[c+w(300),c+w(1000),52],[c+w(1800),c+w(2300),94],[c+w(2300),c+w(2800),40]];R.terr={r0:c+w(1000),r1:c+w(1800),n:8,step:12};R.flank={r:c+w(2800),w:250,s0:0.21,s1:0.21,a:600,b:2600};}
+  if(m.state==='high'||m.state==='shield'||m.state==='rim'){const sb=m.off>0&&m.lastB>0?m.lastB:0,sh=Math.round(sb>0?Math.min(m.shore,m.rtop+(m.zv-sb)/RG_SA):m.shore),act=m.state==='shield',yg=act||m.age<1,q=act?0:clamp(m.age/1.3,0.3,1.5),L={r:sh,h:Math.round(m.zv), /* v11.131: a satellite on land (its base above the sea, sb) a cone on its pedestal — its land from its summit (h, as every island's) down to its base (b), h0 its base */cliff:act?15:yg?20:30,gully:{n:Math.round(clamp(sh/600,8,act?14:36)),lee:act?0.15:0.25}};
+    if(sb>0)L.b=Math.round(sb);if(yg){L.cald={r:clamp(0.07*sh,150,1800),d:clamp(0.05*m.zv,20,150),w:clamp(0.004*sh,25,80)};L.flows={n:Math.round(clamp(sh/250,20,90)),h:act?10:5,hw:0.45};R.rifts=arms();R.riftR=[L.cald.r,L.cald.r+500,sh+(act?5000:800),sh+(act?2500:300)];}
+    if(act){R.h0=Math.round(sb);R.prof=[[sh,sh+200,25],[sh+200,sh+900,150]];R.terr={r0:sh+200,r1:sh+900,n:0,step:0};R.flank={r:sh+900,w:300,s0:0.27,s1:0.21,a:800,b:4000};}
+    else{const w=v=>Math.round(v*q),c=Math.round(Math.min(sh,Math.max(0.5*sh,sh+1380-w(2800))));L.r=c;R.h0=Math.round(sb);R.prof=[[c,c+w(300),8],[c+w(300),c+w(1000),52],[c+w(1800),c+w(2300),94],[c+w(2300),c+w(2800),40]];R.terr={r0:c+w(1000),r1:c+w(1800),n:sb>0?0:8,step:12}; /* no wave-cut terraces where it never met the sea */R.flank={r:c+w(2800),w:250,s0:0.21,s1:0.21,a:600,b:2600};}
     R.land=L;R.fade=[R.flank.r,R.flank.r+3000];R.core=Math.round(Math.min(L.r,R.fade[0]/1.2));
     if(m.reef&&m.alive&&m.rt>-K.photic&&m.ring>L.r+400){const rr=Math.round(m.ring);R.barrier=rgBarrier(rr,m.rt);R.fade=[Math.max(R.fade[0],rr+1500),Math.max(R.fade[1],rr+4500)];}} // v11.121: a living ring off the coast (to v11.120 a rim island was drawn as an atoll, its land left out)
   else if(m.reef&&m.state!=='guyot'){const rr=Math.round(m.ring),rt=Math.round(m.rt),W=clamp(0.06*rr,40,300);R.h0=rt-14;R.rimR=rr;R.rimW=W;R.rimH=rt;R.lagH=rt-Math.round(rgLagD(rr));R.patch=1;
@@ -343,8 +351,10 @@ function rgBuild(Rg){const K=Rg.K,rng=mulberry(K.seed*104729+7),rng2=mulberry(K.
     if(gm&&GR&&GR.land&&gm.reef&&gm.alive&&gm.rt>-K.photic&&gm.ring>gm.shore)GR.barrier=rgBarrier(Math.round(GR.land.r+gm.ring-gm.shore),gm.rt);}
   const kept=ISLANDS.slice(),out=[],struck=[],later=new Set(c1.filter(m=>!c0.includes(m))),later2=new Set(c2.filter(m=>!c1.includes(m)));
   const pass=(L,rg,w)=>{for(const m of L){const R=rgRecord(m,out.length,K,rg),top=R.land?R.land.h:R.rimR!==undefined?R.rimH:R.h0;
+    if(m.off>0&&m.lastB>0&&m.zv-m.lastB<20){struck.push({id:m.id,by:m.hostId});continue;} // v11.131: a satellite on land worn to its base is its host's ground now
     if(!R.land&&rgPlatSd(m.x,m.z)>-(R.rimR!==undefined?0.5*R.rimR:0)){struck.push({id:m.id,by:'platform'});continue;} // v11.122: a member the platform grew over (its centre on it, a reef's within half its ring) is buried by it; land stands above it
-    const by=kept.find(B=>rgRadial(B,Math.hypot(B.x-R.x,B.z-R.z))>top-20);if(by){struck.push({id:m.id,by:by.id});continue;}
+    // v11.131: a satellite never buries its own host; the burier read in its own frame (an oval's: v11.129 kept the round distance so the list would not move)
+    const by=kept.find(B=>!(B.sat&&B.sat.host===m.id)&&rgRadial(B,rgLoc(B,R.x,R.z))>top-20);if(by){struck.push({id:m.id,by:by.id});continue;}
     const f=foot(R);R.reach=Math.round(Math.max(1.2*f,R.fade[1])+500);if(!box(R.x,R.z,R.reach,w)){(w===W0?later:later2).add(m);continue;}rgBound(R);R.an=anTables(R.ns);kept.push(R);out.push(R);}};
   pass(c0,rng,W0);const n0=out.length;pass(c1.filter(m=>later.has(m)),rng2,W);const n1=out.length;pass(c2.filter(m=>later2.has(m)),rng3,W2); // the old square's, then the world's (a member of the first list kept by the world alone is shaped again, by the second rng)
   for(const R of ISLANDS){const f=foot(R),need=Math.round(1.2*f+500);if(need>R.reach)R.reach=need;if(R.id==='giant')rgBound(R);} // the pins: their flanks go on down to the model's floor; the giant's kit is the model's (land, rifts, flows: no collapse, dikes, 
@@ -451,7 +461,7 @@ function rgPlat(x,z,o){const P=RG_PL;if(!P||x<P.bb[0]||x>P.bb[1]||z<P.bb[2]||z>P
 // far east, down the chain in hops of ~11 km (the median; 54 km the longest) over 30 Myr. A poor disperser — a brooder: the sacs, the crowns,
 // the cones the brooding hingeshells became — crosses a gap rarely, so its populations along the chain drift apart with the hops between them
 // (isolation by distance). RANGE cuts the chain by hops from the founder into three: the old east (≤ east), the middle (≤ mid) and the young
-// west, the rest (ours is 20 hops). R.hops, R.rng (0 east, 1 middle, 2 west) on every record, pins too; a member never lit takes its nearest
+// west, the rest (ours is 21 hops; 20 to v11.130). R.hops, R.rng (0 east, 1 middle, 2 west) on every record, pins too; a member never lit takes its nearest
 // lit record's. A brooding line has a sister species by range (flora.js `range`, chunks.js chRange); every other line has larvae or spores
 // and is one species over the province.
 const RANGE={east:7,mid:14};
