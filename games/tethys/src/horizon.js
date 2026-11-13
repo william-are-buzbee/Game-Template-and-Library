@@ -56,10 +56,11 @@ function hzSetup(){if(HZ)return HZ;const E=hzExtent(),S=Q.hz,C=S*HZ_C,x0=E[0],z0
   // are sampled at all; of them, a cell is live with a corner over the cut or a rim through it. h: the top's height for its sight (v11.113)
   const tops=ISLANDS.map(R=>({x:R.x,z:R.z,t:((R.land?R.land.r:R.rimR!==undefined?R.rimR+R.rimW:R.h0>0&&R.terr?R.terr.r1:0)*1.16+(R.isle?2000:0))*R.sc+C*0.75,r:(R.rimR||0)*R.sc,w:(R.rimW||0)*R.sc+C,id:R.id,
     h:R.land?R.land.h:R.rimR!==undefined?(R.rimH||0)+6:R.h0+(R.knob||0)})).filter(q=>q.t>C*0.75);
+  for(const q of tops){const R=ISLANDS.find(I=>I.id===q.id);q.to=R&&R.lmax?(q.t-C*0.75)/R.lmax+C*0.75:q.t;} // v11.135: the order by an island's size without its farthest lobe (t, the cells' and the sight's, is its bound)
   HZ={S,C,x0,z0,nx,nz,cx:Math.ceil((nx-1)/HZ_C),cz:Math.ceil((nz-1)/HZ_C),tops,built:new Set(),queue:[],n:{cells:0,v:0,t:0,ms:0}};return HZ;}
 function hzSight(q,cy){return 3570*(Math.sqrt(Math.max(cy,2))+Math.sqrt(Math.max(q.h,1)))+q.t;} // m: how far off the member's top can stand above the camera's horizon
 function hzWatch(x,y,z){const H=hzSetup();let added=false;for(const q of H.tops){if(H.built.has(q)||q.queued)continue;if(Math.hypot(q.x-x,q.z-z)<hzSight(q,y)){q.queued=true;H.queue.push(q);added=true;}}
-  if(added)H.queue.sort((a,b)=>(Math.hypot(a.x-x,a.z-z)-a.t)-(Math.hypot(b.x-x,b.z-z)-b.t));}
+  if(added)H.queue.sort((a,b)=>(Math.hypot(a.x-x,a.z-z)-a.to)-(Math.hypot(b.x-x,b.z-z)-b.to));}
 function* hzMember(m){const H=hzSetup(),{S,C,x0,z0,nx,nz,cx,cz,tops}=H,t0=performance.now();let tq=t0;
   const CH=new Map(),cH=(i,j)=>{const k=j*(cx+1)+i;let h=CH.get(k);if(h===undefined){h=sample(x0+i*C,z0+j*C).h;CH.set(k,h);}return h;};
   const HH=new Map(),hAt=(i,j)=>{const k=j*nx+i;let h=HH.get(k);if(h===undefined){h=sample(x0+i*S,z0+j*S).h;HH.set(k,h);}return h;};
@@ -80,7 +81,7 @@ function* hzMember(m){const H=hzSetup(),{S,C,x0,z0,nx,nz,cx,cz,tops}=H,t0=perfor
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(nrm,3));g.setIndex(idx);
   g.computeBoundingSphere();if(g.boundingSphere)g.boundingSphere.radius+=HZ_DROP;
   const mesh=new THREE.Mesh(g,HZ_TERRAIN_MAT);mesh.name=m.id;mesh.position.set(ox,0,oz);hzLand.add(mesh);H.n.v+=pos.length/3;H.n.t+=idx.length/3;}
-function* hzGen(cx0,cz0){const H=hzSetup(),order=H.tops.slice().sort((a,b)=>(Math.hypot(a.x-cx0,a.z-cz0)-a.t)-(Math.hypot(b.x-cx0,b.z-cz0)-b.t));
+function* hzGen(cx0,cz0){const H=hzSetup(),order=H.tops.slice().sort((a,b)=>(Math.hypot(a.x-cx0,a.z-cz0)-a.to)-(Math.hypot(b.x-cx0,b.z-cz0)-b.to));
   for(const m of order)yield* hzMember(m);
   console.log('horizon: '+H.nx+'×'+H.nz+' at '+H.S+' m, '+H.n.cells+' coarse cells live, '+hzLand.children.length+' members, '+H.n.v+' vertices, '+H.n.t+' triangles, '+H.n.ms.toFixed(0)+' ms');}
 // the sea disc: rings from HZ_SEA0·FAR to HZ_FAR, spaced by a power so the near rings are fine, about the camera each frame (the drop is the shader's)

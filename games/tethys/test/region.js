@@ -103,8 +103,8 @@ ok(RB.struck.every(q=>RB.recs.some(r=>r.id===q.by)||q.by==='home'||q.by==='giant
 {const I=id=>G.ISLANDS.find(R=>R.id===id),sh=(id,k,a)=>{const R=I(id);return R&&R.sh?G.shT(R.sh,k,a):0;},WA=Math.atan2(-Math.sin(3.49),-Math.cos(3.49)),CA=5.44;
   ok(!G.ISLANDS[0].sh&&!G.ISLANDS[1].sh,'ours and the giant take no shelter (the pins: their fields are as v11.116\'s)');
   // v11.134: re-chosen among the composites (to v11.133 m133's windward face 0.4+, m146's fed face 0.3+, m131's open; v11.121 before that m138, m141, m148)
-  const c154=sh('m154',1,CA),w91=sh('m91',0,WA),o88=sh('m88',1,CA),n=G.ISLANDS.filter(R=>R.sh&&[...R.sh].some(v=>v>0.3)).length;
-  ok(c154>0.3&&w91>0.2&&o88<0.1,`the young shield 48 km west's fed face in a wake (m154, ${c154.toFixed(2)}), the bank m91's windward face in a wave shadow (${w91.toFixed(2)}), m88's fed face open (${o88.toFixed(2)}); ${n} of ${G.ISLANDS.length} records sheltered over 0.3 somewhere`);
+  const c154=sh('m154',1,CA),w91=sh('m91',0,WA),o117=sh('m117',1,CA),n=G.ISLANDS.filter(R=>R.sh&&[...R.sh].some(v=>v>0.3)).length;
+  ok(c154>0.3&&w91>0.2&&o117<0.1,`the young shield 48 km west's fed face in a wake (m154, ${c154.toFixed(2)}), the bank m91's windward face in a wave shadow (${w91.toFixed(2)}), the atoll m117's fed face open (${o117.toFixed(2)}; v11.135: m88 to v11.134, 0.11 with the lobes); ${n} of ${G.ISLANDS.length} records sheltered over 0.3 somewhere`);
   const pts=[];for(let k=0;k<4000;k++){const R=G.ISLANDS[2+k%(G.ISLANDS.length-2)],a=k*2.399,r=(R.land?R.land.r*1.2:R.rimR!==undefined?R.rimR+800:1500)*R.sc*((k%7)/7+0.2);pts.push([R.x+Math.cos(a)*r,R.z+Math.sin(a)*r]);}
   const h1=pts.map(p=>G.sample(p[0],p[1]).h),keep=G.ISLANDS.map(R=>R.sh);for(const R of G.ISLANDS)R.sh=null;const h0=pts.map(p=>G.sample(p[0],p[1]).h);G.ISLANDS.forEach((R,i)=>{R.sh=keep[i];});
   ok(h1.every((h,i)=>h===h0[i]),'the ground with the shelter and without it the same to the bit at 4,000 places over every record (the water\'s fields alone take it)');}
@@ -189,10 +189,10 @@ ok(RB.struck.every(q=>RB.recs.some(r=>r.id===q.by)||q.by==='home'||q.by==='giant
 // rim where the record's own frame puts it, the pins and the tuned shield round
 {const ov=G.ISLANDS.filter(R=>R.asq),fa=K.fracA,o={},home=G.ISLANDS.find(R=>R.id==='home'),gi=G.ISLANDS.find(R=>R.id==='giant'),aw=G.ISLANDS.find(R=>R.id==='m153');
   // v11.134: a composite is long along its own vents' spread (rot, asp from the model, the awesome shield too); a single volcano on a zone as v11.129's
-  const comp=ov.filter(R=>{const m=M.find(q=>q.id===R.id);return m&&m.asp>1.05;}),axis=ov.every(R=>{const m=M.find(q=>q.id===R.id);if(m&&m.asp>1.05)return Math.abs(R.rot-m.rot)<1e-9&&Math.abs(R.asq-m.asp)<1e-9&&Math.abs(R.sc*R.sc-R.asq)<1e-9&&m.nv>1;
-    let d=Math.abs(((R.rot-fa)%Math.PI+Math.PI*1.5)%Math.PI-Math.PI/2);return d<=0.2+1e-9&&R.asq>=1.3&&R.asq<=2.4&&Math.abs(R.sc*R.sc-R.asq)<1e-9;});
+  const comp=ov.filter(R=>{const m=M.find(q=>q.id===R.id);return m&&m.asp>1.05;}),axis=ov.every(R=>{const m=M.find(q=>q.id===R.id);const s0=R.sc/(R.lmax||1); /* v11.135: sc carries the farthest lobe */if(m&&m.asp>1.05)return Math.abs(R.rot-m.rot)<1e-9&&Math.abs(R.asq-m.asp)<1e-9&&Math.abs(s0*s0-R.asq)<1e-9&&m.nv>1;
+    let d=Math.abs(((R.rot-fa)%Math.PI+Math.PI*1.5)%Math.PI-Math.PI/2);return d<=0.2+1e-9&&R.asq>=1.3&&R.asq<=2.4&&Math.abs(s0*s0-R.asq)<1e-9;});
   let land=0,landR=0;const isl=ov.filter(R=>R.land).slice(0,3);for(const R of isl){const L=R.land.r*R.sc,st=40;let n=0;for(let x=R.x-L-200;x<=R.x+L+200;x+=st)for(let z=R.z-L-200;z<=R.z+L+200;z+=st){G.islandH(R,x,z,o);if(o.h>0)n++;}land+=n*st*st;
-    const Q=Object.assign({},R,{rot:0,sc:1,asq:undefined});let m=0;for(let x=R.x-R.land.r-200;x<=R.x+R.land.r+200;x+=st)for(let z=R.z-R.land.r-200;z<=R.z+R.land.r+200;z+=st){G.islandH(Q,x,z,o);if(o.h>0)m++;}landR+=m*st*st;}
+    const Q=Object.assign({},R,{rot:0,sc:1,asq:undefined,lobe:undefined}); /* v11.135: the round one unlobed too */let m=0;for(let x=R.x-R.land.r-200;x<=R.x+R.land.r+200;x+=st)for(let z=R.z-R.land.r-200;z<=R.z+R.land.r+200;z+=st){G.islandH(Q,x,z,o);if(o.h>0)m++;}landR+=m*st*st;}
   let rim=0,rn=0;for(const R of ov.filter(R=>R.rimR!==undefined&&R.rimH>-5).slice(0,10))for(let k=0;k<24;k++){rn++;for(let r=0.75*R.rimR;r<=1.25*R.rimR;r+=10){const P=G.rgAt(R,r,k/24*Math.PI*2,{});G.islandH(R,P.x,P.z,o);if(o.rimK>0.5){rim++;break;}}} // the crest on every ray of the record's own frame, within its ±16% warp
   ok(ov.length>=5&&comp.length>=5&&axis&&!home.asq&&!gi.asq&&aw&&aw.asq&&Math.abs(land/landR-1)<0.06&&rn>0&&rim>0.8*rn,`${ov.length} records oval, ${comp.length} of them composites along their vents (the awesome shield ${aw&&aw.asq?aw.asq.toFixed(2):'round'}), the rest along the fracture zones (aspect 1.3–2.4, the axis within 0.2 rad of ${fa}); ours and the giant round; an oval island's land ${(land/1e6).toFixed(1)} km² against ${(landR/1e6).toFixed(1)} round (${isl.map(R=>R.id).join(', ')}); the rim on ${rim} of ${rn} rays of their own frames on 10 living atolls (within the ±16% warp)`);}
 // v11.130 (analysis_archipelago §2.6, §5 #11; the person, 13 Nov 2026: "do 3a"): the fed rule by its time — a member is fed while nothing upstream of it
@@ -217,6 +217,14 @@ ok(RB.struck.every(q=>RB.recs.some(r=>r.id===q.by)||q.by==='home'||q.by==='giant
 {const recs=G.ISLANDS.filter(R=>R.id!=='home'&&R.id!=='giant'),rf=recs.filter(R=>R.rifts);
   const seeds=recs.every(R=>R.ns===1000+37*Number(R.id.slice(1))),rifts=rf.every(R=>{const Q=G.rgRecord(M.find(m=>m.id===R.id),K);return Q.rifts&&Q.rifts[0]===R.rifts[0]&&Q.rifts[1]===R.rifts[1];});
   ok(seeds&&rf.length>0&&rifts&&new Set(G.ISLANDS.map(R=>R.ns)).size===G.ISLANDS.length,`${recs.length} records seeded by their member's id (ns 1000 + 37·n, none shared), the ${rf.length} with rifts drawing them alone`);}
+// v11.135 (analysis_archipelago §9.6; the person, 13 Nov 2026: "The lobed is a solid idea"): every volcano's outline lobed by its vents and its rift
+// zones, the area kept, whole to its land or rim and softer on the deep flank; its sc the farthest lobe's, so the bounds read by sc stay bounds
+{const L=G.ISLANDS.filter(R=>R.lobe),P=G.ISLANDS.filter(R=>R.id==='home'||R.id==='giant'),N=L.length?L[0].lobe.length-1:0;
+  const area=L.every(R=>{let q=0;for(let k=0;k<N;k++)q+=R.lobe[k]*R.lobe[k];return Math.abs(q/N-1)<1e-4&&R.lobe[N]===R.lobe[0]&&R.lmax>=1-1e-9;});
+  let trip=0,tn=0,bad=0,bn=0;const o={};for(const R of L){for(let k=0;k<24;k++){const a=k/24*Math.PI*2,r=(0.3+0.4*(k%5))*R.lbR;G.rgAt(R,r,a,o);tn++;if(Math.abs(G.rgLoc(R,o.x,o.z)-r)<1e-6*r+1e-6)trip++;}
+    for(let k=0;k<200;k++){const a=k*2.399,d=(k%20+0.5)*R.lbR*0.25,x=R.x+Math.cos(a)*d,z=R.z+Math.sin(a)*d;bn++;if(G.rgLoc(R,x,z)<d/R.sc-1e-6)bad++;}}
+  const span=L.map(R=>R.lobe.slice(0,N)).map(T=>Math.max(...T)/Math.min(...T));
+  ok(L.length===G.ISLANDS.length-P.length&&P.every(R=>!R.lobe)&&area&&trip===tn&&bad===0,`${L.length} records lobed (ours and the giant not), each table's mean square 1 (the area kept); farthest over nearest ${Math.min(...span).toFixed(2)}–${Math.max(...span).toFixed(2)}; rgAt and rgLoc each other's inverse at ${trip} of ${tn} places; the own radius never under the world distance over sc (sample()'s bound) at ${bn-bad} of ${bn}`);}
 // v11.119 (analysis_flora_diversity §5.6, SEAFLOOR §6): the lineages — hops down the colonisation chain from the founder, cut into the old
 // east, the middle and the young west (region.js RANGE, rangeBuild): a brooding line's sister species keep to theirs
 {const I=id=>G.ISLANDS.find(R=>R.id===id),n=[0,1,2].map(r=>G.ISLANDS.filter(R=>R.rng===r).length),w70=G.ISLANDS.filter(R=>Math.max(Math.abs(R.x),Math.abs(R.z))<70520),w50=G.ISLANDS.filter(R=>Math.hypot(R.x,R.z)<50000);

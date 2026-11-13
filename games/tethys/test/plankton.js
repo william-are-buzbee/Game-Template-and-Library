@@ -32,7 +32,7 @@ const sites=[
   {name:'the lee, past the eddies',a:dn,r:2000},
   {name:'the vent field',a:2.6,r:1310},
   {name:'the east atoll\'s fed flank',x:131366,z:8857}, // v11.134: the composites' atoll m93, 131 km east, its shelf break 1.6 km up-current, in a wake (its fed face's shelter 0.27); to v11.133 m141, the atoll 15 km east, down-current of the drowned atoll and the bank (v11.102: the sill's gap went with the sill)
-  {name:'an open atoll\'s fed flank',x:71894,z:-57801}, // v11.134: the composites' atoll m117, 92 km east-north-east, its shelf break 4.9 km up-current, nothing up-current of it (its fed face's shelter 0.00); to v11.133 m148, 28 km west, an oval atoll's break 0.8 km out (v11.129), 1.1 (v11.123), 1.4 (v11.117)
+  {name:'an open atoll\'s fed flank',x:71162,z:-56980}, // v11.135: m117 lobed, its shelf break 3.8 km up-current (4.9 to v11.134: 71894, -57801); v11.134: the composites' atoll m117, 92 km east-north-east, nothing up-current of it (its fed face's shelter 0.00); to v11.133 m148, 28 km west, an oval atoll's break 0.8 km out (v11.129), 1.1 (v11.123), 1.4 (v11.117)
   {name:'the basin',x:4000,z:4000},
 ];
 for(const s of sites){if(s.x===undefined){s.x=Math.round(Math.cos(s.a)*s.r);s.z=Math.round(Math.sin(s.a)*s.r);}}

@@ -441,3 +441,16 @@ Earth (the eight)          4–21   3–20  9–46     40–133  1.25–2.5 25�
 Size, length and the gaps now within Earth's range; the spacing (34 km) under Earth's chains (40–90) and over Chagos's broken bank (19). Still
 off: the outlines — each volcano a smooth ellipse (round 0.91; Earth's 0.68–0.87 but the Canaries' 0.93), where Earth's are lobed by their vents and
 rift zones. That is the next step (a record of several centres), and then the world's box (the person: "eventually").
+
+**9.7 Built v11.135 (13 Nov 2026): lobed outlines** (the person: "The lobed is a solid idea, the smoothness of each island is indeed a bit off").
+Every volcano but the pins is lobed in its own frame: the union of its vents' cones (each a disc of its own foot) and its rift zones' arms,
+kept to its area, whole to its land or rim and a third of it on the deep flank, where Earth's are smoother than their coasts (a first cut lobed
+every contour alike, and m122's barrier 14 km out was a starfish). The same numbers:
+
+```
+window                        n  land    D km  Dmax km  elong  long solid round NN km gap km <-60 km²
+Tethys v11.134               13    12    15.5      139   1.61   58%  0.96  0.91  33.9   15.9  10310
+Tethys v11.135               13    12    15.6      139   1.76   67%  0.91  0.84  36.4   14.4  10159
+Earth (the eight)          4–21   3–20  9–46     40–133  1.25–2.5 25–83% 0.82–0.92 0.68–0.93 19–91 4–58 2333–17740
+```
+Every shape number now within Earth's range; the spacing (36 km) still a little under Earth's chains' 40–90. Left: the world's box.

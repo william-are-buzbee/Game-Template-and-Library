@@ -7652,3 +7652,38 @@ Against Earth (test/earth.js; §9.6): edifices 13 (57), 15.5 km across (5.2), el
 Seen: the province and the ±75 km world as maps, the Earth sheet. **Unseen, ask in this order:** the view from ours (`tp(0,0)`): the awesome shield
 longer and its axis toward ours, nothing 16 km north any more; m122 from the water (`tp(45000,-5000)`); whether an island's ellipse reads too
 regular from the water.
+
+## v11.135 — lobed outlines (13 Nov 2026)
+
+The person, 13 Nov 2026: "The lobed is a solid idea, the smoothness of each island is indeed a bit off." To v11.134 every record was a circle or a
+smooth ellipse (test/earth.js: the hull's roundness 0.91, solidity 0.96, against Earth's 0.68–0.87 and 0.82–0.92). Earth's are lobed by their
+vents and their rift zones: the Big Island three-armed, El Hierro and Tenerife stars, an atoll's reef the shape of the volcano it caps.
+
+- **region.js `rgLobe` (`RG_LOBE`):** every record but the pins carries `R.lobe`, its outline over the turn in its own frame (after its turn and
+  squeeze): the union of its vents' cones (each a disc of its own foot at its place, the largest at the centre, as far as 1.8 times it), smoothed
+  over ±2 of 48 steps, drawn out along its rift zones (its rifts where it has them, else 2 or 3 arms by its id on the fracture grain; each 0.12–0.3,
+  over its squeeze where it is long already), its mean square 1 (the area kept). `lmax`, its farthest, multiplies `sc`, so every bound read by sc
+  stays a bound.
+- **world.js `lbF`:** the scale at an angle and an unlobed radius — whole to 1.2 times the record's land's or rim's radius (`lbR`), fading to 35% of
+  it two radii further out, as Earth's deep flanks are smoother than their coasts (a first cut lobed every contour alike: m122's barrier, 14 km out,
+  was a starfish). `islandH`, `islandW`, `rgLoc`, `rgAt` (`rgLbFix`: the fixed point, the fade being read at the unlobed radius), `rgAlong`,
+  `shSupport`, `shRadius` read it; the margins' round shortcut only for round, unlobed pairs.
+- **world.js `sample()`, `recLoc`:** each record's own radius (turned, scaled, squeezed, lobed), read once past the cheap world-distance reject,
+  for its core, its reach, its bound table, its quiet and its influence. With the lobe folded into sc alone the bounds were loose by the farthest
+  lobe and `sample()` ran 44% slower over the world, 69% near ours (the suite's longest runs 10–27%); now 0.92 µs a sample over the world against
+  v11.134's 0.89, 1.10 round the awesome shield against 1.16 (its oval's bounds were loose too), 1.53 near ours against 1.16 — the shield's cape
+  reaching there now, its ground computed where it stands (best of five, this machine). Fixed with it: the core and the influence were read by the
+  world distance, which across an oval's short axis (v11.129) or off a lobe is past them.
+- **clouds.js, horizon.js:** a cloud cap's width and horizon's build order by the island's scale without its farthest lobe (the cells and the
+  sight keep the bound); without that horizon built the awesome shield before the giant.
+
+What moved (seed 32): the same 15 records; land 2,066 → 2,042 km². Against Earth (§9.7): roundness 0.91 → 0.84, solidity 0.96 → 0.91, elongation
+1.61 → 1.76 (67% long), gaps 15.9 → 14.4 km — every shape number within Earth's range. The awesome shield's south-east cape, where its vent m138's
+cone stood, now 10 km north of ours (its coast 22 km off to v11.134; m138's own 16, to v11.133). **Ours' square the same to the bit.**
+
+- **Tests:** test/region.js every record but the pins lobed, each table's mean square 1, rgAt and rgLoc each other's inverse (312 of 312),
+  sample()'s bound never broken (2,600 places); the ovals' sc over their lmax; the open fed face m117's (m88, 0.11 with the lobes, to v11.134).
+  test/plankton.js m117's shelf break 3.8 km out (4.9). test/horizon.js the giant built before the awesome shield again.
+
+Seen: the province and the ±75 km world as maps, the Earth sheet. **Unseen, ask in this order:** the view north from ours (`tp(0,0)`): the awesome
+shield's cape 10 km off; m122 from the water (`tp(45000,-5000)`), and whether its four lobes read as a starfish; the deep flanks' fade from the water.
