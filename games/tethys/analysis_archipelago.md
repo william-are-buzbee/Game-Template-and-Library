@@ -457,3 +457,13 @@ Every shape number now within Earth's range; the spacing (36 km) still a little 
 
 **9.8 The world's box (v11.136, 13 Nov 2026; the person: "go ahead with widening the world's edge").** The world now holds every member's reach and
 the whole platform with 30 km of open sea round them (473 × 289 km); the platform is no longer cut at the box (GLOBE §10.1).
+The same numbers after it (the 384 km window about the world's middle, as Earth's: it leaves the platform's last 14 km east and 44 km of the
+west's open sea outside):
+
+```
+window                        n  land    D km  Dmax km  elong  long solid round NN km gap km <-60 km²
+Tethys v11.135               13    12    15.6      139   1.76   67%  0.91  0.84  36.4   14.4  10159
+Tethys v11.136               15    12    15.5      146   1.76   64%  0.90  0.84  33.6   10.5  10953
+```
+The chain the same; two more pieces of the platform where the box cut it (its outer banks, close to its body: the spacing's and the gaps' medians
+fall with them), and the platform's own extent (Dmax) 146 km.

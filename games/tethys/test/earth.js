@@ -40,10 +40,11 @@ function earthH(w){const g=grid(w),H=new Float32Array(N*N),kx=111320*Math.cos(w.
     return (q(c0,r0)*(1-u)+q(c0+1,r0)*u)*(1-v)+(q(c0,r0+1)*(1-u)+q(c0+1,r0+1)*u)*v;};
   for(let j=0;j<N;j++)for(let i=0;i<N;i++){const x=(i-0.5)*M-SPAN/2,z=(j-0.5)*M-SPAN/2;H[j*N+i]=at(w.lat-z/kz,w.lon+x/kx);}
   return H;}
+let TW=null; // the world's size, for its label (v11.136: the world wider than the window)
 function tethysH(){const util=fs.readFileSync(path.join(root,'vendor/wb-core.global.js'),'utf8')+'\n'+fs.readFileSync(path.join(root,'src/util.js'),'utf8');let world=fs.readFileSync(path.join(root,'src/world.js'),'utf8');
   const cut=world.indexOf('// ---------- the light');if(cut>0)world=world.slice(0,cut);world+='\n'+fs.readFileSync(path.join(root,'src/region.js'),'utf8');
   const THREE={Vector3:class{constructor(x,y,z){this.x=x;this.y=y;this.z=z;}},Matrix4:class{},Quaternion:class{}};
-  const Wd=new Function('THREE',util+'\n'+world+'\nreturn {sample,WX0,WX1,WZ0,WZ1};')(THREE),cx=(Wd.WX0+Wd.WX1)/2,cz=(Wd.WZ0+Wd.WZ1)/2,H=new Float32Array(N*N),f=new Float32Array(9);
+  const Wd=new Function('THREE',util+'\n'+world+'\nreturn {sample,WX0,WX1,WZ0,WZ1};')(THREE);TW=[(Wd.WX1-Wd.WX0)/1000,(Wd.WZ1-Wd.WZ0)/1000];const cx=(Wd.WX0+Wd.WX1)/2,cz=(Wd.WZ0+Wd.WZ1)/2,H=new Float32Array(N*N),f=new Float32Array(9);
   for(let j=0;j<N;j++)for(let i=0;i<N;i++)H[j*N+i]=Wd.sample(cx-SPAN/2+(i-0.5)*M,cz-SPAN/2+(j-0.5)*M,f).h;return H;}
 // the edifices: 8-connected pieces above T, those 2 km across or more; each its area, land, centre, elongation (the root of its second moments'
 // ratio), its hull (of its boundary pixels' corners) for solidity and roundness
@@ -68,7 +69,7 @@ function measure(H){const lab=new Int32Array(W*W).fill(-1),Q=new Int32Array(W*W)
     asp:med(whole.map(a=>a.asp)),long:whole.length?whole.filter(a=>a.asp>=1.5).length/whole.length:NaN,sol:med(whole.map(a=>a.sol)),rnd:med(whole.map(a=>a.rnd)),nn:med(nn.map(a=>a.d)),gap:med(nn.map(a=>a.g)),e};}
 // a window drawn, labelled and measured
 function panel(w,H){const img=relief(H,W,M,CONT),lb=(x,y,s,c,sc)=>{text(img,W,W,x+1,y+1,s,[0,0,0],sc);text(img,W,W,x,y,s,c,sc);},WH=[240,240,230];
-  lb(16,14,w.name,WH,3);lb(16,44,w.key==='tethys'?'the province, 382 x 227 km in a 384 km square':`${Math.abs(w.lat).toFixed(1)}°${w.lat<0?'S':'N'} ${Math.abs(w.lon).toFixed(1)}°${w.lon<0?'W':'E'} — ${w.note}`,WH,2);
+  lb(16,14,w.name,WH,3);lb(16,44,w.key==='tethys'?`the world ${TW[0].toFixed(0)} x ${TW[1].toFixed(0)} km, the 384 km square about its middle`:`${Math.abs(w.lat).toFixed(1)}°${w.lat<0?'S':'N'} ${Math.abs(w.lon).toFixed(1)}°${w.lon<0?'W':'E'} — ${w.note}`,WH,2);
   const sb=50000/M;for(let x=0;x<=sb;x++)for(let t=0;t<3;t++){const o=((W-30+t)*W+20+Math.round(x))*3;img[o]=img[o+1]=img[o+2]=240;}lb(20,W-54,'50 km',WH,2);lb(W-150,W-54,'N up',WH,2);
   return img;}
 const res=[];
