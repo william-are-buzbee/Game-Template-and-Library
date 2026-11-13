@@ -2,9 +2,10 @@
 // game reads it and nothing is saved. `n` opens it over the play or the menu: the whole world from sample() with test/map.js's bands, hillshade
 // and contours, the islands' land and reach rings (world.js ISLANDS), the clamp, the old square, the loaded cells, the landmarks, the player as a
 // dot with its facing; under the picture the cursor's place and the ground there, and the player's. The wheel zooms about the cursor, a drag
-// pans, a click goes there (tp, in play) and closes; esc or n closes. The world's picture is WMAP_N² samples made on first opening (~0.3 s,
-// once, a stall the person will notice and a dev tool may have); zoomed in, the window is re-sampled at WMAP_Z² when the wheel or the drag
-// rests, so the island's square reads at its own scale rather than as 66 px of the world. Since v11.106 the world is wider (141 km; the province since v11.115, 382 × 227 km): the map opens
+// pans, a click goes there (tp, in play) and closes; esc or n closes. The world's picture is WMAP_N² samples made on first opening (~0.3 s
+// at v11.63, ~2 s in a sandbox's Chromium over the province; once, a stall the person will notice and a dev tool may have); zoomed in, the window is re-sampled at WMAP_Z² when the wheel or the drag
+// rests, so the island's square reads at its own scale rather than as 66 px of the world. Till then, and from one opening to the next, the
+// last window stays drawn in its own place over the world's picture (v11.115.1: it was dropped for the world's at every notch, a flicker). Since v11.106 the world is wider (141 km; the province since v11.115, 382 × 227 km): the map opens
 // on a view the old square's size (51.6 km) and samples it at once; the wheel goes out to the whole world. The pointer is released while it is open and taken
 // back when it closes, as the effects list does (effects.js fxShow). The bands and contours are test/map.js's, kept in step by hand.
 const WMAP_N=512,WMAP_Z=320,WMAP_REST=180; // the world picture's side in samples; the zoomed window's; the rest (ms) after a wheel or drag before the window re-samples
@@ -12,7 +13,7 @@ const WMAP_BANDS=[[0,[0.55,0.52,0.40]],[-6,[0.62,0.78,0.72]],[-60,[0.30,0.62,0.6
 const WMAP_CONT=[0,-60,-150,OXY.top,-800,-1000]; // the sea, the shelf's edge, the light's end, the oxygen minimum's top (the chemocline to v11.95), the deep, the floor's top (the hills cross -1100 everywhere)
 const wmapEl=document.getElementById('wmap'),wmapC=document.getElementById('wmapc'),wmapL=document.getElementById('wmapl');
 const WMAP_W=[(WX0+WX1)/2,(WZ0+WZ1)/2,Math.max(WX1-WX0,WZ1-WZ0)]; // the world's picture: its middle and the side of the square that holds it (v11.112: the world a rectangle)
-const wmap={open:false,cx:0,cz:0,span:2*HALF,base:null,win:null,winKey:'',rest:0,drag:null,moved:0,mx:0,mz:0,hover:false};
+const wmap={open:false,cx:0,cz:0,span:2*HALF,base:null,win:null,winKey:'',winAt:null,rest:0,drag:null,moved:0,mx:0,mz:0,hover:false};
 function wmapBand(h){if(h>=0)return h>4?[0.42,0.40,0.32]:WMAP_BANDS[0][1];for(let k=1;k<WMAP_BANDS.length;k++)if(h>=WMAP_BANDS[k][0]){const a=WMAP_BANDS[k-1][1],b=WMAP_BANDS[k][1],t=(WMAP_BANDS[k-1][0]-h)/(WMAP_BANDS[k-1][0]-WMAP_BANDS[k][0]);return [a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t];}return WMAP_BANDS[WMAP_BANDS.length-1][1];}
 // the picture of the square of side span about cx,cz, W pixels a side: heights on a (W+2)² grid (a ring for the shade), lit from the north-west and low, a contour where a band is crossed toward the right or down (test/map.js, the same numbers)
 function wmapPicture(cx,cz,span,W){const N=W+2,M=span/W,x0=cx-span/2,z0=cz-span/2,H=new Float32Array(N*N),f=new Float32Array(NF);
@@ -25,15 +26,15 @@ function wmapPicture(cx,cz,span,W){const N=W+2,M=span/W,x0=cx-span/2,z0=cz-span/
   g.putImageData(img,0,0);return cv;}
 function wmapKey(){return Math.round(wmap.cx)+','+Math.round(wmap.cz)+','+Math.round(wmap.span);}
 function wmapShow(on){if(on===wmap.open)return;if(on&&mode!=='play'&&mode!=='menu')return;wmap.open=on;wmapEl.classList.toggle('on',on);
-  if(on){try{const W=Math.max(200,Math.min(innerWidth,innerHeight)-90);wmapC.width=W;wmapC.height=W;if(!wmap.base)wmap.base=wmapPicture(WMAP_W[0],WMAP_W[1],WMAP_W[2],WMAP_N);wmap.win=null;wmap.rest=1;
+  if(on){try{const W=Math.max(200,Math.min(innerWidth,innerHeight)-90);wmapC.width=W;wmapC.height=W;if(!wmap.base)wmap.base=wmapPicture(WMAP_W[0],WMAP_W[1],WMAP_W[2],WMAP_N);wmap.rest=1;
       if(mode==='play'&&player.clade){wmap.cx=player.pos.x;wmap.cz=player.pos.z;if(wmap.span>=WMAP_W[2])wmap.span=WMAP_W[2];} // opened in play: centred on you, the world whole (a zoom is kept between openings)
       wmapDraw();}catch(e){console.warn('the world map could not draw: '+e.message);wmap.open=false;wmapEl.classList.toggle('on',false);return;}
     if(mode==='play'&&locked)unlock();}
   else if(mode==='play'&&!isTouch)tryLock();}
 function wmapDraw(){if(!wmap.open)return;const W=wmapC.width,g=wmapC.getContext('2d'),S=wmap.span,x0=wmap.cx-S/2,z0=wmap.cz-S/2,px=x=>(x-x0)/S*W,pz=z=>(z-z0)/S*W;
   g.fillStyle='#03080f';g.fillRect(0,0,W,W);
-  const win=wmap.win&&wmap.winKey===wmapKey()?wmap.win:null;
-  if(win)g.drawImage(win,0,0,W,W);else{const k=WMAP_N/WMAP_W[2];g.imageSmoothingEnabled=S>=WMAP_W[2]/2;g.drawImage(wmap.base,(x0-WMAP_W[0]+WMAP_W[2]/2)*k,(z0-WMAP_W[1]+WMAP_W[2]/2)*k,S*k,S*k,0,0,W,W);} // the world's picture, or the window's when it is fresh; a coarse zoom of the world shows its blocks rather than a blur
+  const k=WMAP_N/WMAP_W[2],w=wmap.winAt;g.imageSmoothingEnabled=S>=WMAP_W[2]/2;g.drawImage(wmap.base,(x0-WMAP_W[0]+WMAP_W[2]/2)*k,(z0-WMAP_W[1]+WMAP_W[2]/2)*k,S*k,S*k,0,0,W,W); // the world's picture under everything; a coarse zoom of it shows its blocks rather than a blur
+  if(wmap.win){g.save();g.beginPath();g.rect(px(WMAP_W[0]-WMAP_W[2]/2),pz(WMAP_W[1]-WMAP_W[2]/2),WMAP_W[2]/S*W,WMAP_W[2]/S*W);g.clip();g.drawImage(wmap.win,px(w[0]-w[2]/2),pz(w[1]-w[2]/2),w[2]/S*W,w[2]/S*W);g.restore();} // the last window over it in its own place, fresh or not, until the next is sampled (v11.115.1, the person: "zooming out the map causes it to flicker to its lowest res" — a stale window was dropped for the world's 746 m picture, 0.3–0.4 s a notch and the whole time the wheel turned); never coarser than the world's (sampled only under 0.6 of its side); cut to the world's picture, so a window kept past 0.6 is no lit box in the dark beyond the world's west or east edge
   const ring=(x,z,r,col,dash)=>{g.strokeStyle=col;g.setLineDash(dash||[]);g.beginPath();g.arc(px(x),pz(z),r/S*W,0,TAU);g.stroke();g.setLineDash([]);};
   const rect=(xa,za,xb,zb,col,dash)=>{g.strokeStyle=col;g.setLineDash(dash||[]);g.strokeRect(px(xa),pz(za),(xb-xa)/S*W,(zb-za)/S*W);g.setLineDash([]);};
   g.lineWidth=1;
@@ -53,7 +54,7 @@ function wmapDraw(){if(!wmap.open)return;const W=wmapC.width,g=wmapC.getContext(
   s+='      n close  ·  click go  ·  wheel zoom  ·  drag pan';wmapL.textContent=s;}
 // after the loop's frame (main.js): the dot moves, the loaded cells change; a zoomed window is sampled once the view has rested
 function updateWMap(dt){if(!wmap.open)return;if(mode!=='play'&&mode!=='menu'){wmapShow(false);return;}
-  if(wmap.rest>0){wmap.rest-=dt*1000;if(wmap.rest<=0&&wmap.span<WMAP_W[2]*0.6&&wmap.winKey!==wmapKey()){try{wmap.win=wmapPicture(wmap.cx,wmap.cz,wmap.span,WMAP_Z);wmap.winKey=wmapKey();}catch(e){wmap.win=null;}}}
+  if(wmap.rest>0){wmap.rest-=dt*1000;if(wmap.rest<=0&&wmap.span<WMAP_W[2]*0.6&&wmap.winKey!==wmapKey()){try{wmap.win=wmapPicture(wmap.cx,wmap.cz,wmap.span,WMAP_Z);wmap.winKey=wmapKey();wmap.winAt=[wmap.cx,wmap.cz,wmap.span];}catch(e){wmap.win=null;}}}
   wmapDraw();}
 function wmapAt(e){const r=wmapC.getBoundingClientRect(),W=wmapC.width,u=(e.clientX-r.left)/r.width,v=(e.clientY-r.top)/r.height;return [wmap.cx-wmap.span/2+u*wmap.span,wmap.cz-wmap.span/2+v*wmap.span,u*W,v*W];}
 wmapC.addEventListener('mousedown',e=>{if(e.button!==0)return;wmap.drag={x:e.clientX,y:e.clientY,cx:wmap.cx,cz:wmap.cz};wmap.moved=0;e.preventDefault();});

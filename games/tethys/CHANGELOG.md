@@ -6937,6 +6937,36 @@ the cells loading and spawning as at home. Costs: the 75 records' build +0.5 s o
 node); a frame unchanged. **Unseen, ask in this order:** the far east in play (a swim there is
 hours: `tp`); the boot on your machine; the world map's whole view (`n`, the wheel out).
 
+## v11.115.1 — the world map's zoom without the flicker (12 Nov 2026)
+
+The person (12 Nov 2026): "zooming out the map causes it to flicker to its lowest res until you move the mouse."
+
+- **The cause.** worldmap.js `wmapDraw` drew the zoomed window only while its key (`wmapKey`: the rounded cx, cz, span) was the view's, else
+  the world's picture (`wmap.base`, 512² over the 382 km square since v11.115: 746 m a pixel, its blocks unsmoothed under half the world's
+  side). Every notch of the wheel and every drag changes the key, so the map dropped to the world's picture for the rest (`WMAP_REST`, 180 ms)
+  and then the window's sampling (0.1–0.25 s headless, a stall that leaves that frame on screen): 310–415 ms a notch, and the whole time the
+  wheel turned, each notch restarting the rest. Zooming in did the same. Nothing waits on the mouse: the rest counts down every frame, in play
+  and in the menu, and headless, with no input after the wheel, the window came back every time below 0.6 of the world's side (229 km). The
+  "until you move the mouse" is most likely the stall: the cursor's cross stops with the picture, and both come back together.
+- **The fix, `wmapDraw`:** the world's picture under everything, and the last window over it in its own place (`wmap.winAt`: its cx, cz,
+  span), fresh or not, until the next is sampled. Zoomed out, the old window is the middle and only the ring the zoom revealed is coarse;
+  zoomed in, the old window magnified; dragged, shifted, the uncovered strip coarse. A fresh window covers the canvas exactly as before. The
+  window is cut to the world's picture's square, so one kept past 0.6 of the side (no window is sampled there: 320² is no finer than the world's
+  512) is no lit box in the dark beyond the world's west or east edge. Image smoothing is set once for both pictures (it was set for the world's
+  and leaked into the window's: the same in practice).
+- **`wmapShow`** keeps the window from one opening to the next (it dropped it): a reopening shows it in place until the view's is sampled, the
+  next frame, as before.
+- **Comments:** worldmap.js's head (the first opening's world picture is ~2 s in a sandbox's Chromium now, ~0.3 s at v11.63).
+
+Seen headless (Chromium, software GL; the map over play and over the menu; the map's canvas read every frame and pictured during the rest
+and after it): before, each notch out from the opening view the whole map in the world's blocks, then the window; after, the old window in the
+middle and the blocks only in the new ring; past 229 km the 197 km window kept, no box in the margin; a fast zoom in from 384 to 101 km the
+197 km window magnified until the new one; a drag the old window shifted; a reopening its window at once. A settled view is the picture it was
+(15–46 pixels differ of 372,100: single contour pixels, the sampling grid moved by the player's sub-metre drift between the runs). No page
+errors. **Unseen, ask in this order:** whether the flicker is gone on your machine (`n`, the wheel out a notch at a time from the opening view,
+then quickly; a drag); whether the stall when the window re-samples (the map frozen ~0.1–0.25 s, as before) is what read as "until you move
+the mouse" — if so, the sampling can go over frames as a generator; the kept window's edge past 229 km (615 m a pixel against the world's 746).
+
 ## v11.116 — meadows, not a lawn; variants that read; a forest with ages (12 Nov 2026)
 
 The flora diversity pass's first two changes (analysis_flora_diversity.md §5.1 and §5.3; the person, 12 Nov 2026: "Yes go ahead with 1 and
@@ -7213,6 +7243,76 @@ Seen: m109's lagoon merged with m85's and m62's into one floor round the island,
 (`SPAN=60000 CX=108000 CZ=-5000`); the atolls round ours with walls, patch reefs and a blue hole in m141 (`SPAN=40000 CX=8000 CZ=0`).
 **Unseen, ask in this order:** a lagoon's patch reefs from the water (`tp(108100,4000,-1)` then swim out), a blue hole from above and inside;
 an atoll's wall from beside it (`tp(1600,20100,-60)`, m140); whether the deep gardens' smaller ground on the walls matters (DEEP §3).
+
+## v11.120.2 — the stub's primitives are three's (12 Nov 2026)
+
+test/stub.js built every primitive as n×9 `Math.random()` numbers in [0,1), whatever its size; `applyMatrix4`, `translate` and `rotateX` did
+nothing; `setFromUnitVectors` was the identity; `setFromEuler` knew XYZ and YXZ; a `PlaneGeometry` with no segments was empty. grow.js
+`species()` takes a species' `top` off its merged geometry, and chunks.js `placeFloraType` reads it for the surface cap and `clearOf`'s pad
+(and the forest's sound its buckets), so headless flora near the surface was not the game's. Of the 85 entries with a top, 58 read 0.97–1.00 m
+whatever the plant (the ribbon is 15.4 m in the browser, the tidetree 14.6, the ladder 13.0; the mats and rinds 0.06–0.11), the turf and the
+wisp read 0 (planes), and the 25 rock kits and sheds set their own. The stipe's 1.0 was right by luck: it is a unit stalk the reach rule stretches.
+
+- **The gap, measured:** 12 shallow cells round ours (ground −25 to −1 m over most of each, two at the forest's edge by (147, −443)) placed with
+  the old tops and with the real ones: 3,017 of 20,709 placements gone, 2,351 new, 174 more the same place at another height — 23 of 58
+  species, most of it the turf (2,349 out, 1,719 in; its real 0.54 m meets the cap), then the strap, the tidetree, limerind, tussock, lily.
+  One placement skipped moves the rest of that species' stream in its cell, and a rigid plant moved moves what `clearOf` lets after it.
+- **The stub now:** each primitive is three r128's own vertices by its formulas and defaults (box, sphere, cylinder and cone with the caps'
+  centres, lathe, dodecahedron at detail 0, torus, plane upright in x–y), points without triangles or normals, under a token index so
+  parts.js `merge` copies one before it transforms it, as in the browser; `applyMatrix4`, `translate` and `rotateX` move the positions;
+  `setFromUnitVectors` and `setFromEuler` (every order) are three's. Every one of the 85 tops equals three's to the bit — checked against
+  three 0.128.0 itself (fetched into a scratch folder, not committed): the bundle run with three's primitives and maths. Nothing in `src/`
+  changed; `tethys.html` is byte-identical.
+- **Cost:** none measurable (the bundle's load 4.6 s either way; fewer points than the noise had).
+- **test/geo.js** keeps the triangles and the flat normals for the previews; its copies of the transforms and the quaternion maths are gone
+  (the stub's now). The previews are byte-identical (sickle, trap, and the reed, ribbon, ladder, turf and stipe sheets).
+- **What moved in the suite** (against v11.120's run on the same machine): pool.js's 3×3 at the forest 13,775 instances → 13,301 (turf 2,217 →
+  1,759), its 5×5 30,172 → 29,381; audio.js's forest at the peak 0.73 against 0.18 → 0.68 against 0.25 (its buckets read `f.top||3`, so the
+  turf and the wisp counted 3 m each); physics.js's probe cell 542 solids → 513, the pad it tests another one; origins.js 451,488 numbers →
+  450,789. snow.js, anim.js, smoke.js and live.js are not seeded: two runs of v11.120 differ as much as v11.120 and this (anim 9 of 37 lines,
+  snow 38 of 90), so nothing there is told apart.
+- **combat.js:** the primitives no longer draw from `Math.random`, so its seeded stream moved. With the stream kept (the new shapes drawing
+  the old count) its output is v11.120's to the line but the shed's vertex count: the geometry moves no fight. With it moved, §3's eel never
+  took hold of the player — and v11.120's stub does the same at seeds 12 and 13 of the eight tried (it misses a finback at rest every 2–3 s for
+  the whole minute; two of the four seeds tried for §3 alone). §3 has a stream of its own now (`mulberry(3)`), so a draw upstream no longer moves
+  it. §8 missed a bite that kills in the frame its hold forms (the vitals opened by the first bite, the hold gone before the loop looks); the
+  kill counts as that bite. The shed's check is `> 500` vertices (702 now: the stub's points; 2,616 as random triangles).
+- **test/origins.js** had two causes of its flakes (the two v11.120.1 pull requests, 57 and 58, found one each: the moults' draws and the
+  primitives' tops). This removes the second; the moults still draw from `Math.random`, so the seeding there still matters.
+
+Seen: the suite on both tiers, all ok (580 s, 4 at a time). **Unseen:** nothing in the game changed, so there is nothing to play for it.
+**Ask:** whether the eel's miss streak (above) is a COMBAT question worth its own pass.
+
+## v11.124 — the far tidewood as the real one (12 Nov 2026)
+
+The person, 12 Nov 2026: the trees in the distance show "strange looking square LOD's", with a screenshot from the water at night: the
+shore's left half a fence of pale posts, the right half the real wood. The left half was the tidewood's far stand-in (far.js `FAR_IMP`,
+`farTreeGeo`), which takes over a cell's tidal forest once the cell is unloaded or past `FLORA_FAR`: a crossed pair of 1.2 m cards 9 m tall
+under a flat six-sided pad at 9 m, tinted from the species' list (`GREENT`) on olive vertex colours — dark posts with table tops at about
+40% of the real wood's brightness, beside a bright jointed tree whose crown is a goblet of whorls. The other plants on land (the reed, the
+scrub, the tussock) have no stand-in and are cut at `FLORA_FAR`; the horizon tier draws no plants; the stipe, bladder and raft cards are under
+water and unchanged.
+
+- **far.js `farTreeGeo`:** the real one's middle size (flora.js `tidewoodB`, H 9) in 37 triangles: a four-sided trunk 0.3 → 0.12 m to 9.6 (the
+  real 0.27 → 0.11), four props from 1–2.4 m up to the sand, and the whorls at 4.5, 6 and 7.5 m and the brush at 9 — 6, 7, 7 and 5 rods, each
+  one upright triangle from the trunk to where the real kinked rod ends (2.2, 2.5, 2.7 and 1.2 m out, 1.5–2.4 up), lengths and angles jittered
+  as the real ones are. A whorl reads as the real V from any side; the crown is the real goblet to 11 m. The trunk and props in `JOINT`, the
+  rods white, as the real.
+- **`FAR_IMP` `pig`:** the instance is tinted as the real ones are (chunks.js): `pigment(h, 'green')` at its ground with the place's stain
+  (`tintBy`), not a pick from `GREENT`. **`hs`:** one of the real three heights, 6, 9 or 12 m, drawn per instance on its scale (the card was the middle size for all).
+- **`impostorsGen`:** a species' own `maxSlope` and `minH`, as `placeFloraType` has them: the tidewood's 0.5 and −3.6 (the cards stood on
+  slopes to 0.9 and below the wet sand's edge). No other card species sets either.
+- **Costs:** 10 → 37 triangles a stand-in. Round ours 349 → 291 stand-ins (the slope and the sand), 3.5k → 10.8k triangles; off the giant's west
+  shore, where the far layer holds the most, 5,034 → 4,620 (50k → 171k), and that view's frame 3.04M → 3.10M triangles. Draws unchanged (the
+  same one instanced mesh per region).
+
+Seen (headless, the menu's camera placed from dev.html, the frames driven by hand): round ours from the water at 600 m, 1 km and 2 km by
+day and night, before and after; the swap — one camera 20 m either side of the cell line where the forest's cell loads (430 m): the stand-ins
+and the real wood alike in colour, height and crown, the stand-ins half as many (stride 2, as before) with fuller crowns, the stand about as
+dense; the giant's west shore from 1 km. **Unseen, ask in this order:** the swap in play on your screen (swim out from the tidal forest on the
+south rim, `tp(330,-900,-1)` and north, or round the giant's west shore, `tp(-23300,7400,-1)`) — whether anything still reads as a card or
+pops; the stand at dusk, when the rods are lit through (the far material passes 35% of the light through, the real trunks none); your frame
+rate off the giant.
 
 ## v11.125 — the turn in the kelp: the pools by flags, and what draws nothing leaves the shader (12 Nov 2026)
 
