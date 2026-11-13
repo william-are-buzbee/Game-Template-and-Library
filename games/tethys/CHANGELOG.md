@@ -7367,3 +7367,53 @@ same pixels — 0.8–1.9% of the pixels differ, all marine snow, a school and t
 **Unseen, ask in this order:** the turn on your machine — at `tp(430,50,8)` and `tp(2042,-18382,8)`, the readout open (backquote), a quick
 full turn with the mouse: `work`'s worst (after the slash) and `render`, against the live site's; `pools … hid` falling to nothing within a second
 of stopping; anything missing or flickering in the flora at the edges of the screen while turning.
+
+## v11.126 — a chain of banks over drowned necks (13 Nov 2026)
+
+The platform review (`analysis_archipelago.md` §8, PR 63) found v11.122's platform Saya de Malha's size but a disc: the head plateau's flat
+top (`platW` level inside 0.6 × `headR`), its margin that disc's edge on day one, no channel or basin in it, one margin all round, alive
+everywhere. The person, 13 Nov 2026: a chain of banks; Earth's rims for the size; the world's box is fine for now; and of §8.4's ways to a
+chain on this slow plate (its pulses' centres only 22–46 km apart, so they merge), (a) — the necks drowned: "the goal is clear".
+
+- **The old end's relief** (region.js `REGION_K.relief`, regionModel `rlAt`, `rlT`): the head's plateau `C` 350 m under `platW`'s flat top
+  past track age `t0` 19 Ma (tapered over the 3 Myr before; ±`B` 150 m of noise at `L` 40 km); `nh` 4 volcanic centres where the head arrived,
+  scattered over the plume's footprint as the births are (by an rng of their own: the births' draws untouched; 643–863 m, 55 km), and one at
+  each pulse from `tmin` 19 Ma (25.0, 22.3 and 19.9: 418–603 m by the pulse's strength, 40 km; none within `gap` 15 km of a stronger one —
+  the 29.3 pulse is the head's), each grown over 0.5 Myr from its pulse, overlapping ones by a 4-norm (a cluster stands about as high as its
+  tallest; summed, four head centres stood 2.1 km and the floor beside them, which knows no erosion, came out as a 453 m island). The members'
+  bases, the fed rule's `high`, `floorAt` and the platform all take it. All of it by the old end's weight: nothing west of track age 16 Ma.
+- **The necks** (`rlNeck`; `relief.sad` 0.7, `swept` 0.03, `diss` 0.05): where a point lies between two centres — the lesser's shape at least
+  `sad` of the greater's, the threshold wandering ±0.2 over ~12 km so a neck bends and pinches — the currents and the 6–9 m tides that cross
+  the ridge run over it, and its reef, swept, grows at 3% of the rate; a reef top the sea has left dissolves (karst, 0.05 mm/yr). A full-rate
+  reef regrows its loss each cycle; a swept one keeps up through the Pliocene's 30 m swings and gives up under the Pleistocene's 70–120 m, as
+  Saya de Malha's shallow production did under its current and the sea level (Betzler et al. 2021). The window is narrow and said so in the
+  knob: `swept` 0.025 drowns the necks by ~25 Ma (channels ~1 km deep), 0.04 leaves them at −64. The members on a neck are swept with it (the
+  karst stepped only for them: a full-rate reef regrows its ~1 m a cycle, and the young province stays the same to the bit).
+- **The platform's history** (`rgPlatform`): each node's relief by its age; steps of 20 kyr to `RG_PL_K.tf` 3 Ma, then `dtf` 5 kyr so the 41
+  and 100 kyr cycles are resolved for the necks' karst and regrowth. `RG_PL` keeps the carbonate too — every node a reef ever held, living or
+  drowned — as a second signed distance and top (`sd2`, `top2`); `rgPlat` lays a drowned flat there (±4 m), the banks' walls stopping on it, its
+  own wall where it meets the plateau, its top read through a ~1.5 km warp so the grid's steps do not show. `rgPlatSd(x, z, true)` is the
+  carbonate's (chunks.js `chRange`: the drowned is the old east's range with the living).
+
+What came of seed 32 (as built, the world's box and 4 km past it): **8,298 km² of banks** — four over 300 km² (4,320, 1,953, 882, 405) round
+the head and down the track, 7,325 of it in the world — **on 12,087 km² of drowned carbonate**, most at −72 m (drowned ~1 Ma), the neck between
+the head and the 25 Ma bank and the one west of 22.3 Ma at ~−1,000 and −430 (drowned earlier). Unswept, the same history is one platform of
+20,385 km². In all the carbonate stands where v11.122's did, two thirds of its area (29,259). Records 86 → 128 (members the disc buried stand
+again, between the banks), struck 77 → 31 (15 by the platform); the 39 members on a neck all drowned (23 guyots, 16 drowned banks at −77). No
+land east of 125 km but the rims' islets (~100 km²). **The ±70.5 km world:** its ground the same to the bit (53,361 places); its fields differ at
+734 of them (1.4%) through the islands' shelter of each other (v11.117) — what stands east of it changed. Ours and the pins untouched.
+**Cost:** `rgPlatform` 240 → 430 ms at load (the 5 kyr steps since 3 Ma); the region model the same.
+
+- **Tests:** test/region.js re-pinned to the chain — the platform a chain (≥3 banks over 300 km², living 5,000–25,000 km², the drowned past
+  5,000), the wall onto the plateau or 30 m onto the drowned carbonate, the rim within 20 m at 75% (80% to v11.125: the necks' sides), 15
+  buried, one margin per reef on the living rims (a drowned member's lies under the drowned flat), the lagoon's blue holes over more places, the
+  founder m2 on the carbonate, a ring outside its foot allowed for a member a centre lifted after its birth (m38, born at the 22.3 pulse); new:
+  the relief (7 centres, nothing within ±70.5 km), the drowned carbonate's top (median −72), the drowning the necks' (unswept, nothing drowns),
+  no living member on a neck and nothing over +10 m in the east.
+
+Seen: the model's whole platform against the world (`rgPlatform` over a box widened 250 km), its history as a time-lapse (the head an island
+29–25 Ma, the necks swept from their founding, drowned between 1 and 0.5 Ma), the world's map and the east at 150 km (`SPAN=150000 CX=225000
+CZ=40000 node test/map.js`): rimmed banks on a drowned flat, a deep drowned basin and a channel. **Unseen, ask in this order:** a bank's rim and
+the drowned flat beyond it from the water (`tp(223000,9000,-1)`, the rim, then swim west off it onto the flat at −72) — whether a 70 m drop
+onto a flat reads as a bank's edge; the deep drowned neck from the rim above it (`tp(236000,22000,-10)`, then south: −20 to −1,100 m in 3 km); whether the boot feels slower; the banks' rims face their drowned flats as
+they face the open sea — step 2 (margins by side and size) is next.

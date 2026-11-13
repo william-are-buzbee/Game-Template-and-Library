@@ -167,7 +167,15 @@ above the sea; steps of `RG_PL_K.dt`); no fed rule (the platform is its own up-c
 top and a signed distance to its margin; `rgPlat` reads it with a warped margin (`warp`, `warp2`): the rim at the top with islets and passes,
 the lagoon to `lag` over `lagW` rolling ±`karst`, a wall at `wall` outside. `sample()` takes it where it stands above the records and the
 floor, with its own fields (lagoon, rim, the margin's aspect, the wall's spurs) and its influence outside within `isl`. A member on it is
-struck by 'platform' (`rgPlatSd`); a cell on it is the old east's range (chunks.js `chRange`). Seed 32: 29,259 km², 61 members buried.
+struck by 'platform' (`rgPlatSd`); a cell on it is the old east's range (chunks.js `chRange`). Seed 32 to v11.125: one platform of 29,259 km², 61 members buried.
+**The old end's relief and its necks (v11.126; analysis_archipelago §8):** the head's plateau `relief.C` m under platW's flat top past track age
+`t0`, with volcanic centres — `nh` where the head arrived, scattered over the plume's footprint, one at each pulse from `tmin` (none within `gap` of a
+stronger one) — grown from their pulses, overlapping ones by a 4-norm (regionModel `rlAt`, `rlT`: the members' bases, `high`, `floorAt` and the
+platform take it; nothing west of `t0` − 3). Where a point lies between two centres (`rlNeck`: the lesser's shape `sad` of the greater's, ±0.2) the
+reef is swept: it grows at `swept` of the rate and its top dissolves at `diss` mm/yr while the sea has left it (the platform's steps `RG_PL_K.dtf`
+from `tf` Ma; the members on a neck likewise), so it keeps up through the Pliocene's 30 m swings and gives up under the Pleistocene's 70–120 m.
+`RG_PL` keeps the carbonate too (`sd2`, `top2`), and `rgPlat` lays a drowned flat there, walled where it meets the plateau. Seed 32: 8,298 km² of
+banks (four over 300 km²) on 12,087 km² drowned, most at −72, two early necks at −430 and ~−1,000; 15 members buried, the 39 on necks drowned.
 **Reefs (v11.123; analysis_archipelago §3):** a reef record's lagoon is `rgLagD` deep by its ring; its floor carries patch reefs and blue
 holes (world.js `LAGF`, `lagoonF`: the model's reefs, the barriers and the platform, not ours); its outer slope is a reef's — terrace, a wall
 to −122, the one lowstand bench, the wall to −580, the talus (rgRecord). `rgMargins` gives each reef record a rim table `R.rimM` by angle

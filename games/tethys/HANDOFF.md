@@ -1,9 +1,16 @@
 # HANDOFF — tethys
 
+**v11.126 (13 Nov 2026): a chain of banks over drowned necks** (analysis_archipelago §8.5, step 1). The old end is a lower plateau with volcanic
+centres (four where the head arrived, three at the pulses: region.js `REGION_K.relief`, `rlAt`, `rlT`); where a point lies between two centres
+(`rlNeck`) the currents and the tides sweep its reef, which kept up through the Pliocene's small swings of the sea and gave up under the
+Pleistocene's. 8,298 km² of banks (four over 300 km²) on 12,087 km² of drowned carbonate, most at −72 m, two early necks at −430 and ~−1,000.
+The ±70.5 km world's ground the same to the bit; boot +0.19 s. **Ask first:** a bank's rim onto the drowned flat (`tp(223000,9000,-1)`, swim
+west), then the deep neck from the rim above it (`tp(236000,22000,-10)`, swim south). Next: step 2, the margins by their side and size.
+
 **13 Nov 2026: the platform reviewed** (analysis_archipelago §8; nothing built). v11.122's platform is Saya de Malha's size (37,540 km² in
 the model, 27,540 in the world) but a disc — the head plateau's flat top — with no channels or basins, one margin all round, alive everywhere,
 and the world's box cutting its south and east. The person (13 Nov): a chain of banks; Earth's rims for the size; the box OK for now. On this
-slow plate volcanism alone makes one ridge-bank along the track (§8.4); the person chose its saddles drowned (13 Nov, (a)). Next: §8.5's build.
+slow plate volcanism alone makes one ridge-bank along the track (§8.4); the person chose its saddles drowned (13 Nov, (a)) — built v11.126.
 
 **v11.125 (12 Nov 2026): the turn in the kelp.** The person's lag spike turning in a kelp forest: the pools' partition by sight moved
 blocks across the boundary every time a cell crossed the view — up to 2.6 MB re-sent and 200 moves in one frame of a turn (three r128,
@@ -28,11 +35,8 @@ deepen with their ring (`rgLagD`) and carry patch reefs and blue holes (`lagoonF
 first** how a lagoon reads from the water (`tp(108100,4000,-1)`), then a wall (`tp(1600,20100,-60)`) and a blue hole; the deep gardens'
 ground on the reefs' walls is a sixth of what it was.
 
-**v11.122 (12 Nov 2026): the plateau's platform** (analysis_archipelago §6, step 2 of 3). The members' reef rule run on the plateau's own
-surface (region.js `rgPlatform`, read by `rgPlat`; world.js `sample()` takes it): one carbonate platform of 29,259 km² over the east — a rim
-at the sea with islets and passes, a lagoon of 30–70 m behind it, a wall outside — and the 61 members on it buried in it. The ±70.5 km world
-is untouched. **Ask first** how it reads from its lagoon (`tp(230000,20000,-1)`) and its rim (`tp(146500,-14000,-1)`). Next: step 3, the
-margins and lagoons (one margin per platform, lagoon depth by size, reef walls, the patch reefs and blue holes).
+**v11.122 (12 Nov 2026): the plateau's platform** (analysis_archipelago §6, step 2 of 3): the members' reef rule run on the plateau's own surface
+(region.js `rgPlatform`, read by `rgPlat`; world.js `sample()` takes it), the members on it buried. Since v11.126 a chain of banks over drowned necks (above).
 
 **v11.121 (12 Nov 2026): the province's shape and clock** (analysis_archipelago §6, step 1 of 3). Every member is the edifice that holds its
 volume (7° land on 12° flanks, `rgShape2`), the awesome shield held at 2,533 m (`REGION_K.tune`), `Te` 15 (needed for that), `erode` 0.15

@@ -339,7 +339,12 @@ Saya de Malha's scale need something more:
 **Answered (13 Nov 2026): (a), drowned saddles** (recommended: Earth's own way of breaking platforms this size, and answer 2's partial
 drowning too). The person: "I am happy to test new world generation however it comes out, but the goal is clear".
 
-**8.5 The build these set** (after §8.4's answer; one version and one pull request each):
+**8.5 The build these set** (after §8.4's answer; one version and one pull request each). Step 1 **built v11.126** (13 Nov 2026): the head as four
+centres scattered over the plume's footprint and the pulses' three, on a head 350 m lower; the necks (where a point lies between two centres) swept
+by the currents and the tides, their reef at 3% of the rate and dissolving while exposed, so they gave up under the Pleistocene's swings — 8,298 km²
+of banks (four over 300 km²) on 12,087 km² of drowned carbonate, most at −72 m, two early necks at −430 and ~−1,000 (CHANGELOG v11.126). Not as
+planned: the head's centres overlap, so "between two centres" is its whole middle, not only narrow necks — it drowned too, as Saya de Malha's
+interior did, and the banks stand round it.
 1. **The head's relief** — `platW`'s flat disc replaced by a lowered head with volcanic centres at the plume's pulses along the track
    (`regionModel`; the floor beside ours re-solved, the pins re-tuned); the platform the ridge-bank that comes of it; the members it buries
    with it. By §8.4's choice, the drowned saddles with it.
