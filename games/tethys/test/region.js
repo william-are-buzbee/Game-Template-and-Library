@@ -173,6 +173,15 @@ ok(RB.struck.every(q=>RB.recs.some(r=>r.id===q.by)||q.by==='home'||q.by==='giant
   ok(dl<0.75*dw,`the wall by its side: 1.5 km out onto the plateau the windward ground ${dw.toFixed(0)} m under the crest (the atolls' wall and talus), the lee ${dl.toFixed(0)} (its slope of shed sand)`);
   const L2=new Map();for(let k=0;k<S.length;k++)if(S[k]>0)L2.set(P.lg[k],(L2.get(P.lg[k])||0)+1);const by=[...L2].map(([d,n])=>({d,A:n*P.G*P.G/1e6})).sort((p,q)=>q.A-p.A),law=by.every(b=>Math.abs(b.d-G.rgLagD(Math.sqrt(b.A*1e6/Math.PI)))<0.5);
   ok(by.length>=3&&law&&by[0].d>by[by.length-1].d,`each bank's lagoon by its size (rgLagD of the disc of its area): ${by.slice(0,5).map(b=>b.A.toFixed(0)+' km² '+b.d.toFixed(0)+' m').join(', ')}${by.length>5?' …':''} (50 for all to v11.126)`);}
+// v11.128 (analysis_archipelago §3.3; the person, 13 Nov 2026: "the atolls' rims by the wind"): the living atolls' and barriers' rims by their side —
+// windward a broad flat at the reef's top with the islets, leeward under the sea and cut by passes (to v11.127 by the angular noise alone, the same all round)
+{const wa=G.WIND_A,o={},S={w:{n:0,i:0,c:[]},l:{n:0,i:0,c:[]}};let nr=0;
+  for(const R of G.ISLANDS){const ring=R.rimR!==undefined&&R.patch?R.rimR:R.barrier?R.barrier.r:0,tp=R.rimR!==undefined&&R.patch?R.rimH:R.barrier?R.barrier.top:-1e9;if(!ring||tp<-5||R.x<G.WX0||R.x>G.WX1||R.z<G.WZ0||R.z>G.WZ1)continue;nr++;
+    for(let k=0;k<48;k++){const a=k/48*Math.PI*2,e=-(Math.cos(a)*Math.cos(wa)+Math.sin(a)*Math.sin(wa));if(Math.abs(e)<0.4)continue;let best=-1e9;
+      for(let r=ring*0.8-300;r<=ring*1.2+300;r+=20){const x=R.x+Math.cos(a)*r,z=R.z+Math.sin(a)*r;G.islandH(R,x,z,o);if(o.rimK>0.5)best=Math.max(best,G.sample(x,z).h);}
+      if(best>-1e9){const q=e>0?S.w:S.l;q.n++;q.c.push(best);if(best>0.5)q.i++;}}}
+  const med=A=>{const v=A.slice().sort((p,q)=>p-q);return v.length?v[v.length>>1]:NaN;},iw=S.w.i/Math.max(1,S.w.n),il=S.l.i/Math.max(1,S.l.n);
+  ok(nr>=20&&iw>0.4&&il<0.15&&med(S.w.c)>-1&&med(S.l.c)<med(S.w.c)-5,`the rims by their side on ${nr} living atolls and barriers: windward the crest at ${med(S.w.c).toFixed(1)} m (median), islets on ${(100*iw).toFixed(0)}% of rays; leeward ${med(S.l.c).toFixed(1)}, islets on ${(100*il).toFixed(0)}% (about a third each side to v11.127)`);}
 // v11.119 (analysis_flora_diversity §5.6, SEAFLOOR §6): the lineages — hops down the colonisation chain from the founder, cut into the old
 // east, the middle and the young west (region.js RANGE, rangeBuild): a brooding line's sister species keep to theirs
 {const I=id=>G.ISLANDS.find(R=>R.id===id),n=[0,1,2].map(r=>G.ISLANDS.filter(R=>R.rng===r).length),w70=G.ISLANDS.filter(R=>Math.max(Math.abs(R.x),Math.abs(R.z))<70520),w50=G.ISLANDS.filter(R=>Math.hypot(R.x,R.z)<50000);

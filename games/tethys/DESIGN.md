@@ -181,6 +181,8 @@ banks (four over 300 km²) on 12,087 km² drowned, most at −72, two early neck
 flat broader and its passes fewer, the atolls' wall outside (`wf`, through `rgFlank`). Lee: the crest `leeD`·(1 − e^(−fetch/`leeF`)) under the sea
 (never below the lagoon's floor + 15), no islets, a slope of 15° easing to 7° (`lf`). Each bank's lagoon `RG_PL.lg`, `rgLagD` of the disc of its
 area. `RG_PL.sd2`/`top2` hold the drowned carbonate alone (with the living, v11.126, its wall from the sea overrode their margins).
+**The atolls' rims by the wind (v11.128):** world.js `islandH` gives a model reef's rim (`R.patch`) and a barrier the same rule by `expoW` — windward a
+broader flat with fewer passes, leeward the crest `REEF_LEE` under the sea by the chord of its lagoon upwind, more passes; ours' rim as it was.
 **Reefs (v11.123; analysis_archipelago §3):** a reef record's lagoon is `rgLagD` deep by its ring; its floor carries patch reefs and blue
 holes (world.js `LAGF`, `lagoonF`: the model's reefs, the barriers and the platform, not ours); its outer slope is a reef's — terrace, a wall
 to −122, the one lowstand bench, the wall to −580, the talus (rgRecord). `rgMargins` gives each reef record a rim table `R.rimM` by angle

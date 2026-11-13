@@ -79,6 +79,7 @@ function lagoonF(x,z,floor,top){const L=LAGF,q=fbm(x*L.f+401,z*L.f+211,2);let h=
   const ci=Math.floor(x/L.cell),cj=Math.floor(z/L.cell);if(hash(ci&255,cj&255)<L.p){const hx=(ci+0.2+0.6*hash((ci+101)&255,(cj+57)&255))*L.cell,hz=(cj+0.2+0.6*hash((ci+13)&255,(cj+211)&255))*L.cell,r=L.r0+(L.r1-L.r0)*hash((ci+7)&255,(cj+3)&255),d=Math.hypot(x-hx,z-hz);
     if(d<r)h=Math.min(h,floor)-(L.d0+(L.d1-L.d0)*hash((ci+29)&255,(cj+91)&255))*smooth(r,0.7*r,d);}return h;}
 const CARB={base:-1000,A:30,sp:320,k:0.75};
+const REEF_LEE={D:50,F:120000}; // v11.128 (analysis_archipelago §3.3, §5 #9; v11.127's law): a reef's crest under the sea in its own lee by D·(1 − e^(−fetch/F)) m, the fetch the run of its own shallows upwind — Saya de Malha's west 50–55 m behind 230 km of bank, an atoll's lee a few metres; the platform's (region.js RG_PL_K.leeD, leeF) and the atolls' rims and the barriers alike
 // the condition fields, by index in sample().f
 const FI={sub:0,flow:1,expo:2,nut:3,turb:4,young:5,heat:6,shel:7,rel:8},NF=9;
 // ---------- the clock and the tide ----------
@@ -394,18 +395,24 @@ function islandH(R,x,z,o){
       h+=CARB.A*capZ*amp*(s-0.4);carb=capZ*smooth(0.45,0.8,s);}}
   // the caldera: a flat sandy floor at -22 inside a rim of land broken by passes (the passes run at -14: the lagoon's flushing)
   let lag=0,rimA=0,rimK=0;
-  if(R.rimR!==undefined){lag=smooth(R.rimR-R.rimW*0.4,R.rimR-R.rimW*1.6,rw); // a record without a rim has no lagoon and no passes (v11.62: the giant)
+  // v11.128 (analysis_archipelago §3.3; the person, 13 Nov 2026: "the atolls' rims by the wind"): a model reef's rim by its side — windward (the shore the
+  // waves strike, expoW) a broader flat at the reef's top, its passes fewer, the islets; in its own lee the crest under the sea by the chord of its lagoon
+  // upwind (REEF_LEE), its islets gone with its depth and its passes more (Earth's atolls: the windward motu, the leeward reef flat submerged and cut by
+  // passes). To v11.127 the islets and passes fell by the angular noise alone. Ours (no R.patch) is its basalt rim as it was
+  const rwe=R.patch?2*expoW-1:0,rW=R.patch?R.rimW*(0.7+0.6*Math.max(0,rwe)):R.rimW,rdL=R.patch?Math.max(0,Math.min(REEF_LEE.D*(1-Math.exp(-2*R.rimR*Math.max(0,-rwe)/REEF_LEE.F)),R.rimH-R.lagH-15)):0;
+  if(R.rimR!==undefined){lag=smooth(R.rimR-rW*0.4,R.rimR-rW*1.6,rw); // a record without a rim has no lagoon and no passes (v11.62: the giant)
     if(lag>0){const fl=R.lagH+1.5*(fbm(lx*0.02+5+ns,lz*0.02+3,2)-0.5)*2;h=lerp(h,R.patch?lagoonF(x,z,fl,R.rimH):fl,lag);} // v11.123: the model's reefs' patch reefs and blue holes (R.patch); ours' floor as it was
-    rimA=smooth(0.3,0.62,0.5+0.5*(an?anT(an,5,aw):angNoise(aw,2.4,77+ns)));rimK=smooth(R.rimR-R.rimW,R.rimR-R.rimW*0.3,rw)*smooth(R.rimR+R.rimW,R.rimR+R.rimW*0.3,rw);
+    rimA=smooth(0.3-0.15*rwe,0.62-0.15*rwe,0.5+0.5*(an?anT(an,5,aw):angNoise(aw,2.4,77+ns)));rimK=smooth(R.rimR-rW,R.rimR-rW*0.3,rw)*smooth(R.rimR+rW,R.rimR+rW*0.3,rw);
     const mm=R.rimM?rgAng(R.rimM,a):1;if(R.rimM)rimK*=mm; // v11.123: the arc of the rim inside another's lagoon is none (region.js rgMargins)
-    if(rimK>0){h=lerp(h,(R.rimH||0)+2.5+3.5*(fbm(lx*0.02+5+ns,lz*0.02+3,2)-0.5)*2,rimK*rimA);h-=3*(1-rimA)*rimK;}
-    if(mm<1)h=lerp(h,R.lagH,(1-mm)*smooth(R.rimR-R.rimW*1.6,R.rimR-R.rimW*0.4,rw)*smooth(R.rimR+R.rimW*1.6,R.rimR+R.rimW*0.4,rw));} // rimH (v11.102): the reef's top today, the model's (an atoll awash at 0, a drowned one under); ours none, so +2..+6
+    if(rimK>0){const rn=(fbm(lx*0.02+5+ns,lz*0.02+3,2)-0.5)*2,rc=R.patch?(R.rimH-rdL)+lerp(1.5*rn,2.5+3.5*rn,smooth(-8,-1,R.rimH-rdL)):(R.rimH||0)+2.5+3.5*rn;h=lerp(h,rc,rimK*rimA);h-=3*(1-rimA)*rimK;}
+    if(mm<1)h=lerp(h,R.lagH,(1-mm)*smooth(R.rimR-rW*1.6,R.rimR-rW*0.4,rw)*smooth(R.rimR+rW*1.6,R.rimR+rW*0.4,rw));} // rimH (v11.102): the reef's top today, the model's (an atoll awash at 0, a drowned one under); ours none, so +2..+6
   // a high island's barrier reef (v11.121, region.js rgCap): a cap of reef over the ground by max — the lagoon inside the ring (the land stands above
   // it), the crest awash with islets where the noise is high and passes where it is low (an atoll's rim's), outside a wall and the fore-reef down
   // onto the flank. Ours and the records with a rim have none, so nothing here moves them
-  if(R.barrier){const B=R.barrier,n1=(fbm(lx*0.02+5+ns,lz*0.02+3,2)-0.5)*2,inK=smooth(B.r-B.w*0.4,B.r-B.w*1.6,rw),crK=smooth(B.r-B.w,B.r-B.w*0.3,rw)*smooth(B.r+B.w,B.r+B.w*0.3,rw),ra=smooth(0.3,0.62,0.5+0.5*(an?anT(an,5,aw):angNoise(aw,2.4,77+ns)));
-    const bm=R.rimM?rgAng(R.rimM,a):1,ck=crK*bm,bl=(1-bm)*smooth(B.r-B.w*1.6,B.r-B.w*0.4,rw)*smooth(B.r+B.w*1.6,B.r+B.w*0.4,rw); // v11.123: one margin; the lagoon's features
-    const c=lerp(lerp(rw<=B.r?lerp(B.top-14,lagoonF(x,z,B.lag+1.5*n1,B.top),inK):B.top-14-(rw-B.r)*B.s,B.top+2.5+3.5*n1,ck*ra)-3*(1-ra)*ck,B.lag,bl);
+  if(R.barrier){const B=R.barrier,n1=(fbm(lx*0.02+5+ns,lz*0.02+3,2)-0.5)*2,be=2*expoW-1,bw=B.w*(0.7+0.6*Math.max(0,be)),bdL=Math.max(0,Math.min(REEF_LEE.D*(1-Math.exp(-2*B.r*Math.max(0,-be)/REEF_LEE.F)),B.top-B.lag-15)),bt=B.top-bdL, // v11.128: a barrier by its side too (Bora Bora's motu to windward, its pass to leeward)
+    inK=smooth(B.r-bw*0.4,B.r-bw*1.6,rw),crK=smooth(B.r-bw,B.r-bw*0.3,rw)*smooth(B.r+bw,B.r+bw*0.3,rw),ra=smooth(0.3-0.15*be,0.62-0.15*be,0.5+0.5*(an?anT(an,5,aw):angNoise(aw,2.4,77+ns)));
+    const bm=R.rimM?rgAng(R.rimM,a):1,ck=crK*bm,bl=(1-bm)*smooth(B.r-bw*1.6,B.r-bw*0.4,rw)*smooth(B.r+bw*1.6,B.r+bw*0.4,rw); // v11.123: one margin; the lagoon's features
+    const c=lerp(lerp(rw<=B.r?lerp(bt-14,lagoonF(x,z,B.lag+1.5*n1,B.top),inK):bt-14-(rw-B.r)*B.s,bt+lerp(1.5*n1,2.5+3.5*n1,smooth(-8,-1,bt)),ck*ra)-3*(1-ra)*ck,B.lag,bl);
     if(c>hSmooth)hSmooth=c;if(c>h){h=c;lag=inK;rimK=ck;rimA=ra;}}
   // the island: a tuff cone (v11.86, CONE above; to v11.85 a round 40 m hill on a round flat of bars and pools) — a breached ring round a tidal
   // crater, high downwind, cliffed to windward, the flat and its spit in the lee and down the current. Within 270 m of the cone only

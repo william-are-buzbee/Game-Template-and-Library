@@ -1,5 +1,9 @@
 # HANDOFF — tethys
 
+**v11.128 (13 Nov 2026): the atolls' rims by the wind** (analysis_archipelago §3.3, §5 #9). The model's atolls, banks and barriers carry
+their islets on the windward rim, a broader flat; the leeward rim is narrower, a few metres under (world.js `REEF_LEE`, v11.127's law, shared with
+the platform) and cut by passes. Ours' rim untouched to the bit. **Ask first:** m88 from its motu (`tp(77000,27400)`) and its lee crest (`tp(67600,27400,-1)`).
+
 **v11.127 (13 Nov 2026): the banks' margins by their side and their size** (analysis_archipelago §8.5, step 2). A windward margin (facing the
 trade swell) keeps its rim at the sea with the islets and the atolls' wall; a lee one lies under the sea by the bank's shallows upwind (`RG_PL_K.leeD`,
 `leeF`: −12 m behind 15 km, −25 behind 40+) and falls away as a slope of shed sand; each bank's lagoon by `rgLagD` of its area (41–57 m). Fixed with it:

@@ -7453,3 +7453,31 @@ Seen: the east (`SPAN=150000 CX=225000 CZ=40000 node test/map.js`) and the big b
 edge's long slope with no islets, the windward rim with them. **Unseen, ask in this order:** the lee edge from the water (`tp(164000,60000,-1)`,
 then swim west down the slope) — whether a margin with no rim reads as a bank's edge or as nothing; the windward rim (`tp(227300,60000)`, an
 islet) and its wall; whether the lagoons of the small banks (41–47 m) and the big one (57) read different.
+
+## v11.128 — the atolls' rims by the wind (13 Nov 2026)
+
+The province review's §3.3 and §5 #9 (`analysis_archipelago.md`; the person, 13 Nov 2026: "yes do the atolls' rims by the wind next"). An
+atoll's islets and passes fell by angular noise alone, the same all round; Earth's atolls carry their islets (motu) on the windward rim, a
+broad reef flat the waves build, and their leeward rim is narrower, submerged and cut by passes. v11.127 gave the platform's banks that rule;
+this gives it to the model's atolls, banks and barrier reefs.
+
+- **world.js `islandH`:** a model reef's rim (`R.patch`) by its side — `expoW`, the shore the waves strike: windward a broader flat (`rimW` ×
+  0.7–1.3) at the reef's top, its passes fewer; leeward the crest under the sea by the chord of its own lagoon upwind (`REEF_LEE`: 50 m ×
+  (1 − e^(−fetch/120 km)), never deeper than the lagoon's floor + 15 — a 5 km ring's lee ~4 m down), its islets fading with the depth, its
+  passes more. A high island's barrier the same (Bora Bora's motu to windward, its pass to leeward). **Ours** (no `R.patch`) is its basalt rim
+  as it was, to the bit.
+- **`REEF_LEE`** (world.js): v11.127's law in one place; region.js `RG_PL_K.leeD`, `leeF` read it.
+
+What came of it (the 47 living atolls, banks and barriers in the world, 48 rays each): windward the crest a median +1.7 m with islets on 56% of
+rays (31% to v11.127), leeward −12 m with islets on 4% (34%); land the same (1,590 km² in the ±70 km world, the islets moved, not lost). m88
+(72.6, 27.4 km): its motu along the east and south-east rims now, the west rim a submerged flat (to v11.127 islets west, north and south-east).
+The giant's barrier, drowned at −44, a little deeper in its lee (−55 against −41). **Ours' square the same to the bit** (29,929 places, ground
+and fields); the ±70.5 km world's ground differs at 1,023 of 53,361 places (1.9%) — the atolls round ours, drowned in the shield's moat since
+v11.121, their lee rims narrower and lower — the east at 143 of 18,271.
+
+- **Tests:** test/region.js the rims by their side on the living reefs (windward at the sea with most islets, the lee under it with few).
+
+Seen: m88 before and after (`SPAN=14000 CX=72600 CZ=27400 node test/map.js`); the atolls round ours (no islets either way, drowned). **Unseen,
+ask in this order:** m88 from its windward rim (`tp(77000,27400)`, on its motu) and its lee (`tp(67600,27400,-1)`, over the submerged lee crest at −25) —
+whether the difference reads from the water; whether the lagoons' patch reefs that reach the sea (v11.123) now look out of place beside a lee rim
+that does not.
