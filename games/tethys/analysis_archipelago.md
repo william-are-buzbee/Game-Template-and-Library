@@ -505,7 +505,26 @@ three new ones too: its floor's texture 14 m (Earth 7–36), its shallows' 1.3 (
 
 **10.2 The blind test.** `BLIND=<seed> node test/earth.js`: tiles 128 km a side that do not overlap, from every place by one rule (a twentieth
 or more above −200 m), four of the province's and one each from twelve of Earth's windows, shuffled, numbered, nothing else; the key apart
-(`test/preview/earth-blind-key.txt`). The first sheet (seed 20261113) went to the person on 13 Nov 2026; the result goes here when it is in.
+(`test/preview/earth-blind-key.txt`). `PSEED=<n>` draws the province's tiles from another seed of the same model (none within reach of ours or the
+giant, which every seed shares), so a blind test need not be the map the person knows.
+
+**The first sheet (seed 20261113, 13 Nov 2026): 4 of 4 found** — 3, 5, 9, 12 (the key: 1 Chagos, 2 Cape Verde, 4 the Azores, 6 the Canaries,
+7 the Mascarene banks, 8 Galápagos, 10 Kerguelen, 11 the Maldives, 13 Réunion and Mauritius, 14 the Tuamotus, 15 Hawaii, 16 the Society
+Islands). The person: "This is cheating because I can remember the map" — hence PSEED. Their notes, the useful part:
+- "Comparing 2 and 3 is huge. One is like perfect round cakes and the other looks how I'd imagine the elevation of an island to look."
+- "Without a doubt, 10 is my favorite. Keep staring at it. I would love anything that looks like that in Tethys. Zero clue on believability"
+- "11 looks special in the sense that you can see the elevation and such"
+- "7, 6, 8 and 13 look awesome in a similar way, like subtle texture under the water vs our kindof pimples (which to be fair is how many islands
+  look and kindof what they are on some level)."
+Read: the province's islands are concentric rings of even width (land, shelf, slope) standing alone on a smooth floor; Earth's stand in
+sculpted ground — Cape Verde's island trailing a submarine ridge, the Canaries' landslide fields and canyons, Galápagos' shared platform, shelves
+of uneven width, saddles between neighbours. Tile 10 is Kerguelen, its coast cut by glaciers at 49°S — not the province's climate; its tropical
+cousin is the drowned valley (old wet high islands carved by streams, the mouths drowned by subsidence and the 120 m rise since the last glacial
+into bays: Moorea's Cook's and Ōpūnohu, the Marquesas, Raiatea and Taha'a inside their reef), for m122 and m109. Tile 11 is the Maldives mapped
+by ship: lagoon basins, faros, channels, passes. Nothing said of the plateau's lighter floor: the shapes told, not the depth.
+**Proposed, in this order (the person's to choose):** (1) sculpted flanks and shared platforms — rift ridges, uneven shelves, saddles, canyons
+and landslide fields, drowned terraces; (2) drowned valleys on the old high islands; (3) lagoon and bank interiors. Each its own version, each
+against Earth and a fresh blind sheet from an unseen seed.
 
 **10.3 The floor's depth (the person, 13 Nov 2026):** "I don't care if we stop at 1000, I more so want to make sure we aren't going to stick
 with 1000m if that isn't plausible … I can see that routinely being a thing 'ah, well it should go down, but he really likes the sea floor'".

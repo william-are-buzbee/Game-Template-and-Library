@@ -12,7 +12,7 @@
 // per window into test/preview/earth/ (ignored by git: the windows below are the recipe). Its own detail is ~450 m where no ship has passed, so
 // the numbers count only edifices 2 km across or more, in the province as on Earth. Not in --test.
 // Env: W (pixels a side for each window, 1400), ONLY (keys, comma-separated), FETCH=0 (the cache only), RAW=1 (the province at the game's own
-// detail), BLIND=<seed> (only the blind sheet, by that seed).
+// detail), BLIND=<seed> (only the blind sheet, by that seed), PSEED (the province's seed, 32 the game's: a blind test from one not seen).
 const fs=require('fs'),path=require('path'),{execFileSync}=require('child_process'),root=path.join(__dirname,'..'),{png,text}=require('./png.js'),{relief}=require('./mapdraw.js');
 const SPAN=384000,W=+(process.env.W||1400),M=SPAN/W,N=W+2,T=-80,DMIN=2000,CONT=[0,-60,-150,-1000],GEB=463.3; // GEB: GEBCO's 15" in metres
 const WIN=[ // key, name, the window's centre (degrees), what it stands for here
@@ -52,8 +52,11 @@ function earthAt(w){const g=grid(w),kx=111320*Math.cos(w.lat*Math.PI/180),kz=110
   return (x,z)=>{const la=w.lat-z/kz,lo=w.lon+x/kx,c=(lo-g.xllcorner)/g.cellsize-0.5,r=g.nrows-0.5-(la-g.yllcorner)/g.cellsize,c0=Math.floor(c),r0=Math.floor(r),u=c-c0,v=r-r0;
     return (q(c0,r0)*(1-u)+q(c0+1,r0)*u)*(1-v)+(q(c0,r0+1)*(1-u)+q(c0+1,r0+1)*u)*v;};}
 let TW=null,TL=null; // the world's bounds, and the province's lattice
+const PSEED=+(process.env.PSEED||32); // v11.137: the province's seed (REGION_K.seed; 32 the game's) — a blind test's tiles from one the person has not seen
 function tethysWorld(){if(TW)return TW;const util=fs.readFileSync(path.join(root,'vendor/wb-core.global.js'),'utf8')+'\n'+fs.readFileSync(path.join(root,'src/util.js'),'utf8');let world=fs.readFileSync(path.join(root,'src/world.js'),'utf8');
-  const cut=world.indexOf('// ---------- the light');if(cut>0)world=world.slice(0,cut);world+='\n'+fs.readFileSync(path.join(root,'src/region.js'),'utf8');
+  const cut=world.indexOf('// ---------- the light');if(cut>0)world=world.slice(0,cut);let reg=fs.readFileSync(path.join(root,'src/region.js'),'utf8');
+  if(PSEED!==32){if(!/\n  seed:32,/.test(reg))throw new Error('no seed in REGION_K');reg=reg.replace(/\n  seed:32,/,'\n  seed:'+PSEED+',');} // v11.137: another province round the same pins
+  world+='\n'+reg;
   const THREE={Vector3:class{constructor(x,y,z){this.x=x;this.y=y;this.z=z;}},Matrix4:class{},Quaternion:class{}};
   const Wd=new Function('THREE',util+'\n'+world+'\nreturn {sample,WX0,WX1,WZ0,WZ1};')(THREE);TW={Wd,x0:Wd.WX0,x1:Wd.WX1,z0:Wd.WZ0,z1:Wd.WZ1,cx:(Wd.WX0+Wd.WX1)/2,cz:(Wd.WZ0+Wd.WZ1)/2};return TW;}
 function tethysAt(cx,cz){const t=tethysWorld(),f=new Float32Array(9);if(process.env.RAW==='1')return (x,z)=>t.Wd.sample(cx+x,cz+z,f).h;
@@ -103,7 +106,7 @@ function panel(w,H){const img=relief(H,W,M,CONT),lb=(x,y,s,c,sc)=>{text(img,W,W,
 // would show one island twice, a tell of the test's and not of the world's
 function blind(seed){const TS=128000,P=500,m=TS/P,rnd=(()=>{let a=seed>>>0||1;return ()=>{a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^t>>>15,t|1);t^=t+Math.imul(t^t>>>7,t|61);return ((t^t>>>14)>>>0)/4294967296;};})();
   const ok=at=>{let n=0,k=0;for(let j=0;j<40;j++)for(let i=0;i<40;i++){n++;if(at((i+0.5)/40*TS-TS/2,(j+0.5)/40*TS-TS/2)>-200)k++;}return k/n>=0.05;};
-  const tiles=[],t=tethysWorld(),tc=[],ox=(t.x1-t.x0)%TS/2,oz=(t.z1-t.z0)%TS/2;for(let z=t.z0+oz+TS/2;z<=t.z1-TS/2+1;z+=TS)for(let x=t.x0+ox+TS/2;x<=t.x1-TS/2+1;x+=TS){const base=tethysAt(x,z);if(ok(base))tc.push({x,z,at:base});}
+  const tiles=[],t=tethysWorld(),tc=[],ox=(t.x1-t.x0)%TS/2,oz=(t.z1-t.z0)%TS/2;for(let z=t.z0+oz+TS/2;z<=t.z1-TS/2+1;z+=TS)for(let x=t.x0+ox+TS/2;x<=t.x1-TS/2+1;x+=TS){if(PSEED!==32&&Math.max(Math.abs(x+7700),Math.abs(z-4600))<TS/2+25000)continue; /* another seed: no tile showing ours or the giant, the pins every seed shares */const base=tethysAt(x,z);if(ok(base))tc.push({x,z,at:base});}
   for(let k=tc.length-1;k>0;k--){const j=Math.floor(rnd()*(k+1));[tc[k],tc[j]]=[tc[j],tc[k]];}
   for(const c of tc){if(tiles.length>=4)break;tiles.push({src:'Tethys',x:c.x,z:c.z,at:c.at});}
   const ew=WIN.filter(w=>w.key!=='tethys');for(let k=ew.length-1;k>0;k--){const j=Math.floor(rnd()*(k+1));[ew[k],ew[j]]=[ew[j],ew[k]];}
@@ -116,7 +119,7 @@ function blind(seed){const TS=128000,P=500,m=TS/P,rnd=(()=>{let a=seed>>>0||1;re
     text(sh,SW,SH,ox+13,oy+13,String(n+1),[0,0,0],3);text(sh,SW,SH,ox+12,oy+12,String(n+1),WH,3);
     const sb=50000/m;for(let x=0;x<=sb;x++)for(let q=0;q<3;q++){const o=((oy+P-24+q)*SW+ox+16+Math.round(x))*3;sh[o]=sh[o+1]=sh[o+2]=240;}text(sh,SW,SH,ox+16,oy+P-44,'50 km',WH,2);});
   fs.writeFileSync(path.join(__dirname,'preview','earth-blind.png'),png(sh,SW,SH));
-  fs.writeFileSync(path.join(__dirname,'preview','earth-blind-key.txt'),`blind sheet, seed ${seed}: tiles 128 km a side, north up, numbered left to right, top to bottom\n`+tiles.map((tl,n)=>`${String(n+1).padStart(2)}  ${tl.src}${tl.src==='Tethys'?` (x ${(tl.x/1000).toFixed(0)}, z ${(tl.z/1000).toFixed(0)} km)`:''}`).join('\n')+'\n');
+  fs.writeFileSync(path.join(__dirname,'preview','earth-blind-key.txt'),`blind sheet, seed ${seed}, the province's seed ${PSEED}: tiles 128 km a side, north up, numbered left to right, top to bottom\n`+tiles.map((tl,n)=>`${String(n+1).padStart(2)}  ${tl.src}${tl.src==='Tethys'?` (x ${(tl.x/1000).toFixed(0)}, z ${(tl.z/1000).toFixed(0)} km)`:''}`).join('\n')+'\n');
   console.log(`wrote test/preview/earth-blind.png (${tiles.length} tiles, ${tiles.filter(t=>t.src==='Tethys').length} of them the province's) and its key, earth-blind-key.txt`);}
 if(process.env.BLIND){blind(+process.env.BLIND||1);process.exit(0);}
 const res=[];

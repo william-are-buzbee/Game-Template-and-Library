@@ -7730,5 +7730,9 @@ before it do not show at this detail (flat lagoons, wide barriers); the blind sh
 Kerguelen's depth, believable as such; its cause in the model is the weak link (a plume under a 45 Myr plate builds none). Proposed: the plume
 near a spreading ridge as its cause — the person's to decide.
 
+- **`PSEED=<n>`:** the province's tiles from another seed of the same model, none within reach of the pins every seed shares (seeds 33–36 build).
+
 Seen: every window, the blind sheet (well-formed: no labels, no island in two tiles; a first draw at 192 km repeated the province's islands
-across overlapping tiles, a tell of the test's own). **Unseen:** the person's guesses.
+across overlapping tiles, a tell of the test's own). **The person's guesses (§10.2): 4 of 4** ("cheating because I can remember the map") —
+and why: the province's islands "perfect round cakes" and "pimples" against Earth's "subtle texture under the water"; Kerguelen's fjorded coast
+the favourite. Proposed next: sculpted flanks and shared platforms, drowned valleys, lagoon interiors.
