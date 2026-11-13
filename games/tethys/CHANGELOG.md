@@ -7417,3 +7417,39 @@ CZ=40000 node test/map.js`): rimmed banks on a drowned flat, a deep drowned basi
 the drowned flat beyond it from the water (`tp(223000,9000,-1)`, the rim, then swim west off it onto the flat at −72) — whether a 70 m drop
 onto a flat reads as a bank's edge; the deep drowned neck from the rim above it (`tp(236000,22000,-10)`, then south: −20 to −1,100 m in 3 km); whether the boot feels slower; the banks' rims face their drowned flats as
 they face the open sea — step 2 (margins by side and size) is next.
+
+## v11.127 — the banks' margins by their side and their size (13 Nov 2026)
+
+Step 2 of the platform review (`analysis_archipelago.md` §8.5; the person, 13 Nov 2026: "follow Earth's pattern for this size", "go ahead with
+step 2"). To v11.126 every bank's margin was the same all round — a rim at the sea with islets on half of it wherever the noise allowed, a plane
+at 42° outside, a lagoon 50 m deep in every bank. Earth's margins differ by their side: the windward rims of the Bahamas carry their islands,
+Saya de Malha's east (windward) flat stands at 30–35 m and its west at 50–55 behind 230 km of bank, a windward margin is a wall and a leeward one
+a slope of the sand the bank sheds (the Great Bahama Bank's west has built out 25 km since the late middle Miocene); and an atoll's lagoon
+deepens with its size (Purdy & Winterer 2001, Gischler et al. 2014).
+
+- **The side** (region.js `rgPlat`): `e`, how squarely a margin faces the trade swell, by its outward normal against `WIND_A`. A windward crest
+  stands at the reef's top, its flat broader (`crest` × 0.7–1.3) and its passes fewer; a lee crest lies under the sea by the bank's shallows
+  upwind of it — `RG_PL_K.leeD` 50 m × (1 − e^(−fetch/`leeF` 120 km)), never deeper than the lagoon's floor + 15 — its islets gone with its
+  depth. Outside, the windward wall is the atolls' (v11.123: the reef flat's edge, the terrace, a wall to −122, the bench, the wall to −580, the
+  talus 35° easing to 17°, `wf`), the lee a slope of 15° easing to 7° (`lf`); the wall's hard spurs (`carb`) windward only.
+- **The fetch** (`rgPlatform`, `RG_PL.fe`): at every node, the run of a bank's shallows upwind of it (against `WIND_A`), past at most two nodes of
+  its wall — 0 on a windward margin, the bank's breadth on a leeward one.
+- **The size** (`RG_PL.lg`): each bank's lagoon by `rgLagD` of the disc of its area — 57 m in the 4,320 km² bank, 52, 47, 43 and 41 in the next
+  (50 for all to v11.126) — carried outward with the top.
+- **`rgFlank`:** `rgRadial`'s flank as a function, the platform's walls reading it too (the atolls the same to the bit).
+- **A fix to v11.126:** its carbonate field held the living banks too, at the sea, so just outside a living margin its old 42° wall from the sea
+  stood over whatever the margin drew. It holds the drowned alone now; `rgPlatSd(x, z, true)` is the greater of the living's and the drowned's.
+
+What came of it (seed 32, the margin crossings in the world): the windward crest a median +3 m (islets at 76 of 107 crossings, 49 to v11.126),
+the lee −8 (islets at 4 of 123, 65 to v11.126) — −12 behind under 15 km of bank, −25 behind over 40; 1.5 km out onto the plateau the ground
+lies 565 m under a windward crest and 291 under a lee one (1,100 to v11.126). Across the big bank at z 60 km: the lee edge at −29 falling ~900 m
+over 8 km (6°), the windward rim with its islets stepping down onto the drowned flat. Land east of 125 km 114 km² (123 to v11.126). Nothing else
+moved: the ±70.5 km world the same to the bit, ground and fields (against v11.126); the banks, the drowned carbonate and the records as they were.
+
+- **Tests:** test/region.js the crest by its side (windward at the sea with most islets, the lee deeper behind more bank), the wall by its side
+  (the lee's drop under three quarters of the windward's), each bank's lagoon by `rgLagD` of its area; the test reads `WIND_A`.
+
+Seen: the east (`SPAN=150000 CX=225000 CZ=40000 node test/map.js`) and the big bank's lee side (`SPAN=50000 CX=180000 CZ=60000`): the lee
+edge's long slope with no islets, the windward rim with them. **Unseen, ask in this order:** the lee edge from the water (`tp(164000,60000,-1)`,
+then swim west down the slope) — whether a margin with no rim reads as a bank's edge or as nothing; the windward rim (`tp(227300,60000)`, an
+islet) and its wall; whether the lagoons of the small banks (41–47 m) and the big one (57) read different.

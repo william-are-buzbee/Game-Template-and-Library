@@ -344,7 +344,9 @@ centres scattered over the plume's footprint and the pulses' three, on a head 35
 by the currents and the tides, their reef at 3% of the rate and dissolving while exposed, so they gave up under the Pleistocene's swings — 8,298 km²
 of banks (four over 300 km²) on 12,087 km² of drowned carbonate, most at −72 m, two early necks at −430 and ~−1,000 (CHANGELOG v11.126). Not as
 planned: the head's centres overlap, so "between two centres" is its whole middle, not only narrow necks — it drowned too, as Saya de Malha's
-interior did, and the banks stand round it.
+interior did, and the banks stand round it. Step 2 **built v11.127** (13 Nov 2026): the margins by their side — windward at the sea with the islets
+and the atolls' wall, lee under the sea by the bank upwind (−12 m behind 15 km, −25 behind 40+) with a slope of shed sand — and each bank's lagoon by
+rgLagD of its area (41–57 m). Not done: the 70–150 m drowning-bank lagoon (the banks here are living ones, an atoll's by their size).
 1. **The head's relief** — `platW`'s flat disc replaced by a lowered head with volcanic centres at the plume's pulses along the track
    (`regionModel`; the floor beside ours re-solved, the pins re-tuned); the platform the ridge-bank that comes of it; the members it buries
    with it. By §8.4's choice, the drowned saddles with it.

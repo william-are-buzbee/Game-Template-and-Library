@@ -176,6 +176,11 @@ reef is swept: it grows at `swept` of the rate and its top dissolves at `diss` m
 from `tf` Ma; the members on a neck likewise), so it keeps up through the Pliocene's 30 m swings and gives up under the Pleistocene's 70–120 m.
 `RG_PL` keeps the carbonate too (`sd2`, `top2`), and `rgPlat` lays a drowned flat there, walled where it meets the plateau. Seed 32: 8,298 km² of
 banks (four over 300 km²) on 12,087 km² drowned, most at −72, two early necks at −430 and ~−1,000; 15 members buried, the 39 on necks drowned.
+**The banks' margins by their side (v11.127; analysis_archipelago §8.5 step 2):** `rgPlat` reads how squarely a margin faces the trade swell
+(its outward normal against `WIND_A`) and `RG_PL.fe`, the run of the bank's shallows upwind of it. Windward: the crest at the reef's top, its
+flat broader and its passes fewer, the atolls' wall outside (`wf`, through `rgFlank`). Lee: the crest `leeD`·(1 − e^(−fetch/`leeF`)) under the sea
+(never below the lagoon's floor + 15), no islets, a slope of 15° easing to 7° (`lf`). Each bank's lagoon `RG_PL.lg`, `rgLagD` of the disc of its
+area. `RG_PL.sd2`/`top2` hold the drowned carbonate alone (with the living, v11.126, its wall from the sea overrode their margins).
 **Reefs (v11.123; analysis_archipelago §3):** a reef record's lagoon is `rgLagD` deep by its ring; its floor carries patch reefs and blue
 holes (world.js `LAGF`, `lagoonF`: the model's reefs, the barriers and the platform, not ours); its outer slope is a reef's — terrace, a wall
 to −122, the one lowstand bench, the wall to −580, the talus (rgRecord). `rgMargins` gives each reef record a rim table `R.rimM` by angle

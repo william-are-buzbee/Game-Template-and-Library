@@ -1,11 +1,17 @@
 # HANDOFF — tethys
 
+**v11.127 (13 Nov 2026): the banks' margins by their side and their size** (analysis_archipelago §8.5, step 2). A windward margin (facing the
+trade swell) keeps its rim at the sea with the islets and the atolls' wall; a lee one lies under the sea by the bank's shallows upwind (`RG_PL_K.leeD`,
+`leeF`: −12 m behind 15 km, −25 behind 40+) and falls away as a slope of shed sand; each bank's lagoon by `rgLagD` of its area (41–57 m). Fixed with it:
+v11.126's carbonate field held the living banks, and its wall from the sea overrode their margins. **Ask first:** the big bank's lee edge
+(`tp(164000,60000,-1)`, swim west) — does a margin with no rim read as an edge? — then its windward rim (`tp(227300,60000)`).
+
 **v11.126 (13 Nov 2026): a chain of banks over drowned necks** (analysis_archipelago §8.5, step 1). The old end is a lower plateau with volcanic
 centres (four where the head arrived, three at the pulses: region.js `REGION_K.relief`, `rlAt`, `rlT`); where a point lies between two centres
 (`rlNeck`) the currents and the tides sweep its reef, which kept up through the Pliocene's small swings of the sea and gave up under the
 Pleistocene's. 8,298 km² of banks (four over 300 km²) on 12,087 km² of drowned carbonate, most at −72 m, two early necks at −430 and ~−1,000.
 The ±70.5 km world's ground the same to the bit; boot +0.19 s. **Ask first:** a bank's rim onto the drowned flat (`tp(223000,9000,-1)`, swim
-west), then the deep neck from the rim above it (`tp(236000,22000,-10)`, swim south). Next: step 2, the margins by their side and size.
+west), then the deep neck from the rim above it (`tp(236000,22000,-10)`, swim south). Step 2 built: v11.127 (above).
 
 **13 Nov 2026: the platform reviewed** (analysis_archipelago §8; nothing built). v11.122's platform is Saya de Malha's size (37,540 km² in
 the model, 27,540 in the world) but a disc — the head plateau's flat top — with no channels or basins, one margin all round, alive everywhere,

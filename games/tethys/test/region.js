@@ -8,7 +8,7 @@ const util=fs.readFileSync(path.join(root,'vendor/wb-core.global.js'),'utf8')+'\
 let world=fs.readFileSync(path.join(root,'src/world.js'),'utf8');const cut=world.indexOf('// ---------- the light');if(cut>0)world=world.slice(0,cut); // the geology and the fields (test/map.js's cut)
 const region=fs.readFileSync(path.join(root,'src/region.js'),'utf8');
 const THREE={Vector3:class{constructor(x,y,z){this.x=x;this.y=y;this.z=z;}},Matrix4:class{},Quaternion:class{}};
-const G=new Function('THREE',util+'\n'+world+'\n'+region+'\nreturn {sample,HALF,WX0,WX1,WZ0,WZ1,WORLD70,CELL,FI,ISLANDS,REGION_K,REGION_PINS,RG_STATE,regionModel,regionGrid,regionBasins,regionSeen,rgKei,rgSea,rgTrack,OXY,chemoAt,chemoD,oxyAt,underChemo,chemoB:()=>CHEMO_B,apronAt,apronR,RG_BUILT,rgFloor,BASIN,islandH,recsAt,FILL_TOP,rgAng,rgLagD,rgRadial,rgPlat,rgPlatSd,rgPlatform,RG_PL:()=>RG_PL,RG_PL_K,shT,SHELTER};')(THREE);
+const G=new Function('THREE',util+'\n'+world+'\n'+region+'\nreturn {WIND_A,sample,HALF,WX0,WX1,WZ0,WZ1,WORLD70,CELL,FI,ISLANDS,REGION_K,REGION_PINS,RG_STATE,regionModel,regionGrid,regionBasins,regionSeen,rgKei,rgSea,rgTrack,OXY,chemoAt,chemoD,oxyAt,underChemo,chemoB:()=>CHEMO_B,apronAt,apronR,RG_BUILT,rgFloor,BASIN,islandH,recsAt,FILL_TOP,rgAng,rgLagD,rgRadial,rgPlat,rgPlatSd,rgPlatform,RG_PL:()=>RG_PL,RG_PL_K,shT,SHELTER};')(THREE);
 let fails=0;const ok=(c,msg)=>{console.log((c?'  ok   ':'  FAIL ')+msg);if(!c)fails++;};
 console.log('region: the pieces');
 // kei(x) (A&S Table 9.12): 1 → −0.494991, 2 → −0.202400, 3 → −0.051123, 4 → +0.002198; the table is kei/kei(0), kei(0) = −π/4
@@ -160,6 +160,19 @@ ok(RB.struck.every(q=>RB.recs.some(r=>r.id===q.by)||q.by==='home'||q.by==='giant
   ok(P1&&(P1.drowned||0)<0.05*P.drowned,`the drowning is the necks': unswept (relief.swept 1) ${P1?(P1.drowned||0).toFixed(0):'-'} km² drowns (${(P.drowned||0).toFixed(0)} swept), ${P1?P1.area.toFixed(0):'-'} lives`);
   const swl=M.filter(m=>m.sw&&m.alive&&m.rt>-K.photic);let hi=-1e9;for(let x=125000;x<G.WX1;x+=2000)for(let z=G.WZ0;z<G.WZ1;z+=2000)hi=Math.max(hi,G.sample(x,z).h);
   ok(swl.length===0&&hi<10,`the members on a neck swept and drowned with it (${M.filter(m=>m.sw).length}, none living${swl.length?': '+swl.map(m=>m.id).join(', '):''}); the east's highest ground ${hi.toFixed(1)} m (the rims' islets)`);}
+// v11.127 (analysis_archipelago §8.5 step 2; the person, 13 Nov 2026: "follow Earth's pattern for this size"): the banks' margins by their side —
+// the windward crest at the sea with the islets, the lee one under it by the bank's shallows upwind, the windward wall the atolls', the lee a gentler
+// slope — and each bank's lagoon by its size
+{const P=G.RG_PL(),wa=G.WIND_A,o={},S=P.sd,rows={w:[],l:[]};
+  for(let j=0;j<P.nz-1;j++)for(let i=0;i<P.nx-1;i++){const k=j*P.nx+i,a=S[k],b=S[k+1];if((a>0)===(b>0))continue;const x=P.x0+(i+a/(a-b))*P.G,z=P.z0+j*P.G;if(x<G.WX0+2000||x>G.WX1-6000||z<G.WZ0+2000||z>G.WZ1-6000)continue;
+    G.rgPlat(x,z,o);const nx=o.nx,nz=o.nz,e=-(nx*Math.cos(wa)+nz*Math.sin(wa));if(Math.abs(e)<0.4)continue;let bs=null,prev=null;for(let s=-2500;s<=2500;s+=20){G.rgPlat(x+nx*s,z+nz*s,o);if(prev!==null&&(prev>0)!==(o.sd>0)&&(bs===null||Math.abs(s)<Math.abs(bs)))bs=s;prev=o.sd;}if(bs===null)continue;let best=-1e9;for(let s=bs-60;s<=bs+60;s+=10)best=Math.max(best,G.sample(x+nx*s,z+nz*s).h); // the crest where the warped margin is (the nearest crossing of its sd along the normal)
+    const ox=x+nx*(bs+1500),oz=z+nz*(bs+1500),dro=G.rgPlatSd(ox,oz,true)>0,fe=P.fe[Math.floor((z-P.z0)/P.G)*P.nx+Math.floor((x-P.x0)/P.G)];(e>0?rows.w:rows.l).push({c:best,drop:dro?null:best-G.sample(ox,oz).h,fe});}
+  const med=A=>{const v=A.filter(q=>q!==null).sort((p,q)=>p-q);return v.length?v[v.length>>1]:NaN;},W=rows.w,L=rows.l,iw=W.filter(r=>r.c>0.5).length,il=L.filter(r=>r.c>0.5).length,far=L.filter(r=>r.fe>40000),near=L.filter(r=>r.fe<15000);
+  ok(W.length>30&&L.length>30&&med(W.map(r=>r.c))>-2&&iw>0.5*W.length&&il<0.2*L.length&&med(far.map(r=>r.c))<med(near.map(r=>r.c))-5,`the crest by its side: windward at ${med(W.map(r=>r.c)).toFixed(1)} m (median of ${W.length}), islets at ${iw}; lee at ${med(L.map(r=>r.c)).toFixed(1)} (${L.length}), islets at ${il} — behind 40+ km of bank ${med(far.map(r=>r.c)).toFixed(1)} (${far.length}), under 15 km ${med(near.map(r=>r.c)).toFixed(1)} (${near.length}): Saya de Malha's west 50–55 m behind 230 km, its windward east 30–35`);
+  const dw=med(W.map(r=>r.drop)),dl=med(L.map(r=>r.drop));
+  ok(dl<0.75*dw,`the wall by its side: 1.5 km out onto the plateau the windward ground ${dw.toFixed(0)} m under the crest (the atolls' wall and talus), the lee ${dl.toFixed(0)} (its slope of shed sand)`);
+  const L2=new Map();for(let k=0;k<S.length;k++)if(S[k]>0)L2.set(P.lg[k],(L2.get(P.lg[k])||0)+1);const by=[...L2].map(([d,n])=>({d,A:n*P.G*P.G/1e6})).sort((p,q)=>q.A-p.A),law=by.every(b=>Math.abs(b.d-G.rgLagD(Math.sqrt(b.A*1e6/Math.PI)))<0.5);
+  ok(by.length>=3&&law&&by[0].d>by[by.length-1].d,`each bank's lagoon by its size (rgLagD of the disc of its area): ${by.slice(0,5).map(b=>b.A.toFixed(0)+' km² '+b.d.toFixed(0)+' m').join(', ')}${by.length>5?' …':''} (50 for all to v11.126)`);}
 // v11.119 (analysis_flora_diversity §5.6, SEAFLOOR §6): the lineages — hops down the colonisation chain from the founder, cut into the old
 // east, the middle and the young west (region.js RANGE, rangeBuild): a brooding line's sister species keep to theirs
 {const I=id=>G.ISLANDS.find(R=>R.id===id),n=[0,1,2].map(r=>G.ISLANDS.filter(R=>R.rng===r).length),w70=G.ISLANDS.filter(R=>Math.max(Math.abs(R.x),Math.abs(R.z))<70520),w50=G.ISLANDS.filter(R=>Math.hypot(R.x,R.z)<50000);
