@@ -7313,3 +7313,57 @@ dense; the giant's west shore from 1 km. **Unseen, ask in this order:** the swap
 south rim, `tp(330,-900,-1)` and north, or round the giant's west shore, `tp(-23300,7400,-1)`) — whether anything still reads as a card or
 pops; the stand at dusk, when the rods are lit through (the far material passes 35% of the light through, the real trunks none); your frame
 rate off the giant.
+
+## v11.125 — the turn in the kelp: the pools by flags, and what draws nothing leaves the shader (12 Nov 2026)
+
+The person, 12 Nov 2026: turning your head inside a kelp forest gives a significant lag spike. A performance pass; nothing drawn changes.
+
+**The cause, measured.** A spike on a turn is work that follows the view. With three r128 in headless Chromium (the build's dev.html, three from
+npm, the loop driven by hand), the player still at `tp(430,50,8)` in the shelf's forest (the giant kelp's 3,166 stipes and 731 bladders over 28
+cells, 56 species pools holding 40k instances), two 1.5 s revolutions of the camera:
+- **the pools' partition by sight (v11.52.1) — ruled in.** A pool kept the blocks of the cells in view first and moved a block across the
+  boundary whenever its cell entered or left the view: a memmove of the span between (a fresh typed array per attribute per move) and its
+  upload, in every pool. A turn sweeps the outer cells through the view: 36–43 of each revolution's 90 frames re-sent pool data — the frame's
+  uploads 0.7 MB on average against 0.25 standing still, up to 2.6 MB — with up to 200 block moves and 3.2 ms of `poolCull` in one frame, every revolution alike. On the headless
+  model (the stub, a cone for the frustum) the denser stand 18 km north, `tp(2042,-18382,8)` (10,158 stipes in the 25 cells), up to 3.6 MB.
+- **lazy shader compiles — ruled out here:** no program linked and no texture uploaded in either revolution (`warmShaders` covers them; r128's
+  `compile` takes every object, plain and instanced). Not checked: ANGLE on Direct3D, which may finish a program at its first draw.
+- **the draw count — not a spike:** 218–354 draws as the view swept (the pools a constant 56; the cards' per-cell meshes, the far layer and the
+  creatures the rest), ~8–13 µs a draw.
+- **first sight — once only:** a cell's or a far region's meshes are uploaded the first time they are drawn: 8.9 MB over the first
+  revolution, at most 1 MB a frame, 0.03 MB over the second. Left.
+- **the world's shadow map — not on a turn:** it re-renders on 20 m of camera drift; turning round swings the third-person camera by twice the
+  arm, 15 m for the finback, and it did not re-render in either revolution. (A founder with an arm over 10 m — the sickle's is 21 — would
+  re-render once a half turn, as swimming 20 m does.)
+- **overdraw — not the kelp's:** every flora material is opaque; nothing in the forest blends.
+- **the far layer's swap at `FLORA_FAR` and the disturbance loop:** by distance, not by direction; a turn changes neither.
+
+**Built.**
+- **chunks.js, the pools by flags.** Each instance has `aHide` (`AHIDE` 2 out of sight, 0 seen); a cell crossing the view writes only its own
+  blocks' flags (4 bytes an instance, that range uploaded) and nothing moves. A pool draws to the end of its last seen block (`nDraw`). Once a
+  pool's flags have stood still for `POOL_CALM` (0.4 s) with more than an eighth of its draw hidden, its seen blocks are packed to the front
+  (`poolPack`: one pass through a scratch copy from the first block out of place, one ranged upload; the loosest such pool, one a frame) —
+  after a turn, not during one. `poolMove` is gone. (Packing the small pools mid-turn under a byte cap was tried and dropped: the hidden
+  instances drawn fell 6%, the bytes sent rose 25-fold.) The world's shadow pass draws every block as before and ignores the flags.
+- **scene.js, `GONE`.** A vertex that draws nothing leaves the vertex shader at once with a position outside every clip plane, before three's
+  lighting and the fog: a hidden pooled instance (`HIDE_GLSL`, in `addTint`, so in every tinted material; not in the depth pass), a species'
+  other variants (`VAR_COLLAPSE`, two thirds of every flora vertex — to v11.124 set to the instance's origin and run through the rest of the
+  shader) and a small plant past `FLORA_FAR` (`FAR_CUT`). The triangles were degenerate and are now clipped: the same pixels.
+- **The readout:** `pools 56 +12.4k hid` — the hidden instances the pools draw until they are packed; they count in `tris`, as the collapsed
+  variants always have, and cost a branch each.
+- **Tests:** test/pool.js by sight: every instance's flag its block's, a cell leaving or entering the view sending its own flags and no instance
+  data (7,280 bytes of flags for the middle cell, 0 of data), the pools packed once still, every block's data intact.
+
+**After, the same turn.** Headless model: the worst frame of a turn sends 0.04 MB (from 2.2) at (430, 50) and 0.09 MB (from 3.6) in the dense
+stand; the cull with the pools 0.49 → 0.05 ms a frame on average, its worst 4.6 → 0.24 (in the dense stand 5.4 → 1.5, a first frame). The price: during a turn the pools draw hidden instances until they pack — 10k a
+frame on average at (430, 50), 16k in the dense stand, at most 27k — each vertex a fetch and a branch; a second after the turn they are packed
+(2.7 and 3.6 MB sent then, one pool a frame, the largest the dense stand's turf at 1.2 MB).
+The GPU's side of either change (the hidden instances' fetch, the lighting `GONE` skips) cannot be timed here: SwiftShader is a CPU, and its
+before-and-after at a fixed view was lost to a restart of the session's container.
+
+Seen: the suite; the build headless at (430, 50) with real three r128, no page errors, no shader errors; before and after at two headings
+there (640×360, the frames from one clock, `Math.random` seeded): the same draws (349, 231), the kelp, the blades and the floor's flora the
+same pixels — 0.8–1.9% of the pixels differ, all marine snow, a school and the player's shadow, which moved between the runs.
+**Unseen, ask in this order:** the turn on your machine — at `tp(430,50,8)` and `tp(2042,-18382,8)`, the readout open (backquote), a quick
+full turn with the mouse: `work`'s worst (after the slash) and `render`, against the live site's; `pools … hid` falling to nothing within a second
+of stopping; anything missing or flickering in the flora at the edges of the screen while turning.
