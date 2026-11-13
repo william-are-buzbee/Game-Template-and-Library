@@ -7599,3 +7599,19 @@ same to the bit.** From here on a change to one member reshapes no other record.
 
 Seen: the records and burials the same, the seeds by the ids, ours' square. **Unseen:** nothing new to look for — the same islands with other
 details (a gully, a pass, a rim's wander); anything the person had come to know by its exact shape near ours will differ.
+
+## v11.133 — the province beside Earth's archipelagos (13 Nov 2026)
+
+The person, 13 Nov 2026, wanting the archipelago "accurate to the point that it's undeniably 'real'": "yes go ahead with those six". A tool and
+an analysis; **the game unchanged**.
+
+- **test/earth.js:** nine windows of real seafloor (GMRT; the Society Islands, the western Tuamotus, the Marshalls' Ralik chain, the Maldives,
+  Chagos, Hawaii's Big Island and Maui, and — the six all fast-plate — the Canaries and Cape Verde) and the province, each 384 km a side, drawn
+  alike, side by side in `test/preview/earth.png`, with the same numbers measured on each. The data is fetched once into `test/preview/earth/`
+  (ignored by git; ~10 MB a window). Needs www.gmrt.org (this repository's cloud environment allows it since 13 Nov 2026).
+- **test/mapdraw.js:** map.js's bands, light and contours split out so both draw alike; map.js's output the same to the byte.
+
+What it found (analysis_archipelago §9): the middle four to nine times too crowded (edifices 10 km apart against Earth's 40–90; the slow plates
+44–77), its pieces too small (5 km against 9–46) and too round (elongation 1.08 against 1.25–2.5); the east as Chagos is; the awesome shield's
+size right and its shape not. One cause under most of it: every birth drawn as a cone of its own, where Earth's close vents build one composite.
+**Asked of the person:** composites (a), fewer bigger births (b), or the middle kept dense (c) — §9.4.

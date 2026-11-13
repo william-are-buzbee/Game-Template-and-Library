@@ -1,5 +1,9 @@
 # HANDOFF — tethys
 
+**v11.133 (13 Nov 2026): the province beside Earth's archipelagos** (analysis_archipelago §9; a tool, the game unchanged). `node test/earth.js`
+draws nine real archipelagos (GMRT, fetched once) and the province alike, 384 km each, with the same numbers. The middle is 4–9× too crowded, its
+edifices too small and too round; the east holds up. **Ask first:** §9.4 — composites (a, recommended), fewer bigger births (b), or keep (c).
+
 **v11.132 (13 Nov 2026): a record's noise seed by its member's id** (the person, 13 Nov 2026: "make the noise seed follow the member's id"). `ns` =
 1000 + 37·n for member m<n>, the rifts drawn by the id: a change to one member reshapes no other record from here on. A one-time reshuffle of
 every record's details (the same records and burials; ours' square the same to the bit). Still the person's: `fedK`, 3b, and 4 (the swell's width).
