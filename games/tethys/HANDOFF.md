@@ -1,5 +1,10 @@
 # HANDOFF — tethys
 
+**v11.124 (12 Nov 2026): the far tidewood as the real one.** The person's "square LOD's" were the tidewood's far cards (crossed 1.2 m posts
+under a flat plate, at 40% of the real wood's brightness). The stand-in is now the real tree's middle size in 37 triangles (trunk, props, whorls
+of rods), one of the real three heights, tinted as the real ones are. **Ask first** whether the swap still shows in play (swim out from the
+south rim's wood past ~430 m, or along the giant's west shore).
+
 **v11.120.2 (12 Nov 2026): the test stub's primitives are three's.** test/stub.js made every primitive random noise in [0,1) and ignored
 its transforms, so headless a species' `top` read ~1 m whatever the plant and the flora near the surface was not the game's; now each is
 three r128's own points, every top three's to the bit. Tests only; the game is byte-identical. **Ask first** whether the eel that misses a
