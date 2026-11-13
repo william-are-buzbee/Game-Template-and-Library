@@ -1,5 +1,11 @@
 # HANDOFF — tethys
 
+**v11.134 (13 Nov 2026): composite volcanoes** (analysis_archipelago §9.4 (a), §9.6; the person: "Let's go with a"). Births are vents; a vent within
+40 km of a volcano active in the last 2.5 Myr builds onto it (`K.comp`). 159 cones → 17 volcanoes, 136 records → 15; the ±70.5 km world holds ours,
+the giant, the awesome shield (now 1.63 long, m138 and m151 its vents), m154 (590 m, 48 km W), m122 (799 m, 48 km E) and the atoll m117. Against
+Earth: size, length and gaps in range, spacing 34 km (Earth 40–90). Ours' square the same to the bit. **Ask first:** the view from ours (`tp(0,0)`).
+**Next:** lobed outlines (a record of several centres), then the world's box.
+
 **v11.133 (13 Nov 2026): the province beside Earth's archipelagos** (analysis_archipelago §9; a tool, the game unchanged). `node test/earth.js`
 draws nine real archipelagos (GMRT, fetched once) and the province alike, 384 km each, with the same numbers. The middle is 4–9× too crowded, its
 edifices too small and too round; the east holds up. **Ask first:** §9.4 — composites (a, recommended), fewer bigger births (b), or keep (c).

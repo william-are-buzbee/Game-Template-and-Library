@@ -30,8 +30,9 @@ ok(bad===0,`${M.length} members: every number finite, every state a named one`);
 const R2=G.regionModel(),same=JSON.stringify(R2.M.map(m=>[m.x,m.z,m.age,m.V,m.zv,m.rt,m.state]))===JSON.stringify(M.map(m=>[m.x,m.z,m.age,m.V,m.zv,m.rt,m.state]));
 ok(same,'the same knobs, the same province to the bit');
 const R3=G.regionModel({seed:K.seed+1});ok(R3.M.length!==M.length||R3.M[2].x!==M[2].x,'another seed, another province');
-const ages=M.filter(m=>m.pin<0).map(m=>m.age);ok(Math.min(...ages)>=0&&Math.max(...ages)<=K.span+0.01,`births between now and ${K.span} Ma`);
-const atA=M.filter(m=>m.pin<0&&m.age<0.6),atB=M.filter(m=>m.pin<0&&m.age>K.span-3);let dA=0,dB=0;R.track(0,o);for(const m of atA)dA+=Math.hypot(m.x-o.x,m.z-o.z)/atA.length;R.track(K.span,o);for(const m of atB)dB+=Math.hypot(m.x-o.x,m.z-o.z)/atB.length;
+const VT=M.filter(m=>m.pin<0).flatMap(m=>m.vents||[m]),ages=VT.map(m=>m.age);ok( // v11.134: the births are the volcanoes' vents
+Math.min(...ages)>=0&&Math.max(...ages)<=K.span+0.01,`births between now and ${K.span} Ma`);
+const atA=VT.filter(m=>m.age<0.6),atB=VT.filter(m=>m.age>K.span-3);let dA=0,dB=0;R.track(0,o);for(const m of atA)dA+=Math.hypot(m.x-o.x,m.z-o.z)/atA.length;R.track(K.span,o);for(const m of atB)dB+=Math.hypot(m.x-o.x,m.z-o.z)/atB.length;
 ok(atA.length>0&&atB.length>0&&dA<2*K.foot*1000&&dB<2*K.foot*1000,`the young births sit by the plume now (${(dA/1000).toFixed(0)} km) and the oldest by the head (${(dB/1000).toFixed(0)} km)`);
 console.log('region: the grid and the basins');
 const span=520e3,n=260,x0=-140e3,z0=-260e3,t1=Date.now(),H=G.regionGrid(R,x0,z0,span,n),t2=Date.now(),B=G.regionBasins(H,n,span/n),t3=Date.now();
@@ -69,7 +70,8 @@ ok(near<far,`the core lower under the island's fed water (${near.toFixed(2)} 3 k
   for(const R of reefs)for(let a=0;a<64;a++){const t=a/64*Math.PI*2;for(let d=R.rimR+1400;d<R.rimR+9000;d+=37){const x=R.x+Math.cos(t)*d,z=R.z+Math.sin(t)*d,s=G.sample(x,z,f9c);
     if(s.h>-500)continue;if(s.h<-800)break;n++;if(f9c[G.FI.sub]>=0.55&&f9c[G.FI.rel]>=0.6)crest++;if(f9c[G.FI.sub]<=0.3&&f9c[G.FI.rel]<0.5)chute++;}}
   for(let x=-1200;x<=1200;x+=400)for(let z=-1200;z<=1200;z+=400){const s=G.sample(x+(x<0?-5200:5200),z,f9c);if(s.h<-260&&f9c[G.FI.sub]>=0.55)deep++;}
-  ok(reefs.length>=30&&reefs.every(R=>R.state==='atoll'||R.state==='bank'||R.state==='drowned')&&!G.ISLANDS[0].carb&&!G.ISLANDS[1].carb&&!G.ISLANDS.some(R=>R.carb&&R.bare!==undefined),`${reefs.length} reef records carry the cap (atolls, banks, drowned banks); ours, the giant and the seamounts none`);
+  ok(reefs.length>=5&&reefs.every( // v11.134: 9 since the composites (30+ to v11.133)
+R=>R.state==='atoll'||R.state==='bank'||R.state==='drowned')&&!G.ISLANDS[0].carb&&!G.ISLANDS[1].carb&&!G.ISLANDS.some(R=>R.carb&&R.bare!==undefined),`${reefs.length} reef records carry the cap (atolls, banks, drowned banks); ours, the giant and the seamounts none`);
   ok(n>2000&&crest>0.15*n&&chute>0.2*n,`their slopes at 500–800 m (${n} samples): ${(100*crest/n).toFixed(0)}% hard convex spur, ${(100*chute/n).toFixed(0)}% soft chute`);
   ok(deep===0,'ours\' own deep flanks 5 km out are mud, as before ('+deep+' hard samples)');}
 // the floor's supply (v11.97, DEEP §2): the islands' aprons by their land, the open floor beyond them
@@ -78,13 +80,13 @@ ok(aFoot===1&&aOurs<0.4,`ours' apron: ${aFoot.toFixed(2)} at its foot (6 km), ${
 ok(aGiant>0.7,`the giant's apron 14 km from its centre, past its foot: ${aGiant.toFixed(2)} (7 km of rainy land supply it)`);
 ok(aw&&G.apronR(aw,aw.fade[1]+11000)>0&&G.apronR(aw,aw.fade[1]+11200)===0,'the awesome shield\'s run-out stops 11.1 km past its foot, as the giant\'s does: more land, a thicker apron, not a longer one');
 {let deep=0,ap=0,none=0;for(let x=-G.HALF+250;x<G.HALF;x+=500)for(let z=-G.HALF+250;z<G.HALF;z+=500){if(G.sample(x,z).h>-700)continue;deep++;const a=G.apronAt(x,z);if(a>0.5)ap++;else if(a===0)none++;}
-  ok(ap>deep/2&&none>0,`the square's floor under -700: ${(100*ap/deep).toFixed(0)}% apron (the archipelago's debris), ${(100*none/deep).toFixed(0)}% open floor beyond every apron`);}
+  ok(ap>deep/4&&none>0,`the square's floor under -700 (v11.134: a quarter or more; half to v11.133, its many cones): ${(100*ap/deep).toFixed(0)}% apron (the archipelago's debris), ${(100*none/deep).toFixed(0)}% open floor beyond every apron`);}
 // the records (v11.102, GLOBE §8 step 5): every member whose ground reaches the world, the buried struck, ours and the giant unchanged inside their cores
-const RB=G.RG_BUILT;ok(RB.recs.length>=15&&RB.recs.every(r=>Number.isFinite(r.reach)&&r.hi&&r.hi.length>0&&r.an),`${RB.recs.length} of the model's members are records (${RB.recs.map(r=>r.id+' '+r.state).join(', ')}), each with its bound and its angular tables`);
+const RB=G.RG_BUILT;ok(RB.recs.length>=10&&RB.recs.every(r=>Number.isFinite(r.reach)&&r.hi&&r.hi.length>0&&r.an),`${RB.recs.length} of the model's members are records (${RB.recs.map(r=>r.id+' '+r.state).join(', ')}), each with its bound and its angular tables`);
 {const inB=(r,w)=>typeof w==='number'?Math.max(Math.abs(r.x),Math.abs(r.z))-r.reach<w:r.x+r.reach>w[0]&&r.x-r.reach<w[1]&&r.z+r.reach>w[2]&&r.z-r.reach<w[3],o=RB.recs.slice(0,RB.n0),w=RB.recs.slice(RB.n0,RB.n1),v=RB.recs.slice(RB.n1); // v11.106: the old square's first, as v11.102 built them, then the ±70.5 km world's; v11.115 then the province's
   const W7=G.WORLD70,b7=[W7.i0*G.CELL-G.HALF-2000,W7.i1*G.CELL-G.HALF+2000,W7.j0*G.CELL-G.HALF-2000,W7.j1*G.CELL-G.HALF+2000];
-  ok(RB.n0>=15&&RB.n1>RB.n0&&o.every(r=>inB(r,G.HALF+2000))&&w.every(r=>inB(r,b7)&&!inB(r,G.HALF+2000)),`the first ${RB.n0} reach the old square (v11.102's, in its order), the ${w.length} after them v11.106's ±70.5 km alone: ${w.map(r=>r.id+' '+r.state).join(', ')}`);
-  ok(v.length>=20&&v.every(r=>inB(r,[G.WX0-2000,G.WX1+2000,G.WZ0-2000,G.WZ1+2000])&&!inB(r,b7)),`the ${v.length} after them the province alone (x ${(G.WX0/1000).toFixed(1)}…${(G.WX1/1000).toFixed(1)}, z ${(G.WZ0/1000).toFixed(1)}…${(G.WZ1/1000).toFixed(1)} km): ${v.map(r=>r.id+' '+r.state).join(', ')}`);
+  ok(RB.n0>=2&&RB.n1>RB.n0&&o.every(r=>inB(r,G.HALF+2000))&&w.every(r=>inB(r,b7)&&!inB(r,G.HALF+2000)),`the first ${RB.n0} reach the old square (v11.102's, in its order), the ${w.length} after them v11.106's ±70.5 km alone: ${w.map(r=>r.id+' '+r.state).join(', ')}`);
+  ok(v.length>=5&&v.every(r=>inB(r,[G.WX0-2000,G.WX1+2000,G.WZ0-2000,G.WZ1+2000])&&!inB(r,b7)),`the ${v.length} after them the province alone (x ${(G.WX0/1000).toFixed(1)}…${(G.WX1/1000).toFixed(1)}, z ${(G.WZ0/1000).toFixed(1)}…${(G.WZ1/1000).toFixed(1)} km): ${v.map(r=>r.id+' '+r.state).join(', ')}`);
 }
 ok(RB.struck.every(q=>RB.recs.some(r=>r.id===q.by)||q.by==='home'||q.by==='giant'||q.by==='platform'),`${RB.struck.length} struck as inside another's ground: `+RB.struck.map(q=>q.id+' in '+q.by).join(', '));
 {let bad=0;const f9b=new Float32Array(9);for(const R of RB.recs)for(let r=0;r<R.reach*R.sc;r+=97)for(let k=0;k<12;k++){const a=k/12*Math.PI*2+r*0.01,x=R.x+Math.cos(a)*r,z=R.z+Math.sin(a)*r,I={};G.islandH(R,x,z,I);const bi=R.hi[Math.min(R.hi.length-1,Math.floor(r/(R.hiS*R.sc)))];if(I.h>bi||I.hs>bi)bad++;} // v11.129: by the record's radius as sample() reads it, the world distance over sc
@@ -100,9 +102,9 @@ ok(RB.struck.every(q=>RB.recs.some(r=>r.id===q.by)||q.by==='home'||q.by==='giant
 // land is untouched (its rain and its sea cliffs read the record's own aspect, the shelter only the water's fields)
 {const I=id=>G.ISLANDS.find(R=>R.id===id),sh=(id,k,a)=>{const R=I(id);return R&&R.sh?G.shT(R.sh,k,a):0;},WA=Math.atan2(-Math.sin(3.49),-Math.cos(3.49)),CA=5.44;
   ok(!G.ISLANDS[0].sh&&!G.ISLANDS[1].sh,'ours and the giant take no shelter (the pins: their fields are as v11.116\'s)');
-  // v11.121: the members re-chosen in the province's new shape (to v11.120 m138's windward face 0.4+, m141's fed face 0.3+, m148's open)
-  const w133=sh('m133',0,WA),c146=sh('m146',1,CA),c131=sh('m131',1,CA),n=G.ISLANDS.filter(R=>R.sh&&[...R.sh].some(v=>v>0.3)).length;
-  ok(w133>0.4&&c146>0.3&&c131<0.1,`the atoll 33 km west's windward face in a wave shadow (m133, ${w133.toFixed(2)}), the atoll 12 km east's fed face in a wake (m146, ${c146.toFixed(2)}), m131's open (${c131.toFixed(2)}); ${n} of ${G.ISLANDS.length} records sheltered over 0.3 somewhere`);
+  // v11.134: re-chosen among the composites (to v11.133 m133's windward face 0.4+, m146's fed face 0.3+, m131's open; v11.121 before that m138, m141, m148)
+  const c154=sh('m154',1,CA),w91=sh('m91',0,WA),o88=sh('m88',1,CA),n=G.ISLANDS.filter(R=>R.sh&&[...R.sh].some(v=>v>0.3)).length;
+  ok(c154>0.3&&w91>0.2&&o88<0.1,`the young shield 48 km west's fed face in a wake (m154, ${c154.toFixed(2)}), the bank m91's windward face in a wave shadow (${w91.toFixed(2)}), m88's fed face open (${o88.toFixed(2)}); ${n} of ${G.ISLANDS.length} records sheltered over 0.3 somewhere`);
   const pts=[];for(let k=0;k<4000;k++){const R=G.ISLANDS[2+k%(G.ISLANDS.length-2)],a=k*2.399,r=(R.land?R.land.r*1.2:R.rimR!==undefined?R.rimR+800:1500)*R.sc*((k%7)/7+0.2);pts.push([R.x+Math.cos(a)*r,R.z+Math.sin(a)*r]);}
   const h1=pts.map(p=>G.sample(p[0],p[1]).h),keep=G.ISLANDS.map(R=>R.sh);for(const R of G.ISLANDS)R.sh=null;const h0=pts.map(p=>G.sample(p[0],p[1]).h);G.ISLANDS.forEach((R,i)=>{R.sh=keep[i];});
   ok(h1.every((h,i)=>h===h0[i]),'the ground with the shelter and without it the same to the bit at 4,000 places over every record (the water\'s fields alone take it)');}
@@ -116,7 +118,7 @@ ok(RB.struck.every(q=>RB.recs.some(r=>r.id===q.by)||q.by==='home'||q.by==='giant
   // v11.129: half-way out in the record's own frame (an oval's)
   for(const R of B)for(let k=0;k<48;k++){const a=k/48*Math.PI*2,rr=(R.land.r+R.barrier.r)/2,P=G.rgAt(R,rr,a,{}),x=P.x,z=P.z;G.islandH(R,x,z,I);n++;if(I.h>R.barrier.lag-6&&I.h<R.barrier.top-10)lag++;if(I.h>R.barrier.lag-170&&I.h<R.barrier.top+1)fea++;
     const Q=Object.assign({},R,{barrier:undefined}),J={};G.islandH(Q,x,z,J);if(I.h<J.h-1e-9)low++;}
-  ok(B.length>=4&&gi&&gi.barrier&&lag>0.75*n&&low===0,`${B.length} high islands with a barrier reef (${B.map(R=>R.id+' '+R.barrier.r+' m at '+R.barrier.top).join(', ')}): the lagoon at its floor half-way out at ${lag} of ${n} places (v11.123: a patch reef or a blue hole at the rest — ${fea} of ${n} within them), the cap never lowers the island's ground (${low}); the giant's at ${gi&&gi.barrier?gi.barrier.top:'-'} m, sinking in the awesome shield's moat`);}
+  ok(B.length>=3&&gi&&gi.barrier&&lag>0.75*n&&low===0,`${B.length} high islands with a barrier reef (${B.map(R=>R.id+' '+R.barrier.r+' m at '+R.barrier.top).join(', ')}): the lagoon at its floor half-way out at ${lag} of ${n} places (v11.123: a patch reef or a blue hole at the rest — ${fea} of ${n} within them), the cap never lowers the island's ground (${low}); the giant's at ${gi&&gi.barrier?gi.barrier.top:'-'} m, sinking in the awesome shield's moat`);}
 // v11.121: sample() a function of its point alone — to v11.120 a record past the loop's break kept the previous sample's mark and its influence
 // was dropped or kept by whatever had been sampled before (found by test/maps.js on m147's new atoll: flow 0.334 against 0.332 at one texel)
 {let diff=0,n=0;const key=p=>{const q=G.sample(p[0],p[1]);return [q.h,...q.f].join(',');};
@@ -135,7 +137,7 @@ ok(RB.struck.every(q=>RB.recs.some(r=>r.id===q.by)||q.by==='home'||q.by==='giant
       const ox=x+o.nx*1500,oz=z+o.nz*1500;wn++;const dro=G.rgPlatSd(ox,oz,true)>0&&G.rgPlatSd(ox,oz)<0;if(G.sample(ox,oz).h<h-(dro?30:500))wall++;}}
   ok(ln>100&&lag>0.75*ln&&lf===ln&&rn>5&&rim>0.75*rn&&wall>0.8*wn,`its lagoon 9 km in between −25 and −80 at ${lag} of ${ln} nodes (v11.123: patch reefs and blue holes the rest — ${lf} of ${ln} between −245 and the sea); its rim within 20 m of the sea at ${rim} of ${rn} places on its crest between the passes; the ground 1.5 km outside 500 m lower, or 30 m onto the drowned carbonate (v11.126), at ${wall} of ${wn} (the wall)`);
   const landB=bur.filter(q=>{const m=M.find(mm=>mm.id===q.id);return m&&m.zv>0;});
-  ok(bur.length>10&&landB.length===0,`${bur.length} members buried in it (their reefs its own now), none with land`);}
+  ok(bur.length>=1&&landB.length===0,`${bur.length} members buried in it (v11.134: 2, the composites; 30+ to v11.133) (their reefs its own now), none with land`);}
 // v11.123 (analysis_archipelago §1.4, §3.1, §3.4–3.6; the person, 12 Nov 2026: "go ahead with step 3"): one margin per reef, the lagoon by its size,
 // its patch reefs and blue holes, the reef's walls and its one bench
 {const L=G.ISLANDS.filter(R=>R.id!=='home'&&(R.rimR!==undefined||R.barrier)),ring=R=>R.rimR!==undefined?R.rimR:R.barrier.r,top=R=>R.rimR!==undefined?R.rimH:R.barrier.top;
@@ -143,14 +145,14 @@ ok(RB.struck.every(q=>RB.recs.some(r=>r.id===q.by)||q.by==='home'||q.by==='giant
   let arcs=0,sunk=0;const I={};for(const R of L){if(!R.rimM||top(R)<-20)continue;for(let k=0;k<96;k++){const a=k/96*Math.PI*2,x=R.x+Math.cos(a)*ring(R),z=R.z+Math.sin(a)*ring(R);G.islandH(R,x,z,I);
     if(G.rgAng(R.rimM,a)<0.05){arcs++;if(G.sample(x,z).h<top(R)-8)sunk++;}}}
   const faros=L.filter(A=>L.some(B=>B!==A&&ring(A)<=2500&&Math.hypot(A.x-B.x,A.z-B.z)+ring(A)<ring(B)-1.6*(B.rimR!==undefined?B.rimW:B.barrier.w)));
-  ok(arcs>50&&sunk>0.8*arcs,`one margin per reef: ${L.filter(R=>R.rimM).length} of ${L.length} rims lose an arc to another's lagoon or the platform's; at ${sunk} of ${arcs} places on those arcs the ground is under the crest (the lagoon's floor or the other's; a patch reef the rest); ${faros.length} faros kept (${faros.map(R=>R.id).join(', ')})`);
+  ok(sunk>=0.8*arcs,`one margin per reef (v11.134: the composites' living rims stand apart, so ${arcs} places on lost arcs; 50+ to v11.133): ${L.filter(R=>R.rimM).length} of ${L.length} rims lose an arc to another's lagoon or the platform's; at ${sunk} of ${arcs} places on those arcs the ground is under the crest (the lagoon's floor or the other's; a patch reef the rest); ${faros.length} faros kept (${faros.map(R=>R.id).join(', ')})`);
   const dep=[[800,18],[4000,31],[9000,40],[21000,50]].map(([r,d])=>Math.abs(G.rgLagD(r)-d)<1.5);
   ok(dep.every(Boolean)&&G.rgLagD(60000)===60,`the lagoon by its ring (rgLagD): ${[800,4000,9000,21000,60000].map(r=>(r/1000)+' km '+G.rgLagD(r).toFixed(0)+' m').join(', ')} — the widest the deepest (to v11.122 a bank flat at 20)`);
   const P=G.RG_PL();let kn=0,ho=0,nn=0;for(let q=0;q<80000;q++){const x=P.bb[0]+(P.bb[1]-P.bb[0])*((q*0.618034)%1),z=P.bb[2]+(P.bb[3]-P.bb[2])*((q*0.414214)%1),o={};if(x<G.WX0||x>G.WX1||z<G.WZ0||z>G.WZ1)continue;const h=G.rgPlat(x,z,o);if(o.sd>9000){nn++;if(h>o.hs+10)kn++;if(h<o.hs-40)ho++;}}
   ok(nn>1000&&kn>0.03*nn&&kn<0.3*nn&&ho>0,`the platform's lagoon: patch reefs over ${(100*kn/nn).toFixed(0)}% of it, blue holes at ${ho} of ${nn} places`);
   const at=L.filter(R=>R.rimR!==undefined&&R.state==='atoll'&&!R.rimM).slice(0,8);let st=0,bn=0,sl=0;
   for(const R of at){const r=R.rimR;const h1=G.rgRadial(R,r+190),h2=G.rgRadial(R,r+310),h3=G.rgRadial(R,r+350),h4=G.rgRadial(R,r+390);if((h1-h2)/120>0.6)st++;if(Math.abs(h3-(R.rimH-122))<8&&Math.abs(h4-h3)<6)bn++;const hA=G.rgRadial(R,r+1100),hB=G.rgRadial(R,r+1600);if((hA-hB)/500>0.55)sl++;}
-  ok(at.length>=5&&st===at.length&&bn===at.length&&sl===at.length,`the reef's walls: on ${at.length} atolls a wall of 31°+ from −32 to −122, the bench at the reef's top −122 (the last Myr's lowstands), the talus past 29°: ${st}, ${bn}, ${sl}`);}
+  ok(at.length>=3&&st===at.length&&bn===at.length&&sl===at.length,`the reef's walls: on ${at.length} atolls a wall of 31°+ from −32 to −122, the bench at the reef's top −122 (the last Myr's lowstands), the talus past 29°: ${st}, ${bn}, ${sl}`);}
 // v11.126 (analysis_archipelago §8; the person, 13 Nov 2026: "a chain of banks", "drowned saddles"): the old end's relief — a lower head with volcanic
 // centres where the head arrived and at the pulses — and its necks, swept by the currents and the tides that cross the ridge, drowned under the big swings
 {const P=G.RG_PL(),Rl=K.relief;let z70=0,n70=0;for(let q=0;q<2000;q++){const x=(((q*0.618034)%1)-0.5)*2*70520,zz=(((q*0.414214)%1)-0.5)*2*70520;n70++;if(R.rlAt(x,zz).every(v=>v===0))z70++;}
@@ -182,28 +184,34 @@ ok(RB.struck.every(q=>RB.recs.some(r=>r.id===q.by)||q.by==='home'||q.by==='giant
       for(let r=ring*0.8-300;r<=ring*1.2+300;r+=20){const x=R.x+Math.cos(a)*r,z=R.z+Math.sin(a)*r;G.islandH(R,x,z,o);if(o.rimK>0.5)best=Math.max(best,G.sample(x,z).h);}
       if(best>-1e9){const q=e>0?S.w:S.l;q.n++;q.c.push(best);if(best>0.5)q.i++;}}}
   const med=A=>{const v=A.slice().sort((p,q)=>p-q);return v.length?v[v.length>>1]:NaN;},iw=S.w.i/Math.max(1,S.w.n),il=S.l.i/Math.max(1,S.l.n);
-  ok(nr>=20&&iw>0.4&&il<0.15&&med(S.w.c)>-1&&med(S.l.c)<med(S.w.c)-5,`the rims by their side on ${nr} living atolls and barriers: windward the crest at ${med(S.w.c).toFixed(1)} m (median), islets on ${(100*iw).toFixed(0)}% of rays; leeward ${med(S.l.c).toFixed(1)}, islets on ${(100*il).toFixed(0)}% (about a third each side to v11.127)`);}
+  ok(nr>=8&&iw>0.4&&il<0.15&&med(S.w.c)>-1&&med(S.l.c)<med(S.w.c)-5,`the rims by their side on ${nr} living atolls and barriers: windward the crest at ${med(S.w.c).toFixed(1)} m (median), islets on ${(100*iw).toFixed(0)}% of rays; leeward ${med(S.l.c).toFixed(1)}, islets on ${(100*il).toFixed(0)}% (about a third each side to v11.127)`);}
 // v11.129 (analysis_archipelago §3.3; the person, 13 Nov 2026: "let's do 1"): the volcanoes born on an old fracture zone as ovals along it — area kept, the
 // rim where the record's own frame puts it, the pins and the tuned shield round
 {const ov=G.ISLANDS.filter(R=>R.asq),fa=K.fracA,o={},home=G.ISLANDS.find(R=>R.id==='home'),gi=G.ISLANDS.find(R=>R.id==='giant'),aw=G.ISLANDS.find(R=>R.id==='m153');
-  const axis=ov.every(R=>{let d=Math.abs(((R.rot-fa)%Math.PI+Math.PI*1.5)%Math.PI-Math.PI/2);return d<=0.2+1e-9&&R.asq>=1.3&&R.asq<=2.4&&Math.abs(R.sc*R.sc-R.asq)<1e-9;});
+  // v11.134: a composite is long along its own vents' spread (rot, asp from the model, the awesome shield too); a single volcano on a zone as v11.129's
+  const comp=ov.filter(R=>{const m=M.find(q=>q.id===R.id);return m&&m.asp>1.05;}),axis=ov.every(R=>{const m=M.find(q=>q.id===R.id);if(m&&m.asp>1.05)return Math.abs(R.rot-m.rot)<1e-9&&Math.abs(R.asq-m.asp)<1e-9&&Math.abs(R.sc*R.sc-R.asq)<1e-9&&m.nv>1;
+    let d=Math.abs(((R.rot-fa)%Math.PI+Math.PI*1.5)%Math.PI-Math.PI/2);return d<=0.2+1e-9&&R.asq>=1.3&&R.asq<=2.4&&Math.abs(R.sc*R.sc-R.asq)<1e-9;});
   let land=0,landR=0;const isl=ov.filter(R=>R.land).slice(0,3);for(const R of isl){const L=R.land.r*R.sc,st=40;let n=0;for(let x=R.x-L-200;x<=R.x+L+200;x+=st)for(let z=R.z-L-200;z<=R.z+L+200;z+=st){G.islandH(R,x,z,o);if(o.h>0)n++;}land+=n*st*st;
     const Q=Object.assign({},R,{rot:0,sc:1,asq:undefined});let m=0;for(let x=R.x-R.land.r-200;x<=R.x+R.land.r+200;x+=st)for(let z=R.z-R.land.r-200;z<=R.z+R.land.r+200;z+=st){G.islandH(Q,x,z,o);if(o.h>0)m++;}landR+=m*st*st;}
   let rim=0,rn=0;for(const R of ov.filter(R=>R.rimR!==undefined&&R.rimH>-5).slice(0,10))for(let k=0;k<24;k++){rn++;for(let r=0.75*R.rimR;r<=1.25*R.rimR;r+=10){const P=G.rgAt(R,r,k/24*Math.PI*2,{});G.islandH(R,P.x,P.z,o);if(o.rimK>0.5){rim++;break;}}} // the crest on every ray of the record's own frame, within its ±16% warp
-  ok(ov.length>=40&&axis&&!home.asq&&!gi.asq&&!(aw&&aw.asq)&&Math.abs(land/landR-1)<0.06&&rn>0&&rim>0.8*rn,`${ov.length} records oval along the fracture zones (aspect 1.3–2.4, the axis within 0.2 rad of ${fa}); ours, the giant and the awesome shield round; an oval island's land ${(land/1e6).toFixed(1)} km² against ${(landR/1e6).toFixed(1)} round (${isl.map(R=>R.id).join(', ')}); the rim on ${rim} of ${rn} rays of their own frames on 10 living atolls (within the ±16% warp)`);}
+  ok(ov.length>=5&&comp.length>=5&&axis&&!home.asq&&!gi.asq&&aw&&aw.asq&&Math.abs(land/landR-1)<0.06&&rn>0&&rim>0.8*rn,`${ov.length} records oval, ${comp.length} of them composites along their vents (the awesome shield ${aw&&aw.asq?aw.asq.toFixed(2):'round'}), the rest along the fracture zones (aspect 1.3–2.4, the axis within 0.2 rad of ${fa}); ours and the giant round; an oval island's land ${(land/1e6).toFixed(1)} km² against ${(landR/1e6).toFixed(1)} round (${isl.map(R=>R.id).join(', ')}); the rim on ${rim} of ${rn} rays of their own frames on 10 living atolls (within the ±16% warp)`);}
 // v11.130 (analysis_archipelago §2.6, §5 #11; the person, 13 Nov 2026: "do 3a"): the fed rule by its time — a member is fed while nothing upstream of it
 // stands in the light (to v11.129 once for all time, by what could ever stand above −300 m by today's floor: a shelter born after it sank still counted)
 {const lit=m=>Math.max(m.zv,m.reef?m.rt:-1e9)>-K.photic,mis=M.filter(m=>m.pin<0&&m.up.length&&m.fed!==!m.up.some(i=>lit(M[i]))),fed=M.filter(m=>m.fed);
-  ok(M.every(m=>m.pin<0||!m.fed)&&mis.length<=2&&fed.length>5,`fed today: ${fed.length} members (${Object.entries(fed.reduce((o,m)=>(o[m.state]=(o[m.state]||0)+1,o),{})).map(([k,v])=>v+' '+k).join(', ')}), each with nothing upstream in the light now — ${mis.length} otherwise (the step's lag); the pins never`);}
+  ok(M.every(m=>m.pin<0||!m.fed)&&mis.length<=2,`fed today (v11.134: none among the composites, each with a member upstream in the light; 26 to v11.133): ${fed.length} members (${Object.entries(fed.reduce((o,m)=>(o[m.state]=(o[m.state]||0)+1,o),{})).map(([k,v])=>v+' '+k).join(', ')}), each with nothing upstream in the light now — ${mis.length} otherwise (the step's lag); the pins never`);}
 // v11.131 (analysis_archipelago §2.7, §5 #8; the person, 13 Nov 2026: "do 2"): a member born on an older one's finished shield stands on its surface
 // and rides it down — a satellite cone, or on an island the rejuvenated stage — and never buries its host
+// v11.134: the composites take seed 32's late vents into their volcanoes (m151 is a vent of the awesome shield's now), so none is a satellite here: the
+// rule is tested on the province drawn without composites (K.comp null, v11.133's), and on the records if any
+{const R0=G.regionModel({comp:null}),M0=R0.M,sat0=M0.filter(m=>m.host>=0),hosts0=sat0.length>=10&&sat0.every(m=>{const q=M0[m.host];return q.age-m.age>=q.Ts-1e-9&&q.V>m.V&&Math.hypot(q.x-m.x,q.z-m.z)<q.R-0.5*m.R&&m.off>=0;})&&M0.every(m=>m.pin<0||m.host<0);
+  ok(hosts0&&M0.length===159,`without composites (v11.133's ${M0.length} cones) ${sat0.length} satellites, each host older, bigger, finished and under it; with them (seed 32) ${M.filter(m=>m.host>=0).length}`);}
 {const sat=M.filter(m=>m.host>=0),RB=G.RG_BUILT,land=G.ISLANDS.filter(R=>R.sat&&R.land&&R.land.b>0);
   const hosts=sat.every(m=>{const q=M[m.host];return q.age-m.age>=q.Ts-1e-9&&q.V>m.V&&Math.hypot(q.x-m.x,q.z-m.z)<q.R-0.5*m.R;})&&M.every(m=>m.pin<0||m.host<0);
   const recs=G.ISLANDS.every(R=>{const m=M.find(m=>m.id===R.id);return !R.sat===!(m&&m.off>0)&&(!R.sat||R.sat.b===Math.round(m.lastB)&&R.sat.host===M[m.host].id);});
   const own=RB.struck.every(q=>{const B=G.ISLANDS.find(R=>R.id===q.by);return !(B&&B.sat&&B.sat.host===q.id);});
   let on=0,nr=0,top=true;for(const R of land){if(G.sample(R.x,R.z).h<R.land.b+0.5*(R.land.h-R.land.b))top=false;
     for(let k=0;k<24;k++){const P=G.rgAt(R,1.3*R.land.r,k/24*Math.PI*2,{});nr++;if(G.sample(P.x,P.z).h>0)on++;}}
-  ok(sat.length>=10&&hosts&&recs&&own&&land.length>=1&&top&&on>=0.9*nr&&land.every(R=>R.h0===R.land.b&&R.terr.n===0),`${sat.length} members born on an older one's finished shield, each on its surface (${G.ISLANDS.filter(R=>R.sat).length} records); on land ${land.map(R=>`${R.id} ${R.land.h} m on ${R.sat.host} at ${R.land.b}`).join(', ')}, its host's land all round (${on}/${nr} rays at 1.3× its shore); no host buried by its own satellite`);}
+  ok(hosts&&recs&&own&&(land.length===0||top&&on>=0.9*nr&&land.every(R=>R.h0===R.land.b&&R.terr.n===0)),`${sat.length} members born on an older one's finished shield, each on its surface (${G.ISLANDS.filter(R=>R.sat).length} records); on land ${land.map(R=>`${R.id} ${R.land.h} m on ${R.sat.host} at ${R.land.b}`).join(', ')}, its host's land all round (${on}/${nr} rays at 1.3× its shore); no host buried by its own satellite`);}
 // v11.132 (the person, 13 Nov 2026: "make the noise seed follow the member's id"): a record's noise seed and its rifts are its member's own, so a
 // change to one member reshapes no other record
 {const recs=G.ISLANDS.filter(R=>R.id!=='home'&&R.id!=='giant'),rf=recs.filter(R=>R.rifts);
@@ -213,7 +221,8 @@ ok(RB.struck.every(q=>RB.recs.some(r=>r.id===q.by)||q.by==='home'||q.by==='giant
 // east, the middle and the young west (region.js RANGE, rangeBuild): a brooding line's sister species keep to theirs
 {const I=id=>G.ISLANDS.find(R=>R.id===id),n=[0,1,2].map(r=>G.ISLANDS.filter(R=>R.rng===r).length),w70=G.ISLANDS.filter(R=>Math.max(Math.abs(R.x),Math.abs(R.z))<70520),w50=G.ISLANDS.filter(R=>Math.hypot(R.x,R.z)<50000);
   // v11.122: the founder m2 and most of the old east lie buried in the platform (chunks.js chRange gives the platform the old east's range)
-  const f2=M.find(m=>m.id==='m2');ok(f2&&f2.src<0&&G.rgPlatSd(f2.x,f2.z,true)>0&&I('home').hops===21&&I('home').rng===2&&n[0]>=1&&n[1]>=20&&n[2]>=20&&w50.every(R=>R.rng===2),`the chain's stretches: ${n[0]} records in the old east (and the platform), ${n[1]} in the middle, ${n[2]} in the young west; the founder m2 on the platform's carbonate, ours ${I('home').hops} hops; every record within 50 km of ours the west's (${w50.length}: the brooders' forms there as they were), within ±70.5 km all but ${w70.filter(R=>R.rng!==2).map(R=>R.id+' '+(R.x/1000).toFixed(0)+' km east').join(', ')}`);}
+  const f2=M.filter(m=>m.lit!==null&&m.src<0).sort((a,b)=>b.lit-a.lit)[0]; // the founder: the first lit (m2 to v11.133; a vent of m4's volcano since v11.134)
+  ok(f2&&G.rgPlatSd(f2.x,f2.z,true)>0&&I('home').hops===9&&I('home').rng===2&&n[0]>=1&&n[1]>=3&&n[2]>=3&&w50.every(R=>R.rng===2),`the chain's stretches: ${n[0]} records in the old east (and the platform), ${n[1]} in the middle, ${n[2]} in the young west; the founder ${f2&&f2.id} on the platform's carbonate, ours ${I('home').hops} hops; every record within 50 km of ours the west's (${w50.length}: the brooders' forms there as they were), within ±70.5 km all but ${w70.filter(R=>R.rng!==2).map(R=>R.id+' '+(R.x/1000).toFixed(0)+' km east').join(', ')}`);}
 ok(Math.abs(G.rgFloor(6000,0)-G.BASIN.h)<0.5,`the model's floor read by the game beside ours: ${G.rgFloor(6000,0).toFixed(1)} (${G.BASIN.h})`);
 // the log: what the default province is
 const cnt={};let land=0;for(const m of M){cnt[m.state]=(cnt[m.state]||0)+1;land+=m.land;}

@@ -40,6 +40,7 @@ const REGION_K={
   wb:10,          // m: wave base
   platW:70,       // km: the plateau's half-width about the track (the tail's aprons); it falls to the plate over the next 40
   headR:160,      // km: the head's plateau about the track's old end
+  comp:{C:40,tau:2.5}, // v11.134 (analysis_archipelago §9): composites — a vent within C km of a volcano with a vent in the last tau Myr builds onto it
   relief:{C:350,nh:4,Hh:900,Rh:55,Hp:900,Rp:40,tmin:19,t0:19,gap:15,grow:0.5,B:150,L:40,sad:0.7,swept:0.03,diss:0.05}, // v11.126 (analysis_archipelago §8; the person, 13 Nov 2026: "a chain of banks", "drowned saddles"): the old end's relief and its necks. C m: the head's plateau that much under platW's flat top past track age t0 (tapered over the 3 Myr before), ±B m of noise at L km on it; nh volcanic centres where the head arrived, scattered over the plume's footprint as the births are (Hh m × 0.7–1, Rh km), and one at each pulse from tmin on (Hp m × the pulse's strength, Rp km; none within gap km of a stronger one), each grown over `grow` Myr from its pulse, cut off at 3 radii, overlapping ones by a 4-norm. sad: where the lesser of the two centres a point lies between has this share of the greater's shape or more (±0.2 of noise), the bank lies between its centres — a neck — and the currents and the 6–9 m tides that cross the ridge run over it; swept, its reef grows at `swept` of the rate. diss: mm/yr, what the rain dissolves from a reef top the sea has left. The necks keep up through the Pliocene's small swings of the sea and give up under the Pleistocene's 70–120 m (swept 0.025 drowns them by 25 Ma, 1 km deep; 0.04 leaves them at −64)
   hill:60,        // m: the abyssal hills over the floor (PLANET; the grid only)
   plate:-3800,    // m: the plate off the plateau
@@ -63,7 +64,7 @@ function rgTrack(K,a,b){const dx=a.x-b.x,dz=a.z-b.z,ch=Math.hypot(dx,dz),thc=Mat
   const P=(t,o)=>{o=o||{x:0,z:0};if(straight){o.x=a.x+v*(t-ta)*Math.cos(thc);o.z=a.z+v*(t-ta)*Math.sin(thc);}else{const T=th(t);o.x=a.x+v/w*(Math.sin(T)-s0);o.z=a.z-v/w*(Math.cos(T)-c0);}return o;};
   return {P,tg:ta-dt,v,w,th};}
 const rgGauss=r=>{const u=Math.max(1e-12,r()),v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(TAU*v);};
-function rgShape(m){m.H=Math.cbrt(3*m.V*RG_S*RG_S/Math.PI);m.R=m.H/RG_S;m.H12=m.H;m.Ts=clamp(0.35*Math.cbrt(m.V/1e11),0.15,1.2);} // a cone of the mean slope holding V: its height over its base, its foot, its shield's duration (Myr)
+function rgShape(m){m.H=Math.cbrt(3*m.V*RG_S*RG_S/Math.PI);m.R=m.H/RG_S;m.H12=m.H;m.Ts=Math.max(m.Tspan||0,clamp(0.35*Math.cbrt(m.V/1e11),0.15,1.2));} /* v11.134: a composite's from its first vent to its last one's shield done (Tspan) */ // a cone of the mean slope holding V: its height over its base, its foot, its shield's duration (Myr)
 // v11.121 (analysis_archipelago §1.2, §6; the person, 12 Nov 2026: "shrink the land", answer (c)): the edifice that holds V, by where its base lay
 // below the sea when it was born (b, m): under the sea its flank is the submarine 12° (RG_S), above it the subaerial 7° (RG_SA) — the slope breaks at
 // the shoreline it grew to, as a shield's does. To v11.120 every member was the 12° cone and its land a 7° cone from its summit drawn on top,
@@ -90,6 +91,24 @@ function regionModel(Kin){
       if(pull){const s=nfx*x+nfz*z,c=ph0+sp*Math.round((s-ph0)/sp);x-=(s-c)*nfx;z-=(s-c)*nfz;}
       const m={id:'m'+M.length,pin:-1,x,z,age:t+0.01*rng(),V,frac:pull};rgShape(m);
       if(pin.some(q=>Math.hypot(x-q.x,z-q.z)<q.excl+0.4*m.R))continue;m.inSq=x>sq[0]&&x<sq[1]&&z>sq[2]&&z<sq[3];M.push(m);}}
+  // v11.134 (analysis_archipelago §9; the person, 13 Nov 2026: "Let's go with a"): composites. Each birth above is a vent; oldest first, a vent within
+  // K.comp.C km of a volcano that had a vent in the last K.comp.tau Myr builds onto it (its volume added, the centre the vents' volume-weighted mean),
+  // else it starts one. A volcano is a member: the id its largest vent's, its age its first vent's, its shield done when its last vent's is (Tspan),
+  // long along its vents' spread (asp, rot: the record an oval so, rgRecord). The pins stand alone, and a vent they would take is theirs (its volume in
+  // their solved one). On Earth vents this close build one edifice (the Big Island five volcanoes, each Canary several shields, Tahiti two); drawn as a
+  // cone each, seed 32's 159 stood 10 km apart and 5 km across, where Earth's chains keep 40–90 km and 9–46 km (analysis_archipelago §9)
+  if(K.comp){const C=K.comp.C*1000,tau=K.comp.tau,E=pin.map((p,i)=>({pin:true,x:p.x,z:p.z,last:i?tg:K.ageOurs,vents:[]}));
+    for(const v of M.filter(m=>m.pin<0).sort((a,b)=>b.age-a.age)){let best=null,bd=C;for(const e of E){if(e.last-v.age>tau||e.pin&&v.age>e.last)continue; /* a pin takes no vent older than itself */const d=Math.hypot(v.x-e.x,v.z-e.z);if(d<bd){bd=d;best=e;}}
+      if(!best){E.push({x:v.x,z:v.z,last:v.age,vents:[v]});continue;}
+      best.vents.push(v);best.last=Math.min(best.last,v.age);if(best.pin)continue;let w=0,x=0,z=0;for(const q of best.vents){w+=q.V;x+=q.x*q.V;z+=q.z*q.V;}best.x=x/w;best.z=z/w;}
+    const keep=M.filter(m=>m.pin>=0);for(const e of E){if(e.pin||!e.vents.length)continue;const vs=e.vents,big=vs.reduce((a,b)=>b.V>a.V?b:a),first=vs.reduce((a,b)=>b.age>a.age?b:a);
+      let V=0,cxx=0,czz=0,cxz=0,s2=0;for(const q of vs){V+=q.V;const dx=q.x-e.x,dz=q.z-e.z;cxx+=q.V*dx*dx;czz+=q.V*dz*dz;cxz+=q.V*dx*dz;s2+=q.V*q.R*q.R/4;} /* s2: each vent's own cone, a disc's second moment */
+      const hold=vs.find(q=>K.tune&&K.tune[q.id]!==undefined),c=hold||e; /* a tuned vent holds its volcano's id and place, as a pin does */
+      const m={id:(hold||big).id,pin:-1,x:c.x,z:c.z,age:first.age,V,frac:big.frac,nv:vs.length,vents:vs.map(q=>({id:q.id,x:q.x,z:q.z,age:q.age,V:q.V}))};rgShape(m);
+      if(vs.length>1){const a=(cxx+s2)/V,c=(czz+s2)/V,b=cxz/V,tr=a+c,dt=Math.sqrt((a-c)*(a-c)/4+b*b);m.asp=Math.min(RG_OVAL.a1,Math.sqrt((tr/2+dt)/(tr/2-dt)));m.rot=0.5*Math.atan2(2*b,a-c);
+        m.Tspan=first.age-Math.min(...vs.map(q=>q.age-q.Ts));}
+      m.inSq=m.x>sq[0]&&m.x<sq[1]&&m.z>sq[2]&&m.z<sq[3];keep.push(m);}
+    M.length=0;for(const m of keep)M.push(m);}
   M.forEach(rgShape);
   for(const id in K.tune||{}){const m=M.find(q=>q.id===id);if(m){m.target=K.tune[id];m.tuned=true;}} // v11.121: members held to a summit (K.tune)
   // the plateau: a band about the track and the head's disc at its old end, the plate beyond; its level solved below so the floor beside ours is K.floor
@@ -319,7 +338,8 @@ function rgAng(T,a){let u=a*(RG_RM/TAU);u-=Math.floor(u/RG_RM)*RG_RM;const i=Mat
 const RG_SAT_K=3; // v11.131: a satellite's flank below its base falls this many times steeper — the skirt where its own cone meets its host's slope
 const RG_OVAL={on:true,land:true,a0:1.3,a1:2.4,jit:0.2};
 function rgRecord(m,K){const ns=1000+37*Number(m.id.slice(1)),rng=mulberry(WB.hashString('rifts:'+m.id)),R={id:m.id,x:m.x,z:m.z,rot:0,sc:1,ns,state:m.state,age:m.age};
-  if(RG_OVAL.on&&m.frac&&m.pin<0&&!m.tuned&&(RG_OVAL.land||!(m.state==='high'||m.state==='shield'||m.state==='rim'||m.state==='low'))){const h=mulberry(WB.hashString('oval:'+m.id)),asp=RG_OVAL.a0+(RG_OVAL.a1-RG_OVAL.a0)*h();R.rot=K.fracA+RG_OVAL.jit*(h()-0.5)*2;R.sc=Math.sqrt(asp);R.asq=asp;}
+  if(m.asp>1.05&&m.pin<0){R.rot=m.rot;R.sc=Math.sqrt(m.asp);R.asq=m.asp;} /* v11.134: a composite long along its vents' spread */
+  else if(RG_OVAL.on&&m.frac&&m.pin<0&&!m.tuned&&(RG_OVAL.land||!(m.state==='high'||m.state==='shield'||m.state==='rim'||m.state==='low'))){const h=mulberry(WB.hashString('oval:'+m.id)),asp=RG_OVAL.a0+(RG_OVAL.a1-RG_OVAL.a0)*h();R.rot=K.fracA+RG_OVAL.jit*(h()-0.5)*2;R.sc=Math.sqrt(asp);R.asq=asp;}
   if(m.off>0)R.sat={b:Math.round(m.lastB),k:RG_SAT_K,host:m.hostId}; // v11.131: a satellite's base today (its host's surface at its birth, sunk since): its own flank ends there in a skirt
   const arms=()=>{const a=K.fracA+0.3*(rng()-0.5)*2;return [a,(a+Math.PI+0.3*(rng()-0.5)*2)%TAU];};
   if(m.state==='high'||m.state==='shield'||m.state==='rim'){const sb=m.off>0&&m.lastB>0?m.lastB:0,sh=Math.round(sb>0?Math.min(m.shore,m.rtop+(m.zv-sb)/RG_SA):m.shore),act=m.state==='shield',yg=act||m.age<1,q=act?0:clamp(m.age/1.3,0.3,1.5),L={r:sh,h:Math.round(m.zv), /* v11.131: a satellite on land (its base above the sea, sb) a cone on its pedestal — its land from its summit (h, as every island's) down to its base (b), h0 its base */cliff:act?15:yg?20:30,gully:{n:Math.round(clamp(sh/600,8,act?14:36)),lee:act?0.15:0.25}};
@@ -464,13 +484,13 @@ function rgPlat(x,z,o){const P=RG_PL;if(!P||x<P.bb[0]||x>P.bb[1]||z<P.bb[2]||z>P
 // far east, down the chain in hops of ~11 km (the median; 54 km the longest) over 30 Myr. A poor disperser — a brooder: the sacs, the crowns,
 // the cones the brooding hingeshells became — crosses a gap rarely, so its populations along the chain drift apart with the hops between them
 // (isolation by distance). RANGE cuts the chain by hops from the founder into three: the old east (≤ east), the middle (≤ mid) and the young
-// west, the rest (ours is 21 hops; 20 to v11.130). R.hops, R.rng (0 east, 1 middle, 2 west) on every record, pins too; a member never lit takes its nearest
+// west, the rest. v11.134: the cuts are thirds of ours' own hops (ours 9 since the composites; 21 to v11.133, cut at 7 and 14). R.hops, R.rng (0 east, 1 middle, 2 west) on every record, pins too; a member never lit takes its nearest
 // lit record's. A brooding line has a sister species by range (flora.js `range`, chunks.js chRange); every other line has larvae or spores
 // and is one species over the province.
-const RANGE={east:7,mid:14};
+const RANGE={east:1/3,mid:2/3}; // v11.134: of ours' hops (to v11.133 the hops themselves, 7 and 14)
 function rangeBuild(Rg){const M=Rg.M,hop=new Array(M.length).fill(-1),by=new Map(M.map((m,i)=>[m.id,i]));
   const depth=i=>{if(hop[i]!==-1)return hop[i];hop[i]=-3;const m=M[i];let d=-2;if(m.lit!==null){if(m.src<0)d=0;else{const p=depth(m.src);d=p>=0?p+1:-2;}}hop[i]=d;return d;};
   for(const R of ISLANDS){const i=by.get(R.id);R.hops=i===undefined?-2:depth(i);}
   for(const R of ISLANDS){if(R.hops>=0)continue;let bd=1e18,b=null;for(const Q of ISLANDS){if(Q.hops<0)continue;const d=Math.hypot(Q.x-R.x,Q.z-R.z);if(d<bd){bd=d;b=Q;}}R.hops=b?b.hops:99;}
-  for(const R of ISLANDS)R.rng=R.hops<=RANGE.east?0:R.hops<=RANGE.mid?1:2;}
+  const ho=ISLANDS.find(R=>R.id==='home').hops,e=Math.round(ho*RANGE.east),md=Math.round(ho*RANGE.mid);for(const R of ISLANDS)R.rng=R.hops<=e?0:R.hops<=md?1:2;}
 const REGION=regionModel();RG_PL=rgPlatform(REGION);const RG_BUILT=rgBuild(REGION);for(const R of RG_BUILT.recs)ISLANDS.push(R);shelterBuild();rangeBuild(REGION); // v11.117: the records' shelter of each other, once every record stands; v11.119 their lineages

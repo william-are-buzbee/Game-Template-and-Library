@@ -7615,3 +7615,40 @@ What it found (analysis_archipelago §9): the middle four to nine times too crow
 44–77), its pieces too small (5 km against 9–46) and too round (elongation 1.08 against 1.25–2.5); the east as Chagos is; the awesome shield's
 size right and its shape not. One cause under most of it: every birth drawn as a cone of its own, where Earth's close vents build one composite.
 **Asked of the person:** composites (a), fewer bigger births (b), or the middle kept dense (c) — §9.4.
+
+## v11.134 — composite volcanoes (13 Nov 2026)
+
+The person, 13 Nov 2026: "Let's go with a" (analysis_archipelago §9.4). v11.133 set the province beside eight of Earth's archipelagos: its middle
+four to nine times too crowded, its pieces too small and too round, because each of 159 births along 265 km of a slow plate's track was drawn as a
+cone of its own. On Earth vents that close build one volcano (the Big Island five, each Canary several shields, Tahiti two).
+
+- **region.js `regionModel`:** the births are vents. Oldest first, a vent within `K.comp.C` (40 km) of a volcano that had a vent in the last
+  `K.comp.tau` (2.5 Myr) builds onto it; else it starts one. 40 km: the Big Island's volcanoes stand 33–40 km apart and build one island; 2.5 Myr:
+  a slow plate holds an island over the plume longer (Tenerife's shields span several Myr). A volcano is one member: its largest vent's id, its
+  first vent's age, the vents' volume-weighted centre and their volume, its shield done when its last vent's is (`Tspan`, kept by `rgShape`),
+  `m.vents`. The pins stand alone, and a vent they would take is theirs (its volume in their solved one); a tuned vent (the awesome shield) holds its
+  volcano's id and place as a pin does. `K.comp` null draws v11.133's 159 cones.
+- **`rgRecord`:** a volcano of several vents is an oval along their spread (their volume-weighted second moments with each vent's own cone, the
+  aspect capped at 2.4) — the awesome shield too (1.63; round to v11.133, my choice at v11.129, not the person's: theirs is its 2,534 m, held).
+- **`rangeBuild`:** the lineages' cuts are thirds of ours' own hops (ours 9 now; to v11.133 21, cut at 7 and 14).
+
+What moved (seed 32): 159 members → 17 volcanoes; records 136 → 15, struck 23 → 2 (both the platform's). The ±70.5 km world holds ours, the giant,
+the awesome shield (10 vents, m138 and m151 among them: the 308 m island 20 km north and v11.131's cone on it are its flank now), m154 (a 590 m young
+shield 48 km west, 9 vents), m122 (a 799 m high island with its barrier, 48 km east, 18 vents) and the atoll m117 at its edge — 47 records to
+v11.133. The nearest land north of ours is the awesome shield's coast, 22 km off (m138's, 16, to v11.133). Land 1,993 → 2,066 km². No satellite
+in seed 32 now (m151 joined the awesome shield within its 2.5 Myr); the rule stands for vents after a longer quiet. **Ours' square the same to the
+bit**; the pins' summits and the floor beside ours as tuned.
+
+Against Earth (test/earth.js; §9.6): edifices 13 (57), 15.5 km across (5.2), elongation 1.61 and 58% long (1.08, 30%), 33.9 km apart with gaps of
+15.9 (10.2, 2.8) — size, length and gaps within Earth's range, the spacing under Earth's chains' 40–90. Still off: smooth elliptical outlines.
+
+- **Tests:** test/region.js the births are the vents (by the plume now and by the head then); the counts sized to 17 volcanoes (reef records 5+,
+  records 10+, the old square's 2+, the province's 5+, barriers 3+, the platform's burials 1+, walls 3+, rims 8+, a quarter of the square's deep
+  floor apron); the shelter re-chosen (m154's fed face in a wake, m91's windward face in a shadow, m88 open); the ovals the composites' (11, the
+  awesome shield among them) and the zones'; fed today none; the satellites on the province without composites (16, as v11.133); the founder the
+  first lit (m4's volcano), ours 9 hops. test/plankton.js the open atoll m117 and the atoll m93 in a wake (m148 and m141 to v11.133).
+  test/horizon.js m122 queued from the water at ours, the atoll m117 not (seen 21 km off; it is 87), and from the awesome shield's summit.
+
+Seen: the province and the ±75 km world as maps, the Earth sheet. **Unseen, ask in this order:** the view from ours (`tp(0,0)`): the awesome shield
+longer and its axis toward ours, nothing 16 km north any more; m122 from the water (`tp(45000,-5000)`); whether an island's ellipse reads too
+regular from the water.

@@ -422,5 +422,22 @@ island); the rest is the same idea at scale.
 Either (a) or (b) means far fewer islands within reach of ours; the world would feel emptier, as the real Pacific is. My recommendation: (a), with
 the world's box grown when it lands, so the swim to the next island stays a journey rather than a gap.
 
+**Answered (13 Nov 2026): (a), composites** — the person: "Let's go with a". Built v11.134 (§9.6); the world's box is a step of its own after it.
+
 **9.5 Not looked at.** The in-game view; the windows are mine (chosen as analogues); GEBCO's ~450 m hides atolls under 2 km and every reef rim,
 so rims and lagoons are compared by eye only; the −80 m threshold joins edifices whose shelves touch (both sides alike).
+
+**9.6 Built v11.134 (13 Nov 2026): composite volcanoes.** The births are vents; oldest first, a vent within 40 km of a volcano that had a vent
+in the last 2.5 Myr builds onto it (`K.comp`): 40 km because the Big Island's volcanoes stand 33–40 km apart and build one island, 2.5 Myr because a
+slow plate holds an island over the plume longer (Tenerife's shields span several Myr). A volcano is one member, long along its vents' spread. Seed
+32: 159 cones → 17 volcanoes, 136 records → 15. The same numbers (test/earth.js):
+
+```
+window                        n  land    D km  Dmax km  elong  long solid round NN km gap km <-60 km²
+Tethys v11.133               57    33     5.2      146   1.08   30%  0.93  0.95  10.2    2.8  11619
+Tethys v11.134               13    12    15.5      139   1.61   58%  0.96  0.91  33.9   15.9  10310
+Earth (the eight)          4–21   3–20  9–46     40–133  1.25–2.5 25–83% 0.82–0.92 0.68–0.93 19–91 4–58 2333–17740
+```
+Size, length and the gaps now within Earth's range; the spacing (34 km) under Earth's chains (40–90) and over Chagos's broken bank (19). Still
+off: the outlines — each volcano a smooth ellipse (round 0.91; Earth's 0.68–0.87 but the Canaries' 0.93), where Earth's are lobed by their vents and
+rift zones. That is the next step (a record of several centres), and then the world's box (the person: "eventually").
