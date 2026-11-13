@@ -181,6 +181,8 @@ banks (four over 300 km²) on 12,087 km² drowned, most at −72, two early neck
 flat broader and its passes fewer, the atolls' wall outside (`wf`, through `rgFlank`). Lee: the crest `leeD`·(1 − e^(−fetch/`leeF`)) under the sea
 (never below the lagoon's floor + 15), no islets, a slope of 15° easing to 7° (`lf`). Each bank's lagoon `RG_PL.lg`, `rgLagD` of the disc of its
 area. `RG_PL.sd2`/`top2` hold the drowned carbonate alone (with the living, v11.126, its wall from the sea overrode their margins).
+**The fed rule by its time (v11.130):** a member's upstream ones (`m.up`, within `fedL` up-current across its foot) shelter it while one stands in
+the light (`litNow`, a step behind); fed now, its reef takes no hold and grows at `fedK`. `m.fed` is today's.
 **Ovals (v11.129):** a member born on a fracture zone (`m.frac`) is an oval record along `K.fracA` (region.js `RG_OVAL`; `rot`, `sc` = √aspect, `asq` =
 aspect: islandH squeezes across after turning and scaling, so area and volume are the round one's); `rgLoc`, `rgAt`, `rgAlong` give a record's own frame to
 what compares world places with its radii (`rgMargins`), `shSupport`/`shRadius` its width to the shelter; the record list and the burials by the round

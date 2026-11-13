@@ -1,5 +1,10 @@
 # HANDOFF — tethys
 
+**v11.130 (13 Nov 2026): the fed rule by its time** (analysis_archipelago §2.6, 3a). A member is fed — no reef, the weed's shallows — only while
+nothing upstream stands in the light (to v11.129 once for all time, by what could ever stand above −300 m by today's floor). Fed 32 → 26, guyots 44 →
+29, atolls 69 → 86; near ours m115 and m137 are guyots now, m136 an atoll. Records 130; the ones after a change reseeded (`ns` is a place in the list).
+**Ask first:** whether `ns` should follow the member's id instead. Still the person's: `fedK` and the island-mass direction (3b).
+
 **v11.129 (13 Nov 2026): the volcanoes on the old fracture zones as ovals** (analysis_archipelago §3.3). 55 of the 128 records — every member born on a
 fracture zone — are ovals along the zones' heading (region.js `RG_OVAL`: aspect 1.3–2.4, area kept), m138 north of ours among them; ours, the giant and
 the awesome shield round; the records and their seeds unchanged. Fixed with it: `sample()` read the bound tables by the world distance (right only for

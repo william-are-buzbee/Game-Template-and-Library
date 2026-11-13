@@ -119,9 +119,12 @@ function regionModel(Kin){
   // A member with no other's top able to reach the shallows upstream of it — across its own foot, within K.fedL — sits in that water, where the
   // weed takes the shallows from the lime polyps: little or no reef, so planed, it sinks — a drowned bank, a guyot. The pins are never fed: their
   // reefs are the records'. (Seed 32's own members shelter both — ours in the lee of the drowned atoll 18 km up-current, the giant in ours' —
-  // so the rule decides nothing there; it keeps the pins' reefs from hanging on a seed.)
-  const ca=typeof CUR_A==='number'?CUR_A:2.3,ux=-Math.cos(ca),uz=-Math.sin(ca),high=M.map(m=>K.plate+(K.floor-K.plate)*m.pw+m.rl0+K.swell+m.H>-300);
-  M.forEach((m,j)=>{m.fed=m.pin<0&&!M.some((q,i)=>{if(i===j||!high[i])return false;const rx=q.x-m.x,rz=q.z-m.z,al2=rx*ux+rz*uz,la=Math.abs(rx*uz-rz*ux);return al2>0&&al2<K.fedL*1000&&la<0.7*m.R+0.5*q.R;});});
+  // so the rule decides nothing there; it keeps the pins' reefs from hanging on a seed.) v11.130 (analysis_archipelago §2.6, §5 #11; the person, 13 Nov
+  // 2026: "do 3a"): by its time. To v11.129 a member was fed once for all its history unless one upstream could ever stand above −300 m, whenever it
+  // was born — a shelter born 10 Myr after it sank still counted. Now each member's upstream ones (m.up: the same geometry) shelter it only while one
+  // of them stands in the light (its top within K.photic of the sea, litNow) — a step behind; m.fed is today's
+  const ca=typeof CUR_A==='number'?CUR_A:2.3,ux=-Math.cos(ca),uz=-Math.sin(ca);
+  M.forEach((m,j)=>{m.up=m.pin<0?M.map((q,i)=>i).filter(i=>{if(i===j)return false;const q=M[i],rx=q.x-m.x,rz=q.z-m.z,al2=rx*ux+rz*uz,la=Math.abs(rx*uz-rz*ux);return al2>0&&al2<K.fedL*1000&&la<0.7*m.R+0.5*q.R;}):[];m.fed=false;});
   // a member that cannot come within 200 m of the lowest sea even at its birth, on the swell, unloaded, is a seamount whatever happens: not stepped
   const deep=M.map(m=>K.plate+(K.floor-K.plate)*m.pw+Math.max(m.rl0,m.rl[0])+cool(m.age)+K.swell+m.H<-120-K.photic-200);
   const ord=M.map((m,i)=>i).sort((a,b)=>M[b].age-M[a].age); // oldest first: the loads are born in this order
@@ -140,8 +143,9 @@ function regionModel(Kin){
         // the reef: it takes hold once the shield is done on rock in the shallows — a fringe at the shore, or a cap on a summit just under — and keeps
         // to the sea at K.reef while the sea is over it; left deeper than K.photic it drowns, and takes hold again only if rock comes back into the shallows
         if(m.reef){m.rt+=dB;if(m.sw&&m.rt>sea)m.rt-=RL.diss*1000*RG_DT;} // v11.126: a swept reef top the sea has left dissolves (stepped only on the necks: a full-rate reef regrows its ~1 m a cycle, and the young province stays the same to the bit)
-        if(gr>=1&&!m.alive&&(!m.fed||K.fedK>0)&&Math.max(zv,m.reef?m.rt:-1e9)>sea-K.photic*0.5){const rtop=Math.min(0.75*m.R,m.E/RG_S);if(!m.reef)m.ring=Math.max(800,rtop+Math.max(0,zv-sea)/RG_SA);m.reef=true;m.alive=true;m.rt=Math.min(sea,Math.max(zv,m.rt));m.died=null;}
-        if(m.alive){if(m.rt<sea)m.rt+=Math.min(K.reef*(m.fed?K.fedK:1)*(m.sw?RL.swept:1)*1000*RG_DT*Math.exp(-(sea-m.rt)/K.light),sea-m.rt);else m.exp+=RG_DT;if(m.rt<sea-K.photic&&zv<sea-K.photic){m.alive=false;m.died=t;}}
+        const fed=m.up.length>0&&!m.up.some(i=>litPrev[i]);m.fed=fed; // v11.130: fed now, by what stands in the light upstream now
+        if(gr>=1&&!m.alive&&(!fed||K.fedK>0)&&Math.max(zv,m.reef?m.rt:-1e9)>sea-K.photic*0.5){const rtop=Math.min(0.75*m.R,m.E/RG_S);if(!m.reef)m.ring=Math.max(800,rtop+Math.max(0,zv-sea)/RG_SA);m.reef=true;m.alive=true;m.rt=Math.min(sea,Math.max(zv,m.rt));m.died=null;}
+        if(m.alive){if(m.rt<sea)m.rt+=Math.min(K.reef*(fed?K.fedK:1)*(m.sw?RL.swept:1)*1000*RG_DT*Math.exp(-(sea-m.rt)/K.light),sea-m.rt);else m.exp+=RG_DT;if(m.rt<sea-K.photic&&zv<sea-K.photic){m.alive=false;m.died=t;}}
         const topv=Math.max(zv,m.reef?m.rt:-1e9);m.litNow=topv>sea-K.photic;
         if(m.litNow&&m.lit===null){m.lit=t;let bd=1e18;for(let i=0;i<n;i++)if(i!==j&&litPrev[i]){const d=Math.hypot(M[i].x-m.x,M[i].z-m.z);if(d<bd){bd=d;m.src=i;m.srcD=d;}}}
         if(zv>sea&&m.surf===null)m.surf=t;}

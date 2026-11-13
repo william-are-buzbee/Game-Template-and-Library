@@ -7519,3 +7519,29 @@ Seen: the near world (`SPAN=120000 CX=0 CZ=0 node test/map.js`) and m138 (`SPAN=
 drowned fringe following it, the gullies still to its summit. **Unseen, ask in this order:** the view north from ours — m138 is longer and
 narrower now (`tp(0,0)`, on ours, look north); m122's long lagoon (`tp(41500,-20700,-1)`); whether the ovals' line along the grain reads, or too
 regular (one heading ± 11°).
+
+## v11.130 — the fed rule by its time (13 Nov 2026)
+
+The province review's §2.6 and §5 #11, its timing half (`analysis_archipelago.md`; the person, 13 Nov 2026: "do 3a"). A member on the fed face —
+the current bringing the open ocean's nutrient in, the weed taking its shallows, no reef — was decided once for its whole history: fed unless any
+member upstream (within `fedL`, across its own foot) could ever stand above −300 m, judged by today's floor (−1,100) and whenever it was born. So a
+shelter born 10 Myr after a member sank still counted, and in the old east, whose plateau stood shallow then and deep now, almost nothing did.
+
+- **region.js `regionModel`:** each member's upstream ones (`m.up`: the same geometry) shelter it only while one of them stands in the light — its
+  top within `K.photic` of the sea, the history's own `litNow`, a step behind. Fed now: no reef takes hold, and a living one stops growing
+  (`fedK` 0, still open with the person, as is which way the island-mass effect turns the rule: §2.6, the review's 3b). `m.fed` is today's
+  (region.html's story reads it).
+
+What moved (seed 32): fed today 32 → 26 (12 guyots, 10 drowned banks, 3 atolls, the active shield); guyots 44 → 29, atolls 69 → 86, drowned 18 →
+20, banks 11 → 7; 29 members changed state, most of them guyots in the middle province become atolls (x 120–240 km), their old shelter now
+counted in its time. Near ours: m115 (29 km east) and m137 atolls become guyots, m136 a guyot become an atoll, m150 a low island become a rim.
+Records 128 → 130, struck 31 → 29 — the list changed, so the records after a change take new noise seeds (`ns` is a record's place in the
+list): the ±70.5 km world's ground differs at 8% of places. **Ours' square the same to the bit.**
+
+- **Tests:** test/region.js fed today exactly where nothing upstream stands in the light (26, none otherwise), the pins never. test/horizon.js:
+  m150, 62 km west, is a 4 m rim island now, seen 13 km off from the water at ours, not ~30 (still not queued there; still queued from the
+  awesome shield's summit).
+
+Seen: the province's states before and after, member by member. **Unseen, ask in this order:** the middle province's new atolls from the water
+(m70 `tp(141000,-39000,-1)`); whether a record's noise seed should follow its member's id rather than its place in the list, so a change to one
+member stops reseeding the others (one change to every record once, then none).

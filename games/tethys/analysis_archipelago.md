@@ -245,7 +245,7 @@ and its moat with it, and the person's "one awesome" stays.
    top; its margin where it never did; its up-current edge drowned by the fed rule; the banks' fused flats replaced by it.
 3. **Margins and lagoons** — one margin per platform (rims inside another's lagoon become faros or patch reefs), lagoon depth by size
    and time dry, reef walls, the slow plate's −120 bench — what step 2 does not already make.
-4. Later, unasked: the shapes long along the grain (asked and built v11.129, 13 Nov 2026: the fracture zones' members as ovals), rims by the wind (asked and built v11.128, 13 Nov 2026), blue holes (v11.123), rejuvenated cones, the fed rule in time, `Te` and the swell.
+4. Later, unasked: the shapes long along the grain (asked and built v11.129, 13 Nov 2026: the fracture zones' members as ovals), rims by the wind (asked and built v11.128, 13 Nov 2026), blue holes (v11.123), rejuvenated cones, the fed rule in time (built v11.130, 13 Nov 2026: the timing; the direction, 3b, and `fedK` still the person's), `Te` and the swell.
 
 ## 7. What was looked at, and what was not
 
