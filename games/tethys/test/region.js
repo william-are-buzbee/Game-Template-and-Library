@@ -41,6 +41,16 @@ ok(fin,`${n}² heights, all finite`);ok(under===0,'the flood\'s fill is never un
 let edge=true;for(let i=0;i<n;i++)for(const k of [i,(n-1)*n+i,i*n,i*n+n-1])if(B.F[k]!==H[k])edge=false;ok(edge,'the grid\'s edge is the open ocean: its fill is its ground');
 const f9=new Float32Array(9),Hg=G.regionGrid(R,x0,z0,span,n,(x,z)=>G.sample(x,z,f9).h,[G.WX0,G.WX1,G.WZ0,G.WZ1]),ci=Math.floor((6000-x0)/(span/n)),cj=Math.floor(-z0/(span/n));
 ok(Math.abs(Hg[cj*n+ci]-G.sample(6000+0.5*span/n-((6000-x0)%(span/n)),0.5*span/n-(-z0%(span/n)),f9).h)<1,'inside the game\'s world the grid is the game\'s own ground');
+// v11.148 (the performance pass): the track's nearest point by blocks (regionModel's trk) against the plain loop over every segment it replaced,
+// and rlT's two halves (rlG, rlTg: rgPlatform's steps) against rlT — to the bit
+{const TP=[];for(let t=0;t<=K.span+1e-9;t+=0.25)TP.push(R.track(t));const sm=(a,b,x)=>{const t=Math.min(1,Math.max(0,(x-a)/(b-a)));return t*t*(3-2*t);},cl=(v,a,b)=>v<a?a:v>b?b:v;
+  const brute=(x,z)=>{let d=1e18,ta=0;for(let i=1;i<TP.length;i++){const a=TP[i-1],b=TP[i],ex=b.x-a.x,ez=b.z-a.z,l=ex*ex+ez*ez,u=l>0?cl(((x-a.x)*ex+(z-a.z)*ez)/l,0,1):0,qx=a.x+ex*u-x,qz=a.z+ez*u-z,q=qx*qx+qz*qz;if(q<d){d=q;ta=(i-1+u)*0.25;}}return [Math.sqrt(d),ta];};
+  let bt=0,bp=0,bg=0,n=0,ng=0,s=20261114;const rnd=()=>{s=(Math.imul(s,1103515245)+12345)>>>0;return s/4294967296;},g=new Float64Array(R.cen.length);
+  for(let k=0;k<30000;k++){const far=k%5===0?6:1,x=G.WX0-50000+rnd()*(G.WX1-G.WX0+100000)*far-(far>1?1e6:0),z=G.WZ0-50000+rnd()*(G.WZ1-G.WZ0+100000)*far-(far>1?8e5:0),[d,ta]=brute(x,z);n++;
+    if(!Object.is(R.tAge(x,z),ta))bt++;if(!Object.is(R.platW(x,z),Math.max(1-sm(K.platW*1000,(K.platW+40)*1000,d),1-sm(K.headR*600,K.headR*1000,Math.hypot(x-R.head.x,z-R.head.z)))))bp++;
+    if(k%3===0){const a=R.rlAt(x,z);for(const t of [0,0.37,5,12.5,20,29]){ng++;if(!Object.is(R.rlT(a,t),R.rlTg(a,R.rlG(t,g))))bg++;}}}
+  for(const tp of TP){const [d,ta]=brute(tp.x,tp.z);n++;if(!Object.is(R.tAge(tp.x,tp.z),ta))bt++;} // on the track's own points, where two segments tie
+  ok(bt===0&&bp===0&&bg===0,`the track's nearest point by blocks the plain loop's to the bit at ${n} points, on the track and to 1,000 km off it (its age ${bt}, the plateau's weight ${bp} differ); rlTg(rlG) rlT's own double at ${ng} (${bg} differ)`);}
 console.log('region: the game\'s own water (v11.96, DEEP §2, §9)');
 // the basins of the game's own ground (v11.102: the model's members in it; v11.106: the world's, ±WHALF): those silled by region.js's rule
 const t4=Date.now();G.chemoAt(0,0);const CB=G.chemoB(),silled=CB.B.filter(b=>b.silled),bXZ=b=>[CB.x0+(b.cx+0.5)*CB.G,CB.z0+(b.cz+0.5)*CB.G];
