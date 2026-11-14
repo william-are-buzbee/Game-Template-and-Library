@@ -7687,3 +7687,80 @@ cone stood, now 10 km north of ours (its coast 22 km off to v11.134; m138's own 
 
 Seen: the province and the ±75 km world as maps, the Earth sheet. **Unseen, ask in this order:** the view north from ours (`tp(0,0)`): the awesome
 shield's cape 10 km off; m122 from the water (`tp(45000,-5000)`), and whether its four lobes read as a starfish; the deep flanks' fade from the water.
+
+## v11.136 — the world widened (13 Nov 2026)
+
+The person, 13 Nov 2026: "go ahead with widening the world's edge." The box (v11.115: the rectangle round the members' feet) cut the platform
+east and south, and since the composites (v11.134) the chain's islands stand 30–50 km apart with its ends close to the edge.
+
+- **world.js `WORLD`:** the rectangle round every member's reach (x −80 … 284, z −87 … 111 km) and the whole platform (x 170 … 332, z −17 … 139)
+  with 30 km of open sea past the farthest, on the 8-cell grid (the ledger's patches, the far regions'): x −110.1 … 362.9 km, z −118.7 … 170.3 km,
+  2,200 × 1,344 cells, 473 × 289 km (1,776 × 1,056, 382 × 227 to v11.135; 57% more). Every cell keeps its place.
+- **region.js `rgPlatform`:** its grid anchored at v11.115–135's corner and grown by whole nodes (12 west, 6 north), so a node it had is the
+  same node.
+- **Fixed with it, `rlAt`:** the old end's 350 m lowering (v11.126) applied wherever the track's age past 16 Ma, the open plate included;
+  far from the curving track that age sweeps by in 2–4 km, so it stood as a straight 350–380 m step across the floor (x ~100–110 km, south and
+  north of the plateau; the new southern strip showed it whole). Now the plateau's alone (its weight's last quarter the fade). No member's
+  history moves.
+
+What moved: the ±70.5 km world the same to the bit (80,089 points) and ours' square; the same 15 records. The old box differs at 4.6% of a 1 km
+lattice — the platform whole where the box cut it (1.9% of the plateau), and the open plate past the old step back at the plate's depth (up to 419
+m). Costs: the ledger's coarse patches 28,404 → 45,300 (their tables ~40 MB, by v11.115's rate); boot ~7% longer (4.0–4.15 s → 4.3–4.46 s in node,
+the platform's grid); the flood and the horizon's setup unchanged; the suite's runs 2–18% longer (the census the most).
+
+- **Tests:** test/ledger.js the census's coarse patches 45,300 (28,404).
+
+Seen: the whole world as a map (the platform whole, open sea round the chain, the step gone), the step's profile before and after. **Unseen:** the
+new edge from the water (`tp(360000,0)`, `tp(0,168000)`); a game started and played — boot and memory in a browser.
+
+## v11.137 — the yardstick and the blind test (13 Nov 2026)
+
+The person, 13 Nov 2026: "lets do the yardstick and blind testing first"; and on the floor: believability decides its depth (PLANET, the floor's
+depth; analysis_archipelago §10.3). A tool and an analysis; **the game unchanged**.
+
+- **test/earth.js:** five more windows of the province's own kind — Réunion and Mauritius, the Mascarene banks, Kerguelen, the Azores, Galápagos
+  (fourteen in all); every place a height function, drawn and measured alike; the province sampled on GEBCO's 15" grid (~463 m) and interpolated
+  as the Earth windows are (`RAW=1` the game's own detail); three more numbers — the floor's texture, the shallows', the shallow water round the
+  land; the sheet in three rows. `BLIND=<seed>`: the blind sheet — tiles 128 km a side that do not overlap, from every place by one rule, four of
+  the province's among one each from twelve Earth windows, shuffled and numbered; the key apart in test/preview (not committed, not shown).
+
+What it found (§10.1): at Earth's detail the province is inside Earth's range on every number, the floor's texture (14 m; Earth 7–36), the
+shallows' (1.3; 0.6–31) and the shallow water round its islands (1.5 times their land; 1.2–2.7) too. Two of the tells named in the discussion
+before it do not show at this detail (flat lagoons, wide barriers); the blind sheet is the test of the rest. The floor (§10.3): a plume ridge at
+Kerguelen's depth, believable as such; its cause in the model is the weak link (a plume under a 45 Myr plate builds none). Proposed: the plume
+near a spreading ridge as its cause — the person's to decide.
+
+- **`PSEED=<n>`:** the province's tiles from another seed of the same model, none within reach of the pins every seed shares (seeds 33–36 build).
+
+Seen: every window, the blind sheet (well-formed: no labels, no island in two tiles; a first draw at 192 km repeated the province's islands
+across overlapping tiles, a tell of the test's own). **The person's guesses (§10.2): 4 of 4** ("cheating because I can remember the map") —
+and why: the province's islands "perfect round cakes" and "pimples" against Earth's "subtle texture under the water"; Kerguelen's fjorded coast
+the favourite. Proposed next: sculpted flanks and shared platforms, drowned valleys, lagoon interiors.
+
+## v11.138 — submarine ridges and flank canyons (14 Nov 2026)
+
+The person, 13 Nov 2026: "I would love to start on 1 right now" (analysis_archipelago §11, the flanks). The blind test's first tell: the islands
+"perfect round cakes" — concentric rings of even width on a smooth floor — where Earth's carry their rift zones on under the sea.
+
+- **region.js `rgRidges` (`RG_RDG`), world.js islandH:** every record but the pins carries a ridge per rift arm (rgLobe's, in its own frame): its
+  crest from the shelf's edge falling at ~4°, steepening to twice that by its end, small cones on it; its half-width (0.15 of the shelf's radius,
+  0.8–4 km) tapering to a quarter at its tip, its edges and ~11° sides irregular; grown out of the island from inside its shelf's edge and met
+  with the flank by a smooth max; its length 1.2 R of the volcano (8–40 km), on the −1,100 m plateau ending where its crest meets the floor (5–15
+  km out). And canyons: radial troughs ~60 m deep, ~2.2 km apart, on the flank from the shelf's edge to the deep (a seventh angular table).
+- **The bound by the point (world.js `rdgEnv`, `rdgBound`, `rdgNear`):** the ridge's own envelope without its noise; sample() takes it at its
+  recLoc point with the bound table (the island's profile alone); past an island's own reach it asks first from the point before the lobe's step
+  (no atan2), so only points near a ridge pay for the frame. `R.rdgR` the ridges' far end (the records' index reads it), `R.rdgF` the deepest
+  floor beside them.
+
+What moved (seed 32): the same 15 records, land the same (2,074 km²), **ours' square the same to the bit**; the records' ground along their arms
+and on their flanks. **The cost:** sample() 27% slower over the ±70.5 km world (1.18 µs against 0.93, best of seven), ridges ~20 and canyons ~4
+of it; islandH called as often as before (0.40 a sample against 0.38). A first cut bounded a ridge by the radius all round and made sample()
+compute the islands almost everywhere within 60 km (+90%). The suite's longest runs 13–26% longer. To cut further: bake the ridges into grids
+(memory for speed) — not done. The Earth numbers do not move (§10's medians are the open floor's); the blind sheet is the test.
+
+- **Tests:** test/region.js the ridges (13 records, ours and the giant none) standing 50 m or more over their own flanks; the ground never over
+  the bound sample() skips by, at every place tried (0 of 37,663; the v11.102 check rewritten to read the bound as sample() does now).
+
+Seen: the ±75 km world and the awesome shield's south-east ridge close (a broad tongue to north-east of ours), the profile across its root (no
+step). **Unseen:** the ridges from the water and in the deep (`tp(4000,-9000,-300)`, the shield's south-east ridge); the second blind sheet
+(seed 41, a province not seen: the person's guesses).

@@ -454,3 +454,131 @@ Tethys v11.135               13    12    15.6      139   1.76   67%  0.91  0.84 
 Earth (the eight)          4–21   3–20  9–46     40–133  1.25–2.5 25–83% 0.82–0.92 0.68–0.93 19–91 4–58 2333–17740
 ```
 Every shape number now within Earth's range; the spacing (36 km) still a little under Earth's chains' 40–90. Left: the world's box.
+
+**9.8 The world's box (v11.136, 13 Nov 2026; the person: "go ahead with widening the world's edge").** The world now holds every member's reach and
+the whole platform with 30 km of open sea round them (473 × 289 km); the platform is no longer cut at the box (GLOBE §10.1).
+The same numbers after it (the 384 km window about the world's middle, as Earth's: it leaves the platform's last 14 km east and 44 km of the
+west's open sea outside):
+
+```
+window                        n  land    D km  Dmax km  elong  long solid round NN km gap km <-60 km²
+Tethys v11.135               13    12    15.6      139   1.76   67%  0.91  0.84  36.4   14.4  10159
+Tethys v11.136               15    12    15.5      146   1.76   64%  0.90  0.84  33.6   10.5  10953
+```
+The chain the same; two more pieces of the platform where the box cut it (its outer banks, close to its body: the spacing's and the gaps' medians
+fall with them), and the platform's own extent (Dmax) 146 km.
+
+## 10. The yardstick and the blind test; the floor's depth (13 Nov 2026, v11.137)
+
+The person, 13 Nov 2026: "I go off vibes when playing but ultimately want a 100% believable looking archipelago. When i see tethys in the upper
+left, it looks like it belongs, but I can tell. I want to not be able to tell." And the variety is wanted: "I really like the view of a vertical
+island that has a peak … But I also love those fast fields that we have in the east" (the platform's flats). Answered: "lets do the yardstick and blind testing first".
+
+**10.1 The yardstick.** `test/earth.js` gains the windows of the province's own kind — Réunion and Mauritius (the young end of the track Tethys
+most resembles: a 3 km volcano, then Mauritius, then the Mascarene banks), the Mascarene banks (Saya de Malha), and three plume plateaus: Kerguelen,
+the Azores, Galápagos. The province is drawn at Earth's detail (sampled on GEBCO's 15" grid, ~463 m, and interpolated as the Earth windows are; to
+v11.136 at 274 m, so its patch reefs and islets were sharper than any Earth window could show). Three more numbers: the floor's texture, the
+shallows' texture, the shallow water round the land.
+
+```
+window                        n  land    D km  Dmax km  elong  long solid round NN km gap km <-60 km² floor m shoal m  shelf
+----------------------------------------------------------------------------------------------------------------------------
+Tethys                       12    10    16.4      146   1.68   64%  0.92  0.84  36.6   13.9    11005      14     1.3    1.5
+Society Islands               9     9    12.1       40   1.32   44%  0.88  0.87  50.0   21.8     2333      24    31.3    1.3
+Tuamotus                     21    20    16.9       49   1.79   58%  0.88  0.81  39.6   20.4     7893      27     1.0    2.7
+Marshall Islands              7     7    22.7       59   2.50   83%  0.82  0.68  90.9   58.3     5014      14     3.0    5.7
+Maldives                     15    13    26.9       59   1.68   69%  0.88  0.82  48.7   15.0    14170      10     4.0   21.7
+Chagos                       21    12     9.0      133   1.85   67%  0.87  0.84  18.8    4.4    17740      30     1.3   14.0
+Hawaii                        4     3    46.4      117   1.66   50%  0.86  0.77  72.4   31.0    15057      31     3.9    1.2
+Canary Islands                9     6    26.6       56   1.25   25%  0.92  0.93  77.4   46.1     7278      10     4.2    1.5
+Cape Verde                   10     9    27.1       51   1.80   80%  0.90  0.81  43.5   17.9     6387      13     3.4    1.2
+Reunion and Mauritius         2     2    60.0       60   1.59   50%  0.88  0.85 237.4  177.4     5497      20     6.5    1.2
+Mascarene banks              18     6     6.9      158   1.89   71%  0.87  0.80  26.0    8.1    17105      18     0.6  223.0
+Kerguelen                    12     3     5.4      122   1.48   50%  0.90  0.84  20.7    8.1     9765       7     1.5    1.7
+Azores                        6     6    19.7       26   1.63   80%  0.90  0.87  39.5   20.1     1711      36    12.5    1.3
+Galapagos                    24    16     6.6       86   1.49   50%  0.89  0.86  15.0    3.8    10023      22     5.3    1.4
+```
+(Kerguelen and the Azores came at GMRT's coarser 0.0044°, ~490 m.) At Earth's detail the province is inside Earth's range on every number, the
+three new ones too: its floor's texture 14 m (Earth 7–36), its shallows' 1.3 (0.6–31), the shallow water round its islands 1.5 times their land
+(1.2–2.7 for high islands). Two of the tells named in §9's discussion do not show at this detail: lagoons and bank tops read flat on Earth too
+(GEBCO cannot see their knolls), and the wide barrier lagoons are two islands, not the median.
+
+**10.2 The blind test.** `BLIND=<seed> node test/earth.js`: tiles 128 km a side that do not overlap, from every place by one rule (a twentieth
+or more above −200 m), four of the province's and one each from twelve of Earth's windows, shuffled, numbered, nothing else; the key apart
+(`test/preview/earth-blind-key.txt`). `PSEED=<n>` draws the province's tiles from another seed of the same model (none within reach of ours or the
+giant, which every seed shares), so a blind test need not be the map the person knows.
+
+**The first sheet (seed 20261113, 13 Nov 2026): 4 of 4 found** — 3, 5, 9, 12 (the key: 1 Chagos, 2 Cape Verde, 4 the Azores, 6 the Canaries,
+7 the Mascarene banks, 8 Galápagos, 10 Kerguelen, 11 the Maldives, 13 Réunion and Mauritius, 14 the Tuamotus, 15 Hawaii, 16 the Society
+Islands). The person: "This is cheating because I can remember the map" — hence PSEED. Their notes, the useful part:
+- "Comparing 2 and 3 is huge. One is like perfect round cakes and the other looks how I'd imagine the elevation of an island to look."
+- "Without a doubt, 10 is my favorite. Keep staring at it. I would love anything that looks like that in Tethys. Zero clue on believability"
+- "11 looks special in the sense that you can see the elevation and such"
+- "7, 6, 8 and 13 look awesome in a similar way, like subtle texture under the water vs our kindof pimples (which to be fair is how many islands
+  look and kindof what they are on some level)."
+Read: the province's islands are concentric rings of even width (land, shelf, slope) standing alone on a smooth floor; Earth's stand in
+sculpted ground — Cape Verde's island trailing a submarine ridge, the Canaries' landslide fields and canyons, Galápagos' shared platform, shelves
+of uneven width, saddles between neighbours. Tile 10 is Kerguelen, its coast cut by glaciers at 49°S — not the province's climate; its tropical
+cousin is the drowned valley (old wet high islands carved by streams, the mouths drowned by subsidence and the 120 m rise since the last glacial
+into bays: Moorea's Cook's and Ōpūnohu, the Marquesas, Raiatea and Taha'a inside their reef), for m122 and m109. Tile 11 is the Maldives mapped
+by ship: lagoon basins, faros, channels, passes. Nothing said of the plateau's lighter floor: the shapes told, not the depth.
+**Proposed, in this order (the person's to choose):** (1) sculpted flanks and shared platforms — rift ridges, uneven shelves, saddles, canyons
+and landslide fields, drowned terraces; (2) drowned valleys on the old high islands; (3) lagoon and bank interiors. Each its own version, each
+against Earth and a fresh blind sheet from an unseen seed.
+
+**10.3 The floor's depth (the person, 13 Nov 2026):** "I don't care if we stop at 1000, I more so want to make sure we aren't going to stick
+with 1000m if that isn't plausible … I can see that routinely being a thing 'ah, well it should go down, but he really likes the sea floor'".
+**The rule, from the person: believability decides the floor's depth; liking it is not a reason to keep it.** And the condition on Earth as
+evidence: it is ours only while the planet is Earth-like in the conditions that matter — no difference invented to excuse a look.
+
+What the model has (seed 32): not a floor at −1,100 everywhere but a plume-built ridge — its crest −960 at the plume, −1,090 beside ours,
+−1,600 at 15 Ma, −870 at the old end's head; 150–200 km wide, falling to the open plate at −3,500 to −3,800 120 km off the track. Earth's: a
+whole ocean ~1 km deep is not Earth-like (a fraction of the water, far more land); a plume plateau or ridge this deep is — Kerguelen 1–2 km
+down, the Iceland–Faroe Ridge ~0.5 km, the Ninetyeast Ridge ~2 km. The province's crest is at the shallow end of that, inside it.
+**The weak link is the cause, not the depth:** Earth's shallow plume ridges were built where the plume met a spreading ridge (Iceland, the
+Azores, Galápagos, Kerguelen in part) or where a plume head arrived; a plume under a 45 Myr plate (REGION_K.plateAge) builds Hawaii's picture —
+islands on 4–5 km of floor with a ~1 km swell, no ridge. Two further strains: the open plate's −3,800 is ~1 km over a 45 Myr plate's −4,850
+(defensible only as the plume's broad swell), and the old end stands shallower than the middle (the head's thick crust; Earth's plateaus also
+subside with age). **Proposed, the person's to decide:** keep the depth and give it its cause — the plume near a spreading ridge, a younger
+plate under the young end and its crust thickened by the extra melt; the fracture zones the model has already are that ridge's, and the floor
+gains its grain (ridge-parallel hills, fracture-zone troughs). Or, if not, the depth follows the cause: an intraplate plume's floor, 3–4 km,
+and the deep layers rebuilt on it. My recommendation's basis, said plainly: keeping the depth was first the cost (the basin, the oxygen
+minimum, the chemocline, the deep's life rest on it); checked, the depth is believable for a plume ridge, and the near-ridge story makes its
+cause true too. The blind test will show whether the plateau's look gives the province away.
+
+## 11. The flanks: the plan (13 Nov 2026; the person: "I would love to start on 1 right now")
+
+The blind test's first tell (§10.2): the province's islands are "perfect round cakes" and "pimples" — concentric rings of even width (land,
+shelf, slope) standing alone on a smooth floor — where Earth's stand in sculpted ground ("subtle texture under the water"). Built in steps, one
+version and one pull request each, each measured (`node test/earth.js`) and blind-tested on an unseen seed (`PSEED=<n> BLIND=<seed>`).
+
+**11.1 What Earth's flanks carry, and the model for each** (all on non-pin records; ours and the giant as they are, ours' square to the bit).
+- **(A) Submarine rift ridges** (v11.138). Every shield's rift zones run on under the sea as narrow ridges: Kīlauea's Puna Ridge ~75 km to
+  −5,500 m, Haleakalā's Hāna Ridge, the Canaries' and Réunion's. In islandH, per arm (the record's rift arms — `rgLobe`'s, already in its own
+  frame): along `d` and across `ℓ` the arm, the crest falls from the shelf break at a gentle slope (~3–5°, against the flank's 12°) until it meets
+  the floor, its width growing from ~1.5 to ~5 km; the ground raised by `bump(ℓ/w)·max(0, crest(d) − h)`. On the −1,100 m plateau a ridge runs
+  ~15–25 km past the shelf; length and height scale with the volcano (m.R).
+- **(E) Flank canyons** (v11.138). Radial gullies cut into the submarine flank between the shelf break and the foot (on Earth every flank is
+  fluted by them): a sharp, narrow angular noise subtracted, ~30–80 m deep, fading at both ends.
+- **(D) Landslides** (v11.139). The big shields fail: an amphitheatre scar in a sector of the flank (Hawaii's Nu'uanu, the Canaries' El Golfo)
+  and a hummocky debris fan on the floor beyond the foot, tens of km long, blocks 50–300 m. 0–2 per record by its id, the old and big likelier.
+- **(C) Saddles and shared platforms** (v11.140). Neighbours closer than about two radii share a base: the ground between them a saddle at the
+  lower flank's level, not each cone falling to the floor (Galápagos' platform, Maui Nui). In sample(), across records: a field along the line
+  between such pairs; plus shelves of uneven width round each island (wider on the exposed side, where the waves cut).
+- **(G) The floor's grain** (v11.141). The plate's own fabric: abyssal hills lineated along the old ridge (across `K.fracA`), fracture-zone troughs
+  every `fracSp`, and a scatter of small seamounts — the vents that built no volcano. With the near-ridge plume (§10.3), all one cause.
+
+**Built v11.138 (14 Nov 2026): (A) ridges and (E) canyons.** Two lessons for the next steps: a feature's bound must be by the point, not the
+radius (a ridge's height bound all round its radius made sample() compute the island almost everywhere within 60 km: islandH 0.73 calls a sample
+against 0.38); and the bound must be the feature's exact envelope less its noise, not a loose slope. CHANGELOG v11.138 has the numbers.
+
+**11.2 What must hold** (learned building v11.129–137; HANDOFF's working notes):
+- **The bounds.** sample() skips a record where its bound table `R.hi` (region.js `rgBound`: the radial profile plus fixed margins) says it
+  cannot matter. Anything that raises the ground at some angles — a ridge, a debris fan — must raise `hi` at those radii (its largest height
+  there, added to the profile's) and `R.reach` to its far end; the region test's bound check must be extended to sample the real ground
+  (islandH) against `hi` round every record.
+- **The frame.** Features live in the record's own frame (after the turn, the squeeze and the lobe: islandH's `lx, lz`), so ovals and lobes
+  carry them; `R.sc` carries the farthest lobe; sample() reads `recLoc`.
+- **The cost.** islandH is the hot path: per arm a few multiplies and one exp; tables, not noise calls, where a noise is per angle (`anTables`).
+  Measure sample() before and after (best of five, as v11.135 did); the suite's run times too.
+- **The pins** stay as they are; **ours' square** the same to the bit (compare against the version before at ±2 km).

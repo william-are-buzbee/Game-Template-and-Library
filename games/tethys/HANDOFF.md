@@ -1,5 +1,38 @@
 # HANDOFF — tethys
 
+**v11.138 (14 Nov 2026): submarine ridges and flank canyons** (analysis_archipelago §11 A, E). Every island's rift zones go on under the sea as
+tapering ridges; its flank is fluted by canyons; sample() bounds them by the point (rdgEnv, rdgBound, rdgNear). Ours' square the same to the bit.
+sample() 27% slower (the suite's longest runs 13–26%). **Ask first:** the second blind sheet (seed 41); the ridges from the water. **Next (§11):**
+landslides (D), then saddles and uneven shelves (C), the floor's grain (G).
+
+**Working notes for the archipelago (13 Nov 2026, from v11.126–137; read before touching region.js or islandH).**
+- **The plan in progress:** analysis_archipelago §11 — the flanks, (A) rift ridges and (E) canyons first (v11.138), then landslides, saddles and
+  shelves, the floor's grain. The person's open questions: §10.3 (the near-ridge plume as the plateau's cause).
+- **Look and measure every change:** `W=1400 OUT=x.png node test/map.js` (or `SPAN`, `CX`, `CZ` for a window); `node test/earth.js` (the
+  province beside fourteen Earth windows, the numbers in test/preview/earth.txt; needs www.gmrt.org, allowed in this repository's cloud
+  environment "Game-Template-and-Library"); `PSEED=<n> BLIND=<seed> node test/earth.js` the blind sheet from an unseen seed, its key in
+  test/preview/earth-blind-key.txt — never shown before the person's guesses.
+- **Ours' square to the bit:** keep a copy of src/world.js and src/region.js from before a change and compare sample() at ±2 km (and the
+  ±70.5 km world, the old box, the members' states) with a small node script loading both (as test/map.js loads them).
+- **The traps that cost time:** a `//` comment inserted mid-line swallows the rest of the line (use `/* */`); a feature that raises the ground at
+  some angles breaks sample()'s bounds unless `rgBound`'s `hi` and `R.reach` take it (§11.2); `R.sc` carries the farthest lobe (divide by
+  `R.lmax` for the oval's own); `rgAt`/`rgLoc` invert each other only through `rgLbFix`; a record's noise seed and rifts follow its id (v11.132),
+  so a list change reseeds nothing; the composites (`K.comp`) make the member list — `K.comp:null` gives v11.133's 159 cones for a comparison.
+- **Delivery:** one version per pull request, stacked on the open ones (the base main, the description says the stack); `npm run check` and
+  `npm run build` before every push (the full suite runs inside check, ~8–12 min); the person merges.
+
+**v11.137 (13 Nov 2026): the yardstick and the blind test** (analysis_archipelago §10; a tool, the game unchanged). `test/earth.js`: fourteen
+windows (+ Réunion–Mauritius, the Mascarene banks, Kerguelen, the Azores, Galápagos), the province at Earth's detail, three more numbers — inside
+Earth's range on all; `BLIND=<seed>` the blind sheet (its key in test/preview, unread till the guesses). **The floor's rule (the person):**
+believability decides its depth. The first blind sheet: 4 of 4 found (§10.2; the map remembered — `PSEED` for the next). **Ask first:** which of
+(1) sculpted flanks and shared platforms, (2) drowned valleys, (3) lagoon interiors comes first (§10.2); the near-ridge plume as the plateau's
+cause (§10.3).
+
+**v11.136 (13 Nov 2026): the world widened** (GLOBE §10.1; the person: "go ahead with widening the world's edge"). The world is every member's
+reach and the whole platform with 30 km of open sea round them: x −110.1 … 362.9 km, z −118.7 … 170.3 km (473 × 289 km, 57% more); the
+platform's grid grows by whole nodes; the old end's lowering no longer steps across the open plate. ±70.5 km the same to the bit. Costs: 45,300
+ledger patches (~40 MB), boot ~7%. **Ask first:** boot and memory in the browser; the new edge from the water.
+
 **v11.135 (13 Nov 2026): lobed outlines** (analysis_archipelago §9.7; the person: "The lobed is a solid idea"). Every volcano but the pins is
 lobed by its vents' cones and its rift zones (`R.lobe`, `RG_LOBE`), the area kept, softer on the deep flank; `sc` carries the farthest lobe, so
 the bounds hold. Against Earth every shape number is now in range. The awesome shield's south-east cape (m138's cone, a vent of it) now 10 km

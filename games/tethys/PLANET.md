@@ -59,6 +59,10 @@ consequence of "a young oceanic shield volcano, almost drowned", and world.js `s
 
 - **The shield.** Gentle flanks: the shelf is the upper flank at 4–6°, −20 to −60 out to r 700; the slope ring to −250 at
   r 1200; the apron of the volcano's own debris to −290 at 1600. Basalt everywhere: olivine-green sand.
+- **The floor's depth — the rule (the person, 13 Nov 2026; analysis_archipelago §10.3):** believability decides it; liking the −1,100 m floor is no
+  reason to keep it, and Earth is our evidence only while the planet is Earth-like where it matters. Checked then: the floor is a plume-built ridge
+  (crest −0.9 to −1.6 km, the plate −3.5 to −3.8 km 120 km off) — inside Earth's plume plateaus (Kerguelen 1–2 km) — but the model gives it no
+  cause (a plume under a 45 Myr plate builds no ridge); the near-ridge plume is proposed as its cause, open with the person.
 - **The basin** (15 Sep 2026, built v11.58; the person chose it over the plate on the condition that it is a real thing, and it is).
   **Decided 10 Nov 2026 (the person; GLOBE.md §9.1): the region model's basins decide where the dark is.** The province does not enclose ours
   (its ridges are saddles at −1000 to −1500): the water round ours is open to the floor, the nearest silled basin 28 km west (chemocline

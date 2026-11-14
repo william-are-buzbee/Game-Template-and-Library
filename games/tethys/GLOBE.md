@@ -375,6 +375,14 @@ and blood in doubles, their GPU copies against `ORIGIN`; the rain about the came
   island above the sea but the reefs' crests. The ±70.5 km world is v11.114's to the bit; the flood keeps its lattice (the moat 603 km² behind
   −999 as before) and finds eleven silled basins, none anoxic (the nearest 0.81); the ledger's 28,404 coarse patches wait uncensused past
   40 km, their hunters' tables by row (25 MB, not 52); a save's patches move to the same cells. The province is the world.
+- **v11.136, the world widened (the person, 13 Nov 2026: "go ahead with widening the world's edge").** Since the composites (v11.134) the
+  members stand 30–50 km apart, and the box cut the platform east and south (x 306, z 125.6 km; the platform runs to 332 and 139). The world
+  is the rectangle round every member's reach and the whole platform with 30 km of open sea past the farthest, on the 8-cell grid: x −110.1 …
+  362.9 km, z −118.7 … 170.3 km (2,200 × 1,344 cells, 473 × 289 km, 57% more). Every cell keeps its place; the platform's grid grows from
+  its old corner by whole nodes. The ±70.5 km world the same to the bit; the old box differs at 4.6% of a 1 km lattice — the platform made
+  whole at its old edge, and the open plate past track age 16 Ma: the old end's 350 m lowering (v11.126) fell on the open plate too, a
+  straight step across the floor where the curving track's age sweeps by in 2–4 km, and is the plateau's alone now. The ledger's coarse
+  patches 45,300 (their tables ~40 MB by v11.115's rate); boot ~7% longer (the platform's grid); the suite's census 18%.
 
 **The province reviewed (12 Nov 2026, `analysis_archipelago.md`).** The west believable; the east's circles wrong in shape — land discs wider
 than the volcanoes under them, reefs on the cones but none on the plateau that stood in the light at 24–30 Ma, rims crossing each other's
