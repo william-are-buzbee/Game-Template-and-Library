@@ -1,5 +1,8 @@
 # HANDOFF — tethys
 
+**v11.140 in progress (branch claude/tethys-landslides, pushed for safety, no pull request):** landslides built — poor value (§11.3 as built: the
+in-between share 11% → 14%, sample() 40–74% slower). **Ask first:** drop or shrink them, and build the insular slope instead (§11.3's proposal).
+
 **v11.139 (14 Nov 2026): the depths between** (analysis_archipelago §10.4). Blind sheet 2 (unseen seed 41): 3 of 3 found, by the thin medium
 blues; `test/earth.js` now measures it — 4% of the islands' surroundings between −150 and −800 m against Earth's plume archipelagos' 10–35%.
 **Next:** landslides and their debris aprons (§11 D; the person: "depth measure first then landslides"), judged by that share.

@@ -586,6 +586,15 @@ of km long on the floor, Hawaii's Nu'uanu, the Canaries' El Golfo). On the −1,
   a sector test with dot products (no atan2) at sample()'s recLoc point; a pre-lobe test past the island's reach; the records' far reach the larger
   of the ridges' and the fans'. Measure: the share between −150 and −800 (§10.4), sample()'s cost, ours' square, the bound check.
 
+**11.3 as built (v11.140, 14 Nov 2026; branch claude/tethys-landslides, not yet a pull request): poor value.** 11 records slid (1–3 each, fans
+330–570 m thick, 23–38 km); ours' square the same to the bit; bounds hold. But the share between −150 and −1,100 m round the islands went only
+11% → 14%, almost all at −800 to −1,100 (the fans' deep toes on the −1,100 m plateau; −150 to −800 4% → 5%), and sample() 40–74% slower than
+v11.139 (quiet machine). **Proposed instead, the person's to choose:** the insular slope — each island's own profile (rgRecord's `prof`, `terr`)
+given what Earth's have between the shelf's edge and the steep flank: a broad slope of 1–5° from −150 to ~−500 with drowned terraces and reef
+benches (Hawaii's at −150 and −400, the sea's lowstands and the island's sinking), the steep flank below it. It is the band the eye read (−150 to
+−450: the province 2%, Earth's plume archipelagos 6–26%); it lives in the radial profile every point already computes, so it costs little, and
+rgBound reads the profile, so the bound comes free. The landslides kept on their branch, smaller or dropped as the person says.
+
 **11.2 What must hold** (learned building v11.129–137; HANDOFF's working notes):
 - **The bounds.** sample() skips a record where its bound table `R.hi` (region.js `rgBound`: the radial profile plus fixed margins) says it
   cannot matter. Anything that raises the ground at some angles — a ridge, a debris fan — must raise `hi` at those radii (its largest height
