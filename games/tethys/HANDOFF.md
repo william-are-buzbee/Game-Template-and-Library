@@ -1,5 +1,9 @@
 # HANDOFF — tethys
 
+**v11.141 (14 Nov 2026): the insular slope** (analysis_archipelago §11.3). Land islands' benches and slopes to −400 and on (none on active
+shields), reef records' aprons; the landslides dropped (the person). The −150 to −800 share 4% → 6%. **Next:** the platform's margins (most of
+the shallows; §11.3), then saddles and the floor's grain.
+
 **v11.139 (14 Nov 2026): the depths between** (analysis_archipelago §10.4). Blind sheet 2 (unseen seed 41): 3 of 3 found, by the thin medium
 blues; `test/earth.js` now measures it — 4% of the islands' surroundings between −150 and −800 m against Earth's plume archipelagos' 10–35%.
 **Next:** landslides and their debris aprons (§11 D; the person: "depth measure first then landslides"), judged by that share.

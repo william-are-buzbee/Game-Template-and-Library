@@ -586,6 +586,15 @@ of km long on the floor, Hawaii's Nu'uanu, the Canaries' El Golfo). On the −1,
   a sector test with dot products (no atan2) at sample()'s recLoc point; a pre-lobe test past the island's reach; the records' far reach the larger
   of the ridges' and the fans'. Measure: the share between −150 and −800 (§10.4), sample()'s cost, ours' square, the bound check.
 
+**Decided (the person, 14 Nov 2026): "go with 1, drop landslides and build the insular slope".** The landslides stay on their branch
+(claude/tethys-landslides), not merged. **Built v11.141:** the land islands' insular slope (a bench at the shelf's edge, a gentle slope to the
+drowned reefs at −400, a bench, a slope on to ~−560, before the flank; none on an active shield, whose benches come with its sinking — and so
+ours' square stays the same to the bit, the awesome shield's flank not pushed out toward it) and the reef records' apron (a few degrees, ~220 m,
+below their wall, before their talus). The islands' surroundings between −150 and −800 m: 4% → 6% (Earth's plume archipelagos 10–35%); sample()
++0–15%. **What is left of the gap is the platform's:** most of the province's shallows are its banks and drowned carbonate, whose margins still
+fall straight to the floor (Earth's banks: Chagos 20%, the Mascarene banks 16% between −150 and −800). Next: the platform's margins given the
+same treatment (rgPlat), then saddles (C) and the floor's grain (G).
+
 **11.2 What must hold** (learned building v11.129–137; HANDOFF's working notes):
 - **The bounds.** sample() skips a record where its bound table `R.hi` (region.js `rgBound`: the radial profile plus fixed margins) says it
   cannot matter. Anything that raises the ground at some angles — a ridge, a debris fan — must raise `hi` at those radii (its largest height

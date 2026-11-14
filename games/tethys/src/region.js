@@ -351,6 +351,7 @@ function rgRecord(m,K){const ns=1000+37*Number(m.id.slice(1)),rng=mulberry(WB.ha
     if(sb>0)L.b=Math.round(sb);if(yg){L.cald={r:clamp(0.07*sh,150,1800),d:clamp(0.05*m.zv,20,150),w:clamp(0.004*sh,25,80)};L.flows={n:Math.round(clamp(sh/250,20,90)),h:act?10:5,hw:0.45};R.rifts=arms();R.riftR=[L.cald.r,L.cald.r+500,sh+(act?5000:800),sh+(act?2500:300)];}
     if(act){R.h0=Math.round(sb);R.prof=[[sh,sh+200,25],[sh+200,sh+900,150]];R.terr={r0:sh+200,r1:sh+900,n:0,step:0};R.flank={r:sh+900,w:300,s0:0.27,s1:0.21,a:800,b:4000};}
     else{const w=v=>Math.round(v*q),c=Math.round(Math.min(sh,Math.max(0.5*sh,sh+1380-w(2800))));L.r=c;R.h0=Math.round(sb);R.prof=[[c,c+w(300),8],[c+w(300),c+w(1000),52],[c+w(1800),c+w(2300),94],[c+w(2300),c+w(2800),40]];R.terr={r0:c+w(1000),r1:c+w(1800),n:sb>0?0:8,step:12}; /* no wave-cut terraces where it never met the sea */R.flank={r:c+w(2800),w:250,s0:0.21,s1:0.21,a:600,b:2600};}
+    if(RG_ISL.on&&m.pin<0&&!act)rgInsular(R,L.r); /* v11.141: the insular slope, before the flank — none on an active shield: its benches and drowned reefs come with its sinking (the Big Island's flanks plunge) */
     R.land=L;R.fade=[R.flank.r,R.flank.r+3000];R.core=Math.round(Math.min(L.r,R.fade[0]/1.2));
     if(m.reef&&m.alive&&m.rt>-K.photic&&m.ring>L.r+400){const rr=Math.round(m.ring);R.barrier=rgBarrier(rr,m.rt);R.fade=[Math.max(R.fade[0],rr+1500),Math.max(R.fade[1],rr+4500)];}} // v11.121: a living ring off the coast (to v11.120 a rim island was drawn as an atoll, its land left out)
   else if(m.reef&&m.state!=='guyot'){const rr=Math.round(m.ring),rt=Math.round(m.rt),W=clamp(0.06*rr,40,300);R.h0=rt-14;R.rimR=rr;R.rimW=W;R.rimH=rt;R.lagH=rt-Math.round(rgLagD(rr));R.patch=1;
@@ -358,7 +359,7 @@ function rgRecord(m,K){const ns=1000+37*Number(m.id.slice(1)),rng=mulberry(WB.ha
     // a wall to −122, the slow plate's one bench there (the last Myr's ten lowstands cut one shoreline over and over: ~5 m of sinking a cycle),
     // the wall again to −580 and the talus at 35° easing to 17° onto the volcano (Enewetak's margin: under 10° on the reef plate, a slope from −16
     // steepening to ~55° and easing to 35°, debris below). To v11.122 ours' basalt profile scaled (eight 12 m terraces, the flank 17° easing to 12°)
-    R.prof=[[rr+0.3*W,rr+90,6],[rr+80,rr+210,12],[rr+190,rr+310,90],[rr+390,rr+640,160],[rr+560,rr+1040,300]];R.terr={r0:rr+310,r1:rr+390,n:0,step:0};R.flank={r:rr+950,w:200,s0:0.70,s1:0.30,a:900,b:3200};R.fade=[rr+2800,rr+5800];R.carb={n:Math.max(24,Math.round(TAU*(rr+1500)/CARB.sp))};} // carb (v11.107): the cap's spurs round it, every CARB.sp m at the slope's top
+    R.prof=[[rr+0.3*W,rr+90,6],[rr+80,rr+210,12],[rr+190,rr+310,90],[rr+390,rr+640,160],[rr+560,rr+1040,300]];R.terr={r0:rr+310,r1:rr+390,n:0,step:0};R.flank={r:rr+950,w:200,s0:0.70,s1:0.30,a:900,b:3200};R.fade=[rr+2800,rr+5800];if(RG_ISL.on&&m.pin<0)rgApron(R,rr); /* v11.141: the reef's apron below its wall */R.carb={n:Math.max(24,Math.round(TAU*(rr+1500)/CARB.sp))};} // carb (v11.107): the cap's spurs round it, every CARB.sp m at the slope's top
   else{const rS=m.state==='guyot'?Math.max(200,m.rtop):clamp(0.05*m.R,120,300);R.h0=Math.round(m.zv);R.prof=m.state==='guyot'?[]:[[0,2*rS,20]];R.terr={r0:rS,r1:rS+400,n:0,step:0};R.flank={r:rS,w:300,s0:0.36,s1:0.22,a:600,b:2000};R.bare=R.h0;R.knob=30;R.fade=[rS+1500,rS+4000];}
   if(RG_LOBE.on&&m.pin<0)rgLobe(R,m,K);
   if(RG_RDG.on&&m.pin<0)rgRidges(R,m);
@@ -369,6 +370,19 @@ function rgRecord(m,K){const ns=1000+37*Number(m.id.slice(1)),rng=mulberry(WB.ha
 // (rgLobe's, in the record's own frame): its crest from the shelf's edge (r0, the profile's height there h0) falling at `s` until it meets the
 // floor (sample()'s smax takes the floor there) and fading by L (1.2 R of the volcano, 8–40 km), its half-width W tapering to its tip; the canyons `n` round the
 // flank at ~`sp` apart, `d` deep (world.js islandH)
+// v11.141 (analysis_archipelago §11.3; the person, 14 Nov 2026: "go with 1, drop landslides and build the insular slope"): the second blind sheet's
+// tell was the thin medium blues (§10.4: 2% of the islands' surroundings between −150 and −450 m, Earth's plume archipelagos 6–26%). Earth's islands
+// do not fall from the shelf's edge straight down their flank: between them lies the insular slope — a bench at the shelf's edge, a gentle slope
+// to the drowned reefs near −400 (Hawaii's at −150 and −400: the lowstands and the island's sinking), a bench there, and a short slope on before the
+// steep flank. In the land records' own profile (rgRadial: every point already computes it, rgBound reads it), its width by the land's radius
+// (k of it, u0–u1 m), none on an active shield; the flank and its fade moved out by it
+const RG_ISL={on:true,k:0.35,u:[1500,6000],b1:-400,d2:160};
+function rgInsular(R,lr){const E=R.flank.r,e=rgRadial(Object.assign({},R,{flank:Object.assign({},R.flank,{r:1e9})}),E),u=clamp(RG_ISL.k*lr,RG_ISL.u[0],RG_ISL.u[1]);
+  R.prof=R.prof.concat([[E+0.35*u,E+1.15*u,Math.max(0,e-RG_ISL.b1)],[E+1.45*u,E+2.05*u,RG_ISL.d2]]);R.flank=Object.assign({},R.flank,{r:Math.round(E+2.05*u)});R.isl={E:Math.round(E),u:Math.round(u)};}
+// and a reef record's (an atoll's, a bank's): below its wall, before its talus, the sediment apron its reef sheds — a slope of a few degrees falling
+// `ad` m over `ak` of its ring (au0–au1 m), the in-between depths of Earth's banks and atolls (Chagos 20% of their surroundings between −150 and −800)
+Object.assign(RG_ISL,{ad:220,ak:0.45,au:[900,3500]});
+function rgApron(R,rr){const E=R.flank.r,u=clamp(RG_ISL.ak*rr,RG_ISL.au[0],RG_ISL.au[1]),w=Math.round(1.3*u);R.prof=R.prof.concat([[E+0.2*u,E+1.2*u,RG_ISL.ad]]);R.flank=Object.assign({},R.flank,{r:E+w});R.fade=[R.fade[0]+w,R.fade[1]+w];R.apr={E,u:Math.round(u)};}
 const RG_RDG={on:true,s:0.07,L:[1.2,8000,40000],w:[0.15,800,4000],cy:{d:60,sp:2200}}; // w: the crest's half-width where it leaves the island, 0.15 of the shelf's radius (0.8–4 km)
 function rgRidges(R,m){if(!R.arm||!R.flank)return;const F=R.flank,r0=F.r,L=clamp(RG_RDG.L[0]*m.R,RG_RDG.L[1],RG_RDG.L[2]),w0=clamp(RG_RDG.w[0]*r0,RG_RDG.w[1],RG_RDG.w[2]);
   R.rdg={r0,h0:rgRadial(R,r0),s:RG_RDG.s,L,W:w0,ph:(R.ns%97)*0.37,c:R.arm.map(Math.cos),n:R.arm.map(Math.sin)};

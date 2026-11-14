@@ -7773,3 +7773,24 @@ A tool and an analysis; **the game unchanged**.
 - **test/earth.js:** the depths round the islands — of the area within 25 km of water shallower than 60 m, the share in each of map.js's bands,
   and `mid`, the in-between (−150 to −1,100). The province: 4% between −150 and −800 (2 and 2), against 10–35% for the plume archipelagos and 2–6
   for the deep-floor chains; analysis_archipelago §10.4. The target for the flanks' next steps (§11): that share toward 10–30%.
+
+## v11.141 — the insular slope (14 Nov 2026)
+
+The person, 14 Nov 2026: "go with 1, drop landslides and build the insular slope" (analysis_archipelago §11.3). The second blind sheet's tell was
+the thin medium blues: Earth's islands do not fall from the shelf's edge straight down their flank.
+
+- **region.js `rgInsular` (`RG_ISL`):** in each land island's own profile, past its shelf's edge (~−190): a bench, a gentle slope to the drowned
+  reefs at −400 (Hawaii's at −150 and −400), a bench, a slope on 160 m — then the flank, moved out by it (its width 0.35 of the land's radius,
+  1.5–6 km). None on an active shield (the awesome shield, m154): its benches come with its sinking — and so ours' square stays the same to the
+  bit (a first cut gave the awesome shield one, pushed its flank 6 km out and moved three points at ours' north-east corner by up to 3.3 m).
+- **`rgApron`:** a reef record's (an atoll's, a bank's) sediment apron below its wall, before its talus: ~220 m over 0.45 of its ring
+  (0.9–3.5 km).
+- **Dropped:** the landslides (v11.140, on claude/tethys-landslides): the in-between share 11% → 14% but almost all deep, and sample() 40–74%
+  slower.
+
+What moved (seed 32): the islands' surroundings between −150 and −800 m 4% → 6% (Earth's plume archipelagos 10–35%; test/earth.js, §10.4);
+sample() +0–15%; the same records and land; **ours' square the same to the bit.** What is left is the platform's margins (§11.3).
+
+- **Tests:** test/region.js the reef's talus read past its apron (at its flank's start).
+
+**Unseen:** the benches and aprons from the water (`tp(45000,-5000,-300)`, m122's slope).
