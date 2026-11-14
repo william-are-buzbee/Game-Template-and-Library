@@ -572,6 +572,55 @@ version and one pull request each, each measured (`node test/earth.js`) and blin
 radius (a ridge's height bound all round its radius made sample() compute the island almost everywhere within 60 km: islandH 0.73 calls a sample
 against 0.38); and the bound must be the feature's exact envelope less its noise, not a loose slope. CHANGELOG v11.138 has the numbers.
 
+**11.3 (D) Landslides: the design (14 Nov 2026, before the build; judged by §10.4's share between −150 and −800 m).** Big shields fail in
+two ways: slumps (deep, slow: benches on the flank, Hawaii's Hilina) and debris avalanches (fast: an amphitheatre scar and a hummocky fan tens
+of km long on the floor, Hawaii's Nu'uanu, the Canaries' El Golfo). On the −1,100 m plateau a fan 200–600 m thick at the flank's toe stands at
+−900 to −500: the in-between depths the province lacks.
+- **Per record** (region.js, by its id so stable; not the pins): 0–3 slides, more for the big and old (high, shield, the larger atolls): its
+  sector (angle `a` in the record's own frame, half-angle 0.25–0.5 rad, widening down the fan), the fan's run-out `L` past the flank's toe (15–40 km
+  local), its thickness at the toe `T` (200–600 m), the scar's depth (100–300 m), and the floor at the centre `R.sfl` (rgFloor) the fan sits on.
+- **islandH:** in the sector past the toe, the fan's top `R.sfl + T·(1 − t)^1.5`, tapered across the sector, hummocky (a cheap 1–2 km noise at
+  ~0.3 of its thickness), met with the flank by a smooth max — a gentle lower flank, an apron; on the flank in the sector, the scar: the ground
+  lowered in a concave amphitheatre from the shelf's edge down (lowering only: no bound to raise).
+- **The bound by the point, as the ridges'** (world.js): the fan's envelope (its top without the noise, plus the hummocks' most and the knee) by
+  a sector test with dot products (no atan2) at sample()'s recLoc point; a pre-lobe test past the island's reach; the records' far reach the larger
+  of the ridges' and the fans'. Measure: the share between −150 and −800 (§10.4), sample()'s cost, ours' square, the bound check.
+
+**Decided (the person, 14 Nov 2026): "go with 1, drop landslides and build the insular slope".** The landslides stay on their branch
+(claude/tethys-landslides), not merged. **Built v11.141:** the land islands' insular slope (a bench at the shelf's edge, a gentle slope to the
+drowned reefs at −400, a bench, a slope on to ~−560, before the flank; none on an active shield, whose benches come with its sinking — and so
+ours' square stays the same to the bit, the awesome shield's flank not pushed out toward it) and the reef records' apron (a few degrees, ~220 m,
+below their wall, before their talus). The islands' surroundings between −150 and −800 m: 4% → 6% (Earth's plume archipelagos 10–35%); sample()
++0–15%. **What is left of the gap is the platform's:** most of the province's shallows are its banks and drowned carbonate, whose margins still
+fall straight to the floor (Earth's banks: Chagos 20%, the Mascarene banks 16% between −150 and −800). Next: the platform's margins given the
+same treatment (rgPlat), then saddles (C) and the floor's grain (G).
+
+**11.4 The platform's margins (14 Nov 2026; the person: "Go ahead with the eastern platform's margins"). Built v11.142.** Measured first in
+test/earth.js's own grids: depth against distance from water shallower than 100 m (the median of every point at that distance), Earth's banks
+beside the platform's margins (only the points whose nearest shallows are the platform's):
+
+```
+km out            0.5     1   1.5     2     3     4     5   7.5    10    15    25   | below -100 within 25 km: 100-150 150-450 450-800 800-1100 >1100
+Mascarene        -103  -114  -124  -136  -161  -195  -233  -473  -828 -1151 -1741   |  27% 18%  7%  9% 39%
+Chagos           -120  -180  -249  -327  -445  -601  -740  -936 -1194 -1471 -1779   |   3% 13% 15% 13% 56%
+Maldives         -130  -202  -265  -324  -392  -455  -525  -638  -866 -1435 -2275   |   2% 36% 12%  4% 46%
+Galapagos        -118  -161  -201  -237  -287  -382  -496  -600  -750 -1096 -1787   |   6% 21% 18%  9% 45%
+platform v11.141 -196  -466  -737 -1006 -1323 -1365 -1386 -1417 -1465 -1512 -1602   |   1%  3%  3%  3% 89%
+platform v11.142 -158  -238  -281  -327  -397  -484  -605  -795 -1019 -1477 -1600   |   1% 12% 14% 12% 61%
+```
+Earth's banks fall at ~8° on average from the 100 m line to 5 km out, then ease; ours fell at ~22°, and the drowned flat (61% of the
+platform's carbonate, and most of its outer edge) by v11.126's plane at 42°. **Built:** every margin a run of slopes eased one into the next
+(`rgSlope`: a wall, the slope, its apron), by its side (windward steeper, the lee's shed sand with a shoulder), the drowned flat's by its own side;
+the slopes' steepness ×0.6–1.6 along the margin by a noise of its foot (spurs and embayments 20 km across, not rings); the far slope by the exact
+distance and the margin's warps fading with depth (the first cut showed the grid's octagons and the reef's jags copied onto every deep contour);
+the side and steepness worked out at the grid's nodes and read bilinearly (the first cut's cell-wise gradient stepped at every 3 km cell edge); the
+aprons eased onto the floor 10–16 km out. And a find: 24 nodes of drowned reef at −1,100 to −1,300 stood in the drowned flat at −74 with a cliff
+of 1,200 m between — a reef drowned past −300 m is now the floor's, under the younger flat's slope. **Result:** at 2 km out −327, Chagos's
+exactly; the province's islands' surroundings between −150 and −800 m 6% → 10%, its in-between 14% → 20% (Earth's plume archipelagos 10–35%).
+Seen on the map: the platform's halo of medium blues, smooth and varying in width, as Chagos's; not seen from the water. **Left:** the channels
+between the banks and the reef chain at intermediate depths (Chagos's saddles: C), the plateau's own relief (G), the gullies on the slopes
+(Earth's are below GEBCO's grain; the diver would see them).
+
 **11.2 What must hold** (learned building v11.129–137; HANDOFF's working notes):
 - **The bounds.** sample() skips a record where its bound table `R.hi` (region.js `rgBound`: the radial profile plus fixed margins) says it
   cannot matter. Anything that raises the ground at some angles — a ridge, a debris fan — must raise `hi` at those radii (its largest height
@@ -582,3 +631,31 @@ against 0.38); and the bound must be the feature's exact envelope less its noise
 - **The cost.** islandH is the hot path: per arm a few multiplies and one exp; tables, not noise calls, where a noise is per angle (`anTables`).
   Measure sample() before and after (best of five, as v11.135 did); the suite's run times too.
 - **The pins** stay as they are; **ours' square** the same to the bit (compare against the version before at ±2 km).
+
+**10.4 The second blind sheet (seed 41's province, unseen; 14 Nov 2026): 3 of 3 found** — 3, 5, 15. The person: "What gives them away is the
+low amount of darker/medium blue on the screen (13 is 100% "blue"). 15 is the least obvious even though I knew right away." The cakes were no
+longer named: the tell is the depths between. Measured (`test/earth.js` v11.139: the area within 25 km of water shallower than 60 m, by map.js's
+bands):
+
+```
+the depths within 25 km of the shallows (% of that area, by map.js's bands; mid: 150 to 1,100 m, the in-between)
+window                         land      <60   60-150  150-450  450-800 800-1100    >1100      mid
+Tethys                           4%      17%      21%       2%       2%       7%      47%      11%
+Society Islands                  7%       2%       1%       1%       2%       3%      85%       6%
+Tuamotus                         4%      10%       2%       3%       3%       6%      73%      11%
+Marshall Islands                 2%      13%       1%       2%       2%       1%      80%       5%
+Maldives                         1%      25%       3%      26%       9%       3%      33%      37%
+Chagos                           1%      28%       6%       9%      11%       9%      37%      29%
+Hawaii                          32%       4%       6%      10%      10%       7%      32%      27%
+Canary Islands                  14%       5%       5%       5%       5%       5%      61%      15%
+Cape Verde                      10%       5%       4%       6%       5%       6%      64%      17%
+Reunion and Mauritius           23%       4%       2%       4%       9%       5%      53%      18%
+Mascarene banks                  0%      23%      29%      11%       5%       5%      26%      21%
+Kerguelen                       19%       8%      46%      23%       2%       1%       0%      27%
+Azores                           7%       2%       3%       6%      11%      13%      58%      30%
+Galapagos                       16%       3%       7%      17%      14%       7%      36%      37%
+```
+The province holds 4% of its islands' surroundings between −150 and −800 m (2 and 2), where the plume archipelagos hold 10–35% (Galápagos 31,
+Kerguelen 25, Hawaii 20, Chagos 20, the Azores 17) and even the deep-floor chains 2–6 — its flanks fall from the shelf to the floor in one steep
+step, as the Society Islands' do from 4 km, but it is a plateau archipelago. The measure for the next steps (§11): raise that share toward
+10–30% — landslide debris aprons (D), saddles and benches (C), the plateau's own relief (G).

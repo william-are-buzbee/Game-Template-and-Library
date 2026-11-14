@@ -182,6 +182,13 @@ banks (four over 300 km²) on 12,087 km² drowned, most at −72, two early neck
 flat broader and its passes fewer, the atolls' wall outside (`wf`, through `rgFlank`). Lee: the crest `leeD`·(1 − e^(−fetch/`leeF`)) under the sea
 (never below the lagoon's floor + 15), no islets, a slope of 15° easing to 7° (`lf`). Each bank's lagoon `RG_PL.lg`, `rgLagD` of the disc of its
 area. `RG_PL.sd2`/`top2` hold the drowned carbonate alone (with the living, v11.126, its wall from the sea overrode their margins).
+**The margins' slopes (v11.142; analysis_archipelago §11.4):** below the walls, every margin falls as Earth's banks do (Chagos, the Maldives:
+−330 m 2 km out from the 100 m line, −650 at 5, −1,100 at 10) — `rgSlope`, a run of slopes eased one into the next, `RG_PL_K.mw` (windward, past
+the bench at −122), `ml` (the lee's sand, a shoulder, the slope, the apron), `dw`/`dl` (the drowned flat's, by its own side). The side and the
+slopes' steepness (`rgMq`, ×0.6–1.6 by the margin's foot) are the grid nodes' (`RG_PL.wl`, `mq`, `wl2`, `mq2`), read bilinearly; past 1.5–4 km
+the exact distance (`RG_PL.so`, `so2`) and the warps fading; 16 km out the aprons eased onto sample()'s floor. A reef drowned past −300 m
+(`deep`) is the floor's, not the flat's. The slopes' aspect (the waves', the current's) is the nodes' normal (`RG_PL.nX`, `nZ`; the drowned flat's
+`nX2`, `nZ2`, blended across the crease where its slope meets a bank's).
 **The fed rule by its time (v11.130):** a member's upstream ones (`m.up`, within `fedL` up-current across its foot) shelter it while one stands in
 the light (`litNow`, a step behind); fed now, its reef takes no hold and grows at `fedK`. `m.fed` is today's.
 **Composite volcanoes (v11.134, analysis_archipelago §9):** the births are vents; oldest first a vent within `K.comp.C` (40 km) of a volcano

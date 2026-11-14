@@ -7764,3 +7764,68 @@ compute the islands almost everywhere within 60 km (+90%). The suite's longest r
 Seen: the ±75 km world and the awesome shield's south-east ridge close (a broad tongue to north-east of ours), the profile across its root (no
 step). **Unseen:** the ridges from the water and in the deep (`tp(4000,-9000,-300)`, the shield's south-east ridge); the second blind sheet
 (seed 41, a province not seen: the person's guesses).
+
+## v11.139 — the depths between (14 Nov 2026)
+
+The second blind sheet (seed 41's province, unseen): the person found 3 of 3 — "What gives them away is the low amount of darker/medium blue".
+A tool and an analysis; **the game unchanged**.
+
+- **test/earth.js:** the depths round the islands — of the area within 25 km of water shallower than 60 m, the share in each of map.js's bands,
+  and `mid`, the in-between (−150 to −1,100). The province: 4% between −150 and −800 (2 and 2), against 10–35% for the plume archipelagos and 2–6
+  for the deep-floor chains; analysis_archipelago §10.4. The target for the flanks' next steps (§11): that share toward 10–30%.
+
+## v11.141 — the insular slope (14 Nov 2026)
+
+The person, 14 Nov 2026: "go with 1, drop landslides and build the insular slope" (analysis_archipelago §11.3). The second blind sheet's tell was
+the thin medium blues: Earth's islands do not fall from the shelf's edge straight down their flank.
+
+- **region.js `rgInsular` (`RG_ISL`):** in each land island's own profile, past its shelf's edge (~−190): a bench, a gentle slope to the drowned
+  reefs at −400 (Hawaii's at −150 and −400), a bench, a slope on 160 m — then the flank, moved out by it (its width 0.35 of the land's radius,
+  1.5–6 km). None on an active shield (the awesome shield, m154): its benches come with its sinking — and so ours' square stays the same to the
+  bit (a first cut gave the awesome shield one, pushed its flank 6 km out and moved three points at ours' north-east corner by up to 3.3 m).
+- **`rgApron`:** a reef record's (an atoll's, a bank's) sediment apron below its wall, before its talus: ~220 m over 0.45 of its ring
+  (0.9–3.5 km).
+- **Dropped:** the landslides (v11.140, on claude/tethys-landslides): the in-between share 11% → 14% but almost all deep, and sample() 40–74%
+  slower.
+
+What moved (seed 32): the islands' surroundings between −150 and −800 m 4% → 6% (Earth's plume archipelagos 10–35%; test/earth.js, §10.4);
+sample() +0–15%; the same records and land; **ours' square the same to the bit.** What is left is the platform's margins (§11.3).
+
+- **Tests:** test/region.js the reef's talus read past its apron (at its flank's start).
+
+**Unseen:** the benches and aprons from the water (`tp(45000,-5000,-300)`, m122's slope).
+
+## v11.142 — the platform's margins (14 Nov 2026)
+
+The person, 14 Nov 2026: "Go ahead with the eastern platform's margins" (analysis_archipelago §11.4). Most of the province's shallows are the
+platform's banks and drowned carbonate, and their margins fell to the floor in two kilometres — the drowned flat's (61% of the platform) by a plane
+at 42°. Earth's banks, measured in test/earth.js's own grids (depth by distance from water shallower than 100 m): Chagos −327 m 2 km out, −740 at 5,
+−1,194 at 10; the Maldives −324, −525, −866; ours −1,006, −1,386, −1,465.
+
+- **region.js `rgSlope`, `RG_PL_K.mw … dl`:** every margin's fall past its edge is a run of slopes eased one into the next — a wall, the slope, its
+  apron. The living windward keeps the atolls' wall to its bench at −122 m, then ~7° easing to 3°; the lee its shed sand at 15°, a shoulder, ~7°,
+  an apron; the drowned flat a short wall to ~−200, then ~7° (windward) or ~5° (lee) easing to 3° (to v11.141: the windward wall to −580 and
+  its talus at 35° easing to 17°, the lee at 15° easing to 7°, the drowned flat a plane at 42°).
+- **The side and the steepness by the node (`RG_PL.wl`, `mq`, `wl2`, `mq2`):** the margin's side and its slopes' steepness (`rgMq`: ×0.6–1.6 by a
+  noise of the margin's foot, 20 km across, so it holds down the slope — spurs and embayments, not rings) are worked out once at each grid node and
+  read bilinearly: the cell's own gradient jumps at its edges, which the far slopes showed as straight steps on the 3 km grid.
+- **The far slope by the exact distance (`RG_PL.so`, `so2`; `far`):** past 1.5–4 km out the slopes leave the grid's 8-neighbour distance
+  (octagons) for the exact one, and the margin's two warps fade (the coarse to 40%, the fine away): the reef's jags are not the deep contours'.
+- **The far aprons onto the floor (`reach`, `fade`):** drawn 16 km out, eased onto sample()'s `flo` over the last 6 km, so they never end in a
+  step; `rgPlat` takes `flo` (world.js), its box 22 km wider.
+- **The slope's aspect (`RG_PL.nX`, `nZ`, `nX2`, `nZ2`):** where the platform is the ground, the waves' and the current's aspect by its margin's
+  normal — on the slopes the nodes' (the cell's stepped the flow and nutrients along the grid's lines: 46 of 57 jumps over 0.08 lay on them, now
+  10 of 82, chance's 5), the drowned flat's slope its own, blended across the crease where it meets a bank's (a channel's floor faces neither way).
+- **The drowned flat's floor (`deep`):** a reef drowned past −300 m (24 nodes, at −1,100 to −1,300) is the floor's, under the younger flat's slope
+  — to v11.141 a cliff of 1,200 m where it met the flat at −74.
+
+What moved (seed 32): the platform's surroundings between −150 and −800 m 6% → 26% (Chagos 28%, the Maldives 48%, by the same measure; depth 2 km out from the 100 m
+line −1,006 → −327); the province's 6% → 10%, its in-between (−150 to −1,100) 14% → 20% (Earth's plume archipelagos 10–35%); the shallows the
+same but 6 km² of 11,506; the drowned carbonate 11,367 → 11,151 km²; sample() +18% over the platform, +3–9% over the world, the ±70.5 km world
+the same; **ours' square, and the ±70.5 km world's heights and fields, the same to the bit.**
+
+- **Tests:** test/region.js the wall check re-pinned: 1.5 km outside the rim 150 m lower (500 to v11.141), and 6 km out, off the carbonate,
+  between −400 and −1,100 at three in four places (the slope; v11.141's ground there was at the floor).
+
+**Unseen:** the slopes from the water (the platform's east margin, `tp(327000,40000,-400)`); whether the halo reads as Chagos's or as a ring on
+the map at the person's own scale.

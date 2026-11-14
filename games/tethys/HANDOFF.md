@@ -1,5 +1,19 @@
 # HANDOFF — tethys
 
+**v11.142 (14 Nov 2026): the platform's margins** (analysis_archipelago §11.4; the person: "Go ahead with the eastern platform's margins").
+The banks' and the drowned flat's margins fall as Earth's banks do (`rgSlope`, `RG_PL_K.mw … dl`: −327 m 2 km out, Chagos's exactly; v11.141
+−1,006), by side, steepness varying along the margin, the far slope by the exact distance; deep-drowned reefs (past −300) the floor's. The
+platform's −150 to −800 share 6% → 26%; the province's 6% → 10% (Earth's plume archipelagos 10–35%). Ours' square the same to the bit; sample() +18% over the platform. **Next:** the
+channels between banks at intermediate depth (saddles, §11 C), then the floor's grain (G); a third blind sheet when the person wants one.
+
+**v11.141 (14 Nov 2026): the insular slope** (analysis_archipelago §11.3). Land islands' benches and slopes to −400 and on (none on active
+shields), reef records' aprons; the landslides dropped (the person). The −150 to −800 share 4% → 6%. **Next:** the platform's margins (most of
+the shallows; §11.3), then saddles and the floor's grain.
+
+**v11.139 (14 Nov 2026): the depths between** (analysis_archipelago §10.4). Blind sheet 2 (unseen seed 41): 3 of 3 found, by the thin medium
+blues; `test/earth.js` now measures it — 4% of the islands' surroundings between −150 and −800 m against Earth's plume archipelagos' 10–35%.
+**Next:** landslides and their debris aprons (§11 D; the person: "depth measure first then landslides"), judged by that share.
+
 **v11.138 (14 Nov 2026): submarine ridges and flank canyons** (analysis_archipelago §11 A, E). Every island's rift zones go on under the sea as
 tapering ridges; its flank is fluted by canyons; sample() bounds them by the point (rdgEnv, rdgBound, rdgNear). Ours' square the same to the bit.
 sample() 27% slower (the suite's longest runs 13–26%). **Ask first:** the second blind sheet (seed 41); the ridges from the water. **Next (§11):**

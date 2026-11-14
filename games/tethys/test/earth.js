@@ -94,7 +94,17 @@ function measure(H){const lab=new Int32Array(W*W).fill(-1),Q=new Int32Array(W*W)
     asp:med(whole.map(a=>a.asp)),long:whole.length?whole.filter(a=>a.asp>=1.5).length/whole.length:NaN,sol:med(whole.map(a=>a.sol)),rnd:med(whole.map(a=>a.rnd)),nn:med(nn.map(a=>a.d)),gap:med(nn.map(a=>a.g)),
     // v11.137: the floor's texture (the relief a 10 km box's mean does not hold, under -200 m: seamounts, ridges, scarps, hills) and the shallows'
     // (a 2 km box's, between -5 and -80: knolls, channels and bowls in lagoons and on banks), both median metres
-    tex:texture(H,Math.round(5000/M),v=>v<-200),stx:texture(H,Math.max(1,Math.round(1000/M)),v=>v<-5&&v>-80),shl:med(isl.map(a=>a.area/a.land)),e};}
+    tex:texture(H,Math.round(5000/M),v=>v<-200),stx:texture(H,Math.max(1,Math.round(1000/M)),v=>v<-5&&v>-80),shl:med(isl.map(a=>a.area/a.land)),dep:depths(H),e};}
+// v11.139 (the person, 14 Nov 2026, the second blind test: "What gives them away is the low amount of darker/medium blue"): the depths round the
+// islands — of the area within 25 km of water shallower than 60 m (a chamfer distance over the window), the share in each of map.js's bands: land,
+// the shallows to -60, the lit slope to -150, the twilight to -450, the minimum to -800, the deep to -1100, and past it; `mid` the twilight, the
+// minimum and the deep together (-150 to -1100), the in-between depths the eye read
+const DEP=[0,-60,-150,-450,-800,-1100];
+function depths(H){const D=new Float32Array(W*W).fill(1e9),h=(i,j)=>H[(j+1)*N+i+1];for(let j=0;j<W;j++)for(let i=0;i<W;i++)if(h(i,j)>-60)D[j*W+i]=0;
+  for(let j=0;j<W;j++)for(let i=0;i<W;i++){let d=D[j*W+i];if(i>0)d=Math.min(d,D[j*W+i-1]+3);if(j>0){d=Math.min(d,D[(j-1)*W+i]+3);if(i>0)d=Math.min(d,D[(j-1)*W+i-1]+4);if(i<W-1)d=Math.min(d,D[(j-1)*W+i+1]+4);}D[j*W+i]=d;}
+  for(let j=W-1;j>=0;j--)for(let i=W-1;i>=0;i--){let d=D[j*W+i];if(i<W-1)d=Math.min(d,D[j*W+i+1]+3);if(j<W-1){d=Math.min(d,D[(j+1)*W+i]+3);if(i<W-1)d=Math.min(d,D[(j+1)*W+i+1]+4);if(i>0)d=Math.min(d,D[(j+1)*W+i-1]+4);}D[j*W+i]=d;}
+  const lim=3*25000/M,c=new Array(DEP.length+1).fill(0);let n=0;for(let j=0;j<W;j++)for(let i=0;i<W;i++){if(D[j*W+i]>lim)continue;n++;const v=h(i,j);let k=0;while(k<DEP.length&&v<=DEP[k])k++;c[k]++;}
+  const sh=c.map(x=>n?x/n:0);return {sh,mid:sh[3]+sh[4]+sh[5],n};}
 // a window drawn and labelled
 function panel(w,H){const img=relief(H,W,M,CONT),lb=(x,y,s,c,sc)=>{text(img,W,W,x+1,y+1,s,[0,0,0],sc);text(img,W,W,x,y,s,c,sc);},WH=[240,240,230];
   lb(16,14,w.name,WH,3);lb(16,44,w.key==='tethys'?`the world ${((TW.x1-TW.x0)/1000).toFixed(0)} x ${((TW.z1-TW.z0)/1000).toFixed(0)} km, the 384 km square about its middle${process.env.RAW==='1'?'':', at Earth\'s detail (GEBCO 15")'}`:`${Math.abs(w.lat).toFixed(1)}°${w.lat<0?'S':'N'} ${Math.abs(w.lon).toFixed(1)}°${w.lon<0?'W':'E'} — ${w.note}`,WH,2);
@@ -135,6 +145,9 @@ const key=['edifices: in one piece above -80 m, 2 km across or more (n; land: ho
   'NN: median distance to the nearest edifice, centre to centre; gap: edge to edge as discs; <-60: the water shallower than 60 m and the land, km²',
   'floor: the floor\'s texture, the median relief a 10 km mean does not hold under -200 m; shoal: the shallows\', a 2 km mean\'s between -5 and -80 (m)',
   'shelf: an island\'s edifice over its land, median (a fringing shelf small, a wide barrier lagoon large)'];
+const DCOL=['window','land','<60','60-150','150-450','450-800','800-1100','>1100','mid'],dl=[DCOL.map((c,i)=>i?c.padStart(8):c.padEnd(26)).join(' ')];
+for(const {w,m} of res)dl.push([w.name.split(' (')[0].padEnd(26)].concat(m.dep.sh.map(v=>(100*v).toFixed(0).padStart(7)+'%'),[(100*m.dep.mid).toFixed(0).padStart(7)+'%']).join(' '));
+lines.push('','the depths within 25 km of the shallows (% of that area, by map.js\'s bands; mid: 150 to 1,100 m, the in-between)',...dl);
 console.log('\n'+lines.join('\n')+'\n\n'+key.join('\n'));
 fs.writeFileSync(path.join(__dirname,'preview','earth.txt'),lines.join('\n')+'\n\n'+key.join('\n')+'\n');
 // the sheet: every window at half size, in two rows (three past nine windows), the table in the last cell
