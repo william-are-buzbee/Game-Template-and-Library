@@ -2303,6 +2303,30 @@ distance — a designed pass, not a knob. `render` is CPU submission; the GPU ru
   instanced, through `renderer.compile`), so nothing compiles mid-play; manual per-cell frustum culling (`cullChunks`); creatures far
   away not updated; merged flat-shaded geometry everywhere; a kind's static geometry and far-LOD bake shared by every individual
   (`KIND_GEO`); arms simulated only at near LOD, contact only within 90 of the player.
+- **The creatures' cost (v11.149, the creature performance pass; `node test/bench_creatures.js`).** Measured in headless Chromium on a clock of the
+  bench's own (so the ledger, the streaming and every draw repeat) and in node against the stub. Two costs, both the creatures': a cell's
+  generation, where a body is built per spawn (69 a cell on the forest's shelf), and the frame's update of the ~1,400 animals the cells round the
+  player hold. Every body is the same to the bit as v11.148's (built and posed: the bench's fingerprint), and the simulation after hundreds of
+  frames the same to the bit.
+  - **The build's tape** (parts.js `GEO_TAPE`, creatures_ai.js `tapeBuild`, `BUILD_TAPE`; physics.js `makeRig`). A kind's body is a function of its
+    spec, its scale and its palette, so its first build is recorded — every `merge()`'s output in order, each rig's whole skin as one entry — and
+    every later build of that def and coat class replays it: no primitive made (`LAZY_G`), no part's transform, no merge. The builders still run, so a
+    creature's own things (its rigs, its anim's clocks, the arms' random phases) are its own as before. A replay that does not match its
+    recording warns and builds whole. Kept per def in a WeakMap; the lab's placed spec is never taped. Its memory: a copy of each variant's arrays, 125 KB on average — 47
+    variants at the forest, ~6 MB; every kind of the ledger in every coat would be 50 MB (none is ever dropped). Every kind rebuilt: 48.8 → 5.0 ms for all 37 (×0.10); a cell on the forest's shelf 97 → 45 ms, an atoll's 59 → 27, the platform's 31 → 19
+    (the time in `compile()` 74 → 16 ms a forest cell).
+  - **One shape.** A creature took ~40 of its keys as it lived (the current it rides, its turn, its holds, the falls, the brood, the effects'
+    clocks), each system adding its own as it reached it: 27 shapes among the forest's creatures. A def was its kind's row (26 literals) or a copy
+    chained to it by `Object.create`; `st` took `turn`, `acc`, `soft` later. Past four shapes the engine drops a property read's fast path, and
+    every `c.pos`, `c.def`, `d.size` in the frame was a lookup by name. Now every key is in spawn's literal (unset), `st`'s too, and every def is
+    one generated literal of `DEF_KEYS` (creatures_defs.js `defFlat`; a def made key by key from a list is a dictionary — slow mode — however
+    few its shapes). `test/live.js` fails on a creature, a state or a def off the spawn's keys.
+  - **The collision's neighbours** (chunks.js `nb9`, `CHUNK_V`): `solidPush` read the 3×3 cells round a point by nine table lookups, three calls a
+    creature a frame; the last cell's nine are kept, made again when a cell loads or unloads.
+  The frame's creature work at the forest's shelf (1,477 creatures loaded): 3.57 → 2.07 ms a frame, the 95th percentile 7.3 → 3.2 (Chromium; node
+  against the stub 3.5 → 2.1). What is left is the work itself — the grazers' and boids' steering, the collision against the
+  cell's rock and structures (a quarter), the rigs near the player — spread flat. Not taken, the person's to weigh: the far animals' update rate
+  (past `stepR`, 150 m, every other frame; 312 of the forest's are 200–360 m off), which changes the simulation, not only its cost.
 - **The flora's draw distance (v11.12, `AUDIT.md`).** The frame is the GPU's and the GPU's is the flora's: at the forest, hiding the
   flora took 4 ms off a 6 ms frame and doubling the pixel ratio added 0.4, so vertices and draws, not fill. Two knobs in scene.js:
   `DIST_R` 90 — the sway shader's disturbance loop (twelve iterations a vertex) runs only for plants within it of the camera, since

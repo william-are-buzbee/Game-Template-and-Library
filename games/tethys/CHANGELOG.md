@@ -8017,3 +8017,51 @@ measurably sooner** (×0.8–1.2 across runs: noise): `sample()` is a tenth of a
 **Unseen, ask in this order:** the boot on the 4060 (the readout cannot time it: by feel, against the live site); the readout's `work` and the
 cells arriving while swimming fast along the forest's shelf (`tp(330,0,-10)`) and across the platform (`tp(216062,15900,-8)`) — the same or a
 little less, never different; anything that looks different anywhere would be a fault of this pass.
+
+## v11.149 — the creatures' cost (14 Nov 2026; the creature performance pass: every body and the simulation the same)
+
+The person, after v11.148: "Creature pass is most relevant because like you said it needs its own pass." v11.148 found a cell's generation two
+thirds the creatures' builds; measured first (`test/bench_creatures.js`, new; node `--cpu-prof` against the stub for the frame), then taken largest
+first, each step held to the same bodies and the same simulation: every body the cells at five places placed (1,583) — its meshes' positions,
+normals, colours and pattern, its far bake, its capsules, coverings, grip, edge, gape and mass, and posed by its own anim — and every creature's place,
+velocity, facing, state, hunger and rig points after 300 frames at the forest's shelf: all the same to the bit as v11.148's.
+
+| headless Chromium, `BASE=<v11.148> N=2 node test/bench_creatures.js` | v11.148 | v11.149 | |
+|---|---|---|---|
+| every kind's body built again (37 kinds) | 48.8 ms | 5.0 ms | ×0.10 |
+| a cell on the forest's shelf (69 bodies) | 97.4 ms | 45.4 ms | ×0.47 |
+| … of it in `compile()` | 73.7 ms | 15.8 ms | ×0.21 |
+| an atoll's cell / the platform's | 59.4 / 30.7 ms | 27.4 / 18.9 ms | ×0.46 / ×0.62 |
+| `updateSchools` + `updateCreatures` a frame at the forest (1,477 creatures) | 3.57 ms | 2.07 ms | ×0.58 |
+| … its 95th percentile | 7.3 ms | 3.2 ms | ×0.44 |
+
+- **The build's tape** (parts.js `GEO_TAPE`, `LAZY_G`; creatures_ai.js `tapeBuild`, `BUILD_TAPE`; physics.js `makeRig`). Every spawn built its body
+  whole — every primitive, every merge — and then threw the meshes' geometry away for the kind's shared copy (`KIND_GEO`). A kind's first build is
+  now recorded (every `merge()`'s output in order; a rig's whole skin as one entry, its segments' merges inside it not) and every later build of that
+  def and coat class replays it: no primitive made, no part's transform, no merge. The builders still run, so a creature's own rigs, clocks and
+  random arm phases are made for it as before. A replay that does not match warns and builds whole; the lab's placed spec is never taped. The price is memory:
+  a copy of each variant's arrays, 125 KB on average — the forest's 47 variants ~6 MB; all 407 (every kind in every coat) would be 50 MB.
+- **One shape.** The forest's creatures had 27 shapes (keys like `carried`, `cur`, `hitN`, `lieQ`, `fxAcc` added as each system reached a creature,
+  in that order — found by running eight suites with every creature's keys collected), their defs 26 (each `DEFS` row its own literal, an
+  individual's chained to it by `Object.create`), their `st` 6. Past four an engine drops a property read's fast path: every `c.pos`, `c.def`,
+  `d.size` in the frame was a lookup by name — the v11.148 lesson on the island records, again. Every key is now declared in spawn's literal
+  (unset), `st`'s too, and every def is one generated literal (creatures_defs.js `DEF_KEYS`, `defFlat`; `scaledDef` copies flat). The first try
+  built the flat defs key by key and V8 made them dictionaries — one "shape", no gain; the literal is the fix. ×0.66 of the frame by itself.
+- **The collision's neighbours** (chunks.js `nb9`, `CHUNK_V`): `solidPush`'s 3×3 cells kept for the last cell asked, made again when a cell
+  loads or unloads — nine table lookups less per call, three calls a creature a frame. A few percent.
+- **test/bench_creatures.js** (not in --test): the page on the bench's own clock (`performance.now` and `requestAnimationFrame` replaced, the loop
+  stepped 16.7 ms at a time) and `Math.random` seeded, so two trees can be held to the same bodies and simulation; three.js's own UUIDs drawn on a
+  stream of their own — three r128 takes four `Math.random()` for every geometry it makes, so a build that makes fewer would shift every later draw,
+  the arms' phases with them. In the game `Math.random` is not seeded at all: which phase an arm gets was never the same twice.
+- **Tests:** test/registry.js — the tape: 407 bodies (every kind of the ledger plain, juvenile, in the moult's coats and every place's coat)
+  replayed against their whole build, to the bit; a deliberately broken replay fails all 407. test/live.js — one shape: every creature, its `st`
+  and its def with its spawn's keys after four game days and a minute of play.
+
+**Seen:** the real build boots with no page error (`npm run look -- games/tethys`), the menu's picture as before. Nothing drawn changes.
+
+**Not changed — the person's to weigh:** the far animals' update rate. Past `stepR` (150 m) a creature steps every other frame; at the forest 312
+of the 1,477 are 200–360 m off, in the fog. Stepping them less often (every fourth frame, say) would take most of what is left of the frame's
+creature work, and would change the simulation itself — how a far hunt or a far school moves — not only its cost.
+
+**Unseen, ask in this order:** cells arriving while swimming fast along the forest's shelf (`tp(330,0,-10)`) — sooner, never different; the readout's
+physics ms there against the live site; anything that looks or moves differently would be a fault of this pass.

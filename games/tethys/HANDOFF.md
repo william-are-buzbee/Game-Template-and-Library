@@ -1,12 +1,18 @@
 # HANDOFF — tethys
 
+**v11.149 (14 Nov 2026): the creatures' cost — the creature performance pass** (DESIGN "The creatures' cost"; CHANGELOG). Every body the same to the
+bit, built and posed, and the simulation after 300 frames (`node test/bench_creatures.js`, new). A kind's body is built once per coat and replayed (the
+build's tape): a forest cell 97 → 45 ms. Every creature, state and def one shape (they were 27, 6 and 26): the frame's creature work at the forest
+3.6 → 2.1 ms, p95 7.3 → 3.2. **The person's to weigh:** the far animals' update rate (every other frame past 150 m; less often would take most of
+what is left, and changes how far animals move). **Ask first:** cells arriving swimming fast along the forest's shelf; nothing looks different.
+
 **v11.148 (14 Nov 2026): the world's cost — the performance pass** (DESIGN "The world's cost"; CHANGELOG). Every double of the world the same
 (the bench's fingerprints, and in headless Chromium 54 cells' grids and 33,914 flora instances); `sample()` ×0.51 round ours, ×0.60 in the
 ±70.5 km world, ×0.67 over the whole world, the load ×0.80. Most of it: the records had seven shapes and every read of one was a lookup by name
 (`recNew` — CLAUDE.md "Things that bite" before a record gets a new key). `node test/bench.js` is the measure and the fingerprint. A whole cell is
 **not** measurably sooner: its generation is two thirds the creatures' builds, a tenth `sample()`. **Found, the person's to weigh:** the basins'
 flood runs whole before the first frame (~1 s; v11.113 meant a slice a frame — the menu's first cells place structures below −120 m and ask it);
-the creatures' builds are what a pass for cells arriving sooner would take. **Ask first:** the boot by feel against the live site; that nothing
+the creatures' builds: done in v11.149. **Ask first:** the boot by feel against the live site; that nothing
 looks different anywhere.
 
 **READ FIRST — the archipelago's believability work, where it stands (14 Nov 2026, v11.126–147).** The person's aim: a province "100%

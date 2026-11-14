@@ -7,6 +7,8 @@
 //   2. the hunt: real frames, and a table of every hunter kind — its mean hunger, how much of the time it sits at hunger 1.00, how
 //      much of it it spends chasing, and how far the nearest animal it eats actually is against its own `detect`. That last number is
 //      the whole of finding 13: the nearest prey is 35-50 m off against a detect of 9-17.
+//   3. one shape (v11.149): every creature with its spawn's keys in its spawn's order, its state's and its def's the same — a key a creature or its
+//      state takes later and its spawn does not declare would be a shape of its own, and every read of every creature a lookup by name again.
 // `node test/live.js` (TIER=low for the low tier). It says nothing about rendering or sound.
 const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..');
@@ -24,6 +26,8 @@ js+='\nglobal.__H={n:0,k:{}};global.__samp=()=>{for(const c of creatures){if(!c.
   +'r.n++;r.hun+=c.hunger;if(c.hunger>0.9)r.hi++;if(c.state===\'chase\'||c.state===\'strike\'||c.state===\'lunge\'||c.state===\'feed\'||c.state===\'filter\')r.ch++;if(bd<1e8){r.near+=bd;r.nn++;}}};';
 js+='\nglobal.__hunt=()=>({kills:POP.kills,starved:+POP.starved.toFixed(1),carcasses:carcasses.length,rows:Object.keys(__H.k).map(k=>{const r=__H.k[k];'
   +'return {kind:k,role:r.role,n:r.n,hunger:r.hun/r.n,hi:100*r.hi/r.n,ch:100*r.ch/r.n,near:r.nn?r.near/r.nn:-1,det:r.det};}).sort((a,b)=>b.hi-a.hi)});';
+// v11.149 (the creature performance pass): every creature one shape, every def one, every state one — the keys in one order on all of them
+js+='\nglobal.__shape=()=>{const K=o=>Object.keys(o).join(),c0=creatures[0];if(!c0)return null;const k=K(c0),s=K(c0.st),d=K(c0.def),out={n:creatures.length,c:[],s:[],d:[]};for(const c of creatures){if(K(c)!==k)out.c.push(c.kind+": "+Object.keys(c).filter(x=>!(x in c0)).join(" "));if(K(c.st)!==s)out.s.push(c.kind+": "+K(c.st));if(!c.def.line&&K(c.def)!==d)out.d.push(c.kind);}return out;};';
 const tmp=path.join(require('os').tmpdir(),'tethys_live.js');
 fs.writeFileSync(tmp,'(function(){"use strict";\n'+js+'\n})();');
 process.env.PICK='1';
@@ -54,5 +58,11 @@ console.log('  '+hi.toFixed(0)+'% of the hunter role sat at hunger 1.00 (the cas
 if(H.kills===k0)bad.push('nothing was killed in '+HUNT_S+' s of play');
 if(!hunters.some(r=>r.ch>0))bad.push('no hunter chased anything in 60 s of play');
 if(hi>25)bad.push(hi.toFixed(0)+'% of hunters are starving and not eating (was 13% at v11.31.1)');
+// ---- 3. one shape (v11.149) ----
+{const S=__shape();if(S){const say=L=>[...new Set(L)].slice(0,6).join('; ');
+  console.log('\n  one shape: '+S.n+' creatures after four game days and '+HUNT_S+' s of play — '+(S.c.length+S.s.length+S.d.length?S.c.length+' creatures, '+S.s.length+' states and '+S.d.length+' defs off the spawn\'s keys':'every creature, its state and its def with the spawn\'s keys in the spawn\'s order'));
+  if(S.c.length)bad.push(S.c.length+' creatures took keys their spawn did not declare ('+say(S.c)+'): add them to spawn\'s literal (creatures_ai.js)');
+  if(S.s.length)bad.push(S.s.length+' states off the spawn\'s keys ('+say(S.s)+'): add them to st in spawn');
+  if(S.d.length)bad.push(S.d.length+' defs off DEF_KEYS ('+say(S.d)+'): creatures_defs.js defFlat');}}
 if(bad.length){console.error('live: FAILED — '+bad.join('; '));process.exit(1);}
 console.log('live: ok');
