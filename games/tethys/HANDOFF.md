@@ -1,5 +1,10 @@
 # HANDOFF — tethys
 
+**v11.150 (14 Nov 2026): every change says what it costs** (CLAUDE.md "Performance"; the `perf` skill; the repository's decisions.md 26). The
+person saves lag felt in previews for a pass later, so a change to a hot path now measures itself before and after (`BASE=` with test/bench.js,
+test/frames.js — new — or test/bench_creatures.js) and its pull request says the cost. **Next candidate:** the flora entries, 46 shapes
+(`SHAPES=1 node test/frames.js`), read at a cell's generation. Stacked on v11.149 (#86): merge that first.
+
 **v11.149 (14 Nov 2026): the creatures' cost — the creature performance pass** (DESIGN "The creatures' cost"; CHANGELOG). Every body the same to the
 bit, built and posed, and the simulation after 300 frames (`node test/bench_creatures.js`, new). A kind's body is built once per coat and replayed (the
 build's tape): a forest cell 97 → 45 ms. Every creature, state and def one shape (they were 27, 6 and 26): the frame's creature work at the forest

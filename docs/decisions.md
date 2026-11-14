@@ -150,3 +150,13 @@ which found four repositories sharing no code, copying it instead (the same rand
     stays: it is what a session and the person's machine run, and what each part runs on its machine. The cost is the
     seconds beside each run in build.js and build.py, to keep roughly right as tests grow; a stale number only
     unbalances the parts, it never drops a run.
+26. **Every change says what it cost** (14 Nov 2026; the person: "I typically play the previews, feel it laggier and decide
+    to wait until I'm done with the current thing before doing the performance pass. Is there any way to tell the next model
+    this stuff?"). Lag felt in a preview was put off to a pass at the end of a run of work, by which time several versions
+    had added to it and nobody knew which (Tethys's `sample()` doubled over ten believability steps, v11.137–147, unmeasured).
+    Now a pull request that touches anything run every frame or at load measures it before and after with the game's own
+    tools and puts the numbers in its description and its CHANGELOG entry, a step worse by more than 10% in its first line
+    with why it is worth it; what a session cannot measure (the GPU) it says it did not. The person's preview is the check of
+    the feel, the numbers of the cost. The checklist is the `perf` skill; Tethys's tools and what to run for what are its
+    CLAUDE.md, "Performance". Timings are not in CI (on shared runners they are noise); the suite holds the deterministic
+    proxies instead (the shape checks, the tape's replay).

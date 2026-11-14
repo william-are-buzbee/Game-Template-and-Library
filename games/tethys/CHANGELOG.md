@@ -8065,3 +8065,23 @@ creature work, and would change the simulation itself — how a far hunt or a fa
 
 **Unseen, ask in this order:** cells arriving while swimming fast along the forest's shelf (`tp(330,0,-10)`) — sooner, never different; the readout's
 physics ms there against the live site; anything that looks or moves differently would be a fault of this pass.
+
+## v11.150 — every change says what it costs (14 Nov 2026; a tool and docs, the game unchanged)
+
+The person: "I typically play the previews, feel it laggier and decide to wait until I'm done with the current thing before doing the
+performance pass. Is there any way to tell the next model this stuff?" By the time a pass comes, several versions have added to the lag and
+nobody knows which — `sample()` doubled over ten believability steps (v11.137–147) unmeasured, and v11.148 and v11.149 each found a third of a
+cost in objects of many shapes, which nothing but a profiler shows. Now measuring is part of delivering a change, not a pass saved for later.
+
+- **CLAUDE.md, "Performance: every change says what it costs":** which tool for which file, what the pull request says (a before-and-after
+  table; worse by 10% in its first line), the shape rule, what to ask for when the person reports lag (the place, the readout's render ms
+  against physics ms), and that timings stay out of CI. Step 2 of "Delivering a change" points at it; "The person" records the 14 Nov answer.
+- **The repository:** `docs/decisions.md` 26, the root CLAUDE.md's "And measure what it costs", and the `perf` skill (`.claude/skills/perf`):
+  the checklist for measuring a change and for a pass, for any game here.
+- **test/frames.js** (not in --test): v11.149's node harness kept — the frame's creature work at a place, the simulation's hash, `BASE=`
+  beside older sources, `PROF=<function>` a profile under it, and `SHAPES=1` the shape census of every table read in a hot loop.
+
+**Found by the census, not changed:** the flora entries (`FLORA`) are 46 shapes for 92 entries. They are read at a cell's generation (the
+placement, about a sixth of a forest cell), not every frame: the next candidate, smaller than the creatures were. Everything else read in a
+hot loop is four shapes or fewer: the creatures, their defs, the cells and the island records one each, their states two, the solids four
+(one a kind), the schools two, the spawn rows four.
