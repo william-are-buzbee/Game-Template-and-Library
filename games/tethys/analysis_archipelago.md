@@ -545,3 +545,36 @@ gains its grain (ridge-parallel hills, fracture-zone troughs). Or, if not, the d
 and the deep layers rebuilt on it. My recommendation's basis, said plainly: keeping the depth was first the cost (the basin, the oxygen
 minimum, the chemocline, the deep's life rest on it); checked, the depth is believable for a plume ridge, and the near-ridge story makes its
 cause true too. The blind test will show whether the plateau's look gives the province away.
+
+## 11. The flanks: the plan (13 Nov 2026; the person: "I would love to start on 1 right now")
+
+The blind test's first tell (§10.2): the province's islands are "perfect round cakes" and "pimples" — concentric rings of even width (land,
+shelf, slope) standing alone on a smooth floor — where Earth's stand in sculpted ground ("subtle texture under the water"). Built in steps, one
+version and one pull request each, each measured (`node test/earth.js`) and blind-tested on an unseen seed (`PSEED=<n> BLIND=<seed>`).
+
+**11.1 What Earth's flanks carry, and the model for each** (all on non-pin records; ours and the giant as they are, ours' square to the bit).
+- **(A) Submarine rift ridges** (v11.138). Every shield's rift zones run on under the sea as narrow ridges: Kīlauea's Puna Ridge ~75 km to
+  −5,500 m, Haleakalā's Hāna Ridge, the Canaries' and Réunion's. In islandH, per arm (the record's rift arms — `rgLobe`'s, already in its own
+  frame): along `d` and across `ℓ` the arm, the crest falls from the shelf break at a gentle slope (~3–5°, against the flank's 12°) until it meets
+  the floor, its width growing from ~1.5 to ~5 km; the ground raised by `bump(ℓ/w)·max(0, crest(d) − h)`. On the −1,100 m plateau a ridge runs
+  ~15–25 km past the shelf; length and height scale with the volcano (m.R).
+- **(E) Flank canyons** (v11.138). Radial gullies cut into the submarine flank between the shelf break and the foot (on Earth every flank is
+  fluted by them): a sharp, narrow angular noise subtracted, ~30–80 m deep, fading at both ends.
+- **(D) Landslides** (v11.139). The big shields fail: an amphitheatre scar in a sector of the flank (Hawaii's Nu'uanu, the Canaries' El Golfo)
+  and a hummocky debris fan on the floor beyond the foot, tens of km long, blocks 50–300 m. 0–2 per record by its id, the old and big likelier.
+- **(C) Saddles and shared platforms** (v11.140). Neighbours closer than about two radii share a base: the ground between them a saddle at the
+  lower flank's level, not each cone falling to the floor (Galápagos' platform, Maui Nui). In sample(), across records: a field along the line
+  between such pairs; plus shelves of uneven width round each island (wider on the exposed side, where the waves cut).
+- **(G) The floor's grain** (v11.141). The plate's own fabric: abyssal hills lineated along the old ridge (across `K.fracA`), fracture-zone troughs
+  every `fracSp`, and a scatter of small seamounts — the vents that built no volcano. With the near-ridge plume (§10.3), all one cause.
+
+**11.2 What must hold** (learned building v11.129–137; HANDOFF's working notes):
+- **The bounds.** sample() skips a record where its bound table `R.hi` (region.js `rgBound`: the radial profile plus fixed margins) says it
+  cannot matter. Anything that raises the ground at some angles — a ridge, a debris fan — must raise `hi` at those radii (its largest height
+  there, added to the profile's) and `R.reach` to its far end; the region test's bound check must be extended to sample the real ground
+  (islandH) against `hi` round every record.
+- **The frame.** Features live in the record's own frame (after the turn, the squeeze and the lobe: islandH's `lx, lz`), so ovals and lobes
+  carry them; `R.sc` carries the farthest lobe; sample() reads `recLoc`.
+- **The cost.** islandH is the hot path: per arm a few multiplies and one exp; tables, not noise calls, where a noise is per angle (`anTables`).
+  Measure sample() before and after (best of five, as v11.135 did); the suite's run times too.
+- **The pins** stay as they are; **ours' square** the same to the bit (compare against the version before at ±2 km).

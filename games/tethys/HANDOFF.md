@@ -1,5 +1,21 @@
 # HANDOFF — tethys
 
+**Working notes for the archipelago (13 Nov 2026, from v11.126–137; read before touching region.js or islandH).**
+- **The plan in progress:** analysis_archipelago §11 — the flanks, (A) rift ridges and (E) canyons first (v11.138), then landslides, saddles and
+  shelves, the floor's grain. The person's open questions: §10.3 (the near-ridge plume as the plateau's cause).
+- **Look and measure every change:** `W=1400 OUT=x.png node test/map.js` (or `SPAN`, `CX`, `CZ` for a window); `node test/earth.js` (the
+  province beside fourteen Earth windows, the numbers in test/preview/earth.txt; needs www.gmrt.org, allowed in this repository's cloud
+  environment "Game-Template-and-Library"); `PSEED=<n> BLIND=<seed> node test/earth.js` the blind sheet from an unseen seed, its key in
+  test/preview/earth-blind-key.txt — never shown before the person's guesses.
+- **Ours' square to the bit:** keep a copy of src/world.js and src/region.js from before a change and compare sample() at ±2 km (and the
+  ±70.5 km world, the old box, the members' states) with a small node script loading both (as test/map.js loads them).
+- **The traps that cost time:** a `//` comment inserted mid-line swallows the rest of the line (use `/* */`); a feature that raises the ground at
+  some angles breaks sample()'s bounds unless `rgBound`'s `hi` and `R.reach` take it (§11.2); `R.sc` carries the farthest lobe (divide by
+  `R.lmax` for the oval's own); `rgAt`/`rgLoc` invert each other only through `rgLbFix`; a record's noise seed and rifts follow its id (v11.132),
+  so a list change reseeds nothing; the composites (`K.comp`) make the member list — `K.comp:null` gives v11.133's 159 cones for a comparison.
+- **Delivery:** one version per pull request, stacked on the open ones (the base main, the description says the stack); `npm run check` and
+  `npm run build` before every push (the full suite runs inside check, ~8–12 min); the person merges.
+
 **v11.137 (13 Nov 2026): the yardstick and the blind test** (analysis_archipelago §10; a tool, the game unchanged). `test/earth.js`: fourteen
 windows (+ Réunion–Mauritius, the Mascarene banks, Kerguelen, the Azores, Galápagos), the province at Earth's detail, three more numbers — inside
 Earth's range on all; `BLIND=<seed>` the blind sheet (its key in test/preview, unread till the guesses). **The floor's rule (the person):**
