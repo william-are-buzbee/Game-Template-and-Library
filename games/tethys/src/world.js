@@ -538,6 +538,7 @@ function recsAt(x,z){if(RIX.n!==ISLANDS.length)rixBuild();if(!RIX.on)return RIX.
 const FILL_TOP=-150;
 function fillK(a,b){return Math.min(BASIN.knee,Math.max(0,4*(FILL_TOP-Math.max(a,b))));}
 const _isD=[],_isL=[],_isI=[],_isB=[],_isE=[],_plO={lag:0,rimK:0,rimA:0,nx:0,nz:0,isl:0,carb:0,hs:0,sd:0};
+let RG_SAD=null; // v11.143: the saddles between neighbours, region.js rgSaddles' (null until region.js has run)
 let RG_PL=null; // v11.122: the plateau's platform, region.js rgPlatform's (null until region.js has run, so the chimney's sample() at load sees none) // the records' squared distances in this sample; those in reach, highest bound first, and their bounds (v11.102)
 function sample(x,z,out){
   // the islands: the highest in reach wins the conditions; the rest raise the ground under it through smax (a volcano on another's flank)
@@ -583,6 +584,7 @@ function sample(x,z,out){
   if(!core&&RG_PL){const pg=rgPlat(x,z,_plO,flo);if(pg>-1e8){const P=_plO;isl=1-(1-isl)*(1-P.isl);
     if(pg>=h){h=pg;if(P.hs>hSmooth)hSmooth=P.hs;lag=P.lag;rimK=P.rimK;pass=(1-P.rimA)*P.rimK;carb=P.carb;expoW=0.5-0.5*(P.nx*Math.cos(WIND_A)+P.nz*Math.sin(WIND_A));upW=0.5-0.5*(P.nx*Math.cos(CUR_A)+P.nz*Math.sin(CUR_A));
       cw=0;dkr=0;coneRock=0;bare=0;young=0;heat=0;shelfEdge=smooth(-200,-60,pg)*smooth(-20,-60,pg);rw=1e9;}}}
+  if(!core&&RG_SAD){const sg=rgSad(x,z);if(sg>-1e8){const K=RG_SAD_K,r=smax(h,sg+(BASIN.hill*(fbm(x*0.0007+23,z*0.0007+71,3)-0.5)*2+K.rough*(fbm(x*K.rS+61,z*K.rS+17,3)-0.5)*2)*smooth(-K.sh-K.b0,-K.sh-K.b0-300,sg),BASIN.knee*smooth(3000,4500,Math.hypot(x,z)));if(r>h){h=Math.min(r,Math.max(h,FILL_TOP));hSmooth=Math.max(hSmooth,Math.min(sg,h));}}} // never above FILL_TOP: there the ground is the records' own (v11.114) // v11.143: the saddles' base between neighbours (region.js rgSad), the floor's hills on it and its own roll (rough m over 1/rS; none at its top), met with the ground by the floor's knee (a hard max within 3 km of ours, so its square is the same to the bit: the base is 125 m under it at the nearest) , never raising it past FILL_TOP
   // ---- the conditions ----
   const f=out||new Float32Array(NF),light=smooth(-150,-10,h);
   const flow=clamp((lerp(0.4,0.2+0.6*upW,isl)*(0.55+0.45*shelfEdge)+0.8*pass)*(1-0.85*lag),0,1); // v11.58: the wake fades to the basin's steady 0.4 past the island (v11.102: the sill's gap and its jet, 0.95, went with the sill)

@@ -8,7 +8,7 @@ const util=fs.readFileSync(path.join(root,'vendor/wb-core.global.js'),'utf8')+'\
 let world=fs.readFileSync(path.join(root,'src/world.js'),'utf8');const cut=world.indexOf('// ---------- the light');if(cut>0)world=world.slice(0,cut); // the geology and the fields (test/map.js's cut)
 const region=fs.readFileSync(path.join(root,'src/region.js'),'utf8');
 const THREE={Vector3:class{constructor(x,y,z){this.x=x;this.y=y;this.z=z;}},Matrix4:class{},Quaternion:class{}};
-const G=new Function('THREE',util+'\n'+world+'\n'+region+'\nreturn {WIND_A,rgAt,rgLoc,rgRecord,recLoc,rdgBound,sample,HALF,WX0,WX1,WZ0,WZ1,WORLD70,CELL,FI,ISLANDS,REGION_K,REGION_PINS,RG_STATE,regionModel,regionGrid,regionBasins,regionSeen,rgKei,rgSea,rgTrack,OXY,chemoAt,chemoD,oxyAt,underChemo,chemoB:()=>CHEMO_B,apronAt,apronR,RG_BUILT,rgFloor,BASIN,islandH,recsAt,FILL_TOP,rgAng,rgLagD,rgRadial,rgPlat,rgPlatSd,rgPlatform,RG_PL:()=>RG_PL,RG_PL_K,shT,SHELTER};')(THREE);
+const G=new Function('THREE',util+'\n'+world+'\n'+region+'\nreturn {RG_SAD:()=>RG_SAD,RG_SAD_K,rgSad,rgSaddles,WIND_A,rgAt,rgLoc,rgRecord,recLoc,rdgBound,sample,HALF,WX0,WX1,WZ0,WZ1,WORLD70,CELL,FI,ISLANDS,REGION_K,REGION_PINS,RG_STATE,regionModel,regionGrid,regionBasins,regionSeen,rgKei,rgSea,rgTrack,OXY,chemoAt,chemoD,oxyAt,underChemo,chemoB:()=>CHEMO_B,apronAt,apronR,RG_BUILT,rgFloor,BASIN,islandH,recsAt,FILL_TOP,rgAng,rgLagD,rgRadial,rgPlat,rgPlatSd,rgPlatform,RG_PL:()=>RG_PL,RG_PL_K,shT,SHELTER};')(THREE);
 let fails=0;const ok=(c,msg)=>{console.log((c?'  ok   ':'  FAIL ')+msg);if(!c)fails++;};
 console.log('region: the pieces');
 // kei(x) (A&S Table 9.12): 1 → −0.494991, 2 → −0.202400, 3 → −0.051123, 4 → +0.002198; the table is kei/kei(0), kei(0) = −π/4
@@ -68,7 +68,7 @@ ok(near<far,`the core lower under the island's fed water (${near.toFixed(2)} 3 k
 // CARB.base — the crests hard and proud of the smoothed slope, the chutes mud and hollow; ours, the giant and the seamounts have none
 {const reefs=G.ISLANDS.filter(R=>R.carb),f9c=new Float32Array(9);let n=0,crest=0,chute=0,deep=0;
   for(const R of reefs)for(let a=0;a<64;a++){const t=a/64*Math.PI*2;for(let d=R.rimR+1400;d<R.rimR+9000;d+=37){const x=R.x+Math.cos(t)*d,z=R.z+Math.sin(t)*d,s=G.sample(x,z,f9c);
-    if(s.h>-500)continue;if(s.h<-800)break;n++;if(f9c[G.FI.sub]>=0.55&&f9c[G.FI.rel]>=0.6)crest++;if(f9c[G.FI.sub]<=0.3&&f9c[G.FI.rel]<0.5)chute++;}}
+    if(s.h>-500)continue;if(s.h<-800)break;if(G.RG_SAD()&&G.rgSad(x,z)>s.h-200)continue;n++; /* v11.143: the reef's own slope, not the saddles' base over it */if(f9c[G.FI.sub]>=0.55&&f9c[G.FI.rel]>=0.6)crest++;if(f9c[G.FI.sub]<=0.3&&f9c[G.FI.rel]<0.5)chute++;}}
   for(let x=-1200;x<=1200;x+=400)for(let z=-1200;z<=1200;z+=400){const s=G.sample(x+(x<0?-5200:5200),z,f9c);if(s.h<-260&&f9c[G.FI.sub]>=0.55)deep++;}
   ok(reefs.length>=5&&reefs.every( // v11.134: 9 since the composites (30+ to v11.133)
 R=>R.state==='atoll'||R.state==='bank'||R.state==='drowned')&&!G.ISLANDS[0].carb&&!G.ISLANDS[1].carb&&!G.ISLANDS.some(R=>R.carb&&R.bare!==undefined),`${reefs.length} reef records carry the cap (atolls, banks, drowned banks); ours, the giant and the seamounts none`);
@@ -97,6 +97,13 @@ ok(RB.struck.every(q=>RB.recs.some(r=>r.id===q.by)||q.by==='home'||q.by==='giant
     if(out){const J={};G.islandH(Object.assign({},R,{rdg:undefined}),x,z,J);if(I.h<=J.h+0.5)continue;n++;if(I.h>rb)bad++;continue;}
     n++;const bi=Math.max(R.hi[Math.min(R.hi.length-1,Math.floor(rl/R.hiS))],rb);if(I.h>bi||I.hs>bi)bad++;}}
   ok(bad===0,`every record's ground stays under the bound sample() skips by (its table, its ridges'): ${bad} over, of ${n}`);}
+// v11.143 (analysis_archipelago §11.5; the person: "Go right ahead onto the channels between the banks at middle depth"): the saddles. Earth's plume
+// archipelagos' neighbouring shallows are joined by passes at −110 to −230 m 5–10 km apart, −160 to −500 at 10–20, −260 to −900 at 20–40 (medians,
+// test/earth.js's grids); ours fell to the floor between (−800 to −1,550)
+{const S=G.RG_SAD(),K=G.RG_SAD_K;let mx=-1e9;for(const v of S.B)if(v>mx)mx=v;const by=[[5000,10000,-450,-100],[10000,20000,-650,-150],[20000,40000,-950,-250]],rows=[];let ok1=true,low=0;
+  for(const p of S.pairs){const h=G.sample(p.x,p.z).h;if(h<p.pass-300)low++;}
+  for(const [g0,g1,lo,hi] of by){const ps=S.pairs.filter(p=>p.gap>=g0&&p.gap<g1).map(p=>G.sample(p.x,p.z).h).sort((a,b)=>a-b);if(!ps.length)continue;const m=ps[ps.length>>1];rows.push(`${g0/1000}–${g1/1000} km ${m.toFixed(0)} (${ps.length})`);if(m<lo||m>hi)ok1=false;}
+  ok(S.pairs.length>=8&&mx<=-K.sh-K.b0&&low===0&&ok1&&rows.length>=2,`the saddles (v11.143): ${S.pairs.length} pairs of neighbours joined, built in ${S.ms} ms; the passes where they come nearest, by gap: ${rows.join(', ')} (Earth's medians in range); none more than 300 m under its pass (${low}); the base never above ${-K.sh-K.b0} m (its highest ${mx.toFixed(0)})`);}
 // v11.114: where records meet, the fill (smax's knee) stops at FILL_TOP: above it the ground is the highest record's own, so no land stands where
 // no record has land — to v11.113 coalesced banks' lagoons (−20) met at up to +90, hundreds of km² of plateau the model has not got
 {let n=0,over=0,land=0,worst=-1e9,at='';const I={};for(let x=G.WX0+200;x<G.WX1;x+=400)for(let z=G.WZ0+200;z<G.WZ1;z+=400){const h=G.sample(x,z).h;if(h<=G.FILL_TOP)continue;n++;if(h>0)land++;

@@ -187,7 +187,13 @@ area. `RG_PL.sd2`/`top2` hold the drowned carbonate alone (with the living, v11.
 the bench at −122), `ml` (the lee's sand, a shoulder, the slope, the apron), `dw`/`dl` (the drowned flat's, by its own side). The side and the
 slopes' steepness (`rgMq`, ×0.6–1.6 by the margin's foot) are the grid nodes' (`RG_PL.wl`, `mq`, `wl2`, `mq2`), read bilinearly; past 1.5–4 km
 the exact distance (`RG_PL.so`, `so2`) and the warps fading; 16 km out the aprons eased onto sample()'s floor. A reef drowned past −300 m
-(`deep`) is the floor's, not the flat's. The slopes' aspect (the waves', the current's) is the nodes' normal (`RG_PL.nX`, `nZ`; the drowned flat's
+(`deep`) is the floor's, not the flat's.
+**The saddles (v11.143; analysis_archipelago §11.5):** the islands stand on a shared base, as Earth's plume archipelagos do. `rgSaddles`
+(built last at load, on a 1 km grid): the shallows above −100 m by each record's own profile and the platform's carbonate, each piece of 2 km² a
+region (not ours), each region's exact distance (`rgEdt`), the pairs that are somewhere each other's nearest; each pair's base a lens falling from
+−160 m at ~1.7° (its pass at −160 − s·gap/2) and off the line by how far the way round is longer than the gap; the highest of the pairs', its pits
+filled three quarters to their rims (ponded basins). sample() reads it by `rgSad` (Catmull-Rom), the floor's hills and its own roll on it, by the
+floor's knee, never past FILL_TOP; a hard max within 3 km of ours. The slopes' aspect (the waves', the current's) is the nodes' normal (`RG_PL.nX`, `nZ`; the drowned flat's
 `nX2`, `nZ2`, blended across the crease where its slope meets a bank's).
 **The fed rule by its time (v11.130):** a member's upstream ones (`m.up`, within `fedL` up-current across its foot) shelter it while one stands in
 the light (`litNow`, a step behind); fed now, its reef takes no hold and grows at `fedK`. `m.fed` is today's.

@@ -621,6 +621,32 @@ Seen on the map: the platform's halo of medium blues, smooth and varying in widt
 between the banks and the reef chain at intermediate depths (Chagos's saddles: C), the plateau's own relief (G), the gullies on the slopes
 (Earth's are below GEBCO's grain; the diver would see them).
 
+**11.5 The saddles (14 Nov 2026; the person: "Go right ahead onto the channels between the banks at middle depth. Then the floor texture").
+Built v11.143.** Measured first (scratch `pass.js`, on test/earth.js's grids): for each pair of neighbouring shallows (above −100 m, 2 km² or
+more), the pass — the highest point on the line dividing them — by the gap between them (median, m; n in brackets):
+
+```
+gap               5-10 km      10-20 km      20-40 km
+Chagos           -228 (5)     -496 (10)     -804 (16)
+Maldives         -211 (4)     -373 (8)      -358 (13)
+Mascarene        -110 (1)     -162 (11)     -769 (9)
+Galapagos        -119 (9)     -160 (16)     -260 (17)
+Azores              -         -310 (1)      -893 (3)
+Cape Verde       -121 (1)     -694 (3)      -911 (4)
+Tuamotus        -1208 (1)    -1124 (7)     -1225 (9)    (4 km floors: a fast plate's atolls, apart)
+Tethys v11.142   -807 (2)    -1056 (8)     -1230 (8)
+Tethys v11.143   -243 (2)     -303 (8)      -466 (8)
+```
+The plume archipelagos' islands share a base; ours each fell to the floor. **The first cut** — a ridge along each pair's line, its crest
+falling ~2° from each shelf edge — gave Earth's passes and, on the map, a net of narrow straight tubes wiring the islands together: rejected on
+sight. **Built:** the base as a field. Each pair of neighbouring regions (somewhere each other's nearest) has a lens: down from −160 m at the
+nearer shallows at ~1.7°, and down off the line between them by how far the way round through the point is longer than the gap — widest
+midway, shaped by the shallows' own outlines. The base is the highest lens; its pits (the middle of three or more islands) filled three quarters
+to their rims, as ponded basins. Measured: the passes in range at every gap; the province's −150 to −800 share 10% → 20%, its in-between 20% →
+31% (Chagos 29, the Azores 30, Galápagos 37). Seen on the map: one sculpted platform under the chain, as Galápagos's, faint ridges between
+neighbours, two small pits left. **Left:** the base is smooth but for the floor's hills and its roll — the floor's grain (G) is next, and the
+base should carry it too.
+
 **11.2 What must hold** (learned building v11.129–137; HANDOFF's working notes):
 - **The bounds.** sample() skips a record where its bound table `R.hi` (region.js `rgBound`: the radial profile plus fixed margins) says it
   cannot matter. Anything that raises the ground at some angles — a ridge, a debris fan — must raise `hi` at those radii (its largest height

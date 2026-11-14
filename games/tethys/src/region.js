@@ -580,4 +580,59 @@ function rangeBuild(Rg){const M=Rg.M,hop=new Array(M.length).fill(-1),by=new Map
   for(const R of ISLANDS){const i=by.get(R.id);R.hops=i===undefined?-2:depth(i);}
   for(const R of ISLANDS){if(R.hops>=0)continue;let bd=1e18,b=null;for(const Q of ISLANDS){if(Q.hops<0)continue;const d=Math.hypot(Q.x-R.x,Q.z-R.z);if(d<bd){bd=d;b=Q;}}R.hops=b?b.hops:99;}
   const ho=ISLANDS.find(R=>R.id==='home').hops,e=Math.round(ho*RANGE.east),md=Math.round(ho*RANGE.mid);for(const R of ISLANDS)R.rng=R.hops<=e?0:R.hops<=md?1:2;}
-const REGION=regionModel();RG_PL=rgPlatform(REGION);const RG_BUILT=rgBuild(REGION);for(const R of RG_BUILT.recs)ISLANDS.push(R);shelterBuild();rangeBuild(REGION); // v11.117: the records' shelter of each other, once every record stands; v11.119 their lineages
+// ---------- the saddles (v11.143, analysis_archipelago §11.5; the person, 14 Nov 2026: "Go right ahead onto the channels between the banks at middle depth") ----------
+// Earth's plume archipelagos stand on a shared base: neighbouring shallows are joined by passes at −110 to −230 m 5–10 km apart, −160 to −500 at
+// 10–20 km, −260 to −900 at 20–40 (Chagos, the Maldives, the Mascarene banks, Galápagos, the Azores, Cape Verde; measured in test/earth.js's grids),
+// where ours fell to the floor between (−800 to −1,550). Built at load once every record and the platform stand, on a grid of G m: the ground
+// (sample(), before any saddle); its shallows (above −sh, each piece of at least minA km² a region); each region's exact distance (D); the pairs
+// that are somewhere each other's nearest (Voronoi neighbours) no more than gap m apart. A pair's base: from the nearer shallows down at s m/m
+// (×e^±sv by the pair's own draw) — so its pass, midway, at −sh − s·gap/2, Earth's at every gap — and off the line between them down by k
+// (×e^±kv) times how far the way round through the point is longer than the gap (Da + Db − gap: a lens, widest midway, shaped by the shallows'
+// own outlines); the base the highest of its pairs', never above −sh, its pits filled fill of the way to their rims. sample() reads it by Catmull-Rom (rgSad), with the floor's hills on it, met
+// with the ground by the floor's knee
+const RG_SAD_K={on:true,G:1000,sh:100,b0:60,minA:2,gap:40000,s:0.03,sv:0.45,k:0.10,kv:0.4,kd:2000,rough:150,rS:0.000125,fill:0.75};
+function rgEdt(f,nx,nz){const INF=1e20,n=Math.max(nx,nz),v=new Int32Array(n),zz=new Float64Array(n+1),fi=new Float64Array(n),d=new Float64Array(n),o=new Float64Array(nx*nz);
+  const one=(len)=>{let k=0;v[0]=0;zz[0]=-INF;zz[1]=INF;for(let q=1;q<len;q++){let s=((fi[q]+q*q)-(fi[v[k]]+v[k]*v[k]))/(2*q-2*v[k]);while(s<=zz[k]){k--;s=((fi[q]+q*q)-(fi[v[k]]+v[k]*v[k]))/(2*q-2*v[k]);}k++;v[k]=q;zz[k]=s;zz[k+1]=INF;}
+    k=0;for(let q=0;q<len;q++){while(zz[k+1]<q)k++;d[q]=(q-v[k])*(q-v[k])+fi[v[k]];}};
+  for(let i=0;i<nx;i++){for(let j=0;j<nz;j++)fi[j]=f[j*nx+i]?0:INF;one(nz);for(let j=0;j<nz;j++)o[j*nx+i]=d[j];}
+  for(let j=0;j<nz;j++){for(let i=0;i<nx;i++)fi[i]=o[j*nx+i];one(nx);for(let i=0;i<nx;i++)o[j*nx+i]=Math.sqrt(d[i]);}return o;} // in nodes
+function rgSaddles(){const K=RG_SAD_K;if(!K.on)return null;const T0=Date.now();const G=K.G,x0=WX0-2*G,z0=WZ0-2*G,nx=Math.ceil((WX1+2*G-x0)/G)+1,nz=Math.ceil((WZ1+2*G-z0)/G)+1,N=nx*nz;
+  // the shallows: each record's where its own profile (rgRadial at rgLoc's radius, before its warps) stands above −sh, and the platform's carbonate —
+  // not sample() (0.2 s at load for the same outline within a node)
+  const sh=new Uint8Array(N),box=(x,z,e,f)=>{const i0=Math.max(0,Math.floor((x-e-x0)/G)),i1=Math.min(nx-1,Math.ceil((x+e-x0)/G)),j0=Math.max(0,Math.floor((z-e-z0)/G)),j1=Math.min(nz-1,Math.ceil((z+e-z0)/G));for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++)if(!sh[j*nx+i]&&f(x0+i*G,z0+j*G))sh[j*nx+i]=1;};
+  for(const R of ISLANDS){let r1=-1;for(let r=0;r<=(R.reach||40000);r+=100)if(rgRadial(R,r)>-K.sh)r1=r;if(r1<0)continue;box(R.x,R.z,r1*R.sc*1.2+G,(x,z)=>rgLoc(R,x,z)<r1);}
+  if(RG_PL){const P=RG_PL;box((P.bb[0]+P.bb[1])/2,(P.bb[2]+P.bb[3])/2,Math.max(P.bb[1]-P.bb[0],P.bb[3]-P.bb[2])/2,(x,z)=>rgPlatSd(x,z,true)>0);}
+  const lab=new Int32Array(N).fill(-1),regs=[];for(let k=0;k<N;k++){if(!sh[k]||lab[k]>=0)continue;const st=[k],mem=[];lab[k]=-2;while(st.length){const q=st.pop();mem.push(q);const i=q%nx,j=(q-i)/nx;for(const [di,dj] of [[1,0],[-1,0],[0,1],[0,-1]]){const ii=i+di,jj=j+dj;if(ii<0||jj<0||ii>=nx||jj>=nz)continue;const w=jj*nx+ii;if(sh[w]&&lab[w]===-1){lab[w]=-2;st.push(w);}}}
+    const home=ISLANDS.find(R=>R.id==='home'),hq=home?Math.floor((home.z-z0)/G+0.5)*nx+Math.floor((home.x-x0)/G+0.5):-1;
+    if(mem.length*G*G/1e6<K.minA||mem.some(q=>Math.abs(q%nx-hq%nx)<=2&&Math.abs(Math.floor(q/nx)-Math.floor(hq/nx))<=2)){for(const q of mem)lab[q]=-3;continue;} /* ours stands on whatever base its neighbours' make */
+    const r=regs.length;for(const q of mem)lab[q]=r;
+    let name=null;if(RG_PL)for(const q of mem)if(rgPlatSd(x0+(q%nx)*G,z0+Math.floor(q/nx)*G,true)>0){name='platform';break;}
+    if(!name){let bd=1e18;for(const R of ISLANDS){const q=mem[0];let d=1e18;for(const m of mem){const dx=x0+(m%nx)*G-R.x,dz=z0+Math.floor(m/nx)*G-R.z,e=dx*dx+dz*dz;if(e<d)d=e;}if(d<bd){bd=d;name=R.id;}}}regs.push({name,n:mem.length});}
+  // each region's exact distance, within its box and gap beyond it (1e9 past)
+  const bx=regs.map(()=>[1e9,-1e9,1e9,-1e9]);for(let k=0;k<N;k++){const r=lab[k];if(r<0)continue;const i=k%nx,j=(k-i)/nx,b=bx[r];if(i<b[0])b[0]=i;if(i>b[1])b[1]=i;if(j<b[2])b[2]=j;if(j>b[3])b[3]=j;}
+  const D=regs.map((_,r)=>{const m0=Math.ceil(K.gap/G)+2,i0=Math.max(0,bx[r][0]-m0),i1=Math.min(nx-1,bx[r][1]+m0),j0=Math.max(0,bx[r][2]-m0),j1=Math.min(nz-1,bx[r][3]+m0),cw=i1-i0+1,ch=j1-j0+1,m=new Uint8Array(cw*ch);
+    for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++)m[(j-j0)*cw+i-i0]=lab[j*nx+i]===r?1:0;const e=rgEdt(m,cw,ch),o=new Float32Array(N).fill(1e9);for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++)o[j*nx+i]=Math.max(0,e[(j-j0)*cw+i-i0]*G-G/2);return o;});
+  
+  // the pairs: Voronoi neighbours, by each node's nearest region
+  const near=new Int32Array(N).fill(-1),nb=new Float32Array(N).fill(1e18);for(let r=0;r<regs.length;r++){const Dr=D[r];for(let k=0;k<N;k++)if(Dr[k]<nb[k]){nb[k]=Dr[k];near[k]=r;}}
+  const PM=new Map();for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const k=j*nx+i;for(const q of [i<nx-1?k+1:-1,j<nz-1?k+nx:-1]){if(q<0)continue;const a=near[k],b=near[q];if(a<0||b<0||a===b)continue;const key=Math.min(a,b)+','+Math.max(a,b);if(!PM.has(key))PM.set(key,[Math.min(a,b),Math.max(a,b)]);}}
+  const pairs=[];for(const [a,b] of PM.values()){const A=bx[a],Bb=bx[b];if(Math.hypot(Math.max(0,A[0]-Bb[1],Bb[0]-A[1]),Math.max(0,A[2]-Bb[3],Bb[2]-A[3]))*G-G>K.gap)continue;let g=1e18,ka=0;const Da=D[a],Db=D[b];for(let k=0;k<N;k++){const v=Da[k]+Db[k];if(v<g){g=v;ka=k;}}if(g>K.gap||g<=0)continue;
+    const nm=[regs[a].name,regs[b].name].sort(),rng=mulberry(WB.hashString('saddle:'+nm[0]+':'+nm[1])),s=K.s*Math.exp(K.sv*(2*rng()-1)),kk=K.k*Math.exp(K.kv*(2*rng()-1));
+    pairs.push({a,b,na:nm[0],nb:nm[1],gap:g,s,k:kk,pass:-K.sh-K.b0-s*g/2,x:x0+(ka%nx)*G,z:z0+Math.floor(ka/nx)*G});} // x, z: where they come nearest, the pass
+  const B=new Float32Array(N).fill(-4000);for(const p of pairs){const Da=D[p.a],Db=D[p.b];for(let k=0;k<N;k++){const da=Da[k],db=Db[k],e=da+db-p.gap,d1=-smax(-da,-db,K.kd),v=-K.sh-K.b0-p.s*d1-p.k*e;if(v>B[k])B[k]=v;}}for(let k=0;k<N;k++)if(B[k]>-K.sh-K.b0)B[k]=-K.sh-K.b0; // everywhere, so the cubic never meets a step
+  // its pits — the ground between three or more islands, which no pair's lens reaches — filled fill of the way to the level they spill at (a priority
+  // flood from the grid's edge): ponded basins, as on Earth's shared platforms, not holes to the floor
+  {const W=new Float32Array(N).fill(Infinity),hk=new Float64Array(4*N+8),hi=new Int32Array(4*N+8);let hn=0;
+    const push=(k,w)=>{W[k]=w;let c=hn++;while(c>0){const p=(c-1)>>1;if(hk[p]<=w)break;hk[c]=hk[p];hi[c]=hi[p];c=p;}hk[c]=w;hi[c]=k;};
+    const pop=()=>{const k=hi[0];hn--;const w=hk[hn],q=hi[hn];let c=0;for(;;){let m=2*c+1;if(m>=hn)break;if(m+1<hn&&hk[m+1]<hk[m])m++;if(hk[m]>=w)break;hk[c]=hk[m];hi[c]=hi[m];c=m;}hk[c]=w;hi[c]=q;return k;};
+    for(let i=0;i<nx;i++){push(i,B[i]);push((nz-1)*nx+i,B[(nz-1)*nx+i]);}for(let j=1;j<nz-1;j++){push(j*nx,B[j*nx]);push(j*nx+nx-1,B[j*nx+nx-1]);}
+    const dn=new Uint8Array(N);while(hn){const k=pop();if(dn[k])continue;dn[k]=1;const w=W[k],i=k%nx,j=(k-i)/nx;
+      if(i>0){const q=k-1,v=B[q]>w?B[q]:w;if(v<W[q])push(q,v);}if(i<nx-1){const q=k+1,v=B[q]>w?B[q]:w;if(v<W[q])push(q,v);}
+      if(j>0){const q=k-nx,v=B[q]>w?B[q]:w;if(v<W[q])push(q,v);}if(j<nz-1){const q=k+nx,v=B[q]>w?B[q]:w;if(v<W[q])push(q,v);}}
+    for(let k=0;k<N;k++)if(W[k]>B[k])B[k]+=K.fill*(W[k]-B[k]);}
+  return {G,x0,z0,nx,nz,B,regs,pairs,ms:Date.now()-T0};}
+// the saddles' base at (x, z), Catmull-Rom on the grid (−1e9 off it or far under any)
+function rgSad(x,z){const S=RG_SAD,u=(x-S.x0)/S.G,v=(z-S.z0)/S.G,i=Math.floor(u),j=Math.floor(v);if(i<1||j<1||i>=S.nx-2||j>=S.nz-2)return -1e9;const B=S.B,nx=S.nx,k=j*nx+i;
+  if(B[k]<-3000&&B[k+1]<-3000&&B[k+nx]<-3000&&B[k+nx+1]<-3000)return -1e9;const tu=u-i,tv=v-j,row=q=>rgCR(B[q-1],B[q],B[q+1],B[q+2],tu);
+  return rgCR(row(k-nx),row(k),row(k+nx),row(k+2*nx),tv);}
+const REGION=regionModel();RG_PL=rgPlatform(REGION);const RG_BUILT=rgBuild(REGION);for(const R of RG_BUILT.recs)ISLANDS.push(R);shelterBuild();rangeBuild(REGION);RG_SAD=rgSaddles(); // v11.143: the saddles, last (their lines read the finished ground) // v11.117: the records' shelter of each other, once every record stands; v11.119 their lineages
