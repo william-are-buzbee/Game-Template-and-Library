@@ -110,6 +110,11 @@ ok(RB.struck.every(q=>RB.recs.some(r=>r.id===q.by)||q.by==='home'||q.by==='giant
 {const Gr=G.RG_GR(),o={};let n=0,s1=0,s2=0,mn=1e9;for(let q=0;q<20000;q++){const x=G.WX0+(G.WX1-G.WX0)*((q*0.618034)%1),z=G.WZ0+(G.WZ1-G.WZ0)*((q*0.414214)%1),g=G.rgGrain(x,z,o);n++;s1+=o.hill;s2+=o.hill*o.hill;if(g<mn)mn=g;}
   const sd=Math.sqrt(s2/n-(s1/n)*(s1/n)),top=Math.max(...Gr.sm.map(q=>q.H+G.rgFloor(q.x,q.z))),home=G.ISLANDS.find(R=>R.id==='home'),near=Math.min(...Gr.sm.map(q=>Math.hypot(q.x-home.x,q.z-home.z)));
   ok(sd>30&&sd<120&&Gr.sm.length>=150&&top<=-250+1e-6&&near>=G.RG_GR_K.sm.excl&&Gr.lines.size>=5&&mn>-(G.BASIN.hill+2.5*G.BASIN.knee),`the floor's grain (v11.144): the abyssal hills ${sd.toFixed(0)} m (std); ${Gr.sm.length} seamounts, the highest top ${top.toFixed(0)} m (none in the light), the nearest ${(near/1000).toFixed(1)} km from ours; ${Gr.lines.size} old fracture zones; the grain never under ${mn.toFixed(0)} m (the floor's margin −${G.BASIN.hill+2.5*G.BASIN.knee})`);}
+// v11.145 (analysis_archipelago §11.7; the third blind sheet, 3 of 3 found by "the uniformity"): the shallows spread over depth as Earth's banks'.
+// Saya de Malha's water 0–150 m deep: 4, 24, 11, 16, 15, 15, 12, 3% by 20 m band; the platform's was 59% in one (60–80 m, the drowned flat)
+{const P=G.RG_PL(),b=new Array(8).fill(0);let n=0;for(let x=Math.max(P.bb[0],G.WX0);x<Math.min(P.bb[1],G.WX1);x+=1000)for(let z=Math.max(P.bb[2],G.WZ0);z<Math.min(P.bb[3],G.WZ1);z+=1000){const h=G.sample(x,z).h;if(h<0&&h>-150){n++;b[Math.min(7,Math.floor(-h/20))]++;}}
+  const sh=b.map(c=>c/n),mx=Math.max(...sh);
+  ok(n>8000&&mx<0.35&&sh[5]+sh[6]>0.08,`the platform's shallows by depth (v11.145): ${sh.map(v=>(100*v).toFixed(0)+'%').join(' ')} of ${n} km² by 20 m band — none over 35% (Saya de Malha's most 24%; 59% to v11.144), ${(100*(sh[5]+sh[6])).toFixed(0)}% at 100–140 m`);}
 // v11.114: where records meet, the fill (smax's knee) stops at FILL_TOP: above it the ground is the highest record's own, so no land stands where
 // no record has land — to v11.113 coalesced banks' lagoons (−20) met at up to +90, hundreds of km² of plateau the model has not got
 {let n=0,over=0,land=0,worst=-1e9,at='';const I={};for(let x=G.WX0+200;x<G.WX1;x+=400)for(let z=G.WZ0+200;z<G.WZ1;z+=400){const h=G.sample(x,z).h;if(h<=G.FILL_TOP)continue;n++;if(h>0)land++;

@@ -1,5 +1,9 @@
 # HANDOFF — tethys
 
+**v11.145 (14 Nov 2026): the shallows' relief** (analysis_archipelago §10.5, §11.7). Blind sheet 3 (seed 67): 3 of 3 found, by "the
+uniformity" — the drowned flat 59% in one 20 m band where Saya de Malha spreads 20–140 m. The flat now swells and sinks (`rgShoal`), channels
+cross it, the lagoons roll more and their knolls come in fields: no band over 22%. **Next:** the fourth blind sheet (seed 73, unseen).
+
 **v11.144 (14 Nov 2026): the floor's grain** (analysis_archipelago §11.6; the person: "Then the floor texture"). One function on the floor
 (`rgGrain`, `RG_GR_K`): abyssal hills along the old ridge, the old fracture zones on the model's own lines, 280 seamounts (none in the light, none
 near ours). The deep floor's relief at 2–8 km 24 → 49 m, seamounts 0 → 15 per 10,000 km² (Earth's medians ~47 and ~10); ours' square the same

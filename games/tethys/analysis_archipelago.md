@@ -672,6 +672,32 @@ its range), a 3:1 stretch read 1.63 (past Earth's most lineated), and the first 
 Seen at Earth's scale: the floor mottled as Earth's are, small seamounts scattered; the fracture zones faint. **Left:** a third blind sheet on an
 unseen seed — every step of §11 but the landslides is now built.
 
+**10.5 The third blind sheet (seed 67's province, unseen; 14 Nov 2026): 3 of 3 found** — 3, 8, 13 (seed 3091). The person: "Though this one I
+actually had some thinking for a minute, it wasn't as obvious as last time. I think we are moving in the right direction. 2 vs 3 is the biggest
+one. The Tethys one is clearly very uniform. The uniformity for sure. Also 8 does not look bad or anything. But I'd say it does look different
+somehow." And: "Actually, maybe 1 is Tethys. Can't tell" — 1 is the Azores: the first Earth tile taken for ours. Liked: 11 (Kerguelen, again),
+12 (Cape Verde: "looks awesome actually"), 10 (the Marshalls), 15 (the Tuamotus), 4 (the Maldives). The tell, measured (scratch `shoaltex.js`,
+the water 0–150 m deep by 20 m band):
+
+```
+window        km²    0-20  20-40  40-60  60-80 80-100 100-120 120-140 140-150
+Mascarene   43704      4%    24%    11%    16%    15%     15%     12%      3%
+Chagos      20885     29%    44%     9%     7%     5%      3%      2%      1%
+Maldives    15998     55%    21%    12%     4%     2%      2%      2%      1%
+Kerguelen   16714      2%     3%     6%     9%    17%     22%     25%     16%
+Galapagos    5328     14%     9%     9%    11%    13%     16%     20%      9%
+platform    19001      8%    11%    18%    59%     3%      0%      1%      0%   (v11.144)
+platform    18287      9%    15%    22%    18%    15%     11%      8%      3%   (v11.145)
+```
+The drowned flat sat at −74 m ±4 over 11,000 km²: no drowned bank on Earth is that level.
+
+**11.7 The shallows' relief (14 Nov 2026; the person: "That's perfect. Great analysis and please go ahead"). Built v11.145.** The drowned flat
+swells and sinks (`rgShoal`: ±160 m over 40 km by a noise's spread, ±25 over 9 km, 20 m deeper overall, channels 30 m deep along a noise's middle
+contour, never above −22 m), its margin starting from the relieved top; the living lagoons roll more (karst ±32 m, and ±8 m over 4 km); the
+lagoons' knolls come in fields. Tuned by the table above to Saya de Malha's spread (the first amplitudes gave a third of the spread asked, as the
+hills' had: a fbm's spread is ±0.26 of its range). Seen at Earth's scale: the flat mottled with swells, basins and channels as tile 2 is; the
+platform now 21 pieces above −80 m, as Chagos's 21. **Next:** the fourth blind sheet.
+
 **11.2 What must hold** (learned building v11.129–137; HANDOFF's working notes):
 - **The bounds.** sample() skips a record where its bound table `R.hi` (region.js `rgBound`: the radial profile plus fixed margins) says it
   cannot matter. Anything that raises the ground at some angles — a ridge, a debris fan — must raise `hi` at those radii (its largest height

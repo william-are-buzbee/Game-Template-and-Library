@@ -7887,3 +7887,25 @@ same to the bit; the ±70.5 km world's ground at 84% of places (by up to 631 m: 
   grain's floor).
 
 **Unseen:** the floor from the water (the abyssal hills at −1,200 m, a seamount); whether the fracture zones read at all at the map's scale.
+
+## v11.145 — the shallows' relief (14 Nov 2026)
+
+The third blind sheet (seed 67, unseen; analysis_archipelago §10.5): 3 of 3 found (3, 8, 13), but "I actually had some thinking for a minute,
+it wasn't as obvious as last time", and an Earth tile (1, the Azores) suspected. The tell: "the uniformity" — tile 2 (Saya de Malha) against 3
+(the drowned flat). Measured (scratch `shoaltex.js`, the water 0–150 m deep by 20 m band): Saya de Malha 4, 24, 11, 16, 15, 15, 12, 3%; the
+platform 8, 11, 18, **59**, 3, 0, 1, 0% — the drowned flat at −74 m ±4. The person: "That's perfect. Great analysis and please go ahead."
+
+- **region.js `rgShoal` (`RG_PL_K.shoal`):** the drowned flat's relief, as a drowned bank sinks unevenly (parts drowned at different times, the
+  lowstands' karst, channels across it): swells and basins ±160 m over 40 km and ±25 m over 9 km (by a noise's spread, ~±40 m and ~±7 m), the
+  whole 20 m deeper, channels 30 m deep along a noise's middle contour, never above −22 m. The drowned margin starts from the relieved top.
+- **The living lagoons:** their floors roll more (`karst` ±32 m over 10–15 km, 20 to v11.144, and `karst2` ±8 m over 4 km), never under 6 m
+  of water; **world.js `lagoonF`:** the knolls in fields (the threshold rolling ±0.16 over 7 km), not sprinkled.
+
+What moved (seed 32): the platform's shallows by 20 m band 8, 15, 22, 18, 15, 11, 8, 3% (none over 22%; Saya de Malha's most 24%); the
+province's 10, 15, 26, 16, 13, 10, 7, 3%; the platform in 21 pieces above −80 m (one of 146 km to v11.144; Chagos 21, the Mascarene banks
+18); the in-between 31% → 33%. The land the same; ours' square the same to the bit; the shallows 0–150 m 21,316 → 20,606 km² (parts of the flat
+now deeper).
+
+- **Tests:** test/region.js the platform's shallows by depth (none over 35% in a 20 m band, 100–140 m present).
+
+**Unseen:** the drowned flat from the water (`tp(240000,60000)`: a basin at −101 m; east, it rises to −53 m over 20 km); a fourth blind sheet next.
