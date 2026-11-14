@@ -7944,4 +7944,6 @@ my picks this time entirely") — 11 and 12 ours, 6 Kerguelen; 10, the platform,
   on GEBCO's lattice), in about a minute; on every one the province now sits inside Earth's range — and `between`, sheet 5's tell (the person:
   the saddles "look like a blur tool used on paint"): the in-between's slopes, ours 77% at 3–20% where Earth's platforms are flats and scarps.
 - **HANDOFF.md:** the state of the believability work for the next session — the method, the five sheets and the seeds used, the tools, the
-  cost since v11.137 (sample() ×1.7–2.2, region.js's load +18%), the places to dive that no session could see, and what is left.
+  cost since v11.137 (sample() ×1.7–2.2, region.js's load +18%), the places to dive, and what is left.
+
+**Seen:** the person dived the platform's margin, the giant–m153 saddle, a seamount and the drowned flat (v11.142–145): "no visual bugs".

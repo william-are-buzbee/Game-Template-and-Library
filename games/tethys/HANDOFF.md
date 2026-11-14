@@ -15,7 +15,7 @@ their words, "making the maps believable is a worthy project that will inevitabl
   relief, the banks' flats and basins); the floor's grain gave the deep water Earth's texture. Every measure now sits inside Earth's range.
 - **Open pull requests** (stacked): #82 v11.145 (the shallows' relief), #83 v11.146 (the banks' lagoons, the fair sheet), and v11.147 (this:
   test/measures.js and this handoff). Merge in that order.
-- **Never seen from the water** (no GPU in a session; the person's to check): the platform's east margin `tp(327000,40000)` (a slope from
+- **Seen from the water by the person (14 Nov 2026: "I've been to those locations and from what I can tell, no visual bugs"):** the platform's east margin `tp(327000,40000)` (a slope from
   −531 m up to the bank), the giant–m153 saddle `tp(-12080,-6680)` (a pass at −251 m, 14 km west-north-west of ours), a seamount
   `tp(18216,2990)` (its top at −933 m, 256 m over the floor), the drowned flat `tp(240000,60000)` (a basin at −101 m rising east to −53).
 - **The cost, for the performance work next** (node, best of five, v11.137 → v11.146): sample() 0.59 → 1.30 µs over the whole world,
