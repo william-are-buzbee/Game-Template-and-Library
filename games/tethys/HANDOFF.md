@@ -1,5 +1,41 @@
 # HANDOFF — tethys
 
+**READ FIRST — the archipelago's believability work, where it stands (14 Nov 2026, v11.126–147).** The person's aim: a province "100%
+believable", that cannot be told from Earth's archipelagos, keeping its variety (the peaked islands, the eastern platform's "fast fields"); in
+their words, "making the maps believable is a worthy project that will inevitably make the underwater exploration better".
+- **The method** (keep it): measure Earth first in `test/earth.js`'s own grids (GMRT, cached in test/preview/earth/ by `node test/earth.js`;
+  www.gmrt.org is allowed in the repository's cloud environment), build the step, judge it by the same measure (`node test/measures.js`: the
+  margins, the passes, the floor's grain, the shallows by depth, the banks' tops, the slopes), look at the map (`W=1400 CX= CZ= SPAN= node
+  test/map.js`) and at Earth's scale (`FETCH=0 node test/earth.js` → test/preview/earth-tethys.png), then a blind sheet on an unseen seed
+  (`PSEED=<n> BLIND=<shuffle> FETCH=0 node test/earth.js` → test/preview/earth-blind.png; the key in earth-blind-key.txt — never read before the
+  person's guesses). Ours' square the same to the bit at every step (compare sample() at ±2 km against a copy of the sources from before).
+- **The sheets:** 4 of 4, 3 of 3, 3 of 3, 2 sure of 3, then (sheet 5) 2 of 3 with an Earth tile chosen and the platform's tile passed. Seeds
+  used: 32, 41, 67, 73, 89 (analysis_archipelago §10.7 has them all). Each sheet's tell was measured and built away: the cakes (lobes,
+  composites), the missing in-between depths (the insular slope, the platform's margins, the saddles), the uniformity (the drowned flat's
+  relief, the banks' flats and basins); the floor's grain gave the deep water Earth's texture. Every measure now sits inside Earth's range.
+- **Open pull requests** (stacked): #82 v11.145 (the shallows' relief), #83 v11.146 (the banks' lagoons, the fair sheet), and v11.147 (this:
+  test/measures.js and this handoff). Merge in that order.
+- **Never seen from the water** (no GPU in a session; the person's to check): the platform's east margin `tp(327000,40000)` (a slope from
+  −531 m up to the bank), the giant–m153 saddle `tp(-12080,-6680)` (a pass at −251 m, 14 km west-north-west of ours), a seamount
+  `tp(18216,2990)` (its top at −933 m, 256 m over the floor), the drowned flat `tp(240000,60000)` (a basin at −101 m rising east to −53).
+- **The cost, for the performance work next** (node, best of five, v11.137 → v11.146): sample() 0.59 → 1.30 µs over the whole world,
+  0.77 → 1.36 in the ±70.5 km world, 1.20 → 2.06 about ours; region.js's load 1.00 → 1.18 s. By step: the ridges and canyons (v11.138) +27%,
+  the insular slope +0–15%, the platform's margins +18% over it, the saddles +7–16% (and ~0.2 s at load: a 1 km grid built at load), the
+  floor's grain +5–9%. The hot paths: islandH (records), rgPlat (the platform), rgGrain (the floor), rgSad (a Catmull-Rom read).
+- **Left, when believability is taken up again:** first, sheet 5's tell — the saddles "look like a blur tool used on paint": measured, 77% of
+  the in-between at moderate slopes (3–20%) where Earth's platforms are flats and scarps (Galápagos 40% under 3%, 14% over 20%; ours 15% and 7%;
+  analysis_archipelago §10.7 has the table): give the saddles' base benches, risers and an edge escarpment. Then a sixth sheet (another seed); the atolls' rims and their islets (the
+  person on sheet 4: the Maldives' "atolls seem a little different"); the near-ridge plume as the plateau's cause (§10.3, the person's call);
+  the landslides (built, dropped: claude/tethys-landslides, §11.3).
+
+**v11.146 (14 Nov 2026): the banks' lagoons, and a fair blind sheet** (analysis_archipelago §10.6, §11.8). Blind sheet 4 (seed 73): 2 sure,
+the third a toss between ours and Saya de Malha. test/earth.js now takes each lattice node as its cell's mean (Earth's are; our knolls had
+aliased into a stipple). The living banks' lagoons a flat with crisp basins, as Chagos's (`rgLagFloor`). **Next:** the fifth blind sheet (seed 89).
+
+**v11.145 (14 Nov 2026): the shallows' relief** (analysis_archipelago §10.5, §11.7). Blind sheet 3 (seed 67): 3 of 3 found, by "the
+uniformity" — the drowned flat 59% in one 20 m band where Saya de Malha spreads 20–140 m. The flat now swells and sinks (`rgShoal`), channels
+cross it, the lagoons roll more and their knolls come in fields: no band over 22%. **Next:** the fourth blind sheet (seed 73, unseen).
+
 **v11.144 (14 Nov 2026): the floor's grain** (analysis_archipelago §11.6; the person: "Then the floor texture"). One function on the floor
 (`rgGrain`, `RG_GR_K`): abyssal hills along the old ridge, the old fracture zones on the model's own lines, 280 seamounts (none in the light, none
 near ours). The deep floor's relief at 2–8 km 24 → 49 m, seamounts 0 → 15 per 10,000 km² (Earth's medians ~47 and ~10); ours' square the same

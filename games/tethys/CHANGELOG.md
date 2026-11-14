@@ -7887,3 +7887,61 @@ same to the bit; the ±70.5 km world's ground at 84% of places (by up to 631 m: 
   grain's floor).
 
 **Unseen:** the floor from the water (the abyssal hills at −1,200 m, a seamount); whether the fracture zones read at all at the map's scale.
+
+## v11.145 — the shallows' relief (14 Nov 2026)
+
+The third blind sheet (seed 67, unseen; analysis_archipelago §10.5): 3 of 3 found (3, 8, 13), but "I actually had some thinking for a minute,
+it wasn't as obvious as last time", and an Earth tile (1, the Azores) suspected. The tell: "the uniformity" — tile 2 (Saya de Malha) against 3
+(the drowned flat). Measured (scratch `shoaltex.js`, the water 0–150 m deep by 20 m band): Saya de Malha 4, 24, 11, 16, 15, 15, 12, 3%; the
+platform 8, 11, 18, **59**, 3, 0, 1, 0% — the drowned flat at −74 m ±4. The person: "That's perfect. Great analysis and please go ahead."
+
+- **region.js `rgShoal` (`RG_PL_K.shoal`):** the drowned flat's relief, as a drowned bank sinks unevenly (parts drowned at different times, the
+  lowstands' karst, channels across it): swells and basins ±160 m over 40 km and ±25 m over 9 km (by a noise's spread, ~±40 m and ~±7 m), the
+  whole 20 m deeper, channels 30 m deep along a noise's middle contour, never above −22 m. The drowned margin starts from the relieved top.
+- **The living lagoons:** their floors roll more (`karst` ±32 m over 10–15 km, 20 to v11.144, and `karst2` ±8 m over 4 km), never under 6 m
+  of water; **world.js `lagoonF`:** the knolls in fields (the threshold rolling ±0.16 over 7 km), not sprinkled.
+
+What moved (seed 32): the platform's shallows by 20 m band 8, 15, 22, 18, 15, 11, 8, 3% (none over 22%; Saya de Malha's most 24%); the
+province's 10, 15, 26, 16, 13, 10, 7, 3%; the platform in 21 pieces above −80 m (one of 146 km to v11.144; Chagos 21, the Mascarene banks
+18); the in-between 31% → 33%. The land the same; ours' square the same to the bit; the shallows 0–150 m 21,316 → 20,606 km² (parts of the flat
+now deeper).
+
+- **Tests:** test/region.js the platform's shallows by depth (none over 35% in a 20 m band, 100–140 m present).
+
+**Unseen:** the drowned flat from the water (`tp(240000,60000)`: a basin at −101 m; east, it rises to −53 m over 20 km); a fourth blind sheet next.
+
+## v11.146 — the banks' lagoons, and a fair blind sheet (14 Nov 2026)
+
+The fourth blind sheet (seed 73, unseen; analysis_archipelago §10.6): 12 and 15 found sure, the third a toss between ours (9) and Saya de
+Malha (1) — the drowned flat passed for the real one. The person: "10 vs 15 is an interesting point, like how the gradient of color looks
+quite unique" — Chagos's bank against ours. Two things, one the sheet's and one the world's:
+
+- **test/earth.js:** the province's lattice node is now its 15" cell's mean (4×4 samples, `SS`; `PT=1` the old point), as Earth's grids are
+  cell means — to v11.145 a point, so the banks' 100–300 m knolls aliased into a stipple no Earth tile can show (the person: "Good catch on the
+  sampling of the cells"). The province's numbers move a little: the shoals' texture 2.6 → 1.6 m, the shelf 4.1 → 1.5 km.
+- **region.js `rgLagFloor` (`RG_PL_K.lb`):** a living bank's lagoon floor as Chagos's — a flat (0.45 of the bank's lagoon depth, 18–32 m,
+  rolling a few metres) reached from the rim's 18 m over 1.5 km, and in it basins with crisp, irregular edges (a noise over 14 km past a
+  threshold, ~a fifth of the floor) down 50 m (±25) under it. Measured (scratch `bankhist.js`, the banks' tops 0–100 m by 10 m band, cell
+  means): Chagos 5, 28, 42, 8, 5, 4, 3, 3, 2, 1%; ours 0, 13, 18, 18, 21, 17, 11, 2, 0, 0% (an even fade) → 2, 18, 57, 4, 3, 3, 6, 5, 2, 1%.
+  The karst roll back to ±6 m (32 in v11.145), karst2 ±3.
+- **world.js `lagoonF`:** the knolls fewer and larger (over ~550 m, a higher threshold), and fewer still in a deep lagoon's basins.
+
+What moved (seed 32): the living banks' tops a flat at 20–30 m with basins to 90 m; the land the same; the water shallower than 60 m
+12,844 → 12,941 km² (the flats); ours' square the same to the bit.
+
+- **Tests:** test/region.js the lagoon 9 km in re-pinned (a flat at −10 to −36 m at half or more, basins under −40 at 5–40%; −25 to −80 to
+  v11.145); the living banks' tops (one 10 m band with 40% or more, basins under 60 m).
+
+**Unseen:** a bank's flat and its basins from the water; the fifth blind sheet next.
+
+## v11.147 — the measures kept, and the handoff (14 Nov 2026; a tool and docs, the game unchanged)
+
+The fifth blind sheet (seed 89, unseen; analysis_archipelago §10.7): 6, 11, 12 picked ("it was yet again harder to tell. I'm not sure about
+my picks this time entirely") — 11 and 12 ours, 6 Kerguelen; 10, the platform, not picked. The first sheet an Earth tile made the answer.
+
+- **test/measures.js:** the measures every believability step was built and judged by (v11.142–146, kept from the session's scratch scripts):
+  the margins, the passes, the floor's grain, the shallows by depth, the banks' tops, the slopes — Earth's windows beside the province (cell means
+  on GEBCO's lattice), in about a minute; on every one the province now sits inside Earth's range — and `between`, sheet 5's tell (the person:
+  the saddles "look like a blur tool used on paint"): the in-between's slopes, ours 77% at 3–20% where Earth's platforms are flats and scarps.
+- **HANDOFF.md:** the state of the believability work for the next session — the method, the five sheets and the seeds used, the tools, the
+  cost since v11.137 (sample() ×1.7–2.2, region.js's load +18%), the places to dive that no session could see, and what is left.

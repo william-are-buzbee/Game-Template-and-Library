@@ -197,7 +197,13 @@ floor's knee, never past FILL_TOP; a hard max within 3 km of ours.
 **The floor's grain (v11.144; analysis_archipelago §11.6):** `rgGrain` (built by `rgGrainBuild`, `RG_GR_K`) is added to the floor in sample():
 the abyssal hills (a noise stretched along the old ridge, across `K.fracA`), the old fracture zones on the model's own lines (`REGION.fz`: troughs
 with a transverse ridge, their depth and line rolling along them) and 280 seamounts (a grid of 8 km cells; their tops under −250 m with the hills
-under them). Never under −500 m, so sample()'s record skip under fl − hill − 2.5 knees holds; the saddles' base carries 0.6 of the hills. The slopes' aspect (the waves', the current's) is the nodes' normal (`RG_PL.nX`, `nZ`; the drowned flat's
+under them). Never under −500 m, so sample()'s record skip under fl − hill − 2.5 knees holds; the saddles' base carries 0.6 of the hills.
+**The shallows' relief (v11.145; analysis_archipelago §11.7):** the drowned flat's top is `rgShoal`'s — swells and basins over 40 and 9 km,
+channels along a noise's middle contour, never above −22 m (`RG_PL_K.shoal`), its margin starting from it; the living lagoons roll by `karst` and
+`karst2`; `lagoonF`'s knolls come in fields (`LAGF.cl`, `cf`).
+**The banks' lagoons (v11.146; analysis_archipelago §11.8):** a living bank's lagoon floor is `rgLagFloor`'s — a flat at 18–32 m and basins in
+it with crisp, irregular edges, down to ~50 m under it (`RG_PL_K.lb`), as Chagos's bank; `lagoonF`'s knolls fewer, larger, and fewer in a
+basin. The slopes' aspect (the waves', the current's) is the nodes' normal (`RG_PL.nX`, `nZ`; the drowned flat's
 `nX2`, `nZ2`, blended across the crease where its slope meets a bank's).
 **The fed rule by its time (v11.130):** a member's upstream ones (`m.up`, within `fedL` up-current across its foot) shelter it while one stands in
 the light (`litNow`, a step behind); fed now, its reef takes no hold and grows at `fedK`. `m.fed` is today's.
