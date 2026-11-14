@@ -11,7 +11,10 @@
 //   bare    a piece with no controls (v11.70.1, the person: every piece has control) — tail:stub and weapon:ram are exempt: they build nothing
 // and, as information only: a style declared for a clade none of whose species wears it, styles that build the same body at their defaults.
 // Then the registry read directly (labels, bands, defaults, the styles' clades, cores and params, the roster against it). Fails on any FAIL, blank,
-// dup, foreign or undeclared, and on any fault in the registry. The lab is not tier-dependent: one run. Real geometry (test/geo.js), the same bundle and stub as the smoke test.
+// dup, foreign or undeclared, and on any fault in the registry.
+// v11.149, the build's tape (creatures_ai.js tapeBuild, parts.js GEO_TAPE): every kind of the ledger, plain, juvenile, in the moult's two coats and in
+// each place's coat, built whole and then twice by the tape (its recording and its replay): the replay's every mesh — positions, normals, colours,
+// the pattern — its rigs' skin (rest offsets, normals, segments, colours), capsules, coverings, grip, edge and gape the whole build's to the bit. The lab is not tier-dependent: one run. Real geometry (test/geo.js), the same bundle and stub as the smoke test.
 //   node test/registry.js          the summary and every line that is not clean
 //   ALL=1 node test/registry.js    every line
 //   SRC=path node test/registry.js another tree's src
@@ -20,7 +23,7 @@ const ROOT=path.join(__dirname,'..');
 const SRC=process.env.SRC||path.join(ROOT,'src'); // SRC=path: another tree's src (the v11.69 table in the CHANGELOG was made so: git archive 656a37b src)
 const ORDER=fs.readFileSync(path.join(SRC,'order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
 let js=ORDER.map(n=>fs.readFileSync(path.join(SRC,n+'.js'),'utf8')).join('\n');
-js+='\nglobal.__reg={lab,labCap,labLoad,labBuild,labStyles,LAB_NAME:typeof LAB_NAME!=="undefined"?LAB_NAME:null,LAB_NAME_BY:typeof LAB_NAME_BY!=="undefined"?LAB_NAME_BY:null,labOnInput,labOnSelect,labPanelHTML,SPEC_BLANK,GRAMMAR,PARTS,CORES,SPECS,stylesFor,seeSpec,homeOf:typeof styleClades==="function"?styleClades:null,STYLE_CLADES:typeof STYLE_CLADES!=="undefined"?STYLE_CLADES:null};';
+js+='\nglobal.__reg={lab,labCap,labLoad,labBuild,labStyles,LAB_NAME:typeof LAB_NAME!=="undefined"?LAB_NAME:null,LAB_NAME_BY:typeof LAB_NAME_BY!=="undefined"?LAB_NAME_BY:null,labOnInput,labOnSelect,labPanelHTML,SPEC_BLANK,GRAMMAR,PARTS,CORES,SPECS,stylesFor,seeSpec,homeOf:typeof styleClades==="function"?styleClades:null,STYLE_CLADES:typeof STYLE_CLADES!=="undefined"?STYLE_CLADES:null,DEFS,SPAWN,specOfKind,juvDef,buildKind,BUILD_TAPE,COAT_CLASSES:typeof COAT_CLASSES!=="undefined"?COAT_CLASSES:null};';
 const tmp=path.join(require('os').tmpdir(),'tethys_registry.js');
 fs.writeFileSync(tmp,'(function(){"use strict";\n'+js+'\n})();');
 process.env.PICK='0';
@@ -150,6 +153,18 @@ if(Object.keys(empty).length){console.log('  pieces with no controls: '+Object.k
 const la=[];for(const k in alike)for(const fp in alike[k])if(alike[k][fp].length>1)la.push(k+': '+alike[k][fp].join(' = '));
 if(la.length)console.log('  styles that build the same body at their defaults (information; a duplicate that might be two things): '+la.join('; '));
 console.log('registry, read directly: '+(R.length?R.length+' faults':'sound'));for(const r of R)console.log('  '+r);
+// ---------- the build's tape (v11.149) ----------
+{const T=X.BUILD_TAPE,kinds=[...new Set(X.SPAWN.map(e=>e.kind))].filter(k=>X.DEFS[k]&&X.specOfKind(k)),cls=['','soft','shed'].concat(X.COAT_CLASSES?Object.keys(X.COAT_CLASSES):[]);
+  const geoA=g=>g?['position','normal','color','aPat'].map(k=>g.attributes[k]?g.attributes[k].array:null):[],same=(a,b)=>{if(!a||!b)return a===b;if(a.length!==b.length)return false;for(let i=0;i<a.length;i++)if(!Object.is(a[i],b[i]))return false;return true;};
+  const body=b=>{const M=[],G=[];const rigM=new Set((b.rigs||[]).map(r=>r.mesh));b.g.traverse(o=>{if(o.isMesh&&!rigM.has(o))M.push(geoA(o.geometry));});for(const r of b.rigs||[])G.push([r.lo,r.ln,r.sg,r.geo.attributes.color.array,r.geo.attributes.aPat?r.geo.attributes.aPat.array:null]);
+    return {M,G,num:JSON.stringify([b.hit,b.cover,b.grip,b.edge,b.gape])};};
+  let n=0,bad2=[];for(const k of kinds)for(const juv of [false,true])for(const c of cls){if(juv&&c)continue;const d=juv?X.juvDef(k):X.DEFS[k];
+    T.on=false;const w=body(X.buildKind(d,k,c));T.on=true;T.map=new WeakMap();X.buildKind(d,k,c);const r=body(X.buildKind(d,k,c));n++;
+    const ok=w.num===r.num&&w.M.length===r.M.length&&w.G.length===r.G.length&&w.M.every((m,i)=>m.every((a,j)=>same(a,r.M[i][j])))&&w.G.every((g,i)=>g.every((a,j)=>same(a,r.G[i][j])));
+    if(!ok)bad2.push(k+(juv?'~':'')+(c?'@'+c:''));}
+  T.on=true;T.map=new WeakMap();
+  console.log('the build\'s tape: '+n+' bodies (every kind of the ledger, plain, juvenile, in the moult\'s coats and every place\'s) replayed against their whole build: '+(bad2.length?bad2.length+' differ — '+bad2.slice(0,8).join(', '):'every mesh, rig skin, capsule and covering the same to the bit'));
+  if(bad2.length)R.push(bad2.length+' bodies differ replayed from the build\'s tape');}
 const bad=tot.fail+tot.blank+tot.dup+tot.foreign+tot.undeclared+R.length;
 console.log(bad?'FAILED':'OK');
 process.exit(bad?1:0);

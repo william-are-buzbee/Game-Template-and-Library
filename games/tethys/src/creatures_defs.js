@@ -106,6 +106,15 @@ function founderDef(spec){const k=founderOf(spec);return k?DEFS[k]:null;}
 // (creatures_ai.js ACC_REF): a heavy body closes on the speed it wants more slowly than a light one.
 function defPhysics(d,spec){const st=derive(spec);d.top=st.speed;d.speed=+(st.speed*(d.pace||1)).toFixed(2);if(d.flee)d.flee=st.speed;d.turn=st.turn;d.accel=st.accel;d.filter=st.filter||0;d.sprint=st.burst||1;return d;} // sprint (v11.92): derive's burst over the top speed — the committed lunge's speed (creatures_ai.js) // v11.85: filter, the sieve's m² off the build — a kind with any is a filter feeder (ecology.js ecoOf puts the swarm on its prey; creatures_ai.js filterIntake feeds it)
 for(const k in DEFS)if(SPECS[k])defPhysics(DEFS[k],SPECS[k]);
+// v11.149 (the creature performance pass): every def one shape. The rows above are each their own literal, and an individual's def was its kind's
+// chained under a copy of its own size (creatures_ai.js scaledDef: Object.create) — 26 shapes among the forest's creatures, so every d.role, d.size,
+// d.prey in the frame was a lookup by name. Now each row is remade with DEF_KEYS — every key any row, a line's young or a scaled copy carries, in one
+// order, unset where it has none (undefined reads as a missing key did) — and scaledDef copies one flat (defFlat), its keys outside the list kept
+// after them. No def is written after load, so a copy reads as the chain did. A new key on a row goes in DEF_KEYS, or that row is a shape of its own
+const DEF_KEYS=(()=>{const K=new Set();for(const k in DEFS)for(const q in DEFS[k])K.add(q);for(const q of ['size','speed','top','flee','reach','dmg','radius','lunge','detect','clear','food','filter','juv','build','spec','line','lineId','legs','jetter','prey'])K.add(q);return [...K];})(),DEF_SET=new Set(DEF_KEYS);
+const DEF_LIT=new Function('d','return {'+DEF_KEYS.map(k=>JSON.stringify(k)+':d['+JSON.stringify(k)+']').join(',')+'};'); // one object literal of every key: a def made key by key from a list is a dictionary (V8's slow mode past a dozen added keys), however few shapes
+function defFlat(d){const o=DEF_LIT(d);for(const k in d)if(!DEF_SET.has(k))o[k]=d[k];return o;}
+for(const k in DEFS)DEFS[k]=defFlat(DEFS[k]);
 // The world's capacity (v11.26): n is the individuals per cell of a kind at full tolerance, scaled by the cell's mean tolerance for the
 // envelope (ecology.js ecoCap; chunks.js cellW) — it is the carrying capacity K of the ledger, not a spawn count. The ledger runs at
 // 60–90% of it where nothing eats a kind and lower where something does. grp: placed in groups of that many (packs of arrows,

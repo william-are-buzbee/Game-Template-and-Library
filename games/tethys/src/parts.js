@@ -13,8 +13,22 @@ const G={
   // a quad a-b-c-d (each [x,y,z]) seen from both sides: four triangles, no index (the webs and the tail fans)
   quad:(a,b,c,d)=>{const g=new THREE.BufferGeometry(),P=[];const tri=(p,q,r)=>P.push(p[0],p[1],p[2],q[0],q[1],q[2],r[0],r[1],r[2]);tri(a,b,c);tri(a,c,d);tri(c,b,a);tri(d,c,a);g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));return g;}
 };
+// ---------- the build's tape (v11.149, the creature performance pass) ----------
+// A kind's body is the same every time it is built: its spec, its scale and its palette (a coat class is a palette) decide every vertex. To
+// v11.148 every spawn built it whole all the same — every primitive, every merge — and spawn() then threw the meshes' geometry away for the
+// kind's shared copy (creatures_ai.js KIND_GEO): two thirds of a cell's generation where the animals are many (69 a cell on the forest's shelf).
+// creatures_ai.js buildKind now records a kind's first build — every merge()'s output, in order (GEO_TAPE.play false) — and replays it on the
+// next (play true): merge hands back its recorded output, and the primitives and the parts' transforms it would have read are not made
+// (LAZY_G, part's m null). The builders themselves still run, so everything that is a creature's own — its rigs (skinned per frame), its
+// anim's clocks and closures, the arms' random phases — is built for it as before. Nothing in a creature's build reads a primitive or a part's
+// transform but merge (every G call is a part's geometry: test/bench_creatures.js proves the bodies the same to the bit, built and posed).
+// A replay whose merges do not match the recording throws, and buildKind builds whole instead.
+let GEO_TAPE=null;
+const LAZY_G={lazy:true,dispose(){}};
+for(const k in G){const f=G[k];G[k]=function(){return GEO_TAPE!==null&&GEO_TAPE.play?LAZY_G:f.apply(null,arguments);};} // a primitive while a tape plays: not made
 // A part is a geometry plus a transform and a color (optionally a belly color for countershading).
 function part(g,x,y,z,c,o){
+  if(GEO_TAPE!==null&&GEO_TAPE.play)return {g:g,m:null,c:c,c2:(o&&o.c2)||null}; // v11.149: replaying, merge reads neither
   o=o||{};const r=o.r||[0,0,0],s=o.s||[1,1,1];
   const q=o.dir?new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),o.dir.clone().normalize()):new THREE.Quaternion().setFromEuler(new THREE.Euler(r[0],r[1],r[2],o.order||'XYZ'));
   const m=new THREE.Matrix4().compose(new THREE.Vector3(x,y,z),q,new THREE.Vector3(s[0],s[1],s[2]));
@@ -23,6 +37,8 @@ function part(g,x,y,z,c,o){
 // Bake parts into one flat-shaded, vertex-colored geometry. Countershading blends by face normal. A geometry that carries
 // its own `color` attribute (flora.js rockGeo: a shade per facet) has it multiplied into the part's colour.
 function merge(parts){
+  const T=GEO_TAPE;if(T!==null&&T.play){const r=T.list[T.i++];if(!r||r.n!==parts.length)throw new Error('the build tape: merge '+(T.i-1)+' does not match its recording');for(const p of parts)p.g.dispose(); // v11.149: the recorded output (fresh arrays: a caller may write into them, helix does)
+    const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(r.pos,3));geo.setAttribute('normal',new THREE.Float32BufferAttribute(r.nor,3));geo.setAttribute('color',new THREE.Float32BufferAttribute(r.col,3));return geo;}
   const pos=[],nor=[],col=[];
   for(const p of parts){
     const g=p.g.index?p.g.toNonIndexed():p.g;
@@ -43,6 +59,7 @@ function merge(parts){
   geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
   geo.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));
   geo.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
+  if(T!==null)T.list.push({n:parts.length,pos:geo.attributes.position.array.slice(),nor:geo.attributes.normal.array.slice(),col:geo.attributes.color.array.slice()}); // v11.149: recording — a copy, before any caller writes into it
   return geo;
 }
 function eyes(P,x,y,z,r,c,pc){

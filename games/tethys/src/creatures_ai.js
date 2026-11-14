@@ -30,10 +30,10 @@ let visibleCreatures=0;
 // (the rest pose, the kind's palette) and its far-LOD bake is a second full copy — 1100 resident creatures carried 1100 of each, a
 // 455 MB heap at boot. The first spawn of a kind donates its meshes' geometries and its bake; the rest point at them and drop their
 // own. The rigs (skinned every frame) stay per creature; the lab's placed species ('lab', a changing spec) is never cached. The
-// build itself still runs per spawn: only the copies and the uploads are saved.
+// build itself ran per spawn to v11.148: only the copies and the uploads were saved. Since v11.149 it is replayed from the kind's first (tapeBuild, below).
 const KIND_GEO={},SHARED_GEO=new Set();
 // A juvenile (v11.26): a recruit is born at ECO.juv of its kind's scale and grows up off screen (growUp). Its def is its kind's with the
-// size-dependent numbers scaled, chained to the adult's so every other read falls through; its geometry is cached apart (KIND_GEO 'kind~')
+// size-dependent numbers scaled, every other number the adult's (a flat copy since v11.149, creatures_defs.js defFlat); its geometry is cached apart (KIND_GEO 'kind~')
 const JUV_DEF={};
 // a kind's spec: the roster's, or the def's own (v11.69: the young of the player's line, a kind per spec — line.js lineKind)
 function specOfKind(k){return SPECS[k]||(DEFS[k]&&DEFS[k].spec)||null;}
@@ -57,9 +57,19 @@ const VARY={spread:0.15}; // ±: the adult size band as a fraction of the kind's
 const MOULT={frac:0.05,soft:0.5,every:20,hide:6,prey:0.5,shedT:4,shedPer:0.5,keep:0.85}; // frac: the share of a moulting clade's placed adults that start soft; soft: game days soft at unit mass (× mass^¼); every: game days between moults at unit mass (× mass^¼); hide: m a soft one looks about for a solid to lie against; prey: a hunter takes a soft body of any kind while its own mass is at least this share of the body's; shedT: game days a cast carapace dropped in play lasts; shedPer: sheds placed per cell per unit of the kind's capacity; keep: a shed's scale against the animal's (it grew at the moult)
 function moults(kind){const sp=specOfKind(kind),g=sp&&GRAMMAR[sp.clade];return !!(g&&g.moult);}
 // the kind built in a coat class: its PAL preset swapped for the shifted twin for the build and put back (the zoo's own trick for the variants)
-function buildKind(d,kind,cls){const sp=specOfKind(kind),pk=sp&&typeof sp.coat==='string'?sp.coat:null;if(!cls||!pk||!PAL[pk])return d.build();const p0=PAL[pk];PAL[pk]=coatChem(p0,cls,sp.clade);try{return d.build();}finally{PAL[pk]=p0;}}
-// a def with the size-dependent numbers scaled by k (a juvenile at ECO.juv, an adult's band at VARY): chained to the kind's so every other read falls through
-function scaledDef(d,k){const j=Object.create(d),sq=Math.sqrt(k);j.size=d.size*k;if(d.speed)j.speed=d.speed*sq;if(d.top)j.top=d.top*sq;if(d.flee)j.flee=d.flee*sq;if(d.reach)j.reach=d.reach*k;if(d.dmg)j.dmg=d.dmg*k*k;if(d.radius)j.radius=d.radius*k;if(d.lunge)j.lunge=d.lunge*sq;if(d.detect)j.detect=d.detect*k;if(d.clear!==undefined)j.clear=d.clear*k;if(d.food)j.food=Math.max(1,Math.round(d.food*k));if(d.filter)j.filter=d.filter*k*k;return j;} // filter (v11.85): an area, with the square
+function buildKind(d,kind,cls){const sp=specOfKind(kind),pk=sp&&typeof sp.coat==='string'?sp.coat:null;if(!cls||!pk||!PAL[pk])return tapeBuild(d,kind,cls);const p0=PAL[pk];PAL[pk]=coatChem(p0,cls,sp.clade);try{return tapeBuild(d,kind,cls);}finally{PAL[pk]=p0;}}
+// v11.149 (the creature performance pass; parts.js GEO_TAPE): a kind's body built once per def and coat class, then replayed — its first build's
+// merges recorded, every later build of it handed them back, its primitives not made. A def is a kind's (DEFS, a juvenile's JUV_DEF, a line's
+// kind per spec), so the tape is kept on it (a WeakMap: a def that goes, goes with it); the lab's placed spec is built whole, as it changes. A
+// replay that does not match its recording (a builder made non-deterministic) is a fault: it warns, drops the tape and builds whole.
+// BUILD_TAPE.on false builds whole every time, as to v11.148 (test/bench_creatures.js, the comparison)
+const BUILD_TAPE={on:true,map:new WeakMap()};
+function tapeBuild(d,kind,cls){if(!BUILD_TAPE.on||kind==='lab'||GEO_TAPE!==null)return d.build();let M=BUILD_TAPE.map.get(d);if(!M)BUILD_TAPE.map.set(d,M=new Map());const key=cls||'',L=M.get(key);
+  if(L){let b=null,err=null;GEO_TAPE={play:true,list:L,i:0};try{b=d.build();if(GEO_TAPE.i!==L.length)throw new Error('the build tape: '+GEO_TAPE.i+' of '+L.length+' merges replayed');}catch(e){err=e;}finally{GEO_TAPE=null;}
+    if(!err)return b;console.warn('tapeBuild: '+kind+(key?' @'+key:'')+' built whole: '+err.message);M.delete(key);return d.build();}
+  const T={play:false,list:[]};GEO_TAPE=T;let b;try{b=d.build();}finally{GEO_TAPE=null;}M.set(key,T.list);return b;}
+// a def with the size-dependent numbers scaled by k (a juvenile at ECO.juv, an adult's band at VARY): a flat copy of the kind's (v11.149: creatures_defs.js defFlat — to v11.148 chained to it by Object.create, 26 shapes), every other number as the kind's
+function scaledDef(d,k){const j=defFlat(d),sq=Math.sqrt(k);j.size=d.size*k;if(d.speed)j.speed=d.speed*sq;if(d.top)j.top=d.top*sq;if(d.flee)j.flee=d.flee*sq;if(d.reach)j.reach=d.reach*k;if(d.dmg)j.dmg=d.dmg*k*k;if(d.radius)j.radius=d.radius*k;if(d.lunge)j.lunge=d.lunge*sq;if(d.detect)j.detect=d.detect*k;if(d.clear!==undefined)j.clear=d.clear*k;if(d.food)j.food=Math.max(1,Math.round(d.food*k));if(d.filter)j.filter=d.filter*k*k;return j;} // filter (v11.85): an area, with the square
 // a soft body's place: on the floor within MOULT.hide of p, clear of solids at its own radius but with one within 2 m (a rock, a stalk, a structure's foot); failing that, the floor where it is
 function hideSpot(ch,p,rng,d){const r=d.size*0.5,cl=(d.clear!==undefined?d.clear:d.size*0.35)+0.05;
   for(let k=0;k<12;k++){const a=rng()*TAU,dd=1+rng()*MOULT.hide,x=p.x+Math.cos(a)*dd,z=p.z+Math.sin(a)*dd,h=groundAt(x,z);if(h>-3)continue;
@@ -102,9 +112,18 @@ function spawn(ch,kind,pos,rng,opt){
   const b=buildKind(D,kind,cls);if(k!==1){b.g.scale.multiplyScalar(k);b.gape*=k;}
   const c={kind:kind,def:d,g:b.g,anim:b.anim,pos:pos.clone(),vel:V3(0,0,0),home:pos.clone(),hp:d.hp,state:'wander',t0:rng()*100,lastSpd:0,lastYaw:0,roll:0,rollV:0,sq:0,stunSide:rng()<0.5?-1:1,target:null,biteT:0,wanderT:0,wander:pos.clone(),alive:true,gone:false,stun:0,bored:0,cool:rng()*3,scanT:rng()*0.5,alarm:0,fleeT:0,lungeT:0,ramT:0,school:null,off:null,offT:0,chunk:ch,lod:-1,parts:null,lodMeshes:null,sub:1,wet:true,grounded:false,flopT:0,
     b:b,mass:0,mass0:0,bound:0,reach:0,shapesW:null,chainW:null,grab:null,holding:0,hold:null,held:0,bleed:0,blood:0,wounds:null,paraT:0,stungT:0,armsLost:0,regrow:null,sickT:0,poison:0,poisT:rng()*2,commitT:0,coastT:0,missN:0,speedK:1,turnK:1,live:null,lost:null,cWith:null,d6:0,par:creatures.length&1, // hold: the hold it has on something, held: how many have hold of it, bleed: the rate its wounds drain at, blood: the share of its blood lost (combat.js, v11.91); mass: kg (combat.js kgOfBody; 1e6 while it sits), mass0 its own
-    st:{tell:0,strike:0,jet:false},tellT:0,strikeT:0,recoverT:0,burstT:rng()*2,face:null,bit:false,accT:0,threat:null,
+    st:{tell:0,strike:0,jet:false,soft:undefined,lx:undefined,lz:undefined,turn:undefined,acc:undefined},tellT:0, /* st: every key it takes later declared, unset (v11.149: one shape, as the creature's) */strikeT:0,recoverT:0,burstT:rng()*2,face:null,bit:false,accT:0,threat:null,
     ent:ent,hunger:EK.hunter?rng():0,starveT:0,hunt:0,feedT:0,feedAt:null,dead:false,flesh:0,deadT:0,scav:null,scavT:rng()*0.5,juv:juv?EK.grow*DAY_S*(0.8+0.4*rng()):0, // ent: the ledger entry; hunger 0 fed..1 starving (ecology.js); juv: seconds until it grows up // st: what the anim reads (creatures_builders.js); the tell and the strike as clocks
-    k:k,cls:cls,soft:soft,softT:soft?MOULT.soft*Math.pow(EK.mass,0.25)*DAY_S*(0.7+0.6*rng()):0,moultT:vary&&!soft&&!juv&&moults(kind)&&D.role!=='boid'?MOULT.every*Math.pow(EK.mass,0.25)*DAY_S*(0.5+rng()):0}; // the individual (v11.66): its size factor, its coat class, the soft state and its clocks
+    k:k,cls:cls,soft:soft,softT:soft?MOULT.soft*Math.pow(EK.mass,0.25)*DAY_S*(0.7+0.6*rng()):0,moultT:vary&&!soft&&!juv&&moults(kind)&&D.role!=='boid'?MOULT.every*Math.pow(EK.mass,0.25)*DAY_S*(0.5+rng()):0,
+    shM:null,cast:false,lodNear:0,lodFar:0,nearR:0,stepR:0, // set below, in this order
+    carried:undefined,cur:undefined,curT:undefined,turnedF:undefined,turnV:undefined,accV:undefined,shapeF:undefined,rigV:undefined,rigO:undefined,hitN:undefined,hitB:undefined,lieQ:undefined,chaseT:undefined,lungeP:undefined,strikeP:undefined,
+    sw:undefined,swT:undefined,filtT:undefined,q:undefined,pig:undefined,hand:undefined,fall:undefined,brood:undefined,fxStruck:undefined,fxAcc:undefined,stam:undefined,spinV:undefined,shook:undefined,shakeYaw:undefined,shakeP:undefined,pointD:undefined,
+    lenM:undefined,lastHurt:undefined,eaten:undefined,liveMass:undefined,fullMass:undefined}; // the individual (v11.66): its size factor, its coat class, the soft state and its clocks
+  // v11.149 (the creature performance pass): every creature one shape. The keys above from shM on were added to a creature as it lived — the current
+  // it is carried by, its turn, its holds, the falls, the brood, the effects' clocks — each by whichever system reached it first, in that order: the
+  // forest's 1,400 creatures had 27 shapes, and past four an engine gives up a property read's fast path, so every c.pos, c.def, c.vel in the frame was
+  // a lookup by name. Here from its spawn, unset (undefined reads as a missing key did; nothing copies or lists a creature's keys). A new key a creature
+  // takes later goes in this list: test/live.js fails on a creature, a state or a def off its spawn's keys after four game days and a minute of play
   c.mass=c.mass0=kgOfBody(kind,D,b); // one mass (v11.91, COMBAT.md §10.2): derive's, in kg, at this body's scale
   if(soft){c.b.cover=b.cover.map(()=>'skin');c.st.soft=1;c.state='sit';hideSpot(ch,c.pos,rng,d);c.home.copy(c.pos);}
   b.g.position.copy(c.pos);scene.add(b.g);

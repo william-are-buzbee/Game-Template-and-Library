@@ -76,11 +76,11 @@ function addFloraSolids(ch,f,m,x,y,z,inst,soft){ // soft: a swaying plant — it
 let lastPad=null,contactK=0; // contactK: what the pushes since it was last cleared moved a point out of — 1 a soft plant, 2 rock or a hard thing (the player clears it, audio.js reads it)
 // noPad: ignore pads (the camera).
 function solidPush(p,pad,vel,extra,noPad,own){ // own (v11.52): only extra's hash — a cell placing its flora must not read what neighbours happen to be loaded (DESIGN Determinism; test/pool.js found the wisp placed differently by arrival order)
-  const ci=cellOf(p.x),cj=cellOf(p.z);let any=false;lastPad=null;
+  const ci=cellOf(p.x),cj=cellOf(p.z),A=own?null:nb9(ci,cj);let any=false;lastPad=null; // A: the 3×3 round (v11.149, chunks.js nb9: the last cell's kept)
   for(let pass=0;pass<3;pass++){
     let moved=false;
     for(let n=-1;n<=(own?-1:8);n++){
-      let ch;if(n<0)ch=extra;else{const i=ci+(n%3)-1,j=cj+((n/3)|0)-1;ch=chunkIJ(i,j);if(!ch)continue;}
+      let ch;if(n<0)ch=extra;else{ch=A[n];if(!ch)continue;}
       if(!ch||!ch.solids.length)continue;
       const mg=ch.solidR+pad;if(p.x<ch.x0-mg||p.x>ch.x0+CELL+mg||p.z<ch.z0-mg||p.z>ch.z0+CELL+mg)continue;
       const i0=clamp(Math.floor((p.x-pad-ch.x0)/HB),0,HN-1),i1=clamp(Math.floor((p.x+pad-ch.x0)/HB),0,HN-1),j0=clamp(Math.floor((p.z-pad-ch.z0)/HB),0,HN-1),j1=clamp(Math.floor((p.z+pad-ch.z0)/HB),0,HN-1);
@@ -316,16 +316,22 @@ function rigSkin(rig,e){
 }
 // Build a rig's mesh from segment parts: segs is a list of {parts:[part...], chain, k} (parts in the segment's rest frame,
 // the segment's origin at its chain point). One geometry for the whole rig.
+// v11.149 (parts.js GEO_TAPE): the rig is one entry on a build's tape — its whole skin (positions, normals, colours, segments) recorded, its
+// segments' merges inside it not; replayed, nothing is merged and the arrays are copied whole (to v11.148 a merge a segment, every vertex pushed
+// through plain arrays and converted back: the most of a ringmouth's build). Its chains are made by the caller as before: they are the creature's own
 function makeRig(segs,mat,chains){
-  const pos=[],nor=[],col=[],sg=[];let base=0;
-  for(const c of chains)c.base=base,base+=c.n;
-  for(const sd of segs){const g=merge(sd.parts),pa=g.attributes.position.array,na=g.attributes.normal.array,ca=g.attributes.color.array,id=sd.chain.base+sd.k;
-    for(let i=0;i<pa.length;i+=3){pos.push(pa[i],pa[i+1],pa[i+2]);nor.push(na[i],na[i+1],na[i+2]);col.push(ca[i],ca[i+1],ca[i+2]);sg.push(id);}
-    g.dispose();}
+  let base=0;for(const c of chains)c.base=base,base+=c.n;
+  const T=GEO_TAPE;let fp,fn,fc,fs;
+  if(T!==null&&T.play){const r=T.list[T.i++];if(!r||r.rig!==segs.length)throw new Error('the build tape: rig '+(T.i-1)+' does not match its recording');for(const sd of segs)for(const p of sd.parts)p.g.dispose();fp=r.pos;fn=r.nor;fc=r.col;fs=r.sg.slice();} /* the attributes below copy them */
+  else{const pos=[],nor=[],col=[],sg=[];GEO_TAPE=null; // its segments' merges are not on the tape: the rig is, below
+    try{for(const sd of segs){const g=merge(sd.parts),pa=g.attributes.position.array,na=g.attributes.normal.array,ca=g.attributes.color.array,id=sd.chain.base+sd.k;
+      for(let i=0;i<pa.length;i+=3){pos.push(pa[i],pa[i+1],pa[i+2]);nor.push(na[i],na[i+1],na[i+2]);col.push(ca[i],ca[i+1],ca[i+2]);sg.push(id);}
+      g.dispose();}}finally{GEO_TAPE=T;}
+    fp=new Float32Array(pos);fn=new Float32Array(nor);fc=new Float32Array(col);fs=Int16Array.from(sg);if(T!==null)T.list.push({rig:segs.length,pos:fp,nor:fn,col:fc,sg:fs.slice()});} /* fp, fn, fc are never written: the attributes and lo, ln are copies */
   const geo=new THREE.BufferGeometry();
-  const pa=new THREE.Float32BufferAttribute(pos,3),na=new THREE.Float32BufferAttribute(nor,3);pa.setUsage(THREE.DynamicDrawUsage);na.setUsage(THREE.DynamicDrawUsage);
-  geo.setAttribute('position',pa);geo.setAttribute('normal',na);geo.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
-  const rig={geo:geo,mesh:new THREE.Mesh(geo,mat),chains:chains,lo:Float32Array.from(pos),ln:Float32Array.from(nor),sg:Int16Array.from(sg),solid:true};
+  const pa=new THREE.Float32BufferAttribute(fp,3),na=new THREE.Float32BufferAttribute(fn,3);pa.setUsage(THREE.DynamicDrawUsage);na.setUsage(THREE.DynamicDrawUsage);
+  geo.setAttribute('position',pa);geo.setAttribute('normal',na);geo.setAttribute('color',new THREE.Float32BufferAttribute(fc,3));
+  const rig={geo:geo,mesh:new THREE.Mesh(geo,mat),chains:chains,lo:fp.slice(),ln:fn.slice(),sg:fs,solid:true};
   rig.mesh.frustumCulled=false;
   return rig;
 }
