@@ -9,7 +9,8 @@ const util=fs.readFileSync(path.join(root,'vendor/wb-core.global.js'),'utf8')+'\
 const a=src.indexOf('const CAU_RINGS='),b=src.indexOf('const CAU_PARS=');if(a<0||b<0)throw new Error('caustic: scene.js markers not found');
 const num=k=>+(src.match(new RegExp(k+'=([0-9.]+)'))||[])[1];
 const PIX=process.env.PIX===undefined?1:+process.env.PIX,PX=PIX?(num('CAU_PX')||0):0,T=num('CAU_TILE'),N=num('CAU_N'),HMAX=num('CAU_HMAX'),SUN=num('CAU_SUN'),CT=+(process.env.CT||num('CAU_T')),CS=+(process.env.CS||(PIX?0:num('CAU_SOFT'))),HI=num('CAU_HI'),CD=num('CAU_D')||1e9,DK=num('CAU_DARK')||0;
-const R=new Function('THREE','WIND_A','Q',util+'\n'+src.slice(a,b)+'\nreturn {t:CAU_TEX,g:CAU_GTEX,gs:CAU_GUST,gn:CAU_GN};')(THREE,3.49,{cau:9}),TEX=R.t,GT=R.g,GS=R.gs,GN=R.gn;
+const world=fs.readFileSync(path.join(root,'src/world.js'),'utf8'); // v11.148: the bake's slice reads world.js's WAVES and WIND_A (the swell's carry, ripGLSL) — without it this tool threw at load
+const R=new Function('THREE','Q',util+'\n'+world+'\n'+src.slice(a,b)+'\nreturn {t:CAU_TEX,g:CAU_GTEX,gs:CAU_GUST,gn:CAU_GN};')(THREE,{cau:9}),TEX=R.t,GT=R.g,GS=R.gs,GN=R.gn;
 console.log('rings',TEX.map(r=>r.L+'m x'+r.n).join(', '),' tile',T,'m',N,'texels  CT',CT,'CS',CS,'PX',PX);
 function tap(t,x,z){const u=((x/T)%1+1)%1,v=((z/T)%1+1)%1;const i=Math.floor(u*N)%N,j=Math.floor(v*N)%N,o=(j*N+i)*4;return [(t.d[o]/127.5-1)*HMAX,(t.d[o+1]/127.5-1)*HMAX,(t.d[o+2]/127.5-1)*HMAX];}
 const W=+(process.env.W||512),span=+(process.env.SPAN||16),ox=+(process.env.OX||0),oz=+(process.env.OZ||0),out=path.join(__dirname,'preview');if(!fs.existsSync(out))fs.mkdirSync(out);

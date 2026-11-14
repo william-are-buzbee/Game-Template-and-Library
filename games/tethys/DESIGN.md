@@ -261,6 +261,36 @@ holds the two to the bit. A new lookup by place reads `recsAt`, never a loop ove
 first build, at the chimney, reads it).
 
 
+**The world's cost (v11.148, the performance pass; `node test/bench.js`).** After the archipelago's believability work (v11.126–147) a `sample()`
+cost 1.1 µs over the world and 2.4 round ours (node, every record met first, as the game has by its first frame), and the world's load 1.4 s.
+The pass changed no double anywhere (the bench's fingerprints: every window, 300,000 random points, every piece of the region's data) and brought
+them to 0.75 and 1.2 µs and 1.1 s: over the world ×0.67, the ±70.5 km world ×0.60, ours' square ×0.51, the platform ×0.67, the load ×0.80
+(against v11.137, before that work: ×1.30, ×0.99, ×0.63, ×1.48, ×0.99). In the game it is the boot and everything that samples in bulk (the
+maps, the far regions, the horizon, the census, the basins' flood); a cell's own generation is two thirds the creatures' builds and a tenth `sample()`.
+What it was, largest first, and what keeps it:
+- **Every record one shape** (world.js `recNew`). The fifteen records had seven key orders; past four an engine drops a property read's fast
+  path, so each `R.x` in `sample()` and `islandH` was a lookup by name — a third of the cost near the islands. A record starts as `recNew()`'s
+  55 keys, all unset, and is filled from there. A new key goes in that list; a key is unset with `undefined`, never deleted (test/records.js).
+  The lesson holds for any table of records read in a hot loop: one literal, one key order.
+- **The value noise from tables** (util.js `vnoise`, `permF`): the lattice's four corners read straight, their `/255` done once. `fbm` is a
+  quarter of `sample()`.
+- **`hyp2`** (util.js): `Math.hypot` for two arguments in plain arithmetic, the engine's own double. V8's allocates a list a call. Use it in
+  the world's paths; `Math.sqrt(x*x+y*y)` is not the same double.
+- **Work whose result is multiplied by zero or never read, not done:** the cover's shelf term below −75 m (a power and a noise at every deep
+  point), the platform's lagoon floor outside the margin (five noises computed and dropped) and its basins' noises off the basins, the saddles'
+  roll where the base cannot reach the ground, the flank's edge noise inside the flank, the rim's passes off the rim. Each is exact by its own
+  argument, written where it stands.
+- **A record's local point once:** `sample()` keeps `recLoc`'s (`_isX`, `_isZ`) and hands it to `islandH` and `islandW` (their `plx`, `plz`),
+  which turned, scaled, squeezed and lobed the point again (two trig calls, an `atan2`, a table read each). Ours and the giant take their
+  angular noises from an angle's cosine and sine once (`angN`), and a remainder only where it is not the number itself (`sectorW`, `awn`).
+- **The load:** the track's nearest point once for its distance and its age, over the segments that can be nearest (regionModel's `trk`: a
+  floor node ran two or three loops of 120 segments); no array made for a point with no relief (`RL0`); `rlT` in two halves for the platform's
+  steps (`rlG`, `rlTg`); `rgBound`'s copy of its record once, not per radius; the grain's lines by index, not a `Map`.
+What is left in `sample()` is flat: the noise 15–25%, `islandH`, the platform, the grain, the first loop over a bucket's records. Known and not
+taken: a neighbour whose reach holds the point but whose ground is far under it still pays `recLoc` (an `atan2`) before its bound says so —
+5–10% near the islands; skipping it needs a bound by the world distance for the ridges too, one more thing every new ground feature must keep.
+A ground-only `sample()` (no fields) would be 11–15% cheaper for the callers that read only `h` (the basins' flood, the saddles, the slopes).
+
 ## The water's oxygen
 
 `world.js` (v11.96, DEEP.md §2, §9): `OXY` replaces `CHEMO` (the chemocline at −450 under the whole world, to v11.95). `oxyAt(x,y,z,nut)` is

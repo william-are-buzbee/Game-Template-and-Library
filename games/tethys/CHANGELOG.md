@@ -7945,3 +7945,75 @@ my picks this time entirely") — 11 and 12 ours, 6 Kerguelen; 10, the platform,
   the saddles "look like a blur tool used on paint"): the in-between's slopes, ours 77% at 3–20% where Earth's platforms are flats and scarps.
 - **HANDOFF.md:** the state of the believability work for the next session — the method, the five sheets and the seeds used, the tools, the
   cost since v11.137 (sample() ×1.7–2.2, region.js's load +18%), the places to dive that no session could see, and what is left.
+
+## v11.148 — the world's cost (14 Nov 2026; the performance pass: every double of the world the same)
+
+The person: "a performance pass through the new work on Tethys". The new work is the archipelago's believability (v11.126–147), and its cost was
+the world's: `sample()` ×1.7–2.2 since v11.137 and the load +18% (HANDOFF v11.147, "the cost, for the performance work next"). Measured first (`node --cpu-prof`), then taken
+largest first, each step held to the same doubles — sample()'s ground and nine fields over five windows and at 300,000 random points, `apronAt`,
+`coneK`, the landmarks, and every piece of the region's data (the model's members, the platform's grids, the floor, the saddles, the grain, the
+records, the index): all the same to the bit as v11.147's (`BASE=<v11.147's sources> node test/bench.js`). Nothing drawn, placed or spawned changes.
+
+Node, `node test/bench.js` (this sandbox; each window timed in its own process after the whole world has been sampled, the best of three):
+
+| | load s | world | ±70.5 km | ours ±2 km | the platform | the east | |
+|---|---|---|---|---|---|---|---|
+| v11.137 (before the flanks, the margins, the saddles, the grain) | 1.24 | 0.57 | 0.89 | 1.88 | 0.82 | 0.82 | µs a sample |
+| v11.147 | 1.43 | 1.11 | 1.49 | 2.37 | 1.73 | 1.64 | |
+| v11.148 | 1.14 | 0.75 | 0.89 | 1.20 | 1.15 | 0.92 | |
+| against v11.147 | ×0.80 | ×0.67 | ×0.60 | ×0.51 | ×0.67 | ×0.56 | |
+| against v11.137 | ×0.99 | ×1.30 | ×0.99 | ×0.63 | ×1.48 | ×1.18 | |
+
+So the ±70.5 km world costs what it did before the believability work and ours' square two thirds of it; the open floor and the platform are a
+third to a half dearer than then — the grain, the margins and the saddles are real work at every point, and what is left of it is flat.
+
+- **world.js `recNew`: every record one shape.** The profile's first surprise: `sample()`'s own lines were a fifth of the time, with nothing in
+  them but reads of a record's properties. The fifteen records had seven key orders (ours, the giant, and the model's by which optional parts each
+  carries), and past four an engine gives up a read's fast path: every `R.x`, `R.reach`, `R.sc` in sample() and islandH was a lookup by name.
+  Timed alone on ours' square the engine sees two shapes and hides it (1.6 µs there; 2.4 once the whole world has been sampled, as the game has
+  by its first frame) — which is why no earlier measure showed it. Every record is now `recNew()`'s 55 keys, unset, filled from there; `rgMargins`
+  unsets `rimM` where it deleted it. −16% over the world, −30% in the ±70.5 km world, −35% round ours, by itself.
+- **util.js `vnoise`, `permF`:** the lattice's four corners read straight from the tables, `/255` done once — the old four `hash()` values, half
+  the cost. `fbm` was a quarter of sample(). **`hyp2`:** `Math.hypot` for two arguments in plain arithmetic (V8's allocates a list a call, ~30 ns;
+  sample() made four or more), the engine's own double at 60 million pairs. **`angN`:** `angNoise` from an angle's cosine and sine, so ours and the
+  giant (which have no tables) take them once for the five or six noises at one angle.
+- **Work multiplied by zero or never read, not done** (each exact by its own argument, at its line): the cover's shelf term below −75 m (a
+  `Math.pow` and a noise at every deep point: most of the world); region.js `rgPlat`'s lagoon floor outside the margin (`rgLagFloor`: five noises
+  computed, then dropped) and, inside, its basins' noises off the basins; the saddles' roll where the base with the most it can add is still a
+  knee under the ground; islandH's flank-edge noise inside the flank and its rim's passes off the rim (`o.rimA`, which nothing reads, is 0 there).
+- **A record's local point once:** sample() keeps `recLoc`'s (`_isX`, `_isZ`) and hands it to `islandH` and `islandW` (`plx`, `plz`), which turned,
+  scaled, squeezed and lobed the same point again — two trig calls, an `atan2`, a table read and a `Math.hypot` a record. The wind's and the
+  current's cosines once (`WIND_C` …); a remainder only where it is not the number itself (`sectorW`, `awn`).
+- **The load (region.js):** the track's nearest point once for its distance and its age and only over the segments that can be nearest
+  (regionModel's `trk`: a floor node ran two or three loops over the track's 120 segments — a third of the load); one array of zeros for every point
+  with no relief (`RL0`); `rlT` in two halves for the platform's steps (`rlG`, `rlTg`); `rgBound`'s copy of its record once, not at each radius;
+  the grain's fracture lines by index, not a `Map`; the basins' flood without four million small arrays (`RG_N4X`) or a field array a sample.
+- **scene.js, found on the boot's profile:** the caustic's bake took a train's slope amplitude, with its `Math.hypot`, at every texel for every
+  train — 483 → 357 ms (node), the tiles' bytes the same.
+- **test/bench.js** (not in --test): the load, a `sample()` in µs over five windows, and the fingerprints; `BASE=<dir>` puts a copy of the sources
+  from before a change beside it — the cost of the change, and which pieces moved. It replaces the "small node script" every believability step
+  wrote for "ours' square the same to the bit". Each window is timed in its own process after the whole world has been sampled (above).
+- **Tests:** test/records.js — every record `recNew`'s keys in its order; `hyp2` against `Math.hypot`, the noise against the old `hash()` form,
+  `angN` against `angNoise`, `islandH` and `islandW` with the local point handed in against without: each to the bit. test/region.js — the track's
+  nearest point by blocks against the plain loop, `rlTg(rlG)` against `rlT`. test/caustic.js runs again (it threw at load: the bake's slice reads
+  world.js's `WAVES` since the swell's carry).
+
+**Seen** (headless Chromium, software WebGL, the two builds' `dev.html` side by side): `sample()` ×0.44–0.62 over the five windows, as in node; the page's scripts to the first
+frame 9.6–10.2 s → 8.5–8.9 s; and what generation makes is the same — 54 cells loaded at five places (the forest's shelf, an atoll, the platform, the
+open sea, the giant's coast): their height and field grids and all 33,914 flora instances the same to the bit in both builds. **A whole cell is not
+measurably sooner** (×0.8–1.2 across runs: noise): `sample()` is a tenth of a cell's generation there; two thirds is the creatures' builds
+(`spawnChunkCreatures` → `compile`), the flora a sixth. The real build boots with no page error
+(`npm run look -- games/tethys`), the menu's picture as before.
+
+**Found, not changed — the person's to weigh** (the boot's profile there: ~8.8 s of scripts, 3.8 s of it the software renderer compiling shaders, which says nothing of a real GPU):
+- **The basins' flood runs whole before the first frame** — 855,000 samples, 1.4 → 0.95 s in node, ~1.0 s there — though v11.113 made it a slice a frame "so nothing
+  stalls": the menu's first nine cells place big structures on ground below −120 m, and far.js `bigsGen` asks `underChemo`, which finishes the
+  flood at once. Exact ways out are thin (a question above −120 m can be answered without it — tried: the boot still asks deeper). The choices:
+  let the big structures' test wait for the flood (a structure could then stand in a basin that turns out anoxic — none is, today), or a
+  ground-only `sample()` for it (11–15% cheaper, measured), or leave it.
+- The maps' blur (far.js `wmBlur`, ~0.3 s there) and the creatures' builds (~0.5 s at the boot, and two thirds of every new cell: above) are the
+  next largest; neither is the new work's. A pass on the creatures' builds is what would make cells arrive sooner.
+
+**Unseen, ask in this order:** the boot on the 4060 (the readout cannot time it: by feel, against the live site); the readout's `work` and the
+cells arriving while swimming fast along the forest's shelf (`tp(330,0,-10)`) and across the platform (`tp(216062,15900,-8)`) — the same or a
+little less, never different; anything that looks different anywhere would be a fault of this pass.
