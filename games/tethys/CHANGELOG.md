@@ -7862,3 +7862,28 @@ west-north-west of ours, its pass at −251 m). Load: region.js +12–20% (the s
 
 **Unseen:** the saddles from the water (`tp(-12080,-6680)`: the giant–m153 pass at −251 m); whether the shared base reads as Galápagos's or as
 a sheet laid between the islands.
+
+## v11.144 — the floor's grain (14 Nov 2026)
+
+The person, 14 Nov 2026: "… Then the floor texture" (analysis_archipelago §11.6; §11 G). Measured first, on test/earth.js's grids, the deep floor
+25 km and more from water under 500 m: relief (std) 5–34 m at 0.5–2 km (median 14), 20–113 m at 2–8 km (median ~47), the mid band's lineation
+1.05–1.43, and 0–44 seamounts 200 m proud per 10,000 km² (Chagos 8, Galápagos 12, the Azores 44). Ours: 5 m, 24 m, 1.19, none.
+
+- **region.js `rgGrainBuild`/`rgGrain` (`RG_GR_K`), one function on the floor (world.js sample(): `fl + rgGrain`, in place of v11.143's hills of
+  BASIN.hill):** the abyssal hills — the old ridge's fault blocks, a noise stretched twice as long along the old ridge as across it (across
+  `K.fracA`), 5 km and down, patchy over 30 km, ~70 m (std), with fine roughness over 1.2 km; the old fracture zones on the model's own lines (where
+  it draws births onto them, 26 km apart; half of them kept) — troughs 80–220 m deep varying along them, 2.5 km wide, a transverse ridge on one
+  side, wobbling ±1.5 km; and 280 seamounts, the vents that built no volcano — denser near the islands, none within 12 km of ours, 120 m plus an
+  exponential of mean 240 m high, flanks 12–19°, lobed, their tops never above −250 m with the hills under them (none reaches the light). The grain
+  is never under −500 m (sample() skips a record under fl − hill − 2.5 knees, −560).
+- **The saddles' base** carries 0.6 of the hills (none within 3–4.5 km of ours, where the base meets its flank: its square the same to the bit);
+  hSmooth takes the zones and the seamounts' bodies, so the relief field reads the hills.
+
+What moved (seed 32): the deep floor's relief 13 m at 0.5–2 km, 49 m at 2–8 km, lineation 1.19, 15 seamounts per 10,000 km² — each by Earth's
+median; test/earth.js's floor texture 15 → 33 m (Earth 7–36; Chagos 30, the Azores 36); the land and the shallows the same; ours' square the
+same to the bit; the ±70.5 km world's ground at 84% of places (by up to 631 m: the seamounts). sample() +5–9%.
+
+- **Tests:** test/region.js the floor's grain (the hills' spread, 150+ seamounts none in the light and none near ours, the fracture zones, the
+  grain's floor).
+
+**Unseen:** the floor from the water (the abyssal hills at −1,200 m, a seamount); whether the fracture zones read at all at the map's scale.

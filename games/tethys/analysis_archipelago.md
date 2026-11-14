@@ -647,6 +647,31 @@ to their rims, as ponded basins. Measured: the passes in range at every gap; the
 neighbours, two small pits left. **Left:** the base is smooth but for the floor's hills and its roll — the floor's grain (G) is next, and the
 base should carry it too.
 
+**11.6 The floor's grain (14 Nov 2026; the person: "Then the floor texture"). Built v11.144.** Measured first (scratch `floortex.js`, on
+test/earth.js's grids): the deep floor 25 km and more from water under 500 m — its relief (std of the band-passed height) at three scales, the mid
+band's lineation (the structure tensor's √ eigenvalue ratio: 1 none), and the seamounts 200 m proud of the 8 km mean per 10,000 km²:
+
+```
+window          0.5-2 km  2-8 km  8-30 km  lineation  seamounts
+Chagos               14      74      206      1.43        8.4
+Maldives              7      39      100      1.10        2.5
+Mascarene            10      40      104      1.07        2.9
+Galapagos            15      40      108      1.29       11.8
+Azores               18      90      182      1.05       43.8
+Hawaii               34     113      278      1.06       39.2
+Society              25      80      148      1.29       37.0
+Tuamotus             25      72      206      1.13       31.1
+Kerguelen             5      20       90      1.40        0.0
+Tethys v11.143        5      24      158      1.19        0.0
+Tethys v11.144       13      49      161      1.19       15.0
+```
+The coarse band was the plateau's own (the swell, the flexure: in range already); the rest was missing. **Built:** abyssal hills along the old
+ridge (2:1, ~70 m std, patchy), fine roughness, the old fracture zones on the model's own lines (half of them, troughs 80–220 m), 280 seamounts
+denser near the islands. Tuned by the table: the hills' amplitude first came out at a third of what was asked (a 3-octave fbm's spread is ±0.26 of
+its range), a 3:1 stretch read 1.63 (past Earth's most lineated), and the first seamounts on the shallow western plateau reached the surface.
+Seen at Earth's scale: the floor mottled as Earth's are, small seamounts scattered; the fracture zones faint. **Left:** a third blind sheet on an
+unseen seed — every step of §11 but the landslides is now built.
+
 **11.2 What must hold** (learned building v11.129–137; HANDOFF's working notes):
 - **The bounds.** sample() skips a record where its bound table `R.hi` (region.js `rgBound`: the radial profile plus fixed margins) says it
   cannot matter. Anything that raises the ground at some angles — a ridge, a debris fan — must raise `hi` at those radii (its largest height

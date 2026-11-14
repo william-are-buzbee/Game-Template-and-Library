@@ -188,7 +188,7 @@ function regionModel(Kin){
   for(const m of M){const s=m.zv,building=m.age<m.Ts;m.rtop=Math.min(0.75*m.R,m.E/RG_S);m.shore=s>0?m.rtop+s/RG_SA:m.reef&&m.rt>0?m.ring:0;m.top=Math.max(s,m.reef?m.rt:-1e9);
     m.state=building?(s>0?'shield':'young'):s>150?'high':s>0?(m.alive?'rim':'low'):m.reef&&m.rt>5?'raised':m.alive&&m.rt>-K.photic?(m.ring>6000?'bank':'atoll'):m.reef?(m.rt>-150?'drowned':'guyot'):m.E>0?'guyot':'seamount';
     m.land=m.shore>0?Math.PI*m.shore*m.shore/1e6:0;} // km², the disc's
-  return {K,M,pulses,flux,track:T,tg,top,al,cf,err,iter:it,head,platW,swellAt,ref,cen,rlAt,rlT,rlNeck,tAge,
+  return {fz:{nx:nfx,nz:nfz,sp,ph0},K,M,pulses,flux,track:T,tg,top,al,cf,err,iter:it,head,platW,swellAt,ref,cen,rlAt,rlT,rlNeck,tAge,
     floorAt:(x,z)=>{let f=K.plate+(top-K.plate)*platW(x,z)+swellAt(x,z,0);if(RL)f+=rlT(rlAt(x,z),0);for(const m of M)f-=cf*rgKei(Math.hypot(m.x-x,m.z-z)/al)*m.V;return f;}};
 }
 // the members whose land stands over the sea's horizon from the surface at (x, z): a summit h at d clears the curve's drop d²/2R'; `haze` is the
@@ -635,4 +635,35 @@ function rgSaddles(){const K=RG_SAD_K;if(!K.on)return null;const T0=Date.now();c
 function rgSad(x,z){const S=RG_SAD,u=(x-S.x0)/S.G,v=(z-S.z0)/S.G,i=Math.floor(u),j=Math.floor(v);if(i<1||j<1||i>=S.nx-2||j>=S.nz-2)return -1e9;const B=S.B,nx=S.nx,k=j*nx+i;
   if(B[k]<-3000&&B[k+1]<-3000&&B[k+nx]<-3000&&B[k+nx+1]<-3000)return -1e9;const tu=u-i,tv=v-j,row=q=>rgCR(B[q-1],B[q],B[q+1],B[q+2],tu);
   return rgCR(row(k-nx),row(k),row(k+nx),row(k+2*nx),tv);}
-const REGION=regionModel();RG_PL=rgPlatform(REGION);const RG_BUILT=rgBuild(REGION);for(const R of RG_BUILT.recs)ISLANDS.push(R);shelterBuild();rangeBuild(REGION);RG_SAD=rgSaddles(); // v11.143: the saddles, last (their lines read the finished ground) // v11.117: the records' shelter of each other, once every record stands; v11.119 their lineages
+// ---------- the floor's grain (v11.144, analysis_archipelago §11.6; §11 G; the person, 14 Nov 2026: "Then the floor texture") ----------
+// Earth's deep floor (test/earth.js's grids, 25 km and more from water under 500 m): relief 5–34 m (std) at 0.5–2 km, 20–113 at 2–8 km, and
+// 0–44 seamounts 200 m proud per 10,000 km² (Chagos 8, Galápagos 12, the Azores 44); ours 5, 24 and none. Three things, one function added to the
+// floor (and 0.6 of the hills to the saddles' base): the abyssal hills, the old ridge's fault blocks — a noise stretched ani times along the ridge
+// (across K.fracA's spreading), A m, its octaves from 1/fu m down, patchy over 1/patch m, and fA m of fine roughness over 1/ff m; the old fracture zones, on the model's own lines (where
+// it draws births onto them, K.fracSp apart) — keep of them a trough D m deep (varying along it), w m wide, a transverse ridge on one side, its
+// line wobbling ±wob m; and the seamounts — the vents that built no volcano: n of them, denser near the islands (p0 of the far rate, rising within ~near m), none within
+// excl m of ours, H = h0 + an exponential of mean hm (to hmax, its top never above −top m with hm2 m of hills under it: none reaches the light), flanks at slope 0.22–0.35, lobed. The grain never under −lo m (sample() skips records under fl − hill − 2.5 knees). All drawn from the model's seed by name
+const RG_GR_K={on:true,hill:{A:320,fu:1/5000,ani:2,oct:3,patch:1/30000,fA:60,ff:1/1200},fz:{D:[80,220],w:2500,ridge:0.35,wob:1500,keep:0.5},sm:{n:280,p0:0.45,top:250,hm2:350,h0:120,hm:240,hmax:1100,sl:[0.22,0.35],near:40000,excl:12000},cell:8000,lo:500};
+function rgGrainBuild(Rg){const K=RG_GR_K;if(!K.on)return null;const F=Rg.fz,rng=mulberry(WB.hashString('grain:'+Rg.K.seed)),cu=F.nz,su=-F.nx; // u: along the spreading (cos, sin fracA); v: along the old ridge (F.nx, F.nz)
+  // the fracture zones: per line its strength and, along it (u, 1 km steps over the world), its depth's roll and its wobble
+  const U=[WX0,WX1,WZ0,WZ1],uc=[U[0]*cu+U[2]*su,U[1]*cu+U[2]*su,U[0]*cu+U[3]*su,U[1]*cu+U[3]*su],vc=[U[0]*F.nx+U[2]*F.nz,U[1]*F.nx+U[2]*F.nz,U[0]*F.nx+U[3]*F.nz,U[1]*F.nx+U[3]*F.nz],
+    u0=Math.min(...uc)-20000,u1=Math.max(...uc)+20000,n0=Math.floor((Math.min(...vc)-20000-F.ph0)/F.sp),n1=Math.ceil((Math.max(...vc)+20000-F.ph0)/F.sp),nu=Math.ceil((u1-u0)/1000)+2,lines=new Map();
+  for(let n=n0;n<=n1;n++){const r=mulberry(WB.hashString('fz:'+Rg.K.seed+':'+n));if(r()>K.fz.keep)continue;const D=K.fz.D[0]+(K.fz.D[1]-K.fz.D[0])*r(),side=r()<0.5?-1:1,p1=r()*TAU,p2=r()*TAU,p3=r()*TAU,p4=r()*TAU,dep=new Float32Array(nu),wob=new Float32Array(nu);
+    for(let i=0;i<nu;i++){const t=(u0+i*1000)/1000;dep[i]=D*(0.35+0.65*(0.5+0.5*(0.6*Math.sin(t/37+p1)+0.4*Math.sin(t/13+p2))));wob[i]=K.fz.wob*(0.6*Math.sin(t/23+p3)+0.4*Math.sin(t/9+p4));}lines.set(n,{dep,wob,side});}
+  // the seamounts
+  const C=K.cell,gx0=WX0-C,gz0=WZ0-C,gnx=Math.ceil((WX1-gx0)/C)+2,gnz=Math.ceil((WZ1-gz0)/C)+2,cells=Array.from({length:gnx*gnz},()=>[]),sm=[],home=ISLANDS.find(R=>R.id==='home');
+  for(let tries=0;sm.length<K.sm.n&&tries<K.sm.n*40;tries++){const x=WX0+(WX1-WX0)*rng(),z=WZ0+(WZ1-WZ0)*rng(),acc=rng();let dn=1e18;for(const R of ISLANDS)dn=Math.min(dn,Math.hypot(x-R.x,z-R.z));
+    if(acc>K.sm.p0+(1-K.sm.p0)*Math.exp(-dn/K.sm.near))continue;if(home&&Math.hypot(x-home.x,z-home.z)<K.sm.excl)continue;
+    const H=Math.min(K.sm.hmax,-K.sm.top-K.sm.hm2-rgFloor(x,z),K.sm.h0-K.sm.hm*Math.log(Math.max(1e-6,rng()))),sl=K.sm.sl[0]+(K.sm.sl[1]-K.sm.sl[0])*rng(),R=1.6*H/sl,a2=0.15*rng(),a3=0.12*rng(),p2=rng()*TAU,p3=rng()*TAU;
+    if(H<K.sm.h0*0.5)continue;const q={x,z,H,R,c2:a2*Math.cos(p2),s2:a2*Math.sin(p2),c3:a3*Math.cos(p3),s3:a3*Math.sin(p3)},e=R*1.3;sm.push(q);
+    for(let j=Math.max(0,Math.floor((z-e-gz0)/C));j<=Math.min(gnz-1,Math.floor((z+e-gz0)/C));j++)for(let i=Math.max(0,Math.floor((x-e-gx0)/C));i<=Math.min(gnx-1,Math.floor((x+e-gx0)/C));i++)cells[j*gnx+i].push(q);}
+  return {F,cu,su,u0,nu,lines,sm,cells,gx0,gz0,gnx,gnz,C};}
+// the grain at (x, z): returns all of it; into o.hill the abyssal hills alone and o.s its smooth part (the zones and the seamounts' bodies)
+function rgGrain(x,z,o){const G=RG_GR,K=RG_GR_K,F=G.F,u=x*G.cu+z*G.su,v=x*F.nx+z*F.nz,Hk=K.hill;
+  const hill=Hk.A*clamp(0.6+2*(fbm(u*Hk.patch+3.1,v*Hk.patch+8.3,1)-0.5),0.2,1.2)*(fbm(u*Hk.fu+13.1,v*Hk.fu/Hk.ani+7.7,Hk.oct)-0.5)*2+Hk.fA*(fbm(x*Hk.ff+23,z*Hk.ff+71,1)-0.5)*2;
+  let g=0;const n=Math.round((v-F.ph0)/F.sp),L=G.lines.get(n);if(L){const t=(u-G.u0)/1000,i=Math.max(0,Math.min(G.nu-2,Math.floor(t))),f=Math.min(1,Math.max(0,t-i)),D=L.dep[i]+(L.dep[i+1]-L.dep[i])*f,wb=L.wob[i]+(L.wob[i+1]-L.wob[i])*f,
+    d=(v+wb-(F.ph0+F.sp*n))/K.fz.w*L.side;g=-D*Math.exp(-d*d)+K.fz.ridge*D*Math.exp(-(d-1.8)*(d-1.8));}
+  const ci=Math.floor((x-G.gx0)/G.C),cj=Math.floor((z-G.gz0)/G.C);if(ci>=0&&cj>=0&&ci<G.gnx&&cj<G.gnz){const S=G.cells[cj*G.gnx+ci];for(let k=0;k<S.length;k++){const q=S[k],dx=x-q.x,dz=z-q.z,r2=dx*dx+dz*dz,e=q.R*1.3;if(r2>=e*e)continue;
+    const r=Math.sqrt(r2)||1e-6,c=dx/r,sn=dz/r,c2=c*c-sn*sn,s2=2*c*sn,c3=c*(4*c*c-3),s3=sn*(3-4*sn*sn),Rl=q.R*(1+q.c2*c2+q.s2*s2+q.c3*c3+q.s3*s3),t=1-r/Rl;if(t>0)g=Math.max(g,q.H*Math.pow(t,1.6));}}
+  o.hill=hill;o.s=g;return Math.max(-K.lo,hill+g);}
+const REGION=regionModel();RG_PL=rgPlatform(REGION);const RG_BUILT=rgBuild(REGION);for(const R of RG_BUILT.recs)ISLANDS.push(R);shelterBuild();rangeBuild(REGION);RG_SAD=rgSaddles();RG_GR=rgGrainBuild(REGION); // v11.143: the saddles; v11.144: the floor's grain, last // v11.117: the records' shelter of each other, once every record stands; v11.119 their lineages

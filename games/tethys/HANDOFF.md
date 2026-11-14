@@ -1,5 +1,11 @@
 # HANDOFF — tethys
 
+**v11.144 (14 Nov 2026): the floor's grain** (analysis_archipelago §11.6; the person: "Then the floor texture"). One function on the floor
+(`rgGrain`, `RG_GR_K`): abyssal hills along the old ridge, the old fracture zones on the model's own lines, 280 seamounts (none in the light, none
+near ours). The deep floor's relief at 2–8 km 24 → 49 m, seamounts 0 → 15 per 10,000 km² (Earth's medians ~47 and ~10); ours' square the same
+to the bit. **Next (ask):** a third blind sheet on an unseen seed (`PSEED=<n> BLIND=<seed> node test/earth.js`) — the plan's steps A–G are built
+but for the landslides (dropped); the near-ridge plume (§10.3) is still the person's call.
+
 **v11.143 (14 Nov 2026): the saddles** (analysis_archipelago §11.5; the person: "Go right ahead onto the channels between the banks at middle
 depth. Then the floor texture"). The islands stand on a shared base (`rgSaddles`, `RG_SAD_K`, a 1 km grid built at load, ~0.2 s): each pair of
 neighbouring shallows joined by a lens falling ~1.7° from −160 m, its pits filled three quarters to their rims. Passes −243, −303, −466 m at gaps

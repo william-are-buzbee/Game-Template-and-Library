@@ -193,7 +193,11 @@ the exact distance (`RG_PL.so`, `so2`) and the warps fading; 16 km out the apron
 region (not ours), each region's exact distance (`rgEdt`), the pairs that are somewhere each other's nearest; each pair's base a lens falling from
 −160 m at ~1.7° (its pass at −160 − s·gap/2) and off the line by how far the way round is longer than the gap; the highest of the pairs', its pits
 filled three quarters to their rims (ponded basins). sample() reads it by `rgSad` (Catmull-Rom), the floor's hills and its own roll on it, by the
-floor's knee, never past FILL_TOP; a hard max within 3 km of ours. The slopes' aspect (the waves', the current's) is the nodes' normal (`RG_PL.nX`, `nZ`; the drowned flat's
+floor's knee, never past FILL_TOP; a hard max within 3 km of ours.
+**The floor's grain (v11.144; analysis_archipelago §11.6):** `rgGrain` (built by `rgGrainBuild`, `RG_GR_K`) is added to the floor in sample():
+the abyssal hills (a noise stretched along the old ridge, across `K.fracA`), the old fracture zones on the model's own lines (`REGION.fz`: troughs
+with a transverse ridge, their depth and line rolling along them) and 280 seamounts (a grid of 8 km cells; their tops under −250 m with the hills
+under them). Never under −500 m, so sample()'s record skip under fl − hill − 2.5 knees holds; the saddles' base carries 0.6 of the hills. The slopes' aspect (the waves', the current's) is the nodes' normal (`RG_PL.nX`, `nZ`; the drowned flat's
 `nX2`, `nZ2`, blended across the crease where its slope meets a bank's).
 **The fed rule by its time (v11.130):** a member's upstream ones (`m.up`, within `fedL` up-current across its foot) shelter it while one stands in
 the light (`litNow`, a step behind); fed now, its reef takes no hold and grows at `fedK`. `m.fed` is today's.
