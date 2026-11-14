@@ -1,5 +1,17 @@
 # HANDOFF — tethys
 
+**v11.144 (14 Nov 2026): the floor's grain** (analysis_archipelago §11.6; the person: "Then the floor texture"). One function on the floor
+(`rgGrain`, `RG_GR_K`): abyssal hills along the old ridge, the old fracture zones on the model's own lines, 280 seamounts (none in the light, none
+near ours). The deep floor's relief at 2–8 km 24 → 49 m, seamounts 0 → 15 per 10,000 km² (Earth's medians ~47 and ~10); ours' square the same
+to the bit. **Next (ask):** a third blind sheet on an unseen seed (`PSEED=<n> BLIND=<seed> node test/earth.js`) — the plan's steps A–G are built
+but for the landslides (dropped); the near-ridge plume (§10.3) is still the person's call.
+
+**v11.143 (14 Nov 2026): the saddles** (analysis_archipelago §11.5; the person: "Go right ahead onto the channels between the banks at middle
+depth. Then the floor texture"). The islands stand on a shared base (`rgSaddles`, `RG_SAD_K`, a 1 km grid built at load, ~0.2 s): each pair of
+neighbouring shallows joined by a lens falling ~1.7° from −160 m, its pits filled three quarters to their rims. Passes −243, −303, −466 m at gaps
+of 5–10, 10–20, 20–40 km (Earth's in range; ours were at the floor); the −150 to −800 share 10% → 20%. Ours' square the same to the bit.
+**Next:** the floor's grain (§11 G; the person asked for it next).
+
 **v11.142 (14 Nov 2026): the platform's margins** (analysis_archipelago §11.4; the person: "Go ahead with the eastern platform's margins").
 The banks' and the drowned flat's margins fall as Earth's banks do (`rgSlope`, `RG_PL_K.mw … dl`: −327 m 2 km out, Chagos's exactly; v11.141
 −1,006), by side, steepness varying along the margin, the far slope by the exact distance; deep-drowned reefs (past −300) the floor's. The

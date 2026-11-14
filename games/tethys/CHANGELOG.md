@@ -7829,3 +7829,61 @@ the same; **ours' square, and the ±70.5 km world's heights and fields, the same
 
 **Unseen:** the slopes from the water (the platform's east margin, `tp(327000,40000,-400)`); whether the halo reads as Chagos's or as a ring on
 the map at the person's own scale.
+
+## v11.143 — the saddles (14 Nov 2026)
+
+The person, 14 Nov 2026: "Go right ahead onto the channels between the banks at middle depth. Then the floor texture" (analysis_archipelago
+§11.5; §11 C). Measured first, in test/earth.js's own grids: the pass between neighbouring shallows (the highest point on the line dividing them),
+by the gap between them. Earth's plume archipelagos stand on a shared base — Chagos −228, −496, −804 m at gaps of 5–10, 10–20, 20–40 km; the
+Maldives −211, −373, −358; Galápagos −119, −160, −260; the Azores and Cape Verde between — where ours fell to the floor: −807, −1,056, −1,230.
+
+- **region.js `rgSaddles` (`RG_SAD_K`, built last at load):** on a 1 km grid, the shallows above −100 m (each record's by its own profile,
+  `rgRadial` at `rgLoc`'s radius, and the platform's carbonate — no sample(), 0.2 s saved), each piece of 2 km² or more a region (ours left out:
+  it stands on whatever its neighbours make), each region's exact distance (`rgEdt`, within its box and 40 km), and the pairs that are somewhere
+  each other's nearest (19 of them). A pair's base falls from −160 m at the nearer shallows at ~1.7° (×e^±0.45 by the pair's own draw) — its
+  pass, midway, at −160 − s·gap/2, Earth's at every gap — and away from the line between them by how far the way round through the point is
+  longer than the gap (a lens, widest midway, shaped by the shallows' own outlines). The base is the highest of its pairs'; its pits, the ground
+  between three or more islands that no lens reaches, filled three quarters of the way to the level they spill at (a priority flood): ponded
+  basins, as on Earth's shared platforms, not holes to the floor.
+- **world.js sample():** `rgSad` (Catmull-Rom on the grid) with the floor's hills and a roll of its own (±150 m over 8 km; none at its top), met
+  with the ground by the floor's knee, never raised past FILL_TOP (−150: above it the ground is the records' own, v11.114); a hard max within
+  3 km of ours, so its square is the same to the bit (the base 125 m under it at the nearest).
+- **The first cut, dropped:** a ridge along each pair's line (a Gabriel graph of the records): on the map a net of narrow straight tubes wiring
+  the islands together. Then, on the grid: bubbles at the shelf edges (the base started at −100 on the 1 km outline: now −160), holes between
+  three islands (now filled), and 0.6 s at load (now ~0.2).
+
+What moved (seed 32): the passes 5–10, 10–20, 20–40 km apart −243, −303, −466 m (Earth's in range at each); the province's surroundings between
+−150 and −800 m 10% → 20%, its in-between (−150 to −1,100) 20% → 31% (Chagos 29%, the Azores 30%, Galápagos 37%); the land and the shallows the
+same; ours' square the same to the bit; the ±70.5 km world's ground changed at 21% of places (up to 1,147 m higher: the giant–m153 saddle, 14 km
+west-north-west of ours, its pass at −251 m). Load: region.js +12–20% (the saddles ~0.2 s); sample() +7–16%.
+
+- **Tests:** test/region.js the saddles (≥ 8 pairs, the passes by gap within Earth's medians' range, none 300 m under its pass, the base never
+  above −160); the reefs' spurs and chutes counted on their own slopes, not the base's over them.
+
+**Unseen:** the saddles from the water (`tp(-12080,-6680)`: the giant–m153 pass at −251 m); whether the shared base reads as Galápagos's or as
+a sheet laid between the islands.
+
+## v11.144 — the floor's grain (14 Nov 2026)
+
+The person, 14 Nov 2026: "… Then the floor texture" (analysis_archipelago §11.6; §11 G). Measured first, on test/earth.js's grids, the deep floor
+25 km and more from water under 500 m: relief (std) 5–34 m at 0.5–2 km (median 14), 20–113 m at 2–8 km (median ~47), the mid band's lineation
+1.05–1.43, and 0–44 seamounts 200 m proud per 10,000 km² (Chagos 8, Galápagos 12, the Azores 44). Ours: 5 m, 24 m, 1.19, none.
+
+- **region.js `rgGrainBuild`/`rgGrain` (`RG_GR_K`), one function on the floor (world.js sample(): `fl + rgGrain`, in place of v11.143's hills of
+  BASIN.hill):** the abyssal hills — the old ridge's fault blocks, a noise stretched twice as long along the old ridge as across it (across
+  `K.fracA`), 5 km and down, patchy over 30 km, ~70 m (std), with fine roughness over 1.2 km; the old fracture zones on the model's own lines (where
+  it draws births onto them, 26 km apart; half of them kept) — troughs 80–220 m deep varying along them, 2.5 km wide, a transverse ridge on one
+  side, wobbling ±1.5 km; and 280 seamounts, the vents that built no volcano — denser near the islands, none within 12 km of ours, 120 m plus an
+  exponential of mean 240 m high, flanks 12–19°, lobed, their tops never above −250 m with the hills under them (none reaches the light). The grain
+  is never under −500 m (sample() skips a record under fl − hill − 2.5 knees, −560).
+- **The saddles' base** carries 0.6 of the hills (none within 3–4.5 km of ours, where the base meets its flank: its square the same to the bit);
+  hSmooth takes the zones and the seamounts' bodies, so the relief field reads the hills.
+
+What moved (seed 32): the deep floor's relief 13 m at 0.5–2 km, 49 m at 2–8 km, lineation 1.19, 15 seamounts per 10,000 km² — each by Earth's
+median; test/earth.js's floor texture 15 → 33 m (Earth 7–36; Chagos 30, the Azores 36); the land and the shallows the same; ours' square the
+same to the bit; the ±70.5 km world's ground at 84% of places (by up to 631 m: the seamounts). sample() +5–9%.
+
+- **Tests:** test/region.js the floor's grain (the hills' spread, 150+ seamounts none in the light and none near ours, the fracture zones, the
+  grain's floor).
+
+**Unseen:** the floor from the water (the abyssal hills at −1,200 m, a seamount); whether the fracture zones read at all at the map's scale.
