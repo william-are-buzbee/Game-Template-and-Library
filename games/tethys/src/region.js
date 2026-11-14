@@ -289,6 +289,8 @@ function rgBound(R){const F=R.flank,L=R.land,ex=10.5+8+12+4+5+(R.knob||0)+(R.car
   const at=r=>{const rf=r-(F.r+60);let d=0;if(rf>0){const t=Math.min(rf/F.w,1),d0=rf<F.w?F.w*(t*t*t-0.5*t*t*t*t):rf-0.5*F.w,u=clamp((rf-F.a)/(F.b-F.a),0,1),d1=rf<F.a?0:rf<F.b?(F.b-F.a)*(u*u*u-0.5*u*u*u*u):rf-0.5*(F.a+F.b);d=F.s0*d0-(F.s0-F.s1)*d1;}
     const Q=Object.assign({},R,{flank:Object.assign({},F,{r:1e9})});return Math.max(rgRadial(Q,r)-0.85*d,R.barrier?rgCap(R.barrier,r):-1e9);};
   for(let k=0;k<n;k++){const a=0.84*k*RG_HIS,b=1.16*(k+1)*RG_HIS;let m=-1e9;for(let q=0;q<=8;q++){const v=at(a+(b-a)*q/8);if(v>m)m=v;}hi[k]=m+ex;}
+  // v11.138: a ridge's crest at this ring (its own radius from 0.84 of the ring's, less its widest half-width: the nearest it can stand), and margin
+  // v11.138: the ridges' bound is not here but by the point (world.js rdgBound, which sample() takes with this): by the radius it held all round
   for(let k=n-2;k>=0;k--)if(hi[k]<hi[k+1])hi[k]=hi[k+1]; // never rising outward: a bump between the table's points is covered by the next
   R.hi=hi;R.hiS=RG_HIS;R.quiet=Math.max(R.terr.r1+150,R.riftR?R.riftR[2]:0,L?L.r:0,R.rimR!==undefined?R.rimR+R.rimW:0,R.barrier?R.barrier.r+R.barrier.w:0)/0.84+100;}
 // v11.123 (analysis_archipelago §1.4, §6 step 3): a lagoon's depth below its reef's top by its ring — a lagoon is mostly limestone the lowstands'
@@ -359,7 +361,18 @@ function rgRecord(m,K){const ns=1000+37*Number(m.id.slice(1)),rng=mulberry(WB.ha
     R.prof=[[rr+0.3*W,rr+90,6],[rr+80,rr+210,12],[rr+190,rr+310,90],[rr+390,rr+640,160],[rr+560,rr+1040,300]];R.terr={r0:rr+310,r1:rr+390,n:0,step:0};R.flank={r:rr+950,w:200,s0:0.70,s1:0.30,a:900,b:3200};R.fade=[rr+2800,rr+5800];R.carb={n:Math.max(24,Math.round(TAU*(rr+1500)/CARB.sp))};} // carb (v11.107): the cap's spurs round it, every CARB.sp m at the slope's top
   else{const rS=m.state==='guyot'?Math.max(200,m.rtop):clamp(0.05*m.R,120,300);R.h0=Math.round(m.zv);R.prof=m.state==='guyot'?[]:[[0,2*rS,20]];R.terr={r0:rS,r1:rS+400,n:0,step:0};R.flank={r:rS,w:300,s0:0.36,s1:0.22,a:600,b:2000};R.bare=R.h0;R.knob=30;R.fade=[rS+1500,rS+4000];}
   if(RG_LOBE.on&&m.pin<0)rgLobe(R,m,K);
+  if(RG_RDG.on&&m.pin<0)rgRidges(R,m);
   return R;}
+// v11.138 (analysis_archipelago §11 A, E; the person, 13 Nov 2026: "I would love to start on 1 right now"): the flanks sculpted. The blind test's
+// first tell was the islands as "perfect round cakes" — concentric rings of even width on a smooth floor — where Earth's carry their rift zones on
+// under the sea as long ridges (Kīlauea's Puna Ridge ~75 km to −5,500 m; the Canaries', Réunion's) and are fluted by canyons. A ridge per rift arm
+// (rgLobe's, in the record's own frame): its crest from the shelf's edge (r0, the profile's height there h0) falling at `s` until it meets the
+// floor (sample()'s smax takes the floor there) and fading by L (1.2 R of the volcano, 8–40 km), its half-width W tapering to its tip; the canyons `n` round the
+// flank at ~`sp` apart, `d` deep (world.js islandH)
+const RG_RDG={on:true,s:0.07,L:[1.2,8000,40000],w:[0.15,800,4000],cy:{d:60,sp:2200}}; // w: the crest's half-width where it leaves the island, 0.15 of the shelf's radius (0.8–4 km)
+function rgRidges(R,m){if(!R.arm||!R.flank)return;const F=R.flank,r0=F.r,L=clamp(RG_RDG.L[0]*m.R,RG_RDG.L[1],RG_RDG.L[2]),w0=clamp(RG_RDG.w[0]*r0,RG_RDG.w[1],RG_RDG.w[2]);
+  R.rdg={r0,h0:rgRadial(R,r0),s:RG_RDG.s,L,W:w0,ph:(R.ns%97)*0.37,c:R.arm.map(Math.cos),n:R.arm.map(Math.sin)};
+  R.cny={n:Math.max(12,Math.round(TAU*(r0+3000)/RG_RDG.cy.sp)),d:RG_RDG.cy.d};}
 // v11.135 (analysis_archipelago §9.6; the person, 13 Nov 2026: "The lobed is a solid idea"): a volcano's outline lobed — Earth's are, by their
 // vents and their rift zones (the Big Island three-armed, El Hierro and Tenerife stars, an atoll's reef on the volcano it caps), where to v11.134
 // every record was a circle or a smooth ellipse (test/earth.js: the hull's roundness 0.91 against Earth's 0.68–0.87). In the record's own frame
@@ -379,6 +392,7 @@ function rgLobe(R,m,K){const N=RG_RM,s=new Float64Array(N),h=mulberry(WB.hashStr
   // the rift zones' arms, in the record's own frame
   const wa=R.rifts?R.rifts.slice():(()=>{const n=h()<0.5?2:3,a0=K.fracA+0.3*(h()-0.5)*2;return Array.from({length:n},(_,i)=>a0+i*TAU/n+0.25*(h()-0.5)*2);})();
   const arms=wa.map(a=>{const ux=Math.cos(a),uz=Math.sin(a),p=(ux*c+uz*sn),q=(uz*c-ux*sn)*(R.asq||1);return {a:Math.atan2(q,p),A:(RG_LOBE.armA[0]+(RG_LOBE.armA[1]-RG_LOBE.armA[0])*h())/(R.asq||1)};}); // an arm the less where the record is long already
+  R.arm=arms.map(g=>g.a); // v11.138: the arms' angles in its own frame, for its submarine ridges (rgRidges)
   let ms=0;for(let k=0;k<N;k++){const a=k/N*TAU;let f=1;for(const g of arms){let d=a-g.a;d-=TAU*Math.round(d/TAU);f+=g.A*Math.exp(-(d/RG_LOBE.armW)*(d/RG_LOBE.armW));}sm[k]*=f;ms+=sm[k]*sm[k];}
   const nr=Math.sqrt(ms/N);let lmax=0,lmin=1e9;for(let k=0;k<N;k++){sm[k]/=nr;lmax=Math.max(lmax,sm[k]);lmin=Math.min(lmin,sm[k]);}
   const T=new Float32Array(N+1);for(let k=0;k<N;k++)T[k]=sm[k];T[N]=T[0];R.lobe=T;R.lmax=lmax;R.sc*=lmax;
@@ -405,7 +419,8 @@ function rgBuild(Rg){const K=Rg.K,W0=[-HALF-2000,HALF+2000,-HALF-2000,HALF+2000]
     if(!R.land&&rgPlatSd(m.x,m.z)>-(R.rimR!==undefined?0.5*R.rimR:0)){struck.push({id:m.id,by:'platform'});continue;} // v11.122: a member the platform grew over (its centre on it, a reef's within half its ring) is buried by it; land stands above it
     // v11.131: a satellite never buries its own host; the burier read in its own frame (an oval's: v11.129 kept the round distance so the list would not move)
     const by=kept.find(B=>!(B.sat&&B.sat.host===m.id)&&rgRadial(B,rgLoc(B,R.x,R.z))>top-20);if(by){struck.push({id:m.id,by:by.id});continue;}
-    const f=foot(R);R.reach=Math.round(Math.max(1.2*f,R.fade[1])+500);if(!box(R.x,R.z,R.reach,w)){(w===W0?later:later2).add(m);continue;}rgBound(R);R.an=anTables(R.ns);kept.push(R);out.push(R);}};
+    const f=foot(R);R.reach=Math.round(Math.max(1.2*f,R.fade[1])+500);if(R.rdg){R.rdgR=Math.round(R.rdg.r0+R.rdg.L+1.6*R.rdg.W+500); /* v11.138: its ridges' far end (its reach the island's own: past it sample() asks the ridges alone, world.js rdgNear) */
+      let fm=1e9;const P_={};for(const a of R.arm)for(let q=0;q<=12;q++)for(const off of [-1,0,1]){rgAt(R,R.rdg.r0+R.rdg.L*q/12,a+off*0.25*(1-q/14),P_);fm=Math.min(fm,rgFloor(P_.x,P_.z));}R.rdgF=fm-BASIN.hill-2.5*BASIN.knee-200;} /* the deepest floor along and beside its ridges, with 200 to spare */if(!box(R.x,R.z,R.reach,w)){(w===W0?later:later2).add(m);continue;}rgBound(R);R.an=anTables(R.ns);kept.push(R);out.push(R);}};
   pass(c0,W0);const n0=out.length;pass(c1.filter(m=>later.has(m)),W);const n1=out.length;pass(c2.filter(m=>later2.has(m)),W2); // the old square's, then the world's (a member of the first list kept by the world alone is shaped again: v11.132 the same shape)
   for(const R of ISLANDS){const f=foot(R),need=Math.round(1.2*f+500);if(need>R.reach)R.reach=need;if(R.id==='giant')rgBound(R);} // the pins: their flanks go on down to the model's floor; the giant's kit is the model's (land, rifts, flows: no collapse, dikes, 
   rgMargins(kept); // v11.123: one margin per reef, once every record stands (the pins' barrier too; ours keeps its rim)
