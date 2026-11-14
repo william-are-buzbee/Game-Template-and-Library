@@ -1970,11 +1970,11 @@ function addFloraSolids(ch,f,m,x,y,z,inst,soft){ // soft: a swaying plant — it
 let lastPad=null,contactK=0; // contactK: what the pushes since it was last cleared moved a point out of — 1 a soft plant, 2 rock or a hard thing (the player clears it, audio.js reads it)
 // noPad: ignore pads (the camera).
 function solidPush(p,pad,vel,extra,noPad,own){ // own (v11.52): only extra's hash — a cell placing its flora must not read what neighbours happen to be loaded (DESIGN Determinism; test/pool.js found the wisp placed differently by arrival order)
-  const ci=cellOf(p.x),cj=cellOf(p.z);let any=false;lastPad=null;
+  const ci=cellOf(p.x),cj=cellOf(p.z),A=own?null:nb9(ci,cj);let any=false;lastPad=null; // A: the 3×3 round (v11.149, chunks.js nb9: the last cell's kept)
   for(let pass=0;pass<3;pass++){
     let moved=false;
     for(let n=-1;n<=(own?-1:8);n++){
-      let ch;if(n<0)ch=extra;else{const i=ci+(n%3)-1,j=cj+((n/3)|0)-1;ch=chunkIJ(i,j);if(!ch)continue;}
+      let ch;if(n<0)ch=extra;else{ch=A[n];if(!ch)continue;}
       if(!ch||!ch.solids.length)continue;
       const mg=ch.solidR+pad;if(p.x<ch.x0-mg||p.x>ch.x0+CELL+mg||p.z<ch.z0-mg||p.z>ch.z0+CELL+mg)continue;
       const i0=clamp(Math.floor((p.x-pad-ch.x0)/HB),0,HN-1),i1=clamp(Math.floor((p.x+pad-ch.x0)/HB),0,HN-1),j0=clamp(Math.floor((p.z-pad-ch.z0)/HB),0,HN-1),j1=clamp(Math.floor((p.z+pad-ch.z0)/HB),0,HN-1);
@@ -2210,16 +2210,22 @@ function rigSkin(rig,e){
 }
 // Build a rig's mesh from segment parts: segs is a list of {parts:[part...], chain, k} (parts in the segment's rest frame,
 // the segment's origin at its chain point). One geometry for the whole rig.
+// v11.149 (parts.js GEO_TAPE): the rig is one entry on a build's tape — its whole skin (positions, normals, colours, segments) recorded, its
+// segments' merges inside it not; replayed, nothing is merged and the arrays are copied whole (to v11.148 a merge a segment, every vertex pushed
+// through plain arrays and converted back: the most of a ringmouth's build). Its chains are made by the caller as before: they are the creature's own
 function makeRig(segs,mat,chains){
-  const pos=[],nor=[],col=[],sg=[];let base=0;
-  for(const c of chains)c.base=base,base+=c.n;
-  for(const sd of segs){const g=merge(sd.parts),pa=g.attributes.position.array,na=g.attributes.normal.array,ca=g.attributes.color.array,id=sd.chain.base+sd.k;
-    for(let i=0;i<pa.length;i+=3){pos.push(pa[i],pa[i+1],pa[i+2]);nor.push(na[i],na[i+1],na[i+2]);col.push(ca[i],ca[i+1],ca[i+2]);sg.push(id);}
-    g.dispose();}
+  let base=0;for(const c of chains)c.base=base,base+=c.n;
+  const T=GEO_TAPE;let fp,fn,fc,fs;
+  if(T!==null&&T.play){const r=T.list[T.i++];if(!r||r.rig!==segs.length)throw new Error('the build tape: rig '+(T.i-1)+' does not match its recording');for(const sd of segs)for(const p of sd.parts)p.g.dispose();fp=r.pos;fn=r.nor;fc=r.col;fs=r.sg.slice();} /* the attributes below copy them */
+  else{const pos=[],nor=[],col=[],sg=[];GEO_TAPE=null; // its segments' merges are not on the tape: the rig is, below
+    try{for(const sd of segs){const g=merge(sd.parts),pa=g.attributes.position.array,na=g.attributes.normal.array,ca=g.attributes.color.array,id=sd.chain.base+sd.k;
+      for(let i=0;i<pa.length;i+=3){pos.push(pa[i],pa[i+1],pa[i+2]);nor.push(na[i],na[i+1],na[i+2]);col.push(ca[i],ca[i+1],ca[i+2]);sg.push(id);}
+      g.dispose();}}finally{GEO_TAPE=T;}
+    fp=new Float32Array(pos);fn=new Float32Array(nor);fc=new Float32Array(col);fs=Int16Array.from(sg);if(T!==null)T.list.push({rig:segs.length,pos:fp,nor:fn,col:fc,sg:fs.slice()});} /* fp, fn, fc are never written: the attributes and lo, ln are copies */
   const geo=new THREE.BufferGeometry();
-  const pa=new THREE.Float32BufferAttribute(pos,3),na=new THREE.Float32BufferAttribute(nor,3);pa.setUsage(THREE.DynamicDrawUsage);na.setUsage(THREE.DynamicDrawUsage);
-  geo.setAttribute('position',pa);geo.setAttribute('normal',na);geo.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
-  const rig={geo:geo,mesh:new THREE.Mesh(geo,mat),chains:chains,lo:Float32Array.from(pos),ln:Float32Array.from(nor),sg:Int16Array.from(sg),solid:true};
+  const pa=new THREE.Float32BufferAttribute(fp,3),na=new THREE.Float32BufferAttribute(fn,3);pa.setUsage(THREE.DynamicDrawUsage);na.setUsage(THREE.DynamicDrawUsage);
+  geo.setAttribute('position',pa);geo.setAttribute('normal',na);geo.setAttribute('color',new THREE.Float32BufferAttribute(fc,3));
+  const rig={geo:geo,mesh:new THREE.Mesh(geo,mat),chains:chains,lo:fp.slice(),ln:fn.slice(),sg:fs,solid:true};
   rig.mesh.frustumCulled=false;
   return rig;
 }
@@ -3149,8 +3155,22 @@ const G={
   // a quad a-b-c-d (each [x,y,z]) seen from both sides: four triangles, no index (the webs and the tail fans)
   quad:(a,b,c,d)=>{const g=new THREE.BufferGeometry(),P=[];const tri=(p,q,r)=>P.push(p[0],p[1],p[2],q[0],q[1],q[2],r[0],r[1],r[2]);tri(a,b,c);tri(a,c,d);tri(c,b,a);tri(d,c,a);g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));return g;}
 };
+// ---------- the build's tape (v11.149, the creature performance pass) ----------
+// A kind's body is the same every time it is built: its spec, its scale and its palette (a coat class is a palette) decide every vertex. To
+// v11.148 every spawn built it whole all the same — every primitive, every merge — and spawn() then threw the meshes' geometry away for the
+// kind's shared copy (creatures_ai.js KIND_GEO): two thirds of a cell's generation where the animals are many (69 a cell on the forest's shelf).
+// creatures_ai.js buildKind now records a kind's first build — every merge()'s output, in order (GEO_TAPE.play false) — and replays it on the
+// next (play true): merge hands back its recorded output, and the primitives and the parts' transforms it would have read are not made
+// (LAZY_G, part's m null). The builders themselves still run, so everything that is a creature's own — its rigs (skinned per frame), its
+// anim's clocks and closures, the arms' random phases — is built for it as before. Nothing in a creature's build reads a primitive or a part's
+// transform but merge (every G call is a part's geometry: test/bench_creatures.js proves the bodies the same to the bit, built and posed).
+// A replay whose merges do not match the recording throws, and buildKind builds whole instead.
+let GEO_TAPE=null;
+const LAZY_G={lazy:true,dispose(){}};
+for(const k in G){const f=G[k];G[k]=function(){return GEO_TAPE!==null&&GEO_TAPE.play?LAZY_G:f.apply(null,arguments);};} // a primitive while a tape plays: not made
 // A part is a geometry plus a transform and a color (optionally a belly color for countershading).
 function part(g,x,y,z,c,o){
+  if(GEO_TAPE!==null&&GEO_TAPE.play)return {g:g,m:null,c:c,c2:(o&&o.c2)||null}; // v11.149: replaying, merge reads neither
   o=o||{};const r=o.r||[0,0,0],s=o.s||[1,1,1];
   const q=o.dir?new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),o.dir.clone().normalize()):new THREE.Quaternion().setFromEuler(new THREE.Euler(r[0],r[1],r[2],o.order||'XYZ'));
   const m=new THREE.Matrix4().compose(new THREE.Vector3(x,y,z),q,new THREE.Vector3(s[0],s[1],s[2]));
@@ -3159,6 +3179,8 @@ function part(g,x,y,z,c,o){
 // Bake parts into one flat-shaded, vertex-colored geometry. Countershading blends by face normal. A geometry that carries
 // its own `color` attribute (flora.js rockGeo: a shade per facet) has it multiplied into the part's colour.
 function merge(parts){
+  const T=GEO_TAPE;if(T!==null&&T.play){const r=T.list[T.i++];if(!r||r.n!==parts.length)throw new Error('the build tape: merge '+(T.i-1)+' does not match its recording');for(const p of parts)p.g.dispose(); // v11.149: the recorded output (fresh arrays: a caller may write into them, helix does)
+    const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(r.pos,3));geo.setAttribute('normal',new THREE.Float32BufferAttribute(r.nor,3));geo.setAttribute('color',new THREE.Float32BufferAttribute(r.col,3));return geo;}
   const pos=[],nor=[],col=[];
   for(const p of parts){
     const g=p.g.index?p.g.toNonIndexed():p.g;
@@ -3179,6 +3201,7 @@ function merge(parts){
   geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
   geo.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));
   geo.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
+  if(T!==null)T.list.push({n:parts.length,pos:geo.attributes.position.array.slice(),nor:geo.attributes.normal.array.slice(),col:geo.attributes.color.array.slice()}); // v11.149: recording — a copy, before any caller writes into it
   return geo;
 }
 function eyes(P,x,y,z,r,c,pc){
@@ -9410,6 +9433,15 @@ function founderDef(spec){const k=founderOf(spec);return k?DEFS[k]:null;}
 // (creatures_ai.js ACC_REF): a heavy body closes on the speed it wants more slowly than a light one.
 function defPhysics(d,spec){const st=derive(spec);d.top=st.speed;d.speed=+(st.speed*(d.pace||1)).toFixed(2);if(d.flee)d.flee=st.speed;d.turn=st.turn;d.accel=st.accel;d.filter=st.filter||0;d.sprint=st.burst||1;return d;} // sprint (v11.92): derive's burst over the top speed — the committed lunge's speed (creatures_ai.js) // v11.85: filter, the sieve's m² off the build — a kind with any is a filter feeder (ecology.js ecoOf puts the swarm on its prey; creatures_ai.js filterIntake feeds it)
 for(const k in DEFS)if(SPECS[k])defPhysics(DEFS[k],SPECS[k]);
+// v11.149 (the creature performance pass): every def one shape. The rows above are each their own literal, and an individual's def was its kind's
+// chained under a copy of its own size (creatures_ai.js scaledDef: Object.create) — 26 shapes among the forest's creatures, so every d.role, d.size,
+// d.prey in the frame was a lookup by name. Now each row is remade with DEF_KEYS — every key any row, a line's young or a scaled copy carries, in one
+// order, unset where it has none (undefined reads as a missing key did) — and scaledDef copies one flat (defFlat), its keys outside the list kept
+// after them. No def is written after load, so a copy reads as the chain did. A new key on a row goes in DEF_KEYS, or that row is a shape of its own
+const DEF_KEYS=(()=>{const K=new Set();for(const k in DEFS)for(const q in DEFS[k])K.add(q);for(const q of ['size','speed','top','flee','reach','dmg','radius','lunge','detect','clear','food','filter','juv','build','spec','line','lineId','legs','jetter','prey'])K.add(q);return [...K];})(),DEF_SET=new Set(DEF_KEYS);
+const DEF_LIT=new Function('d','return {'+DEF_KEYS.map(k=>JSON.stringify(k)+':d['+JSON.stringify(k)+']').join(',')+'};'); // one object literal of every key: a def made key by key from a list is a dictionary (V8's slow mode past a dozen added keys), however few shapes
+function defFlat(d){const o=DEF_LIT(d);for(const k in d)if(!DEF_SET.has(k))o[k]=d[k];return o;}
+for(const k in DEFS)DEFS[k]=defFlat(DEFS[k]);
 // The world's capacity (v11.26): n is the individuals per cell of a kind at full tolerance, scaled by the cell's mean tolerance for the
 // envelope (ecology.js ecoCap; chunks.js cellW) — it is the carrying capacity K of the ledger, not a spawn count. The ledger runs at
 // 60–90% of it where nothing eats a kind and lower where something does. grp: placed in groups of that many (packs of arrows,
@@ -9784,10 +9816,10 @@ let visibleCreatures=0;
 // (the rest pose, the kind's palette) and its far-LOD bake is a second full copy — 1100 resident creatures carried 1100 of each, a
 // 455 MB heap at boot. The first spawn of a kind donates its meshes' geometries and its bake; the rest point at them and drop their
 // own. The rigs (skinned every frame) stay per creature; the lab's placed species ('lab', a changing spec) is never cached. The
-// build itself still runs per spawn: only the copies and the uploads are saved.
+// build itself ran per spawn to v11.148: only the copies and the uploads were saved. Since v11.149 it is replayed from the kind's first (tapeBuild, below).
 const KIND_GEO={},SHARED_GEO=new Set();
 // A juvenile (v11.26): a recruit is born at ECO.juv of its kind's scale and grows up off screen (growUp). Its def is its kind's with the
-// size-dependent numbers scaled, chained to the adult's so every other read falls through; its geometry is cached apart (KIND_GEO 'kind~')
+// size-dependent numbers scaled, every other number the adult's (a flat copy since v11.149, creatures_defs.js defFlat); its geometry is cached apart (KIND_GEO 'kind~')
 const JUV_DEF={};
 // a kind's spec: the roster's, or the def's own (v11.69: the young of the player's line, a kind per spec — line.js lineKind)
 function specOfKind(k){return SPECS[k]||(DEFS[k]&&DEFS[k].spec)||null;}
@@ -9811,9 +9843,19 @@ const VARY={spread:0.15}; // ±: the adult size band as a fraction of the kind's
 const MOULT={frac:0.05,soft:0.5,every:20,hide:6,prey:0.5,shedT:4,shedPer:0.5,keep:0.85}; // frac: the share of a moulting clade's placed adults that start soft; soft: game days soft at unit mass (× mass^¼); every: game days between moults at unit mass (× mass^¼); hide: m a soft one looks about for a solid to lie against; prey: a hunter takes a soft body of any kind while its own mass is at least this share of the body's; shedT: game days a cast carapace dropped in play lasts; shedPer: sheds placed per cell per unit of the kind's capacity; keep: a shed's scale against the animal's (it grew at the moult)
 function moults(kind){const sp=specOfKind(kind),g=sp&&GRAMMAR[sp.clade];return !!(g&&g.moult);}
 // the kind built in a coat class: its PAL preset swapped for the shifted twin for the build and put back (the zoo's own trick for the variants)
-function buildKind(d,kind,cls){const sp=specOfKind(kind),pk=sp&&typeof sp.coat==='string'?sp.coat:null;if(!cls||!pk||!PAL[pk])return d.build();const p0=PAL[pk];PAL[pk]=coatChem(p0,cls,sp.clade);try{return d.build();}finally{PAL[pk]=p0;}}
-// a def with the size-dependent numbers scaled by k (a juvenile at ECO.juv, an adult's band at VARY): chained to the kind's so every other read falls through
-function scaledDef(d,k){const j=Object.create(d),sq=Math.sqrt(k);j.size=d.size*k;if(d.speed)j.speed=d.speed*sq;if(d.top)j.top=d.top*sq;if(d.flee)j.flee=d.flee*sq;if(d.reach)j.reach=d.reach*k;if(d.dmg)j.dmg=d.dmg*k*k;if(d.radius)j.radius=d.radius*k;if(d.lunge)j.lunge=d.lunge*sq;if(d.detect)j.detect=d.detect*k;if(d.clear!==undefined)j.clear=d.clear*k;if(d.food)j.food=Math.max(1,Math.round(d.food*k));if(d.filter)j.filter=d.filter*k*k;return j;} // filter (v11.85): an area, with the square
+function buildKind(d,kind,cls){const sp=specOfKind(kind),pk=sp&&typeof sp.coat==='string'?sp.coat:null;if(!cls||!pk||!PAL[pk])return tapeBuild(d,kind,cls);const p0=PAL[pk];PAL[pk]=coatChem(p0,cls,sp.clade);try{return tapeBuild(d,kind,cls);}finally{PAL[pk]=p0;}}
+// v11.149 (the creature performance pass; parts.js GEO_TAPE): a kind's body built once per def and coat class, then replayed — its first build's
+// merges recorded, every later build of it handed them back, its primitives not made. A def is a kind's (DEFS, a juvenile's JUV_DEF, a line's
+// kind per spec), so the tape is kept on it (a WeakMap: a def that goes, goes with it); the lab's placed spec is built whole, as it changes. A
+// replay that does not match its recording (a builder made non-deterministic) is a fault: it warns, drops the tape and builds whole.
+// BUILD_TAPE.on false builds whole every time, as to v11.148 (test/bench_creatures.js, the comparison)
+const BUILD_TAPE={on:true,map:new WeakMap()};
+function tapeBuild(d,kind,cls){if(!BUILD_TAPE.on||kind==='lab'||GEO_TAPE!==null)return d.build();let M=BUILD_TAPE.map.get(d);if(!M)BUILD_TAPE.map.set(d,M=new Map());const key=cls||'',L=M.get(key);
+  if(L){let b=null,err=null;GEO_TAPE={play:true,list:L,i:0};try{b=d.build();if(GEO_TAPE.i!==L.length)throw new Error('the build tape: '+GEO_TAPE.i+' of '+L.length+' merges replayed');}catch(e){err=e;}finally{GEO_TAPE=null;}
+    if(!err)return b;console.warn('tapeBuild: '+kind+(key?' @'+key:'')+' built whole: '+err.message);M.delete(key);return d.build();}
+  const T={play:false,list:[]};GEO_TAPE=T;let b;try{b=d.build();}finally{GEO_TAPE=null;}M.set(key,T.list);return b;}
+// a def with the size-dependent numbers scaled by k (a juvenile at ECO.juv, an adult's band at VARY): a flat copy of the kind's (v11.149: creatures_defs.js defFlat — to v11.148 chained to it by Object.create, 26 shapes), every other number as the kind's
+function scaledDef(d,k){const j=defFlat(d),sq=Math.sqrt(k);j.size=d.size*k;if(d.speed)j.speed=d.speed*sq;if(d.top)j.top=d.top*sq;if(d.flee)j.flee=d.flee*sq;if(d.reach)j.reach=d.reach*k;if(d.dmg)j.dmg=d.dmg*k*k;if(d.radius)j.radius=d.radius*k;if(d.lunge)j.lunge=d.lunge*sq;if(d.detect)j.detect=d.detect*k;if(d.clear!==undefined)j.clear=d.clear*k;if(d.food)j.food=Math.max(1,Math.round(d.food*k));if(d.filter)j.filter=d.filter*k*k;return j;} // filter (v11.85): an area, with the square
 // a soft body's place: on the floor within MOULT.hide of p, clear of solids at its own radius but with one within 2 m (a rock, a stalk, a structure's foot); failing that, the floor where it is
 function hideSpot(ch,p,rng,d){const r=d.size*0.5,cl=(d.clear!==undefined?d.clear:d.size*0.35)+0.05;
   for(let k=0;k<12;k++){const a=rng()*TAU,dd=1+rng()*MOULT.hide,x=p.x+Math.cos(a)*dd,z=p.z+Math.sin(a)*dd,h=groundAt(x,z);if(h>-3)continue;
@@ -9856,9 +9898,18 @@ function spawn(ch,kind,pos,rng,opt){
   const b=buildKind(D,kind,cls);if(k!==1){b.g.scale.multiplyScalar(k);b.gape*=k;}
   const c={kind:kind,def:d,g:b.g,anim:b.anim,pos:pos.clone(),vel:V3(0,0,0),home:pos.clone(),hp:d.hp,state:'wander',t0:rng()*100,lastSpd:0,lastYaw:0,roll:0,rollV:0,sq:0,stunSide:rng()<0.5?-1:1,target:null,biteT:0,wanderT:0,wander:pos.clone(),alive:true,gone:false,stun:0,bored:0,cool:rng()*3,scanT:rng()*0.5,alarm:0,fleeT:0,lungeT:0,ramT:0,school:null,off:null,offT:0,chunk:ch,lod:-1,parts:null,lodMeshes:null,sub:1,wet:true,grounded:false,flopT:0,
     b:b,mass:0,mass0:0,bound:0,reach:0,shapesW:null,chainW:null,grab:null,holding:0,hold:null,held:0,bleed:0,blood:0,wounds:null,paraT:0,stungT:0,armsLost:0,regrow:null,sickT:0,poison:0,poisT:rng()*2,commitT:0,coastT:0,missN:0,speedK:1,turnK:1,live:null,lost:null,cWith:null,d6:0,par:creatures.length&1, // hold: the hold it has on something, held: how many have hold of it, bleed: the rate its wounds drain at, blood: the share of its blood lost (combat.js, v11.91); mass: kg (combat.js kgOfBody; 1e6 while it sits), mass0 its own
-    st:{tell:0,strike:0,jet:false},tellT:0,strikeT:0,recoverT:0,burstT:rng()*2,face:null,bit:false,accT:0,threat:null,
+    st:{tell:0,strike:0,jet:false,soft:undefined,lx:undefined,lz:undefined,turn:undefined,acc:undefined},tellT:0, /* st: every key it takes later declared, unset (v11.149: one shape, as the creature's) */strikeT:0,recoverT:0,burstT:rng()*2,face:null,bit:false,accT:0,threat:null,
     ent:ent,hunger:EK.hunter?rng():0,starveT:0,hunt:0,feedT:0,feedAt:null,dead:false,flesh:0,deadT:0,scav:null,scavT:rng()*0.5,juv:juv?EK.grow*DAY_S*(0.8+0.4*rng()):0, // ent: the ledger entry; hunger 0 fed..1 starving (ecology.js); juv: seconds until it grows up // st: what the anim reads (creatures_builders.js); the tell and the strike as clocks
-    k:k,cls:cls,soft:soft,softT:soft?MOULT.soft*Math.pow(EK.mass,0.25)*DAY_S*(0.7+0.6*rng()):0,moultT:vary&&!soft&&!juv&&moults(kind)&&D.role!=='boid'?MOULT.every*Math.pow(EK.mass,0.25)*DAY_S*(0.5+rng()):0}; // the individual (v11.66): its size factor, its coat class, the soft state and its clocks
+    k:k,cls:cls,soft:soft,softT:soft?MOULT.soft*Math.pow(EK.mass,0.25)*DAY_S*(0.7+0.6*rng()):0,moultT:vary&&!soft&&!juv&&moults(kind)&&D.role!=='boid'?MOULT.every*Math.pow(EK.mass,0.25)*DAY_S*(0.5+rng()):0,
+    shM:null,cast:false,lodNear:0,lodFar:0,nearR:0,stepR:0, // set below, in this order
+    carried:undefined,cur:undefined,curT:undefined,turnedF:undefined,turnV:undefined,accV:undefined,shapeF:undefined,rigV:undefined,rigO:undefined,hitN:undefined,hitB:undefined,lieQ:undefined,chaseT:undefined,lungeP:undefined,strikeP:undefined,
+    sw:undefined,swT:undefined,filtT:undefined,q:undefined,pig:undefined,hand:undefined,fall:undefined,brood:undefined,fxStruck:undefined,fxAcc:undefined,stam:undefined,spinV:undefined,shook:undefined,shakeYaw:undefined,shakeP:undefined,pointD:undefined,
+    lenM:undefined,lastHurt:undefined,eaten:undefined,liveMass:undefined,fullMass:undefined}; // the individual (v11.66): its size factor, its coat class, the soft state and its clocks
+  // v11.149 (the creature performance pass): every creature one shape. The keys above from shM on were added to a creature as it lived — the current
+  // it is carried by, its turn, its holds, the falls, the brood, the effects' clocks — each by whichever system reached it first, in that order: the
+  // forest's 1,400 creatures had 27 shapes, and past four an engine gives up a property read's fast path, so every c.pos, c.def, c.vel in the frame was
+  // a lookup by name. Here from its spawn, unset (undefined reads as a missing key did; nothing copies or lists a creature's keys). A new key a creature
+  // takes later goes in this list: test/live.js fails on a creature, a state or a def off its spawn's keys after four game days and a minute of play
   c.mass=c.mass0=kgOfBody(kind,D,b); // one mass (v11.91, COMBAT.md §10.2): derive's, in kg, at this body's scale
   if(soft){c.b.cover=b.cover.map(()=>'skin');c.st.soft=1;c.state='sit';hideSpot(ch,c.pos,rng,d);c.home.copy(c.pos);}
   b.g.position.copy(c.pos);scene.add(b.g);
@@ -10379,6 +10430,11 @@ const CH_RES=48,STEP=CELL/CH_RES,GR=CH_RES+1,LOAD_R=2;
 const chunks=new Map(); // the loaded cells by ckey (v11.111: the one table; chunkGrid, a dense array over the world's cells for the 3×3 lookups, is gone)
 function ckey(i,j){return (i+524288)*1048576+(j+524288);} // a cell's key (v11.111: a number for any cell within ±524,288 of the anchor, 112,000 km; to v11.110 the string 'i,j')
 function chunkIJ(i,j){return chunks.get(ckey(i,j));} // the loaded cell (i, j), or undefined
+// v11.149 (the creature performance pass): the 3×3 round a cell, kept for the last cell asked (physics.js solidPush: three calls a creature a frame,
+// nine table lookups each, a creature's three in one cell and the creatures in their cells' order). CHUNK_V moves whenever a cell is added to the
+// table or taken out of it, and the kept list is made again: the same cells, in the same order, as nine lookups give
+let CHUNK_V=0;const NB9={k:NaN,v:-1,a:new Array(9)};
+function nb9(ci,cj){const k=ckey(ci,cj);if(NB9.k!==k||NB9.v!==CHUNK_V){const a=NB9.a;for(let n=0;n<9;n++)a[n]=chunkIJ(ci+(n%3)-1,cj+((n/3)|0)-1);NB9.k=k;NB9.v=CHUNK_V;}return NB9.a;}
 function cellOf(v){return Math.floor((v+HALF)/CELL);}
 // the cell at a point, off the grid rather than through a built string key and a Map (v11.33): this is the per-frame ground
 // lookup — every creature, every chain point outside its own cell, the player five times, the audio rays, the snow — and it
@@ -10831,7 +10887,7 @@ function* genChunk(i,j){
   for(const f of FLORA){if(f.mat===MATROCK)continue;yield* placeFloraType(ch,mulberry((((i*73856093)^(j*19349663)^hashStr(f.id))>>>0)),f);yield;}
   placeLandmarks(ch);yield;
   yield* spawnChunkCreatures(ch,rng);lineLoad(ch);fallsLoad(ch); // the player's broods that lie in it (line.js, v11.69); the falls in it (v11.99)
-  scene.add(ch.group);chunks.set(ch.k,ch);farCellChanged(i,j);shadowDirty(ch);
+  scene.add(ch.group);chunks.set(ch.k,ch);CHUNK_V++;farCellChanged(i,j);shadowDirty(ch);
 }
 function loadChunkNow(i,j){if(chunks.has(ckey(i,j)))return;const g=genChunk(i,j);while(!g.next().done){}}
 function unloadChunk(ch){
@@ -10845,7 +10901,7 @@ function unloadChunk(ch){
   for(let i=creatures.length-1;i>=0;i--)if(creatures[i].gone)creatures.splice(i,1);
   for(let i=carcasses.length-1;i>=0;i--)if(carcasses[i].gone)carcasses.splice(i,1);
   for(let i=schools.length-1;i>=0;i--)if(schools[i].chunk===ch)schools.splice(i,1);
-  chunks.delete(ch.k);farCellChanged(ch.i,ch.j);shadowDirty(ch);
+  chunks.delete(ch.k);CHUNK_V++;farCellChanged(ch.i,ch.j);shadowDirty(ch);
 }
 let activeGen=null,activeKey=null;
 function manageChunks(budgetMs){
