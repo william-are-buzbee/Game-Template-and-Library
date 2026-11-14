@@ -20,7 +20,11 @@ const CELL=215,NCELL=240,HALF=CELL*NCELL/2; // v11.65 (ARCHIPELAGO step 4): 240 
 // v11.115 (GLOBE §10.1, the province grown): the rectangle round the region model's members' feet (x −69 … 300 km, z −93 … 121 km) —
 // x −75.7 … 306.2 km, z −101.5 … 125.6 km, 1,776 × 1,056 cells (382 × 227 km). WORLD70 is v11.106–113's ±70.5 km square: region.js's second
 // pass of records is its, so its 25 come out as they were, and world.js's flood keeps its lattice; a save's ledger patches without a world tile it.
-const WORLD={i0:-232,i1:1544,j0:-352,j1:704},WORLD70={i0:-208,i1:448,j0:-208,j1:448};
+// v11.136 (the person, 13 Nov 2026: "go ahead with widening the world's edge"): the rectangle round every member's reach (its foot 1.6 R + 3 km,
+// x −80 … 284, z −87 … 111 km since the composites) and the whole platform (x 170 … 332, z −17 … 139: to v11.135 the box cut it east and south),
+// with 30 km of open sea past the farthest, on the 8-cell grid — x −110.1 … 362.9 km, z −118.7 … 170.3 km, 2,200 × 1,344 cells (473 × 289 km;
+// 1,776 × 1,056 to v11.135). Every cell keeps its place; the platform's grid grows from its old corner by whole nodes (region.js rgPlatform).
+const WORLD={i0:-392,i1:1808,j0:-432,j1:912},WORLD70={i0:-208,i1:448,j0:-208,j1:448};
 const WX0=WORLD.i0*CELL-HALF,WX1=WORLD.i1*CELL-HALF,WZ0=WORLD.j0*CELL-HALF,WZ1=WORLD.j1*CELL-HALF;
 function gridIn(i,j){return i>=WORLD.i0&&j>=WORLD.j0&&i<WORLD.i1&&j<WORLD.j1;}
 function inWorld(x,z,m){return x>WX0+m&&x<WX1-m&&z>WZ0+m&&z<WZ1-m;} // (x, z) at least m inside the world's edge
@@ -312,7 +316,7 @@ const _islA={},_islB={}; // the islands' intermediates for the fields: the winne
 // the island's ground in its own frame (lx,lz local, scaled) and the intermediates the conditions read, into `o`
 // a record's angular noises as tables (v11.102): the model's records carry theirs (R.an, region.js), a sixth of islandH's cost each; ours and
 // the giant compute theirs, so their doubles stay v11.101's. AN_K: islandH's six [frequency, seed] in the order anT's k reads them
-const AN_N=1024,AN_K=[[1.6,11],[1.2,29],[2.2,150],[2.5,99],[3.0,131],[2.4,77]];
+const AN_N=1024,AN_K=[[1.6,11],[1.2,29],[2.2,150],[2.5,99],[3.0,131],[2.4,77],[4.0,211]]; // v11.138: the seventh the flank's canyons' wander
 function anTables(ns){const T=new Float32Array(AN_K.length*(AN_N+1));for(let k=0;k<AN_K.length;k++)for(let i=0;i<=AN_N;i++)T[k*(AN_N+1)+i]=angNoise(i/AN_N*TAU,AN_K[k][0],AN_K[k][1]+ns);return T;}
 function anT(T,k,a){let u=a*(AN_N/TAU);u-=Math.floor(u/AN_N)*AN_N;const i=Math.min(AN_N-1,Math.floor(u)),t=u-i,q=k*(AN_N+1)+i;return T[q]+(T[q+1]-T[q])*t;}
 function islandH(R,x,z,o){
@@ -388,7 +392,18 @@ function islandH(R,x,z,o){
   const F=R.flank,rf=rw-(F.r+60*(an?anT(an,3,aw):angNoise(aw,2.5,99+ns)));
   if(rf>0){const t=Math.min(rf/F.w,1),d0=rf<F.w?F.w*(t*t*t-0.5*t*t*t*t):rf-0.5*F.w; // ∫smoothstep(0,W): the ramp's drop
     const u=clamp((rf-F.a)/(F.b-F.a),0,1),d1=rf<F.a?0:rf<F.b?(F.b-F.a)*(u*u*u-0.5*u*u*u*u):rf-0.5*(F.a+F.b); // ∫smoothstep(A,B): the easing's
-    const fd=(F.s0*d0-(F.s0-F.s1)*d1)*(1+0.15*(an?anT(an,4,aw):angNoise(aw,3.0,131+ns)));h-=fd;hSmooth-=fd;} // v11.102: the smooth surface goes down with the flank (to v11.101 it stayed at the apron's -290, so the relief read 0 on every lower flank and on the floor inside every record's reach)
+    const fd=(F.s0*d0-(F.s0-F.s1)*d1)*(1+0.15*(an?anT(an,4,aw):angNoise(aw,3.0,131+ns)));h-=fd;hSmooth-=fd;
+    // v11.138 (analysis_archipelago §11 E): the flank's canyons — sharp radial troughs from the shelf's edge down to the deep (region.js rgRidges)
+    if(R.cny&&an){const C=R.cny,q0=awn*C.n/TAU+0.8*anT(an,6,awn),q=q0-Math.floor(q0),t=Math.abs(2*q-1),f=smooth(0,700,rf)*smooth(-3200,-2200,hSmooth);if(f>0)h-=C.d*f*(0.5+0.5*anT(an,6,awn*3.0+1))*(1-smooth(0,0.28,t));}}
+  // v11.138 (analysis_archipelago §11 A): the rift zones go on under the sea as ridges (Kīlauea's Puna Ridge, ~75 km) — along each arm a crest
+  // falling from the shelf's edge at G.s (~4°, steepening to twice that by its end) with small cones on it, its half-width G.W where it leaves the
+  // island tapering to a quarter at its tip, its edges and sides irregular (~11°), met with the flank by a smooth max: a tongue of the island's
+  // ground. Its height is in the record's bound (rgBound) and its far end in its reach (rgBuild)
+  if(R.rdg){const G=R.rdg;for(let k=0;k<G.c.length;k++){const d=lx*G.c[k]+lz*G.n[k]-G.r0;if(d<=-2*G.W||d>=G.L)continue;if(rdgEnv(G,d,Math.abs(lz*G.c[k]-lx*G.n[k]))<h-60)continue; // the most it can stand here (rdgEnv): most points leave here
+    const dp=Math.max(0,d),u=dp/G.L,ph=1.7*k+G.ph,cr=G.h0-G.s*dp*(1+u)+40*Math.pow(Math.max(0,Math.sin(d*0.0017+ph)),6)-400*smooth(0.8,1,u);if(cr<h-60)continue;
+    const hw=G.W*(1-0.75*u)*smooth(-2*G.W,0,d)*(1+0.25*Math.sin(d*0.0011+ph)+0.15*Math.sin(d*0.0029+2*ph)), /* v11.138: grown out of the island from 2 W inside the shelf's edge, not cut across there */ss=0.2*(1+0.3*Math.sin(d*0.0021+3*ph));
+    const rg=cr-ss*Math.max(0,Math.abs(lz*G.c[k]-lx*G.n[k]-0.15*G.W*Math.sin(d*0.0004+ph))-hw);if(rg>h-60){h=smax(h,rg,60);hSmooth=smax(hSmooth,rg,60);}}}
+  // v11.102: the smooth surface goes down with the flank (to v11.101 it stayed at the apron's -290, so the relief read 0 on every lower flank and on the floor inside every record's reach)
   if(R.sat&&h<R.sat.b){h=R.sat.b+(h-R.sat.b)*R.sat.k;if(hSmooth<R.sat.b)hSmooth=R.sat.b+(hSmooth-R.sat.b)*R.sat.k;} // v11.131: a satellite (region.js rgRecord) ends at its base, its flank there a skirt onto its host
   // the carbonate cap's flank (v11.107, CARB above): spurs and chutes down the reef's slope, the crests hard
   let carb=0;if(R.carb){const capZ=smooth(T.r1+150,T.r1+450,rw)*smooth(CARB.base,CARB.base+150,hSmooth);
@@ -448,7 +463,24 @@ function lbAt(T,a){const N=T.length-1;let u=a*(N/TAU);u-=Math.floor(u/N)*N;const
 // its scale at its own angle a and radius rb (unfolded): the lobe whole to 1.2 times its land's or rim's radius (lbR), fading to lbG of it two radii
 // further out, as Earth's deep flanks are smoother than their coasts; over lmax, so never past 1 (sc carries the farthest lobe)
 // a record's own radius at (dx, dz) from its centre: turned, scaled, squeezed and lobed as islandH reads it (its turn's cosine and sine kept on it)
-function recLoc(R,dx,dz){if(R._c===undefined){R._c=Math.cos(R.rot||0);R._s=Math.sin(R.rot||0);}let lx=dx*R._c+dz*R._s,lz=dz*R._c-dx*R._s;lx/=R.sc;lz/=R.sc;if(R.asq)lz*=R.asq;const u=Math.hypot(lx,lz);return R.lobe?u/lbF(R,Math.atan2(lz,lx),u*R.lmax):u;}
+let _rlx=0,_rlz=0; // v11.138: the last recLoc's point in the record's own frame, for its ridges' bound (rdgBound)
+function recLoc(R,dx,dz){if(R._c===undefined){R._c=Math.cos(R.rot||0);R._s=Math.sin(R.rot||0);}let lx=dx*R._c+dz*R._s,lz=dz*R._c-dx*R._s;lx/=R.sc;lz/=R.sc;if(R.asq)lz*=R.asq;const u=Math.hypot(lx,lz);
+  if(!R.lobe){_rlx=lx;_rlz=lz;return u;}const f=lbF(R,Math.atan2(lz,lx),u*R.lmax);_rlx=lx/f;_rlz=lz/f;return u/f;}
+// v11.138: the most a record's submarine ridges can raise its ground at the last recLoc's point (region.js rgRidges; islandH's ridges): on an arm's
+// crest its height from the shelf's edge less its fall, its cones and the knee (60); past the widest half-width and wander (1.6 W) down the
+// gentlest side (0.14). sample() takes it with the bound table, which holds the island's profile alone — a bound by the point, not the radius
+// v11.138: a ridge's envelope at d along its arm (from the shelf's edge) and lat across it: islandH's crest without its noise (the fall steepening
+// to twice by its end, the tip sunk) and its cones (40) and the knee (15) on top, its widest half-width (1.4 W, tapering as islandH's) and wander
+// (0.15 W), its gentlest side (0.14) — the most the ridge can stand there
+function rdgEnv(G,d,lat){const dp=Math.max(0,d),u=dp/G.L;return G.h0-G.s*dp*(1+u)-400*smooth(0.8,1,u)+55-0.14*Math.max(0,lat-G.W*(1.4*(1-0.75*u)*smooth(-2*G.W,0,d)+0.15));}
+// the same from the point before the lobe's step (turned, scaled, squeezed: no atan2) — the lobe only pushes a point outward along its own ray (its
+// scale ≤ 1 over sc), so the point's d and lat are at least these and the envelope, falling with both, at most this: past an island's reach,
+// sample() asks this first and turns a point to the record's own frame only near a ridge
+function rdgNear(R,dx,dz){if(R._c===undefined){R._c=Math.cos(R.rot||0);R._s=Math.sin(R.rot||0);}let lx=(dx*R._c+dz*R._s)/R.sc,lz=(dz*R._c-dx*R._s)/R.sc;if(R.asq)lz*=R.asq;const G=R.rdg;let b=-1e9;
+  for(let k=0;k<G.c.length;k++){const p=lx*G.c[k]+lz*G.n[k];if(p<=0||p-G.r0>=G.L)continue;const c=rdgEnv(G,Math.max(0,p-G.r0),Math.abs(lz*G.c[k]-lx*G.n[k]));if(c>b)b=c;}return b;}
+// the most a record's submarine ridges can raise its ground at the last recLoc's point; sample() takes it with the bound table, which holds the
+// island's profile alone — a bound by the point, not the radius
+function rdgBound(R){const G=R.rdg;let b=-1e9;for(let k=0;k<G.c.length;k++){const d=_rlx*G.c[k]+_rlz*G.n[k]-G.r0;if(d<=-2*G.W||d>=G.L)continue;const c=rdgEnv(G,d,Math.abs(_rlz*G.c[k]-_rlx*G.n[k]));if(c>b)b=c;}return b;}
 function lbF(R,a,rb){const l=lbAt(R.lobe,a),g=R.lbG+(1-R.lbG)*clamp(1-(rb-1.2*R.lbR)/(2*R.lbR),0,1);return (1+(l-1)*g)/R.lmax;}
 function islandW(R,x,z){let lx=x-R.x,lz=z-R.z;if(R.rot){const c=Math.cos(R.rot),s=Math.sin(R.rot),tx=lx*c+lz*s;lz=lz*c-lx*s;lx=tx;}if(R.sc!==1){lx/=R.sc;lz/=R.sc;}if(R.asq)lz*=R.asq;if(R.lobe){const f=lbF(R,Math.atan2(lz,lx),Math.hypot(lx,lz)*R.lmax);lx/=f;lz/=f;}
   const ns=R.ns,an=R.an,r=Math.hypot(lx,lz),a=Math.atan2(lz,lx),aw=a+0.32*(an?anT(an,0,a):angNoise(a,1.6,11+ns))+0.22*(fbm(lx*0.0035+80+ns,lz*0.0035+20,3)-0.5)*2,rw=r*(1+0.16*(an?anT(an,1,aw):angNoise(aw,1.2,29+ns)));
@@ -486,7 +518,7 @@ function shT(T,k,a){const N=SHELTER.n;let u=a*(N/TAU);u-=Math.floor(u/N)*N;const
 // fixed once region.js has pushed the model's records at load (rgBuild, which grows the pins' reach too). RIX.on false is the old loop over
 // every record, which test/records.js holds the index to, to the bit.
 const RIX={on:true,B:2000,n:-1,x0:0,z0:0,nx:0,nz:0,L:null,all:null,none:[]};
-function rixRange(R){const foot=R.fade?R.fade[1]:6000;return Math.max(R.reach*R.sc,foot+Math.min(APRON_L[2],APRON_L[0]+(R.land?APRON_L[1]*R.land.r:0)));} // apronR's run-out, as it reads it
+function rixRange(R){const foot=R.fade?R.fade[1]:6000;return Math.max(R.reach*R.sc,(R.rdgR||0)*R.sc,foot+Math.min(APRON_L[2],APRON_L[0]+(R.land?APRON_L[1]*R.land.r:0)));} // apronR's run-out, as it reads it
 function rixBuild(){const B=RIX.B,N=ISLANDS.length,rg=ISLANDS.map(rixRange);let x0=1e18,x1=-1e18,z0=1e18,z1=-1e18;
   ISLANDS.forEach((R,i)=>{if(R.core&&R.core>R.reach*R.sc)throw new Error('the records\' index: '+R.id+'\'s core is past its reach');x0=Math.min(x0,R.x-rg[i]);x1=Math.max(x1,R.x+rg[i]);z0=Math.min(z0,R.z-rg[i]);z1=Math.max(z1,R.z+rg[i]);});
   x0=Math.floor(x0/B)*B;z0=Math.floor(z0/B)*B;const nx=Math.max(1,Math.ceil((x1-x0)/B)),nz=Math.max(1,Math.ceil((z1-z0)/B)),L=new Array(nx*nz);for(let k=0;k<L.length;k++)L[k]=[];
@@ -511,14 +543,15 @@ function sample(x,z,out){
   // the islands: the highest in reach wins the conditions; the rest raise the ground under it through smax (a volcano on another's flank)
   let o=_islA,spare=_islB,best=null,h=-1e9,hSmooth=-1e9,rNear=1e9,core=false,n=0;const LR=recsAt(x,z),N=LR.length; // the records near here (v11.103: the index's; rNear is theirs, read only where no record is in reach and nothing then uses it)
   for(let q0=0;q0<N;q0++){const i=LR[q0],R=ISLANDS[i],dx=x-R.x,dz=z-R.z,d2=dx*dx+dz*dz;_isD[i]=d2;if(d2<rNear)rNear=d2; // squared: Math.hypot is slow, and two dozen records a sample
-    const rr=R.reach*R.sc;if(d2>rr*rr)continue; // past its farthest reach (sc the farthest stretch); its core is inside its reach
+    const rr=R.reach*R.sc;if(d2>rr*rr){ // past its island's farthest reach (sc the farthest stretch; its core is inside it): only its ridges can matter here
+      if(!R.rdg)continue;const rq=R.rdgR*R.sc;if(d2>rq*rq||rdgNear(R,dx,dz)<R.rdgF)continue;} /* rdgF: the deepest floor under its ridges, less the hills and the knees (rgBuild) */
     // v11.135: the record's own radius (recLoc: an oval's or a lobed record's frame; the world distance for a round one, as before) for its core, its
     // reach, its bound, its quiet and its influence — to v11.134 the world distance over sc, loose by the farthest stretch, and the core and the
     // influence by the world distance alone, which across an oval's short axis (v11.129) or off a lobe is past them
-    const rl=R.sc!==1||R.rot||R.lobe?recLoc(R,dx,dz):Math.sqrt(d2);_isL[i]=rl;if(R.core&&rl<R.core)core=true;if(rl>R.reach)continue;
+    const rl=R.sc!==1||R.rot||R.lobe?recLoc(R,dx,dz):Math.sqrt(d2);_isL[i]=rl;if(R.core&&rl<R.core)core=true;if(rl>R.reach&&!(R.rdg&&rl<=R.rdgR))continue;
     // a record with a bound table (region.js rgBound: the model's and the giant) by the most its ground can stand here; ours, with no table, first. The table is by
     // the record's own radius, which is never less than the world distance over its sc (v11.129: an oval's sc is its long axis's; every record's was 1 before)
-    const b=R.hi?R.hi[Math.min(R.hi.length-1,Math.floor(rl/R.hiS))]:Infinity;let k=n++;while(k>0&&_isB[k-1]<b){_isI[k]=_isI[k-1];_isB[k]=_isB[k-1];k--;}_isI[k]=i;_isB[k]=b;}
+    let b=rl>R.reach?-1e9:R.hi?R.hi[Math.min(R.hi.length-1,Math.floor(rl/R.hiS))]:Infinity;if(R.rdg){const c=rdgBound(R);if(c>b)b=c;} /* v11.138: its ridges' bound at this point; past its island's reach its ridges' alone */let k=n++;while(k>0&&_isB[k-1]<b){_isI[k]=_isI[k-1];_isB[k]=_isB[k-1];k--;}_isI[k]=i;_isB[k]=b;}
   rNear=Math.sqrt(rNear);
   const fl=core?0:rgFloor(x,z),flo=fl-BASIN.hill-2.5*BASIN.knee; // the model's floor (v11.102) and its lowest less 2.5 knees: a record under that is under the ground, smax exact
   // the seamount effect (v11.102): each record's influence (isl, its fade) and its current's aspect (upW), blended — the influences' union
