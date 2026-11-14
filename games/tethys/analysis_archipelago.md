@@ -572,6 +572,20 @@ version and one pull request each, each measured (`node test/earth.js`) and blin
 radius (a ridge's height bound all round its radius made sample() compute the island almost everywhere within 60 km: islandH 0.73 calls a sample
 against 0.38); and the bound must be the feature's exact envelope less its noise, not a loose slope. CHANGELOG v11.138 has the numbers.
 
+**11.3 (D) Landslides: the design (14 Nov 2026, before the build; judged by §10.4's share between −150 and −800 m).** Big shields fail in
+two ways: slumps (deep, slow: benches on the flank, Hawaii's Hilina) and debris avalanches (fast: an amphitheatre scar and a hummocky fan tens
+of km long on the floor, Hawaii's Nu'uanu, the Canaries' El Golfo). On the −1,100 m plateau a fan 200–600 m thick at the flank's toe stands at
+−900 to −500: the in-between depths the province lacks.
+- **Per record** (region.js, by its id so stable; not the pins): 0–3 slides, more for the big and old (high, shield, the larger atolls): its
+  sector (angle `a` in the record's own frame, half-angle 0.25–0.5 rad, widening down the fan), the fan's run-out `L` past the flank's toe (15–40 km
+  local), its thickness at the toe `T` (200–600 m), the scar's depth (100–300 m), and the floor at the centre `R.sfl` (rgFloor) the fan sits on.
+- **islandH:** in the sector past the toe, the fan's top `R.sfl + T·(1 − t)^1.5`, tapered across the sector, hummocky (a cheap 1–2 km noise at
+  ~0.3 of its thickness), met with the flank by a smooth max — a gentle lower flank, an apron; on the flank in the sector, the scar: the ground
+  lowered in a concave amphitheatre from the shelf's edge down (lowering only: no bound to raise).
+- **The bound by the point, as the ridges'** (world.js): the fan's envelope (its top without the noise, plus the hummocks' most and the knee) by
+  a sector test with dot products (no atan2) at sample()'s recLoc point; a pre-lobe test past the island's reach; the records' far reach the larger
+  of the ridges' and the fans'. Measure: the share between −150 and −800 (§10.4), sample()'s cost, ours' square, the bound check.
+
 **11.2 What must hold** (learned building v11.129–137; HANDOFF's working notes):
 - **The bounds.** sample() skips a record where its bound table `R.hi` (region.js `rgBound`: the radial profile plus fixed margins) says it
   cannot matter. Anything that raises the ground at some angles — a ridge, a debris fan — must raise `hi` at those radii (its largest height
