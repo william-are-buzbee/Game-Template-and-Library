@@ -580,7 +580,7 @@ function sample(x,z,out){
   // are its own — the lagoon's shelter and sand, the rim's rock and passes, the waves and the current by its margin's outward face, the wall's
   // spurs; outside it its influence joins the islands' (the seamount effect: a margin is a coast). Nothing here west of its box (ours, the old
   // square, the ±70.5 km world: it starts 120 km east)
-  if(!core&&RG_PL){const pg=rgPlat(x,z,_plO);if(pg>-1e8){const P=_plO;isl=1-(1-isl)*(1-P.isl);
+  if(!core&&RG_PL){const pg=rgPlat(x,z,_plO,flo);if(pg>-1e8){const P=_plO;isl=1-(1-isl)*(1-P.isl);
     if(pg>=h){h=pg;if(P.hs>hSmooth)hSmooth=P.hs;lag=P.lag;rimK=P.rimK;pass=(1-P.rimA)*P.rimK;carb=P.carb;expoW=0.5-0.5*(P.nx*Math.cos(WIND_A)+P.nz*Math.sin(WIND_A));upW=0.5-0.5*(P.nx*Math.cos(CUR_A)+P.nz*Math.sin(CUR_A));
       cw=0;dkr=0;coneRock=0;bare=0;young=0;heat=0;shelfEdge=smooth(-200,-60,pg)*smooth(-20,-60,pg);rw=1e9;}}}
   // ---- the conditions ----

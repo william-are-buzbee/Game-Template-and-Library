@@ -267,6 +267,10 @@ function rgFloor(x,z){const F=RG_FL;if(!F)return BASIN.h;const u=clamp((x-F.x0)/
 // a record's ground along a radius with no noise and no warp: islandH's profile, terraces, land, rim and lagoon, and lower flank (the foot, the reach, the burial)
 // a flank's drop rf m past its start: s0 eased in over w, easing to s1 between a and b (rgRadial's; v11.127 the platform's walls too)
 function rgFlank(rf,F){const t=Math.min(rf/F.w,1),d0=rf<F.w?F.w*(t*t*t-0.5*t*t*t*t):rf-0.5*F.w,u=clamp((rf-F.a)/(F.b-F.a),0,1),d1=rf<F.a?0:rf<F.b?(F.b-F.a)*(u*u*u-0.5*u*u*u*u):rf-0.5*(F.a+F.b);return F.s0*d0-(F.s0-F.s1)*d1;}
+// v11.142 (analysis_archipelago §11.4): a carbonate margin's fall rf m past its edge — the slopes F.s[0], F.s[1], … each eased into the next over
+// F.t's [a, b] m (the first eased in over F.w): its wall, its slope, its apron (rgPlat)
+function rgRamp(rf,a,b){if(rf<=a)return 0;if(rf>=b)return rf-0.5*(a+b);const u=(rf-a)/(b-a);return (b-a)*(u*u*u-0.5*u*u*u*u);}
+function rgSlope(rf,F){const s=F.s,t=F.t;let h=s[0]*rgRamp(rf,0,F.w);for(let i=0;i<t.length;i++)h-=(s[i]-s[i+1])*rgRamp(rf,t[i][0],t[i][1]);return h;}
 function rgRadial(R,r){let h=R.h0;for(const s of R.prof)h-=s[2]*smooth(s[0],s[1],r);const T=R.terr;h-=T.n*T.step*smooth(T.r0,T.r1,r);
   if(R.land&&r<R.land.r){const tl=1-r/R.land.r,S=tl*tl*(3-2*tl);h+=(R.land.b?R.land.h-R.land.b:R.land.h)*(0.55*tl+0.45*S);}
   const F=R.flank,rf=r-F.r;if(rf>0)h-=rgFlank(rf,F);
@@ -452,9 +456,17 @@ function rgBuild(Rg){const K=Rg.K,W0=[-HALF-2000,HALF+2000,-HALF-2000,HALF+2000]
 // which the platform shelters itself (the rule's own wording: "no other's top able to reach the shallows upstream"). Its load is not counted
 // (the members' reef caps are not either). What it keeps: where the reef lives today, its top; around them a signed distance (RG_PL.sd: + inside,
 // − outside, metres) that rgPlat reads with a warped margin — the rim at the reef's top (awash, islets, passes), the lagoon behind it to
-// RG_PL_K.lag deep over RG_PL_K.lagW (a wide lagoon is a deep one, Purdy & Winterer's karst), outside a wall at RG_PL_K.wall onto the plateau.
+// RG_PL_K.lag deep over RG_PL_K.lagW (a wide lagoon is a deep one, Purdy & Winterer's karst), outside its slope onto the plateau (v11.142: Earth's
+// banks' margins, RG_PL_K.mw … dl; to v11.141 a wall).
 // Members whose centre lies on it are buried by it (rgBuild strikes them, by 'platform'), those that stand above it as land keep their land.
-const RG_PLG=3000,RG_PL_K={dt:0.02,tf:3,dtf:0.005,rf:0.05,crest:400,lag:50,karst:20,lagW:6000,wall:0.9,warp:1500,warp2:300,isl:4000,leeD:REEF_LEE.D,leeF:REEF_LEE.F,wf:{w:200,s0:0.70,s1:0.30,a:900,b:3200},lf:{w:300,s0:0.27,s1:0.12,a:1500,b:5000}}; // grid m (3 km: 0.2 s at load, the margin warped finer); Myr, from tf Ma on dtf Myr (v11.126: the 41 and 100 kyr cycles resolved, for the necks' karst and regrowth), Myr; the rim's half-width; the lagoon's depth at lagW in, its roll (±m), and lagW (m); the wall's slope (42°); the margin's warps (m); its influence outside (m); v11.127 (analysis_archipelago §8.5 step 2) the margin by its side: a lee crest under the sea by up to leeD m, leeD·(1 − e^(−fetch/leeF)) (Saya de Malha's west flat 50–55 m behind 230 km of bank, its windward east 30–35), the windward wall the atolls' (wf: their flank, 35° easing to 17°), the lee a prograding slope (lf: 15° easing to 7°)
+const RG_PLG=3000,RG_PL_K={dt:0.02,tf:3,dtf:0.005,rf:0.05,crest:400,lag:50,karst:20,lagW:6000,warp:1500,warp2:300,isl:4000,leeD:REEF_LEE.D,leeF:REEF_LEE.F}; // grid m (3 km: 0.2 s at load, the margin warped finer); Myr, from tf Ma on dtf Myr (v11.126: the 41 and 100 kyr cycles resolved, for the necks' karst and regrowth), Myr; the rim's half-width; the lagoon's depth at lagW in, its roll (±m), and lagW (m); the margin's warps (m); its influence outside (m); v11.127 (analysis_archipelago §8.5 step 2) the margin by its side: a lee crest under the sea by up to leeD m, leeD·(1 − e^(−fetch/leeF)) (Saya de Malha's west flat 50–55 m behind 230 km of bank, its windward east 30–35), the windward wall the atolls' to their bench at −122 m, the lee a prograding slope (v11.142: below, the slopes, mw … dl)
+// v11.142 (analysis_archipelago §11.4): the margins' slopes, Earth's banks' (Chagos, the Maldives, Saya de Malha: −330 m 2 km out from the 100 m
+// line, −650 at 5, −1,100 at 10 — 8°, not v11.141's 22°). mw: the windward wall past its bench (−122 m) on down; ml: the lee's sand from its crest;
+// dw, dl: the drowned flat's (v11.126's plane at 42° to v11.141); q: the slopes' steepness along the margin, e^(±mq[0]) by a noise of the margin's
+// foot (mq[1] /m, so it holds down the slope: spurs and embayments, not rings), clamped to mq[2]; reach: how far out the margins are drawn (m),
+// eased onto the floor over the last fade m; far: where the slopes leave the grid's distance (8-neighbour: octagons) for the exact one, and the
+// margin's warps fade (the reef's jags are not the deep contours'); deep: the drowned flat's floor (m)
+Object.assign(RG_PL_K,{mw:{w:60,s:[0.6,0.12,0.06],t:[[60,350],[4000,10000]]},ml:{w:300,s:[0.27,0.05,0.12,0.05],t:[[200,700],[2000,4000],[7000,12000]]},dw:{w:40,s:[0.9,0.12,0.06],t:[[40,250],[3000,9000]]},dl:{w:60,s:[0.5,0.08,0.05],t:[[60,400],[5000,12000]]},mq:[1.5,0.00005,[0.6,1.6]],far:[1500,4000],reach:16000,fade:6000,deep:300});
 function rgPlatform(Rg){const K=Rg.K,M=Rg.M,G=RG_PLG,P=RG_PL_K,A=Math.max(K.plateAge,K.span+1),cool=t=>350*(Math.sqrt(A)-Math.sqrt(A-t));
   // v11.136: the grid anchored at v11.115–135's corner (its world's less 4 km) and grown from it by whole nodes, so a node it had is the same node
   const ax=-79680,az=-105480,x0=ax-G*Math.ceil(Math.max(0,ax-(WX0-4000))/G),z0=az-G*Math.ceil(Math.max(0,az-(WZ0-4000))/G),RA=new Map(),nx=Math.ceil((WX1+4000-x0)/G)+1,nz=Math.ceil((WZ1+4000-z0)/G)+1,N=nx*nz,plat=new Float64Array(N),cand=[];
@@ -507,34 +519,52 @@ function rgPlatform(Rg){const K=Rg.K,M=Rg.M,G=RG_PLG,P=RG_PL_K,A=Math.max(K.plat
   // v11.126: the drowned carbonate — every node a reef held that lives no more — its margin and its top today (sd2, top2), so a drowned neck is a flat under
   // the light between its banks' walls, walled itself where it meets the plateau; null when nothing drowned (as to v11.125). (v11.127: the drowned alone —
   // with the living in it, its wall from their top at the sea overrode a lee margin's lower crest and gentler slope)
-  let sd2=null,top2=null,nd=0;for(let c=0;c<nc;c++)if(reef[c]&&!inn[cand[c]])nd++;
-  if(nd){const cb=new Uint8Array(N);top2=new Float32Array(N);for(let c=0;c<nc;c++)if(reef[c]&&!inn[cand[c]]){const k=cand[c];cb[k]=1;top2[k]=Math.min(0,rt[c]);bb=[Math.min(bb[0],cx[c]),Math.max(bb[1],cx[c]),Math.min(bb[2],cz[c]),Math.max(bb[3],cz[c])];}
+  let sd2=null,top2=null,nd=0;const dr=c=>reef[c]&&!inn[cand[c]]&&rt[c]>-P.deep;for(let c=0;c<nc;c++)if(dr(c))nd++; // v11.142: a reef drowned past deep m is the floor's, under the younger flat's slope (to v11.141 a cliff of 1,200 m where it met the flat)
+  if(nd){const cb=new Uint8Array(N);top2=new Float32Array(N);for(let c=0;c<nc;c++)if(dr(c)){const k=cand[c];cb[k]=1;top2[k]=Math.min(0,rt[c]);bb=[Math.min(bb[0],cx[c]),Math.max(bb[1],cx[c]),Math.min(bb[2],cz[c]),Math.max(bb[3],cz[c])];}
     for(let k=0;k<N;k++){d1[k]=cb[k]?INF:0;d2[k]=cb[k]?0:INF;}pass(d1,null);pass(d2,top2);sd2=new Float32Array(N);for(let k=0;k<N;k++)sd2[k]=cb[k]?d1[k]-G/2:-(d2[k]-G/2);}
-  const pad=P.warp+P.warp2+P.isl+G;return {G,x0,z0,nx,nz,sd,top,lg,fe,sd2,top2,n,nd,area:n*G*G/1e6,drowned:nd*G*G/1e6,bb:[bb[0]-pad,bb[1]+pad,bb[2]-pad,bb[3]+pad]};}
+  // v11.142: each node's margin side (wl: 0 windward, 1 lee), slopes' steepness (mq, rgMq at its foot) and outward normal (nX, nZ), by the distance's gradient there — read
+  // bilinearly, so the far slopes are continuous across the grid's cells (the cell's own gradient jumps at its edges)
+  const side=S=>{if(!S)return [null,null,null,null];const wl=new Float32Array(N),mq=new Float32Array(N),nX=new Float32Array(N),nZ=new Float32Array(N),cw=Math.cos(wa),sw=Math.sin(wa);for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const k=j*nx+i,
+      gx=(S[j*nx+Math.min(i+1,nx-1)]-S[j*nx+Math.max(i-1,0)])/((Math.min(i+1,nx-1)-Math.max(i-1,0))*G),gz=(S[Math.min(j+1,nz-1)*nx+i]-S[Math.max(j-1,0)*nx+i])/((Math.min(j+1,nz-1)-Math.max(j-1,0))*G),gl=Math.hypot(gx,gz)||1,ox=-gx/gl,oz=-gz/gl;
+      wl[k]=smooth(-0.1,0.5,ox*cw+oz*sw);nX[k]=ox;nZ[k]=oz;const d=Math.min(S[k],0);mq[k]=rgMq(x0+i*G+ox*d,z0+j*G+oz*d);}return [wl,mq,nX,nZ];};
+  const [wl,mq,nX,nZ]=side(sd),[wl2,mq2,nX2,nZ2]=side(sd2);
+  // v11.142: the exact distance outside (so, so2: as sd, to the nearest node inside less G/2), for the far slopes; only within their reach
+  const reachN=(P.reach*1.1+P.warp+P.warp2+2*G)/G,exo=S=>{if(!S)return null;const seeds=[];for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const k=j*nx+i;if(S[k]<=0)continue;
+      if((i>0&&S[k-1]<0)||(i<nx-1&&S[k+1]<0)||(j>0&&S[k-nx]<0)||(j<nz-1&&S[k+nx]<0))seeds.push(i,j);}
+    const o=Float32Array.from(S);for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const k=j*nx+i;if(S[k]>0||S[k]<-reachN*G)continue;let m=1e18;for(let q=0;q<seeds.length;q+=2){const di=seeds[q]-i,dj=seeds[q+1]-j,r=di*di+dj*dj;if(r<m)m=r;}o[k]=-(Math.sqrt(m)*G-G/2);}return o;};
+  const so=exo(sd),so2=exo(sd2);
+  const pad=P.warp+P.warp2+Math.max(P.isl,1.1*P.reach)+G;return {G,x0,z0,nx,nz,sd,top,lg,fe,sd2,top2,wl,mq,nX,nZ,wl2,mq2,nX2,nZ2,so,so2,n,nd,area:n*G*G/1e6,drowned:nd*G*G/1e6,bb:[bb[0]-pad,bb[1]+pad,bb[2]-pad,bb[3]+pad]};}
 // the platform's signed distance at a point, unwarped (rgBuild's burial test); −1e9 off it. carb (v11.126): the carbonate's, living or drowned — the greater of
 // the living's and the drowned's (chunks.js chRange)
 function rgPlatSd(x,z,carb){const P=RG_PL;if(!P||x<P.bb[0]||x>P.bb[1]||z<P.bb[2]||z>P.bb[3])return -1e9;const u=(x-P.x0)/P.G,v=(z-P.z0)/P.G,i=Math.floor(u),j=Math.floor(v);if(i<0||j<0||i>=P.nx-1||j>=P.nz-1)return -1e9;
   const tu=u-i,tv=v-j,k=j*P.nx+i,at=S=>(S[k]*(1-tu)+S[k+1]*tu)*(1-tv)+(S[k+P.nx]*(1-tu)+S[k+P.nx+1]*tu)*tv;return carb&&P.sd2?Math.max(at(P.sd),at(P.sd2)):at(P.sd);}
+// v11.142: the margins' steepness at a margin's foot (fx, fz) (rgPlatform's nodes'), and the drowned flat's fall d m past its edge by its side wl
+function rgMq(fx,fz){const Q=RG_PL_K.mq;return clamp(Math.exp(Q[0]*(fbm(fx*Q[1]+17.3,fz*Q[1]+5.9,2)-0.5)*2),Q[2][0],Q[2][1]);}
+function rgDrown(d,wl){const K=RG_PL_K;return lerp(rgSlope(d,K.dw),rgSlope(d,K.dl),wl);}
 // the platform's ground at (x, z), and into o its fields (world.js sample takes them where it is the ground): the lagoon's weight, the rim's
 // band and its passes, the margin's outward normal (for the waves' and the current's aspect), its influence, the wall's hard spurs, the smooth
 // surface; −1e9 where it is not. The margin is warped at two scales so it is never the grid's
 
-function rgPlat(x,z,o){const P=RG_PL;if(!P||x<P.bb[0]||x>P.bb[1]||z<P.bb[2]||z>P.bb[3])return -1e9;const u=(x-P.x0)/P.G,v=(z-P.z0)/P.G,i=Math.floor(u),j=Math.floor(v);if(i<0||j<0||i>=P.nx-1||j>=P.nz-1)return -1e9;
+function rgPlat(x,z,o,flo){const P=RG_PL;if(!P||x<P.bb[0]||x>P.bb[1]||z<P.bb[2]||z>P.bb[3])return -1e9;const u=(x-P.x0)/P.G,v=(z-P.z0)/P.G,i=Math.floor(u),j=Math.floor(v);if(i<0||j<0||i>=P.nx-1||j>=P.nz-1)return -1e9;
   const K=RG_PL_K,tu=u-i,tv=v-j,k=j*P.nx+i,S=P.sd,T=P.top,nx=P.nx,S2=P.sd2;let sd=(S[k]*(1-tu)+S[k+1]*tu)*(1-tv)+(S[k+nx]*(1-tu)+S[k+nx+1]*tu)*tv,sd2=S2?(S2[k]*(1-tu)+S2[k+1]*tu)*(1-tv)+(S2[k+nx]*(1-tu)+S2[k+nx+1]*tu)*tv:-1e9;
-  if(Math.max(sd,sd2)<-(K.isl+K.warp+K.warp2+P.G))return -1e9;
+  if(Math.max(sd,sd2)<-(Math.max(K.isl,1.1*K.reach)+K.warp+K.warp2+P.G))return -1e9;
   const gx=((S[k+1]-S[k])*(1-tv)+(S[k+nx+1]-S[k+nx])*tv)/P.G,gz=((S[k+nx]-S[k])*(1-tu)+(S[k+nx+1]-S[k+1])*tu)/P.G,gl=Math.hypot(gx,gz)||1; // the distance's gradient points inward
-  if(sd<K.lagW+K.warp+K.warp2){const wp=K.warp*(fbm(x*0.0004+311,z*0.0004+97,3)-0.5)*2+K.warp2*(fbm(x*0.003+51,z*0.003+13,2)-0.5)*2;sd+=wp;sd2+=wp;} // v11.126: the carbonate's margin warped with the banks' (read only where the banks' is near)
+  if(sd<K.lagW+K.warp+K.warp2){const a=(fbm(x*0.0004+311,z*0.0004+97,3)-0.5)*2,b=(fbm(x*0.003+51,z*0.003+13,2)-0.5)*2,f=smooth(-K.far[0],-K.far[1],sd),f2=S2?smooth(-K.far[0],-K.far[1],sd2):0,bi=A=>(A[k]*(1-tu)+A[k+1]*tu)*(1-tv)+(A[k+nx]*(1-tu)+A[k+nx+1]*tu)*tv;if(f>0)sd=lerp(sd,bi(P.so),f);if(f2>0)sd2=lerp(sd2,bi(P.so2),f2);sd+=K.warp*a*(1-0.6*f)+K.warp2*b*(1-f);sd2+=K.warp*a*(1-0.6*f2)+K.warp2*b*(1-f2);} // v11.126: the carbonate's margin warped with the banks' (read only where the banks' is near); v11.142: far out the exact distance, the warps fading
   const bl=A=>(A[k]*(1-tu)+A[k+1]*tu)*(1-tv)+(A[k+nx]*(1-tu)+A[k+nx+1]*tu)*tv,top=bl(T),n1=(fbm(x*0.02+5,z*0.02+3,2)-0.5)*2,lgB=P.lg?bl(P.lg):K.lag,feB=P.fe?bl(P.fe):0;
   // v11.127: the margin by its side. e: how squarely it faces the trade swell (1 windward, −1 lee, by its outward normal); the windward crest at the
   // reef's top, its flat broader (W) and fewer passes; the lee crest under the sea by the bank's shallows upwind (dL, never below the lagoon's floor + 15),
   // its islets gone with its depth
   const onx=-gx/gl,onz=-gz/gl,wa=typeof WIND_A==='number'?WIND_A:3.49,e=-(onx*Math.cos(wa)+onz*Math.sin(wa)),wl=smooth(-0.1,0.5,-e),W=K.crest*(0.7+0.6*Math.max(0,e)),dL=Math.max(0,Math.min(K.leeD*(1-Math.exp(-feB/K.leeF)),lgB-15)),ct=top-dL;
   const lagK=smooth(W*0.4,W*1.6,sd),crK=smooth(-W,-W*0.3,sd)*smooth(W,W*0.3,sd),ra=smooth(0.3-0.15*e,0.62-0.15*e,fbm(x*0.0012+11,z*0.0012+7,2)),lagD=18+(lgB-18+K.karst*(fbm(x*0.00008+71,z*0.00008+29,3)-0.5)*2)*smooth(W,K.lagW,sd); // the lagoon deepening inward, its floor rolling ±karst over 10–15 km (the lowstands' dissolution; its patch reefs and holes are the next step's)
-  let gS;if(sd>=0)gS=lerp(ct-14,top-lagD,lagK);else{const d=-sd-0.3*W,hW=ct-14-6*smooth(0,90,d)-12*smooth(80,210,d)-90*smooth(190,310,d)-160*smooth(390,640,d)-300*smooth(560,1040,d)-(d>950?rgFlank(d-950,K.wf):0),hL=ct-8-(d>0?rgFlank(d,K.lf):0);gS=lerp(hW,hL,wl);} // v11.127: outside, the windward wall the atolls' (v11.123: the reef flat's edge, the terrace, a wall to −122, the bench, the wall to −580, the talus), the lee a slope of the sand it sheds (to v11.126 a plane at 42° all round)
+  const mq=bl(P.mq),wlS=bl(P.wl);
+  let gS;if(sd>=0)gS=lerp(ct-14,top-lagD,lagK);else{const d=-sd-0.3*W,hW=ct-14-6*smooth(0,90,d)-12*smooth(80,210,d)-90*smooth(190,310,d)-(d>390?rgSlope((d-390)*mq,K.mw):0),hL=ct-8-(d>0?rgSlope(d*mq,K.ml):0);gS=lerp(hW,hL,wlS);} // v11.127: outside, the windward wall the atolls' (v11.123: the reef flat's edge, the terrace, a wall to −122, the bench), the lee a slope of the sand it sheds; v11.142: below them the slopes of Earth's banks (rgSlope; to v11.141 the wall to −580 and the talus, the lee's 15° easing to 7°)
   let g=sd>=0?lerp(ct-14,lagK>0?lagoonF(x,z,top-lagD+1.5*n1,top):top-lagD,lagK):gS;g=lerp(g,ct+lerp(1.5*n1,2.5+3.5*n1,smooth(-8,-1,ct)),crK*ra)-3*(1-ra)*crK; // v11.123: the lagoon's patch reefs and blue holes (world.js lagoonF)
   o.lag=lagK;o.rimK=crK;o.rimA=ra;o.nx=onx;o.nz=onz;o.isl=smooth(-K.isl,0,sd);o.carb=smooth(-W*0.5,-W*1.5,sd)*smooth(-1000,-850,g)*(1-wl);o.hs=lerp(gS,ct+2.5,crK);o.sd=sd;
-  if(S2&&sd<0){const T2=P.top2,wu=clamp(u+(fbm(x*0.0005+7.1,z*0.0005+2.3,2)-0.5)*1.2,0,P.nx-1.001),wv=clamp(v+(fbm(x*0.0005+1.9,z*0.0005+6.7,2)-0.5)*1.2,0,P.nz-1.001),wi=Math.floor(wu),wj=Math.floor(wv),su=wu-wi,sv=wv-wj,wk=wj*nx+wi,t2=(T2[wk]*(1-su)+T2[wk+1]*su)*(1-sv)+(T2[wk+nx]*(1-su)+T2[wk+nx+1]*su)*sv,gD=sd2>=0?t2+4*n1:t2+K.wall*sd2; // v11.126: the drowned flat (its floor rolling ±4 m), walled where it ends; a bank's wall stops on it
+  if(sd<0){const t=smooth(0,-2000,sd);if(t>0){const ax=lerp(onx,bl(P.nX),t),az=lerp(onz,bl(P.nZ),t),al=Math.hypot(ax,az)||1;o.nx=ax/al;o.nz=az/al;}} // v11.142: the slope's aspect (the waves', the current's) the nodes' normal, eased in from the crest (the cell's jumps at its edges)
+  if(S2&&sd<0){const T2=P.top2,wu=clamp(u+(fbm(x*0.0005+7.1,z*0.0005+2.3,2)-0.5)*1.2,0,P.nx-1.001),wv=clamp(v+(fbm(x*0.0005+1.9,z*0.0005+6.7,2)-0.5)*1.2,0,P.nz-1.001),wi=Math.floor(wu),wj=Math.floor(wv),su=wu-wi,sv=wv-wj,wk=wj*nx+wi,t2=(T2[wk]*(1-su)+T2[wk+1]*su)*(1-sv)+(T2[wk+nx]*(1-su)+T2[wk+nx+1]*su)*sv,gD=sd2>=0?t2+4*n1:t2-rgDrown(-sd2*bl(P.mq2),bl(P.wl2)); // v11.126: the drowned flat (its floor rolling ±4 m), walled where it ends; a bank's wall stops on it
+    if(sd2<0){const w=smooth(-60,60,gD-g);if(w>0){o.nx=lerp(o.nx,bl(P.nX2),w);o.nz=lerp(o.nz,bl(P.nZ2),w);}} // v11.142: the drowned flat's slope its own aspect, blended across the crease where it meets the bank's (a channel's floor faces neither way)
     if(gD>g){g=gD;o.lag=0;o.rimK=0;o.rimA=1;o.carb=sd2>=0?0.3:smooth(-W*0.5,-W*1.5,sd2)*smooth(-1000,-850,g);o.hs=sd2>=0?t2:gD;}}
+  if(flo!==undefined){const dd=-Math.max(sd,sd2);if(dd>K.reach-K.fade){const w=smooth(K.reach,K.reach-K.fade,dd);g=flo+(g-flo)*w;o.hs=flo+(o.hs-flo)*w;}} // v11.142: the margins' far aprons onto the floor (flo, sample()'s: under it is under the ground) by reach
   return g;}
 // ---------- the islands' lineages (v11.119, analysis_flora_diversity §5.6; SEAFLOOR §6, the range term; the person, 12 Nov 2026) ----------
 // The model knows each member's first light (lit) and the lit member nearest it then (src): the province was settled from its oldest, in the

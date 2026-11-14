@@ -595,6 +595,32 @@ below their wall, before their talus). The islands' surroundings between −150 
 fall straight to the floor (Earth's banks: Chagos 20%, the Mascarene banks 16% between −150 and −800). Next: the platform's margins given the
 same treatment (rgPlat), then saddles (C) and the floor's grain (G).
 
+**11.4 The platform's margins (14 Nov 2026; the person: "Go ahead with the eastern platform's margins"). Built v11.142.** Measured first in
+test/earth.js's own grids: depth against distance from water shallower than 100 m (the median of every point at that distance), Earth's banks
+beside the platform's margins (only the points whose nearest shallows are the platform's):
+
+```
+km out            0.5     1   1.5     2     3     4     5   7.5    10    15    25   | below -100 within 25 km: 100-150 150-450 450-800 800-1100 >1100
+Mascarene        -103  -114  -124  -136  -161  -195  -233  -473  -828 -1151 -1741   |  27% 18%  7%  9% 39%
+Chagos           -120  -180  -249  -327  -445  -601  -740  -936 -1194 -1471 -1779   |   3% 13% 15% 13% 56%
+Maldives         -130  -202  -265  -324  -392  -455  -525  -638  -866 -1435 -2275   |   2% 36% 12%  4% 46%
+Galapagos        -118  -161  -201  -237  -287  -382  -496  -600  -750 -1096 -1787   |   6% 21% 18%  9% 45%
+platform v11.141 -196  -466  -737 -1006 -1323 -1365 -1386 -1417 -1465 -1512 -1602   |   1%  3%  3%  3% 89%
+platform v11.142 -158  -238  -281  -327  -397  -484  -605  -795 -1019 -1477 -1600   |   1% 12% 14% 12% 61%
+```
+Earth's banks fall at ~8° on average from the 100 m line to 5 km out, then ease; ours fell at ~22°, and the drowned flat (61% of the
+platform's carbonate, and most of its outer edge) by v11.126's plane at 42°. **Built:** every margin a run of slopes eased one into the next
+(`rgSlope`: a wall, the slope, its apron), by its side (windward steeper, the lee's shed sand with a shoulder), the drowned flat's by its own side;
+the slopes' steepness ×0.6–1.6 along the margin by a noise of its foot (spurs and embayments 20 km across, not rings); the far slope by the exact
+distance and the margin's warps fading with depth (the first cut showed the grid's octagons and the reef's jags copied onto every deep contour);
+the side and steepness worked out at the grid's nodes and read bilinearly (the first cut's cell-wise gradient stepped at every 3 km cell edge); the
+aprons eased onto the floor 10–16 km out. And a find: 24 nodes of drowned reef at −1,100 to −1,300 stood in the drowned flat at −74 with a cliff
+of 1,200 m between — a reef drowned past −300 m is now the floor's, under the younger flat's slope. **Result:** at 2 km out −327, Chagos's
+exactly; the province's islands' surroundings between −150 and −800 m 6% → 10%, its in-between 14% → 20% (Earth's plume archipelagos 10–35%).
+Seen on the map: the platform's halo of medium blues, smooth and varying in width, as Chagos's; not seen from the water. **Left:** the channels
+between the banks and the reef chain at intermediate depths (Chagos's saddles: C), the plateau's own relief (G), the gullies on the slopes
+(Earth's are below GEBCO's grain; the diver would see them).
+
 **11.2 What must hold** (learned building v11.129–137; HANDOFF's working notes):
 - **The bounds.** sample() skips a record where its bound table `R.hi` (region.js `rgBound`: the radial profile plus fixed margins) says it
   cannot matter. Anything that raises the ground at some angles — a ridge, a debris fan — must raise `hi` at those radii (its largest height
