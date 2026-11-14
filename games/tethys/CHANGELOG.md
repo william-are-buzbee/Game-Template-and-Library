@@ -7909,3 +7909,27 @@ now deeper).
 - **Tests:** test/region.js the platform's shallows by depth (none over 35% in a 20 m band, 100–140 m present).
 
 **Unseen:** the drowned flat from the water (`tp(240000,60000)`: a basin at −101 m; east, it rises to −53 m over 20 km); a fourth blind sheet next.
+
+## v11.146 — the banks' lagoons, and a fair blind sheet (14 Nov 2026)
+
+The fourth blind sheet (seed 73, unseen; analysis_archipelago §10.6): 12 and 15 found sure, the third a toss between ours (9) and Saya de
+Malha (1) — the drowned flat passed for the real one. The person: "10 vs 15 is an interesting point, like how the gradient of color looks
+quite unique" — Chagos's bank against ours. Two things, one the sheet's and one the world's:
+
+- **test/earth.js:** the province's lattice node is now its 15" cell's mean (4×4 samples, `SS`; `PT=1` the old point), as Earth's grids are
+  cell means — to v11.145 a point, so the banks' 100–300 m knolls aliased into a stipple no Earth tile can show (the person: "Good catch on the
+  sampling of the cells"). The province's numbers move a little: the shoals' texture 2.6 → 1.6 m, the shelf 4.1 → 1.5 km.
+- **region.js `rgLagFloor` (`RG_PL_K.lb`):** a living bank's lagoon floor as Chagos's — a flat (0.45 of the bank's lagoon depth, 18–32 m,
+  rolling a few metres) reached from the rim's 18 m over 1.5 km, and in it basins with crisp, irregular edges (a noise over 14 km past a
+  threshold, ~a fifth of the floor) down 50 m (±25) under it. Measured (scratch `bankhist.js`, the banks' tops 0–100 m by 10 m band, cell
+  means): Chagos 5, 28, 42, 8, 5, 4, 3, 3, 2, 1%; ours 0, 13, 18, 18, 21, 17, 11, 2, 0, 0% (an even fade) → 2, 18, 57, 4, 3, 3, 6, 5, 2, 1%.
+  The karst roll back to ±6 m (32 in v11.145), karst2 ±3.
+- **world.js `lagoonF`:** the knolls fewer and larger (over ~550 m, a higher threshold), and fewer still in a deep lagoon's basins.
+
+What moved (seed 32): the living banks' tops a flat at 20–30 m with basins to 90 m; the land the same; the water shallower than 60 m
+12,844 → 12,941 km² (the flats); ours' square the same to the bit.
+
+- **Tests:** test/region.js the lagoon 9 km in re-pinned (a flat at −10 to −36 m at half or more, basins under −40 at 5–40%; −25 to −80 to
+  v11.145); the living banks' tops (one 10 m band with 40% or more, basins under 60 m).
+
+**Unseen:** a bank's flat and its basins from the water; the fifth blind sheet next.

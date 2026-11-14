@@ -1,5 +1,9 @@
 # HANDOFF — tethys
 
+**v11.146 (14 Nov 2026): the banks' lagoons, and a fair blind sheet** (analysis_archipelago §10.6, §11.8). Blind sheet 4 (seed 73): 2 sure,
+the third a toss between ours and Saya de Malha. test/earth.js now takes each lattice node as its cell's mean (Earth's are; our knolls had
+aliased into a stipple). The living banks' lagoons a flat with crisp basins, as Chagos's (`rgLagFloor`). **Next:** the fifth blind sheet (seed 89).
+
 **v11.145 (14 Nov 2026): the shallows' relief** (analysis_archipelago §10.5, §11.7). Blind sheet 3 (seed 67): 3 of 3 found, by "the
 uniformity" — the drowned flat 59% in one 20 m band where Saya de Malha spreads 20–140 m. The flat now swells and sinks (`rgShoal`), channels
 cross it, the lagoons roll more and their knolls come in fields: no band over 22%. **Next:** the fourth blind sheet (seed 73, unseen).

@@ -14,6 +14,7 @@
 // Env: W (pixels a side for each window, 1400), ONLY (keys, comma-separated), FETCH=0 (the cache only), RAW=1 (the province at the game's own
 // detail), BLIND=<seed> (only the blind sheet, by that seed), PSEED (the province's seed, 32 the game's: a blind test from one not seen).
 const fs=require('fs'),path=require('path'),{execFileSync}=require('child_process'),root=path.join(__dirname,'..'),{png,text}=require('./png.js'),{relief}=require('./mapdraw.js');
+const SS=process.env.PT==='1'?1:+(process.env.SS||4); // v11.146: each lattice node the mean of SS×SS samples over its 15" cell, as Earth's grids are cell means (to v11.145 a point: the reefs' 100-300 m knolls aliased into a stipple no Earth tile can show); PT=1 the point
 const SPAN=384000,W=+(process.env.W||1400),M=SPAN/W,N=W+2,T=-80,DMIN=2000,CONT=[0,-60,-150,-1000],GEB=463.3; // GEB: GEBCO's 15" in metres
 const WIN=[ // key, name, the window's centre (degrees), what it stands for here
   {key:'tethys',name:'Tethys (the province, seed 32)',note:'the whole province'},
@@ -46,7 +47,7 @@ function grid(w){const bin=path.join(cache,w.key+'.f32'),hdr=path.join(cache,w.k
   const z=new Float32Array(g.ncols*g.nrows);for(let k=0;k<z.length;k++){const v=+s[p++];z[k]=v===g.nodata_value?NaN:v;}
   fs.writeFileSync(bin,Buffer.from(z.buffer));fs.writeFileSync(hdr,JSON.stringify(g));fs.unlinkSync(asc);g.z=z;return g;}
 // v11.137: every place a height function of (x, z), metres east and south of its centre — Earth's by a local flat projection about the window's
-// centre, bilinear in its grid; the province's on a lattice of GEBCO's 15" over the world, bilinear the same way (RAW: sample() itself)
+// centre, bilinear in its grid; the province's on a lattice of GEBCO's 15" over the world (each node its cell's mean, SS), bilinear the same way (RAW: sample() itself)
 function earthAt(w){const g=grid(w),kx=111320*Math.cos(w.lat*Math.PI/180),kz=110574;
   const q=(i,j)=>{i=Math.max(0,Math.min(g.ncols-1,i));j=Math.max(0,Math.min(g.nrows-1,j));const v=g.z[j*g.ncols+i];return v===v?v:-4000;};
   return (x,z)=>{const la=w.lat-z/kz,lo=w.lon+x/kx,c=(lo-g.xllcorner)/g.cellsize-0.5,r=g.nrows-0.5-(la-g.yllcorner)/g.cellsize,c0=Math.floor(c),r0=Math.floor(r),u=c-c0,v=r-r0;
@@ -60,7 +61,7 @@ function tethysWorld(){if(TW)return TW;const util=fs.readFileSync(path.join(root
   const THREE={Vector3:class{constructor(x,y,z){this.x=x;this.y=y;this.z=z;}},Matrix4:class{},Quaternion:class{}};
   const Wd=new Function('THREE',util+'\n'+world+'\nreturn {sample,WX0,WX1,WZ0,WZ1};')(THREE);TW={Wd,x0:Wd.WX0,x1:Wd.WX1,z0:Wd.WZ0,z1:Wd.WZ1,cx:(Wd.WX0+Wd.WX1)/2,cz:(Wd.WZ0+Wd.WZ1)/2};return TW;}
 function tethysAt(cx,cz){const t=tethysWorld(),f=new Float32Array(9);if(process.env.RAW==='1')return (x,z)=>t.Wd.sample(cx+x,cz+z,f).h;
-  if(!TL){const nx=Math.ceil((t.x1-t.x0)/GEB)+1,nz=Math.ceil((t.z1-t.z0)/GEB)+1,L=new Float32Array(nx*nz);for(let j=0;j<nz;j++)for(let i=0;i<nx;i++)L[j*nx+i]=t.Wd.sample(t.x0+i*GEB,t.z0+j*GEB,f).h;TL={nx,nz,L};}
+  if(!TL){const nx=Math.ceil((t.x1-t.x0)/GEB)+1,nz=Math.ceil((t.z1-t.z0)/GEB)+1,L=new Float32Array(nx*nz);for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){let a=0;for(let b=0;b<SS;b++)for(let c=0;c<SS;c++)a+=t.Wd.sample(t.x0+(i+((c+0.5)/SS-0.5))*GEB,t.z0+(j+((b+0.5)/SS-0.5))*GEB,f).h;L[j*nx+i]=a/(SS*SS);}TL={nx,nz,L};}
   const {nx,nz,L}=TL,q=(i,j)=>L[Math.max(0,Math.min(nz-1,j))*nx+Math.max(0,Math.min(nx-1,i))];
   return (x,z)=>{const u0=(cx+x-t.x0)/GEB,v0=(cz+z-t.z0)/GEB,i=Math.floor(u0),j=Math.floor(v0),u=u0-i,v=v0-j;return (q(i,j)*(1-u)+q(i+1,j)*u)*(1-v)+(q(i,j+1)*(1-u)+q(i+1,j+1)*u)*v;};}
 // heights on the (n+2)² grid map.js draws, m metres a pixel, about the function's centre

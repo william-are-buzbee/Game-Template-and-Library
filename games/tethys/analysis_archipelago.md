@@ -698,6 +698,29 @@ lagoons' knolls come in fields. Tuned by the table above to Saya de Malha's spre
 hills' had: a fbm's spread is ±0.26 of its range). Seen at Earth's scale: the flat mottled with swells, basins and channels as tile 2 is; the
 platform now 21 pieces above −80 m, as Chagos's 21. **Next:** the fourth blind sheet.
 
+**10.6 The fourth blind sheet (seed 73's province, unseen; 14 Nov 2026)** — Tethys 9, 12, 15 (seed 4157). The person: "15, 12 and 1? Or maybe
+12, 15 and 9" — two sure, the third a toss between ours (9) and Saya de Malha (1): the drowned flat (v11.145) passed for the real one. "Harder to
+tell again this time, though I still picked Tethys. I'd say it 10 vs 15 is an interesting point, like how the gradient of color looks quite
+unique. 11 is also unique, those atolls seem a little different than 1 or 15." And: "Looks better in game as well, though I do believe that
+working to make the maps believable is a worthy project that will inevitably make the underwater exploration better." Looked at side by side:
+Chagos's bank (10) an even light flat with crisp darker basins, a few big knolls; ours (15) a soft fade and a stipple of knolls. The slopes'
+spread matched Chagos's (15/30/26/13/8/9% from flat to steep against 14/29/27/19/9/2); the stipple was partly the sheet's own: our tiles were
+point samples every 463 m, Earth's cell means, so the 100–300 m knolls aliased. The tops' depths (10 m bands, cell means) told the rest:
+
+```
+window          km²     0-10 10-20 20-30 30-40 40-50 50-60 60-70 70-80 80-90 90-100
+Chagos        17815      5%   28%   42%    8%    5%    4%    3%    3%    2%    1%
+Maldives      12760     40%   23%   13%   10%    8%    4%    2%    1%    0%    0%
+Tuamotus       5138     23%   23%   22%   13%    9%    3%    2%    2%    2%    1%
+Mascarene     29477      1%    5%   28%    7%    7%    9%   11%   12%   11%   10%
+ours v11.145   6626      0%   13%   18%   18%   21%   17%   11%    2%    0%    0%
+ours v11.146   6626      2%   18%   57%    4%    3%    3%    6%    5%    2%    1%
+```
+
+**11.8 The banks' lagoons (14 Nov 2026; the person: "Go right ahead with your 1-3 order. Good catch on the sampling of the cells"). Built
+v11.146.** (1) test/earth.js's lattice as cell means. (2) A living bank's lagoon a flat with crisp-edged basins (`rgLagFloor`), its knolls fewer
+and larger. (3) The fifth blind sheet next.
+
 **11.2 What must hold** (learned building v11.129–137; HANDOFF's working notes):
 - **The bounds.** sample() skips a record where its bound table `R.hi` (region.js `rgBound`: the radial profile plus fixed margins) says it
   cannot matter. Anything that raises the ground at some angles — a ridge, a debris fan — must raise `hi` at those radii (its largest height
