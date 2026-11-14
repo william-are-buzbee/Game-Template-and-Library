@@ -1,5 +1,9 @@
 # HANDOFF — tethys
 
+**v11.139 (14 Nov 2026): the depths between** (analysis_archipelago §10.4). Blind sheet 2 (unseen seed 41): 3 of 3 found, by the thin medium
+blues; `test/earth.js` now measures it — 4% of the islands' surroundings between −150 and −800 m against Earth's plume archipelagos' 10–35%.
+**Next:** landslides and their debris aprons (§11 D; the person: "depth measure first then landslides"), judged by that share.
+
 **v11.138 (14 Nov 2026): submarine ridges and flank canyons** (analysis_archipelago §11 A, E). Every island's rift zones go on under the sea as
 tapering ridges; its flank is fluted by canyons; sample() bounds them by the point (rdgEnv, rdgBound, rdgNear). Ours' square the same to the bit.
 sample() 27% slower (the suite's longest runs 13–26%). **Ask first:** the second blind sheet (seed 41); the ridges from the water. **Next (§11):**

@@ -582,3 +582,31 @@ against 0.38); and the bound must be the feature's exact envelope less its noise
 - **The cost.** islandH is the hot path: per arm a few multiplies and one exp; tables, not noise calls, where a noise is per angle (`anTables`).
   Measure sample() before and after (best of five, as v11.135 did); the suite's run times too.
 - **The pins** stay as they are; **ours' square** the same to the bit (compare against the version before at ±2 km).
+
+**10.4 The second blind sheet (seed 41's province, unseen; 14 Nov 2026): 3 of 3 found** — 3, 5, 15. The person: "What gives them away is the
+low amount of darker/medium blue on the screen (13 is 100% "blue"). 15 is the least obvious even though I knew right away." The cakes were no
+longer named: the tell is the depths between. Measured (`test/earth.js` v11.139: the area within 25 km of water shallower than 60 m, by map.js's
+bands):
+
+```
+the depths within 25 km of the shallows (% of that area, by map.js's bands; mid: 150 to 1,100 m, the in-between)
+window                         land      <60   60-150  150-450  450-800 800-1100    >1100      mid
+Tethys                           4%      17%      21%       2%       2%       7%      47%      11%
+Society Islands                  7%       2%       1%       1%       2%       3%      85%       6%
+Tuamotus                         4%      10%       2%       3%       3%       6%      73%      11%
+Marshall Islands                 2%      13%       1%       2%       2%       1%      80%       5%
+Maldives                         1%      25%       3%      26%       9%       3%      33%      37%
+Chagos                           1%      28%       6%       9%      11%       9%      37%      29%
+Hawaii                          32%       4%       6%      10%      10%       7%      32%      27%
+Canary Islands                  14%       5%       5%       5%       5%       5%      61%      15%
+Cape Verde                      10%       5%       4%       6%       5%       6%      64%      17%
+Reunion and Mauritius           23%       4%       2%       4%       9%       5%      53%      18%
+Mascarene banks                  0%      23%      29%      11%       5%       5%      26%      21%
+Kerguelen                       19%       8%      46%      23%       2%       1%       0%      27%
+Azores                           7%       2%       3%       6%      11%      13%      58%      30%
+Galapagos                       16%       3%       7%      17%      14%       7%      36%      37%
+```
+The province holds 4% of its islands' surroundings between −150 and −800 m (2 and 2), where the plume archipelagos hold 10–35% (Galápagos 31,
+Kerguelen 25, Hawaii 20, Chagos 20, the Azores 17) and even the deep-floor chains 2–6 — its flanks fall from the shelf to the floor in one steep
+step, as the Society Islands' do from 4 km, but it is a plateau archipelago. The measure for the next steps (§11): raise that share toward
+10–30% — landslide debris aprons (D), saddles and benches (C), the plateau's own relief (G).

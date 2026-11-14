@@ -7764,3 +7764,12 @@ compute the islands almost everywhere within 60 km (+90%). The suite's longest r
 Seen: the ±75 km world and the awesome shield's south-east ridge close (a broad tongue to north-east of ours), the profile across its root (no
 step). **Unseen:** the ridges from the water and in the deep (`tp(4000,-9000,-300)`, the shield's south-east ridge); the second blind sheet
 (seed 41, a province not seen: the person's guesses).
+
+## v11.139 — the depths between (14 Nov 2026)
+
+The second blind sheet (seed 41's province, unseen): the person found 3 of 3 — "What gives them away is the low amount of darker/medium blue".
+A tool and an analysis; **the game unchanged**.
+
+- **test/earth.js:** the depths round the islands — of the area within 25 km of water shallower than 60 m, the share in each of map.js's bands,
+  and `mid`, the in-between (−150 to −1,100). The province: 4% between −150 and −800 (2 and 2), against 10–35% for the plume archipelagos and 2–6
+  for the deep-floor chains; analysis_archipelago §10.4. The target for the flanks' next steps (§11): that share toward 10–30%.
