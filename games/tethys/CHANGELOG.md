@@ -7855,7 +7855,7 @@ Maldives −211, −373, −358; Galápagos −119, −160, −260; the Azores a
 What moved (seed 32): the passes 5–10, 10–20, 20–40 km apart −243, −303, −466 m (Earth's in range at each); the province's surroundings between
 −150 and −800 m 10% → 20%, its in-between (−150 to −1,100) 20% → 31% (Chagos 29%, the Azores 30%, Galápagos 37%); the land and the shallows the
 same; ours' square the same to the bit; the ±70.5 km world's ground changed at 21% of places (up to 1,147 m higher: the giant–m153 saddle, 14 km
-west-south-west of ours, its pass at −251 m). Load: region.js +12–20% (the saddles ~0.2 s); sample() +7–16%.
+west-north-west of ours, its pass at −251 m). Load: region.js +12–20% (the saddles ~0.2 s); sample() +7–16%.
 
 - **Tests:** test/region.js the saddles (≥ 8 pairs, the passes by gap within Earth's medians' range, none 300 m under its pass, the base never
   above −160); the reefs' spurs and chutes counted on their own slopes, not the base's over them.
