@@ -369,6 +369,16 @@ function rgRecord(m,K){const ns=1000+37*Number(m.id.slice(1)),rng=mulberry(WB.ha
 // (rgLobe's, in the record's own frame): its crest from the shelf's edge (r0, the profile's height there h0) falling at `s` until it meets the
 // floor (sample()'s smax takes the floor there) and fading by L (1.2 R of the volcano, 8–40 km), its half-width W tapering to its tip; the canyons `n` round the
 // flank at ~`sp` apart, `d` deep (world.js islandH)
+// v11.140 (analysis_archipelago §11.3 D; the person, 14 Nov 2026: "depth measure first then landslides"): the big shields fail — a debris avalanche's
+// amphitheatre scar on the flank and its hummocky fan on the floor beyond the toe (Hawaii's Nu'uanu, the Canaries' El Golfo). Per record by its id,
+// more for the big: its sector (a, half-angle ha widening by half down the fan), the fan from the toe (r0, 0.85 of its foot) out L (15–40 km),
+// T thick at the toe (200–600 m) on the floor at its centre (sfl), the scar sd deep; on the −1,100 m plateau the fan stands at −900 to −500, the
+// in-between depths the province lacked (§10.4). World.js islandH draws them, sldBound/sldNear bound them by the point
+const RG_SLD={on:true,ha:[0.25,0.5],L:[15000,40000],T:[200,600],sd:[100,300]};
+function rgSlides(R,m,foot){const h=mulberry(WB.hashString('slide:'+m.id)),big=m.state==='high'||m.state==='shield'||m.R>12000,n=big?1+Math.floor(h()*3):(h()<0.4?1:0);if(!n)return;
+  const sfl=rgFloor(R.x,R.z),r0=0.85*foot,S=[];for(let k=0;k<n;k++){const a=h()*TAU,ha=RG_SLD.ha[0]+(RG_SLD.ha[1]-RG_SLD.ha[0])*h(),sz=big?0.5+0.5*h():0.3+0.4*h();
+    S.push({c:Math.cos(a),s:Math.sin(a),ha,cw:Math.cos(Math.min(Math.PI,1.5*ha)),r0,L:RG_SLD.L[0]+(RG_SLD.L[1]-RG_SLD.L[0])*sz,T:RG_SLD.T[0]+(RG_SLD.T[1]-RG_SLD.T[0])*sz,sd:RG_SLD.sd[0]+(RG_SLD.sd[1]-RG_SLD.sd[0])*h(),k:17*k+(R.ns%53)});}
+  R.sld=S;R.sfl=sfl;R.sfr=R.flank.r;}
 const RG_RDG={on:true,s:0.07,L:[1.2,8000,40000],w:[0.15,800,4000],cy:{d:60,sp:2200}}; // w: the crest's half-width where it leaves the island, 0.15 of the shelf's radius (0.8–4 km)
 function rgRidges(R,m){if(!R.arm||!R.flank)return;const F=R.flank,r0=F.r,L=clamp(RG_RDG.L[0]*m.R,RG_RDG.L[1],RG_RDG.L[2]),w0=clamp(RG_RDG.w[0]*r0,RG_RDG.w[1],RG_RDG.w[2]);
   R.rdg={r0,h0:rgRadial(R,r0),s:RG_RDG.s,L,W:w0,ph:(R.ns%97)*0.37,c:R.arm.map(Math.cos),n:R.arm.map(Math.sin)};
@@ -419,8 +429,9 @@ function rgBuild(Rg){const K=Rg.K,W0=[-HALF-2000,HALF+2000,-HALF-2000,HALF+2000]
     if(!R.land&&rgPlatSd(m.x,m.z)>-(R.rimR!==undefined?0.5*R.rimR:0)){struck.push({id:m.id,by:'platform'});continue;} // v11.122: a member the platform grew over (its centre on it, a reef's within half its ring) is buried by it; land stands above it
     // v11.131: a satellite never buries its own host; the burier read in its own frame (an oval's: v11.129 kept the round distance so the list would not move)
     const by=kept.find(B=>!(B.sat&&B.sat.host===m.id)&&rgRadial(B,rgLoc(B,R.x,R.z))>top-20);if(by){struck.push({id:m.id,by:by.id});continue;}
-    const f=foot(R);R.reach=Math.round(Math.max(1.2*f,R.fade[1])+500);if(R.rdg){R.rdgR=Math.round(R.rdg.r0+R.rdg.L+1.6*R.rdg.W+500); /* v11.138: its ridges' far end (its reach the island's own: past it sample() asks the ridges alone, world.js rdgNear) */
-      let fm=1e9;const P_={};for(const a of R.arm)for(let q=0;q<=12;q++)for(const off of [-1,0,1]){rgAt(R,R.rdg.r0+R.rdg.L*q/12,a+off*0.25*(1-q/14),P_);fm=Math.min(fm,rgFloor(P_.x,P_.z));}R.rdgF=fm-BASIN.hill-2.5*BASIN.knee-200;} /* the deepest floor along and beside its ridges, with 200 to spare */if(!box(R.x,R.z,R.reach,w)){(w===W0?later:later2).add(m);continue;}rgBound(R);R.an=anTables(R.ns);kept.push(R);out.push(R);}};
+    const f=foot(R);R.reach=Math.round(Math.max(1.2*f,R.fade[1])+500);if(R.rdg&&RG_SLD.on)rgSlides(R,m,f); /* v11.140: its landslides, by its foot */if(R.rdg){R.rdgR=Math.round(Math.max(R.rdg.r0+R.rdg.L+1.6*R.rdg.W,R.sld?Math.max(...R.sld.map(S=>S.r0+S.L)):0)+500); /* v11.138: its ridges' far end (its reach the island's own: past it sample() asks the ridges alone, world.js rdgNear) */
+      let fm=1e9;const P_={};for(const a of R.arm)for(let q=0;q<=12;q++)for(const off of [-1,0,1]){rgAt(R,R.rdg.r0+R.rdg.L*q/12,a+off*0.25*(1-q/14),P_);fm=Math.min(fm,rgFloor(P_.x,P_.z));}
+      if(R.sld)for(const S of R.sld)for(let q=0;q<=12;q++)for(const off of [-1,0,1]){rgAt(R,S.r0+S.L*q/12,Math.atan2(S.s,S.c)+off*S.ha*1.5,P_);fm=Math.min(fm,rgFloor(P_.x,P_.z));} /* and its fans' */R.rdgF=fm-BASIN.hill-2.5*BASIN.knee-200;} /* the deepest floor along and beside its ridges, with 200 to spare */if(!box(R.x,R.z,R.reach,w)){(w===W0?later:later2).add(m);continue;}rgBound(R);R.an=anTables(R.ns);kept.push(R);out.push(R);}};
   pass(c0,W0);const n0=out.length;pass(c1.filter(m=>later.has(m)),W);const n1=out.length;pass(c2.filter(m=>later2.has(m)),W2); // the old square's, then the world's (a member of the first list kept by the world alone is shaped again: v11.132 the same shape)
   for(const R of ISLANDS){const f=foot(R),need=Math.round(1.2*f+500);if(need>R.reach)R.reach=need;if(R.id==='giant')rgBound(R);} // the pins: their flanks go on down to the model's floor; the giant's kit is the model's (land, rifts, flows: no collapse, dikes, 
   rgMargins(kept); // v11.123: one margin per reef, once every record stands (the pins' barrier too; ours keeps its rim)

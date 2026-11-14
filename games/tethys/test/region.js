@@ -8,7 +8,7 @@ const util=fs.readFileSync(path.join(root,'vendor/wb-core.global.js'),'utf8')+'\
 let world=fs.readFileSync(path.join(root,'src/world.js'),'utf8');const cut=world.indexOf('// ---------- the light');if(cut>0)world=world.slice(0,cut); // the geology and the fields (test/map.js's cut)
 const region=fs.readFileSync(path.join(root,'src/region.js'),'utf8');
 const THREE={Vector3:class{constructor(x,y,z){this.x=x;this.y=y;this.z=z;}},Matrix4:class{},Quaternion:class{}};
-const G=new Function('THREE',util+'\n'+world+'\n'+region+'\nreturn {WIND_A,rgAt,rgLoc,rgRecord,recLoc,rdgBound,sample,HALF,WX0,WX1,WZ0,WZ1,WORLD70,CELL,FI,ISLANDS,REGION_K,REGION_PINS,RG_STATE,regionModel,regionGrid,regionBasins,regionSeen,rgKei,rgSea,rgTrack,OXY,chemoAt,chemoD,oxyAt,underChemo,chemoB:()=>CHEMO_B,apronAt,apronR,RG_BUILT,rgFloor,BASIN,islandH,recsAt,FILL_TOP,rgAng,rgLagD,rgRadial,rgPlat,rgPlatSd,rgPlatform,RG_PL:()=>RG_PL,RG_PL_K,shT,SHELTER};')(THREE);
+const G=new Function('THREE',util+'\n'+world+'\n'+region+'\nreturn {WIND_A,rgAt,rgLoc,rgRecord,recLoc,rdgBound,sldBound,sample,HALF,WX0,WX1,WZ0,WZ1,WORLD70,CELL,FI,ISLANDS,REGION_K,REGION_PINS,RG_STATE,regionModel,regionGrid,regionBasins,regionSeen,rgKei,rgSea,rgTrack,OXY,chemoAt,chemoD,oxyAt,underChemo,chemoB:()=>CHEMO_B,apronAt,apronR,RG_BUILT,rgFloor,BASIN,islandH,recsAt,FILL_TOP,rgAng,rgLagD,rgRadial,rgPlat,rgPlatSd,rgPlatform,RG_PL:()=>RG_PL,RG_PL_K,shT,SHELTER};')(THREE);
 let fails=0;const ok=(c,msg)=>{console.log((c?'  ok   ':'  FAIL ')+msg);if(!c)fails++;};
 console.log('region: the pieces');
 // kei(x) (A&S Table 9.12): 1 → −0.494991, 2 → −0.202400, 3 → −0.051123, 4 → +0.002198; the table is kei/kei(0), kei(0) = −π/4
@@ -94,8 +94,8 @@ ok(RB.struck.every(q=>RB.recs.some(r=>r.id===q.by)||q.by==='home'||q.by==='giant
     // past its reach it counts by its ridges alone (its own flank there was never sample()'s, v11.102), so there what a ridge raises is under their
     // bound (to v11.137 the table by the world distance over sc)
     const rl=G.recLoc(R,x-R.x,z-R.z),out=rl>R.reach;if(out&&!(R.rdg&&rl<=R.rdgR))continue;G.islandH(R,x,z,I);const rb=R.rdg?G.rdgBound(R):-1e9;
-    if(out){const J={};G.islandH(Object.assign({},R,{rdg:undefined}),x,z,J);if(I.h<=J.h+0.5)continue;n++;if(I.h>rb)bad++;continue;}
-    n++;const bi=Math.max(R.hi[Math.min(R.hi.length-1,Math.floor(rl/R.hiS))],rb);if(I.h>bi||I.hs>bi)bad++;}}
+    if(out){const J={};G.islandH(Object.assign({},R,{rdg:undefined,sld:undefined}),x,z,J);if(I.h<=J.h+0.5)continue;n++;if(I.h>Math.max(rb,R.sld?G.sldBound(R):-1e9))bad++;continue;}
+    n++;const bi=Math.max(R.hi[Math.min(R.hi.length-1,Math.floor(rl/R.hiS))],rb,R.sld?G.sldBound(R):-1e9);if(I.h>bi||I.hs>bi)bad++;}}
   ok(bad===0,`every record's ground stays under the bound sample() skips by (its table, its ridges'): ${bad} over, of ${n}`);}
 // v11.114: where records meet, the fill (smax's knee) stops at FILL_TOP: above it the ground is the highest record's own, so no land stands where
 // no record has land — to v11.113 coalesced banks' lagoons (−20) met at up to +90, hundreds of km² of plateau the model has not got
@@ -235,10 +235,10 @@ ok(RB.struck.every(q=>RB.recs.some(r=>r.id===q.by)||q.by==='home'||q.by==='giant
 // pins carries submarine ridges along its rift arms and canyons on its flank; the ground never stands over the bound table sample() trusts
 {const L=G.ISLANDS.filter(R=>R.rdg),P=G.ISLANDS.filter(R=>R.id==='home'||R.id==='giant'),I={};let n=0,over=0,worst=0,at='',up=0,un=0;
   for(const R of L){for(let k=0;k<1500;k++){const a=k*2.39996,d=(0.15+0.85*((k*0.618034)%1))*R.reach*R.sc,x=R.x+Math.cos(a)*d,z=R.z+Math.sin(a)*d,rl=G.recLoc(R,x-R.x,z-R.z);if(rl>R.reach)continue;
-      G.islandH(R,x,z,I);n++;const b=Math.max(R.hi[Math.min(R.hi.length-1,Math.floor(rl/R.hiS))],G.rdgBound(R));if(I.h>b+1e-6){over++;if(I.h-b>worst){worst=I.h-b;at=R.id;}}}
+      G.islandH(R,x,z,I);n++;const b=Math.max(R.hi[Math.min(R.hi.length-1,Math.floor(rl/R.hiS))],G.rdgBound(R),R.sld?G.sldBound(R):-1e9);if(I.h>b+1e-6){over++;if(I.h-b>worst){worst=I.h-b;at=R.id;}}}
     // a ridge's crest stands over the flank a few km out along its arm (the record's own ground with and without its ridges)
     const G0=R.rdg,c=G0.c[0],sn=G0.n[0],dd=G0.r0+0.35*G0.L,lxw=c*dd,lzw=sn*dd,w={};
-    G.rgAt(R,dd,Math.atan2(sn,c),w);G.islandH(R,w.x,w.z,I);const hr=I.h;const Q=Object.assign({},R,{rdg:undefined,cny:undefined});G.islandH(Q,w.x,w.z,I);un++;if(hr>I.h+50)up++;}
+    G.rgAt(R,dd,Math.atan2(sn,c),w);G.islandH(Object.assign({},R,{sld:undefined}),w.x,w.z,I);const hr=I.h;const Q=Object.assign({},R,{rdg:undefined,cny:undefined,sld:undefined}); /* v11.140: over the flank without its fans */G.islandH(Q,w.x,w.z,I);un++;if(hr>I.h+50)up++;}
   ok(L.length===G.ISLANDS.length-P.length&&P.every(R=>!R.rdg&&!R.cny)&&L.every(R=>R.cny&&R.cny.n>=12)&&over===0&&up>=0.8*un,`${L.length} records with submarine ridges along their rift arms and canyons on their flanks (ours and the giant none); a ridge stands 50 m or more over its own flank a third of the way out at ${up} of ${un}; the ground over sample()'s bound (the table and rdgBound at the point) at ${over} of ${n} places${over?' (worst '+worst.toFixed(1)+' m, '+at+')':''}`);}
 // v11.119 (analysis_flora_diversity §5.6, SEAFLOOR §6): the lineages — hops down the colonisation chain from the founder, cut into the old
 // east, the middle and the young west (region.js RANGE, rangeBuild): a brooding line's sister species keep to theirs
