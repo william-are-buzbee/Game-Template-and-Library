@@ -7933,3 +7933,15 @@ What moved (seed 32): the living banks' tops a flat at 20–30 m with basins to 
   v11.145); the living banks' tops (one 10 m band with 40% or more, basins under 60 m).
 
 **Unseen:** a bank's flat and its basins from the water; the fifth blind sheet next.
+
+## v11.147 — the measures kept, and the handoff (14 Nov 2026; a tool and docs, the game unchanged)
+
+The fifth blind sheet (seed 89, unseen; analysis_archipelago §10.7): 6, 11, 12 picked ("it was yet again harder to tell. I'm not sure about
+my picks this time entirely") — 11 and 12 ours, 6 Kerguelen; 10, the platform, not picked. The first sheet an Earth tile made the answer.
+
+- **test/measures.js:** the measures every believability step was built and judged by (v11.142–146, kept from the session's scratch scripts):
+  the margins, the passes, the floor's grain, the shallows by depth, the banks' tops, the slopes — Earth's windows beside the province (cell means
+  on GEBCO's lattice), in about a minute; on every one the province now sits inside Earth's range — and `between`, sheet 5's tell (the person:
+  the saddles "look like a blur tool used on paint"): the in-between's slopes, ours 77% at 3–20% where Earth's platforms are flats and scarps.
+- **HANDOFF.md:** the state of the believability work for the next session — the method, the five sheets and the seeds used, the tools, the
+  cost since v11.137 (sample() ×1.7–2.2, region.js's load +18%), the places to dive that no session could see, and what is left.

@@ -721,6 +721,39 @@ ours v11.146   6626      2%   18%   57%    4%    3%    3%    6%    5%    2%    1
 v11.146.** (1) test/earth.js's lattice as cell means. (2) A living bank's lagoon a flat with crisp-edged basins (`rgLagFloor`), its knolls fewer
 and larger. (3) The fifth blind sheet next.
 
+**10.7 The fifth blind sheet (seed 89's province, unseen, at cell means; 14 Nov 2026)** — Tethys 10, 11, 12 (seed 5233). The person: "6, 11 and
+12, but it was yet again harder to tell. I'm not sure about my picks this time entirely." 11 and 12 found; 6 is Kerguelen; 10 (the platform:
+the drowned flat and its banks) not picked — the first sheet where an Earth tile made the answer and a tile of ours passed. The five sheets:
+
+```
+sheet  province seed  shuffle  ours            picked                    the tell
+1      32 (seen)      —        4               4 of 4                    round cakes, pimples
+2      41             1114     3, 5, 15        3 of 3                    the thin medium blues (no in-between depths)
+3      67             3091     3, 8, 13        3 of 3, the Azores doubted "the uniformity" (the drowned flat at one depth)
+4      73             4157     9, 12, 15       2 sure, a toss with Saya de Malha   Chagos's bank against ours (a fade, a stipple)
+5      89             5233     10, 11, 12      11, 12 and Kerguelen (6)  "harder to tell"; no tell named
+```
+Seeds 32, 41, 67, 73 and 89 are seen: a sixth sheet takes another. `node test/measures.js` prints every measure the steps were judged by.
+**Sheet 5's tell** (the person, after the key): "What I think made 11 and 12 stand out is how the saddles look like a blur tool used on paint or
+something, making these connections between islands that I don't see as cleanly on other images. Otherwise though clearly this is working
+well." Measured (scratch, the in-between 150–1,100 m within 25 km of the shallows, cell means; the share of its area by slope):
+
+```
+window        km²   <1%  1-3%  3-6%  6-10%  10-20%  >20%   relief 1-4 km (m)
+Galapagos   17321   11%   29%   20%   12%    14%    14%    51
+Hawaii      10365    9%   22%   23%   15%    15%    15%    60
+Maldives    20201   26%   29%   15%    8%    10%    12%    54
+Chagos      17399    2%   11%   19%   20%    30%    17%    57
+Azores       4706    1%    7%   14%   15%    26%    37%   114
+Canaries     5491    0%    4%   11%   15%    25%    45%    88
+Cape Verde   7123    1%    6%    9%   11%    31%    42%    92
+Tethys      17827    4%   11%   23%   30%    24%     7%    46
+```
+Ours is one smooth ramp: 77% of the in-between at 3–20%, where Earth's shared platforms are flats broken by escarpments (Galápagos 40% under 3%
+and 14% over 20%; the volcanic Atlantic ones 37–45% over 20%). The next believability step: the saddles' base (and the margins' aprons) as flats
+and scarps — benches at a few levels with steep risers, an escarpment where the base meets the floor, volcanic ridges on it — judged by this
+table (`ONLY=between node test/measures.js`).
+
 **11.2 What must hold** (learned building v11.129–137; HANDOFF's working notes):
 - **The bounds.** sample() skips a record where its bound table `R.hi` (region.js `rgBound`: the radial profile plus fixed margins) says it
   cannot matter. Anything that raises the ground at some angles — a ridge, a debris fan — must raise `hi` at those radii (its largest height
