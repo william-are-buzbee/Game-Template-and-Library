@@ -84,12 +84,13 @@ node serve.js            static server; open http://localhost:8080/dev.html (edi
 | `test/measures.js` | the archipelago's measures against Earth's (v11.147; analysis_archipelago §9–§11): the margins (depth by distance from the shallows), the passes between neighbours, the deep floor's grain, the shallows by depth, the banks' tops, the slopes, the in-between's slopes (sheet 5's tell) — each the number a believability step was built and judged by; the province as cell means on GEBCO's lattice; needs test/earth.js's cache (`node test/earth.js` once); `ONLY=`, `PSEED=` | `node test/measures.js` (not in --test) |
 | `test/bench.js` | the world's cost and its fingerprint (v11.148, DESIGN "The world's cost"): the load, a `sample()` in µs over five windows (each timed in a process of its own after sampling the whole world, as the game has: the best of `N`), and a hash of every window, 300,000 random points and every piece of the region's data; with `BASE=<dir>` (a copy of `src/` and `vendor/` from before a change) the two side by side, the ratio, and which pieces are the same to the bit. Not in --test | `node test/bench.js`; `BASE=b node test/bench.js` |
 | `test/bench_creatures.js` | the creatures' cost and their fingerprint (v11.149, DESIGN "The creatures' cost"), in headless Chromium with the real three.js (the stub's primitives have no triangles): every kind's build (first, and again), 3×3 cells at five places generated whole (the time a cell, and in `spawn()` and `compile()`), and `updateSchools` + `updateCreatures` a frame at the forest's shelf; the page on the bench's own clock with `Math.random` seeded (three's UUIDs on a stream of their own), so with `BASE=<dir>` (src/ and vendor/ from before a change) it says whether every body, built and posed, and the simulation after the frames are the same to the bit, and which piece of which body differs if not. Needs Playwright and cdnjs. Not in --test | `node test/bench_creatures.js`; `BASE=b N=2 node test/bench_creatures.js` |
+| `test/frames.js` | the frame's creature work and the hot tables' shapes (v11.150), in node against the stub: the player at a place (the forest's shelf), its cells loaded, `FRAMES` frames of `updateSchools` + `updateCreatures` timed on the wall clock, `Math.random` seeded, the simulation's hash after them; `BASE=<dir>` beside older sources, alternated, the ratio and whether the simulation is the same; `SHAPES=1` the shape census of every table read in a hot loop (fails past four shapes or on any dictionary); `PROF=<function>` a profile under it. Not in --test | `node test/frames.js`; `BASE=b …`; `SHAPES=1 …`; `PROF=updateCreatures …` |
 | `test/map.js` | the world as a map (v11.59): depth bands, hillshade, contours, the old square, the clamp, the regions, the landmarks, the island records (v11.102: the model's, labelled by summit or reef), planned islands (`PLAN`) to `test/preview/map.png`; areas printed; not in `--test` | `node test/map.js`; `SPAN=4400 …`; `SPAN=50000 CX=-6000 CZ=4000 PLAN="x,z,landR,footR" …` |
 | `test/caustic.js` | the baked caustic (`CAU_RINGS`, scene.js) as a picture: `1/|det J|` through the line step at a few depths to `test/preview/caustic_<d>m.png`, with the lines' coverage; not in `--test` | `node test/caustic.js`; `DEP=5 CT=2.5 …` |
 | `test/spectro.js` | the sound bench's wavs (`test/render/`, written by `#bench`) as spectrograms and a table of numbers; not in `--test` | `node test/spectro.js`; `node test/spectro.js shot_` |
 | `test/ident.js` | compiled specs against old hand builders; skipped without `OLD=path` | `OLD=… node test/ident.js` |
 
-Env vars: for bench `BASE N REP WINS FAST`, for bench_creatures `BASE N FRAMES SETTLE ONLY`; `JOBS` (runs side by side in `--test`; 1 is one at a time), `SHARD` (`k/n`: the k-th of n parts of `--test`), `TIER` (`low`), `PICK` (menu pick for smoke), `T0`, `OLD`, for preview `POSE TILE T SPD PALV COATS NORIG SPEC FLORA DEPTH PIX` (`PIX=1`: the body in texels with its coat's pattern, v11.41), for caustic `DEP CT CS SPAN W`.
+Env vars: for bench `BASE N REP WINS FAST`, for bench_creatures `BASE N FRAMES SETTLE ONLY`, for frames `BASE N FRAMES PX PZ PY SHAPES PROF`; `JOBS` (runs side by side in `--test`; 1 is one at a time), `SHARD` (`k/n`: the k-th of n parts of `--test`), `TIER` (`low`), `PICK` (menu pick for smoke), `T0`, `OLD`, for preview `POSE TILE T SPD PALV COATS NORIG SPEC FLORA DEPTH PIX` (`PIX=1`: the body in texels with its coat's pattern, v11.41), for caustic `DEP CT CS SPAN W`.
 
 ## Delivering a change
 
@@ -97,7 +98,7 @@ Env vars: for bench `BASE N REP WINS FAST`, for bench_creatures `BASE N FRAMES S
    table, envelopes) and `flora.js` (species, densities, envelopes). A new creature is a **spec** in `creatures_spec.js` — make it in
    the lab (`#lab`), export, paste the `PAL`/`DEFS`/`ROSTER`/`SPECS` lines, hand-write its `SPAWN` envelope; if the kit lacks a part,
    add one to `PARTS` — its styles in `reg` with their clades (and `cores`, `params`), every parameter with its `label`, bands and default on its line (`test/registry.js` fails otherwise). There are no hand builders since v11.25. A new plant is a `species()` in flora.js from grow.js's bauplans.
-2. `node build.js --test` green on both tiers.
+2. `node build.js --test` green on both tiers, and **what it costs measured** if it touches a hot path (below, "Performance").
 3. **Look at it.** Start `node serve.js` (or the `tethys` launch config, in the repository's `.claude/launch.json`), open `dev.html` in the app's browser, play to the changed
    thing, screenshot it. The pane's loop only ticks while it is visible, and a hidden pane reports a 0×0 viewport, which NaNs the menu
    layout — keep it visible, or drive the loop by hand from the console: stub `requestAnimationFrame`, hold `player.pos`, call `loop(last+16.7)` per frame, and post `renderer.domElement.toDataURL()` to `/_bench/<name>.png` (serve.js writes `test/render/<name>.png`); the horizon audit of 14 Sep (WATER.md Part 3) was looked at that way. For a creature also `node test/preview.js <id>` and look at the PNG. "Unseen" in the CHANGELOG is
@@ -118,6 +119,36 @@ Env vars: for bench `BASE N REP WINS FAST`, for bench_creatures `BASE N FRAMES S
    as the old repository left them.
 
 The sandbox delivery (when there is no PC): copy `tethys.html` to `/mnt/user-data/outputs/`, zip the folder as `tethys-src.zip`.
+
+## Performance: every change says what it costs
+
+**The person (14 Nov 2026):** "I typically play the previews, feel it laggier and decide to wait until I'm done with the current thing
+before doing the performance pass." So lag adds up over several versions and nobody knows which: `sample()` doubled over ten believability
+steps (v11.137–147) before anyone measured it. The answer is the pull request (the repository's `docs/decisions.md`, 26; the `perf` skill):
+every change that touches a hot path measures itself before and after, and the description says what it cost before the person plays it.
+
+- **Keep the sources from before** (`git archive origin/main games/tethys/src games/tethys/vendor games/tethys/shell.html | tar -x -C <dir>`,
+  then `BASE=<dir>/games/tethys`), and run what the change touches:
+
+  | the change touches | run (each with `BASE=`) | it says |
+  |---|---|---|
+  | world.js, region.js, util.js — anything `sample()` reaches | `node test/bench.js` | the load, µs a sample over five windows, every piece the same or not |
+  | creatures_*.js, physics.js, parts.js, combat.js, fx.js, the frame loop | `node test/frames.js` | ms a frame of the creatures' work at the forest, the simulation the same or not |
+  | a creature's build, chunks.js, flora.js, grow.js, ecology.js — a cell's generation | `node test/bench_creatures.js` | every kind's build, ms a cell at five places, every body the same or not |
+  | scene.js, atmosphere.js, clouds.js, horizon.js, far.js, any shader | nothing here can: the GPU's | say so; ask the person for the readout at a `tp()` |
+  | content — a species, a plant, a knob | its system's tool | more of a thing is more cost: a new species is more builds and more creatures |
+
+- **The pull request says it:** a small table (before, after, ratio) under "What changed", the same in the CHANGELOG entry. Worse by more
+  than 10% anywhere goes in its first line, with why it is worth it. What could not be measured, it says it did not.
+- **The shape rule** (v11.148 and v11.149: a third of the cost each time, and invisible): an object read every frame or every sample is
+  made with all its keys at once, in one literal, in one order — never a key added later, never `delete`, never built key by key from a list
+  (that is a dictionary: one "shape", and slow). `SHAPES=1 node test/frames.js` counts every hot table's shapes; a new hot table goes in its
+  `__tables`. **Open (v11.150):** the flora entries (`FLORA`) are 46 shapes for 92 entries — read at a cell's generation, not every frame.
+- **When the person says it feels laggier:** ask where (a `tp()`: the world map's cursor line has it) and for the readout there — fps, frame
+  ms, physics ms, render ms, draws, creatures. Render ms running away from the rest is the GPU (draws, shaders, fill), which no CPU pass helps.
+  Otherwise measure that place (`PX= PZ= node test/frames.js`), then `BASE=` older versions (`git archive <commit>`) to find the one that moved it.
+- **Not in CI:** timings on shared runners are noise. The suite holds the deterministic proxies instead — the records' shape
+  (`test/records.js`), the creatures' (`test/live.js`), the tape's replay (`test/registry.js`).
 
 ## Layout
 
@@ -369,4 +400,5 @@ Docs, most upstream first. When a doc's Open list says a choice is the person's,
 - Likes questions and is open to ideas. When a design choice is theirs (a doc's Open list, anything about the planet or the
   roster, what to strike), ask, don't guess. Record their answer in the doc with the date.
 - Tests on desktop; phone is secondary and may sacrifice things as long as desktop is "fantastically smooth".
-- Cadence: content prompts freely; a performance pass whenever the readout says frame time is creeping.
+- Cadence: content prompts freely; a performance pass whenever the readout says frame time is creeping. Since 14 Nov 2026 every change that
+  touches a hot path says in its pull request what it cost ("Performance", above), so the creep is seen in the version that made it.

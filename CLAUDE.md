@@ -43,6 +43,8 @@ These are the repository standard (`docs/standard.md`); `main` is locked by the 
   given `SHARD=k/n`, which its test script must honour — Tethys's does).
 - **The pull request says** what changed and why, what was checked and what was looked at, and what the person should
   try on the preview: which game, which keys, what to look for. Say plainly what could not be checked from a session.
+  A change to anything that runs every frame or at load also says **what it cost**, measured before and after (below, and
+  `docs/decisions.md` 26).
 
 ## Before you build anything
 
@@ -93,9 +95,16 @@ The site's index shows a picture of each game and lab, taken from its build as t
 1280×720, after 2.5 s; when that shows the wrong thing, a `card` in the game's `package.json` says how to take it
 (`Card` in `tools/lib/workspaces.ts`).
 
+**And measure what it costs** (`docs/decisions.md`, 26). The person feels lag in a preview and saves the performance pass
+for later, so a slowdown is found versions after the change that made it. A change to anything that runs every frame or at
+load measures it before and after and puts the numbers in its pull request; the `perf` skill is how. In JavaScript the
+cheapest large mistake is an object read in a hot loop whose keys differ from its siblings' — added later, in another order,
+deleted, or set one by one from a list: past four such shapes every read of it is a lookup by name. It was a third of
+Tethys's world cost (v11.148) and of its creatures' frame (v11.149), and nothing but a profiler showed it either time.
+
 ## Skills
 
-`.claude/skills/`: `new-game`, `new-lab`, `promote`, `look`. Each is the checklist for that job.
+`.claude/skills/`: `new-game`, `new-lab`, `promote`, `look`, `perf`. Each is the checklist for that job.
 
 ## The person
 

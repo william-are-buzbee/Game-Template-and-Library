@@ -2303,6 +2303,9 @@ distance — a designed pass, not a knob. `render` is CPU submission; the GPU ru
   instanced, through `renderer.compile`), so nothing compiles mid-play; manual per-cell frustum culling (`cullChunks`); creatures far
   away not updated; merged flat-shaded geometry everywhere; a kind's static geometry and far-LOD bake shared by every individual
   (`KIND_GEO`); arms simulated only at near LOD, contact only within 90 of the player.
+- **The cost is measured on every change (v11.150; CLAUDE.md "Performance").** A change to a hot path runs test/bench.js, test/frames.js or
+  test/bench_creatures.js against the sources from before, and its pull request says the numbers; `SHAPES=1 node test/frames.js` counts the
+  hidden classes of every table read in a hot loop (open: the flora entries, 46).
 - **The creatures' cost (v11.149, the creature performance pass; `node test/bench_creatures.js`).** Measured in headless Chromium on a clock of the
   bench's own (so the ledger, the streaming and every draw repeat) and in node against the stub. Two costs, both the creatures': a cell's
   generation, where a body is built per spawn (69 a cell on the forest's shelf), and the frame's update of the ~1,400 animals the cells round the
