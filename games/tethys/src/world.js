@@ -78,8 +78,8 @@ const APRON_L=[2000,1.3,11100]; // the floor's supply (v11.97/v11.102, apronR be
 // into it — a shaft 60–150 m across and 60–160 m deep in one 2.5 km cell of four (the Great Blue Hole is 318 m across and 124 m deep, Dean's
 // 202 m). lagoonF(x, z, floor, top): the floor there, on h alone (the smooth surface keeps the flat, so the knolls read as relief and the holes
 // as hollows); the model's atolls, banks and barriers and the plateau's platform take it, ours does not
-const LAGF={f:0.004,lo:0.66,hi:0.8,cell:2500,p:0.25,r0:60,r1:150,d0:60,d1:160};
-function lagoonF(x,z,floor,top){const L=LAGF,q=fbm(x*L.f+401,z*L.f+211,2);let h=floor;if(q>L.lo)h=lerp(floor,Math.max(floor,top-2),smooth(L.lo,L.hi,q));
+const LAGF={f:0.0018,lo:0.7,hi:0.8,cl:0.08,cf:1/7000,dl:0.1,dd:[35,60],cell:2500,p:0.25,r0:60,r1:150,d0:60,d1:160}; // v11.145: the knolls clustered (lo ±cl over 1/cf m: Earth's lagoons' patch reefs come in fields, not sprinkled); v11.146: fewer and larger (f 0.004, lo 0.66 to v11.145), and fewer still in a deep lagoon's basins (lo +dl over dd m of water)
+function lagoonF(x,z,floor,top){const L=LAGF,q=fbm(x*L.f+401,z*L.f+211,2),lo=L.lo+L.cl*(fbm(x*L.cf+57,z*L.cf+133,2)-0.5)*4+L.dl*smooth(L.dd[0],L.dd[1],top-floor);let h=floor;if(q>lo)h=lerp(floor,Math.max(floor,top-2),smooth(lo,lo+L.hi-L.lo,q));
   const ci=Math.floor(x/L.cell),cj=Math.floor(z/L.cell);if(hash(ci&255,cj&255)<L.p){const hx=(ci+0.2+0.6*hash((ci+101)&255,(cj+57)&255))*L.cell,hz=(cj+0.2+0.6*hash((ci+13)&255,(cj+211)&255))*L.cell,r=L.r0+(L.r1-L.r0)*hash((ci+7)&255,(cj+3)&255),d=Math.hypot(x-hx,z-hz);
     if(d<r)h=Math.min(h,floor)-(L.d0+(L.d1-L.d0)*hash((ci+29)&255,(cj+91)&255))*smooth(r,0.7*r,d);}return h;}
 const CARB={base:-1000,A:30,sp:320,k:0.75};
