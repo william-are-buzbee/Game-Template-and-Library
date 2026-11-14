@@ -399,9 +399,9 @@ function islandH(R,x,z,o){
   // falling from the shelf's edge at G.s (~4°, steepening to twice that by its end) with small cones on it, its half-width G.W where it leaves the
   // island tapering to a quarter at its tip, its edges and sides irregular (~11°), met with the flank by a smooth max: a tongue of the island's
   // ground. Its height is in the record's bound (rgBound) and its far end in its reach (rgBuild)
-  if(R.rdg){const G=R.rdg;for(let k=0;k<G.c.length;k++){const d=lx*G.c[k]+lz*G.n[k]-G.r0;if(d<=0||d>=G.L)continue;if(rdgEnv(G,d,Math.abs(lz*G.c[k]-lx*G.n[k]))<h-60)continue; // the most it can stand here (rdgEnv): most points leave here
-    const u=d/G.L,ph=1.7*k+G.ph,cr=G.h0-G.s*d*(1+u)+40*Math.pow(Math.max(0,Math.sin(d*0.0017+ph)),6)-400*smooth(0.8,1,u);if(cr<h-60)continue;
-    const hw=G.W*(1-0.75*u)*(1+0.25*Math.sin(d*0.0011+ph)+0.15*Math.sin(d*0.0029+2*ph)),ss=0.2*(1+0.3*Math.sin(d*0.0021+3*ph));
+  if(R.rdg){const G=R.rdg;for(let k=0;k<G.c.length;k++){const d=lx*G.c[k]+lz*G.n[k]-G.r0;if(d<=-2*G.W||d>=G.L)continue;if(rdgEnv(G,d,Math.abs(lz*G.c[k]-lx*G.n[k]))<h-60)continue; // the most it can stand here (rdgEnv): most points leave here
+    const dp=Math.max(0,d),u=dp/G.L,ph=1.7*k+G.ph,cr=G.h0-G.s*dp*(1+u)+40*Math.pow(Math.max(0,Math.sin(d*0.0017+ph)),6)-400*smooth(0.8,1,u);if(cr<h-60)continue;
+    const hw=G.W*(1-0.75*u)*smooth(-2*G.W,0,d)*(1+0.25*Math.sin(d*0.0011+ph)+0.15*Math.sin(d*0.0029+2*ph)), /* v11.138: grown out of the island from 2 W inside the shelf's edge, not cut across there */ss=0.2*(1+0.3*Math.sin(d*0.0021+3*ph));
     const rg=cr-ss*Math.max(0,Math.abs(lz*G.c[k]-lx*G.n[k]-0.15*G.W*Math.sin(d*0.0004+ph))-hw);if(rg>h-60){h=smax(h,rg,60);hSmooth=smax(hSmooth,rg,60);}}}
   // v11.102: the smooth surface goes down with the flank (to v11.101 it stayed at the apron's -290, so the relief read 0 on every lower flank and on the floor inside every record's reach)
   if(R.sat&&h<R.sat.b){h=R.sat.b+(h-R.sat.b)*R.sat.k;if(hSmooth<R.sat.b)hSmooth=R.sat.b+(hSmooth-R.sat.b)*R.sat.k;} // v11.131: a satellite (region.js rgRecord) ends at its base, its flank there a skirt onto its host
@@ -472,7 +472,7 @@ function recLoc(R,dx,dz){if(R._c===undefined){R._c=Math.cos(R.rot||0);R._s=Math.
 // v11.138: a ridge's envelope at d along its arm (from the shelf's edge) and lat across it: islandH's crest without its noise (the fall steepening
 // to twice by its end, the tip sunk) and its cones (40) and the knee (15) on top, its widest half-width (1.4 W, tapering as islandH's) and wander
 // (0.15 W), its gentlest side (0.14) — the most the ridge can stand there
-function rdgEnv(G,d,lat){const u=d/G.L;return G.h0-G.s*d*(1+u)-400*smooth(0.8,1,u)+55-0.14*Math.max(0,lat-G.W*(1.4*(1-0.75*u)+0.15));}
+function rdgEnv(G,d,lat){const dp=Math.max(0,d),u=dp/G.L;return G.h0-G.s*dp*(1+u)-400*smooth(0.8,1,u)+55-0.14*Math.max(0,lat-G.W*(1.4*(1-0.75*u)*smooth(-2*G.W,0,d)+0.15));}
 // the same from the point before the lobe's step (turned, scaled, squeezed: no atan2) — the lobe only pushes a point outward along its own ray (its
 // scale ≤ 1 over sc), so the point's d and lat are at least these and the envelope, falling with both, at most this: past an island's reach,
 // sample() asks this first and turns a point to the record's own frame only near a ridge
@@ -480,7 +480,7 @@ function rdgNear(R,dx,dz){if(R._c===undefined){R._c=Math.cos(R.rot||0);R._s=Math
   for(let k=0;k<G.c.length;k++){const p=lx*G.c[k]+lz*G.n[k];if(p<=0||p-G.r0>=G.L)continue;const c=rdgEnv(G,Math.max(0,p-G.r0),Math.abs(lz*G.c[k]-lx*G.n[k]));if(c>b)b=c;}return b;}
 // the most a record's submarine ridges can raise its ground at the last recLoc's point; sample() takes it with the bound table, which holds the
 // island's profile alone — a bound by the point, not the radius
-function rdgBound(R){const G=R.rdg;let b=-1e9;for(let k=0;k<G.c.length;k++){const d=_rlx*G.c[k]+_rlz*G.n[k]-G.r0;if(d<=0||d>=G.L)continue;const c=rdgEnv(G,d,Math.abs(_rlz*G.c[k]-_rlx*G.n[k]));if(c>b)b=c;}return b;}
+function rdgBound(R){const G=R.rdg;let b=-1e9;for(let k=0;k<G.c.length;k++){const d=_rlx*G.c[k]+_rlz*G.n[k]-G.r0;if(d<=-2*G.W||d>=G.L)continue;const c=rdgEnv(G,d,Math.abs(_rlz*G.c[k]-_rlx*G.n[k]));if(c>b)b=c;}return b;}
 function lbF(R,a,rb){const l=lbAt(R.lobe,a),g=R.lbG+(1-R.lbG)*clamp(1-(rb-1.2*R.lbR)/(2*R.lbR),0,1);return (1+(l-1)*g)/R.lmax;}
 function islandW(R,x,z){let lx=x-R.x,lz=z-R.z;if(R.rot){const c=Math.cos(R.rot),s=Math.sin(R.rot),tx=lx*c+lz*s;lz=lz*c-lx*s;lx=tx;}if(R.sc!==1){lx/=R.sc;lz/=R.sc;}if(R.asq)lz*=R.asq;if(R.lobe){const f=lbF(R,Math.atan2(lz,lx),Math.hypot(lx,lz)*R.lmax);lx/=f;lz/=f;}
   const ns=R.ns,an=R.an,r=Math.hypot(lx,lz),a=Math.atan2(lz,lx),aw=a+0.32*(an?anT(an,0,a):angNoise(a,1.6,11+ns))+0.22*(fbm(lx*0.0035+80+ns,lz*0.0035+20,3)-0.5)*2,rw=r*(1+0.16*(an?anT(an,1,aw):angNoise(aw,1.2,29+ns)));

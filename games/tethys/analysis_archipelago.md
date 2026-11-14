@@ -568,6 +568,10 @@ version and one pull request each, each measured (`node test/earth.js`) and blin
 - **(G) The floor's grain** (v11.141). The plate's own fabric: abyssal hills lineated along the old ridge (across `K.fracA`), fracture-zone troughs
   every `fracSp`, and a scatter of small seamounts — the vents that built no volcano. With the near-ridge plume (§10.3), all one cause.
 
+**Built v11.138 (14 Nov 2026): (A) ridges and (E) canyons.** Two lessons for the next steps: a feature's bound must be by the point, not the
+radius (a ridge's height bound all round its radius made sample() compute the island almost everywhere within 60 km: islandH 0.73 calls a sample
+against 0.38); and the bound must be the feature's exact envelope less its noise, not a loose slope. CHANGELOG v11.138 has the numbers.
+
 **11.2 What must hold** (learned building v11.129–137; HANDOFF's working notes):
 - **The bounds.** sample() skips a record where its bound table `R.hi` (region.js `rgBound`: the radial profile plus fixed margins) says it
   cannot matter. Anything that raises the ground at some angles — a ridge, a debris fan — must raise `hi` at those radii (its largest height

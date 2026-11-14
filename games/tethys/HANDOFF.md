@@ -1,5 +1,10 @@
 # HANDOFF — tethys
 
+**v11.138 (14 Nov 2026): submarine ridges and flank canyons** (analysis_archipelago §11 A, E). Every island's rift zones go on under the sea as
+tapering ridges; its flank is fluted by canyons; sample() bounds them by the point (rdgEnv, rdgBound, rdgNear). Ours' square the same to the bit.
+sample() 27% slower (the suite's longest runs 13–26%). **Ask first:** the second blind sheet (seed 41); the ridges from the water. **Next (§11):**
+landslides (D), then saddles and uneven shelves (C), the floor's grain (G).
+
 **Working notes for the archipelago (13 Nov 2026, from v11.126–137; read before touching region.js or islandH).**
 - **The plan in progress:** analysis_archipelago §11 — the flanks, (A) rift ridges and (E) canyons first (v11.138), then landslides, saddles and
   shelves, the floor's grain. The person's open questions: §10.3 (the near-ridge plume as the plateau's cause).

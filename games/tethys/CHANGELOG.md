@@ -7736,3 +7736,31 @@ Seen: every window, the blind sheet (well-formed: no labels, no island in two ti
 across overlapping tiles, a tell of the test's own). **The person's guesses (§10.2): 4 of 4** ("cheating because I can remember the map") —
 and why: the province's islands "perfect round cakes" and "pimples" against Earth's "subtle texture under the water"; Kerguelen's fjorded coast
 the favourite. Proposed next: sculpted flanks and shared platforms, drowned valleys, lagoon interiors.
+
+## v11.138 — submarine ridges and flank canyons (14 Nov 2026)
+
+The person, 13 Nov 2026: "I would love to start on 1 right now" (analysis_archipelago §11, the flanks). The blind test's first tell: the islands
+"perfect round cakes" — concentric rings of even width on a smooth floor — where Earth's carry their rift zones on under the sea.
+
+- **region.js `rgRidges` (`RG_RDG`), world.js islandH:** every record but the pins carries a ridge per rift arm (rgLobe's, in its own frame): its
+  crest from the shelf's edge falling at ~4°, steepening to twice that by its end, small cones on it; its half-width (0.15 of the shelf's radius,
+  0.8–4 km) tapering to a quarter at its tip, its edges and ~11° sides irregular; grown out of the island from inside its shelf's edge and met
+  with the flank by a smooth max; its length 1.2 R of the volcano (8–40 km), on the −1,100 m plateau ending where its crest meets the floor (5–15
+  km out). And canyons: radial troughs ~60 m deep, ~2.2 km apart, on the flank from the shelf's edge to the deep (a seventh angular table).
+- **The bound by the point (world.js `rdgEnv`, `rdgBound`, `rdgNear`):** the ridge's own envelope without its noise; sample() takes it at its
+  recLoc point with the bound table (the island's profile alone); past an island's own reach it asks first from the point before the lobe's step
+  (no atan2), so only points near a ridge pay for the frame. `R.rdgR` the ridges' far end (the records' index reads it), `R.rdgF` the deepest
+  floor beside them.
+
+What moved (seed 32): the same 15 records, land the same (2,074 km²), **ours' square the same to the bit**; the records' ground along their arms
+and on their flanks. **The cost:** sample() 27% slower over the ±70.5 km world (1.18 µs against 0.93, best of seven), ridges ~20 and canyons ~4
+of it; islandH called as often as before (0.40 a sample against 0.38). A first cut bounded a ridge by the radius all round and made sample()
+compute the islands almost everywhere within 60 km (+90%). The suite's longest runs 13–26% longer. To cut further: bake the ridges into grids
+(memory for speed) — not done. The Earth numbers do not move (§10's medians are the open floor's); the blind sheet is the test.
+
+- **Tests:** test/region.js the ridges (13 records, ours and the giant none) standing 50 m or more over their own flanks; the ground never over
+  the bound sample() skips by, at every place tried (0 of 37,663; the v11.102 check rewritten to read the bound as sample() does now).
+
+Seen: the ±75 km world and the awesome shield's south-east ridge close (a broad tongue to north-east of ours), the profile across its root (no
+step). **Unseen:** the ridges from the water and in the deep (`tp(4000,-9000,-300)`, the shield's south-east ridge); the second blind sheet
+(seed 41, a province not seen: the person's guesses).

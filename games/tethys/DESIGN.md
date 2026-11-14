@@ -189,6 +189,12 @@ that had a vent in the last `K.comp.tau` (2.5 Myr) builds onto it, else starts o
 vent's id and place, as a pin's), its first vent's age, the vents' volume-weighted centre, their volume, its shield done when its last vent's is
 (`Tspan`, which `rgShape` keeps), `m.vents`; its record an oval along their spread (`m.asp`, `m.rot`). The pins stand alone and a vent they would
 take is theirs. `K.comp` null draws the 159 separate cones of v11.133. The lineages' cuts are thirds of ours' own hops.
+**Submarine ridges and flank canyons (v11.138, analysis_archipelago §11):** every record but the pins carries `R.rdg` (region.js `rgRidges`):
+per rift arm (rgLobe's, in its own frame) a crest from the shelf's edge (`r0`, the profile's height there `h0`) falling at `s` (~4°, steepening to
+twice by its end), its half-width `W` tapering to a quarter at its tip, small cones on it, irregular edges and ~11° sides, met with the flank by a
+smooth max (world.js islandH); and `R.cny`, radial troughs ~60 m deep on the flank from the shelf's edge to the deep. The bound is by the point:
+`rdgEnv` the ridge's envelope without its noise, `rdgBound` at sample()'s recLoc point, `rdgNear` before the lobe's step past the island's reach
+(`R.reach` its own; `R.rdgR` its ridges' far end; `R.rdgF` the deepest floor beside them) — so only points near a ridge pay for the frame.
 **Lobed outlines (v11.135):** every record but the pins carries `R.lobe`, its outline over the turn in its own frame (after the turn and the
 squeeze): the union of its vents' cones and its rift zones' arms (`RG_LOBE`), its mean square 1 (the area kept). `lmax`, its farthest, multiplies
 `sc`, so every bound read by sc (the reach, the bound tables, `quiet`, horizon's tops, the shelter's width) stays a bound; world.js `lbF` gives the
