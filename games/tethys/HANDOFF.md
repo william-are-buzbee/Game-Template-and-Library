@@ -3,7 +3,8 @@
 **v11.152 (15 Nov 2026): the saddles' flats and scarps** (analysis_archipelago §10.9; DESIGN "The saddles' flats and scarps"; CHANGELOG). The seventh
 sheet found the chain 3 of 4 by its saddles (the halo not named). The base between neighbours stepped into broad flats at differing depths and
 lobate scarps 350 m apart in depth, small cones on it, the floor's hills mostly off it: the in-between's flats 15–21% → 26–29%, scarps 6–7% →
-10–13% (Earth's 4–55%, 12–45%). sample() up to 5% dearer. **Next:** the eighth blind sheet's answers.
+10–13% (Earth's 4–55%, 12–45%). sample() up to 5% dearer. The eighth sheet: 4 of 4 found, by the middle's pedestals (a small island on a flat lagoon 1.5–3 times its
+radius, standing on a wall) and the west's noise. **Next:** analysis_archipelago §10.10's three proposals, the person's to choose — measure first.
 
 **v11.151 (15 Nov 2026): the coast by its valleys** (analysis_archipelago §10.8; DESIGN "The coast by its valleys"; CHANGELOG). The sixth blind
 sheet found the province's chain 4 of 4 by its halo (an even band of shallows echoing each high island's coast) and its spokes. Model high islands

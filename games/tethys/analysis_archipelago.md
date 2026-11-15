@@ -841,7 +841,32 @@ in-between (three seeds): flats under 3% 15–21% → 26–29%, the 3–20% ramp
 base's outline (each pair's lens) and its edge onto the floor, smoother than Earth's; the islands' lower flanks, a ramp still.
 
 **10.10 The eighth blind sheet (v11.152; 15 Nov 2026):** `PSEED=199,211,223,239 PART=chain BLIND=8152 node test/earth.js` — four tiles of the
-chain from seeds never shown (all four checked sane), twelve of Earth's twenty. The answers: pending.
+chain from seeds never shown (all four checked sane), twelve of Earth's twenty.
+
+**The eighth sheet: 4 of 4 found** — 4 (seed 211, the west), 6 (223), 9 (239), 16 (199), all three of the middle's. The person: "4 is obvious ours
+because of how the land mass looks and that distinctive noise pattern which seems to show up in every seed. 6 is clearly ours because of the
+island on the left, which looks exactly like the islands on 9 on the left and the islands on 16. Those islands are ours, because they are a single
+island with a extended radius 1.5-3x or so for the atoll around it. If you look at other islands like 14, there are these sortof layered or
+textured pattens. It might be fast, but there is a gradient every time, like the northmost island on 14 being a "slow" version of that gradient
+from low elevation to land. Our islands on the right are staggeringly quick to jump out of the ground, underground there are typically these huge
+rock walls that build up to an elevation that then holds a normal looking island. Seems more like the other islands are gradients. 3 [Galápagos]
+is a great example of how the galapagos shows that gradient in a greater way … 3 vs 16 and 3 vs 6 are perfect examples of the difference. It
+doesn't feel like land masses covered in water (and sometimes they go over the waterline), it feels like islands with stuff around them. Even 10
+[the Society Islands] has a different looking ratio that I think is easier on the eyes." The saddles not named. Three tells:
+- **The pedestal and its wall** (6, 9, 16): every high island of the middle a small island on a flat lagoon pedestal 1.5–3 times its radius, the
+  pedestal standing on a steep wall (the fore-reef, 42°, onto the sunk flank) — "islands with stuff around them", where Earth's rise from the deep
+  as one graded slope ("land masses covered in water"), and their lagoons, where they have them, narrow (the Society Islands'). The cause in the
+  model: every middle island is old, sunk and reefed early, so each is an almost-atoll (its ring the shoreline when its reef took hold, v11.121),
+  and the barrier's cap (region.js rgCap, world.js islandH) is a flat lagoon and a wall whatever the island under it; Earth's almost-atolls (the
+  Gambiers, Chuuk) are few among their archipelagos' islands.
+- **The west's noise** (4; sheet 6's 13): the floor's grain on the west plateau, which lies at the −1,000 m contour's own depth, so the contour
+  wanders through every hill — "that distinctive noise pattern which seems to show up in every seed". Not measured yet.
+- **The shields' land** (4): seed 211's active shield a smooth elongated dome (no valleys while it builds; v11.151's flows faint).
+**Proposed** (the person's to choose; "we just have more iterations to do"): (1) the islands as land masses covered in water — measure first (the
+depth by distance from the coast, Earth's graded slope against our pedestal and wall; the edifice over its land, test/earth.js's `shelf`), then
+the barrier's cap graded onto its island (the fore-reef's talus, the lagoon filling from the land as its plains build out) and the share of
+almost-atolls checked against the model's own history; (2) the west plateau's relief, so the −1,000 m contour runs as lines, not speckle;
+(3) the active shields' shape (their rift ridges and lava deltas).
 
 **11.2 What must hold** (learned building v11.129–137; HANDOFF's working notes):
 - **The bounds.** sample() skips a record where its bound table `R.hi` (region.js `rgBound`: the radial profile plus fixed margins) says it
