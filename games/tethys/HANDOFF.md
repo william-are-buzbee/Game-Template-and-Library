@@ -1,11 +1,17 @@
 # HANDOFF — tethys
 
+**v11.152 (15 Nov 2026): the saddles' flats and scarps** (analysis_archipelago §10.9; DESIGN "The saddles' flats and scarps"; CHANGELOG). The seventh
+sheet found the chain 3 of 4 by its saddles (the halo not named). The base between neighbours stepped into broad flats at differing depths and
+lobate scarps 350 m apart in depth, small cones on it, the floor's hills mostly off it: the in-between's flats 15–21% → 26–29%, scarps 6–7% →
+10–13% (Earth's 4–55%, 12–45%). sample() up to 5% dearer. The eighth sheet: 4 of 4 found, by the middle's pedestals (a small island on a flat lagoon 1.5–3 times its
+radius, standing on a wall) and the west's noise. **Next:** analysis_archipelago §10.10's three proposals, the person's to choose — measure first.
+
 **v11.151 (15 Nov 2026): the coast by its valleys** (analysis_archipelago §10.8; DESIGN "The coast by its valleys"; CHANGELOG). The sixth blind
 sheet found the province's chain 4 of 4 by its halo (an even band of shallows echoing each high island's coast) and its spokes. Model high islands
 now have master valleys and valleys that wander and stop part-way up, their mouths drowned into bays, channels to passes in the reef, basins in the
 lagoon, the reef stepped back in the lee; the lobes' table a spline (the faceted cones gone). The lagoons Earth's width (1.6–2.4 km off the coast,
-from 4–6); `ONLY=halo node test/measures.js` (new) did not see their spread move. sample() up to 6% dearer. **Next:** the seventh blind sheet
-(`PSEED=<unseen,…> PART=chain BLIND=<seed> node test/earth.js`; seeds 32, 41, 67, 73, 89, 101, 113, 139 seen, 127 broken). **Open:** the atolls and
+from 4–6); `ONLY=halo node test/measures.js` (new) did not see their spread move. sample() up to 6% dearer. Sheets: `PSEED=<unseen,…> PART=chain
+BLIND=<seed> node test/earth.js`; seeds 32, 41, 67, 73, 89, 101, 113, 139, 151, 163, 179, 191 seen, 127 broken. **Open:** the atolls and
 banks still smooth ovals; the shields' shelf one width all round; the west plateau's speckle at −1,000 m.
 
 **v11.150 (14 Nov 2026): every change says what it costs** (CLAUDE.md "Performance"; the `perf` skill; the repository's decisions.md 26). The

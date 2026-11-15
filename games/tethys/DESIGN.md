@@ -194,6 +194,10 @@ region (not ours), each region's exact distance (`rgEdt`), the pairs that are so
 −160 m at ~1.7° (its pass at −160 − s·gap/2) and off the line by how far the way round is longer than the gap; the highest of the pairs', its pits
 filled three quarters to their rims (ponded basins). sample() reads it by `rgSad` (Catmull-Rom), the floor's hills and its own roll on it, by the
 floor's knee, never past FILL_TOP; a hard max within 3 km of ours.
+**The saddles' flats and scarps (v11.152; analysis_archipelago §10.9):** sample() steps the base (`rgStep`, `RG_STEP`): in every `H` (350 m) of depth a
+flat and a riser (`w` of the step, by a noise over 1/`fw`), the levels shifted by `ph`·H of a `fo`-octave noise over 1/`f` (lobate fronts, flats at
+differing depths), the mean kept, never above −160; cones in 6 km cells (`cone`: chance, height, radius, long along `REGION_K.fracA`); the floor's
+hills and the roll on it at `hk` of their v11.143–144 share. The skip takes `up`·H + `cone.h1` over the smooth base, so it stays exact.
 **The floor's grain (v11.144; analysis_archipelago §11.6):** `rgGrain` (built by `rgGrainBuild`, `RG_GR_K`) is added to the floor in sample():
 the abyssal hills (a noise stretched along the old ridge, across `K.fracA`), the old fracture zones on the model's own lines (`REGION.fz`: troughs
 with a transverse ridge, their depth and line rolling along them) and 280 seamounts (a grid of 8 km cells; their tops under −250 m with the hills

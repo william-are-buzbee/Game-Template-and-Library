@@ -8151,3 +8151,48 @@ the atolls and banks are still smooth ovals (tile 4's lenses); the west plateau'
 **Unseen, ask in this order:** (1) the seventh blind sheet, on seeds not yet seen; (2) a high island's coast from the water in the game — the bays
 and the passes at swimming scale; (3) the shields' coasts, the same width of shelf all round (Earth's Big Island has bare lava coasts and old
 shelves side by side).
+
+## v11.152 — the saddles' flats and scarps (15 Nov 2026)
+
+The seventh blind sheet (analysis_archipelago §10.9; seeds 151, 163, 179, 191, the chain): 3 of 4 found, the halo not named. The person: "16 has
+such distinct saddle patterns that you just don't see on Earth" — sheet 5's tell again ("like a blur tool"): the base between neighbours
+(v11.143) one smooth ramp. The person: "Let's go ahead with your thoughts on the saddles and the scarping".
+
+- **The base stepped** (region.js `rgStep`, `RG_STEP`; read in sample()): a plume's shared base is flows that pond and spread as sheets and stop at
+  lobate fronts, and the stillstands its sinking drowned as benches — so in every `H` (350 m) of depth a flat over most of it and a riser over the
+  rest (`w`, 6–40% of the step by a noise over 1/`fw` m: narrow risers are scarps, wide ones leave a ramp), the levels shifted by a noise of `ph`·H
+  over 1/`f` m in `fo` octaves so the fronts are lobate at 1–20 km and the flats' depths differ from place to place; the mean kept, never above
+  the base's top (−160). A first cut at 110 m steps read as rings round every island, the base's own contours stepped: fewer, bigger steps instead.
+- **The base's own cones** (`RG_STEP.cone`): in a 6 km cell one with chance 0.45, 80–260 m tall, 0.7–1.7 km in radius, long along the province's
+  fracture grain by up to 2.5 (Galápagos's platform carries hundreds of small cones and fissure ridges).
+- **The hills off the flats** (`hk` 0.35): the floor's abyssal hills and the base's 150 m roll, laid whole on the base since v11.143–144, now a
+  third of that — a platform's lava plains bury the old floor's hills, and a flat under a 150 m roll is no flat.
+- sample()'s skip takes the most a step and a cone can raise the base (`up`·H + `cone.h1`), so it stays exact.
+
+**Measured** (`ONLY=between node test/measures.js`: the 150–1,100 m within 25 km of the shallows, the share by slope; three seeds):
+
+```
+                 <3%       3-20%      >20%     relief 1-4 km (m)
+v11.151          15-21%    73-79%     6-7%     43-46
+v11.152          26-29%    57-61%     10-13%   47-53
+Earth's seven    4-55%     33-69%     12-45%   51-114    (Chagos 13/69/17, Hawaii 31/53/15, Galapagos 40/46/14, the Azores 8/55/37)
+```
+On the base alone (scratch, seed 32: 49% of the in-between): flats 18% → 47%, scarps 2% → 14%; the rest of the in-between, the islands' lower
+flanks, is untouched (61% at 6–20%). The passes between neighbours still in Earth's ranges at every gap (seed 32: −166, −224, −483 m at 5–10,
+10–20, 20–40 km; Earth's medians −110 to −228, −156 to −759, −260 to −914).
+
+**What it costs** (`BASE=<v11.151> node test/bench.js`, µs a sample, best of three processes):
+
+```
+          load s   world    w70    ours   plat   east
+v11.151    1.26    0.796   1.009  1.290  1.227  1.079
+v11.152    1.27    0.815   1.063  1.259  1.246  1.111
+ratio      1.01    1.02    1.05   0.98   1.02   1.03
+```
+Ours' window the same to the bit (its 0.98 is run noise); ours and the giant's own ground the same at 200,000 points each.
+
+**Seen** (cell means at 128 km beside Galápagos, the Azores and Chagos): broad flats at different depths with irregular escarpments between them
+where the base was a smooth lens; the cones faint at this scale, as Galápagos's are in its grid. **Not changed:** the base's outline (the lens
+between each pair of neighbours, v11.143's) and its edge where it meets the floor, still smoother than Earth's ragged −1,000 m contours; the islands'
+own lower flanks. **Unseen, ask in this order:** (1) the eighth blind sheet; (2) the base from the water in the game — a scarp at swimming scale is
+a cliff 100–300 m tall.

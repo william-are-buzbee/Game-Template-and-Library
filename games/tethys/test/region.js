@@ -8,7 +8,7 @@ const util=fs.readFileSync(path.join(root,'vendor/wb-core.global.js'),'utf8')+'\
 let world=fs.readFileSync(path.join(root,'src/world.js'),'utf8');const cut=world.indexOf('// ---------- the light');if(cut>0)world=world.slice(0,cut); // the geology and the fields (test/map.js's cut)
 const region=fs.readFileSync(path.join(root,'src/region.js'),'utf8');
 const THREE={Vector3:class{constructor(x,y,z){this.x=x;this.y=y;this.z=z;}},Matrix4:class{},Quaternion:class{}};
-const G=new Function('THREE',util+'\n'+world+'\n'+region+'\nreturn {RG_GR:()=>RG_GR,RG_GR_K,rgGrain,rgFloor,BASIN,RG_SAD:()=>RG_SAD,RG_SAD_K,rgSad,rgSaddles,WIND_A,rgAt,rgLoc,rgRecord,recLoc,rdgBound,sample,HALF,WX0,WX1,WZ0,WZ1,WORLD70,CELL,FI,ISLANDS,REGION_K,REGION_PINS,RG_STATE,regionModel,regionGrid,regionBasins,regionSeen,rgKei,rgSea,rgTrack,OXY,chemoAt,chemoD,oxyAt,underChemo,chemoB:()=>CHEMO_B,apronAt,apronR,RG_BUILT,rgFloor,BASIN,islandH,recsAt,FILL_TOP,rgAng,rgLagD,rgRadial,rgPlat,rgPlatSd,rgPlatform,RG_PL:()=>RG_PL,RG_PL_K,shT,SHELTER,rgRingAt,RG_VLY,lbAt,vlyCut};')(THREE);
+const G=new Function('THREE',util+'\n'+world+'\n'+region+'\nreturn {RG_GR:()=>RG_GR,RG_GR_K,rgGrain,rgFloor,BASIN,RG_SAD:()=>RG_SAD,RG_SAD_K,rgSad,rgSaddles,WIND_A,rgAt,rgLoc,rgRecord,recLoc,rdgBound,sample,HALF,WX0,WX1,WZ0,WZ1,WORLD70,CELL,FI,ISLANDS,REGION_K,REGION_PINS,RG_STATE,regionModel,regionGrid,regionBasins,regionSeen,rgKei,rgSea,rgTrack,OXY,chemoAt,chemoD,oxyAt,underChemo,chemoB:()=>CHEMO_B,apronAt,apronR,RG_BUILT,rgFloor,BASIN,islandH,recsAt,FILL_TOP,rgAng,rgLagD,rgRadial,rgPlat,rgPlatSd,rgPlatform,RG_PL:()=>RG_PL,RG_PL_K,shT,SHELTER,rgRingAt,RG_VLY,lbAt,vlyCut,rgStep,RG_STEP};')(THREE);
 let fails=0;const ok=(c,msg)=>{console.log((c?'  ok   ':'  FAIL ')+msg);if(!c)fails++;};
 console.log('region: the pieces');
 // kei(x) (A&S Table 9.12): 1 → −0.494991, 2 → −0.202400, 3 → −0.051123, 4 → +0.002198; the table is kei/kei(0), kei(0) = −π/4
@@ -170,6 +170,13 @@ ok(RB.struck.every(q=>RB.recs.some(r=>r.id===q.by)||q.by==='home'||q.by==='giant
     if(R.barrier){ln++;const w=G.WIND_A,up=G.rgRingAt(R,w+Math.PI),dn=G.rgRingAt(R,w);if(Math.abs(up-R.barrier.r)<1&&Math.abs(dn-(R.land.r+(R.barrier.r-R.land.r)*(1-Q.kl)))<1)lee++;}}
   for(const R of G.ISLANDS){if(!R.lobe)continue;let mx=-1e9,mn=1e9;for(let k=0;k<R.lobe.length-1;k++){mx=Math.max(mx,R.lobe[k]);mn=Math.min(mn,R.lobe[k]);}for(let k=0;k<4096;k++){const v=G.lbAt(R.lobe,k/4096*Math.PI*2);sn++;if(v<=mx+1e-12&&v>=mn-1e-12)spl++;}}
   ok(V.length>=3&&top===0&&inK===rows.length&&rows.length>=2&&lee===ln&&spl===sn,`the valleys on ${V.length} high islands (none at a summit: ${top}); ${rows.join('; ')}; ${lee} of ${ln} barriers' rings stepped back in their lee by ${G.RG_VLY.kl}; the lobes' spline inside its table at ${spl} of ${sn} angles`);}
+// v11.152 (analysis_archipelago §10.9; the person, 15 Nov 2026: "go ahead with your thoughts on the saddles and the scarping"): the saddles' base stepped
+// into flats and scarps (region.js rgStep) — never above its top (−160), never more than sample()'s skip allows over the smooth base (up·H and the cones'
+// h1), and its slopes on a 400 m lattice over the base flats and scarps, not v11.151's ramp
+{const K=G.RG_STEP,top=-G.RG_SAD_K.sh-G.RG_SAD_K.b0,lim=K.up*K.H+K.cone.h1;let n=0,hi=0,over=0,fl=0,sc=0,ra=0,m=0;const S=G.RG_SAD(),r=(()=>{let a=7;return ()=>{a=(a*16807)%2147483647;return a/2147483647;};})();
+  for(let k=0;k<200000;k++){const x=S.x0+(2+r()*(S.nx-5))*S.G,z=S.z0+(2+r()*(S.nz-5))*S.G,b=G.rgSad(x,z);if(!(b>-1100))continue;n++;const v=G.rgStep(b,x,z);if(v>top)hi++;if(v>b+lim)over++;
+    if(b<-200&&b>-1000){m++;const e=400,dx=(G.rgStep(G.rgSad(x+e,z),x+e,z)-G.rgStep(G.rgSad(x-e,z),x-e,z))/(2*e),dz=(G.rgStep(G.rgSad(x,z+e),x,z+e)-G.rgStep(G.rgSad(x,z-e),x,z-e))/(2*e),sl=Math.hypot(dx,dz);if(sl<0.03)fl++;else if(sl>0.2)sc++;else ra++;}}
+  ok(n>10000&&hi===0&&over===0&&fl>0.3*m&&sc>0.08*m,`the saddles' base stepped at ${n} places: above its top at ${hi}, past the skip's margin at ${over}; its slopes (−200 to −1,000 m, 400 m apart) flat under 3% at ${(100*fl/m).toFixed(0)}%, scarps over 20% at ${(100*sc/m).toFixed(0)}%, the ramp between at ${(100*ra/m).toFixed(0)}%`);}
 // v11.121: sample() a function of its point alone — to v11.120 a record past the loop's break kept the previous sample's mark and its influence
 // was dropped or kept by whatever had been sampled before (found by test/maps.js on m147's new atoll: flow 0.334 against 0.332 at one texel)
 {let diff=0,n=0;const key=p=>{const q=G.sample(p[0],p[1]);return [q.h,...q.f].join(',');};

@@ -812,7 +812,61 @@ and a narrow lee even out the distance to −60 m), partly right (between its ba
 further out). sample() up to 6% dearer; ours and the giant the same to the bit. **Next:** the seventh sheet.
 
 **10.9 The seventh blind sheet (v11.151; 15 Nov 2026):** `PSEED=151,163,179,191 PART=chain BLIND=7151 node test/earth.js` — four tiles of the
-chain from seeds never shown (checked sane first: seed 127, the whole world one land mass, is not one), twelve of Earth's twenty. The answers: pending.
+chain from seeds never shown (checked sane first: seed 127, the whole world one land mass, is not one), twelve of Earth's twenty.
+
+**The seventh sheet: 3 of 4 found** — 5, 13, 16 (13 seed 151 and 16 seed 179, the middle; 5 seed 163, the west); 11 (seed 191, the west) passed;
+6 (Saya de Malha) taken for ours, the second time it has been (§10.6). The person: "5, 6, 13, 16. Pretty sure. Guaranteed about 16 and 13, less
+certain about 6. could be 8 maybe. def not 12. I think 9 is chagos [the Seychelles]. 14 almost looks like us, but the lack of the distinct saddle
+you can see on 13 gives away that it's earth. Like, 16 has such distinct saddle patterns that you just don't see on Earth." The halo not named:
+the tell is the saddles again (sheet 5's, §10.7, "like a blur tool"). Measured (`ONLY=between`, the 150–1,100 m within 25 km of the shallows, the
+share by slope):
+
+```
+window        <1%  1-3%  3-6%  6-10%  10-20%  >20%   relief 1-4 km (m)
+Galapagos     11%   29%   20%   12%    14%    14%    51
+Chagos         2%   11%   19%   20%    30%    17%    57
+Azores         1%    7%   14%   15%    26%    37%   114
+Tethys 32      4%   11%   23%   30%    24%     7%    46
+Tethys 151     9%   12%   22%   27%    24%     7%    44
+Tethys 179     5%   10%   22%   30%    27%     6%    43
+```
+Still one smooth ramp (73–80% at 3–20%): §10.7's step, the saddles' base as flats and scarps, is the next one. **Answered (15 Nov 2026):** "Completely
+agree. Let's go ahead with your thoughts on the saddles and the scarping."
+
+**Built v11.152 (15 Nov 2026; DESIGN "The saddles' flats and scarps").** The base stepped at sample time — a flat and a riser in every 350 m of depth,
+the levels shifted by a noise so the fronts are lobate and the flats' depths differ (a first cut at 110 m read as rings round every island: the
+base's own contours, stepped); small cones on it along the fracture grain; the floor's hills and the base's roll a third of what they were. The
+in-between (three seeds): flats under 3% 15–21% → 26–29%, the 3–20% ramp 73–79% → 57–61%, scarps over 20% 6–7% → 10–13% (Earth's seven 4–55%,
+33–69%, 12–45%), relief 43–46 → 47–53 m (51–114); on the base alone flats 18% → 47% and scarps 2% → 14%. The passes still in Earth's ranges. Left: the
+base's outline (each pair's lens) and its edge onto the floor, smoother than Earth's; the islands' lower flanks, a ramp still.
+
+**10.10 The eighth blind sheet (v11.152; 15 Nov 2026):** `PSEED=199,211,223,239 PART=chain BLIND=8152 node test/earth.js` — four tiles of the
+chain from seeds never shown (all four checked sane), twelve of Earth's twenty.
+
+**The eighth sheet: 4 of 4 found** — 4 (seed 211, the west), 6 (223), 9 (239), 16 (199), all three of the middle's. The person: "4 is obvious ours
+because of how the land mass looks and that distinctive noise pattern which seems to show up in every seed. 6 is clearly ours because of the
+island on the left, which looks exactly like the islands on 9 on the left and the islands on 16. Those islands are ours, because they are a single
+island with a extended radius 1.5-3x or so for the atoll around it. If you look at other islands like 14, there are these sortof layered or
+textured pattens. It might be fast, but there is a gradient every time, like the northmost island on 14 being a "slow" version of that gradient
+from low elevation to land. Our islands on the right are staggeringly quick to jump out of the ground, underground there are typically these huge
+rock walls that build up to an elevation that then holds a normal looking island. Seems more like the other islands are gradients. 3 [Galápagos]
+is a great example of how the galapagos shows that gradient in a greater way … 3 vs 16 and 3 vs 6 are perfect examples of the difference. It
+doesn't feel like land masses covered in water (and sometimes they go over the waterline), it feels like islands with stuff around them. Even 10
+[the Society Islands] has a different looking ratio that I think is easier on the eyes." The saddles not named. Three tells:
+- **The pedestal and its wall** (6, 9, 16): every high island of the middle a small island on a flat lagoon pedestal 1.5–3 times its radius, the
+  pedestal standing on a steep wall (the fore-reef, 42°, onto the sunk flank) — "islands with stuff around them", where Earth's rise from the deep
+  as one graded slope ("land masses covered in water"), and their lagoons, where they have them, narrow (the Society Islands'). The cause in the
+  model: every middle island is old, sunk and reefed early, so each is an almost-atoll (its ring the shoreline when its reef took hold, v11.121),
+  and the barrier's cap (region.js rgCap, world.js islandH) is a flat lagoon and a wall whatever the island under it; Earth's almost-atolls (the
+  Gambiers, Chuuk) are few among their archipelagos' islands.
+- **The west's noise** (4; sheet 6's 13): the floor's grain on the west plateau, which lies at the −1,000 m contour's own depth, so the contour
+  wanders through every hill — "that distinctive noise pattern which seems to show up in every seed". Not measured yet.
+- **The shields' land** (4): seed 211's active shield a smooth elongated dome (no valleys while it builds; v11.151's flows faint).
+**Proposed** (the person's to choose; "we just have more iterations to do"): (1) the islands as land masses covered in water — measure first (the
+depth by distance from the coast, Earth's graded slope against our pedestal and wall; the edifice over its land, test/earth.js's `shelf`), then
+the barrier's cap graded onto its island (the fore-reef's talus, the lagoon filling from the land as its plains build out) and the share of
+almost-atolls checked against the model's own history; (2) the west plateau's relief, so the −1,000 m contour runs as lines, not speckle;
+(3) the active shields' shape (their rift ridges and lava deltas).
 
 **11.2 What must hold** (learned building v11.129–137; HANDOFF's working notes):
 - **The bounds.** sample() skips a record where its bound table `R.hi` (region.js `rgBound`: the radial profile plus fixed margins) says it
