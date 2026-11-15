@@ -868,6 +868,12 @@ the barrier's cap graded onto its island (the fore-reef's talus, the lagoon fill
 almost-atolls checked against the model's own history; (2) the west plateau's relief, so the −1,000 m contour runs as lines, not speckle;
 (3) the active shields' shape (their rift ridges and lava deltas).
 
+**10.11 Built v11.153 (15 Nov 2026; the person: "Go with 1, measure first then grade the islands").** Measured (`ONLY=profile`, new): seeds 199
+and 223 at −50 to −60 m out to 5 km from their coasts, Chuuk's profile. Not backstepping (no reef in them ever drowned); the rain: 65–75% of each
+old island's lowering since its reef took hold, which the model let move its coast inward along a 7° flank (an eroded island a cone planed of all it
+lost). The coast now where the flank, as the rain left it, meets the sea (`RG_COAST`, `m.Ef`): lagoons by age 0.6–6.7 km (were 0.7–11), the old
+islands broad and low. The profile measure did not move as the pictures did (it counts the stepped base past the reefs too). Next: the ninth sheet.
+
 **11.2 What must hold** (learned building v11.129–137; HANDOFF's working notes):
 - **The bounds.** sample() skips a record where its bound table `R.hi` (region.js `rgBound`: the radial profile plus fixed margins) says it
   cannot matter. Anything that raises the ground at some angles — a ridge, a debris fan — must raise `hi` at those radii (its largest height

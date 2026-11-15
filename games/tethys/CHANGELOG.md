@@ -8196,3 +8196,36 @@ where the base was a smooth lens; the cones faint at this scale, as Galápagos's
 between each pair of neighbours, v11.143's) and its edge where it meets the floor, still smoother than Earth's ragged −1,000 m contours; the islands'
 own lower flanks. **Unseen, ask in this order:** (1) the eighth blind sheet; (2) the base from the water in the game — a scarp at swimming scale is
 a cliff 100–300 m tall.
+
+## v11.153 — the coast by sinking, not by rain (15 Nov 2026)
+
+The eighth blind sheet (analysis_archipelago §10.10; seeds 199, 211, 223, 239): 4 of 4 found. The person: "a single island with a extended radius
+1.5-3x or so for the atoll around it … huge rock walls that build up to an elevation that then holds a normal looking island … It doesn't feel
+like land masses covered in water, it feels like islands with stuff around them." Answered: "Go with 1, measure first then grade the islands".
+
+**Measured first** (`ONLY=profile node test/measures.js`, new: the median depth by distance from the high islands' coasts): seeds 199 and 223
+held water at 50–60 m out to 5 km (−7, −25, −49, −56, −62 at 0.5–5 km, then −234 at 8) — Chuuk's profile, an almost-atoll, on every middle island;
+Earth's other windows drop past −100 m by 2–3 km. Two causes checked: no barrier reef in those seeds ever drowned and came back (the model's reefs
+keep up through every cycle, so no backstepping); but since each reef took hold the rain did 65–75% of the summit's lowering, and the model moved
+the coast inward by all of it — an eroded island a cone planed of every metre it lost (rtop + s/RG_SA), so its coast crept in along a 7° flank as
+its summit wore. Rain lowers an island's interior and cuts its valleys; its coast moves with its sinking and with the sea's planation of a top at
+its level.
+
+- **The rain's share kept apart** (region.js: `m.Ef`, the erosion `K.erode` adds, beside `m.E`) and **the coast where the flank, as the rain left
+  it, meets the sea** (`RG_COAST`): a member's shore is the sea's flat (`(E − Ef)/RG_S`) plus `(zv + Ef)/RG_SA`, and the ring when its reef took
+  hold the same; the pins as they were (the giant's barrier reads its shore). The lagoons by age, as Earth's stages: 0.6 km at 1–3 Ma, 2.3–3.5 at
+  6–12, 4.8–6.7 at 14–19 (to v11.152 0.7–0.9, 4.1–4.7, 9–11). The old islands' land broader and lower (their summits as eroded as before, their
+  outline where sinking put it).
+- test/region.js: the barrier's cap may lower the ground only where a master valley's channel crosses its lagoon (v11.151's channels, now met by a
+  test point on a narrower lagoon).
+
+**Measured after:** the halo's widths 2.0–2.9 km (the lagoons narrower; the land the high islands' count grows: seed 199 8 islands from 5); the
+profile on seeds 199 and 223 still −50 to −75 m out to 5 km — the measure counts every high island's water and the stepped base's flats past the
+reefs, so it did not move as the pictures did. **Seen** (cell means at 128 km, sheet 8's tiles 6, 9 and 16): broad land in thin rings where small
+islands sat on wide lagoons.
+
+**What it costs** (`BASE=<v11.152> node test/bench.js`): world ×1.06, w70 ×1.08, east ×1.09, plat ×1.02, ours the same to the bit (0.96: noise); the
+load ×1.02. More land is dearer ground to sample (the valleys). Ours and the giant's own ground the same at 200,000 points each.
+
+**Unseen, ask in this order:** (1) the ninth blind sheet; (2) the profile measure narrowed to the barrier islands alone, to see whether the
+pedestal is the lagoons or the stepped base past them.

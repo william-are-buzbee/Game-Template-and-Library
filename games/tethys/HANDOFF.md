@@ -1,5 +1,10 @@
 # HANDOFF — tethys
 
+**v11.153 (15 Nov 2026): the coast by sinking, not by rain** (analysis_archipelago §10.11; CHANGELOG). The eighth sheet found the middle by
+its pedestals: small islands on wide lagoons. Measured (`ONLY=profile`, new): two thirds of every old lagoon was the rain's erosion moving the
+coast inward; now the coast moves with sinking and the sea (region.js `RG_COAST`, `m.Ef`). Lagoons by age 0.6–6.7 km (were 0.7–11). sample() up to
+9% dearer (more land). Stacked on v11.152 (#90). **Next:** the ninth sheet; the profile on the barrier islands alone.
+
 **v11.152 (15 Nov 2026): the saddles' flats and scarps** (analysis_archipelago §10.9; DESIGN "The saddles' flats and scarps"; CHANGELOG). The seventh
 sheet found the chain 3 of 4 by its saddles (the halo not named). The base between neighbours stepped into broad flats at differing depths and
 lobate scarps 350 m apart in depth, small cones on it, the floor's hills mostly off it: the in-between's flats 15–21% → 26–29%, scarps 6–7% →
