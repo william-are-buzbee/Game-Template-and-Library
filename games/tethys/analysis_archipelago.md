@@ -790,6 +790,12 @@ give that off at all. 13 because I know the shape of our islands in the generato
 - **The west plateau's speckle** (13): the −1,000 m contour crossing the floor's hills everywhere over the west's plateau — its crest within
   ~100 m of that depth over tens of km. Not measured yet; the suspicion is a plateau too level, not the contour.
 
+**Proposed** (each its own version, judged by `halo` and a fresh sheet): (1) the lagoon by its side — the shelf and the barrier by angle (the
+island tilted by its neighbours' loads, so off its lagoon's centre; bare coasts where young lava or a landslide took the shelf; basins in the
+lagoon; close neighbours in one reef); (2) drowned valleys (branching valleys, deeper on the wet side, their mouths drowned into bays; the reef's
+passes at them); (3) the west plateau's speckle, measured first. **Answered (15 Nov 2026):** "Go after your recommendations, that sounds good. 1,
+then sheet 7, then 2. Yes, that's okay to shrink the lagoons" — ours' median 2–5.5 km off the coast, Earth's 0.7–1.8.
+
 **11.2 What must hold** (learned building v11.129–137; HANDOFF's working notes):
 - **The bounds.** sample() skips a record where its bound table `R.hi` (region.js `rgBound`: the radial profile plus fixed margins) says it
   cannot matter. Anything that raises the ground at some angles — a ridge, a debris fan — must raise `hi` at those radii (its largest height
