@@ -809,7 +809,7 @@ lobes' table read in straight lines between 48 points made every lobed record a 
 gullies; now a cubic B-spline. Measured (`ONLY=halo`): the barrier islands' shallows off the coast 4.2–6.0 km → 1.6–2.3 (Earth's 0.7–1.8); their
 spread round the coast median 0.29 → 0.28 (0.23–0.40; Earth's windows 0.37–0.61) — the measure partly blind here (basins mid-lagoon on a wide side
 and a narrow lee even out the distance to −60 m), partly right (between its bays the coast is still its record's lobed outline, the reef the same
-further out). sample() 1–7% dearer; ours and the giant the same to the bit. **Next:** the seventh sheet.
+further out). sample() up to 7% dearer; ours and the giant the same to the bit. **Next:** the seventh sheet.
 
 **11.2 What must hold** (learned building v11.129–137; HANDOFF's working notes):
 - **The bounds.** sample() skips a record where its bound table `R.hi` (region.js `rgBound`: the radial profile plus fixed margins) says it

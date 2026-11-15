@@ -4,7 +4,7 @@
 sheet found the province's chain 4 of 4 by its halo (an even band of shallows echoing each high island's coast) and its spokes. Model high islands
 now have master valleys and valleys that wander and stop part-way up, their mouths drowned into bays, channels to passes in the reef, basins in the
 lagoon, the reef stepped back in the lee; the lobes' table a spline (the faceted cones gone). The lagoons Earth's width (1.6–2.3 km off the coast,
-from 4–6); `ONLY=halo node test/measures.js` (new) did not see their spread move. sample() 1–7% dearer. **Next:** the seventh blind sheet
+from 4–6); `ONLY=halo node test/measures.js` (new) did not see their spread move. sample() up to 7% dearer. **Next:** the seventh blind sheet
 (`PSEED=<unseen,…> PART=chain BLIND=<seed> node test/earth.js`; seeds 32, 41, 67, 73, 89, 101, 113, 139 seen, 127 broken). **Open:** the atolls and
 banks still smooth ovals; the shields' shelf one width all round; the west plateau's speckle at −1,000 m.
 

@@ -8131,20 +8131,22 @@ cannot tell from a halo; the pictures show the coast in and out and the lagoon n
 its record's lobed outline, and the reef the same outline further out. The sheet will say which. The pins (0.09–0.20) and the active shields
 (0.27–0.30, a shelf of one width all round) are untouched by this version.
 
-**What it costs** (`BASE=<v11.150> node test/bench.js`, µs a sample, best of three processes):
+**What it costs** (`BASE=<v11.150> node test/bench.js`, µs a sample, best of three processes, after the valleys' noise was made lazy):
 
 ```
           load s   world    w70    ours   plat   east
-v11.150    1.32    0.806   0.992  1.364  1.329  1.062
-v11.151    1.32    0.847   1.083  1.367  1.322  1.134
-ratio      1.00    1.05    1.09   1.00   1.00   1.07
+v11.150    1.32    0.813   0.984  1.305  1.338  1.077
+v11.151    1.32    0.868   1.053  1.313  1.340  1.138
+ratio      1.00    1.07    1.07   1.01   1.00   1.06
 ```
-(after the valleys' noise was made lazy and the spline's index exact: world 1.01, w70 1.07, east 1.05 in a second run.) Ours' window the same to the
-bit; ours and the giant's own ground the same at 200,000 points each; every other window moves (the records, the saddles built on them).
+Runs on this machine move ±3% between processes; an earlier run read 1.01–1.07. Ours' window the same to the bit; ours and the giant's own ground
+the same at 200,000 points each; every other window moves (the records, the saddles built on them).
 
 **Seen** (raw sample() at 80–120 m a pixel and cell means at 128 km, as the blind sheet draws): the coasts in and out by bays at the masters' mouths
 and small coves at the valleys', the shields' facets gone, the lagoons narrow on their lee sides with basins and channels in them, the passes at the
-masters. **Not changed:** the atolls and banks are still smooth ovals (tile 4's lenses); the west plateau's speckle (tile 13) is not measured yet.
+masters; the build booted in headless Chromium with no page error and its world map (`n`) drawn. **Not changed:** the giant keeps v11.62's
+straight gullies (a pin: its ground the same to the bit — the map at boot shows their starburst; whether it takes the valleys is the person's);
+the atolls and banks are still smooth ovals (tile 4's lenses); the west plateau's speckle (tile 13) is not measured yet.
 **Unseen, ask in this order:** (1) the seventh blind sheet, on seeds not yet seen; (2) a high island's coast from the water in the game — the bays
 and the passes at swimming scale; (3) the shields' coasts, the same width of shelf all round (Earth's Big Island has bare lava coasts and old
 shelves side by side).
