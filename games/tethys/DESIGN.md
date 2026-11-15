@@ -223,7 +223,20 @@ squeeze): the union of its vents' cones and its rift zones' arms (`RG_LOBE`), it
 `sc`, so every bound read by sc (the reach, the bound tables, `quiet`, horizon's tops, the shelter's width) stays a bound; world.js `lbF` gives the
 scale at an angle and unlobed radius, whole to `lbR` (its land's or rim's radius) and `far` of it two radii out; sample() reads each record's own
 radius (`recLoc`) for its core, reach, bound, quiet and influence, so the bounds are exact in every direction. islandH, islandW, rgLoc, rgAt (`rgLbFix`, the fixed point), rgAlong, shSupport and shRadius read it; clouds' caps and
-horizon's build order take the scale without it.
+horizon's build order take the scale without it. Since v11.151 `lbAt` reads the table as a cubic B-spline (to v11.150 straight lines between its
+48 points: the slope kinked along 48 rays, a faceted cone with creases to the summit); its weights are never negative, so it never passes lmax.
+**The coast by its valleys (v11.151; analysis_archipelago §10.8):** every model high island but a satellite on land carries `R.vly` (region.js
+`rgVly`, `RG_VLY`): `n0` master valleys and `n1` valleys (one every `sp` of coast), each a centre jittered off an even comb, a head (`m`, `s`: the
+share of the land's radius in from the coast — none reaches the summit), a mouth's half-width, a draw, a mouth's depth under the sea and its floor
+at its head (`hd` under the old surface), in typed arrays of six. world.js `vlyCut` cuts them into the land on an angle warped by a noise over
+position (its reach `wa` and wavelength `wl` shares of the land's radius): the floor concave from its head to its mouth (`p`), a delta's flat where it crosses the sea, the mouth at its floor whatever the
+rain and the depth upslope by the rain's side times the draw times the island's ripeness (`mat`, the time since its shield over `ripe`); past the
+coast the masters run on as channels (`g`) across the shelf (`xs`) or the lagoon. A barrier's masters drown to its lagoon's floor less `ic`, each
+by its own share; where one's channel meets the reef the crest is a pass (`_vy.m`, its weight across the channel). `vlyLag`: the lagoon's floor
+with basins (`md` m deepest mid-way, where the lagoon is wide, in patches) and the channels. A barrier's ring steps back on its lee half by `kl`
+(`rgRingAt`; islandH by the same exposure), and `rgBound` holds its crest from there out; `rgMargins` reads each ring where it stands. The flows of
+a young island run from vents along the rift zones (start and end by slot) on the valleys' angle. Everything here only lowers the ground but the
+crest's range, so the bound tables hold. The giant keeps v11.62's gullies; ours and the giant's own ground the same to the bit.
 **Young cones on old islands (v11.131):** a member's host (`m.host`) is the older, bigger one whose foot it is born inside and whose shield was
 built before its birth, highest there by their 12° shapes; each step its base is the host's surface there (`m.off`), so it sinks and wears with
 it. Its record's `R.sat` (`b` its base, `k`, `host`): islandH steepens its flank `k`-fold below `b` (the skirt; the host's record is the ground

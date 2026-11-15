@@ -8085,3 +8085,69 @@ cost in objects of many shapes, which nothing but a profiler shows. Now measurin
 placement, about a sixth of a forest cell), not every frame: the next candidate, smaller than the creatures were. Everything else read in a
 hot loop is four shapes or fewer: the creatures, their defs, the cells and the island records one each, their states two, the solids four
 (one a kind), the schools two, the spawn rows four.
+
+## v11.151 — the coast by its valleys (15 Nov 2026)
+
+The sixth blind sheet (analysis_archipelago §10.8: seeds 101, 113, 139, the province's tiles all from its chain, against twenty Earth windows):
+4 of 4 found, sure. The person: "3, because that shape of the bright neon part, concentrated so neatly and uniformly around … 13 because I know the
+shape of our islands in the generator". Proposed: the lagoon by its side (the island tilted by its neighbours' loads), then the drowned valleys.
+Computed from the model's own history, the tilt is ±4% round every barrier — a slow plate's islands barely tilt — and Earth's lagoons are uneven
+mostly by their valleys; the person: "Merge them, go ahead with the coast by its valleys".
+
+- **Valleys that branch and wander** (world.js `vlyCut`; region.js `rgVly`, `RG_VLY`; `R.vly`, a new key in `recNew`): every model high island's
+  land carries a few master valleys (`n0`, wide, their amphitheatre heads 15–50% of the way up from the coast, `m`) and valleys every ~2 km of coast
+  (`sp`) whose heads are part-way down (`s`), each on an angle warped by a noise over position (its reach `wa` and wavelength `wl` shares of the
+  land's radius: a fixed 450 m left a 40 km island's nine masters straight trenches to its centre), so none meets the summit. Each floor is
+  graded from its head (`hd` under the old surface) to its mouth under today's sea (`dm`, `ds`), concave (`p`), with a delta's flat where it
+  crosses the sea; the mouths drowned whatever the rain (every valley that reached the sea was cut to the sea of its day), the depth upslope by
+  the rain's side (`L.gully.lee`) times each valley's draw times the island's ripeness (`ripe`: none on a shield still building). The giant keeps
+  v11.62's gullies; a satellite on land too.
+- **Bays and channels:** the drowned mouths make the coast's bays (the masters' 1–3 km into the land); past the coast the masters run on as
+  channels across the shelf (`xs`) or the lagoon, and where one meets a barrier it is a pass (its depth the channel's, `ic`).
+- **The lagoon's basins** (world.js `vlyLag`): a barrier's lagoon deepest mid-way from the coast to the reef where it is wide, in patches (`md`
+  24 m under the floor; Mayotte's to 60–80 m).
+- **The lee's step back** (`kl` 0.35, region.js `rgRingAt`): a barrier's reef on its lee half up to that share nearer the coast — a windward reef
+  holds the old shoreline through the sea's rises, a lee one falls behind (Bora Bora's lagoon wide to windward, narrow at its lee pass). The
+  bound tables hold its crest anywhere from there out (`rgBound`); `rgMargins` reads each ring where it stands.
+- **The flows** on a young island start at vents along the rift zones and stop part-way, on the valleys' wandering angle (to v11.150 each one from
+  the caldera's rim to the shore: a fan of spokes on every shield).
+- **The lobes' table read as a cubic B-spline** (world.js `lbAt`): to v11.150 straight lines between its 48 points, so the slope of every lobed
+  record's ground kinked along 48 rays from its centre — a faceted cone with creases to the summit, the "spokes" as much as the gullies were. Its
+  weights are never negative and sum to 1, so it never stands past the table's greatest (`lmax`, `sc` still bounds).
+
+**Measured** (`ONLY=halo node test/measures.js`, new in this version's tooling; four seeds, the high islands of 2 km² of land or more):
+
+```
+                 the shallows off the coast (median km)   their spread round the coast (CV)
+                 v11.150                  v11.151             v11.150             v11.151
+seed 32          m122 5.0, m109 4.8       1.9, 2.4            0.32, 0.29          0.26, 0.40
+seed 101         m133 5.8, m142 4.2, m136 5.1   1.8, 1.8, 1.6   0.07, 0.26, 0.27  0.28, 0.31, 0.29
+seeds 113, 139   4.9, 6.0                 1.8, 1.9            0.37, 0.40          0.25, 0.25
+the seven        4.2–6.0                  1.6–2.4             median 0.29         median 0.28 (0.25–0.40)
+Earth's ten      0.7–1.8                                      0.37–0.61
+```
+**The lagoons now Earth's width; their spread round the coast not moved by this measure** — the low end up, the high end down. Part of it is the
+measure: with basins mid-lagoon on the wide side and a narrow lee, the distance from the coast to water deeper than 60 m evens out again, which it
+cannot tell from a halo; the pictures show the coast in and out and the lagoon narrow in the lee. Part is real: between its bays the coast is still
+its record's lobed outline, and the reef the same outline further out. The sheet will say which. The pins (0.09–0.20) and the active shields
+(0.27–0.30, a shelf of one width all round) are untouched by this version.
+
+**What it costs** (`BASE=<v11.150> node test/bench.js`, µs a sample, best of three processes, after the valleys' noise was made lazy):
+
+```
+          load s   world    w70    ours   plat   east
+v11.150    1.34    0.826   1.002  1.305  1.330  1.069
+v11.151    1.33    0.841   1.056  1.330  1.352  1.135
+ratio      1.00    1.02    1.05   1.02   1.02   1.06
+```
+Runs on this machine move ±3% between processes (ours' 1.02 is that: its window is the same to the bit); earlier runs read up to 1.07. Ours' window the same to the bit; ours and the giant's own ground
+the same at 200,000 points each; every other window moves (the records, the saddles built on them).
+
+**Seen** (raw sample() at 80–120 m a pixel and cell means at 128 km, as the blind sheet draws): the coasts in and out by bays at the masters' mouths
+and small coves at the valleys', the shields' facets gone, the lagoons narrow on their lee sides with basins and channels in them, the passes at the
+masters; the build booted in headless Chromium with no page error and its world map (`n`) drawn. **Not changed:** the giant keeps v11.62's
+straight gullies (a pin: its ground the same to the bit — the map at boot shows their starburst; whether it takes the valleys is the person's);
+the atolls and banks are still smooth ovals (tile 4's lenses); the west plateau's speckle (tile 13) is not measured yet.
+**Unseen, ask in this order:** (1) the seventh blind sheet, on seeds not yet seen; (2) a high island's coast from the water in the game — the bays
+and the passes at swimming scale; (3) the shields' coasts, the same width of shelf all round (Earth's Big Island has bare lava coasts and old
+shelves side by side).

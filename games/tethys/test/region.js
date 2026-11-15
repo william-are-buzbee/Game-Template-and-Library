@@ -8,7 +8,7 @@ const util=fs.readFileSync(path.join(root,'vendor/wb-core.global.js'),'utf8')+'\
 let world=fs.readFileSync(path.join(root,'src/world.js'),'utf8');const cut=world.indexOf('// ---------- the light');if(cut>0)world=world.slice(0,cut); // the geology and the fields (test/map.js's cut)
 const region=fs.readFileSync(path.join(root,'src/region.js'),'utf8');
 const THREE={Vector3:class{constructor(x,y,z){this.x=x;this.y=y;this.z=z;}},Matrix4:class{},Quaternion:class{}};
-const G=new Function('THREE',util+'\n'+world+'\n'+region+'\nreturn {RG_GR:()=>RG_GR,RG_GR_K,rgGrain,rgFloor,BASIN,RG_SAD:()=>RG_SAD,RG_SAD_K,rgSad,rgSaddles,WIND_A,rgAt,rgLoc,rgRecord,recLoc,rdgBound,sample,HALF,WX0,WX1,WZ0,WZ1,WORLD70,CELL,FI,ISLANDS,REGION_K,REGION_PINS,RG_STATE,regionModel,regionGrid,regionBasins,regionSeen,rgKei,rgSea,rgTrack,OXY,chemoAt,chemoD,oxyAt,underChemo,chemoB:()=>CHEMO_B,apronAt,apronR,RG_BUILT,rgFloor,BASIN,islandH,recsAt,FILL_TOP,rgAng,rgLagD,rgRadial,rgPlat,rgPlatSd,rgPlatform,RG_PL:()=>RG_PL,RG_PL_K,shT,SHELTER};')(THREE);
+const G=new Function('THREE',util+'\n'+world+'\n'+region+'\nreturn {RG_GR:()=>RG_GR,RG_GR_K,rgGrain,rgFloor,BASIN,RG_SAD:()=>RG_SAD,RG_SAD_K,rgSad,rgSaddles,WIND_A,rgAt,rgLoc,rgRecord,recLoc,rdgBound,sample,HALF,WX0,WX1,WZ0,WZ1,WORLD70,CELL,FI,ISLANDS,REGION_K,REGION_PINS,RG_STATE,regionModel,regionGrid,regionBasins,regionSeen,rgKei,rgSea,rgTrack,OXY,chemoAt,chemoD,oxyAt,underChemo,chemoB:()=>CHEMO_B,apronAt,apronR,RG_BUILT,rgFloor,BASIN,islandH,recsAt,FILL_TOP,rgAng,rgLagD,rgRadial,rgPlat,rgPlatSd,rgPlatform,RG_PL:()=>RG_PL,RG_PL_K,shT,SHELTER,rgRingAt,RG_VLY,lbAt,vlyCut};')(THREE);
 let fails=0;const ok=(c,msg)=>{console.log((c?'  ok   ':'  FAIL ')+msg);if(!c)fails++;};
 console.log('region: the pieces');
 // kei(x) (A&S Table 9.12): 1 → −0.494991, 2 → −0.202400, 3 → −0.051123, 4 → +0.002198; the table is kei/kei(0), kei(0) = −π/4
@@ -154,10 +154,22 @@ ok(RB.struck.every(q=>RB.recs.some(r=>r.id===q.by)||q.by==='home'||q.by==='giant
   const dry=out.filter(m=>m.b0<=0||R.rlT(m.rl,0)-R.rlT(m.rl,m.age)>1); // born where the plateau's head stood above the sea (24–30 Ma): its shore is the plateau's, the platform's (analysis_archipelago §2.3, the next step); v11.126: or lifted after its birth by a centre growing under it
   ok(out.length===dry.length,`every reef ring of a member born under the sea within its own volcano's foot: ${out.length-dry.length} of ${reefs.length-dry.length} outside (56 of 95 to v11.120: the land a 7° cone drawn over a 12° one); ${dry.length} born on the dry plateau or lifted by a centre after its birth (v11.126), whose shore was the plateau's`);
   const B=G.ISLANDS.filter(R=>R.barrier),gi=G.ISLANDS.find(R=>R.id==='giant'),I={};let low=0,lag=0,n=0,fea=0;
-  // v11.129: half-way out in the record's own frame (an oval's)
-  for(const R of B)for(let k=0;k<48;k++){const a=k/48*Math.PI*2,rr=(R.land.r+R.barrier.r)/2,P=G.rgAt(R,rr,a,{}),x=P.x,z=P.z;G.islandH(R,x,z,I);n++;if(I.h>R.barrier.lag-6&&I.h<R.barrier.top-10)lag++;if(I.h>R.barrier.lag-170&&I.h<R.barrier.top+1)fea++;
+  // v11.129: half-way out in the record's own frame (an oval's); v11.151 to the ring where it stands on that side (rgRingAt: the lee's step back), the
+  // floor as deep as its basins and the masters' channels under it (RG_VLY md, ic)
+  for(const R of B)for(let k=0;k<48;k++){const a=k/48*Math.PI*2,P0=G.rgAt(R,R.barrier.r,a,{}),rb=G.rgRingAt(R,Math.atan2(P0.z-R.z,P0.x-R.x)),rr=(R.land.r+rb)/2,P=G.rgAt(R,rr,a,{}),x=P.x,z=P.z,dl=R.vly?R.vly.md+R.vly.ic:0;G.islandH(R,x,z,I);n++;if(I.h>R.barrier.lag-dl-6&&I.h<R.barrier.top-10)lag++;if(I.h>R.barrier.lag-dl-170&&I.h<R.barrier.top+1)fea++;
     const Q=Object.assign({},R,{barrier:undefined}),J={};G.islandH(Q,x,z,J);if(I.h<J.h-1e-9)low++;}
   ok(B.length>=3&&gi&&gi.barrier&&lag>0.75*n&&low===0,`${B.length} high islands with a barrier reef (${B.map(R=>R.id+' '+R.barrier.r+' m at '+R.barrier.top).join(', ')}): the lagoon at its floor half-way out at ${lag} of ${n} places (v11.123: a patch reef or a blue hole at the rest — ${fea} of ${n} within them), the cap never lowers the island's ground (${low}); the giant's at ${gi&&gi.barrier?gi.barrier.top:'-'} m, sinking in the awesome shield's moat`);}
+// v11.151 (analysis_archipelago §10.8; the person, 15 Nov 2026: "go ahead with the coast by its valleys"): the sixth blind sheet's tells — the halo, an
+// even band echoing every high island's coast, and the land's spokes. The valleys: none at the summit (their heads part-way down), each high island's
+// coast in and out by its drowned valleys (the coast's radius along 192 rays of its own frame, from its summit out to its first water), a barrier's
+// ring nearer the coast in its lee by kl; the lobes' spline never past its table (sc still the farthest lobe)
+{const V=G.ISLANDS.filter(R=>R.vly),I={},rows=[];let top=0,inK=0,spl=0,sn=0,lee=0,ln=0;
+  for(const R of V){const Q=R.vly;if(G.vlyCut(Q,R.land.r,0.9,1000,0,0.1*R.land.r,1,0)>0)top++; // a point 90% of the way up: no valley there
+    if(Q.mat<0.5)continue;const rc=[];for(let k=0;k<192;k++){const a=k/192*Math.PI*2;let r=0.3*R.land.r;for(;r<1.6*R.land.r;r+=25){const P=G.rgAt(R,r,a,{});G.islandH(R,P.x,P.z,I);if(I.h<0)break;}rc.push(r/R.land.r);}
+    rc.sort((x,y)=>x-y);const med=rc[96],bay=rc.filter(v=>v<0.9*med).length/192;if(bay>=0.05)inK++;rows.push(R.id+' '+(100*bay).toFixed(0)+'% in bays, the coast '+rc[19].toFixed(2)+'–'+rc[172].toFixed(2)+' of its radius');
+    if(R.barrier){ln++;const w=G.WIND_A,up=G.rgRingAt(R,w+Math.PI),dn=G.rgRingAt(R,w);if(Math.abs(up-R.barrier.r)<1&&Math.abs(dn-(R.land.r+(R.barrier.r-R.land.r)*(1-Q.kl)))<1)lee++;}}
+  for(const R of G.ISLANDS){if(!R.lobe)continue;let mx=-1e9,mn=1e9;for(let k=0;k<R.lobe.length-1;k++){mx=Math.max(mx,R.lobe[k]);mn=Math.min(mn,R.lobe[k]);}for(let k=0;k<4096;k++){const v=G.lbAt(R.lobe,k/4096*Math.PI*2);sn++;if(v<=mx+1e-12&&v>=mn-1e-12)spl++;}}
+  ok(V.length>=3&&top===0&&inK===rows.length&&rows.length>=2&&lee===ln&&spl===sn,`the valleys on ${V.length} high islands (none at a summit: ${top}); ${rows.join('; ')}; ${lee} of ${ln} barriers' rings stepped back in their lee by ${G.RG_VLY.kl}; the lobes' spline inside its table at ${spl} of ${sn} angles`);}
 // v11.121: sample() a function of its point alone — to v11.120 a record past the loop's break kept the previous sample's mark and its influence
 // was dropped or kept by whatever had been sampled before (found by test/maps.js on m147's new atoll: flow 0.334 against 0.332 at one texel)
 {let diff=0,n=0;const key=p=>{const q=G.sample(p[0],p[1]);return [q.h,...q.f].join(',');};

@@ -3,7 +3,7 @@
 // fetched once from GMRT by `node test/earth.js`; www.gmrt.org is allowed in this repository's cloud environment).
 //
 //   node test/measures.js                 every measure
-//   ONLY=passes,banks node test/measures.js   some of them: margins, passes, floor, shallows, banks, slopes, between
+//   ONLY=passes,banks node test/measures.js   some of them: margins, passes, floor, shallows, banks, slopes, between, halo
 //   PSEED=<n> node test/measures.js       the province from another seed (32 the game's)
 //
 // The province is sampled as test/earth.js samples it for Earth's detail: GEBCO's 15" lattice (463 m), each node its cell's mean of 4×4
@@ -16,12 +16,16 @@
 //   slopes    the slopes inside the shallows, and how much of them the steepest tenth carries (v11.146: Chagos's and ours alike)
 //   between   the slopes of the in-between (150–1,100 m within 25 km of the shallows) and its relief at 1–4 km (v11.147: sheet 5's tell, the
 //             saddles "like a blur tool": ours one smooth ramp, Earth's flats and scarps)
+//   halo      the shallow water round each high island (v11.151: sheet 6's tell, "the bright neon part concentrated so neatly and uniformly
+//             around"): at every coast cell the distance to water deeper than 60 m; per island its median, its spread round the coast (CV,
+//             p90/p10) and the share of its coast with under 0.5 km; the medians over the islands (2 km² of land or more, none cut by the
+//             window, none on the platform). Ours 0.17–0.30 and 1.6–2.0 over four seeds; Earth's volcanic archipelagos 0.37–0.61 and 2.6–5.7
 const fs=require('fs'),path=require('path'),root=path.join(__dirname,'..'),C=path.join(__dirname,'preview','earth');
 const ONLY=process.env.ONLY?process.env.ONLY.split(','):null,on=k=>!ONLY||ONLY.includes(k),PSEED=+(process.env.PSEED||32),GEB=463.3;
-const WIN={society:-17.1,tuamotu:-15.5,marshall:8.6,maldives:4.2,chagos:-6.3,hawaii:20.0,canaries:28.3,capeverde:16.0,reunion:-20.7,mascarene:-10.8,kerguelen:-49.4,azores:38.5,galapagos:-0.6};
-const NAME={society:'Society',tuamotu:'Tuamotus',marshall:'Marshall',maldives:'Maldives',chagos:'Chagos',hawaii:'Hawaii',canaries:'Canaries',capeverde:'Cape Verde',reunion:'Reunion',mascarene:'Mascarene',kerguelen:'Kerguelen',azores:'Azores',galapagos:'Galapagos'};
+const WIN={society:-17.1,tuamotu:-15.5,marshall:8.6,maldives:4.2,chagos:-6.3,hawaii:20.0,canaries:28.3,capeverde:16.0,reunion:-20.7,mascarene:-10.8,kerguelen:-49.4,azores:38.5,galapagos:-0.6,seychelles:-4.6,lakshadweep:10.8,comoros:-12.2,austral:-23.6,gambier:-22.6,chuuk:7.6};
+const NAME={society:'Society',tuamotu:'Tuamotus',marshall:'Marshall',maldives:'Maldives',chagos:'Chagos',hawaii:'Hawaii',canaries:'Canaries',capeverde:'Cape Verde',reunion:'Reunion',mascarene:'Mascarene',kerguelen:'Kerguelen',azores:'Azores',galapagos:'Galapagos',seychelles:'Seychelles',lakshadweep:'Lakshadweep',comoros:'Comoros',austral:'Australs',gambier:'Gambiers',chuuk:'Chuuk'};
 function earth(key){const hp=path.join(C,key+'.json'),bp=path.join(C,key+'.f32');if(!fs.existsSync(hp)){console.log(`  (${key}: no cache — run node test/earth.js once)`);return null;}
-  const g=JSON.parse(fs.readFileSync(hp,'utf8')),b=fs.readFileSync(bp);g.z=new Float32Array(b.buffer,b.byteOffset,b.length/4);return {nm:NAME[key],nx:g.ncols,nz:g.nrows,h:g.z,dx:g.cellsize*111320*Math.cos(WIN[key]*Math.PI/180)};}
+  const g=JSON.parse(fs.readFileSync(hp,'utf8')),b=fs.readFileSync(bp);g.z=new Float32Array(b.buffer,b.byteOffset,b.length/4);return {nm:NAME[key],nx:g.ncols,nz:g.nrows,h:g.z,dx:g.cellsize*111320*Math.cos(WIN[key]*Math.PI/180),dz:g.cellsize*110574};} /* dz (v11.151): a cell's north-south metres — only halo reads it; the older measures take dx both ways (≤7% off in z for the tropical windows, 35% at Kerguelen) */
 // the province: world.js (to the light) and region.js as test/earth.js loads them, on the cell-mean lattice
 let TW=null;function tethys(){if(TW)return TW;const util=fs.readFileSync(path.join(root,'vendor/wb-core.global.js'),'utf8')+'\n'+fs.readFileSync(path.join(root,'src/util.js'),'utf8');
   let world=fs.readFileSync(path.join(root,'src/world.js'),'utf8');const cut=world.indexOf('// ---------- the light');if(cut>0)world=world.slice(0,cut);let reg=fs.readFileSync(path.join(root,'src/region.js'),'utf8');
@@ -29,7 +33,7 @@ let TW=null;function tethys(){if(TW)return TW;const util=fs.readFileSync(path.jo
   const THREE={Vector3:class{constructor(x,y,z){this.x=x;this.y=y;this.z=z;}},Matrix4:class{},Quaternion:class{}};
   const W=new Function('THREE',util+'\n'+world+'\n'+reg+'\nreturn {sample,rgPlatSd,WX0,WX1,WZ0,WZ1};')(THREE),nx=Math.floor((W.WX1-W.WX0)/GEB),nz=Math.floor((W.WZ1-W.WZ0)/GEB),h=new Float32Array(nx*nz),liv=new Uint8Array(nx*nz),f=new Float32Array(9);
   for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const x=W.WX0+i*GEB,z=W.WZ0+j*GEB;let a=0;for(let p=0;p<4;p++)for(let q=0;q<4;q++)a+=W.sample(x+((q+0.5)/4-0.5)*GEB,z+((p+0.5)/4-0.5)*GEB,f).h;h[j*nx+i]=a/16;liv[j*nx+i]=W.rgPlatSd(x,z)>0?1:0;}
-  return TW={nm:'Tethys'+(PSEED!==32?' '+PSEED:''),nx,nz,h,dx:GEB,liv};}
+  return TW={nm:'Tethys'+(PSEED!==32?' '+PSEED:''),nx,nz,h,dx:GEB,dz:GEB,liv};}
 const pad=(s,n)=>(s+' '.repeat(n)).slice(0,n);
 // city-block distance (m) from the cells where src(k)
 function dist(G,src){const {nx,nz,dx}=G,d=new Float64Array(nx*nz);for(let k=0;k<nx*nz;k++)d[k]=src(k)?0:1e12;
@@ -88,6 +92,18 @@ const M={
     keys:['galapagos','hawaii','maldives','chagos','azores','canaries','capeverde'],head:'                 km²    <1%   1-3%   3-6%  6-10% 10-20%   >20%   relief',
     run(G){const {nx,nz,h,dx}=G,d=dist(G,k=>h[k]>-60),b1=blur(G,rad(G,1)),b4=blur(G,rad(G,4)),B=[0.01,0.03,0.06,0.1,0.2,1e9],c=B.map(()=>0);let n=0,s=0;
       for(let j=1;j<nz-1;j++)for(let i=1;i<nx-1;i++){const k=j*nx+i,v=h[k];if(!(v<-150&&v>-1100)||d[k]>25000)continue;const sl=Math.hypot((h[k+1]-h[k-1])/(2*dx),(h[k+nx]-h[k-nx])/(2*dx));if(!(sl===sl))continue;n++;c[B.findIndex(b=>sl<b)]++;const q=b1[k]-b4[k];if(q===q)s+=q*q;}
-      if(n<200)return '(no in-between)';return String(Math.round(n*dx*dx/1e6)).padStart(7)+c.map(v=>(100*v/n).toFixed(0).padStart(6)+'%').join('')+Math.sqrt(s/n).toFixed(0).padStart(9);}}};
+      if(n<200)return '(no in-between)';return String(Math.round(n*dx*dx/1e6)).padStart(7)+c.map(v=>(100*v/n).toFixed(0).padStart(6)+'%').join('')+Math.sqrt(s/n).toFixed(0).padStart(9);}},
+  halo:{title:'the shallow water round each high island (2 km² of land or more): at each coast cell the distance to water deeper than 60 m — the medians over the islands of its median, its spread round the coast (CV, p90/p10) and the share of the coast with under 0.5 km',
+    keys:['society','hawaii','canaries','capeverde','reunion','azores','galapagos','comoros','austral','gambier','chuuk'],head:'                   n  width km     CV  p90/p10   bare',
+    run(G){const {nx,nz,h,dx}=G,dz=G.dz||dx,N=nx*nz,dd=Math.hypot(dx,dz),d=new Float64Array(N);for(let k=0;k<N;k++)d[k]=h[k]<=-60?0:1e18;const rel=(k,q,w)=>{if(d[q]+w<d[k])d[k]=d[q]+w;};
+      for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const k=j*nx+i;if(i>0)rel(k,k-1,dx);if(j>0){rel(k,k-nx,dz);if(i>0)rel(k,k-nx-1,dd);if(i<nx-1)rel(k,k-nx+1,dd);}}
+      for(let j=nz-1;j>=0;j--)for(let i=nx-1;i>=0;i--){const k=j*nx+i;if(i<nx-1)rel(k,k+1,dx);if(j<nz-1){rel(k,k+nx,dz);if(i<nx-1)rel(k,k+nx+1,dd);if(i>0)rel(k,k+nx-1,dd);}}
+      const q=(a,p)=>{const s=a.slice().sort((x,y)=>x-y);return s[Math.min(s.length-1,Math.floor(p*s.length))];},seen=new Uint8Array(N),I=[];
+      for(let k0=0;k0<N;k0++){if(!(h[k0]>0)||seen[k0])continue;const st=[k0],cells=[];seen[k0]=1;let cut=false,onp=0;
+        while(st.length){const k=st.pop();cells.push(k);const i=k%nx,j=(k-i)/nx;if(i===0||j===0||i===nx-1||j===nz-1)cut=true;if(G.liv&&G.liv[k])onp++;
+          for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const a=i+di,b=j+dj;if(a<0||b<0||a>=nx||b>=nz)continue;const w=b*nx+a;if(h[w]>0&&!seen[w]){seen[w]=1;st.push(w);}}}
+        if(cut||cells.length*dx*dz/1e6<2||onp>0.2*cells.length)continue;const W=[];for(const k of cells)if(h[k-1]<=0||h[k+1]<=0||h[k-nx]<=0||h[k+nx]<=0)W.push(d[k]/1000);if(W.length<12)continue;
+        const m=W.reduce((a,b)=>a+b,0)/W.length,sd=Math.sqrt(W.reduce((a,b)=>a+(b-m)*(b-m),0)/W.length);I.push({w:q(W,0.5),cv:sd/Math.max(m,1e-9),r:q(W,0.9)/Math.max(q(W,0.1),dx/1000),bare:W.filter(v=>v<0.5).length/W.length});}
+      if(!I.length)return '(no high islands)';const md=k=>q(I.map(o=>o[k]),0.5);return String(I.length).padStart(5)+md('w').toFixed(1).padStart(10)+md('cv').toFixed(2).padStart(7)+md('r').toFixed(1).padStart(9)+(100*md('bare')).toFixed(0).padStart(6)+'%';}}};
 for(const k of Object.keys(M)){if(!on(k))continue;const m=M[k];console.log('\n'+k+': '+m.title+'\n'+m.head);
   for(const w of m.keys){const G=earth(w);if(G)console.log('  '+pad(G.nm,14)+m.run(G));}const T=tethys();console.log('  '+pad(T.nm,14)+m.run(T));}

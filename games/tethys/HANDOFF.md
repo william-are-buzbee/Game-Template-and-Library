@@ -1,9 +1,17 @@
 # HANDOFF — tethys
 
+**v11.151 (15 Nov 2026): the coast by its valleys** (analysis_archipelago §10.8; DESIGN "The coast by its valleys"; CHANGELOG). The sixth blind
+sheet found the province's chain 4 of 4 by its halo (an even band of shallows echoing each high island's coast) and its spokes. Model high islands
+now have master valleys and valleys that wander and stop part-way up, their mouths drowned into bays, channels to passes in the reef, basins in the
+lagoon, the reef stepped back in the lee; the lobes' table a spline (the faceted cones gone). The lagoons Earth's width (1.6–2.4 km off the coast,
+from 4–6); `ONLY=halo node test/measures.js` (new) did not see their spread move. sample() up to 6% dearer. **Next:** the seventh blind sheet
+(`PSEED=<unseen,…> PART=chain BLIND=<seed> node test/earth.js`; seeds 32, 41, 67, 73, 89, 101, 113, 139 seen, 127 broken). **Open:** the atolls and
+banks still smooth ovals; the shields' shelf one width all round; the west plateau's speckle at −1,000 m.
+
 **v11.150 (14 Nov 2026): every change says what it costs** (CLAUDE.md "Performance"; the `perf` skill; the repository's decisions.md 26). The
 person saves lag felt in previews for a pass later, so a change to a hot path now measures itself before and after (`BASE=` with test/bench.js,
 test/frames.js — new — or test/bench_creatures.js) and its pull request says the cost. **Next candidate:** the flora entries, 46 shapes
-(`SHAPES=1 node test/frames.js`), read at a cell's generation. Stacked on v11.149 (#86): merge that first.
+(`SHAPES=1 node test/frames.js`), read at a cell's generation.
 
 **v11.149 (14 Nov 2026): the creatures' cost — the creature performance pass** (DESIGN "The creatures' cost"; CHANGELOG). Every body the same to the
 bit, built and posed, and the simulation after 300 frames (`node test/bench_creatures.js`, new). A kind's body is built once per coat and replayed (the
