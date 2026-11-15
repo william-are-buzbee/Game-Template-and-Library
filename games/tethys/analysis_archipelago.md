@@ -830,7 +830,15 @@ Tethys 32      4%   11%   23%   30%    24%     7%    46
 Tethys 151     9%   12%   22%   27%    24%     7%    44
 Tethys 179     5%   10%   22%   30%    27%     6%    43
 ```
-Still one smooth ramp (73–80% at 3–20%): §10.7's step, the saddles' base as flats and scarps, is the next one.
+Still one smooth ramp (73–80% at 3–20%): §10.7's step, the saddles' base as flats and scarps, is the next one. **Answered (15 Nov 2026):** "Completely
+agree. Let's go ahead with your thoughts on the saddles and the scarping."
+
+**Built v11.152 (15 Nov 2026; DESIGN "The saddles' flats and scarps").** The base stepped at sample time — a flat and a riser in every 350 m of depth,
+the levels shifted by a noise so the fronts are lobate and the flats' depths differ (a first cut at 110 m read as rings round every island: the
+base's own contours, stepped); small cones on it along the fracture grain; the floor's hills and the base's roll a third of what they were. The
+in-between (three seeds): flats under 3% 15–21% → 26–29%, the 3–20% ramp 73–79% → 57–61%, scarps over 20% 6–7% → 10–13% (Earth's seven 4–55%,
+33–69%, 12–45%), relief 43–46 → 47–53 m (51–114); on the base alone flats 18% → 47% and scarps 2% → 14%. The passes still in Earth's ranges. Left: the
+base's outline (each pair's lens) and its edge onto the floor, smoother than Earth's; the islands' lower flanks, a ramp still.
 
 **11.2 What must hold** (learned building v11.129–137; HANDOFF's working notes):
 - **The bounds.** sample() skips a record where its bound table `R.hi` (region.js `rgBound`: the radial profile plus fixed margins) says it

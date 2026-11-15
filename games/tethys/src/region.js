@@ -698,6 +698,25 @@ function rgSaddles(){const K=RG_SAD_K;if(!K.on)return null;const T0=Date.now();c
 function rgSad(x,z){const S=RG_SAD,u=(x-S.x0)/S.G,v=(z-S.z0)/S.G,i=Math.floor(u),j=Math.floor(v);if(i<1||j<1||i>=S.nx-2||j>=S.nz-2)return -1e9;const B=S.B,nx=S.nx,k=j*nx+i;
   if(B[k]<-3000&&B[k+1]<-3000&&B[k+nx]<-3000&&B[k+nx+1]<-3000)return -1e9;const tu=u-i,tv=v-j,row=q=>rgCR(B[q-1],B[q],B[q+1],B[q+2],tu);
   return rgCR(row(k-nx),row(k),row(k+nx),row(k+2*nx),tv);}
+// ---------- the saddles' flats and scarps (v11.152) ----------
+// analysis_archipelago §10.7, §10.9 (the person, 15 Nov 2026: "Let's go ahead with your thoughts on the saddles and the scarping"). Sheets 5 and 7 found
+// the chain by its saddles — "like a blur tool", "such distinct saddle patterns that you just don't see on Earth": the base between neighbours one
+// smooth ramp, 73–80% of the in-between (150–1,100 m within 25 km of the shallows) at 3–20% slope, where Earth's shared platforms are flats broken by
+// scarps (Galápagos 40% under 3% and 14% over 20%, the Azores 37% over 20%). A plume's shared base is built of flows that pond and spread as sheets
+// and stop at lobate fronts, and of the stillstands its sinking drowned as benches: so the base steps — in every H m of depth a flat over most of it
+// and a riser over the rest (w of it, by a noise over 1/fw m: narrow risers are scarps, wide ones leave a ramp), the levels shifted by a noise of
+// ph·H over 1/f m so the fronts are lobate and the flats' depths differ from place to place; the mean kept (the flats at the middle of their step),
+// never above the base's own top. A step raises the base by at most up·H (sample()'s skip reads it). hk: the floor's hills and the base's roll kept
+// on it (v11.143–144 laid them whole on the base; a platform's lava plains bury the old floor's abyssal hills, and a flat under a 150 m roll is no flat)
+// cone: the base's own eruptive centres (Galápagos's platform carries hundreds of small submarine cones and fissure ridges): in a cell of `cell` m one
+// with chance p, h0–h1 m tall, r0–r1 m in radius, long along the province's fracture grain (REGION_K.fracA) by up to asp, never past the base's top;
+// its height is in sample()'s skip (h1)
+const RG_STEP={on:true,H:350,w:[0.06,0.4],ph:1.0,f:1/22000,fo:5,fw:1/30000,up:0.48,hk:0.35,cone:{cell:6000,p:0.45,h0:80,h1:260,r0:700,r1:1700,asp:2.5}};
+function rgStep(b,x,z){const K=RG_STEP;if(!K.on)return b;const w=K.w[0]+(K.w[1]-K.w[0])*vnoise(x*K.fw+3.3,z*K.fw+7.7),p=K.H*K.ph*(fbm(x*K.f+11.9,z*K.f+5.3,K.fo)-0.5)*2,t=(b+p)/K.H,f=Math.floor(t);
+  let o=(f+smooth(1-w,1,t-f)+0.5*(1-w))*K.H-p;const C=K.cone,ci=Math.floor(x/C.cell),cj=Math.floor(z/C.cell),ii=ci&255,jj=cj&255;
+  if(hash(ii,jj+19)<C.p){const cx=(ci+0.3+0.4*hash((ii+11)&255,jj+7))*C.cell,cz=(cj+0.3+0.4*hash((ii+5)&255,jj+113))*C.cell,q=hash((ii+3)&255,jj+59),r=lerp(C.r0,C.r1,q),a=1+(C.asp-1)*hash((ii+71)&255,jj+31),
+    ca=Math.cos(REGION_K.fracA),sa=Math.sin(REGION_K.fracA),dx=x-cx,dz=z-cz,u=(dx*ca+dz*sa)/a,v=dz*ca-dx*sa,d=hyp2(u,v);if(d<r){const e=1-d/r;o+=lerp(C.h0,C.h1,hash((ii+97)&255,jj+3))*e*Math.sqrt(e);}}
+  return Math.min(-RG_SAD_K.sh-RG_SAD_K.b0,o);}
 // ---------- the floor's grain (v11.144, analysis_archipelago §11.6; §11 G; the person, 14 Nov 2026: "Then the floor texture") ----------
 // Earth's deep floor (test/earth.js's grids, 25 km and more from water under 500 m): relief 5–34 m (std) at 0.5–2 km, 20–113 at 2–8 km, and
 // 0–44 seamounts 200 m proud per 10,000 km² (Chagos 8, Galápagos 12, the Azores 44); ours 5, 24 and none. Three things, one function added to the
