@@ -301,7 +301,7 @@ function sectorW(a,c,hw,fade){const x=a-c;let d=x<TAU&&x>-TAU?x:x%TAU;if(d<0)d+=
 // gives up on a read's fast path: every `R.x` in sample() and islandH was a lookup by name (sample() 30% slower near the islands for it). A key
 // a record lacks reads undefined as before; a new key goes in this list (test/records.js fails on a record with a key outside it, or a key
 // deleted: set it undefined instead)
-function recNew(){return {id:undefined,x:undefined,z:undefined,rot:undefined,sc:undefined,ns:undefined,state:undefined,age:undefined,asq:undefined,sat:undefined,h0:undefined,prof:undefined,terr:undefined,rimR:undefined,rimW:undefined,rimH:undefined,lagH:undefined,patch:undefined,coll:undefined,dike:undefined,rifts:undefined,riftR:undefined,vent:undefined,seep:undefined,isle:undefined,flank:undefined,fade:undefined,reach:undefined,core:undefined,land:undefined,barrier:undefined,isl:undefined,apr:undefined,carb:undefined,bare:undefined,knob:undefined,arm:undefined,lobe:undefined,lmax:undefined,lbR:undefined,lbG:undefined,rdg:undefined,cny:undefined,rdgR:undefined,rdgF:undefined,hi:undefined,hiS:undefined,quiet:undefined,an:undefined,rimM:undefined,sh:undefined,hops:undefined,rng:undefined,_c:undefined,_s:undefined};}
+function recNew(){return {id:undefined,x:undefined,z:undefined,rot:undefined,sc:undefined,ns:undefined,state:undefined,age:undefined,asq:undefined,sat:undefined,h0:undefined,prof:undefined,terr:undefined,rimR:undefined,rimW:undefined,rimH:undefined,lagH:undefined,patch:undefined,coll:undefined,dike:undefined,rifts:undefined,riftR:undefined,vent:undefined,seep:undefined,isle:undefined,flank:undefined,fade:undefined,reach:undefined,core:undefined,land:undefined,barrier:undefined,isl:undefined,apr:undefined,carb:undefined,bare:undefined,knob:undefined,arm:undefined,lobe:undefined,lmax:undefined,lbR:undefined,lbG:undefined,rdg:undefined,cny:undefined,rdgR:undefined,rdgF:undefined,hi:undefined,hiS:undefined,quiet:undefined,an:undefined,rimM:undefined,sh:undefined,vly:undefined,hops:undefined,rng:undefined,_c:undefined,_s:undefined};}
 const ISLANDS=[
   Object.assign(recNew(),{id:'home',x:0,z:0,rot:0,sc:1,ns:0,h0:-14,prof:[[RIM_R+RIM_W*0.3,330,6],[330,700,40],[1000,1200,94],[1200,1600,40]],terr:{r0:700,r1:1000,n:8,step:12},
    rimR:RIM_R,rimW:RIM_W,lagH:-22,coll:COLL,dike:DIKE,rifts:RIFT_A,riftR:[280,340,1600,1300],vent:VENT,seep:SEEP,isle:ISLE,flank:{r:FLANK_R,w:FLANK_W,s0:FLANK_S0,s1:FLANK_S1,a:FLANK_A,b:FLANK_B},fade:BASIN.fade,reach:8500,core:2400}),
@@ -327,6 +327,38 @@ const _islNew=()=>({isl:0.5,bare:0.5,carb:0.5,coneRock:0.5,h:0.5,hs:0.5,rw:0.5,c
 const AN_N=1024,AN_K=[[1.6,11],[1.2,29],[2.2,150],[2.5,99],[3.0,131],[2.4,77],[4.0,211]]; // v11.138: the seventh the flank's canyons' wander
 function anTables(ns){const T=new Float32Array(AN_K.length*(AN_N+1));for(let k=0;k<AN_K.length;k++)for(let i=0;i<=AN_N;i++)T[k*(AN_N+1)+i]=angNoise(i/AN_N*TAU,AN_K[k][0],AN_K[k][1]+ns);return T;}
 function anT(T,k,a){let u=a*(AN_N/TAU);u-=Math.floor(u/AN_N)*AN_N;const i=Math.min(AN_N-1,Math.floor(u)),t=u-i,q=k*(AN_N+1)+i;return T[q]+(T[q+1]-T[q])*t;}
+// ---------- the valleys (v11.151) ----------
+// analysis_archipelago §10.8 (the person, 15 Nov 2026: "Merge them, go ahead with the coast by its valleys"). The sixth blind sheet's tells were the
+// halo — the shallows round a high island an even band echoing its coast — and the land's spokes; Earth's barrier islands are uneven by their
+// valleys: cut while the island stood higher, drowned as it sank, so the coast runs into bays at their mouths and out on headlands between, the
+// reef stays on the old shoreline, its passes where the big valleys' channels cross it (Mayotte, Raiatea–Taha'a, Moorea's Cook's and Ōpūnohu).
+// A model record's land (region.js rgVly: R.vly) carries two sets of valleys round its own angle, each wandering (the angle warped by a noise over
+// position, its reach and wavelength the island's: RG_VLY.wa, wl) — the masters, few, wide, their amphitheatre heads 12–45% of the way from the summit, and the valleys, one
+// every ~1.3 km of coast, their heads part-way down, so none meet at the summit (the spokes: v11.62's gullies, one comb of slots from the
+// summit). Each one's floor graded from its head (a wall under the old surface, hd of it) to its mouth dm under today's sea, concave (p),
+// a delta's flat where it crosses the sea; its depth the rain's (the windward side's, L.gully.lee in the lee) times its own draw times the
+// island's ripeness (the time since its shield, mat: none on a shield still building — Mauna Loa's flanks have no valleys, Kohala's deep
+// ones came within a Myr). Past the coast the masters run on as channels: across the shelf (xs) or the lagoon to the reef. The valleys' cut
+// at a point (tl the share of the land's radius in from the coast, negative past it; top the surface there over the record's base); _vy the
+// nearest master's weight across it and its floor (the lagoon's channels and the reef's passes read them)
+const _vy={m:0,mf:0};
+function vlyCut(V,LR,tl,top,av,rw,wet,dB){let cut=0;const M=V.M,n0=V.n0,k0=Math.floor((av-V.mo)/TAU*n0);
+  for(let j=-1;j<=1;j++){let k=(k0+j)%n0;if(k<0)k+=n0;const o=k*6,tlh=M[o+1];if(tl>=tlh)continue;let d=av-M[o];d-=TAU*Math.round(d/TAU);
+    const sv=tl>0?tl/tlh:0,hw=M[o+2]*(1-0.65*sv),lat=Math.abs(d)*rw;if(lat>=hw)continue;
+    const dm=dB>0?dB*M[o+4]/V.dmM:M[o+4],dr=Math.min(1,wet*M[o+3])*V.mat;let flo=tl>=0?-dm+(M[o+5]+dm)*Math.pow(sv,V.p):-dm+V.g*tl*LR;
+    flo-=0.65*(flo-1)*smooth(-8,-2,flo)*smooth(10,4,flo); // the delta's flat where the floor meets the sea
+    const w=smooth(hw,0.2*hw,lat)*(tl>0?smooth(tlh,tlh-0.05,tl):1),c=Math.max(0,top-flo)*V.mat*lerp(1,Math.min(1,wet*M[o+3]),sv)*w;if(c>cut)cut=c;if(w*dr>_vy.m){_vy.m=w*dr;_vy.mf=flo;}} // the mouth at its floor whatever its rain (cut to the sea of its day), the rain how far up
+  if(tl<0)return cut;
+  const Q=V.S,n1=V.n1,k1=Math.floor((av-V.so)/TAU*n1);
+  for(let j=-1;j<=1;j++){let k=(k1+j)%n1;if(k<0)k+=n1;const o=k*6,tlh=Q[o+1];if(tl>=tlh)continue;let d=av-Q[o];d-=TAU*Math.round(d/TAU);
+    const sv=tl/tlh,hw=Q[o+2]*(1-0.6*sv),lat=Math.abs(d)*rw;if(lat>=hw)continue;
+    const dm=Q[o+4];let flo=-dm+(Q[o+5]+dm)*Math.pow(sv,V.p);flo-=0.65*(flo-1)*smooth(-8,-2,flo)*smooth(10,4,flo);
+    const c=Math.max(0,top-flo)*V.mat*lerp(1,Math.min(1,wet*Q[o+3]),sv)*smooth(hw,0.25*hw,lat)*smooth(tlh,tlh-0.05,tl);if(c>cut)cut=c;}
+  return cut;}
+// a barrier's lagoon floor with its basins and channels (v11.151): deepest mid-way from the coast to the reef where the lagoon is wide (md m, in
+// patches: Mayotte's to 60–80 m, its fringe and back-reef shallow), the masters' channels ic under it; lagoonF's knolls on that
+function vlyLag(R,B,x,z,n1,rw,br){const V=R.vly,Lr=R.land.r,W=br-Lr,t=clamp((rw-Lr)/W,0,1),mk=Math.sin(Math.PI*t)*smooth(1500,6000,W),md=mk>0?V.md*mk*(0.25+0.75*smooth(0.28,0.72,fbm(x*0.00017+71,z*0.00017+13,3))):0; // the patches' noise only where a basin can be (none under the land, at the reef or in a narrow lagoon)
+  return lagoonF(x,z,B.lag+1.5*n1-md-V.ic*_vy.m,B.top);}
 // v11.148: plx, plz — the point in the record's own frame where the caller has it already (sample(): recLoc's _rlx, _rlz, the same doubles as the
 // lines below make — the turn, the scale, the squeeze and the lobe are not done twice); without them, as before
 function islandH(R,x,z,o,plx,plz){
@@ -381,7 +413,19 @@ function islandH(R,x,z,o,plx,plz){
   // Loa's, Kilauea's): a flat floor L.cald.d under the rim, its wall L.cald.w wide, the valley heads that reach the rim notched into it. The
   // gullies go on h alone; hSmooth carries the surface less a third of the cut, so a valley floor reads as relief 0 and a planeze as a crest.
   if(R.land){const L=R.land,LH=L.b?L.h-L.b:L.h,u=rw/L.r; /* v11.131: LH the land's relief over h0 — a satellite's over its base (L.b), any other's L.h */
-    if(u<1){const tl=1-u,S=tl*tl*(3-2*tl),ridge=LH*(0.55*tl+0.45*S),cl=L.cliff*smooth(0.45,0.85,expoW)*smooth(0,0.008,tl);
+    if(R.vly){const V=R.vly,xm=u<1?0:R.barrier?R.barrier.r-L.r+2*R.barrier.w:V.xs;_vy.m=0;_vy.mf=0; // v11.151: the valleys (vlyCut); past the coast only within xm (to the reef, or across the shelf), where the masters' channels run
+      const av=u<1||rw-L.r<xm?a+0.12*anT(an,2,a)+V.wa/Math.max(r,1500)*(fbm(lx*V.wf+31+ns,lz*V.wf+57,3)-0.5)*2:0,wet=lerp(L.gully.lee,1,smooth(0.25,0.85,expoW)),dB=R.barrier?R.barrier.top-R.barrier.lag+V.ic:0; // their wandering angle where they can be (most of a lagoon is past it: the noise not taken there); dB a barrier's masters' mouths at its lagoon's floor less their channel
+      if(u<1){const tl=1-u,S=tl*tl*(3-2*tl),ridge=LH*(0.55*tl+0.45*S),cl=L.cliff*smooth(0.45,0.85,expoW)*smooth(0,0.008,tl);let fh=0;const FL=L.flows;
+        // the last flows (v11.151): from vents along the rift zones (st, of the way up from the coast) to where each stopped (en), on the valleys' wandering
+        // angle and of uneven width — to v11.150 every one from the caldera's rim to the shore, a fan of spokes on every shield
+        if(FL&&R.rifts){let fw=0;for(const ra of R.rifts){const w=sectorW(awn,ra,FL.hw,FL.hw*0.6);if(w>fw)fw=w;}
+          if(fw>0){const fq=av*FL.n/TAU,fi=Math.floor(fq),fj=fi&255,ft=1-Math.abs(2*(fq-fi)-1);if(hash(fj,77+ns)>0.45){const st=lerp(0.3,0.92,hash(fj,78+ns)),en=lerp(-0.02,0.55,hash(fj,79+ns))*st,lf=smooth(st,st-0.06,tl)*smooth(en,en+0.04,tl);
+            if(lf>0){const flow=fw*lf*smooth(0.5+0.25*(fbm(lx*0.0016+43+ns,lz*0.0016+11,2)-0.5)*2,1,ft)*(0.7+0.3*fbm(lx*0.004+23+ns,lz*0.004+61,2));fh=FL.h*flow;young=Math.max(young,0.6*flow);}}}}
+        const top=ridge+cl+fh,cv=vlyCut(V,L.r,tl,top,av,rw,wet,dB);let lnd=top-cv,lndS=top-0.35*cv;
+        const K=L.cald;if(K){const ck=smooth(K.r+K.w,K.r-K.w,rw);if(ck>0){const tr=1-K.r/L.r,fl=LH*(0.55*tr+0.45*tr*tr*(3-2*tr))-K.d;lnd=lerp(lnd,fl,ck);lndS=lerp(lndS,fl,ck);young=Math.max(young,0.5*ck);}}
+        h+=lnd;hSmooth+=lndS;}
+      else{const x=rw-L.r;if(x<xm){const cv=vlyCut(V,L.r,-x/L.r,h-R.h0,av,rw,wet,dB)*smooth(xm,0.8*xm,x);h-=cv;hSmooth-=0.35*cv;}}} // past the coast: the masters' channels (to the reef, or across the shelf)
+    else if(u<1){const tl=1-u,S=tl*tl*(3-2*tl),ridge=LH*(0.55*tl+0.45*S),cl=L.cliff*smooth(0.45,0.85,expoW)*smooth(0,0.008,tl);
       let fh=0;const FL=L.flows;
       if(FL&&R.rifts){let fw=0;for(const ra of R.rifts){const w=sectorW(awn,ra,FL.hw,FL.hw*0.6);if(w>fw)fw=w;}
         if(fw>0){const fq=aw*FL.n/TAU,fi=Math.floor(fq),ft=1-Math.abs(2*(fq-fi)-1);if(hash(fi&255,77+ns)>0.45){const flow=fw*smooth(0.55,1,ft)*(0.7+0.3*fbm(lx*0.004+23+ns,lz*0.004+61,2));fh=FL.h*flow;young=Math.max(young,0.6*flow);}}}
@@ -438,10 +482,12 @@ function islandH(R,x,z,o,plx,plz){
   // it), the crest awash with islets where the noise is high and passes where it is low (an atoll's rim's), outside a wall and the fore-reef down
   // onto the flank. Ours and the records with a rim have none, so nothing here moves them
   if(R.barrier){const B=R.barrier,n1=(fbm(lx*0.02+5+ns,lz*0.02+3,2)-0.5)*2,be=2*expoW-1,bw=B.w*(0.7+0.6*Math.max(0,be)),bdL=Math.max(0,Math.min(REEF_LEE.D*(1-Math.exp(-2*B.r*Math.max(0,-be)/REEF_LEE.F)),B.top-B.lag-15)),bt=B.top-bdL, // v11.128: a barrier by its side too (Bora Bora's motu to windward, its pass to leeward)
-    inK=smooth(B.r-bw*0.4,B.r-bw*1.6,rw),crK=smooth(B.r-bw,B.r-bw*0.3,rw)*smooth(B.r+bw,B.r+bw*0.3,rw),ra=smooth(0.3-0.15*be,0.62-0.15*be,0.5+0.5*(an?anT(an,5,aw):angN(caw,saw,2.4,77+ns)));
-    const bm=R.rimM?rgAng(R.rimM,a):1,ck=crK*bm,bl=(1-bm)*smooth(B.r-bw*1.6,B.r-bw*0.4,rw)*smooth(B.r+bw*1.6,B.r+bw*0.4,rw); // v11.123: one margin; the lagoon's features
-    const c=lerp(lerp(rw<=B.r?lerp(bt-14,lagoonF(x,z,B.lag+1.5*n1,B.top),inK):bt-14-(rw-B.r)*B.s,bt+lerp(1.5*n1,2.5+3.5*n1,smooth(-8,-1,bt)),ck*ra)-3*(1-ra)*ck,B.lag,bl);
-    if(c>hSmooth)hSmooth=c;if(c>h){h=c;lag=inK;rimK=ck;rimA=ra;}}
+    br=R.vly?R.land.r+(B.r-R.land.r)*(1-R.vly.kl*smooth(0.5,0,expoW)):B.r, // v11.151: the ring where it stands on this side — stepped back in the lee (region.js rgRingAt, RG_VLY.kl)
+    inK=smooth(br-bw*0.4,br-bw*1.6,rw),crK=smooth(br-bw,br-bw*0.3,rw)*smooth(br+bw,br+bw*0.3,rw),ra=smooth(0.3-0.15*be,0.62-0.15*be,0.5+0.5*(an?anT(an,5,aw):angN(caw,saw,2.4,77+ns)));
+    const bm=R.rimM?rgAng(R.rimM,a):1,ck=crK*bm,bl=(1-bm)*smooth(br-bw*1.6,br-bw*0.4,rw)*smooth(br+bw*1.6,br+bw*0.4,rw); // v11.123: one margin; the lagoon's features
+    let rp=ra,dp=0;if(R.vly){const pw=smooth(0.2,0.6,_vy.m);rp=ra*(1-pw);dp=1.5*R.vly.ic*pw*ck;} // v11.151: a pass where a master's channel meets the reef (its depth the channel's), the lagoon's floor vlyLag's
+    const c=lerp(lerp(rw<=br?lerp(bt-14,R.vly?vlyLag(R,B,x,z,n1,rw,br):lagoonF(x,z,B.lag+1.5*n1,B.top),inK):bt-14-(rw-br)*B.s,bt+lerp(1.5*n1,2.5+3.5*n1,smooth(-8,-1,bt)),ck*rp)-3*(1-rp)*ck-dp,B.lag,bl);
+    if(c>hSmooth)hSmooth=c;if(c>h){h=c;lag=inK;rimK=ck;rimA=rp;}}
   // the island: a tuff cone (v11.86, CONE above; to v11.85 a round 40 m hill on a round flat of bars and pools) — a breached ring round a tidal
   // crater, high downwind, cliffed to windward, the flat and its spit in the lee and down the current. Within 270 m of the cone only
   let coneRock=0;
@@ -471,7 +517,10 @@ function islandH(R,x,z,o,plx,plz){
 // them — for a record sample() need not compute whole (under the ground there), whose share of the seamount effect still counts
 const _iw={isl:0,upW:0};
 // v11.135: a lobed record's outline at its own angle (region.js rgLobe: a table over the turn, its farthest lobe 1)
-function lbAt(T,a){const N=T.length-1;let u=a*(N/TAU);u-=Math.floor(u/N)*N;const i=Math.min(N-1,Math.floor(u)),t=u-i;return T[i]+(T[i+1]-T[i])*t;}
+// v11.151: a uniform cubic B-spline through the table (to v11.150 straight lines between its 48 points: the slope of every lobed record's ground
+// kinked along 48 rays from its centre, a faceted cone with creases to the summit — the sixth sheet's "shape of our islands in the generator").
+// Its weights are never negative and sum to 1, so it never stands past the table's own greatest (lmax: sc still the farthest lobe)
+function lbAt(T,a){const N=T.length-1;let u=a*(N/TAU);u-=Math.floor(u/N)*N;const i=Math.min(N-1,Math.floor(u)),t=u-i,t2=t*t,t3=t2*t,q=1-t;return (q*q*q*T[i>0?i-1:N-1]+(3*t3-6*t2+4)*T[i]+(3*(t2-t3+t)+1)*T[i+1]+t3*T[i+2<=N?i+2:1])/6;} // T[N] is T[0], so i+2 = N+1 is T[1]
 // its scale at its own angle a and radius rb (unfolded): the lobe whole to 1.2 times its land's or rim's radius (lbR), fading to lbG of it two radii
 // further out, as Earth's deep flanks are smoother than their coasts; over lmax, so never past 1 (sc carries the farthest lobe)
 // a record's own radius at (dx, dz) from its centre: turned, scaled, squeezed and lobed as islandH reads it (its turn's cosine and sine kept on it)
