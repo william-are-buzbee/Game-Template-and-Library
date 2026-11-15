@@ -761,7 +761,34 @@ six more windows (the Seychelles, Lakshadweep, the Comoros, the Australs, the Ga
 the tiles placed at random (a 128 km lattice fell across the platform's edge in every seed: the chain was never a tile of its own), Earth's crops
 anywhere in their window, the province's from several seeds and kept by `PART`. **The sixth sheet:** `PSEED=101,113,139 PART=chain BLIND=20261115`
 — four tiles of the chain, twelve of Earth's from the twenty. Seed 127 is
-broken (the whole world one land mass): not a seed for a sheet, and a fault of the model's to look at. The answers: pending.
+broken (the whole world one land mass): not a seed for a sheet, and a fault of the model's to look at.
+
+**The sixth sheet: 4 of 4 found, sure** — 3, 4, 13, 15 (3 seed 101 and 4 seed 139, the middle; 13 seed 101, the west; 15 seed 113, the
+middle). The person: "3, because that shape of the bright neon part, concentrated so neatly and uniformly around, whereas 2 clearly does not show
+this on the left side. 4 is the same thing, I can see on the left that island with a specific cyan border and just kinda know, whereas 5 does not
+give that off at all. 13 because I know the shape of our islands in the generator and I've seen that sortof noise pattern before on our world seed.
+15 because I can see a third island with a cyan circle around it. I am not entirely sure but pretty sure." Three tells:
+- **The halo** (3, 4, 15): the shallow water round a high island an even band echoing its coast. Measured (`ONLY=halo node test/measures.js`,
+  new): at every coast cell the distance to water deeper than 60 m, per island its spread round the coast —
+
+  ```
+  window          n  width km     CV  p90/p10   bare     (medians over the high islands, 2 km² of land or more)
+  Earth's ten   2–54   0.7–1.8  0.37–0.61  2.6–5.7  3–40%   (Society, Hawaii, Canaries, Cape Verde, Azores, Galapagos, Comoros, Australs, Gambiers, Chuuk)
+  Tethys 32       5       2.0   0.29      2.0     0%
+  Tethys 101      5       4.2   0.26      2.0     0%
+  Tethys 113      4       1.3   0.30      2.0    12%
+  Tethys 139      4       5.5   0.17      1.6     0%
+  ```
+  Every seed under every Earth window. The cause: a record is one radial profile in its own frame (region.js rgRecord) — the coast (`L.r`),
+  the insular shelf (`rgInsular`, k × the land's radius at every angle) and the barrier (`rgBarrier`, one radius, `m.ring`) all radii in it, so
+  every contour off the coast is a scaled copy of the coast, lobes and all. Seen up close (a scratch picture, 60 km a side: ours beside
+  Mayotte, Raiatea–Taha'a, Chuuk): Earth's coasts indented by drowned valleys into bays; the lagoon 1–10 km round one island, the island off its
+  lagoon's centre; the reef a broken line with exposed flats and passes; the lagoon floor with basins; two islands in one lagoon. Ours: a smooth
+  convex coast in an even band, a crisp unbroken rim, the floor a pale stipple.
+- **The land's spokes** (13): the gullies and flows straight lines from the summit (`L.gully`, `L.flows`), "the shape of our islands in the
+  generator"; Earth's valleys branch, wander and are deeper on the wet side.
+- **The west plateau's speckle** (13): the −1,000 m contour crossing the floor's hills everywhere over the west's plateau — its crest within
+  ~100 m of that depth over tens of km. Not measured yet; the suspicion is a plateau too level, not the contour.
 
 **11.2 What must hold** (learned building v11.129–137; HANDOFF's working notes):
 - **The bounds.** sample() skips a record where its bound table `R.hi` (region.js `rgBound`: the radial profile plus fixed margins) says it
