@@ -1,5 +1,11 @@
 # HANDOFF — tethys
 
+**v11.151 (15 Nov 2026): every seed a province** (CHANGELOG; CLAUDE.md "Things that bite"). Seed 127's blind sheet was all land: `REGION_K.tune`
+held whatever member was called m153 at 2,533 m, and an id is a birth's place in one history's draws — 77 of seeds 1–200 tuned a stranger, 37 never
+solved. A tune now names its vent by id and age; seed 32 the same to the bit; test/region.js builds seeds 1–200 by the model and every 20th whole.
+**The blind test:** seeds 101 and 113 carried the stray tune too (101 a 2,533 m shield its history never made, 113 an unsettled solve) — their
+sheets want making again; 41, 67, 73, 89 and 139 are unchanged.
+
 **v11.150 (14 Nov 2026): every change says what it costs** (CLAUDE.md "Performance"; the `perf` skill; the repository's decisions.md 26). The
 person saves lag felt in previews for a pass later, so a change to a hot path now measures itself before and after (`BASE=` with test/bench.js,
 test/frames.js — new — or test/bench_creatures.js) and its pull request says the cost. **Next candidate:** the flora entries, 46 shapes

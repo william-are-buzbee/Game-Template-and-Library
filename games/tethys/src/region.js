@@ -35,7 +35,7 @@ const REGION_K={
   fedL:90,        // km: how far upstream (against world.js CUR_A) another member shelters one from the open ocean's water
   fedK:0,         // the reef's growth on a fed member, as a share of K.reef (PLANET: the lime polyps win only in clear, bright water; the weed takes fed shallows)
   erode:0.15,     // per Myr: subaerial erosion (the land's height over the sea lost at this rate: 0.07 mm/yr at 450 m). v11.121 (analysis_archipelago §6; the person, 12 Nov 2026: "let's say 10"): high islands that last ~10 Myr, as a slow plate's do (Mauritius 828 m at ~8 Ma, Gran Canaria 1,956 m at 14.5); to v11.120 0.45, a fast plate's clock run on a slow one
-  tune:{m153:2533}, // v11.121 (the person, 12 Nov 2026, answer (c)): members held to a summit today as the pins are, their volume solved for it — seed 32's awesome shield at its 2,533 m, so the volume-true shape (rgShape2) leaves it the awesome one
+  tune:{m153:{sum:2533,age:0.6523}}, // v11.121 (the person, 12 Nov 2026, answer (c)): members held to a summit today as the pins are, their volume solved for it — seed 32's awesome shield at its 2,533 m, so the volume-true shape (rgShape2) leaves it the awesome one. v11.151: a tune names its vent by its birth, its id and its age (Ma, to 1e-4): an id is only a birth's place in one history's draws, and to v11.150 another seed's m153 was held at 2,533 m wherever it stood (77 of seeds 1–200; 37 never solved — seed 127's, 10 km from ours, grew to a 198 km cone and the world was land)
   plane:0.3,      // mm/yr: the waves' planing of rock in the surf band, wave base to +30
   wb:10,          // m: wave base
   platW:70,       // km: the plateau's half-width about the track (the tail's aprons); it falls to the plate over the next 40
@@ -76,6 +76,7 @@ function rgShape2(m,b){m.b0=b;const V=m.V,c12=Math.cbrt(3*V*RG_S*RG_S/Math.PI);i
 // ---------- the model ----------
 function regionModel(Kin){
   const K=Object.assign({},REGION_K,Kin||{}),rng=mulberry(K.seed*7919+11);
+  const tuneAt=(id,age)=>{const u=K.tune&&K.tune[id];return u&&Math.abs(u.age-age)<1e-4?u.sum:undefined;}; // v11.151: the summit a vent is held to, if it is the birth K.tune names (its id and its age), else undefined
   const pin=REGION_PINS.map(p=>{const R=typeof ISLANDS==='object'?ISLANDS.find(r=>r.id===p.id):null;return Object.assign({},p,R?{x:R.x,z:R.z}:{});});
   const tr=rgTrack(K,pin[0],pin[1]),tg=tr.tg,T=tr.P;
   // the pulses: one at the giant's birth (the biggest is the one that has just finished its shield: ARCHIPELAGO), the rest spaced both ways
@@ -103,14 +104,14 @@ function regionModel(Kin){
       best.vents.push(v);best.last=Math.min(best.last,v.age);if(best.pin)continue;let w=0,x=0,z=0;for(const q of best.vents){w+=q.V;x+=q.x*q.V;z+=q.z*q.V;}best.x=x/w;best.z=z/w;}
     const keep=M.filter(m=>m.pin>=0);for(const e of E){if(e.pin||!e.vents.length)continue;const vs=e.vents,big=vs.reduce((a,b)=>b.V>a.V?b:a),first=vs.reduce((a,b)=>b.age>a.age?b:a);
       let V=0,cxx=0,czz=0,cxz=0,s2=0;for(const q of vs){V+=q.V;const dx=q.x-e.x,dz=q.z-e.z;cxx+=q.V*dx*dx;czz+=q.V*dz*dz;cxz+=q.V*dx*dz;s2+=q.V*q.R*q.R/4;} /* s2: each vent's own cone, a disc's second moment */
-      const hold=vs.find(q=>K.tune&&K.tune[q.id]!==undefined),c=hold||e; /* a tuned vent holds its volcano's id and place, as a pin does */
+      const hold=vs.find(q=>tuneAt(q.id,q.age)!==undefined),c=hold||e; /* a tuned vent holds its volcano's id and place, as a pin does */
       const m={id:(hold||big).id,pin:-1,x:c.x,z:c.z,age:first.age,V,frac:big.frac,nv:vs.length,vents:vs.map(q=>({id:q.id,x:q.x,z:q.z,age:q.age,V:q.V}))};rgShape(m);
       if(vs.length>1){const a=(cxx+s2)/V,c=(czz+s2)/V,b=cxz/V,tr=a+c,dt=Math.sqrt((a-c)*(a-c)/4+b*b);m.asp=Math.min(RG_OVAL.a1,Math.sqrt((tr/2+dt)/(tr/2-dt)));m.rot=0.5*Math.atan2(2*b,a-c);
         m.Tspan=first.age-Math.min(...vs.map(q=>q.age-q.Ts));}
       m.inSq=m.x>sq[0]&&m.x<sq[1]&&m.z>sq[2]&&m.z<sq[3];keep.push(m);}
     M.length=0;for(const m of keep)M.push(m);}
   M.forEach(rgShape);
-  for(const id in K.tune||{}){const m=M.find(q=>q.id===id);if(m){m.target=K.tune[id];m.tuned=true;}} // v11.121: members held to a summit (K.tune)
+  for(const m of M){if(m.pin>=0)continue;const v=m.vents?m.vents.find(q=>q.id===m.id):m,s=v?tuneAt(m.id,v.age):undefined;if(s!==undefined){m.target=s;m.tuned=true;}} // v11.121: members held to a summit (K.tune); v11.151 by the vent's birth (a composite's id is its holding vent's, its age its first vent's)
   // the plateau: a band about the track and the head's disc at its old end, the plate beyond; its level solved below so the floor beside ours is K.floor
   const TP=[];for(let t=0;t<=K.span+1e-9;t+=0.25)TP.push(T(t));const head=T(K.span);
   // v11.148 (the performance pass): the track's nearest point, once for its distance (dTrack) and its age there (tAge). To v11.147 each was its own

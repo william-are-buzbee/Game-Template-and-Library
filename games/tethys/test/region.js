@@ -281,6 +281,28 @@ ok(RB.struck.every(q=>RB.recs.some(r=>r.id===q.by)||q.by==='home'||q.by==='giant
   const f2=M.filter(m=>m.lit!==null&&m.src<0).sort((a,b)=>b.lit-a.lit)[0]; // the founder: the first lit (m2 to v11.133; a vent of m4's volcano since v11.134)
   ok(f2&&G.rgPlatSd(f2.x,f2.z,true)>0&&I('home').hops===9&&I('home').rng===2&&n[0]>=1&&n[1]>=3&&n[2]>=3&&w50.every(R=>R.rng===2),`the chain's stretches: ${n[0]} records in the old east (and the platform), ${n[1]} in the middle, ${n[2]} in the young west; the founder ${f2&&f2.id} on the platform's carbonate, ours ${I('home').hops} hops; every record within 50 km of ours the west's (${w50.length}: the brooders' forms there as they were), within ±70.5 km all but ${w70.filter(R=>R.rng!==2).map(R=>R.id+' '+(R.x/1000).toFixed(0)+' km east').join(', ')}`);}
 ok(Math.abs(G.rgFloor(6000,0)-G.BASIN.h)<0.5,`the model's floor read by the game beside ours: ${G.rgFloor(6000,0).toFixed(1)} (${G.BASIN.h})`);
+// v11.151 (analysis_archipelago §10.8): every seed a sane province. Seed 127's blind sheet was land from edge to edge: the tune (K.tune) named its
+// member by its id alone, an id is a birth's place in one history's draws, and another seed's m153 was held at 2,533 m wherever it stood — in seed
+// 127 a composite 10 km from ours, a summit the pins cannot share, so the solve ran its 40 rounds off (the member a 198 km cone, the plateau at
+// +246 km, 3 records). 77 of seeds 1–200 tuned a stranger, 37 of them never solved. Now the tune names its birth (the vent's id and age). The model
+// for every seed in SEEDS (1–200): the solve settles, the plateau's level, every member's foot, its land; the tune held in seed 32's history alone.
+// Then the game's own world built whole (the seed in REGION_K, as test/earth.js does) for seed 127 and every 20th: its records and its land
+{const sr=/^(\d+)-(\d+)$/.exec(process.env.SEEDS||'1-200'),s0=+sr[1],s1=+sr[2],wA=(G.WX1-G.WX0)*(G.WZ1-G.WZ0)/1e6,t5=Date.now();
+  let unset=[],low=[],wide=[],dry=[],tuned=[],errM=0,topL=1e9,topH=-1e9,rM=0,landM=0,nL=1e9,nH=0;
+  for(let s=s0;s<=s1;s++){const Rs=s===K.seed?R:G.regionModel({seed:s}),Ms=Rs.M;let land=0,r=0;for(const m of Ms){land+=m.land;if(m.R>r)r=m.R;if(m.tuned)tuned.push(s+':'+m.id);}
+    if(!(Rs.err<5))unset.push(s+' ('+Rs.err.toFixed(0)+' m)');if(!(Rs.top>-2500&&Rs.top<-500))low.push(s+' ('+Rs.top.toFixed(0)+')');if(!(r<60000))wide.push(s+' ('+(r/1000).toFixed(0)+' km)');if(!(land<0.05*wA))dry.push(s+' ('+land.toFixed(0)+' km²)');
+    errM=Math.max(errM,Rs.err);topL=Math.min(topL,Rs.top);topH=Math.max(topH,Rs.top);rM=Math.max(rM,r);landM=Math.max(landM,land);nL=Math.min(nL,Ms.length);nH=Math.max(nH,Ms.length);}
+  const N=s1-s0+1,list=a=>a.slice(0,8).join(', ')+(a.length>8?' …':'');
+  ok(!unset.length,`seeds ${s0}–${s1}: the solve settles in every one — the pins at their summits and the floor beside ours within 5 m (the worst ${errM.toFixed(1)} m)${unset.length?'; not in '+unset.length+': '+list(unset):''}`);
+  ok(!low.length&&!wide.length,`the plateau between −2,500 and −500 (${topL.toFixed(0)} to ${topH.toFixed(0)}) and every member's foot under 60 km (the widest ${(rM/1000).toFixed(0)} km) in all ${N}${low.length?'; the plateau off in '+list(low):''}${wide.length?'; too wide in '+list(wide):''}`);
+  ok(!dry.length,`the model's land under 5% of the world's ${wA.toFixed(0)} km² in all ${N} (the most ${landM.toFixed(0)} km²; ${nL}–${nH} members)${dry.length?'; over in '+list(dry):''}`);
+  const want=s0<=32&&s1>=32&&K.seed===32?['32:m153']:[];ok(tuned.join()===want.join(),`the tune held in seed 32's history alone: ${tuned.length?tuned.join(', '):'none'} tuned over seeds ${s0}–${s1} (to v11.150 a member called m153 in 77 of 1–200) — ${((Date.now()-t5)/1000).toFixed(1)} s`);
+  const WS=[127];for(let s=Math.ceil(s0/20)*20;s<=s1;s+=20)if(s!==127)WS.push(s);const wt=Date.now(),wr=[],bad=[],f9w=new Float32Array(9);
+  for(const s of WS){const reg=region.replace(/\n  seed:32,/,'\n  seed:'+s+',');if(s!==32&&reg===region)throw new Error('no seed in REGION_K');const log=console.log;console.log=()=>{};let W;
+    try{W=new Function('THREE',util+'\n'+world+'\n'+reg+'\nreturn {sample,ISLANDS,WX0,WX1,WZ0,WZ1};')(THREE);}finally{console.log=log;}
+    let n=0,land=0,hi=-1e9;for(let z=W.WZ0+1000;z<W.WZ1;z+=2000)for(let x=W.WX0+1000;x<W.WX1;x+=2000){const h=W.sample(x,z,f9w).h;n++;if(h>0)land++;if(h>hi)hi=h;}
+    const rc=W.ISLANDS.length,sh=land/n;wr.push(`${s}: ${rc} records, ${(100*sh).toFixed(2)}% land, to ${hi.toFixed(0)} m`);if(!(rc>=6&&rc<=30&&sh<0.05&&hi<4500))bad.push(s);}
+  ok(!bad.length,`the game's own world for seeds ${WS.join(', ')}: 6–30 records (the pins with them; 9–22 over every 5th seed), under 5% of a 2 km lattice over the world land, no summit over 4,500 m — ${wr.join('; ')} (${((Date.now()-wt)/1000).toFixed(1)} s)${bad.length?'; not in '+bad.join(', '):''}`);}
 // the log: what the default province is
 const cnt={};let land=0;for(const m of M){cnt[m.state]=(cnt[m.state]||0)+1;land+=m.land;}
 console.log(`\n  ${M.length} members in ${ms} ms (seed ${K.seed}; the grid ${t2-t1} ms, the flood ${t3-t2} ms):`);

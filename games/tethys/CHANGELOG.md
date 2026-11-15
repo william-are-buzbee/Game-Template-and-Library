@@ -8085,3 +8085,44 @@ cost in objects of many shapes, which nothing but a profiler shows. Now measurin
 placement, about a sixth of a forest cell), not every frame: the next candidate, smaller than the creatures were. Everything else read in a
 hot loop is four shapes or fewer: the creatures, their defs, the cells and the island records one each, their states two, the solids four
 (one a kind), the schools two, the spawn rows four.
+
+## v11.151 — every seed a province (15 Nov 2026)
+
+Found making blind test sheets (analysis_archipelago §10.8, written on another session's branch and not on main): seed 127's world was land from
+edge to edge — every point of the 473 × 289 km world above the sea, ridges converging on one point in the west, 3 records — where seeds 32, 41,
+67, 73, 89, 101, 113 and 139 gave 13–19 and an archipelago.
+
+- **The cause: the tune named its member by id alone.** `REGION_K.tune` `{m153: 2533}` (v11.121) held "the member called m153" at 2,533 m. An
+  id is a birth's place in one history's draws, so in any other seed (or under knobs that move the births: `rate`, `span`, `vol`, …) m153 is some
+  other vent, and the tune held that one at 2,533 m wherever it stood. 77 of seeds 1–200 had one; in 37 the solve could not meet it and ran its
+  40 rounds off. In seed 127 m153 is a composite of 14 vents 10 km east of ours, to stand 2,528 m over ours' +5: its volume grew by e a round to
+  999,000 km³, its foot 198 km, and the plateau's level, solved with the pins for the floor beside ours, went to +246 km. The ridges were its rift
+  arms' (`rgRidges`). The pins and the composites were never at fault: with the tune held to seed 32 every seed's solve settles within 1.8 m.
+- **The fix** (region.js `tuneAt`, read by the composites' hold and the members' targets): a tune names its vent by its birth, its id and its
+  own age (Ma, matched to 1e-4) — `tune:{m153:{sum:2533,age:0.6523}}`. In any other history it holds nothing. Seed 32 is the same to the bit.
+- **Two of the blind test's "normal" seeds carried it too.** Seed 101's sheet had a 2,533 m shield 42 km from ours that its history never made
+  (1.67% of the world land; 0.64% now); seed 113's solve never settled (an 8 km³ seamount grown to 20,284 km³ and 2,002 m, ours at +50, the
+  giant at 704; 1.29% land, 0.57% now). 41, 67, 73, 89 and 139 had no m153 and are unchanged. A blind result on 101 or 113 wants its sheet again.
+- **region.html** says when the solve did not settle (5 m or more off after its rounds): the province it draws is then not one.
+- **test/region.js** (v11.151): seeds 1–200 (`SEEDS=a-b`) by the model — the solve settled within 5 m, the plateau between −2,500 and −500,
+  every member's foot under 60 km, the model's land under 5% of the world, the tune held in seed 32's history alone — and the game's own world
+  built whole (the seed in `REGION_K`, as test/earth.js does) for 127 and every 20th: 6–30 records with the pins, under 5% of a 2 km lattice
+  land, no summit over 4,500 m. Every 5th seed built whole gave 9–22 records, 0.16–2.26% land, summits 810–2,613 m. On v11.150's sources all
+  five checks fail (seeds 120–140: four seeds unsettled, twelve tuned, 127 3 records and 100% land to 228,999 m). The test went from 14 s to
+  44 s one at a time (build.js and build.py's `SIDE`; it said 1).
+- **CLAUDE.md**, "Things that bite": a member's id is its birth's place in one history's draws.
+
+**What it cost** (`BASE=<v11.150> node test/bench.js`): nothing `sample()` runs changed, and the load solves the same model.
+
+| | v11.150 | v11.151 | |
+|---|---|---|---|
+| the load | 1.12 s | 1.13 s | ×1.01 |
+| `sample()`, µs: the world / ±70.5 km / ours / the platform / the east | 0.558 / 0.658 / 0.904 / 0.975 / 0.824 | 0.550 / 0.655 / 0.849 / 0.920 / 0.689 | ×0.98 / 1.00 / 0.94 / 0.94 / 0.84 |
+
+The ratios under 1 are the bench's noise (the code they time is the same). Every window's fingerprint and the members, platform, saddles,
+floor, grain, records, index and landmarks are the same to the bit; the model's hash differs by the knob's own form alone (the whole model
+compared value by value: 1,908 values, one differs, `K.tune.m153`).
+
+**Seen:** seed 127's world drawn by test/mapdraw.js before (land, the rift ridges radiating from the giant cone in the west) and after (a chain
+of islands and atolls along the track, the platform in the east). **Unseen:** nothing in the game changes; region.html's new line was looked at
+in headless Chromium only.
