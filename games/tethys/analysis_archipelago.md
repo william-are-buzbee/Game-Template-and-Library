@@ -840,6 +840,9 @@ in-between (three seeds): flats under 3% 15–21% → 26–29%, the 3–20% ramp
 33–69%, 12–45%), relief 43–46 → 47–53 m (51–114); on the base alone flats 18% → 47% and scarps 2% → 14%. The passes still in Earth's ranges. Left: the
 base's outline (each pair's lens) and its edge onto the floor, smoother than Earth's; the islands' lower flanks, a ramp still.
 
+**10.10 The eighth blind sheet (v11.152; 15 Nov 2026):** `PSEED=199,211,223,239 PART=chain BLIND=8152 node test/earth.js` — four tiles of the
+chain from seeds never shown (all four checked sane), twelve of Earth's twenty. The answers: pending.
+
 **11.2 What must hold** (learned building v11.129–137; HANDOFF's working notes):
 - **The bounds.** sample() skips a record where its bound table `R.hi` (region.js `rgBound`: the radial profile plus fixed margins) says it
   cannot matter. Anything that raises the ground at some angles — a ridge, a debris fan — must raise `hi` at those radii (its largest height
