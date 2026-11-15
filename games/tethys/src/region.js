@@ -410,18 +410,19 @@ function rgInsular(R,lr){const E=R.flank.r,e=rgRadial(Object.assign({},R,{flank:
 // heads m (the share of the land's radius in from the coast), their mouths' half-width mw (of the radius, clamped), their mouths dm under the sea
 // (a barrier's: at its lagoon's floor, its channel ic under that); n1 valleys, one every sp of coast, heads s, half-width sw of their spacing,
 // mouths ds under. Each one's draw (the rain the valley gets, of its side's), its floor's head hd under the old surface, the floors concave (p).
-// wa m: the wander, the angle's warp by a noise over position (wf /m) at a fixed reach; ripe Myr: the time after its shield by which an island's
+// wa: the wander, the angle's warp by a noise over position — its reach that share of the land's radius (wa0–wa1 m), its wavelength wl of it (a
+// valley meanders by the slope it drains: on a 40 km island a fixed 450 m left nine straight trenches to the centre, the spokes again); ripe Myr: the time after its shield by which an island's
 // valleys are whole (mat); g: a master's channel's fall past the coast, across the shelf to xs m; md m: a barrier lagoon's basins at their deepest.
 // kl: a barrier's lee step back — its reef on the lee half that share nearer the coast (world.js islandH, rgRingAt): a windward reef keeps up with the
 // sea's rises and holds the old shoreline, a lee one falls behind and takes hold again further in (Bora Bora's lagoon wide to windward, narrow to the
 // pass in its lee); the model's own lee reefs already stand under the sea (REEF_LEE). A barrier's masters drown to its lagoon's floor less ic,
 // each by its own share of the mean (dm over its middle)
-const RG_VLY={on:true,wa:450,wf:0.0009,sp:2000,p:1.7,hd:0.3,ic:15,md:24,g:0.01,xs:1500,ripe:1.2,kl:0.35,m:[0.5,0.85],mw:[0.12,600,2200],dm:[30,60],s:[0.1,0.45],sw:0.28,ds:[3,12]};
+const RG_VLY={on:true,wa:[0.15,400,3000],wl:0.4,sp:2000,p:1.7,hd:0.3,ic:15,md:24,g:0.01,xs:1500,ripe:1.2,kl:0.35,m:[0.5,0.85],mw:[0.16,700,3000],dm:[30,60],s:[0.1,0.45],sw:0.28,ds:[3,12]};
 function rgVly(m,L){const K=RG_VLY,h=mulberry(WB.hashString('vly:'+m.id)),LH=L.b?L.h-L.b:L.h,top=t=>LH*(0.55*t+0.45*t*t*(3-2*t)),n0=clamp(Math.round(L.r/2500+3*h()),3,9),n1=clamp(Math.round(TAU*L.r/K.sp),10,64);
   const M=new Float64Array(n0*6),Q=new Float64Array(n1*6),mo=TAU*h(),so=TAU*h(); // each: its centre's angle, its head, its mouth's half-width, its draw, its mouth's depth, its floor at its head
   for(let k=0;k<n0;k++){const o=k*6,t=lerp(K.m[0],K.m[1],h());M[o]=mo+(k+0.5+0.85*(h()-0.5))*TAU/n0;M[o+1]=t;M[o+2]=clamp(K.mw[0]*L.r,K.mw[1],K.mw[2])*(0.5+0.9*h());M[o+3]=0.55+0.7*h();M[o+4]=lerp(K.dm[0],K.dm[1],h());M[o+5]=top(t)*(1-K.hd);}
   for(let k=0;k<n1;k++){const o=k*6,t=lerp(K.s[0],K.s[1],h());Q[o]=so+(k+0.5+0.5*(h()-0.5))*TAU/n1;Q[o+1]=t;Q[o+2]=K.sw*TAU*L.r/n1*(0.6+0.6*h());Q[o+3]=0.3+0.9*h();Q[o+4]=lerp(K.ds[0],K.ds[1],h());Q[o+5]=top(t)*(1-K.hd);}
-  return {n0,mo,M,n1,so,S:Q,mat:clamp((m.age-m.Ts)/K.ripe,0,1),wa:K.wa,wf:K.wf,p:K.p,g:K.g,xs:K.xs,ic:K.ic,md:K.md,kl:K.kl,dmM:(K.dm[0]+K.dm[1])/2};}
+  return {n0,mo,M,n1,so,S:Q,mat:clamp((m.age-m.Ts)/K.ripe,0,1),wa:clamp(K.wa[0]*L.r,K.wa[1],K.wa[2]),wf:1/(K.wl*L.r),p:K.p,g:K.g,xs:K.xs,ic:K.ic,md:K.md,kl:K.kl,dmM:(K.dm[0]+K.dm[1])/2};}
 // a barrier's ring toward a world bearing b from its record's centre, in its own frame (v11.151: the lee's step back, kl; islandH's, by the same
 // exposure); any other ring's own radius
 function rgRingAt(R,b){const B=R.barrier;if(!B||!R.vly)return B?B.r:R.rimR;const e=0.5-0.5*(Math.cos(b)*WIND_C+Math.sin(b)*WIND_S);return R.land.r+(B.r-R.land.r)*(1-R.vly.kl*smooth(0.5,0,e));}

@@ -806,10 +806,13 @@ coast by its valleys".
 part-way up; the mouths drowned into bays with deltas at their heads; the masters' channels across the shelf or lagoon, passes where they meet the
 reef; basins mid-lagoon; a barrier's reef stepped back on its lee half by 0.35; the flows from vents along the rift zones. Found on the way: the
 lobes' table read in straight lines between 48 points made every lobed record a faceted cone with creases to its summit — the spokes as much as the
-gullies; now a cubic B-spline. Measured (`ONLY=halo`): the barrier islands' shallows off the coast 4.2–6.0 km → 1.6–2.3 (Earth's 0.7–1.8); their
-spread round the coast median 0.29 → 0.28 (0.23–0.40; Earth's windows 0.37–0.61) — the measure partly blind here (basins mid-lagoon on a wide side
+gullies; now a cubic B-spline. Measured (`ONLY=halo`): the barrier islands' shallows off the coast 4.2–6.0 km → 1.6–2.4 (Earth's 0.7–1.8); their
+spread round the coast median 0.29 → 0.28 (0.25–0.40; Earth's windows 0.37–0.61) — the measure partly blind here (basins mid-lagoon on a wide side
 and a narrow lee even out the distance to −60 m), partly right (between its bays the coast is still its record's lobed outline, the reef the same
-further out). sample() up to 7% dearer; ours and the giant the same to the bit. **Next:** the seventh sheet.
+further out). sample() up to 6% dearer; ours and the giant the same to the bit. **Next:** the seventh sheet.
+
+**10.9 The seventh blind sheet (v11.151; 15 Nov 2026):** `PSEED=151,163,179,191 PART=chain BLIND=7151 node test/earth.js` — four tiles of the
+chain from seeds never shown (checked sane first: seed 127, the whole world one land mass, is not one), twelve of Earth's twenty. The answers: pending.
 
 **11.2 What must hold** (learned building v11.129–137; HANDOFF's working notes):
 - **The bounds.** sample() skips a record where its bound table `R.hi` (region.js `rgBound`: the radial profile plus fixed margins) says it

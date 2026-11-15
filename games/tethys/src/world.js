@@ -333,7 +333,7 @@ function anT(T,k,a){let u=a*(AN_N/TAU);u-=Math.floor(u/AN_N)*AN_N;const i=Math.m
 // valleys: cut while the island stood higher, drowned as it sank, so the coast runs into bays at their mouths and out on headlands between, the
 // reef stays on the old shoreline, its passes where the big valleys' channels cross it (Mayotte, Raiatea–Taha'a, Moorea's Cook's and Ōpūnohu).
 // A model record's land (region.js rgVly: R.vly) carries two sets of valleys round its own angle, each wandering (the angle warped by a noise over
-// position, a fixed reach in metres) — the masters, few, wide, their amphitheatre heads 12–45% of the way from the summit, and the valleys, one
+// position, its reach and wavelength the island's: RG_VLY.wa, wl) — the masters, few, wide, their amphitheatre heads 12–45% of the way from the summit, and the valleys, one
 // every ~1.3 km of coast, their heads part-way down, so none meet at the summit (the spokes: v11.62's gullies, one comb of slots from the
 // summit). Each one's floor graded from its head (a wall under the old surface, hd of it) to its mouth dm under today's sea, concave (p),
 // a delta's flat where it crosses the sea; its depth the rain's (the windward side's, L.gully.lee in the lee) times its own draw times the
@@ -347,7 +347,7 @@ function vlyCut(V,LR,tl,top,av,rw,wet,dB){let cut=0;const M=V.M,n0=V.n0,k0=Math.
     const sv=tl>0?tl/tlh:0,hw=M[o+2]*(1-0.65*sv),lat=Math.abs(d)*rw;if(lat>=hw)continue;
     const dm=dB>0?dB*M[o+4]/V.dmM:M[o+4],dr=Math.min(1,wet*M[o+3])*V.mat;let flo=tl>=0?-dm+(M[o+5]+dm)*Math.pow(sv,V.p):-dm+V.g*tl*LR;
     flo-=0.65*(flo-1)*smooth(-8,-2,flo)*smooth(10,4,flo); // the delta's flat where the floor meets the sea
-    const w=smooth(hw,0.5*hw,lat)*(tl>0?smooth(tlh,tlh-0.05,tl):1),c=Math.max(0,top-flo)*V.mat*lerp(1,Math.min(1,wet*M[o+3]),sv)*w;if(c>cut)cut=c;if(w*dr>_vy.m){_vy.m=w*dr;_vy.mf=flo;}} // the mouth at its floor whatever its rain (cut to the sea of its day), the rain how far up
+    const w=smooth(hw,0.2*hw,lat)*(tl>0?smooth(tlh,tlh-0.05,tl):1),c=Math.max(0,top-flo)*V.mat*lerp(1,Math.min(1,wet*M[o+3]),sv)*w;if(c>cut)cut=c;if(w*dr>_vy.m){_vy.m=w*dr;_vy.mf=flo;}} // the mouth at its floor whatever its rain (cut to the sea of its day), the rain how far up
   if(tl<0)return cut;
   const Q=V.S,n1=V.n1,k1=Math.floor((av-V.so)/TAU*n1);
   for(let j=-1;j<=1;j++){let k=(k1+j)%n1;if(k<0)k+=n1;const o=k*6,tlh=Q[o+1];if(tl>=tlh)continue;let d=av-Q[o];d-=TAU*Math.round(d/TAU);
@@ -414,7 +414,7 @@ function islandH(R,x,z,o,plx,plz){
   // gullies go on h alone; hSmooth carries the surface less a third of the cut, so a valley floor reads as relief 0 and a planeze as a crest.
   if(R.land){const L=R.land,LH=L.b?L.h-L.b:L.h,u=rw/L.r; /* v11.131: LH the land's relief over h0 — a satellite's over its base (L.b), any other's L.h */
     if(R.vly){const V=R.vly,xm=u<1?0:R.barrier?R.barrier.r-L.r+2*R.barrier.w:V.xs;_vy.m=0;_vy.mf=0; // v11.151: the valleys (vlyCut); past the coast only within xm (to the reef, or across the shelf), where the masters' channels run
-      const av=u<1||rw-L.r<xm?a+0.12*anT(an,2,a)+V.wa/Math.max(r,1500)*(fbm(lx*V.wf+31+ns,lz*V.wf+57,2)-0.5)*2:0,wet=lerp(L.gully.lee,1,smooth(0.25,0.85,expoW)),dB=R.barrier?R.barrier.top-R.barrier.lag+V.ic:0; // their wandering angle where they can be (most of a lagoon is past it: the noise not taken there); dB a barrier's masters' mouths at its lagoon's floor less their channel
+      const av=u<1||rw-L.r<xm?a+0.12*anT(an,2,a)+V.wa/Math.max(r,1500)*(fbm(lx*V.wf+31+ns,lz*V.wf+57,3)-0.5)*2:0,wet=lerp(L.gully.lee,1,smooth(0.25,0.85,expoW)),dB=R.barrier?R.barrier.top-R.barrier.lag+V.ic:0; // their wandering angle where they can be (most of a lagoon is past it: the noise not taken there); dB a barrier's masters' mouths at its lagoon's floor less their channel
       if(u<1){const tl=1-u,S=tl*tl*(3-2*tl),ridge=LH*(0.55*tl+0.45*S),cl=L.cliff*smooth(0.45,0.85,expoW)*smooth(0,0.008,tl);let fh=0;const FL=L.flows;
         // the last flows (v11.151): from vents along the rift zones (st, of the way up from the coast) to where each stopped (en), on the valleys' wandering
         // angle and of uneven width — to v11.150 every one from the caldera's rim to the shore, a fan of spokes on every shield

@@ -229,7 +229,7 @@ horizon's build order take the scale without it. Since v11.151 `lbAt` reads the 
 `rgVly`, `RG_VLY`): `n0` master valleys and `n1` valleys (one every `sp` of coast), each a centre jittered off an even comb, a head (`m`, `s`: the
 share of the land's radius in from the coast — none reaches the summit), a mouth's half-width, a draw, a mouth's depth under the sea and its floor
 at its head (`hd` under the old surface), in typed arrays of six. world.js `vlyCut` cuts them into the land on an angle warped by a noise over
-position (`wa` m): the floor concave from its head to its mouth (`p`), a delta's flat where it crosses the sea, the mouth at its floor whatever the
+position (its reach `wa` and wavelength `wl` shares of the land's radius): the floor concave from its head to its mouth (`p`), a delta's flat where it crosses the sea, the mouth at its floor whatever the
 rain and the depth upslope by the rain's side times the draw times the island's ripeness (`mat`, the time since its shield over `ripe`); past the
 coast the masters run on as channels (`g`) across the shelf (`xs`) or the lagoon. A barrier's masters drown to its lagoon's floor less `ic`, each
 by its own share; where one's channel meets the reef the crest is a pass (`_vy.m`, its weight across the channel). `vlyLag`: the lagoon's floor

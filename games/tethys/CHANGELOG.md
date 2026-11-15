@@ -8096,7 +8096,8 @@ mostly by their valleys; the person: "Merge them, go ahead with the coast by its
 
 - **Valleys that branch and wander** (world.js `vlyCut`; region.js `rgVly`, `RG_VLY`; `R.vly`, a new key in `recNew`): every model high island's
   land carries a few master valleys (`n0`, wide, their amphitheatre heads 15–50% of the way up from the coast, `m`) and valleys every ~2 km of coast
-  (`sp`) whose heads are part-way down (`s`), each on an angle warped by a noise over position (`wa` m), so none meets the summit. Each floor is
+  (`sp`) whose heads are part-way down (`s`), each on an angle warped by a noise over position (its reach `wa` and wavelength `wl` shares of the
+  land's radius: a fixed 450 m left a 40 km island's nine masters straight trenches to its centre), so none meets the summit. Each floor is
   graded from its head (`hd` under the old surface) to its mouth under today's sea (`dm`, `ds`), concave (`p`), with a delta's flat where it
   crosses the sea; the mouths drowned whatever the rain (every valley that reached the sea was cut to the sea of its day), the depth upslope by
   the rain's side (`L.gully.lee`) times each valley's draw times the island's ripeness (`ripe`: none on a shield still building). The giant keeps
@@ -8119,10 +8120,10 @@ mostly by their valleys; the person: "Merge them, go ahead with the coast by its
 ```
                  the shallows off the coast (median km)   their spread round the coast (CV)
                  v11.150                  v11.151             v11.150             v11.151
-seed 32          m122 5.0, m109 4.8       1.9, 2.3            0.32, 0.29          0.23, 0.40
-seed 101         m133 5.8, m142 4.2, m136 5.1   1.8, 1.6, 1.8   0.07, 0.26, 0.27  0.28, 0.33, 0.31
-seeds 113, 139   4.9, 6.0                 1.8, 1.9            0.37, 0.40          0.28, 0.27
-the seven        4.2–6.0                  1.6–2.3             median 0.29         median 0.28 (0.23–0.40)
+seed 32          m122 5.0, m109 4.8       1.9, 2.4            0.32, 0.29          0.26, 0.40
+seed 101         m133 5.8, m142 4.2, m136 5.1   1.8, 1.8, 1.6   0.07, 0.26, 0.27  0.28, 0.31, 0.29
+seeds 113, 139   4.9, 6.0                 1.8, 1.9            0.37, 0.40          0.25, 0.25
+the seven        4.2–6.0                  1.6–2.4             median 0.29         median 0.28 (0.25–0.40)
 Earth's ten      0.7–1.8                                      0.37–0.61
 ```
 **The lagoons now Earth's width; their spread round the coast not moved by this measure** — the low end up, the high end down. Part of it is the
@@ -8135,11 +8136,11 @@ its record's lobed outline, and the reef the same outline further out. The sheet
 
 ```
           load s   world    w70    ours   plat   east
-v11.150    1.32    0.813   0.984  1.305  1.338  1.077
-v11.151    1.32    0.868   1.053  1.313  1.340  1.138
-ratio      1.00    1.07    1.07   1.01   1.00   1.06
+v11.150    1.34    0.826   1.002  1.305  1.330  1.069
+v11.151    1.33    0.841   1.056  1.330  1.352  1.135
+ratio      1.00    1.02    1.05   1.02   1.02   1.06
 ```
-Runs on this machine move ±3% between processes; an earlier run read 1.01–1.07. Ours' window the same to the bit; ours and the giant's own ground
+Runs on this machine move ±3% between processes (ours' 1.02 is that: its window is the same to the bit); earlier runs read up to 1.07. Ours' window the same to the bit; ours and the giant's own ground
 the same at 200,000 points each; every other window moves (the records, the saddles built on them).
 
 **Seen** (raw sample() at 80–120 m a pixel and cell means at 128 km, as the blind sheet draws): the coasts in and out by bays at the masters' mouths
