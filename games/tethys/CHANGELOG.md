@@ -8123,6 +8123,6 @@ The ratios under 1 are the bench's noise (the code they time is the same). Every
 floor, grain, records, index and landmarks are the same to the bit; the model's hash differs by the knob's own form alone (the whole model
 compared value by value: 1,908 values, one differs, `K.tune.m153`).
 
-**Seen:** seed 127's world drawn by test/mapdraw.js before (land, the rift ridges radiating from the giant cone in the west) and after (a chain
+**Seen:** seed 127's world drawn by test/mapdraw.js before (land, the rift ridges radiating from the 198 km cone, m153, 10 km east of ours) and after (a chain
 of islands and atolls along the track, the platform in the east). **Unseen:** nothing in the game changes; region.html's new line was looked at
 in headless Chromium only.
