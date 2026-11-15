@@ -874,6 +874,45 @@ old island's lowering since its reef took hold, which the model let move its coa
 lost). The coast now where the flank, as the rain left it, meets the sea (`RG_COAST`, `m.Ef`): lagoons by age 0.6–6.7 km (were 0.7–11), the old
 islands broad and low. The profile measure did not move as the pictures did (it counts the stepped base past the reefs too). Next: the ninth sheet.
 
+**10.12 The ninth blind sheet (v11.153; 15 Nov 2026):** `PSEED=251,263,271,283 PART=chain BLIND=9153 node test/earth.js` — four tiles of the
+chain from seeds never shown (all four checked sane; seed 307 found broken as 127 is, the whole world one land mass), twelve of Earth's twenty.
+
+**The ninth sheet: 4 of 4 found** — 4 (seed 283), 5 (251), 6 (263), 16 (271), all four of the middle (43–49% of the way east). The person: "I
+noticed 4 even though it looks decently plausible because of the same reason as 5. Its the islands, they tend to have a unique pattern of blue
+atoll around them, even in 16, if you look and compare to something like the cyans of 12 or 7 (being chagos for 7 at least) then there is a
+unique sortof like, marbling effect inside of the cyan portions. Like the islands on 16 vs 7 are clear. 10 vs 16. 5 has the obvious saddles where
+everything connects like they're magnetic. I'm not sure if that's just the feature of this planet or if it's plausible but it does stand out on
+the map. 16 and 6 show the same thing that even when the islands are absent (ones above the water line I mean) you can still see this uniform
+blob that looks more circular and stretches as opposed to the kindof uniformly kraggy shapes of the other atolls." (7 is the Maldives, 12 Chuuk,
+10 the Tuamotus.) v11.153's pedestal not named. Three tells:
+- **The shallows' marbling** (4, 16; against 7, 10, 12): seen up close, our shallows are one flat at one depth stippled evenly with patch reefs of
+  one size, and round a high island the lagoon's contours concentric with its coast (4: the halo, sheet 6's). Earth's are structured at every
+  scale — basins tens of metres deeper, reef lines joined into networks, flats and cays along the rim, patches from tens of metres to kilometres.
+  Measured: the shoal texture (`test/earth.js`, the relief a 2 km mean does not hold between −5 and −80 m) 1.6 m on seed 271, Earth's chain and
+  atoll windows 1.0–31 (Chuuk 3.3, the Maldives 4.0, Lakshadweep 3.9, the Gambiers 8.8, the Tuamotus 1.0); the halo (`ONLY=halo`), spread round
+  the coast CV 0.18–0.29 and p90/p10 1.4–2.4 on the four seeds, bare coast 0%, against Earth's eleven 0.37–0.89, 2.6–19, 3–40% — every seed still
+  outside every window, as on sheet 6; the width 1.6–2.3 km (0.7–1.8).
+- **The magnetic saddles** (5): the islands joined by necks at shelf depth. Measured (`test/earth.js`, the depths within 25 km of the shallows,
+  seed 271): 60–150 m 12% of that area, Earth's 1–6% (the Maldives 3%, Chagos 6%); deeper than 1,100 m 31%, the chain's analogues 72–86% (the
+  Society Islands, Lakshadweep, the Gambiers, Chuuk), the platforms 33–37%; the edifices' gap edge to edge 5.9 km, the chain analogues' 21–36.
+  Part of it is the plateau (its crest at −0.9 to −1.6 km, §10.3, believable for a plume ridge — the Azores and Galápagos have it), part the
+  saddles reaching shelf depth. The in-between by slope (`ONLY=between`, four seeds) 5–9% flats, 10–13% scarps, relief 51–53 m: v11.152's, unmoved.
+- **The banks' outlines** (6, 16): the drowned banks and atolls with no land smooth convex ovals, "circular and stretches", where Earth's are
+  "uniformly kraggy" — bitten by landslide scars and scalloped at 1–10 km (sheet 8's open list: the atolls and banks still smooth ovals; v11.151's
+  B-spline lobes made every outline smoother still). `test/earth.js`'s solidity (0.90) and hull roundness (0.87) do not see it: they are convex-hull
+  measures, Earth's 0.83–0.90 and 0.79–0.88. Not measured yet: the outline's roughness at 0.5–5 km.
+
+The profile (`ONLY=profile`, four seeds): −6 to −17 m at 0.5 km, −53 to −181 at 2 km, −64 to −359 at 3 km — inside Earth's (−31 to −479 at 2 km);
+past 8 km −290 to −861 against −388 to −1,773, the plateau. v11.153's pedestal is gone from the numbers as from the sheet.
+
+**Proposed** (the person's to choose): (1) **the shallows by many scales** — measure first (the shoal texture per seed, at 0.5, 2 and 5 km), then
+the lagoons' and banks' floors with basins and reticulate reef lines at several sizes, patch reefs by a power law and clustered (more to
+windward), the reef flat and its cays along the rim, and a high island's lagoon by its side, not its coast (the halo, open since sheet 6);
+(2) **the banks' and atolls' outlines** — measure the outline's roughness first, then landslide scallops bitten into their margins (Earth's
+atolls' are 1–10 km across) and the rim's outline noise at several scales in place of one spline; (3) **the saddles' necks** — measure what share
+of the 60–150 m is necks and what is drowned banks, then the necks no shallower than the flanks' own reach (most below −400 m, the shelf-depth
+ones only between genuine twins). (1) and (2) are one recipe (a reef's shape) and could be one version.
+
 **11.2 What must hold** (learned building v11.129–137; HANDOFF's working notes):
 - **The bounds.** sample() skips a record where its bound table `R.hi` (region.js `rgBound`: the radial profile plus fixed margins) says it
   cannot matter. Anything that raises the ground at some angles — a ridge, a debris fan — must raise `hi` at those radii (its largest height

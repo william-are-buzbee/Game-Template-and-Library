@@ -3,7 +3,8 @@
 **v11.153 (15 Nov 2026): the coast by sinking, not by rain** (analysis_archipelago §10.11; CHANGELOG). The eighth sheet found the middle by
 its pedestals: small islands on wide lagoons. Measured (`ONLY=profile`, new): two thirds of every old lagoon was the rain's erosion moving the
 coast inward; now the coast moves with sinking and the sea (region.js `RG_COAST`, `m.Ef`). Lagoons by age 0.6–6.7 km (were 0.7–11). sample() up to
-9% dearer (more land). Stacked on v11.152 (#90). **Next:** the ninth sheet; the profile on the barrier islands alone.
+9% dearer (more land). Stacked on v11.152 (#90). The ninth sheet (seeds 251, 263, 271, 283): 4 of 4 found, by the shallows' even stipple and
+halo, the saddles' necks at shelf depth, and the banks' smooth outlines (§10.12). **Next:** §10.12's three proposals, the person's to choose.
 
 **v11.152 (15 Nov 2026): the saddles' flats and scarps** (analysis_archipelago §10.9; DESIGN "The saddles' flats and scarps"; CHANGELOG). The seventh
 sheet found the chain 3 of 4 by its saddles (the halo not named). The base between neighbours stepped into broad flats at differing depths and
@@ -16,7 +17,7 @@ sheet found the province's chain 4 of 4 by its halo (an even band of shallows ec
 now have master valleys and valleys that wander and stop part-way up, their mouths drowned into bays, channels to passes in the reef, basins in the
 lagoon, the reef stepped back in the lee; the lobes' table a spline (the faceted cones gone). The lagoons Earth's width (1.6–2.4 km off the coast,
 from 4–6); `ONLY=halo node test/measures.js` (new) did not see their spread move. sample() up to 6% dearer. Sheets: `PSEED=<unseen,…> PART=chain
-BLIND=<seed> node test/earth.js`; seeds 32, 41, 67, 73, 89, 101, 113, 139, 151, 163, 179, 191 seen, 127 broken. **Open:** the atolls and
+BLIND=<seed> node test/earth.js`; seeds 32, 41, 67, 73, 89, 101, 113, 139, 151, 163, 179, 191, 199, 211, 223, 239, 251, 263, 271, 283 seen, 127 and 307 broken. **Open:** the atolls and
 banks still smooth ovals; the shields' shelf one width all round; the west plateau's speckle at −1,000 m.
 
 **v11.150 (14 Nov 2026): every change says what it costs** (CLAUDE.md "Performance"; the `perf` skill; the repository's decisions.md 26). The
