@@ -754,6 +754,15 @@ and 14% over 20%; the volcanic Atlantic ones 37–45% over 20%). The next believ
 and scarps — benches at a few levels with steep risers, an escarpment where the base meets the floor, volcanic ridges on it — judged by this
 table (`ONLY=between node test/measures.js`).
 
+**10.8 The sixth round: the chain (15 Nov 2026).** The person: "the right side of the map looks better than the middle portion of the map- more
+believable, while the center is too circular … let's do another pass over using the same system as before" — blind sheets with Earth's archipelagos
+("galapagos, chagos, seychelles, hawaii, etc") "once I struggle, we move on", then the implementation, after discussion. test/earth.js (v11.151):
+six more windows (the Seychelles, Lakshadweep, the Comoros, the Australs, the Gambiers, Chuuk — the chain's analogues, and the person's Seychelles);
+the tiles placed at random (a 128 km lattice fell across the platform's edge in every seed: the chain was never a tile of its own), Earth's crops
+anywhere in their window, the province's from several seeds and kept by `PART`. **The sixth sheet:** `PSEED=101,113,139 PART=chain BLIND=20261115`
+— four tiles of the chain, twelve of Earth's from the twenty. Seed 127 is
+broken (the whole world one land mass): not a seed for a sheet, and a fault of the model's to look at. The answers: pending.
+
 **11.2 What must hold** (learned building v11.129–137; HANDOFF's working notes):
 - **The bounds.** sample() skips a record where its bound table `R.hi` (region.js `rgBound`: the radial profile plus fixed margins) says it
   cannot matter. Anything that raises the ground at some angles — a ridge, a debris fan — must raise `hi` at those radii (its largest height
