@@ -313,7 +313,7 @@ function rgCap(B,r){const c=r<=B.r?lerp(B.top-14,B.lag,smooth(B.r-B.w*0.4,B.r-B.
 const RG_HIS=50;
 function rgBound(R){const F=R.flank,L=R.land,ex=10.5+8+12+4+5+(R.knob||0)+(R.carb?0.6*CARB.A:0)+(L?L.cliff+(L.flows?L.flows.h:0):0),n=Math.ceil(R.reach/RG_HIS)+1,hi=new Float32Array(n),Q=Object.assign({},R,{flank:Object.assign({},F,{r:1e9})}); /* v11.148: the record without its flank, once (to v11.147 copied anew at each of the table's radii) */
   const at=r=>{const rf=r-(F.r+60);let d=0;if(rf>0){const t=Math.min(rf/F.w,1),d0=rf<F.w?F.w*(t*t*t-0.5*t*t*t*t):rf-0.5*F.w,u=clamp((rf-F.a)/(F.b-F.a),0,1),d1=rf<F.a?0:rf<F.b?(F.b-F.a)*(u*u*u-0.5*u*u*u*u):rf-0.5*(F.a+F.b);d=F.s0*d0-(F.s0-F.s1)*d1;}
-    return Math.max(rgRadial(Q,r)-0.85*d,R.barrier?rgCap(R.barrier,r):-1e9);};
+    return Math.max(rgRadial(Q,r)-0.85*d,R.barrier?rgCap(R.barrier,r):-1e9,R.barrier&&R.vly&&r>=R.land.r+(R.barrier.r-R.land.r)*(1-R.vly.kl)-R.barrier.w&&r<=R.barrier.r+R.barrier.w?R.barrier.top+2.5:-1e9);}; /* v11.151: a ring that steps back in its lee (rgRingAt) has its crest anywhere from there out */
   for(let k=0;k<n;k++){const a=0.84*k*RG_HIS,b=1.16*(k+1)*RG_HIS;let m=-1e9;for(let q=0;q<=8;q++){const v=at(a+(b-a)*q/8);if(v>m)m=v;}hi[k]=m+ex;}
   // v11.138: a ridge's crest at this ring (its own radius from 0.84 of the ring's, less its widest half-width: the nearest it can stand), and margin
   // v11.138: the ridges' bound is not here but by the point (world.js rdgBound, which sample() takes with this): by the radius it held all round
@@ -336,8 +336,8 @@ function rgMargins(L){const ring=R=>R.rimR!==undefined?[R.rimR,R.rimW]:R.barrier
   const P_={x:0,z:0},faro=(A,B)=>{const [rA]=ring(A),[rB,wB]=ring(B);if(rA>2500)return false;if(!A.asq&&!B.asq&&!A.lobe&&!B.lobe)return Math.hypot(A.x-B.x,A.z-B.z)+rA<rB-1.6*wB; /* two round ones: as to v11.128, the same doubles */for(let k=0;k<8;k++){rgAt(A,rA,k/8*TAU,P_);if(rgLoc(B,P_.x,P_.z)>=rB-1.6*wB)return false;}return true;}; // v11.129: A wholly inside B's lagoon, by both frames
   const meet=(A,B,slack)=>{const [rA]=ring(A),[rB]=ring(B),d=Math.hypot(A.x-B.x,A.z-B.z);if(!A.asq&&!B.asq&&!A.lobe&&!B.lobe)return d<rA+rB-slack;if(d<1)return true;const ux=(B.x-A.x)/d,uz=(B.z-A.z)/d;return d<rgAlong(A,rA,ux,uz)+rgAlong(B,rB,-ux,-uz)-slack;};
   for(const A of Q){const [rA]=ring(A),T=new Float32Array(RG_RM+1);let any=false;
-    for(let k=0;k<=RG_RM;k++){const a=k/RG_RM*TAU;rgAt(A,rA,a,P_);const px=P_.x,pz=P_.z;let m=1; // the rim's table by its own angle, as islandH reads it (an oval's local, a round one's the world's)
-      for(const B of Q){if(B===A)continue;const [rB,wB]=ring(B);if(!meet(A,B,0))continue;if(faro(A,B))continue; // a faro
+    for(let k=0;k<=RG_RM;k++){const a=k/RG_RM*TAU;rgAt(A,rA,a,P_);if(A.vly&&A.barrier)rgAt(A,rgRingAt(A,Math.atan2(P_.z-A.z,P_.x-A.x)),a,P_);const px=P_.x,pz=P_.z;let m=1; // the rim's table by its own angle, as islandH reads it (an oval's local, a round one's the world's); v11.151 the ring where it stands at that bearing
+      for(const B of Q){if(B===A)continue;const [rB0,wB]=ring(B),rB=B.vly&&B.barrier?rgRingAt(B,Math.atan2(pz-B.z,px-B.x)):rB0;if(!meet(A,B,0))continue;if(faro(A,B))continue; // a faro
         m*=1-smooth(rB-wB*0.4,rB-wB*1.6,rgLoc(B,px,pz));}
       const sd=rgPlatSd(px,pz);if(sd>-1e8)m*=1-smooth(RG_PL_K.crest*0.4,RG_PL_K.crest*1.6,sd);T[k]=m;if(m<0.999)any=true;}
     if(any)A.rimM=T;else A.rimM=undefined;} /* v11.148: unset, not deleted — a delete changes the record's shape (world.js recNew) */
@@ -378,7 +378,7 @@ function rgRecord(m,K){const ns=1000+37*Number(m.id.slice(1)),rng=mulberry(WB.ha
     if(act){R.h0=Math.round(sb);R.prof=[[sh,sh+200,25],[sh+200,sh+900,150]];R.terr={r0:sh+200,r1:sh+900,n:0,step:0};R.flank={r:sh+900,w:300,s0:0.27,s1:0.21,a:800,b:4000};}
     else{const w=v=>Math.round(v*q),c=Math.round(Math.min(sh,Math.max(0.5*sh,sh+1380-w(2800))));L.r=c;R.h0=Math.round(sb);R.prof=[[c,c+w(300),8],[c+w(300),c+w(1000),52],[c+w(1800),c+w(2300),94],[c+w(2300),c+w(2800),40]];R.terr={r0:c+w(1000),r1:c+w(1800),n:sb>0?0:8,step:12}; /* no wave-cut terraces where it never met the sea */R.flank={r:c+w(2800),w:250,s0:0.21,s1:0.21,a:600,b:2600};}
     if(RG_ISL.on&&m.pin<0&&!act)rgInsular(R,L.r); /* v11.141: the insular slope, before the flank — none on an active shield: its benches and drowned reefs come with its sinking (the Big Island's flanks plunge) */
-    R.land=L;R.fade=[R.flank.r,R.flank.r+3000];R.core=Math.round(Math.min(L.r,R.fade[0]/1.2));
+    R.land=L;R.fade=[R.flank.r,R.flank.r+3000];R.core=Math.round(Math.min(L.r,R.fade[0]/1.2));if(RG_VLY.on&&m.pin<0&&!L.b)R.vly=rgVly(m,L); /* v11.151: its valleys (none on a satellite on land, which keeps v11.62's gullies) */
     if(m.reef&&m.alive&&m.rt>-K.photic&&m.ring>L.r+400){const rr=Math.round(m.ring);R.barrier=rgBarrier(rr,m.rt);R.fade=[Math.max(R.fade[0],rr+1500),Math.max(R.fade[1],rr+4500)];}} // v11.121: a living ring off the coast (to v11.120 a rim island was drawn as an atoll, its land left out)
   else if(m.reef&&m.state!=='guyot'){const rr=Math.round(m.ring),rt=Math.round(m.rt),W=clamp(0.06*rr,40,300);R.h0=rt-14;R.rimR=rr;R.rimW=W;R.rimH=rt;R.lagH=rt-Math.round(rgLagD(rr));R.patch=1;
     // v11.123 (analysis_archipelago §3.5–3.6): the outer slope a reef's, not a volcano's — the reef flat's edge to −20, the spur-and-groove terrace to −32,
@@ -405,6 +405,26 @@ function rgRecord(m,K){const ns=1000+37*Number(m.id.slice(1)),rng=mulberry(WB.ha
 const RG_ISL={on:true,k:0.35,u:[1500,6000],b1:-400,d2:160};
 function rgInsular(R,lr){const E=R.flank.r,e=rgRadial(Object.assign({},R,{flank:Object.assign({},R.flank,{r:1e9})}),E),u=clamp(RG_ISL.k*lr,RG_ISL.u[0],RG_ISL.u[1]);
   R.prof=R.prof.concat([[E+0.35*u,E+1.15*u,Math.max(0,e-RG_ISL.b1)],[E+1.45*u,E+2.05*u,RG_ISL.d2]]);R.flank=Object.assign({},R.flank,{r:Math.round(E+2.05*u)});R.isl={E:Math.round(E),u:Math.round(u)};}
+// v11.151 (analysis_archipelago §10.8; the person, 15 Nov 2026: "go ahead with the coast by its valleys"): a high island's valleys (world.js vlyCut,
+// which reads them; the giant keeps v11.62's gullies). n0 masters (a few, more on a bigger island), their centres jittered off an even comb, their
+// heads m (the share of the land's radius in from the coast), their mouths' half-width mw (of the radius, clamped), their mouths dm under the sea
+// (a barrier's: at its lagoon's floor, its channel ic under that); n1 valleys, one every sp of coast, heads s, half-width sw of their spacing,
+// mouths ds under. Each one's draw (the rain the valley gets, of its side's), its floor's head hd under the old surface, the floors concave (p).
+// wa m: the wander, the angle's warp by a noise over position (wf /m) at a fixed reach; ripe Myr: the time after its shield by which an island's
+// valleys are whole (mat); g: a master's channel's fall past the coast, across the shelf to xs m; md m: a barrier lagoon's basins at their deepest.
+// kl: a barrier's lee step back — its reef on the lee half that share nearer the coast (world.js islandH, rgRingAt): a windward reef keeps up with the
+// sea's rises and holds the old shoreline, a lee one falls behind and takes hold again further in (Bora Bora's lagoon wide to windward, narrow to the
+// pass in its lee); the model's own lee reefs already stand under the sea (REEF_LEE). A barrier's masters drown to its lagoon's floor less ic,
+// each by its own share of the mean (dm over its middle)
+const RG_VLY={on:true,wa:450,wf:0.0009,sp:2000,p:1.7,hd:0.3,ic:15,md:24,g:0.01,xs:1500,ripe:1.2,kl:0.35,m:[0.5,0.85],mw:[0.12,600,2200],dm:[30,60],s:[0.1,0.45],sw:0.28,ds:[3,12]};
+function rgVly(m,L){const K=RG_VLY,h=mulberry(WB.hashString('vly:'+m.id)),LH=L.b?L.h-L.b:L.h,top=t=>LH*(0.55*t+0.45*t*t*(3-2*t)),n0=clamp(Math.round(L.r/2500+3*h()),3,9),n1=clamp(Math.round(TAU*L.r/K.sp),10,64);
+  const M=new Float64Array(n0*6),Q=new Float64Array(n1*6),mo=TAU*h(),so=TAU*h(); // each: its centre's angle, its head, its mouth's half-width, its draw, its mouth's depth, its floor at its head
+  for(let k=0;k<n0;k++){const o=k*6,t=lerp(K.m[0],K.m[1],h());M[o]=mo+(k+0.5+0.85*(h()-0.5))*TAU/n0;M[o+1]=t;M[o+2]=clamp(K.mw[0]*L.r,K.mw[1],K.mw[2])*(0.5+0.9*h());M[o+3]=0.55+0.7*h();M[o+4]=lerp(K.dm[0],K.dm[1],h());M[o+5]=top(t)*(1-K.hd);}
+  for(let k=0;k<n1;k++){const o=k*6,t=lerp(K.s[0],K.s[1],h());Q[o]=so+(k+0.5+0.5*(h()-0.5))*TAU/n1;Q[o+1]=t;Q[o+2]=K.sw*TAU*L.r/n1*(0.6+0.6*h());Q[o+3]=0.3+0.9*h();Q[o+4]=lerp(K.ds[0],K.ds[1],h());Q[o+5]=top(t)*(1-K.hd);}
+  return {n0,mo,M,n1,so,S:Q,mat:clamp((m.age-m.Ts)/K.ripe,0,1),wa:K.wa,wf:K.wf,p:K.p,g:K.g,xs:K.xs,ic:K.ic,md:K.md,kl:K.kl,dmM:(K.dm[0]+K.dm[1])/2};}
+// a barrier's ring toward a world bearing b from its record's centre, in its own frame (v11.151: the lee's step back, kl; islandH's, by the same
+// exposure); any other ring's own radius
+function rgRingAt(R,b){const B=R.barrier;if(!B||!R.vly)return B?B.r:R.rimR;const e=0.5-0.5*(Math.cos(b)*WIND_C+Math.sin(b)*WIND_S);return R.land.r+(B.r-R.land.r)*(1-R.vly.kl*smooth(0.5,0,e));}
 // and a reef record's (an atoll's, a bank's): below its wall, before its talus, the sediment apron its reef sheds — a slope of a few degrees falling
 // `ad` m over `ak` of its ring (au0–au1 m), the in-between depths of Earth's banks and atolls (Chagos 20% of their surroundings between −150 and −800)
 Object.assign(RG_ISL,{ad:220,ak:0.45,au:[900,3500]});

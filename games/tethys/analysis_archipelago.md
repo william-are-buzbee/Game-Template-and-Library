@@ -795,6 +795,21 @@ island tilted by its neighbours' loads, so off its lagoon's centre; bare coasts 
 lagoon; close neighbours in one reef); (2) drowned valleys (branching valleys, deeper on the wet side, their mouths drowned into bays; the reef's
 passes at them); (3) the west plateau's speckle, measured first. **Answered (15 Nov 2026):** "Go after your recommendations, that sounds good. 1,
 then sheet 7, then 2. Yes, that's okay to shrink the lagoons" — ours' median 2–5.5 km off the coast, Earth's 0.7–1.8.
+**Revised (15 Nov 2026), before any code:** the tilt computed from the model's own history (each ring's subsidence since its reef took hold, from the
+plume's swell and every younger load's flexure) is ±4% round every barrier in four seeds — a slow plate's islands barely tilt. Earth's lagoons are
+uneven mostly by their drowned valleys: the reef on the old shoreline, the coast indented into bays at the valley mouths and headlands between, the
+passes at the mouths. So (1) and (2) merged: **the coast by its valleys** — valleys that branch and wander (no spokes), their mouths drowned into
+bays, deltas at the bay heads, passes at the mouths, basins mid-lagoon, the lee reef's small step back. The person: "Merge them, go ahead with the
+coast by its valleys".
+
+**Built v11.151 (15 Nov 2026; DESIGN "The coast by its valleys").** Master valleys and valleys on every model high island, wandering, their heads
+part-way up; the mouths drowned into bays with deltas at their heads; the masters' channels across the shelf or lagoon, passes where they meet the
+reef; basins mid-lagoon; a barrier's reef stepped back on its lee half by 0.35; the flows from vents along the rift zones. Found on the way: the
+lobes' table read in straight lines between 48 points made every lobed record a faceted cone with creases to its summit — the spokes as much as the
+gullies; now a cubic B-spline. Measured (`ONLY=halo`): the barrier islands' shallows off the coast 4.2–6.0 km → 1.6–2.3 (Earth's 0.7–1.8); their
+spread round the coast median 0.29 → 0.28 (0.23–0.40; Earth's windows 0.37–0.61) — the measure partly blind here (basins mid-lagoon on a wide side
+and a narrow lee even out the distance to −60 m), partly right (between its bays the coast is still its record's lobed outline, the reef the same
+further out). sample() 1–7% dearer; ours and the giant the same to the bit. **Next:** the seventh sheet.
 
 **11.2 What must hold** (learned building v11.129–137; HANDOFF's working notes):
 - **The bounds.** sample() skips a record where its bound table `R.hi` (region.js `rgBound`: the radial profile plus fixed margins) says it
