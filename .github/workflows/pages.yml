@@ -13,9 +13,13 @@ on:
 permissions:
   contents: write
   pull-requests: write
-# one writer to gh-pages at a time
+# one run per slot at a time: the live site, or one pull request's preview. Slots may write gh-pages side by side; each
+# replaces only its own part, and publish.sh tries again when another slot's push beat its own. To 16 Nov 2026 there
+# was one group for every run, and GitHub keeps only one run waiting in a group: a merge's push and its pull requests'
+# close events, arriving together, cancelled each other, and ~40 closed pull requests' previews were never removed
+# (docs/decisions.md, 27).
 concurrency:
-  group: pages
+  group: pages-${{ github.event.pull_request.number || 'main' }}
   cancel-in-progress: false
 jobs:
   publish:
