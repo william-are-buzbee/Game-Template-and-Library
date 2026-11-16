@@ -465,7 +465,19 @@ function rgLobe(R,m,K){const N=RG_RM,s=new Float64Array(N),h=mulberry(WB.hashStr
   let ms=0;for(let k=0;k<N;k++){const a=k/N*TAU;let f=1;for(const g of arms){let d=a-g.a;d-=TAU*Math.round(d/TAU);f+=g.A*Math.exp(-(d/RG_LOBE.armW)*(d/RG_LOBE.armW));}sm[k]*=f;ms+=sm[k]*sm[k];}
   const nr=Math.sqrt(ms/N);let lmax=0,lmin=1e9;for(let k=0;k<N;k++){sm[k]/=nr;lmax=Math.max(lmax,sm[k]);lmin=Math.min(lmin,sm[k]);}
   const T=new Float32Array(N+1);for(let k=0;k<N;k++)T[k]=sm[k];T[N]=T[0];R.lobe=T;R.lmax=lmax;R.sc*=lmax;
-  R.lbR=R.land?R.land.r:R.rimR!==undefined?R.rimR:R.flank?R.flank.r:1000;R.lbG=RG_LOBE.far;}
+  R.lbR=R.land?R.land.r:R.rimR!==undefined?R.rimR:R.flank?R.flank.r:1000;R.lbG=RG_LOBE.far;if(RG_BITE.on)rgBite(R,m);}
+// v11.154 (analysis_archipelago §10.12; sheet 9: our banks and atolls "circular", Earth's "uniformly kraggy"): the margin's bites. Measured (test/measures.js
+// outline): above −150 m the area a 3 km closing adds — the bays — 0.2–0.3% of ours, Earth's 0.4–1.8%; the outline's length over its smoothed 1.06–1.07,
+// Earth's to 1.17. An edifice's margin fails in landslides (the carbonate caps' as their volcanoes' — Mururoa's, Rangiroa's and the Maldives' scalloped
+// rims, the Bahamas' margins, Hawaii's and the Canaries' great scars), each an amphitheatre bitten into it, the reef growing on round its headwall.
+// One every `sp` m of its margin's length (by its own draws), `w` m across (log-uniform: many small, a few large), as deep as `d` of its width
+// (at most `D` of its radius) — a table of the scale it takes at each angle (world.js btAt, lbF): the record's everything at that angle drawn in, so
+// the bound (which never rises outward) holds and every reader of the lobe (rgLoc, rgAt, the shelter) sees it
+const RG_BITE={on:true,N:720,sp:8500,w:[1500,9000],d:[0.25,0.6],D:0.3,DL:0.25,sh:1.35}; // DL: at most on a high island, whose bite grows outward (the map r → r·scale kept monotone); sh: its shelf's edge over its coast where it has no reef
+function rgBite(R,m){const K=RG_BITE,h=mulberry(WB.hashString('bite:'+m.id)),r0=(R.barrier?R.barrier.r:R.rimR!==undefined?R.rimR:R.land?R.land.r:R.flank.r)*R.sc/R.lmax,n=Math.round(TAU*r0/K.sp*(0.6+0.8*h()));if(n<1||r0<500)return;
+  if(R.land)R.btR=R.barrier?R.barrier.r:K.sh*R.land.r;const T=new Float32Array(K.N+1);for(let i=0;i<n;i++){const a=h()*TAU,w=K.w[0]*Math.pow(K.w[1]/K.w[0],h()),hw=0.5*w/r0,D=Math.min(R.land?K.DL:K.D,w*(K.d[0]+(K.d[1]-K.d[0])*h())/r0);
+    for(let k=0;k<K.N;k++){let d=k/K.N*TAU-a;d-=TAU*Math.round(d/TAU);if(Math.abs(d)<hw){const v=D*Math.sqrt(1-(d/hw)*(d/hw));if(v>T[k])T[k]=v;}}}
+  T[K.N]=T[0];R.bite=T;}
 // the records: shaped, the buried struck, the rest kept if their foot reaches the world; the floor's grid over the world and every kept record's land.
 // v11.106 (GLOBE §10.1 step 4, the world to ±WHALF): in two passes, so the old square's records are v11.102's to the bit — first the members
 // that reach the old square (HALF + 2 km, as v11.102–105 built them: the same list, order, rng and noise seeds), then the rest that reach the
