@@ -208,6 +208,11 @@ ladder?": not filter feeders and no ladder — the light on a carcass is luminou
 through the dead body and switch on together when they are dense (quorum sensing); a glowing carcass or pellet gets eaten, which carries them into
 a new gut. (The one real ladder: the midshipman fish cannot make its luciferin and takes it from the sea fireflies it eats.)
 
+**v11.162 (16 Nov 2026): the wake struck** — the person, after playing it: "in a low poly world, I actually think it isn't very legible … even on earth
+it would be unclear for a human. So let's bin this idea of bioluminescence purely as a function of you moving with the intention of bringing it back in
+once we have other bioluminescent things in mind"; a school in the starting shallows was not lit by it, and its sparks read as the marine snow. Kept as
+a kit (the flashers' stock, `skBody`, `sparkBurst`). The dusk displays and the milky seas stay ("I'd keep dusk displays", "milky seas I think are good").
+
 **Built as v11.161 (16 Nov 2026; DESIGN, The body's effects, "The night's other lights").** The carcasses glow on their quorum's clock and draw
 scavengers from further; the dusk displays are Earth's sea fireflies' strings, the displayers **tiny hingeshells** by their trade (a hinged shell —
 my assumption from PLANET's lines, **for the person to confirm**), over shallow sheltered floor in the hour after a dark sunset; the milky seas come

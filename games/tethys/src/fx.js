@@ -1,7 +1,7 @@
 // fx.js — the body's effects (v11.53, POLISH.md pass B): one pooled point system for what the water does when a body does something —
 // silt kicked off the floor, bubbles from the seeps, scraps at a bite — and the emitters that feed it. The blood (combat.js) stays its own
 // cloud in the clade's colour; the breach's foam and its bubble puff stay in player.js splash (v11.46). Everything here is a term in the
-// numbers the game already has: a body on the floor, a jet near the sand, a strike out of it, a bite, a seep. Nothing glows but the sparks (v11.160, at the end: the flashers firing where a body shears the water). The points are
+// numbers the game already has: a body on the floor, a jet near the sand, a strike out of it, a bite, a seep. Nothing glows but the night's lights at the end (v11.161: carcasses, the dusk displays; the wake of v11.160 struck v11.162). The points are
 // the snow's kind (atmosphere.js pm: squares, lit like the snow and by the player's light, alpha by distance), one draw for all of it.
 const FX_N=Q.tier==='low'?320:720,fxP=new Float64Array(FX_N*3),fxPG=new Float32Array(FX_N*3),fxV=new Float32Array(FX_N*3),fxC=new Float32Array(FX_N*3),fxS=new Float32Array(FX_N*2),fxL=new Float32Array(FX_N),fxA=new Float32Array(FX_N),fxK=new Uint8Array(FX_N),fxW=new Float32Array(FX_N);let fxNext=0,fxLive=0;
 const FXK=[{life:[3,4.5],fall:0.15,size:[0.7,1.3],grow:0.25,alpha:0.7},{life:[6,9],fall:-0.9,size:[0.35,0.6],grow:0.06,alpha:0.6},{life:[2.5,3.5],fall:0.3,size:[0.5,0.9],grow:0,alpha:0.85}]; // life (s), fall (m/s; bubbles rise), size × the material's, growth (size/s), alpha
@@ -102,9 +102,11 @@ function hitFx(o,by,at,dmg){
   o.rollV=(o.rollV||0)+rnd(-1,1)*POSE_K.jerk*clamp(dmg*0.06,0.3,1); // the spin, damped over a second (bodyPose)
   flushBody(o);
   if(at.y-groundAt(at.x,at.z)<2.2)fxSilt(at.x,at.y,at.z,8,0.6);fxScraps(o,at,6+Math.min(10,dmg*0.3));
-  sparkBurst(at.x,at.y,at.z,clamp(0.5+dmg*0.03,0.5,1.5)); // at night the struggle lights the water round it (v11.160, the sparks below)
 }
 // ---------- the sparks (v11.160, POLISH 15, PLANKTON §8: the bioluminescence) ----------
+// STRUCK v11.162 as a wake (the person: "bin this idea … purely as a function of you moving", to come back with other bioluminescent things): what
+// follows describes the wake as built v11.160–160.1; its sources are no longer called. The pool, its soft look and its drawing are the carcasses' and
+// the dusk displays' (v11.161), each glow its own colour since v11.162 (skC).
 // The one glow the rules allow (PLANET Hooks: "only as events … dinoflagellates firing in a wake"): the flashers (world.js FLASH) fire where the water is
 // sheared hard, and a spark is a point of their blue-green light for its moment. Four things keep it a believable thing rather than a lamp (the person,
 // 16 Nov 2026: "is a bioluminescent wake believable?" — yes, on these four, and they took them):
@@ -131,26 +133,24 @@ const SPK={v0:1.0,v1:6.0,rate:250,aMax:3,life:[0.6,1.4],rise:0.05,size:[0.8,1.4]
 // (smooth(cur[0], cur[1]) m/s at the camera) twinkling the water round it at cur[2] a second at full light; litRef, the sparks a second that make a body
 // fully lit (c.lit, player.lit: what a hunter sees — see, the share its eyes reach further for a lit body, creatures_ai.js litK); lightK, lightD: the
 // wake's own light on what is round it (a source in the light pool, scene.js) at full lit; surfK: the breakers' glow (atmosphere.js, the surface's uSpk). The state: g the stock's light at the player, gS at the camera's surface, nightK the clock's gate, n the sparks made (the tests).
-const SK_N=Q.sparks,skP=new Float64Array(SK_N*3),skPG=new Float32Array(SK_N*3),skV=new Float32Array(SK_N*3),skA=new Float32Array(SK_N),skL=new Float32Array(SK_N),skPk=new Float32Array(SK_N),skG=new Float32Array(SK_N),skS=new Float32Array(SK_N);let skNext=0,skLive=0;
+const SK_N=Q.sparks,skP=new Float64Array(SK_N*3),skPG=new Float32Array(SK_N*3),skV=new Float32Array(SK_N*3),skA=new Float32Array(SK_N),skL=new Float32Array(SK_N),skPk=new Float32Array(SK_N),skG=new Float32Array(SK_N),skS=new Float32Array(SK_N);let skNext=0,skLive=0;const skC=new Float32Array(SK_N*3); // skC (v11.162): each glow's colour
 const SK_TN=4096,skTK=new Int32Array(SK_TN),skTD=new Float32Array(SK_TN),skTT=new Float32Array(SK_TN),skOff=[0,0],skB=[0,0,0,0]; // the fatigue's table (a voxel's key, its spent share, when), the water's drift, a texel
-const skGeo=new THREE.BufferGeometry();skGeo.setAttribute('position',new THREE.BufferAttribute(skPG,3));skGeo.setAttribute('aG',new THREE.BufferAttribute(skG,1));skGeo.setAttribute('aS',new THREE.BufferAttribute(skS,1));
+const skGeo=new THREE.BufferGeometry();skGeo.setAttribute('position',new THREE.BufferAttribute(skPG,3));skGeo.setAttribute('aG',new THREE.BufferAttribute(skG,1));skGeo.setAttribute('aS',new THREE.BufferAttribute(skS,1));skGeo.setAttribute('aC',new THREE.BufferAttribute(skC,3));
 const skU={uCol:{value:new THREE.Color(SPK.col[0],SPK.col[1],SPK.col[2])},uK:{value:SPK.K},uScale:{value:360},uSize:{value:0.42},uFogP:{value:FOG_PS},uFogD:{value:SEA_FOG.dens},uSkE:{value:FOG_SKE}};
 const skM=new THREE.ShaderMaterial({uniforms:skU,transparent:true,depthWrite:false,depthTest:true,blending:THREE.AdditiveBlending,
-  vertexShader:'attribute float aG;attribute float aS;uniform float uScale;uniform float uSize;varying float vG;varying float vD;\nvoid main(){vec4 mv=modelViewMatrix*vec4(position,1.0);vD=length(mv.xyz);vG=aG*smoothstep(0.3,1.5,-mv.z);gl_PointSize=min(uSize*aS*uScale/max(-mv.z,0.1),48.0);gl_Position=projectionMatrix*mv;}',
-  fragmentShader:'uniform vec3 uCol;uniform float uK;uniform vec4 uFogP;uniform float uFogD;uniform vec4 uSkE;varying float vG;varying float vD;\nvoid main(){float d=vD;float tn=exp(-uFogD*uFogD*d*d);float ex=mix(exp(-uFogP.x*d),tn,uFogP.y)'+FOG_CUT_GLSL+';vec2 q=gl_PointCoord*2.0-1.0;float r2=dot(q,q),h=max(0.0,1.0-r2);float g=exp(-r2*9.0)+0.3*h*h;gl_FragColor=vec4(uCol*(uK*vG*ex*g*uSkE.w),1.0);}'}); // soft (v11.160.1, the person: "soft glows please"): a bright core and a halo — the light scattered in the water round a flash — that is 0 at the quad's edge, so no square shows; overlapping halos read as a glowing cloud. The shafts' extinction (atmosphere.js shM), the eye's gain by hand: a ShaderMaterial misses the fog chunk's
+  vertexShader:'attribute float aG;attribute float aS;attribute vec3 aC;uniform float uScale;uniform float uSize;varying float vG;varying float vD;varying vec3 vC;\nvoid main(){vC=aC;vec4 mv=modelViewMatrix*vec4(position,1.0);vD=length(mv.xyz);vG=aG*smoothstep(0.3,1.5,-mv.z);gl_PointSize=min(uSize*aS*uScale/max(-mv.z,0.1),48.0);gl_Position=projectionMatrix*mv;}',
+  fragmentShader:'uniform vec3 uCol;uniform float uK;uniform vec4 uFogP;uniform float uFogD;uniform vec4 uSkE;varying float vG;varying float vD;varying vec3 vC;\nvoid main(){float d=vD;float tn=exp(-uFogD*uFogD*d*d);float ex=mix(exp(-uFogP.x*d),tn,uFogP.y)'+FOG_CUT_GLSL+';vec2 q=gl_PointCoord*2.0-1.0;float r2=dot(q,q),h=max(0.0,1.0-r2);float g=exp(-r2*9.0)+0.3*h*h;gl_FragColor=vec4(vC*(uK*vG*ex*g*uSkE.w),1.0);}'}); // vC (v11.162): its own colour — a light keeps its colour as the eye drains the rest (a bright point still reaches the cones) // soft (v11.160.1, the person: "soft glows please"): a bright core and a halo — the light scattered in the water round a flash — that is 0 at the quad's edge, so no square shows; overlapping halos read as a glowing cloud. The shafts' extinction (atmosphere.js shM), the eye's gain by hand: a ShaderMaterial misses the fog chunk's
 const skPts=new THREE.Points(skGeo,skM);skPts.frustumCulled=false;skPts.visible=false;scene.add(skPts);
 // the share of the cells still able to flash in the water at x,y,z (1 rested, 0 spent), spending `use` of it
 function skTire(x,y,z,use){const ix=Math.floor((x-skOff[0])/SPK.vox),iy=Math.floor(y/SPK.vox),iz=Math.floor((z-skOff[1])/SPK.vox),h=(Math.imul(ix,73856093)^Math.imul(iy,19349663)^Math.imul(iz,83492791))|0,i=(h>>>0)&(SK_TN-1);
   const d=skTK[i]===h?skTD[i]*Math.exp(-(t-skTT[i])/SPK.rest):0;if(use>0){skTK[i]=h;skTD[i]=Math.min(1,d+use);skTT[i]=t;}return 1-d;}
-function skEmit(x,y,z,vx,vy,vz,pk,life){const i=skNext;skNext=(skNext+1)%SK_N;const i3=i*3;skP[i3]=x;skP[i3+1]=y;skP[i3+2]=z;skV[i3]=vx;skV[i3+1]=vy;skV[i3+2]=vz;skA[i]=0;skL[i]=life;skPk[i]=pk;skS[i]=rnd(SPK.size[0],SPK.size[1]);skG[i]=0;skLive=SK_N;SPK.n++;}
+function skEmit(x,y,z,vx,vy,vz,pk,life,col,sz){const i=skNext;skNext=(skNext+1)%SK_N;const i3=i*3;{const C=col||SPK.col;skC[i3]=C[0];skC[i3+1]=C[1];skC[i3+2]=C[2];}skP[i3]=x;skP[i3+1]=y;skP[i3+2]=z;skV[i3]=vx;skV[i3+1]=vy;skV[i3+2]=vz;skA[i]=0;skL[i]=life;skPk[i]=pk;skS[i]=rnd(SPK.size[0],SPK.size[1])*(sz||1);skG[i]=0;skLive=SK_N;SPK.n++;}
 // the stock's light at a point (0..1), by the clock's gate
 function skLight(x,y,z){wmBloom(x,z,skB);return flashK(flashC(skB,skB[3],TIDE-y))*SPK.nightK;}
 // a struggle at a wound (hitFx): a burst round it, k its strength (~0.5–1.5)
 function sparkBurst(x,y,z,k){if(SPK.nightK<0.01||y>TIDE-0.3)return;const n=Math.min(SPK.cap,Math.round(SPK.burst*skLight(x,y,z)*k));
   for(let m=0;m<n;m++){const a=Math.random()*TAU,u=Math.random()*2-1,s=Math.sqrt(1-u*u),r=0.3+Math.random()*1.2,px=x+s*Math.cos(a)*r,py=Math.min(y+u*r,TIDE-0.2),pz=z+s*Math.sin(a)*r;
     if(Math.random()>=skTire(px,py,pz,SPK.tire))continue;skEmit(px,py,pz,s*Math.cos(a)*0.8,u*0.8,s*Math.sin(a)*0.8,0.7+0.3*Math.random(),rnd(SPK.life[0],SPK.life[1]));}}
-// the wake's own light (v11.160.1): a source in the light pool (scene.js lightSources, nearest first), at the player while it is lit; parked far off otherwise
-const SK_LIGHT={x:0,y:-1e5,z:0,color:0x4dc8ff,intensity:0,distance:SPK.lightD,d:0};lightSources.push(SK_LIGHT);
 // a body's sparks this frame: o the body (player or creature), x,y,z its middle, ux,uy,uz its velocity, a its flow radius; returns how many were made
 function skBody(o,x,y,z,ux,uy,uz,a,dt,budget){const U=Math.sqrt(ux*ux+uy*uy+uz*uz),ex=smooth(SPK.v0,SPK.v1,U);if(ex<=0||y>TIDE-0.3||budget<=0)return 0;
   const aa=Math.min(a,SPK.aMax);let n=Math.floor(SPK.rate*skLight(x,y,z)*ex*aa*aa*dt+Math.random());n=Math.min(n,budget);if(n<=0)return 0; // stochastic rounding: no accumulator on the body
@@ -162,24 +162,11 @@ function skBody(o,x,y,z,ux,uy,uz,a,dt,budget){const U=Math.sqrt(ux*ux+uy*uy+uz*u
     flowAt(px,py,pz,HV);skEmit(px,py,pz,HV.x*0.6,HV.y*0.6,HV.z*0.6,0.5+0.5*ex,rnd(SPK.life[0],SPK.life[1]));made++;}
   return made;}
 function updateSparks(dt){
-  const cam=camera.position,P=player,kl=1-Math.exp(-3*dt);SPK.nightK=FX.biolum?smooth(SPK.night[0],SPK.night[1],SKY.sunAlt):0;skOff[0]+=CURV.x*dt;skOff[1]+=CURV.z*dt;
-  if(SPK.nightK>0.01){let budget=SPK.cap;
-    wmBloom(cam.x,cam.z,skB);SPK.gS=flashK(flashC(skB,skB[3],0.5));SPK.g=mode==='play'&&!P.dead?flashK((wmBloom(P.pos.x,P.pos.z,skB),flashC(skB,skB[3],Math.max(0,TIDE-P.pos.y)))):SPK.gS;
-    // the bodies: the player first, then every creature moving within SPK.R of the camera — a school 80 m off is a streak, a hunter's charge a bolt.
-    // Over the shear shell, most of it behind (the wake, not the bow), along the path covered this frame; lit: what the body has shown, eased
-    if(mode==='play'&&!P.dead&&P.clade&&(P.sub||0)>0.5){const C=P.clade,n=skBody(P,P.pos.x,P.pos.y,P.pos.z,P.vel.x,P.vel.y,P.vel.z,0.9+C.size*0.35,dt,budget);budget-=n;P.lit+=(Math.min(1,n/dt/SPK.litRef)-P.lit)*kl;}else P.lit=0;
-    const R2=SPK.R*SPK.R;
-    for(const c of creatures){if(!c.alive||c.dead){c.lit=0;continue;}const ex=c.pos.x-cam.x,ey=c.pos.y-cam.y,ez=c.pos.z-cam.z;if(ex*ex+ey*ey+ez*ez>R2||!c.g.visible){c.lit=0;continue;}
-      const n=skBody(c,c.pos.x,c.pos.y,c.pos.z,c.vel.x,c.vel.y,c.vel.z,c.def.size*0.45+0.3,dt,budget);budget-=n;c.lit+=(Math.min(1,n/dt/SPK.litRef)-c.lit)*kl;}
-    // the current's own shear: the water round the camera twinkles where the stream runs (the passes, the rim at mid-flood), no fatigue — it brings new water
-    {const sh=smooth(SPK.cur[0],SPK.cur[1],Math.sqrt(CURV.x*CURV.x+CURV.z*CURV.z));let n=Math.min(budget,Math.floor(SPK.cur[2]*SPK.gS*SPK.nightK*sh*dt+Math.random()));budget-=n;
-      for(;n>0;n--){const px=cam.x+rnd(-20,20),pz=cam.z+rnd(-20,20),py=Math.min(cam.y+rnd(-12,12),TIDE-0.3);if(py<groundAt(px,pz)+0.3)continue;skEmit(px,py,pz,CURV.x*0.2,0,CURV.z*0.2,0.35+0.35*Math.random(),rnd(0.3,0.7));}}
-    // the breaking water: the snow's bubble points in the top 2 m (the breakers, the whitecaps, the rain); no fatigue — the sea keeps turning it over
-    if(FX.snow&&SPK.gS>0.005){const p=SPK.surf*SPK.gS*SPK.nightK;for(let m=0;m<SPK.probe&&budget>0;m++){const i=Math.floor(Math.random()*PN_SN);if(pk[i]!==3)continue;const y=pp[i*3+1];if(TIDE-y>2||Math.random()>=p)continue;budget--;skEmit(pp[i*3]+rnd(-0.3,0.3),y,pp[i*3+2]+rnd(-0.3,0.3),0,0.1,0,0.4+0.4*Math.random(),rnd(0.25,0.6));}}
-  }else{SPK.g=0;SPK.gS=0;P.lit=0;}
-  // the wake's light: at the player while it is lit, behind it; the breakers' glow on the surface (atmosphere.js surfaceU.uSpk: the gate, and the flashers' share of the gold now)
-  if(P.lit>0.02&&!P.dead){SK_LIGHT.x=P.pos.x-P.vel.x*0.12;SK_LIGHT.y=P.pos.y-P.vel.y*0.12;SK_LIGHT.z=P.pos.z-P.vel.z*0.12;SK_LIGHT.intensity=SPK.lightK*P.lit;}else{SK_LIGHT.y=-1e5;SK_LIGHT.intensity=0;}
-  surfaceU.uSpk.value.set(SPK.nightK*SPK.surfK,(1+FLASH_P[0])/(1+FOG_B[2]));
+  // v11.162 (the person, 16 Nov 2026: "bin this idea of bioluminescence purely as a function of you moving … with the intention of bringing it back in
+  // once we have other bioluminescent things"; a school in the shallows was not lit by it, and the sparks read as the marine snow): the wake is struck —
+  // the bodies, the current, the breakers, the wake's light and a lit body's being seen. skBody and sparkBurst stay above as its kit, uncalled; the pool
+  // lives on for the carcasses and the dusk displays.
+  skOff[0]+=CURV.x*dt;skOff[1]+=CURV.z*dt;
   updateNightLights(dt); // v11.161: the carcasses, the dusk displays, the milky sea (below)
   if(!skLive){skPts.visible=false;return;}
   // the live sparks: drift with what they were thrown with and the current; rise in SPK.rise, fade over their life
@@ -188,7 +175,7 @@ function updateSparks(dt){
     skV[i3]*=kd;skV[i3+1]*=kd;skV[i3+2]*=kd;skP[i3]+=(skV[i3]+CURV.x)*dt;skP[i3+1]+=skV[i3+1]*dt;skP[i3+2]+=(skV[i3+2]+CURV.z)*dt;const u=1-a/L;skG[i]=skPk[i]*Math.min(1,a/SPK.rise)*u*u;}
   skLive=live;skPts.visible=live>0;if(!live)return;
   {const ox=ORIGIN.x,oz=ORIGIN.z;for(let i=0;i<SK_N;i++){skPG[i*3]=skP[i*3]-ox;skPG[i*3+1]=skP[i*3+1];skPG[i*3+2]=skP[i*3+2]-oz;}skPts.position.set(ox,0,oz);}
-  skGeo.attributes.position.needsUpdate=true;skGeo.attributes.aG.needsUpdate=true;skGeo.attributes.aS.needsUpdate=true;skU.uScale.value=(renderer.domElement&&renderer.domElement.height||720)*0.5; // three's own points scale: half the drawing buffer's height
+  skGeo.attributes.position.needsUpdate=true;skGeo.attributes.aG.needsUpdate=true;skGeo.attributes.aS.needsUpdate=true;skGeo.attributes.aC.needsUpdate=true;skU.uScale.value=(renderer.domElement&&renderer.domElement.height||720)*0.5; // three's own points scale: half the drawing buffer's height
 }
 
 // ---------- the night's other lights (v11.161; the person, 16 Nov 2026: the dusk displays, glowing carcasses and milky seas, yes) ----------
@@ -199,7 +186,7 @@ function updateSparks(dt){
 // findCarcass, c.glow). The person asked "it would be from filter feeders, no?" — no: any body's own gut flora, nothing climbs the food chain (PLANKTON §8).
 // The glow is steady: soft sparks that hang on the body (the sparks' pool, long and still) and a source in the light pool on the nearest bright ones —
 // shown only where the water round it is dark enough to see it by (BACT.dark on the light there: by day in the shallows nothing would).
-const BACT={on:[0.15,0.5],K:1.0,rate:30,life:[1.6,3.2],dark:[0.35,0.06],R:120,lights:2,lightK:1.1,lightD:8}; // on: game days after death over which the quorum lights it; K: its strength at full flesh; rate: glow points a second per m of body; life (s); dark: the light at its depth (skyLw × daylight) from which it starts to show and is full; R: the camera's reach; lights: pool sources it may hold; lightK, lightD: theirs
+const BACT={col:[0.35,1.0,0.72],on:[0.15,0.5],K:1.0,rate:30,life:[1.6,3.2],dark:[0.35,0.06],R:120,lights:2,lightK:1.1,lightD:8}; // on: game days after death over which the quorum lights it; K: its strength at full flesh; rate: glow points a second per m of body; life (s); dark: the light at its depth (skyLw × daylight) from which it starts to show and is full; R: the camera's reach; lights: pool sources it may hold; lightK, lightD: theirs
 const BACT_L=[];for(let i=0;i<BACT.lights;i++){const s={x:0,y:-1e5,z:0,color:0x6fe0c8,intensity:0,distance:BACT.lightD,d:0};BACT_L.push(s);lightSources.push(s);}
 // how bright a carcass's bacteria are (0..1): the quorum by its age (days), the flesh left (a share of the body)
 function bactGlow(ageD,frac){return BACT.K*smooth(BACT.on[0],BACT.on[1],ageD)*Math.sqrt(clamp(frac,0,1));}
@@ -209,11 +196,12 @@ function bactSee(L){return smooth(BACT.dark[0],BACT.dark[1],L);}
 // second or two and fades, and the others take up the beat, so the strings come in waves. Moonlight stops them. Here the displayers are tiny
 // hingeshells by their trade (a hinged shell, PLANET's line; a background population, no bodies — the person to confirm), shown round the camera
 // where the floor is shallow and sheltered, between DSP.alt's sun altitudes, as the moon allows.
-const DSP={alt:[-0.42,-0.36,-0.20,-0.15],moon:[0.12,0.4],floor:[-25,-12,-1.5,-0.6],expo:0.7,rate:5,slots:24,n:[6,14],gap:[0.18,0.32],step:[0.15,0.28],life:[1.6,2.6],R:26,beat:7,size:0.8,g:0,hab:0};
+const DSP={col:[0.28,0.52,1.0],alt:[-0.42,-0.36,-0.20,-0.15],moon:[0.12,0.4],floor:[-25,-12,-1.5,-0.6],expo:0.7,rate:12,slots:96,view:0.7,size:1.5,n:[6,14],gap:[0.18,0.32],step:[0.15,0.28],life:[1.6,2.6],R:26,beat:7,size:0.8,g:0,hab:0};
 // alt: the sun's altitude (sin) — the displays from −25° (rising) to −9° (falling), ~0.75–2 h after sunset; moon: the moon's light (of full) over which they stop; floor: the
 // floor's height (m) over which they live (full −12 to −1.5); expo: how much the surf's exposure takes off; rate: strings a second at full; slots: strings at once;
-// n: pulses in a string; gap: metres between pulses; step: seconds between them; life: a pulse's glow (s); R: the camera's reach (m); beat: the waves' period (s)
-const DSP_S=[];for(let i=0;i<DSP.slots;i++)DSP_S.push({on:false,x:0,y:0,z:0,dx:0,dy:0,dz:0,k:0,n:0,gap:0,step:0,tt:0});let dspHabT=0;const DSP_F=new Float32Array(NF);
+// view: the share of strings started in front of the eye (v11.162: 5 a second anywhere round it were a couple of dots at the frame's edge — the person
+// could not be sure they saw any; Earth's fill the water with strings); size: a pulse's glow × the pool's; n: pulses in a string; gap: metres between pulses; step: seconds between them; life: a pulse's glow (s); R: the camera's reach (m); beat: the waves' period (s)
+const DSP_V=V3();const DSP_S=[];for(let i=0;i<DSP.slots;i++)DSP_S.push({on:false,x:0,y:0,z:0,dx:0,dy:0,dz:0,k:0,n:0,gap:0,step:0,tt:0});let dspHabT=0;const DSP_F=new Float32Array(NF);
 function dspGate(sunAlt,moonK){return smooth(DSP.alt[0],DSP.alt[1],sunAlt)*(1-smooth(DSP.alt[2],DSP.alt[3],sunAlt))*(1-smooth(DSP.moon[0],DSP.moon[1],moonK));}
 function dspHab(h,expo){return smooth(DSP.floor[0],DSP.floor[1],h)*(1-smooth(DSP.floor[2],DSP.floor[3],h))*(1-DSP.expo*expo);}
 function updateNightLights(dt){
@@ -224,17 +212,18 @@ function updateNightLights(dt){
   for(const c of carcasses){c.glow=0;if(!on||c.gone||!c.dead||c.flesh<=0)continue;const F=c.fall,age=F?nowD()-F.t0:c.deadT/DAY_S,m0=F?F.m0:bioMass(c.def);
     c.glow=bactGlow(age,c.flesh/m0);if(c.glow<0.01)continue;const ex=c.pos.x-cam.x,ey=c.pos.y-cam.y,ez=c.pos.z-cam.z;if(ex*ex+ey*ey+ez*ez>BACT.R*BACT.R)continue;
     const vis=c.glow*bactSee(K.skyLw*daylightAt(c.pos.y));if(vis<0.01)continue;const sz=c.def.size;
-    let n=Math.floor(BACT.rate*vis*sz*dt+Math.random());for(;n>0;n--){const u=Math.random()*2-1,a=Math.random()*TAU,r=sz*0.3*Math.sqrt(Math.random());skEmit(c.pos.x+Math.cos(a)*r+u*sz*0.35,c.pos.y+(Math.random()-0.3)*sz*0.25,c.pos.z+Math.sin(a)*r-u*sz*0.35,0,0.02,0,0.35+0.4*vis,rnd(BACT.life[0],BACT.life[1]));}
+    let n=Math.floor(BACT.rate*vis*sz*dt+Math.random());for(;n>0;n--){const u=Math.random()*2-1,a=Math.random()*TAU,r=sz*0.3*Math.sqrt(Math.random());skEmit(c.pos.x+Math.cos(a)*r+u*sz*0.35,Math.min(c.pos.y+(Math.random()-0.3)*sz*0.25,TIDE-0.15),c.pos.z+Math.sin(a)*r-u*sz*0.35,0,0.02,0,0.35+0.4*vis,rnd(BACT.life[0],BACT.life[1]),BACT.col);} // the bacteria's blue-green (~490 nm)
     if(nl<BACT.lights){const s=BACT_L[nl++];s.x=c.pos.x;s.y=c.pos.y+sz*0.6;s.z=c.pos.z;s.intensity=BACT.lightK*vis;s.distance=BACT.lightD+sz;}}
   // the dusk displays: the habitat at the camera every half second, the strings in their slots
   DSP.g=on?dspGate(K.sunAlt,K.moonL/MOONL):0;dspHabT-=dt;if(dspHabT<=0){dspHabT=0.5;const s=sample(cam.x,cam.z,DSP_F);DSP.hab=dspHab(s.h,s.f[FI.expo]);}
   const gk=DSP.g*DSP.hab;
   if(gk>0.01){const ph=(t/DSP.beat)%1,wave=0.3+1.6*Math.exp(-ph*ph*30)+1.6*Math.exp(-(1-ph)*(1-ph)*30);let n=Math.floor(DSP.rate*gk*wave*dt+Math.random()); // the waves: the strings come together on the beat
-    for(const S of DSP_S){if(n<=0)break;if(S.on)continue;const a=Math.random()*TAU,r=DSP.R*Math.sqrt(Math.random()),x=cam.x+Math.cos(a)*r,z=cam.z+Math.sin(a)*r,g=groundAt(x,z);if(g>TIDE-1.5)continue;
+    DSP_V.set(0,0,-1).applyQuaternion(camera.quaternion);const fa=Math.atan2(DSP_V.z,DSP_V.x);
+    for(const S of DSP_S){if(n<=0)break;if(S.on)continue;const a=Math.random()<DSP.view?fa+rnd(-1,1):Math.random()*TAU,r=4+(DSP.R-4)*Math.sqrt(Math.random()),x=cam.x+Math.cos(a)*r,z=cam.z+Math.sin(a)*r,g=groundAt(x,z);if(g>TIDE-1.5)continue;
       const up=Math.random()<0.75,ta=Math.random()*TAU,tl=up?0.15:0.95;S.on=true;S.x=x;S.y=Math.min(g+rnd(0.3,2.2),TIDE-1.2);S.z=z;S.dx=Math.cos(ta)*tl;S.dy=up?1:rnd(-0.1,0.2);S.dz=Math.sin(ta)*tl; // most rise; a quarter run along the floor
       {const l=Math.sqrt(S.dx*S.dx+S.dy*S.dy+S.dz*S.dz);S.dx/=l;S.dy/=l;S.dz/=l;}S.k=0;S.n=Math.round(rnd(DSP.n[0],DSP.n[1]));S.gap=rnd(DSP.gap[0],DSP.gap[1]);S.step=rnd(DSP.step[0],DSP.step[1]);S.tt=0;n--;}}
   for(const S of DSP_S){if(!S.on)continue;S.tt-=dt;if(S.tt>0)continue;if(S.k>=S.n||DSP.g<=0.01){S.on=false;continue;}
-    const y=S.y+S.dy*S.gap*S.k;if(y>TIDE-0.4){S.on=false;continue;}skEmit(S.x+S.dx*S.gap*S.k,y,S.z+S.dz*S.gap*S.k,0,0.01,0,0.8+0.2*Math.random(),rnd(DSP.life[0],DSP.life[1]));S.k++;S.tt=S.step;}
+    const y=S.y+S.dy*S.gap*S.k;if(y>TIDE-0.4){S.on=false;continue;}skEmit(S.x+S.dx*S.gap*S.k,y,S.z+S.dz*S.gap*S.k,0,0.01,0,1.2+0.3*Math.random(),rnd(DSP.life[0],DSP.life[1]),DSP.col,DSP.size);S.k++;S.tt=S.step;} // the sea fireflies' blue (~465 nm), brighter than a carcass's (v11.162: the person could not be sure they saw them)
   // the milky sea: the strength by the clock and the night into every fogged material (uSkF.w) and the far sea by the gold at the camera (uHzSea.w)
   {const m=on?MILKY.E*MILKY_P[0]*(1-K.dayK):0;FOG_SKF[3]=m;wmBloom(cam.x,cam.z,skB);HZ_SEA_U.value.w=m*milkyAt(skB[1])*1.6;}
 }

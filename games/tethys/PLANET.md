@@ -289,7 +289,8 @@ The jelly is an outsider (a cnidarian analogue); "all clades represented" does n
   gameplay. Bioluminescence was removed whole in v10.1 (constant lanterns feed nothing and attract everything); it may
   return only as *events*: dinoflagellates firing in a wake (the disturbance list already tracks every body), pens and whips
   flashing when brushed (the sway shader already knows a body is near), creatures' brief flashes. Never a lamp. (v11.160: the first of
-  these built — the wake, PLANKTON §8: a grazer of the gold that flashes on shear, at night, fatiguing; fx.js `SPK`.)
+  these built — the wake, PLANKTON §8: a grazer of the gold that flashes on shear, at night, fatiguing; struck v11.162 as illegible, its kit kept. v11.161:
+  the lights that need no stir — glowing carcasses, the dusk displays, milky seas — each with its reason; fx.js `BACT`, `DSP`, world.js `MILKY`.)
 - **The tide** — built (v10.3, DESIGN The surface): 6–9 m twice a 30 h day on a clock that runs a day in forty minutes; the rim
   floods, the passes run in and out, the strand walks, the rocks wear the band; the current turns with it (the tidal stream,
   `tidalAt`, splitting round the shield). Still open: the cones and crowns opening on the flood; day and night on the same clock.
