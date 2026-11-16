@@ -7,7 +7,7 @@ const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..');
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
 let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n');
-js+='\nglobal.__gl={sample,plank,flashAt,flashK,flashC,FLASH,FLASH_P,FOG_B,PLK,bloomTick,updateSky,updateSparks,sparkBurst,SPK,SK_N,FLOW,SKY,creatures,CURV,litK,player,camera,DAY_H,SOLAR_H0,CUR_A,'+
+js+='\nglobal.__gl={sample,plank,flashAt,flashK,flashC,FLASH,FLASH_P,FOG_B,PLK,bloomTick,updateSky,updateSparks,sparkBurst,SPK,SK_N,FLOW,SKY,creatures,CURV,litK,FI,bactGlow,bactSee,BACT,BACT_L,dspGate,dspHab,DSP,DSP_S,MILKY,MILKY_P,milkyPulse,updateNightLights,carcasses,kill,findCarcass,FOG_SKF,DAY_S,MOONL,V3,player,camera,DAY_H,SOLAR_H0,CUR_A,'+
   'setClock:h=>{clockH=h;TIDE=tideAt(h);},setT:v=>{t=v;},getT:()=>t,tide:()=>TIDE,setFlow:n=>{flowN=n;},live:()=>skLive,pos:()=>skP,ground:(x,z)=>groundAt(x,z),'+
   'load:(x,z)=>{const ci=cellOf(x),cj=cellOf(z);for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++)if(gridIn(ci+di,cj+dj))loadChunkNow(ci+di,cj+dj);}};';
 const tmp=path.join(require('os').tmpdir(),'tethys_glow_bundle.js');
@@ -21,7 +21,7 @@ h['mnew:click'][0]();h['mfounders:click'][0]({target:{dataset:{id:'fin'}}}); // 
 for(let i=0;i<30;i++)__step(1);
 const G=global.__gl;let failed=false;
 function ok(c,msg){console.log((c?'  ok   ':'  FAIL ')+msg);if(!c)failed=true;}
-const T=v=>+v.toFixed(3);
+const T=v=>+v.toFixed(3),smooth01=u=>{const x=Math.min(1,Math.max(0,u));return x*x*(3-2*x);};
 // ---------- the stock ----------
 console.log('the flashers\' stock (the light it gives, 0..1, at 2 m; the clock at boot, no storm behind it)');
 G.setClock(0);G.bloomTick();
@@ -72,5 +72,34 @@ G.setT(G.getT()+1000);{const n0=G.SPK.n;G.sparkBurst(fx+20,fy,fz,1);const nb=G.S
 // the cost: a sprint and a struggle every half second at the flank at night, every creature moving at 2 m/s
 {G.setT(G.getT()+1000);for(const c of G.creatures)c.vel.set(2,0,0);let ns=0n,n=0;for(let k=0;k<600;k++){P.pos.set(fx-40+8*k/60,fy,fz);P.vel.set(8,0,0);if(k%30===0)G.sparkBurst(P.pos.x,fy,fz,1);const t0=process.hrtime.bigint();G.updateSparks(1/60);ns+=process.hrtime.bigint()-t0;n++;G.setT(G.getT()+1/60);}still();
   const ms=Number(ns)/n/1e6;console.log('  cost: updateSparks '+ms.toFixed(3)+' ms a frame, '+G.live()+' alive (this machine, headless)');ok(ms<0.3,'under 0.3 ms a frame headless');}
+// ---------- the night's other lights (v11.161) ----------
+console.log('glowing carcasses');
+ok(G.bactGlow(0,1)===0&&G.bactGlow(0.6,1)>0.95&&Math.abs(G.bactGlow(0.6,0.5)-Math.SQRT1_2)<0.02&&G.bactGlow(0.6,0)===0,'the quorum and the flesh: dark at death, full by 0.6 days, √ of the flesh left, none on bones');
+ok(G.bactSee(0.9)===0&&G.bactSee(0.035)===1,'shown only in the dark (noon in the shallows none, a moonless night full)');
+{night();let c=null,bd=1e9;for(const o of G.creatures){if(!o.alive||o.dead||o.def.role==='swarm'||!o.def.size)continue;const d=Math.hypot(o.pos.x-fx,o.pos.z-fz);if(d<bd){bd=d;c=o;}}
+  if(!c)ok(false,'no creature to kill');else{G.kill(c);const m0=c.fall?c.fall.m0:null;if(c.fall)c.fall.t0-=0.6;else c.deadT=0.6*G.DAY_S;G.camera.position.set(c.pos.x,c.pos.y+2,c.pos.z+8);
+    const n0=G.SPK.n;for(let k=0;k<60;k++)G.updateNightLights(1/60);const nc=G.SPK.n-n0,L=G.BACT_L[0];
+    ok(c.glow>0.5&&nc>3,'a '+c.kind+' dead 0.6 days glows '+T(c.glow)+': '+nc+' glow points in a second');ok(L.intensity>0.3&&Math.hypot(L.x-c.pos.x,L.z-c.pos.z)<0.01,'and holds a light ('+T(L.intensity)+')');
+    const sc={pos:G.V3(c.pos.x+30,c.pos.y,c.pos.z)};ok(G.findCarcass(sc,20)===c,'a scavenger 30 m off finds it within a 20 m look (the glow carries)');
+    noon();const n1=G.SPK.n;for(let k=0;k<30;k++)G.updateNightLights(1/60);ok(G.SPK.n===n1||G.SKY.skyLw*1<0.3,'at noon none shown (its glow '+T(c.glow)+' is there, the water too bright to see it)');night();}}
+console.log('the dusk displays');
+const deg=d=>Math.sin(d*Math.PI/180);
+ok(G.dspGate(0,0)===0&&G.dspGate(deg(-15),0)>0.99&&G.dspGate(deg(-35),0)===0&&G.dspGate(deg(-15),0.5)===0,'the window: none at sunset, full at −15°, gone by −35°, none under a moon half up');
+ok(G.dspHab(-5,0)>0.99&&G.dspHab(-130,0)===0&&G.dspHab(2,0)===0&&Math.abs(G.dspHab(-5,1)-0.3)<0.01,'the floor: shallow sheltered, not the deep, not land, little in the surf');
+{let lx=0,lz=0,hb=0;for(let r=200;r<=2400&&hb<0.8;r+=50)for(let a=0;a<6.28&&hb<0.8;a+=0.1){const x=Math.cos(a)*r,z=Math.sin(a)*r,sm=G.sample(x,z),hh=G.dspHab(sm.h,sm.f[G.FI.expo]);if(hh>hb){hb=hh;lx=Math.round(x);lz=Math.round(z);}} // the first shallow sheltered floor out from ours
+  console.log('  the displays\' floor at '+lx+', '+lz+' ('+T(hb)+')');let best=null;for(let lh=21;lh<28;lh+=0.05){G.setClock(G.DAY_H*13+((lh-G.SOLAR_H0)%G.DAY_H+G.DAY_H)%G.DAY_H);G.updateSky(0.016);if(Math.abs(G.SKY.sunAlt-deg(-15))<0.01){best=lh;break;}}
+  G.load(lx,lz);const ly=Math.max(G.ground(lx,lz)+1,G.tide()-3);G.camera.position.set(lx,ly,lz);for(const S of G.DSP_S)S.on=false;
+  const n0=G.SPK.n;let up=0,tot=0;for(let k=0;k<1200;k++){G.setT(G.getT()+1/60);G.updateNightLights(1/60);if(k%30===0)for(const S of G.DSP_S)if(S.on){tot++;if(S.dy>0.9)up++;}}
+  const nd=G.SPK.n-n0;ok(best!==null&&G.DSP.hab>0.5&&nd>100,'a new moon\'s dusk over shallow sheltered floor (hour '+(best||0).toFixed(2)+', the floor\'s '+T(G.DSP.hab)+'): '+nd+' pulses in 20 s');ok(tot>0&&up/tot>0.6,'mostly rising strings ('+up+' of '+tot+')');
+  G.setClock(G.DAY_H*0+((best-G.SOLAR_H0)%G.DAY_H+G.DAY_H)%G.DAY_H);G.updateSky(0.016);for(const S of G.DSP_S)S.on=false;const n1=G.SPK.n;for(let k=0;k<600;k++)G.updateNightLights(1/60);
+  ok(G.SPK.n===n1,'a full moon\'s dusk: none (the moon\'s light '+T(G.SKY.moonL/G.MOONL)+')');night();}
+console.log('milky seas');
+{const years=10;let runs=0,on=false,nights=0,bad=0;for(let d=0;d<185*years;d++){const h=d*G.DAY_H+((0-G.SOLAR_H0)%G.DAY_H+G.DAY_H)%G.DAY_H,p=G.milkyPulse(h),m=smooth01((p-G.MILKY.on[0])/(G.MILKY.on[1]-G.MILKY.on[0]));if(!(m>=0&&m<=1))bad++;if(m>0.5){nights++;if(!on){runs++;on=true;}}else on=false;}
+  ok(bad===0,'the strength within 0..1');ok(runs/years>=1&&runs/years<=8,(runs/years).toFixed(1)+' milky seas a year ('+nights+' nights in '+years+' years)');}
+{const step=2,N=Math.floor(120*G.DAY_H/step),fl=new Float64Array(N),mk=new Float64Array(N);for(let i=0;i<N;i++){G.setClock(i*step);G.bloomTick();fl[i]=G.FLASH_P[0];mk[i]=G.MILKY_P[1];}
+  const mean=a=>a.reduce((s,v)=>s+v,0)/a.length,mf=mean(fl),mm=mean(mk);let best=-2,bl=0;for(let lag=0;lag<=10*G.DAY_H/step;lag++){let sxy=0,sxx=0,syy=0;for(let i=0;i+lag<N;i++){const a=fl[i]-mf,b=mk[i+lag]-mm;sxy+=a*b;sxx+=a*a;syy+=b*b;}const r=sxy/Math.sqrt(sxx*syy+1e-12);if(r>best){best=r;bl=lag;}}
+  ok(bl*step/G.DAY_H>=1.5,'it follows the flashers\' bloom by '+(bl*step/G.DAY_H).toFixed(1)+' days (the dying bloom\'s bacteria)');}
+{let found=-1;for(let d=0;d<185*3&&found<0;d++){const h=d*G.DAY_H+((0-G.SOLAR_H0)%G.DAY_H+G.DAY_H)%G.DAY_H;G.setClock(h);G.bloomTick();if(G.MILKY_P[0]>0.6)found=h;}
+  if(found<0)ok(false,'no milky night in three years');else{G.updateSky(0.016);G.updateNightLights(0.016);const mN=G.FOG_SKF[3];G.setClock(found+15);G.bloomTick();G.updateSky(0.016);G.updateNightLights(0.016);ok(mN>0.02&&G.FOG_SKF[3]<1e-6,'its midnight lights the water ('+T(mN)+'), its noon does not');}}
 console.log(failed?'glow: FAILED':'glow: ok');
 process.exit(failed?1:0);

@@ -180,6 +180,7 @@ function updateSparks(dt){
   // the wake's light: at the player while it is lit, behind it; the breakers' glow on the surface (atmosphere.js surfaceU.uSpk: the gate, and the flashers' share of the gold now)
   if(P.lit>0.02&&!P.dead){SK_LIGHT.x=P.pos.x-P.vel.x*0.12;SK_LIGHT.y=P.pos.y-P.vel.y*0.12;SK_LIGHT.z=P.pos.z-P.vel.z*0.12;SK_LIGHT.intensity=SPK.lightK*P.lit;}else{SK_LIGHT.y=-1e5;SK_LIGHT.intensity=0;}
   surfaceU.uSpk.value.set(SPK.nightK*SPK.surfK,(1+FLASH_P[0])/(1+FOG_B[2]));
+  updateNightLights(dt); // v11.161: the carcasses, the dusk displays, the milky sea (below)
   if(!skLive){skPts.visible=false;return;}
   // the live sparks: drift with what they were thrown with and the current; rise in SPK.rise, fade over their life
   let live=0;const kd=Math.exp(-2.5*dt);
@@ -188,4 +189,52 @@ function updateSparks(dt){
   skLive=live;skPts.visible=live>0;if(!live)return;
   {const ox=ORIGIN.x,oz=ORIGIN.z;for(let i=0;i<SK_N;i++){skPG[i*3]=skP[i*3]-ox;skPG[i*3+1]=skP[i*3+1];skPG[i*3+2]=skP[i*3+2]-oz;}skPts.position.set(ox,0,oz);}
   skGeo.attributes.position.needsUpdate=true;skGeo.attributes.aG.needsUpdate=true;skGeo.attributes.aS.needsUpdate=true;skU.uScale.value=(renderer.domElement&&renderer.domElement.height||720)*0.5; // three's own points scale: half the drawing buffer's height
+}
+
+// ---------- the night's other lights (v11.161; the person, 16 Nov 2026: the dusk displays, glowing carcasses and milky seas, yes) ----------
+// Lights that need no stir, each with its reason — never a lamp, never a glowing plant (PLANET; the person: agreed).
+// Glowing carcasses (BACT): luminous bacteria live in most animals' guts and in the water; in a dead body they spread through the flesh and, dense,
+// switch their light on together (quorum sensing) — dark for the first hours, brightest while the flesh is rich, fading as it is stripped. The
+// likely payoff: a glowing carcass (or pellet) is eaten, which carries them into a new gut. So it is seen from further by what eats it (creatures_ai.js
+// findCarcass, c.glow). The person asked "it would be from filter feeders, no?" — no: any body's own gut flora, nothing climbs the food chain (PLANKTON §8).
+// The glow is steady: soft sparks that hang on the body (the sparks' pool, long and still) and a source in the light pool on the nearest bright ones —
+// shown only where the water round it is dark enough to see it by (BACT.dark on the light there: by day in the shallows nothing would).
+const BACT={on:[0.15,0.5],K:1.0,rate:30,life:[1.6,3.2],dark:[0.35,0.06],R:120,lights:2,lightK:1.1,lightD:8}; // on: game days after death over which the quorum lights it; K: its strength at full flesh; rate: glow points a second per m of body; life (s); dark: the light at its depth (skyLw × daylight) from which it starts to show and is full; R: the camera's reach; lights: pool sources it may hold; lightK, lightD: theirs
+const BACT_L=[];for(let i=0;i<BACT.lights;i++){const s={x:0,y:-1e5,z:0,color:0x6fe0c8,intensity:0,distance:BACT.lightD,d:0};BACT_L.push(s);lightSources.push(s);}
+// how bright a carcass's bacteria are (0..1): the quorum by its age (days), the flesh left (a share of the body)
+function bactGlow(ageD,frac){return BACT.K*smooth(BACT.on[0],BACT.on[1],ageD)*Math.sqrt(clamp(frac,0,1));}
+function bactSee(L){return smooth(BACT.dark[0],BACT.dark[1],L);}
+// The dusk displays (DSP): Earth's sea fireflies — ostracods, millimetre crustaceans in a hinged shell — court over shallow reef and seagrass in the
+// hour after a dark sunset: a male swims up spitting pulses of luminous mucus, a dotted string of blue lights rising a metre or two that hangs for a
+// second or two and fades, and the others take up the beat, so the strings come in waves. Moonlight stops them. Here the displayers are tiny
+// hingeshells by their trade (a hinged shell, PLANET's line; a background population, no bodies — the person to confirm), shown round the camera
+// where the floor is shallow and sheltered, between DSP.alt's sun altitudes, as the moon allows.
+const DSP={alt:[-0.42,-0.36,-0.20,-0.15],moon:[0.12,0.4],floor:[-25,-12,-1.5,-0.6],expo:0.7,rate:5,slots:24,n:[6,14],gap:[0.18,0.32],step:[0.15,0.28],life:[1.6,2.6],R:26,beat:7,size:0.8,g:0,hab:0};
+// alt: the sun's altitude (sin) — the displays from −25° (rising) to −9° (falling), ~0.75–2 h after sunset; moon: the moon's light (of full) over which they stop; floor: the
+// floor's height (m) over which they live (full −12 to −1.5); expo: how much the surf's exposure takes off; rate: strings a second at full; slots: strings at once;
+// n: pulses in a string; gap: metres between pulses; step: seconds between them; life: a pulse's glow (s); R: the camera's reach (m); beat: the waves' period (s)
+const DSP_S=[];for(let i=0;i<DSP.slots;i++)DSP_S.push({on:false,x:0,y:0,z:0,dx:0,dy:0,dz:0,k:0,n:0,gap:0,step:0,tt:0});let dspHabT=0;const DSP_F=new Float32Array(NF);
+function dspGate(sunAlt,moonK){return smooth(DSP.alt[0],DSP.alt[1],sunAlt)*(1-smooth(DSP.alt[2],DSP.alt[3],sunAlt))*(1-smooth(DSP.moon[0],DSP.moon[1],moonK));}
+function dspHab(h,expo){return smooth(DSP.floor[0],DSP.floor[1],h)*(1-smooth(DSP.floor[2],DSP.floor[3],h))*(1-DSP.expo*expo);}
+function updateNightLights(dt){
+  const K=SKY,cam=camera.position,on=FX.biolum;
+  // the carcasses: glow by their quorum and flesh; the brightest near ones hold the pool's sources
+  for(const s of BACT_L){s.y=-1e5;s.intensity=0;}
+  let nl=0;
+  for(const c of carcasses){c.glow=0;if(!on||c.gone||!c.dead||c.flesh<=0)continue;const F=c.fall,age=F?nowD()-F.t0:c.deadT/DAY_S,m0=F?F.m0:bioMass(c.def);
+    c.glow=bactGlow(age,c.flesh/m0);if(c.glow<0.01)continue;const ex=c.pos.x-cam.x,ey=c.pos.y-cam.y,ez=c.pos.z-cam.z;if(ex*ex+ey*ey+ez*ez>BACT.R*BACT.R)continue;
+    const vis=c.glow*bactSee(K.skyLw*daylightAt(c.pos.y));if(vis<0.01)continue;const sz=c.def.size;
+    let n=Math.floor(BACT.rate*vis*sz*dt+Math.random());for(;n>0;n--){const u=Math.random()*2-1,a=Math.random()*TAU,r=sz*0.3*Math.sqrt(Math.random());skEmit(c.pos.x+Math.cos(a)*r+u*sz*0.35,c.pos.y+(Math.random()-0.3)*sz*0.25,c.pos.z+Math.sin(a)*r-u*sz*0.35,0,0.02,0,0.35+0.4*vis,rnd(BACT.life[0],BACT.life[1]));}
+    if(nl<BACT.lights){const s=BACT_L[nl++];s.x=c.pos.x;s.y=c.pos.y+sz*0.6;s.z=c.pos.z;s.intensity=BACT.lightK*vis;s.distance=BACT.lightD+sz;}}
+  // the dusk displays: the habitat at the camera every half second, the strings in their slots
+  DSP.g=on?dspGate(K.sunAlt,K.moonL/MOONL):0;dspHabT-=dt;if(dspHabT<=0){dspHabT=0.5;const s=sample(cam.x,cam.z,DSP_F);DSP.hab=dspHab(s.h,s.f[FI.expo]);}
+  const gk=DSP.g*DSP.hab;
+  if(gk>0.01){const ph=(t/DSP.beat)%1,wave=0.3+1.6*Math.exp(-ph*ph*30)+1.6*Math.exp(-(1-ph)*(1-ph)*30);let n=Math.floor(DSP.rate*gk*wave*dt+Math.random()); // the waves: the strings come together on the beat
+    for(const S of DSP_S){if(n<=0)break;if(S.on)continue;const a=Math.random()*TAU,r=DSP.R*Math.sqrt(Math.random()),x=cam.x+Math.cos(a)*r,z=cam.z+Math.sin(a)*r,g=groundAt(x,z);if(g>TIDE-1.5)continue;
+      const up=Math.random()<0.75,ta=Math.random()*TAU,tl=up?0.15:0.95;S.on=true;S.x=x;S.y=Math.min(g+rnd(0.3,2.2),TIDE-1.2);S.z=z;S.dx=Math.cos(ta)*tl;S.dy=up?1:rnd(-0.1,0.2);S.dz=Math.sin(ta)*tl; // most rise; a quarter run along the floor
+      {const l=Math.sqrt(S.dx*S.dx+S.dy*S.dy+S.dz*S.dz);S.dx/=l;S.dy/=l;S.dz/=l;}S.k=0;S.n=Math.round(rnd(DSP.n[0],DSP.n[1]));S.gap=rnd(DSP.gap[0],DSP.gap[1]);S.step=rnd(DSP.step[0],DSP.step[1]);S.tt=0;n--;}}
+  for(const S of DSP_S){if(!S.on)continue;S.tt-=dt;if(S.tt>0)continue;if(S.k>=S.n||DSP.g<=0.01){S.on=false;continue;}
+    const y=S.y+S.dy*S.gap*S.k;if(y>TIDE-0.4){S.on=false;continue;}skEmit(S.x+S.dx*S.gap*S.k,y,S.z+S.dz*S.gap*S.k,0,0.01,0,0.8+0.2*Math.random(),rnd(DSP.life[0],DSP.life[1]));S.k++;S.tt=S.step;}
+  // the milky sea: the strength by the clock and the night into every fogged material (uSkF.w) and the far sea by the gold at the camera (uHzSea.w)
+  {const m=on?MILKY.E*MILKY_P[0]*(1-K.dayK):0;FOG_SKF[3]=m;wmBloom(cam.x,cam.z,skB);HZ_SEA_U.value.w=m*milkyAt(skB[1])*1.6;}
 }

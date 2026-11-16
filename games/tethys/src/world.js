@@ -827,6 +827,20 @@ function flashC(b,fd,d){bloomC(b,fd,d,_flC);const ml=64*(1+0.3*FOG_B[3]);return 
 function flashK(F){return F>0?F/(F+FLASH.half):0;}
 // the stock at a point in the world, exactly (the tests)
 function flashAt(x,y,z){const s=sample(x,z);return flashC(plankTexel(x,z,s,_plkT),-s.h,TIDE-y);}
+// ---------- milky seas (v11.161, PLANKTON §8; the person, 16 Nov 2026: "I also love the idea of milky seas") ----------
+// Earth's milky seas: the surface layer glowing a steady pale blue-white over thousands of km² for nights on end — luminous bacteria (Vibrio
+// harveyi on Earth) grown on a dying algal bloom, glowing all the time (a bacterium's light is on once its neighbours are dense: quorum
+// sensing), not on a stir. A few are seen a decade on Earth. Here: the gold's bloom dies a week after the storm that fed it, so the trigger is the
+// same rain through a kernel peaking MILKY.T later (far.js bloomTick, MILKY_P: storm → the gold a day later → the flashers in four → the milky sea in
+// seven), with a high threshold — over ten game years at midnight, ~3 episodes a year of a night or two (the 98th percentile, test/glow.js) — and
+// only over water whose gold is rich (the floor map's gold crop: the fed flanks). The water itself glows: scene.js fogVeil adds MILKY.col × the
+// strength in the top MILKY.top metres (uSkF.w: E × MILKY_P × the night), so the far water under it is light and everything in it a silhouette;
+// the horizon's far sea by the strength at the camera (horizon.js uHzSea.w). Gated by the dark only because by day nothing would see it.
+const MILKY={T:200,n:4,step:8,span:480,on:[0.42,0.50],top:[10,25],gold:[0.15,0.6],col:[0.62,0.80,0.88],E:0.12}; // the kernel's peak (h), power, step and span; the pulse's ramp (rain × e, the gold's units: 0.23 a mean night, 0.45 the 98th percentile); the glowing layer's depth (m: full to, gone by); the gold crop (mg/m³) it needs; its colour and strength
+const MILKY_P=new Float32Array([0,0]); // the strength now (0..1, far.js bloomTick) and the pulse it came from
+// the strength's share at a place: the gold's crop there (the shader gates each end of a ray this way and mixes the gates — a gate of the mixed crop let a
+// rich near end and a poor far one through at 3%, seen: the first look's milky sea all but dark) (from a texel's encoded gold, as the floor map holds it)
+function milkyAt(gEnc){const C=PLK.cmin*Math.pow(2,gEnc*PLK_ENC);return smooth(MILKY.gold[0],MILKY.gold[1],C);}
 const _v3=v=>'vec3('+v.map(n=>n.toFixed(3)).join(',')+')';
 const BLOOM_GLSL='vec3 bloomC(vec3 b,float fd,float d){float fx=(b.z*5.0+1.0-uFogB.x)*uFogB.y;float fr=exp(-fx*fx);float lit=1.0+'+PLK.front.toFixed(2)+'*fr;float s=uFogB.w;float ml=64.0*(1.0+0.3*s);float r=(d-ml-31.0)/(35.0*(1.0+0.2*s));'+
   'vec2 C='+PLK.cmin.toFixed(3)+'*exp2(b.xy*'+PLK_ENC.toFixed(4)+');float sh=1.0-smoothstep(8.0,60.0,fd);float stir=clamp(C.y/(C.x+C.y)/(1.0-0.5*sh),0.0,1.0);'+

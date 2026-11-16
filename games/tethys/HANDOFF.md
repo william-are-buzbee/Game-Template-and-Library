@@ -1,5 +1,11 @@
 # HANDOFF — tethys
 
+**v11.161 (16 Nov 2026): the night's other lights** (fx.js `updateNightLights`, world.js `MILKY`; DESIGN The body's effects; PLANKTON §8; CHANGELOG).
+Glowing carcasses (their gut bacteria lit by quorum, hours after death, fading with the flesh; scavengers see them further), the dusk displays (sea
+fireflies' strings over shallow sheltered floor in the hour after a dark sunset — the displayers tiny hingeshells, **to confirm**), milky seas (a week
+after a stormy spell over the fed flanks, ~2–3 a year; the water itself glows). `milky()` and `dusk()` in the console. Stacked on v11.160.1.
+**Ask:** the displays and a carcass (not seen here: headless Chromium ran out of memory at the shallows), a milky sea from above and below.
+
 **v11.160 (16 Nov 2026): the bioluminescent wake** (world.js `FLASH`, fx.js `SPK`; DESIGN The body's effects, "The sparks"; PLANKTON §8; CHANGELOG).
 The flashers are a grazer of the gold (the person took my suggestion): bright where the crop is and four days after a stormy spell, faint in island
 water, at the surface. At night (by the clock) a body's shear fires them — a sprint a line, a school's pace a few, a slow body none; spent water
