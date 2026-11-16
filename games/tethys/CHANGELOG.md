@@ -8229,3 +8229,31 @@ load ×1.02. More land is dearer ground to sample (the valleys). Ours and the gi
 
 **Unseen, ask in this order:** (1) the ninth blind sheet; (2) the profile measure narrowed to the barrier islands alone, to see whether the
 pedestal is the lagoons or the stepped base past them.
+
+## v11.154 — the reefs' shapes by many scales (16 Nov 2026)
+
+The ninth blind sheet (analysis_archipelago §10.12; seeds 251, 263, 271, 283): 4 of 4 found, all the middle. The person: "a marbling effect inside
+the cyan portions … the saddles where everything connects like they're magnetic … this uniform blob that looks more circular and stretches as
+opposed to the kindof uniformly kraggy shapes of the other atolls." Answered: "Go with 1 and 2 together, measure first".
+
+**Measured first** (test/measures.js, two new measures): `lagoons` — our shallows one depth (p10 −49 to −54 m, p50 −42 to −46) stippled by knolls
+of one size, little relief at 1–3 km; `outline` — above −150 m the bays a 3 km closing fills 0.2–0.4% of our pieces, Earth's 0.4–1.8%.
+
+- **The margins' bites** (region.js `rgBite`, `RG_BITE`; world.js `lbF`, `btAt`; a record's `bite`, `btR`): landslide scars bitten into every model
+  record's margin — one every 8.5 km, 1.5–9 km across, up to 30% of the radius — as a table of the lobe's scale by angle, so the bounds hold and
+  every reader of the lobe sees them; on a high island growing from half its land out to its reef.
+- **The lagoons by many scales** (world.js `apronF`, `apronW`, `BACKREEF`, `lagoonM`, `LAGM`): behind every model reef a back-reef sand apron (a flat
+  3–7 m under the reef's top, 0.3–3.5 km wide, widest to windward), then the floor with basins over km, knolls of every size in fields, reticulate
+  ridges, lagoonF's blue holes. The platform keeps lagoonF.
+- test/region.js: the oval islands' area without their bites; the bites (on the model's records only, none past `D`, land taken and none given).
+
+**Measured after** (four seeds, before → after, Earth's): the lagoons' p90 −21…−31 → −11…−22 m (−7…−14), relief at 1–3 km 1.6–3.6 → 3.3–4.3 m
+(2.2–5.3); the outlines' bays at −150 m 0.2–0.4 → 0.9–1.3% (0.4–1.8), at −60 m 0.7–1.4 → 1.4–2.2% (0.9–2.5), roughness inside Earth's at both. Not
+moved: the lagoons' median (the depth law, Earth's real big lagoons 40–60 m; GMRT's −20 partly interpolation) and the halo's spread (CV 0.18–0.27,
+Earth's 0.37–0.89). **Seen** (sheet 9's tiles re-made): the banks and lagoons mottled at several scales, sand flats on their rims, bitten edges.
+
+**What it costs** (`BASE=<v11.153> node test/bench.js`): world ×1.00 and east ×1.01 (best of five processes; best of three said ×1.05 and ×1.10,
+noise), w70 ×1.02, plat ×1.02, ours ×1.00 and the same to the bit; the load ×1.03. The pins carry no bites and keep lagoonF; the giant's
+ground not compared separately.
+
+**Unseen, ask in this order:** (1) the tenth blind sheet; (2) the necks at shelf depth (§10.12's (3)); (3) the halo, still even round the high islands.

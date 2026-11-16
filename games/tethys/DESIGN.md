@@ -245,6 +245,18 @@ crest's range, so the bound tables hold. The giant keeps v11.62's gullies; ours 
 planation; a member's shore, and its ring when its reef took hold, are where its flank as the rain left it meets the sea — the sea's flat
 `(E − Ef)/RG_S` plus `(zv + Ef)/RG_SA` (`RG_COAST`; to v11.152 `rtop + zv/RG_SA`, a cone planed of everything it lost, which moved an old island's coast
 inward by its rain). The pins as they were.
+**The reefs' shapes by many scales (v11.154; analysis_archipelago §10.12–10.13):** two parts. *The margins' bites:* every model record with a margin
+over ~1 km round (region.js `rgBite`, `RG_BITE`) carries `R.bite`, a table of `N` (720) angles in its own frame: one scar every `sp` m of its margin
+(by its own draws, `'bite:'+id`), `w` m across log-uniform, `d` of its width deep and at most `D` of its radius (`DL` on a high island), the profile a
+half-ellipse (sharp corners: the headlands). world.js `lbF` multiplies the lobe's scale by 1 − the bite (`btAt`, straight between the table's
+points), faded outward as the lobe is; on a high island (`R.btR`: its reef's radius, or `sh` of its coast's) the bite grows from half its land's
+radius to there, so the scar takes the shelf and the reef more than the old coast. A bite only draws the record's ground inward at its angle, so
+the bound tables (never rising outward) hold, and every reader of the lobe (rgLoc, rgAt, rgLbFix, the shelter) sees it. The pins none.
+*The lagoons:* behind every model reef (an atoll's or bank's rim, a barrier) the back-reef sand apron (`apronF`, `BACKREEF`): a flat `flat` m under
+the reef's top that ends in a slope from `in` of its width, the width `k` of the ring's radius within `w`, `ww` its share leeward to windward,
+lobed by a noise; then the floor by many scales (`lagoonM`, `LAGM`): basins of ±`bA` m over km by the lagoon's depth, knolls from a field of
+`oct` octaves from `f` (sizes from tens of metres to kilometres, clustered), reticulate ridges along a ridged noise (`ret`), the blue holes
+lagoonF's. The platform keeps lagoonF. The floor's depth law (rgLagD) is unchanged.
 **Young cones on old islands (v11.131):** a member's host (`m.host`) is the older, bigger one whose foot it is born inside and whose shield was
 built before its birth, highest there by their 12° shapes; each step its base is the host's surface there (`m.off`), so it sinks and wears with
 it. Its record's `R.sat` (`b` its base, `k`, `host`): islandH steepens its flank `k`-fold below `b` (the skirt; the host's record is the ground
