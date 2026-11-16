@@ -2329,6 +2329,18 @@ mark) with a 16-point trail comes down from high in the view onto the child over
   from above and below, to the horizon. Numbers on the fed flank at a new moon's midnight: a sprint at 8 m/s ~300 sparks a
   second, a school's pace ~50, 0.8 m/s none. `bioluminescence` on the effects list; the readout's `sparks` is the light at the player at night.
   Not yet: pens and whips flashing when brushed (`GLOW` is still kept for them).
+- **The night's other lights (v11.161; fx.js `updateNightLights`, world.js `MILKY`; the person, 16 Nov 2026: yes to all three, no lanterns, no glowing
+  plants).** *Glowing carcasses* (`BACT`): luminous gut bacteria, quorum-lit — `bactGlow` = smooth(0.15, 0.5 days since death) × √(flesh left); shown
+  where the water is dark (`bactSee` on skyLw × daylight: 0.35 → 0.06), as soft glow points that hang on the body (30 a second per m of body, 1.6–3.2 s)
+  and the nearest two holding a source in the light pool (`BACT.lightK` 1.1, 8 m + the body); a scavenger sees one from × (1 + 1.5 × glow) further
+  (creatures_ai.js `findCarcass`, `c.glow` in spawn's literal). *The dusk displays* (`DSP`): Earth's sea fireflies' strings — the displayers tiny
+  hingeshells by their trade (the person to confirm) — round the camera within 26 m where the floor is −25…−0.6 m (full −12…−1.5) and sheltered
+  (× (1 − 0.7·expo)), in the sun's window −25° → −9° (~0.75–2 h after sunset) and only as dark as the moon allows (gone by 0.4 of a full moon's light);
+  a string 6–14 pulses 0.18–0.32 m apart, 0.15–0.28 s apart, each glowing 1.6–2.6 s, three in four rising, the rest along the floor, 5 strings a second at
+  full on a 7 s beat (the waves of entrainment); 24 at once. *Milky seas* (`MILKY`): the rain through (τ/T)^n·e^{n(1−τ/T)}, T 200 h, n 4, over 480 h
+  (far.js `milkyPulse`), its strength smooth(0.42, 0.50) — ~2.6 a year of a night or two (test/glow.js, ten years), 2.3 days after the flashers' bloom;
+  the water's own light in fogVeil (scene.js: `MILKY.col` (0.62, 0.80, 0.88) × `uSkF.w` = `E` 0.12 × the strength × the night, over gold of 0.15–0.6 mg/m³ (the fed flank and its sides),
+  in the top 10–25 m) and the far sea by the gold at the camera (horizon.js `uHzSea.w`). The console: `milky()` and `dusk()` give the `skip()` to the next.
 
 ## Performance and the quality tier
 

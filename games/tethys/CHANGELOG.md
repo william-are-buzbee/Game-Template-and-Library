@@ -8533,3 +8533,41 @@ five); `updateSchools` + `updateCreatures` at the forest 1.731 → 1.617 ms (×0
 
 **Unseen, ask in this order:** 1. A sprint on the fed flank at night (`skip(13.6)`, `tp(600,-670,-4)`): the glow's size and strength. 2. Schools
 and hunters sparking in the distance. 3. The breakers from the beach at night. 4. A hunter's reach on a lit wake (the cost: does it feel fair?).
+
+## v11.161 — the night's other lights: glowing carcasses, the dusk displays, milky seas (16 Nov 2026)
+
+The person, on lights that need no stir (16 Nov 2026): the dusk displays "for sure", glowing carcasses ("that's awesome"), milky seas ("I also love the
+idea"); the luminous ink not now; no steady glowing plants or lanterns (agreed). Their question — "it would be from filter feeders, no? … how do the
+bioluminescent compounds or bacteria survive the [trophic] ladder?" — answered in PLANKTON §8: a carcass's light is its own gut bacteria, lit together
+when dense (quorum sensing), and a glowing carcass gets eaten, which is the bacteria's way into a new gut; nothing climbs the chain. Each light below
+has that kind of reason (DESIGN, The body's effects, "The night's other lights"; fx.js `updateNightLights`; world.js `MILKY`).
+
+- **Glowing carcasses** (fx.js `BACT`, `bactGlow`, `bactSee`, `BACT_L`): smooth(0.15, 0.5 days since death) × √(flesh left) — a fall's death day from its
+  record, so a reload keeps its clock; shown where the water round it is dark (skyLw × daylight 0.35 → 0.06), as soft glow points hanging on the body and a
+  source in the light pool on the nearest two; a scavenger sees one × (1 + 1.5 · glow) further (creatures_ai.js `findCarcass`, `glow` in spawn's literal).
+- **The dusk displays** (fx.js `DSP`, `dspGate`, `dspHab`): Earth's sea fireflies' strings — the displayers tiny hingeshells by their trade (**my
+  assumption, to confirm**) — within 26 m of the camera over shallow sheltered floor, ~0.75–2 h after sunset, as dark as the moon allows; strings of 6–14
+  pulses, mostly rising, coming on a 7 s beat.
+- **Milky seas** (world.js `MILKY`, `milkyAt`; far.js `milkyPulse`): the rain through a kernel peaking 200 h after (the gold's bloom dying), its strength
+  smooth(0.42, 0.50) — ~2.6 a year of a night or two over ten game years, 2.3 days after the flashers' bloom; the water's own light in the fog's veil over
+  gold of 0.15–0.6 mg/m³ (scene.js `fogVeil`, `uSkF.w`), the surface's own body from above (atmosphere.js), the far sea by the gold at the camera
+  (horizon.js `uHzSea.w`). Three fixes after looking: `E` 0.055 → 0.12 (lost under an 87% moon); the gold gated at each end of a ray and the gates
+  mixed, not the crops mixed and gated (a rich near end and a poor far one let 3% through); the layer's weight from either end of the ray (a level or
+  downward ray took its blended point from below the layer, and only the view up glowed); the surface taking the glow from above (its dark body hid it).
+- **The console:** `milky()` and `dusk()` give the `skip()` to the next milky sea and the next dark dusk; the readout shows `displays` and `milky`.
+- **test/glow.js:** the carcass's glow by quorum and flesh, its light, a scavenger finding it from 30 m within a 20 m look, none shown at noon; the
+  displays' window and floor, a new moon's dusk over the first shallow sheltered floor out from ours (~500 pulses in 20 s, most strings rising) and
+  none at a full moon's; milky seas 1–8 a year, after the flashers', lighting the water at midnight and not at noon.
+
+**Seen** (headless Chromium, low tier, 640×360, the finback on the fed flank at a milky midnight under an 87% moon): under water the water itself pale
+teal-grey, the body a silhouette against it (mean 36.7 against 16.6 off); from 3 m above, the sea a pale grey-green to the horizon (34.4 against 17.9).
+**Not seen:** the dusk displays and a glowing carcass — both shots, at the first shallow sheltered floor out from ours (−250, 10), ran headless
+Chromium out of memory twice (as the shelf did in v11.160); their logic is test/glow.js's.
+
+**What it costs:** `updateSchools` + `updateCreatures` at the forest the same simulation to the bit (test/frames.js; 2.244 → 1.758 ms, which is this
+machine's noise, not a gain); `updateNightLights` is a loop over the carcasses, the 24 display slots and a sample every half second — inside `updateSparks`'s 0.03 ms
+in test/glow.js's cost run; `bloomTick's` recompute adds 60 `weatherAt` calls every 2 s (~0.013 ms); the GPU: one branch and two texture reads in
+the fog's veil when a milky sea is on (`uSkF.w` > 0), the surface's likewise — unmeasured here.
+
+**Unseen, ask in this order:** 1. The dusk displays (`dusk()` then the lagoon or a reef flat, a few metres down). 2. A milky sea (`milky()`, then the fed
+flank `tp(600,-670,-4)`, under and above the water). 3. A carcass at night a few hours after a kill. 4. Whether the displayers are tiny hingeshells.

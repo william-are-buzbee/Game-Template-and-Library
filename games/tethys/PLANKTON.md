@@ -208,6 +208,12 @@ ladder?": not filter feeders and no ladder — the light on a carcass is luminou
 through the dead body and switch on together when they are dense (quorum sensing); a glowing carcass or pellet gets eaten, which carries them into
 a new gut. (The one real ladder: the midshipman fish cannot make its luciferin and takes it from the sea fireflies it eats.)
 
+**Built as v11.161 (16 Nov 2026; DESIGN, The body's effects, "The night's other lights").** The carcasses glow on their quorum's clock and draw
+scavengers from further; the dusk displays are Earth's sea fireflies' strings, the displayers **tiny hingeshells** by their trade (a hinged shell —
+my assumption from PLANET's lines, **for the person to confirm**), over shallow sheltered floor in the hour after a dark sunset; the milky seas come
+a week after a stormy spell (the gold's bloom dying, its bacteria lit), a night or two, ~2–3 a year, over the fed flanks. The chain: a storm → the gold
+a day later → the flashers in four → a milky sea in seven.
+
 ## 9. Marine snow, refined
 
 What stays: everything in `atmosphere.js:382`. The five populations, the Martin curve, the density steps, the chemocline's plate and
