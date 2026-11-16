@@ -107,7 +107,7 @@ function updateSurface(){surface.position.set(Math.round(camera.position.x/SSTEP
 // read by the dome shader, the lights, the fog, the surface and the readout. Nothing here is a place: the whole world sees one sky.
 const SKY={sun:V3(0,1,0),moon:V3(0,-1,0),lum:V3(0,1,0),sunAlt:1,moonAlt:-1,illum:1,dayK:1,moonUp:0,moonL:0,skyL:1,skyLw:1,sunL:1,lumL:1,lumLw:1,night:0,cover:0,rain:0,rainA:0,
   zen:[0,0,0],hor:[0,0,0],glow:[0,0,0],sunC:[1,1,1],lumC:[1,1,1],tint:[1,1,1],bow:0,wind:[0,0],windOff:[0,0],starT:0,
-  cirrus:0,upperOff:[0,0],cirrC:[1,1,1],plan:PLANETS.map(()=>V3(0,1,0)),spray:0,windK:1,eclS:0,eclL:0,dawn:0,lag:0,cloudHere:0,cellNear:0}; // cloudHere (v11.87): the deck's density over the player along the luminary, what the beam reads // v11.17: the cirrus cover, the upper wind's drift, the cirrus' colour (sunlit after sunset), the planets' directions, the surf's spray at the camera
+  cirrus:0,upperOff:[0,0],cirrC:[1,1,1],plan:PLANETS.map(()=>V3(0,1,0)),spray:0,windK:1,eclS:0,eclL:0,dawn:0,lag:0,cloudHere:0,cellNear:0,eye:1}; // cloudHere (v11.87): the deck's density over the player along the luminary, what the beam reads // v11.17: the cirrus cover, the upper wind's drift, the cirrus' colour (sunlit after sunset), the planets' directions, the surf's spray at the camera
 const WX={},cirrTmp=[0,0,0];
 function skyLerp(out,keys,idx,s){let a=keys[0],b=keys[keys.length-1];for(let i=1;i<keys.length;i++)if(s<=keys[i][0]){a=keys[i-1];b=keys[i];break;}
   const u=clamp((s-a[0])/(b[0]-a[0]),0,1),ca=a[idx],cb=b[idx];out[0]=lerp(ca[0],cb[0],u);out[1]=lerp(ca[1],cb[1],u);out[2]=lerp(ca[2],cb[2],u);return out;}
@@ -128,7 +128,7 @@ function updateSky(dt){const K=SKY;
   K.eclS=discOverlap(Math.acos(clamp(K.sun.dot(K.moon),-1,1)),SUN_R,MOON_R);K.eclL=discOverlap(Math.acos(clamp(-K.sun.dot(K.moon),-1,1)),MOON_R,UMBRA_R);
   K.dayK*=1-0.97*K.eclS; // totality is deep twilight: the light, the sky's colours below and the stars follow
   K.windK=Math.max(WX.wind,K.rain); // a shower is a gust front (v11.88: the cell's, here)
-  K.moonUp=smooth(-0.05,0.25,K.moonAlt);K.moonL=MOONL*K.moonUp*Math.pow(K.illum,1.8)*(1-0.97*K.eclL); // a half moon gives a tenth of a full one's light; an eclipsed moon almost none
+  K.moonUp=smooth(-0.05,0.25,K.moonAlt);K.moonL=MOONL*K.moonUp*Math.pow(K.illum,1.8)*(1-0.97*K.eclL); // a half moon gives a third of a full one's light (the Moon's own: a tenth; the comment said a tenth to v11.158); an eclipsed moon almost none
   const shade=1-0.30*K.cover-0.20*K.rain; // cloud takes what it takes from the whole sky (v11.18: a shower leaves ~0.52 of noon; it left 0.24, under a full-moon night's 0.31 — 'much worse than nighttime'. The beam still dies under it, below)
   // The night's cloud (v11.34). Rain reached the night twice: weatherAt adds 0.5*rain straight into cover, and the night term then
   // took 0.7 of that off the moon — so a full shower left half of a clear night (0.128 against 0.256, fitted from the person's own
@@ -194,7 +194,7 @@ const skyU={uZen:{value:new THREE.Vector3()},uHor:{value:new THREE.Vector3()},uG
   uSun:{value:new THREE.Vector3()},uMoon:{value:new THREE.Vector3()},uLum:{value:new THREE.Vector3()},uCam:{value:new THREE.Vector3()},uWind:{value:new THREE.Vector2()},uUpper:{value:new THREE.Vector2()},
   uDay:{value:1},uNight:{value:0},uCover:{value:0},uRain:{value:0},uMoonL:{value:0},uLumL:{value:1},uStarT:{value:0},uTime:timeU,uBow:{value:0},uCloudH:{value:CLOUD_H},uCirrusH:{value:CIRRUS_H},uCirr:{value:0},uCamH:{value:0},uEclS:{value:0},uEclL:{value:0},uFxCloud:{value:1},
   uDeckC:{value:new THREE.Vector3(1,1,1)},uDeckL:{value:0},uCld:{value:FOG_CLD},uCldB:{value:FOG_CLDB},uCellA:{value:FOG_CELLA},uCellB:{value:FOG_CELLB},uCldTex:cldTexU,uVolT:{value:new THREE.Vector2(CLOUD_T,CLOUD_T)}, // v11.89 (clouds.js): the atlas, the deck's depth (a plain deck's, the deepest cell's) // v11.87 (clouds.js): the deck's sunlight and its colour, the lumps' share (the deck fades out under them), the field's state
-  uMist:{value:MIST_P},uMistC:{value:MIST_C},uMistW:{value:MIST_W},uPlanD:{value:new Float32Array(9)},uPlanC:{value:new Float32Array(PLANETS.map(p=>[p[1][0],p[1][1],p[1][2],p[2]]).flat())}};
+  uEye:{value:1},uMist:{value:MIST_P},uMistC:{value:MIST_C},uMistW:{value:MIST_W},uPlanD:{value:new Float32Array(9)},uPlanC:{value:new Float32Array(PLANETS.map(p=>[p[1][0],p[1][1],p[1][2],p[2]]).flat())}};
 const SKY_VS='varying vec3 vDir;void main(){vDir=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}';
 // The sky's noise and its clouds as strings (v11.49): the cumulus deck (marched base to top), the scud and the cirrus were inline in SKY_FS; the surface's
 // window draws them too now, refracted per facet, so the clouds are seen from under the water (WATER.md item 6 said the window had none — the person, 14 Sep:
@@ -222,7 +222,7 @@ const VOL_GLSL=['vec4 cloudVol(vec3 d,vec3 zen,vec3 hor){float up=d.y;if(up<0.00
   '  float T=1.0,sA=0.0,sS=0.0,sM=0.0,sT=0.0,fz=0.0,fzl=0.0;vec3 L=uLum;float fw=pow(max(dot(d,uLum),0.0),16.0)*uDeckL*uDay;',
   '  float t=t0;for(int i=0;i<'+Q.march+';i++){float dt=max('+VOL_DT[0].toFixed(1)+',t*'+VOL_DT[1].toFixed(4)+');float ts=t+jit*dt;t+=dt;if(ts>t1)break;vec3 wp=uCam+d*ts;float dn=cldDensT(wp,rowW,fz);if(dn>0.003){float a=1.0-exp(-dn*dt*'+VOL_SIG.toExponential(4)+');float l1=cldDensT(wp+L*'+VOL_L1.toFixed(1)+',rowW,fzl),l2=cldDensT(wp+L*'+VOL_L2.toFixed(1)+',rowW,fzl);float lt=exp(-(l1*'+VOL_L1.toFixed(1)+'+l2*'+(VOL_L2-VOL_L1).toFixed(1)+')*'+VOL_SIGL.toExponential(4)+');float w=T*a;sA+=w;sS+=w*lt;sM+=w*fz;sT+=w*ts;T*=1.0-a;if(T<0.02)break;}}',
   '  if(sA<0.002)return vec4(0.0);float q=floor(sS/sA*3.0+0.5)/3.0;float amb=0.95+0.25*(sM/sA);vec3 col=mix(shdC*amb,litC,q)+uDeckC*fw*(1.0-sA)*1.2;float fk=1.0-exp(-(sT/sA)/9000.0);col=mix(col,hor,fk*0.85)*(1.0-0.35*uRain);return vec4(col,sA*hf);}'].join('\n')+'\n';
-const SKY_FS=[DITHER_PARS,'uniform vec3 uZen,uHor,uGlow,uSunC,uLumC,uCirrC,uSun,uMoon,uLum,uCam,uDeckC;uniform vec2 uWind,uUpper;uniform float uDay,uNight,uCover,uRain,uMoonL,uLumL,uStarT,uTime,uBow,uCloudH,uCirrusH,uCirr,uCamH,uEclS,uEclL,uFxCloud,uDeckL;',
+const SKY_FS=[DITHER_PARS,'uniform vec3 uZen,uHor,uGlow,uSunC,uLumC,uCirrC,uSun,uMoon,uLum,uCam,uDeckC;uniform vec2 uWind,uUpper;uniform float uDay,uNight,uCover,uRain,uMoonL,uLumL,uStarT,uTime,uBow,uCloudH,uCirrusH,uCirr,uCamH,uEclS,uEclL,uFxCloud,uDeckL,uEye;',
   'uniform vec4 uMist,uMistC,uMistW,uCld,uCldB,uCellA,uCellB;uniform vec2 uVolT;uniform vec3 uPlanD[3];uniform vec4 uPlanC[3];varying vec3 vDir;',
   MIST_GLSL,
   SKY_NOISE_GLSL,CLD_GLSL,CLOUD_GLSL,CLD_VOL_GLSL,VOL_GLSL,
@@ -274,12 +274,12 @@ const SKY_FS=[DITHER_PARS,'uniform vec3 uZen,uHor,uGlow,uSunC,uLumC,uCirrC,uSun,
   '  if(uBow>0.002&&up>-0.02){float ang=acos(clamp(dot(d,-uSun),-1.0,1.0));float x=(ang-0.7243)/0.0157;float x2=(0.9076-ang)/0.0175;',
   '    float w=1.0-smoothstep(0.8,1.0,abs(x)),w2=(1.0-smoothstep(0.8,1.0,abs(x2)))*0.35;float xx=w>w2?x:x2;float ww=max(w,w2);',
   '    vec3 rb=vec3(smoothstep(-0.25,0.65,xx),1.0-min(abs(xx)*1.3,1.0),1.0-smoothstep(-0.6,0.35,xx));col+=rb*0.30*ww*uBow*max(cta,uRain)*smoothstep(-0.02,0.1,up)*(1.0-0.6*ca);}', // v11.88: the bow stands on the rain — the curtain along the ray, or the rain here
-  '  gl_FragColor=vec4(dithering(col),1.0);}'].join('\n'); // dithered (v11.29): the dusk gradient bands like the deep does
+  '  gl_FragColor=vec4(dithering(col*uEye),1.0);}'].join('\n'); // dithered (v11.29): the dusk gradient bands like the deep does; the eye's gain (v11.159, NIGHT_EYE) as every fogged material takes it in its fog chunk
 const sky=(function(){const g=new THREE.SphereGeometry(FAR*0.94,24,12);
   const m=new THREE.Mesh(g,new THREE.ShaderMaterial({uniforms:skyU,vertexShader:SKY_VS,fragmentShader:SKY_FS,side:THREE.BackSide,depthWrite:false,fog:false}));m.frustumCulled=false;m.renderOrder=-10;m.visible=false;scene.add(m);return m;})();
 function pushSky(){const K=SKY,U=skyU;U.uZen.value.fromArray(K.zen);U.uHor.value.fromArray(K.hor);U.uGlow.value.fromArray(K.glow);U.uSunC.value.fromArray(K.sunC);U.uLumC.value.fromArray(K.lumC);U.uCirrC.value.fromArray(K.cirrC);
   U.uSun.value.copy(K.sun);U.uMoon.value.copy(K.moon);U.uLum.value.copy(K.lum);U.uCam.value.copy(camera.position);U.uWind.value.set(K.windOff[0],K.windOff[1]);U.uUpper.value.set(K.upperOff[0],K.upperOff[1]);
-  U.uDay.value=K.dayK;U.uNight.value=K.night;U.uCover.value=K.cover;U.uRain.value=K.rainA;U.uMoonL.value=K.moonL/MOONL;U.uLumL.value=clamp(K.lumL,0,1);U.uStarT.value=K.starT;U.uBow.value=K.bow;U.uCirr.value=K.cirrus;U.uEclS.value=K.eclS;U.uEclL.value=K.eclL;U.uFxCloud.value=FX.clouds?1:0;
+  U.uDay.value=K.dayK;U.uEye.value=K.eye;U.uNight.value=K.night;U.uCover.value=K.cover;U.uRain.value=K.rainA;U.uMoonL.value=K.moonL/MOONL;U.uLumL.value=clamp(K.lumL,0,1);U.uStarT.value=K.starT;U.uBow.value=K.bow;U.uCirr.value=K.cirrus;U.uEclS.value=K.eclS;U.uEclL.value=K.eclL;U.uFxCloud.value=FX.clouds?1:0;
   const cy=camera.position.y;U.uCloudH.value=CLOUD_H*(1-0.35*K.rainA)-cy;U.uCirrusH.value=CIRRUS_H-cy;U.uCamH.value=cy-TIDE; // under a shower the base drops (the congestus is the cell's, in the volume)
   U.uDeckC.value.fromArray(CLD_S.deckC);U.uDeckL.value=CLD_S.deckL;{let cm=0;for(const c of CELLS)cm=Math.max(cm,c.s);const T0=CLOUD_T*(WX.deep||1);U.uVolT.value.set(T0,T0*(1+2*cm));}FOG_CLD[0]=K.windOff[0];FOG_CLD[1]=K.windOff[1];FOG_CLD[2]=CLD_S.th;FOG_CLD[3]=CLD_S.here;FOG_CLDB[0]=CLD_S.street;FOG_CLDB[1]=CLD_S.cap;FOG_CLDB[2]=CLD_S.rise;FOG_CLDB[3]=CLOUD_H*(1-0.35*K.rainA); // the field's state for every shader that reads it (v11.87, clouds.js): the dome, the sea's topside, the land in air; v11.89: the deck's depth and the deepest cell's (uVolT)
   const pd=U.uPlanD.value;for(let i=0;i<3;i++){const v=K.plan[i];pd[i*3]=v.x;pd[i*3+1]=v.y;pd[i*3+2]=v.z;}
@@ -346,7 +346,7 @@ function updateShafts(above,wk){
     if(a>0)a*=clamp(0.25+0.5*cauFocus(x,z,SH_FOC,t),0.2,1.6); // the surface's focusing over this shaft (v11.39)
     shA[b]=shA[b+1]=shA[b+2]=shA[b+3]=a;const ph=shHash(ci,cj,4)*TAU;shPh[b]=shPh[b+1]=shPh[b+2]=shPh[b+3]=ph;n++;}
   shafts.position.set(ORIGIN.x,0,ORIGIN.z);shG.attributes.position.needsUpdate=true;shG.attributes.aA.needsUpdate=true;shG.attributes.aPh.needsUpdate=true;
-  shU.uK.value=SH_A*SUN_W[3]*K.skyL*wk*(1-smooth(30,70,TIDE-camera.position.y)); // and gone for a camera deeper than ~50 m: rays are a thing of the top of the column
+  shU.uK.value=SH_A*SUN_W[3]*K.skyL*K.eye*wk*(1-smooth(30,70,TIDE-camera.position.y)); // and gone for a camera deeper than ~50 m: rays are a thing of the top of the column
   shU.uCol.value.setRGB(0.55*K.lumC[0],0.72*K.lumC[1],0.8*K.lumC[2]); // the shafts take the lamp's colour (v11.31.4): warm at a low sun, silver under the moon
 }
 // Rain: streaks that fall round the camera, only drawn above the water while a shower is on — each a short line along its own
@@ -571,6 +571,18 @@ function applyFog(above){
 // and 90 m wide, sat a metre over a camera that had just surfaced — an additive ceiling over the whole sky for a quarter of a second,
 // the sky three times too bright at the flip and dimming: the flash on every breach in the person's fifth video. (v11.7's first cut
 // also mixed the fogs and the domes; the water's veil read into the air wrapped the shore in teal on every breach — seen, struck.)
+// The eye's adaptation (v11.159; the person, 16 Nov 2026: "it can get really dark"). The renderer has no exposure, so every light curve here was
+// squashed by hand for a fixed eye — and a moonless night sits on STARL alone: nine nights in a row of the 26-day month (the moon new or down all
+// night) and most of four more, about half of all night time at 0.035 of noon against a clear full moon's 0.28. Under water that floor also darkens
+// the veil, so past a few metres it was black (68% of a frame at the forest under 20 of 255, against 12% at full moon). An eye opens in the dark: the
+// frame is multiplied by a gain that is 1 by day and at a full moon and rises as the sky's light falls, (ref/L)^k capped at max — the viewer, not the
+// world, so nothing in PLANET moves. The moon's phase then shows as what moonlight does (the beam, the caustics, the shadows) more than as the level.
+// L is the sky's light in the camera's medium (skyLw under water, skyL in air, blended over the crossing as the fog is), never the depth: whether the
+// eye also adapts to the deep is the person's, for another time (16 Nov 2026). Applied where every fogged material ends (scene.js fog_fragment, uSkE.w),
+// the dome (uEye) and the horizon pass; the HUD is HTML and untouched. The player's own light is divided by it, so its halo looks as it did (the person:
+// keep it). The effects list's "night eyes" sets it to 1. The person chose the cap: 2.4 (a moonless night between a quarter and a full moon's level).
+const NIGHT_EYE={ref:0.26,k:0.5,max:2.4}; // ref: the sky's light at or above which the eye is at 1 (a clear full moon's skyLw, ~0.28; dusk passes it with dayK near 0.25); k: how much of a fall it makes up (0.5: the square root); max: the cap
+function eyeK(L){return clamp(Math.pow(NIGHT_EYE.ref/(L>1e-3?L:1e-3),NIGHT_EYE.k),1,NIGHT_EYE.max);} // L>1e-3, not Math.max: a NaN light gives the cap, never a NaN in every fragment
 const MED_T=0.25,SKY_NEAR=1.5;let medK=0; // SKY_NEAR (v11.42): how far under the wave the camera can be with the sky still drawn; deeper the surface's underside covers it (through its alpha the sky would tint the mirror — WATER.md B makes that the window)
 const amC=[0,0,0],seaFogC=new THREE.Color(),airFogC=new THREE.Color(),hemiSea=new THREE.Color(),hemiSeaG=new THREE.Color(),hemiAir=new THREE.Color(),hemiAirG=new THREE.Color();
 function updateAtmosphere(dt){
@@ -597,6 +609,7 @@ function updateAtmosphere(dt){
   surfaceU.uWin.value.set(tint[0]*K.skyL,tint[1]*K.skyL,tint[2]*K.skyL);surfaceU.uGlint.value.set(K.lumC[0]*K.lumL*1.05,K.lumC[1]*K.lumL*1.05,K.lumC[2]*K.lumL*1.05);
   const snap=above!==wasAbove;wasAbove=above;const dK=dt/MED_T;medK=above?Math.min(1,medK+dK):Math.max(0,medK-dK);if(snapMed){medK=above?1:0;snapMed=false;}
   const k=medK;
+  K.eye=FX.eyes?eyeK(lerp(K.skyLw,K.skyL,k)):1;FOG_SKE[3]=K.eye; // the eye (NIGHT_EYE, above): the gain every fogged material, the dome and the horizon multiply their colour by
   const shallow=smooth(-40,0,-depth); // the light's colour reaches the shallows only (red is gone by -15)
   airFogC.setRGB(K.hor[0],K.hor[1],K.hor[2]);FOG_AC[0]=airFogC.r;FOG_AC[1]=airFogC.g;FOG_AC[2]=airFogC.b; // the air segment's colour in every shader (v11.42)
   fogTarget.setRGB(wr,wg,wb).multiplyScalar((0.3+0.7*dl)*K.skyLw).multiply(skyT2.copy(skyT).lerp(WHITE,1-shallow));
@@ -614,7 +627,7 @@ function updateAtmosphere(dt){
   const sunSea=(0.9+0.2*Math.sin(t*2.3)+0.1*Math.sin(t*3.9))*1.2*K.lumLw; // the surface value: the shader scales it by the daylight at the lit point (scene.js, sun-by-depth)
   sun.intensity=lerp(sunSea,1.35*K.lumL,k);
   const wk=above?0:1-k; // the water's things: fading in under the water (k falls from 1), gone the frame the camera is in air (v11.7.2)
-  plight.intensity=(1.3*(1-dfD)*(1-dfD)+0.5*(1-K.skyL)*(1-K.skyL))*wk*(FX.plight?1:0); // the player's own light: in the deep as before, and a little at night; `own light` on the effects list (v11.52, POLISH.md Raised 13 Sep: the person wants to see the world without it)
+  plight.intensity=(1.3*(1-dfD)*(1-dfD)+0.5*(1-K.skyL)*(1-K.skyL))*wk*(FX.plight?1:0)/K.eye; // ÷ the eye (v11.159): the halo as it was before the eye adapted (the person: keep it); the player's own light: in the deep as before, and a little at night; `own light` on the effects list (v11.52, POLISH.md Raised 13 Sep: the person wants to see the world without it)
   updateShafts(above,wk);
   updateHaze(dt,above);sky.visible=true;sky.position.copy(camera.position);pushSky();updateClouds(dt); // the volume's atlas, once (clouds.js) // every frame since v11.43: the surface's window reads the sky's uniforms from under the water, where the sphere is hidden // the sky stays up within SKY_NEAR under the line (v11.42): a camera just under sees air through the near plane's gap above the water, and that is the sky, not the dome
   plankton.visible=FX.snow;snAU.value.set(TIDE,1/2.5,above?1:0,0);tintU.value.set(TIDE,above?1:0,K.skyL,0); // the snow from the air too (v11.82.1, the person: none showed below the surface): the top few metres, fading over 2.5 m, through the surface's body // x the water level (LIGHT_GLSL's depth); the through-water tint that read y and z went with v11.42 (scene.js)

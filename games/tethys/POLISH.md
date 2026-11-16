@@ -341,3 +341,22 @@ intensity. Night brightness itself is **not** in question — the person settled
 seeing what the light is doing, not about making the dark lighter.
 
 **Answered 15 Sep 2026:** yes — put `plight` on the effects list. And the 13 Sep audit's other four findings are all to be built: the shadow map freed when `shadows` is off, no rain from a clear sky when `clouds` is off, the shimmer sprite replaced with something in the style, the soft shadow edge hardened. Built as v11.52 the same day: `own light` on the list, the map freed, rain under clouds, the penumbra halved (`SHM_PEN`); the shimmer sprite had gone in v11.43.
+
+## Raised 16 Nov 2026 — built as v11.159
+
+**The dark fortnight.** The person: "it can get really dark in Tethys"; make the night more pleasant without screwing too much with
+believability. Night brightness was "perfectly fine" on 13 Sep, and both are true: the night's light is the moon plus `STARL` (0.035 of noon), the
+month is 26 game days (~17 real hours), and for nine nights in a row the moon is new or down all night, with most of four more the same — about half
+of all night time at the floor, 7–8× darker than a clear full moon (0.28). A new game boots at full moon, so the first ~6 real hours have good
+nights and then about three real hours of them in a row are at the floor. At the forest at 15 m a new-moon frame was 68% under 20 of 255 (12% at full
+moon; mean 16 against 39).
+
+Any underwater night that can be seen is a convention (Earth's moonless-to-full ratio is ~1:100 and a moonless night at 15 m is black; the game
+already has 1:8). The options put to the person: the eye adapts (a gain on the frame — the viewer, not the world), or a brighter moonless sky
+(`STARL` up: a claim about the planet, the lights only, nothing for a quarter moon or the rain). Not offered: a shorter month (the tides' clock) or
+a softer phase curve (already a third at a half moon where the Moon's is a tenth, and no help when the moon is down).
+
+**Answered 16 Nov 2026:** the adaptation; its cap ×2.4 (a moonless night between a quarter and a full moon's level today; mock-ups at ×2 and ×2.8
+were shown); the deep is another time — the eye follows the sky's light, never the depth; keep the own light (divided by the gain, so it looks
+as it did). The colour drain (rods see no colour) was offered with my recommendation against it (moonlight is already blue-grey) and not asked for; it stays out. Built as v11.159
+(DESIGN, The sky: "The eye"; `night eyes` on the effects list). Pass C, the bioluminescent wake (item 15), is still the next thing a dark night wants.

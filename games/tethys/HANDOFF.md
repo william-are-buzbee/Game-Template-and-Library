@@ -1,5 +1,12 @@
 # HANDOFF — tethys
 
+**v11.159 (16 Nov 2026): the eye adapts at night** (atmosphere.js `NIGHT_EYE`, `eyeK`; DESIGN The sky, "The eye"; POLISH "Raised 16 Nov"; CHANGELOG).
+The person: "it can get really dark". For nine nights in a row of the 26-day month the moon is new or down and the night sat on `STARL` (0.035 of
+noon, a clear full moon 0.28). Now the frame is multiplied by a gain, 1 by day and at a full moon, rising as the sky's light falls to the person's cap,
+×2.4; by the sky only, never the depth (the deep is another time); the own light divided by it so it looks as it did. `night eyes` on `e`; `eye ×n`
+on the readout. **Ask:** a new-moon night under water and from the surface on the preview (`skip(13.6)` from a new game lands an hour before a new moon's midnight; the finback or the coilshell — the soft-arm is dead of age by then), with
+`night eyes` flipped; the readout's render ms there.
+
 **v11.158 (16 Nov 2026): the world map, clean at every zoom** (worldmap.js; CHANGELOG). The person found `n` zoomed out "a ton of pixels"
 and the provinces lost under the marks. The map is now tiles at the screen's own pixels on a pyramid of levels, shaded and contoured as
 test/mapdraw.js (the contours anti-aliased paths), made a few ms a frame (`WMAP_BUDGET` 6) — coarse at once, sharp in seconds, kept — and the
