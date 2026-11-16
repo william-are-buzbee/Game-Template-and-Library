@@ -8503,3 +8503,33 @@ By day `updateSparks` is one `smooth` and a check. On the GPU: one more draw of 
 is the fed flank's break, 4 m down — without the height `tp` puts you 10 m off a 130 m floor, under the flashers): too much, too little, the colour? 2. Island water near the start (`tp(440,410,-4)`) — the faint sparkle (its shot crashed
 headless Chromium twice for memory, streaming the forest at speed). 3. A shower or the surf at night from just under the surface. 4. The high tier
 (only the low was shot) and the readout's render ms with it on and off. 5. Whether the hunters should read a lit wake (PLANKTON §8's cost) — next, if wanted.
+
+## v11.160.1 — the sparks legible: soft, everywhere that moves, lighting and seen (16 Nov 2026)
+
+The person, on v11.160 (from its pictures): "you don't really see the bioluminescence anywhere at all except when you're moving. and then it just
+kinda looks like blue dots of water, like particle effects behind your tail … I want the believability but it also has to be legible to the player."
+Two causes: the physics (the flashers fire only when the water is disturbed, and round you most of it is still) and my choices — only `FLOW`'s five
+nearest moving creatures within 40 m could fire them, and a spark was a hard square that lit nothing. The person's answers (16 Nov 2026, PLANKTON §8):
+soft glows; the world's own motion; "light is light" — a lit body is seen.
+
+- **Soft** (fx.js `skM`): a core exp(−9r²) and a halo 0.3(1−r²)², 0 at the quad's edge (no square), `uSize` 0.42, up to 48 px, `K` 0.35: overlapping halos
+  read as a glowing cloud.
+- **Everything that moves** (`skBody`): the player and every moving creature within `SPK.R` 110 m of the camera, by its own velocity and flow radius
+  (stochastic rounding — no accumulator on the body; `cap` 260 a frame); a school 80 m off is a streak, a charge a bolt.
+- **The current** (`SPK.cur`): the stream at the camera, smooth(0.25, 1 m/s), twinkles the water round it at 90 a second at full light, no fatigue.
+- **The breakers** (atmosphere.js `uSpk` on the surface): the foam glows by the floor map's crops and the clock, from above and below, to the horizon.
+- **Light** (`SK_LIGHT`, a source in the light pool): the player's lit wake lights what is round it, 9 m, `lightK` 1.4 × lit.
+- **Seen** (creatures_ai.js `litK`; `lit` on the player and in spawn's literal): a body's `lit` (its sparks a second over `litRef` 150, eased) makes a
+  hunter's scan, sighting and hold on it reach × (1 + `see` 1.5 · lit) — a sprint through a bloom at night is seen from two and a half times as far.
+- **test/glow.js** now drives the player itself (the sources are the bodies), and adds: a sprint lights the player fully (a hunter's reach ×2.5) and the
+  light goes when it slows; a 1 m/s stream twinkles round the camera with nothing moving (55 in a second at the fed flank).
+
+**Seen** (headless Chromium, low tier, 640×360): the finback sprinting on the fed flank at a new moon's midnight in a cloud of soft blue-green light,
+its body lit blue by the wake (`_look/tethys-sparks-v11.160.1.png` in the session). **Not seen:** the breakers' glow — the shader compiles (no
+error), but no shot found breaking surf (a strip under ~2 m deep at the shore); a school sparking at a distance; a hunter coming for a lit wake.
+
+**What it costs:** `updateSparks` 0.032 ms a frame headless with every creature in sight moving and ~320 sparks alive (0.007 in v11.160, which saw
+five); `updateSchools` + `updateCreatures` at the forest 1.731 → 1.617 ms (×0.93, noise; the simulation the same to the bit — by day no body is lit); the GPU's share — a larger soft point per spark and one point light at night — unmeasured here.
+
+**Unseen, ask in this order:** 1. A sprint on the fed flank at night (`skip(13.6)`, `tp(600,-670,-4)`): the glow's size and strength. 2. Schools
+and hunters sparking in the distance. 3. The breakers from the beach at night. 4. A hunter's reach on a lit wake (the cost: does it feel fair?).

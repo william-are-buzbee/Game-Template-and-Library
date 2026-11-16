@@ -3,7 +3,9 @@
 **v11.160 (16 Nov 2026): the bioluminescent wake** (world.js `FLASH`, fx.js `SPK`; DESIGN The body's effects, "The sparks"; PLANKTON §8; CHANGELOG).
 The flashers are a grazer of the gold (the person took my suggestion): bright where the crop is and four days after a stormy spell, faint in island
 water, at the surface. At night (by the clock) a body's shear fires them — a sprint a line, a school's pace a few, a slow body none; spent water
-rests over 75 s; a struggle bursts; the breakers and the rain spark. `bioluminescence` on `e`. Stacked on v11.159. **Ask:** a sprint on the fed flank
+rests over 75 s; a struggle bursts; the breakers and the rain spark. **v11.160.1** (the person: "blue dots … behind your tail"; legible): soft
+glows, every moving body within 110 m sparks, the current twinkles, the breakers glow, the lit wake lights what is round it, and a lit body is seen
+from further by a hunter (`litK`). `bioluminescence` on `e`. Stacked on v11.159. **Ask:** a sprint on the fed flank
 (`skip(13.6)`, then `tp(600,-670,-4)` — 4 m under the mean sea; without the height `tp` puts you 120 m down, under the flashers), island water at the start, the surf at night; whether the hunters should read a lit wake.
 
 **v11.159 (16 Nov 2026): the eye adapts at night** (atmosphere.js `NIGHT_EYE`, `eyeK`; DESIGN The sky, "The eye"; POLISH "Raised 16 Nov"; CHANGELOG).

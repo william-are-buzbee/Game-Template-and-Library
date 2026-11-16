@@ -113,7 +113,7 @@ function spawn(ch,kind,pos,rng,opt){
   const c={kind:kind,def:d,g:b.g,anim:b.anim,pos:pos.clone(),vel:V3(0,0,0),home:pos.clone(),hp:d.hp,state:'wander',t0:rng()*100,lastSpd:0,lastYaw:0,roll:0,rollV:0,sq:0,stunSide:rng()<0.5?-1:1,target:null,biteT:0,wanderT:0,wander:pos.clone(),alive:true,gone:false,stun:0,bored:0,cool:rng()*3,scanT:rng()*0.5,alarm:0,fleeT:0,lungeT:0,ramT:0,school:null,off:null,offT:0,chunk:ch,lod:-1,parts:null,lodMeshes:null,sub:1,wet:true,grounded:false,flopT:0,
     b:b,mass:0,mass0:0,bound:0,reach:0,shapesW:null,chainW:null,grab:null,holding:0,hold:null,held:0,bleed:0,blood:0,wounds:null,paraT:0,stungT:0,armsLost:0,regrow:null,sickT:0,poison:0,poisT:rng()*2,commitT:0,coastT:0,missN:0,speedK:1,turnK:1,live:null,lost:null,cWith:null,d6:0,par:creatures.length&1, // hold: the hold it has on something, held: how many have hold of it, bleed: the rate its wounds drain at, blood: the share of its blood lost (combat.js, v11.91); mass: kg (combat.js kgOfBody; 1e6 while it sits), mass0 its own
     st:{tell:0,strike:0,jet:false,soft:undefined,lx:undefined,lz:undefined,turn:undefined,acc:undefined},tellT:0, /* st: every key it takes later declared, unset (v11.149: one shape, as the creature's) */strikeT:0,recoverT:0,burstT:rng()*2,face:null,bit:false,accT:0,threat:null,
-    ent:ent,hunger:EK.hunter?rng():0,starveT:0,hunt:0,feedT:0,feedAt:null,dead:false,flesh:0,deadT:0,scav:null,scavT:rng()*0.5,juv:juv?EK.grow*DAY_S*(0.8+0.4*rng()):0, // ent: the ledger entry; hunger 0 fed..1 starving (ecology.js); juv: seconds until it grows up // st: what the anim reads (creatures_builders.js); the tell and the strike as clocks
+    ent:ent,hunger:EK.hunter?rng():0,starveT:0,hunt:0,feedT:0,feedAt:null,dead:false,flesh:0,deadT:0,scav:null,scavT:rng()*0.5,lit:0,juv:juv?EK.grow*DAY_S*(0.8+0.4*rng()):0, // ent: the ledger entry; hunger 0 fed..1 starving (ecology.js); juv: seconds until it grows up // st: what the anim reads (creatures_builders.js); the tell and the strike as clocks
     k:k,cls:cls,soft:soft,softT:soft?MOULT.soft*Math.pow(EK.mass,0.25)*DAY_S*(0.7+0.6*rng()):0,moultT:vary&&!soft&&!juv&&moults(kind)&&D.role!=='boid'?MOULT.every*Math.pow(EK.mass,0.25)*DAY_S*(0.5+rng()):0,
     shM:null,cast:false,lodNear:0,lodFar:0,nearR:0,stepR:0, // set below, in this order
     carried:undefined,cur:undefined,curT:undefined,turnedF:undefined,turnV:undefined,accV:undefined,shapeF:undefined,rigV:undefined,rigO:undefined,hitN:undefined,hitB:undefined,lieQ:undefined,chaseT:undefined,lungeP:undefined,strikeP:undefined,
@@ -204,10 +204,13 @@ function setWander(c){
 function wander(c,dt){if(filterSeek(c,dt))return;c.wanderT-=dt;if(c.wanderT<=0||c.pos.distanceTo(c.wander)<3)setWander(c);const k=burstK(c,dt);seek(c,c.wander,c.def.speed*(c.def.cruiseF||0.45)*k,dt,0.8*k);} // v11.85: a hungry filter feeder goes to the swarm instead (the veil, the comb; the ram between hunts)
 // o is on d's prey list: by its kind, or (v11.69) a young of the player's line to whatever hunts the player (line.js lineKind; the crusher's preyClade by the line's preset)
 function preyOn(d,o){if(d.prey.indexOf(o.kind)>=0)return true;return !!(o.def.line&&d.prey.indexOf('player')>=0&&(!d.preyClade||o.def.lineId===d.preyClade));}
+// a lit body is seen further (v11.160.1; the person, 16 Nov 2026: "light is light … if you're lit and it would help a predator see you, then yes"): its
+// sparks (fx.js, o.lit 0..1: what it has shown in the last second or so) carry its place past the hunter's eyes — the scan, the sighting and the chase's hold
+function litK(o){return 1+SPK.see*(o.lit||0);}
 function findPrey(c,R){
   const d=c.def;let best=null,bd=1e9;if(R===undefined)R=d.detect;
-  if(!playerGone()&&player.inkT<=0&&((d.prey.indexOf('player')>=0&&(!d.preyClade||(player.clade&&player.clade.id===d.preyClade)))||(player.soft&&softPrey(c,player)))){const dp=c.pos.distanceTo(player.pos);if(dp<R){best=player;bd=dp*0.7;}} // v11.76: the player through its moult is a soft body like any other — prey to whatever is big enough (MOULT.prey), listed or not
-  for(const o of creatures){if(!o.alive||o===c)continue;if(!preyOn(d,o)&&!(o.soft&&softPrey(c,o)))continue;const dd=c.pos.distanceTo(o.pos);if(dd<R&&dd<bd){bd=dd;best=o;}} // a soft body of any kind is prey to a hunter big enough (v11.66, MOULT)
+  if(!playerGone()&&player.inkT<=0&&((d.prey.indexOf('player')>=0&&(!d.preyClade||(player.clade&&player.clade.id===d.preyClade)))||(player.soft&&softPrey(c,player)))){const dp=c.pos.distanceTo(player.pos);if(dp<R*litK(player)){best=player;bd=dp*0.7;}} // v11.76: the player through its moult is a soft body like any other — prey to whatever is big enough (MOULT.prey), listed or not
+  for(const o of creatures){if(!o.alive||o===c)continue;if(!preyOn(d,o)&&!(o.soft&&softPrey(c,o)))continue;const dd=c.pos.distanceTo(o.pos);if(dd<R*litK(o)&&dd<bd){bd=dd;best=o;}} // a soft body of any kind is prey to a hunter big enough (v11.66, MOULT)
   return best;
 }
 // The kill (v11.26): the ledger is debited and nothing comes back. Eaten whole (the player's bite, a small prey in a big mouth) the
@@ -372,7 +375,7 @@ function updateHunter(c,dt){
     // pursuit that has run ECO_CHASE seconds without a bite (a real pursuit is short; prey with a flee speed at its hunter's cruise outran
     // every hunter for good before this, and no hunt in the game ever ended in a meal). The clock stops while it has hold of the prey (v11.31)
     if(!c.hold)c.chaseT=(c.chaseT||0)+dt;const chaseK=tg===player?1:1+0.6*smooth(6,2,c.chaseT);
-    const lost=!tg||(tg!==player&&!tg.alive)||ashore||dist>(bleeding(tg)?Math.max(d.detect*1.6,SMELL_R*1.2):d.detect*1.6)||(tg===player&&(playerGone()||(player.inkT>0&&dist>3.5)))||c.bored>2||c.pos.distanceTo(c.home)>(d.home||30)*1.9||(tg!==player&&c.chaseT>ECO_CHASE);
+    const lost=!tg||(tg!==player&&!tg.alive)||ashore||dist>(bleeding(tg)?Math.max(d.detect*1.6,SMELL_R*1.2):d.detect*1.6*litK(tg))||(tg===player&&(playerGone()||(player.inkT>0&&dist>3.5)))||c.bored>2||c.pos.distanceTo(c.home)>(d.home||30)*1.9||(tg!==player&&c.chaseT>ECO_CHASE);
     if(lost){dropTarget(c,d.cool||4);}
     else if(c.hold){c.vel.multiplyScalar(1-1.5*dt);c.biteT-=dt;c.grab=c.b.rigs?tg:null;c.commitT=0;c.coastT=0;c.strikeT=0;c.tellT=0;} // holding (v11.92, COMBAT.md §10.4): the pair drifts as one and the holder does not seek into a body it already has (that was the orbit); the bites, the shake, the roll and the claws' pull are the hold's (combat.js updateHolds, holderWork, v11.93)
     else if(d.strike){
@@ -399,7 +402,7 @@ function updateHunter(c,dt){
   }else{
     if(c.scanT<=0){c.scanT=0.4;c.hunt=0;if(c.cool<=0&&c.hunger>ECO.hungry){const tb=findBleeding(c,SMELL_R);if(tb){c.state='chase';c.target=tb;c.bored=0;c.chaseT=0;}else{const tg=findPrey(c,d.detect*HUNT_SEEK); // the blood first (combat.js, v11.56): a bleeding body it eats within SMELL_R is the chase, past its eyes
       if(tg){const tp=tg===player?player.pos:tg.pos,dd=c.pos.distanceTo(tp);
-        if(dd<d.detect){c.state='chase';c.target=tg;c.bored=0;c.chaseT=0;} // seen: the chase
+        if(dd<d.detect*litK(tg)){c.state='chase';c.target=tg;c.bored=0;c.chaseT=0;} // seen: the chase (a lit body from further, v11.160.1)
         else if(tp.distanceTo(c.home)<(d.home||30)*HUNT_HOME){c.wander.copy(tp);c.wanderT=rnd(4,8);c.hunt=1;}}}}} // sensed: swim that way and look again
     if(c.hunt){const k=burstK(c,dt);seek(c,c.wander,d.speed*HUNT_CAST*k,dt,1.2*k);}else wander(c,dt);
   }
