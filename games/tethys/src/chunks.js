@@ -56,6 +56,17 @@ function nearLandmark(x,z,r){for(const p of LM.all)for(const q of (p.keep||[p]))
 const ROCK_COL=[0.30,0.31,0.33];
 const SUB_COL=[[0.20,0.23,0.26],[0.70,0.66,0.48],[0.36,0.39,0.41],[0.30,0.31,0.33]]; // mud, sand, rubble, rock
 const FLOOR_COL={apron:[0.30,0.28,0.24],ooze:[0.56,0.55,0.50],pave:[0.11,0.10,0.09],crust:[0.12,0.10,0.09]}; // v11.97 (DEEP §2): the islands' volcanic apron, dark grey-brown with olivine; the open floor's foraminiferal ooze, pale grey-cream (above the carbonate compensation depth, as all of this floor is); iron-manganese pavement and nodules where the current keeps the floor bare; the crust on old rock
+// The seagrass beds on the floor (v11.156; the person, 16 Nov 2026: the grass popping in under water while the plateau it stands on is seen from far
+// off). A runner's meadow (strap, tress: FLORA `meadow`) is drawn as plants only to FLORA_FAR, and at 0.03 plants a square metre they cover a few
+// percent of the sand, so a bed was bare sand until its shoots came in. The floor under a bed is its own: the rhizome mat and the shoots too small to
+// draw, the detritus they hold — dark olive against the olivine sand. meadowCover is where the plants can be (the species' envelope, its meadow's
+// mask and its clumping: placeFloraType's terms through meadowM and fieldK, so the paint and the plants agree), and terrainColor lays MEADOW_C ×
+// the green line's pigment over the sand by it × MEADOW_K — on the cells' terrain and the far terrain alike, so a bed reads to the fog's end and
+// its shoots grow out of it at FLORA_FAR. No tier term: the bed is the bed; the low tier's fewer plants stand on the same floor.
+const MEADOW_SP=FLORA.filter(f=>f.meadow),MEADOW_K=0.5,MEADOW_C=0.6; // the beds' species; the paint's strength at full cover; the bed's colour on the pigment
+function meadowCover(x,z,h,sl,f){if(h>3||h<-60||f[FI.sub]>0.55)return 0; // past every meadow species' envelope (strap −42…−3, tress −46…−22, on sand: their edges reach ~3 m and ~6 m further)
+  let c=0;for(const s of MEADOW_SP){const w=envW(s.env,h,sl,f);if(w<=0)continue;const m=meadowM(s,x,z);if(m<=0)continue;c=1-(1-c)*(1-w*m*(s.field?Math.min(1,fieldK(s.field,x,z)):1));}
+  return c;}
 function terrainColor(x,z,h,f,sl,tc,n){
     const rock=ROCK_COL,m=fbm(x*0.07+5,z*0.07+9,3),k=0.78+0.45*m,sub=f[FI.sub],light=smooth(-150,-10,h);
     const sv=clamp(sub*3,0,2.999),si=Math.floor(sv),st=sv-si,c0=SUB_COL[si],c1=SUB_COL[si+1];
@@ -70,6 +81,7 @@ function terrainColor(x,z,h,f,sl,tc,n){
     if(sub>0.6&&light>0.7&&f[FI.nut]<0.5&&m>0.6){const q=(m-0.6)*4*light;r=lerp(r,0.85,q);g=lerp(g,0.42,q);bl=lerp(bl,0.5,q);} // lime on clear bright rock
     const yg=f[FI.young];if(yg>0.3){const q=smooth(0.3,0.8,yg);r=lerp(r,0.26*k,q*0.5);g=lerp(g,0.24*k,q*0.5);bl=lerp(bl,0.22*k,q*0.5);if(m>0.62){const rq=(m-0.62)*3*q;r=lerp(r,0.55,rq);g=lerp(g,0.28,rq);bl=lerp(bl,0.1,rq);}} // young basalt, rust where the mat is
     const ht=f[FI.heat];if(ht>0.2){const v=fbm(x*0.03+50,z*0.03+50,3);if(v>0.55){const q=Math.min(1,(v-0.55)*5)*smooth(0.2,0.7,ht);r=lerp(r,0.62,q);g=lerp(g,0.5,q);bl=lerp(bl,0.16,q);}} // sulfur round the fissure
+    const mc=meadowCover(x,z,h,sl,f);if(mc>0){const pg=pigment(h,'green'),q=mc*MEADOW_K;r=lerp(r,pg[0]*MEADOW_C*k,q);g=lerp(g,pg[1]*MEADOW_C*k,q);bl=lerp(bl,pg[2]*MEADOW_C*k,q);} // the seagrass beds (v11.156, meadowCover below)
     // the shore (v11, PLANET Geology): the sand is olivine — basalt sheds green sand (Papakolea's is the proof) — from a little below
     // the waterline, dark and wet at it; above the tide the dry strand, then bare basalt: dark grey, and where it has weathered in a
     // 28% atmosphere the iron in it has rusted (a lit red-brown that comes and goes with the noise). The rock's olive film and spray
@@ -130,8 +142,9 @@ function makeInstanced(ch,rng,geo,mat,tints,list,dip,vars,f){
 // count is the frame, and it scales as species × visible cells (DESIGN Performance, 13 Sep). Now a species without a card or a pad draws
 // once for all loaded cells: a cell writes its instances into the species' pool as one block (the same rng, the same matrices, tints and
 // per-instance attributes as the per-cell mesh had) and takes them out on unload by moving the tail down; only the written range is
-// uploaded (updateRange). The pool draws everything loaded — the per-instance collapse past FLORA_FAR (scene.js FAR_CUT) does what the
-// per-cell hide did for the small things, and the rock never hid — so a cell behind the camera costs its vertices, which the GPU has to spare.
+// uploaded (updateRange). A cell out of view or past FLORA_FAR is hidden by its block's flags (aHide, v11.125, poolCull below); inside it each
+// instance fades out over FLORA_FADE and is gone past FLORA_FAR (scene.js farCut) — the rock, the fans and the stipeling too since v11.155 (to
+// v11.154 they had no cut, and a whole cell of them appeared at once when its nearest edge came within FLORA_FAR).
 // The card species (FAR_IMP: the stipe, bladder, buttons, tidetree; `f.card`) keep a mesh per cell because their cards take over per cell,
 // the rafts keep aDip per cell (physics.js updatePads), the glow clouds their GLOW mesh. A pool grows by doubling into a fresh geometry
 // clone (the old one disposed, so no GL buffer is left behind); it casts into the world's shadow map whole (scene.js updateShadowS) with a
@@ -230,6 +243,10 @@ function cellLee(ch){return Math.max(leeW(ch.cx,ch.cz),leeW(ch.x0,ch.z0),leeW(ch
 // the cell's lineage range (v11.119, region.js rangeBuild): the record whose ground the cell's middle is most inside — its coast nearest
 function chRange(ch){if(ch.rng!==undefined)return ch.rng;if(rgPlatSd(ch.cx,ch.cz,true)>0)return ch.rng=0; // v11.122: the platform is the old east's (v11.126: its carbonate, the drowned with the living) — the head, lit first, where the founder was (its members buried in it)
   let best=null,bd=1e18;for(const i of recsAt(ch.cx,ch.cz)){const R=ISLANDS[i],d=Math.hypot(ch.cx-R.x,ch.cz-R.z)-shWidth(R);if(d<bd){bd=d;best=R;}}return ch.rng=best&&best.rng!==undefined?best.rng:2;}
+// a meadow's mask at a point, 0 bare sand to 1 the bed (v11.116's term, a function since v11.156 so the floor's paint reads the same numbers), and a
+// species' clumping by its `field` frequency (0.1 to 1.6)
+function meadowM(f,x,z){const M=f.meadow,o=M[3]||0;return smooth(M[1],M[2],fbm(x*M[0]+71+o,z*M[0]+43+o,2));}
+function fieldK(fr,x,z){return clamp(0.1+4*Math.pow(fbm(x*fr+31,z*fr+17,2),2.5),0,1.6);}
 function* placeFloraType(ch,rng,f){
   if(f.big)return; // structures are placed and drawn once for the whole world (far.js); placeBigSolids adds their collision
   if(f.range&&f.range.indexOf(chRange(ch))<0)return; // a brooding line's species keeps to its range (v11.119)
@@ -244,9 +261,9 @@ function* placeFloraType(ch,rng,f){
     const x=ch.x0+rng()*CELL,z=ch.z0+rng()*CELL;
     let p=(f.per||0)/maxN*(f.envs?envsW(ch,f.envs,x,z):f.env?ch.w(f.env,x,z):1);if(f.rare)p*=f.rare; // envs, rare (v11.66): the best of several envelopes (a shed lies where its kind lives), and a chance under one for a thing rarer than one try a cell
     if(f.pocket)p*=0.1+smooth(0.6,0.72,fbm(x*f.pocket+53,z*f.pocket+29,2));
-    if(f.meadow){const o=f.meadow[3]||0;p*=0.06+0.94*smooth(f.meadow[1],f.meadow[2],fbm(x*f.meadow[0]+71+o,z*f.meadow[0]+43+o,2));} // v11.116: meadows [frequency, lo, hi] — a runner's patches with bare sand between and a few shoots in it
+    if(f.meadow)p*=0.06+0.94*meadowM(f,x,z); // v11.116: meadows [frequency, lo, hi] — a runner's patches with bare sand between and a few shoots in it
     if(cw>0.03)p=Math.max(p,leeW(x,z)*f.leePer/maxN);
-    if(f.field)p*=clamp(0.1+4*Math.pow(fbm(x*f.field+31,z*f.field+17,2),2.5),0,1.6);
+    if(f.field)p*=fieldK(f.field,x,z);
     if(f.succ&&p>0)p*=smooth(f.succ[0],f.succ[1],distAge(x,z,ch.f(x,z)[FI.expo],ch.h(x,z))); // v11.120: the age of the storm's clearing here (grow.js distAge)
     if(rng()>=p)continue;
     const h=ch.h(x,z);
@@ -297,6 +314,19 @@ function placeBigSolids(ch){
   for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){if(!di&&!dj)continue;const i=ch.i+di,j=ch.j+dj;if(!gridIn(i,j))continue;
     for(const s of bigsFor(i,j)){const e=s.m.elements,sc=len3(e[4],e[5],e[6]),R=(s.f.foot||1)*sc*1.3;
       if(e[12]+R<ch.x0||e[12]-R>ch.x0+CELL||e[14]+R<ch.z0||e[14]-R>ch.z0+CELL)continue;addLumps(ch,s.f.lumps,s.m,s.rs);}}
+}
+// The boulders' collision (v11.157; far.js rocksGen: the far layer places and draws them): the cell's own blocks and its neighbours' that reach
+// over its line, into its hash — complete whatever is loaded, as placeBigSolids makes it for the structures, so clearOf sees the same rock on every
+// visit — and the cell's own as a shadow proxy on layer 1 (never drawn by the camera: the region draws them). A generator: a cell's list not
+// yet cached (its region not built) is a few thousand sample() calls
+function* placeRockSolids(ch){
+  const own=[];
+  for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const i=ch.i+di,j=ch.j+dj;if(!gridIn(i,j))continue;const L=yield* rocksGen(i,j);
+    for(const s of L){if(!di&&!dj){own.push(s);addFloraSolids(ch,s.f,s.m,s.x,s.y,s.z,null,false);continue;}
+      if(s.x+s.r<ch.x0||s.x-s.r>ch.x0+CELL||s.z+s.r<ch.z0||s.z-s.r>ch.z0+CELL)continue;addFloraSolids(ch,s.f,s.m,s.x,s.y,s.z,null,false);}}
+  if(own.length){const c=new THREE.Color(),im=new THREE.InstancedMesh(BOULDER_G,MATROCKB,own.length);im.layers.set(1);shadowCaster(im,MATROCKB,ch.sphere);
+    for(let i=0;i<own.length;i++){im.setMatrixAt(i,own[i].m);c.setRGB(own[i].col[0],own[i].col[1],own[i].col[2]);im.setColorAt(i,c);}instLocal(im,own,ch.ox,ch.oz,q=>q.m);
+    im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;ch.group.add(im);ch.meshes.push(im);ch.shBig.push(im);}
 }
 // clearOf(ch, x,y,z, f, sc, sy): may a plant stand here? Its base (a pad the size of its footprint) and, for a tall one, its middle are
 // asked of the collision hash — this cell's solids so far (the rock went first, then the rigid plants before it in FLORA) and the loaded
@@ -456,8 +486,9 @@ function* genChunk(i,j){
   // v11.22, the order: rock first (the structures' collision, the cliffs' ledges, the cell's blocks), then everything that grows, each
   // asking the hash before it stands (clearOf). One rng stream per entry (v11.2), so the order moves nothing
   placeBigSolids(ch);yield;
+  yield* placeRockSolids(ch);yield;
   placeCliffs(ch,rng);yield;
-  for(const f of FLORA){if(f.mat!==MATROCK)continue;yield* placeFloraType(ch,mulberry((((i*73856093)^(j*19349663)^hashStr(f.id))>>>0)),f);yield;}
+  for(const f of FLORA){if(f.mat!==MATROCK||f.farRock)continue;yield* placeFloraType(ch,mulberry((((i*73856093)^(j*19349663)^hashStr(f.id))>>>0)),f);yield;}
   for(const f of FLORA){if(f.mat===MATROCK)continue;yield* placeFloraType(ch,mulberry((((i*73856093)^(j*19349663)^hashStr(f.id))>>>0)),f);yield;}
   placeLandmarks(ch);yield;
   yield* spawnChunkCreatures(ch,rng);lineLoad(ch);fallsLoad(ch); // the player's broods that lie in it (line.js, v11.69); the falls in it (v11.99)

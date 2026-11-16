@@ -81,7 +81,7 @@ Static instances (rafts, colonies) do not drift yet.
 (nearest vertex), `ch.w(env,x,z)`. `groundAt` reads the grid if loaded, else `sample()`. `chunkGrid` mirrors the `chunks`
 map for cheap 3×3 lookups. `genChunk` is a generator run under a per-frame budget in `manageChunks()`. Chunk seams: positions
 are computed from integer grid indices so they match exactly. `terrainColor` (by substrate, young rock, lime in clear bright
-water, sulfur at the fissure, the shore by height, bare rock on steep ground) is shared with the far terrain; `waterColor`
+water, sulfur at the fissure, the seagrass beds, the shore by height, bare rock on steep ground) is shared with the far terrain; `waterColor`
 (world.js: by the floor's depth, toward silt with turbidity, brown in the plume; the plankton's green left it in v11.81) fills the water map.
 
 **The plankton** (v11.81, PLANKTON.md §3–4, §7, §12; world.js the plankton section, far.js the maps, scene.js the fog block). The water's own
@@ -1220,22 +1220,34 @@ get only the sun/hemi (the light pool is assigned by distance), so distant vents
 - **Landmarks** (`LMK`): the chimney (the ribcage struck v11.100; the neck gone before) (the arches, the great lantern and
   the heart are built at boot with `gridH` for their ground height and kept; the cell registers solids/lights/plumes.
   The great lantern's and heart's glow meshes are persistent, drawn whenever in frustum.
-- **Impostors** (`FAR_IMP`, `impostorsFor`). The flora that exists only in loaded cells (the stipe forest at 900/cell,
-  bladders, rafts, colonies, the tidewood) gets a sparse stand-in beyond them — every 5th stipe as a crossed pair of olive cards
-  stretched to 1.4 under mean level (under the deepest trough, v11.4) with a canopy pad on top (like the bladder's; the stipe is a `reach` entry since v9.5), every 3rd bladder as a thin crossed
-  card the height of the water column with a six-sided pad on top (10 tris), every raft as a flat octagon the size of
+- **Impostors** (`FAR_IMP`, `impostorsFor`). The flora that exists only in loaded cells (the stipe forest at 700/cell,
+  bladders, rafts, colonies, the tidewood) gets a sparse stand-in beyond them — every 3rd stipe and every 2nd bladder as a low-poly copy of the
+  real one (v11.155, far.js `farStipeGeo`, `farBladderGeo`: the builders' middle ecotype — the stipe a three-sided stalk, four nodes of two flat
+  blades 1.3× the real's for the nodes left out, the canopy whorl's five blades, 32 tris; the bladder a three-sided stalk and four flat pentagon
+  floats each with its two blades under it, 34 tris — in their own vertex colours under the real tint, `pig`), stretched to 1.4 under mean level
+  (under the deepest trough, v11.4) as the real ones are to the surface. To v11.154 every 5th stipe and every 3rd bladder were a crossed pair of
+  olive cards with a six-sided pad on top (10 tris), dimmed 0.55 and 0.7 (v11.42.4) — "two squares making an X that are stuck in the ground,
+  until the real thing spawns in and looks great" (the person, 16 Nov 2026), as the tidewood's were "strange looking square LOD's". Every raft as a flat octagon the size of
   its pads (every 3rd small raft at 1.3× radius; the colonies one for one, in the skin's olive — the canopy's coverage comes
   out the same, ~2× the cell area), every 2nd tidewood as a low-poly copy of the real one, not a card (37 tris, v11.124; the tidal forest above). Placed by `placeFloraType`'s density rules (biome, field, pocket, canopy, slope, depth) from
   a pure per-cell rng — they match the near flora in density, not one for one — and drawn per region with `MATFAR`
-  (Lambert, double-sided, no sway, small-thing fog — the same as the real kelp's, so nothing pops at the swap). A loaded cell's run of instances is written as all-zero matrices (`farApplyCell`;
-  draws nothing) and restored on unload. ~3.2k impostors / 20k tris for the whole world; +41 instanced meshes if every
-  region were visible. From 540+ units through 12% contrast they should read as texture, not cards; if a crossed pair
-  reads as an X, narrow `w` or raise the stride. At the loaded boundary a cell's impostors vanish as its real flora
+  (Lambert, double-sided, swaying since v11.13, small-thing fog — the same as the real kelp's, so nothing pops at the swap). A loaded cell's run of instances is written as all-zero matrices (`farApplyCell`;
+  draws nothing) and restored on unload. (v11.12: ~3.2k impostors / 20k tris for the whole world; v11.155 at the forest's shelf the far layer alone submits 245k tris, 200k with the cards); +41 instanced meshes if every
+  region were visible. At the loaded boundary a cell's impostors vanish as its real flora
   appears (both at ~540–645 units) — a swap, not a blend; if it flickers on the unload/reload hysteresis, that's
   `LOAD_R+1` in chunks.js. Raft octagons sit at the raft's `ys` and do not bob (sub-pixel at that distance); `cullFar` lifts them by the tide, and
-  drops the stipe and bladder cards (`im.reach`) by `min(TIDE,0)` so their tops and pads never stand in the air at low water (v11.2). The bladder
-  card is 1.4 wide — from 800 units a thinner line aliases; widen before removing. Not in the far layer: ledges and
-  bigrocks (never needed far), the small floor flora.
+  drops the stipe and bladder copies (`im.reach`) by `min(TIDE,0)` so their tops and pads never stand in the air at low water (v11.2). The bladder
+  card was 1.4 wide because from 800 units a thinner line aliased (v11.13); the copies' stalks are the real ones' (0.13–0.52 m) — the far
+  forest at 3% contrast past 800 m may shimmer, which v11.155 could not see from a session. Not in the far layer: the ledges
+  (the cell's grid's cliffs; they fade at 450 since v11.155), the small floor flora (it fades at 450; the meadows' beds are on the terrain, v11.156).
+- **The boulders** (v11.157, `rocksGen`, `rockCache`; flora.js `farRock`: boulder, boulder2, boulder3, talus, one geometry `BOULDER_G`). The person, 16
+  Nov 2026: the rocks on the plateaus pop in "long after you see the slope they are on top of" — the cells reach 430 m, the slope is seen to ~1 km.
+  Like the structures: placed per cell from `sample()` by placeFloraType's rules for a rock (the envelope, the slope, the chemocline, settleOn's
+  ground and face), each cell's own stream per entry, cached; drawn by the region as one instanced mesh (`MATROCKF`, faded at `ROCK_FAR` 900 over
+  `ROCK_FADE` 120; 620 on the low tier, the far cut's start); the cell registers their collision, its neighbours' reaching over its line too, and
+  casts them through a layer-1 proxy (chunks.js `placeRockSolids`). A coarse look first: a 13×13 lattice at 18 m per cell, each quad's best tolerance
+  of each entry and its rise; a try its quad refuses (best + `RK_M` 0.15 under the draw, or no face for talus) costs no `sample()`. A cache entry goes
+  with its region (`dropRegion`).
 
 **The horizon tier** (v11.64, ARCHIPELAGO step 3; `horizon.js`). Above the water the frame is two passes: first a scene of its own — the sky
 dome (moved from the main scene while the camera is in air), a sea disc from `HZ_SEA0`·FAR (0.75) to `HZ_FAR` (250 km, v11.65: from 886 m the horizon is 106 km off) about the camera, and one mesh
@@ -1299,7 +1311,13 @@ builder reads k 0..2 as sheltered..exposed — turf, wisp, chain, stipe, ladder,
 last kept one-variant weed) and paddle. Since `expo` fades out by −30 (World shape), the coasts differed in the forest's top 25 m only; since
 v11.116 the ecotype reads the water's motion, max(`expo`, `ECO_FLOW` 0.8 × `flow`), so below the wave base the current sorts the forest
 (quartiles 0.27–0.51 there). *The clone (v11.116):* a `clone` entry (the runners: strap, grape) draws its variant from its patch — grow.js
-`cloneK`, fbm at the `clone` frequency cut at its terciles — so a meadow is one habit and the next another. *The young (v11.116):* `reach`
+`cloneK`, fbm at the `clone` frequency cut at its terciles — so a meadow is one habit and the next another. *The beds on the floor (v11.156; the person, 16 Nov 2026: the grass popping in under water
+while the plateau it grows on is seen from far off):* a meadow is drawn as plants only to `FLORA_FAR`, and at 0.03 plants a square metre they cover a
+few percent of the sand, so a bed was bare olivine sand until its shoots came in. chunks.js `meadowCover` is where a `meadow` species can be — its
+envelope × its meadow's mask (`meadowM`) × its clumping (`fieldK`, capped at 1), the same functions `placeFloraType` reads, so the paint and the plants
+agree (the plants' places the same to the bit) — and `terrainColor` lays the bed over the sand by it: the green line's pigment × `MEADOW_C` (0.6: the
+rhizome mat, the shoots too small to draw, the detritus they hold) at `MEADOW_K` (0.5) of full cover. The cells' terrain and the far terrain alike, so
+a bed reads to the fog's end and its shoots grow out of it; no tier term (the low tier's fewer plants stand on the same floor). *The young (v11.116):* `reach`
 as [lo, hi] stands a reach entry at that share of the water column: the stipe's young, `stipeling` (300 a cell at 0.3–0.7, the adults 700),
 the adult's form without the canopy whorl. *The
 stain:* grow.js `tintBy(h,f,photo)` composes up to three stains (`TINT_CHEM`: rust [0.44,0.25,0.12] on the animals and dull [0.36,0.33,0.22]
@@ -1317,7 +1335,8 @@ forest at (330, 0), like for like in the app's pane with the loop driven by hand
 
 **The table.** Per species: `per` (instances per cell at full tolerance) and `env` (World shape, envelopes; v10 — the per-biome counts are gone), scale range, tilt, sink, `field`, `rim`,
 `y: 'floor'|'surface'|'mid'`, `ys`, `reach`, `glow`, `vent`, `maxSlope`, `minH`, `canopyPer`, `pocket`, `meadow` (v11.116: [frequency, lo, hi] —
-fbm patches over smooth(lo, hi), 6% between: the strap's meadows, about half the sand; v11.118 `meadow[3]` the noise's offset), `clone`, `range`
+fbm patches over smooth(lo, hi), 6% between: the strap's meadows, about half the sand; v11.118 `meadow[3]` the noise's offset; since v11.156 the
+beds are painted on the floor too — below), `clone`, `range`
 (v11.119: the stretches of the colonisation chain a brooding line's species stands in — 0 the old east, 1 the middle, 2 the young west, by
 hops from the founder, region.js `RANGE`, `rangeBuild`; a cell's by the record whose ground its middle is most inside, chunks.js `chRange`), `succ` (v11.120: [lo, hi], the storm clearing's age a species needs — grow.js `DIST`, `distAge`: patches
 ~60 m over 16–20% of the exposed hard shallows, their ages a mosaic; the reef's polyps 0.5–0.95, the canopy 0.3–0.6, its young and the lime
@@ -2369,8 +2388,16 @@ distance — a designed pass, not a knob. `render` is CPU submission; the GPU ru
   every disturber is within 70 (6.3 → 4.6 ms in the forest); `FLORA_FAR` 450 — the small materials collapse instances past it in the
   vertex shader, and a cell whose nearest edge is past it hides its instanced meshes and turns its far impostors on (`ch.near`, chunks.js
   cullChunks; far.js farApplyCell), so the stipe, bladder, raft, colony and tidal-tree silhouettes stay as cards and the rest goes into
-  the fog it was lost in anyway (6.6% contrast at 450; 4.6 → 3.0 ms, draws 418 → 263 in the experiment). A new small species wants a
-  cut material; a new big one a card in `FAR_IMP` and no cut. Ideas floated, not built: shared flora vertex buffers with pooled per-cell
+  the fog it was lost in anyway (6.6% contrast at 450; 4.6 → 3.0 ms, draws 418 → 263 in the experiment). **A fade, not a cut (v11.155;
+  the person, 16 Nov 2026, under water, a steady ring ahead: the rocks on the plateaus popping in "long after you see the slope they are on
+  top of", the grass and the corals popping).** Over the last `FLORA_FADE` (90 m) an instance shrinks into its own origin — its root, a
+  boulder's sunk centre (scene.js `farCut(far, fade)` opens a material's vertex code and declares `fadeK`, `FAR_FADE` closes it after the
+  material's own displacement; instanced only, not in the depth pass). At 360 m the veil leaves ~7%, so the fade does not show: things grow
+  out of the floor instead of appearing. To v11.154 the rocks (`MATROCK`: boulders, talus, ledges), the fans, limpets, chimneys and sheds
+  (`MAT`) and the stipeling (`MATS`) had no cut at all, and a whole cell of them — a 215 m block — appeared at once when its nearest edge
+  came within 450; now `MATROCK` takes the fade (since v11.157 the ledges only; the boulders are the far layer's, `MATROCKF` to 900 m), `MAT` takes it for its instances (`cutLambert`, program key `lamc`: the creatures are never
+  instanced), and the stipeling has `MATSC` (the stipe's sway with the cut; the stipe keeps `MATS`, its cards taking over a cell at a time).
+  A new small species wants a fading material; a new big one a card in `FAR_IMP` and no cut. Ideas floated, not built: shared flora vertex buffers with pooled per-cell
   instanced meshes (every cell still deep-copies every species' geometry and uploads it on its first draw); per-cell variants (struck:
   variety stays plant to plant); simpler crowns and lathes for the tidetree (8268 vertices an instance) and the sacs (1000–2400).
 - **Quality tier `Q` (scene.js): numbers only, never code paths.** Auto: touch + screen < 900px → low. Force with

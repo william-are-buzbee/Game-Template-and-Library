@@ -123,7 +123,7 @@ const unused=[...top.names].filter(n=>!used.has(n)).sort();
 if(unused.length)console.log('lint: top-level names nothing references: '+unused.join(' '));
 if(dups.length){console.error('lint: DECLARED TWICE at the top level (one scope — the later file wins): '+dups.join(' '));process.exit(1);}
 if(undeclared.length){console.error('lint: UNDECLARED\n  '+undeclared.join('\n  '));process.exit(1);}
-// the world map's look is test/mapdraw.js's (v11.155): its bands and contours the same numbers as mapdraw's and map.js's, or the game's map and the renders the person judges by drift apart
+// the world map's look is test/mapdraw.js's (v11.158): its bands and contours the same numbers as mapdraw's and map.js's, or the game's map and the renders the person judges by drift apart
 {const wm=fs.readFileSync(path.join(ROOT,'src','worldmap.js'),'utf8'),mj=fs.readFileSync(path.join(__dirname,'map.js'),'utf8'),b=/const WMAP_BANDS=(\[.*?\]\]\]);/.exec(wm),c=/const WMAP_CONT=(\[[^\]]*\]);/.exec(wm),mc=/const CONT=(\[[^\]]*\]);/.exec(mj);
   if(!b||!c||!mc||JSON.stringify(JSON.parse(b[1]))!==JSON.stringify(require('./mapdraw.js').BANDS)||c[1]!==mc[1].replace('Wd.OXY','OXY')){console.error('lint: worldmap.js WMAP_BANDS / WMAP_CONT out of step with test/mapdraw.js BANDS and test/map.js CONT');process.exit(1);}}
 console.log('lint: ok ('+top.names.size+' top-level names, '+files.length+' files)');

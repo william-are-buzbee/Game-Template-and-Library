@@ -8258,7 +8258,110 @@ ground not compared separately.
 
 **Unseen, ask in this order:** (1) the tenth blind sheet; (2) the necks at shelf depth (§10.12's (3)); (3) the halo, still even round the high islands.
 
-## v11.155 — the world map, clean at every zoom (16 Nov 2026; a dev tool, the world unchanged)
+## v11.155 — the flora fades in, and the far kelp is kelp (16 Nov 2026)
+
+The person, under water, a steady ring ahead: "On the long plateaus of the game you can watch the rocks pop into existence long after you see the
+slope they are on top of. Same thing with seeing grass pop in … Kelp distant view looks pretty bad tbh, like two squares making an X that are stuck
+in the ground, until the real thing spawns in and looks great. Coral also pops in." Asked how hard; answered: the fade and the kelp first, then the
+meadows on the floor (v11.156) and the boulders in the far layer (v11.157), and the bladder's far look too.
+
+- **A fade, not a cut** (scene.js `farCut`, `FAR_FADE`, `FLORA_FADE` 90): over the last 90 m before `FLORA_FAR` (450) an instance shrinks into its
+  own origin — a plant into its root, a boulder into its sunk centre — so it grows out of the floor as it comes in. At 360 m the veil leaves ~7%,
+  so the fade does not show. To v11.154 a hard cut.
+- **The rocks, the fans and the stipeling had no cut at all**: `MATROCK` (boulders, talus, ledges), `MAT`'s instances (the fan, limpet, chimney,
+  the sheds) and the stipeling's `MATS` were hidden only a cell at a time (`ch.near`), so a whole 215 m block of boulders or fans appeared at once
+  when the cell's nearest edge came within 450 — the plateau's pop. Now `MATROCK` fades (`rockMaterial(far, fade)`), `MAT` fades for its
+  instances (`cutLambert`; its program key `lamc`, the creatures never instanced), and the stipeling has `MATSC` (the stipe's sway, cut and faded;
+  the stipe keeps `MATS`, its cards taking over a cell at a time).
+- **The far stipe and bladder** (far.js `farStipeGeo`, `farBladderGeo`, helpers `farStalk`, `farBlade`, `farDisc`, `outTri`; `crossCards` struck):
+  low-poly copies of the real ones, as the tidewood's became in v11.124 — the builders' middle ecotype, unit height stretched to the water as the
+  real ones are. The stipe: a three-sided stalk, four nodes of two flat blades spiralling (1.3× the real's for the three nodes left out), the
+  canopy whorl's five blades; 32 tris. The bladder: a three-sided stalk, four flat pentagon floats each with its two blades under it; 34 tris.
+  Tinted as the real instances (`pig`: the float line's pigment and the place's stain), the dims struck; one in 3 stipes (was 5) and one in 2
+  bladders (was 3), so the far forest keeps its density across the swap.
+- chunks.js: the pools' comment said "the rock never hid" (stale since v11.125).
+
+**Seen** (headless Chromium, software WebGL, still frames at 960×540; main beside this): over a young boulder field at (−8400, 5600) with the
+water made clear for the look, main's rocks and grass run out to the far edge of whichever cells are near (to ~650 m) and stop at a cell's line;
+here they thin out by 450 and nothing ends at a line — with the water as it is, both read the same, the far band a ghost. At the forest's shelf
+(330, 0) with the cells round the camera unloaded so only the far layer stands there: main's far kelp a field of dark slabs 2.8 m wide, here thin
+stalks with flat blades and the canopy whorl in the real kelp's olive-gold.
+
+**What it costs** (the same frames, `renderer.info`, main → this): draws the same everywhere (551, 691, 616); triangles submitted at the boulder
+field 6.882M → 6.893M (+0.2%), at the forest 6.657M → 6.702M and 8.114M → 8.177M (+0.7%, +0.8%: the kelp copies — the far layer alone there
+200k → 245k). The fade adds a smoothstep and a multiply to a vertex in the band; the rocks past 450 in near cells now leave the shader at once
+(they were drawn). Frame time is the GPU's and was not measured; the suite (27 runs, both tiers) passes.
+
+**Unseen, ask in this order:** (1) the fade in motion, on the preview: swim toward a plateau (`tp(-8400,5600)`, a boulder field) and the
+forest's edge (`tp(330,0)`); (2) whether the far forest at one stipe in three reads thinner than the real one where they meet, and whether its
+stalks shimmer past 800 m (a thin line aliased there in v11.13); (3) the readout at those two places.
+
+## v11.156 — the seagrass beds on the floor (16 Nov 2026)
+
+The second of the three the person chose (16 Nov: "Meadows on the floor"): the grass popping in under water while the plateau it grows on is seen
+from far off. A runner's meadow (strap, tress) is drawn as plants only to `FLORA_FAR`, and at 0.03 plants a square metre they cover a few percent of
+the sand, so a bed was bare olivine sand until its shoots came in — v11.155's fade makes them grow in, but onto nothing.
+
+- **The bed on the floor** (chunks.js `meadowCover`, `MEADOW_K` 0.5, `MEADOW_C` 0.6): where a `meadow` species can be — its envelope × its meadow's
+  mask × its clumping (capped at 1) — `terrainColor` lays the bed over the sand: the green line's pigment at the depth × 0.6 (the rhizome mat, the
+  shoots too small to draw, the detritus they hold), at half strength at full cover. The cells' terrain and the far terrain alike, so a bed reads
+  to the fog's end and its shoots grow out of it at 360–450 m. No tier term: the low tier's fewer plants stand on the same floor.
+- **One formula** (chunks.js `meadowM`, `fieldK`): `placeFloraType`'s meadow and field terms as functions, read by the plants and the paint, so the
+  two cannot drift. The plants' places the same to the bit (every pool's instances and every cell's meshes hashed over 3×3 cells of a meadow at
+  (46500, −29400), against main).
+
+**What it costs** (node, the tests' stub, best of seven; v11.155 → this): `terrainColor` on a meadow 0.07 → 0.35–0.52 µs a vertex, at the forest
+0.13 → 0.21–0.24, over the boulder field and the deep the same within noise — a meadow cell's 2,401 vertices ~1 ms more, a far region's ~1 ms;
+a whole cell's generation (3×3 at three places, best of three) 27–37 ms both, the difference inside the runs' spread. Nothing per frame.
+
+**Seen** (headless Chromium, software WebGL, still frames; v11.155 beside this): a meadow at (46500, −29400), −10 m: the sand under the beds a
+light olive-green where it was the olivine sand's pale yellow, the shoots standing on it; in that bright shallow water it leans lime. The suite
+(27 runs, both tiers) passes.
+
+**Unseen, ask in this order:** (1) the beds' colour on the preview (`tp(46500,-29400)`): `MEADOW_C` darker or lighter, `MEADOW_K` stronger or
+weaker; (2) a bed seen from 600 m and more, its shoots growing onto it at 360–450 m; (3) deeper beds (−30 to −45 m, the tress's).
+
+## v11.157 — the boulders drawn to 900 m (16 Nov 2026)
+
+The third of the three the person chose (16 Nov: "Far boulders (~900 m)"): the rocks on the plateaus pop in "long after you see the slope they are
+on top of". v11.155 made them grow in at 360–450 m; the slope is seen to ~1 km. A cell's things can be drawn only as far as the cells are loaded —
+5×5, 430 m in every direction — so the blocks became the far layer's, as the structures are.
+
+- **The blocks in the far layer** (far.js `rocksGen`, `FROCK`, `rockCache`; flora.js `farRock` on boulder, boulder2, boulder3 and talus, their one
+  geometry `BOULDER_G`): placed per cell from `sample()` by placeFloraType's rules for a rock (the envelope, the slope, the chemocline, settleOn's
+  ground and its face), each cell's own stream per entry; cached; drawn by the region as one instanced mesh (`MATROCKF`: the rock's material with
+  the fade at `ROCK_FAR` 900 m — the veil leaves 3% there — over `ROCK_FADE` 120; on the low tier the far cut's start, 620). One list near and far:
+  nothing swaps, the rock seen from 900 m is the rock swum past.
+- **The cell** (chunks.js `placeRockSolids`) places no block: it registers its own blocks' collision and its neighbours' that reach over its line
+  (complete whatever is loaded, as placeBigSolids does for the structures, so clearOf sees the same rock on every visit), and casts their shadows
+  through a proxy on layer 1. Rock first, as before, so every plant still asks it.
+- **The coarse look** (`RK_G`, `RK_M`): a cell's 13×13 lattice at 18 m and each quad's best tolerance of each entry and its rise; a try whose quad
+  refuses it (its best + 0.15 under the draw, or no face for a talus block) costs no `sample()`. 2,466 tries a cell at three samples each (and
+  eight more for a talus block's face) were 3–20 ms; now 1–8 (a yield every 16 tries).
+- **What moved:** every block, once — placed from `sample()`, not the cell's grid — and the plants beside them through clearOf. The count the
+  same within 4% over 3×3 cells at five places (the boulder field 1054 → 1098, the forest 687 → 712, the meadow and the deep 108 → 108, the
+  plateau 207 → 217). `sample()` untouched. The ledges stay the cell's (they are its grid's cliffs) and fade at 450.
+- A cache entry goes with its region (`dropRegion`), so travel does not keep the world's rocks.
+- test/player.js: the hingeshell's stray spot 40 m from its den is searched for (no solid near, no shelter) — to v11.156 always 40 m east, open
+  water only by where the blocks happened to lie; v11.157's blocks put one there and the clutch was laid where the test wanted it refused.
+
+**Seen** (headless Chromium, software WebGL, still frames; v11.156 beside this): over the young boulder field at (−8400, 5600) with the water made
+clear for the look, the blocks now run on past 450 m to the far band; with the water as it is the far band is the same ghost either way, the
+blocks near the camera in new places. The suite (27 runs, both tiers) passes.
+
+**What it costs** (v11.156 → this): at the boulder field draws 551 → 557 and triangles submitted 6.893M → 7.225M (+4.8%: every visible region's
+blocks, 36 tris each, those past 900 m leaving the shader at once). A far region's build (node, the stub, best of three, five places) 4–43 →
+19–182 ms — four to eight times, spread over the far layer's 3 ms a frame and built up to 2.7 km ahead; its longest step 4–7 ms, as before. A
+cell's generation with its region built (its blocks cached) 27–31 → 26–28 ms: it places no rock. Frame time is the GPU's and was not measured.
+
+**Unseen, ask in this order:** (1) a plateau's blocks from 600–900 m on the preview (`tp(-8400,5600)`, and the long plateaus where it was seen);
+(2) whether a block sits proud of or sunk in the near terrain (placed on `sample()`'s ground, not the cell's grid — the sink is 0.35–0.45 of
+its size); (3) the readout there; (4) a hitch when a far region is built while swimming fast.
+
+## v11.158 — the world map, clean at every zoom (16 Nov 2026; a dev tool, the world unchanged)
+
+(Built as v11.155 and renumbered on merging main, where v11.155–157 landed first; its commit's message keeps the old number. Its costs are against
+v11.154 — the map's code is untouched by v11.155–157.)
 
 The person: "I think we actually need a map viewer change because hitting N and zooming out still shows a ton of pixels, it's very hard to get
 clean lines and I can't see the provinces without some type of visual confusion. I think the map needs an overhaul, just ingame. the images you send
@@ -8294,7 +8397,7 @@ pans 12.6 km, a click teleports and closes, `n` reopens centred on the player, e
 
 **What it costs** (headless Chromium in the sandbox, software WebGL, the game's own frame ~70 ms there; the map is nothing while closed):
 
-| | v11.154 | v11.155 |
+| | v11.154 | v11.158 |
 |---|---|---|
 | opening (the frame `n` lands on) | 164 ms (the 512² world, first time) | 10 ms |
 | a zoom or pan coming to rest | 116–191 ms stall (the 320² window) | no stall |

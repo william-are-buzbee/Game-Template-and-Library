@@ -4,7 +4,7 @@
 // zooms about the cursor, a drag pans, a click goes there (tp, in play) and closes; esc or n closes; `o` shows the marks (the island records'
 // land and reach rings, the clamp, the old squares, the loaded cells, the landmarks), off by default. The pointer is released while it is open
 // and taken back when it closes, as the effects list does (effects.js fxShow).
-// v11.155, the person (16 Nov 2026): "hitting N and zooming out still shows a ton of pixels, it's very hard to get clean lines and I can't see
+// v11.158, the person (16 Nov 2026): "hitting N and zooming out still shows a ton of pixels, it's very hard to get clean lines and I can't see
 // the provinces without some type of visual confusion … the images you send are fine" (test/mapdraw.js's renders). To v11.154 the world was one
 // 512² picture (~920 m a sample) stretched over the canvas, its contours a pixel's colour on that grid (stairs), every mark drawn at every zoom.
 // Now the picture is tiles of WMAP_T² samples on a pyramid of levels √2 apart (level L: WMAP_MPP0/√2^L metres a sample, the grid from the world's

@@ -151,6 +151,46 @@ function* bigsGen(i,j){
 }
 function bigsFor(i,j){const g=bigsGen(i,j);let r;do r=g.next();while(!r.done);return r.value;}
 
+// ---------- the boulders (v11.157) ----------
+// The person (16 Nov 2026, under water): the rocks on the plateaus pop into existence "long after you see the slope they are on top of". To v11.156
+// the four block entries (boulder, boulder2, boulder3, talus — FLORA `farRock`) were placed by the cell from its grid and drawn to FLORA_FAR, the
+// guaranteed reach of the 5×5 loaded cells being 430 m. Now they are the far layer's, as the structures are: placed per cell from sample() by the
+// same rules (placeFloraType's for a rock: the envelope, the slope, the chemocline, settleOn's ground and face), cached, drawn by the region to
+// ROCK_FAR (MATROCKF: 900 m, fading over 120 — the veil leaves 3% there), and the cell only registers their collision and casts their shadows
+// (chunks.js placeRockSolids). One list near and far, so nothing swaps: the rock you see from 900 m is the rock you swim past. Each cell's own rng
+// per entry (hashStr(id), as before) — but the blocks moved once: the cell's grid and its envelope read are not sample()'s. A cache entry goes when
+// its region is dropped (dropRegion), so travel does not keep the world's rocks.
+const FROCK=FLORA.filter(f=>f.farRock),rockCache=new Map(),ROCK_YIELD=16,RK_F=new Float32Array(NF),RK_G=13,RK_GS=CELL/(RK_G-1),RK_M=0.15;
+// the coarse look (RK_*): a cell's 13×13 lattice at 18 m, each point's tolerance of each entry, and each quad's best of its corners; a try
+// whose quad's best + RK_M is under its draw costs no sample() — the sand under the bare-rock blocks, the deep's mud, the meadows (most of the
+// world: 2,466 tries a cell, three samples each, were 3–20 ms of it); every other try is judged by the point's own sample(), as before
+function* rocksGen(i,j){
+  const ck=ckey(i,j);let L=rockCache.get(ck);if(L)return L;L=[];
+  const x0=i*CELL-HALF,z0=j*CELL-HALF,G=RK_G,NE=FROCK.length,RK_H=new Float64Array(G*G),RK_FG=new Float32Array(G*G*NF),RK_Q=new Float32Array((G-1)*(G-1)*NE),RK_R=new Float32Array((G-1)*(G-1));let tn=0; // its own buffers: a region's and a cell's generators may interleave
+  for(let b=0;b<G;b++){for(let a=0;a<G;a++){const k=b*G+a;RK_H[k]=sample(x0+a*RK_GS,z0+b*RK_GS,RK_FG.subarray(k*NF,(k+1)*NF)).h;}if(b%4===3)yield;}
+  for(let b=0;b<G;b++)for(let a=0;a<G;a++){const k=b*G+a,sl=Math.hypot((RK_H[b*G+Math.min(a+1,G-1)]-RK_H[b*G+Math.max(a-1,0)])/((Math.min(a+1,G-1)-Math.max(a-1,0))*RK_GS),(RK_H[Math.min(b+1,G-1)*G+a]-RK_H[Math.max(b-1,0)*G+a])/((Math.min(b+1,G-1)-Math.max(b-1,0))*RK_GS)),fv=fixF(RK_FG.subarray(k*NF,(k+1)*NF),sl);
+    for(let e=0;e<NE;e++){const w=envW(FROCK[e].env,RK_H[k],sl,fv);if(w<=0)continue;for(let qb=Math.max(0,b-1);qb<=Math.min(G-2,b);qb++)for(let qa=Math.max(0,a-1);qa<=Math.min(G-2,a);qa++){const q=(qb*(G-1)+qa)*NE+e;if(w>RK_Q[q])RK_Q[q]=w;}}}
+  for(let qb=0;qb<G-1;qb++)for(let qa=0;qa<G-1;qa++){let lo=1e9,hi=-1e9;for(let b=qb;b<=qb+1;b++)for(let a=qa;a<=qa+1;a++)lo=Math.min(lo,RK_H[b*G+a]);for(let b=Math.max(0,qb-1);b<=Math.min(G-1,qb+2);b++)for(let a=Math.max(0,qa-1);a<=Math.min(G-1,qa+2);a++)hi=Math.max(hi,RK_H[b*G+a]);RK_R[qb*(G-1)+qa]=hi-lo;} // the rise round each quad: a face (talus) wants f.face[1] within f.face[0] of the point
+  for(let e=0;e<NE;e++){const f=FROCK[e],rng=mulberry((((i*73856093)^(j*19349663)^hashStr(f.id))>>>0)),tries=Math.round((f.per||0)*Q.flora),maxSlope=f.maxSlope!==undefined?f.maxSlope:0.9;
+    for(let n=0;n<tries;n++){
+      if(++tn%ROCK_YIELD===0)yield;
+      const x=x0+rng()*CELL,z=z0+rng()*CELL,u=rng();
+      const qq=Math.min(G-2,Math.floor((z-z0)/RK_GS))*(G-1)+Math.min(G-2,Math.floor((x-x0)/RK_GS));
+      if(u>=RK_Q[qq*NE+e]+RK_M||(f.face&&RK_R[qq]<f.face[1]*0.5))continue; // the coarse look refuses it: no tolerance round here, or no face to lie under
+      const s=sample(x,z,RK_F),h=s.h,sl=Math.hypot((sample(x+STEP,z).h-h)/STEP,(sample(x,z+STEP).h-h)/STEP);
+      if(u>=envW(f.env,h,sl,fixF(RK_F,sl)))continue;
+      if(sl>maxSlope||underChemo(x,h,z))continue; // nothing on a cliff face; nothing under a basin's chemocline
+      const sc=f.s[0]+rng()*(f.s[1]-f.s[0]),yaw=rng()*TAU;
+      if(!settleOn(bigD,f,x,z,h,sc,yaw,bigH,rng))continue; // the one ground rule; a talus block only under a face
+      const sx=f.sx?f.sx[0]+rng()*(f.sx[1]-f.sx[0]):1,sz=f.sx?f.sx[0]+rng()*(f.sx[1]-f.sx[0]):1;bigD.scale.set(sc*sx,sc,sc*sz);bigD.updateMatrix();
+      const tc=f.tints[Math.floor(rng()*f.tints.length)];
+      L.push({f:f,m:bigD.matrix.clone(),x:x,y:bigD.position.y,z:z,r:sc*Math.max(sx,sz,1),col:[tc[0]*(0.85+rng()*0.25),tc[1]*(0.85+rng()*0.25),tc[2]*(0.85+rng()*0.25)]});
+    }
+  }
+  rockCache.set(ck,L);return L;
+}
+
+
 // ---------- landmarks ----------
 // The hand-built one-offs, built once at boot and kept (three culls each by its bounding sphere). LMK holds what the cells
 // need to register their collision and lights (chunks.js placeLandmarks): heights on the fine grid.
@@ -162,10 +202,10 @@ const LMK={meshes:[]};
 })();
 
 // ---------- far impostors: the forest, the bladder meadow and the rafts from a distance ----------
-// The stipe forest (1100/cell), bladders, rafts and colonies are placed by the cell's rng and exist only in loaded cells, so from 600 units the
-// forest read as a green floor. A sparse stand-in for each: every 5th stipe as a crossed pair of olive cards stretched to
-// the surface with a canopy pad on top (a wall of stalks from afar), every 3rd bladder as a thin crossed card the height of the water
-// column with a pad on top, rafts and colonies as flat octagons, every 2nd tidewood as a low-poly copy of the real one (v11.124). Placed by the same density rules as
+// The stipe forest (700/cell), bladders, rafts and colonies are placed by the cell's rng and exist only in loaded cells, so from 600 units the
+// forest read as a green floor. A sparse stand-in for each: every 3rd stipe and every 2nd bladder as a low-poly copy of the real one stretched
+// to the surface like it (v11.155; to v11.154 crossed cards with a pad on top — "two squares making an X stuck in the ground", the person,
+// 16 Nov 2026), rafts and colonies as flat octagons, every 2nd tidewood as a low-poly copy of the real one (v11.124). Placed by the same density rules as
 // placeFloraType (biome, field, pocket, the lee) from a pure per-cell rng, drawn by the region, and zeroed inside loaded
 // cells the way the far terrain is sunk. They do not match the near flora one for one; only the density does.
 function impGeo(tris){ // tris: [[x,y,z]x3, [r,g,b]] with the normal from the winding
@@ -176,11 +216,27 @@ function impGeo(tris){ // tris: [[x,y,z]x3, [r,g,b]] with the normal from the wi
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(pos),3));
   g.setAttribute('normal',new THREE.BufferAttribute(new Float32Array(nor),3));g.setAttribute('color',new THREE.BufferAttribute(new Float32Array(col),3));g.computeBoundingSphere();return g;
 }
-function crossCards(w,y0,y1,col,tris){ // two vertical quads at right angles, width w between y0 and y1
-  for(const [ax,az] of [[1,0],[0,1]]){const x=ax*w/2,z=az*w/2;tris.push([[-x,y0,-z],[x,y0,z],[x,y1,z],col],[[-x,y0,-z],[x,y1,z],[-x,y1,-z],col]);}
-}
-function farStipeGeo(){const T=[];crossCards(2.8,0,1,[0.42,0.44,0.17],T);const r=2.4,c=[0.5,0.5,0.2];for(let k=0;k<6;k++){const a0=k/6*TAU,a1=(k+1)/6*TAU;T.push([[0,1,0],[Math.cos(a0)*r,1,Math.sin(a0)*r],[Math.cos(a1)*r,1,Math.sin(a1)*r],c]);}return impGeo(T);} // the stipe: a unit card stretched to the surface like the bladder's, a canopy pad on top
-function farBladderGeo(){const T=[];crossCards(1.4,0,1,[0.5,0.56,0.26],T);const r=2.2,c=[0.68,0.72,0.36];for(let k=0;k<6;k++){const a0=k/6*TAU,a1=(k+1)/6*TAU;T.push([[0,1,0],[Math.cos(a0)*r,1,Math.sin(a0)*r],[Math.cos(a1)*r,1,Math.sin(a1)*r],c]);}return impGeo(T);}
+// a face whose normal points away from the axis (impGeo's normal is the winding's), for the stalks: a, b, c and the colour
+function outTri(T,a,b,c,k){const ux=b[0]-a[0],uz=b[2]-a[2],vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2],uy=b[1]-a[1],nx=uy*vz-uz*vy,nz=ux*vy-uy*vx;T.push(nx*(a[0]+b[0]+c[0])+nz*(a[2]+b[2]+c[2])<0?[a,c,b,k]:[a,b,c,k]);}
+// a stalk of n sides from radius r0 at y0 to r1 at y1 (unit height: the instance stretches it to the water), phase ph
+function farStalk(T,n,r0,r1,y0,y1,ph,k){const P=(a,r,y)=>[Math.cos(a)*r,y,Math.sin(a)*r];for(let i=0;i<n;i++){const a0=ph+i/n*TAU,a1=ph+(i+1)/n*TAU;outTri(T,P(a0,r0,y0),P(a1,r0,y0),P(a1,r1,y1),k);outTri(T,P(a0,r0,y0),P(a1,r1,y1),P(a0,r1,y1),k);}}
+// a flat blade out from the axis at height y on bearing a: L long, w0 wide at the root and w1 at the tip, its tip dy lower (unit height); facing up
+function farBlade(T,y,a,L,w0,w1,dy,k){const c=Math.cos(a),s=Math.sin(a),r0=0.05,A=[c*r0-s*w0/2,y,s*r0+c*w0/2],B=[c*r0+s*w0/2,y,s*r0-c*w0/2],C=[c*L+s*w1/2,y-dy,s*L-c*w1/2],D=[c*L-s*w1/2,y-dy,s*L+c*w1/2];
+  for(const t of [[A,B,C],[A,C,D]]){const [a1,b1,c1]=t,ny=(c1[0]-a1[0])*(b1[2]-a1[2])-(b1[0]-a1[0])*(c1[2]-a1[2]);T.push(ny<0?[a1,c1,b1,k]:[a1,b1,c1,k]);}}
+// a flat disc of n sides at height y, radius r (a float laid flat), as a fan from its first corner: n−2 triangles, facing up
+function farDisc(T,y,r,n,ph,k){const P=i=>[Math.cos(ph+i/n*TAU)*r,y,Math.sin(ph+i/n*TAU)*r];for(let i=1;i<n-1;i++){const a=P(0),b=P(i),c=P(i+1),ny=(c[0]-a[0])*(b[2]-a[2])-(b[0]-a[0])*(c[2]-a[2]);T.push(ny<0?[a,c,b,k]:[a,b,c,k]);}}
+// The stipe (v11.155): flora.js stipeB's middle ecotype (k 1) — the stalk 0.16 → 0.065 m (three sides for its five), four nodes of two flat
+// blades each for its seven, spiralling as its do and 1.3× longer and wider for the nodes left out, and the canopy whorl's five blades just under
+// the top; its vertex colours (WSTEM, W) under the real tint (FAR_IMP `pig`). 32 triangles (the cards were 10).
+function farStipeGeo(){const T=[],rg=mulberry(0x51e7);farStalk(T,3,0.16,0.065,0,0.975,0.3,WSTEM);
+  for(let i=0;i<4;i++){const y=0.26+i*0.18,sp=i*4.2+rg()*0.6;for(let j=0;j<2;j++)farBlade(T,y,sp+j*Math.PI+(rg()-0.5)*0.5,(1.5+rg()*0.6)*1.3,0.52,0.42,0,W);}
+  for(let j=0;j<5;j++)farBlade(T,0.985,j/5*TAU+rg()*0.4,2.2+rg()*0.6,0.48,0.4,0,W);
+  return impGeo(T);}
+// The bladder (v11.155): bladderB's middle ecotype — the stalk 0.26 → 0.135 m (three sides for its six), its four floats at 0.6–0.9 of the column
+// as flat pentagons, each with its two blades hanging just under it (4% and 6% of the column) in their own greens. 34 triangles (the cards were 10).
+function farBladderGeo(){const T=[],rg=mulberry(0xb1ad);farStalk(T,3,0.26,0.135,0,1,0.9,[0.4,0.42,0.2]);
+  for(let i=0;i<4;i++){const y=0.6+i*0.1+rg()*0.02,a=i*1.3+rg()*0.4;farDisc(T,y,0.5,5,a,[0.68,0.72,0.36]);farBlade(T,y-0.04,a,2.35,0.48,0.48,0,[0.45,0.55,0.25]);farBlade(T,y-0.06,a+1.6+Math.PI,2.35,0.48,0.48,0,[0.42,0.52,0.24]);}
+  return impGeo(T);}
 function farRaftGeo(col){const T=[];for(let k=0;k<8;k++){const a0=k/8*TAU+0.2,a1=(k+1)/8*TAU+0.2,r0=0.9+0.1*(k%2),r1=0.9+0.1*((k+1)%2);T.push([[0,0,0],[Math.cos(a0)*r0,0,Math.sin(a0)*r0],[Math.cos(a1)*r1,0,Math.sin(a1)*r1],col||W]);}return impGeo(T);}
 // The tidewood (v11.124; to v11.123 a crossed pair of 1.2 m cards 9 m tall under a flat six-sided pad, olive on olive: from the water a fence
 // of pale posts beside the real wood — "strange looking square LOD's", the person, 12 Nov 2026). Now the real one's middle size as flora.js
@@ -204,8 +260,8 @@ function farTreeGeo(){
 // pig (v11.124): tinted as the real instances are — pigment(h, line) with the place's stain (grow.js tintBy) — not from the species' list. hs: the real
 // variants' heights on the geometry's, one drawn per instance.
 const FAR_IMP=[
-  {f:FLORA_BY_ID.stipe,geo:farStipeGeo(),stride:5,dim:0.55}, // dim (v11.42.4): the card's tint against the real plant's — the stipe's pigment darkens with depth and its pads are silhouettes from below, and past the swap at FLORA_FAR the cards' residual through the fog read paler than the veil where the real kelp's read darker: a pale band with a bright line of pads along the far water level (the person's last 5%, 14 Sep)
-  {f:FLORA_BY_ID.bladder,geo:farBladderGeo(),stride:3,dim:0.7},
+  {f:FLORA_BY_ID.stipe,geo:farStipeGeo(),stride:3,pig:true}, // v11.155: the real one's copy under the real tint (pig); to v11.154 an olive card dimmed 0.55 against the real (v11.42.4: past the swap the cards' residual read paler than the veil where the real kelp's read darker — the person's last 5%, 14 Sep), one in five
+  {f:FLORA_BY_ID.bladder,geo:farBladderGeo(),stride:2,pig:true}, // v11.155: the same; to v11.154 a card dimmed 0.7, one in three
   {f:FLORA_BY_ID.button,geo:farRaftGeo([0.56,0.82,0.78]),stride:2,r:1.1}, // the buttons' fleets, green-blue
   {f:FLORA_BY_ID.tidetree,geo:farTreeGeo(),stride:2,pig:true,hs:[6/9,1,12/9]} // tidewoodB's 6, 9 and 12 m
 ];
@@ -305,6 +361,12 @@ function* genRegion(ri,rj){
     for(let i=0;i<L.length;i++){im.setMatrixAt(i,L[i].m);c.setRGB(L[i].col[0],L[i].col[1],L[i].col[2]);im.setColorAt(i,c);}instLocal(im,L,ox,oz,q=>q.m);
     im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;reg.group.add(im);});
   yield;
+  // the boulders (v11.157): one instanced mesh for the region's blocks (they share one geometry), drawn near and far — the cells draw none
+  {const L=[];for(let dj=0;dj<FR;dj++)for(let di=0;di<FR;di++){for(const s of (yield* rocksGen(ci0+di,cj0+dj)))L.push(s);yield;}
+    if(L.length){const im=new THREE.InstancedMesh(BOULDER_G,MATROCKF,L.length);im.frustumCulled=false;
+      for(let i=0;i<L.length;i++){im.setMatrixAt(i,L[i].m);c.setRGB(L[i].col[0],L[i].col[1],L[i].col[2]);im.setColorAt(i,c);}instLocal(im,L,ox,oz,q=>q.m);
+      im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;reg.group.add(im);}}
+  yield;
   // the impostors, one instanced mesh per kind, instances grouped by cell so a cell's run can be zeroed when it loads
   const cellL=[];for(let dj=0;dj<FR;dj++)for(let di=0;di<FR;di++){cellL.push(yield* impostorsGen(ci0+di,cj0+dj));yield;}
   FAR_IMP.forEach((sp,si)=>{
@@ -389,7 +451,8 @@ function manageFar(budgetMs){
   while(farGen&&performance.now()-t0<budgetMs){if(farGen.next().done){farGen=null;break;}}
   for(const reg of farList){if(Math.hypot(reg.cx-px,reg.cz-pz)>FAR_DROP+reg.ext){dropRegion(reg);break;}}
 }
-function dropRegion(reg){scene.remove(reg.group);reg.geo.dispose();for(const o of reg.group.children)if(o.isInstancedMesh)o.dispose();regions.delete(ckey(reg.ri,reg.rj));farList.splice(farList.indexOf(reg),1);farBuilt--;} // the structure and card geometries are shared (FLORA's, FAR_IMP's): only the instance buffers go
+function dropRegion(reg){scene.remove(reg.group);reg.geo.dispose();for(let dj=0;dj<FR;dj++)for(let di=0;di<FR;di++)rockCache.delete(ckey(reg.ci0+di,reg.cj0+dj)); // the boulders' lists go with it (v11.157); a loaded cell keeps its own in its hash
+  for(const o of reg.group.children)if(o.isInstancedMesh)o.dispose();regions.delete(ckey(reg.ri,reg.rj));farList.splice(farList.indexOf(reg),1);farBuilt--;} // the structure and card geometries are shared (FLORA's, FAR_IMP's): only the instance buffers go
 // after cullChunks, which sets the frustum
 function cullFar(){
   visibleRegions=0;
