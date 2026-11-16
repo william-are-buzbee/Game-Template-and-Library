@@ -1,5 +1,21 @@
 # HANDOFF — tethys
 
+**v11.157 (16 Nov 2026): the boulders drawn to 900 m** (DESIGN "The far layer", "The boulders"; CHANGELOG). The four block entries (FLORA `farRock`)
+are the far layer's, as the structures are: placed per cell from `sample()` (far.js `rocksGen`, a coarse lattice first so a refused try costs no
+sample), cached, drawn by the region to `ROCK_FAR` with v11.155's fade, and the cell only registers their collision (chunks.js `placeRockSolids`).
+Every block moved once. Stacked on v11.156. **Ask:** a plateau's rocks from 600–900 m on the preview, and the readout there.
+
+**v11.156 (16 Nov 2026): the seagrass beds on the floor** (DESIGN "The beds on the floor"; CHANGELOG). The strap's and the tress's meadows are
+painted on the terrain under them, near and far (chunks.js `meadowCover`, `MEADOW_K`, `MEADOW_C`), so a bed reads to the fog's end and its shoots grow
+onto it; the plants' places the same to the bit (`meadowM`, `fieldK` shared with placeFloraType). Stacked on v11.155. **Ask:** the beds' colour.
+
+**v11.155 (16 Nov 2026): the flora fades in, and the far kelp is kelp** (DESIGN "The flora's draw distance", "The far layer"; CHANGELOG). The
+person, under water: rocks popping in on the plateaus, grass and coral popping, the far kelp "two squares making an X". Past `FLORA_FAR` (450)
+the flora now shrinks into the floor over 90 m instead of appearing (scene.js `farCut`, `FLORA_FADE`), and the rocks, fans and stipeling — which
+had no cut and appeared a 215 m cell at a time — fade the same. The far stipe and bladder are low-poly copies of the real ones (far.js
+`farStipeGeo`, `farBladderGeo`), as the tidewood's became in v11.124. **Next:** v11.156 (the seagrass beds on the floor) and v11.157 (the
+boulders drawn to 900 m), stacked on this. **Ask:** the plateaus and the forest's edge on the preview; the readout at the forest (`tp(330,0)`).
+
 **v11.154 (16 Nov 2026): the reefs' shapes by many scales** (analysis_archipelago §10.12–10.13; DESIGN "The reefs' shapes by many scales";
 CHANGELOG). The ninth sheet (seeds 251, 263, 271, 283) found 4 of 4 by the shallows' even stipple, the saddles' necks and the banks' smooth outlines.
 Measured (`ONLY=lagoons,outline`, new), then built: landslide bites in every model record's margin (region.js `rgBite`), and the lagoons by many
