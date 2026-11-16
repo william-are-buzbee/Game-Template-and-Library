@@ -8615,3 +8615,13 @@ dark: the `tp()` from the world map's cursor line.
 **The person, on the preview (16 Nov 2026):** "I love the milky sea. I love night time now that I can see properly. This is exactly what I wanted." The eye's
 numbers (`NIGHT_EYE`) and the milky sea (`MILKY`) stand as built; tune them only on their word. Still open: the dusk displays seen in play, and the displayers
 as tiny hingeshells.
+
+## v11.162.1 — the dusk displays struck (16 Nov 2026)
+
+The person, after seeing them in play: "the dusk stuff coming out of the ground is odd looking, it comes up in a straight line and its little blue
+circles in a game with square features. I think for now it should be left out, and instead it should be considered in a different way, like a creature
+that simply glows. but it would have to be pretty deep underwater" — and bioluminescence gets a conversation of its own.
+
+- fx.js `DSP.on` false: none at any dusk; the code kept as a kit for the rethink (`dspGate`, `dspHab`, the strings). main.js `dusk()` says they are struck.
+- test/glow.js: a dark dusk over shallow sheltered floor makes no pulses; the window's and floor's functions still checked as the kit.
+- The glowing carcasses and the milky seas stand; the eye (`NIGHT_EYE`) as v11.162 ("exactly what I wanted").
