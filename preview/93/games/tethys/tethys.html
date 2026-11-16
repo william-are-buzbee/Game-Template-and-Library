@@ -3058,7 +3058,8 @@ function addTint(m,key,small,band,grid,cls){ // grid (v11.40): 'world' puts the 
 const THIN_RE=/reflectedLight\.directDiffuse\s*=\s*\(\s*gl_FrontFacing\s*\)\s*\?\s*vLightFront\s*:\s*vLightBack\s*;/;let thinWarned=false;
 function thinLight(sh,k){if(sh.defines&&sh.defines.DEPTH_PASS)return;const f=sh.fragmentShader;if(!THIN_RE.test(f)){if(!thinWarned){thinWarned=true;console.warn('thinLight: lambert chunk not as expected; blades are opaque');}return;}
   sh.fragmentShader=f.replace(THIN_RE,'reflectedLight.directDiffuse=mix((gl_FrontFacing)?vLightFront:vLightBack,(gl_FrontFacing)?vLightBack:vLightFront,'+k.toFixed(2)+');');}
-const MAT=addTint(new THREE.MeshLambertMaterial({vertexColors:true}),'lam',true,undefined,undefined,'body'); // creatures, small flora (instanced: the plant class in the shader)
+function cutLambert(){const m=new THREE.MeshLambertMaterial({vertexColors:true});m.onBeforeCompile=function(sh){sh.vertexShader=sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>'+FAR_CUT+FAR_FADE);};return m;} // v11.155: MAT's instanced flora (the fans, limpets, chimneys, the sheds) fade at FLORA_FAR like the rest; the creatures are never instanced, and the cut is USE_INSTANCING's alone
+const MAT=addTint(cutLambert(),'lamc',true,undefined,undefined,'body'); // creatures, small flora (instanced: the plant class in the shader). 'lamc' (v11.155): its own program now — MAT_HIT and MATBIG keep 'lam'
 const MATGHOST=new THREE.MeshBasicMaterial({colorWrite:false,depthWrite:false}); // the first-person body (v11.23, player.js): drawn as nothing, still cast into the shadow map
 function ghostBody(g,on){g.traverse(o=>{if(!o.isMesh)return;if(on){if(o.material!==MATGHOST){o.userData.mat0=o.material;o.material=MATGHOST;}}else if(o.userData.mat0){o.material=o.userData.mat0;o.userData.mat0=null;}});}
 const MAT_HIT=addTint(new THREE.MeshLambertMaterial({vertexColors:true,emissive:0x262626}),'lam',true,undefined,undefined,'body'); // the flush (fx.js flushBody, POLISH 24, v11.53): MAT with a pale emissive for FLUSH_T after a bite; off by default
@@ -3068,11 +3069,14 @@ const MATLM=addTint(new THREE.MeshLambertMaterial({vertexColors:true}),'lam',fal
 // band where it meets the sand is darkened in the vertex shader — from the sink line up over 0.8 of the scale, by 35% — the
 // occlusion a shadow map would give the one place it shows. Instanced only (the cell's boulders); structures are merged and keep their light.
 const ROCK_FOOT='\n#ifdef USE_INSTANCING\n{float sy=length(instanceMatrix[1].xyz);float wy=(modelMatrix*instanceMatrix*vec4(transformed,1.0)).y;float gy=(modelMatrix*vec4(instanceMatrix[3].xyz,1.0)).y+0.4*sy;vFoot=1.0-0.35*(1.0-smoothstep(gy,gy+0.8*sy,wy));}\n#endif\n';
-function rockMaterial(){const m=new THREE.MeshLambertMaterial({vertexColors:true});m.onBeforeCompile=function(sh){
-  sh.vertexShader='varying float vFoot;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvFoot=1.0;'+ROCK_FOOT);
+function rockMaterial(far,fade){const m=new THREE.MeshLambertMaterial({vertexColors:true});m.onBeforeCompile=function(sh){ // far, fade (v11.155): the instances' fade (farCut, below), FLORA_FAR's by default — read at compile, after FLORA_FAR is declared
+  sh.vertexShader='varying float vFoot;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>'+farCut(far||FLORA_FAR,fade||FLORA_FADE)+'\nvFoot=1.0;'+ROCK_FOOT+FAR_FADE);
   sh.fragmentShader='varying float vFoot;\n'+sh.fragmentShader.replace('#include <fog_fragment>','gl_FragColor.rgb*=vFoot;\n#include <fog_fragment>');};return m;}
-const MATROCK=addTint(rockMaterial(),'lamrock',true,1,undefined,'rock'); // rock placed by the cell (boulders, ledges): with the tide's band and the foot
+const MATROCK=addTint(rockMaterial(),'lamrock',true,1,undefined,'rock'); // rock placed by the cell (the ledges; the boulders until v11.157, MATROCKF since): with the tide's band and the foot
 const MATROCKB=addTint(new THREE.MeshLambertMaterial({vertexColors:true}),'lam',false,1,undefined,'rock'); // structures (far.js): the same with the big-thing fog
+// the boulders (v11.157, far.js rocksGen): drawn by the far layer to ROCK_FAR, fading over ROCK_FADE (farCut) — past ~900 m the veil leaves 3%, and on
+// the low tier the far cut's start (FOG_CUT0, 620) is the end of anything
+const ROCK_FAR=Math.min(900,FAR*0.62),ROCK_FADE=120,MATROCKF=addTint(rockMaterial(ROCK_FAR,ROCK_FADE),'lamrockf',true,1,undefined,'rock');
 // The far cards (v11.13): a sway on uTime by the card's height above its base, so the hand-off at FLORA_FAR is not a forest going still —
 // 1.2 m at 25 m up, on the sway materials' phase from the instance's x,z; the raft discs (y 0) don't move. Thin like the blades (thinLight).
 function farMaterial(){const m=new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide});m.onBeforeCompile=function(sh){sh.uniforms.uTime=timeU;
@@ -3118,8 +3122,15 @@ const VAR_GLSL='attribute float vid;attribute float aVar;\n',VAR_COLLAPSE='if(ab
 // impostors on (chunks.js cullChunks, far.js farApplyCell). At 450 the veil leaves 6.6% contrast (world.js SEA_FOG), so what goes was
 // already a ghost. The stipe, bladder, raft, colony and tidal-tree materials are not cut: their cards take over when the cell hides.
 // Measured in the shelf's weed forest on an RTX 4060, 1600x900: 6.3 → 3.0 ms a frame with the loop guard below, draws 418 → 263.
-const FLORA_FAR=450;
-const FAR_CUT='\n#ifdef USE_FOG\nif(distance((modelMatrix*vec4(instanceMatrix[3].xyz,1.0)).xyz,uFogC)>'+FLORA_FAR.toFixed(1)+')'+GONE+'\n#endif\n'; // uFogC: the camera (fog_pars_vertex)
+// v11.155 (the person, 16 Nov 2026: rocks popping in on the plateaus "long after you see the slope they are on top of", the grass and the
+// corals popping): the cut is a fade — over the last FLORA_FADE metres an instance shrinks into its own origin (its root; a boulder's sunk
+// centre), so it grows out of the floor as it comes in instead of appearing. At 360 m the veil leaves ~7% of the contrast (world.js SEA_FOG),
+// so the fade itself does not show; to v11.154 a hard cut, and the rocks and the fans (MATROCK, MAT) had none: a whole cell of them appeared
+// at once when its nearest edge came within FLORA_FAR. farCut(far, fade) opens a material's vertex code (it declares fadeK), FAR_FADE closes
+// it, after the material's own displacement. Instanced only: MAT's creatures and the depth pass (no USE_FOG) keep their size.
+const FLORA_FAR=450,FLORA_FADE=90;
+function farCut(far,fade){return '\nfloat fadeK=1.0;\n#if defined(USE_FOG)&&defined(USE_INSTANCING)\n{float fdk=distance((modelMatrix*vec4(instanceMatrix[3].xyz,1.0)).xyz,uFogC);if(fdk>'+far.toFixed(1)+')'+GONE+'fadeK=1.0-smoothstep('+(far-fade).toFixed(1)+','+far.toFixed(1)+',fdk);}\n#endif\n';} // uFogC: the camera (fog_pars_vertex)
+const FAR_CUT=farCut(FLORA_FAR,FLORA_FADE),FAR_FADE='\ntransformed*=fadeK;\n';
 // The disturbance loop runs only for plants within DIST_R of the camera: every disturber is within 70 of it (physics.js
 // updateDisturbers) plus a body. It ran for every vertex of every plant to the far plane; this alone was 6.3 → 4.6 ms in the forest.
 const DIST_R=90,DIST_GUARD='\n#ifdef USE_FOG\nif(distance(base,uFogC)<'+DIST_R.toFixed(1)+')\n#endif\n';
@@ -3143,7 +3154,7 @@ function swayMaterial(amp,freq,hn,dir,bob,H,strand,cap,cut,thin){
       'vec2 cv=aCur+aTide*uTideR;float cs=length(cv),cf=min(cs*'+(1/CUR_MAX).toFixed(4)+',1.0);if(cs>0.001&&hw>0.0){float dl=min('+(LEAN*amp).toFixed(3)+'*k*cf,hw*0.85);push+=vec3(cv.x,0.0,cv.y)*(dl/cs)-gd*(dl*dl/(2.0*max(hw,0.3)));}'+
       'mat3 im=mat3(instanceMatrix);transformed+=vec3(dot(im[0],push)/(sx*sx),dot(im[1],push)/(sy*sy),dot(im[2],push)/(sz*sz));'+
       '\n#ifndef DEPTH_PASS\nfloat sa=1.0-0.5*cf;transformed.x+=sin(ph)*k*sa*'+amp.toFixed(2)+'/sx;transformed.z+=sin(ph*0.7+1.3)*k*sa*'+(amp*0.6).toFixed(2)+'/sz;\n#endif\n'+
-      (bob?'\n#ifdef DEPTH_PASS\ntransformed.y+=(uTide-aDip)/sy;\n#else\ntransformed.y+=(waveH(instanceMatrix[3].xz,uTime,0.0,waveDep(instanceMatrix[3].xz,uTide))+uTide-aDip)/sy;\n#endif\n':cap?'float wy=(modelMatrix*instanceMatrix*vec4(transformed,1.0)).y;float wl=uTide-0.45;\n#ifndef DEPTH_PASS\nif(wy>uTide-1.8)wl+=waveH(base.xz,uTime,0.0,waveDep(base.xz,uTide));\n#endif\ntransformed.y-=max(wy-wl,0.0)*0.96/sy;':'')+'}');
+      (bob?'\n#ifdef DEPTH_PASS\ntransformed.y+=(uTide-aDip)/sy;\n#else\ntransformed.y+=(waveH(instanceMatrix[3].xz,uTime,0.0,waveDep(instanceMatrix[3].xz,uTide))+uTide-aDip)/sy;\n#endif\n':cap?'float wy=(modelMatrix*instanceMatrix*vec4(transformed,1.0)).y;float wl=uTide-0.45;\n#ifndef DEPTH_PASS\nif(wy>uTide-1.8)wl+=waveH(base.xz,uTime,0.0,waveDep(base.xz,uTide));\n#endif\ntransformed.y-=max(wy-wl,0.0)*0.96/sy;':'')+'}'+(cut?FAR_FADE:''));
   };
   m.sway=true; // the cell gives its instances aCur (chunks.js makeInstanced)
   return addTint(m,'sway'+amp+freq+hn+dir+(bob?'b':'')+H+(strand?'s':'')+(cap?'c':'')+(cut?'x':'')+(thin?'t'+thin:''),true,undefined,undefined,thin?'blade':'plant');
@@ -3152,13 +3163,14 @@ function swayMaterial(amp,freq,hn,dir,bob,H,strand,cap,cut,thin){
 // The sessile animals breathe (v11.13): a 2.5% radial pulse of everything above 0.25 m local, 0.4–0.6 Hz, phase from the instance's x,z —
 // the tubes, cups, lilies, tulips, chains, burrs and loops, which were rigid. Crusts and cones under 0.25 m don't move; a collapsed vertex stays at zero.
 const PULSE_GLSL='{float pp=uTime*0.7+instanceMatrix[3][0]*0.37+instanceMatrix[3][2]*0.29;float pk=smoothstep(0.25,1.0,transformed.y)*0.025*(1.0+0.5*sin(pp*1.7));transformed.xz*=1.0+pk*sin(pp);}';
-function varMaterial(dead){const m=new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide});m.onBeforeCompile=function(sh){sh.uniforms.uTime=timeU;sh.vertexShader='uniform float uTime;\n'+VAR_GLSL+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>'+FAR_CUT+VAR_COLLAPSE+(dead?'':'\n#if defined(USE_INSTANCING)&&!defined(DEPTH_PASS)\n'+PULSE_GLSL+'\n#endif\n'));};return addTint(m,dead?'lamvd':'lamv',true,undefined,undefined,'plant');} // no breathing in the world's shadow map (v11.30) // cut beyond FLORA_FAR too (v11.12)
+function varMaterial(dead){const m=new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide});m.onBeforeCompile=function(sh){sh.uniforms.uTime=timeU;sh.vertexShader='uniform float uTime;\n'+VAR_GLSL+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>'+FAR_CUT+VAR_COLLAPSE+(dead?'':'\n#if defined(USE_INSTANCING)&&!defined(DEPTH_PASS)\n'+PULSE_GLSL+'\n#endif\n')+FAR_FADE);};return addTint(m,dead?'lamvd':'lamv',true,undefined,undefined,'plant');} // no breathing in the world's shadow map (v11.30) // cut beyond FLORA_FAR too (v11.12)
 const MATV=varMaterial(),MATVD=varMaterial(true); // MATVD: the variants without the breath — a stranded float is a corpse (v11.31.4)
 // (v11.33: fogExtinctOnly is gone — nothing has called it since the glow clouds went in v10.1. The rule it carried stands and the
 // light shafts re-implement it by hand: an additive thing must lose its own colour with distance and never take the veil's.)
 const MATG=swayMaterial(0.35,1.6,2.4,1,false,2.4,false,true,true,0.35),MATB=swayMaterial(3.0,0.5,45,1,false,1.0,false,true,false,0.3),MATR=swayMaterial(2.2,0.9,12,-1,true,12,true,false,false,0.2), // the bladder, rafts and colonies: no cut, their cards take over
   MATW=swayMaterial(0.5,1.1,6,1,false,6.5,false,true,true,0.35), // whip corals bend too (fans are rigid and solid since v9.1); cut beyond FLORA_FAR
   MATS=swayMaterial(3.2,0.7,40,1,false,1.0,false,true), // the stipe: unit height stretched to the surface like the bladder, a slower deeper sway; no cut (the cards)
+  MATSC=swayMaterial(3.2,0.7,40,1,false,1.0,false,true,true), // the stipeling (v11.155): the stipe's sway with the cut and its fade — it has no card, and on MATS a cell's young popped in at once at FLORA_FAR
   MATM=swayMaterial(1.6,1.0,12,1,false,14,false,true,true,0.35), // mid-height weed (ladder, ribbon, the pen): bends over its top ten metres; cut
   MATGL=swayMaterial(0.35,1.6,2.4,1,false,2.4,false,false,true,0.35), // the tussock: the grass sway on land, never folded to the water (cap); cut
   MATTR=swayMaterial(0.3,0.45,9,1,false,14); // the tidal forest (v11): a trunk in the wind — a slow sway from the crown, never capped to the water, never leaning to the current (land: chunks.js makeInstanced gives it no aCur); no cut (the cards)
@@ -8831,10 +8843,12 @@ const ROCKT = [
   [0.3, 0.32, 0.34],
   [0.4, 0.39, 0.37]
 ]; // basalt, three greys
-// a rock entry: a kit (geo, lumps, top, foot) or a single block (boulderGeo with its {d:1} collider), the rock material, the palette
+// a rock entry: a kit (geo, lumps, top, foot) or a single block (BOULDER_G with its {d:1} collider), the rock material, the palette. The blocks share
+// one geometry (v11.157): the far layer draws them all as one instanced mesh a region
+const BOULDER_G = boulderGeo();
 function rock(id, k, o) {
   return Object.assign(
-    k ? {id: id, geo: k.geo, lumps: k.lumps, top: k.top, foot: k.foot} : {id: id, geo: boulderGeo(), col: [{d: 1}]},
+    k ? {id: id, geo: k.geo, lumps: k.lumps, top: k.top, foot: k.foot} : {id: id, geo: BOULDER_G, col: [{d: 1}]},
     {mat: MATROCK, tints: ROCKT, sx: [0.7, 1.3]},
     o
   );
@@ -9105,7 +9119,7 @@ const FLORA = [
     },
     stipeB
   ),
-  species('stipeling', {mat: MATS, photo: true, line: 'float', tints: FLOATT, reach: [0.3, 0.7], per: 300, env: {h: [-54, -16], sub: [0.55, 1], nut: [0.45, 1], flow: [0.15, 0.85], young: [0, 0.45]}, field: 0.012, eco: true, succ: [0.08, 0.25]}, stipelingB), // v11.116 (analysis_flora_diversity §5.3): the forest's young, under the canopy
+  species('stipeling', {mat: MATSC, photo: true, line: 'float', tints: FLOATT, reach: [0.3, 0.7], per: 300, env: {h: [-54, -16], sub: [0.55, 1], nut: [0.45, 1], flow: [0.15, 0.85], young: [0, 0.45]}, field: 0.012, eco: true, succ: [0.08, 0.25]}, stipelingB), // v11.116 (analysis_flora_diversity §5.3): the forest's young, under the canopy
   species(
     'ladder',
     {mat: MATM, photo: true, line: 'float', tints: FLOATT, s: [0.7, 1.3], tilt: true, per: 130, env: {h: [-66, -16], sub: [0.5, 1], nut: [0.4, 1], young: [0, 0.45]}, field: 0.014, eco: true},
@@ -9325,10 +9339,10 @@ const FLORA = [
   // the fan's boulder field and the rift arms' rubble (young), a scatter on bare rock that a block can rest on (sub; maxSlope 1.2:
   // nothing sits on a face), a few on sand and mud, and talus — blocks at the foot of a face (`face`: the ground rises 6 within 14),
   // which is where the risers, the scarp, the dike flanks and the rim shed to
-  rock('boulder', null, {s: [1, 4.5], sink: 0.35, tilt: true, maxSlope: 1.9, per: 330, env: {sub: [0.55, 0.78], young: [0.4, 1]}}), // the fan's boulder field (and a ring round the pit)
-  rock('boulder2', null, {s: [1, 4], sink: 0.35, tilt: true, maxSlope: 1.2, per: 60, env: {sub: [0.72, 1]}}), // the odd block on bare rock
-  rock('boulder3', null, {s: [1, 3.5], sink: 0.45, tilt: true, maxSlope: 1.9, per: 12, env: {sub: [0.05, 0.5]}}), // the odd one on sand and mud
-  rock('talus', null, {s: [0.8, 3.2], sink: 0.4, tilt: true, maxSlope: 1.2, per: 420, env: {sub: [0.2, 1], young: [0, 0.5]}, face: [14, 6]}), // at the foot of every face: the terraces' risers, the scarp, the dikes, the rim (the fan and the arms have their own rubble)
+  rock('boulder', null, {farRock: true, s: [1, 4.5], sink: 0.35, tilt: true, maxSlope: 1.9, per: 330, env: {sub: [0.55, 0.78], young: [0.4, 1]}}), // the fan's boulder field (and a ring round the pit)
+  rock('boulder2', null, {farRock: true, s: [1, 4], sink: 0.35, tilt: true, maxSlope: 1.2, per: 60, env: {sub: [0.72, 1]}}), // the odd block on bare rock
+  rock('boulder3', null, {farRock: true, s: [1, 3.5], sink: 0.45, tilt: true, maxSlope: 1.9, per: 12, env: {sub: [0.05, 0.5]}}), // the odd one on sand and mud
+  rock('talus', null, {farRock: true, s: [0.8, 3.2], sink: 0.4, tilt: true, maxSlope: 1.2, per: 420, env: {sub: [0.2, 1], young: [0, 0.5]}, face: [14, 6]}), // at the foot of every face: the terraces' risers, the scarp, the dikes, the rim (the fan and the arms have their own rubble)
   // the greens in air (TAXA): the tidal forest, the reed margin, the rain scrub — one line, jointed, relicts of a bigger island
   species(
     'tidetree',
@@ -10613,6 +10627,17 @@ function nearLandmark(x,z,r){for(const p of LM.all)for(const q of (p.keep||[p]))
 const ROCK_COL=[0.30,0.31,0.33];
 const SUB_COL=[[0.20,0.23,0.26],[0.70,0.66,0.48],[0.36,0.39,0.41],[0.30,0.31,0.33]]; // mud, sand, rubble, rock
 const FLOOR_COL={apron:[0.30,0.28,0.24],ooze:[0.56,0.55,0.50],pave:[0.11,0.10,0.09],crust:[0.12,0.10,0.09]}; // v11.97 (DEEP §2): the islands' volcanic apron, dark grey-brown with olivine; the open floor's foraminiferal ooze, pale grey-cream (above the carbonate compensation depth, as all of this floor is); iron-manganese pavement and nodules where the current keeps the floor bare; the crust on old rock
+// The seagrass beds on the floor (v11.156; the person, 16 Nov 2026: the grass popping in under water while the plateau it stands on is seen from far
+// off). A runner's meadow (strap, tress: FLORA `meadow`) is drawn as plants only to FLORA_FAR, and at 0.03 plants a square metre they cover a few
+// percent of the sand, so a bed was bare sand until its shoots came in. The floor under a bed is its own: the rhizome mat and the shoots too small to
+// draw, the detritus they hold — dark olive against the olivine sand. meadowCover is where the plants can be (the species' envelope, its meadow's
+// mask and its clumping: placeFloraType's terms through meadowM and fieldK, so the paint and the plants agree), and terrainColor lays MEADOW_C ×
+// the green line's pigment over the sand by it × MEADOW_K — on the cells' terrain and the far terrain alike, so a bed reads to the fog's end and
+// its shoots grow out of it at FLORA_FAR. No tier term: the bed is the bed; the low tier's fewer plants stand on the same floor.
+const MEADOW_SP=FLORA.filter(f=>f.meadow),MEADOW_K=0.5,MEADOW_C=0.6; // the beds' species; the paint's strength at full cover; the bed's colour on the pigment
+function meadowCover(x,z,h,sl,f){if(h>3||h<-60||f[FI.sub]>0.55)return 0; // past every meadow species' envelope (strap −42…−3, tress −46…−22, on sand: their edges reach ~3 m and ~6 m further)
+  let c=0;for(const s of MEADOW_SP){const w=envW(s.env,h,sl,f);if(w<=0)continue;const m=meadowM(s,x,z);if(m<=0)continue;c=1-(1-c)*(1-w*m*(s.field?Math.min(1,fieldK(s.field,x,z)):1));}
+  return c;}
 function terrainColor(x,z,h,f,sl,tc,n){
     const rock=ROCK_COL,m=fbm(x*0.07+5,z*0.07+9,3),k=0.78+0.45*m,sub=f[FI.sub],light=smooth(-150,-10,h);
     const sv=clamp(sub*3,0,2.999),si=Math.floor(sv),st=sv-si,c0=SUB_COL[si],c1=SUB_COL[si+1];
@@ -10627,6 +10652,7 @@ function terrainColor(x,z,h,f,sl,tc,n){
     if(sub>0.6&&light>0.7&&f[FI.nut]<0.5&&m>0.6){const q=(m-0.6)*4*light;r=lerp(r,0.85,q);g=lerp(g,0.42,q);bl=lerp(bl,0.5,q);} // lime on clear bright rock
     const yg=f[FI.young];if(yg>0.3){const q=smooth(0.3,0.8,yg);r=lerp(r,0.26*k,q*0.5);g=lerp(g,0.24*k,q*0.5);bl=lerp(bl,0.22*k,q*0.5);if(m>0.62){const rq=(m-0.62)*3*q;r=lerp(r,0.55,rq);g=lerp(g,0.28,rq);bl=lerp(bl,0.1,rq);}} // young basalt, rust where the mat is
     const ht=f[FI.heat];if(ht>0.2){const v=fbm(x*0.03+50,z*0.03+50,3);if(v>0.55){const q=Math.min(1,(v-0.55)*5)*smooth(0.2,0.7,ht);r=lerp(r,0.62,q);g=lerp(g,0.5,q);bl=lerp(bl,0.16,q);}} // sulfur round the fissure
+    const mc=meadowCover(x,z,h,sl,f);if(mc>0){const pg=pigment(h,'green'),q=mc*MEADOW_K;r=lerp(r,pg[0]*MEADOW_C*k,q);g=lerp(g,pg[1]*MEADOW_C*k,q);bl=lerp(bl,pg[2]*MEADOW_C*k,q);} // the seagrass beds (v11.156, meadowCover below)
     // the shore (v11, PLANET Geology): the sand is olivine — basalt sheds green sand (Papakolea's is the proof) — from a little below
     // the waterline, dark and wet at it; above the tide the dry strand, then bare basalt: dark grey, and where it has weathered in a
     // 28% atmosphere the iron in it has rusted (a lit red-brown that comes and goes with the noise). The rock's olive film and spray
@@ -10687,8 +10713,9 @@ function makeInstanced(ch,rng,geo,mat,tints,list,dip,vars,f){
 // count is the frame, and it scales as species × visible cells (DESIGN Performance, 13 Sep). Now a species without a card or a pad draws
 // once for all loaded cells: a cell writes its instances into the species' pool as one block (the same rng, the same matrices, tints and
 // per-instance attributes as the per-cell mesh had) and takes them out on unload by moving the tail down; only the written range is
-// uploaded (updateRange). The pool draws everything loaded — the per-instance collapse past FLORA_FAR (scene.js FAR_CUT) does what the
-// per-cell hide did for the small things, and the rock never hid — so a cell behind the camera costs its vertices, which the GPU has to spare.
+// uploaded (updateRange). A cell out of view or past FLORA_FAR is hidden by its block's flags (aHide, v11.125, poolCull below); inside it each
+// instance fades out over FLORA_FADE and is gone past FLORA_FAR (scene.js farCut) — the rock, the fans and the stipeling too since v11.155 (to
+// v11.154 they had no cut, and a whole cell of them appeared at once when its nearest edge came within FLORA_FAR).
 // The card species (FAR_IMP: the stipe, bladder, buttons, tidetree; `f.card`) keep a mesh per cell because their cards take over per cell,
 // the rafts keep aDip per cell (physics.js updatePads), the glow clouds their GLOW mesh. A pool grows by doubling into a fresh geometry
 // clone (the old one disposed, so no GL buffer is left behind); it casts into the world's shadow map whole (scene.js updateShadowS) with a
@@ -10787,6 +10814,10 @@ function cellLee(ch){return Math.max(leeW(ch.cx,ch.cz),leeW(ch.x0,ch.z0),leeW(ch
 // the cell's lineage range (v11.119, region.js rangeBuild): the record whose ground the cell's middle is most inside — its coast nearest
 function chRange(ch){if(ch.rng!==undefined)return ch.rng;if(rgPlatSd(ch.cx,ch.cz,true)>0)return ch.rng=0; // v11.122: the platform is the old east's (v11.126: its carbonate, the drowned with the living) — the head, lit first, where the founder was (its members buried in it)
   let best=null,bd=1e18;for(const i of recsAt(ch.cx,ch.cz)){const R=ISLANDS[i],d=Math.hypot(ch.cx-R.x,ch.cz-R.z)-shWidth(R);if(d<bd){bd=d;best=R;}}return ch.rng=best&&best.rng!==undefined?best.rng:2;}
+// a meadow's mask at a point, 0 bare sand to 1 the bed (v11.116's term, a function since v11.156 so the floor's paint reads the same numbers), and a
+// species' clumping by its `field` frequency (0.1 to 1.6)
+function meadowM(f,x,z){const M=f.meadow,o=M[3]||0;return smooth(M[1],M[2],fbm(x*M[0]+71+o,z*M[0]+43+o,2));}
+function fieldK(fr,x,z){return clamp(0.1+4*Math.pow(fbm(x*fr+31,z*fr+17,2),2.5),0,1.6);}
 function* placeFloraType(ch,rng,f){
   if(f.big)return; // structures are placed and drawn once for the whole world (far.js); placeBigSolids adds their collision
   if(f.range&&f.range.indexOf(chRange(ch))<0)return; // a brooding line's species keeps to its range (v11.119)
@@ -10801,9 +10832,9 @@ function* placeFloraType(ch,rng,f){
     const x=ch.x0+rng()*CELL,z=ch.z0+rng()*CELL;
     let p=(f.per||0)/maxN*(f.envs?envsW(ch,f.envs,x,z):f.env?ch.w(f.env,x,z):1);if(f.rare)p*=f.rare; // envs, rare (v11.66): the best of several envelopes (a shed lies where its kind lives), and a chance under one for a thing rarer than one try a cell
     if(f.pocket)p*=0.1+smooth(0.6,0.72,fbm(x*f.pocket+53,z*f.pocket+29,2));
-    if(f.meadow){const o=f.meadow[3]||0;p*=0.06+0.94*smooth(f.meadow[1],f.meadow[2],fbm(x*f.meadow[0]+71+o,z*f.meadow[0]+43+o,2));} // v11.116: meadows [frequency, lo, hi] — a runner's patches with bare sand between and a few shoots in it
+    if(f.meadow)p*=0.06+0.94*meadowM(f,x,z); // v11.116: meadows [frequency, lo, hi] — a runner's patches with bare sand between and a few shoots in it
     if(cw>0.03)p=Math.max(p,leeW(x,z)*f.leePer/maxN);
-    if(f.field)p*=clamp(0.1+4*Math.pow(fbm(x*f.field+31,z*f.field+17,2),2.5),0,1.6);
+    if(f.field)p*=fieldK(f.field,x,z);
     if(f.succ&&p>0)p*=smooth(f.succ[0],f.succ[1],distAge(x,z,ch.f(x,z)[FI.expo],ch.h(x,z))); // v11.120: the age of the storm's clearing here (grow.js distAge)
     if(rng()>=p)continue;
     const h=ch.h(x,z);
@@ -10854,6 +10885,19 @@ function placeBigSolids(ch){
   for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){if(!di&&!dj)continue;const i=ch.i+di,j=ch.j+dj;if(!gridIn(i,j))continue;
     for(const s of bigsFor(i,j)){const e=s.m.elements,sc=len3(e[4],e[5],e[6]),R=(s.f.foot||1)*sc*1.3;
       if(e[12]+R<ch.x0||e[12]-R>ch.x0+CELL||e[14]+R<ch.z0||e[14]-R>ch.z0+CELL)continue;addLumps(ch,s.f.lumps,s.m,s.rs);}}
+}
+// The boulders' collision (v11.157; far.js rocksGen: the far layer places and draws them): the cell's own blocks and its neighbours' that reach
+// over its line, into its hash — complete whatever is loaded, as placeBigSolids makes it for the structures, so clearOf sees the same rock on every
+// visit — and the cell's own as a shadow proxy on layer 1 (never drawn by the camera: the region draws them). A generator: a cell's list not
+// yet cached (its region not built) is a few thousand sample() calls
+function* placeRockSolids(ch){
+  const own=[];
+  for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const i=ch.i+di,j=ch.j+dj;if(!gridIn(i,j))continue;const L=yield* rocksGen(i,j);
+    for(const s of L){if(!di&&!dj){own.push(s);addFloraSolids(ch,s.f,s.m,s.x,s.y,s.z,null,false);continue;}
+      if(s.x+s.r<ch.x0||s.x-s.r>ch.x0+CELL||s.z+s.r<ch.z0||s.z-s.r>ch.z0+CELL)continue;addFloraSolids(ch,s.f,s.m,s.x,s.y,s.z,null,false);}}
+  if(own.length){const c=new THREE.Color(),im=new THREE.InstancedMesh(BOULDER_G,MATROCKB,own.length);im.layers.set(1);shadowCaster(im,MATROCKB,ch.sphere);
+    for(let i=0;i<own.length;i++){im.setMatrixAt(i,own[i].m);c.setRGB(own[i].col[0],own[i].col[1],own[i].col[2]);im.setColorAt(i,c);}instLocal(im,own,ch.ox,ch.oz,q=>q.m);
+    im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;ch.group.add(im);ch.meshes.push(im);ch.shBig.push(im);}
 }
 // clearOf(ch, x,y,z, f, sc, sy): may a plant stand here? Its base (a pad the size of its footprint) and, for a tall one, its middle are
 // asked of the collision hash — this cell's solids so far (the rock went first, then the rigid plants before it in FLORA) and the loaded
@@ -11013,8 +11057,9 @@ function* genChunk(i,j){
   // v11.22, the order: rock first (the structures' collision, the cliffs' ledges, the cell's blocks), then everything that grows, each
   // asking the hash before it stands (clearOf). One rng stream per entry (v11.2), so the order moves nothing
   placeBigSolids(ch);yield;
+  yield* placeRockSolids(ch);yield;
   placeCliffs(ch,rng);yield;
-  for(const f of FLORA){if(f.mat!==MATROCK)continue;yield* placeFloraType(ch,mulberry((((i*73856093)^(j*19349663)^hashStr(f.id))>>>0)),f);yield;}
+  for(const f of FLORA){if(f.mat!==MATROCK||f.farRock)continue;yield* placeFloraType(ch,mulberry((((i*73856093)^(j*19349663)^hashStr(f.id))>>>0)),f);yield;}
   for(const f of FLORA){if(f.mat===MATROCK)continue;yield* placeFloraType(ch,mulberry((((i*73856093)^(j*19349663)^hashStr(f.id))>>>0)),f);yield;}
   placeLandmarks(ch);yield;
   yield* spawnChunkCreatures(ch,rng);lineLoad(ch);fallsLoad(ch); // the player's broods that lie in it (line.js, v11.69); the falls in it (v11.99)
@@ -11516,6 +11561,46 @@ function* bigsGen(i,j){
 }
 function bigsFor(i,j){const g=bigsGen(i,j);let r;do r=g.next();while(!r.done);return r.value;}
 
+// ---------- the boulders (v11.157) ----------
+// The person (16 Nov 2026, under water): the rocks on the plateaus pop into existence "long after you see the slope they are on top of". To v11.156
+// the four block entries (boulder, boulder2, boulder3, talus — FLORA `farRock`) were placed by the cell from its grid and drawn to FLORA_FAR, the
+// guaranteed reach of the 5×5 loaded cells being 430 m. Now they are the far layer's, as the structures are: placed per cell from sample() by the
+// same rules (placeFloraType's for a rock: the envelope, the slope, the chemocline, settleOn's ground and face), cached, drawn by the region to
+// ROCK_FAR (MATROCKF: 900 m, fading over 120 — the veil leaves 3% there), and the cell only registers their collision and casts their shadows
+// (chunks.js placeRockSolids). One list near and far, so nothing swaps: the rock you see from 900 m is the rock you swim past. Each cell's own rng
+// per entry (hashStr(id), as before) — but the blocks moved once: the cell's grid and its envelope read are not sample()'s. A cache entry goes when
+// its region is dropped (dropRegion), so travel does not keep the world's rocks.
+const FROCK=FLORA.filter(f=>f.farRock),rockCache=new Map(),ROCK_YIELD=16,RK_F=new Float32Array(NF),RK_G=13,RK_GS=CELL/(RK_G-1),RK_M=0.15;
+// the coarse look (RK_*): a cell's 13×13 lattice at 18 m, each point's tolerance of each entry, and each quad's best of its corners; a try
+// whose quad's best + RK_M is under its draw costs no sample() — the sand under the bare-rock blocks, the deep's mud, the meadows (most of the
+// world: 2,466 tries a cell, three samples each, were 3–20 ms of it); every other try is judged by the point's own sample(), as before
+function* rocksGen(i,j){
+  const ck=ckey(i,j);let L=rockCache.get(ck);if(L)return L;L=[];
+  const x0=i*CELL-HALF,z0=j*CELL-HALF,G=RK_G,NE=FROCK.length,RK_H=new Float64Array(G*G),RK_FG=new Float32Array(G*G*NF),RK_Q=new Float32Array((G-1)*(G-1)*NE),RK_R=new Float32Array((G-1)*(G-1));let tn=0; // its own buffers: a region's and a cell's generators may interleave
+  for(let b=0;b<G;b++){for(let a=0;a<G;a++){const k=b*G+a;RK_H[k]=sample(x0+a*RK_GS,z0+b*RK_GS,RK_FG.subarray(k*NF,(k+1)*NF)).h;}if(b%4===3)yield;}
+  for(let b=0;b<G;b++)for(let a=0;a<G;a++){const k=b*G+a,sl=Math.hypot((RK_H[b*G+Math.min(a+1,G-1)]-RK_H[b*G+Math.max(a-1,0)])/((Math.min(a+1,G-1)-Math.max(a-1,0))*RK_GS),(RK_H[Math.min(b+1,G-1)*G+a]-RK_H[Math.max(b-1,0)*G+a])/((Math.min(b+1,G-1)-Math.max(b-1,0))*RK_GS)),fv=fixF(RK_FG.subarray(k*NF,(k+1)*NF),sl);
+    for(let e=0;e<NE;e++){const w=envW(FROCK[e].env,RK_H[k],sl,fv);if(w<=0)continue;for(let qb=Math.max(0,b-1);qb<=Math.min(G-2,b);qb++)for(let qa=Math.max(0,a-1);qa<=Math.min(G-2,a);qa++){const q=(qb*(G-1)+qa)*NE+e;if(w>RK_Q[q])RK_Q[q]=w;}}}
+  for(let qb=0;qb<G-1;qb++)for(let qa=0;qa<G-1;qa++){let lo=1e9,hi=-1e9;for(let b=qb;b<=qb+1;b++)for(let a=qa;a<=qa+1;a++)lo=Math.min(lo,RK_H[b*G+a]);for(let b=Math.max(0,qb-1);b<=Math.min(G-1,qb+2);b++)for(let a=Math.max(0,qa-1);a<=Math.min(G-1,qa+2);a++)hi=Math.max(hi,RK_H[b*G+a]);RK_R[qb*(G-1)+qa]=hi-lo;} // the rise round each quad: a face (talus) wants f.face[1] within f.face[0] of the point
+  for(let e=0;e<NE;e++){const f=FROCK[e],rng=mulberry((((i*73856093)^(j*19349663)^hashStr(f.id))>>>0)),tries=Math.round((f.per||0)*Q.flora),maxSlope=f.maxSlope!==undefined?f.maxSlope:0.9;
+    for(let n=0;n<tries;n++){
+      if(++tn%ROCK_YIELD===0)yield;
+      const x=x0+rng()*CELL,z=z0+rng()*CELL,u=rng();
+      const qq=Math.min(G-2,Math.floor((z-z0)/RK_GS))*(G-1)+Math.min(G-2,Math.floor((x-x0)/RK_GS));
+      if(u>=RK_Q[qq*NE+e]+RK_M||(f.face&&RK_R[qq]<f.face[1]*0.5))continue; // the coarse look refuses it: no tolerance round here, or no face to lie under
+      const s=sample(x,z,RK_F),h=s.h,sl=Math.hypot((sample(x+STEP,z).h-h)/STEP,(sample(x,z+STEP).h-h)/STEP);
+      if(u>=envW(f.env,h,sl,fixF(RK_F,sl)))continue;
+      if(sl>maxSlope||underChemo(x,h,z))continue; // nothing on a cliff face; nothing under a basin's chemocline
+      const sc=f.s[0]+rng()*(f.s[1]-f.s[0]),yaw=rng()*TAU;
+      if(!settleOn(bigD,f,x,z,h,sc,yaw,bigH,rng))continue; // the one ground rule; a talus block only under a face
+      const sx=f.sx?f.sx[0]+rng()*(f.sx[1]-f.sx[0]):1,sz=f.sx?f.sx[0]+rng()*(f.sx[1]-f.sx[0]):1;bigD.scale.set(sc*sx,sc,sc*sz);bigD.updateMatrix();
+      const tc=f.tints[Math.floor(rng()*f.tints.length)];
+      L.push({f:f,m:bigD.matrix.clone(),x:x,y:bigD.position.y,z:z,r:sc*Math.max(sx,sz,1),col:[tc[0]*(0.85+rng()*0.25),tc[1]*(0.85+rng()*0.25),tc[2]*(0.85+rng()*0.25)]});
+    }
+  }
+  rockCache.set(ck,L);return L;
+}
+
+
 // ---------- landmarks ----------
 // The hand-built one-offs, built once at boot and kept (three culls each by its bounding sphere). LMK holds what the cells
 // need to register their collision and lights (chunks.js placeLandmarks): heights on the fine grid.
@@ -11527,10 +11612,10 @@ const LMK={meshes:[]};
 })();
 
 // ---------- far impostors: the forest, the bladder meadow and the rafts from a distance ----------
-// The stipe forest (1100/cell), bladders, rafts and colonies are placed by the cell's rng and exist only in loaded cells, so from 600 units the
-// forest read as a green floor. A sparse stand-in for each: every 5th stipe as a crossed pair of olive cards stretched to
-// the surface with a canopy pad on top (a wall of stalks from afar), every 3rd bladder as a thin crossed card the height of the water
-// column with a pad on top, rafts and colonies as flat octagons, every 2nd tidewood as a low-poly copy of the real one (v11.124). Placed by the same density rules as
+// The stipe forest (700/cell), bladders, rafts and colonies are placed by the cell's rng and exist only in loaded cells, so from 600 units the
+// forest read as a green floor. A sparse stand-in for each: every 3rd stipe and every 2nd bladder as a low-poly copy of the real one stretched
+// to the surface like it (v11.155; to v11.154 crossed cards with a pad on top — "two squares making an X stuck in the ground", the person,
+// 16 Nov 2026), rafts and colonies as flat octagons, every 2nd tidewood as a low-poly copy of the real one (v11.124). Placed by the same density rules as
 // placeFloraType (biome, field, pocket, the lee) from a pure per-cell rng, drawn by the region, and zeroed inside loaded
 // cells the way the far terrain is sunk. They do not match the near flora one for one; only the density does.
 function impGeo(tris){ // tris: [[x,y,z]x3, [r,g,b]] with the normal from the winding
@@ -11541,11 +11626,27 @@ function impGeo(tris){ // tris: [[x,y,z]x3, [r,g,b]] with the normal from the wi
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(pos),3));
   g.setAttribute('normal',new THREE.BufferAttribute(new Float32Array(nor),3));g.setAttribute('color',new THREE.BufferAttribute(new Float32Array(col),3));g.computeBoundingSphere();return g;
 }
-function crossCards(w,y0,y1,col,tris){ // two vertical quads at right angles, width w between y0 and y1
-  for(const [ax,az] of [[1,0],[0,1]]){const x=ax*w/2,z=az*w/2;tris.push([[-x,y0,-z],[x,y0,z],[x,y1,z],col],[[-x,y0,-z],[x,y1,z],[-x,y1,-z],col]);}
-}
-function farStipeGeo(){const T=[];crossCards(2.8,0,1,[0.42,0.44,0.17],T);const r=2.4,c=[0.5,0.5,0.2];for(let k=0;k<6;k++){const a0=k/6*TAU,a1=(k+1)/6*TAU;T.push([[0,1,0],[Math.cos(a0)*r,1,Math.sin(a0)*r],[Math.cos(a1)*r,1,Math.sin(a1)*r],c]);}return impGeo(T);} // the stipe: a unit card stretched to the surface like the bladder's, a canopy pad on top
-function farBladderGeo(){const T=[];crossCards(1.4,0,1,[0.5,0.56,0.26],T);const r=2.2,c=[0.68,0.72,0.36];for(let k=0;k<6;k++){const a0=k/6*TAU,a1=(k+1)/6*TAU;T.push([[0,1,0],[Math.cos(a0)*r,1,Math.sin(a0)*r],[Math.cos(a1)*r,1,Math.sin(a1)*r],c]);}return impGeo(T);}
+// a face whose normal points away from the axis (impGeo's normal is the winding's), for the stalks: a, b, c and the colour
+function outTri(T,a,b,c,k){const ux=b[0]-a[0],uz=b[2]-a[2],vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2],uy=b[1]-a[1],nx=uy*vz-uz*vy,nz=ux*vy-uy*vx;T.push(nx*(a[0]+b[0]+c[0])+nz*(a[2]+b[2]+c[2])<0?[a,c,b,k]:[a,b,c,k]);}
+// a stalk of n sides from radius r0 at y0 to r1 at y1 (unit height: the instance stretches it to the water), phase ph
+function farStalk(T,n,r0,r1,y0,y1,ph,k){const P=(a,r,y)=>[Math.cos(a)*r,y,Math.sin(a)*r];for(let i=0;i<n;i++){const a0=ph+i/n*TAU,a1=ph+(i+1)/n*TAU;outTri(T,P(a0,r0,y0),P(a1,r0,y0),P(a1,r1,y1),k);outTri(T,P(a0,r0,y0),P(a1,r1,y1),P(a0,r1,y1),k);}}
+// a flat blade out from the axis at height y on bearing a: L long, w0 wide at the root and w1 at the tip, its tip dy lower (unit height); facing up
+function farBlade(T,y,a,L,w0,w1,dy,k){const c=Math.cos(a),s=Math.sin(a),r0=0.05,A=[c*r0-s*w0/2,y,s*r0+c*w0/2],B=[c*r0+s*w0/2,y,s*r0-c*w0/2],C=[c*L+s*w1/2,y-dy,s*L-c*w1/2],D=[c*L-s*w1/2,y-dy,s*L+c*w1/2];
+  for(const t of [[A,B,C],[A,C,D]]){const [a1,b1,c1]=t,ny=(c1[0]-a1[0])*(b1[2]-a1[2])-(b1[0]-a1[0])*(c1[2]-a1[2]);T.push(ny<0?[a1,c1,b1,k]:[a1,b1,c1,k]);}}
+// a flat disc of n sides at height y, radius r (a float laid flat), as a fan from its first corner: n−2 triangles, facing up
+function farDisc(T,y,r,n,ph,k){const P=i=>[Math.cos(ph+i/n*TAU)*r,y,Math.sin(ph+i/n*TAU)*r];for(let i=1;i<n-1;i++){const a=P(0),b=P(i),c=P(i+1),ny=(c[0]-a[0])*(b[2]-a[2])-(b[0]-a[0])*(c[2]-a[2]);T.push(ny<0?[a,c,b,k]:[a,b,c,k]);}}
+// The stipe (v11.155): flora.js stipeB's middle ecotype (k 1) — the stalk 0.16 → 0.065 m (three sides for its five), four nodes of two flat
+// blades each for its seven, spiralling as its do and 1.3× longer and wider for the nodes left out, and the canopy whorl's five blades just under
+// the top; its vertex colours (WSTEM, W) under the real tint (FAR_IMP `pig`). 32 triangles (the cards were 10).
+function farStipeGeo(){const T=[],rg=mulberry(0x51e7);farStalk(T,3,0.16,0.065,0,0.975,0.3,WSTEM);
+  for(let i=0;i<4;i++){const y=0.26+i*0.18,sp=i*4.2+rg()*0.6;for(let j=0;j<2;j++)farBlade(T,y,sp+j*Math.PI+(rg()-0.5)*0.5,(1.5+rg()*0.6)*1.3,0.52,0.42,0,W);}
+  for(let j=0;j<5;j++)farBlade(T,0.985,j/5*TAU+rg()*0.4,2.2+rg()*0.6,0.48,0.4,0,W);
+  return impGeo(T);}
+// The bladder (v11.155): bladderB's middle ecotype — the stalk 0.26 → 0.135 m (three sides for its six), its four floats at 0.6–0.9 of the column
+// as flat pentagons, each with its two blades hanging just under it (4% and 6% of the column) in their own greens. 34 triangles (the cards were 10).
+function farBladderGeo(){const T=[],rg=mulberry(0xb1ad);farStalk(T,3,0.26,0.135,0,1,0.9,[0.4,0.42,0.2]);
+  for(let i=0;i<4;i++){const y=0.6+i*0.1+rg()*0.02,a=i*1.3+rg()*0.4;farDisc(T,y,0.5,5,a,[0.68,0.72,0.36]);farBlade(T,y-0.04,a,2.35,0.48,0.48,0,[0.45,0.55,0.25]);farBlade(T,y-0.06,a+1.6+Math.PI,2.35,0.48,0.48,0,[0.42,0.52,0.24]);}
+  return impGeo(T);}
 function farRaftGeo(col){const T=[];for(let k=0;k<8;k++){const a0=k/8*TAU+0.2,a1=(k+1)/8*TAU+0.2,r0=0.9+0.1*(k%2),r1=0.9+0.1*((k+1)%2);T.push([[0,0,0],[Math.cos(a0)*r0,0,Math.sin(a0)*r0],[Math.cos(a1)*r1,0,Math.sin(a1)*r1],col||W]);}return impGeo(T);}
 // The tidewood (v11.124; to v11.123 a crossed pair of 1.2 m cards 9 m tall under a flat six-sided pad, olive on olive: from the water a fence
 // of pale posts beside the real wood — "strange looking square LOD's", the person, 12 Nov 2026). Now the real one's middle size as flora.js
@@ -11569,8 +11670,8 @@ function farTreeGeo(){
 // pig (v11.124): tinted as the real instances are — pigment(h, line) with the place's stain (grow.js tintBy) — not from the species' list. hs: the real
 // variants' heights on the geometry's, one drawn per instance.
 const FAR_IMP=[
-  {f:FLORA_BY_ID.stipe,geo:farStipeGeo(),stride:5,dim:0.55}, // dim (v11.42.4): the card's tint against the real plant's — the stipe's pigment darkens with depth and its pads are silhouettes from below, and past the swap at FLORA_FAR the cards' residual through the fog read paler than the veil where the real kelp's read darker: a pale band with a bright line of pads along the far water level (the person's last 5%, 14 Sep)
-  {f:FLORA_BY_ID.bladder,geo:farBladderGeo(),stride:3,dim:0.7},
+  {f:FLORA_BY_ID.stipe,geo:farStipeGeo(),stride:3,pig:true}, // v11.155: the real one's copy under the real tint (pig); to v11.154 an olive card dimmed 0.55 against the real (v11.42.4: past the swap the cards' residual read paler than the veil where the real kelp's read darker — the person's last 5%, 14 Sep), one in five
+  {f:FLORA_BY_ID.bladder,geo:farBladderGeo(),stride:2,pig:true}, // v11.155: the same; to v11.154 a card dimmed 0.7, one in three
   {f:FLORA_BY_ID.button,geo:farRaftGeo([0.56,0.82,0.78]),stride:2,r:1.1}, // the buttons' fleets, green-blue
   {f:FLORA_BY_ID.tidetree,geo:farTreeGeo(),stride:2,pig:true,hs:[6/9,1,12/9]} // tidewoodB's 6, 9 and 12 m
 ];
@@ -11670,6 +11771,12 @@ function* genRegion(ri,rj){
     for(let i=0;i<L.length;i++){im.setMatrixAt(i,L[i].m);c.setRGB(L[i].col[0],L[i].col[1],L[i].col[2]);im.setColorAt(i,c);}instLocal(im,L,ox,oz,q=>q.m);
     im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;reg.group.add(im);});
   yield;
+  // the boulders (v11.157): one instanced mesh for the region's blocks (they share one geometry), drawn near and far — the cells draw none
+  {const L=[];for(let dj=0;dj<FR;dj++)for(let di=0;di<FR;di++){for(const s of (yield* rocksGen(ci0+di,cj0+dj)))L.push(s);yield;}
+    if(L.length){const im=new THREE.InstancedMesh(BOULDER_G,MATROCKF,L.length);im.frustumCulled=false;
+      for(let i=0;i<L.length;i++){im.setMatrixAt(i,L[i].m);c.setRGB(L[i].col[0],L[i].col[1],L[i].col[2]);im.setColorAt(i,c);}instLocal(im,L,ox,oz,q=>q.m);
+      im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;reg.group.add(im);}}
+  yield;
   // the impostors, one instanced mesh per kind, instances grouped by cell so a cell's run can be zeroed when it loads
   const cellL=[];for(let dj=0;dj<FR;dj++)for(let di=0;di<FR;di++){cellL.push(yield* impostorsGen(ci0+di,cj0+dj));yield;}
   FAR_IMP.forEach((sp,si)=>{
@@ -11754,7 +11861,8 @@ function manageFar(budgetMs){
   while(farGen&&performance.now()-t0<budgetMs){if(farGen.next().done){farGen=null;break;}}
   for(const reg of farList){if(Math.hypot(reg.cx-px,reg.cz-pz)>FAR_DROP+reg.ext){dropRegion(reg);break;}}
 }
-function dropRegion(reg){scene.remove(reg.group);reg.geo.dispose();for(const o of reg.group.children)if(o.isInstancedMesh)o.dispose();regions.delete(ckey(reg.ri,reg.rj));farList.splice(farList.indexOf(reg),1);farBuilt--;} // the structure and card geometries are shared (FLORA's, FAR_IMP's): only the instance buffers go
+function dropRegion(reg){scene.remove(reg.group);reg.geo.dispose();for(let dj=0;dj<FR;dj++)for(let di=0;di<FR;di++)rockCache.delete(ckey(reg.ci0+di,reg.cj0+dj)); // the boulders' lists go with it (v11.157); a loaded cell keeps its own in its hash
+  for(const o of reg.group.children)if(o.isInstancedMesh)o.dispose();regions.delete(ckey(reg.ri,reg.rj));farList.splice(farList.indexOf(reg),1);farBuilt--;} // the structure and card geometries are shared (FLORA's, FAR_IMP's): only the instance buffers go
 // after cullChunks, which sets the frustum
 function cullFar(){
   visibleRegions=0;
@@ -13508,7 +13616,7 @@ fxApply();
 // zooms about the cursor, a drag pans, a click goes there (tp, in play) and closes; esc or n closes; `o` shows the marks (the island records'
 // land and reach rings, the clamp, the old squares, the loaded cells, the landmarks), off by default. The pointer is released while it is open
 // and taken back when it closes, as the effects list does (effects.js fxShow).
-// v11.155, the person (16 Nov 2026): "hitting N and zooming out still shows a ton of pixels, it's very hard to get clean lines and I can't see
+// v11.158, the person (16 Nov 2026): "hitting N and zooming out still shows a ton of pixels, it's very hard to get clean lines and I can't see
 // the provinces without some type of visual confusion … the images you send are fine" (test/mapdraw.js's renders). To v11.154 the world was one
 // 512² picture (~920 m a sample) stretched over the canvas, its contours a pixel's colour on that grid (stairs), every mark drawn at every zoom.
 // Now the picture is tiles of WMAP_T² samples on a pyramid of levels √2 apart (level L: WMAP_MPP0/√2^L metres a sample, the grid from the world's
@@ -15404,7 +15512,7 @@ function warmShaders(){
     geo.setAttribute('position',new THREE.Float32BufferAttribute([0,0,0,0,0.01,0,0.01,0,0],3));geo.setAttribute('normal',new THREE.Float32BufferAttribute([0,1,0,0,1,0,0,1,0],3));geo.setAttribute('color',new THREE.Float32BufferAttribute([1,1,1,1,1,1,1,1,1],3));
     for(const m of [MAT,MAT_HIT,MATBIG,MATLM,MATT,TERRAIN_MAT,MAT_HI,shM,new THREE.MeshLambertMaterial({color:0x06080a,transparent:true,opacity:0.9})])g.add(new THREE.Mesh(geo,m)); // the last is the ink cloud's; shM the light shafts' (v11.13)
     const c=new THREE.Color(1,1,1);
-    for(const m of [MAT,MATROCK,MATROCKB,MATFAR,GLOW,MATV,MATG,MATB,MATR,MATW,MATS,MATM,MATGL,MATTR]){const ig=geo.clone();ig.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(1),1));ig.setAttribute('aDip',new THREE.InstancedBufferAttribute(new Float32Array(1),1));ig.setAttribute('aCur',new THREE.InstancedBufferAttribute(new Float32Array(2),2));ig.setAttribute('aTide',new THREE.InstancedBufferAttribute(new Float32Array(2),2));const im=new THREE.InstancedMesh(ig,m,1);im.setColorAt(0,c);g.add(im);}
+    for(const m of [MAT,MATROCK,MATROCKF,MATROCKB,MATFAR,GLOW,MATV,MATG,MATB,MATR,MATW,MATS,MATSC,MATM,MATGL,MATTR]){const ig=geo.clone();ig.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(1),1));ig.setAttribute('aDip',new THREE.InstancedBufferAttribute(new Float32Array(1),1));ig.setAttribute('aCur',new THREE.InstancedBufferAttribute(new Float32Array(2),2));ig.setAttribute('aTide',new THREE.InstancedBufferAttribute(new Float32Array(2),2));const im=new THREE.InstancedMesh(ig,m,1);im.setColorAt(0,c);g.add(im);}
     g.position.set(0,-1e5,0);scene.add(g);renderer.compile(scene,camera);
     g.traverse(o=>{if(o.isMesh){shadowCaster(o,o.material);o.castShadow=true;o.frustumCulled=false;}});shadowFrame();updateShadowS(0,true); // the depth programs of the world's shadow map (v11.30), one forced pass over these meshes; the map itself goes at the next frame if the switch is off
     scene.remove(g);
