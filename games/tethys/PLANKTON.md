@@ -190,6 +190,24 @@ The person's condition: plausible, or thrown away. It is plausible, and for a be
   comes free with it.
 - **How often.** A bloom at its peak, being grazed hard, on a few nights of the year — an event, in the archipelago's own sense.
 
+**Built as v11.160 (16 Nov 2026; DESIGN, The body's effects, "The sparks"; world.js `FLASH`, fx.js `SPK`).** The person asked whether a
+bioluminescent wake is believable; my answer, taken whole ("go with your suggestions"): yes, if it is (1) as bright as the flashers are many — a
+faint sparkle in island water, a sheet only in a bloom — (2) gated by the clock, not the light (a circadian rhythm), (3) the surface's, and (4) by
+shear with fatigue (a slow body nearly dark, a sprint a line, water just lit dimmer on the second pass). **The flashers are none of the three kinds**:
+a grazer of the gold, which is how the best-known flasher on Earth (Noctiluca) follows the diatoms' blooms — so the bright nights come a few days
+after a stormy spell, on the flanks it fed (the pulse lags the gold's by 2.6 days in test/glow.js). The breakers and the rain at night spark
+round the camera from the same physics.
+
+**The person, 16 Nov 2026, on v11.160's first cut** ("you don't really see the bioluminescence anywhere at all except when you're moving … it
+just kinda looks like blue dots of water, like particle effects behind your tail … I want the believability but it also has to be legible"):
+**soft glows**, yes; everything moving in sight sparks, the current and the surf glow, the wake lights what is round it — built v11.160.1; **the cost
+above, yes** ("light is light. If you're lit and it would help a predator see you, then yes") — built v11.160.1, `litK`; **the dusk displays** (sea
+fireflies' strings), **glowing carcasses** (luminous bacteria) and **milky seas**, yes — v11.161; **the luminous ink, not now**; **no steady glowing
+plants and no lanterns**, agreed. Their question, "it would be from filter feeders, no? … how do the compounds or bacteria survive the [trophic]
+ladder?": not filter feeders and no ladder — the light on a carcass is luminous bacteria that live in most animals' guts and in the water, spread
+through the dead body and switch on together when they are dense (quorum sensing); a glowing carcass or pellet gets eaten, which carries them into
+a new gut. (The one real ladder: the midshipman fish cannot make its luciferin and takes it from the sea fireflies it eats.)
+
 ## 9. Marine snow, refined
 
 What stays: everything in `atmosphere.js:382`. The five populations, the Martin curve, the density steps, the chemocline's plate and
