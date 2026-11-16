@@ -1,25 +1,16 @@
 # HANDOFF — tethys
 
+**v11.162 (16 Nov 2026): the night as an animal sees it; the wake struck** (world.js `NIGHT_EYE`; atmosphere.js `eyeStep`; scene.js `eyeC`; fx.js; CHANGELOG).
+The eye is a night-adapted fish's (Earth's numbers in DESIGN "The eye"): ~1.45 at a full moon, ~3.1 moonless, opening over a game hour at dusk, the colour
+draining toward blue-grey as it opens. The motion wake (v11.160–160.1) is struck as illegible, its kit kept; the carcasses, the dusk displays (now denser,
+in view, larger) and the milky seas stay. Stacked on v11.161. **The person (16 Nov 2026): the night and the milky sea are "exactly what I wanted"** —
+leave `NIGHT_EYE` and `MILKY` as they are. **Ask:** the displays seen in play; the displayers as tiny hingeshells.
+
 **v11.161 (16 Nov 2026): the night's other lights** (fx.js `updateNightLights`, world.js `MILKY`; DESIGN The body's effects; PLANKTON §8; CHANGELOG).
 Glowing carcasses (their gut bacteria lit by quorum, hours after death, fading with the flesh; scavengers see them further), the dusk displays (sea
 fireflies' strings over shallow sheltered floor in the hour after a dark sunset — the displayers tiny hingeshells, **to confirm**), milky seas (a week
 after a stormy spell over the fed flanks, ~2–3 a year; the water itself glows). `milky()` and `dusk()` in the console. Stacked on v11.160.1.
 **Ask:** the displays and a carcass (not seen here: headless Chromium ran out of memory at the shallows), a milky sea from above and below.
-
-**v11.160 (16 Nov 2026): the bioluminescent wake** (world.js `FLASH`, fx.js `SPK`; DESIGN The body's effects, "The sparks"; PLANKTON §8; CHANGELOG).
-The flashers are a grazer of the gold (the person took my suggestion): bright where the crop is and four days after a stormy spell, faint in island
-water, at the surface. At night (by the clock) a body's shear fires them — a sprint a line, a school's pace a few, a slow body none; spent water
-rests over 75 s; a struggle bursts; the breakers and the rain spark. **v11.160.1** (the person: "blue dots … behind your tail"; legible): soft
-glows, every moving body within 110 m sparks, the current twinkles, the breakers glow, the lit wake lights what is round it, and a lit body is seen
-from further by a hunter (`litK`). `bioluminescence` on `e`. Stacked on v11.159. **Ask:** a sprint on the fed flank
-(`skip(13.6)`, then `tp(600,-670,-4)` — 4 m under the mean sea; without the height `tp` puts you 120 m down, under the flashers), island water at the start, the surf at night; whether the hunters should read a lit wake.
-
-**v11.159 (16 Nov 2026): the eye adapts at night** (atmosphere.js `NIGHT_EYE`, `eyeK`; DESIGN The sky, "The eye"; POLISH "Raised 16 Nov"; CHANGELOG).
-The person: "it can get really dark". For nine nights in a row of the 26-day month the moon is new or down and the night sat on `STARL` (0.035 of
-noon, a clear full moon 0.28). Now the frame is multiplied by a gain, 1 by day and at a full moon, rising as the sky's light falls to the person's cap,
-×2.4; by the sky only, never the depth (the deep is another time); the own light divided by it so it looks as it did. `night eyes` on `e`; `eye ×n`
-on the readout. **Ask:** a new-moon night under water and from the surface on the preview (`skip(13.6)` from a new game lands an hour before a new moon's midnight; the finback or the coilshell — the soft-arm is dead of age by then), with
-`night eyes` flipped; the readout's render ms there.
 
 **v11.158 (16 Nov 2026): the world map, clean at every zoom** (worldmap.js; CHANGELOG). The person found `n` zoomed out "a ton of pixels"
 and the provinces lost under the marks. The map is now tiles at the screen's own pixels on a pyramid of levels, shaded and contoured as

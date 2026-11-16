@@ -8571,3 +8571,47 @@ the fog's veil when a milky sea is on (`uSkF.w` > 0), the surface's likewise —
 
 **Unseen, ask in this order:** 1. The dusk displays (`dusk()` then the lagoon or a reef flat, a few metres down). 2. A milky sea (`milky()`, then the fed
 flank `tp(600,-670,-4)`, under and above the water). 3. A carcass at night a few hours after a kill. 4. Whether the displayers are tiny hingeshells.
+
+## v11.162 — the night as an animal sees it; the wake struck (16 Nov 2026)
+
+The person, after playing v11.159–161: the wake "isn't very legible … even on earth it would be unclear for a human. So let's bin this idea of
+bioluminescence purely as a function of you moving with the intention of bringing it back in once we have other bioluminescent things in mind" — a school in
+the starting shallows was not lit by it, and its sparks read as the marine snow. And the night: "I wanted 'true dark' because that's believable, but only if
+it meant that your eyes can adjust … nighttime is so dark you can't see anything as the finback … animals in darkness like that every day evolve to handle
+it"; on the cap, "look into what an actual fish on earth tends to be able to see at night". The dusk displays: "I'd keep [them] although I'm not entirely
+sure if I saw any … I'd need you to take some pics". Milky seas stay. Stacked on v11.161 (the person: stack on #100).
+
+- **The eye, an animal's** (world.js `NIGHT_EYE` {ref 0.6, k 0.4, max 4, open 80, close 5, desat 0.6}; atmosphere.js `eyeStep`, `SKY.eyeT`; scene.js
+  `EYE_GLSL`, `eyeC`). What Earth's say: brown and brook trout forage to ~0.005 lux; the nocturnal reef fish (squirrelfish) see with a deep-sea fish's
+  banked rod retina; a cat needs a sixth of our light; a fish's retina rebuilds itself for the night over an hour or so at dusk. So a moonless night is seen
+  about as we see moonlight, a moonlit one as we see dusk: ~1.45 at sunset and a full moon, ~1.9 at a quarter, ~3.1 moonless (to v11.161: 1, 1.5, 2.4,
+  and only below a full moon); the bright day (the sun over ~15°) untouched. It opens over 80 s — a game hour, the retina's own — and closes over 5;
+  a boot, a load and `skip()` set it at once. As it opens the colour drains toward a rod's blue-grey (0.6 at a moonless night's gain), in every fogged
+  material's fog chunk, the dome and the horizon pass; the glows keep theirs. The readout: `eye ×n→target` while it moves.
+- **The wake struck** (fx.js): the bodies, the current, the breakers' glow on the surface (atmosphere.js `uSpk`), the wake's light (`SK_LIGHT`), and a lit
+  body's being seen (creatures_ai.js `litK`, the `lit` keys). Kept as a kit, uncalled: `skBody`, `sparkBurst`, world.js `FLASH` and its pulse.
+- **A colour per glow** (fx.js `skC`, `skEmit`'s `col` and `sz`): the carcasses' bacteria blue-green (0.35, 1.0, 0.72), the displays' sea-firefly blue
+  (0.28, 0.52, 1.0), brighter (1.2–1.5).
+- **The displays legible** (`DSP.rate` 5 → 12, `slots` 24 → 96, `view` 0.7 started in front of the eye at 4–26 m, `size` 1.5): to v11.161 a dark
+  dusk's displays were a couple of dots at the frame's edge — seen, both versions side by side.
+- **Tests:** test/sky.js "the eye" for the new numbers (the bright day 1; a full moon's midnight 1.3–1.7; the new moon's ~3.1; a third to two thirds of
+  the month's night hours at ×2.9 or more; the darkest night shown at ≥ 0.1 of noon) and its clock (1 → 3 reaches 2.26 in 80 s; 3 → 1 is under 1.8 in
+  5 s); test/glow.js: the wake struck (a sprint at night fires nothing), the pool's live points finite and in the water, its cost on the displays' run.
+
+**Seen** (headless Chromium, low tier, 640×360; the finback at the start, 19 m, v11.161 against v11.162; means of 255, noon 153): a full moon 64 → 86 (the
+moon's caustics bright on the sand), a quarter 54 → 68, a new moon 58 → 72 — and the new moon's olive cast of v11.161 now a blue-grey night that reads
+as night (`_look/tethys-eye-v11.162.png`). The displays at a dark dusk (shot at the start, the displays' floor widened for the picture — the shallow
+sheltered floor itself ran headless Chromium out of memory three times): v11.161 two dots at the frame's edges; v11.162 dotted blue strings rising
+across the floor in front (`_look/tethys-displays-v11.162.png`). Note for the person: the start at night was more readable than "can't see anything"
+even in v11.161 here (means 54–64) — where were you?
+
+**What it costs:** `updateSchools` + `updateCreatures` at the forest the same simulation to the bit (test/frames.js; 1.829 → 1.652 ms, noise); the eye one `exp` a frame (`eyeStep`) and, on the GPU, a dot product and a mix more per fogged fragment (`eyeC`) — unmeasured here;
+the wake's loops gone (`updateSparks` 0.005 ms headless on the displays' run, 0.032 with the wake in v11.160.1).
+
+**Unseen, ask in this order:** 1. A night under water on the preview (the start, the forest, deeper): is ×3.1 moonless and the colour drain right? 2.
+Dusk: the eye opening over a minute and a half — felt, or annoying? 3. The displays (`dusk()`, then shallow sheltered floor). 4. Where it still feels
+dark: the `tp()` from the world map's cursor line.
+
+**The person, on the preview (16 Nov 2026):** "I love the milky sea. I love night time now that I can see properly. This is exactly what I wanted." The eye's
+numbers (`NIGHT_EYE`) and the milky sea (`MILKY`) stand as built; tune them only on their word. Still open: the dusk displays seen in play, and the displayers
+as tiny hingeshells.

@@ -6,7 +6,7 @@ const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..');
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
 let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n');
-js+='\nglobal.__sky={weatherAt,CLD_TH,cldThOf,cldTh0,cldN,cldDensity,cloudAt,CLD_S,CLD,CLD_CAPS,FZ0,DAY_H,SOLAR_H0,YEAR_D,seasonAt,SKY,CLOUD_H,camera,player,WX,ISLANDS,HALF,step:__step,SHWR,CELLS,updateCells,WIND_A,updateSky,eyeK,NIGHT_EYE,STARL,setClock:h=>{clockH=h;}};';
+js+='\nglobal.__sky={weatherAt,CLD_TH,cldThOf,cldTh0,cldN,cldDensity,cloudAt,CLD_S,CLD,CLD_CAPS,FZ0,DAY_H,SOLAR_H0,YEAR_D,seasonAt,SKY,CLOUD_H,camera,player,WX,ISLANDS,HALF,step:__step,SHWR,CELLS,updateCells,WIND_A,updateSky,eyeK,eyeStep,NIGHT_EYE,STARL,setClock:h=>{clockH=h;}};';
 const tmp=path.join(require('os').tmpdir(),'tethys_sky_bundle.js');
 fs.writeFileSync(tmp,'(function(){"use strict";\n'+js+'\n})();');
 process.env.PICK='1';
@@ -61,20 +61,23 @@ console.log('the showers');
   c.ax=px+K.windOff[0]+c.R*3.5;S.updateCells(0.02);ok(K.rain<0.01&&K.cellNear<0.2,'three and a half radii off, no rain and the cover barely lifted');
   c.t=S.SHWR.life+1;S.updateCells(0.02);ok(S.CELLS.length===0,'gone at its life\'s end');
   S.setClock(3.5);for(let i=0;i<3;i++)S.updateCells(0.02);ok(S.CELLS.length===0,'the same episode births no second cell');}
-// ---------- the eye (v11.159) ----------
-// the gain the frame is multiplied by at night (atmosphere.js NIGHT_EYE, eyeK): 1 by day and at a full moon, capped at a moonless night, never NaN; over a
-// month of the real sky (updateSky) — the day untouched, the moonless nights at the cap, and the light they show
+// ---------- the eye (v11.159; an animal's since v11.162) ----------
+// the gain the frame is multiplied by at night (world.js NIGHT_EYE, atmosphere.js eyeK, eyeStep): 1 in the day's full light, rising through dusk to a moonless
+// night's ~3.1, never over the cap, never NaN; over a month of the real sky (updateSky) — the bright day untouched, the moonlit and the moonless nights
+// where world.js says, and the light they show; and its clock — opening over a game hour, closing in seconds
 console.log('the eye');
-{let mono=true,inR=true,prev=Infinity;for(let L=0.001;L<=1.2;L*=1.05){const e=S.eyeK(L);if(!(e>=1&&e<=S.NIGHT_EYE.max))inR=false;if(e>prev+1e-12)mono=false;prev=e;}
-  ok(inR&&mono,'eyeK in [1, '+S.NIGHT_EYE.max+'] and never rising with the light');ok(S.eyeK(S.NIGHT_EYE.ref)===1&&S.eyeK(1)===1,'1 at the reference and at noon');ok(S.eyeK(S.STARL)===S.NIGHT_EYE.max,'the cap on a moonless night ('+S.eyeK(S.STARL)+')');ok(S.eyeK(0)===S.NIGHT_EYE.max&&S.eyeK(NaN)>=1,'no NaN at 0');
-  const K=S.SKY;S.player.pos.set(0,-10,0);let day=0,dayOff=0,sunUp=0,nights=0,capped=0,lo=9,full=9,dark=9;
-  for(let h=0;h<26*S.DAY_H;h+=0.25){S.setClock(h);S.updateSky(1);const e=S.eyeK(K.skyLw);if(!(e>=1&&e<=S.NIGHT_EYE.max)){ok(false,'the eye out of range at h '+h);break;}
-    if(K.dayK>0.3){day++;if(e!==1)dayOff++;}if(K.sunAlt>0)sunUp=Math.max(sunUp,e);
-    if(K.dayK<0.01){nights++;if(e>=S.NIGHT_EYE.max-1e-9)capped++;lo=Math.min(lo,K.skyLw*e);const lh=(h+S.SOLAR_H0)%S.DAY_H;if(lh>29||lh<1){const d=Math.floor(h/S.DAY_H);if(d===0||d===25)full=Math.min(full,e);if(d===13)dark=Math.min(dark,e);}}}
-  ok(dayOff===0,'the day untouched: 1 at every one of '+day+' quarter-hours with dayK over 0.3');ok(sunUp<1.1,'at most '+T(sunUp)+' with the sun up (the warm dusk as it was)');
-  ok(full<1.25,'a full moon\'s midnight at '+T(full));ok(dark===S.NIGHT_EYE.max,'the new moon\'s at the cap');
-  ok(capped/nights>0.3&&capped/nights<0.7,T(capped/nights)+' of the month\'s night hours at the cap (the moon new or down)');
-  ok(lo>=S.STARL*S.NIGHT_EYE.max-1e-9,'the darkest night shown at '+T(lo)+' of noon (it was '+S.STARL+')');}
+{const E=S.NIGHT_EYE;let mono=true,inR=true,prev=Infinity;for(let L=0.001;L<=1.2;L*=1.05){const e=S.eyeK(L);if(!(e>=1&&e<=E.max))inR=false;if(e>prev+1e-12)mono=false;prev=e;}
+  ok(inR&&mono,'eyeK in [1, '+E.max+'] and never rising with the light');ok(S.eyeK(E.ref)===1&&S.eyeK(1)===1,'1 at the reference and at noon');ok(S.eyeK(0)>=1&&S.eyeK(NaN)>=1,'no NaN at 0 or NaN');
+  const K=S.SKY;S.player.pos.set(0,-10,0);let day=0,dayOff=0,sunUp=0,nights=0,dark3=0,lo=9,full=9,dark=9;
+  for(let h=0;h<26*S.DAY_H;h+=0.25){S.setClock(h);S.updateSky(1);const e=S.eyeK(K.skyLw);if(!(e>=1&&e<=E.max)){ok(false,'the eye out of range at h '+h);break;}
+    if(K.dayK>0.72){day++;if(e!==1)dayOff++;}if(K.sunAlt>0)sunUp=Math.max(sunUp,e);
+    if(K.dayK<0.01){nights++;if(e>=2.9)dark3++;lo=Math.min(lo,K.skyLw*e);const lh=(h+S.SOLAR_H0)%S.DAY_H;if(lh>29||lh<1){const d=Math.floor(h/S.DAY_H);if(d===0||d===25)full=Math.min(full,e);if(d===13)dark=Math.min(dark,e);}}}
+  ok(dayOff===0,'the bright day untouched: 1 at every one of '+day+' quarter-hours with dayK over 0.72 (the sun over ~15°)');ok(sunUp<1.6,'at most '+T(sunUp)+' with the sun up (the eye begins at sunset)');
+  ok(full>1.3&&full<1.7,'a full moon\'s midnight at '+T(full)+' (a dusk to a night-adapted fish)');ok(dark>2.9&&dark<=E.max,'the new moon\'s at '+T(dark)+' (moonlight to it)');
+  ok(dark3/nights>0.3&&dark3/nights<0.7,T(dark3/nights)+' of the month\'s night hours at ×2.9 or more (the moon new or down)');
+  ok(lo>=0.1,'the darkest night shown at '+T(lo)+' of noon (v11.158: '+S.STARL+'; v11.159: 0.084)');
+  let e=1;for(let i=0;i<80*60;i++)e=S.eyeStep(e,3,1/60);const open=e;for(let i=0;i<5*60;i++)e=S.eyeStep(e,1,1/60);
+  ok(Math.abs(open-(1+2*(1-Math.exp(-1))))<0.01,'it opens over E.open: from 1 toward 3, '+T(open)+' after 80 s (a game hour, the retina\'s own)');ok(e<1.8,'and closes in seconds: '+T(e)+' 5 s after the light comes back');}
 // ---------- costs ----------
 {let t0=process.hrtime.bigint();for(let i=0;i<10000;i++)S.cloudAt(i*0.3,-5,i*0.1,{x:0.3,y:0.8,z:0.2});const us=Number(process.hrtime.bigint()-t0)/1e4/1000;
   console.log('  cost: cloudAt '+us.toFixed(2)+' µs');ok(us<20,'the cost is small');}
