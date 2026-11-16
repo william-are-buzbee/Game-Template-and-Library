@@ -1,5 +1,11 @@
 # HANDOFF — tethys
 
+**v11.154 (16 Nov 2026): the reefs' shapes by many scales** (analysis_archipelago §10.12–10.13; DESIGN "The reefs' shapes by many scales";
+CHANGELOG). The ninth sheet (seeds 251, 263, 271, 283) found 4 of 4 by the shallows' even stipple, the saddles' necks and the banks' smooth outlines.
+Measured (`ONLY=lagoons,outline`, new), then built: landslide bites in every model record's margin (region.js `rgBite`), and the lagoons by many
+scales (world.js `apronF`, `lagoonM`). The outlines and the lagoons' relief by scale now inside Earth's ranges; the lagoons' median depth and the
+halo's spread not moved. sample() the same within noise. Stacked on v11.153 (#91). **Next:** the tenth sheet; then the necks (§10.12's (3)).
+
 **v11.153 (15 Nov 2026): the coast by sinking, not by rain** (analysis_archipelago §10.11; CHANGELOG). The eighth sheet found the middle by
 its pedestals: small islands on wide lagoons. Measured (`ONLY=profile`, new): two thirds of every old lagoon was the rain's erosion moving the
 coast inward; now the coast moves with sinking and the sea (region.js `RG_COAST`, `m.Ef`). Lagoons by age 0.6–6.7 km (were 0.7–11). sample() up to

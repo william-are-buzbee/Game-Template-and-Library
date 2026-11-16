@@ -912,6 +912,27 @@ windward), the reef flat and its cays along the rim, and a high island's lagoon 
 atolls' are 1–10 km across) and the rim's outline noise at several scales in place of one spline; (3) **the saddles' necks** — measure what share
 of the 60–150 m is necks and what is drowned banks, then the necks no shallower than the flanks' own reach (most below −400 m, the shelf-depth
 ones only between genuine twins). (1) and (2) are one recipe (a reef's shape) and could be one version.
+**Answered (15 Nov 2026):** "Go with 1 and 2 together, measure first".
+
+**10.13 Built v11.154 (16 Nov 2026; DESIGN "The reefs' shapes by many scales").** Measured first, two new measures (`test/measures.js`):
+`lagoons` (inside the shallows, 5–60 m and 1 km from deep water: the depth's spread and its relief under 1 km, at 1–3 and at 3–8 km over the
+shallows alone) and `outline` (each piece above −60 m, and above −150 m, of 10 km² or more: the bays a closing of 1 and 3 km fills, the spurs an
+opening of 1 km takes, the outline's length over its 3 km-smoothed one's). Built: the margins' bites (landslide scars bitten into every model
+record's margin, the reef on round the headwall; on a high island growing from its land out to its reef) and the lagoons by many scales (the
+back-reef sand apron, basins over km, knolls of every size in fields, reticulate ridges). The four seeds of sheet 9, before → after (Earth's):
+
+```
+                     lagoons: p50     p90     relief <1 km  1-3 km   3-8 km   basins | outline −60: bays3  rough | −150: bays3  rough   | halo CV
+v11.153            −42 to −46  −21 to −31    3.9–5.5   1.6–3.6  2.2–3.6    1–8% |           0.7–1.4 1.13–1.23 |    0.2–0.4 1.05–1.09 | 0.18–0.29
+v11.154            −39 to −43  −11 to −22    5.7–7.2   3.3–4.3  3.0–3.9   7–10% |           1.4–2.2 1.16–1.29 |    0.9–1.3 1.09–1.13 | 0.18–0.27
+Earth's nine       −15 to −27   −7 to −14    1.3–7.7   2.2–5.3  2.5–4.4   0–18% |           0.9–2.5 1.08–1.41 |    0.4–1.8 1.06–1.17 | 0.37–0.89 (eleven)
+```
+The outlines now inside Earth's ranges at both depths, on every seed; the relief by scale too, the stipple's single scale gone (under 1 km at the
+top of Earth's range). Not moved: **the lagoons' median depth** — ours follow the depth law (rgLagD, 18–60 m by the ring), as Earth's big atolls'
+lagoons are (Kwajalein's, Enewetak's and the Maldives' 40–60 m); GMRT's median of −20 is partly its interpolation over lagoons no ship surveyed, so
+chasing it would be chasing the grid. **The halo's spread** (CV 0.18–0.27, Earth's 0.37–0.89): the bites reach too few high islands to move a
+median, and a high island's ring is still its coast's shape (§10.8). **Seen** (sheet 9's tiles re-made, 128 km): the banks and lagoons mottled at
+several scales with sand flats along their rims, the banks' edges bitten; the round high island's even ring (tile 5) unchanged.
 
 **11.2 What must hold** (learned building v11.129–137; HANDOFF's working notes):
 - **The bounds.** sample() skips a record where its bound table `R.hi` (region.js `rgBound`: the radial profile plus fixed margins) says it

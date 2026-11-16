@@ -20,6 +20,8 @@
 //             around"): at every coast cell the distance to water deeper than 60 m; per island its median, its spread round the coast (CV,
 //             p90/p10) and the share of its coast with under 0.5 km; the medians over the islands (2 km² of land or more, none cut by the
 //             window, none on the platform). Ours 0.17–0.30 and 1.6–2.0 over four seeds; Earth's volcanic archipelagos 0.37–0.61 and 2.6–5.7
+//   lagoons   the shallows' floor by scale (v11.154, sheet 9's tell: "a marbling effect inside the cyan" — ours one depth stippled evenly)
+//   outline   the shallows' outlines, their bays, spurs and roughness (v11.154, sheet 9's tell: ours "circular" blobs, Earth's "kraggy")
 //   profile   the depth by distance from the high islands' coasts (v11.153, sheet 8's tell: "islands with stuff around them" on "huge rock walls",
 //             where Earth's are "land masses covered in water"): the median depth of the water 0.5–20 km from land of 2 km² or more
 const fs=require('fs'),path=require('path'),root=path.join(__dirname,'..'),C=path.join(__dirname,'preview','earth');
@@ -116,6 +118,29 @@ const M={
       for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const k=j*nx+i;if(i>0)rel(k,k-1,dx);if(j>0){rel(k,k-nx,dz);if(i>0)rel(k,k-nx-1,dd);if(i<nx-1)rel(k,k-nx+1,dd);}}
       for(let j=nz-1;j>=0;j--)for(let i=nx-1;i>=0;i--){const k=j*nx+i;if(i<nx-1)rel(k,k+1,dx);if(j<nz-1){rel(k,k+nx,dz);if(i<nx-1)rel(k,k+nx+1,dd);if(i>0)rel(k,k+nx-1,dd);}}
       const B=[500,1000,2000,3000,5000,8000,12000,20000],bins=B.map(()=>[]);for(let k=0;k<N;k++){if(src[k]||!(h[k]<=0)||d[k]>20000)continue;bins[B.findIndex(b=>d[k]<=b)].push(h[k]);}
-      if(!bins[2].length)return '(no high islands)';return bins.map(a=>{if(!a.length)return '      -';a.sort((x,y)=>x-y);return a[a.length>>1].toFixed(0).padStart(7);}).join('');}}};
+      if(!bins[2].length)return '(no high islands)';return bins.map(a=>{if(!a.length)return '      -';a.sort((x,y)=>x-y);return a[a.length>>1].toFixed(0).padStart(7);}).join('');}},
+  lagoons:{title:'inside the shallows (5–60 m deep, 1 km and more from water deeper than 60 m; the province off its platform): area km², the depth p10/p50/p90 (m), its relief (std, m; the means over the shallows alone) under 1 km, at 1–3 km and at 3–8 km, and the share 10 m or more below its 3 km mean',
+    keys:['maldives','chagos','tuamotu','marshall','lakshadweep','chuuk','gambier','society','mascarene'],head:'                 km²    p10    p50    p90     <1   1-3    3-8  basins',
+    run(G){const {nx,nz,h,dx}=G,d=dist(G,k=>h[k]<=-60),S={nx,nz,dx,h:Float32Array.from(h,v=>v>-60&&v<0?v:NaN)},b1=blur(S,rad(G,1)),b3=blur(S,rad(G,3)),b8=blur(S,rad(G,8)),V=[];let n=0,s1=0,s3=0,s8=0,bs=0;
+      for(let k=0;k<nx*nz;k++){const v=h[k];if(!(v<-5&&v>-60)||d[k]<1000||(G.liv&&G.liv[k]))continue;const a=v-b1[k],b=b1[k]-b3[k],c=b3[k]-b8[k];if(!(a===a&&b===b&&c===c))continue;n++;V.push(v);s1+=a*a;s3+=b*b;s8+=c*c;if(v-b3[k]<=-10)bs++;}
+      if(n<50)return '(no shallows)';V.sort((x,y)=>x-y);const q=p=>V[Math.min(V.length-1,Math.floor(p*V.length))];
+      return String(Math.round(n*dx*dx/1e6)).padStart(7)+[q(0.1),q(0.5),q(0.9)].map(v=>v.toFixed(0).padStart(7)).join('')+[s1,s3,s8].map(v=>Math.sqrt(v/n).toFixed(1).padStart(6)).join('')+(100*bs/n).toFixed(0).padStart(7)+'%';}},
+  outline:{title:'the shallows\' outlines (each piece above −60 m, and above −150 m, of 10 km² or more, none cut by the window; the province\'s off its platform): n, the medians of the area a closing of 1 and of 3 km adds (its bays and bites, % of its area), an opening of 1 km takes (its spurs), and the outline\'s length over its 3 km-smoothed outline\'s',
+    keys:['maldives','chagos','tuamotu','marshall','lakshadweep','chuuk','gambier','society','mascarene'],head:'               above −60: n  bays1  bays3 spurs1  rough | above −150: n  bays1  bays3 spurs1  rough',
+    run(G){return [-60,-150].map(T=>this.one(G,T)).join('  |      ');},
+    one(G,T){const {nx,nz,h,dx}=G,N=nx*nz,seen=new Uint8Array(N),P=[];
+      const edt=(m,w,hh)=>{const d=new Float64Array(w*hh),dd=dx*Math.SQRT2;for(let k=0;k<w*hh;k++)d[k]=m[k]?0:1e18;const rel=(k,q,c)=>{if(d[q]+c<d[k])d[k]=d[q]+c;};
+        for(let j=0;j<hh;j++)for(let i=0;i<w;i++){const k=j*w+i;if(i>0)rel(k,k-1,dx);if(j>0){rel(k,k-w,dx);if(i>0)rel(k,k-w-1,dd);if(i<w-1)rel(k,k-w+1,dd);}}
+        for(let j=hh-1;j>=0;j--)for(let i=w-1;i>=0;i--){const k=j*w+i;if(i<w-1)rel(k,k+1,dx);if(j<hh-1){rel(k,k+w,dx);if(i<w-1)rel(k,k+w+1,dd);if(i>0)rel(k,k+w-1,dd);}}return d;};
+      const close=(m,w,hh,r)=>{const d=edt(m,w,hh),di=d.map(v=>v<=r?1:0),e=edt(di.map(v=>1-v),w,hh);return e.map(v=>v>r?1:0);},open=(m,w,hh,r)=>{const e=edt(m.map(v=>1-v),w,hh),er=e.map(v=>v>r?1:0),d=edt(er,w,hh);return d.map(v=>v<=r?1:0);};
+      const per=(m,w,hh)=>{let c=0;for(let j=0;j<hh;j++)for(let i=0;i<w;i++){const k=j*w+i;if(!m[k])continue;if(i===0||!m[k-1])c++;if(i===w-1||!m[k+1])c++;if(j===0||!m[k-w])c++;if(j===hh-1||!m[k+w])c++;}return c;};
+      for(let k0=0;k0<N;k0++){if(!(h[k0]>T)||seen[k0])continue;const st=[k0],cells=[];seen[k0]=1;let cut=false,onp=0,i0=nx,i1=0,j0=nz,j1=0;
+        while(st.length){const k=st.pop();cells.push(k);const i=k%nx,j=(k-i)/nx;if(i===0||j===0||i===nx-1||j===nz-1)cut=true;if(G.liv&&G.liv[k])onp++;i0=Math.min(i0,i);i1=Math.max(i1,i);j0=Math.min(j0,j);j1=Math.max(j1,j);
+          for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const a=i+di,b=j+dj;if(a<0||b<0||a>=nx||b>=nz)continue;const q=b*nx+a;if(h[q]>T&&!seen[q]){seen[q]=1;st.push(q);}}}
+        const A=cells.length;if(cut||A*dx*dx/1e6<10||onp>0.2*A)continue;const pd=Math.ceil(4000/dx)+2,w=i1-i0+1+2*pd,hh=j1-j0+1+2*pd,m=new Uint8Array(w*hh);for(const k of cells){const i=k%nx,j=(k-i)/nx;m[(j-j0+pd)*w+(i-i0+pd)]=1;}
+        const sum=a=>a.reduce((x,y)=>x+y,0),c1=sum(close(m,w,hh,1000)),c3=sum(close(m,w,hh,3000)),o1=sum(open(m,w,hh,1000)),sm=close(open(m,w,hh,3000),w,hh,3000),ps=per(sm,w,hh);
+        P.push({b1:(c1-A)/A,b3:(c3-A)/A,s1:(A-o1)/A,r:ps>0?per(m,w,hh)/ps:NaN});}
+      if(!P.length)return '(none)';const md=k=>{const a=P.map(o=>o[k]).filter(v=>v===v).sort((x,y)=>x-y);return a.length?a[a.length>>1]:NaN;};
+      return String(P.length).padStart(3)+(100*md('b1')).toFixed(1).padStart(7)+(100*md('b3')).toFixed(1).padStart(7)+(100*md('s1')).toFixed(1).padStart(8)+md('r').toFixed(2).padStart(7);}}};
 for(const k of Object.keys(M)){if(!on(k))continue;const m=M[k];console.log('\n'+k+': '+m.title+'\n'+m.head);
   for(const w of m.keys){const G=earth(w);if(G)console.log('  '+pad(G.nm,14)+m.run(G));}const T=tethys();console.log('  '+pad(T.nm,14)+m.run(T));}
