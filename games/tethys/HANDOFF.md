@@ -1,5 +1,10 @@
 # HANDOFF — tethys
 
+**v11.155 (16 Nov 2026): the world map, clean at every zoom** (worldmap.js; CHANGELOG). The person found `n` zoomed out "a ton of pixels"
+and the provinces lost under the marks. The map is now tiles at the screen's own pixels on a pyramid of levels, shaded and contoured as
+test/mapdraw.js (the contours anti-aliased paths), made a few ms a frame (`WMAP_BUDGET` 6) — coarse at once, sharp in seconds, kept — and the
+marks behind `o`. Opening 10 ms (164 before), no stall on a zoom (116–191 ms before). Unseen: the feel on the person's machine.
+
 **v11.154 (16 Nov 2026): the reefs' shapes by many scales** (analysis_archipelago §10.12–10.13; DESIGN "The reefs' shapes by many scales";
 CHANGELOG). The ninth sheet (seeds 251, 263, 271, 283) found 4 of 4 by the shallows' even stipple, the saddles' necks and the banks' smooth outlines.
 Measured (`ONLY=lagoons,outline`, new), then built: landslide bites in every model record's margin (region.js `rgBite`), and the lagoons by many
