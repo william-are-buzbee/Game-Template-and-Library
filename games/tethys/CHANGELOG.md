@@ -8295,3 +8295,28 @@ field 6.882M → 6.893M (+0.2%), at the forest 6.657M → 6.702M and 8.114M → 
 **Unseen, ask in this order:** (1) the fade in motion, on the preview: swim toward a plateau (`tp(-8400,5600)`, a boulder field) and the
 forest's edge (`tp(330,0)`); (2) whether the far forest at one stipe in three reads thinner than the real one where they meet, and whether its
 stalks shimmer past 800 m (a thin line aliased there in v11.13); (3) the readout at those two places.
+
+## v11.156 — the seagrass beds on the floor (16 Nov 2026)
+
+The second of the three the person chose (16 Nov: "Meadows on the floor"): the grass popping in under water while the plateau it grows on is seen
+from far off. A runner's meadow (strap, tress) is drawn as plants only to `FLORA_FAR`, and at 0.03 plants a square metre they cover a few percent of
+the sand, so a bed was bare olivine sand until its shoots came in — v11.155's fade makes them grow in, but onto nothing.
+
+- **The bed on the floor** (chunks.js `meadowCover`, `MEADOW_K` 0.5, `MEADOW_C` 0.6): where a `meadow` species can be — its envelope × its meadow's
+  mask × its clumping (capped at 1) — `terrainColor` lays the bed over the sand: the green line's pigment at the depth × 0.6 (the rhizome mat, the
+  shoots too small to draw, the detritus they hold), at half strength at full cover. The cells' terrain and the far terrain alike, so a bed reads
+  to the fog's end and its shoots grow out of it at 360–450 m. No tier term: the low tier's fewer plants stand on the same floor.
+- **One formula** (chunks.js `meadowM`, `fieldK`): `placeFloraType`'s meadow and field terms as functions, read by the plants and the paint, so the
+  two cannot drift. The plants' places the same to the bit (every pool's instances and every cell's meshes hashed over 3×3 cells of a meadow at
+  (46500, −29400), against main).
+
+**What it costs** (node, the tests' stub, best of seven; v11.155 → this): `terrainColor` on a meadow 0.07 → 0.35–0.52 µs a vertex, at the forest
+0.13 → 0.21–0.24, over the boulder field and the deep the same within noise — a meadow cell's 2,401 vertices ~1 ms more, a far region's ~1 ms;
+a whole cell's generation (3×3 at three places, best of three) 27–37 ms both, the difference inside the runs' spread. Nothing per frame.
+
+**Seen** (headless Chromium, software WebGL, still frames; v11.155 beside this): a meadow at (46500, −29400), −10 m: the sand under the beds a
+light olive-green where it was the olivine sand's pale yellow, the shoots standing on it; in that bright shallow water it leans lime. The suite
+(27 runs, both tiers) passes.
+
+**Unseen, ask in this order:** (1) the beds' colour on the preview (`tp(46500,-29400)`): `MEADOW_C` darker or lighter, `MEADOW_K` stronger or
+weaker; (2) a bed seen from 600 m and more, its shoots growing onto it at 360–450 m; (3) deeper beds (−30 to −45 m, the tress's).

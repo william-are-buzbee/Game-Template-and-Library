@@ -1,5 +1,9 @@
 # HANDOFF — tethys
 
+**v11.156 (16 Nov 2026): the seagrass beds on the floor** (DESIGN "The beds on the floor"; CHANGELOG). The strap's and the tress's meadows are
+painted on the terrain under them, near and far (chunks.js `meadowCover`, `MEADOW_K`, `MEADOW_C`), so a bed reads to the fog's end and its shoots grow
+onto it; the plants' places the same to the bit (`meadowM`, `fieldK` shared with placeFloraType). Stacked on v11.155. **Ask:** the beds' colour.
+
 **v11.155 (16 Nov 2026): the flora fades in, and the far kelp is kelp** (DESIGN "The flora's draw distance", "The far layer"; CHANGELOG). The
 person, under water: rocks popping in on the plateaus, grass and coral popping, the far kelp "two squares making an X". Past `FLORA_FAR` (450)
 the flora now shrinks into the floor over 90 m instead of appearing (scene.js `farCut`, `FLORA_FADE`), and the rocks, fans and stipeling — which

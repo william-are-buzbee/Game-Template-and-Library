@@ -81,7 +81,7 @@ Static instances (rafts, colonies) do not drift yet.
 (nearest vertex), `ch.w(env,x,z)`. `groundAt` reads the grid if loaded, else `sample()`. `chunkGrid` mirrors the `chunks`
 map for cheap 3×3 lookups. `genChunk` is a generator run under a per-frame budget in `manageChunks()`. Chunk seams: positions
 are computed from integer grid indices so they match exactly. `terrainColor` (by substrate, young rock, lime in clear bright
-water, sulfur at the fissure, the shore by height, bare rock on steep ground) is shared with the far terrain; `waterColor`
+water, sulfur at the fissure, the seagrass beds, the shore by height, bare rock on steep ground) is shared with the far terrain; `waterColor`
 (world.js: by the floor's depth, toward silt with turbidity, brown in the plume; the plankton's green left it in v11.81) fills the water map.
 
 **The plankton** (v11.81, PLANKTON.md §3–4, §7, §12; world.js the plankton section, far.js the maps, scene.js the fog block). The water's own
@@ -1303,7 +1303,13 @@ builder reads k 0..2 as sheltered..exposed — turf, wisp, chain, stipe, ladder,
 last kept one-variant weed) and paddle. Since `expo` fades out by −30 (World shape), the coasts differed in the forest's top 25 m only; since
 v11.116 the ecotype reads the water's motion, max(`expo`, `ECO_FLOW` 0.8 × `flow`), so below the wave base the current sorts the forest
 (quartiles 0.27–0.51 there). *The clone (v11.116):* a `clone` entry (the runners: strap, grape) draws its variant from its patch — grow.js
-`cloneK`, fbm at the `clone` frequency cut at its terciles — so a meadow is one habit and the next another. *The young (v11.116):* `reach`
+`cloneK`, fbm at the `clone` frequency cut at its terciles — so a meadow is one habit and the next another. *The beds on the floor (v11.156; the person, 16 Nov 2026: the grass popping in under water
+while the plateau it grows on is seen from far off):* a meadow is drawn as plants only to `FLORA_FAR`, and at 0.03 plants a square metre they cover a
+few percent of the sand, so a bed was bare olivine sand until its shoots came in. chunks.js `meadowCover` is where a `meadow` species can be — its
+envelope × its meadow's mask (`meadowM`) × its clumping (`fieldK`, capped at 1), the same functions `placeFloraType` reads, so the paint and the plants
+agree (the plants' places the same to the bit) — and `terrainColor` lays the bed over the sand by it: the green line's pigment × `MEADOW_C` (0.6: the
+rhizome mat, the shoots too small to draw, the detritus they hold) at `MEADOW_K` (0.5) of full cover. The cells' terrain and the far terrain alike, so
+a bed reads to the fog's end and its shoots grow out of it; no tier term (the low tier's fewer plants stand on the same floor). *The young (v11.116):* `reach`
 as [lo, hi] stands a reach entry at that share of the water column: the stipe's young, `stipeling` (300 a cell at 0.3–0.7, the adults 700),
 the adult's form without the canopy whorl. *The
 stain:* grow.js `tintBy(h,f,photo)` composes up to three stains (`TINT_CHEM`: rust [0.44,0.25,0.12] on the animals and dull [0.36,0.33,0.22]
@@ -1321,7 +1327,8 @@ forest at (330, 0), like for like in the app's pane with the loop driven by hand
 
 **The table.** Per species: `per` (instances per cell at full tolerance) and `env` (World shape, envelopes; v10 — the per-biome counts are gone), scale range, tilt, sink, `field`, `rim`,
 `y: 'floor'|'surface'|'mid'`, `ys`, `reach`, `glow`, `vent`, `maxSlope`, `minH`, `canopyPer`, `pocket`, `meadow` (v11.116: [frequency, lo, hi] —
-fbm patches over smooth(lo, hi), 6% between: the strap's meadows, about half the sand; v11.118 `meadow[3]` the noise's offset), `clone`, `range`
+fbm patches over smooth(lo, hi), 6% between: the strap's meadows, about half the sand; v11.118 `meadow[3]` the noise's offset; since v11.156 the
+beds are painted on the floor too — below), `clone`, `range`
 (v11.119: the stretches of the colonisation chain a brooding line's species stands in — 0 the old east, 1 the middle, 2 the young west, by
 hops from the founder, region.js `RANGE`, `rangeBuild`; a cell's by the record whose ground its middle is most inside, chunks.js `chRange`), `succ` (v11.120: [lo, hi], the storm clearing's age a species needs — grow.js `DIST`, `distAge`: patches
 ~60 m over 16–20% of the exposed hard shallows, their ages a mosaic; the reef's polyps 0.5–0.95, the canopy 0.3–0.6, its young and the lime
