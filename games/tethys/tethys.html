@@ -1293,6 +1293,14 @@ function rgTrack(K,a,b){const dx=a.x-b.x,dz=a.z-b.z,ch=Math.hypot(dx,dz),thc=Mat
   const straight=Math.abs(w)<1e-6,dt=straight?ch/v:2*Math.asin(clamp(ch*w/(2*v),-1,1))/w,tm=ta-dt/2,th=t=>thc+w*(t-tm),s0=Math.sin(th(ta)),c0=Math.cos(th(ta));
   const P=(t,o)=>{o=o||{x:0,z:0};if(straight){o.x=a.x+v*(t-ta)*Math.cos(thc);o.z=a.z+v*(t-ta)*Math.sin(thc);}else{const T=th(t);o.x=a.x+v/w*(Math.sin(T)-s0);o.z=a.z-v/w*(Math.cos(T)-c0);}return o;};
   return {P,tg:ta-dt,v,w,th};}
+// v11.153 (analysis_archipelago §10.10–10.11; the person, 15 Nov 2026: "Go with 1, measure first then grade the islands"): the coast moves with the
+// island's sinking and the sea's planation of a top at its level, not with the rain's wearing of its summit. To v11.152 every member's coast was where
+// a cone planed of all its erosion met the sea (rtop + s/RG_SA, rtop the flat of E/RG_S): the rain's 65–75% of an old island's lowering since its
+// reef took hold moved its coast inward along a 7° flank, and its lagoon was that much wider (m109's 10.8 km, 3/4 of it rain) — every old island of
+// the middle an almost-atoll, a small island on a flat lagoon on a wall (sheet 8: "islands with stuff around them"). The rain lowers the interior and
+// cuts its valleys (world.js vlyCut); the planezes reach the coast where sinking put it. Now the coast and the ring when the reef took hold are where
+// the flank less the sea's planation (m.E − m.Ef) meets the sea; the pins as they were (their records are their own)
+const RG_COAST={on:true};
 const rgGauss=r=>{const u=Math.max(1e-12,r()),v=r();return Math.sqrt(-2*Math.log(u))*Math.cos(TAU*v);};
 function rgShape(m){m.H=Math.cbrt(3*m.V*RG_S*RG_S/Math.PI);m.R=m.H/RG_S;m.H12=m.H;m.Ts=Math.max(m.Tspan||0,clamp(0.35*Math.cbrt(m.V/1e11),0.15,1.2));} /* v11.134: a composite's from its first vent to its last one's shield done (Tspan) */ // a cone of the mean slope holding V: its height over its base, its foot, its shield's duration (Myr)
 // v11.121 (analysis_archipelago §1.2, §6; the person, 12 Nov 2026: "shrink the land", answer (c)): the edifice that holds V, by where its base lay
@@ -1404,7 +1412,7 @@ function regionModel(Kin){
   const deep=M.map(m=>m.host<0&&K.plate+(K.floor-K.plate)*m.pw+Math.max(m.rl0,m.rl[0])+cool(m.age)+K.swell+m.H<-120-K.photic-200);
   const ord=M.map((m,i)=>i).sort((a,b)=>M[b].age-M[a].age); // oldest first: the loads are born in this order
   const run=mask=>{const Fl=new Float64Array(n),Ld=new Float64Array(n),S=[],grow=[];let ob=0;for(let j=0;j<n;j++)if(mask[j])S.push(j);
-    M.forEach(m=>{m.plat=K.plate+(top-K.plate)*m.pw;m.off=0;m.born=false;m.E=0;m.peak=-1e9;m.reef=false;m.alive=false;m.rt=0;m.ring=0;m.lit=null;m.surf=null;m.src=-1;m.srcD=0;m.exp=0;m.died=null;m.lastB=null;m.litNow=false;m.zv=-1e9;});
+    M.forEach(m=>{m.plat=K.plate+(top-K.plate)*m.pw;m.off=0;m.born=false;m.E=0;m.Ef=0;m.peak=-1e9;m.reef=false;m.alive=false;m.rt=0;m.ring=0;m.lit=null;m.surf=null;m.src=-1;m.srcD=0;m.exp=0;m.died=null;m.lastB=null;m.litNow=false;m.zv=-1e9;});
     const litPrev=new Uint8Array(n);
     for(let k=Math.round(K.span/RG_DT);k>=0;k--){const t=k*RG_DT,sea=rgSea(t),C=cool(t);T(t,o);const px=o.x,pz=o.z;
       while(ob<n&&M[ord[ob]].age>t)grow.push(ord[ob++]);
@@ -1414,13 +1422,13 @@ function regionModel(Kin){
         const base=base0+m.off,gr=Math.min(1,(m.age-t)/m.Ts),dB=m.lastB===null?0:base-m.lastB;m.lastB=base;
         if(!m.born){m.born=true;rgShape2(m,sea-base);} // v11.121: the edifice by where its base lies now, at its birth
         let zv=base+m.H*Math.cbrt(gr)-m.E;
-        if(gr>=1){if(zv>sea)m.E+=K.erode*(zv-sea)*RG_DT;if(zv>sea-K.wb&&zv<sea+30&&!(m.alive&&m.rt>=zv-1))m.E+=K.plane*1000*RG_DT;zv=base+m.H-m.E;}
+        if(gr>=1){if(zv>sea){const de=K.erode*(zv-sea)*RG_DT;m.E+=de;m.Ef+=de;} /* v11.153: the rain's share kept (m.Ef), apart from the sea's planation below */if(zv>sea-K.wb&&zv<sea+30&&!(m.alive&&m.rt>=zv-1))m.E+=K.plane*1000*RG_DT;zv=base+m.H-m.E;}
         if(zv>m.peak)m.peak=zv;m.zv=zv;
         // the reef: it takes hold once the shield is done on rock in the shallows — a fringe at the shore, or a cap on a summit just under — and keeps
         // to the sea at K.reef while the sea is over it; left deeper than K.photic it drowns, and takes hold again only if rock comes back into the shallows
         if(m.reef){m.rt+=dB;if(m.sw&&m.rt>sea)m.rt-=RL.diss*1000*RG_DT;} // v11.126: a swept reef top the sea has left dissolves (stepped only on the necks: a full-rate reef regrows its ~1 m a cycle, and the young province stays the same to the bit)
         const fed=m.up.length>0&&!m.up.some(i=>litPrev[i]);m.fed=fed; // v11.130: fed now, by what stands in the light upstream now
-        if(gr>=1&&!m.alive&&(!fed||K.fedK>0)&&Math.max(zv,m.reef?m.rt:-1e9)>sea-K.photic*0.5){const rtop=Math.min(0.75*m.R,m.E/RG_S);if(!m.reef)m.ring=Math.max(800,rtop+Math.max(0,zv-sea)/RG_SA);m.reef=true;m.alive=true;m.rt=Math.min(sea,Math.max(zv,m.rt));m.died=null;}
+        if(gr>=1&&!m.alive&&(!fed||K.fedK>0)&&Math.max(zv,m.reef?m.rt:-1e9)>sea-K.photic*0.5){const rtop=Math.min(0.75*m.R,m.E/RG_S);if(!m.reef)m.ring=m.pin<0&&RG_COAST.on?Math.max(800,Math.min(0.75*m.R,(m.E-m.Ef)/RG_S)+Math.max(0,zv+m.Ef-sea)/RG_SA):Math.max(800,rtop+Math.max(0,zv-sea)/RG_SA);m.reef=true;m.alive=true;m.rt=Math.min(sea,Math.max(zv,m.rt));m.died=null;}
         if(m.alive){if(m.rt<sea)m.rt+=Math.min(K.reef*(fed?K.fedK:1)*(m.sw?RL.swept:1)*1000*RG_DT*Math.exp(-(sea-m.rt)/K.light),sea-m.rt);else m.exp+=RG_DT;if(m.rt<sea-K.photic&&zv<sea-K.photic){m.alive=false;m.died=t;}}
         const topv=Math.max(zv,m.reef?m.rt:-1e9);m.litNow=topv>sea-K.photic;
         if(m.litNow&&m.lit===null){m.lit=t;let bd=1e18;for(let i=0;i<n;i++)if(i!==j&&litPrev[i]){const d=Math.hypot(M[i].x-m.x,M[i].z-m.z);if(d<bd){bd=d;m.src=i;m.srcD=d;}}}
@@ -1436,7 +1444,7 @@ function regionModel(Kin){
     if(err<1)break;}
   run(all);M.forEach((m,i)=>{if(deep[i]){m.zv=m.plat+m.rl0+swellAt(m.x,m.z,0)+m.H-m.fl;m.peak=m.zv;}}); // the unstepped: today's summit on today's swell, under today's loads
   // today: each member's state, its flat top, its shore, and what the history says of its life
-  for(const m of M){const s=m.zv,building=m.age<m.Ts;m.rtop=Math.min(0.75*m.R,m.E/RG_S);m.shore=s>0?m.rtop+s/RG_SA:m.reef&&m.rt>0?m.ring:0;m.top=Math.max(s,m.reef?m.rt:-1e9);
+  for(const m of M){const s=m.zv,building=m.age<m.Ts;m.rtop=Math.min(0.75*m.R,m.E/RG_S);m.shore=s>0?(m.pin<0&&RG_COAST.on?Math.min(0.75*m.R,(m.E-m.Ef)/RG_S)+(s+m.Ef)/RG_SA:m.rtop+s/RG_SA):m.reef&&m.rt>0?m.ring:0; /* v11.153: a member's coast where its flank, as the rain left it, meets the sea (RG_COAST) */m.top=Math.max(s,m.reef?m.rt:-1e9);
     m.state=building?(s>0?'shield':'young'):s>150?'high':s>0?(m.alive?'rim':'low'):m.reef&&m.rt>5?'raised':m.alive&&m.rt>-K.photic?(m.ring>6000?'bank':'atoll'):m.reef?(m.rt>-150?'drowned':'guyot'):m.E>0?'guyot':'seamount';
     m.land=m.shore>0?Math.PI*m.shore*m.shore/1e6:0;} // km², the disc's
   return {fz:{nx:nfx,nz:nfz,sp,ph0},K,M,pulses,flux,track:T,tg,top,al,cf,err,iter:it,head,platW,swellAt,ref,cen,rlAt,rlT,rlG,rlTg,rlNeck,tAge,
