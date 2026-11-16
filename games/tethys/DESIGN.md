@@ -241,6 +241,10 @@ with basins (`md` m deepest mid-way, where the lagoon is wide, in patches) and t
 (`rgRingAt`; islandH by the same exposure), and `rgBound` holds its crest from there out; `rgMargins` reads each ring where it stands. The flows of
 a young island run from vents along the rift zones (start and end by slot) on the valleys' angle. Everything here only lowers the ground but the
 crest's range, so the bound tables hold. The giant keeps v11.62's gullies; ours and the giant's own ground the same to the bit.
+**The coast by sinking (v11.153; analysis_archipelago §10.11):** the model keeps the rain's erosion (`m.Ef`, `K.erode`'s share) apart from the sea's
+planation; a member's shore, and its ring when its reef took hold, are where its flank as the rain left it meets the sea — the sea's flat
+`(E − Ef)/RG_S` plus `(zv + Ef)/RG_SA` (`RG_COAST`; to v11.152 `rtop + zv/RG_SA`, a cone planed of everything it lost, which moved an old island's coast
+inward by its rain). The pins as they were.
 **Young cones on old islands (v11.131):** a member's host (`m.host`) is the older, bigger one whose foot it is born inside and whose shield was
 built before its birth, highest there by their 12° shapes; each step its base is the host's surface there (`m.off`), so it sinks and wears with
 it. Its record's `R.sat` (`b` its base, `k`, `host`): islandH steepens its flank `k`-fold below `b` (the skirt; the host's record is the ground
