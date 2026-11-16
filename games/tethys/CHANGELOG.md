@@ -8414,3 +8414,50 @@ Frames to sharp is the budget's count; on the person's machine at 60 Hz the wall
 **Unseen, ask in this order:** (1) the feel on the person's machine — whether 6 ms a frame (`WMAP_BUDGET`) sharpens too slowly or costs the
 frame too much, and whether opening coarse for a moment reads well; (2) the lines' weight at the person's pixel ratio; (3) whether any mark should
 be on by default (the records' rings zoomed in, say).
+
+## v11.159 — the eye adapts at night (16 Nov 2026)
+
+The person: "It can get really dark in Tethys and I want to consider how best to make nighttime more pleasant without screwing too much with
+believability." Night brightness was "perfectly fine" on 13 Sep (POLISH.md), and both are true. The night's light is the moon plus `STARL`, 0.035 of
+noon; the month is 26 game days (~17 real hours); and for nine nights in a row (days 9–17 after a full moon) the moon is new or down all night, with
+most of four more the same — 54% of the month's night hours at or near the floor, 7–8× darker than a clear full moon (0.28). A new game boots at full
+moon, so the first ~6 real hours have good nights and then about three real hours of them in a row sit on the floor. Under water the floor also
+darkens the veil: at the forest at 15 m a new-moon frame was 68% under 20 of 255 (mean 16; a full moon 39, a quarter 24). The renderer has no exposure,
+so every curve was squashed by hand for one fixed eye.
+
+Options put to the person with mock-ups (the frame brightened ×2, ×2.8, ×2.8 with 40% of the colour drained): the eye adapts, or a brighter moonless
+sky (`STARL` up — a claim about the planet, the lights only, nothing for a quarter moon or the rain). Not offered: a shorter month (the tides' clock), a
+softer phase curve (already a third at a half moon). **The person (16 Nov 2026):** the adaptation, capped at ×2.4; the deep another time; keep the own light.
+
+- **The eye** (atmosphere.js `NIGHT_EYE` {ref 0.26, k 0.5, max 2.4}, `eyeK`, `SKY.eye`): the frame multiplied by `clamp((ref/L)^k, 1, max)`, L the
+  sky's light in the camera's medium (`skyLw` under water, `skyL` in air, blended by `medK` over the crossing). 1 whenever the sun is more than a few
+  degrees up (at most 1.06 at sunset: the warm dusk as it was), ~1.0 at a clear full moon's midnight, 1.5 at a quarter moon, 2.4 on a moonless night.
+  Never the depth. Applied where every fogged material ends (scene.js `fog_fragment`: `col*uSkE.w`, `FOG_SKE[3]`, 1 at boot), in the dome (`uEye`),
+  in both horizon-pass shaders and in the shafts' strength; the HUD is HTML, untouched.
+- **The own light ÷ the eye** (`plight.intensity`), so its halo looks as it did.
+- **`night eyes`** on the effects list (`FX.eyes`, on by default); off, the frame is as v11.158 drew it. The readout's light line shows `eye ×n` over 1.
+- **test/sky.js, "the eye":** `eyeK` within [1, max], never rising with the light, 1 at the reference and at noon, the cap at `STARL`, no NaN at 0 or
+  NaN (`L>1e-3`, not `Math.max`, which passes a NaN); over a month of `updateSky`: 1 at all 1,482 quarter-hours with dayK over 0.3, ≤1.06 with the sun
+  up, 1.004 at a full moon's midnight, the cap at the new moon's, 54% of night hours at the cap, the darkest night shown at 0.084 of noon (0.035).
+- Stale, fixed: "a half moon gives a tenth" (atmosphere.js, DESIGN) — illum^1.8 gives a third.
+
+**Seen** (headless Chromium, low tier, 640×360, software WebGL; the forest at (330, 0), 6 m off the floor; `_look/tethys-nights-v11.159.png` in the
+session): under water at a new moon the frame is mean 36 (16 before; 26% under 20, 68% before) — the forest, the floor, the far stalks and the fish
+readable, flat starlit grey with no caustics; `night eyes` off is 16.2, v11.158's to the digit. A full moon 40.7 against 38.8 off (×1.05), its caustics
+as before. A quarter moon 35 (24). Noon 152 (153: the creatures' noise). Just under the surface, the underside and Snell's window lifted together
+(mean 26 against 11). From 4.6 m above the water at a new moon: the clouds, the stars and the sea lifted together with no seam between the dome, the
+horizon pass and the near sea (mean 16 against 7). No page or shader errors.
+
+**Note, against my own mock-up labels:** I described ×2 as "about a quarter-moon night today" and ×2.8 as "about a full moon's level"; the sheet's
+numbers said otherwise (×2 gave 33 against a quarter's 24 and a full moon's 39). At ×2.4 a moonless night at the forest is now nearly a full moon's
+level on average (36 against 39–41) and a quarter moon lands beside it (35): the phase now reads almost only as the beam — the caustics, the shadows,
+the moon's sheen — not as how dark it is. If the person wants the moonless nights to stay visibly darker than the moonlit ones, the knob is
+`NIGHT_EYE.max` (1.8 would put a moonless night near 29, between a quarter and a full moon's old levels).
+
+**What it costs:** nothing measurable on the CPU (one `pow` a frame). On the GPU one multiply per fragment of every fogged material, the dome and the
+horizon pass — the GPU's, which nothing here can measure; the shots' frame times are software WebGL's and say nothing.
+
+**Unseen, ask in this order:** 1. A moonless night on the preview, under water and from the surface (`skip(13.6)` from a new game is an hour before a new
+moon's midnight; the finback or the coilshell — the soft-arm dies of age by then), with `night eyes` flipped: too bright, too flat, or right? 2. The
+quarter and full moon beside it — does the night still feel like it has phases? 3. The readout's render ms there, eyes on and off. 4. The high tier
+(only the low tier was shot here) and a 1600×900 screen.

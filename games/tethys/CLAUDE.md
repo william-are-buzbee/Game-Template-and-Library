@@ -344,7 +344,9 @@ Docs, most upstream first. When a doc's Open list says a choice is the person's,
   `cloneUniforms`. The camera goes in by hand (`uFogC`/`uFogR`); three's `cameraPosition` is (0,0,0) on Lambert/Basic/Points in
   r128 — never read it in a shared chunk. Fog is per material: `MAT`/sway/`MATFAR` are "small" (fade sooner), `MATBIG`/
   `TERRAIN_MAT`/`GLOW` "big" (keep the far ghost) — a structure built with `MAT` vanishes at 300 units. `WAVE_GLSL` is generated
-  from `WAVES`; never write the wave sum twice.
+  from `WAVES`; never write the wave sum twice. Since v11.159 the fog chunk also multiplies the colour by the eye's gain (`uSkE.w`, atmosphere.js
+  `NIGHT_EYE`): a world material with fog off, or a shader of its own that skips the chunk, misses it and stands up to 2.4× darker than
+  everything round it on a moonless night — the dome (`uEye`) and the horizon pass take it by hand.
 - Past ±WHALF (±HALF to v11.105) the edge regions' apron (`apronGen`) carries the far terrain to 2000 beyond, so a mesh that ends at the edge shows
   against nothing. The veil reads `floorMap` beside `waterMap` (1440×1440, filled together in `wmFill`/`wmBlur`; since v11.104 a window, read in every shader at `(p - uWmO)*WM_SCALE + 0.5` and on the CPU through `WM_A`, `WM_I0` — a new reader goes the same way): a new map channel goes there — and
   only there: the tinted fragment shaders are at WebGL's 16 texture units (v11.81: a third map failed every material's compile and the world was the veil
