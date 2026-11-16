@@ -8357,3 +8357,60 @@ cell's generation with its region built (its blocks cached) 27–31 → 26–28 
 **Unseen, ask in this order:** (1) a plateau's blocks from 600–900 m on the preview (`tp(-8400,5600)`, and the long plateaus where it was seen);
 (2) whether a block sits proud of or sunk in the near terrain (placed on `sample()`'s ground, not the cell's grid — the sink is 0.35–0.45 of
 its size); (3) the readout there; (4) a hitch when a far region is built while swimming fast.
+
+## v11.158 — the world map, clean at every zoom (16 Nov 2026; a dev tool, the world unchanged)
+
+(Built as v11.155 and renumbered on merging main, where v11.155–157 landed first; its commit's message keeps the old number. Its costs are against
+v11.154 — the map's code is untouched by v11.155–157.)
+
+The person: "I think we actually need a map viewer change because hitting N and zooming out still shows a ton of pixels, it's very hard to get
+clean lines and I can't see the provinces without some type of visual confusion. I think the map needs an overhaul, just ingame. the images you send
+are fine." (The images: test/mapdraw.js's renders — bands, hillshade, thin contours.) To v11.154 the world was one 512² picture (~920 m a sample)
+stretched over the canvas, its contours a pixel's colour on that grid (stairs), a zoomed window re-sampled at 320² once the wheel rested (a
+120–190 ms stall each time, 164 ms at the first opening), and every island record's rings, the clamp, the squares, the loaded cells and the
+landmarks drawn at every zoom.
+
+- **Tiles at the screen's own pixels** (worldmap.js `wmapTileGen`, `wmapNeed`, `wmapWork`, `wmapCompose`): the picture is tiles of `WMAP_T` (128)²
+  samples on a pyramid of levels √2 apart (level L: `WMAP_MPP0`/√2^L m a sample, 4,096 m at 0), the level the view's device pixels ask for
+  (never coarser than `WMAP_UP` 1.1 of a pixel), shaded exactly as mapdraw shades; the contours traced by marching squares through the samples and
+  stroked as anti-aliased paths (`WMAP_LW` 1.25 px, mapdraw's blends as alpha: the sea 0.6, the rest 0.5, the oxygen minimum's red 0.35).
+- **Never a freeze:** a tile is a generator (a row of samples a step) run under `WMAP_BUDGET` (6 ms) a frame, a step not begun when the last one
+  says it would pass the budget: first the view three levels coarser (a sample 2.8 px, an eighth of the work), nearest the middle first, then the
+  view's own, then — with nothing else wanted — the whole world at the widest zoom's level, so a zoom out is sharp at once. Tiles are kept
+  (`WMAP_CACHE` 900, ~60 MB at most; the oldest dropped), so a view seen once is back at once; a tile no longer wanted is dropped half made. The
+  tiles are composed onto a canvas of their own only when the view moves or a tile arrives; a frame draws that, the player and the cursor.
+- **No clutter:** the marks (the island records' land and reach rings, the clamp, the old squares, the loaded cells, the landmarks) are off;
+  `o` toggles them, the footer says so. The player, its facing, the scale bar and the cursor's line stay; the line is now `tp(x, z)`, the ground
+  there and the player's place, and says `drawing` until the view is sharp.
+- **The whole province:** the canvas is the window (less a margin and the footer) at the device's pixel ratio (to 2), not a square; the wheel
+  goes out to the world whole with a tenth to spare, and the view stays on the world (centred along a side the view is wider than).
+- Every function kept: the wheel zooms about the cursor (now at once, no rest), a drag pans, a click in play teleports by `tp()` and closes,
+  esc or `n` closes, the pointer released while open. `wmap.st` is what it cost (dev.html's console).
+- **test/lint.js:** `WMAP_BANDS` and `WMAP_CONT` must equal test/mapdraw.js `BANDS` and test/map.js `CONT` (fails otherwise; to v11.154 "kept in
+  step by hand").
+
+**Seen** (headless Chromium, 1600×900, from the menu and in play): opened, a coarse tile in the middle within 0.3 s, then sharp — the coasts,
+reef rims and every contour a thin even line, the hillshade's valleys on the high islands; wheeled out, the whole province at a glance in
+mapdraw's colours, the plateau's banks, the chain's shields and atolls and the west's floor speckle each distinct; zoomed on the 300 m island, its
+valleys, lagoon knolls and back-reef aprons at 41 m a pixel; `o` brings the rings and the squares back; in play the dot and its facing, a drag
+pans 12.6 km, a click teleports and closes, `n` reopens centred on the player, esc closes.
+
+**What it costs** (headless Chromium in the sandbox, software WebGL, the game's own frame ~70 ms there; the map is nothing while closed):
+
+| | v11.154 | v11.158 |
+|---|---|---|
+| opening (the frame `n` lands on) | 164 ms (the 512² world, first time) | 10 ms |
+| a zoom or pan coming to rest | 116–191 ms stall (the 320² window) | no stall |
+| the map's work a frame while refining | 0 (all in the stalls) | mean 5.6–6.2 ms; worst 7.5 (open), 9.7 (out), 12.5 (once, zooming in) |
+| to sharp: the opening view (98 × 52 km) | never (160 m a sample) | 362 frames (6 s at 60 Hz; 1.9 M samples) |
+| to sharp: the whole province | never (920 m a sample) | 168 frames (2.8 s at 60 Hz; half of it prefetched) |
+| to sharp: zoomed in, 41 m a pixel | one stall, 320² | 407 frames (6.8 s at 60 Hz) |
+| back to a view seen before | a stall | 72 ms (cached) |
+| a frame once sharp | ~1 ms | 0.2–0.5 ms (one drawImage, the dot, the cursor) |
+
+A tile's steps measured alone: a row of 130 samples 0.1–0.15 ms, 32 rows of shade 0.15–0.3, 32 rows of contours 0.1–0.2; a tile 14–21 ms in all.
+Frames to sharp is the budget's count; on the person's machine at 60 Hz the wall time is the column's, here four times longer.
+
+**Unseen, ask in this order:** (1) the feel on the person's machine — whether 6 ms a frame (`WMAP_BUDGET`) sharpens too slowly or costs the
+frame too much, and whether opening coarse for a moment reads well; (2) the lines' weight at the person's pixel ratio; (3) whether any mark should
+be on by default (the records' rings zoomed in, say).

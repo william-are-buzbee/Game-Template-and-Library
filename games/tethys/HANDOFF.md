@@ -1,5 +1,12 @@
 # HANDOFF — tethys
 
+**v11.158 (16 Nov 2026): the world map, clean at every zoom** (worldmap.js; CHANGELOG). The person found `n` zoomed out "a ton of pixels"
+and the provinces lost under the marks. The map is now tiles at the screen's own pixels on a pyramid of levels, shaded and contoured as
+test/mapdraw.js (the contours anti-aliased paths), made a few ms a frame (`WMAP_BUDGET` 6) — coarse at once, sharp in seconds, kept — and the
+marks behind `o`. Opening 10 ms (164 before), no stall on a zoom (116–191 ms before). Unseen: the feel on the person's machine. Renumbered from
+v11.155: it was cut before v11.155–157 (the flora's fade, the meadows' beds, the far boulders) merged, and main merged into it (its commit's message
+keeps the old number).
+
 **v11.157 (16 Nov 2026): the boulders drawn to 900 m** (DESIGN "The far layer", "The boulders"; CHANGELOG). The four block entries (FLORA `farRock`)
 are the far layer's, as the structures are: placed per cell from `sample()` (far.js `rocksGen`, a coarse lattice first so a refused try costs no
 sample), cached, drawn by the region to `ROCK_FAR` with v11.155's fade, and the cell only registers their collision (chunks.js `placeRockSolids`).
