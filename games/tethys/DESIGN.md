@@ -1238,8 +1238,16 @@ get only the sun/hemi (the light pool is assigned by distance), so distant vents
   `LOAD_R+1` in chunks.js. Raft octagons sit at the raft's `ys` and do not bob (sub-pixel at that distance); `cullFar` lifts them by the tide, and
   drops the stipe and bladder copies (`im.reach`) by `min(TIDE,0)` so their tops and pads never stand in the air at low water (v11.2). The bladder
   card was 1.4 wide because from 800 units a thinner line aliased (v11.13); the copies' stalks are the real ones' (0.13–0.52 m) — the far
-  forest at 3% contrast past 800 m may shimmer, which v11.155 could not see from a session. Not in the far layer: ledges and
-  bigrocks (never needed far), the small floor flora.
+  forest at 3% contrast past 800 m may shimmer, which v11.155 could not see from a session. Not in the far layer: the ledges
+  (the cell's grid's cliffs; they fade at 450 since v11.155), the small floor flora (it fades at 450; the meadows' beds are on the terrain, v11.156).
+- **The boulders** (v11.157, `rocksGen`, `rockCache`; flora.js `farRock`: boulder, boulder2, boulder3, talus, one geometry `BOULDER_G`). The person, 16
+  Nov 2026: the rocks on the plateaus pop in "long after you see the slope they are on top of" — the cells reach 430 m, the slope is seen to ~1 km.
+  Like the structures: placed per cell from `sample()` by placeFloraType's rules for a rock (the envelope, the slope, the chemocline, settleOn's
+  ground and face), each cell's own stream per entry, cached; drawn by the region as one instanced mesh (`MATROCKF`, faded at `ROCK_FAR` 900 over
+  `ROCK_FADE` 120; 620 on the low tier, the far cut's start); the cell registers their collision, its neighbours' reaching over its line too, and
+  casts them through a layer-1 proxy (chunks.js `placeRockSolids`). A coarse look first: a 13×13 lattice at 18 m per cell, each quad's best tolerance
+  of each entry and its rise; a try its quad refuses (best + `RK_M` 0.15 under the draw, or no face for talus) costs no `sample()`. A cache entry goes
+  with its region (`dropRegion`).
 
 **The horizon tier** (v11.64, ARCHIPELAGO step 3; `horizon.js`). Above the water the frame is two passes: first a scene of its own — the sky
 dome (moved from the main scene while the camera is in air), a sea disc from `HZ_SEA0`·FAR (0.75) to `HZ_FAR` (250 km, v11.65: from 886 m the horizon is 106 km off) about the camera, and one mesh
@@ -2387,7 +2395,7 @@ distance — a designed pass, not a knob. `render` is CPU submission; the GPU ru
   material's own displacement; instanced only, not in the depth pass). At 360 m the veil leaves ~7%, so the fade does not show: things grow
   out of the floor instead of appearing. To v11.154 the rocks (`MATROCK`: boulders, talus, ledges), the fans, limpets, chimneys and sheds
   (`MAT`) and the stipeling (`MATS`) had no cut at all, and a whole cell of them — a 215 m block — appeared at once when its nearest edge
-  came within 450; now `MATROCK` takes the fade, `MAT` takes it for its instances (`cutLambert`, program key `lamc`: the creatures are never
+  came within 450; now `MATROCK` takes the fade (since v11.157 the ledges only; the boulders are the far layer's, `MATROCKF` to 900 m), `MAT` takes it for its instances (`cutLambert`, program key `lamc`: the creatures are never
   instanced), and the stipeling has `MATSC` (the stipe's sway with the cut; the stipe keeps `MATS`, its cards taking over a cell at a time).
   A new small species wants a fading material; a new big one a card in `FAR_IMP` and no cut. Ideas floated, not built: shared flora vertex buffers with pooled per-cell
   instanced meshes (every cell still deep-copies every species' geometry and uploads it on its first draw); per-cell variants (struck:

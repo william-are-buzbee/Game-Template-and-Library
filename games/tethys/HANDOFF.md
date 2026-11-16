@@ -1,5 +1,10 @@
 # HANDOFF — tethys
 
+**v11.157 (16 Nov 2026): the boulders drawn to 900 m** (DESIGN "The far layer", "The boulders"; CHANGELOG). The four block entries (FLORA `farRock`)
+are the far layer's, as the structures are: placed per cell from `sample()` (far.js `rocksGen`, a coarse lattice first so a refused try costs no
+sample), cached, drawn by the region to `ROCK_FAR` with v11.155's fade, and the cell only registers their collision (chunks.js `placeRockSolids`).
+Every block moved once. Stacked on v11.156. **Ask:** a plateau's rocks from 600–900 m on the preview, and the readout there.
+
 **v11.156 (16 Nov 2026): the seagrass beds on the floor** (DESIGN "The beds on the floor"; CHANGELOG). The strap's and the tress's meadows are
 painted on the terrain under them, near and far (chunks.js `meadowCover`, `MEADOW_K`, `MEADOW_C`), so a bed reads to the fog's end and its shoots grow
 onto it; the plants' places the same to the bit (`meadowM`, `fieldK` shared with placeFloraType). Stacked on v11.155. **Ask:** the beds' colour.

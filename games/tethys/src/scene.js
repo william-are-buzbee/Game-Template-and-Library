@@ -631,8 +631,11 @@ const ROCK_FOOT='\n#ifdef USE_INSTANCING\n{float sy=length(instanceMatrix[1].xyz
 function rockMaterial(far,fade){const m=new THREE.MeshLambertMaterial({vertexColors:true});m.onBeforeCompile=function(sh){ // far, fade (v11.155): the instances' fade (farCut, below), FLORA_FAR's by default — read at compile, after FLORA_FAR is declared
   sh.vertexShader='varying float vFoot;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>'+farCut(far||FLORA_FAR,fade||FLORA_FADE)+'\nvFoot=1.0;'+ROCK_FOOT+FAR_FADE);
   sh.fragmentShader='varying float vFoot;\n'+sh.fragmentShader.replace('#include <fog_fragment>','gl_FragColor.rgb*=vFoot;\n#include <fog_fragment>');};return m;}
-const MATROCK=addTint(rockMaterial(),'lamrock',true,1,undefined,'rock'); // rock placed by the cell (boulders, ledges): with the tide's band and the foot
+const MATROCK=addTint(rockMaterial(),'lamrock',true,1,undefined,'rock'); // rock placed by the cell (the ledges; the boulders until v11.157, MATROCKF since): with the tide's band and the foot
 const MATROCKB=addTint(new THREE.MeshLambertMaterial({vertexColors:true}),'lam',false,1,undefined,'rock'); // structures (far.js): the same with the big-thing fog
+// the boulders (v11.157, far.js rocksGen): drawn by the far layer to ROCK_FAR, fading over ROCK_FADE (farCut) — past ~900 m the veil leaves 3%, and on
+// the low tier the far cut's start (FOG_CUT0, 620) is the end of anything
+const ROCK_FAR=Math.min(900,FAR*0.62),ROCK_FADE=120,MATROCKF=addTint(rockMaterial(ROCK_FAR,ROCK_FADE),'lamrockf',true,1,undefined,'rock');
 // The far cards (v11.13): a sway on uTime by the card's height above its base, so the hand-off at FLORA_FAR is not a forest going still —
 // 1.2 m at 25 m up, on the sway materials' phase from the instance's x,z; the raft discs (y 0) don't move. Thin like the blades (thinLight).
 function farMaterial(){const m=new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide});m.onBeforeCompile=function(sh){sh.uniforms.uTime=timeU;

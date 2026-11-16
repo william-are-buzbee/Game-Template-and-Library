@@ -151,6 +151,46 @@ function* bigsGen(i,j){
 }
 function bigsFor(i,j){const g=bigsGen(i,j);let r;do r=g.next();while(!r.done);return r.value;}
 
+// ---------- the boulders (v11.157) ----------
+// The person (16 Nov 2026, under water): the rocks on the plateaus pop into existence "long after you see the slope they are on top of". To v11.156
+// the four block entries (boulder, boulder2, boulder3, talus — FLORA `farRock`) were placed by the cell from its grid and drawn to FLORA_FAR, the
+// guaranteed reach of the 5×5 loaded cells being 430 m. Now they are the far layer's, as the structures are: placed per cell from sample() by the
+// same rules (placeFloraType's for a rock: the envelope, the slope, the chemocline, settleOn's ground and face), cached, drawn by the region to
+// ROCK_FAR (MATROCKF: 900 m, fading over 120 — the veil leaves 3% there), and the cell only registers their collision and casts their shadows
+// (chunks.js placeRockSolids). One list near and far, so nothing swaps: the rock you see from 900 m is the rock you swim past. Each cell's own rng
+// per entry (hashStr(id), as before) — but the blocks moved once: the cell's grid and its envelope read are not sample()'s. A cache entry goes when
+// its region is dropped (dropRegion), so travel does not keep the world's rocks.
+const FROCK=FLORA.filter(f=>f.farRock),rockCache=new Map(),ROCK_YIELD=16,RK_F=new Float32Array(NF),RK_G=13,RK_GS=CELL/(RK_G-1),RK_M=0.15;
+// the coarse look (RK_*): a cell's 13×13 lattice at 18 m, each point's tolerance of each entry, and each quad's best of its corners; a try
+// whose quad's best + RK_M is under its draw costs no sample() — the sand under the bare-rock blocks, the deep's mud, the meadows (most of the
+// world: 2,466 tries a cell, three samples each, were 3–20 ms of it); every other try is judged by the point's own sample(), as before
+function* rocksGen(i,j){
+  const ck=ckey(i,j);let L=rockCache.get(ck);if(L)return L;L=[];
+  const x0=i*CELL-HALF,z0=j*CELL-HALF,G=RK_G,NE=FROCK.length,RK_H=new Float64Array(G*G),RK_FG=new Float32Array(G*G*NF),RK_Q=new Float32Array((G-1)*(G-1)*NE),RK_R=new Float32Array((G-1)*(G-1));let tn=0; // its own buffers: a region's and a cell's generators may interleave
+  for(let b=0;b<G;b++){for(let a=0;a<G;a++){const k=b*G+a;RK_H[k]=sample(x0+a*RK_GS,z0+b*RK_GS,RK_FG.subarray(k*NF,(k+1)*NF)).h;}if(b%4===3)yield;}
+  for(let b=0;b<G;b++)for(let a=0;a<G;a++){const k=b*G+a,sl=Math.hypot((RK_H[b*G+Math.min(a+1,G-1)]-RK_H[b*G+Math.max(a-1,0)])/((Math.min(a+1,G-1)-Math.max(a-1,0))*RK_GS),(RK_H[Math.min(b+1,G-1)*G+a]-RK_H[Math.max(b-1,0)*G+a])/((Math.min(b+1,G-1)-Math.max(b-1,0))*RK_GS)),fv=fixF(RK_FG.subarray(k*NF,(k+1)*NF),sl);
+    for(let e=0;e<NE;e++){const w=envW(FROCK[e].env,RK_H[k],sl,fv);if(w<=0)continue;for(let qb=Math.max(0,b-1);qb<=Math.min(G-2,b);qb++)for(let qa=Math.max(0,a-1);qa<=Math.min(G-2,a);qa++){const q=(qb*(G-1)+qa)*NE+e;if(w>RK_Q[q])RK_Q[q]=w;}}}
+  for(let qb=0;qb<G-1;qb++)for(let qa=0;qa<G-1;qa++){let lo=1e9,hi=-1e9;for(let b=qb;b<=qb+1;b++)for(let a=qa;a<=qa+1;a++)lo=Math.min(lo,RK_H[b*G+a]);for(let b=Math.max(0,qb-1);b<=Math.min(G-1,qb+2);b++)for(let a=Math.max(0,qa-1);a<=Math.min(G-1,qa+2);a++)hi=Math.max(hi,RK_H[b*G+a]);RK_R[qb*(G-1)+qa]=hi-lo;} // the rise round each quad: a face (talus) wants f.face[1] within f.face[0] of the point
+  for(let e=0;e<NE;e++){const f=FROCK[e],rng=mulberry((((i*73856093)^(j*19349663)^hashStr(f.id))>>>0)),tries=Math.round((f.per||0)*Q.flora),maxSlope=f.maxSlope!==undefined?f.maxSlope:0.9;
+    for(let n=0;n<tries;n++){
+      if(++tn%ROCK_YIELD===0)yield;
+      const x=x0+rng()*CELL,z=z0+rng()*CELL,u=rng();
+      const qq=Math.min(G-2,Math.floor((z-z0)/RK_GS))*(G-1)+Math.min(G-2,Math.floor((x-x0)/RK_GS));
+      if(u>=RK_Q[qq*NE+e]+RK_M||(f.face&&RK_R[qq]<f.face[1]*0.5))continue; // the coarse look refuses it: no tolerance round here, or no face to lie under
+      const s=sample(x,z,RK_F),h=s.h,sl=Math.hypot((sample(x+STEP,z).h-h)/STEP,(sample(x,z+STEP).h-h)/STEP);
+      if(u>=envW(f.env,h,sl,fixF(RK_F,sl)))continue;
+      if(sl>maxSlope||underChemo(x,h,z))continue; // nothing on a cliff face; nothing under a basin's chemocline
+      const sc=f.s[0]+rng()*(f.s[1]-f.s[0]),yaw=rng()*TAU;
+      if(!settleOn(bigD,f,x,z,h,sc,yaw,bigH,rng))continue; // the one ground rule; a talus block only under a face
+      const sx=f.sx?f.sx[0]+rng()*(f.sx[1]-f.sx[0]):1,sz=f.sx?f.sx[0]+rng()*(f.sx[1]-f.sx[0]):1;bigD.scale.set(sc*sx,sc,sc*sz);bigD.updateMatrix();
+      const tc=f.tints[Math.floor(rng()*f.tints.length)];
+      L.push({f:f,m:bigD.matrix.clone(),x:x,y:bigD.position.y,z:z,r:sc*Math.max(sx,sz,1),col:[tc[0]*(0.85+rng()*0.25),tc[1]*(0.85+rng()*0.25),tc[2]*(0.85+rng()*0.25)]});
+    }
+  }
+  rockCache.set(ck,L);return L;
+}
+
+
 // ---------- landmarks ----------
 // The hand-built one-offs, built once at boot and kept (three culls each by its bounding sphere). LMK holds what the cells
 // need to register their collision and lights (chunks.js placeLandmarks): heights on the fine grid.
@@ -321,6 +361,12 @@ function* genRegion(ri,rj){
     for(let i=0;i<L.length;i++){im.setMatrixAt(i,L[i].m);c.setRGB(L[i].col[0],L[i].col[1],L[i].col[2]);im.setColorAt(i,c);}instLocal(im,L,ox,oz,q=>q.m);
     im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;reg.group.add(im);});
   yield;
+  // the boulders (v11.157): one instanced mesh for the region's blocks (they share one geometry), drawn near and far — the cells draw none
+  {const L=[];for(let dj=0;dj<FR;dj++)for(let di=0;di<FR;di++){for(const s of (yield* rocksGen(ci0+di,cj0+dj)))L.push(s);yield;}
+    if(L.length){const im=new THREE.InstancedMesh(BOULDER_G,MATROCKF,L.length);im.frustumCulled=false;
+      for(let i=0;i<L.length;i++){im.setMatrixAt(i,L[i].m);c.setRGB(L[i].col[0],L[i].col[1],L[i].col[2]);im.setColorAt(i,c);}instLocal(im,L,ox,oz,q=>q.m);
+      im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;reg.group.add(im);}}
+  yield;
   // the impostors, one instanced mesh per kind, instances grouped by cell so a cell's run can be zeroed when it loads
   const cellL=[];for(let dj=0;dj<FR;dj++)for(let di=0;di<FR;di++){cellL.push(yield* impostorsGen(ci0+di,cj0+dj));yield;}
   FAR_IMP.forEach((sp,si)=>{
@@ -405,7 +451,8 @@ function manageFar(budgetMs){
   while(farGen&&performance.now()-t0<budgetMs){if(farGen.next().done){farGen=null;break;}}
   for(const reg of farList){if(Math.hypot(reg.cx-px,reg.cz-pz)>FAR_DROP+reg.ext){dropRegion(reg);break;}}
 }
-function dropRegion(reg){scene.remove(reg.group);reg.geo.dispose();for(const o of reg.group.children)if(o.isInstancedMesh)o.dispose();regions.delete(ckey(reg.ri,reg.rj));farList.splice(farList.indexOf(reg),1);farBuilt--;} // the structure and card geometries are shared (FLORA's, FAR_IMP's): only the instance buffers go
+function dropRegion(reg){scene.remove(reg.group);reg.geo.dispose();for(let dj=0;dj<FR;dj++)for(let di=0;di<FR;di++)rockCache.delete(ckey(reg.ci0+di,reg.cj0+dj)); // the boulders' lists go with it (v11.157); a loaded cell keeps its own in its hash
+  for(const o of reg.group.children)if(o.isInstancedMesh)o.dispose();regions.delete(ckey(reg.ri,reg.rj));farList.splice(farList.indexOf(reg),1);farBuilt--;} // the structure and card geometries are shared (FLORA's, FAR_IMP's): only the instance buffers go
 // after cullChunks, which sets the frustum
 function cullFar(){
   visibleRegions=0;

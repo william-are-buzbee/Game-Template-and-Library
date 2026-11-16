@@ -8320,3 +8320,40 @@ light olive-green where it was the olivine sand's pale yellow, the shoots standi
 
 **Unseen, ask in this order:** (1) the beds' colour on the preview (`tp(46500,-29400)`): `MEADOW_C` darker or lighter, `MEADOW_K` stronger or
 weaker; (2) a bed seen from 600 m and more, its shoots growing onto it at 360–450 m; (3) deeper beds (−30 to −45 m, the tress's).
+
+## v11.157 — the boulders drawn to 900 m (16 Nov 2026)
+
+The third of the three the person chose (16 Nov: "Far boulders (~900 m)"): the rocks on the plateaus pop in "long after you see the slope they are
+on top of". v11.155 made them grow in at 360–450 m; the slope is seen to ~1 km. A cell's things can be drawn only as far as the cells are loaded —
+5×5, 430 m in every direction — so the blocks became the far layer's, as the structures are.
+
+- **The blocks in the far layer** (far.js `rocksGen`, `FROCK`, `rockCache`; flora.js `farRock` on boulder, boulder2, boulder3 and talus, their one
+  geometry `BOULDER_G`): placed per cell from `sample()` by placeFloraType's rules for a rock (the envelope, the slope, the chemocline, settleOn's
+  ground and its face), each cell's own stream per entry; cached; drawn by the region as one instanced mesh (`MATROCKF`: the rock's material with
+  the fade at `ROCK_FAR` 900 m — the veil leaves 3% there — over `ROCK_FADE` 120; on the low tier the far cut's start, 620). One list near and far:
+  nothing swaps, the rock seen from 900 m is the rock swum past.
+- **The cell** (chunks.js `placeRockSolids`) places no block: it registers its own blocks' collision and its neighbours' that reach over its line
+  (complete whatever is loaded, as placeBigSolids does for the structures, so clearOf sees the same rock on every visit), and casts their shadows
+  through a proxy on layer 1. Rock first, as before, so every plant still asks it.
+- **The coarse look** (`RK_G`, `RK_M`): a cell's 13×13 lattice at 18 m and each quad's best tolerance of each entry and its rise; a try whose quad
+  refuses it (its best + 0.15 under the draw, or no face for a talus block) costs no `sample()`. 2,466 tries a cell at three samples each (and
+  eight more for a talus block's face) were 3–20 ms; now 1–8 (a yield every 16 tries).
+- **What moved:** every block, once — placed from `sample()`, not the cell's grid — and the plants beside them through clearOf. The count the
+  same within 4% over 3×3 cells at five places (the boulder field 1054 → 1098, the forest 687 → 712, the meadow and the deep 108 → 108, the
+  plateau 207 → 217). `sample()` untouched. The ledges stay the cell's (they are its grid's cliffs) and fade at 450.
+- A cache entry goes with its region (`dropRegion`), so travel does not keep the world's rocks.
+- test/player.js: the hingeshell's stray spot 40 m from its den is searched for (no solid near, no shelter) — to v11.156 always 40 m east, open
+  water only by where the blocks happened to lie; v11.157's blocks put one there and the clutch was laid where the test wanted it refused.
+
+**Seen** (headless Chromium, software WebGL, still frames; v11.156 beside this): over the young boulder field at (−8400, 5600) with the water made
+clear for the look, the blocks now run on past 450 m to the far band; with the water as it is the far band is the same ghost either way, the
+blocks near the camera in new places. The suite (27 runs, both tiers) passes.
+
+**What it costs** (v11.156 → this): at the boulder field draws 551 → 557 and triangles submitted 6.893M → 7.225M (+4.8%: every visible region's
+blocks, 36 tris each, those past 900 m leaving the shader at once). A far region's build (node, the stub, best of three, five places) 4–43 →
+19–182 ms — four to eight times, spread over the far layer's 3 ms a frame and built up to 2.7 km ahead; its longest step 4–7 ms, as before. A
+cell's generation with its region built (its blocks cached) 27–31 → 26–28 ms: it places no rock. Frame time is the GPU's and was not measured.
+
+**Unseen, ask in this order:** (1) a plateau's blocks from 600–900 m on the preview (`tp(-8400,5600)`, and the long plateaus where it was seen);
+(2) whether a block sits proud of or sunk in the near terrain (placed on `sample()`'s ground, not the cell's grid — the sink is 0.35–0.45 of
+its size); (3) the readout there; (4) a hitch when a far region is built while swimming fast.

@@ -275,7 +275,8 @@ const Cf=X.player.clade;check(['speed','accel','turn','mass','bite','cam','sprin
     const b=L.cur().broods[0];check(L.brooding()===null&&P.hunger>0&&V.hline().indexOf('clutches 1: 1 guarded')>0,'not brooding (it feeds on), the clutch guarded on the readout: "'+V.hline().split('  ').find(q=>q.indexOf('clutches')===0)+'"');
     P.hunger=0.8;const ar=V.put('darter',0,0.8);V.bite();check(!ar.alive&&P.hunger<0.8,'a hingeshell with a clutch still eats: a darter bitten feeds it (hunger 0.80 → '+P.hunger.toFixed(2)+')');
     const n0=b.n;L.tick(0.1*L.DAY_S);check(b.n===n0,'a tenth of a day on the den: nothing lost');
-    P.pos.set(den[0]+40,0,den[1]);floor();L.tick(0.1*L.DAY_S);check(b.n<n0&&Math.abs(b.n/n0-Math.pow(m.survive,0.1))<1e-6&&V.hline().indexOf('clutches 1: 0 guarded')>0,'40 m off it: strayed, the clutch '+n0+' → '+b.n.toFixed(3)+' in a tenth of a day (survive '+m.survive+')');
+    let off=[den[0]+40,den[1]];for(let a=0;a<Math.PI*2;a+=0.2){const x=Math.round(den[0]+Math.cos(a)*40),z=Math.round(den[1]+Math.sin(a)*40);if(L.groundAt(x,z)<-6&&L.shel(x,z)>=0&&L.shel(x,z)<m.den.shel&&!L.solidNear(x,z,0.6+m.den.solid+3)){off=[x,z];break;}} // 40 m off it and no den there (v11.157: to v11.156 always 40 m east, open only by where the blocks happened to lie)
+    P.pos.set(off[0],0,off[1]);floor();L.tick(0.1*L.DAY_S);check(b.n<n0&&Math.abs(b.n/n0-Math.pow(m.survive,0.1))<1e-6&&V.hline().indexOf('clutches 1: 0 guarded')>0,'40 m off it: strayed, the clutch '+n0+' → '+b.n.toFixed(3)+' in a tenth of a day (survive '+m.survive+')');
     wait();floor();check(L.lay()===false&&L.hint().indexOf('at a den')===0,'and here, off the den, it may not lay a second');
     P.pos.set(den[0],0,den[1]);floor();wait();check(L.lay()===true&&L.cur().broods.length===2,'back at the den, a second clutch: again and again');}
   // the moult: the founder's clocks

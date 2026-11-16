@@ -315,6 +315,19 @@ function placeBigSolids(ch){
     for(const s of bigsFor(i,j)){const e=s.m.elements,sc=len3(e[4],e[5],e[6]),R=(s.f.foot||1)*sc*1.3;
       if(e[12]+R<ch.x0||e[12]-R>ch.x0+CELL||e[14]+R<ch.z0||e[14]-R>ch.z0+CELL)continue;addLumps(ch,s.f.lumps,s.m,s.rs);}}
 }
+// The boulders' collision (v11.157; far.js rocksGen: the far layer places and draws them): the cell's own blocks and its neighbours' that reach
+// over its line, into its hash — complete whatever is loaded, as placeBigSolids makes it for the structures, so clearOf sees the same rock on every
+// visit — and the cell's own as a shadow proxy on layer 1 (never drawn by the camera: the region draws them). A generator: a cell's list not
+// yet cached (its region not built) is a few thousand sample() calls
+function* placeRockSolids(ch){
+  const own=[];
+  for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const i=ch.i+di,j=ch.j+dj;if(!gridIn(i,j))continue;const L=yield* rocksGen(i,j);
+    for(const s of L){if(!di&&!dj){own.push(s);addFloraSolids(ch,s.f,s.m,s.x,s.y,s.z,null,false);continue;}
+      if(s.x+s.r<ch.x0||s.x-s.r>ch.x0+CELL||s.z+s.r<ch.z0||s.z-s.r>ch.z0+CELL)continue;addFloraSolids(ch,s.f,s.m,s.x,s.y,s.z,null,false);}}
+  if(own.length){const c=new THREE.Color(),im=new THREE.InstancedMesh(BOULDER_G,MATROCKB,own.length);im.layers.set(1);shadowCaster(im,MATROCKB,ch.sphere);
+    for(let i=0;i<own.length;i++){im.setMatrixAt(i,own[i].m);c.setRGB(own[i].col[0],own[i].col[1],own[i].col[2]);im.setColorAt(i,c);}instLocal(im,own,ch.ox,ch.oz,q=>q.m);
+    im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;ch.group.add(im);ch.meshes.push(im);ch.shBig.push(im);}
+}
 // clearOf(ch, x,y,z, f, sc, sy): may a plant stand here? Its base (a pad the size of its footprint) and, for a tall one, its middle are
 // asked of the collision hash — this cell's solids so far (the rock went first, then the rigid plants before it in FLORA) and the loaded
 // neighbours'. The same hash the player is pushed by: whatever a body cannot pass through, nothing grows through. ~0.5 µs a query
@@ -473,8 +486,9 @@ function* genChunk(i,j){
   // v11.22, the order: rock first (the structures' collision, the cliffs' ledges, the cell's blocks), then everything that grows, each
   // asking the hash before it stands (clearOf). One rng stream per entry (v11.2), so the order moves nothing
   placeBigSolids(ch);yield;
+  yield* placeRockSolids(ch);yield;
   placeCliffs(ch,rng);yield;
-  for(const f of FLORA){if(f.mat!==MATROCK)continue;yield* placeFloraType(ch,mulberry((((i*73856093)^(j*19349663)^hashStr(f.id))>>>0)),f);yield;}
+  for(const f of FLORA){if(f.mat!==MATROCK||f.farRock)continue;yield* placeFloraType(ch,mulberry((((i*73856093)^(j*19349663)^hashStr(f.id))>>>0)),f);yield;}
   for(const f of FLORA){if(f.mat===MATROCK)continue;yield* placeFloraType(ch,mulberry((((i*73856093)^(j*19349663)^hashStr(f.id))>>>0)),f);yield;}
   placeLandmarks(ch);yield;
   yield* spawnChunkCreatures(ch,rng);lineLoad(ch);fallsLoad(ch); // the player's broods that lie in it (line.js, v11.69); the falls in it (v11.99)
