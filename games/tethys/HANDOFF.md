@@ -1,5 +1,11 @@
 # HANDOFF — tethys
 
+**BIOLUM.md (16 Nov 2026): what should glow, where, and why** — a discussion, nothing built. Earth's bioluminescence in brief (three quarters of
+the water column's animals, the floor under a fifth; flashes on contact are the common case, steady lights are lures and counter-illumination), seven
+options placed in DEEP's ecology and ranked (the pall's lights and cloud first, then a lure-bearing plateback of the minimum's floor, the deepbell's
+alarm), and the PLANET rules they would revise. Found: no hunter sees by light (a fixed `detect`), and the deep keeps 0.28 of daylight (`DL_MIN`).
+**Ask:** BIOLUM §7, in order. Nothing to build until answered.
+
 **v11.162 (16 Nov 2026): the night as an animal sees it; the wake struck** (world.js `NIGHT_EYE`; atmosphere.js `eyeStep`; scene.js `eyeC`; fx.js; CHANGELOG).
 The eye is a night-adapted fish's (Earth's numbers in DESIGN "The eye"): ~1.45 at a full moon, ~3.1 moonless, opening over a game hour at dusk, the colour
 draining toward blue-grey as it opens. The motion wake (v11.160–160.1) is struck as illegible, its kit kept; the carcasses, the dusk displays (now denser,
