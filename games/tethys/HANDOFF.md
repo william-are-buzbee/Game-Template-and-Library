@@ -3,8 +3,8 @@
 **v11.162 (16 Nov 2026): the night as an animal sees it; the wake struck** (world.js `NIGHT_EYE`; atmosphere.js `eyeStep`; scene.js `eyeC`; fx.js; CHANGELOG).
 The eye is a night-adapted fish's (Earth's numbers in DESIGN "The eye"): ~1.45 at a full moon, ~3.1 moonless, opening over a game hour at dusk, the colour
 draining toward blue-grey as it opens. The motion wake (v11.160–160.1) is struck as illegible, its kit kept; the carcasses, the dusk displays (now denser,
-in view, larger) and the milky seas stay. Stacked on v11.161. **Ask:** nights under water at the start and deeper; the dusk's minute-and-a-half eye; the
-displays; where it still feels dark (a `tp()`).
+in view, larger) and the milky seas stay. Stacked on v11.161. **The person (16 Nov 2026): the night and the milky sea are "exactly what I wanted"** —
+leave `NIGHT_EYE` and `MILKY` as they are. **Ask:** the displays seen in play; the displayers as tiny hingeshells.
 
 **v11.161 (16 Nov 2026): the night's other lights** (fx.js `updateNightLights`, world.js `MILKY`; DESIGN The body's effects; PLANKTON §8; CHANGELOG).
 Glowing carcasses (their gut bacteria lit by quorum, hours after death, fading with the flesh; scavengers see them further), the dusk displays (sea

@@ -8611,3 +8611,7 @@ the wake's loops gone (`updateSparks` 0.005 ms headless on the displays' run, 0.
 **Unseen, ask in this order:** 1. A night under water on the preview (the start, the forest, deeper): is ×3.1 moonless and the colour drain right? 2.
 Dusk: the eye opening over a minute and a half — felt, or annoying? 3. The displays (`dusk()`, then shallow sheltered floor). 4. Where it still feels
 dark: the `tp()` from the world map's cursor line.
+
+**The person, on the preview (16 Nov 2026):** "I love the milky sea. I love night time now that I can see properly. This is exactly what I wanted." The eye's
+numbers (`NIGHT_EYE`) and the milky sea (`MILKY`) stand as built; tune them only on their word. Still open: the dusk displays seen in play, and the displayers
+as tiny hingeshells.
