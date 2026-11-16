@@ -160,3 +160,12 @@ which found four repositories sharing no code, copying it instead (the same rand
     the feel, the numbers of the cost. The checklist is the `perf` skill; Tethys's tools and what to run for what are its
     CLAUDE.md, "Performance". Timings are not in CI (on shared runners they are noise); the suite holds the deterministic
     proxies instead (the shape checks, the tape's replay).
+27. **The site's writers run side by side, one per slot** (16 Nov 2026; the person, after merging Tethys's v11.155–157 at
+    once: "would you mind making the PR not red and merge correctly?"). pages.yml had one concurrency group for every
+    run, and GitHub keeps one run waiting in a group: a merge's push and its pull requests' close events, arriving within
+    seconds, cancelled each other — two close runs that day (red on the merged pull requests), and ~40 closed pull
+    requests' previews (28–88) never removed, cleared by hand the same day. Now each slot — the live site, each pull
+    request's preview — has its own group, so a slot's own runs queue and no other slot's can cancel them; and
+    publish.sh, which only ever replaces its own slot, starts its write over from the new gh-pages when another slot's
+    push beat it (never forced; up to five tries). Dry-run with four slots pushing at once to a scratch remote: every
+    write landed.
