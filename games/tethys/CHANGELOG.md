@@ -8461,3 +8461,45 @@ horizon pass — the GPU's, which nothing here can measure; the shots' frame tim
 moon's midnight; the finback or the coilshell — the soft-arm dies of age by then), with `night eyes` flipped: too bright, too flat, or right? 2. The
 quarter and full moon beside it — does the night still feel like it has phases? 3. The readout's render ms there, eyes on and off. 4. The high tier
 (only the low tier was shot here) and a 1600×900 screen.
+
+## v11.160 — the bioluminescent wake (16 Nov 2026)
+
+The person: "is a bioluminescent wake believable?" — then, to my answer: "go with your suggestions." Yes, it is believable (Earth's dinoflagellates
+light a ship's wake, a dolphin, a diver's hands, the surf), and PLANET already allowed it as events; but POLISH 15's sketch lit it every night at one
+strength, scaled by the dark. What was built keeps it honest on four counts and gives it a source (PLANKTON §8, built note; DESIGN, The body's
+effects, "The sparks"):
+
+- **The flashers** (world.js `FLASH`, `FLASH_P`, `flashC`, `flashK`, `flashAt`): none of the field's three kinds — a grazer of the gold (my suggestion,
+  taken: Noctiluca's trade on Earth). Its stock is `FLASH.share` 1 of the lit crop at a point by the clock (`bloomC`), with the gold's part fed not by the
+  gold's own storm pulse but a lagged one: the rain of the past 15 days through (τ/T)^n·e^{n(1−τ/T)}, T 120 h, n 3 (far.js `bloomTick`), so it peaks
+  2.6 days after the gold's (test/glow.js, by cross-correlation over 120 days). The surface's: full to a fifth of the mixed layer, gone by nine tenths.
+  Its light `F/(F+5)`: the gyre 0.02, island water 0.09, the fed flank's break 0.57, more four days after a stormy spell.
+- **The sparks** (fx.js `SPK`, `updateSparks`, `sparkBurst`; `Q.sparks` 1,024, 384 low): the clock, not the light (`SPK.night` on the sun's altitude:
+  a dark noon fires nothing); every body in `FLOW` by its shear (smooth(1, 6 m/s) of its speed; `rate` 250 a second per m² of flow radius to `aMax` 3,
+  × the light; in a shell of 0.6–1.6 radii, 70% behind, along the path the frame covered, thrown with the flow there); fatigue (a hash of 1 m voxels
+  in the water's frame, 0.1 spent a spark, resting over 75 s); a wound's burst (`hitFx`); and the breaking water (a bubble point of the snow in the
+  top 2 m — breakers, whitecaps, rain — fires at 0.5 × the light). Drawn as one additive `Points`, the shafts' extinction only (no veil) × the eye
+  (v11.159), so moonlight washes them out and the moonless fortnight is theirs.
+- **`bioluminescence`** on the effects list (on); the readout's `sparks` is the light at the player at night.
+- **test/glow.js** (new, timed: in `ALONE`, 10 s): the stock's numbers and depth, the pulse's lag; in the game at the fed flank, a new moon's
+  midnight: noon none, 0.8 m/s none, a sprint at 8 m/s ~310 a second, a school's pace (2.2 m/s) ~50, the same water at once 68% of it and rested
+  after five rests, a struggle's burst and none at noon, no NaN, none in the air, all gone two seconds after; the cost.
+
+**Seen** (headless Chromium, low tier, 640×360; the finback sprinting at 7 m/s, 6 m down on the fed flank's break at a new moon's midnight): the body
+wrapped in blue-green sparks and the wake streaming back past the camera, ~270 alive; with `bioluminescence` off, the same frame dark. Tuned on that
+look: the first cut (a shell of 0.8–2 radii, 120 a second, 2 m voxels) read as a thin sparkle — the fatigue's voxels were capping one pass.
+
+**What it costs** (node against the stub; the GPU's share unmeasurable here):
+
+| | v11.159 | v11.160 |
+|---|---|---|
+| `updateSchools` + `updateCreatures` at the forest, ms a frame (test/frames.js) | 1.680 | 1.640 (×0.98; the simulation the same to the bit) |
+| `updateSparks` at night, a sprint and a struggle every half second, ~300 alive | — | 0.007 |
+| `bloomTick`'s recompute, once every 2 s | 0.016 | 0.029 |
+
+By day `updateSparks` is one `smooth` and a check. On the GPU: one more draw of up to 1,024 additive points at night.
+
+**Unseen, ask in this order:** 1. A night on the preview, the finback sprinting (`skip(13.6)` from a new game is a new moon's midnight; `tp(600,-670,-4)`
+is the fed flank's break, 4 m down — without the height `tp` puts you 10 m off a 130 m floor, under the flashers): too much, too little, the colour? 2. Island water near the start (`tp(440,410,-4)`) — the faint sparkle (its shot crashed
+headless Chromium twice for memory, streaming the forest at speed). 3. A shower or the surf at night from just under the surface. 4. The high tier
+(only the low was shot) and the readout's render ms with it on and off. 5. Whether the hunters should read a lit wake (PLANKTON §8's cost) — next, if wanted.

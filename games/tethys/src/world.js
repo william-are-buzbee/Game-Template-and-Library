@@ -808,6 +808,25 @@ const _plkT=[0,0,0];
 function cropAt(x,z,s){const c=plank(x,z,s,_plkT);return c[0]+c[1];}
 // the field at a point in the world, exactly (the snow and the tests): out = [green, gold, red] mg/m³ at that depth, now
 function plankAt(x,y,z,out){const s=sample(x,z);return bloomC(plankTexel(x,z,s,_plkT),-s.h,TIDE-y,out);}
+// ---------- the flashers (v11.160, PLANKTON.md §8, POLISH 15) ----------
+// The light in the water: single-celled drifters that flash blue-green when the water round them is sheared — Earth's dinoflagellates, a ship's
+// wake, a dolphin drawn in light. The burglar alarm: the flash makes whatever is eating the drifter visible to whatever eats that, so it fires only on
+// a mechanical disturbance and costs nothing while nothing moves; at 28% oxygen the reaction is cheap. None of the field's three kinds is them: the
+// person (16 Nov 2026) took my suggestion, a grazer of the gold, Noctiluca's trade on Earth — it eats the opportunist's bloom and peaks a few days
+// after it. So the flashers' stock is a share of the lit crop at a point (they eat both kinds, so island water sparkles faintly and the gyre almost
+// not at all) with the gold's part fed not by the gold's own storm pulse but by a later one: the rain of the past fifteen days through a kernel
+// (τ/T)^n·e^{n(1−τ/T)} that peaks T after it (far.js bloomTick, FLASH_P) — the bright nights come four days after a stormy spell, on the flanks the
+// storm fed. They float: the stock is the surface's, gone by the mixed layer's base. What it draws is fx.js's (the sparks); this is only the stock.
+const FLASH={share:1.0,half:5.0,T:120,n:3,step:6,span:360}; // share: the stock as a share of the lit crop (mg/m³ of pigment, the cells' stand-in); half: the stock at half the full brightness (flashK); the lagged pulse's kernel: its peak T hours after the rain (4 days), its power n, sampled every step hours over span (15 days)
+const FLASH_P=new Float32Array([0]); // the lagged storm's pulse now (far.js bloomTick: storm·max(0, the lagged rain − calm), as FOG_B[2] is the gold's own)
+const _flC=[0,0,0];
+// the stock at depth d (from the tide) over a floor fd deep, from a texel b (as bloomC): the green and the gold here by the clock, the gold's own pulse
+// undone and the lagged one put in, times the surface layer (full to a fifth of the mixed layer, gone by nine tenths of it)
+function flashC(b,fd,d){bloomC(b,fd,d,_flC);const ml=64*(1+0.3*FOG_B[3]);return FLASH.share*(_flC[0]+_flC[1]/(1+FOG_B[2])*(1+FLASH_P[0]))*(1-smooth(0.2*ml,0.9*ml,d));}
+// how much of the full light a stock gives (0..1): a gyre ~0.03, island water ~0.1, a fed flank ~0.5, a flank days after a storm ~0.8
+function flashK(F){return F>0?F/(F+FLASH.half):0;}
+// the stock at a point in the world, exactly (the tests)
+function flashAt(x,y,z){const s=sample(x,z);return flashC(plankTexel(x,z,s,_plkT),-s.h,TIDE-y);}
 const _v3=v=>'vec3('+v.map(n=>n.toFixed(3)).join(',')+')';
 const BLOOM_GLSL='vec3 bloomC(vec3 b,float fd,float d){float fx=(b.z*5.0+1.0-uFogB.x)*uFogB.y;float fr=exp(-fx*fx);float lit=1.0+'+PLK.front.toFixed(2)+'*fr;float s=uFogB.w;float ml=64.0*(1.0+0.3*s);float r=(d-ml-31.0)/(35.0*(1.0+0.2*s));'+
   'vec2 C='+PLK.cmin.toFixed(3)+'*exp2(b.xy*'+PLK_ENC.toFixed(4)+');float sh=1.0-smoothstep(8.0,60.0,fd);float stir=clamp(C.y/(C.x+C.y)/(1.0-0.5*sh),0.0,1.0);'+

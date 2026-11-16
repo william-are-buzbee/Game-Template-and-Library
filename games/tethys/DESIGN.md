@@ -2308,6 +2308,22 @@ mark) with a 16-point trail comes down from high in the view onto the child over
 - **The player's bite** (combat.js `playerBite`, player.js): `snapT` 0.1 s of stretch; `nudgeD`/`nudgeT` 0.15 s of camera toward the
   bite (0.3 m at the start); on being hurt `fovKickT` 0.2 s of +2° (`applyCam`) and a roll impulse ±2.5.
 - Not built: 22 (limp rigs, corpses that lie — a mechanic; ask first), 15 (the night, pass C), 17–18 (the surface pass), 27 (never).
+- **The sparks (v11.160, PLANKTON §8, POLISH 15; fx.js `SPK`, world.js `FLASH`):** the bioluminescence, the one glow PLANET allows, as events.
+  *The stock* (`flashC`, `flashK`): a grazer of the gold (the person, 16 Nov 2026, my suggestion: Noctiluca's trade) — `FLASH.share` 1 of the lit crop at
+  a point by the clock (`bloomC`), its gold part fed by a lagged storm pulse instead of the gold's own: the rain of the past 15 days through
+  (τ/T)^n·e^{n(1−τ/T)}, T 120 h, n 3 (far.js `bloomTick`, `FLASH_P`; it follows the gold's pulse by 2.6 days, test/glow.js), × the surface layer (full
+  to 0.2 of the mixed layer, gone by 0.9). Its light `F/(F+5)`: the gyre 0.02, island water 0.09, the fed flank's break 0.57, more four days after a
+  stormy spell. *The gate*: the sun's altitude, not the light (a circadian rhythm; `SPK.night` 0.12 → −0.08). *The sources*: every body in `FLOW`
+  (the player and the five nearest moving creatures within 40 m) at `SPK.rate` 250 a second per m² of flow radius (to `aMax` 3) × the light ×
+  smooth(1, 6 m/s) of its speed, in a shell of 0.6–1.6 radii, 70% of it behind, spread along the path the frame covered, thrown with the flow
+  there (`flowAt`); a wound (`hitFx` → `sparkBurst`, 40 at full light); the breaking water (64 of the snow's points probed a frame: a bubble in
+  the top 2 m fires at 0.5 × the light — the breakers, the whitecaps, the rain). *Fatigue*: a 4,096-slot hash of 1 m voxels in the water's frame
+  (the current at the camera integrated); a spark spends 0.1 of its voxel, which rests over 75 s — a second pass at once gives ~two thirds.
+  *Drawn*: a pool of `Q.sparks` (1,024; 384 low) as one additive `Points`, a spark rising in 0.05 s and fading over 0.6–1.4 s, the shafts' extinction
+  only (no veil) × the eye; `col` (0.30, 0.80, 1.00) × `K` 0.4. Numbers on the fed flank at a new moon's midnight: a sprint at 8 m/s ~300 sparks a
+  second, a school's pace ~50, 0.8 m/s none. `bioluminescence` on the effects list; the readout's `sparks` is the light at the player at night.
+  Not yet: the hunters reading a lit wake (PLANKTON §8's cost), the surf's glow along a far reef crest (the surface's shader), pens and whips
+  flashing when brushed (`GLOW` is still kept for them).
 
 ## Performance and the quality tier
 

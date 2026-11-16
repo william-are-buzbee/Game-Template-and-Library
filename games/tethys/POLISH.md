@@ -2,7 +2,7 @@
 
 A survey of the cheap systems that carry low-poly games — what each one is, why it works at this fidelity, what it would
 hook into here, and what it costs against the numbers in `AUDIT.md`. The ranked list is at the end, with the person's decisions;
-pass A is built as v11.13 (DESIGN, The light), B as v11.53 (15 Sep 2026; DESIGN, The body's effects; fx.js), C is not. Downstream of `PLANET.md` (no magic, no lamps, bioluminescence only as events) and of
+pass A is built as v11.13 (DESIGN, The light), B as v11.53 (15 Sep 2026; DESIGN, The body's effects; fx.js), C's wake (item 15) as v11.160 (16 Nov 2026; DESIGN, The body's effects, "The sparks"; fx.js SPK) — the pens' and whips' flash still to come. Downstream of `PLANET.md` (no magic, no lamps, bioluminescence only as events) and of
 `DESIGN.md` Visibility (the fog is the look; everything here has to sit inside it).
 
 ## The budget, and the currency

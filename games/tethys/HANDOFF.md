@@ -1,5 +1,11 @@
 # HANDOFF — tethys
 
+**v11.160 (16 Nov 2026): the bioluminescent wake** (world.js `FLASH`, fx.js `SPK`; DESIGN The body's effects, "The sparks"; PLANKTON §8; CHANGELOG).
+The flashers are a grazer of the gold (the person took my suggestion): bright where the crop is and four days after a stormy spell, faint in island
+water, at the surface. At night (by the clock) a body's shear fires them — a sprint a line, a school's pace a few, a slow body none; spent water
+rests over 75 s; a struggle bursts; the breakers and the rain spark. `bioluminescence` on `e`. Stacked on v11.159. **Ask:** a sprint on the fed flank
+(`skip(13.6)`, then `tp(600,-670,-4)` — 4 m under the mean sea; without the height `tp` puts you 120 m down, under the flashers), island water at the start, the surf at night; whether the hunters should read a lit wake.
+
 **v11.159 (16 Nov 2026): the eye adapts at night** (atmosphere.js `NIGHT_EYE`, `eyeK`; DESIGN The sky, "The eye"; POLISH "Raised 16 Nov"; CHANGELOG).
 The person: "it can get really dark". For nine nights in a row of the 26-day month the moon is new or down and the night sat on `STARL` (0.035 of
 noon, a clear full moon 0.28). Now the frame is multiplied by a gain, 1 by day and at a full moon, rising as the sky's light falls to the person's cap,

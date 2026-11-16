@@ -190,6 +190,15 @@ The person's condition: plausible, or thrown away. It is plausible, and for a be
   comes free with it.
 - **How often.** A bloom at its peak, being grazed hard, on a few nights of the year — an event, in the archipelago's own sense.
 
+**Built as v11.160 (16 Nov 2026; DESIGN, The body's effects, "The sparks"; world.js `FLASH`, fx.js `SPK`).** The person asked whether a
+bioluminescent wake is believable; my answer, taken whole ("go with your suggestions"): yes, if it is (1) as bright as the flashers are many — a
+faint sparkle in island water, a sheet only in a bloom — (2) gated by the clock, not the light (a circadian rhythm), (3) the surface's, and (4) by
+shear with fatigue (a slow body nearly dark, a sprint a line, water just lit dimmer on the second pass). **The flashers are none of the three kinds**:
+a grazer of the gold, which is how the best-known flasher on Earth (Noctiluca) follows the diatoms' blooms — so the bright nights come a few days
+after a stormy spell, on the flanks it fed (the pulse lags the gold's by 2.6 days in test/glow.js). The breakers and the rain at night spark
+round the camera from the same physics. **Not yet:** the cost — the hunters reading a lit wake (the paragraph above); the person to decide after
+seeing it.
+
 ## 9. Marine snow, refined
 
 What stays: everything in `atmosphere.js:382`. The five populations, the Martin curve, the density steps, the chemocline's plate and

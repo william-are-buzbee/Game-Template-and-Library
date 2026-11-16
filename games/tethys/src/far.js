@@ -42,11 +42,13 @@ const bmB=[0,0,0,0];
 function bloomAt(x,y,z,out){wmBloom(x,z,bmB);return bloomC(bmB,bmB[3],TIDE-y,out);}
 // the clock's part of the field, per frame: the front's criterion shifted by the tide's amplitude (u ∝ amp: 3·log10), and the storm's pulse —
 // the rain of the past four days (weatherAt, 2 h steps) through a kernel rising over a day and decaying over three, recomputed every 2 s
-let bmPulse=0,bmPulseT=-1e9;
+let bmPulse=0,bmPulseT=-1e9,bmFlash=0,bmFlashT=-1e9;
 function bloomTick(){
   FOG_B[0]=PLK.xc+3*Math.log10(tideAmp(clockH)/TIDE_A1);
   if(clockH-bmPulseT>2*CLOCK_RATE||clockH<bmPulseT){let p=0;for(let tau=2;tau<=96;tau+=2)p+=weatherAt(clockH-tau).rain*(tau/30)*Math.exp(1-tau/30);bmPulse=p*2/30;bmPulseT=clockH;}
   FOG_B[2]=PLK.storm*Math.max(0,bmPulse-PLK.calm);FOG_B[3]=seasonAt(clockH); // the season (v11.83)
+  if(clockH-bmFlashT>2*CLOCK_RATE||clockH<bmFlashT){let p=0,w=0;for(let tau=FLASH.step;tau<=FLASH.span;tau+=FLASH.step){const u=tau/FLASH.T,k=Math.pow(u,FLASH.n)*Math.exp(FLASH.n*(1-u));p+=weatherAt(clockH-tau).rain*k;w+=k;}bmFlash=p/w*Math.E;bmFlashT=clockH;} // the flashers' pulse (v11.160, world.js FLASH): the rain through a kernel peaking FLASH.T later, as a weighted mean × e so a steady rain gives what the gold's kernel gives it and the same calm applies
+  FLASH_P[0]=PLK.storm*Math.max(0,bmFlash-PLK.calm);
 }
 // the floor's depth at a point as the shader reads it (bilinear on the blurred map), in units (v11.27)
 function wmFloor(x,z){
