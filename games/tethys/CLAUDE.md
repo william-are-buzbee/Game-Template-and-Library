@@ -351,8 +351,9 @@ Docs, most upstream first. When a doc's Open list says a choice is the person's,
   alone). The maps' free channels are used up since v11.81 (floor b, a: the crops; water a: the front's X).
 - The far layer draws every structure from `bigsFor`; cells only register collision. Anything `big` a cell draws itself pops and
   doubles up. Change the ground rule in `settleOn`, nowhere else.
-- Since v11.12 the flora has a draw distance `FLORA_FAR`: a new small species wants a cut material; a new big one wants a card in
-  `FAR_IMP` and no cut. The disturbance loop runs only within `DIST_R` of the camera.
+- Since v11.12 the flora has a draw distance `FLORA_FAR`, and since v11.155 a fade into it (`FLORA_FADE`, scene.js `farCut`/`FAR_FADE`: an instance
+  shrinks into its origin): a new small species wants a fading material (every sway, variant, rock and `MAT` instance has one); a new big one wants a card in
+  `FAR_IMP` and no cut — a low-poly copy of the real one (v11.124, v11.155), never crossed cards. The disturbance loop runs only within `DIST_R` of the camera.
 - A cell's small flora lives in its species' pool (chunks.js `POOLS`), not in `ch.meshes`/`ch.flora`: a block per cell, the tail moved down on
   unload, the written range uploaded (`updateRange`). Out of sight by a flag per instance (`aHide`, v11.125), never moved by the view; the
   hide is in `addTint`'s vertex code, so a pooled species' material must be a tinted one (every flora material is). Placement reads the cell's own hash only (`solidPush(…, own)`), which `placeBigSolids`

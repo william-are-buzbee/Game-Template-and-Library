@@ -162,10 +162,10 @@ const LMK={meshes:[]};
 })();
 
 // ---------- far impostors: the forest, the bladder meadow and the rafts from a distance ----------
-// The stipe forest (1100/cell), bladders, rafts and colonies are placed by the cell's rng and exist only in loaded cells, so from 600 units the
-// forest read as a green floor. A sparse stand-in for each: every 5th stipe as a crossed pair of olive cards stretched to
-// the surface with a canopy pad on top (a wall of stalks from afar), every 3rd bladder as a thin crossed card the height of the water
-// column with a pad on top, rafts and colonies as flat octagons, every 2nd tidewood as a low-poly copy of the real one (v11.124). Placed by the same density rules as
+// The stipe forest (700/cell), bladders, rafts and colonies are placed by the cell's rng and exist only in loaded cells, so from 600 units the
+// forest read as a green floor. A sparse stand-in for each: every 3rd stipe and every 2nd bladder as a low-poly copy of the real one stretched
+// to the surface like it (v11.155; to v11.154 crossed cards with a pad on top — "two squares making an X stuck in the ground", the person,
+// 16 Nov 2026), rafts and colonies as flat octagons, every 2nd tidewood as a low-poly copy of the real one (v11.124). Placed by the same density rules as
 // placeFloraType (biome, field, pocket, the lee) from a pure per-cell rng, drawn by the region, and zeroed inside loaded
 // cells the way the far terrain is sunk. They do not match the near flora one for one; only the density does.
 function impGeo(tris){ // tris: [[x,y,z]x3, [r,g,b]] with the normal from the winding
@@ -176,11 +176,27 @@ function impGeo(tris){ // tris: [[x,y,z]x3, [r,g,b]] with the normal from the wi
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(pos),3));
   g.setAttribute('normal',new THREE.BufferAttribute(new Float32Array(nor),3));g.setAttribute('color',new THREE.BufferAttribute(new Float32Array(col),3));g.computeBoundingSphere();return g;
 }
-function crossCards(w,y0,y1,col,tris){ // two vertical quads at right angles, width w between y0 and y1
-  for(const [ax,az] of [[1,0],[0,1]]){const x=ax*w/2,z=az*w/2;tris.push([[-x,y0,-z],[x,y0,z],[x,y1,z],col],[[-x,y0,-z],[x,y1,z],[-x,y1,-z],col]);}
-}
-function farStipeGeo(){const T=[];crossCards(2.8,0,1,[0.42,0.44,0.17],T);const r=2.4,c=[0.5,0.5,0.2];for(let k=0;k<6;k++){const a0=k/6*TAU,a1=(k+1)/6*TAU;T.push([[0,1,0],[Math.cos(a0)*r,1,Math.sin(a0)*r],[Math.cos(a1)*r,1,Math.sin(a1)*r],c]);}return impGeo(T);} // the stipe: a unit card stretched to the surface like the bladder's, a canopy pad on top
-function farBladderGeo(){const T=[];crossCards(1.4,0,1,[0.5,0.56,0.26],T);const r=2.2,c=[0.68,0.72,0.36];for(let k=0;k<6;k++){const a0=k/6*TAU,a1=(k+1)/6*TAU;T.push([[0,1,0],[Math.cos(a0)*r,1,Math.sin(a0)*r],[Math.cos(a1)*r,1,Math.sin(a1)*r],c]);}return impGeo(T);}
+// a face whose normal points away from the axis (impGeo's normal is the winding's), for the stalks: a, b, c and the colour
+function outTri(T,a,b,c,k){const ux=b[0]-a[0],uz=b[2]-a[2],vx=c[0]-a[0],vy=c[1]-a[1],vz=c[2]-a[2],uy=b[1]-a[1],nx=uy*vz-uz*vy,nz=ux*vy-uy*vx;T.push(nx*(a[0]+b[0]+c[0])+nz*(a[2]+b[2]+c[2])<0?[a,c,b,k]:[a,b,c,k]);}
+// a stalk of n sides from radius r0 at y0 to r1 at y1 (unit height: the instance stretches it to the water), phase ph
+function farStalk(T,n,r0,r1,y0,y1,ph,k){const P=(a,r,y)=>[Math.cos(a)*r,y,Math.sin(a)*r];for(let i=0;i<n;i++){const a0=ph+i/n*TAU,a1=ph+(i+1)/n*TAU;outTri(T,P(a0,r0,y0),P(a1,r0,y0),P(a1,r1,y1),k);outTri(T,P(a0,r0,y0),P(a1,r1,y1),P(a0,r1,y1),k);}}
+// a flat blade out from the axis at height y on bearing a: L long, w0 wide at the root and w1 at the tip, its tip dy lower (unit height); facing up
+function farBlade(T,y,a,L,w0,w1,dy,k){const c=Math.cos(a),s=Math.sin(a),r0=0.05,A=[c*r0-s*w0/2,y,s*r0+c*w0/2],B=[c*r0+s*w0/2,y,s*r0-c*w0/2],C=[c*L+s*w1/2,y-dy,s*L-c*w1/2],D=[c*L-s*w1/2,y-dy,s*L+c*w1/2];
+  for(const t of [[A,B,C],[A,C,D]]){const [a1,b1,c1]=t,ny=(c1[0]-a1[0])*(b1[2]-a1[2])-(b1[0]-a1[0])*(c1[2]-a1[2]);T.push(ny<0?[a1,c1,b1,k]:[a1,b1,c1,k]);}}
+// a flat disc of n sides at height y, radius r (a float laid flat), as a fan from its first corner: n−2 triangles, facing up
+function farDisc(T,y,r,n,ph,k){const P=i=>[Math.cos(ph+i/n*TAU)*r,y,Math.sin(ph+i/n*TAU)*r];for(let i=1;i<n-1;i++){const a=P(0),b=P(i),c=P(i+1),ny=(c[0]-a[0])*(b[2]-a[2])-(b[0]-a[0])*(c[2]-a[2]);T.push(ny<0?[a,c,b,k]:[a,b,c,k]);}}
+// The stipe (v11.155): flora.js stipeB's middle ecotype (k 1) — the stalk 0.16 → 0.065 m (three sides for its five), four nodes of two flat
+// blades each for its seven, spiralling as its do and 1.3× longer and wider for the nodes left out, and the canopy whorl's five blades just under
+// the top; its vertex colours (WSTEM, W) under the real tint (FAR_IMP `pig`). 32 triangles (the cards were 10).
+function farStipeGeo(){const T=[],rg=mulberry(0x51e7);farStalk(T,3,0.16,0.065,0,0.975,0.3,WSTEM);
+  for(let i=0;i<4;i++){const y=0.26+i*0.18,sp=i*4.2+rg()*0.6;for(let j=0;j<2;j++)farBlade(T,y,sp+j*Math.PI+(rg()-0.5)*0.5,(1.5+rg()*0.6)*1.3,0.52,0.42,0,W);}
+  for(let j=0;j<5;j++)farBlade(T,0.985,j/5*TAU+rg()*0.4,2.2+rg()*0.6,0.48,0.4,0,W);
+  return impGeo(T);}
+// The bladder (v11.155): bladderB's middle ecotype — the stalk 0.26 → 0.135 m (three sides for its six), its four floats at 0.6–0.9 of the column
+// as flat pentagons, each with its two blades hanging just under it (4% and 6% of the column) in their own greens. 34 triangles (the cards were 10).
+function farBladderGeo(){const T=[],rg=mulberry(0xb1ad);farStalk(T,3,0.26,0.135,0,1,0.9,[0.4,0.42,0.2]);
+  for(let i=0;i<4;i++){const y=0.6+i*0.1+rg()*0.02,a=i*1.3+rg()*0.4;farDisc(T,y,0.5,5,a,[0.68,0.72,0.36]);farBlade(T,y-0.04,a,2.35,0.48,0.48,0,[0.45,0.55,0.25]);farBlade(T,y-0.06,a+1.6+Math.PI,2.35,0.48,0.48,0,[0.42,0.52,0.24]);}
+  return impGeo(T);}
 function farRaftGeo(col){const T=[];for(let k=0;k<8;k++){const a0=k/8*TAU+0.2,a1=(k+1)/8*TAU+0.2,r0=0.9+0.1*(k%2),r1=0.9+0.1*((k+1)%2);T.push([[0,0,0],[Math.cos(a0)*r0,0,Math.sin(a0)*r0],[Math.cos(a1)*r1,0,Math.sin(a1)*r1],col||W]);}return impGeo(T);}
 // The tidewood (v11.124; to v11.123 a crossed pair of 1.2 m cards 9 m tall under a flat six-sided pad, olive on olive: from the water a fence
 // of pale posts beside the real wood — "strange looking square LOD's", the person, 12 Nov 2026). Now the real one's middle size as flora.js
@@ -204,8 +220,8 @@ function farTreeGeo(){
 // pig (v11.124): tinted as the real instances are — pigment(h, line) with the place's stain (grow.js tintBy) — not from the species' list. hs: the real
 // variants' heights on the geometry's, one drawn per instance.
 const FAR_IMP=[
-  {f:FLORA_BY_ID.stipe,geo:farStipeGeo(),stride:5,dim:0.55}, // dim (v11.42.4): the card's tint against the real plant's — the stipe's pigment darkens with depth and its pads are silhouettes from below, and past the swap at FLORA_FAR the cards' residual through the fog read paler than the veil where the real kelp's read darker: a pale band with a bright line of pads along the far water level (the person's last 5%, 14 Sep)
-  {f:FLORA_BY_ID.bladder,geo:farBladderGeo(),stride:3,dim:0.7},
+  {f:FLORA_BY_ID.stipe,geo:farStipeGeo(),stride:3,pig:true}, // v11.155: the real one's copy under the real tint (pig); to v11.154 an olive card dimmed 0.55 against the real (v11.42.4: past the swap the cards' residual read paler than the veil where the real kelp's read darker — the person's last 5%, 14 Sep), one in five
+  {f:FLORA_BY_ID.bladder,geo:farBladderGeo(),stride:2,pig:true}, // v11.155: the same; to v11.154 a card dimmed 0.7, one in three
   {f:FLORA_BY_ID.button,geo:farRaftGeo([0.56,0.82,0.78]),stride:2,r:1.1}, // the buttons' fleets, green-blue
   {f:FLORA_BY_ID.tidetree,geo:farTreeGeo(),stride:2,pig:true,hs:[6/9,1,12/9]} // tidewoodB's 6, 9 and 12 m
 ];

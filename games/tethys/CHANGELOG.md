@@ -8257,3 +8257,41 @@ noise), w70 ×1.02, plat ×1.02, ours ×1.00 and the same to the bit; the load �
 ground not compared separately.
 
 **Unseen, ask in this order:** (1) the tenth blind sheet; (2) the necks at shelf depth (§10.12's (3)); (3) the halo, still even round the high islands.
+
+## v11.155 — the flora fades in, and the far kelp is kelp (16 Nov 2026)
+
+The person, under water, a steady ring ahead: "On the long plateaus of the game you can watch the rocks pop into existence long after you see the
+slope they are on top of. Same thing with seeing grass pop in … Kelp distant view looks pretty bad tbh, like two squares making an X that are stuck
+in the ground, until the real thing spawns in and looks great. Coral also pops in." Asked how hard; answered: the fade and the kelp first, then the
+meadows on the floor (v11.156) and the boulders in the far layer (v11.157), and the bladder's far look too.
+
+- **A fade, not a cut** (scene.js `farCut`, `FAR_FADE`, `FLORA_FADE` 90): over the last 90 m before `FLORA_FAR` (450) an instance shrinks into its
+  own origin — a plant into its root, a boulder into its sunk centre — so it grows out of the floor as it comes in. At 360 m the veil leaves ~7%,
+  so the fade does not show. To v11.154 a hard cut.
+- **The rocks, the fans and the stipeling had no cut at all**: `MATROCK` (boulders, talus, ledges), `MAT`'s instances (the fan, limpet, chimney,
+  the sheds) and the stipeling's `MATS` were hidden only a cell at a time (`ch.near`), so a whole 215 m block of boulders or fans appeared at once
+  when the cell's nearest edge came within 450 — the plateau's pop. Now `MATROCK` fades (`rockMaterial(far, fade)`), `MAT` fades for its
+  instances (`cutLambert`; its program key `lamc`, the creatures never instanced), and the stipeling has `MATSC` (the stipe's sway, cut and faded;
+  the stipe keeps `MATS`, its cards taking over a cell at a time).
+- **The far stipe and bladder** (far.js `farStipeGeo`, `farBladderGeo`, helpers `farStalk`, `farBlade`, `farDisc`, `outTri`; `crossCards` struck):
+  low-poly copies of the real ones, as the tidewood's became in v11.124 — the builders' middle ecotype, unit height stretched to the water as the
+  real ones are. The stipe: a three-sided stalk, four nodes of two flat blades spiralling (1.3× the real's for the three nodes left out), the
+  canopy whorl's five blades; 32 tris. The bladder: a three-sided stalk, four flat pentagon floats each with its two blades under it; 34 tris.
+  Tinted as the real instances (`pig`: the float line's pigment and the place's stain), the dims struck; one in 3 stipes (was 5) and one in 2
+  bladders (was 3), so the far forest keeps its density across the swap.
+- chunks.js: the pools' comment said "the rock never hid" (stale since v11.125).
+
+**Seen** (headless Chromium, software WebGL, still frames at 960×540; main beside this): over a young boulder field at (−8400, 5600) with the
+water made clear for the look, main's rocks and grass run out to the far edge of whichever cells are near (to ~650 m) and stop at a cell's line;
+here they thin out by 450 and nothing ends at a line — with the water as it is, both read the same, the far band a ghost. At the forest's shelf
+(330, 0) with the cells round the camera unloaded so only the far layer stands there: main's far kelp a field of dark slabs 2.8 m wide, here thin
+stalks with flat blades and the canopy whorl in the real kelp's olive-gold.
+
+**What it costs** (the same frames, `renderer.info`, main → this): draws the same everywhere (551, 691, 616); triangles submitted at the boulder
+field 6.882M → 6.893M (+0.2%), at the forest 6.657M → 6.702M and 8.114M → 8.177M (+0.7%, +0.8%: the kelp copies — the far layer alone there
+200k → 245k). The fade adds a smoothstep and a multiply to a vertex in the band; the rocks past 450 in near cells now leave the shader at once
+(they were drawn). Frame time is the GPU's and was not measured; the suite (27 runs, both tiers) passes.
+
+**Unseen, ask in this order:** (1) the fade in motion, on the preview: swim toward a plateau (`tp(-8400,5600)`, a boulder field) and the
+forest's edge (`tp(330,0)`); (2) whether the far forest at one stipe in three reads thinner than the real one where they meet, and whether its
+stalks shimmer past 800 m (a thin line aliased there in v11.13); (3) the readout at those two places.

@@ -130,8 +130,9 @@ function makeInstanced(ch,rng,geo,mat,tints,list,dip,vars,f){
 // count is the frame, and it scales as species × visible cells (DESIGN Performance, 13 Sep). Now a species without a card or a pad draws
 // once for all loaded cells: a cell writes its instances into the species' pool as one block (the same rng, the same matrices, tints and
 // per-instance attributes as the per-cell mesh had) and takes them out on unload by moving the tail down; only the written range is
-// uploaded (updateRange). The pool draws everything loaded — the per-instance collapse past FLORA_FAR (scene.js FAR_CUT) does what the
-// per-cell hide did for the small things, and the rock never hid — so a cell behind the camera costs its vertices, which the GPU has to spare.
+// uploaded (updateRange). A cell out of view or past FLORA_FAR is hidden by its block's flags (aHide, v11.125, poolCull below); inside it each
+// instance fades out over FLORA_FADE and is gone past FLORA_FAR (scene.js farCut) — the rock, the fans and the stipeling too since v11.155 (to
+// v11.154 they had no cut, and a whole cell of them appeared at once when its nearest edge came within FLORA_FAR).
 // The card species (FAR_IMP: the stipe, bladder, buttons, tidetree; `f.card`) keep a mesh per cell because their cards take over per cell,
 // the rafts keep aDip per cell (physics.js updatePads), the glow clouds their GLOW mesh. A pool grows by doubling into a fresh geometry
 // clone (the old one disposed, so no GL buffer is left behind); it casts into the world's shadow map whole (scene.js updateShadowS) with a

@@ -1,5 +1,12 @@
 # HANDOFF — tethys
 
+**v11.155 (16 Nov 2026): the flora fades in, and the far kelp is kelp** (DESIGN "The flora's draw distance", "The far layer"; CHANGELOG). The
+person, under water: rocks popping in on the plateaus, grass and coral popping, the far kelp "two squares making an X". Past `FLORA_FAR` (450)
+the flora now shrinks into the floor over 90 m instead of appearing (scene.js `farCut`, `FLORA_FADE`), and the rocks, fans and stipeling — which
+had no cut and appeared a 215 m cell at a time — fade the same. The far stipe and bladder are low-poly copies of the real ones (far.js
+`farStipeGeo`, `farBladderGeo`), as the tidewood's became in v11.124. **Next:** v11.156 (the seagrass beds on the floor) and v11.157 (the
+boulders drawn to 900 m), stacked on this. **Ask:** the plateaus and the forest's edge on the preview; the readout at the forest (`tp(330,0)`).
+
 **v11.154 (16 Nov 2026): the reefs' shapes by many scales** (analysis_archipelago §10.12–10.13; DESIGN "The reefs' shapes by many scales";
 CHANGELOG). The ninth sheet (seeds 251, 263, 271, 283) found 4 of 4 by the shallows' even stipple, the saddles' necks and the banks' smooth outlines.
 Measured (`ONLY=lagoons,outline`, new), then built: landslide bites in every model record's margin (region.js `rgBite`), and the lagoons by many

@@ -1043,7 +1043,7 @@ const FLORA = [
     },
     stipeB
   ),
-  species('stipeling', {mat: MATS, photo: true, line: 'float', tints: FLOATT, reach: [0.3, 0.7], per: 300, env: {h: [-54, -16], sub: [0.55, 1], nut: [0.45, 1], flow: [0.15, 0.85], young: [0, 0.45]}, field: 0.012, eco: true, succ: [0.08, 0.25]}, stipelingB), // v11.116 (analysis_flora_diversity §5.3): the forest's young, under the canopy
+  species('stipeling', {mat: MATSC, photo: true, line: 'float', tints: FLOATT, reach: [0.3, 0.7], per: 300, env: {h: [-54, -16], sub: [0.55, 1], nut: [0.45, 1], flow: [0.15, 0.85], young: [0, 0.45]}, field: 0.012, eco: true, succ: [0.08, 0.25]}, stipelingB), // v11.116 (analysis_flora_diversity §5.3): the forest's young, under the canopy
   species(
     'ladder',
     {mat: MATM, photo: true, line: 'float', tints: FLOATT, s: [0.7, 1.3], tilt: true, per: 130, env: {h: [-66, -16], sub: [0.5, 1], nut: [0.4, 1], young: [0, 0.45]}, field: 0.014, eco: true},
