@@ -881,7 +881,18 @@ const SKYC=[ // [sinAlt, zenith, horizon, glow, sunlight]
   [-0.03,[0.140,0.200,0.400],[0.500,0.400,0.420],[1.00,0.42,0.16],[1.0,0.40,0.16]],
   [0.06,[0.240,0.400,0.660],[0.700,0.640,0.640],[1.00,0.60,0.28],[1.0,0.62,0.32]],
   [0.35,AIR.zenith,AIR.fog,[0.30,0.24,0.14],[1.0,0.94,0.84]]];
-const MOONC=[0.72,0.80,0.96],MOONL=0.28,GREYC=[0.52,0.55,0.59],STARL=0.035; // moonlight's colour and its strength at full; the overcast sky; a moonless night's floor (starlight, airglow)
+const MOONC=[0.72,0.80,0.96],MOONL=0.28,GREYC=[0.52,0.55,0.59],STARL=0.035;
+// The eye (v11.159; an animal's since v11.162 — atmosphere.js eyeK, eyeStep, scene.js EYE_GLSL). The person (16 Nov 2026), on ×2.4: "nighttime is so dark you
+// can't see anything as the finback … I wanted true dark because that's believable, but only if it meant that your eyes can adjust … animals in darkness like
+// that every day evolve to handle it" — and "look into what an actual fish on earth tends to be able to see at night". What Earth's say: brown and brook
+// trout forage down to ~0.005 lux (between starlight and a quarter moon); the nocturnal reef fish (squirrelfish) see with a deep-sea fish's banked rod
+// retina; a cat needs a sixth of the light we do; and a fish's retina rebuilds itself for the night (rods out, cones in, the pigment drawn back) over an
+// hour or so at dusk. So a night-adapted animal sees a moonless night about as we see moonlight — enough to swim and hunt by, its colour mostly gone —
+// and a moonlit night about as we see dusk. Here, as display gains on the game's compressed light: eye = clamp((ref/L)^k, 1, max) — 1 by day, ~1.45 at
+// sunset and at a full moon, ~1.9 at a quarter, ~3.1 on a moonless night (the forest at 15 m: means ~56, ~46, ~50 of 255 against noon's 153 and
+// v11.159's 39, 24, 36); it opens over open s (a game hour, the retina's own) and closes over close s; and as it opens the colour drains toward a
+// blue-grey (desat at the moonless night's gain): rods see no colour, which is what keeps a night you can see by a night.
+const NIGHT_EYE={ref:0.6,k:0.4,max:4,open:80,close:5,desat:0.6}; // ref: the sky's light at or over which the eye is at 1; k: how much of a fall it makes up; max: the cap; open, close: its time constants (s, real); desat: the colour drained at a moonless night's gain // moonlight's colour and its strength at full; the overcast sky; a moonless night's floor (starlight, airglow)
 // ---------- landmarks ----------
 // The one-offs are placed by the geology where the geology names the place (the chimney on rift arm 0; the pit crater was the other until v11.95) and
 // searched for on the analytic terrain otherwise (seed 4242, a fixed sequence — new ones go on the end so earlier ones don't
