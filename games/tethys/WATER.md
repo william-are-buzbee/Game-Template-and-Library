@@ -268,7 +268,7 @@ and five analytic trains are what this game can afford.
 1. **Colour lost by channel.** Subnautica's per-biome water (its modding API's defaults) carries an absorption vector, red 100 : green 18 :
    blue 3.5, besides a scattering strength, a murkiness and a distance the fog starts at; Unreal's Single Layer Water takes absorption and
    scattering coefficients per channel. Tethys's veil is one curve for every channel toward a coloured veil: a red animal and a blue one fade alike.
-   Real water takes red in metres (Pope & Fry: ~0.22–0.34 /m in the red, ~0.06 green, ~0.01 blue, from memory). **Built as v11.164.**
+   Real water takes red in metres (Pope & Fry: ~0.22–0.34 /m in the red, ~0.06 green, ~0.01 blue, from memory). **Built as v11.164.** **The person on the preview (17 Nov 2026):** "everything looks incredibly.... blue? … going back to main made the game more visually appealing but also, I did enjoy some of the color changes." v11.164.1: the light's loss counted from the eye's depth, on the game's own depth scale, gentle by default, the slider (0–12) reaching v11.164's strength.
 2. **The light scattered into the eye from a point light**, in closed form (Sun et al., SIGGRAPH 2005, which names underwater among its cases):
    a halo round the own light, a lure, a glowing carcass, without bloom or a pass — BIOLUM §1's "a light that reads here is … a volume". And the
    sun's forward lobe as a Henyey–Greenstein phase (g ≈ 0.85) in place of `pow(cos, 6)`: a tight bright disc in a wide glow. **The halo built as v11.166**; the sun's lobe not (the veil's glow toward the sun reads already, and v11.165 uses the lobe where it earns its keep).
