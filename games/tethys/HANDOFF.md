@@ -1,5 +1,7 @@
 # HANDOFF — tethys
 
+**v11.164.1 (17 Nov 2026): colour lost by channel, gentle** (world.js `SPECTRAL`; scene.js `SPEC_DOWN`, `fogWater`, `updateFogCamera`; DESIGN Visibility; WATER.md Part 4; CHANGELOG). v11.164 turned the world blue (the person: "incredibly.... blue", but some of the changes liked); now the light's loss is counted from the eye's depth and on the game's own depth scale — main's palette with warm colours fading by distance and below you. `per-channel colour` with a strength slider 0–12 (12 ≈ v11.164). **Ask:** where on the slider the person likes it; which of v11.164's changes they enjoyed. **WATER.md Part 4 (17 Nov 2026):** the research and the person's answers — next: schools (questions asked: their size, juveniles or a new small species, near detail, the ledger).
+
 **v11.163 (17 Nov 2026): the pall's lights** (fx.js `PHO`; world.js `lightPhys`; BIOLUM.md §8; CHANGELOG). Flat blue faces on its arms — the web's
 lure, steady in the dark, dimmed by day at the core's top (−500…−550) where daylight still reaches a deep eye; the tips flash on a touch; held or bitten it
 leaves a glowing cloud, goes dark 90 s and leaves. `palls()` in the console; `tp(2400,-699,-540)` at night. Stacked on #102. **Ask:** the lit net and its

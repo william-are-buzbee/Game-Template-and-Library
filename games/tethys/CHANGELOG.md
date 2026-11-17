@@ -8679,3 +8679,79 @@ unmeasured here.
 **Unseen, ask in this order:** 1. A pall at night on the preview (`skip()` to midnight, `tp(2400,-699,-540)`, `palls()`; give the ledger a few minutes):
 does the lit net read, and is the blue right? 2. Grab one (`r`) or bite it: the cloud, the pall going dark and leaving. 3. A pall at noon at the core's top
 (−500…−550): dimmed — does it read as a choice it made? 4. The readout's render ms with palls in view.
+
+## v11.164 — colour lost by channel (17 Nov 2026)
+
+The person, after the water research (WATER.md Part 4): "Yes, 1 for the per channel color. I'm excited for that one." The veil faded every channel alike
+toward a blue veil, so a red animal and a blue one dissolved at the same rate and the sand at 26 m was the same grey as at 3. Water takes red first, then
+green, the blue last — the reason the deep's animals are red, and the look of Subnautica's water (its biomes carry an absorption vector, R 100 : G 18 : B 3.5).
+
+- **world.js `SPECTRAL`:** `k` red 0.10, green 0.008 per metre — each one's loss over the blue's (the blue's 0: the veil's own curve, so only two are computed); `slant` 1.15 (the light's mean slope in water); `view`, `down`.
+  Water's own numbers (Pope & Fry: ~0.21 red, ~0.045 green over the blue) made the shelf at 16 m a saturated blue filter and the deep's sand royal blue (seen):
+  this sea is stylised clear (the veil 66% at 100 m, the daylight 96% at 16 m), and the green's loss took the approved teal to blue. At the numbers chosen the
+  red is a fifth by 16 m of light path and gone by ~45; the green a fifth by 200.
+- **The sun's way down** (scene.js `SPEC_DOWN`): `SUNK_V`/`SUNK_F` multiply the sun by what the metres of water over the lit point left of each channel; the
+  caustic and the bodies' shadows (`LIGHT_GLSL`) take the same, since both are the beam. 1 in air.
+- **The way to the eye** (`fogWater`'s new `Ls`): the veil's transmittance is the blue's, the red and green's `× exp(−k·Ls)`. Under water `Ls` is the ray's metres in
+  water; from the air it is the refracted ray through the point's own depth (depth / cos θt, never past 1.5× the depth), not the ray's whole length that the
+  veil's fade takes from above (v11.42.1) — the shallows keep their sand and go turquoise, a 16 m floor goes blue.
+- Point lights (the own light, vents, lures) are filtered only on the way back to the eye: they are near what they light.
+- **The effects list:** `per-channel colour`, on; `strength` (`specK`, 0–2.5; 2 is about water's own red). One uniform, `uSpec` (scene.js `FOG_SPEC`, shared
+  through ShaderLib and horizon.js's list; effects.js `specApply` writes it). The surface's own `fogVeil` reads (the mirror, the column through a crest) are not
+  filtered: they are the veil, which keeps its colour.
+- **WATER.md Part 4:** the research (what Subnautica, Sea of Thieves, Abzu, Crest, Unreal's water and Wind Waker do, and what Tethys already has), ranked, and
+  the person's answers (17 Nov 2026): this first; murk by place yes ("we can tweak if we need"); no lens effects for now; schools of real ledger animals,
+  more of them and some small.
+
+**Seen** (headless Chromium, dev build, low tier, 640×360, the loop driven by hand, noon; before and after from the same places): the forest at 8 m over
+a 16 m floor — the grey sand cyan, the kelp still green-gold, the pink and yellow sponges blue and pale green; the shelf at 14 m over 26 m — the pink patches
+gone to blue, the sand a clear cyan; the kelp at −32 over −55 — darker and blue, the gold blades green; from 13 m in the air over the forest — turquoise over
+the near floor going blue with depth (at the physical numbers it was a royal blue); from the air over 3 m of water by the beach — turquoise, the sand's warmth
+kept at the edge; the beach at dusk; midnight at 8 m (unchanged: no beam). No page errors, no shader warnings. Tried and rejected: k (0.21, 0.045) and
+(0.16, 0.012) — a blue filter; (0.06, 0.004) — the cast without the hue's loss.
+
+**What it costs:** no JavaScript a frame (`specApply` runs when the list changes). On the GPU: in every fogged fragment under water an `exp` of a vec3 and, from the
+air, a square root; in the Lambert vertex stage and in the tinted fragment's light block an `exp` of a vec3 each. Software-rendered (SwiftShader) render time at
+the forest, the median of 21 frames:
+
+| SwiftShader render, median of 21 frames (one session, old and new back to back) | v11.163 | v11.164 |
+|---|---|---|
+| under water at the forest (330, −8, 0) | 1926 ms | 1994, 1973 ms: ×1.03 |
+| from the air over the forest (330, 7 m over the floor) | 2039 ms | 2109, 2198 ms: ×1.06 |
+| the same, `per-channel colour` off | 2083 ms | 2108, 2146 ms: ×1.02 (SwiftShader runs both sides of a branch; a GPU skips the view path's) |
+
+The first round, before the trim (the beam's factor once in the light block, the blue not computed, the view path behind a uniform branch), read ×1.03 under
+water and ×1.21 from the air, with old and new minutes apart; between sessions the same build moved 15%, so only back-to-back runs are compared. Software
+rendering emulates every `exp`; on a GPU they are a few transcendental ops beside the fog's four texture reads.
+
+The GPU's own cost is unmeasured here; the readout's render ms at the forest (330, 0) with `per-channel colour` on and off is the check.
+
+**Unseen, ask in this order:** 1. The shelf and the forest on the preview at noon: is it the water you wanted, and is the strength right (the slider under
+`per-channel colour`; 2 is water's own red)? 2. A red or pink thing at 20–40 m, then your own light near it. 3. From a cliff over the forest and from the beach.
+4. The deep at the pall ground by day (`tp(2400,-699,-540)`). 5. The readout's render ms with it on and off.
+
+## v11.164.1 — colour lost by channel, gentle (17 Nov 2026)
+
+The person on #104's preview: "just looking underwater on PR#104, everything looks incredibly.... blue? The coloring of the game took a huge turn … going back
+to main made the game more visually appealing but also, I did enjoy some of the color changes. Is there a way to try that effect again?"
+
+Two causes, found by shooting the same frame (the clock frozen) at a dozen settings:
+- **The light down was counted from the surface.** Everything, the animal beside you included, was as red-starved as the floor 13 m under the camera. Now from the
+  **eye's own depth** (`SPECTRAL.adapt` 1; updateFogCamera writes the camera's depth into `uSpec.z`; `SPEC_DOWN` subtracts it): what is at your depth keeps its
+  colour and what is below you loses it — the eye adapting to the light where it is, as the night eye does to the dark.
+- **Water's own rates on a stretched sea.** The game's daylight keeps 87% at 55 m; its colour fell at real water's rates. Grey sand shows a fifth of its red gone as
+  cyan — 0.03 /m to the eye was already cyan over the forest's 20–40 m views (seen). Now `k` (red 0.10, green 0.004) × `down` 0.05 (× `slant`) and × `view` 0.08:
+  at strength 1 the red is 0.0058 /m on the sun's way down and 0.008 /m to the eye.
+- **The slider** (`specK`) runs 0–12: 1 the default — main's palette, the sand a little cooler, pinks and golds fading with distance and below you; 6 clearly
+  underwater, teal; 12 about v11.164's look. `FX_V` 90 resets a strength saved on v11.164's scale.
+
+**Seen** (headless Chromium, dev build, low tier, 640×360, noon, the clock frozen; off, 1, 6, 12 side by side): the forest at 8 m, the shelf at 14 m, the kelp at −32,
+from 13 m in the air over the forest and from over the beach. At 1 the picture is main's with the distance cooler and the pinks paler; at 6 the sand teal and the pinks
+gone to blue; at 12 the cyan of v11.164 (a little less — the adaptation). No page errors, no shader warnings. Tried and dropped on the way (each a frame): the
+adaptation alone (still cyan: the view path), 0.03 /m to the eye (cyan), down at a tenth with 0.015 to the eye (cyan on the sand).
+
+**What it costs:** one more subtraction in `SPEC_DOWN`; one store a frame on the CPU. Otherwise v11.164's.
+
+**Unseen, ask in this order:** 1. The forest and the shelf at strength 1, then move the slider (`e`, under `per-channel colour`): where do you like it? 2. Which of
+v11.164's changes did you enjoy — the shallows' turquoise from above (strength 6+), the pinks going blue, the deep going teal? Those could be kept at a lower overall
+strength if they are the ones.

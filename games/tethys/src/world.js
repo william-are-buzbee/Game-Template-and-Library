@@ -875,6 +875,27 @@ const BLOOM_GLSL='vec3 bloomC(vec3 b,float fd,float d){float fx=(b.z*5.0+1.0-uFo
 // 1.8:1.5:1.2, a diffuse underwater light with the sun as a 2-3:1 key on top; at 0.8 the flanks of the big rocks read as
 // black polygons the fog could not soften (v8.3 screenshots). Every number is live-tunable from the readout (main.js, `FOG_TUNE`).
 const SEA_FOG={dens:0.0068,share:0.88,shareS:0.88,far:0.0015,dlAt:1.0,placeMix:0.4,reach:260,bright:1.0,sun:0.8,ground:1.2,cau:0.8,shd:0.55}; // cau, shd (v11.13): the caustics' and the bodies' shadows' strength (scene.js LIGHT_K; the readout's t-y and u-i)
+// Colour lost by channel (v11.164, the person's ask of 17 Nov 2026 after the water research: "1 for the per channel color"). The veil above is one
+// curve for all three channels: a red thing and a blue thing fade at the same rate, only toward a blue veil. Water takes red first: its absorption is
+// ~0.22–0.34 /m in the red (600–650 nm), ~0.06 in the green (550), ~0.01 in the blue (450) (Pope & Fry 1997, pure water; the open sea's Kd is close
+// to it in the red and a little over it in the blue), so a red animal is brown at 5 m and black at 15 while a yellow one still reads — the reason the
+// deep's animals are red. Subnautica's water carries the same as a per-biome absorption vector (R 100 : G 18 : B 3.5). `k` is the extra loss of each
+// channel over the blue's, per metre, taken on both paths the light runs in water: down from the surface to the lit point (`down`, × `slant`, the
+// mean slope of the light in water — the refracted sun and the sky's diffuse, ~1/0.85) and from the point to the eye (`view`). The blue keeps the
+// veil's curve exactly, so the distances the fog was tuned to stand; what is new is the hue: red and orange go first, then green, the blue last.
+// Seen from the air the water's part of the ray is the refracted one, through the point's own depth (never more than 1.5× it): the shallows keep
+// their sand. On the effects list as `per-channel colour`, its strength a slider (`specK`, 0–12; v11.164.1). The light of a point light (the own light, a vent,
+// a lure) is not filtered on its way to the thing it lights — it is near — only on the way back to the eye.
+// The numbers (v11.164.1). v11.164 took water's own rates, halved (k 0.10/0.008 on both paths from the surface down): seen headless it was the approved
+// teal turned cyan, and the person on the preview (17 Nov 2026): "everything looks incredibly.... blue … going back to main made the game more visually
+// appealing but also, I did enjoy some of the color changes." Two causes, both fixed: (1) the light down was counted from the surface, so everything near the
+// eye was as red-starved as the floor — now from the eye's own depth (`adapt` 1: the eye's adaptation to the light where it is, as the night eye adapts to
+// the dark; updateFogCamera puts the camera's depth in uSpec.z): what is at your depth keeps its colour, what is below you loses it; (2) the rates were
+// real water's on a sea whose light is stretched ~10–30× deeper (the daylight keeps 87% at 55 m) — now on the game's own scale: `down` and `view` scale `k`
+// per path, the red 0.0058/m down (×slant) and 0.008/m to the eye at strength 1. Grey sand shows a fifth of its red gone as cyan, so the gentle end is
+// where it reads as depth and not a filter (seen: 0.03/m to the eye was already cyan over the forest's 20–40 m). The slider (`specK`, 0–12) runs from that
+// to about v11.164's strength at 12, for the person to find the point.
+const SPECTRAL={k:[0.10,0.004],view:0.08,down:0.05,slant:1.15,adapt:1.0}; // k: the red's and the green's (the blue's is 0 by definition: the veil's curve), × down on the sun's way down (× slant) and × view on the way to the eye
 // above the surface: one sky, one haze, the same two-population curve (about 47% contrast at 300, 13% at 600, 4% at 1000).
 const AIR={fog:[0.72,0.80,0.86],dens:0.0009,share:0.35,far:0.00003,zenith:[0.34,0.55,0.78],hemiSky:0xc4dcea,hemiGround:0x6e6a58}; // the noon sky (the approved v6 look); v11 reads it as the day keyframe of SKYC. v11.64: the air is a trade-wind day — dens 0.0009 / share 0.35 / far 0.00003: the near population is the look (35% of the contrast gone by 2 km, a light general haze), the far term is clear air (130 km), and the physics of the distance is the boundary layer (HAZE.dens 1.7e-4 over 70 m: Koschmieder's 23 km at the water), which the fog already integrates along every ray — so from the water the giant's foot at 18 km is lost in the layer (~3%) while a ray to its summit climbs out of it (~30%): the peak floating on the haze, as a far island looks. The horizon tier (horizon.js) draws it; to v11.63 it was 0.0024 / 0.6 / 0.0018, "a hazy coast" of ~1 km (WATER.md P6: the person's call, and the numbers to go back to). A shower still thickens it (applyFog)
 // The sky by the sun's height (v11, atmosphere.js updateSky): keyframes on sin(altitude) — night, deep twilight, the sun on the
