@@ -1,5 +1,7 @@
 # HANDOFF — tethys
 
+**v11.169 (17 Nov 2026): the shore's foam** (atmosphere.js `SHORE`, `NEAR_F`; DESIGN The surface; CHANGELOG). A white line at the water's edge that runs up and back with the swell, and bores in the surf where the floor rises, travelling in and bunching as the water shoals — from a near map of the ground at the terrain's own 4.5 m. `shore foam` on the effects list. **Ask:** a beach on the preview, the exposed side and the lagoon.
+
 **v11.168.1 (17 Nov 2026): the live test seeded** (test/live.js; CHANGELOG). `Math.random` seeded as test/frames.js does, so the run is the same every time; its bundle one file a process. The chase check passes on a thin margin (one hunter kind chasing, ~1% of its samples, on each tier).
 
 **v11.168 (17 Nov 2026): schools of 20–40** (creatures_ai.js `SCHOOL`, `SCHOOL_INST`; chunks.js placeKind; DESIGN Creatures; WATER.md Part 4; CHANGELOG). Cells put their schools together at a spot per 2×2 block and ribbons that meet merge, up to 40; 30% of a placed school are juveniles; the ledger untouched. Far schoolers are drawn as one instanced mesh per kind and coat. **Ask:** a ribbon on the preview, near and far.

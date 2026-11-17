@@ -8886,3 +8886,31 @@ of a full `node build.js --test` (4 at a time, on claude/tethys-lure-light) and 
 - The failure message said "60 s" on the low tier's 180; it says the tier's own now.
 
 **Unseen:** nothing to look at; no build output changed.
+
+## v11.169 — the shore's foam (17 Nov 2026)
+
+WATER.md Part 4, item 4; the person, 17 Nov 2026: "let's do the shore foam lines next". Wind Waker draws white lines that hug the coast and travel in; here they are made
+of what the surf is.
+
+- **A near map of the ground** (atmosphere.js `NEAR_F`, `nearBuild`): the loaded 5×5 cells' own 49×49 height grids — the grid the terrain mesh is built from — copied
+  into one 241² texture at 4.5 m, the ground from −12 to +4 m in a byte (6 cm steps), rebuilt when the player changes cell or a cell loads (~58,000 bytes copied). The
+  surf's foam to v11.168 was the breaking excess on the floor map (`vBrk`, ~36 m texels blurred over ~70 m): a band along the shore, nothing at a beach's scale.
+- **The edge** (`shoreFoam`): the water under 0.18 m deep + half the wave height × the run-up, which swings with the longest swell's period (9.8 s) — the swash's line.
+- **The bores:** inside 1.3× the breaking depth (H/0.78, H from the swell × the place's wave energy and the chop × the wind), at the phase a bore has after running in
+  at √(g·d) up a slope m — ω·t − 2ω·√d/(m·√g) — so the lines bunch as the water shoals and follow the depth contours (what refraction does to real breakers), sharp
+  at the front and decaying behind, broken by a value noise, and only where the floor rises (`slope` 0.02–0.07). The first cut had no slope gate: over the outer
+  beach's 2–3 m flat, all of it inside the breaking depth, the lines traced every bump of the depth like a contour map (seen).
+- Topside, and 0.6 of it from below (the underside's foam). Calm water (the lagoon, the lee) gets the edge, faint; the struck side gets the bores.
+- **The effects list:** `shore foam`, on; `strength` (`shoreK`, 0–2).
+
+**Seen** (headless Chromium, dev build, low tier, 640×360, noon, the camera 9 m over the water): the outer beach at (465, −379) — a white line along the water's edge
+under the sand and the rocks, bores at the flat's seaward drop (where the floor rises), faint broken lines on the flat; three frames 1.3 s apart, the lines moved and the
+edge swelled and drew back; the lagoon's inner beach at (162, −133) — a clean line along the shore, none with the switch off. No page errors, no shader warnings. Not
+seen: the underside's foam (the camera rose above the water in that shot), the exposed flank in a high wind, the full tier.
+
+**What it costs:** on the surface's fragments, one texture read (two more within 6 m of the bottom), a square root, two value noises and a few multiplies; skipped
+when off. The CPU copies the near map on a cell change. SwiftShader at the beach (the surface most of the screen), median of 11: on 2497 ms, off 2409 ms (×1.04).
+The GPU unmeasured.
+
+**Unseen, ask in this order:** 1. A beach on the preview, the outer side and the lagoon: do the lines read as surf, and is the strength right? 2. A windy day on the
+exposed side (`skip(28)` is the windy peak). 3. From under the water near the beach.
