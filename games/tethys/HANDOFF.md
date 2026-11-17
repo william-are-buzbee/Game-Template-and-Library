@@ -1,5 +1,7 @@
 # HANDOFF — tethys
 
+**v11.164 (17 Nov 2026): colour lost by channel** (world.js `SPECTRAL`; scene.js `SPEC_DOWN`, `fogWater`; effects.js `specApply`; DESIGN Visibility; WATER.md Part 4; CHANGELOG). Water takes red first, then green, the blue last — on the sun's way down and on the way to the eye; from the air through the point's own depth, so the shallows keep their sand. `per-channel colour` on the effects list with a strength slider. **WATER.md Part 4 (17 Nov 2026):** what other games do with water and the person's answers — next, in order: light through the crests, the point lights' halo and the sun's lobe, murk by place, schools (real animals, more, some small, drawn cheaply). No lens effects for now. **Ask:** the colour at depth on the preview.
+
 **v11.163 (17 Nov 2026): the pall's lights** (fx.js `PHO`; world.js `lightPhys`; BIOLUM.md §8; CHANGELOG). Flat blue faces on its arms — the web's
 lure, steady in the dark, dimmed by day at the core's top (−500…−550) where daylight still reaches a deep eye; the tips flash on a touch; held or bitten it
 leaves a glowing cloud, goes dark 90 s and leaves. `palls()` in the console; `tp(2400,-699,-540)` at night. Stacked on #102. **Ask:** the lit net and its

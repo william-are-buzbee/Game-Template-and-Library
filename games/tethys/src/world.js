@@ -875,6 +875,22 @@ const BLOOM_GLSL='vec3 bloomC(vec3 b,float fd,float d){float fx=(b.z*5.0+1.0-uFo
 // 1.8:1.5:1.2, a diffuse underwater light with the sun as a 2-3:1 key on top; at 0.8 the flanks of the big rocks read as
 // black polygons the fog could not soften (v8.3 screenshots). Every number is live-tunable from the readout (main.js, `FOG_TUNE`).
 const SEA_FOG={dens:0.0068,share:0.88,shareS:0.88,far:0.0015,dlAt:1.0,placeMix:0.4,reach:260,bright:1.0,sun:0.8,ground:1.2,cau:0.8,shd:0.55}; // cau, shd (v11.13): the caustics' and the bodies' shadows' strength (scene.js LIGHT_K; the readout's t-y and u-i)
+// Colour lost by channel (v11.164, the person's ask of 17 Nov 2026 after the water research: "1 for the per channel color"). The veil above is one
+// curve for all three channels: a red thing and a blue thing fade at the same rate, only toward a blue veil. Water takes red first: its absorption is
+// ~0.22–0.34 /m in the red (600–650 nm), ~0.06 in the green (550), ~0.01 in the blue (450) (Pope & Fry 1997, pure water; the open sea's Kd is close
+// to it in the red and a little over it in the blue), so a red animal is brown at 5 m and black at 15 while a yellow one still reads — the reason the
+// deep's animals are red. Subnautica's water carries the same as a per-biome absorption vector (R 100 : G 18 : B 3.5). `k` is the extra loss of each
+// channel over the blue's, per metre, taken on both paths the light runs in water: down from the surface to the lit point (`down`, × `slant`, the
+// mean slope of the light in water — the refracted sun and the sky's diffuse, ~1/0.85) and from the point to the eye (`view`). The blue keeps the
+// veil's curve exactly, so the distances the fog was tuned to stand; what is new is the hue: red and orange go first, then green, the blue last.
+// Seen from the air the water's part of the ray is the refracted one, through the point's own depth (never more than 1.5× it): the shallows keep
+// their sand. On the effects list as `per-channel colour`, its strength a slider (`specK`, 0–2.5). The light of a point light (the own light, a vent,
+// a lure) is not filtered on its way to the thing it lights — it is near — only on the way back to the eye.
+// The numbers are under the physical ones (v11.164, seen headless at the forest, the shelf at −55 and from the air): at (0.21, 0.045) the shelf at 16 m
+// was a saturated blue filter and the deep's sand royal blue — this water is stylised clear (the veil keeps 66% at 100 m, the daylight 96% at 16 m) and the
+// physical green loss alone took the approved teal to blue. At (0.10, 0.008) the red is a fifth by 16 m of light path and gone by ~45, the green a fifth
+// by 200: the sand under the forest goes cyan, the kelp stays green, pinks and violets go blue. The slider's 2 is about the physical red.
+const SPECTRAL={k:[0.10,0.008],view:1.0,down:1.0,slant:1.15}; // k: the red's and the green's (the blue's is 0 by definition: the veil's curve)
 // above the surface: one sky, one haze, the same two-population curve (about 47% contrast at 300, 13% at 600, 4% at 1000).
 const AIR={fog:[0.72,0.80,0.86],dens:0.0009,share:0.35,far:0.00003,zenith:[0.34,0.55,0.78],hemiSky:0xc4dcea,hemiGround:0x6e6a58}; // the noon sky (the approved v6 look); v11 reads it as the day keyframe of SKYC. v11.64: the air is a trade-wind day — dens 0.0009 / share 0.35 / far 0.00003: the near population is the look (35% of the contrast gone by 2 km, a light general haze), the far term is clear air (130 km), and the physics of the distance is the boundary layer (HAZE.dens 1.7e-4 over 70 m: Koschmieder's 23 km at the water), which the fog already integrates along every ray — so from the water the giant's foot at 18 km is lost in the layer (~3%) while a ray to its summit climbs out of it (~30%): the peak floating on the haze, as a far island looks. The horizon tier (horizon.js) draws it; to v11.63 it was 0.0024 / 0.6 / 0.0018, "a hazy coast" of ~1 km (WATER.md P6: the person's call, and the numbers to go back to). A shower still thickens it (applyFog)
 // The sky by the sun's height (v11, atmosphere.js updateSky): keyframes on sin(altitude) — night, deep twilight, the sun on the

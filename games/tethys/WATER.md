@@ -1,6 +1,6 @@
 # WATER.md — the sea surface from both sides: audit and proposals (14 Sep 2026)
 
-Status: Part 1–2 the 14 Sep audit (A, B, C, D and H built as v11.42–v11.44); Part 3 (14 Sep, later) the line from above — built as v11.45 and v11.46; nothing in this file is left unbuilt; E (the whitecaps by steepness) was struck in v11.50.2 — sparkles from below, and the person asked for them gone from above as well; the surf's foam stays. The person asked for scrutiny of how the game looks through the water from below and at it from
+Status: **Part 4 (17 Nov 2026): what other games do, and the person's answers — item 1 built as v11.164 (the colour lost by channel); 2–6 to build.** Part 1–2 the 14 Sep audit (A, B, C, D and H built as v11.42–v11.44); Part 3 (14 Sep, later) the line from above — built as v11.45 and v11.46; nothing in this file is left unbuilt; E (the whitecaps by steepness) was struck in v11.50.2 — sparkles from below, and the person asked for them gone from above as well; the surf's foam stays. The person asked for scrutiny of how the game looks through the water from below and at it from
 above, then a brainstorm of believable additions. Read with DESIGN *The surface*, *Visibility*, *The medium*, and POLISH's
 "What not to build". Files: atmosphere.js (the surface block, `updateAtmosphere`), scene.js (the fog chunk, `WAVE_GLSL`, `addTint`),
 world.js (`WAVES`, `waveH`, `WCOL`, `SEA_FOG`, `AIR`), player.js (`camAbove`, `CAM_CLEAR`, `splash`), far.js (the water and floor maps).
@@ -248,3 +248,42 @@ crest and should be the column's colour — the veil along the refracted ray, as
 **To ask the person.** (a) A darker sea than the sky at the line — the natural look, P2 — or keep the pale edge? (b) Facets from above:
 P2 makes the swell's rows visible away from the sun, tone-stepped, strongest far off; is that the sea they want, or should the topside stay
 smooth? (c) The air: keep the hazy coast or a clearer day once P1 lets the sea end in the sky? (d) A long swell, G, and whose storm (Part 2, L).
+
+## Part 4 — what other games do with water, and what Tethys takes from them (17 Nov 2026)
+
+The person's ask: research Subnautica and the other games known for their water, the tricks, tools and techniques behind them, and discuss
+what Tethys could use. Sources were search results; the session's network refused the primary pages (the Sea of Thieves SIGGRAPH paper,
+80.lv's account of the Abzu talk, Crest's documentation, gamedeveloper.com), so what is below is from their summaries and is marked where it
+is from memory.
+
+**What Tethys already has of the usual kit.** Snell's window with the sky refracted through it, the mirror outside it, caustics focused by the
+surface's curvature (the Jacobian, which is what Evan Wallace's WebGL caustics compute by triangle area), shafts driven by that focusing, the
+two-segment fog from above, shoaling and surf, sub-facet glitter, rain rings from below, breach residue, the refraction of the frame from under the
+surface. That is most of what is written about Crest, Sea of Thieves and the stylised water tutorials. FFT seas (Tessendorf, Sea of Thieves),
+ray-marched volumes and screen-space reflections stay out on POLISH's grounds: the surface is vertex-bound, its physics must match the shader,
+and five analytic trains are what this game can afford.
+
+**What it does not have, by effect per millisecond.**
+
+1. **Colour lost by channel.** Subnautica's per-biome water (its modding API's defaults) carries an absorption vector, red 100 : green 18 :
+   blue 3.5, besides a scattering strength, a murkiness and a distance the fog starts at; Unreal's Single Layer Water takes absorption and
+   scattering coefficients per channel. Tethys's veil is one curve for every channel toward a coloured veil: a red animal and a blue one fade alike.
+   Real water takes red in metres (Pope & Fry: ~0.22–0.34 /m in the red, ~0.06 green, ~0.01 blue, from memory). **Built as v11.164.**
+2. **The light scattered into the eye from a point light**, in closed form (Sun et al., SIGGRAPH 2005, which names underwater among its cases):
+   a halo round the own light, a lure, a glowing carcass, without bloom or a pass — BIOLUM §1's "a light that reads here is … a volume". And the
+   sun's forward lobe as a Henyey–Greenstein phase (g ≈ 0.85) in place of `pow(cos, 6)`: a tight bright disc in a wide glow.
+3. **Light through the crests.** Sea of Thieves colours its water by view angle, sun direction and a mask of the wave peaks; Crest has a
+   sun-falloff knob for the same. A thin crest with the sun behind it glows green-teal; on flat facets, a stained-glass row toward a low sun.
+4. **Foam lines at the shore** (Wind Waker: no reflection, flat shading, white lines that follow the coast and travel in), from a distance to the
+   shore finer than the floor map — the loaded cell's 49×49 heights — moving in with each wave and running up the sand.
+5. **Schools at a tenth of the cost** (Abzu: swimming done in the vertex shader on instanced bodies, credited in its GDC talk with ten times the
+   fish on screen). Much of why Abzu's water reads as big is life and parallax, not the surface.
+6. **Murk by place.** Subnautica's density changes by biome; Tethys has one per medium.
+7. Smaller: a ripple field round the player (wakes, porpoising) for the surface's lighting only; caustics fringed by wavelength in the shallows;
+   Crest's meniscus and drops on a lens after surfacing.
+
+**The person (17 Nov 2026):** "Yes, 1 for the per channel color. I'm excited for that one." Murk: "I think that works and we can tweak if we
+need" — the density may change by place (6), revising DESIGN *Visibility*'s "one density per medium". Lens effects: "we can do without lense
+effects for now" (7's last). Schools: "we can make school animals that are real animals in the ledger, just make more and make some of them
+small … they can be both" — every member a real animal of the ledger, more of them and some small, drawn cheaply (5). Order: 1, then 3, then 2
+(each behind a switch, measured), then murk and schools.
