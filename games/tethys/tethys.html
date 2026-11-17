@@ -13952,6 +13952,14 @@ const PHO_F=phoIM(new THREE.BoxGeometry(1,1,1),phoMat(PHO.col,1,0),PHO.max); // 
 const PHO_B=phoIM(new THREE.DodecahedronGeometry(1,0),phoMat(PHO.col,PHO.cl.K,1),PHO.cl.slots*PHO.cl.n); // the clouds' blobs
 const PHO_CL=[];for(let i=0;i<PHO.cl.slots;i++){const b=[];for(let j=0;j<PHO.cl.n;j++)b.push({x:0,y:0,z:0,vx:0,vy:0,vz:0,r:0,q:new THREE.Quaternion()});PHO_CL.push({on:false,a:0,b:b});}
 const PHO_L={x:0,y:-1e5,z:0,color:PHO.cl.color,intensity:0,distance:PHO.cl.lightD,d:0};lightSources.push(PHO_L);
+// The lure lights the water (v11.171; the person, 17 Nov 2026: "The lights of the bioluminescent creatures should actually emit a light. The way the own light
+// does"). To v11.170 a pall's net was drawn — its faces bright — and lit nothing; a glowing carcass (BACT_L) and the cloud (PHO_L) held sources in the light
+// pool. Now every lit pall in reach holds one too, at the middle of its net's faces: the lure's level and a flash (`lightK` × what its faces show, the tips' and
+// the web's), its reach `lightD` × its size factor, the faces' blue. In the light pool (scene.js assignLights) it lights the bodies, the floor and the rock
+// round it as the own light does, and, among the nearest, the water (the halo, v11.166). `slots` palls at once, the nearest to the camera.
+const PHO_LURE={slots:3,lightK:1.0,lightD:14,color:0x4d9eff},PHO_LL=[],PHO_LC=[];
+for(let i=0;i<PHO_LURE.slots;i++){const s={x:0,y:-1e5,z:0,color:PHO_LURE.color,intensity:0,distance:PHO_LURE.lightD,d:0};PHO_LL.push(s);lightSources.push(s);}
+for(let i=0;i<16;i++)PHO_LC.push({x:0,y:0,z:0,I:0,R:0,d:0}); // this frame's lit nets (a pool, filled in order; nothing allocates a frame)
 const PHO_M=new THREE.Matrix4(),PHO_V=V3(),PHO_S=V3(),PHO_P=V3();
 // the web's gate at height y (0..1) by the sky now
 function phoGate(y){const L=lightPhys(SKY.sunAlt,SKY.moonL/MOONL,y);return smooth(PHO.dark[0],PHO.dark[1],-Math.log10(Math.max(L,1e-30)));}
@@ -13972,7 +13980,7 @@ function phoNear(c,p){let best=1e9;const W=c.shapesW;if(W)for(const w of W){cons
   for(const r of c.b.rigs||[])for(const q of r.chains){if(q.fresh)continue;const P=q.pts;for(let k=1;k<=q.n;k++){const d=len3(p.x-P[k*3],p.y-P[k*3+1],p.z-P[k*3+2]);if(d<best)best=d;}}
   return best;}
 function updatePho(dt,on){
-  const cam=camera.position,ox=ORIGIN.x,oz=ORIGIN.z,FA=PHO_F.geometry.attributes.aGl.array,BA=PHO_B.geometry.attributes.aGl.array;let nf=0;
+  const cam=camera.position,ox=ORIGIN.x,oz=ORIGIN.z,FA=PHO_F.geometry.attributes.aGl.array,BA=PHO_B.geometry.attributes.aGl.array;let nf=0,nl=0;
   for(let i=PHO_C.length-1;i>=0;i--){const c=PHO_C[i];if(c.gone||!c.alive){PHO_C[i]=PHO_C[PHO_C.length-1];PHO_C.pop();}}
   for(const c of PHO_C){
     // the state: dark after a cloud; held long enough, a cloud; touched, a flash; the lure toward its gate
@@ -13986,13 +13994,17 @@ function updatePho(dt,on){
     const fl=Math.min(1,c.lumF),lw=PHO.K[0]*c.lumL+PHO.K[2]*fl,lt=PHO.K[1]*c.lumL+PHO.K[3]*fl;
     if(lw<0.01&&lt<0.01||!c.g.visible)continue;const dx=c.pos.x-cam.x,dy=c.pos.y-cam.y,dz=c.pos.z-cam.z;if(dx*dx+dy*dy+dz*dz>PHO.R*PHO.R)continue;
     const k=c.k||1,L=PHO_REST[c.kind];if(!L)continue;c.g.updateMatrix();const e=c.g.matrix.elements;PHO_V.set(0,0,1).applyQuaternion(c.g.quaternion);const fx=PHO_V.x,fy=PHO_V.y,fz=PHO_V.z;
-    const live=c.lod===0;let li=0;
+    const live=c.lod===0;let li=0,sx=0,sy=0,sz=0,sn=0;
     for(const r of c.b.rigs)for(const q of r.chains){const n=q.n,sim=live&&!q.fresh;
       for(let j=0;j<=n;j++){const tip=j===n;if(!tip&&PHO.web.indexOf(j)<0)continue;if(nf>=PHO.max)break;
         let px,py,pz;if(sim){px=q.pts[j*3];py=q.pts[j*3+1];pz=q.pts[j*3+2];}else{const lx=L[li*4],ly=L[li*4+1],lz=L[li*4+2];px=e[0]*lx+e[4]*ly+e[8]*lz+e[12];py=e[1]*lx+e[5]*ly+e[9]*lz+e[13];pz=e[2]*lx+e[6]*ly+e[10]*lz+e[14];}
         li++;
         {const ax=px-c.pos.x,ay=py-c.pos.y,az=pz-c.pos.z,al=ax*fx+ay*fy+az*fz,qx=ax-fx*al,qy=ay-fy*al,qz=az-fz*al,ql=len3(qx,qy,qz);if(ql>1e-3){const s=PHO.inset*k/ql;px-=qx*s;py-=qy*s;pz-=qz*s;}} // onto the oral side: toward the body's axis
-        const s=(tip?PHO.sz[1]:PHO.sz[0])*k;PHO_P.set(px-ox,py,pz-oz);PHO_S.set(s,s,s);PHO_M.compose(PHO_P,c.g.quaternion,PHO_S);PHO_F.setMatrixAt(nf,PHO_M);FA[nf]=tip?lt:lw;nf++;}}}
+        sx+=px;sy+=py;sz+=pz;sn++;
+        const s=(tip?PHO.sz[1]:PHO.sz[0])*k;PHO_P.set(px-ox,py,pz-oz);PHO_S.set(s,s,s);PHO_M.compose(PHO_P,c.g.quaternion,PHO_S);PHO_F.setMatrixAt(nf,PHO_M);FA[nf]=tip?lt:lw;nf++;}}
+    if(sn&&nl<PHO_LC.length){const L=PHO_LC[nl++];L.x=sx/sn;L.y=sy/sn;L.z=sz/sn;L.I=PHO_LURE.lightK*Math.max(lw,lt);L.R=PHO_LURE.lightD*k;L.d=dx*dx+dy*dy+dz*dz;}} // v11.171: the net's middle, a light candidate
+  for(const s of PHO_LL){s.y=-1e5;s.intensity=0;} // the lures' lights (v11.171): the nearest lit nets to the camera hold the slots
+  for(let a=0;a<PHO_LL.length&&a<nl;a++){let b=a;for(let j=a+1;j<nl;j++)if(PHO_LC[j].d<PHO_LC[b].d)b=j;if(b!==a){const t=PHO_LC[a];PHO_LC[a]=PHO_LC[b];PHO_LC[b]=t;}const L=PHO_LC[a],S=PHO_LL[a];S.x=L.x;S.y=L.y;S.z=L.z;S.intensity=on?L.I:0;S.distance=L.R;}
   PHO_F.count=nf;PHO_F.visible=nf>0;PHO_F.position.set(ox,0,oz);if(nf){PHO_F.instanceMatrix.needsUpdate=true;PHO_F.geometry.attributes.aGl.needsUpdate=true;}
   // the clouds: grow, drift with the current and what they were thrown with, fade; the brightest near one holds a light
   let nb=0,bl=0;PHO_L.y=-1e5;PHO_L.intensity=0;
