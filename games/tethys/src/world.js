@@ -142,6 +142,15 @@ function tidalAt(x,z,out){const r=Math.hypot(x,z),ex=Math.cos(TIDE_A),ez=Math.si
 // The canopy fade (CAN_LO/CAN_HI, canopyFade) that sat here to v11.80 went with the canopy's paint (v11.81, PLANKTON.md §12).
 const DL_REF=420,DL_MIN=0.28; // the depth the daylight curve would reach zero at, and its floor
 function daylightAt(y){return clamp(1+Math.min(0,y-TIDE)/DL_REF,DL_MIN,1);}
+// The planet's own light at a height (v11.163; PLANET, Light, as revised 17 Nov 2026; BIOLUM.md §8), as a share of the noon sun at the surface: the
+// physics, not the picture — daylightAt above keeps the game's readability floor (DL_MIN, a listed conflict in PLANET). Read by what decides whether a
+// light is worth making (fx.js PHO). The sun by its altitude (sin): over the horizon its height, under it the twilight falling `twi` decades a degree
+// from `dusk` at sunset (civil dusk ~3e-5, nautical ~1e-7, then the stars); a full moon `moon` (at half Earth's distance ~4× its moonlight: ~1 lux
+// against ~1e5) by moonK, its share of a full moon's light; starlight `star`; through the water tenfold every `dec` m (the island's fed water, where blue
+// ~480 nm has Kd ~0.04; ~90 m in the clearest open water). The star's own colour moves this by 4–7 m (PLANET), so it is not a term.
+const LIGHT_P={dusk:4e-3,twi:0.35,moon:1e-5,star:1e-8,dec:60};
+function lightPhys(sunAlt,moonK,y){const deg=Math.asin(clamp(sunAlt,-1,1))*57.29578,sun=deg>=0?Math.max(LIGHT_P.dusk,sunAlt):LIGHT_P.dusk*Math.pow(10,LIGHT_P.twi*Math.max(deg,-40));
+  return (sun+LIGHT_P.moon*clamp(moonK,0,1)+LIGHT_P.star)*Math.pow(10,Math.min(0,y-TIDE)/LIGHT_P.dec);}
 // The water's oxygen (v11.96, DEEP.md §2, §9; the person, 10 Nov 2026: the region model's basins decide where the dark is). To v11.95 this was
 // CHEMO, a chemocline at -450 under the whole world; the model encloses nothing round ours, so round ours the water is oxic to the floor with
 // an oxygen minimum under the island's food (Earth's tropical open oceans have one at 400-900 m without any wall), and a chemocline exists only
