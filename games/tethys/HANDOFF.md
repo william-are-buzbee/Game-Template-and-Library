@@ -1,5 +1,7 @@
 # HANDOFF — tethys
 
+**v11.168.1 (17 Nov 2026): the live test seeded** (test/live.js; CHANGELOG). `Math.random` seeded as test/frames.js does, so the run is the same every time; its bundle one file a process. The chase check passes on a thin margin (one hunter kind chasing, ~1% of its samples, on each tier).
+
 **v11.168 (17 Nov 2026): schools of 20–40** (creatures_ai.js `SCHOOL`, `SCHOOL_INST`; chunks.js placeKind; DESIGN Creatures; WATER.md Part 4; CHANGELOG). Cells put their schools together at a spot per 2×2 block and ribbons that meet merge, up to 40; 30% of a placed school are juveniles; the ledger untouched. Far schoolers are drawn as one instanced mesh per kind and coat. **Ask:** a ribbon on the preview, near and far.
 
 **v11.167 (17 Nov 2026): murk by place** (scene.js `MURK`; DESIGN Visibility; CHANGELOG). The water is as thick as its plankton: the forest as tuned, the fed flank 1.8× thicker, a bloom up to 3×, poor water up to a fifth clearer. `murk` on the effects list. Stacked on #106. **Ask:** the fed flank and the forest; whether the forest should be the reference.
