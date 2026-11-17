@@ -1,5 +1,7 @@
 # HANDOFF — tethys
 
+**v11.167 (17 Nov 2026): murk by place** (scene.js `MURK`; DESIGN Visibility; CHANGELOG). The water is as thick as its plankton: the forest as tuned, the fed flank 1.8× thicker, a bloom up to 3×, poor water up to a fifth clearer. `murk` on the effects list. Stacked on #106. **Ask:** the fed flank and the forest; whether the forest should be the reference.
+
 **v11.166 (17 Nov 2026): the lights' halo** (scene.js `HALO`, `haloL`; DESIGN Visibility; CHANGELOG). Under water a light lights the water round it: the own light, a lure, a glowing carcass, a vent — a closed-form glow along every ray that passes near one. `halo` on the effects list with a strength slider. Stacked on #105. **Ask:** the own light in the deep and at night; a pall's lure.
 
 **v11.165 (17 Nov 2026): light through the crests** (atmosphere.js `CREST`; DESIGN The surface; CHANGELOG). From the air toward a low sun the wave tops glow blue-green — water's forward scattering through the thin crest. `crest light` on the effects list with a strength slider; the default is past the physical estimate (which is invisible on this swell) — the person's to set. Stacked on #104. **Ask:** the sea toward the sun in the evening; the strength.

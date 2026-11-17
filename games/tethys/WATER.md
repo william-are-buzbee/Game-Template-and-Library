@@ -1,6 +1,6 @@
 # WATER.md — the sea surface from both sides: audit and proposals (14 Sep 2026)
 
-Status: **Part 4 (17 Nov 2026): what other games do, and the person's answers — item 1 built as v11.164 (the colour lost by channel), item 3 as v11.165 (light through the crests), item 2's halo as v11.166 (the sun's lobe not built); 4–6 to build.** Part 1–2 the 14 Sep audit (A, B, C, D and H built as v11.42–v11.44); Part 3 (14 Sep, later) the line from above — built as v11.45 and v11.46; nothing in this file is left unbuilt; E (the whitecaps by steepness) was struck in v11.50.2 — sparkles from below, and the person asked for them gone from above as well; the surf's foam stays. The person asked for scrutiny of how the game looks through the water from below and at it from
+Status: **Part 4 (17 Nov 2026): what other games do, and the person's answers — item 1 built as v11.164 (the colour lost by channel), item 3 as v11.165 (light through the crests), item 2's halo as v11.166 (the sun's lobe not built), item 6 as v11.167 (murk by the plankton); 4 and 5 to build.** Part 1–2 the 14 Sep audit (A, B, C, D and H built as v11.42–v11.44); Part 3 (14 Sep, later) the line from above — built as v11.45 and v11.46; nothing in this file is left unbuilt; E (the whitecaps by steepness) was struck in v11.50.2 — sparkles from below, and the person asked for them gone from above as well; the surf's foam stays. The person asked for scrutiny of how the game looks through the water from below and at it from
 above, then a brainstorm of believable additions. Read with DESIGN *The surface*, *Visibility*, *The medium*, and POLISH's
 "What not to build". Files: atmosphere.js (the surface block, `updateAtmosphere`), scene.js (the fog chunk, `WAVE_GLSL`, `addTint`),
 world.js (`WAVES`, `waveH`, `WCOL`, `SEA_FOG`, `AIR`), player.js (`camAbove`, `CAM_CLEAR`, `splash`), far.js (the water and floor maps).
@@ -278,7 +278,7 @@ and five analytic trains are what this game can afford.
    shore finer than the floor map — the loaded cell's 49×49 heights — moving in with each wave and running up the sand.
 5. **Schools at a tenth of the cost** (Abzu: swimming done in the vertex shader on instanced bodies, credited in its GDC talk with ten times the
    fish on screen). Much of why Abzu's water reads as big is life and parallax, not the surface.
-6. **Murk by place.** Subnautica's density changes by biome; Tethys has one per medium.
+6. **Murk by place.** Subnautica's density changes by biome; Tethys has one per medium. **Built as v11.167** — by the plankton's crop, relative to the forest's.
 7. Smaller: a ripple field round the player (wakes, porpoising) for the surface's lighting only; caustics fringed by wavelength in the shallows;
    Crest's meniscus and drops on a lens after surfacing.
 
