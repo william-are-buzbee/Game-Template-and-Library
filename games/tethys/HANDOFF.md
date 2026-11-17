@@ -1,5 +1,7 @@
 # HANDOFF — tethys
 
+**v11.170 (17 Nov 2026): the deep dark by day** (world.js `DEEP`, `deepK`; scene.js `DK_GLSL`; atmosphere.js the eye; DESIGN; BIOLUM §7.9; PLANET's conflict resolved; CHANGELOG). Below 120 m the light falls away (1% at −540) and the eye opens for it as at night: a dim grey twilight zone, a dark deep lit by its own lights. `dark deep` on the effects list. Stacked on #109. **Ask:** the deep by day on the preview; whether it is too dark to swim in.
+
 **v11.169 (17 Nov 2026): the shore's foam** (atmosphere.js `SHORE`, `NEAR_F`; DESIGN The surface; CHANGELOG). A white line at the water's edge that runs up and back with the swell, and bores in the surf where the floor rises, travelling in and bunching as the water shoals — from a near map of the ground at the terrain's own 4.5 m. `shore foam` on the effects list. **Ask:** a beach on the preview, the exposed side and the lagoon.
 
 **v11.168.1 (17 Nov 2026): the live test seeded** (test/live.js; CHANGELOG). `Math.random` seeded as test/frames.js does, so the run is the same every time; its bundle one file a process. The chase check passes on a thin margin (one hunter kind chasing, ~1% of its samples, on each tier).

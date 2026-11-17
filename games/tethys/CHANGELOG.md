@@ -8914,3 +8914,29 @@ The GPU unmeasured.
 
 **Unseen, ask in this order:** 1. A beach on the preview, the outer side and the lagoon: do the lines read as surf, and is the strength right? 2. A windy day on the
 exposed side (`skip(28)` is the windy peak). 3. From under the water near the beach.
+
+## v11.170 — the deep dark by day (17 Nov 2026)
+
+BIOLUM §7.9, open since 16 Nov ("the deep another time"). The person, 17 Nov 2026, asked: "dark, eye adapts" — daylight falls toward black with depth as on Earth,
+and the animal's eye opens in the dark as the night eye does, so the deep reads dim and its own lights carry it. Stacked on v11.169 (#109).
+
+- **world.js `DEEP`** {d0 120, L 90}, `deepK`, `daylightAt`: below 120 m the daylight curve (linear to a 0.28 floor by −300) is multiplied by exp(−(depth − 120)/90) —
+  13% of it at 300 m, 3% at 400, 1% at the pall ground (−540). To v11.169 the floor held at every depth: a navy murk at noon at −516 (BIOLUM §1; Earth's −500 m has
+  of the order of a millionth of the surface's light).
+- **scene.js `DK_GLSL`** in `DL_GLSL` (the veil's daylight, the sun by depth in both stages, the shadows' beam) and on the veil's own floor (`0.3+0.7·dl` → `0.3·dk+0.7·dl`):
+  nothing lights the deep's water. atmosphere.js: the ambient's floor and the fog colour take the same fade. Uniform `uDeep` (`DEEP_U`: d0, 1/L, on), shared through
+  ShaderLib and horizon.js's list.
+- **The eye** (atmosphere.js): `L` under water is the sky's light × the daylight at the camera's depth, so the eye opens going down to `NIGHT_EYE`'s cap (×4) on its own
+  clock (80 s to open), draining the colour toward a rod's blue-grey — DESIGN The eye's "never the depth" (16 Nov) revised.
+- **PLANET's listed conflict** (the daylight floor against the Light bullet as revised 17 Nov) resolved; BIOLUM §7.9 answered.
+- **The effects list:** `dark deep`, on (off: v11.169's floor, to compare).
+
+**Seen** (headless Chromium, dev build, low tier, 640×360, noon, over the pall ground at (2400, −699), the eye snapped to its target; new and v11.169 at the same frozen
+moment): 150 m — a dim blue-black, frame mean 21 (was 33); 300 m — black but the animal in its own light and halo, 12 (31); 450 m — the same, darker, 8 (30); the forest at
+8 m the same picture (87 both). No page errors, no shader warnings.
+
+**What it costs:** an `exp` per use of the daylight curve in the shaders (the veil, the sun by depth, the shadow) and one on the veil's floor; three `exp` a frame on the
+CPU. Not measured on the GPU; a few transcendental ops beside the fog's texture reads.
+
+**Unseen, ask in this order:** 1. Dive at noon from the shelf to the pall ground (`tp(2400,-699,-150)`, then down): is it too dark to swim in, or right? (`L` 90 is the
+knob: 120 would keep 4% at 400 m.) 2. The pall's lure and a glowing carcass by day in the deep — now they read. 3. The eye's 80 s to open: too slow going down?

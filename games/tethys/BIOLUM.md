@@ -179,7 +179,7 @@ chemistry and electroreception still matter where nothing glows." (The game's ow
 6. **Sight by light:** a minimal term so creatures see lights (and lit bodies) further at night and below the light — or the player's eyes only, for now.
 7. **The gardens (G):** do touch flashes on the deep gardens count as the binned "bioluminescence purely as a function of moving"?
 8. **The kits:** keep the wake's (`FLASH`, `skBody`, `sparkBurst`) and the displays' (`DSP`) code, or strike them now the rethink is written down.
-9. **The deep by day:** dark (Earth's) or the daylight floor as built (`DL_MIN` 0.28) — it decides whether the deep's lights are a night thing or always.
+9. ~~**The deep by day**~~ — **answered 17 Nov 2026: dark, the eye adapting** (built v11.170, world.js `DEEP`): the deep's lights read by day below the twilight zone.
    Since the Light bullet's revision (17 Nov 2026) the floor is a listed conflict in PLANET.
 10. **The pall's size by depth** (§8): a cline by oxygen (smaller in the core's worst water), a larger deep form below the core, or neither.
 11. **The lure's payoff** (§8): the pall eats the swarms its lit net takes, on paper and in play — or the light stays the net's with no meal modelled.
