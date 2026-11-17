@@ -600,6 +600,8 @@ read into the air (its map sampled along rays that point over the void) wrapped 
 **Sky.** Since v11 the dome is one shader and the sun moves: [The sky](#the-sky). Air fog 0.0024 (v11.45; 0.0030 to v11.44) is a hazy coast; since v11.45 every fragment in air converges to the sky in its own direction with the haze to infinity (`skyFar`, the rule the veil has had since v11.27), so the sea mesh's far edge is the sky and cannot show; before that lowering it
 for a sharper horizon may expose the sea mesh's far edge; it thickens under rain.
 
+**Light through the crests (v11.165, atmosphere.js `CREST`, WATER.md Part 4 item 3).** Seen from the air toward a low luminary, the top of a wave glows blue-green: its light goes in at the back, scatters forward through the thin water and out of the face toward the eye. The topside adds the beam (`uGlint`'s colour and level, × the cloud over the player and a shower, as the caustics have it) × `col` (0.16, 0.62, 0.52) × `k` 2 × a Henyey–Greenstein lobe toward the luminary (`g` 0.8, relative to an even spread, capped at 12: ~4 at 25° off it, ~1 at 45°, so nothing at noon) × the crest (the wave's height over its amplitude, smooth 0 → 0.6) × less on a facet facing the light × the facet's own transmission (its Fresnel) × no foam. `k` is a look: a single-scatter estimate gives 0.1–0.5, which on this swell is 1–3 levels of 255. Topside only: from below the window shows the light over the crest already. `crest light` on the effects list, `strength` (`crestK`, 0–2) under it; uniform `uSss` (atmosphere.js `surfaceU`), 0 off.
+
 ## The sky
 
 **The year in the sky** (v11.83; world.js `skyDir(ha, out, dec)`): the sun's declination is `TILT`·sin(2π·`yearPhase`), the equinox at phase 0 with the

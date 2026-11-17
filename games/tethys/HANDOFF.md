@@ -1,5 +1,7 @@
 # HANDOFF — tethys
 
+**v11.165 (17 Nov 2026): light through the crests** (atmosphere.js `CREST`; DESIGN The surface; CHANGELOG). From the air toward a low sun the wave tops glow blue-green — water's forward scattering through the thin crest. `crest light` on the effects list with a strength slider; the default is past the physical estimate (which is invisible on this swell) — the person's to set. Stacked on #104. **Ask:** the sea toward the sun in the evening; the strength.
+
 **v11.164 (17 Nov 2026): colour lost by channel** (world.js `SPECTRAL`; scene.js `SPEC_DOWN`, `fogWater`; effects.js `specApply`; DESIGN Visibility; WATER.md Part 4; CHANGELOG). Water takes red first, then green, the blue last — on the sun's way down and on the way to the eye; from the air through the point's own depth, so the shallows keep their sand. `per-channel colour` on the effects list with a strength slider. **WATER.md Part 4 (17 Nov 2026):** what other games do with water and the person's answers — next, in order: light through the crests, the point lights' halo and the sun's lobe, murk by place, schools (real animals, more, some small, drawn cheaply). No lens effects for now. **Ask:** the colour at depth on the preview.
 
 **v11.163 (17 Nov 2026): the pall's lights** (fx.js `PHO`; world.js `lightPhys`; BIOLUM.md §8; CHANGELOG). Flat blue faces on its arms — the web's

@@ -1,6 +1,6 @@
 # WATER.md — the sea surface from both sides: audit and proposals (14 Sep 2026)
 
-Status: **Part 4 (17 Nov 2026): what other games do, and the person's answers — item 1 built as v11.164 (the colour lost by channel); 2–6 to build.** Part 1–2 the 14 Sep audit (A, B, C, D and H built as v11.42–v11.44); Part 3 (14 Sep, later) the line from above — built as v11.45 and v11.46; nothing in this file is left unbuilt; E (the whitecaps by steepness) was struck in v11.50.2 — sparkles from below, and the person asked for them gone from above as well; the surf's foam stays. The person asked for scrutiny of how the game looks through the water from below and at it from
+Status: **Part 4 (17 Nov 2026): what other games do, and the person's answers — item 1 built as v11.164 (the colour lost by channel), item 3 as v11.165 (light through the crests); 2, 4–6 to build.** Part 1–2 the 14 Sep audit (A, B, C, D and H built as v11.42–v11.44); Part 3 (14 Sep, later) the line from above — built as v11.45 and v11.46; nothing in this file is left unbuilt; E (the whitecaps by steepness) was struck in v11.50.2 — sparkles from below, and the person asked for them gone from above as well; the surf's foam stays. The person asked for scrutiny of how the game looks through the water from below and at it from
 above, then a brainstorm of believable additions. Read with DESIGN *The surface*, *Visibility*, *The medium*, and POLISH's
 "What not to build". Files: atmosphere.js (the surface block, `updateAtmosphere`), scene.js (the fog chunk, `WAVE_GLSL`, `addTint`),
 world.js (`WAVES`, `waveH`, `WCOL`, `SEA_FOG`, `AIR`), player.js (`camAbove`, `CAM_CLEAR`, `splash`), far.js (the water and floor maps).
@@ -273,7 +273,7 @@ and five analytic trains are what this game can afford.
    a halo round the own light, a lure, a glowing carcass, without bloom or a pass — BIOLUM §1's "a light that reads here is … a volume". And the
    sun's forward lobe as a Henyey–Greenstein phase (g ≈ 0.85) in place of `pow(cos, 6)`: a tight bright disc in a wide glow.
 3. **Light through the crests.** Sea of Thieves colours its water by view angle, sun direction and a mask of the wave peaks; Crest has a
-   sun-falloff knob for the same. A thin crest with the sun behind it glows green-teal; on flat facets, a stained-glass row toward a low sun.
+   sun-falloff knob for the same. A thin crest with the sun behind it glows green-teal; on flat facets, a stained-glass row toward a low sun. **Built as v11.165** — at a strength past the physical estimate, which on this gentle swell is invisible (CHANGELOG).
 4. **Foam lines at the shore** (Wind Waker: no reflection, flat shading, white lines that follow the coast and travel in), from a distance to the
    shore finer than the floor map — the loaded cell's 49×49 heights — moving in with each wave and running up the sand.
 5. **Schools at a tenth of the cost** (Abzu: swimming done in the vertex shader on instanced bodies, credited in its GDC talk with ten times the
