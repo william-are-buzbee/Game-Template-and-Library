@@ -8867,3 +8867,22 @@ about 38 draws fewer. The boids' own cost grows with a ribbon's size squared (ea
 
 **Unseen, ask in this order:** 1. A ribbon on the preview, near and far (the forest, `tp(330,0)`; the shelf): does it read as a school, and is 40 the size? 2. The
 juveniles in it. 3. The readout's draws and render ms at the forest against main.
+
+## v11.168.1 — the live test seeded (17 Nov 2026)
+
+A test fix; the game is unchanged. `test/live.js` drew from an unseeded `Math.random`, and its check "a hunter chased something" failed one run
+of a full `node build.js --test` (4 at a time, on claude/tethys-lure-light) and passed twice alone after it.
+
+- **Seeded:** `Math.random` is mulberry32 from 1234 before the game loads, as `test/frames.js`, so a run is the same run every time. Three runs
+  on each tier gave byte-identical output, and both pass.
+- **The margin is thin, and this does not widen it:** in the seeded run one hunter kind chases at all on each tier — the arrow on the high tier
+  (about 1% of its 1,770 samples over 60 s), the crusher on the low (about 1% of 450 over 180 s). Seeds 1–6 all passed on both tiers (one
+  or two kinds chasing, 0–10% of their samples), so the failure seen was a rare draw rather than a regression. The test was not loosened. A
+  change that moves the draws can still turn the check red on the seeded run, and it then says something real about how rarely the
+  hunters close on prey (the "nearest prey" column: 40–270 m against detects of 4–51).
+- **One bundle a process:** the test wrote its bundle to a fixed `tethys_live.js` in the temp folder, and `build.js` runs both tiers side by
+  side; running it many at a time here, 3 of 12 read another's half-written file and died of a SyntaxError. Now `tethys_live_<pid>.js`,
+  removed after loading, as `test/frames.js`. Most other tests still use a fixed name (smoke, player and steer run on both tiers too).
+- The failure message said "60 s" on the low tier's 180; it says the tier's own now.
+
+**Unseen:** nothing to look at; no build output changed.
