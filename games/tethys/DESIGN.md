@@ -579,7 +579,7 @@ physical 48°) the fixed colour `(0.22,0.46,0.56)`, emissive `(0.16,0.34,0.42)·
 mirror of the water below: no diffuse, emissive `fogColor·0.9` (the veil at the camera), alpha 0.74. So the underwater
 horizon is one colour whether the eye lands on the surface, the far floor or the dome. Knobs: the mirror's `0.9`. *v11.52: the Snell
 window (v11.43–v11.49, the `snell window` row) is struck — the person: it looks bad — so the underside is v11.50's translucent facet (`WIN_T`, `WIN_LO`,
-`WIN_HI`) with v11.51's refraction, and the cloud march is no longer compiled into the surface.*
+`WIN_HI`) with v11.51's refraction, and the cloud march is no longer compiled into the surface.* *v11.172 (WATER.md Part 5, B): the mirror is darkened by the light it reflects — the reflected ray's slope down, to `MIRROR.dn` once it points `MIRROR.full` down, nothing at grazing — and the underside's sun-lit diffuse is gone outside the foam: from 4 m the ceiling was 1.8× the level water to the horizon; `dim mirror` on the effects list.*
 
 **The camera at the surface (`player.js`).** *v11.42: the camera is no longer held clear of the water — `CAM_CLEAR` and the target's nudge are gone; it rests on the line if the player puts it there, and the view is half air, half water, because the fog is decided per fragment (below, The two-segment fog). `camAbove` flips `CAM_FLIP` 0.4 past the wave with `CAM_DWELL` and drives only the light's crossfade, the sound and the water's own things. The paragraph as written describes v11.6–v11.41.* `player.camAbove` is which side of the water the camera is on. The camera
 target is nudged to stay ≥0.5 clear of the wave on its side, and flips only when its natural spot is >0.9 past the
@@ -643,7 +643,7 @@ the game clock.
 ground: `dayK·(1−0.45·cover−0.35·rain) + (1−dayK)·(moonL·(1−0.7·cover)+STARL)`, STARL 0.035 the moonless floor), the sky's colours
 from `SKYC` keyframes on `s` (zenith, horizon = the air fog's colour, the glow round the sun's azimuth, the sunlight; the star is
 5300 K so noon is a warm white and the sky a touch less saturated; MOONC blue-grey by moonlight, GREYC by overcast), `tint` (the
-light's colour relative to noon, for everything that scales a noon look), `night` (how much the stars show), `bow`, the wind
+light's colour relative to noon, for everything that scales a noon look; *v11.172: the night's colour weighed by the night's light, `(1−dayK)·(moonL+STARL)`, not by `1−dayK` — it was a violet grey (0.78, 0.73, 0.80) at the sun's setting; beside it `tintS`, the clear zenith relative to noon's at luminance 1 (`DUSK`), the air's fill and the sky's share of the water's light, and `tintV`, the water's — the two by the beam's share `SUN_W[3]`, so a low sun leaves the water bluer and the beam gold; `dusk light` on the effects list, `tint0` the old one*), `night` (how much the stars show), `bow`, the wind
 and its accumulated drift. **The luminary is the one directional light**: the sun by day, the moon by night, whichever gives
 more (`sun.position`, `sun.color` set here; `SUN_POS` is only the boot value). It writes `FOG_T` (the sky's light and tint:
 scene.js, shared through ShaderLib like the fog's) and `FOG_S` (the veil's glow now points at the luminary; the underwater

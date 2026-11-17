@@ -8963,3 +8963,34 @@ changes, so no shader recompiles), but a lit source costs its fragments the poin
 **Unseen, ask in this order:** 1. A pall at night on the preview (`palls()`; `tp(2400,-699,-540)`, give the ledger a few minutes): does the lure light its
 surroundings enough? (`lightK`, `lightD`.) 2. A touch's flash lighting the water. 3. Several palls together: only the three nearest light (and the pool's four, two on
 the low tier, are shared with the vents, the carcasses and the cloud).
+
+## v11.172 — dusk light and the dim mirror (17 Nov 2026)
+
+WATER.md Part 5, A and B. The person, 17 Nov 2026: "Sunset — physical version first." "Ceiling: sounds about right." Stacked on #114 (Part 5 itself).
+
+- **The tint mended** (atmosphere.js `updateSky`): `SKY.tint`, the light's colour relative to noon, weighed the moon's blue-grey by `1 − dayK` whether the moon
+  was up or not — three quarters of it at the sun's setting, (0.78, 0.73, 0.80), a violet grey, where the sunlight is (1.00, 0.50, 0.25) of noon's. Now by the
+  night's light, `(1 − dayK)·(moonL + STARL)`: at 1° of sun with no moon it is (0.97, 0.59, 0.39). The haze (`MIST_C`) and the ground's bounce in the air take it.
+- **And split** (`tintS`, `tintV`; world.js `DUSK`): a sun near the horizon mostly reflects off the sea, so the light in the water at dusk is the sky's — the
+  clear zenith relative to noon's at the eye's luminance 1 (`tintS`: (0.96, 0.95, 1.16) at 1° of sun, a little blue). The water's light (the veil in the top 40 m,
+  the ambient and the fog's colour under water) is `tintV`, the sky's and the beam's by the beam's share (`SUN_W[3]`): at noon the beam's, as before; at 9°
+  (0.97, 0.90, 0.88); at 1° the sky's. The beam itself (the key, the caustics, the shafts, the crests) already took the sun's colour. The air's fill takes
+  `tintS`: the shade blue at dusk, not grey. `dusk light` on the effects list (`tint0`, the old weighing, when off).
+- **The dim mirror** (atmosphere.js `MIRROR`, `uMirK`): outside the window the underside reflected the veil as the surface sees it, plus a dim diffuse lit by the
+  sun from above — from 4 m under, (36, 107, 120) against the level water's (18, 62, 65), a lit ceiling to the horizon with a line where it met the water. The
+  mirror shows the light coming *up* at the mirrored angle, so it is now darkened by the reflected ray's slope down — to `MIRROR.dn` (0.42, 0.40, 0.55) once the
+  ray points `full` 0.7 down, nothing at grazing — and the diffuse is gone (the surf's foam keeps its own). `dim mirror` on the effects list.
+
+**Seen** (headless Chromium, dev build, low tier, 640×360, first person with the body hidden, the clock held, each switch on and off at the same moment):
+- noon, 4 m over deep water (1800, 0), 26° up: the mirror by the window's rim (23, 41, 52), darker than the level water (19, 63, 68); at the horizon the two the
+  same (18, 59, 64 against 20, 63, 68) — no line; the window the bright thing overhead. Off: (40, 103, 121) over (18, 61, 66). Frame mean 55 against 98.
+- 1° of sun, 4 m under looking west 29° up: the water a deeper blue (the frame's mean 33, 49, 74 against 42, 58, 72), the lit cloud tops through the window
+  orange in both.
+- 9° of sun, the forest at 8 m looking away from the sun: much the same picture, the stalks a little warmer (mean 17, 40, 29 against 18, 43, 32). The forest's
+  floor at 16 m is dark at that hour either way — the gold in the beam shows only in the top few metres, where `SPECTRAL` has not yet taken the red.
+
+**What it costs:** a `skyLerp` and a few multiplies a frame on the CPU; on the GPU a `mix` and a clamp on the underside's mirror fragments. Not measured on the GPU.
+
+**Unseen, ask in this order:** 1. Under the surface at noon, looking up and out: the ceiling a dim silver fading to the horizon — right, or too dark? (`MIRROR.dn`.)
+2. A sunset from a few metres down, then from the shallows over sand: bluer water, warmer light on the sand? 3. A full moon rising at sunset (boot's first
+evening): the moon's light now counts in the tint as the sun goes. 4. The air at dusk: the shade bluer, the lit side unchanged.

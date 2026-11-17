@@ -1,11 +1,16 @@
 # HANDOFF — tethys
 
+**v11.172 (17 Nov 2026): dusk light and the dim mirror** (atmosphere.js `updateSky` `tintS`/`tintV`, `MIRROR`; world.js `DUSK`; WATER.md Part 5 A, B;
+CHANGELOG). The sky's tint no longer turns grey at sunset (the moon counted only by its light); the water's light takes the sky's colour as the sun gets low
+(bluer), the beam keeps the sun's; the mirror outside the window is as dark as the light it reflects, so the ceiling fades into the blue. `dusk light`, `dim
+mirror`. Stacked on #114. **Ask:** the ceiling at noon from a few metres down; a sunset from the shallows.
+
 **WATER.md Part 5 (17 Nov 2026): light across the line, both ways** — an audit, nothing built. Looking up, the mirror outside the window is 1.8×
 brighter than the level water (the "large ceiling"); the straight-through window never shows the horizon, so a sunset never reaches it; `SKY.tint`
 weights the moon's grey by the sun's absence and is grey at sunset (a defect); the water's light is the same from every direction in the top 100 m
 and nearly flat with depth, then a cliff, and the view up from 250 m is brighter than from 80 m (the eye opens for its own depth, the ray reads daylight
 104 m higher); the clouds stay sharp through the window to 30 m and readable at 80; above the water the sunlit faces clip to white (no tone curve).
-Proposals A–F and four questions for the person at its end.
+Proposals A–F; the person's answers (17 Nov) at its end — A and B built as v11.172, C, D–E and F to follow.
 
 **v11.171 (17 Nov 2026): the lure lights the water** (fx.js `PHO_LURE`; CHANGELOG). A lit pall's net now holds a light in the pool at its middle — the lure's level and its flash, the faces' blue, 14 m × its size — lighting what is round it as the own light does, with the halo. Glowing carcasses and the cloud already did. Stacked on #110. **Ask:** a pall at night on the preview.
 

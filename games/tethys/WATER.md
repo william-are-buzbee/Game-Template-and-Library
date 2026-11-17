@@ -1,6 +1,6 @@
 # WATER.md — the sea surface from both sides: audit and proposals (14 Sep 2026)
 
-Status: **Part 5 (17 Nov 2026): light across the line, both ways — an audit with frames and numbers, what other games do, proposals A–F and four questions; nothing built.** Part 4 (17 Nov 2026): what other games do, and the person's answers — item 1 built as v11.164 (the colour lost by channel), item 3 as v11.165 (light through the crests), item 2's halo as v11.166 (the sun's lobe not built), item 6 as v11.167 (murk by the plankton), item 5 as v11.168 (schools), item 4 as v11.169 (the shore's foam). Item 2's sun lobe and 7 (ripples, chromatic caustics) are left; lens effects declined.** Part 1–2 the 14 Sep audit (A, B, C, D and H built as v11.42–v11.44); Part 3 (14 Sep, later) the line from above — built as v11.45 and v11.46; nothing in this file is left unbuilt; E (the whitecaps by steepness) was struck in v11.50.2 — sparkles from below, and the person asked for them gone from above as well; the surf's foam stays. The person asked for scrutiny of how the game looks through the water from below and at it from
+Status: **Part 5 (17 Nov 2026): light across the line, both ways — an audit with frames and numbers, what other games do, proposals A–F; the person's answers at its end; A and B built as v11.172.** Part 4 (17 Nov 2026): what other games do, and the person's answers — item 1 built as v11.164 (the colour lost by channel), item 3 as v11.165 (light through the crests), item 2's halo as v11.166 (the sun's lobe not built), item 6 as v11.167 (murk by the plankton), item 5 as v11.168 (schools), item 4 as v11.169 (the shore's foam). Item 2's sun lobe and 7 (ripples, chromatic caustics) are left; lens effects declined.** Part 1–2 the 14 Sep audit (A, B, C, D and H built as v11.42–v11.44); Part 3 (14 Sep, later) the line from above — built as v11.45 and v11.46; nothing in this file is left unbuilt; E (the whitecaps by steepness) was struck in v11.50.2 — sparkles from below, and the person asked for them gone from above as well; the surf's foam stays. The person asked for scrutiny of how the game looks through the water from below and at it from
 above, then a brainstorm of believable additions. Read with DESIGN *The surface*, *Visibility*, *The medium*, and POLISH's
 "What not to build". Files: atmosphere.js (the surface block, `updateAtmosphere`), scene.js (the fog chunk, `WAVE_GLSL`, `addTint`),
 world.js (`WAVES`, `waveH`, `WCOL`, `SEA_FOG`, `AIR`), player.js (`camAbove`, `CAM_CLEAR`, `splash`), far.js (the water and floor maps).
@@ -298,7 +298,7 @@ saturated blue-green — though the shores look good from the water's edge with 
 Thieves, Raft) and what they use the above for. Nothing is built here; this is the audit, the comparison and the proposals.
 
 **How it was looked at.** Headless Chromium, the dev build, low tier, 640×360, first person with the body hidden, the clock held: over deep water at
-(1800, 0) (floor −326) at noon at 4, 30, 80, 150 and 250 m, looking up and obliquely; at 3° of sun (22.25 h) from 4 m under and 2.5 m over; the forest
+(1800, 0) (floor −326) at noon at 4, 30, 80, 150 and 250 m, looking up and obliquely; at 1° of sun (22.25 h) from 4 m under and 2.5 m over; the forest
 at (330, 0) at 8 m, noon and sunset; the shore at (430, −350) from 4 m over and 2.5 m under. Numbers are 0–255 means of the frame or of a 9×9 box. The shaders'
 light terms were also evaluated on their own in node (the veil by direction; daylight × the eye). The frames stayed in the session.
 
@@ -327,7 +327,7 @@ the one bright thing overhead is the window. The game has the right physics for 
 
 **2. The window shows the sky straight through, so it never shows the horizon.** What shows through is the sky within ~40–60° of the zenith, as
 through glass. A real window holds the whole sky squeezed into a 97° cone: the horizon at its rim (48.6° from the vertical), with the sun's disc
-flattened there when it is low. At 3° of sun: above, a pink-orange sky; from 4 m under looking west 29° up — the rim in the frame — a dark blue-grey
+flattened there when it is low. At 1° of sun: above, a pink-orange sky; from 4 m under looking west 29° up — the rim in the frame — a dark blue-grey
 (mean 28, 50, 70) with three faint warm smudges; straight up a flat blue (60, 91, 144). The glow, the sun and the lit clouds are all within 10° of the
 horizon: the part of the sky a straight-through window cannot show. **This is most of (a).**
 
@@ -438,3 +438,7 @@ Each behind a switch on the effects list, measured, looked at both ways across t
 4. Above: a tone shoulder and a warmer key against a bluer fill, behind a switch, to compare with today's?
 
 Suggested order: A and B (cheap and clear), then C (the depth, one piece), then D and E (the window), then F.
+
+**The person (17 Nov 2026):** "Sunset — physical version first." "Ceiling: sounds about right." "Depth: go with half for now." "Above: yes please." So A and D
+(a bluer, dimmer water at dusk, the gold in the beam and the orange at the window's rim), B (the dim mirror), C with the frame's level at 100 m about half of
+the surface's at noon, E with it, and F behind switches beside today's look. Built in the suggested order: A and B as v11.172.

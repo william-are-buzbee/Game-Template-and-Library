@@ -921,6 +921,7 @@ const SKYC=[ // [sinAlt, zenith, horizon, glow, sunlight]
   [0.06,[0.240,0.400,0.660],[0.700,0.640,0.640],[1.00,0.60,0.28],[1.0,0.62,0.32]],
   [0.35,AIR.zenith,AIR.fog,[0.30,0.24,0.14],[1.0,0.94,0.84]]];
 const MOONC=[0.72,0.80,0.96],MOONL=0.28,GREYC=[0.52,0.55,0.59],STARL=0.035;
+const DUSK={lum:[0.25,0.62,0.13],clamp:[0.6,1.5]}; // v11.172 (atmosphere.js updateSky, tintS): the sky's colour relative to noon's at this luminance 1 — the eye's weights, as EYE_GLSL's — each channel held within clamp
 // The eye (v11.159; an animal's since v11.162 — atmosphere.js eyeK, eyeStep, scene.js EYE_GLSL). The person (16 Nov 2026), on ×2.4: "nighttime is so dark you
 // can't see anything as the finback … I wanted true dark because that's believable, but only if it meant that your eyes can adjust … animals in darkness like
 // that every day evolve to handle it" — and "look into what an actual fish on earth tends to be able to see at night". What Earth's say: brown and brook
