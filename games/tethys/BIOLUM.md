@@ -1,8 +1,8 @@
 # BIOLUM.md — what glows in Tethys's sea, where, and why (16 Nov 2026)
 
-Status: **a discussion, nothing built.** Read PLANET.md first (Hooks: "bioluminescence only as events … Never a lamp"; Cross-clade rules: "No eye
-glows … No emissive material on any creature", 9 Sep 2026), then PLANKTON.md §8, DEEP.md §2–3 and DESIGN.md "The body's effects". The person's
-decisions go in §7 with their dates; until then nothing here is a rule.
+Status: **answered 17 Nov 2026 (§7): the three PLANET rules of §6 revised as proposed, steady lures allowed, the pall first — §8, building as
+v11.163.** Read PLANET.md first (the cross-clade rules, the Hooks and the Light bullet as revised that day), then PLANKTON.md §8, DEEP.md §2–3 and
+DESIGN.md "The body's effects". What is still open is in §7.
 
 ## 1. Where it stands
 
@@ -168,15 +168,55 @@ chemistry and electroreception still matter where nothing glows." (The game's ow
 
 ## 7. Open — the person's
 
-1. **The emissive clause** (§6): revise as proposed, otherwise, or keep (then only the carcasses, the milky seas and lights not on a body remain).
-2. **"Never a lamp"** (§6): may a lure glow steadily?
-3. **"Below −200 vision is useless"** (§6): revise to Earth's?
-4. **Which options, in what order** (§4, my ranking §5), and whether to start with the pall.
-5. **The look:** flat square faces as in the mock-ups — blue in the water, greener on the floor, a lure green — or otherwise.
+1. ~~**The emissive clause** (§6)~~ — **answered 17 Nov 2026: revised as proposed** ("Yes, revise that. That's fine, old rules existed for old
+   reasons sometimes"); PLANET's cross-clade rules.
+2. ~~**"Never a lamp"** (§6)~~ — **answered 17 Nov 2026: yes, a lure may glow steadily**; PLANET's Hooks.
+3. ~~**"Below −200 vision is useless"** (§6)~~ — **answered 17 Nov 2026: revise it** ("This is a big one, we should definitely revise it and make it
+   appropriate given Earth and the conditions of Tethys' star"); PLANET's Light bullet, with the star's share worked out (~14% fewer photons in the
+   blue window than the Sun's at the same total light: every limit 4–7 m shallower — the water decides).
+4. ~~**Which options, in what order**~~ — **answered 17 Nov 2026: start with the pall** ("sure, start there"); §8.
+5. ~~**The look**~~ — **answered 17 Nov 2026** ("Your creature pics are good"): flat square faces as in the mock-ups.
 6. **Sight by light:** a minimal term so creatures see lights (and lit bodies) further at night and below the light — or the player's eyes only, for now.
 7. **The gardens (G):** do touch flashes on the deep gardens count as the binned "bioluminescence purely as a function of moving"?
 8. **The kits:** keep the wake's (`FLASH`, `skBody`, `sparkBurst`) and the displays' (`DSP`) code, or strike them now the rethink is written down.
 9. **The deep by day:** dark (Earth's) or the daylight floor as built (`DL_MIN` 0.28) — it decides whether the deep's lights are a night thing or always.
+   Since the Light bullet's revision (17 Nov 2026) the floor is a listed conflict in PLANET.
+10. **The pall's size by depth** (§8): a cline by oxygen (smaller in the core's worst water), a larger deep form below the core, or neither.
+11. **The lure's payoff** (§8): the pall eats the swarms its lit net takes, on paper and in play — or the light stays the net's with no meal modelled.
+
+## 8. The pall, first (17 Nov 2026)
+
+**The person:** "Your creature pics are good. Though some palls are above the bioluminescence threshold so we need a variant that is maybe even larger
+due to gigantism down there. or smaller due to low food, who knows. but I'd imagine glowing palls too high up would not be adaptive. I don't know
+though. Open to your thoughts."
+
+**Is there a depth above which a glow does not pay?** Not on Earth as a rule: the luminous share is the same at every depth (§2), and the twilight zone
+(200–1,000 m) is where photophores are most elaborate; the vampire squid lives at 600–900 m. What the light changes is which use pays: a flash on
+contact and a cloud work wherever it is dark round the animal; a steady lure pays more the darker the water. **And no pall is in the light:** palls
+spawn and wander only in the oxygen minimum's core, −500 to −800 (world.js `OXY.core`; creatures_ai.js), over fed water, where by the revised Light
+bullet noon is ~10⁻⁸ of the surface's light at −500 and ~10⁻¹² at −700 — starlight and darker — and the night is black. The intuition still holds at the
+top of their range, so it is built as behaviour, not a variant: **the pall dims its web where daylight still reaches a deep eye** (by day dim above ~−550,
+full by −600) and lights it below that and at any depth at night (fx.js `PHO.dark`, on world.js `lightPhys`). Earth's animals govern their
+light (the bobtail squid follows the moon), so a depth form is not needed for it. Earth's twilight lure-bearers (dragonfish at 200–1,000 m by day) do
+not all do this; the gate is the person's intuition made physical, and its two numbers are the knob.
+
+**Size by depth — my view, the person's call (§7.10).** What Earth shows setting size in deep, cold water is oxygen: amphipods' maximum size tracks
+the oxygen available (Chapelle & Peck 1999). The same reasoning makes animals *smaller* in an oxygen minimum, not larger (a prediction I could not find
+tested on minimum-dwellers; the vampire squid is ~30 cm), and low food in the core points the same way. Gigantism belongs below the minimum, where the
+water is colder and its oxygen recovers (0.3 → 0.5 by the floor). So if palls vary with depth, the core's are the smaller and any larger form lives
+under the core (−800 to −1,100), where today there are none. Not built.
+
+**What v11.163 builds** (the rules as revised 17 Nov 2026):
+- **The lights**, flat faces on the pall's own arms, riding their chains: four along each web arm (*Stauroteuthis*'s light organs, which replaced its
+  suckers: the net's steady lure) and one at each tip (the vampire squid's arm tips, lit on contact). Blue (0.30, 0.62, 1.0), drawn additive with the
+  water's extinction and the eye, as the glows are.
+- **Steady while it fishes in the dark**, by the gate above.
+- **A flash on contact**: the tips flare and the web brightens for a second or two (the player touching it).
+- **The cloud**: held for half a second, or bitten, the pall leaves a luminous cloud where its arms were (low-poly blobs, as the mock-up), goes dark for
+  90 s and heads away from what held it (Robison 2003: the cloud takes a much stronger stimulus than the tips).
+- **Not built, the person's (§7.11): the lure's payoff in the ecology.** The pall eats nothing today, on paper or in play (no prey, no sieve: "a net for
+  catching in the dark", PLANKTON §11). *Stauroteuthis* catches copepods in its lit web; here that is the swarms, which shelter in the core by day
+  (DEEP §2). Making the pall a swarm-eater ties its numbers to theirs (the census) and gives the lit net something to draw.
 
 ## Sources
 
@@ -197,4 +237,5 @@ chemistry and electroreception still matter where nothing glows." (The game's ow
 - Miller et al. 2005, *PNAS* (milky sea from orbit) — [PMC](https://pmc.ncbi.nlm.nih.gov/articles/PMC1242338); Miller 2021 — [The Conversation](https://theconversation.com/scientists-are-using-new-satellite-tech-to-find-glow-in-the-dark-milky-seas-of-maritime-lore-166542)
 - Dinoflagellates — [UCSB red tide](https://biolum.eemb.ucsb.edu/organism/redtide.html), [Smithsonian](https://www.ocean.si.edu/node/107163)
 - The twilight zone and the last sunlight — [NOAA Ocean Exploration](https://oceanexplorer.noaa.gov/?p=5645)
+- Chapelle & Peck 1999, *Nature* 399:114 (size and oxygen) — [record](https://ideas.repec.org/a/nat/nature/v399y1999i6732d10.1038_20099.html)
 - Widder with the lights off — [Discover](https://www.discovermagazine.com/splendor-in-the-dark-15488); sea pens' pulses — [Discover](https://www.discovermagazine.com/deep-sea-census-finds-glow-in-the-dark-bonanza-4632)

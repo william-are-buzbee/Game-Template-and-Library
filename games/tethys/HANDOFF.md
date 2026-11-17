@@ -4,7 +4,7 @@
 the water column's animals, the floor under a fifth; flashes on contact are the common case, steady lights are lures and counter-illumination), seven
 options placed in DEEP's ecology and ranked (the pall's lights and cloud first, then a lure-bearing plateback of the minimum's floor, the deepbell's
 alarm), and the PLANET rules they would revise. Found: no hunter sees by light (a fixed `detect`), and the deep keeps 0.28 of daylight (`DL_MIN`).
-**Ask:** BIOLUM §7, in order. Nothing to build until answered.
+**The person (17 Nov 2026):** the three rules revised (PLANET), steady lures allowed, the pall first (§8, v11.163). Open: §7.6–11.
 
 **v11.162 (16 Nov 2026): the night as an animal sees it; the wake struck** (world.js `NIGHT_EYE`; atmosphere.js `eyeStep`; scene.js `eyeC`; fx.js; CHANGELOG).
 The eye is a night-adapted fish's (Earth's numbers in DESIGN "The eye"): ~1.45 at a full moon, ~3.1 moonless, opening over a game hour at dusk, the colour
