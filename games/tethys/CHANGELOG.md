@@ -9023,3 +9023,37 @@ with the camera in the water. Not measured on the GPU.
 darker, 130 lighter.) 2. The view up from the deep: a glow that brightens as you rise? 3. Looking down into deep water from the shelf's edge: darker below now
 (`dn`). 4. The shallow reef at 20–30 m is a quarter dimmer than before (0.74 at 30 m): too dim?
 
+## v11.174 — the horizon in the window's rim, and the window's detail by depth (17 Nov 2026)
+
+WATER.md Part 5, D and E. The person, 17 Nov 2026: "Sunset — physical version first." Stacked on v11.173 (#116).
+
+- **The rim** (atmosphere.js `RIM`, `RIM_C`, `uRim`): the window shows the frame straight through each facet (v11.50–51), the sky near the zenith, so it never showed the
+  horizon — where all of a sunset is. Now, round the critical angle, the eye is refracted out through the facet (water to air, 1.33; past the critical angle the
+  horizon held) and the sky that way is laid over what the facet shows (`skyLite2` without the disc — the disc through every facet was "in the bin", 14 Sep), by
+  `k` 0.6, over a band of the eye's angle to the facet from `out` 0.10 outside the critical angle to `in` 0.30 inside it. The first cut weighed the band by the
+  refracted ray's height and drew a thin hard ring — the snowglobe of v11.49 (seen) — because near the critical angle the last ten degrees of sky squeeze into
+  one. Pale at noon; at sunset a peach glow on the sun's side, turning with the facets. `window rim` on the effects list.
+- **The window's detail by the water between** (`WIN_DET` {L 25, pull 0.35, spot 0.6, n 40}, `uWinD`): the frame through the window (and the rim) is mixed toward
+  the sky's smooth light — the sky in a direction pulled 0.35 of the way to the zenith, no disc, plus the sun as a blurred spot toward the refracted sun (`uSunW`,
+  cos^40, by the beam's share) — by 1 − exp(−distance/25 m): ~15% at 4 m, 70% at 30, 96% at 80. Forward scattering blurs a picture long before it dims it.
+  `window depth` on the effects list.
+- Found on the way: the underside's normal at the emissive stage points into the air (flat normals face the viewer, and the underside flips them); `refract`
+  wants it against the eye's ray. (`reflect`, the mirror's, does not care.)
+
+**Seen** (headless Chromium, dev build, low tier, 640×360, over deep water, 4 m under the tide's level, first person with the body hidden; on against off):
+- the sun 1° up, looking west 34° up: a peach glow along the rim on the sun's side, the facets stepping it; off, the dim blue of v11.173 with the lit cloud tops.
+  Frame means 52 and 47, the upper half 81 and 70.
+- the sun 9° up, the same view: a paler band, the facets turning it. 65 and 56.
+- noon, looking north 34° up: the rim a pale band; 72 and 77 (the window's frame a little toward the smooth sky at this distance).
+- 60 m down in the afternoon, looking up toward the sun: a glowing window with the sun a soft bright spot and a faint shadow where a cloud was; off, the clouds
+  crisp with their sawtooth edges (frame means 88 and 102).
+- The harness's depths were absolute until this version: a skip of the clock to dusk moved the tide 4 m, and a camera meant to be 4 m down was in the air (two
+  frames of the sky, seen and thrown away). Depths here are from the tide's level.
+
+**What it costs:** on the underside's fragments a `refract`, two `skyLite2` (~30 ALU each: the rim's and the smooth sky) and an `exp`; nothing on the CPU. The
+underside is one mesh, drawn once; not measured on the GPU.
+
+**Unseen, ask in this order:** 1. A sunset from a few metres down, looking toward the sun: the glow at the rim — right, too strong, or snowglobe again?
+(`RIM.k`, `out`, `in`; `window rim` off to compare.) 2. A dive from the surface to 80 m at noon, looking up: the clouds going by ~30–40 m, the sun a spot
+after. (`WIN_DET.L`.) 3. Islands seen through the window near the surface: still there in the top few metres?
+
