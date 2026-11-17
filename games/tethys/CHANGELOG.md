@@ -8625,3 +8625,57 @@ that simply glows. but it would have to be pretty deep underwater" — and biolu
 - fx.js `DSP.on` false: none at any dusk; the code kept as a kit for the rethink (`dspGate`, `dspHab`, the strings). main.js `dusk()` says they are struck.
 - test/glow.js: a dark dusk over shallow sheltered floor makes no pulses; the window's and floor's functions still checked as the kit.
 - The glowing carcasses and the milky seas stand; the eye (`NIGHT_EYE`) as v11.162 ("exactly what I wanted").
+
+## v11.163 — the pall's lights (17 Nov 2026)
+
+The person, on BIOLUM.md (17 Nov 2026): the emissive clause revised ("old rules existed for old reasons sometimes"), steady lures allowed, the Light bullet
+revised for Earth and the star, and "sure, start there" — the pall first. On the mock-ups: "Your creature pics are good. Though some palls are above the
+bioluminescence threshold … I'd imagine glowing palls too high up would not be adaptive … Open to your thoughts." BIOLUM §8 answers it: no pall is in the
+light (every one lives at −500…−800 over fed water, starlight-dark at noon by the revised Light bullet), and the intuition is built as behaviour, not a variant.
+The PLANET revisions and BIOLUM's answers are on #102's branch; this is stacked on it.
+
+- **The lights** (fx.js `PHO`, `phoSpawn`, `updatePho`): flat faces on the pall's own arms — three along each web arm (*Stauroteuthis*'s light organs where
+  its suckers were: the net's lure) and one at each tip (the vampire squid's, lit on contact) — 32 a pall, read off the rig's chains at spawn (at rest in its
+  own frame, for the far LOD) and riding them when simulated, set `inset` 0.25 m onto the arms' oral side. One `InstancedMesh` of boxes for every pall,
+  additive, the water's extinction and the eye (an emitter takes no veil), blue (0.30, 0.62, 1.0).
+- **Steady in the dark, by a gate** (`phoGate`, world.js `lightPhys`, `LIGHT_P`): the planet's own light at the pall's depth as a share of the noon sun —
+  the sun by its altitude (twilight 0.35 decades a degree under the horizon), a full moon 1e-5, starlight 1e-8, tenfold every 60 m of fed water — not the
+  picture's (`daylightAt` keeps the readability floor, PLANET's listed conflict). The web comes on as that falls from 1e-8 to 1e-10 (`PHO.dark`): at noon
+  0.09 at −500, full by −600; at night full everywhere. Eased in over ~2 s (`up` 0.5), out over ~0.5 (`down` 2).
+- **A flash on contact**: the player within `touch` 1 m of the body's capsules or an arm's points — the tips to `K[3]` 1.6, the web up by `K[2]` 0.7, held
+  0.6 s, gone over 0.8.
+- **The cloud** (`phoCloud`, `PHO.cl`): held for `holdT` 0.5 s (any hold in combat.js's `holds`, the player's grab among them) or bitten (`hitFx`) — six
+  low-poly blobs (three's dodecahedron, flat facets brighter facing the eye) at the arm tips' mean, 1.6–3.4 m, grown over 4 s, drifting with the current,
+  fading over 40 s, the brightest holding a source in the light pool (`lightK` 1.2, 12 m); the pall dark for `darkT` 90 s and heading `flee` 60 m away from
+  what held it, kept in the core.
+- **Not modelled: the lure's meal.** The pall eats nothing, on paper or in play (no prey, no sieve). Its payoff would be the swarms, which shelter in the core by
+  day — BIOLUM §7.11, the person's.
+- `palls()` in the console (main.js): the loaded palls, nearest first, their depth, the lure's level, dark after a cloud, a `tp()` to each. Pall ground
+  nearest the start: `tp(2400,-699,-540)` (the floor −585); the ledger fills those cells over the first minutes of a game.
+- **Fixed, from v11.162.1:** its comment had swallowed the dusk displays' habitat update (`dspHabT…`) into a `//` — harmless while they are off, a broken kit
+  otherwise; restored, and sampled only while the displays could show.
+- **test/glow.js, "the pall's lights":** `lightPhys` (noon 1, civil dusk 3e-5, 1e-10 at −600, a full moon 1e-5, starlight 1e-8); the gate (noon at −500 0.09,
+  at −620 1, midnight 1); a pall at 560 m at midnight lit (0.92) with 32 faces on its arms, all finite; dimmed at noon at −505 (0.13); a touch at a tip a
+  flash, gone two seconds after; bitten, a cloud, dark 90 s, heading away; three seconds on dark with the cloud's blobs glowing and lighting the water; the
+  cloud gone at 40 s; held, no cloud at 0.3 s and one by 0.7; nothing drawn with `bioluminescence` off; the cost.
+
+**Seen** (headless Chromium, dev build, low tier, 640×360; −540 m at the pall ground at 00:30, a pall placed 30 m off — none was loaded yet there — and the lure
+set full for the picture, since headless runs a few frames a second and its 2 s ease-in had not run): head-on, the net a radial star of 32 blue squares, eight
+arms' worth, the larger tips at the rim; bitten, faceted blue lumps at the net's mouth with the web fading. No page errors, no shader warnings. The first cut's
+cloud (five blobs of 0.9–2 m, ±1 m) was one small clump on an 18 m animal; widened to six of 1.6–3.4 m over ±2 m, dimmer (`K` 0.45 → 0.32).
+
+**What it costs:**
+
+| | v11.162.1 | v11.163 |
+|---|---|---|
+| `updateSchools` + `updateCreatures` at the forest (330, 0), ms a frame (test/frames.js, `BASE=`) | 2.126 (p95 3.10) | 1.996 (p95 2.87): ×0.94, noise; the simulation the same to the bit |
+| the same at the pall ground (2400, −699, −560), 202 creatures | 0.076 | 0.069: ×0.92, noise; the same to the bit |
+| `updateNightLights` with five palls lit (160 faces), test/glow.js | — | 0.018 ms a frame |
+| creatures' shapes (`SHAPES=1`) | 1 | 1 |
+
+On the GPU: two more draws at night where palls are near (up to 256 additive boxes, up to 24 blobs) and one more source in the light pool while a cloud glows —
+unmeasured here.
+
+**Unseen, ask in this order:** 1. A pall at night on the preview (`skip()` to midnight, `tp(2400,-699,-540)`, `palls()`; give the ledger a few minutes):
+does the lit net read, and is the blue right? 2. Grab one (`r`) or bite it: the cloud, the pall going dark and leaving. 3. A pall at noon at the core's top
+(−500…−550): dimmed — does it read as a choice it made? 4. The readout's render ms with palls in view.

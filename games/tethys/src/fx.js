@@ -96,7 +96,8 @@ function bodyPose(o,dt,yaw){
 }
 // ---------- at a wound (combat.js wound): the flinch (23), the flush (24), the debris (26) ----------
 function hitFx(o,by,at,dmg){
-  if(!o||!at||!o.g)return;const from=by&&by.pos?by.pos:null;T4.copy(at);if(from)T4.sub(from);else T4.set(rnd(-1,1),rnd(-0.3,0.3),rnd(-1,1));if(T4.lengthSq()<1e-4)T4.set(0,0,1);T4.normalize();
+  if(!o||!at||!o.g)return;const from=by&&by.pos?by.pos:null;
+  if(PHO_K[o.kind])phoCloud(o,from); /* v11.163: a bitten pall leaves its cloud (PHO) */T4.copy(at);if(from)T4.sub(from);else T4.set(rnd(-1,1),rnd(-0.3,0.3),rnd(-1,1));if(T4.lengthSq()<1e-4)T4.set(0,0,1);T4.normalize();
   const k=clamp(0.25+dmg*0.02,0.25,0.8); // the flinch: the chain points shoved along the bite, the tips most — the constraint pass does the rest (physics.js simChain)
   if(o.b&&o.b.rigs)for(const rig of o.b.rigs)for(const c of rig.chains){const Pp=c.pts,n=c.n;for(let i=1;i<=n;i++){const w=k*i/n;Pp[i*3]+=T4.x*w;Pp[i*3+1]+=T4.y*w;Pp[i*3+2]+=T4.z*w;}}
   o.rollV=(o.rollV||0)+rnd(-1,1)*POSE_K.jerk*clamp(dmg*0.06,0.3,1); // the spin, damped over a second (bodyPose)
@@ -217,7 +218,7 @@ function updateNightLights(dt){
     let n=Math.floor(BACT.rate*vis*sz*dt+Math.random());for(;n>0;n--){const u=Math.random()*2-1,a=Math.random()*TAU,r=sz*0.3*Math.sqrt(Math.random());skEmit(c.pos.x+Math.cos(a)*r+u*sz*0.35,Math.min(c.pos.y+(Math.random()-0.3)*sz*0.25,TIDE-0.15),c.pos.z+Math.sin(a)*r-u*sz*0.35,0,0.02,0,0.35+0.4*vis,rnd(BACT.life[0],BACT.life[1]),BACT.col);} // the bacteria's blue-green (~490 nm)
     if(nl<BACT.lights){const s=BACT_L[nl++];s.x=c.pos.x;s.y=c.pos.y+sz*0.6;s.z=c.pos.z;s.intensity=BACT.lightK*vis;s.distance=BACT.lightD+sz;}}
   // the dusk displays: the habitat at the camera every half second, the strings in their slots
-  DSP.g=on&&DSP.on?dspGate(K.sunAlt,K.moonL/MOONL):0; // STRUCK v11.162.1: DSP.on false (below)dspHabT-=dt;if(dspHabT<=0){dspHabT=0.5;const s=sample(cam.x,cam.z,DSP_F);DSP.hab=dspHab(s.h,s.f[FI.expo]);}
+  DSP.g=on&&DSP.on?dspGate(K.sunAlt,K.moonL/MOONL):0;dspHabT-=dt;if(DSP.g>0&&dspHabT<=0){dspHabT=0.5;const s=sample(cam.x,cam.z,DSP_F);DSP.hab=dspHab(s.h,s.f[FI.expo]);} // STRUCK v11.162.1: DSP.on false (above). v11.163: that version's comment had swallowed the habitat's update; restored, and only sampled while the displays could show
   const gk=DSP.g*DSP.hab;
   if(gk>0.01){const ph=(t/DSP.beat)%1,wave=0.3+1.6*Math.exp(-ph*ph*30)+1.6*Math.exp(-(1-ph)*(1-ph)*30);let n=Math.floor(DSP.rate*gk*wave*dt+Math.random()); // the waves: the strings come together on the beat
     DSP_V.set(0,0,-1).applyQuaternion(camera.quaternion);const fa=Math.atan2(DSP_V.z,DSP_V.x);
@@ -228,4 +229,87 @@ function updateNightLights(dt){
     const y=S.y+S.dy*S.gap*S.k;if(y>TIDE-0.4){S.on=false;continue;}skEmit(S.x+S.dx*S.gap*S.k,y,S.z+S.dz*S.gap*S.k,0,0.01,0,1.2+0.3*Math.random(),rnd(DSP.life[0],DSP.life[1]),DSP.col,DSP.size);S.k++;S.tt=S.step;} // the sea fireflies' blue (~465 nm), brighter than a carcass's (v11.162: the person could not be sure they saw them)
   // the milky sea: the strength by the clock and the night into every fogged material (uSkF.w) and the far sea by the gold at the camera (uHzSea.w)
   {const m=on?MILKY.E*MILKY_P[0]*(1-K.dayK):0;FOG_SKF[3]=m;wmBloom(cam.x,cam.z,skB);HZ_SEA_U.value.w=m*milkyAt(skB[1])*1.6;}
+  updatePho(dt,on); // v11.163: the pall's lights (below)
+}
+
+// ---------- the pall's lights (v11.163; BIOLUM.md §8; PLANET as revised 17 Nov 2026: a creature may make light from organs whose use can be named) ----------
+// The pall is the deep line's net-holder in the oxygen minimum's core, and two of Earth's deep cephalopods give it its lights. Stauroteuthis, a webbed
+// deep octopus, has light organs where its suckers were, along the arms inside the web: a lure that draws the copepods it eats into the web (Johnsen et al.
+// 1999) — here a steady glow along each web arm while the pall fishes in the dark. The vampire squid (PLANET's precedent for the pall) lights its arm tips
+// when touched, and when badly frightened leaves a cloud of glowing mucus and goes dark (Robison et al. 2003): here a flash at the tips on contact, and
+// the cloud when held for PHO.holdT or bitten (hitFx), after which it stays dark for PHO.darkT and heads away from what held it.
+// Drawn as the organs' own flat faces (the person, 17 Nov 2026: "Your creature pics are good"), boxes riding the arms' chains, additive with the water's
+// extinction and the eye (as the glows: an emitter takes no veil); the cloud as low-poly blobs (three's dodecahedron, flat facets) brighter where they face
+// the eye. The lure's gate (the person: "glowing palls too high up would not be adaptive"): a steady light pays the darker the water round it, so the
+// web comes on as the planet's own light at its depth falls from 10^-dark[0] to 10^-dark[1] of the noon sun (world.js lightPhys) — by day dim above
+// ~-550 over fed water and full by -600, full at any depth at night. Every pall lives at -500..-800 (OXY.core), so this only dims the core's top at noon.
+// Not modelled: the lure's meal (the pall eats nothing, on paper or in play — BIOLUM §7.11).
+const PHO={col:[0.30,0.62,1.0],web:[2,3,4],sz:[0.5,0.75],inset:0.25,K:[0.55,0.3,0.7,1.6],up:0.5,down:2,flash:[0.6,0.8],touch:1.0,holdT:0.5,darkT:90,dark:[8,10],flee:60,R:300,max:256,
+  cl:{n:6,r:[1.6,3.4],grow:4,life:40,spread:1.2,K:0.32,slots:4,lightK:1.2,lightD:12,color:0x4f8fff}};
+// col: the light (~470 nm, Stauroteuthis's); web: the chain points (of 0..n) that carry a web light, the tip (n) carries the other; sz: a face's size (m,
+// web and tip, × the individual's k); inset: the faces sit this far (m) toward the body's axis, on the arm's oral side; K: the brightness of the web's and
+// the tip's faces from the lure, then from a flash; up, down: the lure's easing (1/s); flash: its hold and decay (s); touch: the contact margin (m) past
+// the body's capsule or an arm's point; holdT: seconds held before the cloud; darkT: seconds dark after it; dark: the gate (−log10 of the light at its
+// depth, from none to full); flee: metres it heads away; R: the camera's reach (m); max: faces drawn. cl, the cloud: n blobs, their radius (m), grown
+// over grow s, fading over life s (Robison: minutes), thrown at spread m/s, K their brightness, slots at once, and the light-pool source on the
+// brightest (lightK, lightD m, color).
+const PHO_K={pall:true}; // the kinds that carry these lights
+const PHO_C=[],PHO_REST={}; // the lit creatures; a kind's lights at rest in its own frame ([x, y, z, tip] a light, from the rig's chains at spawn)
+const PHO_SH={uniforms:null,vertexShader:'attribute float aGl;uniform float uSoft;varying float vG;varying float vD;varying float vF;\nvoid main(){mat4 im=mat4(1.0);\n#ifdef USE_INSTANCING\nim=instanceMatrix;\n#endif\nvec4 mv=modelViewMatrix*im*vec4(position,1.0);vD=length(mv.xyz);vG=aGl;vec3 n=normalize(mat3(modelViewMatrix)*mat3(im)*normal);vF=abs(dot(n,normalize(-mv.xyz)));gl_Position=projectionMatrix*mv;}',
+  fragmentShader:'uniform vec3 uCol;uniform float uK;uniform float uSoft;uniform vec4 uFogP;uniform float uFogD;uniform vec4 uSkE;varying float vG;varying float vD;varying float vF;\nvoid main(){float d=vD;float tn=exp(-uFogD*uFogD*d*d);float ex=mix(exp(-uFogP.x*d),tn,uFogP.y)'+FOG_CUT_GLSL+';float f=mix(1.0,0.15+0.85*vF*vF,uSoft);gl_FragColor=vec4(uCol*(uK*vG*ex*f*uSkE.w),1.0);}'};
+function phoMat(col,K,soft){return new THREE.ShaderMaterial({uniforms:{uCol:{value:new THREE.Color(col[0],col[1],col[2])},uK:{value:K},uSoft:{value:soft},uFogP:{value:FOG_PS},uFogD:{value:SEA_FOG.dens},uSkE:{value:FOG_SKE}},vertexShader:PHO_SH.vertexShader,fragmentShader:PHO_SH.fragmentShader,transparent:true,depthWrite:false,depthTest:true,blending:THREE.AdditiveBlending});}
+function phoIM(geo,mat,n){const g=geo,a=new THREE.InstancedBufferAttribute(new Float32Array(n),1);g.setAttribute('aGl',a);const im=new THREE.InstancedMesh(g,mat,n);im.count=0;im.frustumCulled=false;im.visible=false;scene.add(im);return im;}
+const PHO_F=phoIM(new THREE.BoxGeometry(1,1,1),phoMat(PHO.col,1,0),PHO.max); // the faces
+const PHO_B=phoIM(new THREE.DodecahedronGeometry(1,0),phoMat(PHO.col,PHO.cl.K,1),PHO.cl.slots*PHO.cl.n); // the clouds' blobs
+const PHO_CL=[];for(let i=0;i<PHO.cl.slots;i++){const b=[];for(let j=0;j<PHO.cl.n;j++)b.push({x:0,y:0,z:0,vx:0,vy:0,vz:0,r:0,q:new THREE.Quaternion()});PHO_CL.push({on:false,a:0,b:b});}
+const PHO_L={x:0,y:-1e5,z:0,color:PHO.cl.color,intensity:0,distance:PHO.cl.lightD,d:0};lightSources.push(PHO_L);
+const PHO_M=new THREE.Matrix4(),PHO_V=V3(),PHO_S=V3(),PHO_P=V3();
+// the web's gate at height y (0..1) by the sky now
+function phoGate(y){const L=lightPhys(SKY.sunAlt,SKY.moonL/MOONL,y);return smooth(PHO.dark[0],PHO.dark[1],-Math.log10(Math.max(L,1e-30)));}
+// a new lit creature (spawn, right after its rigs are posed at rest: their chains' points are in its own frame then)
+function phoSpawn(c){const R=c.b.rigs;if(!R)return;if(!PHO_REST[c.kind]){const L=[];for(const r of R)for(const q of r.chains){const n=q.n;for(const k of PHO.web)if(k<n)L.push(q.pts[k*3],q.pts[k*3+1],q.pts[k*3+2],0);L.push(q.pts[n*3],q.pts[n*3+1],q.pts[n*3+2],1);}PHO_REST[c.kind]=L;}PHO_C.push(c);}
+// the cloud: c's arm tips leave it, c goes dark and heads away from `from` (a position, or null)
+function phoCloud(c,from){if(c.lumD>0||!FX.biolum)return;c.lumD=PHO.darkT;c.lumF=0;c.lumH=0;
+  let S=PHO_CL[0];for(const s of PHO_CL)if(!s.on||s.a>S.a)S=s;S.on=true;S.a=0;const k=c.k||1;
+  // where the tips are: their mean (the chains' own points once simulated, else at rest)
+  let x=0,y=0,z=0,m=0;for(const r of c.b.rigs||[])for(const q of r.chains){if(q.fresh)continue;const n=q.n;x+=q.pts[n*3];y+=q.pts[n*3+1];z+=q.pts[n*3+2];m++;}
+  if(m){x/=m;y/=m;z/=m;}else{PHO_V.set(0,0,1).applyQuaternion(c.g.quaternion);x=c.pos.x+PHO_V.x*4*k;y=c.pos.y+PHO_V.y*4*k;z=c.pos.z+PHO_V.z*4*k;}
+  for(const b of S.b){b.x=x+rnd(-2,2)*k;b.y=Math.min(y+rnd(-2,2)*k,TIDE-1);b.z=z+rnd(-2,2)*k;const a=Math.random()*TAU,u=Math.random()*2-1,w=Math.sqrt(1-u*u);b.vx=w*Math.cos(a)*PHO.cl.spread;b.vy=u*PHO.cl.spread;b.vz=w*Math.sin(a)*PHO.cl.spread;b.r=rnd(PHO.cl.r[0],PHO.cl.r[1])*k;
+    b.q.setFromAxisAngle(PHO_S.set(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize(),Math.random()*TAU);}
+  if(from){PHO_V.set(c.pos.x-from.x,(c.pos.y-from.y)*0.3,c.pos.z-from.z);if(PHO_V.lengthSq()<1e-4)PHO_V.set(1,0,0);PHO_V.normalize();c.wander.copy(c.pos).addScaledVector(PHO_V,PHO.flee);c.wander.y=clamp(c.wander.y,OXY.core[1],OXY.core[0]);c.wanderT=30;}}
+// the body's capsules and the arms' points against a point: the nearest surface distance (m)
+function phoNear(c,p){let best=1e9;const W=c.shapesW;if(W)for(const w of W){const ex=w.bx-w.ax,ey=w.by-w.ay,ez=w.bz-w.az,l2=ex*ex+ey*ey+ez*ez;let tt=l2>1e-6?((p.x-w.ax)*ex+(p.y-w.ay)*ey+(p.z-w.az)*ez)/l2:0;tt=tt<0?0:tt>1?1:tt;
+    const d=len3(p.x-w.ax-ex*tt,p.y-w.ay-ey*tt,p.z-w.az-ez*tt)-w.r;if(d<best)best=d;}
+  for(const r of c.b.rigs||[])for(const q of r.chains){if(q.fresh)continue;const P=q.pts;for(let k=1;k<=q.n;k++){const d=len3(p.x-P[k*3],p.y-P[k*3+1],p.z-P[k*3+2]);if(d<best)best=d;}}
+  return best;}
+function updatePho(dt,on){
+  const cam=camera.position,ox=ORIGIN.x,oz=ORIGIN.z,FA=PHO_F.geometry.attributes.aGl.array,BA=PHO_B.geometry.attributes.aGl.array;let nf=0;
+  for(let i=PHO_C.length-1;i>=0;i--){const c=PHO_C[i];if(c.gone||!c.alive){PHO_C[i]=PHO_C[PHO_C.length-1];PHO_C.pop();}}
+  for(const c of PHO_C){
+    // the state: dark after a cloud; held long enough, a cloud; touched, a flash; the lure toward its gate
+    if(c.lumD>0)c.lumD=Math.max(0,c.lumD-dt);
+    let held=null;for(const h of holds)if(h.b===c){held=h;break;}
+    if(held){c.lumH+=dt;if(c.lumH>=PHO.holdT)phoCloud(c,held.a&&held.a.pos?held.a.pos:null);}else c.lumH=0;
+    if(on&&c.lumD<=0&&!playerGone()&&c.g.visible&&player.pos.distanceTo(c.pos)<c.def.size*1.4&&phoNear(c,player.pos)<PHO.touch)c.lumF=1+PHO.flash[0]/PHO.flash[1]; // a touch: full for flash[0] s, then down over flash[1]
+    else c.lumF=Math.max(0,c.lumF-dt/PHO.flash[1]);
+    const tg=on&&c.lumD<=0?phoGate(c.pos.y):0;c.lumL+=(tg-c.lumL)*Math.min(1,dt*(tg>c.lumL?PHO.up:PHO.down));
+    // drawn: within reach of the camera and in sight, the faces at the arms' points (simulated) or at rest in the body's frame (far, or not yet stepped)
+    const fl=Math.min(1,c.lumF),lw=PHO.K[0]*c.lumL+PHO.K[2]*fl,lt=PHO.K[1]*c.lumL+PHO.K[3]*fl;
+    if(lw<0.01&&lt<0.01||!c.g.visible)continue;const dx=c.pos.x-cam.x,dy=c.pos.y-cam.y,dz=c.pos.z-cam.z;if(dx*dx+dy*dy+dz*dz>PHO.R*PHO.R)continue;
+    const k=c.k||1,L=PHO_REST[c.kind];if(!L)continue;c.g.updateMatrix();const e=c.g.matrix.elements;PHO_V.set(0,0,1).applyQuaternion(c.g.quaternion);const fx=PHO_V.x,fy=PHO_V.y,fz=PHO_V.z;
+    const live=c.lod===0;let li=0;
+    for(const r of c.b.rigs)for(const q of r.chains){const n=q.n,sim=live&&!q.fresh;
+      for(let j=0;j<=n;j++){const tip=j===n;if(!tip&&PHO.web.indexOf(j)<0)continue;if(nf>=PHO.max)break;
+        let px,py,pz;if(sim){px=q.pts[j*3];py=q.pts[j*3+1];pz=q.pts[j*3+2];}else{const lx=L[li*4],ly=L[li*4+1],lz=L[li*4+2];px=e[0]*lx+e[4]*ly+e[8]*lz+e[12];py=e[1]*lx+e[5]*ly+e[9]*lz+e[13];pz=e[2]*lx+e[6]*ly+e[10]*lz+e[14];}
+        li++;
+        {const ax=px-c.pos.x,ay=py-c.pos.y,az=pz-c.pos.z,al=ax*fx+ay*fy+az*fz,qx=ax-fx*al,qy=ay-fy*al,qz=az-fz*al,ql=len3(qx,qy,qz);if(ql>1e-3){const s=PHO.inset*k/ql;px-=qx*s;py-=qy*s;pz-=qz*s;}} // onto the oral side: toward the body's axis
+        const s=(tip?PHO.sz[1]:PHO.sz[0])*k;PHO_P.set(px-ox,py,pz-oz);PHO_S.set(s,s,s);PHO_M.compose(PHO_P,c.g.quaternion,PHO_S);PHO_F.setMatrixAt(nf,PHO_M);FA[nf]=tip?lt:lw;nf++;}}}
+  PHO_F.count=nf;PHO_F.visible=nf>0;PHO_F.position.set(ox,0,oz);if(nf){PHO_F.instanceMatrix.needsUpdate=true;PHO_F.geometry.attributes.aGl.needsUpdate=true;}
+  // the clouds: grow, drift with the current and what they were thrown with, fade; the brightest near one holds a light
+  let nb=0,bl=0;PHO_L.y=-1e5;PHO_L.intensity=0;
+  for(const S of PHO_CL){if(!S.on)continue;S.a+=dt;if(S.a>=PHO.cl.life){S.on=false;continue;}const u=1-S.a/PHO.cl.life,g=Math.min(1,S.a/0.4)*u*u,gr=0.3+0.7*Math.min(1,S.a/PHO.cl.grow),kd=Math.exp(-0.8*dt);let mx=0,my=0,mz=0;
+    for(const b of S.b){b.vx*=kd;b.vy*=kd;b.vz*=kd;b.x+=(b.vx+CURV.x)*dt;b.y=Math.min(b.y+b.vy*dt,TIDE-1);b.z+=(b.vz+CURV.z)*dt;mx+=b.x;my+=b.y;mz+=b.z;
+      if(!on||nb>=PHO_CL.length*PHO.cl.n)continue;PHO_P.set(b.x-ox,b.y,b.z-oz);const s=b.r*gr;PHO_S.set(s,s,s);PHO_M.compose(PHO_P,b.q,PHO_S);PHO_B.setMatrixAt(nb,PHO_M);BA[nb]=g;nb++;}
+    const n=S.b.length;mx/=n;my/=n;mz/=n;const dd=Math.hypot(mx-cam.x,my-cam.y,mz-cam.z);if(on&&g>bl&&dd<PHO.R){bl=g;PHO_L.x=mx;PHO_L.y=my;PHO_L.z=mz;PHO_L.intensity=PHO.cl.lightK*g;}}
+  PHO_B.count=nb;PHO_B.visible=nb>0;PHO_B.position.set(ox,0,oz);if(nb){PHO_B.instanceMatrix.needsUpdate=true;PHO_B.geometry.attributes.aGl.needsUpdate=true;}
 }

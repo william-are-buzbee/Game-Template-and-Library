@@ -1,5 +1,10 @@
 # HANDOFF — tethys
 
+**v11.163 (17 Nov 2026): the pall's lights** (fx.js `PHO`; world.js `lightPhys`; BIOLUM.md §8; CHANGELOG). Flat blue faces on its arms — the web's
+lure, steady in the dark, dimmed by day at the core's top (−500…−550) where daylight still reaches a deep eye; the tips flash on a touch; held or bitten it
+leaves a glowing cloud, goes dark 90 s and leaves. `palls()` in the console; `tp(2400,-699,-540)` at night. Stacked on #102. **Ask:** the lit net and its
+blue on the preview; the cloud; BIOLUM §7.10–11 (size by depth; the lure's meal).
+
 **BIOLUM.md (16 Nov 2026): what should glow, where, and why** — a discussion, nothing built. Earth's bioluminescence in brief (three quarters of
 the water column's animals, the floor under a fifth; flashes on contact are the common case, steady lights are lures and counter-illumination), seven
 options placed in DEEP's ecology and ranked (the pall's lights and cloud first, then a lure-bearing plateback of the minimum's floor, the deepbell's

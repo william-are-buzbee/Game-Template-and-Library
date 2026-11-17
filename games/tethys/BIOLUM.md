@@ -1,7 +1,7 @@
 # BIOLUM.md — what glows in Tethys's sea, where, and why (16 Nov 2026)
 
 Status: **answered 17 Nov 2026 (§7): the three PLANET rules of §6 revised as proposed, steady lures allowed, the pall first — §8, building as
-v11.163.** Read PLANET.md first (the cross-clade rules, the Hooks and the Light bullet as revised that day), then PLANKTON.md §8, DEEP.md §2–3 and
+v11.163 (built: CHANGELOG).** Read PLANET.md first (the cross-clade rules, the Hooks and the Light bullet as revised that day), then PLANKTON.md §8, DEEP.md §2–3 and
 DESIGN.md "The body's effects". What is still open is in §7.
 
 ## 1. Where it stands
@@ -207,7 +207,7 @@ water is colder and its oxygen recovers (0.3 → 0.5 by the floor). So if palls 
 under the core (−800 to −1,100), where today there are none. Not built.
 
 **What v11.163 builds** (the rules as revised 17 Nov 2026):
-- **The lights**, flat faces on the pall's own arms, riding their chains: four along each web arm (*Stauroteuthis*'s light organs, which replaced its
+- **The lights**, flat faces on the pall's own arms, riding their chains: three along each web arm (*Stauroteuthis*'s light organs, which replaced its
   suckers: the net's steady lure) and one at each tip (the vampire squid's arm tips, lit on contact). Blue (0.30, 0.62, 1.0), drawn additive with the
   water's extinction and the eye, as the glows are.
 - **Steady while it fishes in the dark**, by the gate above.

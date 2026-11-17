@@ -2355,6 +2355,14 @@ mark) with a 16-point trail comes down from high in the view onto the child over
   (far.js `milkyPulse`), its strength smooth(0.42, 0.50) — ~2.6 a year of a night or two (test/glow.js, ten years), 2.3 days after the flashers' bloom;
   the water's own light in fogVeil (scene.js: `MILKY.col` (0.62, 0.80, 0.88) × `uSkF.w` = `E` 0.12 × the strength × the night, over gold of 0.15–0.6 mg/m³ (the fed flank and its sides),
   in the top 10–25 m) and the far sea by the gold at the camera (horizon.js `uHzSea.w`). The console: `milky()` and `dusk()` give the `skip()` to the next.
+- **The pall's lights (v11.163; fx.js `PHO`, `updatePho`, world.js `lightPhys`; BIOLUM.md §8; PLANET as revised 17 Nov 2026).** Flat faces on its own arms,
+  three along each web arm (*Stauroteuthis*: the net's lure) and one at each tip (the vampire squid's: lit on contact) — 32, read off the rig's chains at
+  spawn and riding them, `inset` 0.25 m onto the oral side; one additive `InstancedMesh` of boxes for every pall (`max` 256), extinction × the eye, (0.30,
+  0.62, 1.0). *The lure* eases (`up` 0.5, `down` 2) to `phoGate`: the planet's own light at its depth (`lightPhys`: the sun by altitude, twilight 0.35
+  decades a degree, a full moon 1e-5, stars 1e-8, tenfold every 60 m) from 1e-8 (none) to 1e-10 (full) — at noon 0.09 at −500 and full by −600, full at
+  night. *A flash*: the player within `touch` 1 m of its capsules or arm points — tips `K[3]` 1.6, web +`K[2]` 0.7, 0.6 s then 0.8 s down. *The cloud*
+  (`PHO.cl`): held 0.5 s or bitten — six dodecahedra of 1.6–3.4 m at the tips' mean, grown over 4 s, drifting, fading over 40 s, the brightest a 12 m
+  source in the light pool; dark for 90 s, 60 m away from the holder. `palls()` in the console. Not modelled: the lure's meal (BIOLUM §7.11).
 
 ## Performance and the quality tier
 
