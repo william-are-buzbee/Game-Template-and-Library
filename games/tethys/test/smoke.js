@@ -6,6 +6,12 @@
 // mouse both ways (locked, and the drag with the lock refused), then a kill and the respawn (v11.68: a fourth run as a spec that is no preset); the finback
 // also swims 8400 frames from the peak straight out into the void, with a mid-run coilshell-style 'C' hold.
 const fs=require('fs'),path=require('path');
+// 17 Nov 2026 (after v11.168): Math.random seeded (mulberry32, as test/frames.js), so a run is the same run every time. Unseeded, whether an eel on the scripted swim's
+// route caught the player was a coin toss — the clade-1 swim died about half the time after v11.168's schools (seen 17 Nov 2026: 5 of 10 runs here and three
+// pull requests' CI in a row), and the save step after it then found no living line ("new game made no slot"). A catch is gameplay, not a fault; the test
+// is about runtime errors and the save path, so it runs on one fixed stream.
+{let s=1234;Math.random=()=>{s=(s+0x6D2B79F5)>>>0;let t=s;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};}
+
 const ROOT=path.join(__dirname,'..');
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
 let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n');
@@ -20,7 +26,7 @@ js+='\nglobal.__clade=()=>({id:player.clade.id,spec:player.clade.spec.id,founder
 // the saves (v11.47): the slot the menu wrote, esc to the menu, continue from the list, and what came back
 js+='\nglobal.__save={slots:()=>saveList.map(r=>({id:r.id,name:r.name,clade:r.clade,playT:r.playT,deaths:(r.deaths||[]).length,over:!!r.over})),cur:()=>curSave&&curSave.id,now:()=>saveNow(),menu:()=>{const h=global.__h;h["win:keydown"].forEach(f=>f({code:"Escape",preventDefault(){}}));},cont:(id)=>{saveRefresh();const r=saveList.find(r=>r.id===id);if(!r)throw new Error("no slot "+id);return startFrom(r);},del:(id)=>{storeDel(id);saveRefresh();},t:()=>t,pop:()=>{let s=0;for(const N of POP.n)for(let c=0;c<N.length;c++)s+=N[c];return s;},seen:()=>PROFILE.seen.sp.length,creator:()=>PROFILE.creator,locked:()=>locked};';
 js+='\nglobal.DEFS_PREY=(id)=>DEFS[id].prey.filter(p=>p!=="player"&&DEFS[p]).join("+");';
-const tmp=path.join(require('os').tmpdir(),'tethys_bundle.js');
+const tmp=path.join(require('os').tmpdir(),'tethys_bundle_'+process.pid+'.js');process.on('exit',()=>{try{fs.unlinkSync(tmp);}catch(e){}}); // one file a process (17 Nov 2026, as test/frames.js and #112's live.js): build.js runs both tiers side by side, and two runs sharing one name could read each other's half-written bundle (seen: '__dbg is not defined' with two at once)
 fs.writeFileSync(tmp,'(function(){"use strict";\n'+js+'\n})();');
 let failed=false;
 const FOUNDERS={3:['sickle','shut'],4:['arrow','ink'],5:['needle','stun']}; // pick: the founder and the ability its parts give (player.js ABILITIES)
