@@ -8782,3 +8782,26 @@ and off, is the check.
 
 **Unseen, ask in this order:** 1. The sea toward the sun in the evening (`skip()` to about 20 h, then look along the sun's path from just above the water):
 does the light in the crests read as water, and is the strength right (the slider)? 2. The surf on the exposed flank at the same hour. 3. Full quality.
+
+## v11.166 — the lights' halo (17 Nov 2026)
+
+WATER.md Part 4, item 2 (the halo; the sun's lobe left). BIOLUM §1 found that a light reads here when it is on a body's faces *or is a volume*; this is the volume.
+A light in water lights the water round it, and the eye sees that water: the cone of murk round a diver's torch, the glow round a lure. No bloom, no pass.
+
+- **scene.js `HALO`** (`k` 0.05, `ext` 0.03, `hmin` 0.25) and **`haloL`** in the fog chunk: along the camera's segment in water, for each of four lights — the own light
+  and the three nearest of the pool (`assignLights` → `haloSet`) — colour × intensity × `k` × (atan((L−t)/h) + atan(t/h)) / h: the single-scattering integral of an
+  isotropic point source along the ray (Sun et al. 2005), faded past the light's `distance` and by exp(−`ext`·its distance). A surface in front cuts the ray, so what stands
+  before a lamp stands before its glow. Under water only. Uniforms `uHaloP`/`uHaloC` (four vec4 each, typed arrays, never NaN).
+- **The effects list:** `halo`, on; `strength` (`haloK`, 0–3).
+- Strength seen at 0.02 (a pinpoint), 0.05 (a lamp with a soft haze), 0.10 (a lantern's ball of lit water).
+
+**Seen** (headless Chromium, dev build, low tier, 640×360, the loop driven by hand, the clock frozen for on/off): at −450 by day over the pall ground — the own light
+a small bright core over the animal's head in a soft blue haze, gone with the switch off; at 2 h in the forest at 8 m — the water round the animal faintly lit; at noon
+in the forest — nothing (every light off). No page errors, no shader warnings. Not seen: a lure or a carcass (none loaded in the frames taken).
+
+**What it costs:** under water, four uniform-branch tests per fragment, and for each lit light two `atan`, a `sqrt`, an `exp` and a few multiplies; the CPU sets two
+16-float arrays a frame. SwiftShader at −450 with the own light on, median of 15: on 380 ms, off 368 ms (×1.03). The GPU unmeasured; the readout's render ms in the
+deep or at night, on and off, is the check.
+
+**Unseen, ask in this order:** 1. The own light in the deep (`tp(2400,-699,-450)`) and at night in the forest: is the glow right, and its strength (the slider)?
+2. A pall's lure at night (`palls()`). 3. A glowing carcass (`falls()`). 4. The readout's render ms with it on and off.
