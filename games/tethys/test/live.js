@@ -9,7 +9,7 @@
 //      the whole of finding 13: the nearest prey is 35-50 m off against a detect of 9-17.
 //   3. one shape (v11.149): every creature with its spawn's keys in its spawn's order, its state's and its def's the same — a key a creature or its
 //      state takes later and its spawn does not declare would be a shape of its own, and every read of every creature a lookup by name again.
-// `node test/live.js` (TIER=low for the low tier). It says nothing about rendering or sound.
+// `node test/live.js` (TIER=low for the low tier). Math.random is seeded (v11.168.1), so a run is the same run every time. It says nothing about rendering or sound.
 const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..');
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
@@ -28,11 +28,12 @@ js+='\nglobal.__hunt=()=>({kills:POP.kills,starved:+POP.starved.toFixed(1),carca
   +'return {kind:k,role:r.role,n:r.n,hunger:r.hun/r.n,hi:100*r.hi/r.n,ch:100*r.ch/r.n,near:r.nn?r.near/r.nn:-1,det:r.det};}).sort((a,b)=>b.hi-a.hi)});';
 // v11.149 (the creature performance pass): every creature one shape, every def one, every state one — the keys in one order on all of them
 js+='\nglobal.__shape=()=>{const K=o=>Object.keys(o).join(),c0=creatures[0];if(!c0)return null;const k=K(c0),s=K(c0.st),d=K(c0.def),out={n:creatures.length,c:[],s:[],d:[]};for(const c of creatures){if(K(c)!==k)out.c.push(c.kind+": "+Object.keys(c).filter(x=>!(x in c0)).join(" "));if(K(c.st)!==s)out.s.push(c.kind+": "+K(c.st));if(!c.def.line&&K(c.def)!==d)out.d.push(c.kind);}return out;};';
-const tmp=path.join(require('os').tmpdir(),'tethys_live.js');
+const tmp=path.join(require('os').tmpdir(),'tethys_live_'+process.pid+'.js'); // v11.168.1: one file a process, as test/frames.js — build.js runs both tiers side by side, and one run could read the other's half-written bundle (a SyntaxError, seen)
 fs.writeFileSync(tmp,'(function(){"use strict";\n'+js+'\n})();');
 process.env.PICK='1';
 require('./stub.js');
-require(tmp);
+let seed=1234;Math.random=()=>{seed=(seed+0x6D2B79F5)>>>0;let t=seed;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;}; // v11.168.1: mulberry32, as test/frames.js — the same run every time (unseeded, 'no hunter chased anything' failed one run in a few under load on 17 Nov 2026)
+require(tmp);fs.unlinkSync(tmp);
 let bad=[];
 __peak();__step(600); // the player at the peak and its cells loaded (v11.48: the title screen opens over the sea since v11.47.2, and this test never starts a game — it measures the menu's world), then the cells round it load and spawn
 console.log('boot          '+JSON.stringify(__eggs()));
@@ -56,7 +57,7 @@ for(const r of H.rows)console.log('  '+r.kind.padEnd(13)+r.role.padEnd(9)+String
 const hunters=H.rows.filter(r=>r.role==='hunter'),hi=hunters.reduce((a,b)=>a+b.hi*b.n,0)/Math.max(1,hunters.reduce((a,b)=>a+b.n,0));
 console.log('  '+hi.toFixed(0)+'% of the hunter role sat at hunger 1.00 (the cast, HUNT_SEEK/HUNT_CAST, took this from 13% to 9% on the shelf)');
 if(H.kills===k0)bad.push('nothing was killed in '+HUNT_S+' s of play');
-if(!hunters.some(r=>r.ch>0))bad.push('no hunter chased anything in 60 s of play');
+if(!hunters.some(r=>r.ch>0))bad.push('no hunter chased anything in '+HUNT_S+' s of play');
 if(hi>25)bad.push(hi.toFixed(0)+'% of hunters are starving and not eating (was 13% at v11.31.1)');
 // ---- 3. one shape (v11.149) ----
 {const S=__shape();if(S){const say=L=>[...new Set(L)].slice(0,6).join('; ');
