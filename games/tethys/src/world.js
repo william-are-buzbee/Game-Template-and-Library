@@ -932,6 +932,14 @@ const SKYC=[ // [sinAlt, zenith, horizon, glow, sunlight]
   [0.06,[0.240,0.400,0.660],[0.700,0.640,0.640],[1.00,0.60,0.28],[1.0,0.62,0.32]],
   [0.35,AIR.zenith,AIR.fog,[0.30,0.24,0.14],[1.0,0.94,0.84]]];
 const MOONC=[0.72,0.80,0.96],MOONL=0.28,GREYC=[0.52,0.55,0.59],STARL=0.035;
+// The air's light and the highlights (v11.175, WATER.md Part 5 item 7 and F; the person, 17 Nov 2026: "Above: yes please"). Above the water the frame was pale:
+// the fill (the hemisphere's 0.85 × the pale AIR.hemiSky) gave shade two thirds of the sunlit side's light in a near-white, so shade was grey and the scene flat,
+// and with no tone curve a sunlit face near you (about 1.9 on flat ground at noon) was cut channel by channel — the strand's yellow sand a cream. Shipped games with
+// an above and a below keep their highlights coloured with a filmic curve and light the above warm against blue shade. ABOVE, with `warm sun` on: `fill` the
+// hemisphere's strength in the air, `sky` its colour (the zenith's blue, lighter), `key` the sun's strength (its colour stays the star's, SKYC); TONE, with `soft
+// highlights` on: past `T` the colour is scaled down by its largest channel onto a curve that nears 1 and never reaches it, so the hue is kept (scene.js toneC,
+// at the end of the fog chunk and the horizon pass — the dome is left as it was, its clouds and sun their own). Under the water almost nothing reaches T.
+const ABOVE={fill:0.55,sky:[0.60,0.76,0.95],key:1.6},TONE={T:0.7};
 const DUSK={lum:[0.25,0.62,0.13],clamp:[0.6,1.5]}; // v11.172 (atmosphere.js updateSky, tintS): the sky's colour relative to noon's at this luminance 1 — the eye's weights, as EYE_GLSL's — each channel held within clamp
 // The eye (v11.159; an animal's since v11.162 — atmosphere.js eyeK, eyeStep, scene.js EYE_GLSL). The person (16 Nov 2026), on ×2.4: "nighttime is so dark you
 // can't see anything as the finback … I wanted true dark because that's believable, but only if it meant that your eyes can adjust … animals in darkness like

@@ -1,5 +1,9 @@
 # HANDOFF — tethys
 
+**v11.175 (17 Nov 2026): the air's light and soft highlights** (world.js `ABOVE`, `TONE`; scene.js `toneC`; DESIGN The sky; CHANGELOG). Above the water a
+stronger, warmer key against a lower, bluer fill, and a tone curve that keeps the hue where every channel was cut at 1: the beach at noon a golden sand, not a
+cream. `warm sun`, `soft highlights` (off: the approved v6 look). Stacked on #117. **Ask:** a walk on the island at noon, both switches on and off.
+
 **v11.174 (17 Nov 2026): the horizon in the window's rim, and the window's detail by depth** (atmosphere.js `RIM`, `WIN_DET`; DESIGN The surface; CHANGELOG).
 Round the critical angle the window shows the sky squeezed toward the horizon — a sunset is a peach glow at the rim from below; and the window's picture fades
 into its light with the water between — clouds gone by ~40 m, a glowing window with the sun's spot below that. `window rim`, `window depth`. Stacked on #116.

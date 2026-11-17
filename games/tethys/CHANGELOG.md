@@ -9057,3 +9057,28 @@ underside is one mesh, drawn once; not measured on the GPU.
 (`RIM.k`, `out`, `in`; `window rim` off to compare.) 2. A dive from the surface to 80 m at noon, looking up: the clouds going by ~30–40 m, the sun a spot
 after. (`WIN_DET.L`.) 3. Islands seen through the window near the surface: still there in the top few metres?
 
+## v11.175 — the air's light and soft highlights (17 Nov 2026)
+
+WATER.md Part 5, F. The person, 17 Nov 2026: "Above: yes please" (a tone shoulder and a warmer key against a bluer fill, behind a switch, to compare with today's).
+Stacked on v11.174 (#117).
+
+- **Warm sun** (world.js `ABOVE`; atmosphere.js `updateAtmosphere`): in the air the hemisphere is `fill` 0.55 × `sky` (0.60, 0.76, 0.95), the zenith's blue lightened —
+  it was 0.85 × the pale `AIR.hemiSky` (0.77, 0.86, 0.92), which gave shade two thirds of the sunlit side's light in a near-white — and the sun `key` 1.6 × its light
+  (was 1.35; its colour is still the star's). Shade bluer and darker, the sunlit side warm. `warm sun` on the effects list; off is the approved v6 look.
+- **Soft highlights** (world.js `TONE`; scene.js `TONE_GLSL` `toneC`, at the end of the fog chunk and of the horizon pass's land and sea, after the eye's gain;
+  `uSkD.w`): there was no tone curve, so a colour over 1 was cut channel by channel and lost its hue — the brighter, the whiter. Past `T` 0.7 the colour is now
+  scaled by its largest channel onto T + (1 − T)(1 − e^(−(m − T)/(1 − T))), which nears 1 and never reaches it; the hue is kept. The dome is left as it was.
+  `soft highlights` on the effects list.
+
+**Seen** (headless Chromium, dev build, low tier, 640×360, noon, both switches on against both off at the same moment):
+- on the island's south-east shore, 3 m over the sand looking inland and down: the sand **(241, 197, 119)** against **(255, 254, 156)** — a golden sand where it
+  was a cream; 1% of the frame clipped against 46%; the frame's saturation 0.35 against 0.30. The sea, the far island and the sky alike.
+- from 4 m over the water looking at the same shore: much the same frame (saturation 0.27 against 0.28) — it is sea and sky, which the key and the curve barely touch.
+- 3 m under the water in the shallows by that shore: identical to the digit — nothing under the water reaches the curve.
+
+**What it costs:** a `max`, a compare and (past T) an `exp` and a multiply at the end of every fogged fragment; nothing on the CPU. Not measured on the GPU.
+
+**Unseen, ask in this order:** 1. A walk on the island at noon with `warm sun` and `soft highlights` on and off: is it the above you want? Too warm, too dark in
+the shade? (`ABOVE.fill`, `key`, `sky`; `TONE.T`.) 2. Dusk on land: v11.172's blue shade and this together. 3. The creatures and the flora on the beach in full
+sun: colours where they were white.
+

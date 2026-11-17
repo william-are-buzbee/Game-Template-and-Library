@@ -632,7 +632,7 @@ function updatePlankton(dt){
   plU.value.set(plight.position.x-ORIGIN.x,plight.position.y,plight.position.z-ORIGIN.z,plight.intensity*1.6); // against the render origin (v11.113): the snow, the debris and the blood read it beside their points'
 }
 
-const fogTarget=new THREE.Color(),hemiSkyA=new THREE.Color(AIR.hemiSky),hemiGroundA=new THREE.Color(AIR.hemiGround),wmHere=[0,0,0,0],skyT=new THREE.Color(),skyT2=new THREE.Color(),WHITE=new THREE.Color(1,1,1);
+const fogTarget=new THREE.Color(),hemiSkyA=new THREE.Color(AIR.hemiSky),hemiSkyW=new THREE.Color(ABOVE.sky[0],ABOVE.sky[1],ABOVE.sky[2]),hemiGroundA=new THREE.Color(AIR.hemiGround),wmHere=[0,0,0,0],skyT=new THREE.Color(),skyT2=new THREE.Color(),WHITE=new THREE.Color(1,1,1);
 let curDepth=-1,wasAbove=null,snapMed=true; // snapMed: the next medium change is instant (boot, respawn), not a crossfade
 // One density per medium, both media in every shader (v11.42, the two-segment fog): the sea's sets (big-thing, small-thing, the surface's own —
 // scene.js) and the air's (FOG_A) are written together; the ray decides per fragment. Called every frame in air (the haze thickens with rain), on
@@ -704,11 +704,11 @@ function updateAtmosphere(dt){
   // the ambient. Air: the sky's — the approved noon pair scaled by the sky's light and coloured by it, the sun (or the moon) as the
   // key. Water: the water's — sky = the veil colour lifted, ground = the same colour dimmed (upwelling light — undersides seen from
   // below, the pads of the canopy above all, read as water-dark rather than black)
-  hemiAir.copy(hemiSkyA).multiplyScalar(Math.pow(K.skyL,0.85)).multiply(skyT2.setRGB(K.tintS[0],K.tintS[1],K.tintS[2]));hemiAirG.copy(hemiGroundA).multiplyScalar(K.skyL).multiply(skyT2.setRGB(tint[0],tint[1],tint[2])); // v11.172: the air's fill is the sky's light (tintS), the ground's bounce the sun's and the sky's (tint)
+  hemiAir.copy(FX.warm?hemiSkyW:hemiSkyA).multiplyScalar(Math.pow(K.skyL,0.85)).multiply(skyT2.setRGB(K.tintS[0],K.tintS[1],K.tintS[2]));hemiAirG.copy(hemiGroundA).multiplyScalar(K.skyL).multiply(skyT2.setRGB(tint[0],tint[1],tint[2])); // v11.172: the air's fill is the sky's light (tintS), the ground's bounce the sun's and the sky's (tint)
   hemiSea.copy(seaFogC).multiplyScalar(1.8);hemiSeaG.copy(seaFogC).multiplyScalar(SEA_FOG.ground);
-  hemi.intensity=lerp(glowK(player.pos.y,df),0.85,k);hemi.color.copy(hemiSea).lerp(hemiAir,k);hemi.groundColor.copy(hemiSeaG).lerp(hemiAirG,k);
+  hemi.intensity=lerp(glowK(player.pos.y,df),FX.warm?ABOVE.fill:0.85,k); // v11.175: the air's fill (ABOVE, `warm sun`)hemi.color.copy(hemiSea).lerp(hemiAir,k);hemi.groundColor.copy(hemiSeaG).lerp(hemiAirG,k);
   const sunSea=(0.9+0.2*Math.sin(t*2.3)+0.1*Math.sin(t*3.9))*1.2*K.lumLw; // the surface value: the shader scales it by the daylight at the lit point (scene.js, sun-by-depth)
-  sun.intensity=lerp(sunSea,1.35*K.lumL,k);
+  sun.intensity=lerp(sunSea,(FX.warm?ABOVE.key:1.35)*K.lumL,k); // v11.175: the air's key (ABOVE)
   const wk=above?0:1-k; // the water's things: fading in under the water (k falls from 1), gone the frame the camera is in air (v11.7.2)
   plight.intensity=(1.3*(1-dfD)*(1-dfD)+0.5*(1-K.skyL)*(1-K.skyL))*wk*(FX.plight?1:0)/K.eye; // ÷ the eye (v11.159): the halo as it was before the eye adapted (the person: keep it); the player's own light: in the deep as before, and a little at night; `own light` on the effects list (v11.52, POLISH.md Raised 13 Sep: the person wants to see the world without it)
   updateShafts(above,wk);

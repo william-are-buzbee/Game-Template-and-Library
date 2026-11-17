@@ -637,6 +637,8 @@ shower 3 game hours (4 real minutes) in. The wind: `WIND_A` (the waves' directio
 **real time** — the clouds drift at 7 m/s across the sky like the waves run at real speed, while the weather itself changes on
 the game clock.
 
+**The air's light and the highlights (v11.175, world.js `ABOVE` {fill 0.55, sky (0.60, 0.76, 0.95), key 1.6}, `TONE` {T 0.7}; scene.js `toneC`; WATER.md Part 5 F; the person, 17 Nov 2026: "Above: yes please").** With `warm sun` the hemisphere in the air is `fill` × `sky` (was 0.85 × the pale `AIR.hemiSky`) and the sun `key` × its light (was 1.35): shade blue and darker, the sunlit side warm. With `soft highlights` every fogged material and the horizon pass end in `toneC` after the eye's gain: past `T` a colour is scaled by its largest channel onto T + (1−T)(1 − e^(−(m−T)/(1−T))), which nears 1 and never reaches it, so the hue is kept where every channel was cut at 1 — the strand's sand at noon (255, 254, 156), 46% of the frame clipped, now (241, 197, 119), 1%. The dome is left as it was (its clouds and the sun their own). Off: the approved v6 look. `uSkD.w` carries the switch.
+
 **The state (`atmosphere.js` `SKY`, `updateSky`).** Once a frame from the clock: the sun, moon and luminary directions, `dayK`
 (daylight at the surface as a fraction of noon: `0.28·smooth(−0.12,0.05,s)+0.72·smooth(0,0.4,s)` on `s`=sin altitude — dusk at
 ~0.22, gone six degrees under), `moonL`, `sunL` (the direct beam: ×(1−0.85·cover^1.5)(1−0.7·rain)), `skyL` (what reaches the
