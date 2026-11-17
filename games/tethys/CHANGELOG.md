@@ -8730,6 +8730,31 @@ The GPU's own cost is unmeasured here; the readout's render ms at the forest (33
 `per-channel colour`; 2 is water's own red)? 2. A red or pink thing at 20–40 m, then your own light near it. 3. From a cliff over the forest and from the beach.
 4. The deep at the pall ground by day (`tp(2400,-699,-540)`). 5. The readout's render ms with it on and off.
 
+## v11.164.1 — colour lost by channel, gentle (17 Nov 2026)
+
+The person on #104's preview: "just looking underwater on PR#104, everything looks incredibly.... blue? The coloring of the game took a huge turn … going back
+to main made the game more visually appealing but also, I did enjoy some of the color changes. Is there a way to try that effect again?"
+
+Two causes, found by shooting the same frame (the clock frozen) at a dozen settings:
+- **The light down was counted from the surface.** Everything, the animal beside you included, was as red-starved as the floor 13 m under the camera. Now from the
+  **eye's own depth** (`SPECTRAL.adapt` 1; updateFogCamera writes the camera's depth into `uSpec.z`; `SPEC_DOWN` subtracts it): what is at your depth keeps its
+  colour and what is below you loses it — the eye adapting to the light where it is, as the night eye does to the dark.
+- **Water's own rates on a stretched sea.** The game's daylight keeps 87% at 55 m; its colour fell at real water's rates. Grey sand shows a fifth of its red gone as
+  cyan — 0.03 /m to the eye was already cyan over the forest's 20–40 m views (seen). Now `k` (red 0.10, green 0.004) × `down` 0.05 (× `slant`) and × `view` 0.08:
+  at strength 1 the red is 0.0058 /m on the sun's way down and 0.008 /m to the eye.
+- **The slider** (`specK`) runs 0–12: 1 the default — main's palette, the sand a little cooler, pinks and golds fading with distance and below you; 6 clearly
+  underwater, teal; 12 about v11.164's look. `FX_V` 90 resets a strength saved on v11.164's scale.
+
+**Seen** (headless Chromium, dev build, low tier, 640×360, noon, the clock frozen; off, 1, 6, 12 side by side): the forest at 8 m, the shelf at 14 m, the kelp at −32,
+from 13 m in the air over the forest and from over the beach. At 1 the picture is main's with the distance cooler and the pinks paler; at 6 the sand teal and the pinks
+gone to blue; at 12 the cyan of v11.164 (a little less — the adaptation). No page errors, no shader warnings. Tried and dropped on the way (each a frame): the
+adaptation alone (still cyan: the view path), 0.03 /m to the eye (cyan), down at a tenth with 0.015 to the eye (cyan on the sand).
+
+**What it costs:** one more subtraction in `SPEC_DOWN`; one store a frame on the CPU. Otherwise v11.164's.
+
+**Unseen, ask in this order:** 1. The forest and the shelf at strength 1, then move the slider (`e`, under `per-channel colour`): where do you like it? 2. Which of
+v11.164's changes did you enjoy — the shallows' turquoise from above (strength 6+), the pinks going blue, the deep going teal? Those could be kept at a lower overall
+strength if they are the ones.
 ## v11.165 — light through the crests (17 Nov 2026)
 
 WATER.md Part 4, item 3, in the order agreed on 17 Nov 2026. A wave's top is thin water: with the sun low behind it, the light goes in at the back,
