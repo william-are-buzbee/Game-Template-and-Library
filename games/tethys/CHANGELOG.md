@@ -8780,3 +8780,29 @@ deep or at night, on and off, is the check.
 
 **Unseen, ask in this order:** 1. The own light in the deep (`tp(2400,-699,-450)`) and at night in the forest: is the glow right, and its strength (the slider)?
 2. A pall's lure at night (`palls()`). 3. A glowing carcass (`falls()`). 4. The readout's render ms with it on and off.
+
+## v11.167 — murk by place (17 Nov 2026)
+
+WATER.md Part 4, item 6. The person, 17 Nov 2026: "For Murk, I think that works and we can tweak if we need." DESIGN Visibility had "one density per medium" —
+WATER was a colour that belongs to the place, not a veil you walk into. Subnautica's water thickens by biome; here it thickens by what is in it.
+
+- **scene.js `MURK`** (`cw` 0.06, `a` 0.4, `p` 0.57, `ref` 2.0, `min` 0.8, `max` 3.0): in `fogVeil`, the plankton's crop at the veil's two samples (`bloomC`, which the
+  colour's tint already reads — no new map) as particle attenuation `a`·C^`p` /m over the water's own `cw` (Morel's bio-optics), relative to its value at `ref`,
+  clamped, mixed by `placeMix` as the colour is; `fogWater` scales both of the fog's densities by it.
+- **The reference is the forest.** Measured from the maps in the game: the forest at (330, 0) 2.1 mg/m³, the start and the lagoon 0.29, the shelf 0.7, open water
+  0.6–0.85, the fed flank's break 6.2. The first cut took island water (0.3, PLANKTON's 0.2–0.5) as the reference, and the forest — where the fog was tuned, and
+  rich water — came out 2.4× thicker and green (seen). At `ref` 2.0 the forest is as it was; the fed flank ×1.8; a bloom (10–20) ×2.3 to 3; poorer water up to a fifth
+  clearer (`min` 0.8: the far cut and the world's edge were tuned at 1).
+- From the air too: the water's part of the ray takes the same veil.
+- Not followed: the light shafts' and the sparks' own fog (`uFogD`, one density); the snow.
+- **The effects list:** `murk`, on; `strength` (`murkK`, 0–1, a mix toward one density).
+
+**Seen** (headless Chromium, dev build, low tier, 640×360, noon, the clock frozen for on/off): the fed flank's break at −15 over −130 — a green murk, the shafts and
+the floor's shadow gone (off: shafts in a clearer green); the lagoon at −9 over −23 — a little clearer; the forest at −8 — the same picture on and off. No page errors,
+no shader warnings.
+
+**What it costs:** in every fogged fragment under water, two `pow` and a few multiplies (skipped by a uniform branch when off). SwiftShader, median of 11, on/off
+back to back: the flank 945/947 ms, the lagoon 1938/1938, the forest 2225/2254 (×1.00). The GPU unmeasured.
+
+**Unseen, ask in this order:** 1. The fed flank (`tp(599,-672,-15)`) and the forest: is the murk right — and should the forest be the reference, or should island
+water be (the forest then greener)? 2. A bloom after a storm (the flank, days after rain). 3. The readout's render ms on and off.
