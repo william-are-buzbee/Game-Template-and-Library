@@ -213,6 +213,11 @@ it would be unclear for a human. So let's bin this idea of bioluminescence purel
 once we have other bioluminescent things in mind"; a school in the starting shallows was not lit by it, and its sparks read as the marine snow. Kept as
 a kit (the flashers' stock, `skBody`, `sparkBurst`). The dusk displays and the milky seas stay ("I'd keep dusk displays", "milky seas I think are good").
 
+**v11.162.1 (16 Nov 2026): the dusk displays struck** — the person, after seeing them: "the dusk stuff coming out of the ground is odd looking, it comes up
+in a straight line and its little blue circles in a game with square features. I think for now it should be left out, and instead it should be considered
+in a different way, like a creature that simply glows. but it would have to be pretty deep underwater"; bioluminescence to get a conversation of its own.
+The night's eye and the milky seas: "exactly what I wanted". The glowing carcasses stand, unremarked.
+
 **Built as v11.161 (16 Nov 2026; DESIGN, The body's effects, "The night's other lights").** The carcasses glow on their quorum's clock and draw
 scavengers from further; the dusk displays are Earth's sea fireflies' strings, the displayers **tiny hingeshells** by their trade (a hinged shell —
 my assumption from PLANET's lines, **for the person to confirm**), over shallow sheltered floor in the hour after a dark sunset; the milky seas come

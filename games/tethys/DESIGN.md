@@ -2346,7 +2346,8 @@ mark) with a 16-point trail comes down from high in the view onto the child over
   plants).** *Glowing carcasses* (`BACT`): luminous gut bacteria, quorum-lit — `bactGlow` = smooth(0.15, 0.5 days since death) × √(flesh left); shown
   where the water is dark (`bactSee` on skyLw × daylight: 0.35 → 0.06), as soft glow points that hang on the body (30 a second per m of body, 1.6–3.2 s)
   and the nearest two holding a source in the light pool (`BACT.lightK` 1.1, 8 m + the body); a scavenger sees one from × (1 + 1.5 × glow) further
-  (creatures_ai.js `findCarcass`, `c.glow` in spawn's literal). *The dusk displays* (`DSP`): Earth's sea fireflies' strings — the displayers tiny
+  (creatures_ai.js `findCarcass`, `c.glow` in spawn's literal). *The dusk displays* (`DSP`) — **struck v11.162.1** (the person: odd-looking — a straight
+  line of round blue dots out of the ground in a square-featured game; to be rethought as a creature that glows, deep), `DSP.on` false, kept as a kit: Earth's sea fireflies' strings — the displayers tiny
   hingeshells by their trade (the person to confirm) — round the camera within 26 m where the floor is −25…−0.6 m (full −12…−1.5) and sheltered
   (× (1 − 0.7·expo)), in the sun's window −25° → −9° (~0.75–2 h after sunset) and only as dark as the moon allows (gone by 0.4 of a full moon's light);
   a string 6–14 pulses 0.18–0.32 m apart, 0.15–0.28 s apart, each glowing 1.6–2.6 s, three in four rising, the rest along the floor, 5 strings a second at

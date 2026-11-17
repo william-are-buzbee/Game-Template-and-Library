@@ -191,12 +191,14 @@ const BACT_L=[];for(let i=0;i<BACT.lights;i++){const s={x:0,y:-1e5,z:0,color:0x6
 // how bright a carcass's bacteria are (0..1): the quorum by its age (days), the flesh left (a share of the body)
 function bactGlow(ageD,frac){return BACT.K*smooth(BACT.on[0],BACT.on[1],ageD)*Math.sqrt(clamp(frac,0,1));}
 function bactSee(L){return smooth(BACT.dark[0],BACT.dark[1],L);}
-// The dusk displays (DSP): Earth's sea fireflies — ostracods, millimetre crustaceans in a hinged shell — court over shallow reef and seagrass in the
+// The dusk displays (DSP) — STRUCK v11.162.1 (the person, 16 Nov 2026: "the dusk stuff coming out of the ground is odd looking, it comes up in a straight
+// line and its little blue circles in a game with square features. I think for now it should be left out, and instead it should be considered in a different
+// way, like a creature that simply glows"): DSP.on false; the code below is kept as a kit for that rethink. As built v11.161–162: Earth's sea fireflies — ostracods, millimetre crustaceans in a hinged shell — court over shallow reef and seagrass in the
 // hour after a dark sunset: a male swims up spitting pulses of luminous mucus, a dotted string of blue lights rising a metre or two that hangs for a
 // second or two and fades, and the others take up the beat, so the strings come in waves. Moonlight stops them. Here the displayers are tiny
 // hingeshells by their trade (a hinged shell, PLANET's line; a background population, no bodies — the person to confirm), shown round the camera
 // where the floor is shallow and sheltered, between DSP.alt's sun altitudes, as the moon allows.
-const DSP={col:[0.28,0.52,1.0],alt:[-0.42,-0.36,-0.20,-0.15],moon:[0.12,0.4],floor:[-25,-12,-1.5,-0.6],expo:0.7,rate:12,slots:96,view:0.7,size:1.5,n:[6,14],gap:[0.18,0.32],step:[0.15,0.28],life:[1.6,2.6],R:26,beat:7,size:0.8,g:0,hab:0};
+const DSP={on:false,col:[0.28,0.52,1.0],alt:[-0.42,-0.36,-0.20,-0.15],moon:[0.12,0.4],floor:[-25,-12,-1.5,-0.6],expo:0.7,rate:12,slots:96,view:0.7,size:1.5,n:[6,14],gap:[0.18,0.32],step:[0.15,0.28],life:[1.6,2.6],R:26,beat:7,size:0.8,g:0,hab:0};
 // alt: the sun's altitude (sin) — the displays from −25° (rising) to −9° (falling), ~0.75–2 h after sunset; moon: the moon's light (of full) over which they stop; floor: the
 // floor's height (m) over which they live (full −12 to −1.5); expo: how much the surf's exposure takes off; rate: strings a second at full; slots: strings at once;
 // view: the share of strings started in front of the eye (v11.162: 5 a second anywhere round it were a couple of dots at the frame's edge — the person
@@ -215,7 +217,7 @@ function updateNightLights(dt){
     let n=Math.floor(BACT.rate*vis*sz*dt+Math.random());for(;n>0;n--){const u=Math.random()*2-1,a=Math.random()*TAU,r=sz*0.3*Math.sqrt(Math.random());skEmit(c.pos.x+Math.cos(a)*r+u*sz*0.35,Math.min(c.pos.y+(Math.random()-0.3)*sz*0.25,TIDE-0.15),c.pos.z+Math.sin(a)*r-u*sz*0.35,0,0.02,0,0.35+0.4*vis,rnd(BACT.life[0],BACT.life[1]),BACT.col);} // the bacteria's blue-green (~490 nm)
     if(nl<BACT.lights){const s=BACT_L[nl++];s.x=c.pos.x;s.y=c.pos.y+sz*0.6;s.z=c.pos.z;s.intensity=BACT.lightK*vis;s.distance=BACT.lightD+sz;}}
   // the dusk displays: the habitat at the camera every half second, the strings in their slots
-  DSP.g=on?dspGate(K.sunAlt,K.moonL/MOONL):0;dspHabT-=dt;if(dspHabT<=0){dspHabT=0.5;const s=sample(cam.x,cam.z,DSP_F);DSP.hab=dspHab(s.h,s.f[FI.expo]);}
+  DSP.g=on&&DSP.on?dspGate(K.sunAlt,K.moonL/MOONL):0; // STRUCK v11.162.1: DSP.on false (below)dspHabT-=dt;if(dspHabT<=0){dspHabT=0.5;const s=sample(cam.x,cam.z,DSP_F);DSP.hab=dspHab(s.h,s.f[FI.expo]);}
   const gk=DSP.g*DSP.hab;
   if(gk>0.01){const ph=(t/DSP.beat)%1,wave=0.3+1.6*Math.exp(-ph*ph*30)+1.6*Math.exp(-(1-ph)*(1-ph)*30);let n=Math.floor(DSP.rate*gk*wave*dt+Math.random()); // the waves: the strings come together on the beat
     DSP_V.set(0,0,-1).applyQuaternion(camera.quaternion);const fa=Math.atan2(DSP_V.z,DSP_V.x);

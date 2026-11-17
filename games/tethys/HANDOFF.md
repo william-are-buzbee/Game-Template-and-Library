@@ -1,10 +1,17 @@
 # HANDOFF — tethys
 
+**BIOLUM.md (16 Nov 2026): what should glow, where, and why** — a discussion, nothing built. Earth's bioluminescence in brief (three quarters of
+the water column's animals, the floor under a fifth; flashes on contact are the common case, steady lights are lures and counter-illumination), seven
+options placed in DEEP's ecology and ranked (the pall's lights and cloud first, then a lure-bearing plateback of the minimum's floor, the deepbell's
+alarm), and the PLANET rules they would revise. Found: no hunter sees by light (a fixed `detect`), and the deep keeps 0.28 of daylight (`DL_MIN`).
+**The person (17 Nov 2026):** the three rules revised (PLANET), steady lures allowed, the pall first (§8, v11.163). Open: §7.6–11.
+
 **v11.162 (16 Nov 2026): the night as an animal sees it; the wake struck** (world.js `NIGHT_EYE`; atmosphere.js `eyeStep`; scene.js `eyeC`; fx.js; CHANGELOG).
 The eye is a night-adapted fish's (Earth's numbers in DESIGN "The eye"): ~1.45 at a full moon, ~3.1 moonless, opening over a game hour at dusk, the colour
 draining toward blue-grey as it opens. The motion wake (v11.160–160.1) is struck as illegible, its kit kept; the carcasses, the dusk displays (now denser,
 in view, larger) and the milky seas stay. Stacked on v11.161. **The person (16 Nov 2026): the night and the milky sea are "exactly what I wanted"** —
-leave `NIGHT_EYE` and `MILKY` as they are. **Ask:** the displays seen in play; the displayers as tiny hingeshells.
+leave `NIGHT_EYE` and `MILKY` as they are. **v11.162.1:** the dusk displays struck (the person: odd-looking; to be rethought as a creature that glows,
+deep — bioluminescence gets a conversation of its own).
 
 **v11.161 (16 Nov 2026): the night's other lights** (fx.js `updateNightLights`, world.js `MILKY`; DESIGN The body's effects; PLANKTON §8; CHANGELOG).
 Glowing carcasses (their gut bacteria lit by quorum, hours after death, fading with the flesh; scavengers see them further), the dusk displays (sea

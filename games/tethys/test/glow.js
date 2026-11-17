@@ -60,7 +60,7 @@ ok(G.bactSee(0.9)===0&&G.bactSee(0.035)===1,'shown only in the dark (noon in the
     ok(c.glow>0.5&&nc>3,'a '+c.kind+' dead 0.6 days glows '+T(c.glow)+': '+nc+' glow points in a second');ok(L.intensity>0.3&&Math.hypot(L.x-c.pos.x,L.z-c.pos.z)<0.01,'and holds a light ('+T(L.intensity)+')');
     const sc={pos:G.V3(c.pos.x+30,c.pos.y,c.pos.z)};ok(G.findCarcass(sc,20)===c,'a scavenger 30 m off finds it within a 20 m look (the glow carries)');
     noon();const n1=G.SPK.n;for(let k=0;k<30;k++)G.updateNightLights(1/60);ok(G.SPK.n===n1||G.SKY.skyLw*1<0.3,'at noon none shown (its glow '+T(c.glow)+' is there, the water too bright to see it)');night();}}
-console.log('the dusk displays');
+console.log('the dusk displays (struck v11.162.1; their window and floor kept as a kit)');
 const deg=d=>Math.sin(d*Math.PI/180);
 ok(G.dspGate(0,0)===0&&G.dspGate(deg(-15),0)>0.99&&G.dspGate(deg(-35),0)===0&&G.dspGate(deg(-15),0.5)===0,'the window: none at sunset, full at −15°, gone by −35°, none under a moon half up');
 ok(G.dspHab(-5,0)>0.99&&G.dspHab(-130,0)===0&&G.dspHab(2,0)===0&&Math.abs(G.dspHab(-5,1)-0.3)<0.01,'the floor: shallow sheltered, not the deep, not land, little in the surf');
@@ -68,7 +68,7 @@ ok(G.dspHab(-5,0)>0.99&&G.dspHab(-130,0)===0&&G.dspHab(2,0)===0&&Math.abs(G.dspH
   console.log('  the displays\' floor at '+lx+', '+lz+' ('+T(hb)+')');let best=null;for(let lh=21;lh<28;lh+=0.05){G.setClock(G.DAY_H*13+((lh-G.SOLAR_H0)%G.DAY_H+G.DAY_H)%G.DAY_H);G.updateSky(0.016);if(Math.abs(G.SKY.sunAlt-deg(-15))<0.01){best=lh;break;}}
   G.load(lx,lz);const ly=Math.max(G.ground(lx,lz)+1,G.tide()-3);G.camera.position.set(lx,ly,lz);for(const S of G.DSP_S)S.on=false;
   const n0=G.SPK.n;let up=0,tot=0;for(let k=0;k<1200;k++){G.setT(G.getT()+1/60);G.updateSparks(1/60);if(k%30===0)for(const S of G.DSP_S)if(S.on){tot++;if(S.dy>0.9)up++;}}
-  const nd=G.SPK.n-n0;ok(best!==null&&G.DSP.hab>0.5&&nd>100,'a new moon\'s dusk over shallow sheltered floor (hour '+(best||0).toFixed(2)+', the floor\'s '+T(G.DSP.hab)+'): '+nd+' pulses in 20 s');ok(tot>0&&up/tot>0.6,'mostly rising strings ('+up+' of '+tot+')');
+  const nd=G.SPK.n-n0;ok(G.DSP.on===false&&nd===0,'struck (v11.162.1): a new moon\'s dusk over shallow sheltered floor makes no pulses ('+nd+')');
   {const p=G.pos(),al=G.alpha();let nan=0,air=0;for(let i=0;i<G.SK_N;i++){if(al[i]<=0)continue;if(p[i*3]!==p[i*3]||p[i*3+1]!==p[i*3+1])nan++;if(p[i*3+1]>G.tide()+0.5)air++;}ok(nan===0&&air===0,'no NaN and none in the air ('+G.live()+' alive)');}
   {let ns=0n;for(let k=0;k<600;k++){G.setT(G.getT()+1/60);const t0=process.hrtime.bigint();G.updateSparks(1/60);ns+=process.hrtime.bigint()-t0;}const ms=Number(ns)/600/1e6;console.log('  cost: updateSparks (the displays and the carcasses) '+ms.toFixed(3)+' ms a frame, '+G.live()+' alive (this machine, headless)');ok(ms<0.3,'under 0.3 ms a frame headless');}
   G.setClock(G.DAY_H*0+((best-G.SOLAR_H0)%G.DAY_H+G.DAY_H)%G.DAY_H);G.updateSky(0.016);for(const S of G.DSP_S)S.on=false;const n1=G.SPK.n;for(let k=0;k<600;k++)G.updateNightLights(1/60);

@@ -46,9 +46,15 @@ been answered is in [Open](#open), and is not to be decided by Claude.
 - **Temperature.** 26–28 °C mixed layer down to the base of the shelf (~−60), thermocline down the slope, ~3 °C on the
   deep floor, hot at the vents. The shelf is the slowbloods' warm home; the vent field their one warm place below;
   the rest of the deep is for the big and the torpid.
-- **Light.** Red is gone by ~−15, most green by ~−80, blue to ~−200 in clear water. Photosynthesis to ~−150 at the
-  outside. Below −200 vision is useless and hunting is by vibration, chemistry and electroreception (not built:
-  [Hooks](#hooks)).
+- **Light** (revised 17 Nov 2026, the person: "make it appropriate given Earth and the conditions of Tethys' star"; BIOLUM.md §6, §8). The water
+  decides, not the star. Red is gone by ~−15 and most green by ~−80; blue (~480 nm, which the water passes best) falls tenfold every ~90 m in the clearest
+  open water and every ~60 m in the island's fed water. Photosynthesis to ~−150 at the outside. **Below that the light still serves an eye** (Earth's
+  twilight zone): big eyes see daylight to ~−900 in the clearest water and ~−400 to −600 in fed water (where it falls to ~10⁻¹⁰ of the surface's), a full
+  moon to about half those depths (the moon at half Earth's distance gives ~4× its moonlight if it is the Moon's size), starlight to ~−100 to −180. Below
+  those, and at night, the only light is other animals', and the eyes are kept for it (Earth's deep fish see one blue, tuned to bioluminescence). The
+  star changes this little: at 5300 K it sends ~14% fewer photons into that blue window than the Sun for the same total light, which raises each limit
+  by 4–7 m. Vibration, chemistry and electroreception (not built: [Hooks](#hooks)) matter where nothing glows. *To 17 Nov 2026 this bullet said "below
+  −200 vision is useless" — Earth says otherwise.*
 
 ## Geology — the island, decided (8 Sep 2026)
 
@@ -237,7 +243,10 @@ radial, stinging, eyeless; bells in the water, floats on the surface (the button
   the collar; slowbloods: the band's lobes; hingeshells: stalks). The ridge wears the lobes (v11.8.4).
 - **No eye glows** (the person, 9 Sep 2026: a believability rule). Eyeshine is a reflection of a light source and there is
   none down there; a pale iris with a black pupil is pigment and reads intent as well. Eye colour by clade: ringmouths a pale
-  grey-green iris and a black pupil; slowbloods silver-grey; hingeshells black beads. No emissive material on any creature.
+  grey-green iris and a black pupil; slowbloods silver-grey; hingeshells black beads. ~~No emissive material on any creature.~~ **Revised 17 Nov
+  2026 (the person: "old rules existed for old reasons sometimes"; BIOLUM.md §6):** an eye still never glows, but a creature may make light from organs
+  whose use can be named — a lure that feeds it, a pattern its own kind reads, a flash or a cloud that saves it, a belly matched to the light above —
+  drawn as the organ's own flat faces, never a halo round the animal. Nothing glows for nothing.
 - **Blood pigment is the tint family:** copper (ringmouths), iron (slowbloods), pale (hingeshells). Three clades
   distinguishable by colour alone.
 - **Shell colour is water chemistry**, read by place: cream calcite on the reef; rust where dissolved iron meets
@@ -282,6 +291,7 @@ The jelly is an outsider (a cnidarian analogue); "all clades represented" does n
 | "no oxygen" (the player) | **decided:** the player stays a water-breather, but below −450 it takes a slow drain; big slowbloods and the dark's residents shrug it off. **Built v11.101 as the oxygen debt** (DEEP §9): by the water's oxygen, not a depth — survivable in the minimum, a death only under a basin's chemocline |
 | `detect:85` in the dark by sight | deferred (detection modes, a later pass) |
 | day/night | not a conflict yet; a hook |
+| the daylight floor (world.js `DL_MIN` 0.28: the deep lit by day at any depth) | against the Light bullet as revised 17 Nov 2026 (the deep is dark by day below ~−600 in fed water); a readability floor until the person decides (BIOLUM §7.9) |
 
 ## Hooks (derived here, not built)
 
@@ -290,7 +300,10 @@ The jelly is an outsider (a cnidarian analogue); "all clades represented" does n
   return only as *events*: dinoflagellates firing in a wake (the disturbance list already tracks every body), pens and whips
   flashing when brushed (the sway shader already knows a body is near), creatures' brief flashes. Never a lamp. (v11.160: the first of
   these built — the wake, PLANKTON §8: a grazer of the gold that flashes on shear, at night, fatiguing; struck v11.162 as illegible, its kit kept. v11.161:
-  the lights that need no stir — glowing carcasses, the dusk displays, milky seas — each with its reason; fx.js `BACT`, `DSP`, world.js `MILKY`.)
+  the lights that need no stir — glowing carcasses, the dusk displays, milky seas — each with its reason; fx.js `BACT`, `DSP`, world.js `MILKY`; v11.162.1
+  the displays struck.) **Revised 17 Nov 2026 (the person; BIOLUM.md §6): never a lamp without a payoff to its owner.** A lure may glow steadily,
+  because what it draws is eaten; the v10.1 reason stands for a sessile lantern, and so does the person's "no lanterns" (16 Nov 2026). The cross-clade
+  rules' emissive clause and the Light bullet were revised the same day.
 - **The tide** — built (v10.3, DESIGN The surface): 6–9 m twice a 30 h day on a clock that runs a day in forty minutes; the rim
   floods, the passes run in and out, the strand walks, the rocks wear the band; the current turns with it (the tidal stream,
   `tidalAt`, splitting round the shield). Still open: the cones and crowns opening on the flood; day and night on the same clock.
