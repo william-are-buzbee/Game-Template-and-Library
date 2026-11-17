@@ -291,7 +291,7 @@ The jelly is an outsider (a cnidarian analogue); "all clades represented" does n
 | "no oxygen" (the player) | **decided:** the player stays a water-breather, but below −450 it takes a slow drain; big slowbloods and the dark's residents shrug it off. **Built v11.101 as the oxygen debt** (DEEP §9): by the water's oxygen, not a depth — survivable in the minimum, a death only under a basin's chemocline |
 | `detect:85` in the dark by sight | deferred (detection modes, a later pass) |
 | day/night | not a conflict yet; a hook |
-| the daylight floor (world.js `DL_MIN` 0.28: the deep lit by day at any depth) | against the Light bullet as revised 17 Nov 2026 (the deep is dark by day below ~−600 in fed water); a readability floor until the person decides (BIOLUM §7.9) |
+| ~~the daylight floor (world.js `DL_MIN` 0.28: the deep lit by day at any depth)~~ | **resolved v11.170** (the person, 17 Nov 2026: "dark, eye adapts"): below 120 m the light falls by exp(−(d−120)/90), the eye opens for it (world.js `DEEP`; BIOLUM §7.9) |
 
 ## Hooks (derived here, not built)
 

@@ -141,7 +141,16 @@ function tidalAt(x,z,out){const r=Math.hypot(x,z),ex=Math.cos(TIDE_A),ez=Math.si
 // shader follows the JS. The shader reads TIDE as uFogW.x (scene.js; main.js writes it each frame with the other clock uniforms).
 // The canopy fade (CAN_LO/CAN_HI, canopyFade) that sat here to v11.80 went with the canopy's paint (v11.81, PLANKTON.md §12).
 const DL_REF=420,DL_MIN=0.28; // the depth the daylight curve would reach zero at, and its floor
-function daylightAt(y){return clamp(1+Math.min(0,y-TIDE)/DL_REF,DL_MIN,1);}
+// The deep by day (v11.170, BIOLUM §7.9; the person, 17 Nov 2026: "dark, eye adapts"). To v11.169 the daylight fell linearly to a floor of DL_MIN (0.28) by
+// −300 m and stayed there: at −516 m at noon a navy murk, mean 25 of 255; Earth's −500 m in clear water has of the order of a millionth of the surface's light.
+// Below `d0` the light now also falls by exp(−(depth − d0)/`L`) — 13% of the curve's at 300 m, 3% at 400, 1% at the pall ground (−540) — and the animal's eye opens
+// for it as it does at night (atmosphere.js: the eye reads the light at its own depth too; NIGHT_EYE caps it at ×4 and drains the colour toward a rod's blue-grey),
+// so the twilight zone is dim and grey, and the deep below it is dark but for its own lights (the lures, the carcasses, the own light, with their halo since v11.166).
+// The water's own glow (the veil's 0.3 floor, the ambient's) fades with it: nothing lights the deep's water. `on` 0 is v11.169's deep; DEEP_U is the shaders' copy.
+const DEEP={d0:120,L:90,on:1};
+const DEEP_U=new Float32Array([DEEP.d0,1/DEEP.L,DEEP.on,0]);
+function deepK(y){const d=TIDE-y-DEEP.d0;return d>0&&DEEP_U[2]>0?Math.exp(-d/DEEP.L):1;} // the deep's own fade at a height (1 above d0 or switched off)
+function daylightAt(y){return clamp(1+Math.min(0,y-TIDE)/DL_REF,DL_MIN,1)*deepK(y);}
 // The planet's own light at a height (v11.163; PLANET, Light, as revised 17 Nov 2026; BIOLUM.md §8), as a share of the noon sun at the surface: the
 // physics, not the picture — daylightAt above keeps the game's readability floor (DL_MIN, a listed conflict in PLANET). Read by what decides whether a
 // light is worth making (fx.js PHO). The sun by its altitude (sin): over the horizon its height, under it the twilight falling `twi` decades a degree

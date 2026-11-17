@@ -661,10 +661,10 @@ function updateAtmosphere(dt){
   surfaceU.uWin.value.set(tint[0]*K.skyL,tint[1]*K.skyL,tint[2]*K.skyL);surfaceU.uGlint.value.set(K.lumC[0]*K.lumL*1.05,K.lumC[1]*K.lumL*1.05,K.lumC[2]*K.lumL*1.05);{const b=FX.crest?K.lumL*CREST.k*FX.crestK*(1-CLD_SHADE*K.cloudHere)*(1-0.7*K.rain):0;surfaceU.uSss.value.set(K.lumC[0]*CREST.col[0]*b,K.lumC[1]*CREST.col[1]*b,K.lumC[2]*CREST.col[2]*b);} // the crests' light (v11.165): the beam as the caustics have it — the cloud over the player, a shower
   const snap=above!==wasAbove;wasAbove=above;const dK=dt/MED_T;medK=above?Math.min(1,medK+dK):Math.max(0,medK-dK);const snapE=snapMed;if(snapMed){medK=above?1:0;snapMed=false;}
   const k=medK;
-  K.eyeT=FX.eyes?eyeK(lerp(K.skyLw,K.skyL,k)):1;K.eye=eyeSnap||snapE?K.eyeT:eyeStep(K.eye,K.eyeT,dt);eyeSnap=false;FOG_SKE[3]=K.eye; // v11.162: on its clock, set at once by a boot, a load or a skip // the eye (NIGHT_EYE, above): the gain every fogged material, the dome and the horizon multiply their colour by
+  K.eyeT=FX.eyes?eyeK(lerp(K.skyLw*daylightAt(camera.position.y),K.skyL,k)):1;K.eye=eyeSnap||snapE?K.eyeT:eyeStep(K.eye,K.eyeT,dt);eyeSnap=false;FOG_SKE[3]=K.eye; // v11.162: on its clock, set at once by a boot, a load or a skip // the eye (NIGHT_EYE, above): the gain every fogged material, the dome and the horizon multiply their colour by
   const shallow=smooth(-40,0,-depth); // the light's colour reaches the shallows only (red is gone by -15)
   airFogC.setRGB(K.hor[0],K.hor[1],K.hor[2]);FOG_AC[0]=airFogC.r;FOG_AC[1]=airFogC.g;FOG_AC[2]=airFogC.b; // the air segment's colour in every shader (v11.42)
-  fogTarget.setRGB(wr,wg,wb).multiplyScalar((0.3+0.7*dl)*K.skyLw).multiply(skyT2.copy(skyT).lerp(WHITE,1-shallow));
+  fogTarget.setRGB(wr,wg,wb).multiplyScalar((0.3*deepK(player.pos.y)+0.7*dl)*K.skyLw).multiply(skyT2.copy(skyT).lerp(WHITE,1-shallow));
   FOG_T[0]=above?K.skyL:K.skyLw; // the veil and the shader-side daylight scale by the medium's sky (v11.23)
   // Under water scene.fog.color only drives the hemisphere light and the background behind the dome (the fog itself reads
   // the map in the shader); it follows the map with a short lag. In air it is the sky's horizon, which moves with the hour.
@@ -675,7 +675,7 @@ function updateAtmosphere(dt){
   // below, the pads of the canopy above all, read as water-dark rather than black)
   hemiAir.copy(hemiSkyA).multiplyScalar(Math.pow(K.skyL,0.85)).multiply(skyT);hemiAirG.copy(hemiGroundA).multiplyScalar(K.skyL).multiply(skyT);
   hemiSea.copy(seaFogC).multiplyScalar(1.8);hemiSeaG.copy(seaFogC).multiplyScalar(SEA_FOG.ground);
-  hemi.intensity=lerp(0.3+0.7*df,0.85,k);hemi.color.copy(hemiSea).lerp(hemiAir,k);hemi.groundColor.copy(hemiSeaG).lerp(hemiAirG,k);
+  hemi.intensity=lerp(0.3*deepK(player.pos.y)+0.7*df,0.85,k);hemi.color.copy(hemiSea).lerp(hemiAir,k);hemi.groundColor.copy(hemiSeaG).lerp(hemiAirG,k);
   const sunSea=(0.9+0.2*Math.sin(t*2.3)+0.1*Math.sin(t*3.9))*1.2*K.lumLw; // the surface value: the shader scales it by the daylight at the lit point (scene.js, sun-by-depth)
   sun.intensity=lerp(sunSea,1.35*K.lumL,k);
   const wk=above?0:1-k; // the water's things: fading in under the water (k falls from 1), gone the frame the camera is in air (v11.7.2)

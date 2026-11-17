@@ -1,5 +1,7 @@
 # HANDOFF — tethys
 
+**v11.170 (17 Nov 2026): the deep dark by day** (world.js `DEEP`, `deepK`; scene.js `DK_GLSL`; atmosphere.js the eye; DESIGN; BIOLUM §7.9; PLANET's conflict resolved; CHANGELOG). Below 120 m the light falls away (1% at −540) and the eye opens for it as at night: a dim grey twilight zone, a dark deep lit by its own lights. `dark deep` on the effects list. Stacked on #109. **Ask:** the deep by day on the preview; whether it is too dark to swim in.
+
 **v11.167 (17 Nov 2026): murk by place** (scene.js `MURK`; DESIGN Visibility; CHANGELOG). The water is as thick as its plankton: the forest as tuned, the fed flank 1.8× thicker, a bloom up to 3×, poor water up to a fifth clearer. `murk` on the effects list. Stacked on #106. **Ask:** the fed flank and the forest; whether the forest should be the reference.
 
 **v11.166 (17 Nov 2026): the lights' halo** (scene.js `HALO`, `haloL`; DESIGN Visibility; CHANGELOG). Under water a light lights the water round it: the own light, a lure, a glowing carcass, a vent — a closed-form glow along every ray that passes near one. `halo` on the effects list with a strength slider. Stacked on #105. **Ask:** the own light in the deep and at night; a pall's lure.
