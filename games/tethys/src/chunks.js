@@ -456,10 +456,11 @@ function* placeKind(ch,e,count,rng,opt){
   while(count>0){const g=e.grp?Math.min(e.grp,count):1;count-=g;
     const p=opt.at?opt.at.clone():kindPoint(ch,rng,e,opt.off);if(!p)break;if(opt.at)p.y=ch.h(p.x,p.z); // at: a hatch, at the clutch
     if(e.land){p.y+=0.5;spawn(ch,kind,p,rng,o);placed++;yield;continue;}
-    if(D.role==='boid'){p.y=D.mid?openY(ch,p,rng,10,50):clamp(p.y+1.5+rng()*5,p.y+1,-4); // mid (v11.66): a swarm of the water column
-      let s=null;if(opt.juv)for(const q of ch.schools){if(q.members.length&&q.members[0].kind===kind&&(!s||q.pos.distanceTo(p)<s.pos.distanceTo(p)))s=q;} // a recruit joins the nearest ribbon of its kind
-      if(s&&s.pos.distanceTo(p)<60){for(let i=0;i<g;i++){const q=s.pos.clone().add(V3((rng()-0.5)*4,(rng()-0.5)*2,(rng()-0.5)*4));q.y=clamp(q.y,ch.h(q.x,q.z)+1,-4);const m=spawn(ch,kind,q,rng,o);m.school=s;s.members.push(m);placed++;yield;}}
-      else{yield* makeSchool(ch,kind,p,g,rng,o);placed+=g;}}
+    if(D.role==='boid'){if(!opt.juv&&!opt.at){const q=schoolSpot(ch,e);if(q)p.copy(q);} // v11.168: the block's spot for the kind, so the cells round it put their ribbons together
+      p.y=D.mid?openY(ch,p,rng,10,50):clamp(p.y+1.5+rng()*5,p.y+1,-4); // mid (v11.66): a swarm of the water column
+      let s=schoolNear(kind,p,opt.juv?60:SCHOOL.join),left=g; // v11.168: a recruit, or a cell's school at its block's spot, joins a ribbon of its kind with room
+      if(s){const k=Math.min(left,SCHOOL.max-schoolLive(s));for(let i=0;i<k;i++){const q=s.pos.clone().add(V3((rng()-0.5)*4,(rng()-0.5)*2,(rng()-0.5)*4));q.y=clamp(q.y,groundAt(q.x,q.z)+1,-4);const m=spawn(ch,kind,q,rng,schoolOpt(o,rng));m.school=s;s.members.push(m);placed++;yield;}left-=k;}
+      if(left>0){yield* makeSchool(ch,kind,p,left,rng,o);placed+=left;}}
     else if(D.role==='swarm'){p.y=openY(ch,p,rng,10,40);const c=spawn(ch,kind,p,rng,o);c.pig=swarmPig(p.x,p.y,p.z);c.q=rng();c.home.copy(p);c.flesh=bioMass(c.def);placed++;yield;} // v11.84: a swarm in the open water over its place, its pigment kind read off the crop there; v11.85: its biomass, which the filter feeders eat through (creatures_ai.js filterIntake)
     else if(e.grp){const sp=kind==='grazer'?16:kind==='arrow'?8:5;for(let i=0;i<g;i++){const q=p.clone().add(V3((rng()-0.5)*sp,0,(rng()-0.5)*sp)),h=ch.h(q.x,q.z);q.y=D.floor?h+1.5+rng()*1.5:clamp(h+1+rng()*4,h+1,-5);spawn(ch,kind,q,rng,o);placed++;yield;}}
     else if(D.role==='trap'){p.y+=(D.clear!==undefined?D.clear:D.size*0.35)+0.05;if(solidPush(p,1.5,null,ch))continue;const c=spawn(ch,kind,p,rng,o);c.state='sit';c.g.rotation.y=rng()*TAU;placed++;} // the trap, the stone: lying on its floor, any way round (by role since v11.66)
@@ -505,7 +506,8 @@ function unloadChunk(ch){
   for(const c of ch.creatures)disposeCreature(c);
   for(let i=creatures.length-1;i>=0;i--)if(creatures[i].gone)creatures.splice(i,1);
   for(let i=carcasses.length-1;i>=0;i--)if(carcasses[i].gone)carcasses.splice(i,1);
-  for(let i=schools.length-1;i>=0;i--)if(schools[i].chunk===ch)schools.splice(i,1);
+  for(let i=schools.length-1;i>=0;i--){const s=schools[i];if(s.chunk!==ch&&!s.members.some(m=>m.chunk===ch))continue;s.members=s.members.filter(m=>m.chunk!==ch&&m.alive); // v11.168: a school of several cells keeps the members of the others
+    if(s.chunk===ch){const m=s.members[0];if(m&&m.chunk&&m.chunk!==ch){s.chunk=m.chunk;m.chunk.schools.push(s);}else schools.splice(i,1);}}
   chunks.delete(ch.k);CHUNK_V++;farCellChanged(ch.i,ch.j);shadowDirty(ch);
 }
 let activeGen=null,activeKey=null;

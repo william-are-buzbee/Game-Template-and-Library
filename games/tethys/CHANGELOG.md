@@ -8832,6 +8832,41 @@ back to back: the flank 945/947 ms, the lagoon 1938/1938, the forest 2225/2254 (
 **Unseen, ask in this order:** 1. The fed flank (`tp(599,-672,-15)`) and the forest: is the murk right — and should the forest be the reference, or should island
 water be (the forest then greener)? 2. A bloom after a storm (the flank, days after rain). 3. The readout's render ms on and off.
 
+## v11.168 — schools of 20–40 (17 Nov 2026)
+
+WATER.md Part 4, item 5. The person, 17 Nov 2026, on the schools: "We can make school animals that are real animals in the ledger, just make more and make some
+of them small … they can be both"; then, asked: ribbons of 20–40, the small ones juveniles of the schoolers, a shared simple body far off and the full animal near,
+the ledger rebalanced so its totals hold.
+
+- **Where they gather** (creatures_ai.js `SCHOOL` {max 40, block 2, join 45, merge 25, mergeT 1, juv 0.3}; chunks.js `placeKind`). To v11.167 a school was one
+  cell's worth of a kind (`grp` 8–10): at the forest on the low tier, 371 boids in 68 schools, five a school. The ledger is untouched — every animal is still its own
+  cell's, written back by its cell — but a cell now puts its school at a spot shared by its 2×2 block (`schoolSpot`: the same seeded point for every cell of the block
+  and kind, in the water and the row's depth band), joining a ribbon of its kind with room within 45 m (`schoolNear`, the recruits' 60 m as before) before starting
+  one, and ribbons of a kind that meet within 25 m become one, up to 40 (`schoolMerge`, once a second, the smaller into the larger).
+- **The small ones:** 30% of a school placed at load are juveniles (`schoolOpt`: the recruits' own body at ECO.juv of the kind's scale, grown up off screen as any
+  recruit is, keeping its school).
+- **A school of several cells** keeps the members of the others when one cell unloads (chunks.js); to v11.167 a school went with its cell.
+- **The far ribbon in one draw** (`SCHOOL_INST`, `siPush`, `siEnd`): past its `lodNear` (~47 m for a flicker), a schooler that holds nothing and is held by nothing is
+  one instance of its kind's far bake (per kind, age and coat), one `InstancedMesh` per baked geometry; its own meshes hidden (`setLOD` level 2), its group visible, so
+  the growing up and the moult read it as before. Inside `lodNear`, or holding or held, it is the full animal as before. The instanced mesh carries a white
+  `instanceColor`: without one, r128 read a null attribute on the shared material's program and every frame threw (seen).
+
+**Seen** (headless Chromium, dev build, low tier, 640×360, noon): at the forest after the cells load — flicker ribbons of 23, 38, 40, 40; darters 24, 39; a sifter
+school of 20; 30% juveniles; small leftovers of 1–3 (recruits and remainders, merging as they meet). Boids 391 against main's 371 in the same frame count (the
+ledger's own scatter). A ribbon of 40 seen from 70 m, the instancing on and off at the same frozen moment: the same picture (the difference only the player's idle).
+
+**What it costs:**
+
+| | main (v11.167) | v11.168 |
+|---|---|---|
+| `updateSchools` + `updateCreatures` at the forest, ms a frame, best of 3 (test/frames.js, `BASE=`) | mean 2.183, p95 3.41 | mean 2.101, p95 3.66: ×0.96, p95 ×1.07; the simulation not the same (placement moved) |
+| WebGL draws in a frame, 50 m from a ribbon of 40, all counted (gl wrapped) | 372 | 360 (39 fish instanced, 14 of them in view) |
+
+The draw saving is what is in view: three.js skips the fish off screen anyway, and an instanced mesh is drawn whole. A ribbon of 40 entirely in view at 50–130 m is
+about 38 draws fewer. The boids' own cost grows with a ribbon's size squared (each reads its own school): measured above, no change at the forest.
+
+**Unseen, ask in this order:** 1. A ribbon on the preview, near and far (the forest, `tp(330,0)`; the shelf): does it read as a school, and is 40 the size? 2. The
+juveniles in it. 3. The readout's draws and render ms at the forest against main.
 ## v11.169 — the shore's foam (17 Nov 2026)
 
 WATER.md Part 4, item 4; the person, 17 Nov 2026: "let's do the shore foam lines next". Wind Waker draws white lines that hug the coast and travel in; here they are made

@@ -145,11 +145,11 @@ function spawn(ch,kind,pos,rng,opt){
   c.nearR=Math.max(90,d.size*5);c.stepR=Math.max(150,d.size*8); // the two radii the loop's fixed 90 and 150 were (v11.67.2, CREATOR.md the size ceiling): a body to push against and to change out of sight; the distance past which it steps every other frame. Both floor at the old number, so nothing under 18 m moves — the whole roster today. A 300 m animal is pushed against and animated at full rate out to where it is still drawn
   creatures.push(c);ch.creatures.push(c);return c;
 }
-function setLOD(c,level){
+function setLOD(c,level){ // 0 near (the parts), 1 far (the bake), 2 drawn by its school's instanced bake (v11.168, SCHOOL_INST: the creature's own meshes all hidden)
   if(c.lod===level)return;c.lod=level;
   const near=level===0;
   for(const p of c.parts)p.visible=near;
-  for(const m of c.lodMeshes)m.visible=!near&&c.lodMeshes.length>0;
+  for(const m of c.lodMeshes)m.visible=level===1&&c.lodMeshes.length>0;
   if(!near&&c.lodMeshes.length===0)for(const p of c.parts)p.visible=true; // no bakeable parts: keep the real thing, just stop animating
 }
 // A school is a loose ribbon (the boid role): its members flock among themselves and follow the school's wandering target;
@@ -157,8 +157,38 @@ function setLOD(c,level){
 function* makeSchool(ch,kind,p,n,rng,opt){ // a generator (v11.12): one member a step of the cell's build
   const s={pos:p.clone(),home:p.clone(),target:p.clone(),t:0,chunk:ch,members:[],threat:null,scanT:0};schools.push(s);ch.schools.push(s);
   const sz=DEFS[kind].size*3;
-  for(let i=0;i<n;i++){const c=spawn(ch,kind,p.clone().add(V3((rng()-0.5)*sz,(rng()-0.5)*sz*0.4,(rng()-0.5)*sz)),rng,opt);c.school=s;s.members.push(c);c.vel.set((rng()-0.5)*2,0,(rng()-0.5)*2);yield;}
+  for(let i=0;i<n;i++){const c=spawn(ch,kind,p.clone().add(V3((rng()-0.5)*sz,(rng()-0.5)*sz*0.4,(rng()-0.5)*sz)),rng,schoolOpt(opt,rng));c.school=s;s.members.push(c);c.vel.set((rng()-0.5)*2,0,(rng()-0.5)*2);yield;}
 }
+// ---------- the schools' size (v11.168, WATER.md Part 4 item 5; the person, 17 Nov 2026: ribbons of 20–40, the small ones juveniles, the ledger's totals held) ----------
+// To v11.167 a school was one cell's worth of a kind (grp 8–10): measured on the low tier at the forest, 371 boids in 68 schools, five a school. The ledger is
+// untouched: every animal is still its own cell's. What changes is where a cell puts them — at a spot shared by its `block`×`block` of cells (schoolSpot, the
+// same seeded point for every cell of the block and kind), joining a ribbon of its kind with room within `join` m (schoolNear) before starting one — and ribbons
+// of a kind that meet within `merge` m become one, up to `max` (schoolMerge, every `mergeT` s). A cell's school placed at load is `juv` juveniles (the recruits'
+// own body, ECO.juv of the kind's scale, grown up off screen as any recruit is): the small ones in the ribbon. `grp` on the SPAWN rows is the most one cell puts down at
+// once; a school is any size up to `max`. A school holding members of a cell that unloads keeps the rest (chunks.js unloadChunk).
+const SCHOOL={max:40,block:2,join:45,merge:25,mergeT:1.0,juv:0.3,tries:6};
+function schoolOpt(o,rng){return o.juv||!(rng()<SCHOOL.juv)?o:{ent:o.ent,juv:true};} // a juvenile among the placed (the recruits come as juveniles already)
+// the block's spot for a kind: one seeded point near the middle of the block, in the water and in the row's depth band; null if none is found
+function schoolSpot(ch,e){const B=SCHOOL.block,bi=Math.floor(ch.i/B),bj=Math.floor(ch.j/B),r=mulberry(((bi*73856093)^(bj*19349663)^hashStr(e.kind))>>>0),cx=ch.x0+(bi*B-ch.i+B/2)*CELL,cz=ch.z0+(bj*B-ch.j+B/2)*CELL,hb=e.env&&e.env.h;
+  for(let k=0;k<SCHOOL.tries;k++){const x=cx+(r()-0.5)*CELL*0.8,z=cz+(r()-0.5)*CELL*0.8,h=groundAt(x,z);if(h>=-5||(hb&&(h<hb[0]||h>hb[1])))continue;return V3(x,h,z);}return null;}
+// the nearest living school of a kind within R of p with room for more
+function schoolNear(kind,p,R){let best=null,bd=R;for(const s of schools){if(!s.members.length||s.members[0].kind!==kind)continue;let n=0;for(const m of s.members)if(m.alive)n++;if(n>=SCHOOL.max||!n)continue;const d=s.pos.distanceTo(p);if(d<bd){bd=d;best=s;}}return best;}
+function schoolLive(s){let n=0;for(const m of s.members)if(m.alive)n++;return n;}
+let schoolMT=0;
+// The far ribbon in one draw (v11.168; the person, 17 Nov 2026: a shared simple body far off, the full animal near — Abzu's schools, credited in its GDC talk
+// with ten times the fish). Past its lodNear (where it would switch to its far bake anyway: ~47 m for a flicker) a schooler that holds nothing and is held by
+// nothing is drawn as one instance of its kind's far bake (KIND_GEO's lod: per kind, age and coat), in one InstancedMesh per baked geometry and material; its
+// own meshes are hidden (setLOD level 2) and its group stays visible, so nothing that reads c.g.visible changes. The bake was already static far off: the
+// picture is the same, the draws are one per kind and coat instead of one per fish. `cap` instances per mesh (past it the rest draw as before).
+const SCHOOL_INST={on:true,cap:512},SI_MAP=new Map(),SI_LIST=[];
+function siPush(c){const e=c.lodMeshes[0];if(!e)return false;let r=SI_MAP.get(e.geometry);if(!r){const m=new THREE.InstancedMesh(e.geometry,e.material,SCHOOL_INST.cap);m.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(SCHOOL_INST.cap*3).fill(1),3);m.frustumCulled=false;m.castShadow=false;m.count=0;m.visible=false;scene.add(m);r={m:m,n:0};SI_MAP.set(e.geometry,r);SI_LIST.push(r);}
+  if(r.n>=SCHOOL_INST.cap||c.lodMeshes.length>1)return false;c.g.updateMatrix();r.m.instanceMatrix.array.set(c.g.matrix.elements,r.n*16);r.n++;return true;}
+function siEnd(){for(const r of SI_LIST){r.m.count=r.n;r.m.visible=r.n>0;if(r.n)r.m.instanceMatrix.needsUpdate=true;r.n=0;}}
+// ribbons of a kind that meet become one (the smaller into the larger), up to SCHOOL.max; the dead are dropped from the lists on the way
+function schoolMerge(dt){schoolMT-=dt;if(schoolMT>0)return;schoolMT=SCHOOL.mergeT;const M2=SCHOOL.merge*SCHOOL.merge;
+  for(let i=schools.length-1;i>=0;i--){const b=schools[i];if(!b.members.length)continue;const kb=b.members[0].kind,nb=schoolLive(b);if(!nb)continue;
+    for(let j=0;j<schools.length;j++){const a=schools[j];if(a===b||!a.members.length||a.members[0].kind!==kb||(a.pos.x-b.pos.x)*(a.pos.x-b.pos.x)+(a.pos.y-b.pos.y)*(a.pos.y-b.pos.y)+(a.pos.z-b.pos.z)*(a.pos.z-b.pos.z)>M2)continue;const na=schoolLive(a);if(na<nb||na+nb>SCHOOL.max)continue;
+      for(const m of b.members)if(m.alive){m.school=a;a.members.push(m);}b.members.length=0;const k=b.chunk.schools.indexOf(b);if(k>=0)b.chunk.schools.splice(k,1);schools.splice(i,1);break;}}}
 function disposeCreature(c){if(c.fall&&c.fall.c===c)c.fall.c=null;c.alive=false;c.gone=true;releaseAll(c);scene.remove(c.g);c.g.traverse(o=>{if(o.geometry&&!SHARED_GEO.has(o.geometry))o.geometry.dispose();});} // a kind's shared body and bake stay (spawn)
 // a creature leaving the world mid-life (eaten away, grown up): disposed and struck from every list it is on
 function removeCreature(c){disposeCreature(c);let k=creatures.indexOf(c);if(k>=0)creatures.splice(k,1);if(c.chunk){k=c.chunk.creatures.indexOf(c);if(k>=0)c.chunk.creatures.splice(k,1);}
@@ -443,7 +473,7 @@ function updateBoid(c,dt){
   c.vel.lerp(T3,1-Math.exp(-3.5*dt));
 }
 // The schools: a wandering target near home (fleeing threats), and the school's position as its members' mean.
-function updateSchools(dt){
+function updateSchools(dt){schoolMerge(dt);
   for(const s of schools){
     let n=0;T1.set(0,0,0);for(const c of s.members)if(c.alive){n++;T1.add(c.pos);}if(n)s.pos.copy(T1.multiplyScalar(1/n));
     s.t-=dt;
@@ -623,7 +653,7 @@ function updateCreatures(dt0){
     // the action state the anim reads: the tell and the strike are set by the behaviours above and let go here
     const st=c.st;if(c.tellT<=0&&c.strikeT<=0){st.tell*=Math.exp(-4*dt);st.strike*=Math.exp(-7*dt);if(d.role==='ambush'&&c.state!=='lunge')st.strike*=Math.exp(-7*dt);}st.jet=c.state==='chase'&&d.jetter===true;st.turn=c.turnV||0;st.acc=c.accV||0;
     const vis=dp<c.lodFar;c.g.visible=vis;
-    if(vis){visibleCreatures++;if(dp<SEEN_R&&mode==='play')seeSpec(c.kind);if(dp<c.lodNear){setLOD(c,0);if(c.anim)c.anim(t+c.t0,Math.min(4,c.vel.length()/(d.size*0.5)),st);T4.set(0,0,1).applyQuaternion(c.g.quaternion);bodyPose(c,dt,Math.atan2(T4.x,T4.z));}else setLOD(c,1);} // bodyPose (fx.js, v11.53): squash and stretch, banking, the stun's list // seen within SEEN_R (save.js, v11.47): the creator's parts
+    if(vis){visibleCreatures++;if(dp<SEEN_R&&mode==='play')seeSpec(c.kind);if(dp>=c.lodNear&&SCHOOL_INST.on&&d.role==='boid'&&!c.hold&&!c.held&&siPush(c))setLOD(c,2);else if(dp<c.lodNear){setLOD(c,0);if(c.anim)c.anim(t+c.t0,Math.min(4,c.vel.length()/(d.size*0.5)),st);T4.set(0,0,1).applyQuaternion(c.g.quaternion);bodyPose(c,dt,Math.atan2(T4.x,T4.z));}else setLOD(c,1);} // bodyPose (fx.js, v11.53): squash and stretch, banking, the stun's list // seen within SEEN_R (save.js, v11.47): the creator's parts
     if(vis&&dp<c.lodNear&&c.lod===0)simList.push(c);
     if(vis&&dp<c.nearR)near.push(c);
   }
@@ -637,4 +667,5 @@ function updateCreatures(dt0){
   for(const c of near){c.g.position.copy(c.pos);}
   for(const c of simList){if(near.indexOf(c)<0){c.g.updateMatrix();worldShapes(c);c.shapeF=frameNo;}stepRigs(c,bodies,dt0);if(c.grab===P&&c.holding)heldBy++;}
   if(heldBy)P.heldT=0.2;
+  siEnd(); // the schools' instanced bakes (v11.168): this frame's count
 }
