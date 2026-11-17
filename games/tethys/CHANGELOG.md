@@ -8755,3 +8755,30 @@ adaptation alone (still cyan: the view path), 0.03 /m to the eye (cyan), down at
 **Unseen, ask in this order:** 1. The forest and the shelf at strength 1, then move the slider (`e`, under `per-channel colour`): where do you like it? 2. Which of
 v11.164's changes did you enjoy — the shallows' turquoise from above (strength 6+), the pinks going blue, the deep going teal? Those could be kept at a lower overall
 strength if they are the ones.
+## v11.165 — light through the crests (17 Nov 2026)
+
+WATER.md Part 4, item 3, in the order agreed on 17 Nov 2026. A wave's top is thin water: with the sun low behind it, the light goes in at the back,
+scatters forward and comes out of the face turned to the eye, blue-green — the glow along the swell toward an evening sun that Sea of Thieves builds
+from the view angle, the sun and a mask of the wave peaks, and Crest from a sun-falloff knob. Stacked on v11.164 (#104).
+
+- **atmosphere.js `CREST`** (`col` 0.16/0.62/0.52, `k` 2, `g` 0.8, `cap` 12, `h` 0–0.6): on the topside, the beam (`uGlint`'s colour and level, × the cloud
+  over the player and a shower, as the caustics) × `col` × `k` × a Henyey–Greenstein lobe toward the luminary relative to an even spread (capped; ~4 at 25° off
+  the sun, ~1 at 45°, so nothing at noon) × the crest (the wave's height over its amplitude) × less on a facet facing the light × the facet's own transmission
+  (its Fresnel — the mean surface's R, near 1 at the grazing angles crests are seen at, killed it in the first cut) × no foam. One uniform, `uSss`.
+- **`k` is a look, said plainly.** A rough single-scatter estimate (σs 0.03–0.3 /m over ~2 m of crest, the lobe as above) gives 0.1–0.5, which on this swell
+  (steepness 0.07) is 1–3 levels of 255 — measured, with the clock frozen and only the switch flipped. The first cut (a cos⁴ lobe, `k` 0.9) was nothing at all.
+  At `k` 1 a hint, 2 a band of teal light in the swell toward the sun, 4 a painted stripe (seen). 2 is the default; the slider lets you put it back.
+- Topside only: from below the window already shows the light above the crest.
+- **The effects list:** `crest light`, on; `strength` (`crestK`, 0–2) under it.
+
+**Seen** (headless Chromium, dev build, low tier, 640×360, the loop driven by hand, the camera 4 m over open water at (600, 0) facing the luminary): the sun
+21° up at 20.5 h — a band of blue-green light across the swell's rows in the middle distance toward the sun, the glitter path through it; 50° to the side of
+the sun — little; noon, the sun 48° up — none; the sun 6° up at sunset — none to see (the beam is weak and warm); the beach shallows at 20.5 h — the turquoise
+of v11.164 with the swell lit toward the sun. No page errors, no shader warnings.
+
+**What it costs:** one `pow` and a few multiplies on the surface's topside fragments, skipped by a uniform branch when off; one vector set a frame on the
+CPU. SwiftShader at the low-sun view, median of 15: on 2633 ms, off 2628 ms (×1.00). The GPU unmeasured; the readout's render ms toward an evening sun, on
+and off, is the check.
+
+**Unseen, ask in this order:** 1. The sea toward the sun in the evening (`skip()` to about 20 h, then look along the sun's path from just above the water):
+does the light in the crests read as water, and is the strength right (the slider)? 2. The surf on the exposed flank at the same hour. 3. Full quality.
