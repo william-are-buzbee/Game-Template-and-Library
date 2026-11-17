@@ -8,7 +8,7 @@ const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..');
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
 let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n');
-js+='\nglobal.__gl={sample,plank,flashAt,flashK,flashC,FLASH,FLASH_P,FOG_B,PLK,bloomTick,updateSky,updateSparks,sparkBurst,SPK,SK_N,FLOW,SKY,creatures,CURV,FI,bactGlow,bactSee,BACT,BACT_L,dspGate,dspHab,DSP,DSP_S,MILKY,MILKY_P,milkyPulse,updateNightLights,carcasses,kill,findCarcass,FOG_SKF,DAY_S,MOONL,V3,player,camera,DAY_H,SOLAR_H0,CUR_A,'+
+js+='\nglobal.__gl={spawn,chunkAt,mulberry,stepRigs,hitFx,holds,lightPhys,phoGate,PHO,PHO_C,PHO_F,PHO_B,PHO_CL,PHO_L,FX,OXY,ORIGIN,sample,plank,flashAt,flashK,flashC,FLASH,FLASH_P,FOG_B,PLK,bloomTick,updateSky,updateSparks,sparkBurst,SPK,SK_N,FLOW,SKY,creatures,CURV,FI,bactGlow,bactSee,BACT,BACT_L,dspGate,dspHab,DSP,DSP_S,MILKY,MILKY_P,milkyPulse,updateNightLights,carcasses,kill,findCarcass,FOG_SKF,DAY_S,MOONL,V3,player,camera,DAY_H,SOLAR_H0,CUR_A,'+
   'setClock:h=>{clockH=h;TIDE=tideAt(h);},setT:v=>{t=v;},getT:()=>t,tide:()=>TIDE,setFlow:n=>{flowN=n;},live:()=>skLive,alpha:()=>skG,pos:()=>skP,ground:(x,z)=>groundAt(x,z),'+
   'load:(x,z)=>{const ci=cellOf(x),cj=cellOf(z);for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++)if(gridIn(ci+di,cj+dj))loadChunkNow(ci+di,cj+dj);}};';
 const tmp=path.join(require('os').tmpdir(),'tethys_glow_bundle.js');
@@ -81,5 +81,31 @@ console.log('milky seas');
   ok(bl*step/G.DAY_H>=1.5,'it follows the flashers\' bloom by '+(bl*step/G.DAY_H).toFixed(1)+' days (the dying bloom\'s bacteria)');}
 {let found=-1;for(let d=0;d<185*3&&found<0;d++){const h=d*G.DAY_H+((0-G.SOLAR_H0)%G.DAY_H+G.DAY_H)%G.DAY_H;G.setClock(h);G.bloomTick();if(G.MILKY_P[0]>0.6)found=h;}
   if(found<0)ok(false,'no milky night in three years');else{G.updateSky(0.016);G.updateNightLights(0.016);const mN=G.FOG_SKF[3];G.setClock(found+15);G.bloomTick();G.updateSky(0.016);G.updateNightLights(0.016);ok(mN>0.02&&G.FOG_SKF[3]<1e-6,'its midnight lights the water ('+T(mN)+'), its noon does not');}}
+// ---------- the pall's lights (v11.163, BIOLUM.md §8; fx.js PHO, world.js lightPhys) ----------
+console.log('the pall'+"'"+'s lights');
+{const Lp=(alt,moon,dz)=>G.lightPhys(alt,moon,G.tide()+dz);
+  ok(Math.abs(Lp(1,0,0)-1)<0.01&&Lp(deg(-6),0,0)<1e-4&&Lp(deg(-6),0,0)>1e-6,'the planet'+"'"+'s light: noon 1 at the surface, civil dusk '+Lp(deg(-6),0,0).toExponential(1));
+  ok(Math.abs(Math.log10(Lp(1,0,-600))+10)<0.05&&Lp(-1,1,0)<2e-5&&Lp(-1,1,0)>5e-6&&Lp(-1,0,0)<2e-8,'tenfold every 60 m (noon at −600 '+Lp(1,0,-600).toExponential(1)+'); a full moon ~1e-5 of noon, starlight ~1e-8');}
+{noon();const g5=G.phoGate(G.tide()-500),g6=G.phoGate(G.tide()-620);night();const n5=G.phoGate(G.tide()-500);
+  ok(g5<0.15&&g6>0.95&&n5>0.99,'the web'+"'"+'s gate: noon at −500 '+T(g5)+' (the core'+"'"+'s top still lit for a deep eye), at −620 '+T(g6)+'; midnight at −500 '+T(n5));}
+{const x=2400,z=-699;G.load(x,z);night();const y0=Math.max(G.tide()-560,G.ground(x,z)+12);const c=G.spawn(G.chunkAt(x,z),'pall',G.V3(x,y0,z),G.mulberry(5));G.camera.position.set(x,y0+3,z+30);
+  const run=(s,f)=>{for(let k=0;k<s*60;k++){if(f)f(k);G.setT(G.getT()+1/60);G.updateNightLights(1/60);}};
+  run(5);const nf=G.PHO_F.count,A=G.PHO_F.instanceMatrix.array,gl=G.PHO_F.geometry.attributes.aGl.array;let nan=0,far=0,mine=0;
+  for(let i=0;i<nf;i++){for(let q=0;q<16;q++)if(!(A[i*16+q]===A[i*16+q]))nan++;const wx=A[i*16+12]+G.ORIGIN.x,wy=A[i*16+13],wz=A[i*16+14]+G.ORIGIN.z;if(Math.hypot(wx-c.pos.x,wy-c.pos.y,wz-c.pos.z)<14)mine++;if(!G.PHO_C.some(o=>Math.hypot(wx-o.pos.x,wy-o.pos.y,wz-o.pos.z)<14))far++;}
+  ok(c.lumL>0.9&&mine===32,'a pall at '+Math.round(G.tide()-y0)+' m at midnight: the lure on ('+T(c.lumL)+'), 32 faces ('+mine+'): four on each of eight arms ('+G.PHO_C.length+' palls lit here, the ledger'+"'"+'s and this one)');
+  ok(nan===0&&far===0&&gl[0]>0.4,'every face finite and on a pall'+"'"+'s arms ('+far+' off), the web at '+T(gl[0]));
+  noon();const yS=c.pos.y;c.pos.y=c.g.position.y=G.tide()-505;run(5);ok(c.lumL<0.2,'at noon at −505 its web dims ('+T(c.lumL)+')');c.pos.y=c.g.position.y=yS;night();run(5);
+  for(let k=0;k<10;k++)G.stepRigs(c,[],1/60);const q=c.b.rigs[0].chains[0],n=q.n;G.player.pos.set(q.pts[n*3],q.pts[n*3+1],q.pts[n*3+2]);run(0.1);
+  ok(c.lumF>0.9,'touched at an arm'+"'"+'s tip: a flash ('+T(c.lumF)+')');G.player.pos.set(x,y0+40,z+60);run(2);ok(c.lumF<0.05,'gone two seconds after ('+T(c.lumF)+')');
+  const P0=G.V3(c.pos.x-10,c.pos.y,c.pos.z);G.hitFx(c,{pos:P0},c.pos.clone(),5);const cl=G.PHO_CL.filter(s=>s.on).length,away=(c.wander.x-c.pos.x)*(c.pos.x-P0.x)>0;
+  ok(cl===1&&c.lumD>89&&away,'bitten: a cloud ('+cl+'), dark for '+Math.round(c.lumD)+' s, heading away from the biter');
+  run(3);ok(c.lumL<0.15&&G.PHO_B.count===G.PHO.cl.n&&G.PHO_L.intensity>0.3,'three seconds on: the pall dark ('+T(c.lumL)+'), the cloud'+"'"+'s '+G.PHO_B.count+' blobs glowing and lighting the water ('+T(G.PHO_L.intensity)+')');
+  run(G.PHO.cl.life);ok(G.PHO_B.count===0,'the cloud gone after '+G.PHO.cl.life+' s');
+  c.lumD=0;run(5);const h={a:G.player,b:c};G.holds.push(h);const n0=G.PHO_CL.filter(s=>s.on).length;run(0.3);const n1=G.PHO_CL.filter(s=>s.on).length;run(0.4);const n2=G.PHO_CL.filter(s=>s.on).length;G.holds.splice(G.holds.indexOf(h),1);
+  ok(n1===n0&&n2===n0+1,'held: no cloud at 0.3 s, a cloud by 0.7 s ('+n0+' → '+n1+' → '+n2+')');
+  c.lumD=0;G.FX.biolum=false;run(3);ok(G.PHO_F.count===0&&G.PHO_B.count===0,'bioluminescence off on the effects list: nothing drawn');G.FX.biolum=true;
+  const c2=G.spawn(G.chunkAt(x,z),'pall',G.V3(x+30,y0,z),G.mulberry(6)),c3=G.spawn(G.chunkAt(x,z),'pall',G.V3(x-30,y0,z),G.mulberry(7));c.lumD=0;run(5);
+  let ns=0n;for(let k=0;k<600;k++){G.setT(G.getT()+1/60);const t0=process.hrtime.bigint();G.updateNightLights(1/60);ns+=process.hrtime.bigint()-t0;}const ms=Number(ns)/600/1e6;
+  console.log('  cost: updateNightLights with '+G.PHO_C.length+' palls lit ('+G.PHO_F.count+' faces) '+ms.toFixed(3)+' ms a frame (this machine, headless)');ok(ms<0.3,'under 0.3 ms');}
 console.log(failed?'glow: FAILED':'glow: ok');
 process.exit(failed?1:0);
