@@ -171,8 +171,7 @@ const WAVE_REST_GLSL=waveSlopeGLSL('restSlope','uChop',w=>true,true);
 // The level is the higher of the drawn surface and the true wave (v11.42.3): the kelp folds to the true wave (the sway shader's cap, 0.45 m
 // under it) and a raft rides it, so far out a folded top on a crest stands above the drawn mean surface — under the water all the same.
 const WAVE_GLSL_FOG='uniform vec2 uFogTC;float fogWsh(float s){return 2.0*pow(max((s+1.0)*0.5,1e-4),1.7)-1.0;}\n'+WAVE_DEP_GLSL+waveSumGLSL('fogWaveH','uFogTC.y','fogWsh','rm');
-<<<<<<< HEAD
-const FOG_SPEC=new Float32Array(4); // (v11.164, world.js SPECTRAL) x, y the red's and the green's extra loss over the blue's per metre × the effects list's strength, z unused, w the view path's share; effects.js specApply writes it, 0 is off
+const FOG_SPEC=new Float32Array(4); // (v11.164, world.js SPECTRAL) x, y the red's and the green's extra loss over the blue's per metre × the effects list's strength, z the metres the eye has adapted to (v11.164.1, updateFogCamera), w the view path's share; effects.js specApply writes it, 0 is off
 // The lights' halo in the water (v11.166, WATER.md Part 4 item 2; BIOLUM §1: a light that reads here is on a body's faces or is a volume). A light in water
 // lights the water round it: what a ray passes through near a lamp scatters some of the lamp's light into the eye — the cone of murk round a diver's torch,
 // the glow round a lure. In closed form (the single-scattering 'airlight' of an isotropic point source, Sun et al. 2005, without the medium's loss on the way,
@@ -182,9 +181,6 @@ const FOG_SPEC=new Float32Array(4); // (v11.164, world.js SPECTRAL) x, y the red
 // only (the camera's water segment). `halo` on the effects list, its strength `haloK`. Nothing glows that does not already light something.
 const HALO={k:0.05,ext:0.03,hmin:0.25}; // k 0.05: seen in the deep by day and at night in the forest (0.02 a pinpoint, 0.10 a lantern); hmin m, the closest a ray is taken to pass a light; ext per m, the light lost on its way to the scattering water
 const HALO_P=new Float32Array(16),HALO_C=new Float32Array(16); // per light: x, y, z, its distance; r, g, b (colour × intensity × k), on (1/0)
-=======
-const FOG_SPEC=new Float32Array(4); // (v11.164, world.js SPECTRAL) x, y the red's and the green's extra loss over the blue's per metre × the effects list's strength, z the metres the eye has adapted to (v11.164.1, updateFogCamera), w the view path's share; effects.js specApply writes it, 0 is off
->>>>>>> claude/tethys-crest-light
 const FOG_TC=new Float32Array([0,1]); // the time and the chop for the fog chunk's wave sum, as a typed array (v11.42.1): v11.42 handed the chunk timeU itself, and r128's cloneUniforms copies a number by value into every material, so the chunk's clock stood at zero — the level it cut the ray at was a frozen sea. main.js writes x, updateHaze y
 const WAVE_MEAN=WSH_MEAN*WAVE_AMP; // the mean water level relative to the tide, the crest sharpening's offset
 const MIST_GLSL='float mistL(float cy,float dy,float d,float rho,float ih){float k=dy*ih;float a=exp(-max(cy,0.0)*ih),b=exp(-max(cy+dy,0.0)*ih);return abs(k)<1e-3?rho*a*d:rho*(a-b)*d/k;}\n'+ // v11.65: the same integral as rho·exp(-cy·ih)·(1-exp(-k))/k, written with both exponentials bounded — from 90 m up a ray down to the water had k < -88 on the spray's 4 m layer, exp(-k) overflowed float32 and e underflowed, 0·∞ = NaN, and the fragment went black (seen from the giant's summit: the sea and the flank past the far plane black to the horizon)
