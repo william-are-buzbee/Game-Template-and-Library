@@ -1,6 +1,6 @@
 # WATER.md — the sea surface from both sides: audit and proposals (14 Sep 2026)
 
-Status: **Part 4 (17 Nov 2026): what other games do, and the person's answers — item 1 built as v11.164 (the colour lost by channel), item 3 as v11.165 (light through the crests), item 2's halo as v11.166 (the sun's lobe not built), item 6 as v11.167 (murk by the plankton), item 5 as v11.168 (schools), item 4 as v11.169 (the shore's foam). Item 2's sun lobe and 7 (ripples, chromatic caustics) are left; lens effects declined.** Part 1–2 the 14 Sep audit (A, B, C, D and H built as v11.42–v11.44); Part 3 (14 Sep, later) the line from above — built as v11.45 and v11.46; nothing in this file is left unbuilt; E (the whitecaps by steepness) was struck in v11.50.2 — sparkles from below, and the person asked for them gone from above as well; the surf's foam stays. The person asked for scrutiny of how the game looks through the water from below and at it from
+Status: **Part 5 (17 Nov 2026): light across the line, both ways — an audit with frames and numbers, what other games do, proposals A–F and four questions; nothing built.** Part 4 (17 Nov 2026): what other games do, and the person's answers — item 1 built as v11.164 (the colour lost by channel), item 3 as v11.165 (light through the crests), item 2's halo as v11.166 (the sun's lobe not built), item 6 as v11.167 (murk by the plankton), item 5 as v11.168 (schools), item 4 as v11.169 (the shore's foam). Item 2's sun lobe and 7 (ripples, chromatic caustics) are left; lens effects declined.** Part 1–2 the 14 Sep audit (A, B, C, D and H built as v11.42–v11.44); Part 3 (14 Sep, later) the line from above — built as v11.45 and v11.46; nothing in this file is left unbuilt; E (the whitecaps by steepness) was struck in v11.50.2 — sparkles from below, and the person asked for them gone from above as well; the surf's foam stays. The person asked for scrutiny of how the game looks through the water from below and at it from
 above, then a brainstorm of believable additions. Read with DESIGN *The surface*, *Visibility*, *The medium*, and POLISH's
 "What not to build". Files: atmosphere.js (the surface block, `updateAtmosphere`), scene.js (the fog chunk, `WAVE_GLSL`, `addTint`),
 world.js (`WAVES`, `waveH`, `WCOL`, `SEA_FOG`, `AIR`), player.js (`camAbove`, `CAM_CLEAR`, `splash`), far.js (the water and floor maps).
@@ -287,3 +287,154 @@ need" — the density may change by place (6), revising DESIGN *Visibility*'s "o
 effects for now" (7's last). Schools: "we can make school animals that are real animals in the ledger, just make more and make some of them
 small … they can be both" — every member a real animal of the ledger, more of them and some small, drawn cheaply (5). Order: 1, then 3, then 2
 (each behind a switch, measured), then murk and schools.
+
+## Part 5 — light across the line, both ways (17 Nov 2026)
+
+The person's ask: how light crosses the surface in each direction. Looking down into the water feels seamless; looking up there is "the small
+circle window" — believable, but at times "an unrealistically large ceiling" above you. And: (a) a very orange sunset seemed to change nothing under
+the water; (b) deep down, looking up is brighter, but it is unclear at what depth the surface, the light or its source should come into view, and the
+swim from the deep to the surface feels odd, even near the top; (c) above and below seem to have different palettes — above "more white", below more
+saturated blue-green — though the shores look good from the water's edge with no work on them. Compare games that have both (Subnautica 2, Sea of
+Thieves, Raft) and what they use the above for. Nothing is built here; this is the audit, the comparison and the proposals.
+
+**How it was looked at.** Headless Chromium, the dev build, low tier, 640×360, first person with the body hidden, the clock held: over deep water at
+(1800, 0) (floor −326) at noon at 4, 30, 80, 150 and 250 m, looking up and obliquely; at 3° of sun (22.25 h) from 4 m under and 2.5 m over; the forest
+at (330, 0) at 8 m, noon and sunset; the shore at (430, −350) from 4 m over and 2.5 m under. Numbers are 0–255 means of the frame or of a 9×9 box. The shaders'
+light terms were also evaluated on their own in node (the veil by direction; daylight × the eye). The frames stayed in the session.
+
+### How the light crosses now
+
+- **Down, from the air** (why it is seamless): the two-segment fog (v11.42). A fragment under the water seen from the air takes the water's veil over
+  its part of the ray and the air's over the rest, darkened downward by `UPWELL` (the light coming up out of the sea is dimmer and bluer than the level
+  veil). One function draws the water from either side, so a view down from the beach and a view across from under the water agree.
+- **Up, from the water**: the surface's underside is three things (atmosphere.js `SURF_MAT`). The frame seen *through* each facet — translucent by the
+  facet's angle to the eye, full within ~37° and gone by ~70° (`WIN_LO`/`WIN_HI`), × the water's transmittance to the facet, the frame refracted by the
+  facet's tilt (`REFR_*`) — the person's "through a shader" of v11.50–51, after the physical Snell window was struck ("it looks bad", v11.52). Outside
+  that, the mirror: the veil along the reflected ray (`fogVeil`). And a dim diffuse, lit by the sun from above.
+- **The water's own light**: the veil `fc` is the water's colour × the daylight at a point 0.4 of the way to 260 m along the ray (`placeMix`, `reach`)
+  × the sky's light under water (`skyLw`) × the sky's tint (`SKY.tint`) in the top 40 m; the sun's key by depth (`SUNK_V`, `SPEC_DOWN`); since v11.170
+  the eye's gain from the light at the camera's own depth.
+
+### What is wrong, ranked
+
+**1. The ceiling is lit.** From 4 m looking 26° up at noon the mirror is (36, 107, 120); the water just under the line of the horizon is (18, 62, 65):
+the surface is 1.8× brighter than the level water, runs at that brightness to the horizon, and meets the water there in a hard line. That is the large
+ceiling. The mirror reflects the veil *as seen from the surface* plus the underside's sunlit diffuse — and nothing darkens the reflected ray, though it
+points down. In the sea it is the other way: total internal reflection shows the light coming *up* from below at the mirrored angle, the dimmest light
+in the sea (a few per cent of what comes down), so outside the window the surface is a dim silver that fades into the level blue with distance, and
+the one bright thing overhead is the window. The game has the right physics for this already, one way only: from the air a downward ray is darkened by
+`UPWELL`; from the water, the same downward ray in the mirror is not.
+
+**2. The window shows the sky straight through, so it never shows the horizon.** What shows through is the sky within ~40–60° of the zenith, as
+through glass. A real window holds the whole sky squeezed into a 97° cone: the horizon at its rim (48.6° from the vertical), with the sun's disc
+flattened there when it is low. At 3° of sun: above, a pink-orange sky; from 4 m under looking west 29° up — the rim in the frame — a dark blue-grey
+(mean 28, 50, 70) with three faint warm smudges; straight up a flat blue (60, 91, 144). The glow, the sun and the lit clouds are all within 10° of the
+horizon: the part of the sky a straight-through window cannot show. **This is most of (a).**
+
+**3. The sky's tint is grey at sunset (a defect).** `SKY.tint` — the light's colour relative to noon, by which the veil (top 40 m), the ambient
+under water *and the ambient in the air* are multiplied — weights the moon's blue-grey by `1 − dayK` whether the moon is up or not. At the sun's
+setting `dayK` is 0.22, so the moon gets three quarters: (0.78, 0.73, 0.80), a faint violet grey, where the sunlight itself is (1.00, 0.50, 0.25) of
+noon's. Even at 6° of sun it is (0.83, 0.76, 0.77). But the physics does *not* say the water should go orange: a sun near the horizon mostly
+reflects off the surface (Fresnel), so the light in the water at dusk is the sky's diffuse light, mostly the zenith's blue, and the water goes dimmer and
+a little bluer (UCSB's twilight measurements: relatively bluer as the sun sinks). The warm goes to three places: the beam on shallow floors and in
+the shafts and caustics (losing its red in metres — `SPECTRAL`), the window's rim (2), and the crests from above (v11.165). So "zero effect" is half
+right: the bulk's response (dimmer: the forest at 8 m went from a mean of 106 at noon to 27) is right in kind but grey where it should be blue, and the
+places the sunset should show are the ones the window and the tint leave out.
+
+**4. Light comes from every direction the same.** `fogVeil`'s light term, up against level: 1.00 at 10 m, 1.04 at 50, 1.08 at 100; down against
+level 0.82, 0.56, 0.31. In the sea the light looking up is one to two orders above the level light and the level an order above the light looking
+down, and the shape holds as you go deeper (the asymptotic light field). Here, in the top hundred metres, only the window itself is brighter overhead;
+the water round it is the walls' colour.
+
+**5. The depth's light is flat, then a cliff — and looking up from the deep is too bright.** Daylight × the eye, the frame's level: 1.00 at 2 m,
+0.88 at 50, 0.76 at 100, 0.51 at 150, 0.32 at 200, 0.12 at 300. The sea: a tenth by 50 m, a hundredth by 100 (clear ocean). An adapted eye compresses
+that but keeps it steady — every so many metres the same step darker. Here the top hundred metres change by a quarter (they all look like the surface),
+the next hundred by two and a half. And the frame looking up at noon: 80 m — mean 80, 150 m — 84, 250 m — **128**, 8% of it clipped, the top
+(116, 230, 255). The eye opens for the light at its own depth (×2.19 at 250 m), but a ray looking up samples the daylight 104 m higher (0.4 of 260 m),
+three times brighter under the deep's fade. The light a ray gathers comes from within a few extinction lengths of the eye — 10–30 m — not a hundred.
+So coming up from 250 m the view overhead *darkens* to ~150 m, holds to ~80, and only brightens near the top. **This is most of (b)'s "odd".**
+
+**6. The sky's detail lasts too deep.** Through the window the clouds' edges are sharp at 30 m and readable at 80; the frame there is only dimmed by
+the water's transmittance (0.98 at 30 m, 0.76 at 80). In water, forward scattering blurs a picture long before it dims it: brightness outlives detail
+by several times. A diver sees clouds through the window only in the top ten or twenty metres; by 30–50 m the window is a soft bright disc with the sun a
+blurred spot; by 100 m a glow overhead without an edge. **With 4 and 5, this is the rest of (b)**: the game shows the surface's detail where it should
+show only light, and shows no light where it should.
+
+**7. Above the water: pale by the light's balance, and white where it clips.** At the shore at noon (430, −350), from 4 m over the water
+looking at the beach: mean saturation 0.28, the near sea (109, 144, 151), the haze to the horizon a white, the clouds 3% clipped; from 2.5 m under at
+the same spot, 0.42 (its upper half 0.63). The sand and the cliffs themselves keep their colour (the beach 200 m off is (208, 178, 115)); what
+whitens the frame is what covers most of it — the sea reflecting a pale sky at a grazing angle, the haze, the sky — and the light on what is near:
+- **The fill is strong and pale.** The hemisphere's 0.85 × (0.77, 0.86, 0.92) against the sun's 1.35 × (1.00, 0.94, 0.84): the shaded side of
+  anything gets two thirds of the sunlit side's light, in a near-white, so shade is grey rather than blue and the scene is flat.
+- **No tone curve.** A colour over 1 is cut at 1, channel by channel. On flat ground at noon the light is about 1.9: the strand's sand (0.58, 0.62,
+  0.40) comes to (1.08, 1.16, 0.72) — red and green cut, the blue not — a cream where the albedo is a yellow sand; a green lit enough loses its green
+  the same way. Each cut channel takes hue with it, so the nearer and the more sunlit, the whiter. Under the water the light on a face sums to well under
+  1 and nothing is cut.
+- **The sky is pale on purpose**: PLANET's 5300 K star gives "a Rayleigh sky a touch less saturated than Earth's" (world.js `SKYC`), and the sea from
+  above reflects it.
+So the two halves differ for reasons none of which is a decision about the above. That the shores look good anyway is the scene — the shapes, the
+far island — and the sand's own colour at a distance.
+
+### What other games do
+
+The research had search summaries only (the primary pages — 80.lv, the Ocean Optics Book, GDC Vault — were refused by the session's network). What it
+found:
+
+- **No shipped game is known to grade above and below with separate looks**, beyond a water post-process: under water a volume that adds coloured
+  fog, cuts red and some saturation (Maneater removes the red channel; Far Cry 3 runs two post stacks masked at the wave line; Subnautica 2 has a
+  waterline post-process with a night variant — patch 1.1 fixed it "failing to activate at night"; Crest switches its underwater pass off above).
+  Above water each runs its engine's ordinary filmic tone curve and auto-exposure. **That tone curve is what Tethys lacks** (item 7): it is why a
+  bright scene in those games stays coloured in its highlights.
+- **Sea of Thieves**: separate lighting set-ups for morning, noon and night, varying the light's intensity, colour and warmth; the water's colour from
+  the view angle, the sun's direction and a mask of the wave peaks (built here as v11.165); photoreal first, stylised on top. **Abzu**: how near the fog
+  comes is the main lever on the player's feeling. **Black Flag (Resynced)** pushed its turquoise past reality to match memory. **Subnautica 1**
+  separated the sun's dimming with depth from the light's loss on its way to the eye — the split items 4–5 ask for.
+- **What the above is for.** Subnautica: air, safety and orientation — the lifepod, the wreck and the islands as landmarks, breaking the surface as the
+  relief after the dark below. Raft and Stranded Deep: the base and the crafting are above, a dive is a short risk. Sea of Thieves: above is the game,
+  below is danger and loot. Abzu: the breach as punctuation, joy. Maneater: above is where the people are. The common thread: **the above is the
+  bright, warm, open half — relief, orientation, a place to look out from — and the below the cool, enclosing one.** The two differ on purpose, and
+  both are saturated.
+- **In Tethys the above already has that job by rule**: land is a refuge (hunters drop a target ashore — DESIGN *The medium*), the islands are the
+  map's landmarks (the horizon tier), the sky is the clock and the weather, the breach is the one jump in the game. The palette should say so — warm,
+  bright, coloured — and not white.
+
+### Proposals, by effect per millisecond
+
+Each behind a switch on the effects list, measured, looked at both ways across the line.
+
+- **A. The tint, mended and split (3).** The moon's colour weighted by its light, not by the sun's absence. Then two tints where there is one: the
+  beam's (the sunlight relative to noon — the key, the caustics, the shafts, the crests) and the sky's (the zenith relative to noon — the veil, the
+  ambient below). At golden hour and sunset the water goes a deeper blue and dimmer; the sunlit shallows go gold where the beam still reaches, red gone by
+  a few metres. Above, the fill takes the sky's colour and the key the sun's: the ambient stops going grey at dusk. Cost: nothing on the GPU.
+- **B. The mirror as what it reflects (1).** The reflected ray darkened as the fog chunk darkens a downward ray from the air (`UPWELL`, by the ray's
+  slope), the underside's sunlit diffuse dropped. The ceiling goes a dim silver, darker than the level water and fading into it with distance; the
+  window becomes the bright thing overhead and the line at the horizon goes. Cost: none.
+- **C. The light by direction and the light by depth, together (4, 5).** A radiance shape on the veil — brighter up, darker down, the same shape at
+  every depth (say up ×1.8, down ×0.5: the sea's thirty-to-one compressed as the eye would) — and the daylight of a ray read 15–25 m along it, not 104
+  (the colour of the place may keep its 260 m). Then the depth's curve as one steady exponential for the frame's level, e.g. exp(−d/125): 0.67 at 50 m,
+  0.45 at 100, 0.30 at 150, 0.20 at 200, 0.09 at 300, 0.013 at 540 (v11.170's end point), the eye inside it rather than against it. Cost: a few ALU per
+  fogged fragment.
+- **D. The horizon in the window's rim (2).** Keep the through-the-surface look; add the squeezed sky only in the rim's band (where `winT` fades): the
+  sky read along the eye refracted through the facet (`skyLite` of Snell's direction — v11.43–49 paid exactly this), so the rim carries the horizon's
+  band — pale at noon, orange and pink at sunset, the low sun's flattened disc. No hard circle and no pale wall (the snowglobe the person saw): the rim
+  is soft, and outside it is B's dim mirror. Cost: one `skyLite` on the rim's fragments.
+- **E. The window's detail by the water between (6).** The frame through the window blurred and mixed toward the sky's mean colour by the water
+  between the eye and the facet: clouds gone by ~25–40 m, a soft bright disc and the sun's spot to ~80 m, then a glow without an edge that C's up-light
+  carries on. The taps exist (`REFR_BLUR`); the mean is one `skyLite`. Cost: small, on the underside only.
+- **F. The above's palette (7).** (1) The air's light rebalanced as those games light it: a warmer, stronger key against a lower fill in the sky's
+  blue (`AIR.hemiSky` and the 0.85 → ~0.5), so lit faces are warm and coloured and shadows blue — the biggest change for the least. (2) A soft shoulder
+  at the end of the fog chunk, where the eye's gain is applied (every fogged material, the dome and the horizon pass take it): the identity under ~0.6,
+  a smooth roll-off above that keeps the hue, so sunlit sand and grass near you stay coloured. Under the water almost nothing reaches it. (3) The sky's
+  saturation and the haze are PLANET's and the person's (Part 3 P6), left alone unless asked. (1) and (2) are numbers and a few ALU; this is "the
+  approved v6 look", so it goes in beside the old one, to compare.
+
+### To ask the person
+
+1. Sunset: the physical answer — A (a bluer, dimmer water; gold on the shallow floor) and D (the orange at the window's rim) — or the water itself
+   warming at dusk, as a look?
+2. The ceiling: B, the window the only bright thing overhead and the rest a dim silver that fades out?
+3. Depth: how dark should 100 m look against the surface at noon — about half (C's 0.45)? And from the deep, a soft glow overhead (C) that becomes a
+   disc and then a window as you rise (E)?
+4. Above: a tone shoulder and a warmer key against a bluer fill, behind a switch, to compare with today's?
+
+Suggested order: A and B (cheap and clear), then C (the depth, one piece), then D and E (the window), then F.

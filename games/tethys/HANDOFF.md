@@ -1,5 +1,12 @@
 # HANDOFF — tethys
 
+**WATER.md Part 5 (17 Nov 2026): light across the line, both ways** — an audit, nothing built. Looking up, the mirror outside the window is 1.8×
+brighter than the level water (the "large ceiling"); the straight-through window never shows the horizon, so a sunset never reaches it; `SKY.tint`
+weights the moon's grey by the sun's absence and is grey at sunset (a defect); the water's light is the same from every direction in the top 100 m
+and nearly flat with depth, then a cliff, and the view up from 250 m is brighter than from 80 m (the eye opens for its own depth, the ray reads daylight
+104 m higher); the clouds stay sharp through the window to 30 m and readable at 80; above the water the sunlit faces clip to white (no tone curve).
+Proposals A–F and four questions for the person at its end.
+
 **v11.171 (17 Nov 2026): the lure lights the water** (fx.js `PHO_LURE`; CHANGELOG). A lit pall's net now holds a light in the pool at its middle — the lure's level and its flash, the faces' blue, 14 m × its size — lighting what is round it as the own light does, with the halo. Glowing carcasses and the cloud already did. Stacked on #110. **Ask:** a pall at night on the preview.
 
 **v11.170 (17 Nov 2026): the deep dark by day** (world.js `DEEP`, `deepK`; scene.js `DK_GLSL`; atmosphere.js the eye; DESIGN; BIOLUM §7.9; PLANET's conflict resolved; CHANGELOG). Below 120 m the light falls away (1% at −540) and the eye opens for it as at night: a dim grey twilight zone, a dark deep lit by its own lights. `dark deep` on the effects list. Stacked on #109. **Ask:** the deep by day on the preview; whether it is too dark to swim in.
