@@ -1979,6 +1979,15 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   members' mean, wanders near home, and scans for the player and any hunter of its members' kind four times a second. Only its
   own school's members count: a ribbon of seven costs forty-two distances. Flickers in sevens, darters in nines. The v4 offsets
   from a school centre read as a block; this is what replaced them.
+- **The schools' size (v11.168, creatures_ai.js `SCHOOL`, WATER.md Part 4 item 5; the person, 17 Nov 2026).** To v11.167 a school was one cell's worth
+  (`grp` 8–10; at the forest 371 boids in 68 schools, five a school). The ledger is untouched — every animal is its cell's — but a cell puts its school at a spot
+  shared by its 2×2 block of cells (`schoolSpot`, seeded by the block and kind), joining a ribbon of its kind with room within 45 m (`schoolNear`), and ribbons of a
+  kind that meet within 25 m merge up to `max` 40 (`schoolMerge`, once a second). A cell's school placed at load is 30% juveniles (`schoolOpt`; the recruits'
+  own body, grown up off screen). Measured: ribbons of 23–40 flickers and darters, a sifter's of 20, the totals the ledger's (391 boids against 371, the
+  ledger's own scatter). A school holding members of a cell that unloads keeps the rest (chunks.js). **The far ribbon in one draw** (`SCHOOL_INST`, `siPush`,
+  `siEnd`): past its `lodNear` a schooler holding nothing and held by nothing is one instance of its kind's far bake in an `InstancedMesh` per baked geometry
+  (`setLOD` level 2 hides its own meshes; its group stays visible, so the growing up and the moult read it as before). The picture is the far bake's, unchanged
+  (seen: identical frames on and off). The instanced mesh carries a white `instanceColor` — r128 reads one if the shared material's program wants it.
 - **Cost rules** (v10.7, the population tripled): grazers scan for threats at 0.3 s (every frame was the biggest cost in the
   profile), schools at 0.25 s, hunters at 0.4 s, traps at 0.25 s; the wave is only read for creatures within reach of the
   surface; beyond 150 m a creature moves every other frame with two frames' `dt` (`par`, `accT`). Beyond 360 and its `lodFar`

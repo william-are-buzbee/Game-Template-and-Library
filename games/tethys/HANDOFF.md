@@ -1,5 +1,9 @@
 # HANDOFF — tethys
 
+**v11.169 (17 Nov 2026): the shore's foam** (atmosphere.js `SHORE`, `NEAR_F`; DESIGN The surface; CHANGELOG). A white line at the water's edge that runs up and back with the swell, and bores in the surf where the floor rises, travelling in and bunching as the water shoals — from a near map of the ground at the terrain's own 4.5 m. `shore foam` on the effects list. **Ask:** a beach on the preview, the exposed side and the lagoon.
+
+**v11.168 (17 Nov 2026): schools of 20–40** (creatures_ai.js `SCHOOL`, `SCHOOL_INST`; chunks.js placeKind; DESIGN Creatures; WATER.md Part 4; CHANGELOG). Cells put their schools together at a spot per 2×2 block and ribbons that meet merge, up to 40; 30% of a placed school are juveniles; the ledger untouched. Far schoolers are drawn as one instanced mesh per kind and coat. **Ask:** a ribbon on the preview, near and far.
+
 **v11.167 (17 Nov 2026): murk by place** (scene.js `MURK`; DESIGN Visibility; CHANGELOG). The water is as thick as its plankton: the forest as tuned, the fed flank 1.8× thicker, a bloom up to 3×, poor water up to a fifth clearer. `murk` on the effects list. Stacked on #106. **Ask:** the fed flank and the forest; whether the forest should be the reference.
 
 **v11.166 (17 Nov 2026): the lights' halo** (scene.js `HALO`, `haloL`; DESIGN Visibility; CHANGELOG). Under water a light lights the water round it: the own light, a lure, a glowing carcass, a vent — a closed-form glow along every ray that passes near one. `halo` on the effects list with a strength slider. Stacked on #105. **Ask:** the own light in the deep and at night; a pall's lure.
