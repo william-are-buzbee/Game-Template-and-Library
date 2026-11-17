@@ -11,6 +11,12 @@
 //      state takes later and its spawn does not declare would be a shape of its own, and every read of every creature a lookup by name again.
 // `node test/live.js` (TIER=low for the low tier). It says nothing about rendering or sound.
 const fs=require('fs'),path=require('path');
+// 17 Nov 2026 (after v11.168): Math.random seeded (mulberry32, as test/frames.js), so a run is the same run every time. Unseeded, whether an eel on the scripted swim's
+// route caught the player was a coin toss — the clade-1 swim died about half the time after v11.168's schools (seen 17 Nov 2026: 5 of 10 runs here and three
+// pull requests' CI in a row), and the save step after it then found no living line ("new game made no slot"). A catch is gameplay, not a fault; the test
+// is about runtime errors and the save path, so it runs on one fixed stream.
+{let s=1234;Math.random=()=>{s=(s+0x6D2B79F5)>>>0;let t=s;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};}
+
 const ROOT=path.join(__dirname,'..');
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
 let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n');
