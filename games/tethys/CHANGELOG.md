@@ -8920,3 +8920,26 @@ CPU. Not measured on the GPU; a few transcendental ops beside the fog's texture 
 
 **Unseen, ask in this order:** 1. Dive at noon from the shelf to the pall ground (`tp(2400,-699,-150)`, then down): is it too dark to swim in, or right? (`L` 90 is the
 knob: 120 would keep 4% at 400 m.) 2. The pall's lure and a glowing carcass by day in the deep — now they read. 3. The eye's 80 s to open: too slow going down?
+
+## v11.171 — the lure lights the water (17 Nov 2026)
+
+The person, 17 Nov 2026: "The lights of the bioluminescent creatures should actually emit a light. The way the own light does." To v11.170 a pall's net was drawn —
+its faces bright — and lit nothing; the glowing carcasses (fx.js `BACT_L`, two sources) and the pall's cloud (`PHO_L`) already held sources in the light pool. Stacked on
+v11.170 (#110).
+
+- **fx.js `PHO_LURE`** {slots 3, lightK 1.0, lightD 14, color 0x4d9eff}: every lit pall within the faces' reach (`PHO.R`) is a candidate at the middle of its net's faces,
+  its intensity `lightK` × the brighter of what its web and tips show (the lure's level by its gate, and a flash on a touch), its reach `lightD` × its size factor; the
+  three nearest the camera hold the sources. In the light pool (scene.js `assignLights`) they light the bodies, the floor and the rock within reach as the own light does,
+  and the water (the halo, v11.166) when among the nearest. Off with `bioluminescence` (the faces' own switch).
+- BIOLUM.md: a note at its head.
+
+**Seen** (headless Chromium, dev build, low tier, 640×360, 1 h at −540 over the pall ground; a pall placed 14 m ahead with its lure full, none being loaded yet there):
+the net's middle a soft blue glow in the water, its web and the animal lit blue, against the same frozen moment with the lure's light at zero. The light pool held it
+(0.55, 14 m). No page errors, no shader warnings.
+
+**What it costs:** a running sum per drawn face and a pick of three from the lit nets, a frame; the GPU's light count is fixed (`Q.lights`: the pool's size never
+changes, so no shader recompiles), but a lit source costs its fragments the point light's maths where it reaches. Unmeasured on the GPU.
+
+**Unseen, ask in this order:** 1. A pall at night on the preview (`palls()`; `tp(2400,-699,-540)`, give the ledger a few minutes): does the lure light its
+surroundings enough? (`lightK`, `lightD`.) 2. A touch's flash lighting the water. 3. Several palls together: only the three nearest light (and the pool's four, two on
+the low tier, are shared with the vents, the carcasses and the cloud).
