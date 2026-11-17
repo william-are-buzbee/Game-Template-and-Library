@@ -8994,3 +8994,32 @@ WATER.md Part 5, A and B. The person, 17 Nov 2026: "Sunset — physical version 
 **Unseen, ask in this order:** 1. Under the surface at noon, looking up and out: the ceiling a dim silver fading to the horizon — right, or too dark? (`MIRROR.dn`.)
 2. A sunset from a few metres down, then from the shallows over sand: bluer water, warmer light on the sand? 3. A full moon rising at sunset (boot's first
 evening): the moon's light now counts in the tint as the sun goes. 4. The air at dusk: the shade bluer, the lit side unchanged.
+
+## v11.173 — the light by depth and by direction (17 Nov 2026)
+
+WATER.md Part 5, C. The person, 17 Nov 2026: "Depth: go with half for now." Stacked on v11.172 (#115).
+
+- **One curve for the depth** (world.js `DLIGHT`, `daylightAt`, `glowK`; scene.js `DL_GLSL`): the daylight is exp(−depth/`L` 101) — the old line to a 0.28 floor
+  and v11.170's fade below 120 m both replaced by it (floored at `DL_MIN` only with `dark deep` off). With the eye, which opens past ~50 m, the frame's level is
+  0.61 at 50 m, 0.45 at 100 — the person's half — 0.33 at 150, 0.25 at 200, 0.14 at 300, ~2% at the pall ground. To v11.172: 0.88, 0.76, 0.51, 0.32, 0.12 —
+  the top hundred metres all the surface's look, then a cliff.
+- **A ray's daylight read near the eye** (`fogVeil`'s `yl`, `DLIGHT.near` 20 m): it was read at 0.4 of the veil's 260 m reach, so a ray looking up from 250 m saw the
+  daylight of 146 m, three times what the eye had opened for, and the view up was brighter from 250 m than from 80. The colour of the place keeps the long reach.
+- **The light by direction** (`DIR_GLSL` `dirK`, through `fogWater`'s dn with the camera in the water): the veil ×`up` 1.6 straight up, ×`dn` 0.5 straight down, 1
+  level, by the ray's slope — the sea's own shape (one to two orders each way) compressed, the same at every depth. The mirror keeps its own darkening (v11.172).
+- **The water's own glow** (the veil's and the ambient's 0.3 floor, `glowK`) follows the same curve. `depth light` on the effects list (off: v11.172).
+
+**Seen** (headless Chromium, dev build, low tier, 640×360, noon over deep water at (1800, 0), first person, the body hidden, the eye set at once; on against off):
+- looking up, frame means: 4 m 105 (101), 30 m 116 (109), 80 m 99 (74), 150 m 63 (66), 250 m **39 (116, 3% clipped)** — darker all the way down now, the glow
+  overhead fading with the rest instead of flaring in the deep;
+- level at 100 m: 29 (39), against ~53 for the level water at 4 m: about half;
+- straight down at 100 m over a 326 m floor: 14 (7) — the far sample made it blacker than the curve meant.
+- At 80 m the clouds still read through the window: their detail by depth is v11.174's (WATER.md Part 5 E).
+
+**What it costs:** an `exp` in the daylight curve where the old curve's `exp` was (the veil, the sun by depth, the shadow) and two `mix`es; `dirK` once a fragment
+with the camera in the water. Not measured on the GPU.
+
+**Unseen, ask in this order:** 1. A dive from the surface to 150 m at noon: does the light fall steadily, and is 100 m about the half you wanted? (`DLIGHT.L`: 80
+darker, 130 lighter.) 2. The view up from the deep: a glow that brightens as you rise? 3. Looking down into deep water from the shelf's edge: darker below now
+(`dn`). 4. The shallow reef at 20–30 m is a quarter dimmer than before (0.74 at 30 m): too dim?
+

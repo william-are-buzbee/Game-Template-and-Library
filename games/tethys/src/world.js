@@ -149,8 +149,19 @@ const DL_REF=420,DL_MIN=0.28; // the depth the daylight curve would reach zero a
 // The water's own glow (the veil's 0.3 floor, the ambient's) fades with it: nothing lights the deep's water. `on` 0 is v11.169's deep; DEEP_U is the shaders' copy.
 const DEEP={d0:120,L:90,on:1};
 const DEEP_U=new Float32Array([DEEP.d0,1/DEEP.L,DEEP.on,0]);
+// The light by depth and by direction (v11.173, WATER.md Part 5 items 4–5 and C; the person, 17 Nov 2026: "go with half for now"). The frame's level fell a quarter
+// over the top 100 m and then by two and a half over the next hundred (the old curve: linear to DL_MIN, × the deep's fade below d0, against the eye), so the top
+// hundred metres all looked like the surface; and a ray looking up read its daylight 104 m higher (0.4 of the veil's 260 m reach), three times brighter under
+// the deep's fade than at the eye, which had opened for its own depth: from 250 m the view up was brighter than from 80 (frame means 128 and 80, seen). Now, with
+// `on` (DEEP_U[3], `depth light` on the effects list): the daylight is one exponential, exp(−d/`L`) — with the eye (NIGHT_EYE, opening past ~0.5·L) the frame's
+// level is 0.61 at 50 m, 0.45 at 100 (the person's half), 0.33 at 150, 0.25 at 200, 0.14 at 300, about 2% at 540 — floored at DL_MIN only with `dark deep` off;
+// a ray's daylight is read `near` m along it (the light a ray gathers comes from within a few extinction lengths of the eye; the colour of the place keeps the
+// 260 m); and the veil has a shape by direction, the sea's (the light looking up is one to two orders above the level, the level an order above the light looking
+// down, the same shape at every depth: the asymptotic light field) compressed as an eye would — `up` straight up, `dn` straight down, 1 level, by the ray's slope.
+const DLIGHT={L:101,near:20,up:1.6,dn:0.5};
 function deepK(y){const d=TIDE-y-DEEP.d0;return d>0&&DEEP_U[2]>0?Math.exp(-d/DEEP.L):1;} // the deep's own fade at a height (1 above d0 or switched off)
-function daylightAt(y){return clamp(1+Math.min(0,y-TIDE)/DL_REF,DL_MIN,1)*deepK(y);}
+function daylightAt(y){if(DEEP_U[3]>0){const e=Math.exp(-Math.max(TIDE-y,0)/DLIGHT.L);return DEEP_U[2]>0?e:Math.max(e,DL_MIN);}return clamp(1+Math.min(0,y-TIDE)/DL_REF,DL_MIN,1)*deepK(y);} // v11.173: one exponential with `depth light` on (DLIGHT)
+function glowK(y,v){return 0.3*(DEEP_U[3]>0?daylightAt(y):deepK(y))+0.7*v;} // the water's own glow (the veil's and the ambient's 0.3 floor) beside v, the daylight × whatever scales it: the floor faded by the deep (v11.170), by the daylight's own curve with `depth light` (v11.173)
 // The planet's own light at a height (v11.163; PLANET, Light, as revised 17 Nov 2026; BIOLUM.md §8), as a share of the noon sun at the surface: the
 // physics, not the picture — daylightAt above keeps the game's readability floor (DL_MIN, a listed conflict in PLANET). Read by what decides whether a
 // light is worth making (fx.js PHO). The sun by its altitude (sin): over the horizon its height, under it the twilight falling `twi` decades a degree

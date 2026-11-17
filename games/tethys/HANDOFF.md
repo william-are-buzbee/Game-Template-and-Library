@@ -1,5 +1,9 @@
 # HANDOFF — tethys
 
+**v11.173 (17 Nov 2026): the light by depth and by direction** (world.js `DLIGHT`, `daylightAt`, `glowK`; scene.js `DL_GLSL`, `dirK`; DESIGN Visibility;
+CHANGELOG). The daylight one exponential — 100 m about half the surface's level with the eye — read 20 m along a ray, and the veil brighter looking up, darker
+looking down: the view up now dims steadily with depth (it flared brighter from 250 m than from 80). `depth light`. Stacked on #115. **Ask:** a dive to 150 m.
+
 **v11.172 (17 Nov 2026): dusk light and the dim mirror** (atmosphere.js `updateSky` `tintS`/`tintV`, `MIRROR`; world.js `DUSK`; WATER.md Part 5 A, B;
 CHANGELOG). The sky's tint no longer turns grey at sunset (the moon counted only by its light); the water's light takes the sky's colour as the sun gets low
 (bluer), the beam keeps the sun's; the mirror outside the window is as dark as the light it reflects, so the ceiling fades into the blue. `dusk light`, `dim
