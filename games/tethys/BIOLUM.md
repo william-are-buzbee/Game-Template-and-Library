@@ -4,6 +4,8 @@ Status: **answered 17 Nov 2026 (§7): the three PLANET rules of §6 revised as p
 v11.163 (built: CHANGELOG).** Read PLANET.md first (the cross-clade rules, the Hooks and the Light bullet as revised that day), then PLANKTON.md §8, DEEP.md §2–3 and
 DESIGN.md "The body's effects". What is still open is in §7.
 
+**v11.171 (17 Nov 2026), the person:** "The lights of the bioluminescent creatures should actually emit a light. The way the own light does." The pall's net now holds a light-pool source (fx.js `PHO_LURE`), as the glowing carcasses (`BACT_L`) and the cloud (`PHO_L`) did; every one of them takes the halo (v11.166).
+
 ## 1. Where it stands
 
 - **In the game:** glowing carcasses (gut bacteria lit by quorum, fx.js `BACT`; no comment from the person yet), milky seas (world.js `MILKY`: "I love the
