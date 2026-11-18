@@ -79,11 +79,12 @@ builders need. That is the archipelago differing by its logic (SEAFLOOR §2), no
 On the preview (18 Nov 2026): "the most recent update for the sessile creatures was a success ... the tube creatures looked the best by far. ... The
 rock looking ball of little worms looks too busy. I would like to either rework it or ... put it off." Reworked as **v11.182**: the knoll as the lone
 wormshell's gesture many times over — 24 long tubes standing up and out from a dark foot (crowded tube-dwellers grow erect: Earth's serpulid clumps and
-vermetid aggregations), a crown on every living mouth — and drawn without the rock's tide band, which had stained its tubes grey-green.
+vermetid aggregations), a crown on every living mouth — and drawn without the rock's tide band, which had stained its tubes grey-green. The person, on
+its screenshots (18 Nov 2026): "WOW that looks awesome. I adore that new knoll. Exactly what I had in mind."
 
 ## 7. Open
 
 - Whether the banks read as many animals or as a rock with things on it (v11.22 binned exactly that look: "put the placed rocks with stuff stuck
-  to it in the bin"). The knolls did read so (§6) and are a thicket since v11.182; the banks are unanswered. The old domes and the microatoll also stand in
+  to it in the bin"). The knolls did read so (§6) and are a thicket since v11.182, which the person kept; the banks are unanswered. The old domes and the microatoll also stand in
   the tide band (`MATROCKB`'s stain) at their tops — right for the microatoll's dead turfed top, arguable for a living dome; not changed.
 - The sun crown and the sunk gaper (§4), if the reef flat and the sand want them later.

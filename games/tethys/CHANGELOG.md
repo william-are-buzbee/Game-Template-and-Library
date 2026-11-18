@@ -9437,6 +9437,7 @@ Not measured: the GPU's own time.
 foot dark under them; the same from 18 m; the knoll on the slope at −5 m close to: cream tubes and teal crowns, the lone wormshell's look.
 `FLORA=1 node test/preview.js knoll`. `node build.js --test` green (28 runs), the repository's `npm run check` and `npm run build`.
 
-**Unseen, ask in this order:** 1. A knoll in the surf on the preview — `tp(352,-157)` is one 5 m down, 200 m from the start: still busy, or
-tube animals now? 2. In the sun near the surface the tubes' shaded sides read grey; at depth cream. 3. The gaper banks are the other half of
+**The person** (18 Nov 2026, on the before and after screenshots): "WOW that looks awesome. I adore that new knoll. Exactly what I had in mind."
+
+**Unseen, ask in this order:** 1. A knoll in the surf on the preview, `tp(352,-157)`, swum round. 2. In the sun near the surface the tubes' shaded sides read grey; at depth cream. 3. The gaper banks are the other half of
 v11.181's open question (many animals, or a rock with shells on it?).
