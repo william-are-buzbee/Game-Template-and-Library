@@ -67,7 +67,7 @@ const MEADOW_SP=FLORA.filter(f=>f.meadow),MEADOW_K=0.5,MEADOW_C=0.6; // the beds
 function meadowCover(x,z,h,sl,f){if(h>3||h<-60||f[FI.sub]>0.55)return 0; // past every meadow species' envelope (strap −42…−3, tress −46…−22, on sand: their edges reach ~3 m and ~6 m further)
   let c=0;for(const s of MEADOW_SP){const w=envW(s.env,h,sl,f);if(w<=0)continue;const m=meadowM(s,x,z);if(m<=0)continue;c=1-(1-c)*(1-w*m*(s.field?Math.min(1,fieldK(s.field,x,z)):1));}
   return c;}
-function terrainColor(x,z,h,f,sl,tc,n){
+function terrainColor(x,z,h,f,sl,tc,n,wo){ // wo (v11.180): the wood's shell for this vertex, four floats at n·4 (world.js woodAt; scene.js woodGLSL), when the caller draws one
     const rock=ROCK_COL,m=fbm(x*0.07+5,z*0.07+9,3),k=0.78+0.45*m,sub=f[FI.sub],light=smooth(-150,-10,h);
     const sv=clamp(sub*3,0,2.999),si=Math.floor(sv),st=sv-si,c0=SUB_COL[si],c1=SUB_COL[si+1];
     let r=lerp(c0[0],c1[0],st)*k,g=lerp(c0[1],c1[1],st)*k,bl=lerp(c0[2],c1[2],st)*k;
@@ -91,7 +91,14 @@ function terrainColor(x,z,h,f,sl,tc,n){
       const kw=smooth(-1.6,-0.6,h)*smooth(1.2,0.3,h);r=lerp(r,wet[0]*k,kw);g=lerp(g,wet[1]*k,kw);bl=lerp(bl,wet[2]*k,kw);
       const kd=smooth(1.5,4,h);r=lerp(r,dry[0]*k,kd);g=lerp(g,dry[1]*k,kd);bl=lerp(bl,dry[2]*k,kd);
       const kl=smooth(6,18,h)*(0.4+0.6*m),kr=smooth(0.55,0.8,fbm(x*0.05+21,z*0.05+8,2))*0.7;r=lerp(r,lerp(land[0],rust[0],kr)*k,kl);g=lerp(g,lerp(land[1],rust[1],kr)*k,kl);bl=lerp(bl,lerp(land[2],rust[2],kr)*k,kl);
-      const kt=coneK(x,z)*smooth(1.5,4,h);if(kt>0){const tuff=[0.62,0.50,0.32],q=kt*(0.85+0.15*m);r=lerp(r,tuff[0]*k,q);g=lerp(g,tuff[1]*k,q);bl=lerp(bl,tuff[2]*k,q);}} // the tuff cone (v11.86, world.js CONE): palagonite — ash altered by hot water — is tan to ochre, Diamond Head's colour, from the strand up; the same rule on the far terrain
+      const kt=coneK(x,z)*smooth(1.5,4,h);if(kt>0){const tuff=[0.62,0.50,0.32],q=kt*(0.85+0.15*m);r=lerp(r,tuff[0]*k,q);g=lerp(g,tuff[1]*k,q);bl=lerp(bl,tuff[2]*k,q);} // the tuff cone (v11.86, world.js CONE): palagonite — ash altered by hot water — is tan to ochre, Diamond Head's colour, from the strand up; the same rule on the far terrain
+      // the wood (v11.180, world.js woodAt): under a canopy the floor is its litter; on open ground the rain's turf — the tussock and the scrub as the eye
+      // sums them past their draw distance, green where it rains and hay where it does not — as the seagrass beds are painted under theirs (v11.156)
+      if(h>WOOD.spray[0]){const C=WOOD_C,wc=woodAt(x,z,h,sl,f,wo,n*4),gk=_wd.site*(1-wc)*C.grassK,gt=smooth(0.38,0.6,_wd.r),fk=wc*C.floorK;
+        if(gk>0){const gr=lerp(C.hay[0],C.grass[0],gt),gg=lerp(C.hay[1],C.grass[1],gt),gb=lerp(C.hay[2],C.grass[2],gt);r=lerp(r,gr*k,gk);g=lerp(g,gg*k,gk);bl=lerp(bl,gb*k,gk);}
+        if(fk>0){r=lerp(r,C.floor[0]*k,fk);g=lerp(g,C.floor[1]*k,fk);bl=lerp(bl,C.floor[2]*k,fk);}}
+      else if(wo){wo[n*4]=0;wo[n*4+1]=0;wo[n*4+2]=1;wo[n*4+3]=0;}}
+    else if(wo){wo[n*4]=0;wo[n*4+1]=0;wo[n*4+2]=1;wo[n*4+3]=0;}
     const q=smooth(0.9,1.9,sl);
     r=lerp(r,rock[0]*k,q);g=lerp(g,rock[1]*k,q);bl=lerp(bl,rock[2]*k,q);
     // the crust (v11.97, DEEP §2): iron-manganese grows on rock left bare in oxic water, 1-5 mm a million years, thickest in the crust zone
@@ -103,10 +110,10 @@ function terrainColor(x,z,h,f,sl,tc,n){
 // a generator (v11.12): the colouring is 2401 vertices with three or four fbm each, ~10 ms in one step against a 6 ms budget; eight rows a step
 function* buildTerrain(ch){
   const tg=new THREE.PlaneGeometry(CELL,CELL,CH_RES,CH_RES);tg.rotateX(-HPI);
-  const tp=tg.attributes.position,tc=new Float32Array(tp.count*3);
+  const tp=tg.attributes.position,tc=new Float32Array(tp.count*3),tw=ch.landN?new Float32Array(tp.count*4):null; // tw (v11.180): the wood's shell, only on a cell with land
   for(let jj=0;jj<GR;jj++){for(let ii=0;ii<GR;ii++){
     const n=jj*GR+ii,x=(ch.i*CH_RES+ii)*STEP-HALF,z=(ch.j*CH_RES+jj)*STEP-HALF;
-    tp.setXYZ(n,x-ch.ox,ch.hg[n],z-ch.oz);terrainColor(x,z,ch.hg[n],ch.fg.subarray(n*NF,(n+1)*NF),ch.slope(x,z),tc,n);
+    tp.setXYZ(n,x-ch.ox,ch.hg[n],z-ch.oz);terrainColor(x,z,ch.hg[n],ch.fg.subarray(n*NF,(n+1)*NF),ch.slope(x,z),tc,n,tw);
   }if(jj%8===7)yield;}
   // ambient occlusion by the shape of the ground (v11.13): a vertex lower than the mean of its four neighbours at one and two grid steps
   // (4.5 and 9 m) is in a gully or at the foot of a wall and darkens by up to 30%; one higher (a ridge, a crest) lightens by half as much.
@@ -118,7 +125,7 @@ function* buildTerrain(ch){
   for(let jj=0;jj<GR;jj++){for(let ii=0;ii<GR;ii++){const n=jj*GR+ii,h=hg[n];
     const c1=h-(hAt1(ii-1,jj)+hAt1(ii+1,jj)+hAt1(ii,jj-1)+hAt1(ii,jj+1))*0.25,c2=h-(hAt2(ii-2,jj)+hAt2(ii+2,jj)+hAt2(ii,jj-2)+hAt2(ii,jj+2))*0.25,cav=c1*0.7+c2*0.15;
     const ao=cav<0?1-Math.min(0.3,-cav*0.14):1+Math.min(0.12,cav*0.06);tc[n*3]*=ao;tc[n*3+1]*=ao;tc[n*3+2]*=ao;}if(jj%8===7)yield;}
-  tg.setAttribute('color',new THREE.BufferAttribute(tc,3));if(!Q.phong)tg.computeVertexNormals();tg.computeBoundingSphere();
+  tg.setAttribute('color',new THREE.BufferAttribute(tc,3));if(tw)tg.setAttribute('aWood',new THREE.BufferAttribute(tw,4));if(!Q.phong)tg.computeVertexNormals();tg.computeBoundingSphere();
   const m=shadowCaster(new THREE.Mesh(tg,TERRAIN_MAT),TERRAIN_MAT);ch.group.add(m);ch.meshes.push(m);ch.terrain=m; // a caster into the world's map when FX.ground (v11.30)
 }
 function makeInstanced(ch,rng,geo,mat,tints,list,dip,vars,f){
@@ -247,6 +254,7 @@ function chRange(ch){if(ch.rng!==undefined)return ch.rng;if(rgPlatSd(ch.cx,ch.cz
 // species' clumping by its `field` frequency (0.1 to 1.6)
 function meadowM(f,x,z){const M=f.meadow,o=M[3]||0;return smooth(M[1],M[2],fbm(x*M[0]+71+o,z*M[0]+43+o,2));}
 function fieldK(fr,x,z){return clamp(0.1+4*Math.pow(fbm(x*fr+31,z*fr+17,2),2.5),0,1.6);}
+const WOOD_P=new Float32Array(4); // woodAt's output at a try (v11.180)
 function* placeFloraType(ch,rng,f){
   if(f.big)return; // structures are placed and drawn once for the whole world (far.js); placeBigSolids adds their collision
   if(f.range&&f.range.indexOf(chRange(ch))<0)return; // a brooding line's species keeps to its range (v11.119)
@@ -265,6 +273,7 @@ function* placeFloraType(ch,rng,f){
     if(cw>0.03)p=Math.max(p,leeW(x,z)*f.leePer/maxN);
     if(f.field)p*=fieldK(f.field,x,z);
     if(f.succ&&p>0)p*=smooth(f.succ[0],f.succ[1],distAge(x,z,ch.f(x,z)[FI.expo],ch.h(x,z))); // v11.120: the age of the storm's clearing here (grow.js distAge)
+    if(f.wood&&p>0)p*=woodAt(x,z,ch.h(x,z),ch.slope(x,z),ch.f(x,z),WOOD_P,0); // v11.180: the wood's cover (world.js woodAt), its canopy's height in WOOD_P for the scale below
     if(rng()>=p)continue;
     const h=ch.h(x,z);
     if(f.y!=='surface'){const cz=chemoAt(x,z);if(f.chemo?cz===null||h<cz+f.chemo[0]||h>cz+f.chemo[1]:cz!==null&&h<cz)continue;} // nothing sessile under a basin's chemocline but what straddles or mats it (f.chemo: a band about the chemocline, so none where there is none: v11.96, DEEP §2 — to v11.95 the -450 under the whole world)
@@ -273,6 +282,7 @@ function* placeFloraType(ch,rng,f){
     if(f.band&&(h<f.band[0]||h>f.band[1]))continue; // a depth band on the ground (the cones' tide band, the straddlers at the rim)
     if(f.y!=='surface'&&f.y!=='mid'&&ch.slope(x,z)>maxSlope)continue; // nothing grows on a cliff face
     let y=h,sc=f.s?f.s[0]+rng()*(f.s[1]-f.s[0]):1,sy=sc;
+    if(f.wood){sc*=WOOD_P[1]/Math.max(WOOD_P[0],0.05)/WOOD.H;sy=sc;} // a tree as tall as the canopy here, crowns and all, so it meets the shell where it fades
     if(f.reach){if(h>-14)continue;sy=-h-0.6;sc=1;if(f.reach.length)sy*=f.reach[0]+rng()*(f.reach[1]-f.reach[0]);} // reach [lo, hi] (v11.116): that share of the water column, the forest's young (stipeling)
     else if(f.y==='surface'){y=f.ys!==undefined?f.ys:-0.45;}
     else if(f.y==='mid'){if(h>-30)continue;y=h<OXY.top?-40-rng()*300:clamp(h+12+rng()*70,h+10,-14);} // over the deep, above the oxygen minimum (OXY.top; the chemocline's -450 to v11.95)

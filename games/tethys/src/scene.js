@@ -695,7 +695,17 @@ function farMaterial(){const m=new THREE.MeshLambertMaterial({vertexColors:true,
 const MATFAR=addTint(farMaterial(),'lamds',true,undefined,undefined,'card'); // far impostor cards: seen from either side; small-thing fog so the swap with real kelp doesn't pop
 const GLOW=addTint(new THREE.MeshBasicMaterial({vertexColors:true}),'glow'); // no FLORA entry sets `glow` since v10.1 took the bioluminescence out; kept, with its branches in chunks.js, for when it returns as events (PLANET Hooks) — one program at the boot warm-up (v11.33)
 const MATT=addTint(new THREE.MeshLambertMaterial({vertexColors:true,transparent:true,opacity:0.7}),'lamt',true,undefined,undefined,'body'); // translucent small creatures (the flicker); bakeLOD skips transparent parts, so they keep their real mesh at far LOD
-const TERRAIN_MAT=addTint(Q.phong?new THREE.MeshPhongMaterial({vertexColors:true,flatShading:true,shininess:0,specular:0x000000}):new THREE.MeshLambertMaterial({vertexColors:true}),'terr',false,0.7,'world','terr'); // 'world' (v11.40): the cells' terrain and the far terrain de-res on one grid
+// The wood's shell (v11.180, world.js woodAt; DESIGN "The wood"). The terrain carries the canopy as an attribute — aWood: the cover, the canopy's height
+// with its crowns' relief (m), their light, the dry share — and every terrain vertex past the near trees' fade stands at the canopy's top in the canopy's
+// colour: the cells' terrain, the far regions' and (horizon.js, by hand) the horizon's, one rule and one function, so a forest is part of the island
+// from 250 km to the trees. Over FLORA_FAR − FLORA_FADE … FLORA_FAR, where the near trees shrink into their roots (farCut), it sinks to the ground and
+// takes the floor's colour, so the trees stand in for it there; nearer it is the ground. No vertices, no draws: a vec4 a vertex and a few
+// instructions. Not in the depth pass (the shadow map's casters are near, where the shell is down) — DEPTH_PASS shares this code (depthFor).
+// A mesh without the attribute (a cell or region with no land, the warm-up's) reads TERRAIN_MAT's default, no wood.
+function woodGLSL(pos){return '\n#if defined(USE_FOG)&&!defined(DEPTH_PASS)\n{float wdK=smoothstep('+(FLORA_FAR-FLORA_FADE).toFixed(1)+','+FLORA_FAR.toFixed(1)+',distance((modelMatrix*vec4('+pos+',1.0)).xyz,uFogC));transformed.y+=aWood.y*wdK;\n#ifdef USE_COLOR\nvColor.rgb=mix(vColor.rgb,mix(vec3('+WOOD_C.col.map(v=>v.toFixed(3)).join(',')+'),vec3('+WOOD_C.dry.map(v=>v.toFixed(3)).join(',')+'),aWood.w)*aWood.z,aWood.x*wdK);\n#endif\n}\n#endif\n';} // uFogC: the camera (fog_pars_vertex); FLORA_FAR, declared below, is read when a program compiles
+function woodShell(m){m.onBeforeCompile=function(sh){sh.vertexShader='attribute vec4 aWood;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>'+woodGLSL('position'));};return m;}
+const TERRAIN_MAT=addTint(woodShell(Q.phong?new THREE.MeshPhongMaterial({vertexColors:true,flatShading:true,shininess:0,specular:0x000000}):new THREE.MeshLambertMaterial({vertexColors:true})),'terr',false,0.7,'world','terr'); // 'world' (v11.40): the cells' terrain and the far terrain de-res on one grid
+TERRAIN_MAT.defaultAttributeValues={aWood:[0,0,1,0]}; // a terrain mesh with no land carries no aWood: without this its slot would read whatever generic value WebGL last held there (three sets a material's defaults for a missing attribute)
 // Instanced sway: displacement in world units, scaled per instance so tall and short plants bend alike.
 // bob: the whole instance rides the wave at its origin (surface rafts) and sinks by its aDip attribute (a pad under a body).
 // H: the geometry's height along its growth axis in local units (dir: +1 grows up from the root, -1 hangs down from it).
@@ -783,5 +793,6 @@ const MATG=swayMaterial(0.35,1.6,2.4,1,false,2.4,false,true,true,0.35),MATB=sway
   MATSC=swayMaterial(3.2,0.7,40,1,false,1.0,false,true,true), // the stipeling (v11.155): the stipe's sway with the cut and its fade — it has no card, and on MATS a cell's young popped in at once at FLORA_FAR
   MATM=swayMaterial(1.6,1.0,12,1,false,14,false,true,true,0.35), // mid-height weed (ladder, ribbon, the pen): bends over its top ten metres; cut
   MATGL=swayMaterial(0.35,1.6,2.4,1,false,2.4,false,false,true,0.35), // the tussock: the grass sway on land, never folded to the water (cap); cut
-  MATTR=swayMaterial(0.3,0.45,9,1,false,14); // the tidal forest (v11): a trunk in the wind — a slow sway from the crown, never capped to the water, never leaning to the current (land: chunks.js makeInstanced gives it no aCur); no cut (the cards)
-MATTR.land=true; // thin (the last argument, v11.13): the share of the far face's light that comes through a blade — the weed, bladders, rafts, whips, the tussock; not the stipe, not the trunks
+  MATTR=swayMaterial(0.3,0.45,9,1,false,14), // the tidal forest (v11): a trunk in the wind — a slow sway from the crown, never capped to the water, never leaning to the current (land: chunks.js makeInstanced gives it no aCur); no cut (the cards)
+  MATWD=swayMaterial(0.25,0.35,18,1,false,27,false,false,true,0.25); // the platewood (v11.180): a tall trunk in the wind, its plates lit through a little (thin); cut at FLORA_FAR, where the terrain's shell takes over (woodGLSL)
+MATTR.land=true;MATWD.land=true; // thin (the last argument, v11.13): the share of the far face's light that comes through a blade — the weed, bladders, rafts, whips, the tussock; not the stipe, not the trunks

@@ -82,5 +82,5 @@ same rings to a png), `tp(x,z,y)` in the game's console to go and look, `test/pr
 - Asked 15 Sep 2026 with v11.62 in hand, open: the caldera (built, r 700, 110 m — keep, fill it as a post-shield volcano does, or strike);
   rivers in the master valleys (nothing carries water on land); the reef's amount (by envelope: what the lime polyps' rule gives a 1 km shelf);
   the greens above `h` 60 (tussock and scrub stop there by their envelopes, so the giant's slopes are bare rock above it; the rain says the
-  windward flank should be green to the cloud base at 650); whether the windward cliff's face wants a rock colour of its own (the strand's
+  windward flank should be green to the cloud base at 650) — answered 18 Nov 2026 by the person's ask for a wood, built v11.180 (TAXA "The wood"); whether the windward cliff's face wants a rock colour of its own (the strand's
   colours run to 18 m by height, so it reads as a bluff); the road; the layout against the map's json.

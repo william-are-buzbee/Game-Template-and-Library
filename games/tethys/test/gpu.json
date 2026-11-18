@@ -3,18 +3,18 @@
  "size": "1600x900",
  "frames": 12,
  "boot": {
-  "draws": 436,
-  "instances": 37394,
-  "triangles": 8284750,
-  "vertices": 24859650,
-  "programs": 170,
-  "uniforms": 4882,
+  "draws": 438,
+  "instances": 37396,
+  "triangles": 8284752,
+  "vertices": 24859656,
+  "programs": 172,
+  "uniforms": 4993,
   "passes": 26,
-  "bufferBytes": 26133920,
+  "bufferBytes": 28621616,
   "textureBytes": 59327144,
   "copyBytes": 0,
   "readbacks": 0,
-  "compiles": 60
+  "compiles": 62
  },
  "places": {
   "forest": {
@@ -71,6 +71,21 @@
    "uniforms": 921.8,
    "passes": 2,
    "bufferBytes": 92160,
+   "textureBytes": 0,
+   "copyBytes": 0,
+   "readbacks": 0,
+   "compiles": 0,
+   "sight": 0
+  },
+  "wood": {
+   "draws": 60,
+   "instances": 34162,
+   "triangles": 2220552,
+   "vertices": 6663456,
+   "programs": 20,
+   "uniforms": 680,
+   "passes": 2,
+   "bufferBytes": 63648,
    "textureBytes": 0,
    "copyBytes": 0,
    "readbacks": 0,

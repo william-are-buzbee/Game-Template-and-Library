@@ -19,7 +19,7 @@ const BENCHES={
   world:{file:'test/bench.js',what:'the world: its load, µs a sample() over five windows',src:['util','world','region']},
   frames:{file:'test/frames.js',what:'the creatures\' work a frame at the forest (node)',src:[/^creatures_/,'physics','parts','combat','fx','main','player']},
   creatures:{file:'test/bench_creatures.js',what:'every kind\'s build, a cell\'s generation at five places, the creatures\' frame (Chromium)',src:[/^creatures_/,'parts','chunks','flora','grow','ecology','reef']},
-  gpu:{file:'test/gpu.js',what:'what a frame asks of the GPU at four places (Chromium)',src:[/./],not:['audio','bench','save','input','worldmap','menu','zoo','lab'],shell:true},
+  gpu:{file:'test/gpu.js',what:'what a frame asks of the GPU at five places (Chromium)',src:[/./],not:['audio','bench','save','input','worldmap','menu','zoo','lab'],shell:true},
 };
 const ref=opt('--ref')||'',all=argv.includes('--all'),dry=argv.includes('--dry'),only=opt('--only');
 // ---- what changed ----
