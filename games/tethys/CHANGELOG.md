@@ -9158,3 +9158,38 @@ swim; a smooth read is four fetches a map. The `oxygen` and `hurt` layers are CS
 
 **Unseen, ask in this order:** 1. The deep in the dark with the own light (the person's 610 m still): any edge or ring left? 2. The open water at 100–150 m, level
 and looking down: the horizon line and the rings. 3. The vignette's strength (`VIG_A`) and the own light's glow, now that both are honest — too strong?
+
+
+## v11.178 — the sky in the world's palette (18 Nov 2026)
+
+The person: the clouds "at times have a dark underside that resembles the night sky in a way that is hard to distinguish", and "not being sure where is sky
+until you see stars can be off-putting"; the sky "could use some more love"; "make the sky and the clouds part of the palette". Looked at first (main, from
+the menu's sea spot at noon, afternoon, sunset, dusk and a moonless night): the cloud's light was mixed from the sky's own colours (`cloudVol`: its shade
+zen·0.9 + hor·0.2 by night, half that pulled to grey by day, its lit side by night zen·1.6 + hor·0.6). So the core of a cloud at night was the night sky to the
+level, a moonless night's clouds a touch *lighter* than the sky, the bases by day a darker sky-blue (the deck overhead a slate ceiling with holes in it), and
+the night sky's horizon the dark sea's colour. Four changes, all agreed (CLOUDS.md §9, §7; atmosphere.js):
+
+- **The clouds lit by the light that reaches them** (`CL_LIT`): the sky's mean with 70% of its colour gone; the shade 0.92 of it by day, 0.45 by night —
+  under the sky behind it, so an unlit cloud at night is a dark starless shape and a moonlit one silver round a dark core; the lit side at night 0.8 of it
+  plus the moon. The three light bands' edges eased over ±0.12 of a band (the person: "soften them a touch"). `cloud light`.
+- **The lagoon glow** (`LAGOON`): a base over 3–40 m of water tinted turquoise by it, from the floor map's depth under the mean point the ray saw — the
+  light the Pacific's navigators read on a cloud for an atoll out of sight. `lagoon glow`.
+- **The airglow** (`AIRGLOW`): the night sky's own light, brighter toward the horizon by the layer's slant (van Rhijn, a layer at 90 km): the sky over the
+  sea lighter than the sea, so the line shows at night, and the clouds dark against it. `airglow`.
+- **The twilight's far side** (`TWI`): opposite a sun from 3° up to 8° down, the planet's shadow rising as a blue-grey band and the pink anti-twilight arch
+  over it, after the haze. `twilight bands`.
+- **The dome on the tone curve** with `soft highlights` (v11.175 left it out): the sky, the sun and the clouds' tops roll off as the land and the far sea do.
+
+**Seen** (headless Chromium, dev.html on the high tier at 960×540, the loop driven by hand from the menu's sea spot (700, 6, −700) and from the giant's lagoon
+(−5500, 8, 9000), each switch on and off): noon — grey bases against blue, the sky between them plainly sky; dusk with the moon rising — the clouds dark shapes
+on a lighter sky (before: their cores the sky's own navy); a moonless night — dark starless clouds over a faint lighter band above the sea, the horizon visible
+(before: none); a full moon at 41° — silver rims round near-black cores; the east at the sun 2.5–5.4° down — a lighter haze line at the horizon, the blue-grey
+shadow over it, the pink band over that (off: one lilac gradient); sunset from the west — grey silhouettes on the pink (before: lavender). The lagoon glow at
+its first strength (1.0) turned whole bases cyan, a filter; cut to 0.8 × a gentler tint, and kept off the sunlit tops.
+
+**What it costs:** the dome only, per pixel: the airglow's and the twilight's few dozen operations; in the march one more `vec2` sum per cloud step and one
+texture read of the floor map per pixel with cloud. Not measured on the GPU (nothing here can); the dome draws every pixel of sky above the water.
+
+**Unseen, ask in this order:** 1. A moonless night from the water: dark enough, readable enough? (`CL_LIT.shN`, `AIRGLOW.col`.) 2. The east an hour after
+sunset: the shadow band and the pink (`TWI.shK`, `bK`). 3. Noon over a lagoon (the giant's, `tp(-5500,9000)`): the glow's strength (`LAGOON.k`). 4. The
+render ms at the sea spot against v11.177's.

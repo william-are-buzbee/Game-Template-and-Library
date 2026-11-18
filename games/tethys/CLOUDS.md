@@ -5,7 +5,7 @@ showers with a place) built as v11.88 the same day; the deck as a ray-marched vo
 stills of v11.87–88: two systems, one clearly 3D and one "a paper you fully color in", that "in combination look worse"; the analysis in §8
 and the build, on their full confidence. v11.90 (the same day, the person on v11.89: "this is definitely the system we are going with", "we 100% can
 remove the old cloud system"): the slice deck and the lumps (§5) are struck, the clouds are the volume alone on both tiers; the clouds smaller, the
-bases lighter and rounded; and `Q.vol` renamed `Q.march` — it had shadowed the master volume's key, the "hilariously bass boosted" audio.** Storms proper
+bases lighter and rounded; and `Q.vol` renamed `Q.march` — it had shadowed the master volume's key, the "hilariously bass boosted" audio.** **v11.178 (18 Nov 2026, §9): the clouds lit by the light that reaches them — grey bases, dark at night — the bands eased, the lagoon glow, the airglow and the twilight's far side.** Storms proper
 (§6's last paragraph) are the next sky pass. Written from the discussion of
 23–24 Sep 2026: the person asked whether the sky's several cloud kinds were designed or accreted, what this planet's sky should be and how
 it should change by the day, the week and the year, for as much variety as is believable and no more, and how the clouds meet the rest of
@@ -149,6 +149,9 @@ event, thunder by the distance, a squall line; and a distant shower's hush.
 - **24 Sep 2026:** "Let's explore that direction [the near clouds as low-poly lumps] and let's put D off for the next pass. Go right ahead."
 - **24 Sep 2026, on v11.87:** "Wow. Looks awesome. Go ahead on D if you're ready."
 - **24 Sep 2026, on the stills of v11.87–88:** the two cloud systems "are not cohesive and in combination look worse"; asked what is believable (one morphing layer that gets visually split, §1–2), whether one could replace the other (§8: the volume replaces the slices; the lumps stand down), and whether a foundational change had been avoided for the low-poly vibe ("quantize the shit out of it until it looks compressed enough" — built as the banded light); "go ahead and implement this", with full confidence.
+- **18 Nov 2026 (v11.178, §9):** the clouds' dark undersides "resemble the night sky in a way that is hard to distinguish", and "not being sure where
+  is sky until you see stars can be off-putting"; "make the sky and the clouds part of the palette". All four proposals yes (the clouds lit by light, the
+  airglow, the twilight's far side, the lagoon glow); a moonless night "believably dark" ("we might add the readability back"); §8's three bands: "soften them a touch".
 
 ## 8. The volume (v11.89): one cloud system, marched
 
@@ -207,3 +210,33 @@ level is a plane, but it is not a cut). **The old system** — struck: `cloudDec
 and `cloud volume` switches, `Q.cloud`; the low tier marches too (`Q.march` 28, unmeasured there). **The audio** — `Q.vol` was the master
 volume's key since v11.14; v11.89's `vol:80` for the march's steps shadowed it in the same object literal, and the game played at 80× gain
 through the compressor. Renamed `Q.march`.
+
+## 9. The sky in the world's palette (v11.178, 18 Nov 2026)
+
+**What was wrong.** The volume's light (§8) was mixed from the sky's own colours: its shaded side zen·0.9 + hor·0.2 by night and half of that pulled
+to grey by day, its lit side by night zen·1.6 + hor·0.6. So at night the core of a cloud was the night sky to the level — told apart only by the stars it hid
+— and on a moonless night the clouds were a little *lighter* than the sky; by day the bases were a darker sky-blue, the deck overhead a slate ceiling whose
+cores read as holes. And the night sky's horizon was the dark sea's colour: no line between them.
+
+**What a cloud is.** White droplets: its colour is the light that reaches it — the whole sky's (bright at the horizon, so less blue than the zenith), the
+sea's from below (dark, a few per cent), and the luminary's. Over an open sea at night an unlit cloud hides the sky's own glow and is lit by almost nothing:
+a dark starless shape. By moonlight its moon side is silver and its core dark.
+
+**Built** (atmosphere.js `CL_LIT`, `LAGOON`, `AIRGLOW`, `TWI`; DESIGN The sky; effects `cloud light`, `lagoon glow`, `airglow`, `twilight bands`):
+- **The clouds lit by light.** The dome's light on a cloud is the sky's mean (zen·0.55 + hor·0.45) with 70% of its colour gone (`sat` 0.30); the shade
+  is `shD` 0.92 of it by day and `shN` 0.45 by night (below the sky behind it); the lit side at night `litN` 0.8 of it plus the moon's light ×0.30; under
+  rain 0.55. The three bands stay, their edges eased over ±`soft` 0.12 of a band.
+- **The lagoon glow.** The floor map's depth under the mean point of what the ray saw tints the base turquoise over water 3–40 m deep (`tint` × `k`), the
+  most at the base and on the shaded side, none over land or under rain: the light on a cloud's underside the Pacific's navigators read for an atoll beyond
+  the horizon.
+- **The airglow.** The upper air's own light, most of a moonless sky's: brighter toward the horizon by the layer's slant (van Rhijn, a layer at 90 km,
+  held to 4×), dimmed in the last degrees; × (1 − dayK). The sky over the sea is lighter than the sea, so the line shows, and the clouds stand dark on it.
+- **The twilight's far side.** Opposite a sun near the horizon the planet's shadow rises as a blue-grey band, its edge at 0.01 + 0.85 × the sun's
+  depression (sines), with the pink of the anti-twilight arch over it; after the haze, which is in the shadow too.
+- **The tone curve on the dome** with `soft highlights` (v11.175 left the dome out): the sky, the sun and the clouds' tops roll off as the land and the far
+  sea do.
+
+**Open, for the person:** the moonless night's readability (`shN`, `AIRGLOW.col`: the person may want it back); the lagoon glow's strength (`LAGOON.k`);
+the belt's and the shadow's (`TWI.bK`, `shK`). The sea's own reflection (`skyLite`) and the horizon pass's far sky do not carry the airglow or the
+twilight bands: the sea under them is the sky without them, which reads as the line between them.
+
