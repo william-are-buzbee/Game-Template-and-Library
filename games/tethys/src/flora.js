@@ -891,6 +891,37 @@ function tussockB(rg) {
   }
   return {P: P};
 }
+// the platewood (v11.179, TAXA "The wood"): the greens' canopy on the high islands' rain. The scrub's line, where the rain lets it, grown tall: a
+// jointed trunk (the line's signature) that drops its lower whorls as the canopy shades them, and at its top tiers of plates — each a whorl's
+// branchlets flattened and webbed into one green sheet, the leaf the land line invented (Earth's broad leaves came the same way, a branch system
+// flattened and webbed). The plates lie flat to the sun, the top tier widest, so a crown is a parasol and a stand's crowns meet in a roof. Three
+// variants: k 0 a young tree in a gap (two tiers, 0.65 of the height), k 1 the canopy (three tiers), k 2 an emergent (1.2, the top tier wider).
+// Height 1 is WOOD.H (22 m) on k 1; the cell scales each to the canopy's height where it stands (chunks.js, FLORA `wood`), so the trees meet the
+// shell (scene.js woodGLSL) where they fade. Trunk in WOOD_C.trunk, the plates in white under the instance's leaf tint; 52–66 triangles.
+function platewoodB(rg, k) {
+  const P = [],
+    col = [],
+    H = WOOD.H * [0.65, 1, 1.2][k],
+    tint = WOOD_C.leaf,
+    TR = WOOD_C.trunk.map((v, i) => v / tint[i]), // the trunk's colour under the leaf tint
+    r0 = 0.42 * (H / WOOD.H);
+  const N = axis(P, {segs: 3, len: H * 0.97, r0: r0, r1: r0 * 0.4, wander: 0.04, lean: 0.07, sides: 4, rib: true, open: true, col: TR}, rg),
+    top = N[N.length - 1];
+  col.push({a: [0, 0, 0], b: [top.x * 0.6, H * 0.6, top.z * 0.6], r: r0 * 1.1});
+  const tiers = k ? [[0.66, 0.24], [0.81, 0.3], [0.96, k === 2 ? 0.42 : 0.36]] : [[0.78, 0.26], [0.96, 0.34]]; // [height, radius] as shares of H
+  for (let t = 0; t < tiers.length; t++) {
+    const y = tiers[t][0] * H,
+      R = tiers[t][1] * H * (0.9 + rg() * 0.2),
+      n = 7,
+      ph = rg() * TAU,
+      c = t === tiers.length - 1 ? [1.06, 1.06, 1.0] : [0.86, 0.88, 0.9], // the top tier the sunlit one, the lower shaded and older
+      q = y / H,
+      cx = top.x * q,
+      cz = top.z * q; // on the trunk's lean
+    for (let i = 0; i < n; i++) bladeAt(P, cx, y, cz, R, ((TAU * R) / n) * 0.8, ph + (i / n) * TAU + (rg() - 0.5) * 0.3, 0.16, 1, c, 0.06);
+  }
+  return {P: P, col: col};
+}
 // ---------- the reds (TAXA): a rind — flat, tough, thin; paint on rock, sheets, balls ----------
 // crust: two or three flat plates a hand thick stuck to the rock, overlapping; the founder form of the reds and the light's floor.
 // Pink where it lays lime in bright water (the reef's crest: limerind), red-purple down the slope (rind) — one builder, the pigment
@@ -1282,6 +1313,7 @@ const FLORA = [
   ), // the reed-bed: the sheltered tide band (the rim's inner slope, the island's flat) — under water at high tide, a swamp of stems
   species('tussock', {mat: MATGL, photo: true, line: 'green', tints: GREENT, s: [0.5, 1.3], per: 1500, env: {h: [1.2, 60]}, field: 0.02, minH: 1.2}, tussockB),
   species('scrub', {mat: MATGL, photo: true, line: 'green', tints: GREENT, s: [0.7, 1.8], tilt: true, per: 110, env: {h: [2, 60], expo: [0, 0.65]}, minH: 2}, scrubB), // v11.86: not on the shore the waves strike — salt-blasted; on the tuff cone that is its windward rim (the cone has its own exposure, world.js CONE)
+  species('platewood', {mat: MATWD, tints: [WOOD_C.leaf, [0.3, 0.39, 0.19], [0.35, 0.39, 0.21]], wood: true, air: true, s: [0.85, 1.15], per: 300, minH: 4, maxSlope: 1.3}, platewoodB), // the wood (v11.179): placed by world.js woodAt's cover and scaled to its canopy's height (chunks.js placeFloraType); no env, no card — past FLORA_FAR the terrain's shell is the wood (scene.js woodGLSL)
   {
     id: 'chimney',
     geo: chimneyGeo(),

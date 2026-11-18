@@ -20,9 +20,11 @@ function hzUniforms(){const L=(THREE.ShaderLib&&THREE.ShaderLib.lambert&&THREE.S
 const HZ_VS_HEAD='uniform vec3 uFogC;uniform mat3 uFogR;uniform vec4 uFogW;varying float vFogDepth;varying vec3 vFogPos;\n'; // the fog's vertex stage by hand: vFogPos is the dropped world position
 const HZ_FS_HEAD='#define USE_FOG\n'+DITHER_PARS+'\n'; // then the chunk: fogAir, skyLite, the mist
 function hzMat(vs,fs){return new THREE.ShaderMaterial({uniforms:hzUniforms(),vertexShader:vs,fragmentShader:fs,vertexColors:true,side:THREE.DoubleSide,fog:false});}
-const HZ_TERRAIN_MAT=hzMat(HZ_VS_HEAD+'varying vec3 vCol;varying vec3 vN;void main(){vec3 w=(modelMatrix*vec4(position,1.0)).xyz;vec2 dd=w.xz-uFogC.xz;float dr=dot(dd,dd)*'+(0.5/HZ_R).toExponential(6)+';vec4 mv=modelViewMatrix*vec4(position.x,position.y-dr,position.z,1.0);vFogDepth=length(mv.xyz);vFogPos=vec3(w.x,w.y-dr,w.z);vCol=color;vN=normal;gl_Position=projectionMatrix*mv;}',
+const HZ_WOOD='float wdK=smoothstep('+(FLORA_FAR-FLORA_FADE).toFixed(1)+','+FLORA_FAR.toFixed(1)+',distance(w,uFogC)),wdY=aWood.y*wdK;'; // the wood's shell (v11.179, scene.js woodGLSL): the same rule by hand — past HZ_SEA0 of the far plane it is always up
+const HZ_TERRAIN_MAT=hzMat(HZ_VS_HEAD+'attribute vec4 aWood;varying vec3 vCol;varying vec3 vN;void main(){vec3 w=(modelMatrix*vec4(position,1.0)).xyz;vec2 dd=w.xz-uFogC.xz;float dr=dot(dd,dd)*'+(0.5/HZ_R).toExponential(6)+';'+HZ_WOOD+'vec4 mv=modelViewMatrix*vec4(position.x,position.y-dr+wdY,position.z,1.0);vFogDepth=length(mv.xyz);vFogPos=vec3(w.x,w.y-dr+wdY,w.z);vCol=mix(color,mix(vec3('+WOOD_C.col.map(v=>v.toFixed(3)).join(',')+'),vec3('+WOOD_C.dry.map(v=>v.toFixed(3)).join(',')+'),aWood.w)*aWood.z,aWood.x*wdK);vN=normal;gl_Position=projectionMatrix*mv;}',
   HZ_FS_HEAD+THREE.ShaderChunk.fog_pars_fragment+'\nvarying vec3 vCol;varying vec3 vN;void main(){vec3 n=normalize(vN);float sd=max(dot(n,uSkE.xyz),0.0);vec3 amb=mix(uSkB.xyz,uSkA.xyz,0.5+0.5*n.y)*'+HZ_LIGHT[0].toFixed(3)+';vec3 col=vCol*(amb+uSkD.xyz*uSkA.w*sd*'+HZ_LIGHT[1].toFixed(3)+');'+
   'vec3 dv=vFogPos-uFogC;float d=length(dv);if(d<uHzMin)discard;vec3 rd=dv/max(d,1e-3);col=fogAir(col,uFogC,rd,d,1.0);gl_FragColor=vec4(dithering(toneC(eyeC(col,uSkE.w),uSkD.w)),1.0);}'); // uSkE.w: the eye's gain (v11.159; v11.162 its colour, eyeC), as the world's fog chunk takes it // lit by the sky's own uniforms (the zenith and horizon as the ambient, the sun's colour by dayK), an approximation of the world's hemisphere and sun that the haze at 1.3 km hides
+HZ_TERRAIN_MAT.defaultAttributeValues=Object.assign({},HZ_TERRAIN_MAT.defaultAttributeValues,{aWood:[0,0,1,0]}); // every member carries aWood; the default is for safety (scene.js TERRAIN_MAT)
 HZ_TERRAIN_MAT.uniforms.uHzMin={value:FAR*HZ_SEA0};HZ_TERRAIN_MAT.fragmentShader='uniform float uHzMin;\n'+HZ_TERRAIN_MAT.fragmentShader; // v11.86.1: the land mesh draws only past HZ_SEA0 of the far plane, where the sea disc starts and the main pass hands over — nearer, its Q.hz-metre triangles can stand over the camera where the fine ground is a hollow (the tuff cone's crater: from its floor the sky was the mesh's tan underside; the person, 23 Sep 2026), and nothing in the main pass covers the sky
 const HZ_SEA_U={value:new THREE.Vector4(HZ_LIGHT[3],HZ_LIGHT[2],1,0)}; // the disc's terms, live: the reflection's ceiling, the column's weight, the body's (tuned in the pane against the surface's far end, v11.65)
 const HZ_SEA_MAT=hzMat(HZ_VS_HEAD+'void main(){vec4 wp=modelMatrix*vec4(position,1.0);vec2 dd=wp.xz-uFogC.xz;wp.y-=dot(dd,dd)*'+(0.5/HZ_R).toExponential(6)+';vec4 mv=viewMatrix*wp;vFogDepth=length(mv.xyz);vFogPos=wp.xyz;gl_Position=projectionMatrix*mv;}',
@@ -64,21 +66,21 @@ function hzWatch(x,y,z){const H=hzSetup();let added=false;for(const q of H.tops)
 function* hzMember(m){const H=hzSetup(),{S,C,x0,z0,nx,nz,cx,cz,tops}=H,t0=performance.now();let tq=t0;
   const CH=new Map(),cH=(i,j)=>{const k=j*(cx+1)+i;let h=CH.get(k);if(h===undefined){h=sample(x0+i*C,z0+j*C).h;CH.set(k,h);}return h;};
   const HH=new Map(),hAt=(i,j)=>{const k=j*nx+i;let h=HH.get(k);if(h===undefined){h=sample(x0+i*S,z0+j*S).h;HH.set(k,h);}return h;};
-  const cT=new Float32Array(3),f=new Float32Array(NF);
+  const cT=new Float32Array(3),f=new Float32Array(NF),wT=new Float32Array(4);
   const cells=[],i0=Math.max(0,Math.floor((m.x-m.t-x0)/C)),i1=Math.min(cx-1,Math.floor((m.x+m.t-x0)/C)),j0=Math.max(0,Math.floor((m.z-m.t-z0)/C)),j1=Math.min(cz-1,Math.floor((m.z+m.t-z0)/C));
   for(let j=j0;j<=j1;j++){for(let i=i0;i<=i1;i++){const mx=x0+(i+0.5)*C,mz=z0+(j+0.5)*C;let own=null,bu=2,rim=false;
       for(const q of tops){const d=Math.hypot(mx-q.x,mz-q.z);if(d<q.t){const u=d/q.t;if(u<bu){bu=u;own=q;}if(q.r>0&&Math.abs(d-q.r)<q.w)rim=true;}}
       if(own!==m)continue;if(rim||Math.max(cH(i,j),cH(i+1,j),cH(i,j+1),cH(i+1,j+1))>HZ_CUT)cells.push(i,j);}
     if(performance.now()-tq>HZ_MS){yield;tq=performance.now();}}
-  const keep=new Map(),pos=[],col=[],nrm=[],idx=[],li=Math.round((m.x-x0)/S),lj=Math.round((m.z-z0)/S),[ox,oz]=originOf(x0+li*S,z0+lj*S),OL=ORIGIN.on; // v11.110: the mesh at a lattice point by the member, its vertices whole steps from it
+  const keep=new Map(),pos=[],col=[],nrm=[],wd=[],idx=[],li=Math.round((m.x-x0)/S),lj=Math.round((m.z-z0)/S),[ox,oz]=originOf(x0+li*S,z0+lj*S),OL=ORIGIN.on; // v11.110: the mesh at a lattice point by the member, its vertices whole steps from it
   const use=(i,j)=>{const k=j*nx+i;let v=keep.get(k);if(v!==undefined)return v;const x=x0+i*S,z=z0+j*S,h=sample(x,z,f).h;
     const gx=(hAt(Math.min(i+1,nx-1),j)-hAt(Math.max(i-1,0),j))/(2*S),gz=(hAt(i,Math.min(j+1,nz-1))-hAt(i,Math.max(j-1,0)))/(2*S),sl=Math.sqrt(gx*gx+gz*gz),L=Math.sqrt(gx*gx+1+gz*gz);
-    terrainColor(x,z,h,fixF(f,sl),sl,cT,0);v=pos.length/3;pos.push(OL?(i-li)*S:x,h,OL?(j-lj)*S:z);col.push(cT[0],cT[1],cT[2]);nrm.push(-gx/L,1/L,-gz/L);keep.set(k,v);return v;};
+    terrainColor(x,z,h,fixF(f,sl),sl,cT,0,wT);v=pos.length/3;pos.push(OL?(i-li)*S:x,h,OL?(j-lj)*S:z);col.push(cT[0],cT[1],cT[2]);wd.push(wT[0],wT[1],wT[2],wT[3]);nrm.push(-gx/L,1/L,-gz/L);keep.set(k,v);return v;};
   for(let c=0;c<cells.length;c+=2){const ci=cells[c],cj=cells[c+1];
     for(let j=cj*HZ_C;j<Math.min((cj+1)*HZ_C,nz-1);j++)for(let i=ci*HZ_C;i<Math.min((ci+1)*HZ_C,nx-1);i++){if(hAt(i,j)<HZ_CUT&&hAt(i+1,j)<HZ_CUT&&hAt(i,j+1)<HZ_CUT&&hAt(i+1,j+1)<HZ_CUT)continue;const A=use(i,j),B=use(i+1,j),Cc=use(i,j+1),D=use(i+1,j+1);idx.push(A,Cc,B,B,Cc,D);} // a→b along +x, a→c along +z, the far layer's winding
     if(performance.now()-tq>HZ_MS){yield;tq=performance.now();}}
   H.built.add(m);H.n.cells+=cells.length/2;H.n.ms+=performance.now()-t0;if(!idx.length)return;
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(nrm,3));g.setIndex(idx);
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(nrm,3));g.setAttribute('aWood',new THREE.Float32BufferAttribute(wd,4));g.setIndex(idx);
   g.computeBoundingSphere();if(g.boundingSphere)g.boundingSphere.radius+=HZ_DROP;
   const mesh=new THREE.Mesh(g,HZ_TERRAIN_MAT);mesh.name=m.id;mesh.position.set(ox,0,oz);hzLand.add(mesh);H.n.v+=pos.length/3;H.n.t+=idx.length/3;}
 function* hzGen(cx0,cz0){const H=hzSetup(),order=H.tops.slice().sort((a,b)=>(Math.hypot(a.x-cx0,a.z-cz0)-a.to)-(Math.hypot(b.x-cx0,b.z-cz0)-b.to));

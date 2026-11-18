@@ -9193,3 +9193,56 @@ texture read of the floor map per pixel with cloud. Not measured on the GPU (not
 **Unseen, ask in this order:** 1. A moonless night from the water: dark enough, readable enough? (`CL_LIT.shN`, `AIRGLOW.col`.) 2. The east an hour after
 sunset: the shadow band and the pink (`TWI.shK`, `bK`). 3. Noon over a lagoon (the giant's, `tp(-5500,9000)`): the glow's strength (`LAGOON.k`). 4. The
 render ms at the sea spot against v11.177's.
+
+
+## v11.179 — the wood (18 Nov 2026)
+
+The person: "implement a form of tree that can cover the land areas, especially the large island … more like actual photosynthesizing trees", their
+colour from the sun's through the pigment, "probably green but we should be sure exactly what"; performance-friendly, "something you see on the island
+when you view it from far away … part of the island", with LODs; the existing trees left alone ("more of a beach plant"); "a loose silhouette … painted on
+the entirety of these larger islands at no real performance hit" for now, density and canopy leaned toward. ARCHIPELAGO had this open since 15 Sep: the
+greens stop at `h` 60 and the giant's slopes above it were bare rock. Built (TAXA "The wood", DESIGN "The wood"):
+
+- **Where** (world.js `WOOD`, `woodAt`): the cover from the fields sample() already gives, through a rain index — the trades' rain on the windward face,
+  more with height (`lift` 350 m) to the inversion (`CLOUD_H + CLOUD_T`) and dry above it; the lee in the rain shadow with a band on its middle slopes; the
+  lee's stands broken at ~600 m, as a dry slope in 28% oxygen burns. Off the spray belt, cliffs, young flows and the vents' heat, and off ours (within its
+  `core`: the remnant, as v11.86 left it — nothing on ours changes). The giant 47% mean cover (37% closed), the awesome shield 63% (56%), the old high island
+  m109 and m122 by the same rule. The stage-6 line in TAXA ("every land species is a relict") stands for ours; the bigger islands it was a relict *of* are
+  in the province now, and they keep their wood.
+- **Its colour** (test/leaf.js, new): the red pigment pair falls where the ground's light falls fastest — 678 nm for the Sun in Earth's air, 677 for this
+  star in Tethys's — so the red edge is the air's (O₂'s B band, water's 720), not the star's; the blue the model cannot settle (it fails its own check on
+  the Sun), and the greens' descent does (a marine line; Earth's land plants kept their algae's pigments). The leaf is Earth's olive green (hue 83°), the
+  canopy darker (`WOOD_C.col` [0.254, 0.314, 0.156]), a dry canopy paler and yellower (`dry`).
+- **Far: the terrain's shell.** `terrainColor` writes the canopy's cover, height with the crowns' relief, their light and the dry share as `aWood` on every
+  terrain mesh (cells, far regions, horizon members); past 360–450 m from the camera the vertex stands at the canopy's top in the canopy's colour
+  (scene.js `woodGLSL`, horizon.js `HZ_WOOD`). No vertices or draws: an island's forest from 250 km in to 450 m.
+- **Near: the platewood** (flora.js `platewoodB`; `MATWD`): a jointed trunk with two or three tiers of seven flat webbed plates — a parasol crown — placed
+  by the cover (`per` 300 a cell, FLORA `wood`), each scaled to the canopy's height where it stands, faded in at 450 m as the shell sinks over the same
+  360–450 m. 52–66 triangles a variant; a trunk capsule. Under it the floor's litter (`floor`); on open land the turf (`grass`, `hay`) that the tussock and
+  scrub make to an eye too far to see them.
+- The tidewood, reed, scrub and tussock are as they were.
+
+**Seen** (headless Chromium, dev.html on the high tier at 960×540, the camera set by hand, main beside it): the giant from 11 km at 6 m — a green island in the
+haze where main's is grey; from 900 m off the windward coast — green slopes over the cliff (main: grey-tan); from 300 m — the cliff as main's, a parasol skyline
+on it; inside the forest at 150 m on the windward slope — a stand of parasols, the hills beyond green to the ridge; the awesome shield from the sea. Tuned on
+the way: the plates widened (seven, 0.8 of the ring) and the floor greened, since the first stand read as umbrellas over brown; the windward coast's own
+rain boost struck (it put woodland on every coast, ours' cone included). A dark band on the giant's windward coast from (−8446, 11735) is main's too — not
+this change.
+
+**What it costs:**
+
+| | before (main) | after | ratio |
+|---|---|---|---|
+| sample(), µs (test/bench.js, five windows) | 0.90–1.41 | 0.91–1.42 | 0.96–1.02, the same to the bit |
+| a cell, 3×3 at the giant's coast, all forest (test/bench_creatures.js) | 43.9 ms | 45.3 ms | ×1.03 |
+| a cell at the forest, atoll, platform, open sea | 46.8, 45.9, 26.6, 11.4 | 46.2, 46.2, 27.0, 11.3 | ×0.99–1.02 |
+| the horizon's 15 members (test/horizon.js, node, mean of 3) | 2,734 ms | 2,849 ms | ×1.04 (built a slice a frame) |
+| triangles drawn, inside the forest (the readout's count, hidden instances included) | 1.16 M | 2.20 M | +1 draw |
+
+Not measured: the GPU. The shell is a vec4 a terrain vertex and a dozen instructions; the trees within 450 m of a forest are up to ~4,000 instances of ~550
+vertices (three variants packed, two collapsed at the top of the sway shader), and the cells out of view hidden by their flags. Ask for the readout inside the forest.
+
+**Unseen, ask in this order:** 1. The giant from the water (`tp(-4594,13133)`): does it read as a forested island, and is the green right? 2. The forest
+inside (`tp(-10703,10914,3)`): the stand, and the hand-off at 360–450 m — does the canopy rise smoothly as the trees fade, or pop? The readout there. 3.
+The lee: dry woodland, turf and hay by the island's logic (TAXA "The wood" Open 1), or a forest over "the entirety"? 4. The name, and what comes next
+(an understory, more than one tree, life in it).

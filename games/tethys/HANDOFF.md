@@ -1,5 +1,11 @@
 # HANDOFF — tethys
 
+**v11.179 (18 Nov 2026): the wood** (world.js `WOOD`, `WOOD_C`, `woodAt`; chunks.js `terrainColor`; scene.js `woodGLSL`, `MATWD`; horizon.js `HZ_WOOD`;
+flora.js `platewood`; test/leaf.js; TAXA "The wood"; DESIGN "The wood"; CHANGELOG). A canopy on the high islands where the trades' rain is: from 250 km to 450 m the
+terrain's own shell (raised and coloured in the vertex shader, no new vertices), inside it the platewood — a jointed trunk under tiers of flat webbed plates —
+fading in as the shell sinks. Its colour Earth's leaf green: the red edge is the air's, the blue the greens' own (test/leaf.js). Ours untouched. sample() the
+same; a forested cell ×1.03. **Ask:** the giant from the water; the forest inside and its hand-off at 360–450 m; the lee (dry by the logic, or a forest everywhere?).
+
 **v11.178 (18 Nov 2026): the sky in the world's palette** (atmosphere.js `CL_LIT`, `LAGOON`, `AIRGLOW`, `TWI`, `cloudVol`, `SKY_FS`; effects.js; DESIGN The sky; CLOUDS.md §9; CHANGELOG).
 The clouds lit by the light that reaches them — grey bases by day, dark starless shapes at night, moonlit edges round dark cores — the bands eased; a turquoise
 base over shallow water; the airglow (the sea's line at night); the planet's shadow and the pink band opposite a low sun; the dome on the tone curve. `cloud light`,
