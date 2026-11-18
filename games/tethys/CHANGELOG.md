@@ -9194,8 +9194,78 @@ texture read of the floor map per pixel with cloud. Not measured on the GPU (not
 sunset: the shadow band and the pink (`TWI.shK`, `bK`). 3. Noon over a lagoon (the giant's, `tp(-5500,9000)`): the glow's strength (`LAGOON.k`). 4. The
 render ms at the sea spot against v11.177's.
 
+## v11.179 — the GPU's work counted, and the cost in one command (18 Nov 2026)
+
+The person asked whether anything would serve performance better than headless Chromium's screenshots; of the six options discussed, the first
+two: one command for the `perf` skill, and what a frame asks of the GPU counted (the repository's `docs/decisions.md`, 28). **No game code changed:**
+the game plays as v11.178.
+
+- **`test/gpu.js`, new.** What a frame asks of the GPU, counted at WebGL's calls in headless Chromium with the real three.js (the repository's
+  `tools/lib/browser.ts` `glCounting`): draws, instances, triangles, vertices, program changes, uniforms, passes (changes of the framebuffer drawn
+  into), bytes sent to buffers and to textures, bytes copied on the GPU, readbacks, programs linked. At four places, each in a page of its own on
+  the bench's clock: `forest` (330, −12, 0), `atoll` (a kelp stand on the slope of the atoll 110 km east, 10 m down), `open` (open water over the
+  deep floor, 30 m down), `coast` (the giant's coast from the sea's surface: the horizon pass, the sky, the clouds). The player is put there as the
+  finback, the cells and far regions round it streamed in with the render left out, then 8 frames drawn (what compiles then is `sight`) and 12
+  counted, at the person's 1600×900. Not a time: the same on any machine.
+- **CI holds the counts:** `npm run smoke` (CI's browser tests, in the `tethys` job) is `node test/gpu.js --check` against `test/gpu.json` (new),
+  failing when any count at any place, or the boot's compiles and uploads, moves more than 10% either way. A change that means it runs
+  `node test/gpu.js --update` and commits the file with the change; the diff is the record.
+- **`test/perf.js`, new: the `perf` skill in one command.** The files the branch changed since its merge base with `origin/main` (working tree
+  included), the benches they call for (CLAUDE.md "Performance", whose table gains `test/gpu.js` for anything drawn), the sources from before
+  (`git archive`, kept in the temp folder by hash), every bench run beside them with `BASE=`, and the pull request's table: before, after, the ratio,
+  rows worse by more than 10% listed first, what stayed the same to the bit, the GPU's counts that moved. Printed, and written to
+  `test/render/perf.md`. `--all`, `--only`, `--ref <commit>`, `--dry`.
+- **`test/benchpage.js`, new:** the page `test/bench_creatures.js` built (the sources as dev.html loads them, the bench's clock, `Math.random`
+  seeded, three's UUIDs on their own stream), shared now by it and `test/gpu.js`.
+- `JSON=<file>` on `test/bench.js`, `test/frames.js` and `test/bench_creatures.js`: their results, for perf.js.
+- **`test/snow.js` seeded** (`Math.random`, mulberry32 as test/smoke.js): its plate check compares −450 m with 40 m above it — one field, two
+  samples of the cloud, 15% slack — and read 11–14% against 11–13% over five runs here; it failed this pull request's CI (tethys-3: 14% vs 12%) with
+  no game code changed. Seeded it reads 12% vs 14% every run.
+
+**The counts today** (`test/gpu.json`; 1600×900, the mean a frame of 12):
+
+| place | draws | instances | triangles | program changes | uniforms | passes | to buffers | copied |
+|---|---|---|---|---|---|---|---|---|
+| forest | 298 | 31.3k | 6.07M | 28 | 1,375 | 2 | 327 KB | 5.5 MB |
+| atoll | 264 | 50.2k | 7.91M | 27 | 1,294 | 2 | 268 KB | 5.5 MB |
+| open | 39 | 2.3k | 0.22M | 18 | 650 | 2 | 85 KB | 5.5 MB |
+| coast | 151 | 26.0k | 5.23M | 26 | 922 | 2 | 90 KB | 0 |
+
+The boot (the load and the menu's first three frames): 60 programs linked, 24.9 MB to buffers, 56.6 MB to textures. Nothing is sent to a texture
+in a steady frame and nothing is read back.
+
+**Found, not touched (each a version of its own, the person's to order):**
+1. **One program compiles at the forest's first sight** — a double-sided Lambert flora material on a plain (per-cell) mesh, its geometry `vid`,
+   `aVar`, `aHide`: `warmShaders` makes the instanced forms and misses this one, so the first time a forest comes into view the frame pays a compile
+   (main.js's note on `warmShaders`: a sway program is ~90 ms). None at the other three.
+2. **Under water the refraction copies the whole frame every frame** (atmosphere.js `refrMark`, v11.51): 5.5 MB at 1600×900, on the GPU. Known by
+   design; now a number to weigh against what the window shows.
+3. **327 KB a frame to buffers at the forest, standing still** (85 in open water) — the instance and point data rewritten each frame. What share is
+   which a later pass can say (the counter sums them; splitting by buffer is a small addition).
+4. **`FX` is a dictionary** (effects.js `Object.assign({},FX_DEF)`: 43 keys at v11.177, 47 now, `%HasFastProperties` false in both) — every
+   `FX.x` a lookup by name. Read in fx.js and combat.js, not in the creatures' loop; the shape rule's cure (one literal) if it ever shows.
+5. **perf.js's first reading, v11.177 → v11.178: the creatures' frame ×1.16** at the forest (1.60 → 1.86 ms, N=5, twice; identical sources on both
+   sides read ×1.02), the simulation the same to the bit. v11.178 changed shader strings and the effects list, nothing the creatures' update
+   calls — so an engine effect of the bundle, or something not found. Worth a `PROF=updateCreatures` look on both before it is believed.
+
+**Seen:** a picture of each place as counted (`SHOTS=1`, `test/render/gpu_*.png`): the forest's stalks round the finback, the kelp stand, the
+empty blue with the snow, the giant's coast under cumulus from the surface. **Checked:** three runs of the four places the same to every count;
+`--check` failing (exit 1, the fix named) when a kept count is moved and passing on the file; `test/bench_creatures.js` on the shared page the same
+run as before it (the simulation's hash); perf.js against v11.177 picking `gpu` alone for v11.178's atmosphere.js and effects.js, and `--all`
+through every bench (the GPU's counts the same at every place for a change that was shaders only — as they should be, and the limit of
+what they say). `look --gl` (the repository's, for any game): Tethys's menu 58 draws a frame, Rootshock's 719.
+
+**What it costs:** nothing in the game. CI's `tethys` job gains about a minute and a half (four pages, ~18 s each here).
+
+**Unseen, ask in this order:** 1. Whether failing on a fall of more than 10% is wanted, or only rises (falls fail now, so the file stays the truth
+and a later rise is measured from it). 2. Whether these four are the places to hold, or the person has heavier ones (a `tp()` each). 3. Which of the
+five found first.
 
 ## v11.180 — the wood (18 Nov 2026)
+
+**Worse by more than 10%: inside the forest a frame's triangles ×1.36 (1.63M → 2.22M) and its instances ×1.10** (test/gpu.js's new `wood` place) — the
+trees themselves, which is what was asked for; the draws +1, the other four places every count the same. (Built as v11.179; renumbered when v11.179, the
+GPU's counts, merged first, 18 Nov 2026.)
 
 The person: "implement a form of tree that can cover the land areas, especially the large island … more like actual photosynthesizing trees", their
 colour from the sun's through the pigment, "probably green but we should be sure exactly what"; performance-friendly, "something you see on the island
@@ -9238,8 +9308,13 @@ this change.
 | a cell at the forest, atoll, platform, open sea | 46.8, 45.9, 26.6, 11.4 | 46.2, 46.2, 27.0, 11.3 | ×0.99–1.02 |
 | the horizon's 15 members (test/horizon.js, node, mean of 3) | 2,734 ms | 2,849 ms | ×1.04 (built a slice a frame) |
 | triangles drawn, inside the forest (the readout's count, hidden instances included) | 1.16 M | 2.20 M | +1 draw |
+| a frame inside the forest (test/gpu.js `wood`, −10703, 144, 10914): triangles, instances | 1.63M, 31.0k | 2.22M, 34.2k | ×1.36, ×1.10 |
+| the same: draws, program changes, uniforms | 59, 19, 641 | 60, 20, 680 | +1, +1, ×1.06 |
+| the boot: programs linked, bytes to buffers (`aWood` on every terrain mesh) | 60, 24.9 MB | 62, 27.3 MB | +2, ×1.10 |
+| the forest, the atoll, open water, the giant's coast (test/gpu.js) | | | every count the same |
 
-Not measured: the GPU. The shell is a vec4 a terrain vertex and a dozen instructions; the trees within 450 m of a forest are up to ~4,000 instances of ~550
+test/perf.js against main read every other time within its noise (a cell at the atoll ×1.30 once, ×1.03 over four pages), the world, the simulation and every
+body the same to the bit. `test/gpu.json` gains the `wood` place. Not measured: the GPU's own time. The shell is a vec4 a terrain vertex and a dozen instructions; the trees within 450 m of a forest are up to ~4,000 instances of ~550
 vertices (three variants packed, two collapsed at the top of the sway shader), and the cells out of view hidden by their flags. Ask for the readout inside the forest.
 
 **Unseen, ask in this order:** 1. The giant from the water (`tp(-4594,13133)`): does it read as a forested island, and is the green right? 2. The forest

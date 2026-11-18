@@ -11,21 +11,25 @@ request says what it cost before the person plays it.
 
 ## On every change that touches a hot path
 
-1. **Keep the sources from before** in your scratchpad: `git archive origin/main <game>/src <game>/vendor <game>/shell.html | tar -x -C <dir>`
-   (any older commit works the same, for finding which version moved a number).
-2. **Run the game's tools against it.** Tethys: its CLAUDE.md, "Performance", says which tool for which file
-   (`test/bench.js` the world, `test/frames.js` the frame's creatures, `test/bench_creatures.js` the builds and the cells), each
-   with `BASE=<dir>`; each prints the ratio and whether the result is the same to the bit. A game without tools: time the hot
-   function over a fixed input in node, the best of several runs, alternating old and new.
-3. **Say it in the pull request** — a small table (before, after, ratio) under "What changed", the same in the CHANGELOG entry.
-   Anything worse by more than 10% goes in the first line, with why it is worth it. What a session cannot measure (the GPU:
-   draws, shaders, fill) say you did not, and what the person should look at in the readout.
+1. **Tethys: `node test/perf.js`** (in games/tethys) is the measuring and the table in one go: it reads what the branch changed since it left main,
+   runs the benches those files call for beside the sources from before, and prints the pull request's table (also `test/render/perf.md`).
+   `--dry` says what it would run; `--ref <commit>` compares with any older version. Its CLAUDE.md, "Performance", says which bench is for which
+   file. Then `node test/gpu.js --check`: if a count moved more than 10%, CI fails until `node test/gpu.js --update` is committed with the change.
+2. **Any other game, by hand: keep the sources from before** in your scratchpad: `git archive origin/main <game>/src <game>/vendor <game>/shell.html | tar -x -C <dir>`
+   (any older commit works the same, for finding which version moved a number), and run the game's tools against it (`BASE=<dir>`). A game without
+   tools: time the hot function over a fixed input in node, the best of several runs, alternating old and new. For the GPU's side, build each
+   version and run `npm run look -- <dir> --gl` on both: a frame's draws, triangles, uploads and program changes (the frames run on the real clock,
+   so it is a rough comparison; a game that needs exact ones gets a harness like Tethys's `test/gpu.js`).
+3. **Say it in the pull request** — a small table (before, after, ratio) under "What changed", the same in the CHANGELOG entry. Anything worse by more
+   than 10% goes in the first line, with why it is worth it. The GPU's counts (draws, triangles, uploads) are measured now; what still cannot be is
+   the GPU's own time — what a shader costs per vertex and per pixel, the fill. Say you did not measure that, and what the person should look at in
+   the readout.
 4. **Check the shapes** if you added or changed an object read every frame or every sample (Tethys: `SHAPES=1 node test/frames.js`).
 
 ## When the person says it feels laggier
 
 Ask where (a `tp()` or the place) and for the readout there: fps, frame ms, physics ms, render ms, draws, creatures. Render ms
-running away from the rest is the GPU, which no CPU pass helps. Otherwise measure that place, then `BASE=` older versions
+running away from the rest is the GPU, which no CPU pass helps. Otherwise measure that place, then `BASE=` older versions (Tethys: `node test/perf.js --all --ref <commit>`)
 (`git archive <commit>`) to find the version that moved it.
 
 ## A performance pass

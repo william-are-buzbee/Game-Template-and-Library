@@ -4,7 +4,15 @@
 flora.js `platewood`; test/leaf.js; TAXA "The wood"; DESIGN "The wood"; CHANGELOG). A canopy on the high islands where the trades' rain is: from 250 km to 450 m the
 terrain's own shell (raised and coloured in the vertex shader, no new vertices), inside it the platewood — a jointed trunk under tiers of flat webbed plates —
 fading in as the shell sinks. Its colour Earth's leaf green: the red edge is the air's, the blue the greens' own (test/leaf.js). Ours untouched. sample() the
-same; a forested cell ×1.03. **Ask:** the giant from the water; the forest inside and its hand-off at 360–450 m; the lee (dry by the logic, or a forest everywhere?).
+same; a forested cell ×1.03; inside the forest a frame's triangles ×1.36 (1.63M → 2.22M, test/gpu.js's new `wood` place), the draws +1. **Ask:** the giant from the water; the forest inside and its hand-off at 360–450 m; the lee (dry by the logic, or a forest everywhere?).
+
+**v11.179 (18 Nov 2026): the GPU's work counted, and the cost in one command** (test/gpu.js, test/gpu.json, test/perf.js, test/benchpage.js; the
+repository's tools/lib/browser.ts `glCounting`, docs/decisions.md 28; CLAUDE.md "Performance"; DESIGN Performance; CHANGELOG). No game code changed.
+`node test/perf.js` runs the benches a branch's changes call for against its merge base and prints the pull request's table; `test/gpu.js` counts what a
+frame asks of the GPU at four places (draws, triangles, uploads, copies, compiles), and CI fails when a count moves more than 10% from `test/gpu.json`
+(`--update` and commit it with a change that means it). **Found, not touched:** one program compiles at the forest's first sight (a double-sided flora
+Lambert on a per-cell mesh, missed by `warmShaders`); the refraction copies 5.5 MB a frame under water; 327 KB a frame to buffers at the forest standing
+still; `FX` a dictionary; the creatures' frame ×1.16 from v11.177 to v11.178 with nothing on its path changed (unexplained). **Ask:** fail on falls too, or rises only? These four places, or heavier ones? Which finding first?
 
 **v11.178 (18 Nov 2026): the sky in the world's palette** (atmosphere.js `CL_LIT`, `LAGOON`, `AIRGLOW`, `TWI`, `cloudVol`, `SKY_FS`; effects.js; DESIGN The sky; CLOUDS.md §9; CHANGELOG).
 The clouds lit by the light that reaches them — grey bases by day, dark starless shapes at night, moonlit edges round dark cores — the bands eased; a turquoise

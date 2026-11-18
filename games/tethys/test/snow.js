@@ -4,6 +4,10 @@
 // black flakes only under the chemocline or at a vent, the lit layer mostly live, the plate denser than the water above it, the
 // nepheloid layer over mud denser than the mid-water over it, and the loop's cost. It proves the population goes where it should;
 // it says nothing about how it looks.
+// 18 Nov 2026 (v11.179): Math.random seeded (mulberry32, as test/smoke.js and test/frames.js), so a run is the same run every time. Unseeded, the
+// points the cloud places are a fresh sample each run, and the plate check (−450 against 40 m above it, one field, 15% slack) read 11–14% against
+// 11–13% over five runs here and failed in CI on a pull request that changed no game code (#124, tethys-3: 14% vs 12%).
+{let s=1234;Math.random=()=>{s=(s+0x6D2B79F5)>>>0;let t=s;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};}
 const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..');
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');

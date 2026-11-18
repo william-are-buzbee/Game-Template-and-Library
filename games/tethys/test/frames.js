@@ -12,7 +12,7 @@
 //                                              read every frame or every sample an engine drops the read's fast path — a third of the cost each time
 //                                              it was found (v11.148, v11.149), and nothing but this shows it. Exits 1 on a fault
 //   PROF=updateCreatures node test/frames.js   a CPU profile of the run: self and inclusive time by function, over the samples under the one named
-// Env: BASE, N (runs each with BASE, 3), FRAMES (400), PX, PZ, PY (the place: 330, 0, −12), SHAPES, PROF (a function's name)
+// Env: BASE, N (runs each with BASE, 3), FRAMES (400), PX, PZ, PY (the place: 330, 0, −12), SHAPES, PROF (a function's name), JSON=<file> (the results, for test/perf.js)
 'use strict';
 const fs=require('fs'),path=require('path'),os=require('os'),{execFileSync}=require('child_process');
 const HERE=path.join(__dirname,'..'),FR=+(process.env.FRAMES||400),N=+(process.env.N||3);
@@ -24,10 +24,11 @@ if(!process.env.FRAMES_ROOT){ // ---- the parent: one run, or BASE beside here -
   if(process.env.BASE){const B=path.resolve(process.env.BASE),best={};
     for(let k=0;k<N;k++)for(const [nm,r] of [['base',B],['here',HERE]]){const o=run(r);if(!best[nm]||o.mean<best[nm].mean)best[nm]=o;}
     console.log('updateSchools + updateCreatures over '+FR+' frames at '+at+', the best of '+N+' runs each:');show('base',best.base);show('here',best.here);
+    if(process.env.JSON)fs.writeFileSync(process.env.JSON,JSON.stringify({at,frames:FR,base:best.base,here:best.here})); // for test/perf.js
     console.log('ratio  mean ×'+(best.here.mean/best.base.mean).toFixed(2)+'  p95 ×'+(best.here.p95/best.base.p95).toFixed(2)+(best.base.sim===best.here.sim?'   the simulation the same to the bit':'   the simulation NOT the same'));
     return;}
   const dir=process.env.PROF?fs.mkdtempSync(path.join(os.tmpdir(),'tethys_frames_')):null,o=run(HERE,dir);
-  console.log('updateSchools + updateCreatures over '+FR+' frames at '+at+':');show('here',o);
+  console.log('updateSchools + updateCreatures over '+FR+' frames at '+at+':');show('here',o);if(process.env.JSON)fs.writeFileSync(process.env.JSON,JSON.stringify({at,frames:FR,base:null,here:o}));
   console.log('the creatures by distance from the player (the frame steps those under 150 m every frame, 150–360 every other, past that only what is still drawn):');
   for(const k in o.bands)console.log('  '+k.padEnd(10)+String(o.bands[k]).padStart(6));
   if(o.shapes){console.log('\nthe shape census (more than 4 shapes in a table read every frame or sample, or any in dictionary mode, is a fault):');let bad=0;
