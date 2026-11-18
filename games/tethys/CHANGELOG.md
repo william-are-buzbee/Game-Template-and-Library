@@ -8963,3 +8963,122 @@ changes, so no shader recompiles), but a lit source costs its fragments the poin
 **Unseen, ask in this order:** 1. A pall at night on the preview (`palls()`; `tp(2400,-699,-540)`, give the ledger a few minutes): does the lure light its
 surroundings enough? (`lightK`, `lightD`.) 2. A touch's flash lighting the water. 3. Several palls together: only the three nearest light (and the pool's four, two on
 the low tier, are shared with the vents, the carcasses and the cloud).
+
+## v11.172 — dusk light and the dim mirror (17 Nov 2026)
+
+WATER.md Part 5, A and B. The person, 17 Nov 2026: "Sunset — physical version first." "Ceiling: sounds about right." Stacked on #114 (Part 5 itself).
+
+- **The tint mended** (atmosphere.js `updateSky`): `SKY.tint`, the light's colour relative to noon, weighed the moon's blue-grey by `1 − dayK` whether the moon
+  was up or not — three quarters of it at the sun's setting, (0.78, 0.73, 0.80), a violet grey, where the sunlight is (1.00, 0.50, 0.25) of noon's. Now by the
+  night's light, `(1 − dayK)·(moonL + STARL)`: at 1° of sun with no moon it is (0.97, 0.59, 0.39). The haze (`MIST_C`) and the ground's bounce in the air take it.
+- **And split** (`tintS`, `tintV`; world.js `DUSK`): a sun near the horizon mostly reflects off the sea, so the light in the water at dusk is the sky's — the
+  clear zenith relative to noon's at the eye's luminance 1 (`tintS`: (0.96, 0.95, 1.16) at 1° of sun, a little blue). The water's light (the veil in the top 40 m,
+  the ambient and the fog's colour under water) is `tintV`, the sky's and the beam's by the beam's share (`SUN_W[3]`): at noon the beam's, as before; at 9°
+  (0.97, 0.90, 0.88); at 1° the sky's. The beam itself (the key, the caustics, the shafts, the crests) already took the sun's colour. The air's fill takes
+  `tintS`: the shade blue at dusk, not grey. `dusk light` on the effects list (`tint0`, the old weighing, when off).
+- **The dim mirror** (atmosphere.js `MIRROR`, `uMirK`): outside the window the underside reflected the veil as the surface sees it, plus a dim diffuse lit by the
+  sun from above — from 4 m under, (36, 107, 120) against the level water's (18, 62, 65), a lit ceiling to the horizon with a line where it met the water. The
+  mirror shows the light coming *up* at the mirrored angle, so it is now darkened by the reflected ray's slope down — to `MIRROR.dn` (0.42, 0.40, 0.55) once the
+  ray points `full` 0.7 down, nothing at grazing — and the diffuse is gone (the surf's foam keeps its own). `dim mirror` on the effects list.
+
+**Seen** (headless Chromium, dev build, low tier, 640×360, first person with the body hidden, the clock held, each switch on and off at the same moment):
+- noon, 4 m over deep water (1800, 0), 26° up: the mirror by the window's rim (23, 41, 52), darker than the level water (19, 63, 68); at the horizon the two the
+  same (18, 59, 64 against 20, 63, 68) — no line; the window the bright thing overhead. Off: (40, 103, 121) over (18, 61, 66). Frame mean 55 against 98.
+- 1° of sun, 4 m under looking west 29° up: the water a deeper blue (the frame's mean 33, 49, 74 against 42, 58, 72), the lit cloud tops through the window
+  orange in both.
+- 9° of sun, the forest at 8 m looking away from the sun: much the same picture, the stalks a little warmer (mean 17, 40, 29 against 18, 43, 32). The forest's
+  floor at 16 m is dark at that hour either way — the gold in the beam shows only in the top few metres, where `SPECTRAL` has not yet taken the red.
+
+**What it costs:** a `skyLerp` and a few multiplies a frame on the CPU; on the GPU a `mix` and a clamp on the underside's mirror fragments. Not measured on the GPU.
+
+**Unseen, ask in this order:** 1. Under the surface at noon, looking up and out: the ceiling a dim silver fading to the horizon — right, or too dark? (`MIRROR.dn`.)
+2. A sunset from a few metres down, then from the shallows over sand: bluer water, warmer light on the sand? 3. A full moon rising at sunset (boot's first
+evening): the moon's light now counts in the tint as the sun goes. 4. The air at dusk: the shade bluer, the lit side unchanged.
+
+## v11.173 — the light by depth and by direction (17 Nov 2026)
+
+WATER.md Part 5, C. The person, 17 Nov 2026: "Depth: go with half for now." Stacked on v11.172 (#115).
+
+- **One curve for the depth** (world.js `DLIGHT`, `daylightAt`, `glowK`; scene.js `DL_GLSL`): the daylight is exp(−depth/`L` 101) — the old line to a 0.28 floor
+  and v11.170's fade below 120 m both replaced by it (floored at `DL_MIN` only with `dark deep` off). With the eye, which opens past ~50 m, the frame's level is
+  0.61 at 50 m, 0.45 at 100 — the person's half — 0.33 at 150, 0.25 at 200, 0.14 at 300, ~2% at the pall ground. To v11.172: 0.88, 0.76, 0.51, 0.32, 0.12 —
+  the top hundred metres all the surface's look, then a cliff.
+- **A ray's daylight read near the eye** (`fogVeil`'s `yl`, `DLIGHT.near` 20 m): it was read at 0.4 of the veil's 260 m reach, so a ray looking up from 250 m saw the
+  daylight of 146 m, three times what the eye had opened for, and the view up was brighter from 250 m than from 80. The colour of the place keeps the long reach.
+- **The light by direction** (`DIR_GLSL` `dirK`, through `fogWater`'s dn with the camera in the water): the veil ×`up` 1.6 straight up, ×`dn` 0.5 straight down, 1
+  level, by the ray's slope — the sea's own shape (one to two orders each way) compressed, the same at every depth. The mirror keeps its own darkening (v11.172).
+- **The water's own glow** (the veil's and the ambient's 0.3 floor, `glowK`) follows the same curve. `depth light` on the effects list (off: v11.172).
+
+**Seen** (headless Chromium, dev build, low tier, 640×360, noon over deep water at (1800, 0), first person, the body hidden, the eye set at once; on against off):
+- looking up, frame means: 4 m 105 (101), 30 m 116 (109), 80 m 99 (74), 150 m 63 (66), 250 m **39 (116, 3% clipped)** — darker all the way down now, the glow
+  overhead fading with the rest instead of flaring in the deep;
+- level at 100 m: 29 (39), against ~53 for the level water at 4 m: about half;
+- straight down at 100 m over a 326 m floor: 14 (7) — the far sample made it blacker than the curve meant.
+- At 80 m the clouds still read through the window: their detail by depth is v11.174's (WATER.md Part 5 E).
+
+**What it costs:** an `exp` in the daylight curve where the old curve's `exp` was (the veil, the sun by depth, the shadow) and two `mix`es; `dirK` once a fragment
+with the camera in the water. Not measured on the GPU.
+
+**Unseen, ask in this order:** 1. A dive from the surface to 150 m at noon: does the light fall steadily, and is 100 m about the half you wanted? (`DLIGHT.L`: 80
+darker, 130 lighter.) 2. The view up from the deep: a glow that brightens as you rise? 3. Looking down into deep water from the shelf's edge: darker below now
+(`dn`). 4. The shallow reef at 20–30 m is a quarter dimmer than before (0.74 at 30 m): too dim?
+
+## v11.174 — the horizon in the window's rim, and the window's detail by depth (17 Nov 2026)
+
+WATER.md Part 5, D and E. The person, 17 Nov 2026: "Sunset — physical version first." Stacked on v11.173 (#116).
+
+- **The rim** (atmosphere.js `RIM`, `RIM_C`, `uRim`): the window shows the frame straight through each facet (v11.50–51), the sky near the zenith, so it never showed the
+  horizon — where all of a sunset is. Now, round the critical angle, the eye is refracted out through the facet (water to air, 1.33; past the critical angle the
+  horizon held) and the sky that way is laid over what the facet shows (`skyLite2` without the disc — the disc through every facet was "in the bin", 14 Sep), by
+  `k` 0.6, over a band of the eye's angle to the facet from `out` 0.10 outside the critical angle to `in` 0.30 inside it. The first cut weighed the band by the
+  refracted ray's height and drew a thin hard ring — the snowglobe of v11.49 (seen) — because near the critical angle the last ten degrees of sky squeeze into
+  one. Pale at noon; at sunset a peach glow on the sun's side, turning with the facets. `window rim` on the effects list.
+- **The window's detail by the water between** (`WIN_DET` {L 25, pull 0.35, spot 0.6, n 40}, `uWinD`): the frame through the window (and the rim) is mixed toward
+  the sky's smooth light — the sky in a direction pulled 0.35 of the way to the zenith, no disc, plus the sun as a blurred spot toward the refracted sun (`uSunW`,
+  cos^40, by the beam's share) — by 1 − exp(−distance/25 m): ~15% at 4 m, 70% at 30, 96% at 80. Forward scattering blurs a picture long before it dims it.
+  `window depth` on the effects list.
+- Found on the way: the underside's normal at the emissive stage points into the air (flat normals face the viewer, and the underside flips them); `refract`
+  wants it against the eye's ray. (`reflect`, the mirror's, does not care.)
+
+**Seen** (headless Chromium, dev build, low tier, 640×360, over deep water, 4 m under the tide's level, first person with the body hidden; on against off):
+- the sun 1° up, looking west 34° up: a peach glow along the rim on the sun's side, the facets stepping it; off, the dim blue of v11.173 with the lit cloud tops.
+  Frame means 52 and 47, the upper half 81 and 70.
+- the sun 9° up, the same view: a paler band, the facets turning it. 65 and 56.
+- noon, looking north 34° up: the rim a pale band; 72 and 77 (the window's frame a little toward the smooth sky at this distance).
+- 60 m down in the afternoon, looking up toward the sun: a glowing window with the sun a soft bright spot and a faint shadow where a cloud was; off, the clouds
+  crisp with their sawtooth edges (frame means 88 and 102).
+- The harness's depths were absolute until this version: a skip of the clock to dusk moved the tide 4 m, and a camera meant to be 4 m down was in the air (two
+  frames of the sky, seen and thrown away). Depths here are from the tide's level.
+
+**What it costs:** on the underside's fragments a `refract`, two `skyLite2` (~30 ALU each: the rim's and the smooth sky) and an `exp`; nothing on the CPU. The
+underside is one mesh, drawn once; not measured on the GPU.
+
+**Unseen, ask in this order:** 1. A sunset from a few metres down, looking toward the sun: the glow at the rim — right, too strong, or snowglobe again?
+(`RIM.k`, `out`, `in`; `window rim` off to compare.) 2. A dive from the surface to 80 m at noon, looking up: the clouds going by ~30–40 m, the sun a spot
+after. (`WIN_DET.L`.) 3. Islands seen through the window near the surface: still there in the top few metres?
+
+## v11.175 — the air's light and soft highlights (17 Nov 2026)
+
+WATER.md Part 5, F. The person, 17 Nov 2026: "Above: yes please" (a tone shoulder and a warmer key against a bluer fill, behind a switch, to compare with today's).
+Stacked on v11.174 (#117).
+
+- **Warm sun** (world.js `ABOVE`; atmosphere.js `updateAtmosphere`): in the air the hemisphere is `fill` 0.55 × `sky` (0.60, 0.76, 0.95), the zenith's blue lightened —
+  it was 0.85 × the pale `AIR.hemiSky` (0.77, 0.86, 0.92), which gave shade two thirds of the sunlit side's light in a near-white — and the sun `key` 1.6 × its light
+  (was 1.35; its colour is still the star's). Shade bluer and darker, the sunlit side warm. `warm sun` on the effects list; off is the approved v6 look.
+- **Soft highlights** (world.js `TONE`; scene.js `TONE_GLSL` `toneC`, at the end of the fog chunk and of the horizon pass's land and sea, after the eye's gain;
+  `uSkD.w`): there was no tone curve, so a colour over 1 was cut channel by channel and lost its hue — the brighter, the whiter. Past `T` 0.7 the colour is now
+  scaled by its largest channel onto T + (1 − T)(1 − e^(−(m − T)/(1 − T))), which nears 1 and never reaches it; the hue is kept. The dome is left as it was.
+  `soft highlights` on the effects list.
+
+**Seen** (headless Chromium, dev build, low tier, 640×360, noon, both switches on against both off at the same moment):
+- on the island's south-east shore, 3 m over the sand looking inland and down: the sand **(241, 197, 119)** against **(255, 254, 156)** — a golden sand where it
+  was a cream; 1% of the frame clipped against 46%; the frame's saturation 0.35 against 0.30. The sea, the far island and the sky alike.
+- from 4 m over the water looking at the same shore: much the same frame (saturation 0.27 against 0.28) — it is sea and sky, which the key and the curve barely touch.
+- 3 m under the water in the shallows by that shore: identical to the digit — nothing under the water reaches the curve.
+
+**What it costs:** a `max`, a compare and (past T) an `exp` and a multiply at the end of every fogged fragment; nothing on the CPU. Not measured on the GPU.
+
+**Unseen, ask in this order:** 1. A walk on the island at noon with `warm sun` and `soft highlights` on and off: is it the above you want? Too warm, too dark in
+the shade? (`ABOVE.fill`, `key`, `sky`; `TONE.T`.) 2. Dusk on land: v11.172's blue shade and this together. 3. The creatures and the flora on the beach in full
+sun: colours where they were white.
+

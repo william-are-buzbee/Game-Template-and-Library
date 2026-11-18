@@ -149,8 +149,19 @@ const DL_REF=420,DL_MIN=0.28; // the depth the daylight curve would reach zero a
 // The water's own glow (the veil's 0.3 floor, the ambient's) fades with it: nothing lights the deep's water. `on` 0 is v11.169's deep; DEEP_U is the shaders' copy.
 const DEEP={d0:120,L:90,on:1};
 const DEEP_U=new Float32Array([DEEP.d0,1/DEEP.L,DEEP.on,0]);
+// The light by depth and by direction (v11.173, WATER.md Part 5 items 4–5 and C; the person, 17 Nov 2026: "go with half for now"). The frame's level fell a quarter
+// over the top 100 m and then by two and a half over the next hundred (the old curve: linear to DL_MIN, × the deep's fade below d0, against the eye), so the top
+// hundred metres all looked like the surface; and a ray looking up read its daylight 104 m higher (0.4 of the veil's 260 m reach), three times brighter under
+// the deep's fade than at the eye, which had opened for its own depth: from 250 m the view up was brighter than from 80 (frame means 128 and 80, seen). Now, with
+// `on` (DEEP_U[3], `depth light` on the effects list): the daylight is one exponential, exp(−d/`L`) — with the eye (NIGHT_EYE, opening past ~0.5·L) the frame's
+// level is 0.61 at 50 m, 0.45 at 100 (the person's half), 0.33 at 150, 0.25 at 200, 0.14 at 300, about 2% at 540 — floored at DL_MIN only with `dark deep` off;
+// a ray's daylight is read `near` m along it (the light a ray gathers comes from within a few extinction lengths of the eye; the colour of the place keeps the
+// 260 m); and the veil has a shape by direction, the sea's (the light looking up is one to two orders above the level, the level an order above the light looking
+// down, the same shape at every depth: the asymptotic light field) compressed as an eye would — `up` straight up, `dn` straight down, 1 level, by the ray's slope.
+const DLIGHT={L:101,near:20,up:1.6,dn:0.5};
 function deepK(y){const d=TIDE-y-DEEP.d0;return d>0&&DEEP_U[2]>0?Math.exp(-d/DEEP.L):1;} // the deep's own fade at a height (1 above d0 or switched off)
-function daylightAt(y){return clamp(1+Math.min(0,y-TIDE)/DL_REF,DL_MIN,1)*deepK(y);}
+function daylightAt(y){if(DEEP_U[3]>0){const e=Math.exp(-Math.max(TIDE-y,0)/DLIGHT.L);return DEEP_U[2]>0?e:Math.max(e,DL_MIN);}return clamp(1+Math.min(0,y-TIDE)/DL_REF,DL_MIN,1)*deepK(y);} // v11.173: one exponential with `depth light` on (DLIGHT)
+function glowK(y,v){return 0.3*(DEEP_U[3]>0?daylightAt(y):deepK(y))+0.7*v;} // the water's own glow (the veil's and the ambient's 0.3 floor) beside v, the daylight × whatever scales it: the floor faded by the deep (v11.170), by the daylight's own curve with `depth light` (v11.173)
 // The planet's own light at a height (v11.163; PLANET, Light, as revised 17 Nov 2026; BIOLUM.md §8), as a share of the noon sun at the surface: the
 // physics, not the picture — daylightAt above keeps the game's readability floor (DL_MIN, a listed conflict in PLANET). Read by what decides whether a
 // light is worth making (fx.js PHO). The sun by its altitude (sin): over the horizon its height, under it the twilight falling `twi` decades a degree
@@ -921,6 +932,15 @@ const SKYC=[ // [sinAlt, zenith, horizon, glow, sunlight]
   [0.06,[0.240,0.400,0.660],[0.700,0.640,0.640],[1.00,0.60,0.28],[1.0,0.62,0.32]],
   [0.35,AIR.zenith,AIR.fog,[0.30,0.24,0.14],[1.0,0.94,0.84]]];
 const MOONC=[0.72,0.80,0.96],MOONL=0.28,GREYC=[0.52,0.55,0.59],STARL=0.035;
+// The air's light and the highlights (v11.175, WATER.md Part 5 item 7 and F; the person, 17 Nov 2026: "Above: yes please"). Above the water the frame was pale:
+// the fill (the hemisphere's 0.85 × the pale AIR.hemiSky) gave shade two thirds of the sunlit side's light in a near-white, so shade was grey and the scene flat,
+// and with no tone curve a sunlit face near you (about 1.9 on flat ground at noon) was cut channel by channel — the strand's yellow sand a cream. Shipped games with
+// an above and a below keep their highlights coloured with a filmic curve and light the above warm against blue shade. ABOVE, with `warm sun` on: `fill` the
+// hemisphere's strength in the air, `sky` its colour (the zenith's blue, lighter), `key` the sun's strength (its colour stays the star's, SKYC); TONE, with `soft
+// highlights` on: past `T` the colour is scaled down by its largest channel onto a curve that nears 1 and never reaches it, so the hue is kept (scene.js toneC,
+// at the end of the fog chunk and the horizon pass — the dome is left as it was, its clouds and sun their own). Under the water almost nothing reaches T.
+const ABOVE={fill:0.55,sky:[0.60,0.76,0.95],key:1.6},TONE={T:0.7};
+const DUSK={lum:[0.25,0.62,0.13],clamp:[0.6,1.5]}; // v11.172 (atmosphere.js updateSky, tintS): the sky's colour relative to noon's at this luminance 1 — the eye's weights, as EYE_GLSL's — each channel held within clamp
 // The eye (v11.159; an animal's since v11.162 — atmosphere.js eyeK, eyeStep, scene.js EYE_GLSL). The person (16 Nov 2026), on ×2.4: "nighttime is so dark you
 // can't see anything as the finback … I wanted true dark because that's believable, but only if it meant that your eyes can adjust … animals in darkness like
 // that every day evolve to handle it" — and "look into what an actual fish on earth tends to be able to see at night". What Earth's say: brown and brook
