@@ -9082,3 +9082,35 @@ Stacked on v11.174 (#117).
 the shade? (`ABOVE.fill`, `key`, `sky`; `TONE.T`.) 2. Dusk on land: v11.172's blue shade and this together. 3. The creatures and the flora on the beach in full
 sun: colours where they were white.
 
+## v11.176 — golden water (18 Nov 2026)
+
+The person, 18 Nov 2026, after v11.172–175: "I can't see the sunset from underwater, only sunset clouds … I wanted to know if sunset colors could penetrate or
+somehow affect the color underwater." The answer (WATER.md Part 5, at its end): the bulk of the water should not go orange — a low sun mostly reflects off the sea
+and what enters is the sky's light, blue overhead at sunset — but the warm beam reaches the top few metres, and the water glows toward it. "Yes, build both."
+
+- **The beam by Fresnel** (world.js `GOLD`, `fresnelT`; atmosphere.js `SUN_W[3]`): the beam's share under the water (the caustics, the shafts, the shadows) took
+  `smooth(0.03, 0.3, sin alt)` for how much a low sun gets through the surface — 0% at 2° of sun, 12% at 5°, 55% at 10°. Fresnel's transmission for unpolarised
+  light into water, relative to the sun overhead's (so noon's is as it was): 20%, 43%, 67%. The veil's own tint (`tintV`, v11.172) keeps the old gate (`SKY.beamV`).
+- **The glow toward the sun in its colour** (scene.js `fogVeil`, `gc`; `uMurk.y` the switch): the veil's glow toward the luminary was the water's teal × (1 + glow).
+  It is now added in its own colour, which moves from the water's toward the sun's colour at the water's luminance by `k` 2.5 × exp(−depth/`d` 8 m) × how far the
+  sun's colour is from noon's (1 − its blue relative to noon's), at most all of it: nothing at noon; near the surface toward a low sun a gold-green — amber
+  less the red the water takes. `golden water` on the effects list (both).
+- **Tried and dropped:** the glow round the *refracted* sun (under the water a setting sun stands 42° up, at the window's rim — the single-scatter lobe's
+  direction). Seen at 4 and 8 m at golden hour: the glow moved onto the surface a few metres overhead, where the veil is a per cent of the picture, and left the
+  level water toward the sun's azimuth darker and no warmer ((16, 35, 39) against (17, 52, 58)). Kept on the luminary's own direction — the broad,
+  multiply-scattered glow on the sun's side.
+
+**Seen** (headless Chromium, dev build, low tier, 640×360, depths from the tide's level, `golden water` on against off at the same moment):
+- golden hour (sun 9°), over deep water looking west, level: at 3 m the water toward the sun (31, 49, 50) against (17, 52, 58); at 8 m (27, 51, 53) against
+  (18, 53, 60); at 25 m (16, 46, 48) against (16, 47, 49); looking east, away from it, the same to the digit. A gold-green cast on the sun's side, gone with depth.
+- the forest at 6 m at 4° of sun, looking west: the water band toward the sun olive where it was teal (29, 56, 52 against 20, 59, 57).
+- noon at 8 m, looking up: the same to the digit.
+- The beam's share at 3° of sun is 0.27 (was 0.02), checked in the page; but in the frames at that hour — the forest's floor at 12 m, the shallows by the shore —
+  the caustics and the shafts are too faint at dusk's light to show a difference I could measure. On the preview the place to look is shallow sand in the hour
+  before sunset.
+
+**What it costs:** a few multiplies, a `dot` and an `exp` per veil evaluation with the switch on; on the CPU one Fresnel a frame. Not measured on the GPU.
+
+**Unseen, ask in this order:** 1. The hour before sunset just under the surface, looking toward the sun: a warm cast on that side? Is gold-green right, or should it
+read more amber? (`GOLD.k`, `d`.) 2. Shallow sand in the hour before sunset: the caustics and shafts lasting later into the evening. 3. Noon: unchanged.
+

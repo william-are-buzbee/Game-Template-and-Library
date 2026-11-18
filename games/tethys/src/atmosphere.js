@@ -177,7 +177,7 @@ function updateSurface(){nearBuild();SHORE_U.x=FX.shore?FX.shoreK:0; // the shor
 // read by the dome shader, the lights, the fog, the surface and the readout. Nothing here is a place: the whole world sees one sky.
 const SKY={sun:V3(0,1,0),moon:V3(0,-1,0),lum:V3(0,1,0),sunAlt:1,moonAlt:-1,illum:1,dayK:1,moonUp:0,moonL:0,skyL:1,skyLw:1,sunL:1,lumL:1,lumLw:1,night:0,cover:0,rain:0,rainA:0,
   zen:[0,0,0],hor:[0,0,0],glow:[0,0,0],sunC:[1,1,1],lumC:[1,1,1],tint:[1,1,1],tint0:[1,1,1],tintS:[1,1,1],tintV:[1,1,1],bow:0,wind:[0,0],windOff:[0,0],starT:0,
-  cirrus:0,upperOff:[0,0],cirrC:[1,1,1],plan:PLANETS.map(()=>V3(0,1,0)),spray:0,windK:1,eclS:0,eclL:0,dawn:0,lag:0,cloudHere:0,cellNear:0,eye:1,eyeT:1}; // cloudHere (v11.87): the deck's density over the player along the luminary, what the beam reads // v11.17: the cirrus cover, the upper wind's drift, the cirrus' colour (sunlit after sunset), the planets' directions, the surf's spray at the camera
+  cirrus:0,upperOff:[0,0],cirrC:[1,1,1],plan:PLANETS.map(()=>V3(0,1,0)),spray:0,windK:1,eclS:0,eclL:0,dawn:0,lag:0,cloudHere:0,cellNear:0,eye:1,eyeT:1,beamV:0}; // cloudHere (v11.87): the deck's density over the player along the luminary, what the beam reads // v11.17: the cirrus cover, the upper wind's drift, the cirrus' colour (sunlit after sunset), the planets' directions, the surf's spray at the camera
 const WX={},cirrTmp=[0,0,0];
 function skyLerp(out,keys,idx,s){let a=keys[0],b=keys[keys.length-1];for(let i=1;i<keys.length;i++)if(s<=keys[i][0]){a=keys[i-1];b=keys[i];break;}
   const u=clamp((s-a[0])/(b[0]-a[0]),0,1),ca=a[idx],cb=b[idx];out[0]=lerp(ca[0],cb[0],u);out[1]=lerp(ca[1],cb[1],u);out[2]=lerp(ca[2],cb[2],u);return out;}
@@ -253,8 +253,8 @@ function updateSky(dt){const K=SKY;
   // from the vertical), and the beam's share of the light — the caustics and the shadows scale by it: nothing under cloud or rain,
   // little from a low sun (a grazing beam mostly reflects), a full moon's share under a clear sky, a crescent's not
   {const L=K.lum,ly=L.y;if(ly>0.01){const sa=Math.sqrt(Math.max(0,1-ly*ly))/1.33,cwr=Math.sqrt(1-sa*sa),hl=Math.max(Math.hypot(L.x,L.z),1e-6);SUN_W[0]=L.x/hl*sa;SUN_W[1]=cwr;SUN_W[2]=L.z/hl*sa;}else{SUN_W[0]=0;SUN_W[1]=1;SUN_W[2]=0;}
-    SUN_W[3]=clamp(K.lumL/Math.max(K.skyL,0.02),0,1)*smooth(0.03,0.3,ly)*clamp(K.lumL*3,0,1);}
-  {const b=SUN_W[3];for(let i=0;i<3;i++)K.tintV[i]=FX.dusk?lerp(K.tintS[i],K.tint[i],b):K.tint0[i];if(!FX.dusk)for(let i=0;i<3;i++){K.tintS[i]=K.tint0[i];K.tint[i]=K.tint0[i];}} // v11.172: the veil's tint, the sky's light and the beam's by the beam's share; `dusk light` off, every tint the old one
+    const bk=clamp(K.lumL/Math.max(K.skyL,0.02),0,1)*clamp(K.lumL*3,0,1);SUN_W[3]=bk*(FX.golden?fresnelT(ly):smooth(0.03,0.3,ly));SKY.beamV=bk*smooth(0.03,0.3,ly);} // v11.176: the beam by Fresnel's transmission (world.js GOLD); beamV, the old gate, for the veil's tint
+  {const b=K.beamV;for(let i=0;i<3;i++)K.tintV[i]=FX.dusk?lerp(K.tintS[i],K.tint[i],b):K.tint0[i];if(!FX.dusk)for(let i=0;i<3;i++){K.tintS[i]=K.tint0[i];K.tint[i]=K.tint0[i];}} // v11.172: the veil's tint, the sky's light and the beam's by the beam's share; `dusk light` off, every tint the old one
   FOG_T[1]=K.tintV[0];FOG_T[2]=K.tintV[1];FOG_T[3]=K.tintV[2]; // the veil's tint in the top 40 m (scene.js fogVeil)
 }
 // One dome that follows the camera, shown only when the camera is above water, and one shader that is the whole sky (v11.17 rewrote

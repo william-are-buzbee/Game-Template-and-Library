@@ -940,6 +940,20 @@ const MOONC=[0.72,0.80,0.96],MOONL=0.28,GREYC=[0.52,0.55,0.59],STARL=0.035;
 // highlights` on: past `T` the colour is scaled down by its largest channel onto a curve that nears 1 and never reaches it, so the hue is kept (scene.js toneC,
 // at the end of the fog chunk and the horizon pass — the dome is left as it was, its clouds and sun their own). Under the water almost nothing reaches T.
 const ABOVE={fill:0.55,sky:[0.60,0.76,0.95],key:1.6},TONE={T:0.7};
+// Golden water (v11.176; the person, 18 Nov 2026, after v11.172–175: "I wanted to know if sunset colors could penetrate or somehow affect the color underwater"
+// — "build both"). Two of the places a low sun's warm light really does reach under the water, the bulk staying the sky's blue (v11.172):
+// - the beam's share under a low sun (atmosphere.js SUN_W[3]) by what the surface lets through, Fresnel's for unpolarised light into water (fresnelT, n 1.333:
+//   20% at 2° of sun, 42% at 5°, 65% at 10°, 79% at 15°) in place of a smoothstep that let 0% through at 2°, 12% at 5° — the golden hour's shafts, caustics and
+//   warm-lit shallows were cut at the very angles they are warmest. The veil's own tint (tintV) keeps the old gate: the scattered light round you stays the sky's.
+// - the glow toward the luminary in the veil (scene.js fogVeil, the uFogS term) in the beam's colour near the surface: light scattered forward along a low sun's
+//   beam is the sun's colour less what the water has taken — red first, gone over a few metres. (Tried round the *refracted* luminary, 42° up at sunset, where
+//   the single-scatter lobe is: seen, it moved the glow onto the surface a few metres overhead, where the veil is a per cent of the picture, and took it off the
+//   level water toward the sun's azimuth, which went darker and no warmer. Kept on the luminary's own direction — the multiply-scattered glow on the sun's side.) Its colour moves from the water's toward the sun's colour at the
+//   water's luminance by `k` × exp(−depth/`d`) × how far the sun's colour is from noon's (1 − its blue relative to noon's), at most all of it: nothing at noon, whose look stays as it
+//   was; at golden hour and sunset, looking toward the sun just under the surface, a gold-green haze (amber less its red). `golden water` on the effects list (both).
+const GOLD={d:8,k:2.5,n:1.333};
+function fresnelT(s){if(!(s>0))return 0;const n=GOLD.n,ci=s,si=Math.sqrt(Math.max(0,1-s*s)),st=si/n,ct=Math.sqrt(Math.max(0,1-st*st)),rs=(ci-n*ct)/(ci+n*ct),rp=(ct-n*ci)/(ct+n*ci);return (1-0.5*(rs*rs+rp*rp))/FRESNEL_0;} // the share of a beam at sin(altitude) s that the surface lets into the water, relative to the sun overhead's (so noon's light is as it was)
+const FRESNEL_0=1-Math.pow((GOLD.n-1)/(GOLD.n+1),2);
 const DUSK={lum:[0.25,0.62,0.13],clamp:[0.6,1.5]}; // v11.172 (atmosphere.js updateSky, tintS): the sky's colour relative to noon's at this luminance 1 — the eye's weights, as EYE_GLSL's — each channel held within clamp
 // The eye (v11.159; an animal's since v11.162 — atmosphere.js eyeK, eyeStep, scene.js EYE_GLSL). The person (16 Nov 2026), on ×2.4: "nighttime is so dark you
 // can't see anything as the finback … I wanted true dark because that's believable, but only if it meant that your eyes can adjust … animals in darkness like
