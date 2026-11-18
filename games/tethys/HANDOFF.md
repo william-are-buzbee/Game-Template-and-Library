@@ -4,7 +4,7 @@
 TAXA, FLORA Giants, DESIGN; CHANGELOG). The old domes (21–40 m, 137 round ours, a farmer to −150) are 3–9 m farmers in the light (to 14 for the low one), with
 microatolls at the lowest tide; new: the gaper (a hingeshell that kept its hinge: a clam by an arthropod's route) and its banks on fed rock in a current, and the
 wormshell (a coiled ringmouth cemented at its apex, a worm-snail) and its knolls in the surf. Round ours the domes are few (fed water); the atolls hold them.
-**Ask:** a bank at `tp(534,-305)` — many animals or a rock with shells on it?; a knoll in the surf; the atoll's shallows `tp(72236,29966)`.
+A frame's triangles at the forest ×1.15 and at the atoll ×1.20 (test/gpu.js), the times within their noise. **Ask:** a bank at `tp(534,-305)` — many animals or a rock with shells on it?; a knoll in the surf; the atoll's shallows `tp(72236,29966)`.
 
 **v11.180 (18 Nov 2026): the wood** (world.js `WOOD`, `WOOD_C`, `woodAt`; chunks.js `terrainColor`; scene.js `woodGLSL`, `MATWD`; horizon.js `HZ_WOOD`;
 flora.js `platewood`; test/leaf.js; TAXA "The wood"; DESIGN "The wood"; CHANGELOG). A canopy on the high islands where the trades' rain is: from 250 km to 450 m the

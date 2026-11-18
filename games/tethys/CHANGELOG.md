@@ -9324,6 +9324,10 @@ The lee: dry woodland, turf and hay by the island's logic (TAXA "The wood" Open 
 
 ## v11.181 — the sessile giants: many animals, not one (18 Nov 2026)
 
+**Worse by more than 10%: a frame's triangles at the forest ×1.15 (6.07M → 6.96M) and at the atoll ×1.20 (7.91M → 9.45M)** (test/gpu.js) — the banks
+and knolls (3.5k and 2.9k triangles each against a dome's 450–616) and the domes in the light, which is the change asked for; the draws +1 at the forest,
++24 at the atoll. (Built as v11.179; renumbered when v11.179, the GPU's counts, and v11.180, the wood, merged first, 18 Nov 2026.)
+
 The person: "a believability pass over the insanely oversized sessile ... animals that are now used like giant boulders ... Rather than one gigantic
 sessile animal pasted everywhere, even though it looked good and was cool, it's just not believable or accurate to evolution." The giant was the three
 **old domes** (`olddome`, `olddome2`, `olddome3`): one banded mound, the polyp farmers' massive colony, built as a rock structure. To v11.178 they were
@@ -9359,7 +9363,19 @@ it from −5 to −30), where farmers lose; the farmers' colonies are the atolls
 platform, ×0.89 sea, ×1.11 giant (N=2, both ways: noise); the creatures' frame at the forest mean 1.90 → 1.82 ms (×0.96), median 1.68 → 1.75. The
 bodies and the simulation are not the same: the creatures' spawns ask the cell's solids (chunks.js `solidPush`), and the structures and the gapers'
 colliders moved, so the spawn draws after them moved — expected for a content change. The structures' triangles on the GPU: a bank 3.5k and a knoll
-2.9k against a dome's 450–616 (a heap of rock is 3.6k); round ours 105 banks and knolls stand where 137 domes stood. Not measured on the GPU.
+2.9k against a dome's 450–616 (a heap of rock is 3.6k); round ours 105 banks and knolls stand where 137 domes stood. Measured since (test/gpu.js and test/perf.js against main with v11.180 in it):
+
+| what a frame asks of the GPU (test/gpu.js, 1600×900) | before | after | ratio |
+|---|---|---|---|
+| the forest: triangles, instances, draws | 6.07M, 31.3k, 298 | 6.96M, 32.2k, 299 | ×1.15, ×1.03, +1 |
+| the atoll: triangles, instances, draws | 7.91M, 50.2k, 264 | 9.45M, 51.7k, 288 | ×1.20, ×1.03, +24 |
+| the giant's coast: triangles, draws | 5.23M, 151 | 5.65M, 160 | ×1.08, +9 |
+| inside the wood: triangles, draws, programs | 2.22M, 60, 20 | 2.24M, 62, 21 | ×1.01, +2, +1 |
+| open water | | | every count the same |
+| the boot: bytes to buffers | 27.3 MB | 28.4 MB | ×1.04 |
+
+The times again (test/bench_creatures.js): a cell ×0.92–1.09 at the five places; every kind's build read ×1.14 on two pages and ×0.86 on four — noise.
+Not measured: the GPU's own time.
 
 In a 3×3 of cells: the bank field (537, −296) 286 gapers and 89 wormshells (beside 523 lilies and 222 nods), the knoll (352, −157) 337 and 165, the
 atoll's flat 2 and 140 (poor water: the gapers' `nut` keeps them off it).

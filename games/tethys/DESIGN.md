@@ -2457,7 +2457,8 @@ buffers, 5.5 MB copied (the refraction's frame); the atoll's kelp stand (109800,
 40000) 39 draws, 0.22M; the giant's coast from the surface (−7700, 0.6, 6000) 151 draws, 5.23M, 90 KB, nothing copied. The boot: 60 programs, 24.9 MB to
 buffers, 56.6 MB to textures. *v11.180 (the wood): a fifth place, inside the giant's forest (−10703, 144, 10914): 60 draws, 34.2k instances, 2.22M
 triangles, 20 program changes (1.63M triangles and 59 draws before the wood); the boot 62 programs, 27.3 MB to buffers (the canopy's `aWood` on every terrain
-mesh); the other four places unmoved.* Not comparable with 13 Sep's 429 draws and 4.9M triangles (below): those were the readout's, the main render's alone, at the
+mesh); the other four places unmoved. v11.181 (the sessile giants): the forest 6.96M triangles and 299 draws, the atoll 9.45M and 288, the coast 5.65M and
+160 — the banks and knolls (3.5k and 2.9k triangles) where domes of 450–616 stood.* Not comparable with 13 Sep's 429 draws and 4.9M triangles (below): those were the readout's, the main render's alone, at the
 person's spot and heading; these are every pass's, counted at WebGL, at the bench's. One program still compiles at the forest's first sight (CHANGELOG
 v11.179). The counts are what the GPU is given, not what it spends: a shader's cost per pixel moves none of them.
 
