@@ -9218,6 +9218,9 @@ the game plays as v11.178.
 - **`test/benchpage.js`, new:** the page `test/bench_creatures.js` built (the sources as dev.html loads them, the bench's clock, `Math.random`
   seeded, three's UUIDs on their own stream), shared now by it and `test/gpu.js`.
 - `JSON=<file>` on `test/bench.js`, `test/frames.js` and `test/bench_creatures.js`: their results, for perf.js.
+- **`test/snow.js` seeded** (`Math.random`, mulberry32 as test/smoke.js): its plate check compares −450 m with 40 m above it — one field, two
+  samples of the cloud, 15% slack — and read 11–14% against 11–13% over five runs here; it failed this pull request's CI (tethys-3: 14% vs 12%) with
+  no game code changed. Seeded it reads 12% vs 14% every run.
 
 **The counts today** (`test/gpu.json`; 1600×900, the mean a frame of 12):
 
