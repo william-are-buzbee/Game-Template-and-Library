@@ -2416,6 +2416,14 @@ re-sent pool data, up to 2.6 MB and 200 moves in a frame (three r128, headless);
 (2042, −18382), from 3.6), at the price of ~10k hidden instances drawn a frame mid-turn (16k in the stand), each vertex a fetch and a branch,
 packed a second after (CHANGELOG v11.125).*
 
+**What a frame asks of the GPU, counted (v11.179, 18 Nov 2026; `test/gpu.js`, held to `test/gpu.json` in CI).** At 1600×900, the mean a frame of 12
+once the place has loaded, the high tier: the forest (330, −12, 0) 298 draws, 6.07M triangles, 28 program changes, 1,375 uniforms, 2 passes, 327 KB to
+buffers, 5.5 MB copied (the refraction's frame); the atoll's kelp stand (109800, −10, 4000) 264 draws, 7.91M triangles, 268 KB; open water (20000, −30,
+40000) 39 draws, 0.22M; the giant's coast from the surface (−7700, 0.6, 6000) 151 draws, 5.23M, 90 KB, nothing copied. The boot: 60 programs, 24.9 MB to
+buffers, 56.6 MB to textures. Not comparable with 13 Sep's 429 draws and 4.9M triangles (below): those were the readout's, the main render's alone, at the
+person's spot and heading; these are every pass's, counted at WebGL, at the bench's. One program still compiles at the forest's first sight (CHANGELOG
+v11.179). The counts are what the GPU is given, not what it spends: a shader's cost per pixel moves none of them.
+
 **Where the frame goes, measured on the 4060 at the weed forest (330, 0), 13 Sep 2026.** The readout's `work` pair is the
 frame's own cost and the worst frame in the last quarter second (main.js, v11.32.1); `ms` and `fps` are the vsync interval and say
 nothing about headroom on a capped display.

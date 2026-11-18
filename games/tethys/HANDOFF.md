@@ -1,5 +1,13 @@
 # HANDOFF — tethys
 
+**v11.179 (18 Nov 2026): the GPU's work counted, and the cost in one command** (test/gpu.js, test/gpu.json, test/perf.js, test/benchpage.js; the
+repository's tools/lib/browser.ts `glCounting`, docs/decisions.md 28; CLAUDE.md "Performance"; DESIGN Performance; CHANGELOG). No game code changed.
+`node test/perf.js` runs the benches a branch's changes call for against its merge base and prints the pull request's table; `test/gpu.js` counts what a
+frame asks of the GPU at four places (draws, triangles, uploads, copies, compiles), and CI fails when a count moves more than 10% from `test/gpu.json`
+(`--update` and commit it with a change that means it). **Found, not touched:** one program compiles at the forest's first sight (a double-sided flora
+Lambert on a per-cell mesh, missed by `warmShaders`); the refraction copies 5.5 MB a frame under water; 327 KB a frame to buffers at the forest standing
+still; `FX` a dictionary; the creatures' frame ×1.16 from v11.177 to v11.178 with nothing on its path changed (unexplained). **Ask:** fail on falls too, or rises only? These four places, or heavier ones? Which finding first?
+
 **v11.178 (18 Nov 2026): the sky in the world's palette** (atmosphere.js `CL_LIT`, `LAGOON`, `AIRGLOW`, `TWI`, `cloudVol`, `SKY_FS`; effects.js; DESIGN The sky; CLOUDS.md §9; CHANGELOG).
 The clouds lit by the light that reaches them — grey bases by day, dark starless shapes at night, moonlit edges round dark cores — the bands eased; a turquoise
 base over shallow water; the airglow (the sea's line at night); the planet's shadow and the pink band opposite a low sun; the dome on the tone curve. `cloud light`,

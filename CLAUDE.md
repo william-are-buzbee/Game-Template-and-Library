@@ -88,7 +88,8 @@ of its own, and the person's call (`docs/decisions.md`, 16).
 From a cloud session you can build, test, run and screenshot; you cannot hear sound or measure the person's GPU.
 `npm run build -w <dir> && npm run look -- <dir>` boots the real build in headless Chromium (software WebGL), fails on
 any page error and writes a screenshot to `_look/<name>.png`. Look at it. `--query "?dev"`, `--wait <ms>` and
-`--size 1600x900` change what is shot. The person's own check is the pull request's preview.
+`--size 1600x900` change what is shot; `--gl` also says what a frame asked of the GPU (draws, triangles, program changes,
+bytes uploaded; `tools/lib/browser.ts` `glCounting`). The person's own check is the pull request's preview.
 
 The site's index shows a picture of each game and lab, taken from its build as the site is published
 (`tools/cards.ts`; `npm run cards -- <dir>` takes the same one into `_cards/`). By default it is the build as it opens,
@@ -97,7 +98,9 @@ The site's index shows a picture of each game and lab, taken from its build as t
 
 **And measure what it costs** (`docs/decisions.md`, 26). The person feels lag in a preview and saves the performance pass
 for later, so a slowdown is found versions after the change that made it. A change to anything that runs every frame or at
-load measures it before and after and puts the numbers in its pull request; the `perf` skill is how. In JavaScript the
+load measures it before and after and puts the numbers in its pull request; the `perf` skill is how (Tethys: `node test/perf.js`).
+A screenshot shows what is drawn, not what it cost: what a frame asks of the GPU is counted at WebGL's calls, the same on any
+machine, so it can be compared and held in CI where a time cannot (`docs/decisions.md`, 28). In JavaScript the
 cheapest large mistake is an object read in a hot loop whose keys differ from its siblings' — added later, in another order,
 deleted, or set one by one from a list: past four such shapes every read of it is a lookup by name. It was a third of
 Tethys's world cost (v11.148) and of its creatures' frame (v11.149), and nothing but a profiler showed it either time.
