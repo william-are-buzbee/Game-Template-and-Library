@@ -3,7 +3,7 @@
 // here changes the world, the weather or the physics — a shower still falls with its streaks off, the sun still sets with its shadows
 // off — only what is drawn. The choices persist in localStorage ('tethys.fx'); FX_DEF is what a fresh browser gets. FX is read where
 // each system is drawn: the caustics and the shadows through applyFog → LIGHT_K (atmosphere.js) and updateShadow (scene.js), the
-// shafts, the snow, the rain and the cumulus in atmosphere.js, the vignette here (the #vig layer in the shell).
+// shafts, the snow, the rain and the cumulus in atmosphere.js, the vignette (scene.js `VIG`, in the dithering since v11.177; a CSS layer in the shell to v11.176).
 // pixel (v11.38): the caustic and the shadows in world-fixed blocks with hard edges, or smooth (scene.js uPix); off since v11.38.1 (the person prefers the smooth light "at least for now").
 // texels (v11.40–41 as part of `pixel`, its own row since v11.41.1 — the person wants to try the textures with the smooth light): every tinted surface in texels fixed to
 // the thing it is on, with a pattern per cell (scene.js uTex, PIX_T/PIX_TB, PIXEL.md); off by default.
@@ -37,11 +37,11 @@ const FX=Object.assign({},FX_DEF);
 const FX_V=90,FX_NEW=['freeLook','specK']; // v11.79: the stored record's version, and the keys whose default must reach a browser that saved its choices before it — free look became the default and a saved 'off' from v11.77.3 would have hidden it. Bump FX_V and list the key when a default changes; every other choice the person has made is kept
 (function(){try{const s=window.localStorage&&window.localStorage.getItem('tethys.fx');if(s){const o=JSON.parse(s),old=(o.v|0)<FX_V;for(const k in FX_DEF)if(typeof o[k]===typeof FX_DEF[k]&&!(old&&FX_NEW.indexOf(k)>=0))FX[k]=o[k];}}catch(e){}})();
 function fxSave(){try{if(window.localStorage)window.localStorage.setItem('tethys.fx',JSON.stringify(Object.assign({v:FX_V},FX)));}catch(e){}}
-const fxEl=document.getElementById('fx'),fxListEl=document.getElementById('fxlist'),vigEl=document.getElementById('vig');
+const fxEl=document.getElementById('fx'),fxListEl=document.getElementById('fxlist');
 let fxOpen=false;
 function murkApply(){FOG_MURK[0]=FX.murk?FX.murkK:0;FOG_MURK[1]=FX.golden?1:0;} // y (v11.176): golden water's glow // (v11.167) the murk's strength (scene.js FOG_MURK)
 function specApply(){const k=FX.spectral?FX.specK:0;FOG_SPEC[0]=SPECTRAL.k[0]*k;FOG_SPEC[1]=SPECTRAL.k[1]*k;FOG_SPEC[2]=0;FOG_SPEC[3]=SPECTRAL.view;} // (v11.164) the per-channel colour's uniform (scene.js FOG_SPEC): world.js SPECTRAL × the slider, 0 off
-function fxApply(){specApply();murkApply();DEEP_U[2]=FX.deep?DEEP.on:0;DEEP_U[3]=FX.dlight?1:0;FOG_SKD[3]=FX.tone?1:0;vigEl.style.display=FX.vignette?'':'none';pixU.value=FX.pixel?1:0;texU.value=FX.texels?1:0;texLU.value=FX.texelLight?1:0;if(typeof wasAbove==='boolean')applyFog(wasAbove);shadowDirty();} // a switch changes the world map's caster set // the fog's light block reads FX (LIGHT_K); before the first frame applyFog runs on its own
+function fxApply(){specApply();murkApply();DEEP_U[2]=FX.deep?DEEP.on:0;DEEP_U[3]=FX.dlight?1:0;FOG_SKD[3]=FX.tone?1:0;VIG[2]=FX.vignette?VIG_A:0;pixU.value=FX.pixel?1:0;texU.value=FX.texels?1:0;texLU.value=FX.texelLight?1:0;if(typeof wasAbove==='boolean')applyFog(wasAbove);shadowDirty();} // a switch changes the world map's caster set // the fog's light block reads FX (LIGHT_K); before the first frame applyFog runs on its own
 const FX_SLIDERS={caustics:['brightness','cauK',0,2,0.05],refract:['wobble','refrK',0,3,0.05],spectral:['strength','specK',0,12,0.25],crest:['strength','crestK',0,2,0.05],halo:['strength','haloK',0,3,0.05],murk:['strength','murkK',0,1,0.05],shore:['strength','shoreK',0,2,0.05]}; // refract (v11.51): the underside's refraction of the frame (atmosphere.js REFR_*), wobble a multiplier on REFR_K // a slider under a switch (v11.38.1, the person's ask): [label, key, min, max, step]; the key is a number in FX_DEF and persists with the switches
 function fxRender(){fxListEl.innerHTML=FX_LIST.map(e=>{let h='<div class="row'+(FX[e[0]]?'':' off')+'" data-k="'+e[0]+'"><span>'+e[1]+'</span><b>'+(FX[e[0]]?'on':'off')+'</b></div>';const s=FX_SLIDERS[e[0]];if(s)h+='<div class="row sl"><span>'+s[0]+'</span><input type="range" data-s="'+s[1]+'" min="'+s[2]+'" max="'+s[3]+'" step="'+s[4]+'" value="'+FX[s[1]]+'"><b>'+FX[s[1]].toFixed(2)+'</b></div>';return h;}).join('');}
 function fxToggle(k){if(!(k in FX_DEF))return;FX[k]=!FX[k];fxSave();fxApply();fxRender();}

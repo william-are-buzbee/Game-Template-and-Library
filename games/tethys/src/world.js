@@ -750,11 +750,10 @@ function leeW(x,z){
 // applies it at the ray's own depth). To v11.80 this held a guess at it (nut × the floor's light × 0.3, greener) and the canopy's WATER_CANOPY.
 const WCOL=[[0,[0.10,0.46,0.58]],[20,[0.10,0.42,0.52]],[60,[0.09,0.34,0.40]],[150,[0.07,0.26,0.36]],[250,[0.05,0.20,0.32]]]; // v11.28: the table ends at the deep blue. It went on to (0.03,0.08,0.16) at 400 and (0.006,0.01,0.03) at 451 — "dark on purpose over the deep and the void" — a black water. Water is not black: the deep is dark because little light reaches it, and that is the daylight term (dl in the fog block and updateAtmosphere), not the colour. The person, 10 Sep: no deliberately black fog.
 const WCOL_D=WCOL[WCOL.length-1][0];
-// The table at a depth (the JS and the GLSL of the same curve — the veil reads it by the ray's own depth since v11.27, see FLOOR_H)
+// The table at a depth, a line between its entries — the maps' colour by the floor's depth (waterColor); the veil reads WOPEN's eased curve (below, v11.177)
 function wcolAt(d){d=clamp(d,0,WCOL_D);let c=WCOL[WCOL.length-1][1];
   for(let i=1;i<WCOL.length;i++)if(d<=WCOL[i][0]){const a=WCOL[i-1],b=WCOL[i],t=(d-a[0])/(b[0]-a[0]);c=[lerp(a[1][0],b[1][0],t),lerp(a[1][1],b[1][1],t),lerp(a[1][2],b[1][2],t)];break;}
   return c;}
-const WCOL_GLSL='vec3 wcol(float d){vec3 c=vec3('+WCOL[0][1].map(v=>v.toFixed(3)).join(',')+');'+WCOL.slice(1).map((e,i)=>'c=mix(c,vec3('+e[1].map(v=>v.toFixed(3)).join(',')+'),clamp((d-'+WCOL[i][0].toFixed(1)+')/'+(e[0]-WCOL[i][0]).toFixed(1)+',0.0,1.0));').join('')+'return c;}'; // the chain of mixes is the piecewise line exactly: each clamp saturates before the next begins
 // The floor's say in the veil (v11.27). WCOL is indexed by the *floor's* depth, which made the veil's colour a map of the floor: over the
 // void (h -800, the table's last entry, near black) and the pit (struck v11.95) the water read black in every direction from 260 units off, and the
 // void's edge stood on the horizon as a dark band — "the edge of the world" (the person, 10 Sep). Now the veil at a point is the table
@@ -765,6 +764,19 @@ const WCOL_GLSL='vec3 wcol(float d){vec3 c=vec3('+WCOL[0][1].map(v=>v.toFixed(3)
 // the surface is not darker than open water at -120). The shader reads the floor from floorMap (scene.js; far.js fills it beside the
 // water map); updateAtmosphere does the same on the CPU for the ambient. Not on the tuner: the readout's keys are all taken.
 const FLOOR_H=80,FLOOR_FREE=30,OPEN_D=150;
+// The open water's colour by depth, as the veil reads it (v11.177): the table at the depth but never shallower than OPEN_D, eased between its entries
+// (smoothstep: the slope zero at each) instead of a line. The line's corners — at OPEN_D, where the clamp met the table, and at its end, 250 — were each a
+// Mach band: the veil takes the colour 260 m along every ray, so a corner in depth is a corner in the veil at a fixed angle below the eye, a line just
+// under the horizon from 140 m and rings looking down, moving with the eye's depth (the person, 18 Nov 2026: "lines in the distance", "rings sort of
+// around you"). wopenAt is the JS (updateAtmosphere's ambient), WOPEN_GLSL the shader's `wopen`, the same curve.
+const WOPEN=[[OPEN_D,wcolAt(OPEN_D)]].concat(WCOL.filter(e=>e[0]>OPEN_D));
+function wopenAt(d){const c=WOPEN[0][1].slice();for(let i=1;i<WOPEN.length;i++){const a=WOPEN[i-1],b=WOPEN[i],t=smooth(a[0],b[0],d);for(let k=0;k<3;k++)c[k]+=(b[1][k]-a[1][k])*t;}return c;}
+// The veil's other corners, rounded by a smooth max's knee (util.js smax; the shader's smx, scene.js) — each was a line or a ring (v11.177, the same
+// report): `floor` m, the knee of the floor's say at FLOOR_FREE (a ring on the floor where the sample point 260 m along the ray rises past FLOOR_FREE above it,
+// and a line at the matching angle over a flat floor); `reach` m, the knee of the sample point's cap at SEA_FOG.reach (a ring on the floor at 260 m); `near` m,
+// the knee of the daylight's read DLIGHT.near along the ray (a ring at 20 m). Exact past the knee on either side; at the corner itself the max takes k/4.
+const VEIL_K={floor:24,reach:100,near:8};
+const WOPEN_GLSL='vec3 wopen(float d){vec3 c=vec3('+WOPEN[0][1].map(v=>v.toFixed(4)).join(',')+');'+WOPEN.slice(1).map((e,i)=>'c+=vec3('+e[1].map((v,k)=>(v-WOPEN[i][1][k]).toFixed(4)).join(',')+')*smoothstep('+WOPEN[i][0].toFixed(1)+','+e[0].toFixed(1)+',d);').join('')+'return c;}';
 function waterColor(s,out){const c=wcolAt(-s.h);
   const f=s.f,tb=f[FI.turb]*0.45,ht=f[FI.heat]*0.6,o=out||[0,0,0];
   o[0]=lerp(lerp(c[0],0.16,tb),0.09,ht);o[1]=lerp(lerp(c[1],0.40,tb),0.06,ht);o[2]=lerp(lerp(c[2],0.36,tb),0.05,ht);return o;}

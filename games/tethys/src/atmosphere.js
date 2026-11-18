@@ -269,7 +269,7 @@ function updateSky(dt){const K=SKY;
 // v11.17 struck v11.90); then the boundary-layer
 // haze (MIST_GLSL mistFar: the same layer every fragment in air integrates, here to infinity — the horizon's white band, glowing
 // toward the light), the sun's glare, and the bow. The moon's disc, the stars and the planets only pay for pixels near them.
-const skyU={uZen:{value:new THREE.Vector3()},uHor:{value:new THREE.Vector3()},uGlow:{value:new THREE.Vector3()},uSunC:{value:new THREE.Vector3()},uLumC:{value:new THREE.Vector3()},uCirrC:{value:new THREE.Vector3()},
+const skyU={uVig:{value:VIG},uZen:{value:new THREE.Vector3()},uHor:{value:new THREE.Vector3()},uGlow:{value:new THREE.Vector3()},uSunC:{value:new THREE.Vector3()},uLumC:{value:new THREE.Vector3()},uCirrC:{value:new THREE.Vector3()},
   uSun:{value:new THREE.Vector3()},uMoon:{value:new THREE.Vector3()},uLum:{value:new THREE.Vector3()},uCam:{value:new THREE.Vector3()},uWind:{value:new THREE.Vector2()},uUpper:{value:new THREE.Vector2()},
   uDay:{value:1},uNight:{value:0},uCover:{value:0},uRain:{value:0},uMoonL:{value:0},uLumL:{value:1},uStarT:{value:0},uTime:timeU,uBow:{value:0},uCloudH:{value:CLOUD_H},uCirrusH:{value:CIRRUS_H},uCirr:{value:0},uCamH:{value:0},uEclS:{value:0},uEclL:{value:0},uFxCloud:{value:1},
   uDeckC:{value:new THREE.Vector3(1,1,1)},uDeckL:{value:0},uCld:{value:FOG_CLD},uCldB:{value:FOG_CLDB},uCellA:{value:FOG_CELLA},uCellB:{value:FOG_CELLB},uCldTex:cldTexU,uVolT:{value:new THREE.Vector2(CLOUD_T,CLOUD_T)}, // v11.89 (clouds.js): the atlas, the deck's depth (a plain deck's, the deepest cell's) // v11.87 (clouds.js): the deck's sunlight and its colour, the lumps' share (the deck fades out under them), the field's state
@@ -675,7 +675,7 @@ function updateAtmosphere(dt){
   // the water here, read from the same blurred map the fog shader reads at the camera (so the background, the ambient
   // light and the fog agree, and a border is a drift over ~100 units of travel, not an event); the plankton's tint as the shader has it (v11.81)
   wmSample(player.pos.x,player.pos.z,wmHere);const bw=SEA_FOG.bright;
-  {const fw=Math.exp(-Math.max(player.pos.y+wmFloor(player.pos.x,player.pos.z)-FLOOR_FREE,0)/FLOOR_H),oc=wcolAt(Math.max(-player.pos.y,OPEN_D));for(let i=0;i<3;i++)wmHere[i]=lerp(oc[i],wmHere[i],fw);} // v11.27: the floor's colour only within FLOOR_H of it, as the shader has it (world.js FLOOR_H)
+  {const fw=Math.exp(-smax(player.pos.y+wmFloor(player.pos.x,player.pos.z)-FLOOR_FREE,0,VEIL_K.floor)/FLOOR_H),oc=wopenAt(-player.pos.y);for(let i=0;i<3;i++)wmHere[i]=lerp(oc[i],wmHere[i],fw);} // v11.27: the floor's colour only within FLOOR_H of it, as the shader has it (world.js FLOOR_H)
   bloomTint(wmHere,bloomAt(player.pos.x,player.pos.y,player.pos.z,amC)); // v11.81: the crops at the player's own depth, from the bloom map (far.js), as fogVeil tints each of its samples
   const wr=wmHere[0]*bw,wg=wmHere[1]*bw,wb=wmHere[2]*bw,dl=daylightAt(player.pos.y);
   // the medium is the camera's: air above the surface, water below. Crossing it snaps fog and light; within it they drift.
