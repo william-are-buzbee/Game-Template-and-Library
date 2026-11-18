@@ -7,7 +7,7 @@
 // v11.181 (analysis_sessile.md; the person, 18 Nov 2026: one giant "pasted everywhere ... just not believable or accurate to evolution"): the
 // old domes are the farmers' colonies again — in the light, a few metres, a handful to a coast, with the microatoll where one meets the lowest
 // tide — and the big living shapes below them are the banks: many animals, not one. Every structure here is drawn by the far layer with the
-// rock's material (far.js) and its cores' dodecahedra are its collision, as the rock kits' are. Appended to FLORA after the rocks, so the
+// rock's material (far.js; the knoll since v11.182 without its tide band, `farMat`) and its cores' dodecahedra are its collision, as the rock kits' are. Appended to FLORA after the rocks, so the
 // structures' placement streams (far.js bigsGen, one per BIG index) before them are unchanged.
 // ---------- the colonies (the polyps' farmers: a green in the skin, so the light's) ----------
 // The person (v11.21): the largest coral more varied rather than scaled up. The old dome (flora.js) is a banded mound, the massive colony's
@@ -59,24 +59,32 @@ function bankGeo(seed){const rg=mulberry(seed),P=[],lumps=[],C=[[0,0.62,0.42,0],
     const nn=p.n.clone().add(V3((rg()-0.5)*0.7,(rg()-0.5)*0.4,(rg()-0.5)*0.7)).normalize(),rv=0.04+rg()*0.025,c=rg()<0.5?GDEAD:GDEAD2;P.push(part(G.cyl(rv,rv*0.85,rv*0.3,5,false),p.x,p.y,p.z,[c[0]*1.08,c[1]*1.08,c[2]*1.08],{dir:nn,s:[1,1,1.25]}));n++;}
   for(let i=0;i<14;i++){const th=rg()*TAU,d=1+rg()*0.22;P.push(part(G.cyl(0.05,0.045,0.012,5,false),Math.cos(th)*d*1.12,0.085,Math.sin(th)*d*0.58,GDEAD2,{r:[(rg()-0.5)*0.6,rg()*TAU,(rg()-0.5)*0.6],s:[1,1,1.25]}));} // loose valves at the foot
   return kit(P,lumps);}
-// ---------- the tube knolls (v11.181) ----------
-// Wormshells (flora.js) settling on wormshells: in the wash the tubes tangle into a knoll — a rounded heap of old tubes cemented together under
-// the living ones, their crowns out into the water on every side (Earth's vermetid platforms and Bermuda's boilers: the same rule). Exposed rock in
-// the surf, −2.5 to −11; its top held three metres under mean water (clear 3), so the springs' lows bare it. 2.5–6 m across, 1–2.5 high.
-const KCORE=[0.7,0.67,0.6];
-function knollGeo(seed){const rg=mulberry(seed),P=[],lumps=[],C=[[0,0,0.72,0.62],[0.3,-0.18,0.5,0.7],[-0.32,0.2,0.46,0.66]]; // the cores: x, z, radius, height over radius
-  for(const [cx,cz,r,sq] of C){P.push(part(G.sph(r,8,5),cx,0,cz,KCORE,{s:[1,sq,1]}));lumps.push({x:cx,y:0,z:cz,r:r*1.27,s:[1,sq,1],rot:[0,0,0]});}
-  const inside=(x,y,z,k)=>{for(let i=0;i<C.length;i++){if(i===k)continue;const c=C[i],u=(x-c[0])/c[2],v=y/(c[2]*c[3]),w=(z-c[1])/c[2];if(u*u+v*v+w*w<0.92)return true;}return false;};
-  for(let n=0,tries=0;n<60&&tries<400;tries++){const k=rg()<0.5?0:rg()<0.5?1:2,[cx,cz,r,sq]=C[k],th=rg()*TAU,ph=0.08+rg()*1.4,ex=Math.cos(ph)*Math.cos(th),ey=Math.sin(ph),ez=Math.cos(ph)*Math.sin(th); // the old tubes: lying along the skin, cemented, every way
-    const x=cx+r*ex,y=r*sq*ey,z=cz+r*ez;if(inside(x,y,z,k))continue;const nv=V3(ex,ey/sq,ez).normalize(),tg=nv.clone().cross(V3(rg()-0.5,rg()-0.5,rg()-0.5)).normalize(),L=0.12+rg()*0.14,tr=0.022+rg()*0.012;
-    P.push(part(G.cyl(tr,tr*0.9,L,5,true),x+nv.x*tr*0.4,y+nv.y*tr*0.4,z+nv.z*tr*0.4,n%3?(n%2?WSHELL:WSHELL2):KCORE,{dir:tg}));n++;}
-  for(let n=0,tries=0;n<34&&tries<300;tries++){const k=rg()<0.5?0:rg()<0.5?1:2,[cx,cz,r,sq]=C[k],th=rg()*TAU,ph=0.35+rg()*1.2,ex=Math.cos(ph)*Math.cos(th),ey=Math.sin(ph),ez=Math.cos(ph)*Math.sin(th);
-    const x=cx+r*ex,y=r*sq*ey,z=cz+r*ez;if(inside(x,y,z,k))continue;
-    const d=V3(ex,ey/sq,ez).normalize().add(V3((rg()-0.5)*0.8,0.5,(rg()-0.5)*0.8)).normalize(),d2=d.clone().add(V3((rg()-0.5)*0.9,0.2,(rg()-0.5)*0.9)).normalize(),L=0.1+rg()*0.14,tr=0.02+rg()*0.012,m=V3(x,y,z).addScaledVector(d,L*0.5),e=m.clone().addScaledVector(d2,L*0.5);
-    P.push(part(G.cyl(tr,tr*0.9,L*0.55,5,true),x+d.x*L*0.25,y+d.y*L*0.25,z+d.z*L*0.25,n%2?WSHELL:WSHELL2,{dir:d}));P.push(part(G.cyl(tr*1.05,tr,L*0.55,5,true),m.x+d2.x*L*0.25,m.y+d2.y*L*0.25,m.z+d2.z*L*0.25,WSHELL,{dir:d2}));
-    P.push(part(G.cyl(tr*1.35,tr*1.1,tr*0.5,5,true),e.x,e.y,e.z,WSHELL2,{dir:d2})); // the aperture's lip
-    if(n%5===0)crown(P,e.clone().addScaledVector(d2,tr*0.3),{n:5,len:tr*4,w:tr*0.4,spread:0,rim:tr*1.1,col:CFLESH},rg);n++;}
-  return kit(P,lumps);}
+// ---------- the tube knolls (v11.181; v11.182 the thicket) ----------
+// Wormshells (flora.js) settling on wormshells: in the wash the tubes pile into a knoll, the old cemented together under the living (Earth's
+// vermetid platforms, Bermuda's boilers and the serpulid clumps of Loch Creran: the same rule). Exposed rock in the surf, −2.5 to −11; its top
+// held three metres under mean water (clear 3), so the springs' lows bare it. 2.5–6 m across, 1–2.5 high.
+// v11.182 (the person, 18 Nov 2026: the lone tubes "looked the best by far"; the knoll, "the rock looking ball of little worms", too busy): to
+// v11.181 a pale dome of three cores with 94 short tubes lying and standing every way on it and a crown on 7 — a rock with things stuck to it
+// (v11.22's bin) at a grain too fine to read. A crowded tube-dweller grows up, not along: Earth's serpulids and vermetids in a clump stand erect
+// and near parallel, racing each other for the water over them. So the knoll is the lone tube's gesture many times over: 24 long ribbed tubes
+// rising from a dark foot of their dead and fanning out, the middle's tallest, a crown on every living mouth; a fifth dead, shorter, greyer and
+// open. The foot is dark so the tubes stand off it, not lie on a rock. The young are the lone wormshells round it (the same envelope, flora.js):
+// a kit of its own put three at its edge, and from a swimmer's height they lay flat and read as sticks.
+const KFOOT=[0.32,0.3,0.27],KFOOT2=[0.38,0.36,0.32],KDEAD=[0.64,0.62,0.58],KSINK=0.06;
+// one tube of the thicket: from (x, y, z) along d, five ribbed segments wandering as the lone one does and bending a little toward the water
+// above; returns its mouth {x,y,z,d}
+function knollTube(P,x,y,z,d,len,r,col,rg){const L=len/5,v=d.clone();let px=x,py=y,pz=z;
+  for(let k=0;k<5;k++){v.x+=(rg()-0.5)*0.42;v.z+=(rg()-0.5)*0.42;v.y+=0.08;v.normalize();const s=v.clone().multiplyScalar(L),r0=r*(1+0.03*k),r1=r*(1+0.03*(k+1));
+    P.push(part(G.cyl(r1*(k%2?1.14:0.9),r0*(k%2?0.9:1.14),L*1.04,5,true),px+s.x/2,py+s.y/2,pz+s.z/2,col,{dir:s}));px+=s.x;py+=s.y;pz+=s.z;}
+  return {x:px,y:py,z:pz,d:v};}
+function knollGeo(seed){const rg=mulberry(seed),P=[],N=24,RB=0.58;
+  P.push(part(G.sph(0.66,8,5),0,-0.03,0,KFOOT,{s:[1,0.42,1]}));P.push(part(G.sph(0.42,7,4),0.14,0.06,-0.08,KFOOT2,{s:[1,0.5,1]})); // the foot: the dead cemented, showing only between the living's bases
+  for(let i=0;i<N;i++){const th=i*2.39996+(rg()-0.5)*0.5,rho=RB*Math.sqrt((i+0.3+rg()*0.4)/N),c=Math.cos(th),s=Math.sin(th),dead=rg()<0.2; // spread by the golden angle: as even as a crowd that never moves
+    const y=0.2*Math.sqrt(Math.max(0,1-(rho/0.66)**2)),d=V3(c*rho*1.7+(rg()-0.5)*0.2,1,s*rho*1.7+(rg()-0.5)*0.2).normalize(),len=(0.8-0.5*rho)*(0.82+rg()*0.36)*(dead?0.6:1),r=0.028+rg()*0.014;
+    const t=knollTube(P,c*rho,y,s*rho,d,len,r,dead?KDEAD:i%4?WSHELL:WSHELL2,rg);if(dead)continue;
+    P.push(part(G.cyl(r*1.4,r*1.15,r*0.5,5,true),t.x,t.y,t.z,WSHELL2,{dir:t.d})); // the aperture's lip
+    crown(P,V3(t.x,t.y,t.z).addScaledVector(t.d,r*0.3),{n:5,len:r*4.5,w:r*0.45,spread:0,rim:r*1.1,col:CFLESH,lite:true},rg);}
+  return kit(P,[{x:0,y:0.02,z:0,r:0.78,s:[1,0.75,1],rot:[0,0,0]}]);}
 const LOBED = lobedGeo(97),
   LOWDOME = lowdomeGeo(103),
   MICRO=microGeo(107),BANK=bankGeo(109),KNOLL=knollGeo(113),
@@ -92,9 +100,9 @@ for (const e of [
   {id: 'olddome3', k: LOWDOME, s: [3.5, 7.5], sx: [0.85, 1.3], tints: GIANT_T, sink: 0.1, per: 1, env: {h: [-30, -5], sub: [0.5, 1], nut: [0, 0.5], young: [0, 0.4], expo: [0, 0.45]}, field: 0.009, clear: 4.5},
   {id:'microatoll',k:MICRO,s:[1,2.8],sx:[0.85,1.2],tints:[[0.85,0.8,0.7],[0.9,0.84,0.68],[0.8,0.84,0.74]],sink:0.05,per:5,env:{h:[-7.5,-4.6],sub:[0.5,1],nut:[0,0.5],young:[0,0.4]},field:0.01,clear:4.5},
   {id:'gaperbank',k:BANK,s:[3,6],sx:[0.85,1.2],tints:[[0.92,0.9,0.86],[0.86,0.84,0.8],[0.96,0.93,0.86]],sink:0.08,per:2,flow:true,env:{h:[-90,-6],sub:[0.5,1],flow:[0.35,1],nut:[0.4,1],young:[0,0.6]},field:0.009,clear:4.5},
-  {id:'knoll',k:KNOLL,s:[1.2,2.6],sx:[0.85,1.2],tints:[[1,1,1],[0.95,0.92,0.85],[0.92,0.9,0.88]],sink:0.15,per:2,env:{h:[-11,-2.5],sub:[0.55,1],expo:[0.45,1],young:[0,0.7]},field:0.012,clear:3}
+  {id:'knoll',k:KNOLL,s:[1.2,2.6],sx:[0.85,1.2],tints:[[1,1,1],[0.95,0.92,0.85],[0.92,0.9,0.88]],sink:KSINK,per:2,env:{h:[-11,-2.5],sub:[0.55,1],expo:[0.45,1],young:[0,0.7]},field:0.012,clear:3,farMat:MATSHELL}
 ]) {
-  const f = {id: e.id, geo: e.k.geo, lumps: e.k.lumps, top: e.k.top, foot: e.k.foot, mat: MAT, tints: e.tints, s: e.s, sink: e.sink, sx: e.sx, per: e.per, flow: !!e.flow, env: e.env, field: e.field, clear: e.clear, big: true};
+  const f = {id: e.id, geo: e.k.geo, lumps: e.k.lumps, top: e.k.top, foot: e.k.foot, mat: MAT, tints: e.tints, s: e.s, sink: e.sink, sx: e.sx, per: e.per, flow: !!e.flow, env: e.env, field: e.field, clear: e.clear, big: true, farMat: e.farMat || null}; // farMat (v11.182): far.js draws it with that, else MATROCKB
   FLORA.push(f);
   FLORA_BY_ID[f.id] = f;
 }

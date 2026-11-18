@@ -684,6 +684,7 @@ function rockMaterial(far,fade){const m=new THREE.MeshLambertMaterial({vertexCol
   sh.fragmentShader='varying float vFoot;\n'+sh.fragmentShader.replace('#include <fog_fragment>','gl_FragColor.rgb*=vFoot;\n#include <fog_fragment>');};return m;}
 const MATROCK=addTint(rockMaterial(),'lamrock',true,1,undefined,'rock'); // rock placed by the cell (the ledges; the boulders until v11.157, MATROCKF since): with the tide's band and the foot
 const MATROCKB=addTint(new THREE.MeshLambertMaterial({vertexColors:true}),'lam',false,1,undefined,'rock'); // structures (far.js): the same with the big-thing fog
+const MATSHELL=addTint(new THREE.MeshLambertMaterial({vertexColors:true}),'lam',false,undefined,undefined,'rock'); // a living structure in the tides' band (v11.182, reef.js `farMat`): MATROCKB without the band — the band is wet rock's stain, and the knolls stand in it by design; with it their tubes were a burnt grey-green beside the same animal's cream alone
 // the boulders (v11.157, far.js rocksGen): drawn by the far layer to ROCK_FAR, fading over ROCK_FADE (farCut) — past ~900 m the veil leaves 3%, and on
 // the low tier the far cut's start (FOG_CUT0, 620) is the end of anything
 const ROCK_FAR=Math.min(900,FAR*0.62),ROCK_FADE=120,MATROCKF=addTint(rockMaterial(ROCK_FAR,ROCK_FADE),'lamrockf',true,1,undefined,'rock');

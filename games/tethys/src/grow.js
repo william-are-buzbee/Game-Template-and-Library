@@ -123,12 +123,13 @@ const PTIP=[1.18,1.18,1.12],EYE=[0.06,0.06,0.09];
 // polyps: a cup on every twig
 function polypTip(P,at,r){P.push(part(G.cyl(r*1.6,r*0.6,r*1.6,5,true),at.x,at.y+r*0.5,at.z,PTIP));}
 // crowns (sessile ringmouths): n arms as two-segment chains of tapering boxes opening up and out, an eye ring round the rim.
-// plane: the arms fan in the x-y plane (a crown across the flow); else radial. n, len, w, spread (radians, half-angle for a fan), rim, col
+// plane: the arms fan in the x-y plane (a crown across the flow); else radial. n, len, w, spread (radians, half-angle for a fan), rim, col;
+// lite (v11.182, a knoll's twenty crowns, reef.js): each arm two three-sided prisms and no eye ring — 60 triangles to the full crown's 162
 function crown(P,at,o,rg){for(let i=0;i<o.n;i++){const ph=o.plane?lerp(-1,1,o.n>1?i/(o.n-1):0.5)*o.spread:i/o.n*TAU+rg()*0.3,el=0.4+rg()*0.5;
     const dirAt=k=>(o.plane?V3(Math.sin(ph*(1+0.5*k)),Math.cos(ph*(1+0.5*k)),0):V3(Math.cos(ph)*Math.cos(el-0.5*k),Math.sin(el-0.5*k)+0.2,Math.sin(ph)*Math.cos(el-0.5*k))).normalize();
     let p=at.clone(),w=o.w;const L=o.len/2;
-    for(let k=0;k<2;k++){const v=dirAt(k).multiplyScalar(L);P.push(part(G.box(w,L*1.05,w),p.x+v.x/2,p.y+v.y/2,p.z+v.z/2,o.col,{dir:v}));p.add(v);w*=0.62;}}
-  const ne=o.n+2;for(let i=0;i<ne;i++){const a=i/ne*TAU,v=V3(Math.cos(a),0.7,Math.sin(a));P.push(part(G.cone(o.w*0.5,o.w*0.55,3),at.x+Math.cos(a)*o.rim,at.y+o.w*0.15,at.z+Math.sin(a)*o.rim,EYE,{dir:v}));}}
+    for(let k=0;k<2;k++){const v=dirAt(k).multiplyScalar(L);P.push(part(o.lite?G.cyl(w*0.5,w*0.62,L*1.05,3,true):G.box(w,L*1.05,w),p.x+v.x/2,p.y+v.y/2,p.z+v.z/2,o.col,{dir:v}));p.add(v);w*=0.62;}}
+  if(o.lite)return;const ne=o.n+2;for(let i=0;i<ne;i++){const a=i/ne*TAU,v=V3(Math.cos(a),0.7,Math.sin(a));P.push(part(G.cone(o.w*0.5,o.w*0.55,3),at.x+Math.cos(a)*o.rim,at.y+o.w*0.15,at.z+Math.sin(a)*o.rim,EYE,{dir:v}));}}
 // cones (sessile hingeshells): a plated cone — stacked six-sided rings in alternate shades so the seams show — open at the top, comb legs out of it. r, h, plates, legs, col, col2, col3
 function coneShell(P,o,rg,x,y,z){let yy=y,r=o.r;const hp=o.h/o.plates;
   for(let k=0;k<o.plates;k++){P.push(part(G.cyl(r*0.76,r*1.04,hp*1.06,6,true),x,yy+hp/2,z,k%2?o.col2:o.col));yy+=hp;r*=0.76;}

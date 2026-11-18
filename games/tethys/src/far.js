@@ -363,7 +363,7 @@ function* genRegion(ri,rj){
   const byGeo=new Map();
   for(let dj=0;dj<FR;dj++)for(let di=0;di<FR;di++){for(const s of (yield* bigsGen(ci0+di,cj0+dj))){let L=byGeo.get(s.f.geo);if(!L){L=[];byGeo.set(s.f.geo,L);}L.push(s);}yield;}
   const c=new THREE.Color();
-  byGeo.forEach((L,g)=>{const im=new THREE.InstancedMesh(g,MATROCKB,L.length);im.frustumCulled=false;
+  byGeo.forEach((L,g)=>{const im=new THREE.InstancedMesh(g,L[0].f.farMat||MATROCKB,L.length);im.frustumCulled=false;
     for(let i=0;i<L.length;i++){im.setMatrixAt(i,L[i].m);c.setRGB(L[i].col[0],L[i].col[1],L[i].col[2]);im.setColorAt(i,c);}instLocal(im,L,ox,oz,q=>q.m);
     im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;reg.group.add(im);});
   yield;
