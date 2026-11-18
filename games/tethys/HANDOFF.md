@@ -1,5 +1,10 @@
 # HANDOFF — tethys
 
+**v11.178 (18 Nov 2026): the sky in the world's palette** (atmosphere.js `CL_LIT`, `LAGOON`, `AIRGLOW`, `TWI`, `cloudVol`, `SKY_FS`; effects.js; DESIGN The sky; CLOUDS.md §9; CHANGELOG).
+The clouds lit by the light that reaches them — grey bases by day, dark starless shapes at night, moonlit edges round dark cores — the bands eased; a turquoise
+base over shallow water; the airglow (the sea's line at night); the planet's shadow and the pink band opposite a low sun; the dome on the tone curve. `cloud light`,
+`lagoon glow`, `airglow`, `twilight bands`. **Ask:** a moonless night from the water (dark enough, readable enough?); the east an hour after sunset; noon over a lagoon.
+
 **v11.177 (18 Nov 2026): the veil without lines** (scene.js the fog chunk's ray, `VIG`, `haloL`, `SMX_GLSL`, `DIR_GLSL`; world.js `WOPEN`, `VEIL_K`; shell.html; DESIGN
 Visibility, "The veil's corners rounded"; CHANGELOG). The person saw lines in the distance, rings round them and, in the dark, the world's edge. Four causes: the dome's rays
 up to 3% short by facet (d per fragment now), the CSS vignette (now in the dithering), the halo gathered to infinity (now the light's range), and corners in the
