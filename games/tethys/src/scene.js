@@ -695,7 +695,7 @@ function farMaterial(){const m=new THREE.MeshLambertMaterial({vertexColors:true,
 const MATFAR=addTint(farMaterial(),'lamds',true,undefined,undefined,'card'); // far impostor cards: seen from either side; small-thing fog so the swap with real kelp doesn't pop
 const GLOW=addTint(new THREE.MeshBasicMaterial({vertexColors:true}),'glow'); // no FLORA entry sets `glow` since v10.1 took the bioluminescence out; kept, with its branches in chunks.js, for when it returns as events (PLANET Hooks) — one program at the boot warm-up (v11.33)
 const MATT=addTint(new THREE.MeshLambertMaterial({vertexColors:true,transparent:true,opacity:0.7}),'lamt',true,undefined,undefined,'body'); // translucent small creatures (the flicker); bakeLOD skips transparent parts, so they keep their real mesh at far LOD
-// The wood's shell (v11.179, world.js woodAt; DESIGN "The wood"). The terrain carries the canopy as an attribute — aWood: the cover, the canopy's height
+// The wood's shell (v11.180, world.js woodAt; DESIGN "The wood"). The terrain carries the canopy as an attribute — aWood: the cover, the canopy's height
 // with its crowns' relief (m), their light, the dry share — and every terrain vertex past the near trees' fade stands at the canopy's top in the canopy's
 // colour: the cells' terrain, the far regions' and (horizon.js, by hand) the horizon's, one rule and one function, so a forest is part of the island
 // from 250 km to the trees. Over FLORA_FAR − FLORA_FADE … FLORA_FAR, where the near trees shrink into their roots (farCut), it sinks to the ground and
@@ -794,5 +794,5 @@ const MATG=swayMaterial(0.35,1.6,2.4,1,false,2.4,false,true,true,0.35),MATB=sway
   MATM=swayMaterial(1.6,1.0,12,1,false,14,false,true,true,0.35), // mid-height weed (ladder, ribbon, the pen): bends over its top ten metres; cut
   MATGL=swayMaterial(0.35,1.6,2.4,1,false,2.4,false,false,true,0.35), // the tussock: the grass sway on land, never folded to the water (cap); cut
   MATTR=swayMaterial(0.3,0.45,9,1,false,14), // the tidal forest (v11): a trunk in the wind — a slow sway from the crown, never capped to the water, never leaning to the current (land: chunks.js makeInstanced gives it no aCur); no cut (the cards)
-  MATWD=swayMaterial(0.25,0.35,18,1,false,27,false,false,true,0.25); // the platewood (v11.179): a tall trunk in the wind, its plates lit through a little (thin); cut at FLORA_FAR, where the terrain's shell takes over (woodGLSL)
+  MATWD=swayMaterial(0.25,0.35,18,1,false,27,false,false,true,0.25); // the platewood (v11.180): a tall trunk in the wind, its plates lit through a little (thin); cut at FLORA_FAR, where the terrain's shell takes over (woodGLSL)
 MATTR.land=true;MATWD.land=true; // thin (the last argument, v11.13): the share of the far face's light that comes through a blade — the weed, bladders, rafts, whips, the tussock; not the stipe, not the trunks

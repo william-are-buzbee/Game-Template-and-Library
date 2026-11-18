@@ -978,7 +978,7 @@ const DUSK={lum:[0.25,0.62,0.13],clamp:[0.6,1.5]}; // v11.172 (atmosphere.js upd
 // v11.159's 39, 24, 36); it opens over open s (a game hour, the retina's own) and closes over close s; and as it opens the colour drains toward a
 // blue-grey (desat at the moonless night's gain): rods see no colour, which is what keeps a night you can see by a night.
 const NIGHT_EYE={ref:0.6,k:0.4,max:4,open:80,close:5,desat:0.6}; // ref: the sky's light at or over which the eye is at 1; k: how much of a fall it makes up; max: the cap; open, close: its time constants (s, real); desat: the colour drained at a moonless night's gain // moonlight's colour and its strength at full; the overcast sky; a moonless night's floor (starlight, airglow)
-// ---------- the wood (v11.179, TAXA "The wood"; DESIGN "The wood") ----------
+// ---------- the wood (v11.180, TAXA "The wood"; DESIGN "The wood") ----------
 // The person (18 Nov 2026): a canopy over the big islands' land, read from far off as part of the island, at next to no cost — "a loose
 // silhouette" for now, density and canopy to explore later. The rain decides where it stands, and the trades decide the rain (PLANET; Hawai'i
 // and every high island in a trade belt is the proof): the windward flank wet from the coast and wetter with height, most where the air is

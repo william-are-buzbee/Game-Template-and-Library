@@ -891,7 +891,7 @@ function tussockB(rg) {
   }
   return {P: P};
 }
-// the platewood (v11.179, TAXA "The wood"): the greens' canopy on the high islands' rain. The scrub's line, where the rain lets it, grown tall: a
+// the platewood (v11.180, TAXA "The wood"): the greens' canopy on the high islands' rain. The scrub's line, where the rain lets it, grown tall: a
 // jointed trunk (the line's signature) that drops its lower whorls as the canopy shades them, and at its top tiers of plates — each a whorl's
 // branchlets flattened and webbed into one green sheet, the leaf the land line invented (Earth's broad leaves came the same way, a branch system
 // flattened and webbed). The plates lie flat to the sun, the top tier widest, so a crown is a parasol and a stand's crowns meet in a roof. Three
@@ -1313,7 +1313,7 @@ const FLORA = [
   ), // the reed-bed: the sheltered tide band (the rim's inner slope, the island's flat) — under water at high tide, a swamp of stems
   species('tussock', {mat: MATGL, photo: true, line: 'green', tints: GREENT, s: [0.5, 1.3], per: 1500, env: {h: [1.2, 60]}, field: 0.02, minH: 1.2}, tussockB),
   species('scrub', {mat: MATGL, photo: true, line: 'green', tints: GREENT, s: [0.7, 1.8], tilt: true, per: 110, env: {h: [2, 60], expo: [0, 0.65]}, minH: 2}, scrubB), // v11.86: not on the shore the waves strike — salt-blasted; on the tuff cone that is its windward rim (the cone has its own exposure, world.js CONE)
-  species('platewood', {mat: MATWD, tints: [WOOD_C.leaf, [0.3, 0.39, 0.19], [0.35, 0.39, 0.21]], wood: true, air: true, s: [0.85, 1.15], per: 300, minH: 4, maxSlope: 1.3}, platewoodB), // the wood (v11.179): placed by world.js woodAt's cover and scaled to its canopy's height (chunks.js placeFloraType); no env, no card — past FLORA_FAR the terrain's shell is the wood (scene.js woodGLSL)
+  species('platewood', {mat: MATWD, tints: [WOOD_C.leaf, [0.3, 0.39, 0.19], [0.35, 0.39, 0.21]], wood: true, air: true, s: [0.85, 1.15], per: 300, minH: 4, maxSlope: 1.3}, platewoodB), // the wood (v11.180): placed by world.js woodAt's cover and scaled to its canopy's height (chunks.js placeFloraType); no env, no card — past FLORA_FAR the terrain's shell is the wood (scene.js woodGLSL)
   {
     id: 'chimney',
     geo: chimneyGeo(),

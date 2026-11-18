@@ -313,7 +313,7 @@ the trait that wins its spot. Earth appears there only as the proof.
 | mat | | 11 | patches | grey and black. **Nothing else** | the dark stays empty on purpose; shed carapaces later (the moulting hook) |
 
 ### The strand (13) and the tide band — parked
-**v11.179:** above the tide, on the high islands' rain, the **platewood** (TAXA "The wood"; DESIGN "The wood") — the greens' canopy tree, placed by
+**v11.180:** above the tide, on the high islands' rain, the **platewood** (TAXA "The wood"; DESIGN "The wood") — the greens' canopy tree, placed by
 `woodAt`'s cover rather than an envelope, and drawn past 450 m as the terrain's own shell. The rest of this section is as it was.
 The land overhaul owns this. Note for then: the 6–9 m tide band is the one place a rigid trunk reaching for light is
 the *winning* form (in air), so a tidal forest — derived from the bladderweed line, roots in the water at high tide,

@@ -1,4 +1,4 @@
-// test/leaf.js — the canopy's colour from the star (v11.179, TAXA "The wood"). Not in --test: a calculation, printed, whose result is the
+// test/leaf.js — the canopy's colour from the star (v11.180, TAXA "The wood"). Not in --test: a calculation, printed, whose result is the
 // knob WOOD.col in flora.js. Run it again if the star (world.js STAR) or the air changes.
 //
 // The question (the person, 18 Nov 2026): the trees' colour should follow from the colour of the sun, through the pigment that harvests it.

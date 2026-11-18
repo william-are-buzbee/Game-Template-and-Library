@@ -1,6 +1,6 @@
 # TAXA — the descent of the sessile life, and the order it arrived in
 
-Design (9 Sep 2026), answered the same day and built as v11.15 — see [Decided](#decided). **18 Nov 2026: [The wood](#the-wood-v11179-18-nov-2026)** — the high islands' forest (v11.179), and what it revises in stage 6. Downstream of `PLANET.md`, beside `FLORA.md` (which stays the reference for the six tests, the
+Design (9 Sep 2026), answered the same day and built as v11.15 — see [Decided](#decided). **18 Nov 2026: [The wood](#the-wood-v11179-18-nov-2026)** — the high islands' forest (v11.180), and what it revises in stage 6. Downstream of `PLANET.md`, beside `FLORA.md` (which stays the reference for the six tests, the
 bands, the grammar and the placement rules). This answers what FLORA does not: **where each form came from, what it split
 from, what the split bought, and what reached the mountain when.** Nothing built from it yet; the person's answers go in
 [Decided](#decided) and the build order follows them.
@@ -196,10 +196,10 @@ start fresh with our thinking on plants". 4. The swamp is parked until the islan
 5. The colonisation story stands. 6. Build order: Claude's — built as v11.15 (CHANGELOG): the pigment per line, the bands, the reds, the
 greens in air. The leaves (plume, seep, stilt, nod, the mats) followed as v11.15.1; left: the epiphytes, spur-and-groove, the bog.
 
-## The wood (v11.179, 18 Nov 2026)
+## The wood (v11.180, 18 Nov 2026)
 
 The person: trees that can cover the big islands' land — not the tidewood, which reads as a beach plant, but "more like actual photosynthesizing trees",
-with density and a canopy, their colour from the star; for now a loose silhouette over whole islands at almost no cost. Built as v11.179 (DESIGN "The wood").
+with density and a canopy, their colour from the star; for now a loose silhouette over whole islands at almost no cost. Built as v11.180 (DESIGN "The wood").
 
 **What it revises.** Stage 6 above was written for ours: a rim and a cone, 0.09 km² of land, every land species a relict of a bigger island. Since the
 region model (GLOBE §9, v11.94–) the bigger islands exist beside it: the awesome shield (1,525 km² of land to 2,431 m), an old high island of 628 km², the giant

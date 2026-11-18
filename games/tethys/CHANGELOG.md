@@ -9195,7 +9195,7 @@ sunset: the shadow band and the pink (`TWI.shK`, `bK`). 3. Noon over a lagoon (t
 render ms at the sea spot against v11.177's.
 
 
-## v11.179 — the wood (18 Nov 2026)
+## v11.180 — the wood (18 Nov 2026)
 
 The person: "implement a form of tree that can cover the land areas, especially the large island … more like actual photosynthesizing trees", their
 colour from the sun's through the pigment, "probably green but we should be sure exactly what"; performance-friendly, "something you see on the island

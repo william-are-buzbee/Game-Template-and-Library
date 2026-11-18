@@ -340,7 +340,7 @@ function* genRegion(ri,rj){
       if(ii>0&&ii<N-1&&jj>0&&jj<N-1){if(s.h<minH)minH=s.h;if(s.h>maxH)maxH=s.h;}}
     yield;
   }
-  const pos=new Float32Array(FG*FG*3),col=new Float32Array(FG*FG*3),idx=[],wd=maxH>0.5?new Float32Array(FG*FG*4):null; // wd (v11.179): the wood's shell, on a region with land
+  const pos=new Float32Array(FG*FG*3),col=new Float32Array(FG*FG*3),idx=[],wd=maxH>0.5?new Float32Array(FG*FG*4):null; // wd (v11.180): the wood's shell, on a region with land
   for(let jj=0;jj<FG;jj++){
     for(let ii=0;ii<FG;ii++){const n=jj*FG+ii,k=(jj+1)*N+(ii+1),gx=ci0*CH_RES+ii*FS,gz=cj0*CH_RES+jj*FS,x=gx*STEP-HALF,z=gz*STEP-HALF,h=hg[k];
       pos[n*3]=x-ox;pos[n*3+1]=h;pos[n*3+2]=z-oz;
