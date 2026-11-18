@@ -9388,3 +9388,55 @@ with tubes in the shallows. `node build.js --test` and the repository's `npm run
 **Unseen, ask in this order:** 1. A gaper bank at `tp(534,-305)` (−55 m): does it read as many animals, or as a rock with shells on it (the look
 v11.22 binned)? 2. A tube knoll in the surf, and the wormshells on the rock round it. 3. The atoll's shallows (`tp(72236,29966)`): the domes and the
 microatolls at the low tide, their size and number. 4. The render ms at a bank field against main's.
+
+## v11.182 — the tube knoll as a thicket (18 Nov 2026)
+
+The person, on v11.181's preview: "the most recent update for the sessile creatures was a success ... the tube creatures looked the best by far. I
+enjoy those and how they look. The rock looking ball of little worms looks too busy. I would like to either rework it or ... put it off." Reworked.
+
+**What was wrong with it.** The knoll (reef.js `knollGeo`, v11.181) was a pale dome of three cores with 94 short tubes on its skin — 60 lying along it
+every way, 34 standing — and a crown on 7. From a swimmer's height it was a rock with sticks on it (the look v11.22 binned) at a grain too fine to
+read, while the lone wormshell beside it is one clear gesture: a coil on the rock, a long wandering tube, a crown. And the knolls stand in the tides'
+band by design (−2.5..−11, `clear` 3), which `MATROCKB` darkens by 42% toward a grey-green (scene.js `BAND_GLSL`: wet rock's stain), so their tubes
+were a burnt grey-green where the same animal alone (MATV, no band) is cream.
+
+- **The thicket** (reef.js `knollGeo`, `knollTube`): a crowded tube-dweller grows up, not along — Earth's serpulid clumps (Loch Creran's
+  *Serpula*) and vermetid aggregations stand erect and near parallel, racing each other for the water over them. So the knoll is the lone tube's
+  gesture many times over: 24 tubes from a dark foot of their dead (`KFOOT`, two squashed spheres, sunk so their sides are under the ground),
+  spread by the golden angle, leaning out with their distance from the middle (the middle's tallest: a rounded crown of tubes, not a cup), five
+  ribbed segments each that wander as the lone one's do and bend a little toward the water; a crown on every living mouth; a fifth dead
+  (shorter, `KDEAD`, open). `sink` 0.15 → 0.06 (`KSINK`); one collision lump (0.78, squat) for the three cores'. 2.7k tris (was 2.9k).
+- **The lite crown** (grow.js `crown(…, {lite})`): each arm two three-sided prisms for two boxes and no eye ring, 60 tris to 162 — twenty crowns on
+  one knoll at full price were 3.2k on their own. Nothing else passes it.
+- **No tide band on the knoll** (scene.js `MATSHELL`, reef.js `farMat`, far.js `genRegion`, main.js `warmShaders`): MATROCKB without the band;
+  a reef.js entry may name its far material and the knoll does. `MATSHELL` is warmed at boot with the rest, so it does not compile at first sight.
+  The old domes and the microatoll keep the band (the microatoll's top is dead turf, where a stain is right; a living dome's top is arguable — not
+  changed, analysis_sessile §7).
+- Tried and dropped: three young wormshells at the knoll's edge (flora.js `wormTube` with a ground height). From a swimmer's height they lay nearly flat
+  and read as sticks; the lone wormshells already grow in the same envelope round every knoll.
+
+**What it costs** (`node test/perf.js`, against main). Nothing worse by more than 10%. The knoll's own triangles 2,946 → 2,706 (×0.92); a frame's
+triangles the same within 0.2% everywhere (a few knolls in any view). `MATSHELL` is one program more: a program change more a frame where a knoll
+is drawn, and two compiles more at the boot (warmed there, none at first sight). The times on paths nothing here touched read ×0.80–1.00: noise.
+
+| measure | before | after | ratio |
+|---|---|---|---|
+| a frame's triangles: forest, atoll, coast, wood | 6.96M, 9.45M, 5.65M, 2.24M | 6.96M, 9.44M, 5.64M, 2.24M | ×1.00 |
+| program changes a frame: forest, atoll, coast, wood | 28, 27, 26, 21 | 29, 28, 27, 22 | +1 |
+| uniforms a frame: forest, atoll, coast, wood | 1,376, 1,298, 926, 715 | 1,416, 1,351, 978, 750 | ×1.03–1.06 |
+| the boot: compiles, bytes to buffers | 62, 28.38 MB | 64, 28.34 MB | +2, ×1.00 |
+| a cell's generation: forest, atoll, platform, sea, giant (ms) | 44.3, 43.3, 23.9, 10.5, 38.8 | 42.8, 40.6, 23.6, 10.5, 36.4 | ×0.94–1.00 |
+| every kind's build, first / again (ms) | 55.2 / 6.4 | 51.5 / 6.3 | ×0.93 / ×0.98 |
+| the creatures' frame at (330, 0): node mean, p95; Chromium (ms) | 2.14, 3.40; 2.64 | 1.89, 2.71; 2.45 | ×0.88, ×0.80; ×0.93 |
+
+The simulation the same to the bit (test/frames.js), every body the same to the bit, built and posed (test/bench_creatures.js). `test/gpu.json` updated.
+Not measured: the GPU's own time.
+
+**Seen** (headless Chromium, the bench's page, the finback put 6 m off and in first person, at the three knolls nearest the start): the knoll at
+(352, −157), −5.2 m, before and after from the same place — before a pale dome bristling with grey sticks, after a fan of tubes with their crowns, the
+foot dark under them; the same from 18 m; the knoll on the slope at −5 m close to: cream tubes and teal crowns, the lone wormshell's look.
+`FLORA=1 node test/preview.js knoll`. `node build.js --test` green (28 runs), the repository's `npm run check` and `npm run build`.
+
+**Unseen, ask in this order:** 1. A knoll in the surf on the preview — `tp(352,-157)` is one 5 m down, 200 m from the start: still busy, or
+tube animals now? 2. In the sun near the surface the tubes' shaded sides read grey; at depth cream. 3. The gaper banks are the other half of
+v11.181's open question (many animals, or a rock with shells on it?).

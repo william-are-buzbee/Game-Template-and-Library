@@ -1499,14 +1499,16 @@ collision hash before it stands: `clearOf` puts its base as a pad (0.25 + 0.12 �
 them too. There is no coat on rock (v11.20–11.21 tried a built reef and then colonies anchored on the geology's rock; both struck —
 CHANGELOG v11.21–11.22, REEF.md). The two extra giant shapes (`olddome2`, `olddome3`, reef.js) remain.
 
-**The sessile structures (v11.181, reef.js, `analysis_sessile.md`).** Structures like the rock (far-drawn with `MATROCKB`, dodecahedral lumps for
-collision), each with `clear` — the metres its top stays under mean water (far.js `bigPlace`; 12 for the rock): the colonies 4.5 (the lowest spring
+**The sessile structures (v11.181, reef.js, `analysis_sessile.md`).** Structures like the rock (far-drawn with `MATROCKB` — the knoll with `MATSHELL` since v11.182, the same without the tides' band: wet
+rock's stain, which its living tubes stand in by design — dodecahedral lumps for collision), each with `clear` — the metres its top stays under mean water (far.js `bigPlace`; 12 for the rock): the colonies 4.5 (the lowest spring
 tide, `TIDE_A1`: a colony grows to the low water and stops), the knolls 3 (the springs' lows bare them). The **old domes** are the farmers' massive
 colonies: `env` h −30..−5, `nut` 0–0.5, `young` 0–0.4 (the low wide one also `expo` 0–0.45); `s` 2–6, 2–5, 3.5–7.5 (3–9 m across, the low one to
 14); to v11.178 21–40 m on the fed flanks to −150, 137 round ours. The **microatoll** (`per` 5) just under the lowest tide, −4.6..−7.5, 2–6 m. The
 **gaper bank** (`per` 2, `flow`: long across the current) on fed hard ground in a current, −6..−90, `young` ≤ 0.6, 6–13 m long; its coat is 42
 lite gapers (flora.js `gaperGeo(…, lite)`: 40 tris) and 56 loose valves, 3.5k tris. The **tube knoll** (`per` 2) on exposed rock, −2.5..−11,
-`expo` ≥ 0.45, 2.5–6 m, 60 old tubes along its skin and 34 standing with a crown on every fifth, 2.9k tris. Round ours the shallows are fed
+`expo` ≥ 0.45, 2.5–6 m; since v11.182 a thicket — 24 long ribbed tubes rising and fanning out from a dark foot of their dead, the middle's
+tallest, a crown (grow.js `crown(…, lite)`: 60 tris to the full one's 162) on every living mouth, a fifth dead and open; 2.7k tris (to v11.181 60
+old tubes along a pale skin and 34 standing, a crown on every fifth, 2.9k: the person, 18 Nov 2026, "the rock looking ball of little worms"). Round ours the shallows are fed
 (`nut` ≥ 0.6 in 87% of the hard ground from −5 to −30), so the domes are few there and the microatolls none; the atolls hold them.
 
 **The reef (v11.20, `reef.js`, `REEF.md`).** The big "coral" things are framework — a landform built by life, alive only on its skin (a single colony
