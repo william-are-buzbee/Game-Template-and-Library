@@ -9193,3 +9193,54 @@ texture read of the floor map per pixel with cloud. Not measured on the GPU (not
 **Unseen, ask in this order:** 1. A moonless night from the water: dark enough, readable enough? (`CL_LIT.shN`, `AIRGLOW.col`.) 2. The east an hour after
 sunset: the shadow band and the pink (`TWI.shK`, `bK`). 3. Noon over a lagoon (the giant's, `tp(-5500,9000)`): the glow's strength (`LAGOON.k`). 4. The
 render ms at the sea spot against v11.177's.
+
+## v11.179 — the sessile giants: many animals, not one (18 Nov 2026)
+
+The person: "a believability pass over the insanely oversized sessile ... animals that are now used like giant boulders ... Rather than one gigantic
+sessile animal pasted everywhere, even though it looked good and was cool, it's just not believable or accurate to evolution." The giant was the three
+**old domes** (`olddome`, `olddome2`, `olddome3`): one banded mound, the polyp farmers' massive colony, built as a rock structure. To v11.178 they were
+21–40 m across (the mound is 1.52 of `s` 14–30), 137 in the 17 km square round ours (95 within 2.7 km of the start; FLORA.md planned ~4 in the
+world), from −20 to −150 in fed water — a farmer six times deeper than its light, in the water farmers lose, on rock of any age. The analysis, Earth's
+reference and the options are `analysis_sessile.md`; the person chose (18 Nov 2026): the old domes; gapers and their banks; wormshells and their knolls;
+the domes shrunk into the light, with microatolls. Not chosen, kept as proposals: the sun crown, the sunk gaper.
+
+- **The old domes in the light** (flora.js `olddome`, reef.js `olddome2`, `olddome3`): `env` h −30..−5, `nut` 0–0.5, `young` 0–0.4 (the low wide one
+  also `expo` 0–0.45: it got old where the waves don't break it); `s` 2–6, 2–5, 3.5–7.5 — 3–9 m across, the low one to 14; `clear` 4.5: the top stays
+  at the lowest spring tide (a colony grows to the low water and stops). The geometry is unchanged.
+- **The microatoll** (reef.js `microGeo`, `per` 5): a colony that reached the lowest tide — a dead turfed top and a living lip of lobes; −4.6..−7.5,
+  poor water, old rock; 2–6 m. 460 tris.
+- **The gaper** (flora.js `gaperB`, `gaperGeo`; MATV, `per` 90): a hingeshell that sat down on one valve and kept the hinge — the lower valve cemented,
+  the lid open, the combs out of the gape, an eye row on the lid's edge (Earth's proof: ostracods and clam shrimps live inside a clam's two valves;
+  barnacles cement and comb). Three variants: a big one alone, three, a clump of six with the young on the old. Rock in a current, fed water, −4..−90.
+  A sphere collider each.
+- **The gaper bank** (reef.js `bankGeo`, `per` 2, `flow`): generations of gapers, the dead under the living — three cores of dead shell under 42
+  lite gapers (`gaperGeo(…, lite)`, 40 tris to the full one's 76) and 56 bedded valves, loose valves at the foot; long across the current; on fed hard
+  ground in a current, −6..−90, `young` ≤ 0.6 (the old domes' old envelope was a filter feeder's all along). 6–13 m long, 1–2.5 high; 3.5k tris.
+- **The wormshell** (flora.js `wormB`, `wormTube`; MATV, `per` 120): a coiled ringmouth cemented at its apex — the first whorls a flat coil on the rock,
+  then a wandering tube with an arm ring out of its mouth (Earth's worm-snails, the vermetids). One, three, a tangle of six. Exposed rock, −1..−18.
+- **The tube knoll** (reef.js `knollGeo`, `per` 2): wormshells settled on wormshells — 60 old tubes along the skin, 34 standing, a crown on every
+  fifth; exposed rock in the surf, −2.5..−11, `expo` ≥ 0.45; `clear` 3, so the springs' lows bare its top. 2.5–6 m; 2.9k tris.
+- The new structures are appended to FLORA after the rocks, so every rock's placement stream (far.js `bigsGen`, one per BIG index) is unchanged.
+  TAXA: a fifth sessile line (gapers) and the crowns' split "the cement"; FLORA Giants, REEF's head, DESIGN Structures and the sessile structures.
+
+**Where they stand** (far.js `bigsFor` over the squares): round ours (17 km) the domes 10 (were 137), microatolls 0, banks 77, knolls 28; on the atoll
+m88 (8.8 km, at 72.6, 27.4 km) domes 222, microatolls 42, banks 101, knolls 50. Round ours the shallow hard ground is fed water (`nut` ≥ 0.6 in 87% of
+it from −5 to −30), where farmers lose; the farmers' colonies are the atolls'. That is the logic, not a knob — say if ours should have more.
+
+**What it costs** (`BASE=` main): the scripts at load 4,158 → 4,125 ms; a cell's generation at the five places ×1.05 forest, ×0.98 atoll, ×0.91
+platform, ×0.89 sea, ×1.11 giant (N=2, both ways: noise); the creatures' frame at the forest mean 1.90 → 1.82 ms (×0.96), median 1.68 → 1.75. The
+bodies and the simulation are not the same: the creatures' spawns ask the cell's solids (chunks.js `solidPush`), and the structures and the gapers'
+colliders moved, so the spawn draws after them moved — expected for a content change. The structures' triangles on the GPU: a bank 3.5k and a knoll
+2.9k against a dome's 450–616 (a heap of rock is 3.6k); round ours 105 banks and knolls stand where 137 domes stood. Not measured on the GPU.
+
+In a 3×3 of cells: the bank field (537, −296) 286 gapers and 89 wormshells (beside 523 lilies and 222 nods), the knoll (352, −157) 337 and 165, the
+atoll's flat 2 and 140 (poor water: the gapers' `nut` keeps them off it).
+
+**Seen:** the previews (`FLORA=1 node test/preview.js gaper wormshell gaperbank knoll microatoll olddome olddome3`); a gaper bank in play (headless
+Chromium, dev.html on the low tier, the loop driven by hand, from 20–30 m up the slope at (548, −312)): a low pale bank speckled with valves among the
+stipes, about a metre proud, long across the slope — a shell bank, not a boulder; a tube knoll at (352, −157), −5 m, from 15 m: a pale mound bristling
+with tubes in the shallows. `node build.js --test` and the repository's `npm run check` green.
+
+**Unseen, ask in this order:** 1. A gaper bank at `tp(534,-305)` (−55 m): does it read as many animals, or as a rock with shells on it (the look
+v11.22 binned)? 2. A tube knoll in the surf, and the wormshells on the rock round it. 3. The atoll's shallows (`tp(72236,29966)`): the domes and the
+microatolls at the low tide, their size and number. 4. The render ms at a bank field against main's.

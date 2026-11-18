@@ -177,7 +177,7 @@ tools/             vendor.js, and dist.js (the site's copy of the build); packag
 | creatures_builders.js | palettes `PAL` and the kit the specs compile from (ring mouths, coil shells, fins, tails, valves, legs…) |
 | creatures_spec.js | the spec compiler: cores, `PARTS` (the registry, v11.70: a style's clades, cores and params in `reg`; a parameter's label, unit, bands and default on one line; `stylesFor`, `paramOf`), `compile`, `validate`, `derive` (the calculator), `coatFor`, `SPECS` for every species, JSON/hash/export |
 | flora.js | the species, kept geometries, rock kits and big structures with collision lumps, `FLORA` with densities and envelopes |
-| reef.js | what remains of the reef pass: two giant colony shapes appended to `FLORA` |
+| reef.js | the sessile structures appended to `FLORA` after the rocks (v11.179): the old domes' two sisters, the microatoll, the gapers' banks, the wormshells' knolls |
 | creatures_defs.js | `DEFS` (roles, behaviour; `defPhysics`: speed, accel and turn off the build, v11.71), `SPAWN` (capacity per cell and envelope), `ROSTER` |
 | audio.js | procedural WebAudio: the 3D space read from the world, the beds, the body's sounds, one-shots |
 | creatures_ai.js | registry, spawning, LOD, behaviours by role (v11.84: `swarm` — `updateSwarm`, `swarmDepth`, the day's rise), hunger, carcasses, eggs, per-frame update |
@@ -222,6 +222,7 @@ Docs, most upstream first. When a doc's Open list says a choice is the person's,
 | `AUDIO.md` | the sound's design (v11.14); every number was chosen blind |
 | `DESIGN.md` | **the reference**: one section per system with the owning file, the numbers, the knobs and the reasons |
 | `analysis_believability.md` | the 12 Sep analysis: how the world, flora, clades and spawning work, and where the believability is strong and thin |
+| `analysis_sessile.md` | the 18 Nov pass on the sessile giants (built v11.179): the old domes pasted everywhere, what a big sessile thing is on Earth (many animals, not one), the gapers and the wormshells and their banks, the person's answers, what is still proposed |
 | `analysis_archipelago.md` | the 12 Nov review of the province (v11.115): its size, scope and shape against Earth's hotspot provinces, each finding ranked plausible / stretch / wrong with its knob, and the changes ranked for the person to choose; §6 their answers, built v11.121–123; §8 (13 Nov) the plateau's platform against Earth's (Saya de Malha, Chagos, the Maldives, the Bahamas), the person's answers (a chain of banks, Earth's rims for the size, the box for now), and the one question open (§8.4) |
 | `DIRECTION.md` | where the project is going (12 Sep): the archipelago, oxygen, the silled basin, the hingeshells, and the game's loop ("the body is the tech"); its Open list is the person's. Its "not a lineage" line is struck (20 Sep) |
 | `LINEAGE.md` | the line across generations (20 Sep 2026, designed, not built): the brood and the switch at the hatch, the three clade modes, the mutation budget as materials, the sparkle that marks the magic, the player's variants as ledger entries, the shrine after the run; §11 open, §12 the person's answers |

@@ -1239,7 +1239,8 @@ get only the sun/hemi (the light pool is assigned by distance), so distant vents
   (a hidden trench) instead of showing a sliver. ~74k tris for the whole world; a region is culled (`cullFar`) by a
   sphere that allows 120 of structure above its highest ground (`+80`, `+120` in `genRegion` — if a crag vanishes at
   the edge of the screen, the sphere is too small). The unload at `LOAD_R+1` swaps fine for coarse at ~645 units.
-- **Structures.** Every `big` flora entry (crag, crag2, tor, slab, wall, slab2, olddome) is placed by
+- **Structures.** Every `big` flora entry (crag, crag2, tor, slab, wall, slab2, olddome; since v11.179 also reef.js's olddome2, olddome3, microatoll,
+  gaperbank, knoll — appended after the rocks, so their streams are untouched) is placed by
   `bigsFor(i,j)` from `sample()` and a per-(cell,type) rng (pure, cached, computed on first request by a region or by a
   cell loading before its region exists; a cell's pass yields every `BIG_YIELD` (16) tries counted over all entries — before v11.31.3
   the count was per entry against 50 and no entry has more than 20 tries, so it had never fired and a cell was always one step, measured
@@ -1473,6 +1474,16 @@ collision hash before it stands: `clearOf` puts its base as a pad (0.25 + 0.12 �
 `solidPush(…, ch, noPad)`. Rejected is not moved; it is not placed. Rigid plants earlier in FLORA are solids, so later ones keep out of
 them too. There is no coat on rock (v11.20–11.21 tried a built reef and then colonies anchored on the geology's rock; both struck —
 CHANGELOG v11.21–11.22, REEF.md). The two extra giant shapes (`olddome2`, `olddome3`, reef.js) remain.
+
+**The sessile structures (v11.179, reef.js, `analysis_sessile.md`).** Structures like the rock (far-drawn with `MATROCKB`, dodecahedral lumps for
+collision), each with `clear` — the metres its top stays under mean water (far.js `bigPlace`; 12 for the rock): the colonies 4.5 (the lowest spring
+tide, `TIDE_A1`: a colony grows to the low water and stops), the knolls 3 (the springs' lows bare them). The **old domes** are the farmers' massive
+colonies: `env` h −30..−5, `nut` 0–0.5, `young` 0–0.4 (the low wide one also `expo` 0–0.45); `s` 2–6, 2–5, 3.5–7.5 (3–9 m across, the low one to
+14); to v11.178 21–40 m on the fed flanks to −150, 137 round ours. The **microatoll** (`per` 5) just under the lowest tide, −4.6..−7.5, 2–6 m. The
+**gaper bank** (`per` 2, `flow`: long across the current) on fed hard ground in a current, −6..−90, `young` ≤ 0.6, 6–13 m long; its coat is 42
+lite gapers (flora.js `gaperGeo(…, lite)`: 40 tris) and 56 loose valves, 3.5k tris. The **tube knoll** (`per` 2) on exposed rock, −2.5..−11,
+`expo` ≥ 0.45, 2.5–6 m, 60 old tubes along its skin and 34 standing with a crown on every fifth, 2.9k tris. Round ours the shallows are fed
+(`nut` ≥ 0.6 in 87% of the hard ground from −5 to −30), so the domes are few there and the microatolls none; the atolls hold them.
 
 **The reef (v11.20, `reef.js`, `REEF.md`).** The big "coral" things are framework — a landform built by life, alive only on its skin (a single colony
 stops near 6–8 m; the tower is 4.5–6 now) — so they are built like the rock: dodecahedral lumps with facets and twelve-plane colliders, in a lime

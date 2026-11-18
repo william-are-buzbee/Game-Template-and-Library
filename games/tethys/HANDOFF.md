@@ -1,5 +1,11 @@
 # HANDOFF — tethys
 
+**v11.179 (18 Nov 2026): the sessile giants — many animals, not one** (flora.js `gaperB`, `wormB`, `olddome`; reef.js the structures; `analysis_sessile.md`;
+TAXA, FLORA Giants, DESIGN; CHANGELOG). The old domes (21–40 m, 137 round ours, a farmer to −150) are 3–9 m farmers in the light (to 14 for the low one), with
+microatolls at the lowest tide; new: the gaper (a hingeshell that kept its hinge: a clam by an arthropod's route) and its banks on fed rock in a current, and the
+wormshell (a coiled ringmouth cemented at its apex, a worm-snail) and its knolls in the surf. Round ours the domes are few (fed water); the atolls hold them.
+**Ask:** a bank at `tp(534,-305)` — many animals or a rock with shells on it?; a knoll in the surf; the atoll's shallows `tp(72236,29966)`.
+
 **v11.178 (18 Nov 2026): the sky in the world's palette** (atmosphere.js `CL_LIT`, `LAGOON`, `AIRGLOW`, `TWI`, `cloudVol`, `SKY_FS`; effects.js; DESIGN The sky; CLOUDS.md §9; CHANGELOG).
 The clouds lit by the light that reaches them — grey bases by day, dark starless shapes at night, moonlit edges round dark cores — the bands eased; a turquoise
 base over shallow water; the airglow (the sea's line at night); the planet's shadow and the pink band opposite a low sun; the dome on the tone curve. `cloud light`,

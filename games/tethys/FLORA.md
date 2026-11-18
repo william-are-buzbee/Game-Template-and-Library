@@ -319,6 +319,10 @@ the strand's scrub as its dwarf — is the plausible centrepiece, with cones and
 
 ## Giants
 
+**v11.179 (18 Nov 2026, `analysis_sessile.md`):** the old dome was pasted everywhere (137 round ours, 21–40 m across, a farmer to −150). It is a
+farmer in the light again, a few metres; the big living shapes below it are **banks** — many animals, not one — and the person chose the
+gapers' banks and the wormshells' knolls. Gigantism's four routes below stand; the fourth, clonality, is extended to gregarious settlement.
+
 Asked for: plausibly gigantic things, always. Gigantism among fixed life comes from four things, and each names a place:
 **time** (no disturbance, cold, long life: the deep floor and the calm terraces), **oxygen** (28%: bigger bodies
 everywhere), **flow** (the arch and the edge feed the biggest filter feeders), **clonality** (a colony is as big as its
@@ -327,7 +331,10 @@ world) or the largest variant of a species. Proposed, with the first built:
 
 | giant | line | where | size | what it is | status |
 |---|---|---|---|---|---|
-| **the old dome** | polyps | shelf edge, rockfall, terraces | 14–26 wide | a banded mound grown over centuries; the reef's memory | **built v9.5** (`olddome`, ~4 in the world) |
+| **the old dome** | polyps | ~~shelf edge, rockfall, terraces~~ the light: −5..−30, clear poor water, old rock (v11.179) | ~~14–26 wide~~ 3–9 m, the low wide one to 14 (v11.179) | a banded mound grown over centuries; the reef's memory | **built v9.5** (`olddome`; v11.21 three shapes; to v11.178 21–40 m across, 137 round ours — `analysis_sessile.md`) |
+| the microatoll | polyps | just under the lowest tide (−4.6..−7.5), poor water | 2–6 m | a colony that reached the low water: a dead turfed top, a living lip | **built v11.179** |
+| the gaper bank | gapers (hingeshells) | fed hard ground in a current, −6..−90 | 6–13 long, 1–2.5 high | generations of gapers, the dead under the living | **built v11.179** |
+| the tube knoll | crowns (wormshells) | exposed rock in the surf, −2.5..−11 | 2.5–6 | tangled worm-snail tubes, bared at the springs' lows | **built v11.179** |
 | the cistern | sacs | terraces, the drop's feet | 6–10 | a barrel sac hollow enough to swim into | next |
 | the great lily | crowns | terraces, the massif's slabs | 8–12 | a crown on a stalk the height of a house, in the current | next |
 | the stack | sacs | the plain | 10–15 | glass sacs on stalks in a stand, millennia old | with the deep |
