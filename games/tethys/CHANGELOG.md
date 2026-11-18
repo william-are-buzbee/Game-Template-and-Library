@@ -9114,3 +9114,47 @@ and what enters is the sky's light, blue overhead at sunset — but the warm bea
 **Unseen, ask in this order:** 1. The hour before sunset just under the surface, looking toward the sun: a warm cast on that side? Is gold-green right, or should it
 read more amber? (`GOLD.k`, `d`.) 2. Shallow sand in the hour before sunset: the caustics and shafts lasting later into the evening. 3. Noon: unchanged.
 
+
+## v11.177 — the veil without lines (18 Nov 2026)
+
+The person, three daytime stills at 40–139 m and one at 610 m in the own light's glow: "various lines in the distance … a brightness gradient that has been
+smoothed over", a horizon line, "rings sort of around you" looking down, and in the dark "the border of the rendering world". The fog was dithered in v11.29 and
+never steps; what is left are corners in the gradient's *slope*, which the eye sees as lines (Mach bands), and two defects found while looking for them.
+The person: "do both fixes as one version". Four causes, all fixed:
+
+- **The dome's rays were short** (scene.js fog chunk; horizon.js the same). The fog took d from `vFogDepth`, the vertices' lengths interpolated, and rd as the
+  interpolated position over it. On a big triangle the position runs along the chord and the length does not: on the dome (a 24×12 sphere at 1.5 km) rd came out
+  up to ~3% short, differently on each facet. That moved `dirK`, the sun's glow and the 260 m sample point by facet: the dome's latitude rings, the horizon among
+  them, and its meridians as faint lines. Near the lamp it was large: a ray passing it at 1 m read as 1.4–2 m, so in the dark the glow was a third weaker on the
+  dome than on the floor in front of it, and the floor's far edge stood out as a hard line (seen headless at 610 m: 16 → 25 levels across it, a streak along a
+  seam). d and rd now come from the fragment's own position, per pixel.
+- **The vignette was a CSS layer** (shell.html `#vig`, now scene.js `VIG` in `dithering()`). An 8-bit overlay over a dark picture can only take whole levels off,
+  undithered: two or three hard rings round the middle of the screen in the dark (a 1.2-level step at its edge, seen), and its line from 58% an ellipse in every
+  view. It is now in the shaders, before the dither: 0.5 × s², s from half-way to the corner (eased; was linear from 58%); the colour clipped at 1 first, as the
+  screen had it under the layer. The effects list's `vignette` switches it. Our own shaders with no dithering (the shafts, the rain, the sparks, the pall's faces)
+  are not vignetted.
+- **The halo gathered light from the whole ray** (scene.js `haloL`, `HALO.reach` 0.5). 1/r² to infinity: a ray to the dome gathered 11–40% more glow than one
+  ending on the floor 60 m off (passing the lamp at 10–30 m). The water is lit by 1/r² − 1/(r² + R²) now, R half the light's distance: ~1/r² by the lamp (the
+  core within a few per cent), gone by a few R; the same closed form twice. Dome against a floor 60 m off: 1.007 / 1.023 at 10 / 20 m. The glow's outer part is
+  smaller than v11.166's.
+- **The veil's corners** (world.js `WOPEN`, `wopenAt`, `VEIL_K`; scene.js `SMX_GLSL`, `DIR_GLSL`). The open water's colour by depth (`wcol(max(d, 150))`, a line,
+  cornered at 150 and 250 — read 260 m along the ray, so lines at fixed angles below you: 2° and 25° down from 139 m, 14° and 39° from 86, 25° and 54° from 40) is
+  eased by smoothstep between the entries; the floor's say at `FLOOR_FREE`, the sample's cap at `reach` and the daylight's read at `near` take a smooth max (util.js
+  `smax`'s knee: 24, 100, 8 m; exact past it); `dirK` is the parabola through up, 1 and dn (two lines meeting at the level). The CPU's ambient takes the same
+  curve and knee. The maps keep `wcolAt`'s line.
+
+**Seen** (headless Chromium, the dev page on the low tier, 960×540, before against after at the same places and moments, contrast stretched to look):
+- 610 m by day over a floor 52 m down, the own light on: before, the floor's far edge a ragged hard line through the glow and the vignette's rings; after, an
+  even glow and no edge. The floor painted black with fog kept the edge before, and hiding the terrain removed it: it was the fog, not the floor's light.
+- 139 m over open water looking down 34°, and over a floor at 186 m: the vignette's ellipse and its outer rings gone; the gradients smooth.
+- From 6 m above the water: the sky's corners as the layer had them (a corner 143 against 136; the eased curve darkens the middle band a little less).
+- In open water the own light's glow is round and stronger than before: the dome's short rays had flattened it to a smear; against the floor it was always this.
+
+**Not done:** the water map's 36 m texels, read linearly, still bend the veil where the sample point crosses them — faint, fixed to the world, drifting as you
+swim; a smooth read is four fetches a map. The `oxygen` and `hurt` layers are CSS overlays like the old vignette: banded in the dark when they show.
+
+**What it costs:** per fragment a `length` (it was a varying), five smooth maxes and a smoothstep in the veil, the vignette's `length`; per halo light two more
+`atan`. One full-screen CSS layer fewer to composite. Not measured on the GPU.
+
+**Unseen, ask in this order:** 1. The deep in the dark with the own light (the person's 610 m still): any edge or ring left? 2. The open water at 100–150 m, level
+and looking down: the horizon line and the rings. 3. The vignette's strength (`VIG_A`) and the own light's glow, now that both are honest — too strong?

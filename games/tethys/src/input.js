@@ -32,4 +32,4 @@ function touchEnd(e){
 }
 canvas.addEventListener('touchend',touchEnd);canvas.addEventListener('touchcancel',touchEnd);
 function readTouch(){syncLock();const r=tstate.R;touchGrab=!!(r&&r.moved<12&&performance.now()-r.t0>350);const s=tstate.L;if(!s){touchL=null;return;}const mx=clamp((s.x-s.x0)/70,-1,1),mz=clamp(-(s.y-s.y0)/70,-1,1);touchL={mx:mx,mz:mz,sprint:(s.y0-s.y)/70>1.5};}
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);if(mode==='menu')layoutMenu();});
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);vigSize();if(mode==='menu')layoutMenu();});

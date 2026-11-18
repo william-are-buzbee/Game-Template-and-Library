@@ -1,5 +1,10 @@
 # HANDOFF — tethys
 
+**v11.177 (18 Nov 2026): the veil without lines** (scene.js the fog chunk's ray, `VIG`, `haloL`, `SMX_GLSL`, `DIR_GLSL`; world.js `WOPEN`, `VEIL_K`; shell.html; DESIGN
+Visibility, "The veil's corners rounded"; CHANGELOG). The person saw lines in the distance, rings round them and, in the dark, the world's edge. Four causes: the dome's rays
+up to 3% short by facet (d per fragment now), the CSS vignette (now in the dithering), the halo gathered to infinity (now the light's range), and corners in the
+veil's formula (eased). **Ask:** the deep at night or below 400 m with the own light; open water at 100–150 m, level and looking down.
+
 **v11.176 (18 Nov 2026): golden water** (world.js `GOLD`, `fresnelT`; scene.js `fogVeil` `gc`; DESIGN The light; WATER.md Part 5's end; CHANGELOG). A low sun's
 beam gets into the water by Fresnel's share (20% at 2° of sun, was 0%), and the water's glow toward the sun near the surface takes the sun's colour — a gold-green
 on the sun's side at golden hour, nothing at noon or below ~20 m. `golden water`. **Ask:** the hour before sunset just under the surface, toward the sun.
