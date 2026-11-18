@@ -1,6 +1,6 @@
 # HANDOFF — tethys
 
-**v11.179 (18 Nov 2026): the sessile giants — many animals, not one** (flora.js `gaperB`, `wormB`, `olddome`; reef.js the structures; `analysis_sessile.md`;
+**v11.181 (18 Nov 2026): the sessile giants — many animals, not one** (flora.js `gaperB`, `wormB`, `olddome`; reef.js the structures; `analysis_sessile.md`;
 TAXA, FLORA Giants, DESIGN; CHANGELOG). The old domes (21–40 m, 137 round ours, a farmer to −150) are 3–9 m farmers in the light (to 14 for the low one), with
 microatolls at the lowest tide; new: the gaper (a hingeshell that kept its hinge: a clam by an arthropod's route) and its banks on fed rock in a current, and the
 wormshell (a coiled ringmouth cemented at its apex, a worm-snail) and its knolls in the surf. Round ours the domes are few (fed water); the atolls hold them.

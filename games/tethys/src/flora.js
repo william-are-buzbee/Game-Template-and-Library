@@ -359,7 +359,7 @@ function nodB(rg, k) {
   coneShell(P, {r: r, h: r * 2.4, plates: 3, legs: 5, col: CPLATE, col2: CJOINT, col3: CLEG}, rg, t.x, t.y, t.z);
   return {P: P};
 }
-// ---------- gapers (v11.179, analysis_sessile.md: sessile hingeshells that kept the hinge) ----------
+// ---------- gapers (v11.181, analysis_sessile.md: sessile hingeshells that kept the hinge) ----------
 // The clade's own thing is the hinged carapace (PLANET, Hingeshells). One that sat down on a valve and cemented it kept the other as a lid:
 // the body inside both, the combs kicked out of the gape (Earth's proof that an arthropod can live inside a clam's two valves: the ostracods and
 // the clam shrimps; that one can cement itself and comb the water: the barnacles). The moult happens inside the valves, as the cones' does inside
@@ -388,7 +388,7 @@ function gaperB(rg,k){const P=[],up=V3(0,1,0);
   if(k===1){for(let i=0;i<3;i++){const a=i/3*TAU+rg()*0.8,d=0.18+rg()*0.1;gaperAt(P,Math.cos(a)*d,0,Math.sin(a)*d,V3((rg()-0.5)*0.3,1,(rg()-0.5)*0.3),0.13+rg()*0.04,0.3+rg()*0.25,3,3,1,rg);}return {P:P,col:[{s:[0,0.08,0,0.32]}]};}
   for(let i=0;i<6;i++){const a=rg()*TAU,d=i<4?0.1+rg()*0.14:rg()*0.08,y=i<4?0:0.07,r=i<4?0.1+rg()*0.03:0.07+rg()*0.02;gaperAt(P,Math.cos(a)*d,y,Math.sin(a)*d,V3(Math.cos(a)*(i<4?0.25:0.6),1,Math.sin(a)*(i<4?0.25:0.6)),r,0.25+rg()*0.3,2,i<4?3:0,i<2?0.82:1,rg);}
   return {P:P,col:[{s:[0,0.08,0,0.26]}]};}
-// ---------- wormshells (v11.179, analysis_sessile.md: the coil cemented) ----------
+// ---------- wormshells (v11.181, analysis_sessile.md: the coil cemented) ----------
 // A coiled ringmouth that settled on its apex and cemented it (TAXA, the crowns' split "the cement"): the first whorls stay a tight flat coil on
 // the rock and from there the shell grows on as a tube, no longer coiled — nothing to balance in a body that never swims again — wandering up off
 // the rock with the arm ring out of its mouth, netting what the wash brings (Earth's proof: the worm-snails, vermetids, did exactly this). Their
@@ -1006,7 +1006,7 @@ function darkrindB(rg,k){const P=[],n=1+(k%2);
 // face: [R, rise] — only where the ground within R rises at least `rise` above the point (talus lies under a face). fit: a kit lies only
 // where the ground over its footprint departs from the plane it lies on by at most `fit` × scale (v11.19; chunks.js settleOn).
 // the old dome: the polyp line's farmers' massive colony, a structure — a banded mound grown over centuries (FLORA.md, giants). To v11.178
-// 14–26 (in fact 21–40 m across: the mound is 1.52 of the scale) on the fed flanks to −150; v11.179 (reef.js, analysis_sessile.md) 3–9 m in
+// 14–26 (in fact 21–40 m across: the mound is 1.52 of the scale) on the fed flanks to −150; v11.181 (reef.js, analysis_sessile.md) 3–9 m in
 // the light. One lump collider (its sphere sits inside the dodecahedron's inradius, so nothing sinks in)
 function olddomeGeo(seed) {
   const rg = mulberry(seed),
@@ -1258,8 +1258,8 @@ const FLORA = [
   species('column', {mat: MATV, tints: [[0.96, 0.94, 0.9], [0.9, 0.88, 0.84]], s: [1, 2.2], per: 160, env: {h: [-7, 2.6, 3], sub: [0.55, 1], expo: [0.5, 1]}, maxSlope: 1.6, range: [1]}, columnB), // v11.119: the cone's sisters by the chain's stretch
   species('cap', {mat: MATV, tints: [[0.9, 0.88, 0.95], [0.85, 0.84, 0.9]], s: [1, 2.2], per: 160, env: {h: [-7, 2.6, 3], sub: [0.55, 1], expo: [0.5, 1]}, maxSlope: 1.6, range: [0]}, capB),
   species('nod', {mat: MATW, tints: [[1, 1, 1], [0.95, 0.92, 0.85]], s: [0.7, 1.5], flow: true, per: 90, env: {h: [-150, -8], flow: [0.55, 1], sub: [0.6, 1]}, field: 0.02}, nodB), // the stalked cone, in the jet
-  species('gaper',{mat:MATV,tints:[[1,1,1],[0.96,0.94,0.88],[0.9,0.9,0.86]],s:[0.7,1.5],per:90,env:{h:[-90,-4],sub:[0.5,1],flow:[0.3,1],nut:[0.35,1]},field:0.015},gaperB), // v11.179: the hinge kept, cemented in fed current; its banks are reef.js's
-  species('wormshell',{mat:MATV,tints:[[1,1,1],[0.97,0.93,0.86]],s:[0.8,1.6],per:120,env:{h:[-18,-1],sub:[0.55,1],expo:[0.3,1]},field:0.02},wormB), // v11.179: the coil cemented, in the wash; its knolls are reef.js's
+  species('gaper',{mat:MATV,tints:[[1,1,1],[0.96,0.94,0.88],[0.9,0.9,0.86]],s:[0.7,1.5],per:90,env:{h:[-90,-4],sub:[0.5,1],flow:[0.3,1],nut:[0.35,1]},field:0.015},gaperB), // v11.181: the hinge kept, cemented in fed current; its banks are reef.js's
+  species('wormshell',{mat:MATV,tints:[[1,1,1],[0.97,0.93,0.86]],s:[0.8,1.6],per:120,env:{h:[-18,-1],sub:[0.55,1],expo:[0.3,1]},field:0.02},wormB), // v11.181: the coil cemented, in the wash; its knolls are reef.js's
   // sacs
   species('tube', {mat: MATV, tints: SACT, s: [0.5, 1.4], per: 120, env: {h: [-150, -6], sub: [0.5, 1], flow: [0.3, 1]}, range: [2]}, tubeB),
   species('pipe', {mat: MATV, tints: [[0.78, 0.72, 0.8], [0.7, 0.66, 0.74]], s: [0.6, 1.4], per: 110, env: {h: [-150, -6], sub: [0.5, 1], flow: [0.3, 1]}, range: [1]}, pipeB), // v11.119: the tube's sisters by the chain's stretch
@@ -1396,7 +1396,7 @@ const FLORA = [
     field: 0.009,
     clear: 4.5,
     big: true
-  }, // the first flora giant: a structure like the rock. v11.179: a farmer in the light (reef.js, the colonies), 3–9 m, its top at the lowest tide
+  }, // the first flora giant: a structure like the rock. v11.181: a farmer in the light (reef.js, the colonies), 3–9 m, its top at the lowest tide
   rock('ledge', LEDGE, {s: [5, 26], per: 0}) // never by density: chunks.js placeCliffs lays it on steep faces
 ];
 const FLORA_BY_ID = {};

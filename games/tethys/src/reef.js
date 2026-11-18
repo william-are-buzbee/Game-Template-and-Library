@@ -1,10 +1,10 @@
-// reef.js — the sessile life's structures: the colonies and the banks (v11.179; to v11.178 only the two extra giant-colony shapes). What is
+// reef.js — the sessile life's structures: the colonies and the banks (v11.181; to v11.178 only the two extra giant-colony shapes). What is
 // left of the reef pass (REEF.md): v11.20 built manufactured reef structures with live colonies on them; v11.21 struck them and put the
 // colonies on the geology's rock instead; v11.22 struck that too (the person, 10 Sep 2026: the coat clipped, stood at odd angles, and "dark
 // rock and these things meant for light sand"; "put the placed rocks with stuff stuck to it in the bin"). What v11.22 keeps from the pass is
 // upstream of any coat: nothing is placed inside rock any more — the rock goes first and every plant asks the collision hash before it stands
 // (chunks.js, placeFloraType `clear`). The generator and the coat are in the v11.20–11.21 zips if a barnacle-on-rock ever wants them back.
-// v11.179 (analysis_sessile.md; the person, 18 Nov 2026: one giant "pasted everywhere ... just not believable or accurate to evolution"): the
+// v11.181 (analysis_sessile.md; the person, 18 Nov 2026: one giant "pasted everywhere ... just not believable or accurate to evolution"): the
 // old domes are the farmers' colonies again — in the light, a few metres, a handful to a coast, with the microatoll where one meets the lowest
 // tide — and the big living shapes below them are the banks: many animals, not one. Every structure here is drawn by the far layer with the
 // rock's material (far.js) and its cores' dodecahedra are its collision, as the rock kits' are. Appended to FLORA after the rocks, so the
@@ -33,7 +33,7 @@ function lowdomeGeo(seed) {
   mound(P, {r: 0.92, sq: 0.3, bands: 6, col: [0.9, 0.9, 0.9], sw: 10, sh: 6}, rg, 0, 0, 0);
   return kit(P, [{x: 0, y: 0, z: 0, r: 1.16, s: [1, 0.36, 1], rot: [0, 0, 0]}]);
 }
-// the microatoll (v11.179): a massive colony whose top reached the lowest tide — the top dies of the air at every spring low and goes to turf,
+// the microatoll (v11.181): a massive colony whose top reached the lowest tide — the top dies of the air at every spring low and goes to turf,
 // the rim lives on and grows outward, so it is a flat dish with a living lip (Earth's microatolls: the low water's own record, read by
 // geologists to the centimetre). Only just under the lowest tide (−4.6 to −7.5), so only on the reef flats and the shallow rock; 2–6 m wide
 const MTOP=[0.6,0.63,0.5],MRIM=[0.92,0.9,0.84],MRIM2=[0.82,0.8,0.74];
@@ -42,7 +42,7 @@ function microGeo(seed){const rg=mulberry(seed),P=[],n=11;
   for(let i=0;i<n;i++){const a=i/n*TAU+(rg()-0.5)*0.25,rr=0.19+rg()*0.06;P.push(part(G.sph(rr,6,4),Math.cos(a)*0.86,0.13,Math.sin(a)*0.86,i%2?MRIM:MRIM2,{s:[1,0.78,1]}));} // the living lip in lobes
   P.push(part(G.cyl(0.97,1.02,0.1,12,true),0,0.05,0,MRIM2)); // last year's band on the flank
   return kit(P,[{x:0,y:0.04,z:0,r:1.1,s:[1,0.27,1],rot:[0,0,0]}]);}
-// ---------- the gaper banks (v11.179) ----------
+// ---------- the gaper banks (v11.181) ----------
 // A bank is generations of gapers (flora.js): the larvae settle on their elders, the elders die shut and their young bury them, so the mound is
 // old valves bound together under a skin of living ones with their gapes open (Earth's oyster reefs and mussel banks by the same rule). It is
 // where the old domes stood to v11.178 — fed hard ground in a current, −6 to −90 — because that was a filter feeder's envelope all along: food
@@ -59,7 +59,7 @@ function bankGeo(seed){const rg=mulberry(seed),P=[],lumps=[],C=[[0,0.62,0.42,0],
     const nn=p.n.clone().add(V3((rg()-0.5)*0.7,(rg()-0.5)*0.4,(rg()-0.5)*0.7)).normalize(),rv=0.04+rg()*0.025,c=rg()<0.5?GDEAD:GDEAD2;P.push(part(G.cyl(rv,rv*0.85,rv*0.3,5,false),p.x,p.y,p.z,[c[0]*1.08,c[1]*1.08,c[2]*1.08],{dir:nn,s:[1,1,1.25]}));n++;}
   for(let i=0;i<14;i++){const th=rg()*TAU,d=1+rg()*0.22;P.push(part(G.cyl(0.05,0.045,0.012,5,false),Math.cos(th)*d*1.12,0.085,Math.sin(th)*d*0.58,GDEAD2,{r:[(rg()-0.5)*0.6,rg()*TAU,(rg()-0.5)*0.6],s:[1,1,1.25]}));} // loose valves at the foot
   return kit(P,lumps);}
-// ---------- the tube knolls (v11.179) ----------
+// ---------- the tube knolls (v11.181) ----------
 // Wormshells (flora.js) settling on wormshells: in the wash the tubes tangle into a knoll — a rounded heap of old tubes cemented together under
 // the living ones, their crowns out into the water on every side (Earth's vermetid platforms and Bermuda's boilers: the same rule). Exposed rock in
 // the surf, −2.5 to −11; its top held three metres under mean water (clear 3), so the springs' lows bare it. 2.5–6 m across, 1–2.5 high.

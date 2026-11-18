@@ -8,7 +8,7 @@ shield, the tides, the clear water, the chemocline) and `TAXA.md` (the polyp lin
 sacs); beside `FLORA.md` (which said "giants: always, where plausible" and built the old dome). Built as v11.20: `src/reef.js`, the
 coat in `chunks.js`, the placer knobs in `far.js`. **Answered, not yet seen.**
 
-**v11.179 (18 Nov 2026, `analysis_sessile.md`):** the old domes (the single-colony giants this file kept) are 3–9 m farmers in the light now,
+**v11.181 (18 Nov 2026, `analysis_sessile.md`):** the old domes (the single-colony giants this file kept) are 3–9 m farmers in the light now,
 with the microatoll at the low tide; reef.js also holds the banks — the gapers' and the wormshells' — the big living shapes below them.
 
 ## v11.22 — the coat binned; the system instead (10 Sep 2026)

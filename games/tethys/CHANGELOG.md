@@ -9194,7 +9194,7 @@ texture read of the floor map per pixel with cloud. Not measured on the GPU (not
 sunset: the shadow band and the pink (`TWI.shK`, `bK`). 3. Noon over a lagoon (the giant's, `tp(-5500,9000)`): the glow's strength (`LAGOON.k`). 4. The
 render ms at the sea spot against v11.177's.
 
-## v11.179 — the sessile giants: many animals, not one (18 Nov 2026)
+## v11.181 — the sessile giants: many animals, not one (18 Nov 2026)
 
 The person: "a believability pass over the insanely oversized sessile ... animals that are now used like giant boulders ... Rather than one gigantic
 sessile animal pasted everywhere, even though it looked good and was cool, it's just not believable or accurate to evolution." The giant was the three

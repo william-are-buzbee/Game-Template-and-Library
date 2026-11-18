@@ -1,6 +1,6 @@
 # Sessile giants: one animal pasted everywhere, and the shapes that were missing (18 Nov 2026)
 
-A believability pass on the big sessile animals, at the person's request. **Answered and built as v11.179** (the person's answers are at the
+A believability pass on the big sessile animals, at the person's request. **Answered and built as v11.181** (the person's answers are at the
 end). Downstream of `PLANET.md` (the clades, the tides, the light), `TAXA.md` (the sessile lines) and `FLORA.md` (the giants); beside `REEF.md`.
 
 > "I want you to run a believability pass over the insanely oversized sessile ringmouth animals that are now used like giant boulders. I want
@@ -47,17 +47,17 @@ Big *single* sessile animals stop near 1–2.5 m (the giant clam, the barrel spo
 
 | form | line | Earth's proof | what it is | status |
 |---|---|---|---|---|
-| **gaper** | hingeshells (a new sessile line) | ostracods and clam shrimps live whole inside a hinged two-valved carapace; barnacles cement and comb | the clade's own hinge kept: one valve cemented, the other a lid, the combs out of the gape, the eye row on the lid's edge | **built v11.179** |
-| **gaper bank** | the same | oyster reefs, mussel banks | a mound of generations, dead valves under live ones, long across the current; 6–13 m, 1–2.5 high | **built v11.179** |
-| **wormshell** | ringmouths (crowns: "the cement") | the worm-snails (vermetids) | a coiled shell cemented at its apex that grew on as a wandering tube, the arm ring out of its mouth | **built v11.179** |
-| **tube knoll** | the same | vermetid platforms, Bermuda's boilers | a knoll of tangled tubes in the surf, its top bared at the springs' lows; 2.5–6 m | **built v11.179** |
-| **old domes**, revised | polyps (farmers) | massive colonies | in the light, poor clear water, old rock; 3–9 m (the low wide one to 14), the top at the lowest tide | **built v11.179** |
-| **microatoll** | the same | microatolls | a colony that reached the lowest tide: a dead turfed top, a living lip; 2–6 m | **built v11.179** |
+| **gaper** | hingeshells (a new sessile line) | ostracods and clam shrimps live whole inside a hinged two-valved carapace; barnacles cement and comb | the clade's own hinge kept: one valve cemented, the other a lid, the combs out of the gape, the eye row on the lid's edge | **built v11.181** |
+| **gaper bank** | the same | oyster reefs, mussel banks | a mound of generations, dead valves under live ones, long across the current; 6–13 m, 1–2.5 high | **built v11.181** |
+| **wormshell** | ringmouths (crowns: "the cement") | the worm-snails (vermetids) | a coiled shell cemented at its apex that grew on as a wandering tube, the arm ring out of its mouth | **built v11.181** |
+| **tube knoll** | the same | vermetid platforms, Bermuda's boilers | a knoll of tangled tubes in the surf, its top bared at the springs' lows; 2.5–6 m | **built v11.181** |
+| **old domes**, revised | polyps (farmers) | massive colonies | in the light, poor clear water, old rock; 3–9 m (the low wide one to 14), the top at the lowest tide | **built v11.181** |
+| **microatoll** | the same | microatolls | a colony that reached the lowest tide: a dead turfed top, a living lip; 2–6 m | **built v11.181** |
 | sun crown | ringmouths (crowns) | the giant clam's niche | a crown whose flattened arms farm greens on the reef flat, 1–2.5 m, centuries old: the shallows' one big individual | proposed, not chosen |
 | sunk gaper | hingeshells | cockles, pen shells | a gaper half-buried in sand, the gape up: sand's sessile filter feeder | proposed, not chosen |
 | the great lily, the cistern | crowns, sacs | stalked crinoids, barrel sponges | FLORA.md's planned giants | still "next" there |
 
-## 5. Where they stand (v11.179, measured with far.js `bigsFor` and `envW`)
+## 5. Where they stand (v11.181, measured with far.js `bigsFor` and `envW`)
 
 | | the 17 km square round ours | the 8.8 km square on the atoll m88 (72.6, 27.4 km) |
 |---|---|---|
