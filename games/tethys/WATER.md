@@ -442,3 +442,10 @@ Suggested order: A and B (cheap and clear), then C (the depth, one piece), then 
 **The person (17 Nov 2026):** "Sunset — physical version first." "Ceiling: sounds about right." "Depth: go with half for now." "Above: yes please." So A and D
 (a bluer, dimmer water at dusk, the gold in the beam and the orange at the window's rim), B (the dim mirror), C with the frame's level at 100 m about half of
 the surface's at noon, E with it, and F behind switches beside today's look. Built in the suggested order: A and B as v11.172, C as v11.173, D and E as v11.174, F as v11.175.
+
+**The person (18 Nov 2026), after v11.172–175 were merged:** "I can't see the sunset from underwater, only sunset clouds … I wanted to know if sunset colors could
+penetrate or somehow affect the color underwater." The answer given: the bulk of the water does not go orange (a low sun mostly reflects; what enters is the sky's
+light, blue overhead at sunset); the warm light reaches the top few metres by the direct beam — shafts, caustics, lit sand and bodies, strongest at golden hour
+(5–15°), gone at the sunset itself — and as the glow toward the sun just under the surface. Found: the game cut the beam harder than the surface does (0% at 2° of
+sun where Fresnel lets 20% through, 12% at 5° against 42%), and its glow toward the sun was the water's teal. "Yes, build both" — v11.176.
+

@@ -1,5 +1,9 @@
 # HANDOFF — tethys
 
+**v11.176 (18 Nov 2026): golden water** (world.js `GOLD`, `fresnelT`; scene.js `fogVeil` `gc`; DESIGN The light; WATER.md Part 5's end; CHANGELOG). A low sun's
+beam gets into the water by Fresnel's share (20% at 2° of sun, was 0%), and the water's glow toward the sun near the surface takes the sun's colour — a gold-green
+on the sun's side at golden hour, nothing at noon or below ~20 m. `golden water`. **Ask:** the hour before sunset just under the surface, toward the sun.
+
 **v11.175 (17 Nov 2026): the air's light and soft highlights** (world.js `ABOVE`, `TONE`; scene.js `toneC`; DESIGN The sky; CHANGELOG). Above the water a
 stronger, warmer key against a lower, bluer fill, and a tone curve that keeps the hue where every channel was cut at 1: the beach at noon a golden sand, not a
 cream. `warm sun`, `soft highlights` (off: the approved v6 look). Stacked on #117. **Ask:** a walk on the island at noon, both switches on and off.
