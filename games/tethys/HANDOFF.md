@@ -3,7 +3,8 @@
 **v11.182 (18 Nov 2026): the tube knoll as a thicket** (reef.js `knollGeo`, `knollTube`, `farMat`; grow.js `crown(…, lite)`; scene.js `MATSHELL`; far.js;
 main.js `warmShaders`; DESIGN sessile structures; analysis_sessile §6–7; CHANGELOG). The person liked the lone tubes best and found the knoll ("the rock looking
 ball of little worms") too busy: it is now 24 long tubes standing up and out from a dark foot, a crown on every living mouth, drawn without the rock's tide band
-(which had stained its tubes grey-green). 2.7k tris (was 2.9k). **Ask:** a knoll at `tp(352,-157)`, 5 m down near the start — tube animals now, or still busy?
+(which had stained its tubes grey-green). 2.7k tris (was 2.9k). The person, on the screenshots: "I adore that new knoll. Exactly what I had in mind." **Ask:** in the sun near the surface the tubes' shaded
+sides read grey (deeper, cream) — warm the shallow ones?
 
 **v11.181 (18 Nov 2026): the sessile giants — many animals, not one** (flora.js `gaperB`, `wormB`, `olddome`; reef.js the structures; `analysis_sessile.md`;
 TAXA, FLORA Giants, DESIGN; CHANGELOG). The old domes (21–40 m, 137 round ours, a farmer to −150) are 3–9 m farmers in the light (to 14 for the low one), with
