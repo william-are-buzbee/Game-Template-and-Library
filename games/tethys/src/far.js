@@ -340,17 +340,18 @@ function* genRegion(ri,rj){
       if(ii>0&&ii<N-1&&jj>0&&jj<N-1){if(s.h<minH)minH=s.h;if(s.h>maxH)maxH=s.h;}}
     yield;
   }
-  const pos=new Float32Array(FG*FG*3),col=new Float32Array(FG*FG*3),idx=[];
+  const pos=new Float32Array(FG*FG*3),col=new Float32Array(FG*FG*3),idx=[],wd=maxH>0.5?new Float32Array(FG*FG*4):null; // wd (v11.180): the wood's shell, on a region with land
   for(let jj=0;jj<FG;jj++){
     for(let ii=0;ii<FG;ii++){const n=jj*FG+ii,k=(jj+1)*N+(ii+1),gx=ci0*CH_RES+ii*FS,gz=cj0*CH_RES+jj*FS,x=gx*STEP-HALF,z=gz*STEP-HALF,h=hg[k];
       pos[n*3]=x-ox;pos[n*3+1]=h;pos[n*3+2]=z-oz;
-      const sl=Math.hypot((hg[k+1]-hg[k-1])/(2*FSTEP),(hg[k+N]-hg[k-N])/(2*FSTEP));terrainColor(x,z,h,fixF(fg.subarray(k*NF,(k+1)*NF),sl),sl,col,n);}
+      const sl=Math.hypot((hg[k+1]-hg[k-1])/(2*FSTEP),(hg[k+N]-hg[k-N])/(2*FSTEP));terrainColor(x,z,h,fixF(fg.subarray(k*NF,(k+1)*NF),sl),sl,col,n,wd);}
     if(jj%8===7)yield;
   }
   for(let jj=0;jj<FG-1;jj++)for(let ii=0;ii<FG-1;ii++){const a=jj*FG+ii,b=a+1,c=a+FG,d=c+1;idx.push(a,c,b,b,c,d);}
   let P=pos,Cl=col,ext=0;
   if(ri===RX0||rj===RZ0||ri===RX1||rj===RZ1){P=Array.from(pos);Cl=Array.from(col);ext=apronGen(ri,rj,x0,z0,P,Cl,idx,ox,oz);P=new Float32Array(P);Cl=new Float32Array(Cl);yield;} // the world's edge: the terrain carried on past the far plane (v11.27)
   const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(P,3));geo.setAttribute('color',new THREE.BufferAttribute(Cl,3));geo.setIndex(idx);
+  if(wd){let W=wd;if(P.length/3>FG*FG){W=new Float32Array(P.length/3*4);W.set(wd);for(let v=FG*FG;v<P.length/3;v++)W[v*4+2]=1;}geo.setAttribute('aWood',new THREE.BufferAttribute(W,4));} // the apron's vertices (past the world's edge, the open floor) carry none
   geo.computeVertexNormals();
   const mesh=new THREE.Mesh(geo,TERRAIN_MAT);mesh.frustumCulled=false;
   const reg={ri:ri,rj:rj,ci0:ci0,cj0:cj0,cx:x0+FR*CELL/2,cz:z0+FR*CELL/2,hg:hg,N:N,geo:geo,group:new THREE.Group(),sphere:null,imps:[],ext:ext};reg.group.position.set(ox,0,oz);

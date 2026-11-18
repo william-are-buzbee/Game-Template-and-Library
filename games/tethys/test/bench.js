@@ -11,7 +11,7 @@
 // game has by then (the landmarks, the maps, the census): timed cold on ours' square alone, the engine sees two records and specialises to them, which
 // the game never is — v11.147 measured that way read 1.6 µs where the game paid 2.4.
 // BASE may be any older version's sources (a piece it lacks reads as none): `git archive <commit> games/tethys/src games/tethys/vendor | tar -x -C <dir>`.
-// Env: BASE, N, REP, WINS (names, comma-separated: world,w70,ours,plat,east), FAST=1 (no fingerprint of the region's data).
+// Env: BASE, N, REP, WINS (names, comma-separated: world,w70,ours,plat,east), FAST=1 (no fingerprint of the region's data), JSON=<file> (the results, for test/perf.js).
 'use strict';
 const fs=require('fs'),path=require('path'),crypto=require('crypto'),{execFileSync}=require('child_process');
 const WINS={world:null,w70:[-70500,70500,-70500,70500,480,480],ours:[-2000,2000,-2000,2000,400,400],plat:[150000,350000,-40000,140000,480,432],east:[40000,150000,-80000,100000,400,400]}; // x0, x1, z0, z1, columns, rows; world: the world's own box
@@ -48,4 +48,5 @@ for(const o of res)console.log(pad(name(o),6)+pad(o.load.toFixed(2),9)+wins.map(
 if(res.length>1){const b=res[0],o=res[1];console.log(pad('ratio',6)+pad((o.load/b.load).toFixed(2),9)+wins.map(w=>pad((o.w[w].us/b.w[w].us).toFixed(2),9)).join(''));
   const diff=wins.filter(w=>o.w[w].hash!==b.w[w].hash).concat(o.deep?Object.keys(o.deep).filter(k=>o.deep[k]!==b.deep[k]):[]);
   console.log(diff.length?'  NOT the same: '+diff.join(', '):'  the same to the bit: '+wins.join(', ')+(o.deep?'; '+Object.keys(o.deep).join(', '):''));process.exitCode=0;}
+if(process.env.JSON)fs.writeFileSync(process.env.JSON,JSON.stringify(res.map(o=>({who:name(o),load:o.load,w:o.w,deep:o.deep})))); // for test/perf.js
 const o=res[res.length-1];console.log('  fingerprints: '+wins.map(w=>w+' '+o.w[w].hash).join(', ')+(o.deep?'\n  '+Object.keys(o.deep).map(k=>k+' '+o.deep[k]).join(', '):''));

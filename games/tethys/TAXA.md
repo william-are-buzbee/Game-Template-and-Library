@@ -1,6 +1,6 @@
 # TAXA — the descent of the sessile life, and the order it arrived in
 
-Design (9 Sep 2026), answered the same day and built as v11.15 — see [Decided](#decided). Downstream of `PLANET.md`, beside `FLORA.md` (which stays the reference for the six tests, the
+Design (9 Sep 2026), answered the same day and built as v11.15 — see [Decided](#decided). **18 Nov 2026: [The wood](#the-wood-v11179-18-nov-2026)** — the high islands' forest (v11.180), and what it revises in stage 6. Downstream of `PLANET.md`, beside `FLORA.md` (which stays the reference for the six tests, the
 bands, the grammar and the placement rules). This answers what FLORA does not: **where each form came from, what it split
 from, what the split bought, and what reached the mountain when.** Nothing built from it yet; the person's answers go in
 [Decided](#decided) and the build order follows them.
@@ -45,7 +45,7 @@ line owns is the order it came in.**
 | 3 | −60 | the **floaters** (olive-gold); with them the **crowns** (ringmouths that sat down in the current) | the flanks now sit in the upwelling: enough food for a rope with floats, enough flow for a net of arms |
 | 4 | −20 | the **greens** (green); the polyps take a green cell into their skin — the **reef**; the **cones** (hingeshells sat down in the surf) | bright poor water: green pays, and a polyp that farms a green in its skin beats one that fishes |
 | 5 | the surface: a tall cone for a while, a real island | the tide band appears, 6–9 m of it, empty twice a day: a green with a skin that survives drying takes it, then stands up in air — **tidewood**; above the tide, on rain alone, a **scrub** and a **tussock**; if the cone held a crater lake, a **bog** | the intertidal is the road to land here (no rivers, no freshwater route: the land line is marine and salt-tolerant by descent — Earth's went by fresh water; ours did not) |
-| 6 | subsidence: the drowned terraces | the land shrinks to the rim and the flank cone; the wood dies back to the tide band, the scrub to the rim's crest | **every land species is a relict** of a bigger island, which is why there are few of them and no land radiation to invent. The tide forest is a last stand, not a beginning |
+| 6 | subsidence: the drowned terraces | the land shrinks to the rim and the flank cone; the wood dies back to the tide band, the scrub to the rim's crest | **every land species is a relict** of a bigger island, which is why there are few of them and no land radiation to invent. The tide forest is a last stand, not a beginning. *(18 Nov 2026: true of ours. The bigger islands are in the province now — the giant, the awesome shield — and on them the line still has its wood: [The wood](#the-wood-v11179-18-nov-2026).)* |
 | 7 | the flank collapse: fresh basalt | the pioneer sequence replays on the fan: rust mats → rinds → floaters → polyps in rust | the rockfall is stage 2–4 running again on young rock; its rust is the tell |
 
 Consequences the world already half-has: the rockfall's rust (v9.5) is stage 7; the reef's lime and the fan's rust are the same
@@ -196,3 +196,37 @@ only the colony fishes.
 start fresh with our thinking on plants". 4. The swamp is parked until the island is bigger (the reed-bed is built; the crater lake is not).
 5. The colonisation story stands. 6. Build order: Claude's — built as v11.15 (CHANGELOG): the pigment per line, the bands, the reds, the
 greens in air. The leaves (plume, seep, stilt, nod, the mats) followed as v11.15.1; left: the epiphytes, spur-and-groove, the bog.
+
+## The wood (v11.180, 18 Nov 2026)
+
+The person: trees that can cover the big islands' land — not the tidewood, which reads as a beach plant, but "more like actual photosynthesizing trees",
+with density and a canopy, their colour from the star; for now a loose silhouette over whole islands at almost no cost. Built as v11.180 (DESIGN "The wood").
+
+**What it revises.** Stage 6 above was written for ours: a rim and a cone, 0.09 km² of land, every land species a relict of a bigger island. Since the
+region model (GLOBE §9, v11.94–) the bigger islands exist beside it: the awesome shield (1,525 km² of land to 2,431 m), an old high island of 628 km², the giant
+(152 km² to ~870 m), two more over 50 km². On those the land line had what it had on ours before it sank — and more: room, height to catch the trades' rain,
+and a million years or more. A high island in a trade belt is a forest on its windward side on any planet where something stands in air and photosynthesises.
+Stage 5 reads, on a high island, "then a wood"; stage 6 is what sinking does to it after. Ours keeps none.
+
+**What it is.** The scrub's line on rain grown tall — the **platewood** (the name is a placeholder). Its trunk is the greens' jointed axis (ribbed segments),
+and it drops its lower whorls as the canopy shades them; at its top two or three tiers of **plates** — each a whorl's branchlets flattened and webbed into one
+green sheet, the leaf the land line invented. Earth's broad leaves came the same way (a branch system flattened into a plane and webbed: the telome account),
+so this is convergence, marked: the line's signature is the jointed trunk and the whorled tiers, the plate is what light in air demands. The plates lie flat in
+tiers, the top widest, so a crown is a parasol and a stand's crowns meet in a roof at 10–22 m; emergents a fifth taller, the young in the gaps two-thirds.
+**Where** the rain is (world.js `woodAt`): the windward flanks from ~100 m to the inversion, the cloud forest stunted near it, the lee dry — open woodland on
+its middle slopes, bare or turf at its coast, because in 28% oxygen a dry slope burns often; nothing on fresh flows, cliffs, the spray belt, or ours.
+
+**Its colour** (test/leaf.js). A pigment pair harvests best where the light at the ground changes fastest (the noise-cancelling antenna: Arp et al., Science
+2020). For the Sun in Earth's air that puts the red pair at 678 nm — chlorophyll a's — and for this 5300 K star in Tethys's air at 677: the red edge is the
+air's (O₂'s B band at 688, water's at 720), not the star's, and 28% O₂ only deepens it. The blue side the model cannot settle (it puts the Sun's in the near UV,
+failing its own check), and the descent settles it instead: the greens were set in the sea, and Earth's land plants kept the green algae's pigments for 470
+Myr. So the leaf is Earth's green — an olive green, hue ~83° under white light — and the warm light of this star is the game's sun, not the leaf's. A canopy
+many leaves deep, with the shade between crowns, is darker and a little more saturated; a dry one paler and yellower (more carotenoid sunscreen).
+
+**Open, the person's:**
+1. The lee. Earth's trade-wind islands are dry in the lee and this world's air burns better, so the lee is woodland, turf and hay. A wetter lee (`WOOD.base`,
+   `WOOD.lee`) would put a forest over nearly everything — "the entirety" of the island — at the cost of that logic.
+2. The blue side: if the greens did retune in air toward this star, the canopy goes olive-grey (test/leaf.js: hue 76° at +10 nm, 64° at +20). Kept at none.
+3. The name.
+4. The near forest: an understory, the trees' variety (more than one species; the person leans toward density), and what lives in it — the scuttler is the
+   only thing on land.
