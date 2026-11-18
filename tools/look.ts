@@ -1,13 +1,17 @@
 // tools/look.ts — opens a built game or lab in headless Chromium, fails on any page error, and takes a screenshot.
-//   node tools/look.ts games/<name> [--query "?dev"] [--wait 2500] [--shot path.png | --no-shot] [--size 1280x720]
+//   node tools/look.ts games/<name> [--query "?dev"] [--wait 2500] [--shot path.png | --no-shot] [--size 1280x720] [--gl]
 //   node tools/look.ts --all          every game and lab with a dist/ (CI: "every game and lab boots")
 // It serves the workspace's dist/ (what `npm run build -w <dir>` made, i.e. what gets published) on a free local
 // port, so it checks the real build, not the dev server. Screenshots go to _look/<name>.png unless --shot says.
 // Before the screenshot the game's frame loop is stopped (tools/lib/browser.ts `freeze`), so a game that draws slowly
 // under software WebGL still gets its picture taken. Playwright: see tools/lib/browser.ts.
+// --gl also says what the page asked of the GPU (tools/lib/browser.ts glCounting): a frame's draws, triangles, uploads…
+// (the median of the last 30 frames it ran) and everything up to the screenshot (the load's compiles and uploads). The
+// frames run on the real clock, so how far a game got varies; for numbers held to a place and a time, a game has its own
+// harness (Tethys: test/gpu.js).
 import { existsSync, mkdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
-import { freezable, freeze, launch, serve, url as served } from './lib/browser.ts';
+import { freezable, freeze, glCounting, glLine, glMedian, glSum, launch, serve, url as served, type GlCounts } from './lib/browser.ts';
 import { ROOT, workspaces } from './lib/workspaces.ts';
 
 const argv = process.argv.slice(2);
@@ -24,7 +28,7 @@ if (all && !targets.length) {
   process.exit(0);
 }
 if (!targets.length) {
-  console.error('usage: node tools/look.ts <games/name|labs/name> [...] | --all   [--query "?dev"] [--wait ms] [--shot file] [--size WxH]');
+  console.error('usage: node tools/look.ts <games/name|labs/name> [...] | --all   [--query "?dev"] [--wait ms] [--shot file] [--size WxH] [--gl]');
   process.exit(2);
 }
 const wait = Number(opt('--wait', '2500'));
@@ -35,6 +39,7 @@ const [W, H] = opt('--size', '1280x720').split('x').map(Number) as [number, numb
 // long software-WebGL frames, and the next page queued behind it (Tethys's boot took 5 min that way in CI, and
 // Planet-Viewer's after it 1.7, 7 Nov 2026). --no-shot: the check without the picture (CI, where nobody looks at it).
 const noShot = argv.includes('--no-shot');
+const countGl = argv.includes('--gl');
 
 let failed = 0;
 for (const target of targets) {
@@ -49,6 +54,7 @@ for (const target of targets) {
   const url = served(server) + query;
   const browser = await launch();
   const page = await browser.newPage({ viewport: { width: W, height: H } });
+  if (countGl) await page.addInitScript(glCounting);
   await freezable(page);
   const errors: string[] = [];
   // What the game loads from other hosts (Tethys's three.js from cdnjs, Rootshock's web font) it gets, if the network
@@ -92,6 +98,22 @@ for (const target of targets) {
   // one frame than any sensible wait (Rootshock, 6 Nov 2026), and that says nothing about whether it boots. Held to one
   // frame at a time and then stopped (tools/lib/browser.ts), it has its picture taken at once.
   const notes: string[] = [];
+  if (countGl) {
+    const frames: GlCounts[] | null = await page
+      .evaluate(() => {
+        const c = (window as unknown as { __gl?: { frames: GlCounts[]; frame(): void } }).__gl;
+        if (!c) return null;
+        c.frame(); // what came after the last frame (or before the first) is the load's too
+        return c.frames;
+      })
+      .catch(() => null);
+    if (!frames) notes.push('gl: no counts (the page did not run the counter)');
+    else {
+      const ran = frames.slice(0, -1);
+      notes.push(`gl, a frame (median of the last ${Math.min(30, ran.length)} of ${ran.length}): ${glLine(glMedian(ran.slice(-30)))}`);
+      notes.push(`gl, all of it: ${glLine(glSum(frames))}`);
+    }
+  }
   let shotTaken = !noShot;
   if (!noShot) {
     await freeze(page).catch(() => {});

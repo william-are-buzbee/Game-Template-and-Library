@@ -169,3 +169,16 @@ which found four repositories sharing no code, copying it instead (the same rand
     publish.sh, which only ever replaces its own slot, starts its write over from the new gh-pages when another slot's
     push beat it (never forced; up to five tries). Dry-run with four slots pushing at once to a scratch remote: every
     write landed.
+28. **What a frame asks of the GPU is counted, and Tethys's counts are held in CI** (18 Nov 2026; the person, on whether
+    anything beat screenshots for performance: "Do 1 and 2 first" — one command for the perf skill, and the GPU's work
+    counted). Decision 26 left the GPU's side unsaid ("nothing here can"), and the node benches run against a stand-in for
+    three.js, so draws, uploads and three's own submission were never measured — yet the draw count was once most of
+    Tethys's frame (v11.52). Headless Chromium cannot time a GPU, but it can count what the page asks of one: draws,
+    instances, triangles, program changes, uniforms, passes, bytes sent and copied, readbacks, compiles
+    (`tools/lib/browser.ts` `glCounting`; `look --gl` for any game). With the page on a clock of its own and `Math.random`
+    seeded the counts are exact and the same on any machine, so unlike a time they can be held in CI: Tethys's
+    `test/gpu.js --check` (its `npm run smoke`) fails when a count at one of four places moves more than 10% either way from
+    `test/gpu.json`, and a change that means it commits the new file, so the diff shows the move. Falls fail too, so the
+    file stays the truth and a later rise is measured from it. Still unmeasured, and said so: what a shader costs per vertex
+    and per pixel. The other half of the same answer is one command: Tethys's `node test/perf.js` reads what the branch changed, runs
+    the benches those files call for against the merge base's sources, and prints the pull request's table.

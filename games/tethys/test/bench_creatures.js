@@ -17,21 +17,12 @@
 // pattern — its far bake's, its hit capsules, coverings, grip, edge, gape and mass) and each body posed by its own anim at a fixed time, hashed; and after
 // the frames every creature's place, velocity, facing, state and hunger, and every rig's points (the simulation the same, frame for frame).
 // Needs Playwright (a cloud session has one globally; PLAYWRIGHT_MODULE names another) and three.js r128 from cdnjs, which the page loads itself.
-// Env: BASE, N (pages each, 2), FRAMES (300), SETTLE (60), ONLY (build,cells,frame).
+// Env: BASE, N (pages each, 2), FRAMES (300), SETTLE (60), ONLY (build,cells,frame), JSON=<file> (the results, for test/perf.js).
 'use strict';
-const fs=require('fs'),path=require('path'),http=require('http'),{execSync}=require('child_process');
+const path=require('path');
 const here=path.join(__dirname,'..'),roots=(process.env.BASE?[path.resolve(process.env.BASE)]:[]).concat([here]),N=+(process.env.N||2),FRAMES=+(process.env.FRAMES||300),SETTLE=+(process.env.SETTLE||60);
 const ONLY=new Set((process.env.ONLY||'build,cells,frame').split(','));
-function playwright(){try{return require(process.env.PLAYWRIGHT_MODULE||'playwright');}catch(e){return require(path.join(execSync('npm root -g',{encoding:'utf8'}).trim(),'playwright'));}}
-// the page: this tree's shell (or the root's own), the root's src/ in its order.txt's order, as build.js writes dev.html
-function pageOf(root){const shell=fs.readFileSync(path.join(fs.existsSync(path.join(root,'shell.html'))?root:here,'shell.html'),'utf8'),order=fs.readFileSync(path.join(root,'src/order.txt'),'utf8').split('\n').map(l=>l.trim()).filter(l=>l&&!l.startsWith('#'));
-  const seed='<script>(function(){let s=20261114>>>0;Math.random=function(){s=(s+0x6D2B79F5)>>>0;let t=s;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};'+ // mulberry32: the same draws in every run
-    'const real=performance.now.bind(performance);window.__real=real;let now=0,raf=null;performance.now=()=>now;window.requestAnimationFrame=f=>{raf=f;return 1;};window.setTimeout=(f)=>{f();return 1;};'+ // the page's own clock: still between the bench's steps
-    'let su=777;window.__uuidR=function(){su=(su+0x6D2B79F5)>>>0;let t=su;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};'+ // three's UUIDs on a stream of their own (below)
-    'window.__step=n=>{for(let i=0;i<n;i++){const f=raf;raf=null;if(!f)break;now+=16.7;f(now);}};})();</script>\n';
-  return shell.replace('<!--SCRIPTS-->',()=>seed+'<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>\n'+order.map(n=>'<script src="src/'+n+'.js"></script>\n').join(''));}
-function serve(root){const html=pageOf(root);return new Promise(ok=>{const s=http.createServer((req,res)=>{const u=decodeURIComponent(new URL(req.url,'http://x').pathname);if(u==='/'||u==='/bench.html'){res.writeHead(200,{'content-type':'text/html'});res.end(html);return;}
-  const p=path.normalize(path.join(root,u));if(!p.startsWith(root)||!fs.existsSync(p)||fs.statSync(p).isDirectory()){res.writeHead(404).end();return;}res.writeHead(200,{'content-type':p.endsWith('.js')?'text/javascript':'application/octet-stream'});fs.createReadStream(p).pipe(res);});s.listen(0,'127.0.0.1',()=>ok(s));});}
+const {playwright,open}=require('./benchpage.js'); // the page, its clock and seed, and three's UUIDs on a stream of their own (test/benchpage.js, v11.179: shared with test/gpu.js)
 // ---- in the page ----
 function inPage(arg){const now=()=>window.__real(),out={};
   // a hash of numbers (FNV over their float32 bits) and of strings
@@ -67,17 +58,10 @@ function inPage(arg){const now=()=>window.__real(),out={};
     window.__step(arg.frames);window.updateCreatures=u;window.updateSchools=sc;window.renderFrame=rf;const m=ms.slice().sort((a,b)=>a-b),n=m.length;
     out.frame={frames:n,mean:m.reduce((a,b)=>a+b,0)/n,median:m[n>>1],p95:m[Math.floor(n*0.95)],creatures:creatures.length,near:creatures.filter(c=>c.lod===0&&c.g.visible).length,sim:simH()};}
   return out;}
-// three.js r128 draws four Math.random() for every geometry's UUID (its ct()): a build that makes fewer geometries (v11.149's replay) would shift
-// every later draw — the arms' phases — and two trees could not be compared draw for draw. The page's three.js has those four on a stream of their
-// own (__uuidR); the game's own draws stay on Math.random. In the game Math.random is not seeded at all, so this is the comparison's, nothing else
-let THREE_JS=null;
-async function onePage(pw,root){const srv=await serve(root),browser=await pw.chromium.launch({args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']});
-  try{const page=await browser.newPage({viewport:{width:1280,height:720}}),errs=[];page.on('pageerror',e=>errs.push(String(e)));
-    await page.route('**/three.min.js',async route=>{if(!THREE_JS){const r=await route.fetch(),t=await r.text(),n=t.split('4294967295*Math.random()').length-1;if(n!==4)throw new Error('three.min.js: '+n+' UUID draws found, 4 expected');THREE_JS=t.split('4294967295*Math.random()').join('4294967295*window.__uuidR()');}
-      await route.fulfill({status:200,contentType:'text/javascript',body:THREE_JS});});
-    const t0=Date.now();await page.goto(`http://127.0.0.1:${srv.address().port}/bench.html`,{waitUntil:'load',timeout:300000});const boot=await page.evaluate(()=>{const n=performance.getEntriesByType('navigation')[0];return n.domContentLoadedEventStart-n.responseEnd;});
+async function onePage(pw,root){const P=await open(pw,root);
+  try{const {page,errs}=P;const boot=await page.evaluate(()=>{const n=performance.getEntriesByType('navigation')[0];return n.domContentLoadedEventStart-n.responseEnd;});
     await page.evaluate(n=>{const rf=window.renderFrame;window.renderFrame=function(){};window.__step(n);window.renderFrame=rf;},SETTLE); // the menu's first frames, the same in every run
-    const o=await page.evaluate(inPage,{only:[...ONLY],frames:FRAMES});o.boot=boot;o.errs=errs;return o;}finally{await browser.close();srv.close();}}
+    const o=await page.evaluate(inPage,{only:[...ONLY],frames:FRAMES});o.boot=boot;o.errs=errs;return o;}finally{await P.close();}}
 (async()=>{const pw=playwright(),res=[];
   for(const r of roots){let best=null;for(let k=0;k<N;k++){const o=await onePage(pw,r);if(o.errs.length)console.log('page errors in '+r+': '+o.errs.slice(0,3).join(' | '));
     if(!best){best=o;continue;}best.boot=Math.min(best.boot,o.boot);if(o.build){best.build.first=Math.min(best.build.first,o.build.first);best.build.rep=Math.min(best.build.rep,o.build.rep);best.build.rows=best.build.rows.map((w,i)=>[w[0],Math.min(w[1],o.build.rows[i][1]),Math.min(w[2],o.build.rows[i][2])]);}
@@ -86,6 +70,7 @@ async function onePage(pw,root){const srv=await serve(root),browser=await pw.chr
       if(o.frame&&best.frame){for(const q of ['mean','median','p95'])best.frame[q]=Math.min(best.frame[q],o.frame[q]);if(o.frame.sim!==best.frame.sim)console.log('  the simulation differs between two runs of '+r+' (something unseeded)');}}
     res.push(best);}
   const pad=(s,n)=>String(s).padStart(n),f=(v,d)=>v.toFixed(d===undefined?1:d),name=i=>roots[i]===here?'here':'base',two=res.length>1;
+  if(process.env.JSON)require('fs').writeFileSync(process.env.JSON,JSON.stringify(res.map((o,i)=>({who:name(i),boot:o.boot,build:o.build,cells:o.cells,bodies:o.bodies&&{n:o.bodies.n,hash:o.bodies.hash,pose:o.bodies.pose},frame:o.frame})))); // for test/perf.js
   console.log('the scripts at load (ms): '+res.map((o,i)=>name(i)+' '+f(o.boot,0)).join(', '));
   if(res[0].build){console.log('\nbuild: every kind\'s body (ms), first / the least of the next five — '+res[0].build.kinds+' kinds');
     console.log(pad('',14)+res.map((o,i)=>pad(name(i)+' first',12)+pad(name(i)+' again',12)).join(''));
