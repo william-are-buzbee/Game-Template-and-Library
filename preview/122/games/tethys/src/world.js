@@ -978,6 +978,38 @@ const DUSK={lum:[0.25,0.62,0.13],clamp:[0.6,1.5]}; // v11.172 (atmosphere.js upd
 // v11.159's 39, 24, 36); it opens over open s (a game hour, the retina's own) and closes over close s; and as it opens the colour drains toward a
 // blue-grey (desat at the moonless night's gain): rods see no colour, which is what keeps a night you can see by a night.
 const NIGHT_EYE={ref:0.6,k:0.4,max:4,open:80,close:5,desat:0.6}; // ref: the sky's light at or over which the eye is at 1; k: how much of a fall it makes up; max: the cap; open, close: its time constants (s, real); desat: the colour drained at a moonless night's gain // moonlight's colour and its strength at full; the overcast sky; a moonless night's floor (starlight, airglow)
+// ---------- the wood (v11.180, TAXA "The wood"; DESIGN "The wood") ----------
+// The person (18 Nov 2026): a canopy over the big islands' land, read from far off as part of the island, at next to no cost — "a loose
+// silhouette" for now, density and canopy to explore later. The rain decides where it stands, and the trades decide the rain (PLANET; Hawai'i
+// and every high island in a trade belt is the proof): the windward flank wet from the coast and wetter with height, most where the air is
+// lifted through the cloud band (CLOUD_H, 650, to the inversion at CLOUD_H + CLOUD_T, ~1,550), dry above the inversion; the lee in the rain
+// shadow, dry at the coast with a band of afternoon cloud on its middle slopes (Kona's). In 28% oxygen (PLANET) the dry side burns easily and
+// often: woodland where the rain is short, open in patches (the stands' noise), never a closed canopy. Then what keeps a tree off a wet
+// place: the salt spray (the strand's scrub and tussock own it, farther in on the windward coast), a cliff, a flow too young for soil (`young`:
+// the tidewood's 0.45, decades), the vents' heat — and nothing on ours, within its core: the remnant TAXA's stage 6 describes, its look v11.86's. The rain index is the share of a forest's rain, by eye against Earth's islands' maps;
+// woodAt returns the cover 0..1 and writes, if asked, [cover, the canopy's height × cover with the crowns' relief (m), the crowns' light
+// 0.82–1.18, the dry share 0..1] at o[k]. Read by the terrain at every tier (chunks.js terrainColor: the floor's colour and the shell, scene.js
+// woodGLSL) and by the near trees' placement (FLORA `wood`). Not by sample(): the ground is the ground, the wood stands on it.
+const WOOD={base:0.42,oro:0.58,lift:350,lee:0.2,inv:0.35,r:[0.4,0.64],H:22,rough:0.3,spray:[4,10,28],slope:[2.4,1.3],young:[0.4,0.12],heat:[0.25,0.08]}; // the rain index on any land (the trade showers); the windward flank's lift to the inversion and the height over which it comes in (m: the rain a slope lifts is the slope's — no field says how high the island behind a coast is, so a high island's windward coast is woodland and its forest begins ~100 m up, and a low island's coast stays dry, as Earth's low islands in the trades are); the lee's middle band; the drop above the inversion; the index over which the cover goes from none to closed; the canopy's height (m) in the wet; the crowns' relief (a share); the spray's reach (m: 4, and 10 + 28 on the windward face); the slope (gradient) over which a face is bare; young and heat over which none grows
+// The colours (test/leaf.js, the person's question of 18 Nov 2026: the colour from the star). A pigment pair sits where the light at the ground
+// changes fastest; the red pair at 677 nm under this star and Tethys's air against 678 under the Sun and Earth's — pinned by the falling edge into
+// O₂'s B band and water's 720, which are the air's and not the star's — and the blue is the greens' own, set in the sea (TAXA; Earth's land plants
+// kept the green algae's chlorophylls). So the leaf is Earth's green: an olive green, hue ~83°, under the game's white light (the star's warmth
+// is its sun, ABOVE). The canopy is that many leaves deep with the shade between crowns: darker and a touch more saturated.
+const WOOD_C={col:[0.254,0.314,0.156],dry:[0.30,0.31,0.18],leaf:[0.325,0.398,0.207],floor:[0.17,0.17,0.10],grass:[0.33,0.37,0.20],hay:[0.46,0.42,0.27],grassK:0.55,floorK:0.8,trunk:[0.36,0.33,0.27]}; // the canopy from far off (test/leaf.js, many leaves deep, 60% sunlit); a drier canopy (more carotenoid sunscreen, thicker leaves: paler and yellower — Earth's dry forests read olive-grey); one leaf (the near trees' plates); the floor under a canopy (litter and the seedlings of the shade); the open ground's turf where it rains (the tussock and the scrub as the eye sums them past their draw distance) and where it is dry; how much of the open ground the turf covers and how much of the floor the litter; the trunks (pale, the greens' jointed axis)
+const _wd={site:0,r:0}; // woodAt's by-products: the site's share without the rain (the open ground's turf, chunks.js terrainColor) and the rain index
+function woodAt(x,z,h,sl,f,o,k){
+  let c=0,r=0,g=0.5,n=0.5;_wd.site=0;_wd.r=0;
+  if(h>WOOD.spray[0]){const ww=smooth(0.2,0.8,clamp((f[FI.expo]-0.25)/0.75,0,1)); // the windward face: sample()'s expo on land is 0.25 + 0.75 × the record's aspect to the wind
+    c=smooth(WOOD.spray[0],WOOD.spray[1]+WOOD.spray[2]*ww,h)*smooth(WOOD.slope[0],WOOD.slope[1],sl)*smooth(WOOD.young[0],WOOD.young[1],f[FI.young])*smooth(WOOD.heat[0],WOOD.heat[1],f[FI.heat]);
+    {const O=ISLANDS[0],dx=x-O.x,dz=z-O.z;if(dx*dx+dz*dz<O.core*O.core)c=0;} // ours keeps its land as built: the remnant (TAXA stage 6), its cone the scrub's (v11.86)
+    _wd.site=c;if(c>0){const inv=CLOUD_H+CLOUD_T;
+      r=WOOD.base+WOOD.oro*ww*smooth(0,WOOD.lift,h)*(1-smooth(inv,inv+650,h))+WOOD.lee*(1-ww)*smooth(150,700,h)*(1-smooth(inv-350,inv+250,h))-WOOD.inv*smooth(inv+50,inv+750,h)+0.16*(fbm(x*0.0016+11,z*0.0016+37,2)-0.5)*(1-0.6*ww); // the stands at a kilometre's scale: the lee's burns
+      g=fbm(x*0.013+5,z*0.013+71,2);c*=smooth(WOOD.r[0],WOOD.r[1],r+0.22*(g-0.5));_wd.r=r;}} // the gaps at ~70 m: a closed canopy where it is wet, a mosaic where it is not
+  if(o){if(c>0){n=fbm(x*0.07+3,z*0.07+9,2); // the crowns, ~14 m
+      o[k]=c;o[k+1]=WOOD.H*(0.45+0.55*smooth(0.45,0.85,r))*(1-0.45*smooth(1100,1900,h))*c*(1+WOOD.rough*2*(n-0.5));o[k+2]=0.82+0.36*n;o[k+3]=clamp(1-smooth(0.5,0.85,r)+0.5*(g-0.5),0,1);} // shorter where it is dry and where the cloud forest is stunted
+    else{o[k]=0;o[k+1]=0;o[k+2]=1;o[k+3]=0;}}
+  return c;}
 // ---------- landmarks ----------
 // The one-offs are placed by the geology where the geology names the place (the chimney on rift arm 0; the pit crater was the other until v11.95) and
 // searched for on the analytic terrain otherwise (seed 4242, a fixed sequence — new ones go on the end so earlier ones don't

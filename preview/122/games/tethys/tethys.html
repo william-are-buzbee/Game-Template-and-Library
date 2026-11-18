@@ -1311,6 +1311,38 @@ const DUSK={lum:[0.25,0.62,0.13],clamp:[0.6,1.5]}; // v11.172 (atmosphere.js upd
 // v11.159's 39, 24, 36); it opens over open s (a game hour, the retina's own) and closes over close s; and as it opens the colour drains toward a
 // blue-grey (desat at the moonless night's gain): rods see no colour, which is what keeps a night you can see by a night.
 const NIGHT_EYE={ref:0.6,k:0.4,max:4,open:80,close:5,desat:0.6}; // ref: the sky's light at or over which the eye is at 1; k: how much of a fall it makes up; max: the cap; open, close: its time constants (s, real); desat: the colour drained at a moonless night's gain // moonlight's colour and its strength at full; the overcast sky; a moonless night's floor (starlight, airglow)
+// ---------- the wood (v11.180, TAXA "The wood"; DESIGN "The wood") ----------
+// The person (18 Nov 2026): a canopy over the big islands' land, read from far off as part of the island, at next to no cost — "a loose
+// silhouette" for now, density and canopy to explore later. The rain decides where it stands, and the trades decide the rain (PLANET; Hawai'i
+// and every high island in a trade belt is the proof): the windward flank wet from the coast and wetter with height, most where the air is
+// lifted through the cloud band (CLOUD_H, 650, to the inversion at CLOUD_H + CLOUD_T, ~1,550), dry above the inversion; the lee in the rain
+// shadow, dry at the coast with a band of afternoon cloud on its middle slopes (Kona's). In 28% oxygen (PLANET) the dry side burns easily and
+// often: woodland where the rain is short, open in patches (the stands' noise), never a closed canopy. Then what keeps a tree off a wet
+// place: the salt spray (the strand's scrub and tussock own it, farther in on the windward coast), a cliff, a flow too young for soil (`young`:
+// the tidewood's 0.45, decades), the vents' heat — and nothing on ours, within its core: the remnant TAXA's stage 6 describes, its look v11.86's. The rain index is the share of a forest's rain, by eye against Earth's islands' maps;
+// woodAt returns the cover 0..1 and writes, if asked, [cover, the canopy's height × cover with the crowns' relief (m), the crowns' light
+// 0.82–1.18, the dry share 0..1] at o[k]. Read by the terrain at every tier (chunks.js terrainColor: the floor's colour and the shell, scene.js
+// woodGLSL) and by the near trees' placement (FLORA `wood`). Not by sample(): the ground is the ground, the wood stands on it.
+const WOOD={base:0.42,oro:0.58,lift:350,lee:0.2,inv:0.35,r:[0.4,0.64],H:22,rough:0.3,spray:[4,10,28],slope:[2.4,1.3],young:[0.4,0.12],heat:[0.25,0.08]}; // the rain index on any land (the trade showers); the windward flank's lift to the inversion and the height over which it comes in (m: the rain a slope lifts is the slope's — no field says how high the island behind a coast is, so a high island's windward coast is woodland and its forest begins ~100 m up, and a low island's coast stays dry, as Earth's low islands in the trades are); the lee's middle band; the drop above the inversion; the index over which the cover goes from none to closed; the canopy's height (m) in the wet; the crowns' relief (a share); the spray's reach (m: 4, and 10 + 28 on the windward face); the slope (gradient) over which a face is bare; young and heat over which none grows
+// The colours (test/leaf.js, the person's question of 18 Nov 2026: the colour from the star). A pigment pair sits where the light at the ground
+// changes fastest; the red pair at 677 nm under this star and Tethys's air against 678 under the Sun and Earth's — pinned by the falling edge into
+// O₂'s B band and water's 720, which are the air's and not the star's — and the blue is the greens' own, set in the sea (TAXA; Earth's land plants
+// kept the green algae's chlorophylls). So the leaf is Earth's green: an olive green, hue ~83°, under the game's white light (the star's warmth
+// is its sun, ABOVE). The canopy is that many leaves deep with the shade between crowns: darker and a touch more saturated.
+const WOOD_C={col:[0.254,0.314,0.156],dry:[0.30,0.31,0.18],leaf:[0.325,0.398,0.207],floor:[0.17,0.17,0.10],grass:[0.33,0.37,0.20],hay:[0.46,0.42,0.27],grassK:0.55,floorK:0.8,trunk:[0.36,0.33,0.27]}; // the canopy from far off (test/leaf.js, many leaves deep, 60% sunlit); a drier canopy (more carotenoid sunscreen, thicker leaves: paler and yellower — Earth's dry forests read olive-grey); one leaf (the near trees' plates); the floor under a canopy (litter and the seedlings of the shade); the open ground's turf where it rains (the tussock and the scrub as the eye sums them past their draw distance) and where it is dry; how much of the open ground the turf covers and how much of the floor the litter; the trunks (pale, the greens' jointed axis)
+const _wd={site:0,r:0}; // woodAt's by-products: the site's share without the rain (the open ground's turf, chunks.js terrainColor) and the rain index
+function woodAt(x,z,h,sl,f,o,k){
+  let c=0,r=0,g=0.5,n=0.5;_wd.site=0;_wd.r=0;
+  if(h>WOOD.spray[0]){const ww=smooth(0.2,0.8,clamp((f[FI.expo]-0.25)/0.75,0,1)); // the windward face: sample()'s expo on land is 0.25 + 0.75 × the record's aspect to the wind
+    c=smooth(WOOD.spray[0],WOOD.spray[1]+WOOD.spray[2]*ww,h)*smooth(WOOD.slope[0],WOOD.slope[1],sl)*smooth(WOOD.young[0],WOOD.young[1],f[FI.young])*smooth(WOOD.heat[0],WOOD.heat[1],f[FI.heat]);
+    {const O=ISLANDS[0],dx=x-O.x,dz=z-O.z;if(dx*dx+dz*dz<O.core*O.core)c=0;} // ours keeps its land as built: the remnant (TAXA stage 6), its cone the scrub's (v11.86)
+    _wd.site=c;if(c>0){const inv=CLOUD_H+CLOUD_T;
+      r=WOOD.base+WOOD.oro*ww*smooth(0,WOOD.lift,h)*(1-smooth(inv,inv+650,h))+WOOD.lee*(1-ww)*smooth(150,700,h)*(1-smooth(inv-350,inv+250,h))-WOOD.inv*smooth(inv+50,inv+750,h)+0.16*(fbm(x*0.0016+11,z*0.0016+37,2)-0.5)*(1-0.6*ww); // the stands at a kilometre's scale: the lee's burns
+      g=fbm(x*0.013+5,z*0.013+71,2);c*=smooth(WOOD.r[0],WOOD.r[1],r+0.22*(g-0.5));_wd.r=r;}} // the gaps at ~70 m: a closed canopy where it is wet, a mosaic where it is not
+  if(o){if(c>0){n=fbm(x*0.07+3,z*0.07+9,2); // the crowns, ~14 m
+      o[k]=c;o[k+1]=WOOD.H*(0.45+0.55*smooth(0.45,0.85,r))*(1-0.45*smooth(1100,1900,h))*c*(1+WOOD.rough*2*(n-0.5));o[k+2]=0.82+0.36*n;o[k+3]=clamp(1-smooth(0.5,0.85,r)+0.5*(g-0.5),0,1);} // shorter where it is dry and where the cloud forest is stunted
+    else{o[k]=0;o[k+1]=0;o[k+2]=1;o[k+3]=0;}}
+  return c;}
 // ---------- landmarks ----------
 // The one-offs are placed by the geology where the geology names the place (the chimney on rift arm 0; the pit crater was the other until v11.95) and
 // searched for on the analytic terrain otherwise (seed 4242, a fixed sequence — new ones go on the end so earlier ones don't
@@ -3263,7 +3295,17 @@ function farMaterial(){const m=new THREE.MeshLambertMaterial({vertexColors:true,
 const MATFAR=addTint(farMaterial(),'lamds',true,undefined,undefined,'card'); // far impostor cards: seen from either side; small-thing fog so the swap with real kelp doesn't pop
 const GLOW=addTint(new THREE.MeshBasicMaterial({vertexColors:true}),'glow'); // no FLORA entry sets `glow` since v10.1 took the bioluminescence out; kept, with its branches in chunks.js, for when it returns as events (PLANET Hooks) — one program at the boot warm-up (v11.33)
 const MATT=addTint(new THREE.MeshLambertMaterial({vertexColors:true,transparent:true,opacity:0.7}),'lamt',true,undefined,undefined,'body'); // translucent small creatures (the flicker); bakeLOD skips transparent parts, so they keep their real mesh at far LOD
-const TERRAIN_MAT=addTint(Q.phong?new THREE.MeshPhongMaterial({vertexColors:true,flatShading:true,shininess:0,specular:0x000000}):new THREE.MeshLambertMaterial({vertexColors:true}),'terr',false,0.7,'world','terr'); // 'world' (v11.40): the cells' terrain and the far terrain de-res on one grid
+// The wood's shell (v11.180, world.js woodAt; DESIGN "The wood"). The terrain carries the canopy as an attribute — aWood: the cover, the canopy's height
+// with its crowns' relief (m), their light, the dry share — and every terrain vertex past the near trees' fade stands at the canopy's top in the canopy's
+// colour: the cells' terrain, the far regions' and (horizon.js, by hand) the horizon's, one rule and one function, so a forest is part of the island
+// from 250 km to the trees. Over FLORA_FAR − FLORA_FADE … FLORA_FAR, where the near trees shrink into their roots (farCut), it sinks to the ground and
+// takes the floor's colour, so the trees stand in for it there; nearer it is the ground. No vertices, no draws: a vec4 a vertex and a few
+// instructions. Not in the depth pass (the shadow map's casters are near, where the shell is down) — DEPTH_PASS shares this code (depthFor).
+// A mesh without the attribute (a cell or region with no land, the warm-up's) reads TERRAIN_MAT's default, no wood.
+function woodGLSL(pos){return '\n#if defined(USE_FOG)&&!defined(DEPTH_PASS)\n{float wdK=smoothstep('+(FLORA_FAR-FLORA_FADE).toFixed(1)+','+FLORA_FAR.toFixed(1)+',distance((modelMatrix*vec4('+pos+',1.0)).xyz,uFogC));transformed.y+=aWood.y*wdK;\n#ifdef USE_COLOR\nvColor.rgb=mix(vColor.rgb,mix(vec3('+WOOD_C.col.map(v=>v.toFixed(3)).join(',')+'),vec3('+WOOD_C.dry.map(v=>v.toFixed(3)).join(',')+'),aWood.w)*aWood.z,aWood.x*wdK);\n#endif\n}\n#endif\n';} // uFogC: the camera (fog_pars_vertex); FLORA_FAR, declared below, is read when a program compiles
+function woodShell(m){m.onBeforeCompile=function(sh){sh.vertexShader='attribute vec4 aWood;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>'+woodGLSL('position'));};return m;}
+const TERRAIN_MAT=addTint(woodShell(Q.phong?new THREE.MeshPhongMaterial({vertexColors:true,flatShading:true,shininess:0,specular:0x000000}):new THREE.MeshLambertMaterial({vertexColors:true})),'terr',false,0.7,'world','terr'); // 'world' (v11.40): the cells' terrain and the far terrain de-res on one grid
+TERRAIN_MAT.defaultAttributeValues={aWood:[0,0,1,0]}; // a terrain mesh with no land carries no aWood: without this its slot would read whatever generic value WebGL last held there (three sets a material's defaults for a missing attribute)
 // Instanced sway: displacement in world units, scaled per instance so tall and short plants bend alike.
 // bob: the whole instance rides the wave at its origin (surface rafts) and sinks by its aDip attribute (a pad under a body).
 // H: the geometry's height along its growth axis in local units (dir: +1 grows up from the root, -1 hangs down from it).
@@ -3351,8 +3393,9 @@ const MATG=swayMaterial(0.35,1.6,2.4,1,false,2.4,false,true,true,0.35),MATB=sway
   MATSC=swayMaterial(3.2,0.7,40,1,false,1.0,false,true,true), // the stipeling (v11.155): the stipe's sway with the cut and its fade — it has no card, and on MATS a cell's young popped in at once at FLORA_FAR
   MATM=swayMaterial(1.6,1.0,12,1,false,14,false,true,true,0.35), // mid-height weed (ladder, ribbon, the pen): bends over its top ten metres; cut
   MATGL=swayMaterial(0.35,1.6,2.4,1,false,2.4,false,false,true,0.35), // the tussock: the grass sway on land, never folded to the water (cap); cut
-  MATTR=swayMaterial(0.3,0.45,9,1,false,14); // the tidal forest (v11): a trunk in the wind — a slow sway from the crown, never capped to the water, never leaning to the current (land: chunks.js makeInstanced gives it no aCur); no cut (the cards)
-MATTR.land=true; // thin (the last argument, v11.13): the share of the far face's light that comes through a blade — the weed, bladders, rafts, whips, the tussock; not the stipe, not the trunks
+  MATTR=swayMaterial(0.3,0.45,9,1,false,14), // the tidal forest (v11): a trunk in the wind — a slow sway from the crown, never capped to the water, never leaning to the current (land: chunks.js makeInstanced gives it no aCur); no cut (the cards)
+  MATWD=swayMaterial(0.25,0.35,18,1,false,27,false,false,true,0.25); // the platewood (v11.180): a tall trunk in the wind, its plates lit through a little (thin); cut at FLORA_FAR, where the terrain's shell takes over (woodGLSL)
+MATTR.land=true;MATWD.land=true; // thin (the last argument, v11.13): the share of the far face's light that comes through a blade — the weed, bladders, rafts, whips, the tussock; not the stipe, not the trunks
 
 // clouds.js — the cloud field and the near clouds (v11.87, CLOUDS.md). The trade-wind deck as one function of a point, written twice — in GLSL for
 // the dome, the sea's topside and the land in air, in JavaScript for the beam at the player — from a hash that is exact in float32
@@ -8611,7 +8654,7 @@ function nodB(rg, k) {
   coneShell(P, {r: r, h: r * 2.4, plates: 3, legs: 5, col: CPLATE, col2: CJOINT, col3: CLEG}, rg, t.x, t.y, t.z);
   return {P: P};
 }
-// ---------- gapers (v11.179, analysis_sessile.md: sessile hingeshells that kept the hinge) ----------
+// ---------- gapers (v11.181, analysis_sessile.md: sessile hingeshells that kept the hinge) ----------
 // The clade's own thing is the hinged carapace (PLANET, Hingeshells). One that sat down on a valve and cemented it kept the other as a lid:
 // the body inside both, the combs kicked out of the gape (Earth's proof that an arthropod can live inside a clam's two valves: the ostracods and
 // the clam shrimps; that one can cement itself and comb the water: the barnacles). The moult happens inside the valves, as the cones' does inside
@@ -8640,7 +8683,7 @@ function gaperB(rg,k){const P=[],up=V3(0,1,0);
   if(k===1){for(let i=0;i<3;i++){const a=i/3*TAU+rg()*0.8,d=0.18+rg()*0.1;gaperAt(P,Math.cos(a)*d,0,Math.sin(a)*d,V3((rg()-0.5)*0.3,1,(rg()-0.5)*0.3),0.13+rg()*0.04,0.3+rg()*0.25,3,3,1,rg);}return {P:P,col:[{s:[0,0.08,0,0.32]}]};}
   for(let i=0;i<6;i++){const a=rg()*TAU,d=i<4?0.1+rg()*0.14:rg()*0.08,y=i<4?0:0.07,r=i<4?0.1+rg()*0.03:0.07+rg()*0.02;gaperAt(P,Math.cos(a)*d,y,Math.sin(a)*d,V3(Math.cos(a)*(i<4?0.25:0.6),1,Math.sin(a)*(i<4?0.25:0.6)),r,0.25+rg()*0.3,2,i<4?3:0,i<2?0.82:1,rg);}
   return {P:P,col:[{s:[0,0.08,0,0.26]}]};}
-// ---------- wormshells (v11.179, analysis_sessile.md: the coil cemented) ----------
+// ---------- wormshells (v11.181, analysis_sessile.md: the coil cemented) ----------
 // A coiled ringmouth that settled on its apex and cemented it (TAXA, the crowns' split "the cement"): the first whorls stay a tight flat coil on
 // the rock and from there the shell grows on as a tube, no longer coiled — nothing to balance in a body that never swims again — wandering up off
 // the rock with the arm ring out of its mouth, netting what the wash brings (Earth's proof: the worm-snails, vermetids, did exactly this). Their
@@ -9190,6 +9233,37 @@ function tussockB(rg) {
   }
   return {P: P};
 }
+// the platewood (v11.180, TAXA "The wood"): the greens' canopy on the high islands' rain. The scrub's line, where the rain lets it, grown tall: a
+// jointed trunk (the line's signature) that drops its lower whorls as the canopy shades them, and at its top tiers of plates — each a whorl's
+// branchlets flattened and webbed into one green sheet, the leaf the land line invented (Earth's broad leaves came the same way, a branch system
+// flattened and webbed). The plates lie flat to the sun, the top tier widest, so a crown is a parasol and a stand's crowns meet in a roof. Three
+// variants: k 0 a young tree in a gap (two tiers, 0.65 of the height), k 1 the canopy (three tiers), k 2 an emergent (1.2, the top tier wider).
+// Height 1 is WOOD.H (22 m) on k 1; the cell scales each to the canopy's height where it stands (chunks.js, FLORA `wood`), so the trees meet the
+// shell (scene.js woodGLSL) where they fade. Trunk in WOOD_C.trunk, the plates in white under the instance's leaf tint; 52–66 triangles.
+function platewoodB(rg, k) {
+  const P = [],
+    col = [],
+    H = WOOD.H * [0.65, 1, 1.2][k],
+    tint = WOOD_C.leaf,
+    TR = WOOD_C.trunk.map((v, i) => v / tint[i]), // the trunk's colour under the leaf tint
+    r0 = 0.42 * (H / WOOD.H);
+  const N = axis(P, {segs: 3, len: H * 0.97, r0: r0, r1: r0 * 0.4, wander: 0.04, lean: 0.07, sides: 4, rib: true, open: true, col: TR}, rg),
+    top = N[N.length - 1];
+  col.push({a: [0, 0, 0], b: [top.x * 0.6, H * 0.6, top.z * 0.6], r: r0 * 1.1});
+  const tiers = k ? [[0.66, 0.24], [0.81, 0.3], [0.96, k === 2 ? 0.42 : 0.36]] : [[0.78, 0.26], [0.96, 0.34]]; // [height, radius] as shares of H
+  for (let t = 0; t < tiers.length; t++) {
+    const y = tiers[t][0] * H,
+      R = tiers[t][1] * H * (0.9 + rg() * 0.2),
+      n = 7,
+      ph = rg() * TAU,
+      c = t === tiers.length - 1 ? [1.06, 1.06, 1.0] : [0.86, 0.88, 0.9], // the top tier the sunlit one, the lower shaded and older
+      q = y / H,
+      cx = top.x * q,
+      cz = top.z * q; // on the trunk's lean
+    for (let i = 0; i < n; i++) bladeAt(P, cx, y, cz, R, ((TAU * R) / n) * 0.8, ph + (i / n) * TAU + (rg() - 0.5) * 0.3, 0.16, 1, c, 0.06);
+  }
+  return {P: P, col: col};
+}
 // ---------- the reds (TAXA): a rind — flat, tough, thin; paint on rock, sheets, balls ----------
 // crust: two or three flat plates a hand thick stuck to the rock, overlapping; the founder form of the reds and the light's floor.
 // Pink where it lays lime in bright water (the reef's crest: limerind), red-purple down the slope (rind) — one builder, the pigment
@@ -9258,7 +9332,7 @@ function darkrindB(rg,k){const P=[],n=1+(k%2);
 // face: [R, rise] — only where the ground within R rises at least `rise` above the point (talus lies under a face). fit: a kit lies only
 // where the ground over its footprint departs from the plane it lies on by at most `fit` × scale (v11.19; chunks.js settleOn).
 // the old dome: the polyp line's farmers' massive colony, a structure — a banded mound grown over centuries (FLORA.md, giants). To v11.178
-// 14–26 (in fact 21–40 m across: the mound is 1.52 of the scale) on the fed flanks to −150; v11.179 (reef.js, analysis_sessile.md) 3–9 m in
+// 14–26 (in fact 21–40 m across: the mound is 1.52 of the scale) on the fed flanks to −150; v11.181 (reef.js, analysis_sessile.md) 3–9 m in
 // the light. One lump collider (its sphere sits inside the dodecahedron's inradius, so nothing sinks in)
 function olddomeGeo(seed) {
   const rg = mulberry(seed),
@@ -9510,8 +9584,8 @@ const FLORA = [
   species('column', {mat: MATV, tints: [[0.96, 0.94, 0.9], [0.9, 0.88, 0.84]], s: [1, 2.2], per: 160, env: {h: [-7, 2.6, 3], sub: [0.55, 1], expo: [0.5, 1]}, maxSlope: 1.6, range: [1]}, columnB), // v11.119: the cone's sisters by the chain's stretch
   species('cap', {mat: MATV, tints: [[0.9, 0.88, 0.95], [0.85, 0.84, 0.9]], s: [1, 2.2], per: 160, env: {h: [-7, 2.6, 3], sub: [0.55, 1], expo: [0.5, 1]}, maxSlope: 1.6, range: [0]}, capB),
   species('nod', {mat: MATW, tints: [[1, 1, 1], [0.95, 0.92, 0.85]], s: [0.7, 1.5], flow: true, per: 90, env: {h: [-150, -8], flow: [0.55, 1], sub: [0.6, 1]}, field: 0.02}, nodB), // the stalked cone, in the jet
-  species('gaper',{mat:MATV,tints:[[1,1,1],[0.96,0.94,0.88],[0.9,0.9,0.86]],s:[0.7,1.5],per:90,env:{h:[-90,-4],sub:[0.5,1],flow:[0.3,1],nut:[0.35,1]},field:0.015},gaperB), // v11.179: the hinge kept, cemented in fed current; its banks are reef.js's
-  species('wormshell',{mat:MATV,tints:[[1,1,1],[0.97,0.93,0.86]],s:[0.8,1.6],per:120,env:{h:[-18,-1],sub:[0.55,1],expo:[0.3,1]},field:0.02},wormB), // v11.179: the coil cemented, in the wash; its knolls are reef.js's
+  species('gaper',{mat:MATV,tints:[[1,1,1],[0.96,0.94,0.88],[0.9,0.9,0.86]],s:[0.7,1.5],per:90,env:{h:[-90,-4],sub:[0.5,1],flow:[0.3,1],nut:[0.35,1]},field:0.015},gaperB), // v11.181: the hinge kept, cemented in fed current; its banks are reef.js's
+  species('wormshell',{mat:MATV,tints:[[1,1,1],[0.97,0.93,0.86]],s:[0.8,1.6],per:120,env:{h:[-18,-1],sub:[0.55,1],expo:[0.3,1]},field:0.02},wormB), // v11.181: the coil cemented, in the wash; its knolls are reef.js's
   // sacs
   species('tube', {mat: MATV, tints: SACT, s: [0.5, 1.4], per: 120, env: {h: [-150, -6], sub: [0.5, 1], flow: [0.3, 1]}, range: [2]}, tubeB),
   species('pipe', {mat: MATV, tints: [[0.78, 0.72, 0.8], [0.7, 0.66, 0.74]], s: [0.6, 1.4], per: 110, env: {h: [-150, -6], sub: [0.5, 1], flow: [0.3, 1]}, range: [1]}, pipeB), // v11.119: the tube's sisters by the chain's stretch
@@ -9584,6 +9658,7 @@ const FLORA = [
   ), // the reed-bed: the sheltered tide band (the rim's inner slope, the island's flat) — under water at high tide, a swamp of stems
   species('tussock', {mat: MATGL, photo: true, line: 'green', tints: GREENT, s: [0.5, 1.3], per: 1500, env: {h: [1.2, 60]}, field: 0.02, minH: 1.2}, tussockB),
   species('scrub', {mat: MATGL, photo: true, line: 'green', tints: GREENT, s: [0.7, 1.8], tilt: true, per: 110, env: {h: [2, 60], expo: [0, 0.65]}, minH: 2}, scrubB), // v11.86: not on the shore the waves strike — salt-blasted; on the tuff cone that is its windward rim (the cone has its own exposure, world.js CONE)
+  species('platewood', {mat: MATWD, tints: [WOOD_C.leaf, [0.3, 0.39, 0.19], [0.35, 0.39, 0.21]], wood: true, air: true, s: [0.85, 1.15], per: 300, minH: 4, maxSlope: 1.3}, platewoodB), // the wood (v11.180): placed by world.js woodAt's cover and scaled to its canopy's height (chunks.js placeFloraType); no env, no card — past FLORA_FAR the terrain's shell is the wood (scene.js woodGLSL)
   {
     id: 'chimney',
     geo: chimneyGeo(),
@@ -9648,7 +9723,7 @@ const FLORA = [
     field: 0.009,
     clear: 4.5,
     big: true
-  }, // the first flora giant: a structure like the rock. v11.179: a farmer in the light (reef.js, the colonies), 3–9 m, its top at the lowest tide
+  }, // the first flora giant: a structure like the rock. v11.181: a farmer in the light (reef.js, the colonies), 3–9 m, its top at the lowest tide
   rock('ledge', LEDGE, {s: [5, 26], per: 0}) // never by density: chunks.js placeCliffs lays it on steep faces
 ];
 const FLORA_BY_ID = {};
@@ -9656,13 +9731,13 @@ FLORA.forEach(f => {
   FLORA_BY_ID[f.id] = f;
 });
 
-// reef.js — the sessile life's structures: the colonies and the banks (v11.179; to v11.178 only the two extra giant-colony shapes). What is
+// reef.js — the sessile life's structures: the colonies and the banks (v11.181; to v11.178 only the two extra giant-colony shapes). What is
 // left of the reef pass (REEF.md): v11.20 built manufactured reef structures with live colonies on them; v11.21 struck them and put the
 // colonies on the geology's rock instead; v11.22 struck that too (the person, 10 Sep 2026: the coat clipped, stood at odd angles, and "dark
 // rock and these things meant for light sand"; "put the placed rocks with stuff stuck to it in the bin"). What v11.22 keeps from the pass is
 // upstream of any coat: nothing is placed inside rock any more — the rock goes first and every plant asks the collision hash before it stands
 // (chunks.js, placeFloraType `clear`). The generator and the coat are in the v11.20–11.21 zips if a barnacle-on-rock ever wants them back.
-// v11.179 (analysis_sessile.md; the person, 18 Nov 2026: one giant "pasted everywhere ... just not believable or accurate to evolution"): the
+// v11.181 (analysis_sessile.md; the person, 18 Nov 2026: one giant "pasted everywhere ... just not believable or accurate to evolution"): the
 // old domes are the farmers' colonies again — in the light, a few metres, a handful to a coast, with the microatoll where one meets the lowest
 // tide — and the big living shapes below them are the banks: many animals, not one. Every structure here is drawn by the far layer with the
 // rock's material (far.js) and its cores' dodecahedra are its collision, as the rock kits' are. Appended to FLORA after the rocks, so the
@@ -9691,7 +9766,7 @@ function lowdomeGeo(seed) {
   mound(P, {r: 0.92, sq: 0.3, bands: 6, col: [0.9, 0.9, 0.9], sw: 10, sh: 6}, rg, 0, 0, 0);
   return kit(P, [{x: 0, y: 0, z: 0, r: 1.16, s: [1, 0.36, 1], rot: [0, 0, 0]}]);
 }
-// the microatoll (v11.179): a massive colony whose top reached the lowest tide — the top dies of the air at every spring low and goes to turf,
+// the microatoll (v11.181): a massive colony whose top reached the lowest tide — the top dies of the air at every spring low and goes to turf,
 // the rim lives on and grows outward, so it is a flat dish with a living lip (Earth's microatolls: the low water's own record, read by
 // geologists to the centimetre). Only just under the lowest tide (−4.6 to −7.5), so only on the reef flats and the shallow rock; 2–6 m wide
 const MTOP=[0.6,0.63,0.5],MRIM=[0.92,0.9,0.84],MRIM2=[0.82,0.8,0.74];
@@ -9700,7 +9775,7 @@ function microGeo(seed){const rg=mulberry(seed),P=[],n=11;
   for(let i=0;i<n;i++){const a=i/n*TAU+(rg()-0.5)*0.25,rr=0.19+rg()*0.06;P.push(part(G.sph(rr,6,4),Math.cos(a)*0.86,0.13,Math.sin(a)*0.86,i%2?MRIM:MRIM2,{s:[1,0.78,1]}));} // the living lip in lobes
   P.push(part(G.cyl(0.97,1.02,0.1,12,true),0,0.05,0,MRIM2)); // last year's band on the flank
   return kit(P,[{x:0,y:0.04,z:0,r:1.1,s:[1,0.27,1],rot:[0,0,0]}]);}
-// ---------- the gaper banks (v11.179) ----------
+// ---------- the gaper banks (v11.181) ----------
 // A bank is generations of gapers (flora.js): the larvae settle on their elders, the elders die shut and their young bury them, so the mound is
 // old valves bound together under a skin of living ones with their gapes open (Earth's oyster reefs and mussel banks by the same rule). It is
 // where the old domes stood to v11.178 — fed hard ground in a current, −6 to −90 — because that was a filter feeder's envelope all along: food
@@ -9717,7 +9792,7 @@ function bankGeo(seed){const rg=mulberry(seed),P=[],lumps=[],C=[[0,0.62,0.42,0],
     const nn=p.n.clone().add(V3((rg()-0.5)*0.7,(rg()-0.5)*0.4,(rg()-0.5)*0.7)).normalize(),rv=0.04+rg()*0.025,c=rg()<0.5?GDEAD:GDEAD2;P.push(part(G.cyl(rv,rv*0.85,rv*0.3,5,false),p.x,p.y,p.z,[c[0]*1.08,c[1]*1.08,c[2]*1.08],{dir:nn,s:[1,1,1.25]}));n++;}
   for(let i=0;i<14;i++){const th=rg()*TAU,d=1+rg()*0.22;P.push(part(G.cyl(0.05,0.045,0.012,5,false),Math.cos(th)*d*1.12,0.085,Math.sin(th)*d*0.58,GDEAD2,{r:[(rg()-0.5)*0.6,rg()*TAU,(rg()-0.5)*0.6],s:[1,1,1.25]}));} // loose valves at the foot
   return kit(P,lumps);}
-// ---------- the tube knolls (v11.179) ----------
+// ---------- the tube knolls (v11.181) ----------
 // Wormshells (flora.js) settling on wormshells: in the wash the tubes tangle into a knoll — a rounded heap of old tubes cemented together under
 // the living ones, their crowns out into the water on every side (Earth's vermetid platforms and Bermuda's boilers: the same rule). Exposed rock in
 // the surf, −2.5 to −11; its top held three metres under mean water (clear 3), so the springs' lows bare it. 2.5–6 m across, 1–2.5 high.
@@ -10957,7 +11032,7 @@ const MEADOW_SP=FLORA.filter(f=>f.meadow),MEADOW_K=0.5,MEADOW_C=0.6; // the beds
 function meadowCover(x,z,h,sl,f){if(h>3||h<-60||f[FI.sub]>0.55)return 0; // past every meadow species' envelope (strap −42…−3, tress −46…−22, on sand: their edges reach ~3 m and ~6 m further)
   let c=0;for(const s of MEADOW_SP){const w=envW(s.env,h,sl,f);if(w<=0)continue;const m=meadowM(s,x,z);if(m<=0)continue;c=1-(1-c)*(1-w*m*(s.field?Math.min(1,fieldK(s.field,x,z)):1));}
   return c;}
-function terrainColor(x,z,h,f,sl,tc,n){
+function terrainColor(x,z,h,f,sl,tc,n,wo){ // wo (v11.180): the wood's shell for this vertex, four floats at n·4 (world.js woodAt; scene.js woodGLSL), when the caller draws one
     const rock=ROCK_COL,m=fbm(x*0.07+5,z*0.07+9,3),k=0.78+0.45*m,sub=f[FI.sub],light=smooth(-150,-10,h);
     const sv=clamp(sub*3,0,2.999),si=Math.floor(sv),st=sv-si,c0=SUB_COL[si],c1=SUB_COL[si+1];
     let r=lerp(c0[0],c1[0],st)*k,g=lerp(c0[1],c1[1],st)*k,bl=lerp(c0[2],c1[2],st)*k;
@@ -10981,7 +11056,14 @@ function terrainColor(x,z,h,f,sl,tc,n){
       const kw=smooth(-1.6,-0.6,h)*smooth(1.2,0.3,h);r=lerp(r,wet[0]*k,kw);g=lerp(g,wet[1]*k,kw);bl=lerp(bl,wet[2]*k,kw);
       const kd=smooth(1.5,4,h);r=lerp(r,dry[0]*k,kd);g=lerp(g,dry[1]*k,kd);bl=lerp(bl,dry[2]*k,kd);
       const kl=smooth(6,18,h)*(0.4+0.6*m),kr=smooth(0.55,0.8,fbm(x*0.05+21,z*0.05+8,2))*0.7;r=lerp(r,lerp(land[0],rust[0],kr)*k,kl);g=lerp(g,lerp(land[1],rust[1],kr)*k,kl);bl=lerp(bl,lerp(land[2],rust[2],kr)*k,kl);
-      const kt=coneK(x,z)*smooth(1.5,4,h);if(kt>0){const tuff=[0.62,0.50,0.32],q=kt*(0.85+0.15*m);r=lerp(r,tuff[0]*k,q);g=lerp(g,tuff[1]*k,q);bl=lerp(bl,tuff[2]*k,q);}} // the tuff cone (v11.86, world.js CONE): palagonite — ash altered by hot water — is tan to ochre, Diamond Head's colour, from the strand up; the same rule on the far terrain
+      const kt=coneK(x,z)*smooth(1.5,4,h);if(kt>0){const tuff=[0.62,0.50,0.32],q=kt*(0.85+0.15*m);r=lerp(r,tuff[0]*k,q);g=lerp(g,tuff[1]*k,q);bl=lerp(bl,tuff[2]*k,q);} // the tuff cone (v11.86, world.js CONE): palagonite — ash altered by hot water — is tan to ochre, Diamond Head's colour, from the strand up; the same rule on the far terrain
+      // the wood (v11.180, world.js woodAt): under a canopy the floor is its litter; on open ground the rain's turf — the tussock and the scrub as the eye
+      // sums them past their draw distance, green where it rains and hay where it does not — as the seagrass beds are painted under theirs (v11.156)
+      if(h>WOOD.spray[0]){const C=WOOD_C,wc=woodAt(x,z,h,sl,f,wo,n*4),gk=_wd.site*(1-wc)*C.grassK,gt=smooth(0.38,0.6,_wd.r),fk=wc*C.floorK;
+        if(gk>0){const gr=lerp(C.hay[0],C.grass[0],gt),gg=lerp(C.hay[1],C.grass[1],gt),gb=lerp(C.hay[2],C.grass[2],gt);r=lerp(r,gr*k,gk);g=lerp(g,gg*k,gk);bl=lerp(bl,gb*k,gk);}
+        if(fk>0){r=lerp(r,C.floor[0]*k,fk);g=lerp(g,C.floor[1]*k,fk);bl=lerp(bl,C.floor[2]*k,fk);}}
+      else if(wo){wo[n*4]=0;wo[n*4+1]=0;wo[n*4+2]=1;wo[n*4+3]=0;}}
+    else if(wo){wo[n*4]=0;wo[n*4+1]=0;wo[n*4+2]=1;wo[n*4+3]=0;}
     const q=smooth(0.9,1.9,sl);
     r=lerp(r,rock[0]*k,q);g=lerp(g,rock[1]*k,q);bl=lerp(bl,rock[2]*k,q);
     // the crust (v11.97, DEEP §2): iron-manganese grows on rock left bare in oxic water, 1-5 mm a million years, thickest in the crust zone
@@ -10993,10 +11075,10 @@ function terrainColor(x,z,h,f,sl,tc,n){
 // a generator (v11.12): the colouring is 2401 vertices with three or four fbm each, ~10 ms in one step against a 6 ms budget; eight rows a step
 function* buildTerrain(ch){
   const tg=new THREE.PlaneGeometry(CELL,CELL,CH_RES,CH_RES);tg.rotateX(-HPI);
-  const tp=tg.attributes.position,tc=new Float32Array(tp.count*3);
+  const tp=tg.attributes.position,tc=new Float32Array(tp.count*3),tw=ch.landN?new Float32Array(tp.count*4):null; // tw (v11.180): the wood's shell, only on a cell with land
   for(let jj=0;jj<GR;jj++){for(let ii=0;ii<GR;ii++){
     const n=jj*GR+ii,x=(ch.i*CH_RES+ii)*STEP-HALF,z=(ch.j*CH_RES+jj)*STEP-HALF;
-    tp.setXYZ(n,x-ch.ox,ch.hg[n],z-ch.oz);terrainColor(x,z,ch.hg[n],ch.fg.subarray(n*NF,(n+1)*NF),ch.slope(x,z),tc,n);
+    tp.setXYZ(n,x-ch.ox,ch.hg[n],z-ch.oz);terrainColor(x,z,ch.hg[n],ch.fg.subarray(n*NF,(n+1)*NF),ch.slope(x,z),tc,n,tw);
   }if(jj%8===7)yield;}
   // ambient occlusion by the shape of the ground (v11.13): a vertex lower than the mean of its four neighbours at one and two grid steps
   // (4.5 and 9 m) is in a gully or at the foot of a wall and darkens by up to 30%; one higher (a ridge, a crest) lightens by half as much.
@@ -11008,7 +11090,7 @@ function* buildTerrain(ch){
   for(let jj=0;jj<GR;jj++){for(let ii=0;ii<GR;ii++){const n=jj*GR+ii,h=hg[n];
     const c1=h-(hAt1(ii-1,jj)+hAt1(ii+1,jj)+hAt1(ii,jj-1)+hAt1(ii,jj+1))*0.25,c2=h-(hAt2(ii-2,jj)+hAt2(ii+2,jj)+hAt2(ii,jj-2)+hAt2(ii,jj+2))*0.25,cav=c1*0.7+c2*0.15;
     const ao=cav<0?1-Math.min(0.3,-cav*0.14):1+Math.min(0.12,cav*0.06);tc[n*3]*=ao;tc[n*3+1]*=ao;tc[n*3+2]*=ao;}if(jj%8===7)yield;}
-  tg.setAttribute('color',new THREE.BufferAttribute(tc,3));if(!Q.phong)tg.computeVertexNormals();tg.computeBoundingSphere();
+  tg.setAttribute('color',new THREE.BufferAttribute(tc,3));if(tw)tg.setAttribute('aWood',new THREE.BufferAttribute(tw,4));if(!Q.phong)tg.computeVertexNormals();tg.computeBoundingSphere();
   const m=shadowCaster(new THREE.Mesh(tg,TERRAIN_MAT),TERRAIN_MAT);ch.group.add(m);ch.meshes.push(m);ch.terrain=m; // a caster into the world's map when FX.ground (v11.30)
 }
 function makeInstanced(ch,rng,geo,mat,tints,list,dip,vars,f){
@@ -11137,6 +11219,7 @@ function chRange(ch){if(ch.rng!==undefined)return ch.rng;if(rgPlatSd(ch.cx,ch.cz
 // species' clumping by its `field` frequency (0.1 to 1.6)
 function meadowM(f,x,z){const M=f.meadow,o=M[3]||0;return smooth(M[1],M[2],fbm(x*M[0]+71+o,z*M[0]+43+o,2));}
 function fieldK(fr,x,z){return clamp(0.1+4*Math.pow(fbm(x*fr+31,z*fr+17,2),2.5),0,1.6);}
+const WOOD_P=new Float32Array(4); // woodAt's output at a try (v11.180)
 function* placeFloraType(ch,rng,f){
   if(f.big)return; // structures are placed and drawn once for the whole world (far.js); placeBigSolids adds their collision
   if(f.range&&f.range.indexOf(chRange(ch))<0)return; // a brooding line's species keeps to its range (v11.119)
@@ -11155,6 +11238,7 @@ function* placeFloraType(ch,rng,f){
     if(cw>0.03)p=Math.max(p,leeW(x,z)*f.leePer/maxN);
     if(f.field)p*=fieldK(f.field,x,z);
     if(f.succ&&p>0)p*=smooth(f.succ[0],f.succ[1],distAge(x,z,ch.f(x,z)[FI.expo],ch.h(x,z))); // v11.120: the age of the storm's clearing here (grow.js distAge)
+    if(f.wood&&p>0)p*=woodAt(x,z,ch.h(x,z),ch.slope(x,z),ch.f(x,z),WOOD_P,0); // v11.180: the wood's cover (world.js woodAt), its canopy's height in WOOD_P for the scale below
     if(rng()>=p)continue;
     const h=ch.h(x,z);
     if(f.y!=='surface'){const cz=chemoAt(x,z);if(f.chemo?cz===null||h<cz+f.chemo[0]||h>cz+f.chemo[1]:cz!==null&&h<cz)continue;} // nothing sessile under a basin's chemocline but what straddles or mats it (f.chemo: a band about the chemocline, so none where there is none: v11.96, DEEP §2 — to v11.95 the -450 under the whole world)
@@ -11163,6 +11247,7 @@ function* placeFloraType(ch,rng,f){
     if(f.band&&(h<f.band[0]||h>f.band[1]))continue; // a depth band on the ground (the cones' tide band, the straddlers at the rim)
     if(f.y!=='surface'&&f.y!=='mid'&&ch.slope(x,z)>maxSlope)continue; // nothing grows on a cliff face
     let y=h,sc=f.s?f.s[0]+rng()*(f.s[1]-f.s[0]):1,sy=sc;
+    if(f.wood){sc*=WOOD_P[1]/Math.max(WOOD_P[0],0.05)/WOOD.H;sy=sc;} // a tree as tall as the canopy here, crowns and all, so it meets the shell where it fades
     if(f.reach){if(h>-14)continue;sy=-h-0.6;sc=1;if(f.reach.length)sy*=f.reach[0]+rng()*(f.reach[1]-f.reach[0]);} // reach [lo, hi] (v11.116): that share of the water column, the forest's young (stipeling)
     else if(f.y==='surface'){y=f.ys!==undefined?f.ys:-0.45;}
     else if(f.y==='mid'){if(h>-30)continue;y=h<OXY.top?-40-rng()*300:clamp(h+12+rng()*70,h+10,-14);} // over the deep, above the oxygen minimum (OXY.top; the chemocline's -450 to v11.95)
@@ -12071,17 +12156,18 @@ function* genRegion(ri,rj){
       if(ii>0&&ii<N-1&&jj>0&&jj<N-1){if(s.h<minH)minH=s.h;if(s.h>maxH)maxH=s.h;}}
     yield;
   }
-  const pos=new Float32Array(FG*FG*3),col=new Float32Array(FG*FG*3),idx=[];
+  const pos=new Float32Array(FG*FG*3),col=new Float32Array(FG*FG*3),idx=[],wd=maxH>0.5?new Float32Array(FG*FG*4):null; // wd (v11.180): the wood's shell, on a region with land
   for(let jj=0;jj<FG;jj++){
     for(let ii=0;ii<FG;ii++){const n=jj*FG+ii,k=(jj+1)*N+(ii+1),gx=ci0*CH_RES+ii*FS,gz=cj0*CH_RES+jj*FS,x=gx*STEP-HALF,z=gz*STEP-HALF,h=hg[k];
       pos[n*3]=x-ox;pos[n*3+1]=h;pos[n*3+2]=z-oz;
-      const sl=Math.hypot((hg[k+1]-hg[k-1])/(2*FSTEP),(hg[k+N]-hg[k-N])/(2*FSTEP));terrainColor(x,z,h,fixF(fg.subarray(k*NF,(k+1)*NF),sl),sl,col,n);}
+      const sl=Math.hypot((hg[k+1]-hg[k-1])/(2*FSTEP),(hg[k+N]-hg[k-N])/(2*FSTEP));terrainColor(x,z,h,fixF(fg.subarray(k*NF,(k+1)*NF),sl),sl,col,n,wd);}
     if(jj%8===7)yield;
   }
   for(let jj=0;jj<FG-1;jj++)for(let ii=0;ii<FG-1;ii++){const a=jj*FG+ii,b=a+1,c=a+FG,d=c+1;idx.push(a,c,b,b,c,d);}
   let P=pos,Cl=col,ext=0;
   if(ri===RX0||rj===RZ0||ri===RX1||rj===RZ1){P=Array.from(pos);Cl=Array.from(col);ext=apronGen(ri,rj,x0,z0,P,Cl,idx,ox,oz);P=new Float32Array(P);Cl=new Float32Array(Cl);yield;} // the world's edge: the terrain carried on past the far plane (v11.27)
   const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(P,3));geo.setAttribute('color',new THREE.BufferAttribute(Cl,3));geo.setIndex(idx);
+  if(wd){let W=wd;if(P.length/3>FG*FG){W=new Float32Array(P.length/3*4);W.set(wd);for(let v=FG*FG;v<P.length/3;v++)W[v*4+2]=1;}geo.setAttribute('aWood',new THREE.BufferAttribute(W,4));} // the apron's vertices (past the world's edge, the open floor) carry none
   geo.computeVertexNormals();
   const mesh=new THREE.Mesh(geo,TERRAIN_MAT);mesh.frustumCulled=false;
   const reg={ri:ri,rj:rj,ci0:ci0,cj0:cj0,cx:x0+FR*CELL/2,cz:z0+FR*CELL/2,hg:hg,N:N,geo:geo,group:new THREE.Group(),sphere:null,imps:[],ext:ext};reg.group.position.set(ox,0,oz);
@@ -13314,9 +13400,11 @@ function hzUniforms(){const L=(THREE.ShaderLib&&THREE.ShaderLib.lambert&&THREE.S
 const HZ_VS_HEAD='uniform vec3 uFogC;uniform mat3 uFogR;uniform vec4 uFogW;varying float vFogDepth;varying vec3 vFogPos;\n'; // the fog's vertex stage by hand: vFogPos is the dropped world position
 const HZ_FS_HEAD='#define USE_FOG\n'+DITHER_PARS+'\n'; // then the chunk: fogAir, skyLite, the mist
 function hzMat(vs,fs){return new THREE.ShaderMaterial({uniforms:hzUniforms(),vertexShader:vs,fragmentShader:fs,vertexColors:true,side:THREE.DoubleSide,fog:false});}
-const HZ_TERRAIN_MAT=hzMat(HZ_VS_HEAD+'varying vec3 vCol;varying vec3 vN;void main(){vec3 w=(modelMatrix*vec4(position,1.0)).xyz;vec2 dd=w.xz-uFogC.xz;float dr=dot(dd,dd)*'+(0.5/HZ_R).toExponential(6)+';vec4 mv=modelViewMatrix*vec4(position.x,position.y-dr,position.z,1.0);vFogDepth=length(mv.xyz);vFogPos=vec3(w.x,w.y-dr,w.z);vCol=color;vN=normal;gl_Position=projectionMatrix*mv;}',
+const HZ_WOOD='float wdK=smoothstep('+(FLORA_FAR-FLORA_FADE).toFixed(1)+','+FLORA_FAR.toFixed(1)+',distance(w,uFogC)),wdY=aWood.y*wdK;'; // the wood's shell (v11.180, scene.js woodGLSL): the same rule by hand — past HZ_SEA0 of the far plane it is always up
+const HZ_TERRAIN_MAT=hzMat(HZ_VS_HEAD+'attribute vec4 aWood;varying vec3 vCol;varying vec3 vN;void main(){vec3 w=(modelMatrix*vec4(position,1.0)).xyz;vec2 dd=w.xz-uFogC.xz;float dr=dot(dd,dd)*'+(0.5/HZ_R).toExponential(6)+';'+HZ_WOOD+'vec4 mv=modelViewMatrix*vec4(position.x,position.y-dr+wdY,position.z,1.0);vFogDepth=length(mv.xyz);vFogPos=vec3(w.x,w.y-dr+wdY,w.z);vCol=mix(color,mix(vec3('+WOOD_C.col.map(v=>v.toFixed(3)).join(',')+'),vec3('+WOOD_C.dry.map(v=>v.toFixed(3)).join(',')+'),aWood.w)*aWood.z,aWood.x*wdK);vN=normal;gl_Position=projectionMatrix*mv;}',
   HZ_FS_HEAD+THREE.ShaderChunk.fog_pars_fragment+'\nvarying vec3 vCol;varying vec3 vN;void main(){vec3 n=normalize(vN);float sd=max(dot(n,uSkE.xyz),0.0);vec3 amb=mix(uSkB.xyz,uSkA.xyz,0.5+0.5*n.y)*'+HZ_LIGHT[0].toFixed(3)+';vec3 col=vCol*(amb+uSkD.xyz*uSkA.w*sd*'+HZ_LIGHT[1].toFixed(3)+');'+
   'vec3 dv=vFogPos-uFogC;float d=length(dv);if(d<uHzMin)discard;vec3 rd=dv/max(d,1e-3);col=fogAir(col,uFogC,rd,d,1.0);gl_FragColor=vec4(dithering(toneC(eyeC(col,uSkE.w),uSkD.w)),1.0);}'); // uSkE.w: the eye's gain (v11.159; v11.162 its colour, eyeC), as the world's fog chunk takes it // lit by the sky's own uniforms (the zenith and horizon as the ambient, the sun's colour by dayK), an approximation of the world's hemisphere and sun that the haze at 1.3 km hides
+HZ_TERRAIN_MAT.defaultAttributeValues=Object.assign({},HZ_TERRAIN_MAT.defaultAttributeValues,{aWood:[0,0,1,0]}); // every member carries aWood; the default is for safety (scene.js TERRAIN_MAT)
 HZ_TERRAIN_MAT.uniforms.uHzMin={value:FAR*HZ_SEA0};HZ_TERRAIN_MAT.fragmentShader='uniform float uHzMin;\n'+HZ_TERRAIN_MAT.fragmentShader; // v11.86.1: the land mesh draws only past HZ_SEA0 of the far plane, where the sea disc starts and the main pass hands over — nearer, its Q.hz-metre triangles can stand over the camera where the fine ground is a hollow (the tuff cone's crater: from its floor the sky was the mesh's tan underside; the person, 23 Sep 2026), and nothing in the main pass covers the sky
 const HZ_SEA_U={value:new THREE.Vector4(HZ_LIGHT[3],HZ_LIGHT[2],1,0)}; // the disc's terms, live: the reflection's ceiling, the column's weight, the body's (tuned in the pane against the surface's far end, v11.65)
 const HZ_SEA_MAT=hzMat(HZ_VS_HEAD+'void main(){vec4 wp=modelMatrix*vec4(position,1.0);vec2 dd=wp.xz-uFogC.xz;wp.y-=dot(dd,dd)*'+(0.5/HZ_R).toExponential(6)+';vec4 mv=viewMatrix*wp;vFogDepth=length(mv.xyz);vFogPos=wp.xyz;gl_Position=projectionMatrix*mv;}',
@@ -13358,21 +13446,21 @@ function hzWatch(x,y,z){const H=hzSetup();let added=false;for(const q of H.tops)
 function* hzMember(m){const H=hzSetup(),{S,C,x0,z0,nx,nz,cx,cz,tops}=H,t0=performance.now();let tq=t0;
   const CH=new Map(),cH=(i,j)=>{const k=j*(cx+1)+i;let h=CH.get(k);if(h===undefined){h=sample(x0+i*C,z0+j*C).h;CH.set(k,h);}return h;};
   const HH=new Map(),hAt=(i,j)=>{const k=j*nx+i;let h=HH.get(k);if(h===undefined){h=sample(x0+i*S,z0+j*S).h;HH.set(k,h);}return h;};
-  const cT=new Float32Array(3),f=new Float32Array(NF);
+  const cT=new Float32Array(3),f=new Float32Array(NF),wT=new Float32Array(4);
   const cells=[],i0=Math.max(0,Math.floor((m.x-m.t-x0)/C)),i1=Math.min(cx-1,Math.floor((m.x+m.t-x0)/C)),j0=Math.max(0,Math.floor((m.z-m.t-z0)/C)),j1=Math.min(cz-1,Math.floor((m.z+m.t-z0)/C));
   for(let j=j0;j<=j1;j++){for(let i=i0;i<=i1;i++){const mx=x0+(i+0.5)*C,mz=z0+(j+0.5)*C;let own=null,bu=2,rim=false;
       for(const q of tops){const d=Math.hypot(mx-q.x,mz-q.z);if(d<q.t){const u=d/q.t;if(u<bu){bu=u;own=q;}if(q.r>0&&Math.abs(d-q.r)<q.w)rim=true;}}
       if(own!==m)continue;if(rim||Math.max(cH(i,j),cH(i+1,j),cH(i,j+1),cH(i+1,j+1))>HZ_CUT)cells.push(i,j);}
     if(performance.now()-tq>HZ_MS){yield;tq=performance.now();}}
-  const keep=new Map(),pos=[],col=[],nrm=[],idx=[],li=Math.round((m.x-x0)/S),lj=Math.round((m.z-z0)/S),[ox,oz]=originOf(x0+li*S,z0+lj*S),OL=ORIGIN.on; // v11.110: the mesh at a lattice point by the member, its vertices whole steps from it
+  const keep=new Map(),pos=[],col=[],nrm=[],wd=[],idx=[],li=Math.round((m.x-x0)/S),lj=Math.round((m.z-z0)/S),[ox,oz]=originOf(x0+li*S,z0+lj*S),OL=ORIGIN.on; // v11.110: the mesh at a lattice point by the member, its vertices whole steps from it
   const use=(i,j)=>{const k=j*nx+i;let v=keep.get(k);if(v!==undefined)return v;const x=x0+i*S,z=z0+j*S,h=sample(x,z,f).h;
     const gx=(hAt(Math.min(i+1,nx-1),j)-hAt(Math.max(i-1,0),j))/(2*S),gz=(hAt(i,Math.min(j+1,nz-1))-hAt(i,Math.max(j-1,0)))/(2*S),sl=Math.sqrt(gx*gx+gz*gz),L=Math.sqrt(gx*gx+1+gz*gz);
-    terrainColor(x,z,h,fixF(f,sl),sl,cT,0);v=pos.length/3;pos.push(OL?(i-li)*S:x,h,OL?(j-lj)*S:z);col.push(cT[0],cT[1],cT[2]);nrm.push(-gx/L,1/L,-gz/L);keep.set(k,v);return v;};
+    terrainColor(x,z,h,fixF(f,sl),sl,cT,0,wT);v=pos.length/3;pos.push(OL?(i-li)*S:x,h,OL?(j-lj)*S:z);col.push(cT[0],cT[1],cT[2]);wd.push(wT[0],wT[1],wT[2],wT[3]);nrm.push(-gx/L,1/L,-gz/L);keep.set(k,v);return v;};
   for(let c=0;c<cells.length;c+=2){const ci=cells[c],cj=cells[c+1];
     for(let j=cj*HZ_C;j<Math.min((cj+1)*HZ_C,nz-1);j++)for(let i=ci*HZ_C;i<Math.min((ci+1)*HZ_C,nx-1);i++){if(hAt(i,j)<HZ_CUT&&hAt(i+1,j)<HZ_CUT&&hAt(i,j+1)<HZ_CUT&&hAt(i+1,j+1)<HZ_CUT)continue;const A=use(i,j),B=use(i+1,j),Cc=use(i,j+1),D=use(i+1,j+1);idx.push(A,Cc,B,B,Cc,D);} // a→b along +x, a→c along +z, the far layer's winding
     if(performance.now()-tq>HZ_MS){yield;tq=performance.now();}}
   H.built.add(m);H.n.cells+=cells.length/2;H.n.ms+=performance.now()-t0;if(!idx.length)return;
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(nrm,3));g.setIndex(idx);
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(nrm,3));g.setAttribute('aWood',new THREE.Float32BufferAttribute(wd,4));g.setIndex(idx);
   g.computeBoundingSphere();if(g.boundingSphere)g.boundingSphere.radius+=HZ_DROP;
   const mesh=new THREE.Mesh(g,HZ_TERRAIN_MAT);mesh.name=m.id;mesh.position.set(ox,0,oz);hzLand.add(mesh);H.n.v+=pos.length/3;H.n.t+=idx.length/3;}
 function* hzGen(cx0,cz0){const H=hzSetup(),order=H.tops.slice().sort((a,b)=>(Math.hypot(a.x-cx0,a.z-cz0)-a.to)-(Math.hypot(b.x-cx0,b.z-cz0)-b.to));
@@ -16207,7 +16295,7 @@ function warmShaders(){
     geo.setAttribute('position',new THREE.Float32BufferAttribute([0,0,0,0,0.01,0,0.01,0,0],3));geo.setAttribute('normal',new THREE.Float32BufferAttribute([0,1,0,0,1,0,0,1,0],3));geo.setAttribute('color',new THREE.Float32BufferAttribute([1,1,1,1,1,1,1,1,1],3));
     for(const m of [MAT,MAT_HIT,MATBIG,MATLM,MATT,TERRAIN_MAT,MAT_HI,shM,new THREE.MeshLambertMaterial({color:0x06080a,transparent:true,opacity:0.9})])g.add(new THREE.Mesh(geo,m)); // the last is the ink cloud's; shM the light shafts' (v11.13)
     const c=new THREE.Color(1,1,1);
-    for(const m of [MAT,MATROCK,MATROCKF,MATROCKB,MATFAR,GLOW,MATV,MATG,MATB,MATR,MATW,MATS,MATSC,MATM,MATGL,MATTR]){const ig=geo.clone();ig.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(1),1));ig.setAttribute('aDip',new THREE.InstancedBufferAttribute(new Float32Array(1),1));ig.setAttribute('aCur',new THREE.InstancedBufferAttribute(new Float32Array(2),2));ig.setAttribute('aTide',new THREE.InstancedBufferAttribute(new Float32Array(2),2));const im=new THREE.InstancedMesh(ig,m,1);im.setColorAt(0,c);g.add(im);}
+    for(const m of [MAT,MATROCK,MATROCKF,MATROCKB,MATFAR,GLOW,MATV,MATG,MATB,MATR,MATW,MATS,MATSC,MATM,MATGL,MATTR,MATWD]){const ig=geo.clone();ig.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(1),1));ig.setAttribute('aDip',new THREE.InstancedBufferAttribute(new Float32Array(1),1));ig.setAttribute('aCur',new THREE.InstancedBufferAttribute(new Float32Array(2),2));ig.setAttribute('aTide',new THREE.InstancedBufferAttribute(new Float32Array(2),2));const im=new THREE.InstancedMesh(ig,m,1);im.setColorAt(0,c);g.add(im);}
     g.position.set(0,-1e5,0);scene.add(g);renderer.compile(scene,camera);
     g.traverse(o=>{if(o.isMesh){shadowCaster(o,o.material);o.castShadow=true;o.frustumCulled=false;}});shadowFrame();updateShadowS(0,true); // the depth programs of the world's shadow map (v11.30), one forced pass over these meshes; the map itself goes at the next frame if the switch is off
     scene.remove(g);
