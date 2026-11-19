@@ -264,9 +264,9 @@ const WIND_U=7.0,UPPER_A=WIND_A+2.6,UPPER_U=18.0; // WIND_U is the trades'; a ca
 // no sea fog: fog on the sea needs warm air over cold water (Peru, the Canaries, the Grand Banks — a cold current or a cold
 // upwelling), or cold air over warm water (sea smoke: arctic outbreaks), or land cooling all night (radiation fog, which a
 // six-hectare rim cannot make); warm trade air over a warmer sea, its dew point below the sea's temperature, never saturates —
-// Hawaii, Réunion and the Marquesas have none at sea level. What there is instead is haze: sea salt lifted by a Beaufort-4 wind,
-// visibility 15–30 km (AIR.dens), whiter and thicker in the lowest degree or two of the sky (the boundary layer seen edge-on:
-// HAZE.dens over HAZE.h, a layer on the water every ray integrates), spray over the breakers on the windward shore (HAZE.spray, by
+// Hawaii, Réunion and the Marquesas have none at sea level. What there is instead is haze: sea salt lifted by a Beaufort-4 wind and
+// the plankton's sulfate, swollen by the boundary layer's humidity, filling the layer from the water to the inversion (since v11.185, HAZE below:
+// visibility ~39 km at the water in the trades, ~70 in a calm, ~10 under a shower; whiter in the lowest degrees of the sky, the layer seen edge-on), spray over the breakers on the windward shore (HAZE.spray, by
 // the wave-exposure field at the camera), and under a shower rain and mist to a few km. The two things that could change this are
 // not decided and are the person's: a fuming vent above water (vog — a sulfate haze downwind — and steam where hot water meets
 // air) and a calm — the trades slackening — under which a clear night could put a dawn mist on the lagoon.
@@ -283,7 +283,20 @@ let SEA_CHOP=1; // the short waves' amplitude now, 0.25 in a calm to 1 in the tr
 // tropical mangrove creek makes at first light. It needs all three (clear: cover low; calm: wind low; the sheltered water: the lagoon
 // field at the camera), lies a few metres deep (MIST_DAWN.h) and burns off within the hour after sunrise.
 const MIST_DAWN={dens:0.020,h:6,from:-3.0,peak:0.0,to:1.2}; // extinction at the water at full mist; its depth; the hours before sunrise it builds from, the peak, when it is gone
-const HAZE={dens:1.7e-4,h:70,spray:0.0025,sprayH:4.0,glow:0.8,lift:0.3}; // the marine haze's extinction at the water and its scale height (m); the spray's over the surf and its height; the forward glow toward the light; how far the haze's colour is lifted from the horizon's toward the light
+// The boundary layer's haze (v11.185, analysis_fog.md §3, §6; the person, 19 Nov 2026: "physical visibility"). The trades' air is mixed from the water to the
+// cloud base (CLOUD_H) and continues, damper, between the cumulus to the inversion (CLOUD_H + CLOUD_T); salt and sulfate fill it evenly, and above it the
+// air is dry and clean. So the haze is a slab, not a film: `dens` /m from the water to the cloud base, `cl` of it in the cumulus layer, nothing above,
+// each edge eased over ±`soft` m — every ray integrates it in closed form (scene.js MIST_GLSL blF), the dome sees it edge-on (mistFar). To v11.184 it
+// was 1.7e-4 /m over a scale height of 70 m (a layer every elevated ray passed over) under the radial fog's Gaussian (AIR): a third of the contrast gone by
+// 2 km at any height, then clear air — the near too milky, the far too kind, nothing changing with height (analysis_fog §4). 0.9e-4 + the air's own
+// Rayleigh is Koschmieder's 39 km at the water, an ordinary trade day. The weather moves it (atmosphere.js updateHaze): the salt is the whitecaps' —
+// `calm` of it in a calm, × (1 + `season`·s) in the windy season, followed over `slow` game hours (the coarse salt settles in hours, it is not swept away
+// at once); the humidity's `hazeK` (weatherAt); a shower's humidity, × (1 + `wet`·rain); its rain, `rain` /m at full rain (~6 km of sight with the haze), only
+// below the shower's base (`rainH`, the deck's drop under a shower: atmosphere.js) and for at most `rainR` m of a ray (the shaft is a cell's, ~1.1–1.6
+// km across, clouds.js SHWR — the world beyond it is seen through it, and the sky over it is the cell's base, not rain), the haze's light × (1 − `shade`·rain)
+// under it (the cell's shade); and after a shower the air
+// washed, × (1 − `wash`) fading over `washH` game hours.
+const HAZE={dens:0.9e-4,cl:0.5,soft:60,calm:0.5,season:0.4,slow:6,wet:0.6,rain:5e-4,rainH:420,rainR:1500,shade:0.4,wash:0.4,washH:8,spray:0.0025,sprayH:4.0,glow:0.8,lift:0.3}; // the slab (above); the spray's extinction over the surf and its height; the forward glow toward the light; how far the haze's colour is lifted from the horizon's toward the light
 // ---------- the sea surface ----------
 // The surface is a sum of directional waves obeying deep-water dispersion (long waves travel faster) with crests sharpened by
 // wsh(), on top of the tide. waveH(x,z) is the water level at a point now: the player and creature physics, the surface mesh
@@ -928,8 +941,12 @@ const SEA_FOG={dens:0.0068,share:0.88,shareS:0.88,far:0.0015,dlAt:1.0,placeMix:0
 // where it reads as depth and not a filter (seen: 0.03/m to the eye was already cyan over the forest's 20–40 m). The slider (`specK`, 0–12) runs from that
 // to about v11.164's strength at 12, for the person to find the point.
 const SPECTRAL={k:[0.10,0.004],view:0.08,down:0.05,slant:1.15,adapt:1.0}; // k: the red's and the green's (the blue's is 0 by definition: the veil's curve), × down on the sun's way down (× slant) and × view on the way to the eye
-// above the surface: one sky, one haze, the same two-population curve (about 47% contrast at 300, 13% at 600, 4% at 1000).
-const AIR={fog:[0.72,0.80,0.86],dens:0.0009,share:0.35,far:0.00003,zenith:[0.34,0.55,0.78],hemiSky:0xc4dcea,hemiGround:0x6e6a58}; // the noon sky (the approved v6 look); v11 reads it as the day keyframe of SKYC. v11.64: the air is a trade-wind day — dens 0.0009 / share 0.35 / far 0.00003: the near population is the look (35% of the contrast gone by 2 km, a light general haze), the far term is clear air (130 km), and the physics of the distance is the boundary layer (HAZE.dens 1.7e-4 over 70 m: Koschmieder's 23 km at the water), which the fog already integrates along every ray — so from the water the giant's foot at 18 km is lost in the layer (~3%) while a ray to its summit climbs out of it (~30%): the peak floating on the haze, as a far island looks. The horizon tier (horizon.js) draws it; to v11.63 it was 0.0024 / 0.6 / 0.0018, "a hazy coast" of ~1 km (WATER.md P6: the person's call, and the numbers to go back to). A shower still thickens it (applyFog)
+// The clear air (v11.185): Rayleigh's extinction at the water by channel (/m, red, green, blue: 650, 550, 440 nm, ∝ λ^-4.05), falling with the air's
+// scale height (8 km) — ~330 km of sight in green alone, and on long paths above the haze the blue taken four times faster than the red: far ridges blue,
+// far sunlit cloud a touch warm (scene.js fogAir, a transmittance by channel). It replaces the radial fog: v11.64–184 `dens` 0.0009, `share` 0.35, `far`
+// 3e-5, a Gaussian near term (35% of the contrast by 2 km, at any height) over clear air; to v11.63 0.0024 / 0.6 / 0.0018, "a hazy coast" of ~1 km, the
+// person's approved look of the day (WATER.md P6) — the numbers to go back to, with the 70 m layer (HAZE, above).
+const AIR={fog:[0.72,0.80,0.86],ray:[0.63e-5,1.24e-5,2.8e-5],zenith:[0.34,0.55,0.78],hemiSky:0xc4dcea,hemiGround:0x6e6a58}; // the noon sky (the approved v6 look); v11 reads it as the day keyframe of SKYC
 // The sky by the sun's height (v11, atmosphere.js updateSky): keyframes on sin(altitude) — night, deep twilight, the sun on the
 // horizon, day — for the zenith, the horizon haze (which is the air fog's colour: the sea's far edge merges into it), the glow
 // round the sun's azimuth near the horizon, and the sunlight itself. The star is a late G / early K at ~5300 K (PLANET): its
