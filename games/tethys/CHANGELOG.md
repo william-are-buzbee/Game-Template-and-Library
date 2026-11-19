@@ -9676,3 +9676,96 @@ clear dawn, off by mid-morning, in the trades, under cloud and in the evening ha
 clear dawn at a caldera (the readout's `pool`): the mist lake, and its burning off after sunrise (`CFOG.pool.to`). 4. The shield's flanks between 650 and 1,550 m
 on a cloudy day: the deck round you (`CFOG.deck`, `deckR`). 5. From the water, the cap is invisible on the giant (its own flank hides the summit, and from
 farther the haze has the ray first): right, or should the cap read from the sea?
+
+## v11.187 — a performance pass: the flora's vertices, the air under the water, and the GPU's time taken (19 Nov 2026)
+
+The person, 19 Nov 2026: "Plants underwater and above water can lag the game. Plants on the shoreline or that breach the surface of the water can lag
+the game quite a lot", and "make this game run decently smoothly on a shitty computer in a browser" as the goal past this prompt.
+
+**How it was found.** test/gpu.js counts what a frame asks for; nothing said what it spends. So first a tool (`test/fill.js`, below): every draw of a frame
+timed alone in headless Chromium's software WebGL, named by what it draws, at full size and at a tenth of each side (its vertices and its pixels apart), and
+the picture read whole so two trees compare pixel for pixel. Two new places for the benches (test/benchpage.js `PLACES`): **the shore** (110, 0.6, −380),
+the tidewood north of ours from the water, and **the canopy** (80, −3, −360), 3 m down in the kelp beside it facing it. What it showed:
+
+- **Every plant ran its vertex shader three times.** A species packs three variants in one geometry (grow.js `packVariants`) and every instance drew all three,
+  the shader throwing two away (scene.js `VAR_COLLAPSE`): two thirds of the flora's vertex work, at every distance, under every pool. A copy drawing each
+  instance's own variant alone took the shore's frame ×0.80 (strap ÷6, grape ÷3.7, reed ÷2).
+- **Under water, the air was drawn and painted over.** Outside the window the underside is opaque (the mirror), and everything in the air behind it — the sky's
+  dome with its cloud volume, the land, the tidewood — was shaded first: the sky 16% of the forest's frame at 12 m down, the tidewood 13% of the canopy's.
+- **The tidewood**, the shore's tree: 690 triangles an instance, up to 700 a cell, a mesh per cell and no draw distance of its own — the heaviest plant there is.
+- The fog chunk took the wave sum twice for every pixel within 3 m of the water (the shore, a kelp's top, anything breaching), and the floor map twice.
+
+**What changed:**
+- **The variants pulled** (grow.js `VPULL`, `vpullPack`, `vpullGeo`; scene.js `VPULL_TEX`, `VPULL_GLSL`, `vpullMat`; chunks.js `VPULL_N`). On WebGL2 a species
+  draws n vertices — its largest variant's count — that carry only their number, and the vertex shader fetches the instance's own variant's position, normal
+  and colour from one float texture holding every species' variants. The same floats, so the same triangles: **the picture the same, pixel for pixel**, at a
+  third of the flora's vertices, one draw a species as before. WebGL1 (and the stub) draw the packed geometry as before; the readout's pools say `packed` then.
+- **The caustic's tiles as one texture array** (scene.js `CAU_ARR`, `cauTap`; WebGL2): the same bytes, wrap and filter under one sampler, so a tinted material
+  uses 7 texture units of the 16 a fragment shader may (it was at 16), and the flora's vertex data takes the eighth.
+- **The surface as an occluder from below** (atmosphere.js `SURF_OCC`, `OCC`): under water the surface is drawn first as depth alone — its facets whose cosine
+  to the eye is under `OCC.cv` 0.25 (the window starts at WIN_LO 0.35; the margin is for the refraction, which reads the frame up to REFR_MAX off) — pushed back by
+  a few depth steps so the real surface still draws over it. Nothing in the air behind it reaches its pixel shader.
+- **The card species pooled** (chunks.js `makeInstanced`): the stipe, the bladder and the tidewood kept a mesh per cell since v11.52 because their cards take
+  over per cell; since v11.125 a pool hides a cell's block by the same rule, so they are pooled now — the buttons keep theirs (their pads' dip).
+- **The fog's water level near the surface in one pass** (scene.js `WAVE_PAIR_GLSL`, `fogWaveH2`): both sums from one loop over the waves, the floor read once.
+  The same terms, the same pixels.
+- **The tools:** `test/fill.js` (the GPU's time by what is drawn, the CPU's side of drawing, the picture compared); `test/perf.js --only fill` (run for changes to
+  what is drawn, at `FILL_PLACES`, default the forest, the shore and the canopy); the places moved to test/benchpage.js and two added, so test/gpu.js counts at
+  seven; the repository's perf skill and docs/decisions.md 29.
+- **Nothing compiles at first sight at the forest, the canopy or the shore** (main.js `warmShaders`): the pulled programs warmed on a geometry like theirs (three
+  keys a program by whether the geometry has a colour attribute), MATVD (the stranded sailer's, the one v11.179 found compiling at the forest's first sight)
+  and the splash's ring and drops (player.js, made at the first breach: two programs compiling the first time the player broke the surface at a shore); a
+  pulled species' own unpulled program is not compiled on WebGL2, where nothing draws it.
+
+**What it costs** (`node test/perf.js` against v11.186; `test/gpu.js` exact, the rest times on this machine). What a frame asks of the GPU, at 1600×900:
+
+| place | triangles | vertices | draws | program changes | uniforms |
+|---|---|---|---|---|---|
+| the forest (330, −12, 0) | 6.62M → 3.64M ×0.55 | 19.87M → 10.92M | 299 → 278 | 29 → 30 | 1,495 → 1,453 |
+| the atoll's kelp (109800, −10, 4000) | 8.94M → 4.61M ×0.52 | 26.81M → 13.85M | 288 → 266 | 28 → 29 | 1,424 → 1,383 |
+| the shore (110, 0.6, −380), new | 8.47M → 4.85M ×0.57 | 25.41M → 14.57M | 346 → 323 | 34 → 34 | 1,599 → 1,550 |
+| the canopy (80, −3, −360), new | 7.54M → 4.38M ×0.58 | 22.61M → 13.15M | 347 → 328 | 28 → 30 | 1,575 → 1,586 |
+| the giant's coast from the surface | 5.47M → 3.67M ×0.67 | 16.42M → 11.00M | 160 → 159 | 27 → 30 | 1,035 → 1,166 |
+| inside the giant's wood | 2.23M → 1.85M ×0.83 | 6.70M → 5.55M | 62 → 62 | 21 → 25 | 772 → 943 |
+| open water (20000, −30, 40000) | 0.22M → 0.29M **×1.34** | 0.65M → 0.87M | 39 → 40 | 18 → 23 | 695 → 892 |
+
+Open water is the one rise: the occluder is the surface drawn a second time under water (its 74k triangles, one draw, its program's uniforms) where there is
+nothing in the air to save — the price of the saving everywhere a shore or the sky is in view. The program changes and uniforms up a little in the air: a
+pulled material is a program of its own beside its original. The boot uploads 6.8 MB more to textures (the pulled vertices) and 1.4 MB less to buffers.
+
+The GPU's time as a proxy (test/fill.js, SwiftShader at 1600×900, the frame's draws each timed alone; run per change during the pass, before the card species
+were pooled):
+
+| place | v11.186 | v11.187 | ratio | the picture |
+|---|---|---|---|---|
+| the shore, from the surface (variants pulled, the fog's sum once) | 3,758 | 3,308 | ×0.88 | the same, pixel for pixel |
+| the canopy, 3 m down (+ the occluder) | 3,554 | 2,722 | ×0.77 | 21 of 1.44M pixels by ≤4/255 |
+| the forest, 12 m down (+ the occluder) | 3,146 | 2,485 | ×0.79 | 1 pixel by 2/255 |
+
+Under water the sky's dome ×0.50, the tidewood seen from beneath ×0.29–0.43, the dome ×0.7; the pooled species ×0.55–0.9 each everywhere. The differing pixels
+are at the window's fringe, where its refraction reads the frame a few dozen pixels off into what the occluder now leaves undrawn.
+
+| the CPU | before | after | ratio |
+|---|---|---|---|
+| the creatures' work a frame at (330, 0), node, ms (mean / p95) | 1.638 / 2.305 | 1.631 / 2.272 | ×1.00 / ×0.99 |
+| the same in Chromium, ms (mean) | 2.104 | 1.974 | ×0.94 |
+| a cell's generation at the forest / atoll / platform / sea / giant, ms | 36.0 / 70.6 / 23.2 / 9.3 / 84.3 | 36.4 / 70.1 / 20.2 / 9.5 / 89.6 | ×1.01 / ×0.99 / ×0.87 / ×1.02 / ×1.06 |
+
+The simulation the same to the bit in node and in Chromium; every body the same to the bit, built and posed (test/bench_creatures.js). Not measured: the
+person's GPU — every ms above under "the GPU's time" is SwiftShader's, a CPU drawing as one.
+
+**Unseen, ask in this order:** 1. The readout at the shore from the water, `tp(110,-380)`, and 3 m down in the kelp beside it, against v11.186's preview:
+fps, frame ms, render ms, draws — the place the person found laggiest. 2. Under water near a shore, looking up through the window: the window's edge as it
+was (`OCC.cv`: lower it if anything of the air is missing at the fringe). 3. Swimming up through the surface at a shore for the first time in a session: no
+hitch (the splash's programs). 4. Anything a plant draws differently anywhere — it should not (the picture compared the same at the shore); on a WebGL1
+browser (none here) the old path draws, untested on a real one.
+
+**The person's calls, measured and not built** (each changes what is seen, so each is theirs; DESIGN "What the GPU spends"):
+1. **The tidewood's weight.** 690 triangles an instance, up to 700 a cell, no draw distance of its own (its cards take over at the cell's FLORA_FAR edge, so a
+   tree 700 m off draws whole). After this pass still the heaviest plant at the shore. A 37-triangle copy of it exists (far.js `farTreeGeo`): drawn past
+   ~120 m in place of the real one, or the real one's rods thinned, it would be most of its cost.
+2. **The sky's cloud march above water** (atmosphere.js `cloudVol`, up to `Q.march` 80 steps a pixel): 13–16% of the shore's frame (the proxy), and every
+   sky pixel behind the land and the trees is marched too (the horizon pass draws before the world). At half or a quarter of the resolution, upsampled, the soft
+   cloud should read the same and cost a quarter to a sixteenth; the stars and the sun's disc stay full size.
+3. **A low tier for a weak machine.** `Q.pr` is 1.0 on low and 1.5 on high (a 1.5× screen draws 2.25× the pixels); a weak GPU is fill-bound, and the
+   cheapest lever there is fewer pixels: a resolution scale under 1 (0.6–0.75), or one that moves to hold the frame (dynamic resolution).

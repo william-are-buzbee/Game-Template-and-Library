@@ -2525,6 +2525,9 @@ shore** (110, 0.6, −380), the tidewood north of ours from the water, and **the
 | the shore, from the surface | 3,672 | the terrain 539, the sky 476, the tidewood 456, the surface 310, the stipe 223 |
 | the canopy, 3 m down | 3,483 | the terrain 479, the sky 470, the tidewood 459 (in the air, behind the mirror), the stipe 319 |
 
+After (CHANGELOG v11.187 has the tables): the shore ×0.88, the canopy ×0.77, the forest ×0.79 on SwiftShader; a frame's triangles and vertices
+×0.52–0.58 at the forest, the atoll, the shore and the canopy (test/gpu.js); open water up ×1.34 in triangles (the occluder is a second surface).
+
 - **The flora's vertices** (grow.js `VPULL`; scene.js `VPULL_GLSL`). A species' three variants were one geometry and every instance drew all three, two
   thrown away in the shader (`VAR_COLLAPSE`): two thirds of every plant's vertex work. A copy drawing each instance's own variant alone: the shore ×0.80, the
   strap ÷6, the grape ÷3.7, the reed ÷2. Now on WebGL2 a species draws n vertices (its largest variant's) that carry only their number, and the vertex
