@@ -1,5 +1,12 @@
 # HANDOFF — tethys
 
+**v11.186 (19 Nov 2026): the cloud as fog** (clouds.js `CFOG`, `capFog`, `poolFog`, `POOLS_C`, `updateCloudFog`; scene.js `FOG_CAP`, `FOG_CAPC`, `FOG_POOL`;
+test/sky.js; DESIGN The cloud as fog; analysis_fog §8; CHANGELOG). The person's answers of 19 Nov: fog inside the cloud, the night fog in the craters. The
+caps over the high islands and the deck round a camera inside it are fog to every material in air, toward the cloud volume's own shade — inside the giant's
+cap the trees go into the grey within a few hundred metres — and a calm clear night's second half fills the three calderas (the giant's, the shield's,
+m154's) with a mist lake that burns off after sunrise. **Ask:** the giant's windward flank above 650 m on an afternoon (`tp(-14484, 9621)`): does the
+cloud read as being in it; a calm clear dawn in a caldera (`skip()` to it); is ~130 m of sight in a full cap right (`CFOG.k`, `CFOG.q`)?
+
 **v11.185 (19 Nov 2026): the air as the boundary layer** (world.js `HAZE`, `AIR.ray`; scene.js `blF`, `rnL`, `fogAir`'s `fl`; atmosphere.js `updateHaze`,
 `hazeSnap`; horizon.js; analysis_fog.md §8; DESIGN The mist above the water, The air since v11.185; CHANGELOG). The person's answers of 19 Nov: physical
 visibility, the weather in the haze, the blue of distance. The haze is a slab from the water to the cloud base and, at half, to the inversion — 39 km

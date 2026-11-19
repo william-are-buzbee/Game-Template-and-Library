@@ -6,7 +6,7 @@ const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..');
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
 let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n');
-js+='\nglobal.__sky={weatherAt,CLD_TH,cldThOf,cldTh0,cldN,cldDensity,cloudAt,CLD_S,CLD,CLD_CAPS,FZ0,DAY_H,SOLAR_H0,YEAR_D,seasonAt,SKY,CLOUD_H,camera,player,WX,ISLANDS,HALF,step:__step,SHWR,CELLS,updateCells,WIND_A,updateSky,eyeK,eyeStep,NIGHT_EYE,STARL,setClock:h=>{clockH=h;},updateHaze,MIST_P,MIST_W,HAZE,AIR,CLOCK_RATE,snapHaze:()=>{hazeSnap=true;}};';
+js+='\nglobal.__sky={weatherAt,CLD_TH,cldThOf,cldTh0,cldN,cldDensity,cloudAt,CLD_S,CLD,CLD_CAPS,FZ0,DAY_H,SOLAR_H0,YEAR_D,seasonAt,SKY,CLOUD_H,camera,player,WX,ISLANDS,HALF,step:__step,SHWR,CELLS,updateCells,WIND_A,updateSky,eyeK,eyeStep,NIGHT_EYE,STARL,setClock:h=>{clockH=h;},updateHaze,MIST_P,MIST_W,HAZE,AIR,CLOCK_RATE,snapHaze:()=>{hazeSnap=true;},updateCloudFog,FOG_CAP,FOG_CAPC,FOG_POOL,POOLS_C,CFOG};';
 const tmp=path.join(require('os').tmpdir(),'tethys_sky_bundle.js');
 fs.writeFileSync(tmp,'(function(){"use strict";\n'+js+'\n})();');
 process.env.PICK='1';
@@ -95,6 +95,25 @@ console.log('the air');
   snap(1,0,0,1);K.windK=0;S.updateHaze(hr,true);const lag=K.vis;ok(lag>tr&&lag<tr*1.2,'a calm clears the air over hours, not at once: '+lag.toFixed(1)+' km a game hour into it');
   let nan=0;for(const v of S.MIST_P)if(!(v>=0))nan++;for(const v of S.MIST_W)if(!(v===v))nan++;ok(nan===0,'the haze\'s uniforms finite');
   ok(S.AIR.ray[2]>S.AIR.ray[1]&&S.AIR.ray[1]>S.AIR.ray[0],'Rayleigh takes blue fastest, then green, then red');}
+// ---------- the cloud as fog (v11.186, analysis_fog.md §5, §6 items 3 and 5) ----------
+// the state the fog chunk's capFog and poolFog read (clouds.js updateCloudFog): the caps' extinction by their strength and the band they fill; the deck's own
+// density at a camera inside it, and none below the base; the pools — every caldera found, on its floor and inside its rim — on at a calm clear dawn, off at
+// noon, in the trades or under cloud; never NaN. The closed-form integrals themselves are GLSL: checked on the GPU against a numerical sum (CHANGELOG v11.186)
+console.log('the cloud as fog');
+{const K=S.SKY,F=S.FOG_CAP,P=S.FOG_POOL,C=S.CFOG,cam=S.camera.position;
+  const g=S.POOLS_C.find(p=>Math.abs(p.x+15400)<1&&Math.abs(p.z-9200)<1);
+  ok(S.POOLS_C.length>=2&&S.POOLS_C.every(p=>p.r>100&&p.h>5&&p.y===p.y),'a pool for every caldera ('+S.POOLS_C.length+'), each a floor, a rim and a depth');
+  ok(!!g&&g.r>500&&g.r<900&&g.y>650&&g.y<800,'the giant\'s on its floor at '+(g?g.y.toFixed(0):'?')+' m, its lens '+(g?g.r.toFixed(0):'?')+' m in radius (the record: a caldera of 700, 110 deep)');
+  S.CLD_S.cap=S.CLD.capA;K.rainA=0;K.windK=1;K.cover=0.4;K.dayK=1;cam.set(g.x,100,g.z);S.updateCloudFog(1/60,3,false);
+  ok(Math.abs(F[0]-C.k)<1e-9&&F[2]>F[1]&&F[1]>=600,'a full cap: '+F[0].toFixed(3)+' /m over '+F[1].toFixed(0)+'–'+F[2].toFixed(0)+' m');ok(F[3]===0,'no deck fog below the base');
+  let found=-1;for(let i=0;i<400&&found<0;i++){cam.set(-60000+i*233,1000,40000+i*97);S.updateCloudFog(1/60,3,false);if(F[3]>0.5*C.deck)found=i;}
+  ok(found>=0,'a camera inside a cumulus at 1,000 m over the open sea takes its fog ('+F[3].toFixed(3)+' /m)');
+  cam.set(g.x+300,g.y+20,g.z);K.windK=0;K.cover=0.1;S.updateCloudFog(1/60,-0.5,true);
+  ok(P[3]>0.9*C.pool.k&&Math.abs(P[0]-g.x)<1&&Math.abs(P[4]-1/g.r)<1e-9,'a calm clear dawn: the giant\'s pool on ('+(P[3]/C.pool.k).toFixed(2)+')');
+  S.updateCloudFog(1/60,5,true);const noon=P[3];K.windK=1;S.updateCloudFog(1/60,-0.5,true);const trade=P[3];K.windK=0;K.cover=0.8;S.updateCloudFog(1/60,-0.5,true);const cloudy=P[3];
+  ok(noon===0&&trade<0.05*C.pool.k&&cloudy<0.05*C.pool.k,'off by mid-morning ('+noon+'), in the trades ('+T(trade)+'), under cloud ('+T(cloudy)+')');
+  K.cover=0.1;K.windK=0;S.updateCloudFog(1/60,-3,false);ok(P[3]===0,'none in the evening half of the night (it builds after midnight)');
+  let nan=0;for(const v of F)if(v!==v)nan++;for(const v of P)if(v!==v)nan++;for(const v of S.FOG_CAPC)if(!(v>=0))nan++;ok(nan===0,'the uniforms finite');}
 // ---------- costs ----------
 {let t0=process.hrtime.bigint();for(let i=0;i<10000;i++)S.cloudAt(i*0.3,-5,i*0.1,{x:0.3,y:0.8,z:0.2});const us=Number(process.hrtime.bigint()-t0)/1e4/1000;
   console.log('  cost: cloudAt '+us.toFixed(2)+' µs');ok(us<20,'the cost is small');}

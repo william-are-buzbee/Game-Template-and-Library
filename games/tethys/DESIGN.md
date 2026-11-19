@@ -780,6 +780,23 @@ cut the wind to 0.15 of the trades, the spray to nothing and the chop (`SEA_CHOP
 swell runs on. Under water none of this applies (`uFogP.w`). Uniforms: `uMist` (dens, 1/h, spray, 1/sprayH), `uMistC` (rgb, glow),
 `uMistW` (the water level, the third layer's dens and 1/h), shared through ShaderLib like the fog's.
 
+**The cloud as fog (v11.186, clouds.js `CFOG`, `CAP_GLSL` — `capFog`, `poolFog` —, `POOLS_C`, `updateCloudFog`; scene.js `FOG_CAP`, `FOG_CAPC`, `FOG_POOL`;
+analysis_fog.md §5, §6 items 3 and 5; the person, 19 Nov 2026).** A cloud touching the ground is fog, and the dome's march was the only thing that knew:
+inside the giant's cap the sky went grey and the forest a kilometre off stood sharp. Every material in air (`fogAir`, the horizon pass with it) now takes
+three stand-ins in closed form, the cloud first, toward the cloud's light `uCapC` — the volume's own shade (cloudVol's `shdC` by `CL_LIT`: the sky's mean
+desaturated, × `shN` by night to `shD` by day, what the dome shows from inside a cloud) lifted `CFOG.lift` 0.2 toward the light, × (1 − `CFOG.shade`
+0.35·rain), no forward glow (a glow made the far trees in the cap whiter than the dome's grey behind them — seen): **the caps** — each `CLD_CAPS` footprint
+the field adds, sharpened × `CFOG.q` 1.5, filling the band from the deck's base (`FOG_CLDB[3]`, lower under a shower) to `CFOG.top` 0.6 of `CLOUD_T` above
+it, `CFOG.k` 0.03 /m (~130 m of sight) at a full cap × `CLD_S.cap / CLD.capA` (the afternoon's swell, the wind, a shower): the ray's interval in the band,
+then the Gaussian along it as an erf (Winitzki's); **the deck at the camera** — the field's 3D density where the camera is, the caps left out, ×
+`CFOG.deck` 0.03 /m over at most `CFOG.deckR` 500 m of the ray inside the band (the shield's flanks, the high summits outside a cap); **the pools** — radiation
+fog in a caldera (`POOLS_C`: every record with `land.cald`, its floor sampled at the centre and its rim found over eight bearings at load — three today: the
+giant's, the shield's, m154's), a lens on the floor `CFOG.pool.fill` 0.6 × the caldera's depth tall and `rim` 0.9 × its rim wide, (1 − r²) × `pool.k`
+0.03 /m, integrated from the ray's closest approach (no cancellation however far the camera), on a calm (`windK` under 0.5) clear (cover under 0.45) night
+from `pool.from` −6 h of the sun's altitude after midnight to `pool.to` 1.5 h after sunrise, the two nearest within `pool.far` 30 km (`uPool`). From far off
+a cap is near the haze's colour by the time the haze has had the ray, so the summit lost in its cloud shows at a few kilometres, not across the channel.
+The readout's cloud line says `in cloud` and `pool`. Valleys are not pooled: a valley has no centre or floor to put a lens on.
+
 **Rain (`updateRain`).** `RAIN_N` 420 (180 low) line segments in a 36×24×36 box round the camera, each 60 ms of its own travel
 (each drop its own 6.5–10 m/s down + 0.5 of the wind, v11.18), drawn above the water only within a ±`RAIN_R` 14 box, the alpha fading
 with distance in the vertex shader (no pop at the edge) and tapering down the streak, 0.6·rain, lit by the sky; on the sea the drops'

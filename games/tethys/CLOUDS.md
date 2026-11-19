@@ -1,5 +1,7 @@
 # CLOUDS.md — the sky's clouds and the weather's clocks
 
+*v11.186 (19 Nov 2026, analysis_fog.md): the cloud is fog to every material in air — the caps (`CLD_CAPS`) and the deck at the camera as closed-form stand-ins in the fog chunk (clouds.js `CFOG`, `capFog`), and radiation fog in the calderas on calm clear nights (`poolFog`); DESIGN "The cloud as fog".*
+
 Status: **passes A, B and C built as v11.87 (24 Sep 2026), with the low-poly exploration (§5) behind the `near clouds` switch; pass D (§6,
 showers with a place) built as v11.88 the same day; the deck as a ray-marched volume (§8) built as v11.89 the same day — the person, on the
 stills of v11.87–88: two systems, one clearly 3D and one "a paper you fully color in", that "in combination look worse"; the analysis in §8

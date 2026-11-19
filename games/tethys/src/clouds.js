@@ -38,6 +38,50 @@ const CLD_SH_GLSL='float cloudSh(vec3 wp){vec3 s=uFogS.xyz;if(s.y<0.05)return 1.
 // every fogged material can read the field and the shadow: the uniforms declared at the chunk's head, the functions after its own (scene.js writes the chunk; the sky dome takes CLD_GLSL directly)
 THREE.ShaderChunk.fog_pars_fragment=THREE.ShaderChunk.fog_pars_fragment.replace('#ifdef USE_FOG\n','#ifdef USE_FOG\nuniform vec4 uCld;uniform vec4 uCldB;uniform vec4 uCellA;uniform vec4 uCellB;\n')+'\n#ifdef USE_FOG\n'+CLD_GLSL+CLD_SH_GLSL+'#endif\n';
 for(const k in THREE.ShaderLib){const u=THREE.ShaderLib[k]&&THREE.ShaderLib[k].uniforms;if(u&&u.fogColor){u.uCld={value:FOG_CLD};u.uCldB={value:FOG_CLDB};u.uCellA={value:FOG_CELLA};u.uCellB={value:FOG_CELLB};}}
+// ---------- the cloud as fog (v11.186, analysis_fog.md §5, §6 items 3 and 5; the person, 19 Nov 2026: "of course, that sounds very accurate") ----------
+// A cloud touching the ground is fog. The dome marches the deck and starts at the camera when the camera is in it, but every other material took only
+// the clear air: inside the giant's cap at 843 m the sky was a flat grey and the forest a kilometre off stood dark and sharp (analysis_fog §5). Three
+// stand-ins every fragment in air integrates in closed form (scene.js fogAir, toward the cloud's light uCapC — the volume's shade lifted `lift` toward the
+// light, darkened `shade` under rain, below):
+// - **the caps** (CLD_CAPS, the trades forced up a high island past the cloud base): each the same Gaussian footprint the field adds, × `q` (the
+//   threshold sharpens it), filling the band from the deck's base to `top` of its depth — the ray's interval in the band, then the Gaussian along it,
+//   an erf (Winitzki's, to ~1e-4) — at `k` /m at a full cap (~130 m of sight), × the cap's strength now (CLD_S.cap: the afternoon's swell, the wind,
+//   a shower). So from the sea the giant's summit goes into its cloud, and on its windward flank above 650 m the trees dissolve within a few hundred metres.
+// - **the deck at the camera** (the general cumulus, the caps left out): the field's density where the camera is, `deck` /m in a cloud, over at most
+//   `deckR` m of a ray inside the band — what the shield's flanks walk through. Zero below the base, which is everywhere but the high land.
+// - **the pools** (`pool`): radiation fog in a high island's caldera on a calm clear night — the cold air drains into the hollow and saturates; it
+//   builds after midnight, is thickest at dawn and burns off within `to` hours of sunrise (the sun's altitude in hours, as the dawn mist's clock). Each a
+//   lens on the caldera's floor, `fill` × its depth tall and `rim` × its rim's radius wide, its density (1 − r²) × `k` (~130 m at its heart); the two
+//   nearest within `far` m. Valleys are not in it: a valley has no centre or floor to put a lens on (analysis_fog §8).
+const CFOG={k:0.03,q:1.5,top:0.6,deck:0.03,deckR:500,lift:0.2,shade:0.35,pool:{k:0.03,fill:0.6,rim:0.9,calm:[0.5,0.15],cover:[0.45,0.15],from:-6.0,peak:-0.5,to:1.5,far:30000}};
+const CAP_GLSL='float erfA(float x){float x2=x*x,ax=0.147*x2;return sign(x)*sqrt(max(1.0-exp(-x2*(1.2732395+ax)/(1.0+ax)),0.0));}\n'+ // Winitzki's erf
+  'float capFog(vec3 o,vec3 rd,float L,float fl){float dy=rd.y+fl/max(L,1.0),b0=uCap.y,b1=uCap.z,ta,tb;if(abs(dy)<1e-6){if(o.y<b0||o.y>b1)return 0.0;ta=0.0;tb=L;}else{float s0=(b0-o.y)/dy,s1=(b1-o.y)/dy;ta=max(min(s0,s1),0.0);tb=min(max(s0,s1),L);}if(tb<=ta)return 0.0;'+
+  'float t=uCap.w*min(tb-ta,'+CFOG.deckR.toFixed(1)+'),tc=0.0;vec2 wa=vec2('+WA0.toFixed(5)+','+WA1.toFixed(5)+'),wq=vec2('+WP0.toFixed(5)+','+WP1.toFixed(5)+');float ad=dot(rd.xz,wa),cd=dot(rd.xz,wq);\n'+
+  CLD_CAPS.map(C=>{const ia=(C.ia*CFOG.q).toExponential(4),ic=(C.ic*CFOG.q).toExponential(4);return '  {vec2 dd=o.xz-vec2('+C.x.toFixed(1)+','+C.z.toFixed(1)+');float a0=dot(dd,wa),c0=dot(dd,wq);float A=ad*ad*'+ia+'+cd*cd*'+ic+',B=2.0*(a0*ad*'+ia+'+c0*cd*'+ic+'),C=a0*a0*'+ia+'+c0*c0*'+ic+';'+
+    'if(A<1e-12)tc+=exp(-C)*(tb-ta);else{float sa=sqrt(A),m=B/(2.0*A);tc+=0.8862269/sa*exp(min(B*m*0.5-C,0.0))*(erfA(sa*(tb+m))-erfA(sa*(ta+m)));}}';}).join('\n')+
+  '\n  return t+uCap.x*tc;}\n'+
+  'float poolFog(vec3 o,vec3 rd,float L){float s=0.0;for(int i=0;i<2;i++){vec4 P=uPool[2*i],S=uPool[2*i+1];if(P.w<=0.0)continue;vec3 q=(o-P.xyz)*S.xyx,d=rd*S.xyx;float a=dot(d,d),b=dot(q,d);float tm=-b/a,r2=dot(q,q)+b*tm;if(r2>=1.0)continue;'+ // the ray's closest approach to the lens's centre, in its unit frame
+  'float w=sqrt((1.0-r2)/a),u0=max(-w,-tm),u1=min(w,L-tm);if(u1>u0)s+=P.w*((1.0-r2)*(u1-u0)-a*(u1*u1*u1-u0*u0*u0)/3.0);}return s;}\n'; // ∫(1 − r²) along the chord, from the closest approach: no cancellation however far the camera
+THREE.ShaderChunk.fog_pars_fragment+='\n#ifdef USE_FOG\n'+CAP_GLSL+'#endif\n';
+// the pools' places: every record with a caldera — its floor sampled at the centre, its rim the mean over eight bearings of where the ground stands half
+// the caldera's depth over the floor, in eighths of its radius to twice it (the oval and the lobes measured, not assumed; 128 samples a caldera at load)
+const POOLS_C=ISLANDS.filter(R=>R.land&&R.land.cald).map(R=>{const fl=sample(R.x,R.z).h,K=R.land.cald,sc=R.sc||1;let rs=0;for(let k=0;k<8;k++){const a=k*TAU/8;let r=0;for(let j=1;j<=16;j++){r=K.r*sc*j/8;if(sample(R.x+Math.cos(a)*r,R.z+Math.sin(a)*r).h>fl+0.5*K.d)break;}rs+=r;}
+  return {x:R.x,z:R.z,y:fl,r:rs/8*CFOG.pool.rim,h:K.d*CFOG.pool.fill};});
+function updateCloudFog(dt,hs,rising){const K=SKY,P=CFOG.pool,b=FOG_CLDB[3];
+  FOG_CAP[0]=CFOG.k*CLD_S.cap/CLD.capA;FOG_CAP[1]=b;FOG_CAP[2]=b+CFOG.top*CLOUD_T;
+  // the deck at the camera, the caps left out (they are their own term): the field's 3D density there, as the volume reads it
+  {const c=camera.position,fz=(c.y-b)/CLOUD_T;let dn=0;if(fz>0&&fz<1){const fx=c.x+K.windOff[0],fzz=c.z+K.windOff[1];let n=cldN(c.x,c.z,fx,fzz,fz);for(let i=0;i<CLD_CAPS.length;i++){const C=CLD_CAPS[i],dx=c.x-C.x,dz=c.z-C.z,a=dx*WA0+dz*WA1,e=dx*WP0+dz*WP1;n-=CLD_S.cap*Math.exp(-(a*a*C.ia+e*e*C.ic));}
+    const th=CLD_S.th+CLD_S.rise*fz*fz+0.8*CLD.rise*Math.pow(Math.max(CLD.base-fz,0)/CLD.base,2);dn=smooth(th,th+CLD.edge,n);}FOG_CAP[3]=CFOG.deck*dn;}
+  // the cloud's light: the volume's shade (atmosphere.js cloudVol's shdC by CL_LIT — the sky's mean, desaturated, × shN by night to shD by day: the light inside a
+  // thick cloud, which is what the dome shows from in one) lifted `lift` toward the light's white, × the volume's own darkening under rain; no forward glow — a
+  // brighter colour than the dome's in-cloud grey stood the far trees out as white shapes inside the cap (seen)
+  {const z=K.zen,h=K.hor,r=z[0]*0.55+h[0]*0.45,g=z[1]*0.55+h[1]*0.45,bl=z[2]*0.55+h[2]*0.45,lm=0.25*r+0.62*g+0.13*bl,s=CL_LIT.sat,k=lerp(CL_LIT.shN,CL_LIT.shD,smooth(0,0.5,K.dayK)),rk=1-CFOG.shade*K.rainA;
+    FOG_CAPC[0]=lerp((lm+(r-lm)*s)*k,0.96*K.tint[0]*K.skyL,CFOG.lift)*rk;FOG_CAPC[1]=lerp((lm+(g-lm)*s)*k,0.96*K.tint[1]*K.skyL,CFOG.lift)*rk;FOG_CAPC[2]=lerp((lm+(bl-lm)*s)*k,0.96*K.tint[2]*K.skyL,CFOG.lift)*rk;FOG_CAPC[3]=0;}
+  // the pools: calm, clear, the night's second half to the hour after sunrise; the two nearest
+  const win=rising?smooth(P.from,P.peak,hs)*smooth(P.to,P.peak,hs):0,on=P.k*win*smooth(P.calm[0],P.calm[1],K.windK)*smooth(P.cover[0],P.cover[1],K.cover)*(1-K.rainA);K.pool=on;
+  let i0=-1,i1=-1,d0=P.far,d1=P.far;const cx=camera.position.x,cz=camera.position.z;
+  for(let i=0;i<POOLS_C.length;i++){const p=POOLS_C[i],dx=p.x-cx,dz=p.z-cz,d=Math.sqrt(dx*dx+dz*dz);if(d<d0){d1=d0;i1=i0;d0=d;i0=i;}else if(d<d1){d1=d;i1=i;}}
+  for(let s=0;s<2;s++){const i=s?i1:i0,o=s*8;if(i<0||on<=0){FOG_POOL[o+3]=0;continue;}const p=POOLS_C[i];FOG_POOL[o]=p.x;FOG_POOL[o+1]=p.y;FOG_POOL[o+2]=p.z;FOG_POOL[o+3]=on;FOG_POOL[o+4]=1/p.r;FOG_POOL[o+5]=1/p.h;FOG_POOL[o+6]=0;FOG_POOL[o+7]=0;}}
 // ---------- the field in JavaScript: the same arithmetic ----------
 function cldM(x,per){x=x%per;return x<0?x+per:x;}
 function cldP(x){return ((34*x+1)*x)%289;}

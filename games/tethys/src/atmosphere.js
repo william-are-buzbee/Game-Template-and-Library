@@ -177,7 +177,7 @@ function updateSurface(){nearBuild();SHORE_U.x=FX.shore?FX.shoreK:0; // the shor
 // read by the dome shader, the lights, the fog, the surface and the readout. Nothing here is a place: the whole world sees one sky.
 const SKY={sun:V3(0,1,0),moon:V3(0,-1,0),lum:V3(0,1,0),sunAlt:1,moonAlt:-1,illum:1,dayK:1,moonUp:0,moonL:0,skyL:1,skyLw:1,sunL:1,lumL:1,lumLw:1,night:0,cover:0,rain:0,rainA:0,
   zen:[0,0,0],hor:[0,0,0],glow:[0,0,0],sunC:[1,1,1],lumC:[1,1,1],tint:[1,1,1],tint0:[1,1,1],tintS:[1,1,1],tintV:[1,1,1],bow:0,wind:[0,0],windOff:[0,0],starT:0,
-  cirrus:0,upperOff:[0,0],cirrC:[1,1,1],plan:PLANETS.map(()=>V3(0,1,0)),spray:0,windK:1,salt:1,wash:0,vis:0,eclS:0,eclL:0,dawn:0,lag:0,cloudHere:0,cellNear:0,eye:1,eyeT:1,beamV:0}; // cloudHere (v11.87): the deck's density over the player along the luminary, what the beam reads // v11.17: the cirrus cover, the upper wind's drift, the cirrus' colour (sunlit after sunset), the planets' directions, the surf's spray at the camera
+  cirrus:0,upperOff:[0,0],cirrC:[1,1,1],plan:PLANETS.map(()=>V3(0,1,0)),spray:0,windK:1,salt:1,wash:0,vis:0,pool:0,eclS:0,eclL:0,dawn:0,lag:0,cloudHere:0,cellNear:0,eye:1,eyeT:1,beamV:0}; // cloudHere (v11.87): the deck's density over the player along the luminary, what the beam reads // v11.17: the cirrus cover, the upper wind's drift, the cirrus' colour (sunlit after sunset), the planets' directions, the surf's spray at the camera
 const WX={},cirrTmp=[0,0,0];
 function skyLerp(out,keys,idx,s){let a=keys[0],b=keys[keys.length-1];for(let i=1;i<keys.length;i++)if(s<=keys[i][0]){a=keys[i-1];b=keys[i];break;}
   const u=clamp((s-a[0])/(b[0]-a[0]),0,1),ca=a[idx],cb=b[idx];out[0]=lerp(ca[0],cb[0],u);out[1]=lerp(ca[1],cb[1],u);out[2]=lerp(ca[2],cb[2],u);return out;}
@@ -417,7 +417,7 @@ function updateHaze(dt,above){const K=SKY,rk=K.rainA,wk=K.windK;
   // the vog and the fumarole's plume (v11.17.1) are struck (v11.86: the cone is a cold tuff cone — world.js CONE); the third mist layer is the dawn mist's alone now
   // the dawn mist: clear, calm, sheltered water, the hours round sunrise (the sun's altitude in hours: 15 h of night, 360/30 = 12 deg an hour)
   {const hs=Math.asin(clamp(K.sunAlt,-1,1))*180/Math.PI/12,rising=K.sun.x>0;const win=rising?smooth(MIST_DAWN.from,MIST_DAWN.peak,hs)*smooth(MIST_DAWN.to,MIST_DAWN.peak,hs):0; // K.sun.x>0: the sun is east of the meridian (rising; east is +x)
-    K.dawn=win*smooth(0.45,0.15,K.cover)*smooth(0.5,0.1,wk)*K.lag*K.lag;}
+    K.dawn=win*smooth(0.45,0.15,K.cover)*smooth(0.5,0.1,wk)*K.lag*K.lag;updateCloudFog(dt,hs,rising);} // v11.186: the cloud as fog (clouds.js), on the dawn mist's clock
   MIST_W[1]=MIST_DAWN.dens*K.dawn;MIST_W[2]=1/MIST_DAWN.h;
   const g=clamp(K.lumL/Math.max(K.skyL,0.02),0,1.2),sh=1-HAZE.shade*rk;for(let i=0;i<3;i++)MIST_C[i]=lerp(K.hor[i],0.96*K.tint[i]*K.skyL,HAZE.lift)*sh;MIST_C[3]=HAZE.glow*g;} // sh (v11.185): the air under a shower's cell is in its shade and scatters less — the curtain's own darkening (shdC's 0.85 − 0.35·rain), now that the haze and the rain fill the view under it
 // The shimmer sprite (v11.6–v11.42.4: an additive glow plane in the light's direction over the surface) is gone in v11.43: the window shows the

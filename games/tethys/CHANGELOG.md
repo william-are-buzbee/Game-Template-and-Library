@@ -9621,3 +9621,58 @@ uniforms finite; `node test/gpu.js --check` every count the same.
 gone on an ordinary day (`HAZE.dens`)? 2. A calm (the readout's `calm`, `vis` ~60–68): the far islands back — a treat or a jolt (`HAZE.calm`, `HAZE.slow`)?
 3. Under a shower: the sky dark and the near world greyed (`HAZE.rain`, `HAZE.shade`, `HAZE.rainR`), and the clear air after it (`HAZE.wash`). 4. The low
 sky's white band, now the 1.5 km slab seen edge-on: too white to ~15°? 5. From the shield above the inversion: the giant blue-grey 45 km off.
+
+## v11.186 — the cloud as fog: the caps, the deck round a camera inside it, and radiation fog in the calderas (19 Nov 2026)
+
+analysis_fog.md §5 and §6 items 3 and 5, the person's answers of 19 Nov 2026 (§8): fog inside the cloud, "of course, that sounds very accurate"; the
+night fog in the craters, "yes please".
+
+**What it was** (analysis_fog §5): the cloud was the dome's alone. Inside the giant's cap at 843 m the dome's march started at the camera and the sky went a
+flat grey, while the terrain, the trees and the rocks took only the clear air — the forest a kilometre off dark and sharp against the grey.
+
+**What it is** (clouds.js `CFOG`, `CAP_GLSL`, `POOLS_C`, `updateCloudFog`; scene.js `FOG_CAP`, `FOG_CAPC`, `FOG_POOL`, `fogAir`; horizon.js's uniforms):
+every material in air takes three stand-ins in closed form, the cloud's first:
+- **The caps**: each `CLD_CAPS` footprint (the Gaussian the field adds over a high island, 1.2 km downwind), sharpened × `CFOG.q` 1.5, filling the band from
+  the deck's base to `CFOG.top` 0.6 of its depth, `CFOG.k` 0.03 /m at a full cap × the cap's strength now (`CLD_S.cap`: the afternoon's swell, the wind,
+  a shower) — the ray's interval in the band, then the Gaussian along it as an erf (Winitzki's approximation).
+- **The deck at the camera**: the field's 3D density where the camera is, the caps left out, `CFOG.deck` 0.03 /m over at most `CFOG.deckR` 500 m of a ray
+  inside the band — the general cumulus the shield's flanks and the summits outside a cap walk through.
+- **The pools**: radiation fog in a high island's caldera on a calm, clear night — every record with `land.cald` (the giant's, the shield's, m154's), its
+  floor sampled and its rim found over eight bearings at load; a lens on the floor `pool.fill` 0.6 × the depth tall and `pool.rim` 0.9 × the rim wide,
+  (1 − r²) × `pool.k` 0.03 /m, from the night's second half to `pool.to` 1.5 h after sunrise, under `windK` 0.5 and cover 0.45; the two nearest within 30 km.
+- **The cloud's light** `uCapC`: the volume's own shade (cloudVol's `shdC`, `CL_LIT`) lifted `CFOG.lift` 0.2 toward the light, darker under rain, no
+  forward glow. A first cut used the haze's colour lifted 0.55 with its glow, and inside the cap the far trees stood out whiter than the dome's grey behind them — seen, fixed.
+- A sign in the pool's closest approach (c + b²/a for c − b²/a) put every ray outside every lens — found when the dawn caldera showed nothing, fixed.
+- The readout's cloud line says `in cloud` and `pool`.
+
+**Checked on the GPU** (a one-pixel shader running the chunk's own functions, read back): `capFog` on the ray from the water at (−7700, 6000) to the giant's
+summit, 9.41 against a JavaScript mirror's 9.38; `poolFog` across the shield's caldera, 32.9 against a numerical sum's 33.0.
+
+**Seen** (headless Chromium, 1600×900, base and branch): inside the giant's cap at 843 m the near rock clear and the trees dissolving into the same grey
+as the sky within a few hundred metres (the base: crisp to a kilometre); the shield's caldera at a forced calm, clear dawn (`skip(0.8667)`) a flat-topped
+mist lake on its floor lit by the twilight, its far wall's foot hidden; from the water and from ours the giant unchanged — its summit is behind its own
+flank from the shore, and from 15 km the haze has the ray before the cap shows (a cap forced to 0.1 /m changed nothing there).
+
+**What it costs** (`node test/perf.js --ref claude/tethys-air`, against v11.185): three uniforms more a program (`uCap`, `uCapC`, `uPool`), the only GPU count
+that moved; `test/gpu.json` updated with it.
+
+| measure | before | after | ratio |
+|---|---|---|---|
+| uniforms a frame: forest, atoll, open, coast, wood | 1,421, 1,353, 650, 966, 715 | 1,495, 1,424, 695, 1,035, 772 | ×1.05–1.08 |
+| uniforms at boot | 5,186 | 5,452 | ×1.05 |
+| the creatures' work a frame at (330, 0), ms, mean / p95 | 1.592 / 2.195 | 1.685 / 2.419 | ×1.06 / ×1.10 |
+| every other count at the five places | — | — | the same |
+
+The creatures' frame does not run anything this changed (`updateCloudFog` is the atmosphere's, one `cldN` a frame, the beam's cost again); the simulation the
+same to the bit, and identical sources read up to ×1.09 on that p95 here: noise. Per fragment in air: an early return for every ray that never reaches the
+cloud's band (all of them from the sea to the low land), else four caps' quadratics and two erfs each, and two lenses' closest approach — unmeasured here.
+
+**Tests:** `node build.js --test` green (28 runs); test/sky.js "the cloud as fog" (new): a pool for each of the three calderas, the giant's on its floor at
+728 m; a full cap 0.03 /m over 650–1,190 m and no deck fog below the base; a camera in a cumulus at 1,000 m over the sea fogged; the giant's pool on at a calm
+clear dawn, off by mid-morning, in the trades, under cloud and in the evening half; the uniforms finite. `node test/gpu.js --check` within 10% before the update.
+
+**Unseen, ask in this order:** 1. The giant's windward flank above 650 m on an afternoon, `tp(-14484, 9621)`: does it read as being in the cloud, and is
+~130 m of sight in a full cap right (`CFOG.k`)? 2. Walking out of the cap downhill: the edge of the cloud (the base at 650 m, `CFOG.top`, `CFOG.q`). 3. A calm
+clear dawn at a caldera (the readout's `pool`): the mist lake, and its burning off after sunrise (`CFOG.pool.to`). 4. The shield's flanks between 650 and 1,550 m
+on a cloudy day: the deck round you (`CFOG.deck`, `deckR`). 5. From the water, the cap is invisible on the giant (its own flank hides the summit, and from
+farther the haze has the ray first): right, or should the cap read from the sea?
