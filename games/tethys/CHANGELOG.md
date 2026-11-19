@@ -9489,3 +9489,76 @@ light there makes it a dark cluster from 12 m; the yellow shows close); a bank o
 
 **Unseen, ask in this order:** 1. A bank at `tp(534,-305)` and one shallower: many animals now, or still rocks? Too busy? 2. Enough fewer, or fewer
 still? 3. The lone gaper (the big one with its eye row) — fitting, or simpler still?
+
+## v11.184 — the strike: the pivot, not the orbit; the lunge to the pass; the arms take hold by touch (19 Nov 2026)
+
+The person, on hunting (COMBAT.md §11): the mouthparts "fly open against the current" as an animal opens its mouth to eat; hunters bump into you and miss;
+the ortho needs you to stand still or swim into it "like a hug", its tentacles glitching through you, though it is "the most functional feeling animal, as
+it latches you then bites"; and a circle — a hunter beelines, you live sprinting straight and die turning, or it gets close, cannot come round to eat you,
+and orbits you for ever, "especially bad or funny if you have your tail eaten and the thing can't finish you off". The ridge for the petals, the ortho for
+the tentacles, both for the circling. Read off the code and measured headlessly first (COMBAT.md §11.1), then four passes proposed; the person's answers: a
+hunter may outrun you in a short burst (pass 4), and the pivot at low speed for everything, the pass only for prey moving fast. This is pass 1, the strike.
+
+**What was wrong** (test/combat.js §19, new: a finback holding still 6 m beside each hunter of the player, both facing the same way, v11.183): six of nine
+never took it in 12 s — the ortho went round it 1.9 times, the sickle 1.5, the eel 2.2 with 5 misses, the ridge and the abyssal circled at 7–11 m; the
+finback without its tail, crawling away, was not finished in 20 s by a ridge (1.35 laps round it) or an ortho (2.88). Three causes:
+1. **Pure pursuit inside the turning circle.** A chaser turns at its rate, so a prey within about one turning radius and beside it sits at the circle's
+   centre; it commits only with the prey within 57° of its nose (`STRIKE.face`), which never comes. The arms and claws hunters.
+2. **The run-up decided afresh every frame** (combat.js `approachPt`, `STRIKE.runup`): within 0.9 of the run-up's distance with the prey off its nose a jaw
+   hunter swam straight away, past it it turned in, and its turning circle is the run-up's size — out and in every ~7 s (the ridge: 30 s, no strike).
+3. **The lunge stopped short** (`STRIKE.dur` 0.6 s, committed at the centres' distance plus 0.3 s of the sprint): it starts braked and turning, and every eel
+   miss but one ended with its mouth 0.9–2.9 m from the skin of a finback holding still. test/combat.js §3 had said as much since v11.120.2.
+
+And at the touch: the player was pushed out of every hunter's solid chains unless already held (creatures_ai.js `sphereOutOf`) — the petals, longer than the
+mouth's sphere (the ridge's 1.55 m against 0.89), shoved you off the bite, and the ortho's arms, reaching for your centre, shoved you out of themselves.
+
+- **The pivot** (creatures_ai.js `PIVOT`, `pivots`): a hunter or striker whose prey is off its nose, slower than `fast` 0.5 of its own speed and within `k`
+  1.5 turning radii past its mouth stops and turns — it brakes to `crawl` 0.2 of its speed toward a station a mouth's distance and `stand` 2 m off the prey
+  on its own side (backing off a prey alongside its trunk) and faces it at `rate` 3 × its turn rate; with the prey ahead the chase commits as before. A
+  faster prey leaves the circle by itself and is chased; past `max` 4 s of turning it swims out on its heading for `out` 1.2 s (the pass) and comes again.
+  The run-up is struck (`approachPt` is the nose-length offset alone).
+- **The lunge to the pass** (`commit`; combat.js `mouthGap`, `strikeReach`, `mouthPast`, `headOn`): a jaw commits on its mouth's gap to the skin (the sprint ×
+  `STRIKE.range` 0.3 s past the sphere), not the centres'; a lunge from a hover starts along the nose; it runs until the mouth has gone past the prey along its
+  path with the gap `STRIKE.pass` 0.15 m past the least it reached (after `min` 0.3 s), or `dur` 1.2 s — a prey fleeing ahead is lunged at to the end; in its
+  last `home` 0.15 s the head faces the prey itself if it lies within `homeCone` 0.97 of the line travelled. The path stays committed: §13's grazer moved
+  2.5 m across at the commit is still missed.
+- **What lands** (`landsOn`, `LAND`, `headR`): a jaw by its sphere, or by a face that runs into the prey (a contact, `cWith`, within `STRIKE.bump` 0.34 of the
+  nose and the face's radius past the sphere); arms when `LAND.arms` 2 of them touch the prey (physics.js `stepRigs` counts them: `armT`, `touchF`) or, as
+  before, at their reach (the bodies' contact; the touch alone took the arrows' 0.14 m flickers too seldom); claws at their reach. The petals touching are not
+  a bite: tried, a ridge passing a grazer 1.6 m off its mouth at 15 m/s had three of six on it.
+- **The reel** (`GRIP` `reel`: jaw 5, arms 2, claws 4 m/s; `h.len`): a grip taken at the limbs' reach draws the held in to the grip's point; the joint holds at
+  that length (`updateHolds`). To v11.183 the joint closed the whole gap in a frame, which a bite at the centres' distance never asked of it.
+- **No shove** (updateCreatures): the player is not pushed out of the limbs of a hunter whose target it is; the limbs are pushed off the body (simChain).
+- **test/live.js**: the "anything killed" check counts from the end of the egg days (the cells' settle included), not from a minute later. Under four seeds a
+  run kills 13–14 on both trees, 8–10 of them in its first 20 s while the loaded hunters are hungry; v11.184's strike, missing less, fed them a little sooner and
+  left seed 1234's later minute empty (main 2). Counted from the egg days: 4 and 3 at seeds 1234 and 4 (main 5 and 4).
+
+**After** (§19): every hunter of the player takes the still finback beside it in 0.3–1.1 s, none past 0.17 laps, no miss; a ridge finishes the finback
+crawling without its tail in 0.6 s, an ortho holds it at 0.3 s (the nerve cord at ~2 s). A finback cruising from 14 m ahead of a ridge: dead at 5.2 s in one
+lunge (v11.183: 7.3 s, a miss and a second lunge); an ortho holds it at 9.1 s, as before; an eel loses it (its detect, 17 m), as before.
+
+**What it costs** (`node test/perf.js`, against main): nothing worse by more than 10%.
+
+| measure | before | after | ratio |
+|---|---|---|---|
+| the creatures' work a frame at the forest's shelf (330, 0), ms, mean / p95 | 1.808 / 2.522 | 1.671 / 2.478 | ×0.92 / ×0.98 |
+| the same in Chromium, ms | 2.070 | 1.925 | ×0.93 |
+| every kind's build, first / again, ms | 43.5 / 5.1 | 46.4 / 5.0 | ×1.07 / ×0.98 (nothing in a build changed: noise) |
+| a cell: forest, atoll, platform, sea, giant, ms | 35.6, 35.1, 22.6, 9.8, 33.0 | 37.2, 33.5, 18.6, 8.0, 35.1 | ×0.81–1.07 (noise) |
+| what a frame asks of the GPU, five places | — | — | the same, every count |
+
+Every body the same to the bit, built and posed; the simulation not the same (the hunt moved, as meant). A committed lunge measures its mouth's gap each
+frame (one capsule loop over the prey's shapes) where it counted down a clock; a few hunters at a time commit. Not measured: the GPU's own time.
+
+**Seen** (headless Chromium, the bench's page, the real build at 960×540, third person; a finback held still in 57 m of water at (651, −149), the
+hunter placed 12–14 m off ahead and to its right facing away across the view): the ridge 115° off its nose turned (45° at 0.25 s, facing the finback at
+0.5 s, its head toward the camera through the weed), came in, lunged at 1.0 s and opened it by 1.5 s; the ortho turned (49° → 12° by 0.5 s), took hold with
+its arms at 7.6 m by 1.0 s, reeled the finback in to its beak (7.6 → 5.4 m over 1.5 s) and bit the nerve cord by 4 s. In the hold the ortho's head and the
+finback's overlap — the joint's clipping, pass 3's. A first staging in 14 m of water put the ridge on the shore, standing out of it: a staging fault (a body
+over the surface barely steers, by the game's rule), not a finding. `node build.js --test` green (28 runs); test/combat.js §19 fails on main's code and
+passes here.
+
+**Unseen, ask in this order:** 1. A ridge (the forest's shelf) and an ortho (−100 m and below) finding you holding still beside them, then crippled: does
+the stop, the turn and the lunge read as an animal's, or as a turret (`PIVOT.rate` 3, `PIVOT.crawl` 0.2)? 2. The ortho's arms catching you without the hug,
+and the pull to the beak (`GRIP.arms.reel` 2 m/s). 3. A late hard turn as a ridge lunges at you at cruise: can you still make it miss (`STRIKE.home`,
+`homeCone`)? 4. Is a still finback beside any hunter now too quick a death (0.3–1.1 s)? 5. Passes 2–4 next: the petals, latching, the chase's burst.

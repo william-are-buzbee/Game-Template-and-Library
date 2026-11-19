@@ -1877,8 +1877,8 @@ touches (`mouthOn`, `landsOn`; a plain jaw draws a body it can swallow from `STR
 (`reachOf`, `armReach`, `BITE_M`). `MISS` is gone. The chase steers by `seekTurn` (creatures_ai.js): the heading turns at the turn rate (× `turnK` in a
 lunge), braking into tight turns (`TURN_BRAKE` 0.9 at a reversal, floor 0.3 of the speed) and yawing past 2.3 rad; the facing follows the velocity at
 `TURN_FACE` 5× the rate, and in a strike snaps to the point at `TURN_STRIKE` 6× (`c.face`). The aim (`aimAt`) leads by the time to close at the closing
-speed, ≤ `STRIKE.lead` 0.8 s; a jaw hunter steers for `approachPt` — a nose-length (`noseD`) short of the prey along its facing, or the run-up point
-`STRIKE.runup` 5 m past that on its own side when the prey is beside or behind its mouth. The commit (`c.commitT` = `STRIKE.dur` 0.6 s) at
+speed, ≤ `STRIKE.lead` 0.8 s; a jaw hunter steers for `approachPt` — a nose-length (`noseD`) short of the prey along its facing (the run-up point of v11.92–183,
+`STRIKE.runup` 5 m out on its own side when the prey was beside its mouth, is struck: v11.184 below). The commit (`c.commitT` = `STRIKE.dur`, 0.6 s to v11.183) at
 `strikeRange` (contact + `STRIKE.range` 0.3 s of the sprint, `d.sprint` = derive's burst) with the prey ahead of the mouth (`mouthAhead`,
 `STRIKE.face` 0.55): the heading locked on the point, the sprint, the steering `STRIKE.steer` 0.5, the bite on contact, a miss at the end
 (`missed`, `STRIKE.cool` 1.5 cooldowns) then `STRIKE.coast` 0.5 s of coasting; strikers and ambushers commit the same way; `ECO_CHASE` restarts at a
@@ -1915,6 +1915,24 @@ whose k × sawMax ≥ 1 keeps biting; claws on a limb keep pulling; else `dropTa
 arms keep their pose; this also stops a slowblood's tail chain reaching for its prey. **The edge at conception** (line.js `BUDGET.edge` 1.5, `EDGE_STEP`):
 a `mouth:tentacles` `edge` change is one item, "the mouth's edge: hold → cut (the sawmouths' step)". The readout's hold line (main.js `holdLine`) shows k,
 the saw, calm/subdued, the swallow, the tear and the held's stamina. test/combat.js is seeded (`mulberry(11)`); §18 covers the pass.
+
+**The strike as it plays (v11.184, COMBAT.md §11 pass 1).** Measured against a finback holding still 6 m beside it, v11.183's hunters orbited it (the ortho
+6.7 laps in 40 s with no strike, the sickle 4.9: pure pursuit puts a prey within a turning radius at the circle's centre), swam in and out (the ridge: the
+run-up decided afresh each frame) or lunged short (the eel, 11 misses in 12: 0.6 s committed from too far). **The pivot** (creatures_ai.js `PIVOT`, `pivots`):
+a hunter or striker in a chase whose prey is off its nose (`mouthAhead`, `STRIKE.face`), slower than `fast` 0.5 of its speed and within `k` 1.5 turning
+radii (speed ÷ turn) past its mouth brakes (`seek`) to `crawl` 0.2 of its speed toward a station `noseD` + `stand` 2 m off the prey on its own side, and
+faces it (`c.face`) at `rate` 3 × its turn rate (updateCreatures); past `max` 4 s of it, it swims out on its heading for `out` 1.2 s (the pass, `c.pivotT` < 0).
+**The lunge** (`commit`): a jaw commits when its mouth's gap to the skin (combat.js `mouthGap`) is under `strikeReach` (the sprint × `STRIKE.range` 0.3 s +
+the sphere); a lunge from under half its speed starts along the nose; it runs until the mouth has gone past the prey along its path (`mouthPast`) with the gap
+`STRIKE.pass` 0.15 m past the least it reached (`c.gapMin`), after `min` 0.3 s, or `dur` 1.2 s — a miss is a real pass, a prey fleeing ahead is lunged at to the end; in the last `home` 0.15 s to contact the head faces the prey itself, if it lies within `homeCone`
+0.97 (cos) of the line travelled (`headOn`). **What lands** (`landsOn`): a jaw by its sphere, or a face that ran into the prey (`cWith`) with the prey's skin
+within the sphere plus the face's radius (`headR`) and `STRIKE.bump` 0.34 (cos) of the nose; arms when `LAND.arms` 2 of their chains touch it (physics.js
+`stepRigs`: `o.armT`, `o.touchF`) or at their reach as before (the touch alone took the arrows' 0.14 m flickers too seldom); claws at their reach. A hunter's grip taken at its limbs' reach is drawn in by
+`GRIP` `reel` (jaw 5, arms 2, claws 4 m/s: `h.len`, the joint at that length, `updateHolds`). The player is no longer pushed out of the limbs of a hunter whose
+target it is (updateCreatures, `sphereOutOf`): its petals and arms are pushed off the body instead (simChain), and their touch is the grab. The petals touching
+are not a bite (they reach 1.55 m on the ridge against a 0.89 m sphere: a ridge passing a grazer 1.6 m off its mouth had three of six on it). test/combat.js §19:
+all nine hunters of the player take a still finback beside them in 0.3–1.1 s, none past 0.2 laps (v11.183: six never in 12 s); a ridge and an ortho finish a
+finback crawling without its tail in 0.6 and 0.3 s (v11.183: not in 20 s, 1.35 and 2.88 laps).
 
 ## The canopy
 

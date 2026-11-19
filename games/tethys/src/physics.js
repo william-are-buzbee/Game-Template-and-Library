@@ -363,9 +363,9 @@ function stepRigs(o,near,dt){
     const fl=len3(e[8],e[9],e[10])||1,vx=sx-o.pos.x,vy=sy-o.pos.y,vz=sz-o.pos.z,vl=len3(vx,vy,vz)||1;
     if((vx*e[8]+vy*e[9]+vz*e[10])/(fl*vl)>=MOUTH_CONE){mp.x=sx;mp.y=sy;mp.z=sz;mp.own=G;SIM.grabM=mp;}
     if(G.shapesW&&(!near||near.indexOf(G)<0))for(const w of G.shapesW)S.push(w);}else{SIM.grab=null;SIM.grabM=null;}
-  let touch=0;
-  for(const rig of b.rigs){SIM.hold=rig.hold||0;for(const c of rig.chains){simChain(c,e,s,dt);touch+=c.touch;}rigSkin(rig,e);}SIM.hold=0;
-  o.holding=touch;
+  let touch=0,at=0;
+  for(const rig of b.rigs){SIM.hold=rig.hold||0;for(const c of rig.chains){simChain(c,e,s,dt);touch+=c.touch;if(c.touch&&!c.mouth)at++;}rigSkin(rig,e);}SIM.hold=0;
+  o.holding=touch;o.armT=at;o.touchF=frameNo; // v11.184: the arms touching what it grabs at, and the frame — the grab is that touch (combat.js landsOn)
 }
 stepRigs.G={x:0,y:0,z:0,own:null};stepRigs.M={x:0,y:0,z:0,own:null};
 const MOUTH_CONE=0.85; // cos of the half-angle about the body's axis the mouth's chains reach within (the petals' joint limit: ~32°)
