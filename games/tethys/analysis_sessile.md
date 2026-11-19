@@ -48,7 +48,7 @@ Big *single* sessile animals stop near 1–2.5 m (the giant clam, the barrel spo
 | form | line | Earth's proof | what it is | status |
 |---|---|---|---|---|
 | **gaper** | hingeshells (a new sessile line) | ostracods and clam shrimps live whole inside a hinged two-valved carapace; barnacles cement and comb | the clade's own hinge kept: one valve cemented, the other a lid, the combs out of the gape, the eye row on the lid's edge | **built v11.181** |
-| **gaper bank** | the same | oyster reefs, mussel banks | a mound of generations, dead valves under live ones, long across the current; 6–13 m, 1–2.5 high | **built v11.181** |
+| **gaper bank** | the same | oyster reefs, mussel banks | a mound of generations, dead valves under live ones, long across the current; 5–10 m (6–13 to v11.182) | **built v11.181**; standing v11.183 |
 | **wormshell** | ringmouths (crowns: "the cement") | the worm-snails (vermetids) | a coiled shell cemented at its apex that grew on as a wandering tube, the arm ring out of its mouth | **built v11.181** |
 | **tube knoll** | the same | vermetid platforms, Bermuda's boilers | a knoll of tangled tubes in the surf, its top bared at the springs' lows; 2.5–6 m | **built v11.181** |
 | **old domes**, revised | polyps (farmers) | massive colonies | in the light, poor clear water, old rock; 3–9 m (the low wide one to 14), the top at the lowest tide | **built v11.181** |
@@ -82,9 +82,16 @@ wormshell's gesture many times over — 24 long tubes standing up and out from a
 vermetid aggregations), a crown on every living mouth — and drawn without the rock's tide band, which had stained its tubes grey-green. The person, on
 its screenshots (18 Nov 2026): "WOW that looks awesome. I adore that new knoll. Exactly what I had in mind."
 
+The banks, at `tp(534,-305)` (19 Nov 2026): "the Gaper ... looks interesting, but not fitting. The complexity stands out given the geometric simplicity
+of the game ... They are probably too numerous. It's not clear when seeing them, it looks like a pile of rocks. ... it would be better revised." Revised
+as **v11.183** by the knoll's rule: the bank is ~26 gapers of the lone ones' size standing on their hinges (packed oysters and mussels do), lids wide on
+the yellow mantle, no combs, over a dark core — not 112 flakes on a pale one; the clumps simplified (three apart, four standing, eyes only on the big
+one); fewer: gapers `per` 90 → 35, banks 2 → 1 (round the bank field's 3×3 cells 286 → 108 gapers, 10 → 5 banks).
+
 ## 7. Open
 
 - Whether the banks read as many animals or as a rock with things on it (v11.22 binned exactly that look: "put the placed rocks with stuff stuck
-  to it in the bin"). The knolls did read so (§6) and are a thicket since v11.182, which the person kept; the banks are unanswered. The old domes and the microatoll also stand in
+  to it in the bin"). The knolls did read so (§6) and are a thicket since v11.182, which the person kept; the banks did too, and stand since v11.183 — the person's look
+  on the preview decides whether that is enough. The old domes and the microatoll also stand in
   the tide band (`MATROCKB`'s stain) at their tops — right for the microatoll's dead turfed top, arguable for a living dome; not changed.
 - The sun crown and the sunk gaper (§4), if the reef flat and the sand want them later.

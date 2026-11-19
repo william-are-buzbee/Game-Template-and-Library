@@ -368,7 +368,8 @@ function nodB(rg, k) {
 const GVAL=[0.56,0.53,0.48],GVAL2=[0.68,0.64,0.57],GFLESH=[0.8,0.82,0.52]; // the valves' growth bands; the mantle in the gape (vanadium: pale yellow-green)
 // one gaper at the origin: the cemented valve on y=0, the lid hinged at local −z and open by `a` radians, the gape toward +z. r its half-width
 // (its length 2.5r), legs the combs out of the gape (planes, as the cones'), eyes the row along the lid's free edge (PLANET: rows on a shield's rim)
-// lite (a bank's coat, reef.js): one closed five-sided valve and no mantle showing, the lid five-sided — 40 triangles to the full one's 76
+// lite: one closed five-sided valve and no mantle showing, the lid five-sided — 40 triangles to the full one's 76 (v11.181's bank coat; unused since
+// v11.183, kept for reference)
 function gaperGeo(r,a,legs,eyes,rg,lite){const P=[],L=r*1.25,H=r*0.5,t=r*0.16,sa=Math.sin(a),ca=Math.cos(a),sd=lite?5:6;
   if(lite)P.push(part(G.cyl(r,r*0.66,H,5,false),0,H*0.5,0,GVAL,{s:[1,1,1.25],c2:GVAL2}));
   else{P.push(part(G.cyl(r*0.86,r*0.62,H*0.55,6,true),0,H*0.275,0,GVAL,{s:[1,1,1.25]}));P.push(part(G.cyl(r,r*0.86,H*0.45,6,false),0,H*0.775,0,GVAL2,{s:[1,1,1.25]}));
@@ -382,12 +383,20 @@ function gaperGeo(r,a,legs,eyes,rg,lite){const P=[],L=r*1.25,H=r*0.5,t=r*0.16,sa
 const _gq=new THREE.Quaternion(),_ge=new THREE.Euler(),_gm=new THREE.Matrix4(),_g0=new THREE.Vector3(0,0,0),_g1=new THREE.Vector3(1,1,1);
 function yawGeo(g,yaw){_ge.set(0,yaw,0);_gq.setFromEuler(_ge);return g.applyMatrix4(_gm.compose(_g0,_gq,_g1));} // a merged geometry turned about its own y (the stub has no rotateY)
 function gaperAt(P,x,y,z,n,r,a,legs,eyes,k,rg,lite){P.push(part(yawGeo(gaperGeo(r,a,legs,eyes,rg,lite),rg()*TAU),x,y,z,[k,k,k],{dir:n}));}
-// gaper: a big one alone (0), three (1), a clump of six with the young on the old (2) — the bank's first course
+// a gaper standing on its hinge (v11.183): crowded, a hingeshell settles on its elders' shells and grows up off them, the gape into the water over
+// it (Earth's reef oysters and bed mussels stand the same way when packed). (x, y, z) the hinge's foot; h the way the cemented valve faces (level);
+// lean how far the gape tips toward h. lookAt's basis: local z (hinge to gape) up and out, local y (out of the bowl) h made square to it
+const _gu=new THREE.Matrix4(),_gu0=new THREE.Vector3(0,0,0);
+function gaperUp(P,x,y,z,h,lean,r,a,legs,eyes,k,rg){const Z=V3(h.x*lean,1,h.z*lean).normalize(),L=r*1.25*0.82;_gu.lookAt(_gu0,Z.clone().multiplyScalar(-1),h);
+  P.push(part(gaperGeo(r,a,legs,eyes,rg,false).applyMatrix4(_gu),x+Z.x*L,y+Z.y*L,z+Z.z*L,[k,k,k]));}
+// gaper: a big one alone (0), three apart (1), four standing back to back (2) — the bank's first course. v11.183 (the person, 19 Nov 2026: "the
+// complexity stands out given the geometric simplicity of the game"): to v11.181 the three overlapped and the six lay in a heap with the young on the
+// old, combs and eye rows every way; now nothing overlaps and only the big one has its eyes
 function gaperB(rg,k){const P=[],up=V3(0,1,0);
   if(k===0){gaperAt(P,0,0,0,up,0.2,0.42,4,4,1,rg);return {P:P,col:[{s:[0,0.1,0,0.22]}]};}
-  if(k===1){for(let i=0;i<3;i++){const a=i/3*TAU+rg()*0.8,d=0.18+rg()*0.1;gaperAt(P,Math.cos(a)*d,0,Math.sin(a)*d,V3((rg()-0.5)*0.3,1,(rg()-0.5)*0.3),0.13+rg()*0.04,0.3+rg()*0.25,3,3,1,rg);}return {P:P,col:[{s:[0,0.08,0,0.32]}]};}
-  for(let i=0;i<6;i++){const a=rg()*TAU,d=i<4?0.1+rg()*0.14:rg()*0.08,y=i<4?0:0.07,r=i<4?0.1+rg()*0.03:0.07+rg()*0.02;gaperAt(P,Math.cos(a)*d,y,Math.sin(a)*d,V3(Math.cos(a)*(i<4?0.25:0.6),1,Math.sin(a)*(i<4?0.25:0.6)),r,0.25+rg()*0.3,2,i<4?3:0,i<2?0.82:1,rg);}
-  return {P:P,col:[{s:[0,0.08,0,0.26]}]};}
+  if(k===1){for(let i=0;i<3;i++){const a=i/3*TAU+rg()*0.5,d=0.38+rg()*0.06;gaperAt(P,Math.cos(a)*d,0,Math.sin(a)*d,V3((rg()-0.5)*0.3,1,(rg()-0.5)*0.3),0.12+rg()*0.03,0.3+rg()*0.25,3,0,1,rg);}return {P:P,col:[{s:[0,0.08,0,0.55]}]};}
+  for(let i=0;i<4;i++){const a=i/4*TAU+rg()*0.6,h=V3(Math.cos(a),0,Math.sin(a));gaperUp(P,h.x*0.07,0,h.z*0.07,h,0.3,0.1+rg()*0.025,i===3?0.04:0.3+rg()*0.3,i===3?0:2,0,i===3?0.82:1,rg);}
+  return {P:P,col:[{s:[0,0.12,0,0.26]}]};}
 // ---------- wormshells (v11.181, analysis_sessile.md: the coil cemented) ----------
 // A coiled ringmouth that settled on its apex and cemented it (TAXA, the crowns' split "the cement"): the first whorls stay a tight flat coil on
 // the rock and from there the shell grows on as a tube, no longer coiled — nothing to balance in a body that never swims again — wandering up off
@@ -1289,7 +1298,7 @@ const FLORA = [
   species('column', {mat: MATV, tints: [[0.96, 0.94, 0.9], [0.9, 0.88, 0.84]], s: [1, 2.2], per: 160, env: {h: [-7, 2.6, 3], sub: [0.55, 1], expo: [0.5, 1]}, maxSlope: 1.6, range: [1]}, columnB), // v11.119: the cone's sisters by the chain's stretch
   species('cap', {mat: MATV, tints: [[0.9, 0.88, 0.95], [0.85, 0.84, 0.9]], s: [1, 2.2], per: 160, env: {h: [-7, 2.6, 3], sub: [0.55, 1], expo: [0.5, 1]}, maxSlope: 1.6, range: [0]}, capB),
   species('nod', {mat: MATW, tints: [[1, 1, 1], [0.95, 0.92, 0.85]], s: [0.7, 1.5], flow: true, per: 90, env: {h: [-150, -8], flow: [0.55, 1], sub: [0.6, 1]}, field: 0.02}, nodB), // the stalked cone, in the jet
-  species('gaper',{mat:MATV,tints:[[1,1,1],[0.96,0.94,0.88],[0.9,0.9,0.86]],s:[0.7,1.5],per:90,env:{h:[-90,-4],sub:[0.5,1],flow:[0.3,1],nut:[0.35,1]},field:0.015},gaperB), // v11.181: the hinge kept, cemented in fed current; its banks are reef.js's
+  species('gaper',{mat:MATV,tints:[[1,1,1],[0.96,0.94,0.88],[0.9,0.9,0.86]],s:[0.7,1.5],per:35,env:{h:[-90,-4],sub:[0.5,1],flow:[0.3,1],nut:[0.35,1]},field:0.015},gaperB), // v11.183: per 90 → 35 (the person: "probably too numerous"). v11.181: the hinge kept, cemented in fed current; its banks are reef.js's
   species('wormshell',{mat:MATV,tints:[[1,1,1],[0.97,0.93,0.86]],s:[0.8,1.6],per:120,env:{h:[-18,-1],sub:[0.55,1],expo:[0.3,1]},field:0.02},wormB), // v11.181: the coil cemented, in the wash; its knolls are reef.js's
   // sacs
   species('tube', {mat: MATV, tints: SACT, s: [0.5, 1.4], per: 120, env: {h: [-150, -6], sub: [0.5, 1], flow: [0.3, 1]}, range: [2]}, tubeB),

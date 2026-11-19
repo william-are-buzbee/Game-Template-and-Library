@@ -1504,8 +1504,10 @@ rock's stain, which its living tubes stand in by design — dodecahedral lumps f
 tide, `TIDE_A1`: a colony grows to the low water and stops), the knolls 3 (the springs' lows bare them). The **old domes** are the farmers' massive
 colonies: `env` h −30..−5, `nut` 0–0.5, `young` 0–0.4 (the low wide one also `expo` 0–0.45); `s` 2–6, 2–5, 3.5–7.5 (3–9 m across, the low one to
 14); to v11.178 21–40 m on the fed flanks to −150, 137 round ours. The **microatoll** (`per` 5) just under the lowest tide, −4.6..−7.5, 2–6 m. The
-**gaper bank** (`per` 2, `flow`: long across the current) on fed hard ground in a current, −6..−90, `young` ≤ 0.6, 6–13 m long; its coat is 42
-lite gapers (flora.js `gaperGeo(…, lite)`: 40 tris) and 56 loose valves, 3.5k tris. The **tube knoll** (`per` 2) on exposed rock, −2.5..−11,
+**gaper bank** (`per` 1 since v11.183, was 2; `flow`: long across the current) on fed hard ground in a current, −6..−90, `young` ≤ 0.6, 5–10 m long
+(6–13 to v11.182); since v11.183 ~26 full-size gapers standing on their hinges (flora.js `gaperUp`), lids wide on the mantle, no combs, a fifth shut,
+over a dark core, drawn with `MATSHELL`; 2.5k tris (to v11.182 42 lite gapers and 70 loose valves on pale cores, 3.5k: "a pile of rocks"). The lone
+**gaper** `per` 35 since v11.183 (was 90); its clumps: three apart, four standing back to back. The **tube knoll** (`per` 2) on exposed rock, −2.5..−11,
 `expo` ≥ 0.45, 2.5–6 m; since v11.182 a thicket — 24 long ribbed tubes rising and fanning out from a dark foot of their dead, the middle's
 tallest, a crown (grow.js `crown(…, lite)`: 60 tris to the full one's 162) on every living mouth, a fifth dead and open; 2.7k tris (to v11.181 60
 old tubes along a pale skin and 34 standing, a crown on every fifth, 2.9k: the person, 18 Nov 2026, "the rock looking ball of little worms"). Round ours the shallows are fed

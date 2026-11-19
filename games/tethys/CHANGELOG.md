@@ -9441,3 +9441,51 @@ foot dark under them; the same from 18 m; the knoll on the slope at −5 m close
 
 **Unseen, ask in this order:** 1. A knoll in the surf on the preview, `tp(352,-157)`, swum round. 2. In the sun near the surface the tubes' shaded sides read grey; at depth cream. 3. The gaper banks are the other half of
 v11.181's open question (many animals, or a rock with shells on it?).
+
+## v11.183 — the gapers standing (19 Nov 2026)
+
+The person, at the gaper bank `tp(534,-305)`: "the Gaper ... looks interesting, but not fitting. The complexity stands out given the geometric
+simplicity of the game, but I don't want to just blanketly say it isn't good. They are probably too numerous. It's not clear when seeing them, it looks
+like a pile of rocks. Not against that, just, it would be better revised." (Also carried here: v11.182's note of the person's verdict on the knoll, which
+missed that merge.)
+
+**What was wrong.** The bank (reef.js `bankGeo`, v11.181) was v11.181's knoll again: three pale cores under 42 small closed gapers, 56 bedded valves and
+14 loose ones — 112 flakes on a rock, gravel from anywhere past a few metres. The lone gapers' clumps (flora.js `gaperB`) overlapped (three) or lay in a
+heap with combs and eye rows every way (six). And many: round the bank field 286 gapers and 10 banks in nine cells.
+
+- **The bank standing** (reef.js `bankGeo`, flora.js `gaperUp`): the knoll's rule — the lone animal's gesture many times over. Packed hingeshells stand
+  on their hinges with the gape up into the water (Earth's reef oysters and bed mussels do when crowded), so the bank is ~26 gapers a size with the
+  biggest lone ones (r 0.09–0.13 of the kit), 0.185 apart, standing off a dark core of their dead (`GCORE`, sunk 0.05), a fifth shut and greyer; the
+  lids open wide (0.5–0.8 rad) on the yellow mantle, the one colour that says alive from a distance; no combs (on thirty they were a bristle of
+  sticks). `s` 3–6 → 2.5–4.5 (5–10 m long) so the gapers stay the lone ones' size. Drawn with `MATSHELL` (`farMat`, v11.182), no tide band. The
+  collision lumps unchanged. 2,460 tris (was 3,518).
+- **`gaperUp`** (flora.js): one gaper stood on its hinge — `gaperGeo` turned by `Matrix4.lookAt` so local z (hinge to gape) is up and tipped `lean`
+  toward h, local y (out of the bowl) h made square to it.
+- **The clumps** (flora.js `gaperB`): three apart (`d` 0.38–0.44, no overlap; the collider 0.55); four standing back to back (`gaperUp`), the fourth
+  shut; eye rows only on the big lone one.
+- **Fewer**: `gaper` `per` 90 → 35, `gaperbank` 2 → 1. Round the bank field (537, −296), nine cells: gapers 286 → 108, banks 10 → 5.
+- **test/smoke.js**: the fixed stream put an eel on the finback's long swim ("bled out after a eel's bite", frame ~4000) once the gapers' colliders
+  moved the spawns — the catch the file's own note calls gameplay, not a fault. A catch on that swim is now said and a new game started (and left still
+  700 frames while its cells spawn) before the saves, as the test already does after the line's end; the save path is tested either way, and the next
+  content change that moves an eel cannot fail it.
+
+**What it costs** (`node test/perf.js`, against main): nothing worse; less everywhere a bank or a gaper is.
+
+| measure | before | after | ratio |
+|---|---|---|---|
+| a frame's triangles: forest, atoll, coast, wood | 6.96M, 9.44M, 5.64M, 2.24M | 6.62M, 8.94M, 5.47M, 2.23M | ×0.95, ×0.95, ×0.97, ×1.00 |
+| instances a frame: forest, atoll | 32,151, 51,736 | 31,934, 51,428 | ×0.99 |
+| program changes a frame at the wood | 22 | 21 | −1 (its bank shares the knoll's `MATSHELL`) |
+| a cell's generation: forest, atoll, platform, sea, giant (ms) | 41.2, 39.4, 22.6, 10.0, 34.7 | 36.9, 34.7, 20.9, 9.6, 34.0 | ×0.88–0.98 |
+| every kind's build, first / again (ms) | 56.0 / 5.9 | 52.8 / 5.9 | ×0.94 / ×1.00 |
+
+One body of 1,326 not the same (a lurker's place: the spawns ask the cell's solids, and the gapers' colliders moved — as v11.181 found). `test/gpu.json`
+updated. Not measured: the GPU's own time.
+
+**Seen** (headless Chromium, the bench's page, first person): the bank nearest the start (391, 201), −26 m, from 9 m, before and after — a pale mound
+sprinkled with flakes, then a rosette of standing shells with their lids open on the yellow mantle; the bank field from `tp(534,-305)` (−55 m: the
+light there makes it a dark cluster from 12 m; the yellow shows close); a bank on the slope at −10 m: a bed of open shells across the slope.
+`FLORA=1 node test/preview.js gaper gaperbank`. `node build.js --test` green (28 runs), the repository's `npm run check` and `npm run build`.
+
+**Unseen, ask in this order:** 1. A bank at `tp(534,-305)` and one shallower: many animals now, or still rocks? Too busy? 2. Enough fewer, or fewer
+still? 3. The lone gaper (the big one with its eye row) — fitting, or simpler still?
