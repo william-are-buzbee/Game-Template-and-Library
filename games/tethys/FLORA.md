@@ -335,7 +335,7 @@ world) or the largest variant of a species. Proposed, with the first built:
 |---|---|---|---|---|---|
 | **the old dome** | polyps | ~~shelf edge, rockfall, terraces~~ the light: −5..−30, clear poor water, old rock (v11.181) | ~~14–26 wide~~ 3–9 m, the low wide one to 14 (v11.181) | a banded mound grown over centuries; the reef's memory | **built v9.5** (`olddome`; v11.21 three shapes; to v11.178 21–40 m across, 137 round ours — `analysis_sessile.md`) |
 | the microatoll | polyps | just under the lowest tide (−4.6..−7.5), poor water | 2–6 m | a colony that reached the low water: a dead turfed top, a living lip | **built v11.181** |
-| the gaper bank | gapers (hingeshells) | fed hard ground in a current, −6..−90 | 6–13 long, 1–2.5 high | generations of gapers, the dead under the living | **built v11.181** |
+| the gaper bank | gapers (hingeshells) | fed hard ground in a current, −6..−90 | 5–10 long, 1.5–3 high | generations of gapers standing on their hinges over the dead | **built v11.181**; standing v11.183 |
 | the tube knoll | crowns (wormshells) | exposed rock in the surf, −2.5..−11 | 2.5–6 | a thicket of erect worm-snail tubes, bared at the springs' lows | **built v11.181**; the thicket v11.182 |
 | the cistern | sacs | terraces, the drop's feet | 6–10 | a barrel sac hollow enough to swim into | next |
 | the great lily | crowns | terraces, the massif's slabs | 8–12 | a crown on a stalk the height of a house, in the current | next |

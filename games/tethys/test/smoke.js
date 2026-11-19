@@ -9,7 +9,9 @@ const fs=require('fs'),path=require('path');
 // 17 Nov 2026 (after v11.168): Math.random seeded (mulberry32, as test/frames.js), so a run is the same run every time. Unseeded, whether an eel on the scripted swim's
 // route caught the player was a coin toss — the clade-1 swim died about half the time after v11.168's schools (seen 17 Nov 2026: 5 of 10 runs here and three
 // pull requests' CI in a row), and the save step after it then found no living line ("new game made no slot"). A catch is gameplay, not a fault; the test
-// is about runtime errors and the save path, so it runs on one fixed stream.
+// is about runtime errors and the save path, so it runs on one fixed stream. 19 Nov 2026 (v11.183): the stream is fixed but the world is not — a content change
+// moves what spawns on the route (v11.183's fewer gapers put an eel on it: "bled out after a eel's bite" at frame ~4000), so a catch on the long swim is now
+// said and a new game started for the saves, as after the line's end above; the save path is tested either way.
 {let s=1234;Math.random=()=>{s=(s+0x6D2B79F5)>>>0;let t=s;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};}
 
 const ROOT=path.join(__dirname,'..');
@@ -104,6 +106,8 @@ for(const pick of [0,1,2,3,4,5]){
       let t1=Date.now();
       for(let k=0;k<12;k++){__step(700);const d=__dbg();console.log('  frame',(k+1)*700,'wall',(Date.now()-t1)+'ms',JSON.stringify(d));t1=Date.now();if(k===6)key('KeyC',true);}
       const e=__eco();console.log('  ecology:',JSON.stringify(e));if(e.nan)throw new Error('NaN in the ledger');if(!(e.ledger>500))throw new Error('the ledger holds almost nothing');
+      if(!global.__save.cur()){console.log('  caught on the swim (gameplay, not a fault): a new game for the saves');h['mnew:click'].forEach(f=>f({}));h['mfounders:click'].forEach(f=>f({target:{dataset:{id:'fin'}}}));__step(3);if(__zoo.mode()!=='play')throw new Error('new game after the swim did not start play');
+        key('KeyW',false);key('ShiftLeft',false);key('KeyC',false);__step(700);} // still at the peak while its cells stream in and spawn, as the swim gave the first game
       { // the saves (v11.47): the slot new game wrote, esc to the menu (the pointer freed by tab first), continue from the list, the world back as it was, delete
         const S=global.__save,id=S.cur();if(!id)throw new Error('new game made no slot');
         if(!S.slots().some(r=>r.id===id))throw new Error('the slot is not in the list');
