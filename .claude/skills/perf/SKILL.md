@@ -21,9 +21,10 @@ request says what it cost before the person plays it.
    version and run `npm run look -- <dir> --gl` on both: a frame's draws, triangles, uploads and program changes (the frames run on the real clock,
    so it is a rough comparison; a game that needs exact ones gets a harness like Tethys's `test/gpu.js`).
 3. **Say it in the pull request** — a small table (before, after, ratio) under "What changed", the same in the CHANGELOG entry. Anything worse by more
-   than 10% goes in the first line, with why it is worth it. The GPU's counts (draws, triangles, uploads) are measured now; what still cannot be is
-   the GPU's own time — what a shader costs per vertex and per pixel, the fill. Say you did not measure that, and what the person should look at in
-   the readout.
+   than 10% goes in the first line, with why it is worth it. The GPU's counts (draws, triangles, uploads) are measured now. The GPU's own time — what
+   a shader costs per vertex and per pixel, the fill — has a proxy in Tethys (`test/fill.js`, `--only fill`: every draw timed alone under software
+   WebGL, vertices and pixels apart, and whether the picture moved, pixel for pixel); it is a CPU pretending to be a GPU, so say it is the proxy's,
+   and what the person should look at in the readout. Anywhere else it is not measured: say so.
 4. **Check the shapes** if you added or changed an object read every frame or every sample (Tethys: `SHAPES=1 node test/frames.js`).
 
 ## When the person says it feels laggier
@@ -35,14 +36,15 @@ running away from the rest is the GPU, which no CPU pass helps. Otherwise measur
 ## A performance pass
 
 1. **Measure before touching anything**, on the person's heaviest place, with the tools above; profile (`node --cpu-prof`;
-   Tethys `PROF=<function> node test/frames.js`). Time the game as it runs, warm: a function timed cold on a small input can
+   Tethys `PROF=<function> node test/frames.js`; the GPU's side by what is drawn, `node test/fill.js` — it names the species, the material, the
+   pass, and splits each into its vertices and its pixels, which is where v11.187's pass found two thirds of the flora's vertex work thrown away). Time the game as it runs, warm: a function timed cold on a small input can
    hide what the game pays (v11.148's `sample()` read 1.6 µs cold and 2.4 in the game).
 2. **Look for shapes first.** If a hot function's own lines are slow with nothing in them but property reads, count the
    objects' hidden classes (`node --allow-natives-syntax`, `%HaveSameMap`, `%HasFastProperties`). The cure is one literal with
    every key, in one order, unset ones `undefined`; never `delete`; never build an object key by key from a list (a dictionary:
    "one shape" and slow — build a literal with `new Function`, as Tethys's `defFlat`). Then pin it with a test.
 3. **Keep every result the same to the bit** unless the person decides otherwise: hash what the code produces before and after
-   (the tools do), and seed whatever is random for the comparison (Tethys's benches seed `Math.random`, and give three.js's
+   (the tools do; for what is drawn, `BASE=<dir> node test/fill.js` compares the two pictures pixel for pixel), and seed whatever is random for the comparison (Tethys's benches seed `Math.random`, and give three.js's
    UUIDs a stream of their own: three draws four numbers for every geometry it makes). A change that alters behaviour, however
    slightly — fewer updates for far animals, a coarser grid — is the person's call: measure it, propose it, don't ship it.
 4. **Pin what the gain rests on** with a deterministic test (a shape check, a replay against the whole build), never a

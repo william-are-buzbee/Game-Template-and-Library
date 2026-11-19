@@ -34,4 +34,16 @@ async function open(pw,root,opt){opt=opt||{};const server=await serve(root),brow
     await page.goto(`http://127.0.0.1:${server.address().port}/bench.html`,{waitUntil:'load',timeout:300000});
     return {browser,page,server,errs,close:async()=>{await browser.close();server.close();}};}
   catch(e){await browser.close();server.close();throw e;}}
-module.exports={here,playwright,pageOf,serve,open};
+// the places the browser benches stand at (test/gpu.js, test/fill.js; v11.187 moved them here and added the shore and the canopy, the person's laggy
+// places of 19 Nov: plants at the shore and breaching the surface): x, y (absolute: under 0 is under the water), z, the yaw (0 faces north, −z; π/2 west; π
+// south), and whether the camera is above the water
+const PLACES={
+  forest:{x:330,y:-12,z:0,yaw:0,above:false,what:'the weed forest on the shelf: the heaviest place for creatures and flora'},
+  atoll:{x:109800,y:-10,z:4000,yaw:Math.PI/2,above:false,what:'the atoll 110 km east, 10 m down on its slope, facing its rim: a dense kelp stand, the most triangles under water'},
+  open:{x:20000,y:-30,z:40000,yaw:0,above:false,what:'open water over the deep floor: the water column, the snow and the fog alone'},
+  coast:{x:-7700,y:0.6,z:6000,yaw:Math.PI/2,above:true,what:'the giant\'s coast from the sea\'s surface: the horizon pass, the sky, the clouds, the land'},
+  wood:{x:-10703,y:144,z:10914,yaw:0,above:true,what:'inside the giant\'s windward forest, 3 m over the ground (v11.180, the wood): the platewood stand and the canopy\'s hand-off at 360–450 m'},
+  shore:{x:110,y:0.6,z:-380,yaw:Math.PI,above:true,what:'the tidewood shore north of ours from the water\'s surface (v11.187): the tidewood and the reeds in the air, the kelp under the camera'},
+  canopy:{x:80,y:-3,z:-360,yaw:Math.PI,above:false,what:'3 m down in the kelp off the same shore (v11.187), facing it: the canopy at the surface, the tidewood above it'},
+};
+module.exports={here,playwright,pageOf,serve,open,PLACES};

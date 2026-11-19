@@ -168,10 +168,22 @@ const SURF_MAT=(function(){
   return m;
 })();
 const surface=new THREE.Mesh(sg,SURF_MAT);surface.frustumCulled=false;scene.add(surface);
+// The underside as an occluder (v11.187, DESIGN "The surface from below"). Under water the underside outside the window is opaque — the mirror, where the
+// facet's cosine to the eye is under WIN_LO and winT is 0 — and yet everything in the air behind it was drawn first and painted over: the sky's dome with
+// its cloud volume, the land, the tidewood, the far cards; about a fifth of an underwater frame looking toward a shore (test/fill.js). So under water the
+// surface is drawn first as depth alone (SURF_OCC, renderOrder −12, before the dome and the sky), and only its facets under OCC.cv (a margin under WIN_LO,
+// for the window's refraction reads the frame up to REFR_MAX of the screen off), pushed back by a few depth steps (polygonOffset) so the real surface still
+// draws over it: what lies beyond it fails the depth test before its pixel shader runs. Its vertices are the surface's own (SURF_MAT's vertex code); its
+// pixel shader only the facet's cosine. In the air, or OCC.on false, it is not drawn.
+const OCC={on:true,cv:0.25};
+const SURF_OCC=(function(){const m=new THREE.MeshPhongMaterial({flatShading:true,side:THREE.DoubleSide,colorWrite:false,depthWrite:true,polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:4});
+  m.onBeforeCompile=function(sh){SURF_MAT.onBeforeCompile.call(SURF_MAT,sh);sh.fragmentShader='varying vec3 vViewPosition;\nvoid main(){vec3 n=normalize(cross(dFdx(vViewPosition),dFdy(vViewPosition)));if(gl_FrontFacing||abs(dot(normalize(vViewPosition),n))>'+OCC.cv.toFixed(3)+')discard;gl_FragColor=vec4(0.0);}';};
+  m.customProgramCacheKey=function(){return 'surfocc';};m.extensions={derivatives:true};
+  const o=new THREE.Mesh(sg,m);o.frustumCulled=false;o.renderOrder=-12;o.visible=false;scene.add(o);return o;})();
 const refrMark=(function(){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(0),3));const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({colorWrite:false,depthWrite:false}));m.frustumCulled=false;m.renderOrder=0.5;scene.add(m);return m;})(); // the copy's place in the frame (v11.51, REFR_* above): an empty mesh (r128 lists it and returns from renderBufferDirect at its zero-length position) whose onBeforeRender runs in the opaque pass after everything at renderOrder 0 and before the player's body at 1
 refrMark.onBeforeRender=function(r,sc,cam){surfaceU.uRefrOn.value=0;if(!FX.refract||surfaceU.uUnder.value<0.5||cam!==camera||r.getRenderTarget()!==null)return;r.getDrawingBufferSize(REFR_V);const w=REFR_V.x|0,h=REFR_V.y|0;if(w<2||h<2)return;refrTex.image.width=w;refrTex.image.height=h;const pm=camera.projectionMatrix.elements;surfaceU.uRefrRes.value.set(w,h,pm[0]*w*0.5,pm[5]*h*0.5);surfaceU.uRefrK.value=REFR_K*FX.refrK;try{r.copyFramebufferToTexture(REFR_V.set(0,0),refrTex);surfaceU.uRefrOn.value=1;}catch(e){}}; // the frame so far (v11.51): copied only under water, only to the screen (the world shadow pass renders the scene to a target and would copy that), sized to the drawing buffer every time (a resize just changes what the next copy allocates); the focal lengths in px from the projection; the uniforms are read when the surface draws, later in the same render
 function updateSurface(){nearBuild();SHORE_U.x=FX.shore?FX.shoreK:0; // the shore's foam (v11.169): its near map and strength
-  surface.position.set(Math.round(camera.position.x/SSTEP)*SSTEP,TIDE,Math.round(camera.position.z/SSTEP)*SSTEP);} // the mesh rides the tide; the shader adds the waves
+  surface.position.set(Math.round(camera.position.x/SSTEP)*SSTEP,TIDE,Math.round(camera.position.z/SSTEP)*SSTEP);SURF_OCC.position.copy(surface.position);SURF_OCC.visible=OCC.on&&surfaceU.uUnder.value>0.5;} // the occluder (v11.187) under water only // the mesh rides the tide; the shader adds the waves
 // ---------- the sky (v11) ----------
 // The sky's state this frame, from the clock (world.js: the sun's and the moon's hour angles, the moon's phase, the weather) —
 // read by the dome shader, the lights, the fog, the surface and the readout. Nothing here is a place: the whole world sees one sky.

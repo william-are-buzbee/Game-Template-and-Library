@@ -2,7 +2,8 @@
 // since it left main, the benches they call for, the sources from before kept and every bench run beside them, and the pull request's table.
 //   node test/perf.js                  against where the branch left origin/main (its merge base), the benches the change calls for
 //   node test/perf.js --all            every bench, whatever changed
-//   node test/perf.js --only gpu,world just these (world: test/bench.js, frames: test/frames.js, creatures: test/bench_creatures.js, gpu: test/gpu.js)
+//   node test/perf.js --only gpu,world just these (world: test/bench.js, frames: test/frames.js, creatures: test/bench_creatures.js, gpu: test/gpu.js,
+//                                      fill: test/fill.js — the GPU's time as a proxy, at FILL_PLACES, default the forest, the shore and the canopy)
 //   node test/perf.js --ref <commit>   against another version: the way to find which version moved a number
 //   node test/perf.js --dry            what it would run, and why; runs nothing
 // "Here" is the working tree, committed or not. The sources from before are `git archive <ref>` of src/, vendor/ and shell.html, kept in the
@@ -19,7 +20,8 @@ const BENCHES={
   world:{file:'test/bench.js',what:'the world: its load, µs a sample() over five windows',src:['util','world','region']},
   frames:{file:'test/frames.js',what:'the creatures\' work a frame at the forest (node)',src:[/^creatures_/,'physics','parts','combat','fx','main','player']},
   creatures:{file:'test/bench_creatures.js',what:'every kind\'s build, a cell\'s generation at five places, the creatures\' frame (Chromium)',src:[/^creatures_/,'parts','chunks','flora','grow','ecology','reef']},
-  gpu:{file:'test/gpu.js',what:'what a frame asks of the GPU at five places (Chromium)',src:[/./],not:['audio','bench','save','input','worldmap','menu','zoo','lab'],shell:true},
+  gpu:{file:'test/gpu.js',what:'what a frame asks of the GPU at seven places (Chromium)',src:[/./],not:['audio','bench','save','input','worldmap','menu','zoo','lab'],shell:true},
+  fill:{file:'test/fill.js',what:'the GPU\'s time by what is drawn, under software WebGL: a proxy (Chromium, ~2 min a place)',src:['scene','atmosphere','clouds','horizon','grow','flora','reef','chunks','far','parts','creatures_builders','creatures_spec','fx','main'],shell:true,env:{ONLY:process.env.FILL_PLACES||'forest,shore,canopy'}},
 };
 const ref=opt('--ref')||'',all=argv.includes('--all'),dry=argv.includes('--dry'),only=opt('--only');
 // ---- what changed ----
@@ -42,7 +44,7 @@ console.log('the sources from before: '+BASE+'\n');
 // ---- the benches ----
 const out={};
 for(const k of run){const J=path.join(os.tmpdir(),'tethys-perf-'+process.pid+'-'+k+'.json');console.log('---- '+k+': node '+BENCHES[k].file+' (BASE) ----');
-  const r=spawnSync(process.execPath,[path.join(GAME,BENCHES[k].file)],{cwd:GAME,stdio:'inherit',env:Object.assign({},process.env,{BASE,JSON:J})});
+  const r=spawnSync(process.execPath,[path.join(GAME,BENCHES[k].file)],{cwd:GAME,stdio:'inherit',env:Object.assign({},BENCHES[k].env||{},process.env,{BASE,JSON:J})});
   if(fs.existsSync(J)){out[k]=JSON.parse(fs.readFileSync(J,'utf8'));fs.rmSync(J);}else console.log('('+k+' wrote no results; exit '+r.status+')');console.log('');}
 // ---- the table ----
 const rows=[],notes=[],worse=[],num=(v,d)=>v===undefined||v===null?'—':typeof v==='number'?(Math.abs(v)>=1000?Math.round(v).toLocaleString('en-US'):v.toFixed(d===undefined?2:d)):String(v);
@@ -65,6 +67,8 @@ if(out.gpu&&out.gpu.base){const {base:b,here:h}=out.gpu,K=['draws','instances','
   for(const p of Object.keys(h.places))for(const k of K){const x=b.places[p]&&b.places[p][k],y=h.places[p][k];if(x===y)continue;const r=x?y/x:null,bad=r===null||r>1.1;if(bad)worse.push(p+' '+k+(r?' ×'+r.toFixed(2):' new'));gpu.push('| '+p+' | '+k+' | '+fmt(k,x||0)+' | '+fmt(k,y)+' | '+(r===null?'new':bad?'**×'+r.toFixed(2)+'** ⚠':'×'+r.toFixed(2))+' |');}
   for(const p of Object.keys(h.places))if((h.places[p].sight||0)!==(b.places[p]&&b.places[p].sight||0))gpu.push('| '+p+' | compiled at first sight | '+(b.places[p].sight||0)+' | '+h.places[p].sight+' | |');
   for(const k of ['compiles','bufferBytes','textureBytes'])if(b.boot[k]!==h.boot[k])gpu.push('| boot | '+k+' | '+fmt(k,b.boot[k])+' | '+fmt(k,h.boot[k])+' | ×'+(h.boot[k]/Math.max(1,b.boot[k])).toFixed(2)+' |');}
+if(out.fill){for(const [p,o] of Object.entries(out.fill.places)){add('the GPU\'s time at '+p+' (software WebGL, a proxy), ms',o.base,o.frame,0);add('the CPU\'s side of drawing at '+p+' (renderFrame), ms',o.cpuBase,o.cpu,1);
+    if(o.diff)notes.push('the picture at '+p+': '+(o.diff.n?o.diff.n+' pixels of '+out.fill.size.replace('x','×')+' differ, by up to '+o.diff.max+' of 255':'the same, pixel for pixel'));}}
 const md=[];
 md.push(worse.length?'**Worse by more than 10%:** '+worse.join(', ')+' — say why it is worth it in the first line.':'Nothing worse by more than 10%.');
 // what the times are worth here: identical sources on both sides read up to ×1.02 on frames.js's mean and ×1.09 on its p95 (a cloud session, 18 Nov 2026)
@@ -73,6 +77,6 @@ if(rows.length){md.push('','| measure | before | after | ratio |','|---|---|---|
 if(out.gpu&&out.gpu.base){md.push('','What a frame asks of the GPU (test/gpu.js, '+out.gpu.size.replace('x','×')+', exact counts):');
   if(gpu.length)md.push('','| place | count | before | after | ratio |','|---|---|---|---|---|',...gpu,'','Every other count the same.');else md.push('the same at every place, every count.');}
 const said=notes.filter(Boolean);if(said.length)md.push('',...said.map(n=>'- '+n));
-md.push('','Not measured: the GPU\'s own time (the shaders, the fill) — the person\'s readout at a `tp()`.');
+md.push('',out.fill?'The GPU\'s time above is SwiftShader\'s (test/fill.js): a CPU drawing as a GPU, its ratios not a real GPU\'s — the person\'s readout at a `tp()` is the measure.':'Not measured: the GPU\'s own time (the shaders, the fill) — `--only fill` gives a proxy; the person\'s readout at a `tp()` is the measure.');
 const text=md.join('\n');console.log('==== for the pull request (against '+(ref||'the merge base')+' '+base.slice(0,10)+') ====\n'+text);
 const f=path.join(GAME,'test','render','perf.md');fs.mkdirSync(path.dirname(f),{recursive:true});fs.writeFileSync(f,text+'\n');console.log('\n(written to test/render/perf.md)');

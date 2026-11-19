@@ -129,7 +129,8 @@ function* buildTerrain(ch){
   const m=shadowCaster(new THREE.Mesh(tg,TERRAIN_MAT),TERRAIN_MAT);ch.group.add(m);ch.meshes.push(m);ch.terrain=m; // a caster into the world's map when FX.ground (v11.30)
 }
 function makeInstanced(ch,rng,geo,mat,tints,list,dip,vars,f){
-  if(f&&!dip&&mat!==GLOW&&!f.card){poolAdd(poolFor(f,geo,mat,vars,!!mat.sway),ch,rng,tints,list,mat);return null;} // v11.52: one mesh per species across the loaded cells (the pools, below); a card species (far.js FAR_IMP), a padded one (aDip, physics.js) and the glow clouds keep a mesh per cell
+  if(f&&f.gp&&geo===f.geo){geo=f.gp;mat=f.mp;} // the species' variants pulled (v11.187, VPULL below): its pool and a padded species' cell mesh alike
+  if(f&&!dip&&mat!==GLOW){poolAdd(poolFor(f,geo,mat,vars,!!mat.sway),ch,rng,tints,list,mat);return null;} // v11.52: one mesh per species across the loaded cells (the pools, below); since v11.187 the card species too (far.js FAR_IMP: their blocks hide by the cell's sight and FLORA_FAR edge, as their cell meshes did); a padded one (aDip, physics.js) and the glow clouds keep a mesh per cell
   const cur=!!mat.sway; // a sway material reads aCur: the current at every instance's base (scene.js LEAN)
   if(dip||vars||cur)geo=geo.clone(); // per-cell instance attributes need the cell's own copy (disposed with the cell)
   if(dip)geo.setAttribute('aDip',new THREE.InstancedBufferAttribute(new Float32Array(list.length),1)); // rafts: a per-instance dip the pads sink by under a body (physics.js updatePads)
@@ -152,8 +153,9 @@ function makeInstanced(ch,rng,geo,mat,tints,list,dip,vars,f){
 // uploaded (updateRange). A cell out of view or past FLORA_FAR is hidden by its block's flags (aHide, v11.125, poolCull below); inside it each
 // instance fades out over FLORA_FADE and is gone past FLORA_FAR (scene.js farCut) — the rock, the fans and the stipeling too since v11.155 (to
 // v11.154 they had no cut, and a whole cell of them appeared at once when its nearest edge came within FLORA_FAR).
-// The card species (FAR_IMP: the stipe, bladder, buttons, tidetree; `f.card`) keep a mesh per cell because their cards take over per cell,
-// the rafts keep aDip per cell (physics.js updatePads), the glow clouds their GLOW mesh. A pool grows by doubling into a fresh geometry
+// The card species (FAR_IMP: the stipe, bladder, tidetree; `f.card`) kept a mesh per cell to v11.186 because their cards take over per cell — since v11.125
+// a pool hides a cell's block by the same rule a cell mesh followed (seen, and its nearest edge within FLORA_FAR), so since v11.187 they are pooled: at the
+// shore 26 draws were theirs, now 3. The buttons and rafts keep aDip per cell (physics.js updatePads), the glow clouds their GLOW mesh. A pool grows by doubling into a fresh geometry
 // clone (the old one disposed, so no GL buffer is left behind); it casts into the world's shadow map whole (scene.js updateShadowS) with a
 // bounds sphere that covers the island and never camS's box 500 km up.
 // ---------- local origins (v11.110, GLOBE §10.1: the engine before the province) ----------
@@ -168,6 +170,11 @@ function makeInstanced(ch,rng,geo,mat,tints,list,dip,vars,f){
 // the fog's world position is the camera's plus the view-space offset (scene.js fog_vertex), the texels' and the sway's go through modelMatrix.
 // ORIGIN.on false writes world coordinates as before (test/origins.js compares the two).
 const ORIGIN={on:true,x:0,z:0,snap:4000,grid:1000};
+// the variants pulled (v11.187, grow.js VPULL, scene.js VPULL_GLSL): once FLORA is whole (reef.js appends to it), every species' variants into one
+// float texture and each species its pulled geometry (f.gp) and material (f.mp), which makeInstanced draws in place of f.geo and f.mat. WebGL2 only.
+const VPULL_N=(function(){if(!VPULL.on||!GL2||!THREE.FloatType)return 0;const pk=vpullPack(FLORA);
+  const t=new THREE.DataTexture(pk.data,VPULL.row*3,pk.rows,THREE.RGBAFormat,THREE.FloatType);t.minFilter=t.magFilter=THREE.NearestFilter;t.generateMipmaps=false;t.needsUpdate=true;t.clone=function(){return this;};VPULL_TEX=t;
+  for(const [f,a] of pk.at){f.gp=vpullGeo(a);f.mp=vpullMat(f.mat);}return pk.at.size;})(); // the species pulled
 const POOLS=new Map(),poolGroup=new THREE.Group();scene.add(poolGroup); // entry → pool (the group at the render origin, v11.110)
 function poolSnap(px,pz){if(!ORIGIN.on||(Math.abs(px-ORIGIN.x)<ORIGIN.snap&&Math.abs(pz-ORIGIN.z)<ORIGIN.snap))return false; // the render origin to the camera's square; every pooled instance moved by the change
   const nx=Math.round(px/ORIGIN.grid)*ORIGIN.grid,nz=Math.round(pz/ORIGIN.grid)*ORIGIN.grid,dx=nx-ORIGIN.x,dz=nz-ORIGIN.z;
