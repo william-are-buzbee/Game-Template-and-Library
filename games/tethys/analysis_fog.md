@@ -220,5 +220,8 @@ painted for the thin one; a build would look at the low sky before anything else
    `rnL`, `fogAir`; atmosphere.js `updateHaze`. Two things the prototype did not have, found in the build: the rain as a term of its own (below the
    shower's base and only across its shaft — as a share of the slab it greyed the whole sky to the zenith) and the haze's light dimmed under the
    cell (the bright horizon colour washed out the shower's dark base).
-3. **Fog inside the cloud**, and 5, **the night fog in the craters** — v11.186.
+3. **Fog inside the cloud**, and 5, **the night fog in the craters** — built as v11.186 (clouds.js `CFOG`, `capFog`, `poolFog`; DESIGN "The cloud as
+   fog"). The caps and the deck at the camera as closed-form stand-ins every fragment in air takes, toward the cloud volume's own shade; the pools as
+   lenses in the three calderas on calm clear nights' second halves. Valleys are not in it: a valley has no centre or floor to put a lens on, and a
+   terrain-following fog is a pass of its own if the calderas earn it.
 
