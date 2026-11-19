@@ -9562,3 +9562,62 @@ passes here.
 the stop, the turn and the lunge read as an animal's, or as a turret (`PIVOT.rate` 3, `PIVOT.crawl` 0.2)? 2. The ortho's arms catching you without the hug,
 and the pull to the beak (`GRIP.arms.reel` 2 m/s). 3. A late hard turn as a ridge lunges at you at cruise: can you still make it miss (`STRIKE.home`,
 `homeCone`)? 4. Is a still finback beside any hunter now too quick a death (0.3–1.1 s)? 5. Passes 2–4 next: the petals, latching, the chase's burst.
+
+## v11.185 — the air as the boundary layer: physical visibility, the weather in it, the blue of distance (19 Nov 2026)
+
+analysis_fog.md §6 items 1, 2 and 4, the person's answers of 19 Nov 2026 (§8): "For now, let's go with physical visibility. We can make them more
+noticeable later if believability does not sit well"; the weather in the haze, "accurate and believable"; the blue of distance, "yes please".
+
+**What it was** (analysis_fog §4): the air was a salt layer of 1.7e-4 /m over a scale height of 70 m under the radial fog
+`0.35·exp(−(0.0009·d)²) + 0.65·exp(−0.00003·d)` — a Gaussian near term from the pre-v8 look that took a third of every view's contrast in its first
+2 km at any height, then clear air. The near ground was too milky (2 km kept 45–63%), the far end too kind from a height (a flank 50 km off from a
+hillside kept 14%: the still's pale islands every day), height changed nothing, and only rain moved it.
+
+**What it is:**
+- **The boundary layer as a slab** (world.js `HAZE`; scene.js `MIST_GLSL` `blR`, `blF`, `blS`, `blL`): `HAZE.dens` 0.9e-4 /m from the water to the
+  cloud base (`CLOUD_H` 650), `HAZE.cl` 0.5 of it in the cumulus layer to the inversion (1,550), nothing above, each edge a ramp over ±`HAZE.soft`
+  60 m — its optical depth from the water to a height in closed form (the ramp's integral a quadratic), along every ray in air and to infinity on the
+  dome (`mistFar`). The spray and the dawn mist stay the thin exponential layers they were. Koschmieder's 39 km at the water with Rayleigh.
+- **The clear air is Rayleigh by channel** (world.js `AIR.ray` 0.63/1.24/2.8e-5 /m, red/green/blue, over an 8 km scale height; `fogAir`'s
+  transmittance a vec3 toward `skyFar`). The radial fog is struck (`AIR.dens`, `share`, `far`; the old numbers are in the comment at `AIR`).
+- **The horizon pass hands `fogAir` the curve's drop** (`fl`, horizon.js): its vertices are dropped by d²/2R, and a slab 1.5 km deep that does not
+  follow the planet put the far sea under the water level, where the haze is cut — from 450 m the sea at 50 km took 70% of its path.
+- **The weather drives it** (atmosphere.js `updateHaze`; `SKY.salt`, `SKY.wash`, `SKY.vis`; `hazeSnap`): the salt is the whitecaps', `HAZE.calm` 0.5
+  in a calm and × (1 + `HAZE.season` 0.4·s) in the windy season, followed over `HAZE.slow` 6 game hours (set at once by a boot, a new game, a load, a
+  skip and the run-on to a hatch); × `hazeK` (the humidity); × (1 + `HAZE.wet` 0.6·rain) under a shower; after one the air washed, × (1 − `HAZE.wash`
+  0.4) fading over `HAZE.washH` 8 game hours. **The rain is a term of its own** (`uMistW.w`, scene.js `rnL`): `HAZE.rain` 5e-4 /m at full rain, only
+  below `HAZE.rainH` 420 m (the shower's base) and for at most `HAZE.rainR` 1.5 km of a ray (the shaft's width), and the haze's light × (1 −
+  `HAZE.shade` 0.4·rain) under the cell. Both were found by looking: the prototype's rain as a share of the slab greyed the sky to the zenith, and
+  the bright horizon colour washed out the shower's dark base. The readout's cloud line shows `vis` (km at the water).
+
+**Contrast left now** (analysis_fog §4's table, the slab at 0.9e-4): from the water 90% at 1 km, 82% at 2, 60% at 5, 16–20% at 18 (the giant), 5% at
+30; from a hillside inside the layer the same; from above the inversion a summit 50 km off 48%. A calm doubles the far numbers; a strong trade
+quarters them.
+
+**Seen** (headless Chromium, the bench's page, 1600×900, boot's 11 h, the player placed and the world streamed; base and branch side by side):
+from the water the giant at 8 km darker and clearer, the near horizon a sharp line; from the giant's north flank at 374 m the shield (summit 44 km)
+from a pale ghost to nearly nothing at boot's 32 km, and a blue-grey mass in a calm (58 km); from the shield's flank at 2,332 m, above the inversion,
+a clear deep sky and the giant 45 km off blue-grey and drawn; under a shower at the camera the giant greyed at 8 km and the deck overhead dark. A
+first cut put the shower's rain into the slab and the sky went pale to the zenith — seen, fixed before the commit.
+
+**What it costs** (`node test/perf.js`, against main): nothing measured moved but the timings' noise; the per-fragment cost is the GPU's.
+
+| measure | before | after | ratio |
+|---|---|---|---|
+| the world's load, s | 0.96 / 0.91 | 0.93 / 1.02 | ×0.97 / ×1.12 (two runs) |
+| sample(), µs, five windows | 0.59–0.89 / 0.71–1.02 | 0.68–1.13 / 0.59–0.96 | ×0.97–1.26 / ×0.82–1.07 (two runs) |
+| the creatures' work a frame at (330, 0), ms, mean / p95 | 1.821 / 2.538 | 1.847 / 2.743 | ×1.01 / ×1.08 |
+| what a frame asks of the GPU, five places | — | — | the same, every count |
+
+world.js changed two knob tables and their comments, nothing `sample()` reads: the world the same to the bit, and the same `sample()` read ×0.82 to
+×1.26 across the two runs — the machine. The simulation the same to the bit. In the shader the slab is a piecewise quadratic, the rain a clamp and the
+Rayleigh one `mistL` (two exponentials) where the Gaussian and an exponential were: about the same arithmetic per fragment in air, unmeasured here.
+
+**Tests:** `node build.js --test` green (28 runs); test/sky.js "the air" (new): the trades 38 km at the water, a calm 68, the windy season's 28, the
+still season's humid 27, a shower 6, washed 59 after it and back to 40 sixteen game hours on, a calm clearing over hours (41 a game hour in), the
+uniforms finite; `node test/gpu.js --check` every count the same.
+
+**Unseen, ask in this order:** 1. From the giant's flank and from the water at boot: does the distance read right — the shield (summit 44 km off) all but
+gone on an ordinary day (`HAZE.dens`)? 2. A calm (the readout's `calm`, `vis` ~60–68): the far islands back — a treat or a jolt (`HAZE.calm`, `HAZE.slow`)?
+3. Under a shower: the sky dark and the near world greyed (`HAZE.rain`, `HAZE.shade`, `HAZE.rainR`), and the clear air after it (`HAZE.wash`). 4. The low
+sky's white band, now the 1.5 km slab seen edge-on: too white to ~15°? 5. From the shield above the inversion: the giant blue-grey 45 km off.

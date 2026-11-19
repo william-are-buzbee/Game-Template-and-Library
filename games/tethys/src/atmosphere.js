@@ -177,7 +177,7 @@ function updateSurface(){nearBuild();SHORE_U.x=FX.shore?FX.shoreK:0; // the shor
 // read by the dome shader, the lights, the fog, the surface and the readout. Nothing here is a place: the whole world sees one sky.
 const SKY={sun:V3(0,1,0),moon:V3(0,-1,0),lum:V3(0,1,0),sunAlt:1,moonAlt:-1,illum:1,dayK:1,moonUp:0,moonL:0,skyL:1,skyLw:1,sunL:1,lumL:1,lumLw:1,night:0,cover:0,rain:0,rainA:0,
   zen:[0,0,0],hor:[0,0,0],glow:[0,0,0],sunC:[1,1,1],lumC:[1,1,1],tint:[1,1,1],tint0:[1,1,1],tintS:[1,1,1],tintV:[1,1,1],bow:0,wind:[0,0],windOff:[0,0],starT:0,
-  cirrus:0,upperOff:[0,0],cirrC:[1,1,1],plan:PLANETS.map(()=>V3(0,1,0)),spray:0,windK:1,eclS:0,eclL:0,dawn:0,lag:0,cloudHere:0,cellNear:0,eye:1,eyeT:1,beamV:0}; // cloudHere (v11.87): the deck's density over the player along the luminary, what the beam reads // v11.17: the cirrus cover, the upper wind's drift, the cirrus' colour (sunlit after sunset), the planets' directions, the surf's spray at the camera
+  cirrus:0,upperOff:[0,0],cirrC:[1,1,1],plan:PLANETS.map(()=>V3(0,1,0)),spray:0,windK:1,salt:1,wash:0,vis:0,eclS:0,eclL:0,dawn:0,lag:0,cloudHere:0,cellNear:0,eye:1,eyeT:1,beamV:0}; // cloudHere (v11.87): the deck's density over the player along the luminary, what the beam reads // v11.17: the cirrus cover, the upper wind's drift, the cirrus' colour (sunlit after sunset), the planets' directions, the surf's spray at the camera
 const WX={},cirrTmp=[0,0,0];
 function skyLerp(out,keys,idx,s){let a=keys[0],b=keys[keys.length-1];for(let i=1;i<keys.length;i++)if(s<=keys[i][0]){a=keys[i-1];b=keys[i];break;}
   const u=clamp((s-a[0])/(b[0]-a[0]),0,1),ca=a[idx],cb=b[idx];out[0]=lerp(ca[0],cb[0],u);out[1]=lerp(ca[1],cb[1],u);out[2]=lerp(ca[2],cb[2],u);return out;}
@@ -402,17 +402,24 @@ const hzS={h:0,f:new Float32Array(NF)};
 // v11.17.1: a calm kills the spray (whitecaps want a Beaufort 4) and the chop (SEA_CHOP: the short waves die to the swell); the vog is a
 // Gaussian plume downwind of the fumarole sampled at the camera; the dawn mist is the lagoon field × a clear calm night × the hours
 // round sunrise. Vog and dawn mist share the third layer (uMistW.yz); the vog also greys and warms the mist's colour.
+let hazeSnap=true; // the next frame sets the haze's slow state at once: boot, a skip (main.js), a new game or a load (save.js), the run-on to a hatch (line.js)
 function updateHaze(dt,above){const K=SKY,rk=K.rainA,wk=K.windK;
   const smp=above?sample(player.pos.x,player.pos.z,hzS):null;const sp=smp?smp.f[FI.expo]:K.spray,lg=smp?smp.f[FI.shel]:K.lag;
   K.spray+=(sp-K.spray)*(1-Math.exp(-0.7*dt));K.lag+=(lg-K.lag)*(1-Math.exp(-0.7*dt));
   SEA_CHOP=chopU.value=FOG_TC[1]=0.25+0.75*wk;
-  MIST_P[0]=HAZE.dens*(1+2.5*rk)*(WX.hazeK||1);MIST_P[1]=1/(HAZE.h*(1+1.5*rk));MIST_P[2]=HAZE.spray*K.spray*K.spray*wk*wk*(1+0.8*rk);MIST_P[3]=1/HAZE.sprayH;MIST_W[0]=TIDE;
+  // the boundary layer (v11.185, world.js HAZE): the salt by the whitecaps — half in a calm, more in the windy season — followed over HAZE.slow game hours
+  // (set at once by a boot or a skip); the humidity (weatherAt's hazeK); a shower's humidity; the air washed after one, fading over washH; and the rain
+  // itself, uMistW.w, a term of its own (scene.js mistRay: below the shower's base, for at most HAZE.rainR of a ray)
+  {const dh=dt*CLOCK_RATE,salt=lerp(HAZE.calm,1,wk)*(1+HAZE.season*Math.max(WX.season||0,0));K.salt=hazeSnap?salt:K.salt+(salt-K.salt)*(1-Math.exp(-dh/HAZE.slow));
+    K.wash=hazeSnap?0:Math.max(rk,K.wash*Math.exp(-dh/HAZE.washH));hazeSnap=false;
+    const s0=HAZE.dens*K.salt*(WX.hazeK||1)*(1+HAZE.wet*rk)*(1-HAZE.wash*K.wash*(1-rk));MIST_P[0]=s0;MIST_P[1]=s0*HAZE.cl;MIST_W[3]=HAZE.rain*rk;K.vis=3.912/(s0+MIST_W[3]+AIR.ray[1])/1000;}
+  MIST_P[2]=HAZE.spray*K.spray*K.spray*wk*wk*(1+0.8*rk);MIST_P[3]=1/HAZE.sprayH;MIST_W[0]=TIDE;
   // the vog and the fumarole's plume (v11.17.1) are struck (v11.86: the cone is a cold tuff cone — world.js CONE); the third mist layer is the dawn mist's alone now
   // the dawn mist: clear, calm, sheltered water, the hours round sunrise (the sun's altitude in hours: 15 h of night, 360/30 = 12 deg an hour)
   {const hs=Math.asin(clamp(K.sunAlt,-1,1))*180/Math.PI/12,rising=K.sun.x>0;const win=rising?smooth(MIST_DAWN.from,MIST_DAWN.peak,hs)*smooth(MIST_DAWN.to,MIST_DAWN.peak,hs):0; // K.sun.x>0: the sun is east of the meridian (rising; east is +x)
     K.dawn=win*smooth(0.45,0.15,K.cover)*smooth(0.5,0.1,wk)*K.lag*K.lag;}
   MIST_W[1]=MIST_DAWN.dens*K.dawn;MIST_W[2]=1/MIST_DAWN.h;
-  const g=clamp(K.lumL/Math.max(K.skyL,0.02),0,1.2);for(let i=0;i<3;i++)MIST_C[i]=lerp(K.hor[i],0.96*K.tint[i]*K.skyL,HAZE.lift);MIST_C[3]=HAZE.glow*g;}
+  const g=clamp(K.lumL/Math.max(K.skyL,0.02),0,1.2),sh=1-HAZE.shade*rk;for(let i=0;i<3;i++)MIST_C[i]=lerp(K.hor[i],0.96*K.tint[i]*K.skyL,HAZE.lift)*sh;MIST_C[3]=HAZE.glow*g;} // sh (v11.185): the air under a shower's cell is in its shade and scatters less — the curtain's own darkening (shdC's 0.85 − 0.35·rain), now that the haze and the rain fill the view under it
 // The shimmer sprite (v11.6–v11.42.4: an additive glow plane in the light's direction over the surface) is gone in v11.43: the window shows the
 // sun itself, refracted through each facet (SURF_MAT, WATER.md B).
 // Light shafts (v11.13, POLISH.md 3, the person: "as long as it's not forced and is believably based on appropriate water physics").
@@ -666,10 +673,9 @@ let curDepth=-1,wasAbove=null,snapMed=true; // snapMed: the next medium change i
 // One density per medium, both media in every shader (v11.42, the two-segment fog): the sea's sets (big-thing, small-thing, the surface's own —
 // scene.js) and the air's (FOG_A) are written together; the ray decides per fragment. Called every frame in air (the haze thickens with rain), on
 // a crossing, and by the readout's fog tuner (main.js). `above` only scales the air by the rain.
-function applyFog(above){
-  const rk=above?SKY.rainA:0;
+function applyFog(above){ // above: the camera's medium (v11.185: nothing here reads it now — the air's shower is the boundary layer's, updateHaze)
   FOG_P[0]=FOG_PS[0]=FOG_PSURF[0]=SEA_FOG.far;FOG_P[1]=FOG_PSURF[1]=SEA_FOG.share;FOG_PS[1]=SEA_FOG.shareS;FOG_P[2]=FOG_PS[2]=FOG_PSURF[2]=SEA_FOG.placeMix;FOG_P[3]=FOG_PS[3]=1;FOG_PSURF[3]=0;
-  FOG_A[0]=AIR.far*(1+1.0*rk);FOG_A[1]=AIR.share;FOG_A[2]=AIR.dens*(1+1.2*rk);FOG_A[3]=SEA_FOG.dens;
+  FOG_A[0]=AIR.ray[0];FOG_A[1]=AIR.ray[1];FOG_A[2]=AIR.ray[2];FOG_A[3]=SEA_FOG.dens; // v11.185: the clear air's Rayleigh (world.js AIR); a shower thickens the boundary layer instead (updateHaze) — to v11.184 the radial fog ×(1+rain), its Gaussian ×(1+1.2·rain)
   FOG_W[1]=SEA_FOG.bright;FOG_W[2]=SEA_FOG.dlAt;FOG_W[3]=SEA_FOG.reach;LIGHT_K[0]=FX.caustics?SEA_FOG.cau*FX.cauK:0;LIGHT_K[1]=FX.shadows?SEA_FOG.shd:0; // the effects list (effects.js) can zero either
 }
 // The crossing (v11.7). The medium changes in one frame — the camera's side, the surface's look, the fog, the domes and the tint from

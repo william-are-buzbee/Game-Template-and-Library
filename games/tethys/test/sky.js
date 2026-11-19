@@ -6,7 +6,7 @@ const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..');
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
 let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n');
-js+='\nglobal.__sky={weatherAt,CLD_TH,cldThOf,cldTh0,cldN,cldDensity,cloudAt,CLD_S,CLD,CLD_CAPS,FZ0,DAY_H,SOLAR_H0,YEAR_D,seasonAt,SKY,CLOUD_H,camera,player,WX,ISLANDS,HALF,step:__step,SHWR,CELLS,updateCells,WIND_A,updateSky,eyeK,eyeStep,NIGHT_EYE,STARL,setClock:h=>{clockH=h;}};';
+js+='\nglobal.__sky={weatherAt,CLD_TH,cldThOf,cldTh0,cldN,cldDensity,cloudAt,CLD_S,CLD,CLD_CAPS,FZ0,DAY_H,SOLAR_H0,YEAR_D,seasonAt,SKY,CLOUD_H,camera,player,WX,ISLANDS,HALF,step:__step,SHWR,CELLS,updateCells,WIND_A,updateSky,eyeK,eyeStep,NIGHT_EYE,STARL,setClock:h=>{clockH=h;},updateHaze,MIST_P,MIST_W,HAZE,AIR,CLOCK_RATE,snapHaze:()=>{hazeSnap=true;}};';
 const tmp=path.join(require('os').tmpdir(),'tethys_sky_bundle.js');
 fs.writeFileSync(tmp,'(function(){"use strict";\n'+js+'\n})();');
 process.env.PICK='1';
@@ -78,6 +78,23 @@ console.log('the eye');
   ok(lo>=0.1,'the darkest night shown at '+T(lo)+' of noon (v11.158: '+S.STARL+'; v11.159: 0.084)');
   let e=1;for(let i=0;i<80*60;i++)e=S.eyeStep(e,3,1/60);const open=e;for(let i=0;i<5*60;i++)e=S.eyeStep(e,1,1/60);
   ok(Math.abs(open-(1+2*(1-Math.exp(-1))))<0.01,'it opens over E.open: from 1 toward 3, '+T(open)+' after 80 s (a game hour, the retina\'s own)');ok(e<1.8,'and closes in seconds: '+T(e)+' 5 s after the light comes back');}
+// ---------- the air (v11.185, analysis_fog.md §3, §6) ----------
+// the boundary layer's extinction by the weather (atmosphere.js updateHaze; world.js HAZE): the visibility at the water (SKY.vis, Koschmieder's with
+// Rayleigh's green) in the trades, a calm, the windy season, a shower and the hours after it; the salt followed slowly; never NaN
+console.log('the air');
+{const K=S.SKY,W=S.WX,H=S.HAZE,hr=1/S.CLOCK_RATE;S.player.pos.set(0,-10,0);
+  const at=(wind,rain,season,hz)=>{W.season=season;W.hazeK=hz;K.windK=wind;K.rainA=rain;S.updateHaze(1/60,true);return K.vis;};
+  const snap=(wind,rain,season,hz)=>{S.snapHaze();return at(wind,rain,season,hz);};
+  const tr=snap(1,0,0,1),calm=snap(0,0,0,1),wind=snap(1,0,1,1),wet=snap(1,0,-1,1.5);
+  ok(tr>35&&tr<42,'the trades: '+tr.toFixed(1)+' km at the water (an ordinary trade day, 35–40)');
+  ok(calm>60&&calm<75,'a calm: '+calm.toFixed(1)+' km (the whitecaps gone, half the salt)');
+  ok(wind>25&&wind<32,'the windy season\'s trades: '+wind.toFixed(1)+' km');ok(wet<tr,'the still season\'s humid trades: '+wet.toFixed(1)+' km');
+  snap(1,0,0,1);const sh=at(1,1,0,1);ok(sh>4&&sh<8,'a shower at the camera: '+sh.toFixed(1)+' km (the rain '+S.MIST_W[3].toExponential(1)+' /m below its base)');
+  const washed=at(1,0,0,1);for(let i=0;i<16;i++)S.updateHaze(hr,true);const later=K.vis;
+  ok(washed>tr*1.4,'the air washed after it: '+washed.toFixed(1)+' km');ok(later<washed&&later<tr*1.1,'and back to the trades\' within half a day: '+later.toFixed(1)+' km 16 game hours on');
+  snap(1,0,0,1);K.windK=0;S.updateHaze(hr,true);const lag=K.vis;ok(lag>tr&&lag<tr*1.2,'a calm clears the air over hours, not at once: '+lag.toFixed(1)+' km a game hour into it');
+  let nan=0;for(const v of S.MIST_P)if(!(v>=0))nan++;for(const v of S.MIST_W)if(!(v===v))nan++;ok(nan===0,'the haze\'s uniforms finite');
+  ok(S.AIR.ray[2]>S.AIR.ray[1]&&S.AIR.ray[1]>S.AIR.ray[0],'Rayleigh takes blue fastest, then green, then red');}
 // ---------- costs ----------
 {let t0=process.hrtime.bigint();for(let i=0;i<10000;i++)S.cloudAt(i*0.3,-5,i*0.1,{x:0.3,y:0.8,z:0.2});const us=Number(process.hrtime.bigint()-t0)/1e4/1000;
   console.log('  cost: cloudAt '+us.toFixed(2)+' µs');ok(us<20,'the cost is small');}

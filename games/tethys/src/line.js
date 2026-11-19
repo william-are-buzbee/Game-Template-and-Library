@@ -243,7 +243,7 @@ function lineChildren(){const L=lineCur(),out=[];if(!L)return out;
 function lineNext(from){
   for(let k=0;k<20;k++){const cs=lineChildren();if(!cs.length)return null;let best=null,bd=1e18;for(const x of cs){const d=x.p.distanceTo(from);if(d<bd){bd=d;best=x;}}
     if(best.c||best.b.hatched)return best;
-    worldClear();t=Math.max(t,best.b.hatch)+0.01;clockH=t*CLOCK_RATE;TIDE=tideAt(clockH);}
+    worldClear();t=Math.max(t,best.b.hatch)+0.01;clockH=t*CLOCK_RATE;TIDE=tideAt(clockH);hazeSnap=true;}
   return null;}
 function lineContinue(x,cause){ // you are the child now, where and as it is (LINEAGE §4.5): its age, its place, the parent's spec
   const L=lineCur(),b=x.b,spec=b.spec,gs=growS(spec),born=Math.min(b.hatch,t),grown=born+gs;let pos,yaw=player.yaw; // born: the hatch, or now if the clutch hatched early (a dev's hand on the egg's clock; seen v11.74 as an age of −0.35 d)

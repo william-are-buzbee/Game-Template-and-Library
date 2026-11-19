@@ -243,7 +243,7 @@ crest and should be the column's colour — the veil along the refracted ray, as
 - **P6 — the air** (made in v11.64 for the horizon tier: `AIR` is a trade-wind day, dens 0.0009 / share 0.35 / far 0.00003, the far cut lifted in air; the hazy coast's numbers are kept by name in world.js and the look is the person's to judge — CHANGELOG v11.64). `AIR.dens` 0.003 (63% at 333 m) is "a hazy coast" chosen so the world's edge merged into the sky. With P1 the sea ends in
   the sky whatever the density, so the day could be clearer (0.0012–0.0015: visibility ~1 km, the far kelp readable at 800 m) without
   exposing an edge; the island's far terrain at the far plane would then show its cut against the sky and needs the same P1 convergence,
-  which it gets. The person's call — the haze is part of the look.
+  which it gets. The person's call — the haze is part of the look. *Superseded v11.185 (analysis_fog.md; the person, 19 Nov 2026: "physical visibility"): the air is the boundary layer's slab and Rayleigh, no radial fog; the old numbers are in world.js's comment at `AIR`.*
 
 **To ask the person.** (a) A darker sea than the sky at the line — the natural look, P2 — or keep the pale edge? (b) Facets from above:
 P2 makes the swell's rows visible away from the sun, tone-stepped, strongest far off; is that the sea they want, or should the topside stay

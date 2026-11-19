@@ -621,7 +621,7 @@ things — the shimmer, the snow, the player's glow — fade in by `medK` when t
 camera for a quarter of a second — the sky three times too bright at the flip, dimming: the flash on every breach at night (fifth video). v11.7's first cut also mixed the two fogs and faded the sky over the water's dome: the water's veil
 read into the air (its map sampled along rays that point over the void) wrapped the shore in teal on every breach — seen, struck. Boot and a respawn set the medium instantly (`snapMed`). Within a medium fog still drifts as before.
 
-**Sky.** Since v11 the dome is one shader and the sun moves: [The sky](#the-sky). Air fog 0.0024 (v11.45; 0.0030 to v11.44) is a hazy coast; since v11.45 every fragment in air converges to the sky in its own direction with the haze to infinity (`skyFar`, the rule the veil has had since v11.27), so the sea mesh's far edge is the sky and cannot show; before that lowering it
+**Sky.** Since v11 the dome is one shader and the sun moves: [The sky](#the-sky). The air is the boundary layer's haze since v11.185 (The mist above the water, below; v11.45–63 a radial fog of 0.0024, a hazy coast, 0.0030 to v11.44); since v11.45 every fragment in air converges to the sky in its own direction with the haze to infinity (`skyFar`, the rule the veil has had since v11.27), so the sea mesh's far edge is the sky and cannot show; before that lowering it
 for a sharper horizon may expose the sea mesh's far edge; it thickens under rain.
 
 **The shore's foam (v11.169, atmosphere.js `SHORE`, `NEAR_F`, `shoreFoam`; WATER.md Part 4 item 4).** The surf's foam was the breaking excess on the floor map (`vBrk`, ~36 m texels): a band, nothing at a beach's scale. A near map of the ground — the loaded 5×5 cells' own height grids (the terrain mesh's), 241² texels at 4.5 m, −12…+4 m in a byte (`nearBuild`, rebuilt when the player changes cell or a cell loads) — gives the depth d and the floor's slope m under each surface fragment. Two foams, × the place's wave height (the swell × the energy `vDw.y`, the chop × the wind): **the edge**, d under 0.18 m + half the wave height × the run-up (sin of the longest swell's ω: the swash, 9.8 s); **the bores**, inside 1.3× the breaking depth H/0.78, at phase ω·t − 2ω·√d/(m·√g) (a bore runs in at √(g·d): the lines bunch as the water shoals and follow the depth contours, as refraction bends real breakers), sharp at the front and decaying behind (`tail` 5), broken by a value noise, and only where the floor rises (`slope` 0.02–0.07: over a flat, every bump of the depth drew a contour — seen). Topside, and 0.6 of it from below. `shore foam` on the effects list, `strength` (`shoreK`, 0–2).
@@ -756,16 +756,25 @@ scale, the `0.78−0.5` threshold and the `0.30·fz²` rise, the `800·up` cap, 
 **The mist above the water (`HAZE`, `MIST_DAWN`, world.js; `updateHaze`, atmosphere.js; `MIST_GLSL`, scene.js; v11.17; the vog and the fumarole `VOG`/`FUME` struck v11.86 — the cone is a cold tuff cone, World shape).** What the climate
 gives, not a look (the reasoning is a comment at `HAZE`): no sea fog on a warm sea under trade air — fog needs cold water under warm
 air, or cold air over warm water, or land cooling all night, and this planet has none of the three (a fuming vent above water or a
-calm would change that; neither is decided). What there is: the marine haze — sea salt in the boundary layer, a layer on the water
-`HAZE.dens` 1.7e-4 /m at the level over a scale height `HAZE.h` 70 m (rho·H ≈ 0.012: 69% at the horizon's edge, 12% at 6°, 4% at 17°
-on the dome), thicker and taller under a shower (×(1+2.5·rain), ×(1+1.5·rain)); and the surf's **spray**, `HAZE.spray` 0.0025 /m over
+calm would change that; neither is decided). What there is: **the boundary layer's haze** (v11.185, analysis_fog.md; the person, 19 Nov 2026: "physical visibility" and the weather in it) —
+sea salt and sulfate, swollen by the humidity, filling the trades' mixed layer: a slab of `HAZE.dens` 0.9e-4 /m from the water to the cloud base
+(`CLOUD_H` 650), `HAZE.cl` 0.5 of it in the cumulus layer to the inversion (`CLOUD_H + CLOUD_T`, 1,550), nothing above, each edge a ramp over
+±`HAZE.soft` 60 m (scene.js `blF`: the slab's optical depth from the water to a height, exact; `blL` along a ray). With Rayleigh (below) that is
+Koschmieder's 39 km at the water, an ordinary trade day; the column 0.099 (68% at 5° on the dome, 43% at 10°, 9% at the zenith). It moves with the
+weather (atmosphere.js `updateHaze`; `SKY.salt`, `SKY.wash`, `SKY.vis` — the readout's `vis`): the salt is the whitecaps', `HAZE.calm` 0.5 of it in a
+calm and × (1 + `HAZE.season` 0.4 · s) in the windy season, followed over `HAZE.slow` 6 game hours (set at once by a boot, a load, a skip, the run-on to a
+hatch: `hazeSnap`); × weatherAt's `hazeK` (the humidity, 1–1.5); a shower's humidity × (1 + `HAZE.wet` 0.6 · rain); its rain a term of its own,
+`HAZE.rain` 5e-4 /m at full rain (`uMistW.w`, scene.js `rnL`), only below `HAZE.rainH` 420 m (the shower's base) and for at most `HAZE.rainR` 1.5 km of
+a ray (the shaft's width); the haze's light × (1 − `HAZE.shade` 0.4 · rain) under the cell; and after a shower the air washed, × (1 − `HAZE.wash` 0.4)
+fading over `HAZE.washH` 8 game hours. So ~58 km in a calm, ~32 at boot's humid trades, ~6 in a shower. To v11.184 the haze was 1.7e-4 /m over a scale
+height of 70 m (rho·H 0.012) — a film every elevated ray passed over — thicker and taller under a shower; analysis_fog §4 measured what that and the
+radial fog did. And the surf's **spray**, `HAZE.spray` 0.0025 /m over
 `HAZE.sprayH` 4 m × the wave-exposure field at the camera squared (`sample(x,z).f[FI.expo]`, eased over ~1.5 s — the same field that
 places the cones and stirs the sand: a shore is a drift, not an event), × the wind under rain. Every material in air integrates both
 layers along its ray in closed form (`mistRay`: cut at the water level, so the floor seen through the surface counts only its air), the
 dome to infinity (`mistFar`), mixed toward `MIST_C` — the horizon colour lifted 0.3 toward the light's (`tint·skyL`: white by day,
 amber at dusk, blue-grey by moonlight, dark on a moonless night) — glowing toward the luminary by `HAZE.glow` 0.8 × the beam's share
-of the sky's light (a Mie forward peak: the bright horizon under a low sun, the moon's halo). The old air fog (`AIR.dens`, `AIR.far`:
-the two-population radial haze) stands under it: the mist is the *shape* of the horizon, the radial fog the visibility — and its far colour, since v11.45, the dome's own sky in that direction, `skyFar` = `skyLite2(d,0)` (the reduced sky without the deck's mean shade, since the dome's gradient between its clouds is unshaded) mixed toward the haze by `mistFar`; the six shared vec4s `uSkA..uSkF` carry the sky to every material, written by `pushSky`. A third layer (`uMistW.yz`, v11.17.1) carries one local thing (two to v11.85: the **vog**, the cone's fumarole — a steam plume of 96 points off the summit and its SO2 gone to sulfate downwind as a Gaussian plume that greyed and warmed the mist — struck v11.86 with the cone gone cold, World shape): the **dawn mist** (`MIST_DAWN`: a clear calm night's evaporation mist on the lagoon, `lag`² at
+of the sky's light (a Mie forward peak: the bright horizon under a low sun, the moon's halo). Then the **clear air** (v11.185, world.js `AIR.ray`: Rayleigh by channel at the water, 0.63/1.24/2.8e-5 /m for red, green and blue, over the air's 8 km scale height; scene.js `fogAir`'s transmittance a vec3) toward the sky in the ray's direction — on long paths above the haze the blue goes four times faster than the red, so far ridges seen from a summit go blue. It replaced the radial fog (`AIR.dens`, `share`, `far`: a Gaussian near term, 35% of the contrast by 2 km at any height, over clear air; analysis_fog §4). The horizon pass hands `fogAir` the curve's drop at the fragment (`fl`), so the slab follows the planet and the far sea is not taken under it. Its far colour, since v11.45, is the dome's own sky in that direction, `skyFar` = `skyLite2(d,0)` (the reduced sky without the deck's mean shade, since the dome's gradient between its clouds is unshaded) mixed toward the haze by `mistFar`; the six shared vec4s `uSkA..uSkF` carry the sky to every material, written by `pushSky`. A third layer (`uMistW.yz`, v11.17.1) carries one local thing (two to v11.85: the **vog**, the cone's fumarole — a steam plume of 96 points off the summit and its SO2 gone to sulfate downwind as a Gaussian plume that greyed and warmed the mist — struck v11.86 with the cone gone cold, World shape): the **dawn mist** (`MIST_DAWN`: a clear calm night's evaporation mist on the lagoon, `lag`² at
 the camera × cover < 0.45 × wind < 0.5 × the hours round sunrise, 0.02/m over 6 m). **Calms** (`weatherAt().wind`, ~25% of the time)
 cut the wind to 0.15 of the trades, the spray to nothing and the chop (`SEA_CHOP`, `uChop`: the waves under L 20) to a quarter; the
 swell runs on. Under water none of this applies (`uFogP.w`). Uniforms: `uMist` (dens, 1/h, spray, 1/sprayH), `uMistC` (rgb, glow),
@@ -1018,11 +1027,13 @@ the bounded veil (no foreign colour on the horizon), daylight and sun in the vei
 is a real integral of daylight along the ray (the bounded sample is a one-point stand-in); the `WATER` table for the
 deep biomes still mixes tint with darkness.
 
-**The air since v11.64** (world.js `AIR`): dens 0.0009, share 0.35, far 0.00003 — a trade-wind day. The near population is the look (35% of the
-contrast gone by 2 km), the far term clear air (130 km), and the distance's physics is the boundary layer the fog integrates (`HAZE.dens` 1.7e-4 over
-70 m: Koschmieder's 23 km at the water), so a far island's foot is lost in the layer while its summit floats above it. The far cut (`FOG_CUT`) applies
-under water only; in air a fragment keeps its contrast to the far plane (58%) and the horizon tier continues past it. To v11.63: 0.0024 / 0.6 / 0.0018,
-"a hazy coast" of ~1 km, 47% at 300 m — the person's approved look, kept by name in world.js for going back (WATER.md P6).
+**The air since v11.185** (world.js `HAZE`, `AIR`; analysis_fog.md): the boundary layer's slab and the clear air's Rayleigh (The mist above the water,
+above) — from the water ~82% of the contrast at 2 km, ~60% at 5, ~16–20% at 18 (the giant), ~5% at 30; from a hillside inside the layer the same; from
+above the inversion a summit 50 km off keeps ~48%. So the giant and the near neighbours show every day, the shield and the far ones on clear days (GLOBE §7).
+The far cut (`FOG_CUT`) applies under water only; in air a fragment keeps its contrast to the far plane and the horizon tier continues past it. v11.64–184:
+`AIR` dens 0.0009, share 0.35, far 0.00003 over the 70 m layer — 35% of the contrast gone by 2 km at any height, then clear air (from a hillside a flank
+50 km off kept 14%). To v11.63: 0.0024 / 0.6 / 0.0018, "a hazy coast" of ~1 km, 47% at 300 m — the person's approved look of the day (WATER.md P6); the
+numbers to go back to are in world.js's comment at `AIR`.
 
 ## The light
 
