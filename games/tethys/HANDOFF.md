@@ -1,5 +1,12 @@
 # HANDOFF — tethys
 
+**v11.185 (19 Nov 2026): the air as the boundary layer** (world.js `HAZE`, `AIR.ray`; scene.js `blF`, `rnL`, `fogAir`'s `fl`; atmosphere.js `updateHaze`,
+`hazeSnap`; horizon.js; analysis_fog.md §8; DESIGN The mist above the water, The air since v11.185; CHANGELOG). The person's answers of 19 Nov: physical
+visibility, the weather in the haze, the blue of distance. The haze is a slab from the water to the cloud base and, at half, to the inversion — 39 km
+of sight at the water in the trades, ~58 in a calm, ~6 in a shower, washed clearer after one — with Rayleigh by channel over it; the Gaussian near term
+(a third of the contrast by 2 km at any height) is struck. The far islands now show on clear days, not every day. **Ask:** from the giant's flank and
+from the water, does the distance read right; is a calm's clarity a treat or a jolt; does a shower's sky read as rain (`HAZE.rain`, `HAZE.shade`)?
+
 **v11.184 (19 Nov 2026): the strike — the pivot, not the orbit; the lunge to the pass; the arms take hold by touch** (creatures_ai.js `PIVOT`, `pivots`,
 `commit`; combat.js `STRIKE`, `mouthGap`, `landsOn`, `LAND`, `GRIP` `reel`; physics.js `stepRigs`; test/combat.js §19; COMBAT.md §11; DESIGN; CHANGELOG).
 COMBAT.md §11 pass 1 of 4. A hunter beside a slow or still prey stops and turns to face it, then lunges; the lunge runs until the mouth passes; a face that

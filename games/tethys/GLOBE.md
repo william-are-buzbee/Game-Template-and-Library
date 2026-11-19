@@ -48,8 +48,8 @@ andesite with no hotspot at all — the person wants that *size*, not that mecha
 - **The floor between them** is the province's ridge: feet overlapping into saddles at −900 to −1100, the basin floor beyond, the plate at −3800
   (ARCHIPELAGO, SEAFLOOR §4). "Islands that blend together and meld until they extend the floor" is this ridge; the drowned members are its
   high points.
-- **Seen from the water:** a 900 m summit stands above the horizon to ~110 km in clear air; the haze allows 15–30 km on an ordinary day
-  (horizon.js, `AIR`). So "visible" means within ~30 km most days and the great ones on clear days from 60–100. The weather deciding which
+- **Seen from the water:** a 900 m summit stands above the horizon to ~110 km in clear air; the haze allows ~35–40 km at the water on an ordinary day, ~60 in a calm, ~20 in a strong trade
+  (v11.185, world.js `HAZE`; 15–30 km to v11.184). So "visible" means within ~30 km most days and the great ones on clear days from 60–100. The weather deciding which
   peaks show is part of the vibe, not a cost.
 
 **What this revises.** ARCHIPELAGO.md's chain (the giant 18 km SW, the young shield 36, the seamount 50, ages rising NE) becomes one lobe of the

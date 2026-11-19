@@ -1,6 +1,7 @@
 # Fog and haze above the water: what the air does, and what the game's air does (19 Nov 2026)
 
-A believability pass on the fog above the surface, at the person's request. **Nothing built**: §6 is the proposal and §7 the questions.
+A believability pass on the fog above the surface, at the person's request. **Answered 19 Nov 2026 (§8): all five changes, built as v11.185 (1, 2, 4)
+and v11.186 (3, 5).** §6 is the proposal as written before the answers.
 Downstream of `PLANET.md` (11.5° N, a 27 °C sea, Earth's radius and air, the trades), `CLOUDS.md` (the cloud base at 650 m, the inversion at
 ~1,550) and `GLOBE.md` §7 (what is visible from where); it audits DESIGN "The mist above the water" and "The air since v11.64" (world.js
 `HAZE`, `AIR`; scene.js `MIST_GLSL`, `fogAir`, `skyFar`). The water's own veil is a different medium and is not in question here.
@@ -199,7 +200,7 @@ the giant from the water (−7700, 6000), its lee at 420 m (−18714, 8086), its
 0.65), its cap at 843 m (−14484, 9621). Not tuned: the dome's band is σ₀·~1,100 m thick now against 0.012, and its gradient (`uHor`) was
 painted for the thin one; a build would look at the low sky before anything else.
 
-## 7. Open — the person's
+## 7. Open — the person's (answered, §8)
 
 1. **The ordinary day.** Physical (~35–40 km at the water: the giant and the near neighbours every day, the shield and the far ones on clear
    days — GLOBE §7's own words, "within ~30 km most days and the great ones on clear days from 60–100"), or today's (the far islands always
@@ -207,3 +208,17 @@ painted for the thin one; a build would look at the low sky before anything else
 2. **Weather in the haze** (item 2): should the distance change from day to day?
 3. **Fog inside the cloud** (item 3): the giant's windward slope above 650 m in fog most afternoons — wanted?
 4. **The blue of distance** (item 4) and **the caldera's night fog** (item 5): worth it?
+
+## 8. The person's answers (19 Nov 2026)
+
+> "1. For now, let's go with physical visibility. We can make them more noticeable later if believability does not sit well. 2. Yes absolutely,
+> that's accurate and believable. 3. Of course, that sounds very accurate. 4. Yes please."
+
+1. **The ordinary day is physical**: ~35–40 km at the water; the far islands on clear days. To revisit if it does not sit well — the knob is
+   `HAZE.dens` (and `HAZE.calm` for how clear a calm is).
+2. **The weather drives the haze** — built as v11.185 with item 1 and the blue of distance (item 4): world.js `HAZE`, `AIR.ray`; scene.js `blF`,
+   `rnL`, `fogAir`; atmosphere.js `updateHaze`. Two things the prototype did not have, found in the build: the rain as a term of its own (below the
+   shower's base and only across its shaft — as a share of the slab it greyed the whole sky to the zenith) and the haze's light dimmed under the
+   cell (the bright horizon colour washed out the shower's dark base).
+3. **Fog inside the cloud**, and 5, **the night fog in the craters** — v11.186.
+
