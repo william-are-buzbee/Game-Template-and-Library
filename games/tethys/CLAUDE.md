@@ -316,8 +316,9 @@ Docs, most upstream first. When a doc's Open list says a choice is the person's,
 - **Randomness.** `mulberry(seed)` wherever the world must persist (cells by index, species by `hashStr(id)`, landmarks 4242,
   noise 1337; the cairns' 4343 went with them in v11.95). `Math.random` only for animation and particles.
 - **Units and frames.** 1 unit = 1 m, `GRAV` 9.8, y up, sea level 0, east +x, north −z, angles in radians from +x toward +z.
-  **All creatures face +z.** An arms or claws predator's `reach` must exceed the contact distance of its and its prey's hit capsules or it can
-  never land a bite; a jaw's bite is its mouth touching a capsule (v11.92, combat.js `mouthOn`), and its `reach` is only the strike range's floor. A day is 30 game hours in 40 real minutes; rates are per game day.
+  **All creatures face +z.** A claws predator's `reach` (and an arms predator's past the near LOD) must exceed the contact distance of its and its prey's hit
+  capsules or it can never land a bite; a jaw's bite is its mouth touching a capsule (v11.92, combat.js `mouthOn`), and its `reach` is only the strike range's floor;
+  near the player an arms predator takes hold when two of its arms touch the prey (v11.184, `landsOn`, `LAND`). A day is 30 game hours in 40 real minutes; rates are per game day.
 - **An animation's beat is a `swimClock`, never `t*f(spd)`** — `t` is the session clock and `t*f` spins on every change of speed.
 - **Determinism, one scope, one library.** The library is `@wb/core` (`WB`, vendored; above), and nothing else. The bundle is one IIFE; any file may use any name from any file; `grep -n name src/*.js`
   finds uses — and a top-level name must be unique across the files: a second declaration replaces the first without a word (lint fails on it since v11.53). No `OrbitControls`, no `BufferGeometryUtils`; parts.js has its own merge.

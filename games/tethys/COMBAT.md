@@ -1,6 +1,6 @@
 # COMBAT.md — injury as states, not numbers
 
-**Status: designed and built in full 15 Sep 2026 (passes 1, 2, 4, 3: v11.54–v11.57); §10 passes A–B built v11.91–92 (24 Sep 2026)** (pass 1: the edge and the covering read off the spec, the hold knows what it is on, no capsule past the nose; pass 2: no hit points — the gape, the pin and the placed act, wounds that bleed and slow, paralysis and the sting, autotomy, death ends the slot's animal; pass 4: hunters read blood, the strike's miss rule, injuries in the save, the poison by feeding; pass 3: the wound as a spec edit — a tail torn off, the body re-derived, the stump and the regrowth; the numbers in DESIGN Combat). §7 has what the matrix found; §8 the passes as built. **§10 (24 Sep 2026): the physics pass — A and B built v11.91–92, C–D designed** — the person's report after hours as the finback, the cause of each point in the code, and passes A–D (the wound and the blood; contact and the hold; the edge's work; predator behaviour); it strikes §4's "bleeding never kills", `MISS`, `PIN.t`, the reach sphere and the verdict table. Replaces the hit-point half of v11.31 (DESIGN Combat): the hold, the rope, the struggle by
+**Status: designed and built in full 15 Sep 2026 (passes 1, 2, 4, 3: v11.54–v11.57); §10 passes A–C built v11.91–93 (24–25 Sep 2026); §11 (19 Nov 2026) the hunt as it plays — pass 1 built v11.184, passes 2–4 designed** (pass 1: the edge and the covering read off the spec, the hold knows what it is on, no capsule past the nose; pass 2: no hit points — the gape, the pin and the placed act, wounds that bleed and slow, paralysis and the sting, autotomy, death ends the slot's animal; pass 4: hunters read blood, the strike's miss rule, injuries in the save, the poison by feeding; pass 3: the wound as a spec edit — a tail torn off, the body re-derived, the stump and the regrowth; the numbers in DESIGN Combat). §7 has what the matrix found; §8 the passes as built. **§10 (24 Sep 2026): the physics pass — A and B built v11.91–92, C–D designed** — the person's report after hours as the finback, the cause of each point in the code, and passes A–D (the wound and the blood; contact and the hold; the edge's work; predator behaviour); it strikes §4's "bleeding never kills", `MISS`, `PIN.t`, the reach sphere and the verdict table. Replaces the hit-point half of v11.31 (DESIGN Combat): the hold, the rope, the struggle by
 mass, the blood and the debris stay; `hp`, `dmg`, the bite clock's damage share and the bleed-as-hp-loss go. The person's ask, in
 their words: "instead of taking damage from a skewer, you are actually physically skewered, and die"; "instead of taking damage from a
 bite, you mostly just die from the bite"; dismemberment; "a realistic and believable combat system that is as scary and freaky as real
@@ -492,3 +492,73 @@ budget's price, and taking `cut` is what the sawmouths did — the rows the line
 parallel origin of the saw, small because the tissue is there (deep homology; Earth grew teeth from denticles the same way more than
 once). The line that takes it is its own family from then on: a sawmouth by descent from a finback, which the bestiary can say. `point`
 is the needle's step, the same price. Nothing on the roster changes by default, and no sub-clade is declared — a lineage is.
+
+## 11. The hunt as it plays (19 Nov 2026; pass 1 built v11.184, passes 2–4 designed)
+
+The person, after hunting and being hunted since pass C: the mouthparts "fly open against the current" when an animal opens its mouth to eat;
+hunters bump into you and miss; the ortho has you stand still, and still misses, unless you swim into it "like a hug", its tentacles glitching
+through you — though it is "the most functional feeling animal, as it latches you then bites"; and since the chase was made to track, a circle:
+a hunter aggros, beelines, and you live as long as you sprint straight and die if you turn; or it gets close and cannot come round to eat you, and
+orbits you for ever ("especially bad or funny if you have your tail eaten and the thing can't finish you off"). Which animals: the ridge for the
+petals blown back, the ortho for the tentacles through you, both for the circling.
+
+### 11.1 What the code does (measured headlessly against a finback holding still, v11.183)
+
+| hunter | what it did |
+|---|---|
+| ortho, starting 6 m beside you | 40 s: no strike, 6.7 laps round you |
+| sickle, the same | 40 s: no strike, 4.9 laps |
+| ridge, after its first miss | in and out every ~7 s, 7–11 m off; no second strike in 30 s |
+| eel | 12–16 lunges in 40 s, 11–15 of them missed |
+
+1. **The orbit, arms and claws.** The chase aims at you and turns at a fixed rate; within about one turning radius and beside it, you are the
+   centre of its turning circle and it laps you. It commits only with you within 57° of its nose (`STRIKE.face`), which never comes.
+2. **The orbit, jaws.** `approachPt`'s run-up was decided afresh every frame: closer than 0.9 of the run-up distance with you off its nose, it
+   swam straight away; past it, it turned in. Its turning circle is about the run-up's size, so every turn-in crossed back inside before you
+   were in front of it.
+3. **The lunge stopped short.** `STRIKE.dur` 0.6 s, committed from up to 8 m centre to centre (`strikeRange`, which counts the prey's longest
+   extent) and starting braked and turning: every eel miss but one ended with its mouth 0.9–2.9 m from the skin. test/combat.js §3 had
+   recorded it in v11.120.2: the eel "misses a finback at rest for the whole minute".
+4. **The petals as a bumper.** They are solid chains longer than the mouth's sphere (1.55 m against 0.89 on the ridge; 3.5 against 1.76 on the
+   abyssal), and the player was pushed out of every hunter's solid chains unless already held: the petals shoved you off the bite.
+5. **The ortho's hug.** Its bite landed on the centres' distance, not on its arms touching you; every arm reaches for your centre; and the
+   same push shoved you out of arms reaching for you. Head-on against a still player it took hold in 1.1 s; from the side, never.
+6. **The petals fly open.** At the commit `st.strike` steps 0 → 1 in a frame; the tips snap open at 23 m/s against the head while the body
+   swims at 8.5, then stay open for the whole lunge — 6 m and more at 10–13 m/s. A chain feels no water: its drag is against the body's own
+   travel, so a flap held open at speed feels nothing.
+7. **Clipping in the hold.** The joint is one point and free to swing, and the pair's bodies do not collide (physics.js `resolveBodies`): the
+   shake, the roll and the struggle swing the held body through the holder's head.
+8. **The beeline.** Against the player `chaseK` is 1 and `ECO_CHASE` does not apply: every hunter chases at its cruise (8–9.5 m/s) for as long
+   as you stay inside its detect × 1.6, and the finback sprints at 10.7. Straight is an escape; a turn lets the intercept cut the corner. The
+   sprint (16.6 m/s on the ridge) exists only in the lunge.
+
+### 11.2 The passes
+
+- **Pass 1 — the strike** (points 1–5) — **built v11.184.** *The pivot:* a hunter close to a prey that is off its nose and slow (within
+  `PIVOT.k` turning radii; under `PIVOT.fast` of its speed) stops and turns to face it — the body brakes to a crawl at a station a mouth's
+  distance off and the head comes round at `PIVOT.rate` × its turn rate — then commits; a fast prey leaves the turning circle by itself and is
+  chased as before, and a miss's coast is the pass. The run-up point is struck. *The lunge* runs until the mouth has gone past the prey along
+  its path (its gap to the skin `STRIKE.pass` past its least) or `STRIKE.dur`, and a jaw commits on the mouth's gap to the skin, not the centres'. A lunge from a
+  hover starts where the nose points. *The head homes* in the last `STRIKE.home` s, within `STRIKE.homeCone` of the line it travels: dodging
+  still works, by more than the head can turn. *What you see is the bite:* the face that runs into the prey (a contact within `STRIKE.bump` of
+  the nose), or the mouth's sphere as before; arms take hold when `LAND.arms` of them touch it, or at their reach as before, and a grip taken
+  at the limbs' reach reels the prey in (`GRIP` `reel`) rather than snapping it to the mouth in a frame. The petals touching are not a bite
+  (tried: a ridge passing a grazer 1.6 m off its mouth had three of six on it). A
+  hunter's limbs reaching for the player no longer shove the player out of themselves (the limbs are pushed off the body instead).
+- **Pass 2 — the petals** (point 6): shut through the run and opened over the last ~0.15 s before contact, by the time to contact (suction
+  feeders open at the very end); the pose eased, as the jet ring was in v11.93.2; how far they open cut by the flow (a flap's load goes as v²),
+  so they flare as the body stops on the impact.
+- **Pass 3 — latching** (point 7, and §10.9 note d): a swing limit on the joint — the held body kept in a cone ahead of the jaws, the pair
+  colliding everywhere but the mouth and the held capsule; each arm aiming for its own point on the far side of the held capsule, by its angle
+  on the ring, so contact wraps it round the body.
+- **Pass 4 — the chase** (point 8): a pursuit paid from the clade's stamina (`STAMINA`): a few seconds at the sprint, then tired, then gone.
+  A ridge outruns you for 3–4 s; the escape is the hard turn as it commits (its 7.7 m turning circle overshoots you) or outlasting its burst.
+  The cruise speeds stay.
+
+### 11.3 The person's answers (19 Nov 2026)
+
+1. **Hunters may outrun you in a short burst** (pass 4): "Yeah that's totally fine."
+2. **Close and beside you, the pivot** — at low speed for everything; the pass only for prey that is moving fast: "Yeah that works for now.
+   Good idea."
+3. **Which animals:** the ridge for the mouthparts blown back when it swims with its mouth open to eat you; the ortho for the tentacles through
+   you; both for the circling.

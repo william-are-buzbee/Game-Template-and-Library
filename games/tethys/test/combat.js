@@ -8,7 +8,7 @@ const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..');
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
 let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n');
-js+='\nglobal.__cb={NCELL,chunkIJ,fxStats,peak(){player.pos.set(0,dispY,0);cellsAround();},groundAt,cellOf,creatures,carcasses,player,DEFS,SPAWN,spawn,choose,V3,keys,holds,GRIP,startHold,releaseHold,playerGrab,playerBite,updateHolds,cutAt,openWound,biteOn,bruise,blow,BLOOD,bloodK,VITAL,SEVER,EDGE_RHO,rhoOf,pointDepth,kgOf,kgOfBody,smellR,get blLive(){return blLive;},updateBlood,updateWounds,updateCreatures,updatePlayer,finishPlayer,bodies,updateSchools,get mode(){return mode;},get t(){return t;},setT:(v)=>{t=v;},massOf,cladeOf,gripOf,localToWorld,removeCreature,ECO,setWander,bodyExt,reachOf,BITE_M,ability,CLADES,EDGE_K,COVER_T,thruK,STAMINA,SHAKE,SPIN,PULL,SWALLOW,SUBDUE,stamK,stamOf,lengthOf,holderWork,conceivePrice,WHOLE,BLEED_T,STING,slowOf,envenom,SMELL_R,STRIKE,mouthOn,landsOn,aimAt,worldToLocal,swallows,get frameNo(){return frameNo;},seekTurn,POISON,kill,sicken,findBleeding,AUTOTOMY,DAY_S,LOSE,updateStates,edgeOf,coverAt,thruOf,bodyPointNear,freshShapes,get bpIdx(){return bpIdx;},worldShapes,VARY,MOULT,KIND_GEO,coatClassAt,coatChem,PAL,sheds,moult,harden,findPrey,FI,RAM,chunkAt,mulberry,injuriesLoad,faceQ};';
+js+='\nglobal.__cb={NCELL,chunkIJ,fxStats,peak(){player.pos.set(0,dispY,0);cellsAround();},groundAt,cellOf,creatures,carcasses,player,DEFS,SPAWN,spawn,choose,V3,keys,holds,GRIP,startHold,releaseHold,playerGrab,playerBite,updateHolds,cutAt,openWound,biteOn,bruise,blow,BLOOD,bloodK,VITAL,SEVER,EDGE_RHO,rhoOf,pointDepth,kgOf,kgOfBody,smellR,get blLive(){return blLive;},updateBlood,updateWounds,updateCreatures,updatePlayer,finishPlayer,bodies,updateSchools,get mode(){return mode;},get t(){return t;},setT:(v)=>{t=v;},massOf,cladeOf,gripOf,localToWorld,removeCreature,ECO,setWander,bodyExt,reachOf,BITE_M,ability,CLADES,EDGE_K,COVER_T,thruK,STAMINA,SHAKE,SPIN,PULL,SWALLOW,SUBDUE,stamK,stamOf,lengthOf,holderWork,conceivePrice,WHOLE,BLEED_T,STING,slowOf,envenom,SMELL_R,STRIKE,mouthOn,landsOn,aimAt,worldToLocal,swallows,get frameNo(){return frameNo;},seekTurn,POISON,kill,sicken,findBleeding,AUTOTOMY,DAY_S,LOSE,updateStates,edgeOf,coverAt,thruOf,bodyPointNear,freshShapes,get bpIdx(){return bpIdx;},worldShapes,VARY,MOULT,KIND_GEO,coatClassAt,coatChem,PAL,sheds,moult,harden,findPrey,FI,RAM,chunkAt,mulberry,injuriesLoad,faceQ,losePart,PIVOT};';
 const tmp=path.join(require('os').tmpdir(),'tethys_combat.js');
 fs.writeFileSync(tmp,'(function(){"use strict";\n'+js+'\n})();');
 process.env.PICK='0';
@@ -382,10 +382,10 @@ const groundY=-12;
   for(const kind of ['ortho','ridge']){clearAll();P.pos.set(0,-30,30);P.vel.set(0,0,0);P.dead=false;P.cause='';P.blood=0;P.wounds=null;P.bleed=0;P.eaten=0;P.yaw=P.byaw=Math.PI;
     const onP=kind==='ortho',prey=onP?P:put('grazer',X.V3(0,-30,30),'wander');if(!onP){prey.vel.set(0,0,0);prey.g.quaternion.setFromAxisAngle(X.V3(0,1,0),0);P.pos.set(12,-30,30);}
     const c=put(kind,X.V3(0,-30,30+(X.DEFS[kind].size+2)*0.5+1.5),'chase',prey);c.hunger=1;c.g.quaternion.setFromAxisAngle(X.V3(0,1,0),Math.PI);let formed=-1,drift=0,th0=null,last=null,frames=0,maxD=0,shook=0; // close and facing the prey, as the table places its hunters
-    for(let i=0;i<60*14;i++){if(i===36&&onP){X.keys.KeyW=true;X.keys.ShiftLeft=true;}frame();if(!onP){prey.threat=P.pos;prey.alarm=2.5;}if(!(c.hold&&c.hold.b===prey))last=null;if(c.hold&&c.hold.b===prey){if(formed<0)formed=i;const th=Math.atan2(c.pos.x-prey.pos.x,c.pos.z-prey.pos.z);if(th0===null)th0=th;if(last!==null){let d=th-last;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;drift+=d;}last=th;frames++;if(Math.abs(c.shakeYaw||0)>0.2)shook++;const A=X.localToWorld(c,c.hold.la,X.V3()),B=X.localToWorld(prey,c.hold.lb,X.V3());maxD=Math.max(maxD,A.distanceTo(B));if(frames>=240)break;}if(P.cause||(!onP&&!prey.alive))break;}
+    for(let i=0;i<60*14;i++){if(i===36&&onP){X.keys.KeyW=true;X.keys.ShiftLeft=true;}frame();if(!onP){prey.threat=P.pos;prey.alarm=2.5;}if(!(c.hold&&c.hold.b===prey))last=null;if(c.hold&&c.hold.b===prey){if(formed<0)formed=i;const th=Math.atan2(c.pos.x-prey.pos.x,c.pos.z-prey.pos.z);if(th0===null)th0=th;if(last!==null){let d=th-last;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;drift+=d;}last=th;frames++;if(Math.abs(c.shakeYaw||0)>0.2)shook++;const A=X.localToWorld(c,c.hold.la,X.V3()),B=X.localToWorld(prey,c.hold.lb,X.V3());maxD=Math.max(maxD,A.distanceTo(B)-c.hold.len);if(frames>=240)break;}if(P.cause||(!onP&&!prey.alive))break;}
     X.keys.KeyW=false;X.keys.ShiftLeft=false;const ended=onP?P.cause:(!prey.alive?'dead':'');
     check(formed>=0&&(frames>=120||ended)&&Math.abs(drift)<1.2,'the '+kind+' takes the '+(onP?'thrashing finback':'fleeing grazer')+' and does not orbit it: '+(formed>=0?(drift*180/Math.PI).toFixed(0)+'° net drift about it in '+(frames/60).toFixed(1)+' s of the hold':'no hold')+(ended?' (then: '+ended+')':''));
-    check(maxD<0.35,'and the joint holds: the grip and the struck point never part by more than 0.35 m (max '+maxD.toFixed(2)+')');
+    check(maxD<0.35,'and the joint holds: the grip and the struck point never part by more than 0.35 m past the reel (v11.184: a grip taken at the limbs\' reach draws the held in at GRIP reel; max '+maxD.toFixed(2)+')');
     if(!onP)check(shook>frames*0.3,'and the ridge shakes its head holding it: the yaw past 0.2 rad on '+shook+' of '+frames+' frames (SHAKE.amp '+X.SHAKE.amp+', '+(X.SHAKE.hz*Math.sqrt(X.SHAKE.ref/X.DEFS.ridge.size)).toFixed(2)+' Hz)');
     P.dead=false;P.cause='';P.blood=0;P.wounds=null;P.bleed=0;P.eaten=0;P.stam=1;}
   // the petals to the surface: a ridge holding a grazer off its axis — no mouth tentacle's tip behind its root, none pulled through its own head
@@ -459,6 +459,26 @@ const groundY=-12;
     const pr=X.conceivePrice(parent,child),it=pr.items.find(x=>/mouth's edge/.test(x.what));
     check(!!it&&it.cost===1.5&&/sawmouths/.test(it.what)&&pr.total<3,'the finback\'s child with a cutting edge: "'+(it?it.what:'-')+'" at '+(it?it.cost:'-')+' of the founder\'s 3 (COMBAT.md §10.10: the sawmouths\' step, a third origin of the saw)');}
   P.dead=false;P.cause='';P.stam=1;
+}
+// ---- 19. COMBAT.md §11 pass 1 (v11.184): the pivot, not the orbit; the lunge to the closest approach; the arms take hold by touch ----
+// Every hunter of the player against a finback holding still 6 m beside it, facing the same way. To v11.183 the ortho went round it 6.7 times in 40 s and the
+// sickle 4.9 without a strike (pure pursuit: the prey at the centre of the turning circle), the ridge swam in and out every ~7 s after its first miss (the
+// run-up decided afresh each frame) and the eel missed it 11 times in 12 (a 0.6 s lunge committed from too far). And the person's case (19 Nov 2026): the
+// finback with its tail gone, crawling away, and a ridge or an ortho that "can't finish you off"
+{
+  const run=(kind,crawl,secs)=>{clearAll();choose(1);P.pos.set(0,-30,30);P.vel.set(0,0,0);P.dead=false;P.cause='';P.blood=0;P.wounds=null;P.bleed=0;P.eaten=0;P.stam=1;
+    if(crawl)X.losePart(P,P.clade.spec.parts.findIndex(p=>p.kind==='tail'),null,P.pos,true);
+    frame();const c=put(kind,X.V3(P.pos.x+6,P.pos.y,P.pos.z),'chase',P);c.hunger=1;if(crawl)X.keys.KeyW=true; // beside it, both facing +z
+    let taken=-1,laps=0,last=null;
+    for(let i=0;i<60*secs;i++){frame();if((c.hold&&c.hold.b===P)||P.cause){taken=i;break;}const th=Math.atan2(c.pos.z-P.pos.z,c.pos.x-P.pos.x);if(last!==null){let d=th-last;while(d>Math.PI)d-=2*Math.PI;while(d<-Math.PI)d+=2*Math.PI;laps+=d;}last=th;}
+    X.keys.KeyW=false;const out={taken:taken<0?-1:taken*dt,laps:Math.abs(laps)/(2*Math.PI),misses:c.missN||0,how:P.cause||(c.hold?'held':'-'),speedK:P.speedK};
+    P.dead=false;P.cause='';P.blood=0;P.wounds=null;P.bleed=0;P.eaten=0;P.lost=null;P.live=null;P.speedK=1;P.turnK=1;P.stam=1;choose(1);clearAll();return out;};
+  const say=(k,r)=>k.padEnd(8)+(r.taken<0?'not taken':'taken at '+r.taken.toFixed(1)+' s ('+r.how+')')+', '+r.laps.toFixed(2)+' laps round it, '+r.misses+' missed';
+  console.log('  a finback holding still 6 m beside each hunter of the player (PIVOT k '+X.PIVOT.k+', crawl '+X.PIVOT.crawl+'; STRIKE.dur '+X.STRIKE.dur+' s to the closest approach):');
+  let bad=[];for(const k of ['ridge','abyssal','eel','basker','crusher','ortho','sickle','hood','lash']){const r=run(k,false,12);console.log('    '+say(k,r));if(r.taken<0||r.taken>8||r.laps>0.5||r.misses>1)bad.push(k);}
+  check(!bad.length,'every hunter of the player takes a finback holding still beside it within 8 s, under half a lap round it and at most one miss'+(bad.length?' — not: '+bad.join(', '):''));
+  for(const k of ['ridge','ortho']){const r=run(k,true,20);console.log('    tail gone (speedK '+r.speedK.toFixed(2)+'), crawling: '+say(k,r));
+    check(r.taken>=0&&r.laps<1,'the '+k+' finishes a finback crawling without its tail, not orbiting it ('+(r.taken<0?'not taken in 20 s':r.taken.toFixed(1)+' s')+', '+r.laps.toFixed(2)+' laps)');}
 }
 let nanH=0;for(const h of X.holds)for(const v of [h.len,h.load,h.pull])if(!isFinite(v))nanH++;
 check(nanH===0,'no NaN in any hold');

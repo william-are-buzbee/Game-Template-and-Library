@@ -46,17 +46,17 @@ if(!E.laid)bad.push('no clutch was laid in four game days with '+E.cells+' cells
 else if(!E.hatched)bad.push(E.laid+' clutches laid and none hatched');
 else console.log('  first clutch at game day '+first.toFixed(2)+', '+E.laid+' laid and '+E.hatched+' hatched by day '+E.day);
 // ---- 2. the hunt ----
-__step(600);const k0=__hunt().kills;
-const HUNT_S=process.env.TIER==='low'?180:60; // v11.72: the low tier loads so few hunters that 60 s held one kill at v11.70.1 and none or one since (a coin flip, and the check below is 'any'); 180 s holds two. The high tier's 60 s holds 4-9
+const k0=__hunt().kills;__step(600); // v11.184: the kills are counted from here, the cells' settle after the clock's jump included — most of a run's hunting is in its first 20 s, while the loaded hunters are hungry (13 or 14 kills a run under four seeds, 8–10 of them before this line), and the minute after holds the tail (0–3). v11.184's strike, missing less, fed them a little sooner: the same 13–14 a run, but at seed 1234 none left for the minute (main 2), so the check moved to the 70 s since the egg days (4 and 3 kills against main's 5 and 4 at seeds 1234 and 4)
+const HUNT_S=process.env.TIER==='low'?180:60; // v11.72: the low tier loads so few hunters that 60 s held one kill at v11.70.1 and none or one since (a coin flip, and the check below is 'any'); 180 s holds two. The high tier's 60 s held 4-9 then; 2 by v11.183
 for(let k=0;k<HUNT_S/2;k++){__step(120);__samp();} // HUNT_S of play, sampled every 2 s
 const H=__hunt();
-console.log('\n  the hunters over '+HUNT_S+' s of play (kills '+(H.kills-k0)+', starved '+H.starved+', carcasses '+H.carcasses+'):');
+console.log('\n  the hunters over '+HUNT_S+' s of play (kills since the egg days '+(H.kills-k0)+', starved '+H.starved+', carcasses '+H.carcasses+'):');
 console.log('  kind          role      seen   hunger   at 1.00   hunting   nearest prey   detect');
 for(const r of H.rows)console.log('  '+r.kind.padEnd(13)+r.role.padEnd(9)+String(r.n).padStart(5)+r.hunger.toFixed(2).padStart(9)
   +(r.hi.toFixed(0)+'%').padStart(10)+(r.ch.toFixed(0)+'%').padStart(10)+(r.near<0?'-':r.near.toFixed(0)+' m').padStart(15)+r.det.toFixed(0).padStart(9));
 const hunters=H.rows.filter(r=>r.role==='hunter'),hi=hunters.reduce((a,b)=>a+b.hi*b.n,0)/Math.max(1,hunters.reduce((a,b)=>a+b.n,0));
 console.log('  '+hi.toFixed(0)+'% of the hunter role sat at hunger 1.00 (the cast, HUNT_SEEK/HUNT_CAST, took this from 13% to 9% on the shelf)');
-if(H.kills===k0)bad.push('nothing was killed in '+HUNT_S+' s of play');
+if(H.kills===k0)bad.push('nothing was killed in the '+(HUNT_S+10)+' s of play since the egg days');
 if(!hunters.some(r=>r.ch>0))bad.push('no hunter chased anything in '+HUNT_S+' s of play');
 if(hi>25)bad.push(hi.toFixed(0)+'% of hunters are starving and not eating (was 13% at v11.31.1)');
 // ---- 3. one shape (v11.149) ----

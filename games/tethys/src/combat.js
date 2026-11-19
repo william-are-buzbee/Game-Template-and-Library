@@ -42,11 +42,13 @@ const holds=[]; // {a: holder, b: held, K: GRIP[kind], la: the grip in a's frame
 // per kg^(2/3); the claws' lever is the strongest per section, the arms the weakest. v11.92: the joint takes the held body's whole thrust off it every frame —
 // a fresh finback from rest is 3 g, 55 kN — so k is five times v11.91's: an eel holds a fresh finback for seconds, not for good; the stamina that makes the
 // struggle fade is pass C); cd: seconds between bites in the hold; slow: what the held
-// player's swimming speed is multiplied by (arms round you slow you most); shake: the jerk (m/s) a bite gives the held
+// player's swimming speed is multiplied by (arms round you slow you most); shake: the jerk (m/s) a bite gives the held; reel (v11.184, COMBAT.md §11): m/s a
+// hunter's grip taken at its limbs' reach (the petals or the arms closing on the body: landsOn) draws the held in to the grip's point — to v11.183 the joint
+// closed the whole gap in one frame, which a grip taken at the centres' distance never asked of it
 const GRIP={
-  jaw:{k:450,cd:1.5,slow:0.75,shake:2.5},
-  arms:{k:350,cd:0.9,slow:0.55,shake:0.8},
-  claws:{k:650,cd:0.7,slow:0.7,shake:1.2}
+  jaw:{k:450,cd:1.5,slow:0.75,shake:2.5,reel:5},
+  arms:{k:350,cd:0.9,slow:0.55,shake:0.8,reel:2},
+  claws:{k:650,cd:0.7,slow:0.7,shake:1.2,reel:4}
 };
 // The edge against the covering (v11.54 as a table; v11.93, COMBAT.md §10.5, pass C: physics). A body's edge and the covering of each of its hit capsules are
 // read off its spec by compile (b.edge, b.cover, b.gape); a hold records the capsule it took (h.ci), the covering there and the verdict (h.k, h.thru). An
@@ -107,12 +109,19 @@ const AUTOTOMY={keep:2,regrow:5,cool:6}; // a ringmouth drops a held arm (never 
 const LOSE={cool:4,flee:12,parts:{tail:1,fins:1}}; // pass 3 (v11.57, COMBAT.md §2): a part torn off instead of the life — which parts a hold can take (the ones with their own capsule: the tail), the hunter's moment with its mouthful, how long a crippled hunter flees
 // pass 4 (v11.56, COMBAT.md §4–5): the trail, the miss, the poison
 const SMELL_R=90; // m: a hungry hunter takes a bleeding body it eats as its target this far off, past its detect — the wound you survived is what brings the next hunter. v11.91: for a wound at BLOOD.qRef; by the square root of the rate, at most twice
-// the strike (v11.92, COMBAT.md §10.3, pass B — contact, not reach). dur: the committed lunge, s — the heading locked on the point aimed, a burst at the sprint; steer: the turn rate's
+// the strike (v11.92, COMBAT.md §10.3, pass B — contact, not reach). dur: the committed lunge's longest, s (v11.184, below) — the heading locked on the point aimed, a burst at the sprint; steer: the turn rate's
 // share in it (it overshoots a late dodge and comes round on its turning radius); coast: s it coasts past on a miss before the chase resumes; cool: bite cooldowns a miss costs;
 // slack: the mouth's sphere as a multiple of the gape (prey deform, the jaws close a little past the mouth); suck: a plain jaw's (hold petals: suction) reach in gapes for what it
 // can swallow — the only reach an engulfer has; cone: cos of the half-angle ahead the mouth bites within; lead: s of the prey's velocity the chase aims ahead, at most;
 // range: s of the sprint the commit is judged over (strikeRange). MISS (v11.56–91), the dodge across the strike's line as a rule, is gone: the miss is geometry
-const STRIKE={dur:0.6,steer:0.5,coast:0.5,cool:1.5,slack:1.3,suck:2,cone:0.5,lead:0.8,range:0.3,face:0.55,runup:5}; // face: cos of the angle within which the prey must be ahead for a hunter to commit (or a striker to cock); runup: m past the mouth's distance a jaw hunter backs off to when its prey is beside it, to come at it again
+// v11.184 (COMBAT.md §11, pass 1): the lunge runs until the mouth has passed the prey — gone past it along its path, its gap to the skin pass m past the least it
+// reached, after min s —
+// or dur s (to v11.183 a fixed 0.6 s, which ran out 1–2 m short of a finback holding still: the eel missed it 11 times in 12); a jaw commits on the mouth's gap
+// to the skin (strikeReach) and not the centres'; home: s to contact inside which the head turns onto the prey, by at most homeCone (cos) off the line it travels
+// (the lunge's path stays committed: a dodge wider than the head can turn still escapes); bump: cos of the cone about the nose within which a face that runs
+// into the prey bites it. runup (v11.92–183: m past the mouth a jaw hunter swam out to when its prey was beside it, then round) is struck — decided afresh
+// every frame it was the jaws' orbit; the pivot is the answer (creatures_ai.js PIVOT)
+const STRIKE={dur:1.2,min:0.3,pass:0.15,home:0.15,homeCone:0.97,bump:0.34,steer:0.5,coast:0.5,cool:1.5,slack:1.3,suck:2,cone:0.5,lead:0.8,range:0.3,face:0.55}; // face: cos of the angle within which the prey must be ahead for a hunter to commit (or a striker to cock)
 const PLAYER_BITE=1.0; // m past the mouth's sphere the player's own bite and grab find their target (the click's convenience; the AI has none)
 const POISON={heat:0.45,deep:10,load:0.4,clear:3,min:0.35,t:45,slow:0.5}; // hingeshells feeding where the sulfur line lives (heat over this, or within deep m over a basin's chemocline — v11.96: none round ours; the -450 to v11.95) carry its toxin: full after load game days there, clear again after clear days away; a body over min sickens whatever eats it or its carcass for t seconds at slow (unless immune: the abyssal on its combs)
 const RAM={stun:2.5,cool:3,daze:2}; // the ram's blow (v11.66; COMBAT.md §2: `weapon:ram` is a blow, nothing through): a strike that lands on what the mouth cannot take whole is a knock, not a hold — the body stunned stun s (steering gone, sinking: creatures_ai.js), the player dazed daze s (the sting's slowness, no wound), the ram off it for cool s
@@ -216,23 +225,47 @@ function afterBite(h,r){const a=h.a;if(holds.indexOf(h)<0)return;if(r==='severed
 // ---------- contact, not reach (v11.92, COMBAT.md §10.3, pass B) ----------
 // the mouth is a sphere at the mouth part (the grip's point), its radius the gape × STRIKE.slack, biting within STRIKE.cone of the body's axis: a jaw's bite lands when it
 // touches one of the prey's hit capsules — the capsule it touches is where the bite is. A plain jaw (hold petals) sucks: a body it can swallow is drawn from STRIKE.suck
-// gapes. pad: m past the sphere (the player's convenience, PLAYER_BITE). A body with no capsules this frame falls back on the reach
-function mouthOn(a,b,pad){const g=gripOf(a);if(!g)return false;if(a!==player){a.g.position.copy(a.pos);a.g.updateMatrix();} // the hunter's own frame this frame too: past the near list nothing else composes it, and a far hunt must still land
+// gapes. pad: m past the sphere (the player's convenience, PLAYER_BITE; v11.184 a face's radius, landsOn); cone: cos of the half-angle (STRIKE.cone if none). A body with no
+// capsules this frame falls back on the reach
+function mouthOn(a,b,pad,cone){const g=gripOf(a);if(!g)return false;if(a!==player){a.g.position.copy(a.pos);a.g.updateMatrix();} // the hunter's own frame this frame too: past the near list nothing else composes it, and a far hunt must still land
   if(b!==player){b.g.position.copy(b.pos);b.g.updateMatrix();worldShapes(b);b.shapeF=frameNo;} // this frame's capsules, whatever the stamp says (a body moved since its refresh)
   const W=b.shapesW;if(!W||!W.length)return a.pos.distanceTo(b.pos)<reachOf(a,b);
   const m=localToWorld(a,g.at,HP2),gp=gapeOf(a),R=gp*STRIKE.slack+(pad||0)+(edgeOf(a)==='hold'&&swallows(a,b)?gp*STRIKE.suck:0),e=a.g.matrix.elements,fl=len3(e[8],e[9],e[10])||1;
   for(const c of W){const ex=c.bx-c.ax,ey=c.by-c.ay,ez=c.bz-c.az,l2=ex*ex+ey*ey+ez*ez;let qx=c.ax,qy=c.ay,qz=c.az;if(l2>1e-6){const tt=clamp(((m.x-c.ax)*ex+(m.y-c.ay)*ey+(m.z-c.az)*ez)/l2,0,1);qx+=ex*tt;qy+=ey*tt;qz+=ez*tt;}
-    if(len3(m.x-qx,m.y-qy,m.z-qz)-c.r>R)continue;const vx=qx-a.pos.x,vy=qy-a.pos.y,vz=qz-a.pos.z,vl=len3(vx,vy,vz)||1;if((vx*e[8]+vy*e[9]+vz*e[10])/(fl*vl)>=STRIKE.cone)return true;}
+    if(len3(m.x-qx,m.y-qy,m.z-qz)-c.r>R)continue;const vx=qx-a.pos.x,vy=qy-a.pos.y,vz=qz-a.pos.z,vl=len3(vx,vy,vz)||1;if((vx*e[8]+vy*e[9]+vz*e[10])/(fl*vl)>=(cone===undefined?STRIKE.cone:cone))return true;}
   return false;}
 function noseD(o){const g=gripOf(o);if(!g)return 0;const s=o.b&&o.b.g?o.b.g.scale.x:1;return len3(g.at[0],g.at[1],g.at[2])*s;} // how far ahead of the centre the mouth is (m)
-// the point a jaw hunter steers for: the mouth's distance short of the prey along its own facing — from there its mouth is on the prey; beside the prey it swings round for it (T3 scratch)
-function approachPt(c,aim,out,tpos){const g=gripOf(c);if(!g||g.kind!=='jaw')return out.copy(aim);const nd=noseD(c),dist=c.pos.distanceTo(tpos),runD=nd+STRIKE.runup;
-  if(!mouthAhead(c,tpos,STRIKE.face)&&dist<runD*0.9){const dx=c.pos.x-tpos.x,dy=c.pos.y-tpos.y,dz=c.pos.z-tpos.z,l=len3(dx,dy,dz)||1;return out.set(tpos.x+dx/l*runD,tpos.y+dy/l*runD,tpos.z+dz/l*runD);} // the prey beside or behind the mouth: out to the run-up point on its own side of the prey, then round at it
-  T3.set(0,0,1).applyQuaternion(c.g.quaternion);return out.copy(aim).addScaledVector(T3,-nd*0.9);}
+// the point a jaw hunter steers for: the mouth's distance short of the prey along its own facing — from there its mouth is on the prey (T3 scratch). v11.184: the run-up (a prey
+// beside the mouth: out to a point on the hunter's own side, then round at it) is struck; a prey beside it is the pivot's (creatures_ai.js PIVOT)
+function approachPt(c,aim,out){const g=gripOf(c);if(!g||g.kind!=='jaw')return out.copy(aim);const nd=noseD(c);T3.set(0,0,1).applyQuaternion(c.g.quaternion);return out.copy(aim).addScaledVector(T3,-nd*0.9);}
+// the mouth's gap to the prey's skin (v11.184): m from the grip's point to the nearest of its capsules, 0 inside one — the lunge commits on it (a jaw) and ends when it opens again
+function mouthGap(a,b){const g=gripOf(a),tp=b===player?player.pos:b.pos;if(!g)return a.pos.distanceTo(tp);if(a!==player){a.g.position.copy(a.pos);a.g.updateMatrix();}
+  freshShapes(b);const W=b.shapesW,m=localToWorld(a,g.at,HP2);if(!W||!W.length)return Math.max(0,len3(m.x-tp.x,m.y-tp.y,m.z-tp.z)-(b.def?b.def.size*0.3:1));let best=1e9;
+  for(const c of W){const ex=c.bx-c.ax,ey=c.by-c.ay,ez=c.bz-c.az,l2=ex*ex+ey*ey+ez*ez;let qx=c.ax,qy=c.ay,qz=c.az;if(l2>1e-6){const tt=clamp(((m.x-c.ax)*ex+(m.y-c.ay)*ey+(m.z-c.az)*ez)/l2,0,1);qx+=ex*tt;qy+=ey*tt;qz+=ez*tt;}
+    const d=len3(m.x-qx,m.y-qy,m.z-qz)-c.r;if(d<best)best=d;}
+  return Math.max(0,best);}
+// the radius of a body's own capsule nearest its mouth (m, at its scale): how far its face stands round the mouth's point (landsOn: a face that runs into the prey bites it)
+function headR(o){const g=gripOf(o),H=o.b&&o.b.hit;if(!g||!H||!H.length)return 0;const p=g.at;let best=1e9,r=0;
+  for(const h of H){const a=h.a,b=h.b,ex=b[0]-a[0],ey=b[1]-a[1],ez=b[2]-a[2],l2=ex*ex+ey*ey+ez*ez,tt=l2>1e-9?clamp(((p[0]-a[0])*ex+(p[1]-a[1])*ey+(p[2]-a[2])*ez)/l2,0,1):0,d=len3(p[0]-a[0]-ex*tt,p[1]-a[1]-ey*tt,p[2]-a[2]-ez*tt);if(d<best){best=d;r=h.r;}}
+  return r*(o.b.g?o.b.g.scale.x:1);}
+// the gap a jaw commits from (v11.184): what its sprint covers in STRIKE.range s, past its mouth's sphere
+function strikeReach(c){return (c.def.top||c.def.speed||5)*(c.def.sprint||1.3)*STRIKE.range+gapeOf(c)*STRIKE.slack;}
+// has c's mouth gone past tpos along the line it travels (v11.184: the lunge's end — a prey fleeing ahead of it is not passed, however its gap goes)
+function mouthPast(c,tpos){const g=gripOf(c),m=g?localToWorld(c,g.at,HP2):c.pos;return (tpos.x-m.x)*c.vel.x+(tpos.y-m.y)*c.vel.y+(tpos.z-m.z)*c.vel.z<=0;}
+// is tpos within STRIKE.homeCone of the line c travels (the head homes only so far off its path)
+function headOn(c,tpos){const v=c.vel.length();if(v<0.5)return true;const dx=tpos.x-c.pos.x,dy=tpos.y-c.pos.y,dz=tpos.z-c.pos.z,l=len3(dx,dy,dz)||1;return (dx*c.vel.x+dy*c.vel.y+dz*c.vel.z)/(l*v)>=STRIKE.homeCone;}
 // is the prey ahead of the mouth (a jaw), within cos `k` of the body's axis
 function mouthAhead(c,tpos,k){const g=gripOf(c);if(!g||g.kind!=='jaw')return ahead(c,tpos,k);const m=localToWorld(c,g.at,HP2);T3.set(0,0,1).applyQuaternion(c.g.quaternion);const vx=tpos.x-m.x,vy=tpos.y-m.y,vz=tpos.z-m.z,l=len3(vx,vy,vz)||1;return (vx*T3.x+vy*T3.y+vz*T3.z)/l>=k;}
-// does c's bite land on tg this frame: a jaw by its mouth, arms and claws at their reach (a part's reach: creatures_ai.js reachOf, armReach)
-function landsOn(c,tg){const g=gripOf(c);return g&&g.kind==='jaw'?mouthOn(c,tg,0):c.pos.distanceTo(tg===player?player.pos:tg.pos)<reachOf(c,tg);}
+// does c's bite land on tg this frame (v11.184, COMBAT.md §11: what you see is the bite): a jaw by its mouth's sphere, or by its face running into it (a contact with the
+// body, resolveBodies' cWith, within STRIKE.bump of the nose and the face's radius past the sphere); arms when LAND.arms of them touch it (physics.js stepRigs, last frame)
+// or at their reach (creatures_ai.js reachOf: the bodies' contact) — the touch alone took a flicker of 0.14 m radius so seldom that the arrows' kills in test/live.js fell by
+// two thirds; claws at their reach. To v11.183 arms bit at the centres' distance alone, whatever the arms were doing. The petals touching are not the bite: they reach 1.55 m on the ridge against its 0.89 m sphere, and a grazer 1.6 m beside the mouth of a
+// ridge passing at 15 m/s had three of six on it (test/combat.js §13's dodge) — a brush, not a bite; what made them a bumper was the push (creatures_ai.js updateCreatures)
+const LAND={arms:2}; // arms: chains touching the prey
+function landsOn(c,tg){const g=gripOf(c),felt=c.touchF>=frameNo-1&&c.grab===tg;
+  if(g&&g.kind==='jaw')return mouthOn(c,tg,0)||(c.cWith===tg&&mouthOn(c,tg,headR(c),STRIKE.bump));
+  if(g&&g.kind==='arms'&&felt&&c.armT>=LAND.arms)return true;
+  return c.pos.distanceTo(tg===player?player.pos:tg.pos)<reachOf(c,tg);}
 // where the prey will be: its velocity led by the time to close, at most STRIKE.lead s (the chase's aim, and the point the lunge locks on)
 function aimAt(c,tg,out,sprint){const tp=tg===player?player.pos:tg.pos,tv=tg===player?player.vel:tg.vel,dist=c.pos.distanceTo(tp)||1,my=(c.def.top||c.def.speed||5)*(sprint?(c.def.sprint||1.3):1),along=((tp.x-c.pos.x)*tv.x+(tp.y-c.pos.y)*tv.y+(tp.z-c.pos.z)*tv.z)/dist,tt=Math.min(STRIKE.lead,dist/Math.max(1,my-along));return out.copy(tp).addScaledVector(tv,tt);} // led by the time to close at the closing speed (the prey's speed away taken off; the lunge at the sprint)
 // the distance at which a chaser commits: what its sprint covers in STRIKE.range s past the two bodies' contact
@@ -259,9 +292,9 @@ function startHold(a,b){
   freshShapes(a);freshShapes(b);
   const wa=localToWorld(a,g.at,T1),wq=bodyPointNear(b,wa,T2),ci=bpIdx,rW=b.shapesW&&b.shapesW[ci]?b.shapesW[ci].r:0; // the axis point of the nearest capsule, and the surface point toward the mouth (v11.92: the joint is on the skin)
   {let dx=wa.x-wq.x,dy=wa.y-wq.y,dz=wa.z-wq.z;const dl=len3(dx,dy,dz);if(dl>1e-4&&rW>0){wq.x+=dx/dl*rW;wq.y+=dy/dl*rW;wq.z+=dz/dl*rW;}}
-  const wb=wq,lb=worldToLocal(b,wb,[0,0,0]);
+  const wb=wq,lb=worldToLocal(b,wb,[0,0,0]),reach0=a===player?0:Math.min(2.5,len3(wa.x-wb.x,wa.y-wb.y,wa.z-wb.z)); // the gap a hunter's grip was taken across (v11.184): the reel draws it in (GRIP reel)
   const edge=edgeOf(a),cover=coverAt(b,ci); // what the hold is on and what the edge can do there (v11.54; v11.93: the ratio k, the saw the shake works up)
-  const h={a:a,b:b,K:K,kind:g.kind,la:g.at.slice(),lb:lb,len:0,biteT:K.cd,load:0,pull:0,t:0,ci:ci,edge:edge,cover:cover,k:thruK(a,b,ci,cover),saw:1,thru:'',calm:0,tear:0,swallowT:0,swallowD:0,pinned:false,stingT:stings(b)&&(g.kind==='jaw'||g.kind==='arms')&&massOf(a)<STING.mass*massOf(b)?STING.t:0,placed:false,bit:false,near:false,at:V3().copy(wb)}; // the states (v11.55): subdued by the stamina (v11.93) unless the held tears free; a spined slowblood stings the mouth or arms on it
+  const h={a:a,b:b,K:K,kind:g.kind,la:g.at.slice(),lb:lb,len:reach0,biteT:K.cd,load:0,pull:0,t:0,ci:ci,edge:edge,cover:cover,k:thruK(a,b,ci,cover),saw:1,thru:'',calm:0,tear:0,swallowT:0,swallowD:0,pinned:false,stingT:stings(b)&&(g.kind==='jaw'||g.kind==='arms')&&massOf(a)<STING.mass*massOf(b)?STING.t:0,placed:false,bit:false,near:false,at:V3().copy(wb)}; // the states (v11.55): subdued by the stamina (v11.93) unless the held tears free; a spined slowblood stings the mouth or arms on it
   h.thru=thruOf(a,b,ci,cover);
   holds.push(h);a.hold=h;b.held=(b.held||0)+1;impact(a,b);
   if(g.kind==='arms')thump(0.3,90,40,b===player?null:wb,0.8,0.06);else afterBite(h,biteOn(h,false)); // the clamp is a jaw's or claws' first bite (v11.91: through the covering or a bruise); the arms only take hold
@@ -304,7 +337,9 @@ function updateHolds(dt){
     if(nearP){
       const A=localToWorld(a,h.la,HP1),B=localToWorld(b,h.lb,HP2);
       let dx=B.x-A.x,dy=B.y-A.y,dz=B.z-A.z;const d=len3(dx,dy,dz);
-      if(d>3){releaseHold(h);continue;} // something moved one of them (a respawn, a cell line): the hold is gone
+      if(a!==P&&h.len>0)h.len=Math.max(0,h.len-(K.reel||3)*dt); // the reel (v11.184): a grip taken at the limbs' reach draws the held in to the grip's point
+      if(d-h.len>3){releaseHold(h);continue;} // something moved one of them (a respawn, a cell line): the hold is gone
+      if(h.len>0){const f=d>h.len?(d-h.len)/d:0;dx*=f;dy*=f;dz*=f;}
       // the joint (v11.92, COMBAT.md §10.4): the grip and the struck point are one point — the gap closed by mass share every frame, the two velocities made
       // one with the momentum shared exactly; the heavier drags. What the joint takes off the held body each frame is its struggle (below): its own thrust
       shiftBody(a,dx*wa,dy*wa,dz*wa);shiftBody(b,-dx*wb,-dy*wb,-dz*wb);

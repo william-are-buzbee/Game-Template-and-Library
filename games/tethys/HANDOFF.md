@@ -1,5 +1,13 @@
 # HANDOFF — tethys
 
+**v11.184 (19 Nov 2026): the strike — the pivot, not the orbit; the lunge to the pass; the arms take hold by touch** (creatures_ai.js `PIVOT`, `pivots`,
+`commit`; combat.js `STRIKE`, `mouthGap`, `landsOn`, `LAND`, `GRIP` `reel`; physics.js `stepRigs`; test/combat.js §19; COMBAT.md §11; DESIGN; CHANGELOG).
+COMBAT.md §11 pass 1 of 4. A hunter beside a slow or still prey stops and turns to face it, then lunges; the lunge runs until the mouth passes; a face that
+runs into you bites; an ortho's arms take hold when two touch you and reel you in; the petals and arms of a hunter after you no longer shove you away. All
+nine hunters of the player take a finback holding still beside them in 0.3–1.1 s (v11.183: six never), and a ridge or an ortho finishes one with its tail
+gone (v11.183: orbited it). Passes 2 (the petals), 3 (latching) and 4 (the chase's burst) are designed in §11.2. **Ask:** let a ridge and an ortho find you
+holding still, then crippled; does the turn and lunge read as an animal's?
+
 **v11.183 (19 Nov 2026): the gapers standing** (reef.js `bankGeo`; flora.js `gaperUp`, `gaperB`; test/smoke.js; DESIGN sessile structures;
 analysis_sessile §6–7; CHANGELOG). The person found the bank "a pile of rocks", the gapers too complex for the game and too many. The bank is now ~26 gapers
 of the lone ones' size standing on their hinges over a dark core, lids wide on the yellow mantle, no combs (5–10 m, was 6–13); the clumps simpler; gapers
