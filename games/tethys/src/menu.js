@@ -5,12 +5,12 @@
 // first); a file can be imported; options opens the effects list (effects.js) over the caldera; the creator opens the lab as the player's
 // (lab.js lab.player: only what has been seen). Esc in play with the pointer free saves and returns here; z and l still open the bestiary and
 // the lab from here (dev tools). choose() is the bare start the tests drive (anim, combat, physics): the body as the clade, the cells, play.
-const menu={page:'main',confirm:null,busy:false,rise:0,wakeAt:0,idle:false}; // rise: the wall-clock ms at which the column comes up; wakeAt: the wall-clock ms the mouse last moved on the menu (the wall clock, not dt: a throttled loop — the app's pane — still idles at the right time)
-const MENU_RISE=3200,MENU_RISE_BACK=1200,MENU_IDLE=12000; // ms after boot (the black fade clears at ~2.2 s) and after a return from play before the column rises; ms still before the menu fades away (v11.47.1)
+const menu={page:'main',confirm:null,busy:false,rise:0,wakeAt:0,idle:false,worldOf:null,shot:null}; // worldOf (v11.189): the slot whose world is under the menu (continue's straight way in) // rise: the wall-clock ms at which the column comes up; wakeAt: the wall-clock ms the mouse last moved on the menu (the wall clock, not dt: a throttled loop — the app's pane — still idles at the right time)
+const MENU_RISE=2400,MENU_RISE_BACK=1200,MENU_IDLE=12000; // ms after the boot's black begins to fade (v11.189, main.js bootIn; to v11.188 after load) and after a return from play before the column rises; ms still before the menu fades away (v11.47.1)
 function menuRise(ms){menu.rise=performance.now()+ms;mlistEl.classList.remove('up');menuWake();}
 function menuWake(){menu.wakeAt=performance.now();if(menu.idle){menu.idle=false;menuEl.classList.remove('idle');}}
 function updateMenu(){ // the column's rise and the idle fade (main.js, every frame)
-  if(mode!=='menu')return;const now=performance.now();
+  if(mode!=='menu'||!BOOT.done)return;const now=performance.now(); // !BOOT.done (v11.189): nothing rises or idles behind the loading page
   if(menu.rise&&now>=menu.rise){menu.rise=0;mlistEl.classList.add('up');}
   if(!menu.idle&&now-menu.wakeAt>MENU_IDLE&&!fxOpen&&!menu.busy){menu.idle=true;menuEl.classList.add('idle');}
 }
@@ -32,9 +32,9 @@ const MENU_SHOTS={sea:{p:[700,6,-700],d:[-0.55,0,0.835]},caldera:{p:[0,dispY+0.6
 function menuCam(shot){const p=shot.p,d=shot.d;menu.shot={p:p.slice(),d:d.slice()};camera.position.set(p[0],p[1],p[2]);camera.lookAt(p[0]+d[0],p[1]+d[1],p[2]+d[2]);player.pos.set(p[0],p[1],p[2]);player.vel.set(0,0,0);snapMed=true;}
 function camNow(){const d=V3(0,0,-1).applyQuaternion(camera.quaternion);return {p:[camera.position.x,camera.position.y,camera.position.z],d:[d.x,d.y,d.z]};}
 function layoutMenu(){menuCam(menu.shot);} // the current shot again (a resize; the bestiary and the lab moved the camera)
-menuCam(camRead()||MENU_SHOTS.sea);menuRise(MENU_RISE);
+menuCam(camRead()||MENU_SHOTS.sea); // the column rises when the boot has faded in (main.js BOOT), not at a fixed time (to v11.188 MENU_RISE after load)
 function menuPage(p){menu.page=p;menu.confirm=null;mlistEl.style.display=p==='main'?'':'none';msavesEl.classList.toggle('on',p==='saves');mfoundEl.classList.toggle('on',p==='found');if(p==='saves')menuSlots();if(p==='found')menuFounders();menuWake();} // 'main' | 'saves' | 'found' (the founder, v11.75) | 'none' (the bestiary and the lab)
-function menuRefresh(){mcreatorEl.style.display=PROFILE.creator?'':'none';saveRefresh(()=>{if(menu.page==='saves')menuSlots();});} // the profile and the slots read again (boot, main.js; the creator granted)
+function menuRefresh(cb){mcreatorEl.style.display=PROFILE.creator?'':'none';saveRefresh(()=>{if(menu.page==='saves')menuSlots();if(cb)cb();});} // the profile and the slots read again (boot, main.js; the creator granted)
 function menuNote(s){mnoteEl.textContent=s;mnoteEl.style.opacity=s?1:0;if(s)setTimeout(()=>{if(mnoteEl.textContent===s)mnoteEl.style.opacity=0;},3000);}
 function fmtAgo(ms){const s=(Date.now()-ms)/1000;return s<90?'just now':s<5400?Math.round(s/60)+' min ago':s<172800?Math.round(s/3600)+' h ago':Math.round(s/86400)+' days ago';}
 function fmtPlay(s){return s<3600?Math.max(1,Math.round(s/60))+' min':(s/3600).toFixed(1)+' h';}
@@ -56,14 +56,23 @@ function choose(c,pos,yaw,pitch){ // into play as clade c (an index or the clade
   saveT=SAVE_EVERY;initAudio();tryLock();
 }
 function toMenu(){ // play to the menu (esc with the pointer free): the game saved, the world cleared, the peak's cells back under the menu's camera
-  if(mode!=='play')return;saveNow();curSave=null;unlock();
+  if(mode!=='play')return;saveNow();const wid=curSave?curSave.id:null;curSave=null;unlock(); // wid (v11.189): the world under the menu is this slot's still — continue goes straight back in
   const shot=camNow(); // the camera as it is: the title screen opens from here (v11.47.2)
-  menuGo(()=>{playerDrop();mode='menu';worldClear();menuCam(shot);cellsAround();menuEl.classList.remove('gone');menuPage('main');menuRise(MENU_RISE_BACK);hintEl.style.opacity=0;menuRefresh();});
+  menuGo(()=>{playerDrop();mode='menu';worldClear();menuCam(shot);cellsAround();menu.worldOf=wid;menuEl.classList.remove('gone');menuPage('main');menuRise(MENU_RISE_BACK);hintEl.style.opacity=0;menuRefresh();});
 }
 document.getElementById('mnew').addEventListener('click',()=>{if(mode==='menu'&&menu.page==='main')menuPage('found');}); // v11.75: the founder's list (the finback was the start to v11.74)
 document.getElementById('mfback').addEventListener('click',()=>{if(mode==='menu')menuPage('main');});
 mfoundersEl.addEventListener('click',e=>{if(mode!=='menu'||menu.page!=='found')return;let el=e.target;while(el&&el!==mfoundersEl&&!(el.dataset&&el.dataset.id))el=el.parentNode;if(!el||el===mfoundersEl)return;const C=founderClade(el.dataset.id);if(C)menuGo(()=>{startNew(C);});});
-document.getElementById('mcont').addEventListener('click',()=>{if(mode==='menu')menuPage('saves');});
+// Continue (v11.189; the person, 20 Nov 2026: "a game world that you can enter by hitting continue, just like that, right in the world you already see"):
+// the slot whose world the menu shows (menu.worldOf: the boot opened it under the last camera, or play left it there), the player put into it where it
+// was — no fade, nothing cleared — when its body is within CONT_NEAR of the camera; any other slot, or one whose body is elsewhere (a death that continued
+// as a child far off), through the fade as before. With no slot to continue, the list. `saves` is the list (to v11.188 continue was).
+const CONT_NEAR=60;
+function contRec(){const ok=r=>r&&!r.over;return saveList.find(r=>r.id===menu.worldOf&&ok(r))||saveList.find(ok)||null;} // the shown slot, else the latest that can go on
+function menuContinue(rec){if(!rec||rec.over)return;const p=Array.isArray(rec.pos)?rec.pos:null,near=p&&rec.id===menu.worldOf&&Math.hypot(p[0]-camera.position.x,p[1]-camera.position.y,p[2]-camera.position.z)<CONT_NEAR;
+  if(near){menu.worldOf=null;slotPlayer(rec);}else menuGo(()=>{menu.worldOf=null;startFrom(rec);});}
+document.getElementById('mcont').addEventListener('click',()=>{if(mode!=='menu'||menu.busy)return;const rec=contRec();if(rec)menuContinue(rec);else menuPage('saves');});
+document.getElementById('mload').addEventListener('click',()=>{if(mode==='menu')menuPage('saves');});
 document.getElementById('mopt').addEventListener('click',()=>{if(mode==='menu')fxShow(!fxOpen);});
 mcreatorEl.addEventListener('click',()=>{if(mode==='menu'&&menu.page==='main')labEnter(undefined,true);});
 document.getElementById('mback').addEventListener('click',()=>{if(mode==='menu')menuPage('main');});
@@ -74,6 +83,6 @@ mslotsEl.addEventListener('click',e=>{
   if(act==='del'){if(menu.confirm===id){menu.confirm=null;storeDel(id,()=>{saveRefresh(menuSlots);});}else{menu.confirm=id;menuSlots();}}
   else if(act==='export')fileSave((rec.name||'game').replace(/[^\w-]+/g,'_')+'.tethys.json',JSON.stringify(rec));
   else if(rec.over)menuNote('this line has ended'); // v11.69: no living child at the last death — the slot is kept to look at (the shrine, later), never continued
-  else menuGo(()=>{startFrom(rec);});
+  else menuContinue(rec); // the shown slot straight in (v11.189), another through the fade
 });
 addEventListener('keydown',e=>{if(e.code!=='Escape'||e.defaultPrevented)return;if(mode==='play'&&!locked&&!player.dead)toMenu();else if(mode==='menu'&&(menu.page==='saves'||menu.page==='found'))menuPage('main');}); // effects.js takes esc first when its list is open (and prevents the default); with the pointer locked the browser keeps the first esc for the lock

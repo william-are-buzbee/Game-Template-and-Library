@@ -1,5 +1,12 @@
 # HANDOFF — tethys
 
+**v11.189 (20 Nov 2026): the start** (main.js `BOOT`, `warmPrep`/`warmStep`, `bootFinish`; shell.html `#boot`, `#bootline`; save.js `slotWorld`/`slotPlayer`;
+menu.js `menuContinue`, `saves`; test/boot.js; analysis_loading.md §5; DESIGN "The start and continue"; CHANGELOG). The person's answers of 20 Nov: a black
+page with the title and a line from the first paint; behind it the last slot's world opened under the saved camera, the shaders warmed a program a frame,
+the world streamed, the first frames drawn; then the scene fades in with the title where it was. Continue enters that world where you were, no fade.
+Nothing compiles at first sight anywhere. **Ask:** a cold start of the preview on the person's card (how long, does it feel alive), continue (the body
+appearing), and analysis_loading §4.3, the cache.
+
 **v11.188 (20 Nov 2026): the low end** (scene.js `TREE_LOD`, `MATTRF`, `RES`, `resStep`, `Q.cloudRes`; chunks.js `poolLod`; atmosphere.js `CLDP`,
 `cloudPass`; effects.js `hold the frame`; test/res.js; analysis_loading.md; DESIGN "What the GPU spends"; CHANGELOG). The person's three answers to v11.187:
 the tidewood past 120 m is its 37-triangle far copy (a mirror on the pool's own buffers); the cloud volume is marched at half the screen on a side and

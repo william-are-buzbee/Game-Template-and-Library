@@ -19,7 +19,7 @@ parts = {n: read('src/%s.js' % n) for n in ORDER}
 
 # ---------- the two html files ----------
 shell = read('shell.html')
-bundle = THREE + '<script>\n(function(){\n"use strict";\n' + '\n'.join(parts[n] for n in ORDER) + '\n})();\n</script>'
+bundle = THREE + '<script>\nfunction tethysMain(){\n"use strict";\n' + '\n'.join(parts[n] for n in ORDER) + '\n}\nrequestAnimationFrame(function(){setTimeout(tethysMain,0);});\n</script>'  # v11.189: after the first paint, as build.js
 write('tethys.html', shell.replace('<!--SCRIPTS-->', bundle))
 dev = THREE + ''.join('<script src="src/%s.js"></script>\n' % n for n in ORDER)
 write('dev.html', shell.replace('<!--SCRIPTS-->', dev))

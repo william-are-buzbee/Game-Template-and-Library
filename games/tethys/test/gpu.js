@@ -26,7 +26,7 @@ const roots=(process.env.BASE?[path.resolve(process.env.BASE)]:[]).concat([here]
 // ---- in the page ----
 function atPlace(a){const take=()=>window.__gl.take(),mean=F=>{const o={};for(const k of Object.keys(F[0]))o[k]=F.reduce((s,f)=>s+f[k],0)/F.length;return o;};
   let gens=0;for(const n of ['genChunk','genRegion']){const f=window[n];if(typeof f==='function')window[n]=function(){gens++;return f.apply(this,arguments);};}
-  window.__step(3);const boot=take(); // the load and the menu's first frames, drawn
+  window.__step(3);if(typeof window.bootFinish==='function')window.bootFinish();const boot=take(); // the load and the menu's first frames, drawn; since v11.189 the menu draws nothing behind its loading page until the world is there, and the warm-up runs a program a frame — bootFinish compiles the rest here, so the boot's count is the warm-up's whole, as to v11.188
   const rf=window.renderFrame;window.renderFrame=function(){};
   choose(0,V3(a.x,a.y,a.z),a.yaw,0);
   let k=0,quiet=0;for(;k<600&&quiet<20;k++){const n=gens;window.__step(1);quiet=gens===n?quiet+1:0;}window.__step(150);
