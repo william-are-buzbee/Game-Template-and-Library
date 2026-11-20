@@ -1,5 +1,10 @@
 # HANDOFF — tethys
 
+**v11.190 (20 Nov 2026): the tidewood's colour** (grow.js `PIG.greenAir`, `PIG_BOOST`; flora.js `tidetree` on `line: 'greenAir'`; DESIGN "The tidal forest";
+CHANGELOG). The person: the beach trees "too neon or bright". The tidewood was the greens' 0–15 m water colour ×1.22, [0.44, 0.73, 0.24]; six colours were
+shot in the game and the person chose between the softened green and the wood's leaf: [0.35, 0.47, 0.21], flat, no boost. Near and far copy alike. **Ask:**
+the shore at noon on the preview, and whether the reed, scrub and tussock (still the old green) should follow.
+
 **v11.189 (20 Nov 2026): the start** (main.js `BOOT`, `warmPrep`/`warmStep`, `bootFinish`; shell.html `#boot`, `#bootline`; save.js `slotWorld`/`slotPlayer`;
 menu.js `menuContinue`, `saves`; test/boot.js; analysis_loading.md §5; DESIGN "The start and continue"; CHANGELOG). The person's answers of 20 Nov: a black
 page with the title and a line from the first paint; behind it the last slot's world opened under the saved camera, the shaders warmed a program a frame,

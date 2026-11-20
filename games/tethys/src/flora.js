@@ -843,8 +843,8 @@ function rock(id, k, o) {
 // ---------- the greens in air (TAXA): jointed axes carried onto the tide band and the land ----------
 // The greens' signature is the jointed axis — segments, nodes, stiff rounded parts — and the line that stood up in air kept it: the
 // tidewood is a jointed trunk with a whorl of short branches at every node and a brush at the top (the first things to stand in air
-// on Earth were leafless jointed axes; a trunk with whorls came before a leaf), never a bark-and-canopy tree. Bright green
-// (pigment: land light), the trunk paler than the whorls. The base stands in water twice a day, on sand: props, not a holdfast.
+// on Earth were leafless jointed axes; a trunk with whorls came before a leaf), never a bark-and-canopy tree. Green by the land's
+// light (pigment's `greenAir`, v11.190: between the greens' shallow green and the wood's leaf; to v11.189 the shallow green ×1.22, neon), the trunk paler than the whorls. The base stands in water twice a day, on sand: props, not a holdfast.
 const JOINT = [0.9, 0.86, 0.66], // the trunk: tinted with the rest, paler
   NODE = [0.62, 0.56, 0.42]; // the node's dark ring
 // a whorl of `n` short rods at a node, tilted `up` radians above level, tapering; kink: a second shorter rod off each tip
@@ -1362,7 +1362,7 @@ const FLORA = [
   // the greens in air (TAXA): the tidal forest, the reed margin, the rain scrub — one line, jointed, relicts of a bigger island
   species(
     'tidetree',
-    {mat: MATTR, photo: true, line: 'green', tints: GREENT, s: [0.8, 1.3], air: true, per: 700, env: {h: [-3.5, 2.8], expo: [0, 0.75], young: [0, 0.45]}, field: 0.02, minH: -3.6, maxSlope: 0.5},
+    {mat: MATTR, photo: true, line: 'greenAir', tints: GREENT, s: [0.8, 1.3], air: true, per: 700, env: {h: [-3.5, 2.8], expo: [0, 0.75], young: [0, 0.45]}, field: 0.02, minH: -3.6, maxSlope: 0.5},
     tidewoodB
   ), // the tidewood: the tide band, out of the surf, and off the last flows (young, v11.67: a wood is decades; the reed and the tussock keep the flows)
   species(
