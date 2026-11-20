@@ -2512,6 +2512,37 @@ mesh); the other four places unmoved. v11.181 (the sessile giants): the forest 6
 person's spot and heading; these are every pass's, counted at WebGL, at the bench's. One program still compiles at the forest's first sight (CHANGELOG
 v11.179). The counts are what the GPU is given, not what it spends: a shader's cost per pixel moves none of them.
 
+**What the GPU spends, as a proxy, by what is drawn (v11.187, 19 Nov 2026; `test/fill.js`).** The person: plants lag the game under water and above it,
+and at the shore and where they breach the surface badly. Every draw of a frame timed alone in headless Chromium's SwiftShader (a one-pixel read before and
+after it), named by what it draws, at 1600×900 and at a tenth of each side — the small frame's time is the draw's vertices, the rest its pixels — and the
+picture read whole, so two trees compare pixel for pixel. SwiftShader is a CPU drawing as a GPU: its absolute times are this machine's and its ratios not a
+4060's (no texture units, no post-transform cache), but a share of its frame is a share a weak GPU feels. Two places added for it and test/gpu.js: **the
+shore** (110, 0.6, −380), the tidewood north of ours from the water, and **the canopy** (80, −3, −360), 3 m down in the kelp beside it. Before this pass:
+
+| at | the frame (SwiftShader ms) | the biggest |
+|---|---|---|
+| the forest, 12 m down | 3,247 | the sky 511 (under water!), the stipe 309, the terrain 309, the tidewood 277, the surface 188 |
+| the shore, from the surface | 3,672 | the terrain 539, the sky 476, the tidewood 456, the surface 310, the stipe 223 |
+| the canopy, 3 m down | 3,483 | the terrain 479, the sky 470, the tidewood 459 (in the air, behind the mirror), the stipe 319 |
+
+After (CHANGELOG v11.187 has the tables): the shore ×0.88, the canopy ×0.77, the forest ×0.79 on SwiftShader; a frame's triangles and vertices
+×0.52–0.58 at the forest, the atoll, the shore and the canopy (test/gpu.js); open water up ×1.34 in triangles (the occluder is a second surface).
+
+- **The flora's vertices** (grow.js `VPULL`; scene.js `VPULL_GLSL`). A species' three variants were one geometry and every instance drew all three, two
+  thrown away in the shader (`VAR_COLLAPSE`): two thirds of every plant's vertex work. A copy drawing each instance's own variant alone: the shore ×0.80, the
+  strap ÷6, the grape ÷3.7, the reed ÷2. Now on WebGL2 a species draws n vertices (its largest variant's) that carry only their number, and the vertex
+  shader fetches the instance's own variant from one float texture (`VPULL_TEX`, three texels a vertex: the attributes' own floats) in place of three's
+  begin_vertex, beginnormal_vertex and color_vertex: the same picture, pixel for pixel, one draw a species. It needed a texture unit: the tinted materials
+  were at WebGL's 16, so the caustic's ten tiles are one texture array (`CAU_ARR`) — 7 units now, the pulled ones 8.
+- **The surface from below** (atmosphere.js `SURF_OCC`, `OCC`). Under water the underside outside the window is the mirror, opaque, and everything in the
+  air behind it was shaded first and painted over. Now the surface is drawn first, as depth, where its facet's cosine to the eye is under `OCC.cv` 0.25
+  (the window opens at WIN_LO 0.35; the margin is the refraction's reach), pushed back a few depth steps so the real one draws over it.
+- **The card species pooled** (chunks.js): the stipe, the bladder and the tidewood kept a mesh per cell since v11.52 for their cards; since v11.125 a pool's
+  block hides by the same rule, so they are pooled — a draw a species, not a draw a cell. The buttons keep theirs (their pads).
+- **The fog at the water line** (scene.js `fogWaveH2`): within 3 m of the tide every pixel took the wave sum twice and the floor map twice; now once.
+- **Left, the person's to decide** (CHANGELOG v11.187): the tidewood's own weight (690 triangles, 700 a cell, no draw distance of its own; its 37-triangle
+  far copy exists), the sky's cloud march at full resolution above water, a resolution scale on the low tier.
+
 **Where the frame goes, measured on the 4060 at the weed forest (330, 0), 13 Sep 2026.** The readout's `work` pair is the
 frame's own cost and the worst frame in the last quarter second (main.js, v11.32.1); `ms` and `fps` are the vsync interval and say
 nothing about headroom on a capped display.

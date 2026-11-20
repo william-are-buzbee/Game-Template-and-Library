@@ -9,7 +9,7 @@ let showStats=false,statT=0,fpsEma=60,msEma=16,physEma=0,physMs=0,renderMs=0,ren
 // or a cell loads, and on those frames it adds its whole cost at once. An EMA hides that; a max does not. `gen` is the streaming's
 // share of the same frame. All three are CPU time: renderer.render is the submit, not the GPU's own execution.
 let frameEma=0,frameMax=0,genEma=0;
-function poolLine(){const p=poolStats();return p.draws+(p.hid>0?' +'+(p.hid/1000).toFixed(1)+'k hid':'');} // the pools' draws, and (v11.125) the hidden instances they draw until packed (chunks.js poolPack): they leave the shader at once but count in tris
+function poolLine(){const p=poolStats();return p.draws+(p.hid>0?' +'+(p.hid/1000).toFixed(1)+'k hid':'')+(VPULL_N?'':' packed');} // the pools' draws, and (v11.125) the hidden instances they draw until packed (chunks.js poolPack): they leave the shader at once but count in tris
 function toggleStats(){showStats=!showStats;statsEl.style.display=showStats?'block':'none';statT=0;}
 // Fog tuner: while the readout is open, these keys nudge the sea fog live and the readout's second line shows the numbers,
 // so the look can be dialled in without a build — paste the line back and it gets baked into SEA_FOG (world.js).
@@ -64,8 +64,11 @@ function warmShaders(){
     geo.setAttribute('position',new THREE.Float32BufferAttribute([0,0,0,0,0.01,0,0.01,0,0],3));geo.setAttribute('normal',new THREE.Float32BufferAttribute([0,1,0,0,1,0,0,1,0],3));geo.setAttribute('color',new THREE.Float32BufferAttribute([1,1,1,1,1,1,1,1,1],3));
     for(const m of [MAT,MAT_HIT,MATBIG,MATLM,MATT,TERRAIN_MAT,MAT_HI,shM,new THREE.MeshLambertMaterial({color:0x06080a,transparent:true,opacity:0.9})])g.add(new THREE.Mesh(geo,m)); // the last is the ink cloud's; shM the light shafts' (v11.13)
     const c=new THREE.Color(1,1,1);
-    for(const m of [MAT,MATROCK,MATROCKF,MATROCKB,MATSHELL,MATFAR,GLOW,MATV,MATG,MATB,MATR,MATW,MATS,MATSC,MATM,MATGL,MATTR,MATWD]){const ig=geo.clone();ig.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(1),1));ig.setAttribute('aDip',new THREE.InstancedBufferAttribute(new Float32Array(1),1));ig.setAttribute('aCur',new THREE.InstancedBufferAttribute(new Float32Array(2),2));ig.setAttribute('aTide',new THREE.InstancedBufferAttribute(new Float32Array(2),2));const im=new THREE.InstancedMesh(ig,m,1);im.setColorAt(0,c);g.add(im);}
-    g.position.set(0,-1e5,0);scene.add(g);renderer.compile(scene,camera);
+    const pulled=new Set(vpullMats.values()); // v11.187: a pulled species' geometry has no colour attribute, and three keys the program by it (vertexAlphas), so its warm mesh has none either
+    const flora=[MATV,MATVD,MATG,MATB,MATR,MATW,MATS,MATSC,MATM,MATGL,MATTR,MATWD].filter(m=>!vpullMats.has(m)); // a pulled one's own program is never drawn in the world (every species of it draws its copy): not compiled, nor its depth program
+    for(const m of [MAT,MATROCK,MATROCKF,MATROCKB,MATSHELL,MATFAR,GLOW,...flora,...pulled]){const ig=geo.clone();if(pulled.has(m))ig.deleteAttribute('color');ig.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(1),1));ig.setAttribute('aDip',new THREE.InstancedBufferAttribute(new Float32Array(1),1));ig.setAttribute('aCur',new THREE.InstancedBufferAttribute(new Float32Array(2),2));ig.setAttribute('aTide',new THREE.InstancedBufferAttribute(new Float32Array(2),2));const im=new THREE.InstancedMesh(ig,m,1);im.setColorAt(0,c);g.add(im);}
+    const g2=new THREE.Group();g2.add(new THREE.Mesh(geo,new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide})),new THREE.Points(geo,new THREE.PointsMaterial({transparent:true,depthWrite:false})));g2.position.set(0,-1e5,0); // v11.187: the splash's ring and drops (player.js), made at the first breach — compiled there until now, at the shore's first sight
+    g.position.set(0,-1e5,0);scene.add(g);scene.add(g2);const ov=SURF_OCC.visible;SURF_OCC.visible=true;renderer.compile(scene,camera);SURF_OCC.visible=ov;scene.remove(g2); // v11.187: the surface's occluder too (drawn only under water)
     g.traverse(o=>{if(o.isMesh){shadowCaster(o,o.material);o.castShadow=true;o.frustumCulled=false;}});shadowFrame();updateShadowS(0,true); // the depth programs of the world's shadow map (v11.30), one forced pass over these meshes; the map itself goes at the next frame if the switch is off
     scene.remove(g);
   }catch(e){console.warn('shader warm-up skipped: '+e.message);}

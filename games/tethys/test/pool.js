@@ -1,7 +1,7 @@
 // Headless check of the flora pools (v11.52, chunks.js): one instanced mesh per species across the loaded cells. Cells are loaded and
 // unloaded by hand and the pools' bookkeeping is checked against them — every block contiguous and in order, the counts summing to the
 // mesh's count, no NaN in a matrix, a cell's block byte-identical whether it loads alone, first or last (the placement is the cell's own rng),
-// a removed cell leaving the others' blocks untouched, a card species never pooled, a pool growing without losing what it had; by sight (v11.125):
+// a removed cell leaving the others' blocks untouched, the card species pooled (v11.187; to v11.186 never), a pool growing without losing what it had; by sight (v11.125):
 // a cell coming into or out of view writing its own blocks' flags and nothing else, the blocks packed once the pool is still. It proves
 // the storage, not the look. Same bundle and stub as the smoke test.
 const fs=require('fs'),path=require('path');
@@ -20,7 +20,7 @@ function check(label){ // the invariants over every pool
     let nv=0,end=0;const H=P.geo.attributes.aHide.array;for(const b of P.blocks){if(b.vis){nv+=b.count;end=b.start+b.count;}for(let k=b.start;k<b.start+b.count;k++)if(H[k]!==(b.vis?0:2)){bad.push(f.id+': a flag not its block\'s sight');break;}} // v11.125: every instance's aHide its block's, the draw to the last seen block
     if(n!==P.n||nv!==P.nVis||P.nDraw!==end||P.im.count!==P.nDraw)bad.push(f.id+': counts '+n+' '+P.n+' vis '+nv+' '+P.nVis+' draw '+end+' '+P.nDraw+' '+P.im.count);if(P.n>P.cap)bad.push(f.id+': over capacity');
     const M=P.im.instanceMatrix.array;for(let i=0;i<P.n*16;i++)if(M[i]!==M[i])bad.push(f.id+': NaN');
-    if(P.f.card)bad.push(f.id+': a card species pooled');}
+    }
   ok(bad.length===0,label+': '+X.POOLS.size+' pools, '+JSON.stringify(X.poolStats())+(bad.length?' — '+bad.slice(0,4).join('; '):''));}
 function blockOf(f,ch){const P=X.POOLS.get(f);if(!P)return null;const b=P.blocks.find(b=>b.ch===ch);if(!b)return null;return {m:P.im.instanceMatrix.array.slice(b.start*16,(b.start+b.count)*16),c:P.im.instanceColor.array.slice(b.start*3,(b.start+b.count)*3),v:P.vars?P.geo.attributes.aVar.array.slice(b.start,b.start+b.count):null,cur:P.cur?P.geo.attributes.aCur.array.slice(b.start*2,(b.start+b.count)*2):null,n:b.count};}
 function same(a,b){if(!a||!b)return a===b;if(a.n!==b.n)return false;for(const k of ['m','c','v','cur']){if(!a[k]&&!b[k])continue;if(!a[k]||!b[k]||a[k].length!==b[k].length)return false;for(let i=0;i<a[k].length;i++)if(a[k][i]!==b[k][i])return false;}return true;}
@@ -30,9 +30,9 @@ X.worldClear();for(const [i,j] of cells)X.loadChunkNow(i,j);
 check('a 3×3 at the forest loaded');
 const mid=X.chunks.get(X.ckey(ci,cj));ok(!!mid&&mid.pooled.length>0,'the middle cell wrote '+(mid?mid.pooled.length:0)+' blocks');
 const heavy=[...X.POOLS.values()].sort((a,b)=>b.n-a.n).slice(0,6).map(P=>P.f.id+' '+P.n);console.log('  biggest pools: '+heavy.join(', '));
-// card species stay per cell
-const cards=X.FAR_IMP.map(sp=>sp.f.id);ok(cards.every(id=>![...X.POOLS.keys()].some(f=>f.id===id)),'card species not pooled: '+cards.join(' '));
-ok([...X.chunks.values()].some(ch=>ch.flora.length>0),'per-cell meshes remain for the card, padded and glow species');
+// the card species pooled since v11.187 (their blocks hide by the cell's sight and FLORA_FAR edge, as their cell meshes did); the padded (the buttons) and glow ones stay per cell
+const cards=X.FAR_IMP.filter(sp=>!sp.f.pads).map(sp=>sp.f.id),pooledC=cards.filter(id=>[...X.POOLS.keys()].some(f=>f.id===id));ok(pooledC.length>0,'card species pooled where they grew: '+pooledC.join(' ')+' of '+cards.join(' '));
+{const cm=new Set();for(const sp of X.FAR_IMP)if(!sp.f.pads){cm.add(sp.f.mat);if(sp.f.mp)cm.add(sp.f.mp);}ok([...X.chunks.values()].every(ch=>ch.flora.every(m=>!cm.has(m.material))),'no card species left in a cell mesh');}
 // the middle cell's blocks, then the cell out: the others' blocks unchanged
 const before=new Map();for(const P of mid.pooled)before.set(P.f,blockOf(P.f,mid));
 const others=[...X.chunks.values()].filter(ch=>ch!==mid);const keep=[];for(const ch of others)for(const P of ch.pooled)keep.push([P.f,ch,blockOf(P.f,ch)]);

@@ -138,6 +138,24 @@ function coneShell(P,o,rg,x,y,z){let yy=y,r=o.r;const hp=o.h/o.plates;
 function packVariants(geos){const pos=[],nor=[],col=[],vid=[];
   geos.forEach((g,k)=>{const p=g.attributes.position.array,n=g.attributes.normal.array,c=g.attributes.color.array;for(let i=0;i<p.length;i++){pos.push(p[i]);nor.push(n[i]);col.push(c[i]);}for(let i=0;i<p.length/3;i++)vid.push(k);g.dispose();});
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.setAttribute('vid',new THREE.Float32BufferAttribute(vid,1));return g;}
+// ---------- the variants pulled (v11.187, DESIGN "The flora's vertices") ----------
+// The packed geometry draws every instance's three variants and throws two away in the vertex shader (scene.js VAR_COLLAPSE): two thirds of every
+// plant's vertex work, at every distance, under every pool. So on WebGL2 a species draws a geometry of n vertices — its largest variant's count, each
+// vertex carrying only its number (aPull: the species' first vertex + i, and n) — and the vertex shader fetches vertex i of the instance's own variant
+// (aVar) from one float texture that holds every species' variants (scene.js VPULL_TEX, VPULL_GLSL): three texels a vertex — position, normal, colour,
+// the attributes' own floats, so the same triangles and the same pixels at a third of the vertices, one draw a species as before. A variant shorter than
+// n is padded with vertices whose position's w is 1 (they leave at once, as a collapsed one did). WebGL1, or VPULL.on false: the packed geometry as before.
+const VPULL={on:true,row:680}; // row: vertices a texture row (three texels each: 2040 wide, inside the 2048 every WebGL2 allows)
+function vpullPack(F){ // every entry of F with a packed geometry (a `vid` attribute) → {data (RGBA floats, three texels a vertex), rows, at: Map(entry → {b: its first vertex, n: its stride, c: the variants' counts})}
+  const at=new Map();let tot=0;
+  for(const f of F){const g=f.geo;if(!g||!g.attributes||!g.attributes.vid||at.has(f))continue;const v=g.attributes.vid.array,c=[0,0,0];for(let i=0;i<v.length;i++)c[v[i]]++;const n=Math.max(c[0],c[1],c[2]);at.set(f,{b:tot,n:n,c:c});tot+=3*n;}
+  const rows=Math.max(1,Math.ceil(tot/VPULL.row)),data=new Float32Array(VPULL.row*rows*12);
+  for(const [f,a] of at){const A=f.geo.attributes,P=A.position.array,N=A.normal.array,C=A.color.array,v=A.vid.array,s=[0,0,0];
+    for(let i=0;i<v.length;i++){const k=v[i],o=(a.b+k*a.n+(s[k]++))*12;data[o]=P[i*3];data[o+1]=P[i*3+1];data[o+2]=P[i*3+2];data[o+4]=N[i*3];data[o+5]=N[i*3+1];data[o+6]=N[i*3+2];data[o+8]=C[i*3];data[o+9]=C[i*3+1];data[o+10]=C[i*3+2];}
+    for(let k=0;k<3;k++)for(let i=a.c[k];i<a.n;i++)data[(a.b+k*a.n+i)*12+3]=1;} // the padding: gone
+  return {data:data,rows:rows,at:at};}
+function vpullGeo(a){const g=new THREE.BufferGeometry(),q=new Float32Array(a.n*2);for(let i=0;i<a.n;i++){q[i*2]=a.b+i;q[i*2+1]=a.n;} // position: n zeros, only for three's count (the shader never reads it)
+  g.setAttribute('position',new THREE.Float32BufferAttribute(new Float32Array(a.n*3),3));g.setAttribute('aPull',new THREE.Float32BufferAttribute(q,2));return g;}
 // species(id, fields, build): three variants of one species (build(rg,k) → {P, col, pads}), packed. `top` is the tallest variant's
 // highest point (the surface cap in placeFloraType); `vars[k]` carries the variant's own colliders and pads; `pads:true` on the entry
 // says the cell must give the instances a dip attribute.

@@ -9,7 +9,7 @@
 //   node test/gpu.js --check         against test/gpu.json: fails if any count moved more than 10% either way (CI: `npm run smoke`)
 //   node test/gpu.js --update        writes test/gpu.json — a change that moves a count updates it in the same pull request, which says why
 // The page is test/benchpage.js's (the bench's clock, Math.random seeded): each place in a browser of its own, so a place's counts depend on no
-// other. At each (five since v11.180, the wood: inside the forest on the giant): the boot and three menu frames drawn (`boot`: warmShaders' compiles and the first uploads), the player put there as the finback
+// other. At each (five since v11.180, the wood: inside the forest on the giant; seven since v11.187, the shore and the canopy: test/benchpage.js PLACES): the boot and three menu frames drawn (`boot`: warmShaders' compiles and the first uploads), the player put there as the finback
 // (menu.js `choose`), the cells and the far regions round it streamed in with the render left out until 20 frames pass with none started, 150
 // more (the pools packed, the fades done), 8 frames drawn (`sight`: what compiles at the place's first sight, which warmShaders should have done
 // behind the fade), then FRAMES frames drawn and counted: the mean a frame. At the person's 1600×900, so the bytes are theirs.
@@ -17,18 +17,10 @@
 // place to test/render/gpu_<place>.png, to see what was counted), JSON=<file> (the results as JSON, for test/perf.js).
 'use strict';
 const fs=require('fs'),path=require('path');
-const {here,playwright,open}=require('./benchpage.js');
+const {here,playwright,open,PLACES}=require('./benchpage.js'); // the places are benchpage.js's since v11.187, shared with test/fill.js
 const {glCounting,GL_KEYS,glNumber}=require('../../../tools/lib/browser.ts');
 const argv=process.argv.slice(2),CHECK=argv.includes('--check')||!!process.env.CHECK,UPDATE=argv.includes('--update')||!!process.env.UPDATE;
 const [W,H]=(process.env.SIZE||'1600x900').split('x').map(Number),FRAMES=+(process.env.FRAMES||12),KEPT=path.join(__dirname,'gpu.json');
-// the places: x, y (absolute: under 0 is under the water), z, the yaw (0 faces north, −z; π/2 west), and whether the camera is above the water
-const PLACES={
-  forest:{x:330,y:-12,z:0,yaw:0,above:false,what:'the weed forest on the shelf: the heaviest place for creatures and flora'},
-  atoll:{x:109800,y:-10,z:4000,yaw:Math.PI/2,above:false,what:'the atoll 110 km east, 10 m down on its slope, facing its rim: a dense kelp stand, the most triangles under water'},
-  open:{x:20000,y:-30,z:40000,yaw:0,above:false,what:'open water over the deep floor: the water column, the snow and the fog alone'},
-  coast:{x:-7700,y:0.6,z:6000,yaw:Math.PI/2,above:true,what:'the giant\'s coast from the sea\'s surface: the horizon pass, the sky, the clouds, the land'},
-  wood:{x:-10703,y:144,z:10914,yaw:0,above:true,what:'inside the giant\'s windward forest, 3 m over the ground (v11.180, the wood): the platewood stand and the canopy\'s hand-off at 360–450 m'},
-};
 const only=(process.env.ONLY||Object.keys(PLACES).join(',')).split(',').filter(k=>k in PLACES);
 const roots=(process.env.BASE?[path.resolve(process.env.BASE)]:[]).concat([here]);
 // ---- in the page ----

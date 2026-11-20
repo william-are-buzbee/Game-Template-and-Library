@@ -30,6 +30,7 @@ const Q=(function(){
 })();
 
 const renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:Q.aa});
+const GL2=!!(renderer.capabilities&&renderer.capabilities.isWebGL2); // WebGL2 (v11.187): the caustic's tiles as one array (CAU_ARR) and the flora's variants pulled (VPULL_GLSL); WebGL1 (and the tests' stub) as before
 renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,Q.pr));
 renderer.setSize(innerWidth,innerHeight);
 const scene=new THREE.Scene();
@@ -187,7 +188,12 @@ const WAVE_REST_GLSL=waveSlopeGLSL('restSlope','uChop',w=>true,true);
 // distances per wave where the fade starts and ends are found here once from the same numbers the mesh is built on (Q.surf, FAR·1.05).
 // The level is the higher of the drawn surface and the true wave (v11.42.3): the kelp folds to the true wave (the sway shader's cap, 0.45 m
 // under it) and a raft rides it, so far out a folded top on a crest stands above the drawn mean surface — under the water all the same.
-const WAVE_GLSL_FOG='uniform vec2 uFogTC;float fogWsh(float s){return 2.0*pow(max((s+1.0)*0.5,1e-4),1.7)-1.0;}\n'+WAVE_DEP_GLSL+waveSumGLSL('fogWaveH','uFogTC.y','fogWsh','rm');
+const WAVE_GLSL_FOG='uniform vec2 uFogTC;float fogWsh(float s){return 2.0*pow(max((s+1.0)*0.5,1e-4),1.7)-1.0;}\n'+WAVE_DEP_GLSL; // the sum itself is fogWaveH2's since v11.187 (below)
+// The fog's water level near the surface (v11.187): the wave sum with the far fade (rm) and without it (0), both from one pass over the waves — to v11.186 two
+// calls of fogWaveH and two reads of the floor map, every pixel within 3 m of the tide (the shore, a kelp's top, anything breaching): the same terms, each
+// sine and power taken once. x is fogWaveH(p, t, rm, dw), y fogWaveH(p, t, 0, dw), to the bit.
+const WAVE_PAIR_GLSL='vec2 fogWaveH2(vec2 p,float t,float rm,vec2 dw){vec2 h=vec2(0.0);float cap='+WAVE_BRK.toFixed(2)+'*dw.x;'+
+  WAVES.map((w,i)=>'{float a='+waveAmpGLSL(w,'uFogTC.y')+';float s=fogWsh(sin(dot(p,vec2('+w.dx.toFixed(5)+','+w.dz.toFixed(5)+'))*'+w.k.toFixed(5)+'-'+w.w.toFixed(5)+'*t+'+w.ph.toFixed(4)+'));h.x+=a*mix('+WSH_MEAN.toFixed(4)+',s,1.0-smoothstep('+WAVE_FADE_D[i][0].toFixed(2)+','+WAVE_FADE_D[i][1].toFixed(2)+',rm));h.y+=a*mix('+WSH_MEAN.toFixed(4)+',s,1.0-smoothstep('+WAVE_FADE_D[i][0].toFixed(2)+','+WAVE_FADE_D[i][1].toFixed(2)+',0.0));}').join('')+'return h;}\n';
 const FOG_SPEC=new Float32Array(4); // (v11.164, world.js SPECTRAL) x, y the red's and the green's extra loss over the blue's per metre × the effects list's strength, z the metres the eye has adapted to (v11.164.1, updateFogCamera), w the view path's share; effects.js specApply writes it, 0 is off
 // The lights' halo in the water (v11.166, WATER.md Part 4 item 2; BIOLUM §1: a light that reads here is on a body's faces or is a volume). A light in water
 // lights the water round it: what a ray passes through near a lamp scatters some of the lamp's light into the eye — the cone of murk round a diver's torch,
@@ -229,7 +235,7 @@ const MIST_GLSL='float blR(float y,float e){float u=y-e+'+HAZE.soft.toFixed(1)+'
   C.dithering_pars_fragment=DITHER_PARS;C.dithering_fragment='gl_FragColor.rgb=dithering(gl_FragColor.rgb);';
   C.fog_pars_vertex='#ifdef USE_FOG\nuniform vec3 uFogC;uniform mat3 uFogR;uniform vec4 uFogW;uniform vec4 uSpec;uniform vec4 uDeep;varying float vFogDepth;varying vec3 vFogPos;\n#endif'; // uFogW in the vertex stage too since v11.32: SUNK_V (the Lambert sun by depth) reads the tide from it, and until now only the fragment chunk declared it
   C.fog_vertex='#ifdef USE_FOG\nvFogDepth=length(mvPosition.xyz);vFogPos=uFogC+uFogR*mvPosition.xyz;\n#endif';
-  C.fog_pars_fragment='#ifdef USE_FOG\nuniform vec3 fogColor;uniform vec3 uFogC;uniform vec4 uFogP;uniform vec4 uFogW;uniform vec4 uFogS;uniform vec4 uFogT;uniform vec4 uFogA;uniform vec4 uFogAC;uniform vec4 uMist;uniform vec4 uMistC;uniform vec4 uMistW;uniform vec4 uCap;uniform vec4 uCapC;uniform vec4 uPool[4];uniform sampler2D uWaterMap;uniform sampler2D uFloorMap;uniform vec2 uWmO;uniform vec4 uFogB;uniform vec4 uSpec;uniform vec4 uDeep;uniform vec4 uHaloP[4];uniform vec4 uHaloC[4];uniform vec4 uMurk;float gMk=1.0;uniform vec4 uSkA,uSkB,uSkC,uSkD,uSkE,uSkF;varying float vFogDepth;varying vec3 vFogPos;\n#ifdef FOG_EXP2\nuniform float fogDensity;\n#else\nuniform float fogNear;uniform float fogFar;\n#endif\n'+EYE_GLSL+DIR_GLSL+SMX_GLSL+MIST_GLSL+SKYLITE_GLSL+WOPEN_GLSL+BLOOM_GLSL+WAVE_GLSL_FOG+
+  C.fog_pars_fragment='#ifdef USE_FOG\nuniform vec3 fogColor;uniform vec3 uFogC;uniform vec4 uFogP;uniform vec4 uFogW;uniform vec4 uFogS;uniform vec4 uFogT;uniform vec4 uFogA;uniform vec4 uFogAC;uniform vec4 uMist;uniform vec4 uMistC;uniform vec4 uMistW;uniform vec4 uCap;uniform vec4 uCapC;uniform vec4 uPool[4];uniform sampler2D uWaterMap;uniform sampler2D uFloorMap;uniform vec2 uWmO;uniform vec4 uFogB;uniform vec4 uSpec;uniform vec4 uDeep;uniform vec4 uHaloP[4];uniform vec4 uHaloC[4];uniform vec4 uMurk;float gMk=1.0;uniform vec4 uSkA,uSkB,uSkC,uSkD,uSkE,uSkF;varying float vFogDepth;varying vec3 vFogPos;\n#ifdef FOG_EXP2\nuniform float fogDensity;\n#else\nuniform float fogNear;uniform float fogFar;\n#endif\n'+EYE_GLSL+DIR_GLSL+SMX_GLSL+MIST_GLSL+SKYLITE_GLSL+WOPEN_GLSL+BLOOM_GLSL+WAVE_GLSL_FOG+WAVE_PAIR_GLSL+
     // the veil seen along a ray in water from o for L (v8–v11.32's fog body, now a function of its origin, v11.42): the water map at o and at the bounded point, the floor's colour only near the floor, the plankton's tint at each sample's own depth (v11.81: the bloom map through bloomC/bloomTint, world.js; the canopy's green to v11.80), daylight, the sun's glow, the sky's light and tint, the chemocline's brown
     'vec3 fogVeil(vec3 o,vec3 rd,float L){vec3 sp=o+rd*smn(L,uFogW.w,'+VEIL_K.reach.toFixed(1)+');vec2 m0=(o.xz-uWmO)*'+WM_SCALE+'+0.5,m1=(sp.xz-uWmO)*'+WM_SCALE+'+0.5;vec4 w0=texture2D(uWaterMap,m0),w1=texture2D(uWaterMap,m1),f0=texture2D(uFloorMap,m0),f1=texture2D(uFloorMap,m1);'+
     'w0.rgb=mix(wopen(-o.y),w0.rgb,exp(-smx(o.y+f0.r*'+FM_SCALE.toFixed(1)+'-'+FLOOR_FREE.toFixed(1)+',0.0,'+VEIL_K.floor.toFixed(1)+')*'+(1/FLOOR_H).toFixed(5)+'));w1.rgb=mix(wopen(-sp.y),w1.rgb,exp(-smx(sp.y+f1.r*'+FM_SCALE.toFixed(1)+'-'+FLOOR_FREE.toFixed(1)+',0.0,'+VEIL_K.floor.toFixed(1)+')*'+(1/FLOOR_H).toFixed(5)+'));'+ // v11.177: the open water's colour eased (world.js WOPEN), the floor's say and the sample's reach with a knee (VEIL_K)
@@ -266,7 +272,7 @@ const MIST_GLSL='float blR(float y,float e){float u=y-e+'+HAZE.soft.toFixed(1)+'
   // once you leave the water", three stills of the forest crisp to the horizon from just above it. Over the whole length nothing under water is
   // seen further from above than from below, the two halves of a view at the line match, and near things stay clear either side. On top of that
   // the chop's scatter at grazing (SCAT). The water level: at the camera the wave itself (uFogAC.w, JS waveH); at a fragment within 3 m of the tide the same
-  // wave sum per fragment (fogWaveH: a raft's pad on a crest is *at* the surface, not 0.4 m above a plane, so it is seen through water whole),
+  // wave sum per fragment (fogWaveH2 since v11.187: a raft's pad on a crest is *at* the surface, not 0.4 m above a plane, so it is seen through water whole),
   // else the mean level; the crossing is found against the level blended between the two. uFogP.w 0 (the surface mesh, FOG_PSURF) keeps the
   // whole ray in the camera's medium: its fragments are the boundary. The far cut (FOG_CUT_GLSL) closes the camera's segment only.
   // The ray from the fragment's own position (v11.177): d its length, rd its direction, per fragment. To v11.176 d was vFogDepth, the length at the vertices
@@ -275,7 +281,7 @@ const MIST_GLSL='float blR(float y,float e){float u=y-e+'+HAZE.soft.toFixed(1)+'
   // sample point all moved by facet — the dome's latitude rings (one of them the horizon) and meridians as faint lines in the veil, and in the dark the own
   // light's glow a third weaker on the dome than on the floor in front of it: the world's edge (the person, 18 Nov 2026). horizon.js the same.
   C.fog_fragment='#ifdef USE_FOG\n{vec3 dv=vFogPos-uFogC;float d=length(dv);vec3 rd=dv/max(d,1e-3);float cy=uFogC.y,fy=vFogPos.y,wl=uFogAC.w;float ck=1.0'+FOG_CUT_GLSL+';'+
-    'bool cu=cy<wl;float lev=uFogW.x+((abs(fy-uFogW.x)<3.0)?max(fogWaveH(vFogPos.xz,uFogTC.x,max(abs(vFogPos.x-uFogC.x),abs(vFogPos.z-uFogC.z)),waveDep(vFogPos.xz,uFogW.x)),fogWaveH(vFogPos.xz,uFogTC.x,0.0,waveDep(vFogPos.xz,uFogW.x))):('+WAVE_MEAN.toFixed(4)+'));bool fu=fy<lev;float s=1.0;'+
+    'bool cu=cy<wl;float lev=uFogW.x;if(abs(fy-uFogW.x)<3.0){vec2 lh=fogWaveH2(vFogPos.xz,uFogTC.x,max(abs(vFogPos.x-uFogC.x),abs(vFogPos.z-uFogC.z)),waveDep(vFogPos.xz,uFogW.x));lev+=max(lh.x,lh.y);}else lev+='+WAVE_MEAN.toFixed(4)+';bool fu=fy<lev;float s=1.0;'+
     'if(uFogP.w>0.5&&cu!=fu){float den=cy-fy;if(abs(den)<1e-4)den=1e-4;float s0=clamp((cy-wl)/den,0.0,1.0);s=clamp((cy-mix(wl,lev,s0))/den,0.0,1.0);}'+
     'float dC=s*d,dO=d-dC;vec3 cp=uFogC+rd*dC;vec3 col=gl_FragColor.rgb;'+
     'if(cu){if(dO>0.0)col=fogAir(col,cp,rd,dO,1.0,0.0);col=fogWater(col,uFogC,rd,dC,dC,vec3(dirK(rd)),ck);col+=haloL(uFogC,rd,dC);}'+
@@ -462,6 +468,13 @@ const PIX_GRID_V=grid=>grid==='world'?'vGrid=(modelMatrix*wpp).xyz;':'vGrid=pGri
   {const G=CAU_GN,D=new Uint8Array(G*G*4),sc=CAU_GUST[0];for(let j=0;j<G;j++)for(let i=0;i<G;i++){const o=(j*G+i)*4;let v=0,w=0;for(let k=0;k<3;k++){const f=1<<k;v+=fbm(((i/G)*f%1)*sc*0.035+40,((j/G)*f%1)*sc*0.035+70,2)/f;w+=1/f;}v=clamp((v/w-0.5)*4.0+0.5,0,1);D[o]=D[o+1]=D[o+2]=Math.round(v*255);D[o+3]=255;}
     const t=new THREE.DataTexture(D,G,G,THREE.RGBAFormat,THREE.UnsignedByteType);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.minFilter=t.magFilter=THREE.LinearFilter;t.generateMipmaps=false;t.needsUpdate=true;t.clone=function(){return this;};CAU_GTEX=t;} // the gust tile: three octaves of the world's value noise, wrapped by taking each octave's coordinate mod 1 of the tile (a seam per octave that the blur hides), stretched to fill 0..1
 })();
+// The tiles as one texture array (v11.187, WebGL2): the ten a tinted material sampled (each ring's S and C, layers 2i and 2i+1) under one sampler, the same
+// bytes, wrap and filter, so the same caustic — and nine of WebGL's sixteen texture units a fragment shader may use come free (the tinted materials were at
+// sixteen: v11.81's third map failed every compile), one of them now the flora's vertex data (VPULL_GLSL). WebGL1 keeps the ten (CAU_TEX[i].s, .c).
+const CAU_ARR=(function(){if(!GL2||!CAU_TEX.length||!THREE.DataTexture2DArray)return null;const N=CAU_N,L=CAU_TEX.length*2,D=new Uint8Array(N*N*4*L);
+  CAU_TEX.forEach((r,i)=>{D.set(r.s.image.data,(2*i)*N*N*4);D.set(r.c.image.data,(2*i+1)*N*N*4);});
+  const t=new THREE.DataTexture2DArray(D,N,N,L);t.format=THREE.RGBAFormat;t.type=THREE.UnsignedByteType;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.minFilter=t.magFilter=THREE.LinearFilter;t.generateMipmaps=false;t.needsUpdate=true;t.clone=function(){return this;};return t;})();
+const cauTap=(k,i,uv)=>CAU_ARR?'texture(uCauA,vec3('+uv+','+(2*i+(k==='C'?1:0)).toFixed(1)+'))':'texture2D(uCau'+k+i+','+uv+')'; // a ring's S or C tile at uv, from the array or its own texture
 // The ripples' slope at a surface point, for the glitter (v11.46, WATER.md F): the same trains the caustic is drawn from — "the ripple layer that lives only in the
 // light" (PLANET, 14 Sep) — read as a gradient from the tiles' rg/ba parts at the ring's phase, carried by the swell as the caustic's are, gusted by the same
 // patches (cat's paws are exactly what glitter shows), each ring faded where its wavelength is under a few pixels (RIP_FAR: the caustic's own CAU_FAR, in
@@ -488,7 +501,7 @@ function cauFocus(x,z,dep,t){
     hxx+=(S[o]-127.5)*cp-(C[o]-127.5)*sp;hxy+=(S[o+1]-127.5)*cp-(C[o+1]-127.5)*sp;hzz+=(S[o+2]-127.5)*cp-(C[o+2]-127.5)*sp;}
   const jc=dep*0.248*SEA_CHOP,dj=(1-jc*hxx)*(1-jc*hzz)-jc*jc*hxy*hxy;return 1/Math.max(Math.abs(dj),0.02);
 }
-const CAU_PARS=CAU_TEX.map((r,i)=>'uniform sampler2D uCauS'+i+';uniform sampler2D uCauC'+i+';').join('')+'uniform sampler2D uCauG;uniform float uPix;uniform float uTex;uniform float uTexL;uniform vec2 uWindOff;';
+const CAU_PARS=(CAU_ARR?'uniform lowp sampler2DArray uCauA;':CAU_TEX.map((r,i)=>'uniform sampler2D uCauS'+i+';uniform sampler2D uCauC'+i+';').join(''))+'uniform sampler2D uCauG;uniform float uPix;uniform float uTex;uniform float uTexL;uniform vec2 uWindOff;';
 const CAU_GLSL=(function(){let s='vec2 ps=vFogPos.xz+uSunW.xz*(dep/max(uSunW.y,0.3));vec3 H=vec3(0.0);float ct='+(CAU_STEP>0?'floor(uTime*'+CAU_STEP.toFixed(1)+')/'+CAU_STEP.toFixed(1):'uTime')+';';
   // the ripples ride the swell: the surface's horizontal orbital displacement (A sin, along the wave) carries the ripple field with it — for a 1.6 m ripple on a 46 m swell of 0.5 m that is ~2 rad of phase, and it is what keeps three fixed trains from interfering into a lattice (seen, 13 Sep)
   for(let i=0;i<CAU_SWELL;i++){const w=WAVES[i];s+='ps+=vec2('+w.dx.toFixed(5)+','+w.dz.toFixed(5)+')*('+w.A.toFixed(3)+(w.L<20?'*uChop':'')+'*sin(dot(ps,vec2('+w.dx.toFixed(5)+','+w.dz.toFixed(5)+'))*'+w.k.toFixed(5)+'-'+w.w.toFixed(5)+'*ct+'+w.ph.toFixed(4)+'));';}
@@ -496,7 +509,7 @@ const CAU_GLSL=(function(){let s='vec2 ps=vFogPos.xz+uSunW.xz*(dep/max(uSunW.y,0
   s+='vec2 cu=ps*'+(1/CAU_TILE).toFixed(6)+';float gu=1.0-'+CAU_GUST[1].toFixed(2)+'*(1.0-texture2D(uCauG,(ps-uWindOff)*'+(1/CAU_GUST[0]).toFixed(6)+').r);'; // the gust at this point; the patches drift downwind at the wind's speed (v11.39: cat's paws move — uWindOff is the wind's integral, atmosphere.js)
   for(let i=0;i<CAU_TEX.length;i++){const r=CAU_TEX[i]; // each ring: the field now from its two tiles, blurred by the sun's disc at depth and faded from the eye, both by its wavelength
     s+='{float ph='+r.w.toFixed(5)+'*ct;float g=exp(-dep*dep*'+(2*Math.pow(Math.PI*CAU_SUN/r.L,2)).toFixed(6)+')*(1.0-smoothstep('+(r.L*CAU_FAR[0]).toFixed(1)+','+(r.L*CAU_FAR[1]).toFixed(1)+',vFogDepth));'+
-      'if(g>0.002)H+=((texture2D(uCauS'+i+',cu).rgb*2.0-1.0)*cos(ph)-(texture2D(uCauC'+i+',cu).rgb*2.0-1.0)*sin(ph))*('+CAU_HMAX.toFixed(3)+'*g*gu);}';}
+      'if(g>0.002)H+=(('+cauTap('S',i,'cu')+'.rgb*2.0-1.0)*cos(ph)-('+cauTap('C',i,'cu')+'.rgb*2.0-1.0)*sin(ph))*('+CAU_HMAX.toFixed(3)+'*g*gu);}';}
   s+='float jc=dep*0.248*uChop;float dj=(1.0-jc*H.x)*(1.0-jc*H.z)-jc*jc*H.y*H.y;'+
     'float cf=1.0/max(abs(dj),0.02);float ci=1.0+exp(-dep/'+CAU_D.toFixed(1)+')*('+(CAU_HI-1).toFixed(2)+'*(uPix>0.5?step('+CAU_T.toFixed(2)+',cf):smoothstep('+(CAU_T-CAU_SOFT).toFixed(2)+','+(CAU_T+CAU_SOFT).toFixed(2)+',cf))-'+CAU_DARK.toFixed(2)+'*(1.0-min(cf,1.0)));';
   return s;})();
@@ -666,7 +679,7 @@ function addTint(m,key,small,band,grid,cls){ // grid (v11.40): 'world' puts the 
     if(prev)prev.call(m,sh);
     sh.vertexShader=HIDE_V+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>'+HIDE_GLSL); // before the material's own code at begin_vertex (prev put it there first)
     sh.uniforms.uTint=tintU;if(small)sh.uniforms.uFogP={value:FOG_PS};
-    const lit=LIGHT_FX&&key!=='glow';if(lit){sh.uniforms.uTime=timeU;sh.uniforms.uChop=chopU;sh.uniforms.uSunW={value:SUN_W};for(let i=0;i<CAU_TEX.length;i++){sh.uniforms['uCauS'+i]={value:CAU_TEX[i].s};sh.uniforms['uCauC'+i]={value:CAU_TEX[i].c};}sh.uniforms.uCauG={value:CAU_GTEX};sh.uniforms.uPix=pixU;sh.uniforms.uTex=texU;sh.uniforms.uTexL=texLU;sh.uniforms.uWindOff=windOffU;sh.uniforms.uLightK=lightKU;sh.uniforms.uShMap=shMapU;sh.uniforms.uShMat=shMatU;sh.uniforms.uShP=shPU;sh.uniforms.uShL=shLU;sh.uniforms.uShMapS=shMapSU;sh.uniforms.uShMatS=shMatSU;sh.uniforms.uShPS=shPSU;sh.uniforms.uShLS=shLSU;}
+    const lit=LIGHT_FX&&key!=='glow';if(lit){sh.uniforms.uTime=timeU;sh.uniforms.uChop=chopU;sh.uniforms.uSunW={value:SUN_W};if(CAU_ARR)sh.uniforms.uCauA={value:CAU_ARR};else for(let i=0;i<CAU_TEX.length;i++){sh.uniforms['uCauS'+i]={value:CAU_TEX[i].s};sh.uniforms['uCauC'+i]={value:CAU_TEX[i].c};}sh.uniforms.uCauG={value:CAU_GTEX};sh.uniforms.uPix=pixU;sh.uniforms.uTex=texU;sh.uniforms.uTexL=texLU;sh.uniforms.uWindOff=windOffU;sh.uniforms.uLightK=lightKU;sh.uniforms.uShMap=shMapU;sh.uniforms.uShMat=shMatU;sh.uniforms.uShP=shPU;sh.uniforms.uShL=shLU;sh.uniforms.uShMapS=shMapSU;sh.uniforms.uShMatS=shMatSU;sh.uniforms.uShPS=shPSU;sh.uniforms.uShLS=shLSU;}
     sh.vertexShader='varying float vWy;'+(lit?'varying vec3 vGrid;':'')+(lit&&cls==='body'?'varying vec3 vPat;\n#ifndef USE_INSTANCING\nattribute vec3 aPat;\n#endif\n':'')+'\n'+(lit?sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvec3 pGrid=transformed;'):sh.vertexShader).replace('#include <worldpos_vertex>','#include <worldpos_vertex>\n{vec4 wpp=vec4(transformed,1.0);\n#ifdef USE_INSTANCING\nwpp=instanceMatrix*wpp;\n#endif\nvWy=(modelMatrix*wpp).y;'+(lit?PIX_GRID_V(grid):'')+(lit&&cls==='body'?'\n#ifdef USE_INSTANCING\nvPat=vec3(0.0);\n#else\nvPat=aPat;\n#endif\n':'')+'}');
     sh.fragmentShader='uniform vec4 uTint;varying float vWy;'+(lit?'varying vec3 vGrid;':'')+(lit&&cls==='body'?'varying vec3 vPat;':'')+'\n'+(lit?LIGHT_PARS:'')+sh.fragmentShader.replace('#include <fog_fragment>',(lit?PIX_GLSL(grid,cls)+LIGHT_GLSL:'')+(band?BAND_GLSL(band):'')+'\n#include <fog_fragment>');
   };
@@ -810,3 +823,18 @@ const MATG=swayMaterial(0.35,1.6,2.4,1,false,2.4,false,true,true,0.35),MATB=sway
   MATTR=swayMaterial(0.3,0.45,9,1,false,14), // the tidal forest (v11): a trunk in the wind — a slow sway from the crown, never capped to the water, never leaning to the current (land: chunks.js makeInstanced gives it no aCur); no cut (the cards)
   MATWD=swayMaterial(0.25,0.35,18,1,false,27,false,false,true,0.25); // the platewood (v11.180): a tall trunk in the wind, its plates lit through a little (thin); cut at FLORA_FAR, where the terrain's shell takes over (woodGLSL)
 MATTR.land=true;MATWD.land=true; // thin (the last argument, v11.13): the share of the far face's light that comes through a blade — the weed, bladders, rafts, whips, the tussock; not the stipe, not the trunks
+// ---------- the variants pulled (v11.187, grow.js VPULL; DESIGN "The flora's vertices") ----------
+// A pulled species' geometry is n vertices that carry only their number (aPull); the vertex shader fetches the instance's own variant's vertex from
+// VPULL_TEX (chunks.js fills it from every species once FLORA is whole) before three's chunks read it: position, normal and colour stand in for the
+// attributes at begin_vertex, beginnormal_vertex and color_vertex (r128's chunks, written out), and the collapse goes (every vertex is the instance's own;
+// the padding leaves at once). The material is a copy of the species' own with its key + 'pull', so the shared one still draws the packed geometries
+// (the bestiary's, a WebGL1 machine's) and the depth pass takes the same code through depthFor.
+let VPULL_TEX=null;const vpullMats=new Map();
+const VPULL_V='uniform highp sampler2D uPull;attribute vec2 aPull;vec3 pPos,pNor,pCol;\n';
+const VPULL_MAIN=()=>'{int v=int(aPull.x+aVar*aPull.y+0.5);ivec2 q=ivec2((v%'+VPULL.row+')*3,v/'+VPULL.row+');vec4 pa=texelFetch(uPull,q,0);if(pa.w>0.5)'+GONE+'pPos=pa.xyz;pNor=texelFetch(uPull,q+ivec2(1,0),0).xyz;pCol=texelFetch(uPull,q+ivec2(2,0),0).xyz;}\n';
+const VPULL_COLOR='\n#if defined( USE_COLOR_ALPHA )\nvColor=vec4(1.0);\n#elif defined( USE_COLOR ) || defined( USE_INSTANCING_COLOR )\nvColor=vec3(1.0);\n#endif\n#ifdef USE_COLOR\nvColor*=pCol;\n#endif\n#ifdef USE_INSTANCING_COLOR\nvColor.xyz*=instanceColor.xyz;\n#endif\n'; // r128's color_vertex on the fetched colour
+function vpullGLSL(sh){sh.uniforms.uPull={value:VPULL_TEX};
+  sh.vertexShader=VPULL_V+sh.vertexShader.split(VAR_COLLAPSE).join('').replace('void main() {','void main() {\n'+VPULL_MAIN()).replace('#include <color_vertex>',VPULL_COLOR).replace('#include <beginnormal_vertex>','vec3 objectNormal=pNor;').replace('#include <begin_vertex>','vec3 transformed=pPos;');}
+function vpullMat(m){let p=vpullMats.get(m);if(p)return p;p=m.clone();const ob=m.onBeforeCompile,key=m.customProgramCacheKey();
+  p.onBeforeCompile=function(sh){ob.call(m,sh);vpullGLSL(sh);};p.customProgramCacheKey=function(){return key+'pull';};
+  for(const k of ['sway','land','extensions','defaultAttributeValues'])if(m[k]!==undefined)p[k]=m[k];vpullMats.set(m,p);return p;}

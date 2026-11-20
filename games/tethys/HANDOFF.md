@@ -1,5 +1,15 @@
 # HANDOFF — tethys
 
+**v11.187 (19 Nov 2026): a performance pass — the flora's vertices, the air under the water, and the GPU's time taken** (grow.js `VPULL`; scene.js
+`VPULL_GLSL`, `CAU_ARR`, `fogWaveH2`; atmosphere.js `SURF_OCC`, `OCC`; chunks.js the card species pooled; test/fill.js; test/benchpage.js `PLACES` with the
+shore and the canopy; DESIGN "What the GPU spends"; CHANGELOG). The person's lag at the plants, the shore and the surface. Every plant drew its three
+variants and threw two away in the vertex shader — now it fetches its own (the same pixels); under water the air behind the surface's mirror was shaded and
+painted over — now the surface is drawn first as an occluder; the surface-reaching species are pooled; the fog's wave sum at the water line is taken once.
+A frame's triangles and vertices ×0.52–0.58 at the forest, the atoll, the shore and the canopy (test/gpu.js), 21–23 fewer draws; the GPU's time as
+SwiftShader takes it (test/fill.js, a proxy) ×0.88 at the shore, ×0.77–0.79 under water; open water up (the occluder, one draw). Nothing compiles at first sight
+at the forest, the shore or the canopy any more (the shore had three). **Ask:** the readout (fps, frame ms, render ms, draws) at the shore `tp(110,-380)` from the water and 3 m down in the kelp beside it, against
+v11.186's; then the person's calls in CHANGELOG v11.187 (the tidewood's weight, the sky's resolution, a low tier for a weak machine).
+
 **v11.186 (19 Nov 2026): the cloud as fog** (clouds.js `CFOG`, `capFog`, `poolFog`, `POOLS_C`, `updateCloudFog`; scene.js `FOG_CAP`, `FOG_CAPC`, `FOG_POOL`;
 test/sky.js; DESIGN The cloud as fog; analysis_fog §8; CHANGELOG). The person's answers of 19 Nov: fog inside the cloud, the night fog in the craters. The
 caps over the high islands and the deck round a camera inside it are fog to every material in air, toward the cloud volume's own shade — inside the giant's

@@ -182,3 +182,13 @@ which found four repositories sharing no code, copying it instead (the same rand
     file stays the truth and a later rise is measured from it. Still unmeasured, and said so: what a shader costs per vertex
     and per pixel. The other half of the same answer is one command: Tethys's `node test/perf.js` reads what the branch changed, runs
     the benches those files call for against the merge base's sources, and prints the pull request's table.
+29. **The GPU's time is taken as a proxy, by what is drawn, and a change says whether the picture moved** (19 Nov 2026; the
+    person, asking for Tethys's performance pass: "Are there any performance concerns that could be fixed with better
+    architecture, process or setup on your end? I am very open to improving your ability to workflow."). Decision 28 counted
+    what a frame asks of the GPU and left what it spends unmeasured. Headless Chromium draws with SwiftShader, a CPU running
+    the shaders: slow, and its ratios are not a real GPU's, but a draw timed alone on it (a one-pixel read before and after)
+    is a time per thing drawn, and the same frame drawn at a tenth of each side splits it into vertices and pixels. Tethys's
+    `test/fill.js` does that at the benches' places, names each draw (a flora species, the terrain, the sky, a pass), and reads
+    the picture whole, so two trees compare pixel for pixel; `test/perf.js --only fill` puts it in the pull request's table.
+    Its first use found two thirds of the flora's vertex work thrown away and the sky shaded under water behind the surface
+    (v11.187). It is a time on a shared machine, so never held in CI; the person's readout stays the measure.
