@@ -39,9 +39,9 @@ const DRY_PAL = (() => {
   for (const k in PAL) for (const key in PAL[k]) if (!o[key]) o[key] = PAL[k][key];
   return o;
 })();
-function palk(pal) {
-  for (let i = 1; i < arguments.length; i++) {
-    const c = pal[arguments[i]];
+function palk(pal, ...keys) {
+  for (const k of keys) {
+    const c = pal[k];
     if (c) return c;
   }
   return [0.5, 0.5, 0.5];

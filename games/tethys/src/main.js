@@ -121,7 +121,7 @@ function loop(now){
   readTouch();bootTick(iv); // the boot's stages (v11.189), before the streaming they gate
   // the streaming gets what the rest of the last frame left of Q.target (v11.12): a 3 ms frame leaves 4.5 for the cells, a 6 ms frame 2 (the floor)
   const g0=performance.now(),bl=!BOOT.done&&BOOT.stage==='load';if(BOOT.done||BOOT.stage!=='store')manageChunks(bl?BOOT.budget:Math.min(Q.budgetMs,Math.max(2,Q.target-(frameMs-genMs))));manageFar(bl?BOOT.budget:Q.farMs);genMs=performance.now()-g0;bloomTick();const a0=performance.now(); // a0…: the phases' marks for the recorder (v11.191, rec.js recFrame) // v11.189: the cells wait for the boot's slot (its ledger is what they spawn from); behind the loading page both stream with BOOT.budget (to v11.188 the far layer had 14 ms through the menu's first 2.4 s) // the plankton's clock (far.js, v11.81): the front by the tide's amplitude, the storm's pulse // the far layer streams in behind the fade (black until ~2.2 s), then in the gaps (v11.12: 14 ms all through the menu had its creatures stuttering for the first second)
-  updateMenu(dt);updateZoo(dt);updateLab(dt);if(mode==='play')updatePlayer(dt); // updateMenu (v11.47.1): the column's rise and the idle fade
+  updateMenu();updateZoo(dt);updateLab(dt);if(mode==='play')updatePlayer(dt); // updateMenu (v11.47.1): the column's rise and the idle fade
   const p0=performance.now();
   updateSchools(dt);updateCreatures(dt);if(mode==='play')finishPlayer(dt,bodies); // bodies, contact, arms, then the camera
   updateEggs(dt);updateSheds(dt);ecoTick(dt);updateSave(dt); // the clutches hatch; the cast carapaces rot (v11.66); the world's ledger (v11.26): the model every few seconds, the births owed; the autosave clock (save.js, v11.47)

@@ -107,7 +107,7 @@ function regionModel(Kin){
   // cone each, seed 32's 159 stood 10 km apart and 5 km across, where Earth's chains keep 40–90 km and 9–46 km (analysis_archipelago §9)
   if(K.comp){const C=K.comp.C*1000,tau=K.comp.tau,E=pin.map((p,i)=>({pin:true,x:p.x,z:p.z,last:i?tg:K.ageOurs,vents:[]}));
     for(const v of M.filter(m=>m.pin<0).sort((a,b)=>b.age-a.age)){let best=null,bd=C;for(const e of E){if(e.last-v.age>tau||e.pin&&v.age>e.last)continue; /* a pin takes no vent older than itself */const d=Math.hypot(v.x-e.x,v.z-e.z);if(d<bd){bd=d;best=e;}}
-      if(!best){E.push({x:v.x,z:v.z,last:v.age,vents:[v]});continue;}
+      if(!best){E.push({pin:false,x:v.x,z:v.z,last:v.age,vents:[v]});continue;} /* pin:false — one shape with the pins' (v11.193, test/types.js) */
       best.vents.push(v);best.last=Math.min(best.last,v.age);if(best.pin)continue;let w=0,x=0,z=0;for(const q of best.vents){w+=q.V;x+=q.x*q.V;z+=q.z*q.V;}best.x=x/w;best.z=z/w;}
     const keep=M.filter(m=>m.pin>=0);for(const e of E){if(e.pin||!e.vents.length)continue;const vs=e.vents,big=vs.reduce((a,b)=>b.V>a.V?b:a),first=vs.reduce((a,b)=>b.age>a.age?b:a);
       let V=0,cxx=0,czz=0,cxz=0,s2=0;for(const q of vs){V+=q.V;const dx=q.x-e.x,dz=q.z-e.z;cxx+=q.V*dx*dx;czz+=q.V*dz*dz;cxz+=q.V*dx*dz;s2+=q.V*q.R*q.R/4;} /* s2: each vent's own cone, a disc's second moment */

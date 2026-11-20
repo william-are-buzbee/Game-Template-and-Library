@@ -14,7 +14,7 @@
 // widest zoom's level while nothing else is wanted; the tiles are kept (WMAP_CACHE, the oldest dropped), so a view seen once is back at once.
 // The tiles are composed onto wmap.comp only when the view moves or a tile arrives; a frame draws that, the player and the cursor.
 const WMAP_T=128,WMAP_MPP0=4096,WMAP_UP=1.1,WMAP_BUDGET=6,WMAP_CACHE=900,WMAP_LW=1.25; // a tile's side in samples; level 0's metres a sample; the most a tile's sample may be stretched (×); the tile work a frame (ms); tiles kept; a contour's width in tile pixels (a tile is drawn at 0.65–1.1 of its size)
-const WMAP_BANDS=[[0,[0.55,0.52,0.40]],[-6,[0.62,0.78,0.72]],[-60,[0.30,0.62,0.66]],[-150,[0.18,0.42,0.56]],[-450,[0.12,0.26,0.44]],[-800,[0.10,0.17,0.30]],[-1100,[0.08,0.11,0.20]],[-3000,[0.04,0.05,0.10]]]; // test/mapdraw.js BANDS (test/lint.js holds them equal)
+/** @type {[number,number[]][]} */const WMAP_BANDS=[[0,[0.55,0.52,0.40]],[-6,[0.62,0.78,0.72]],[-60,[0.30,0.62,0.66]],[-150,[0.18,0.42,0.56]],[-450,[0.12,0.26,0.44]],[-800,[0.10,0.17,0.30]],[-1100,[0.08,0.11,0.20]],[-3000,[0.04,0.05,0.10]]]; // test/mapdraw.js BANDS (test/lint.js holds them equal)
 const WMAP_CONT=[0,-60,-150,OXY.top,-800,-1000]; // test/map.js CONT: the sea, the shelf's edge, the light's end, the oxygen minimum's top (the chemocline to v11.95), the deep, the floor's top (the hills cross -1100 everywhere)
 const WMAP_MS=[[],[3,0],[0,1],[3,1],[1,2],[3,0,1,2],[0,2],[3,2],[2,3],[0,2],[0,1,2,3],[1,2],[1,3],[0,1],[3,0],[]]; // marching squares: a cell's corners above the level (bits: nw 1, ne 2, se 4, sw 8) → the edges its line joins (0 top, 1 right, 2 bottom, 3 left), in pairs
 const wmapEl=document.getElementById('wmap'),wmapC=document.getElementById('wmapc'),wmapL=document.getElementById('wmapl');
