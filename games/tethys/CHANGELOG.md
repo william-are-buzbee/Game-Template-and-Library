@@ -9949,7 +9949,7 @@ readout read out at a `tp()` the person had to be sent to; the person's GPU had 
 - **test/report.js** (new): reads the reports back — `--search` every issue titled "tethys report" (`gh api` search), a table by version, the newest in
   full; or a file. The worst places with their `tp()` and an `AT=x,y,z,yaw` line: **test/benchpage.js** `PLACES.at` stands **test/gpu.js** and
   **test/fill.js** at a report's worst frame (alone; gpu.js refuses `AT` with `--check` or `--update`).
-- **test/rec.js** (new, in --test): rec.js alone against a fake page whose GPU timer answers two frames late — 51 checks, among them the percentiles
+- **test/rec.js** (new, in --test): rec.js alone against a fake page whose GPU timer answers two frames late — 55 checks, among them the percentiles
   against a sort, the places' GPU time by pass to the hundredth, a slow frame's GPU time filled in late, a disjoint, the link for a two-hour session over
   900 places (it fits at level 3, 6.1 KB, and decodes), the store, F9 sending the last session. **test/smoke.js**: the recorder's session after the runs,
   no NaN. **test/boot.js**: the recorder in real Chromium — the machine read, the frames counted, the link built by the browser's own deflate and decoded.
