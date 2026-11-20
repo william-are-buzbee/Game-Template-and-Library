@@ -268,7 +268,7 @@ const FAR_IMP=[
   {f:FLORA_BY_ID.stipe,geo:farStipeGeo(),stride:3,pig:true}, // v11.155: the real one's copy under the real tint (pig); to v11.154 an olive card dimmed 0.55 against the real (v11.42.4: past the swap the cards' residual read paler than the veil where the real kelp's read darker — the person's last 5%, 14 Sep), one in five
   {f:FLORA_BY_ID.bladder,geo:farBladderGeo(),stride:2,pig:true}, // v11.155: the same; to v11.154 a card dimmed 0.7, one in three
   {f:FLORA_BY_ID.button,geo:farRaftGeo([0.56,0.82,0.78]),stride:2,r:1.1}, // the buttons' fleets, green-blue
-  {f:FLORA_BY_ID.tidetree,geo:farTreeGeo(),stride:2,pig:true,hs:[6/9,1,12/9]} // tidewoodB's 6, 9 and 12 m
+  {f:FLORA_BY_ID.tidetree,geo:farTreeGeo(),stride:2,pig:true,hs:[6/9,1,12/9],lod:MATTRF} // tidewoodB's 6, 9 and 12 m; lod (v11.188): the copy drawn on the real pool's instances past TREE_LOD.d (chunks.js poolLod)
 ];
 for(const sp of FAR_IMP)sp.f.card=true; // v11.52: a card species keeps an instanced mesh per cell (chunks.js makeInstanced) — its cards take over per cell at FLORA_FAR; every other species is pooled
 const impCache=new Map(); // by ckey (v11.111; a dense array over the world's cells to v11.110)

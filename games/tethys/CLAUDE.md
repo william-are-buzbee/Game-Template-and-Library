@@ -40,7 +40,7 @@ node serve.js            static server; open http://localhost:8080/dev.html (edi
   Node); `npm run vendor -w games/tethys` rewrites it, and `npm test` fails when it is stale. `mulberry` and `hashStr` are its
   `WB.Rng` and `WB.hashString` since 6 Nov 2026: the same numbers (checked over 92,736 `sample()` points against the old code).
 - `--test` runs side by side (v11.93.3): the five runs that time themselves and fail on it (`physics.js`, `audio.js`, `snow.js`, `sky.js`, `glow.js`)
-  first, one at a time with nothing else running, then the other twenty-three (v11.111) `JOBS` at a time (default the cores, eight at most: sixteen at once peaked near 9 GB in v11.93.3), longest first, each with
+  first, one at a time with nothing else running, then the other twenty-four (v11.111; v11.188 test/res.js) `JOBS` at a time (default the cores, eight at most: sixteen at once peaked near 9 GB in v11.93.3), longest first, each with
   a temp folder of its own; a run's output prints whole when it ends, then a table of every run's time. About 4.5 minutes on a 4-core
   sandbox and 6–8 in CI by the runner (18 one at a time before v11.93.3; 12 one at a time now). A new test that asserts on a time it measures goes in `ALONE` (build.js and build.py);
   nothing else may read the wall clock — the stub's `performance.now` is the frames'.
@@ -58,6 +58,7 @@ node serve.js            static server; open http://localhost:8080/dev.html (edi
 | test | checks | run |
 |---|---|---|
 | `test/lint.js` | undeclared (fails), declared twice at the top level (fails, v11.53: one scope, the later file wins silently) and unused (informational) names across the bundle; (v11.158) worldmap.js's bands and contours test/mapdraw.js's and test/map.js's (fails); acorn vendored as `test/acorn.js` | `node test/lint.js` |
+| `test/res.js` | the resolution that holds the frame (v11.188, scene.js `RES`, `resStep`) driven by simulated machines: a GPU that drops frames settles at the scale that holds 60 fps, one at 60 ms goes to the floor, a CPU-bound frame, a good card and a 60 fps card never move it, a browser capped at 30 fps and a strictly vsynced GPU get a step tried and undone, rarely, without swinging; a hidden tab's gap is not a frame | `node test/res.js` |
 | `test/physics.js` | the collider hash against brute force, rocks, capsule push, chains, body contact, flow, cost per creature | `node test/physics.js` |
 | `test/anim.js` | tail rate and arm-tip jerk two minutes in through accelerate/cruise/turn/sprint/coast; fails on spin, shiver or fling | `node test/anim.js` (`T0=600`) |
 | `test/steer.js` | the steering (v11.77): scripted input through the frame loop for the three roster players, the hose and the sickle — straight up, straight down, a loop, a knockback, a and d, space and c, s, the touch stick, a breach (the surface both ways), first person; fails on a flip (the body off a held heading), a spike (a frame faster than the body's turn rate, the arc's allowance in the air), a strafe, a body upside down, a NaN; the walking (v11.78): the picker, the scuttle and the ram up a slope the test finds clear of rock, a turn, backing by the legs, a step, a ledge, the hop and the beach | `node test/steer.js`, `TIER=low …` |

@@ -94,7 +94,7 @@ function hzSeaBuild(){const K=18,NS=96,r0=FAR*HZ_SEA0,p=[],c=[],ix=[];for(let k=
   const sgm=new THREE.BufferGeometry();sgm.setAttribute('position',new THREE.Float32BufferAttribute(p,3));sgm.setAttribute('color',new THREE.Float32BufferAttribute(c,3));sgm.setIndex(ix);hzSea=new THREE.Mesh(sgm,HZ_SEA_MAT);hzSea.frustumCulled=false;hzScene.add(hzSea);}
 function hzStep(){if(!HZ)return;const t0=performance.now();try{while(performance.now()-t0<HZ_MS){if(!hzG){const q=HZ.queue.shift();if(!q)return;q.queued=false;if(HZ.built.has(q))continue;hzG=hzMember(q);}if(hzG.next().done)hzG=null;}}catch(e){hzG=null;console.warn('the horizon tier could not build: '+e.message);}} // the queue's members one at a time, HZ_MS a frame (v11.113)
 // the frame's render (main.js): above the water the horizon pass first, then the world over it with the depth cleared; below, the world alone
-function renderFrame(){const above=wasAbove===true&&!!renderer.clearDepth;
+function renderFrame(){const above=wasAbove===true&&!!renderer.clearDepth;cloudPass(); // the cloud volume's own pass first (v11.188, atmosphere.js CLDP)
   if(above&&!hzTried){hzTried=true;try{hzSeaBuild();hzSetup();}catch(e){console.warn('the horizon tier could not build: '+e.message);}}
   if(above&&HZ){hzWatch(camera.position.x,camera.position.y,camera.position.z);hzStep();}
   if(above&&hzSea){if(sky.parent!==hzScene)hzScene.add(sky);
