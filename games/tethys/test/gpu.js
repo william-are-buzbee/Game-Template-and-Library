@@ -26,7 +26,7 @@ const roots=(process.env.BASE?[path.resolve(process.env.BASE)]:[]).concat([here]
 // ---- in the page ----
 function atPlace(a){const take=()=>window.__gl.take(),mean=F=>{const o={};for(const k of Object.keys(F[0]))o[k]=F.reduce((s,f)=>s+f[k],0)/F.length;return o;};
   let gens=0;for(const n of ['genChunk','genRegion']){const f=window[n];if(typeof f==='function')window[n]=function(){gens++;return f.apply(this,arguments);};}
-  window.__step(3);if(typeof window.bootFinish==='function')window.bootFinish();const boot=take(); // the load and the menu's first frames, drawn; since v11.189 the menu draws nothing behind its loading page until the world is there, and the warm-up runs a program a frame — bootFinish compiles the rest here, so the boot's count is the warm-up's whole, as to v11.188
+  window.__step(3);const boot=take(); // the load and the menu's first frames, drawn (since v11.189 place() has run the boot through first — its stages, the warm-up, the menu's world, its settling frames — and this is all of it)
   const rf=window.renderFrame;window.renderFrame=function(){};
   choose(0,V3(a.x,a.y,a.z),a.yaw,0);
   let k=0,quiet=0;for(;k<600&&quiet<20;k++){const n=gens;window.__step(1);quiet=gens===n?quiet+1:0;}window.__step(150);
@@ -34,8 +34,11 @@ function atPlace(a){const take=()=>window.__gl.take(),mean=F=>{const o={};for(co
   take();window.__step(8);const sight=take(); // the place's first frames drawn
   const F=[];for(let i=0;i<a.frames;i++){window.__step(1);F.push(take());}
   return {boot,sight:sight.compiles,frame:mean(F),above:wasAbove===true,mode,cells:chunks.size,creatures:typeof visibleCreatures==='number'?visibleCreatures:-1,settle:k};}
+// the boot through to the scene (v11.189, main.js BOOT), as the game has it before anyone can play: its store answers between the steps, so a few at a time.
+// A tree from before v11.189 has no __boot, and atPlace's three frames are its boot
+async function bootThrough(page){for(let k=0;k<300;k++){const d=await page.evaluate(()=>{for(let i=0;i<20&&window.__boot&&!window.__boot.done;i++)window.__step(1);return !window.__boot||window.__boot.done;});if(d)return;await new Promise(r=>setTimeout(r,20));}}
 async function place(pw,root,name,shot){const p=PLACES[name],P=await open(pw,root,{width:W,height:H,init:[glCounting]});
-  try{const o=await P.page.evaluate(atPlace,Object.assign({frames:FRAMES,shot:!!shot},p));o.errs=P.errs.slice();if(!shot)return o;
+  try{await bootThrough(P.page);const o=await P.page.evaluate(atPlace,Object.assign({frames:FRAMES,shot:!!shot},p));o.errs=P.errs.slice();if(!shot)return o;
     const f=path.join(here,'test/render/gpu_'+name+'.png');fs.mkdirSync(path.dirname(f),{recursive:true});
     // a page of its own with one frame drawn: software WebGL is far behind the page, and a picture waits for it to finish everything queued
     await P.page.evaluate(()=>{const gl=renderer.getContext(),px=new Uint8Array(4);gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);});

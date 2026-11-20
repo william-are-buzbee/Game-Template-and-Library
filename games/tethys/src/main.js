@@ -69,11 +69,12 @@ function warmPrep(){const g=new THREE.Group(),g2=new THREE.Group(),geo=new THREE
   g2.add(new THREE.Mesh(geo,new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide})),new THREE.Points(geo,new THREE.PointsMaterial({transparent:true,depthWrite:false}))); // v11.187: the splash's ring and drops (player.js), made at the first breach
   g.position.set(0,-1e5,0);g2.position.set(0,-1e5,0);let est=0;scene.traverse(o=>{if(o.material&&!Array.isArray(o.material))est++;}); // the scene's own objects, a guess at the steps the rest will take (most share programs already made)
   return {g:g,items:g.children.concat(g2.children),i:0,k:0,est:Math.min(est,24),rest:false,more:[],passes:false,hz:false,depth:false};}
-function warmOne(sc,cam,o){const kids=sc.children,L=[];sc.traverse(x=>{if(x.isLight)L.push(x);});sc.children=L.concat([o]);try{renderer.compile(sc,cam);}finally{sc.children=kids;}} // one object's programs, with only its scene's lights beside it (three's compile walks every material in the scene, drawn or not)
+function warmOne(sc,cam,o){const kids=sc.children,L=[],en=renderer.shadowMap.enabled;sc.traverse(x=>{if(x.isLight)L.push(x);});sc.children=L.concat([o]);renderer.shadowMap.enabled=FX.shadows&&LIGHT_K[1]>0; // the shadow map as play has it (scene.js updateShadow sets it every frame, after this): three keys every program by it
+  try{renderer.compile(sc,cam);}finally{sc.children=kids;renderer.shadowMap.enabled=en;}} // one object's programs, with only its scene's lights beside it (three's compile walks every material in the scene, drawn or not)
 function warmStep(W){ // the next program (or the depth pass); true when there is nothing left
   W.k++;try{
     if(W.i<W.items.length){warmOne(scene,camera,W.items[W.i++]);return false;}
-    if(!W.rest){W.rest=true;W.more=[];const seen=new Set(),pr=m=>{const p=renderer.properties.get(m);return p&&(p.currentProgram||p.program);}; // then the scene's own, one object a step: the sky, the surface and its occluder, the dome, the snow, what has streamed in
+    if(!W.rest){W.rest=true;W.more=[];renderer.shadowMap.enabled=FX.shadows&&LIGHT_K[1]>0;const seen=new Set(),pr=m=>{const p=renderer.properties.get(m);return p&&(p.currentProgram||p.program);}; // then the scene's own, one object a step: the sky, the surface and its occluder, the dome, the snow, what has streamed in
       if(renderer.properties)scene.traverse(o=>{const m=o.material;if(o!==W.g&&m&&!Array.isArray(m)&&!seen.has(m)&&!pr(m)){seen.add(m);W.more.push(o);}});return false;}
     if(W.more.length){warmOne(scene,camera,W.more.shift());return false;}
     if(!W.passes){W.passes=true;if(CLDP.on)renderer.compile(CLDP.scene,CLDP.cam);return false;} // the clouds' pass (v11.188)

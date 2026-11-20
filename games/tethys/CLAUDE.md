@@ -345,8 +345,9 @@ Docs, most upstream first. When a doc's Open list says a choice is the person's,
 - **The start is a sequence (v11.189, main.js `BOOT`; analysis_loading.md).** tethys.html runs the game in `tethysMain` after the page's first paint (dev.html
   cannot: it loads the files one by one); nothing is drawn until the boot has streamed the world round the camera, and the cells wait for the store's answer
   (the last slot's ledger is what they spawn from). Anything that leaves the menu ends the boot at once (`bootFinish`, in bootTick when `mode` is not
-  `menu`), so a test's `choose` works as before; a test that drives the menu's own frames steps until `__boot.done` (test/boot.js), and test/gpu.js calls
-  `bootFinish` after its three boot frames. A new material that draws at the start goes in `warmPrep`'s lists (or is in the scene by `load`'s end, which
+  `menu`), so a test's `choose` works as before; a test that drives the menu's own frames steps until `__boot.done` (test/boot.js; test/gpu.js runs the boot
+  through before each place, as the game does — its settling frames draw the menu's world and compile what play will use). The warm-up compiles with the
+  shadow map as play has it (`renderer.shadowMap.enabled`, set each frame by updateShadow, after the boot's step): three keys every program by it. A new material that draws at the start goes in `warmPrep`'s lists (or is in the scene by `load`'s end, which
   compiles the scene's own a program a step); test/gpu.js's `sight` says what was missed. The camera note (`tethys.cam`) carries its slot's id; a slot's
   world and its player are `slotWorld` and `slotPlayer` (`startFrom` is a clear and both).
 - **A species' variants are pulled (v11.187, grow.js `VPULL`, scene.js `VPULL_GLSL`, chunks.js `VPULL_N`).** On WebGL2 a variant species draws `f.gp` (n vertices
