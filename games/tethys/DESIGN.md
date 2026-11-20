@@ -2547,7 +2547,8 @@ After (CHANGELOG v11.187 has the tables): the shore ×0.88, the canopy ×0.77, t
 for ~690), drawn by a mirror of its pool (chunks.js `poolLod`: the copy's geometry over the pool's own instance buffers, one draw more). The cloud volume is
 marched in a pass of its own at `Q.cloudRes` of the screen on a side (0.5; 0.35 on the low tier), premultiplied and read back by the dome (atmosphere.js
 `CLDP`). The drawing buffer's scale holds 60 fps (scene.js `RES`): down 0.1 a step, to 0.5, while frames drop and the CPU has room; a step that does not
-help is undone and not tried again for a minute or more; back up after four clean seconds, the wait doubling when that drops again. DESIGN_FILL
+help is undone and not tried again for a minute or more; back up after four clean seconds, the wait doubling when that drops again. On the proxy against v11.187: the shore ×0.89, the coast ×0.86, the canopy
+×0.91; the sky with its pass ×0.37–0.68; the tidewood with its copy ×0.75 at the shore (CHANGELOG v11.188).
 
 **Where the frame goes, measured on the 4060 at the weed forest (330, 0), 13 Sep 2026.** The readout's `work` pair is the
 frame's own cost and the worst frame in the last quarter second (main.js, v11.32.1); `ms` and `fps` are the vsync interval and say
