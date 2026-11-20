@@ -2562,6 +2562,40 @@ marched in a pass of its own at `Q.cloudRes` of the screen on a side (0.5; 0.35 
 help is undone and not tried again for a minute or more; back up after four clean seconds, the wait doubling when that drops again. On the proxy against v11.187: the shore ×0.89, the coast ×0.86, the canopy
 ×0.91; the sky with its pass ×0.37–0.68; the tidewood with its copy ×0.75 at the shore (CHANGELOG v11.188).
 
+**The flight recorder (v11.191, 20 Nov 2026; src/rec.js, test/report.js, analysis_project.md §1).** The person: "I could just play and you'd learn
+what device I'm on … You could check the log and that would literally be it." Recorded in the browser that plays, always, sent only when the person
+presses F9 (or calls `report()`): GitHub's new-issue page opens in a tab with a few lines for a person and one line, `tethys-rec:1:z…`, holding the
+session as JSON, deflated (`CompressionStream('deflate-raw')`) and base64url; the person submits it, and `node test/report.js --search` reads every one.
+The repository is public, so the report is (the person's choice, 20 Nov 2026).
+- **What it holds.** The machine at the first frame: the GPU's unmasked name (`WEBGL_debug_renderer_info`), WebGL's version, the threads, the memory
+  (Chrome caps it at 8), the screen and pixel ratio, the drawing buffer, the tier, the effects, the user agent and, where Chrome gives it, the OS's
+  version. The boot: seconds from the navigation to the scripts, the first frame, the store's answer, the world streamed, the fade; whether this
+  browser has a stored session of this version (a warm shader cache). The machine's name: four random characters made once per browser and kept
+  (`localStorage['tethys.mid']`), or what `machine('home')` set — the person plays on several (20 Nov 2026), and test/report.js's table is by it. Every play frame (not the menu's, kept apart; not a hidden tab's gap): the
+  interval, the CPU's work and its phases as main.js marks them — `gen` the streaming, `play` the menus and the player, `sim` the creatures and contact
+  (the old `phys`), `fx` the wounds to the surface, `scene` culling, lights, the shadow maps' setup and the sound, `hud`, `render` renderer's submit —
+  the draws, the triangles, the creatures and cells in sight, the resolution's scale, the medium. Histograms of 176 bins (0.5 ms to 50, 5 ms to 250, 50 ms to
+  2 s) give the percentiles to half a millisecond where it matters and a stall's size where it does not.
+- **The GPU's own time** where the browser has `EXT_disjoint_timer_query_webgl2` (desktop Chrome; Firefox hides it): a query round each pass —
+  `recGpu(k)` before it, `recGpuEnd()` after — 0 the world (`renderer.render(scene)`, three's own shadow map inside it), 1 the horizon tier, 2 the
+  cloud volume, 3 the world's static shadow map. Results come back a few frames late and are summed by frame; a disjoint throws the queries in flight
+  away. The readout shows it as `gpu` (an EMA): render ms is the submit plus any wait, this is the card's own time.
+- **By place.** The frames are kept by the 215 m cell the body is in (600 cells, the rest pooled): seconds there, p50/p95/p99, the phases' means, the
+  GPU's by pass, the draws and triangles mean and max, the worst frame's place and heading (test/report.js's `AT=x,y,z,yaw` line stands test/gpu.js
+  and test/fill.js there: test/benchpage.js `PLACES.at`). The 40 worst frames (50 ms, or 33 of work) with what each did: `gen` (a cell or region
+  over 4 ms), `compile×n` (programs linked that frame), `world-shadows` (the static map redrawn), `outside` (most of the interval outside the frame's
+  work: the browser, a GC, the GPU's queue), `boot`, `gc` (the heap fell). A timeline row every 2 s of play (1,800 rows, then merged in pairs).
+  Every `console.warn` and `console.error` (three's shader failures come through it), every uncaught error and rejection, a lost context: 40 kinds,
+  counted, with where first. Chrome's long animation frames by entry point (for the game nearly always `loop`: the phases are the finer split).
+- **The link.** GitHub refuses a new-issue address past about 8 KB, so `REC_K.url` (7,400): the session is cut a level at a time (`recShrink`: fewer
+  places — the worst by p95 and the longest kept — fewer frames and errors, the timeline halved) until it fits, and then the whole is put on the
+  clipboard for the person to paste below. test/rec.js: two hours over 900 places fit at level 3 in 6.1 KB. The tab is opened in the key's own gesture
+  and sent there after the compression (a pop-up blocker allows only the gesture's call); blocked, the clipboard has it.
+- **Kept.** The session is written to `localStorage['tethys.rec']` every minute and at `pagehide` once it has a minute of play; a shorter session never
+  replaces a longer one, and F9 in a session under a minute sends the last (and says so).
+- **What it cannot say:** a time per draw on the person's card (test/fill.js's proxy has that grain, not this), anything of the GPU in a browser
+  without the timer, which function inside a phase took the time.
+
 **Where the frame goes, measured on the 4060 at the weed forest (330, 0), 13 Sep 2026.** The readout's `work` pair is the
 frame's own cost and the worst frame in the last quarter second (main.js, v11.32.1); `ms` and `fps` are the vsync interval and say
 nothing about headroom on a capped display.

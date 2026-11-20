@@ -126,4 +126,9 @@ for(const pick of [0,1,2,3,4,5]){
     }
   }catch(e){failed=true;console.error('FAILED clade',pick,e&&e.stack||e);}
 }
+// the flight recorder (v11.191, src/rec.js) after every run above: play frames counted by place, and the session as data with no NaN in it
+try{const f=window.__rec.full(),bad=[];(function walk(v,p){if(typeof v==='number'){if(!isFinite(v))bad.push(p);}else if(v&&typeof v==='object')for(const k of Object.keys(v))walk(v[k],p+'.'+k);})(f,'');
+  if(!(f.all.frames>1000&&f.places.length>0))throw new Error('the recorder saw '+f.all.frames+' play frames in '+f.places.length+' places');if(bad.length)throw new Error('NaN in the session: '+bad.slice(0,5).join(' '));
+  console.log('  recorder: '+f.all.frames+' play frames in '+f.places.length+' places, '+f.menu.frames+' menu frames, '+f.errs.length+' kinds of warning');}
+catch(e){failed=true;console.error('FAILED the recorder',e&&e.stack||e);}
 process.exit(failed?1:0);

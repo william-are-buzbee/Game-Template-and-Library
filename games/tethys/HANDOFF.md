@@ -1,5 +1,13 @@
 # HANDOFF — tethys
 
+**v11.191 (20 Nov 2026): the flight recorder** (src/rec.js; test/report.js, test/rec.js; analysis_project.md, the plan for the project as a whole;
+DESIGN "The flight recorder"; CHANGELOG). Every session is recorded in the browser that plays it — the machine, the boot, every frame by its phases and the
+cell it was played in, the GPU's own time by pass where Chrome times it, the worst frames and what each did, every warning and error — and **F9** opens a
+GitHub issue with it, which the person submits. Read them with `node test/report.js --search`; its `AT=` lines stand test/fill.js and test/gpu.js at a
+report's worst moment. When the person says it lags, ask for a report, not a readout. **Next** (analysis_project.md, the person's order): the docs cut to
+rules and a map, `tsc --checkJs`, the flora's detail by distance, the cells in workers, three.js upgraded, a fixed step. **Ask:** F9 on the preview, and
+the readout's `gpu`.
+
 **v11.190 (20 Nov 2026): the tidewood's colour** (grow.js `PIG.greenAir`, `PIG_BOOST`; flora.js `tidetree` on `line: 'greenAir'`; DESIGN "The tidal forest";
 CHANGELOG). The person: the beach trees "too neon or bright". The tidewood was the greens' 0–15 m water colour ×1.22, [0.44, 0.73, 0.24]; six colours were
 shot in the game and the person chose between the softened green and the wood's leaf: [0.35, 0.47, 0.21], flat, no boost. Near and far copy alike. **Ask:**

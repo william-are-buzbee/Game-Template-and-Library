@@ -15,7 +15,7 @@
 const fs=require('fs'),path=require('path');
 const {here,playwright,open,PLACES}=require('./benchpage.js');
 const [W,H]=(process.env.SIZE||'1600x900').split('x').map(Number),SMALL=+(process.env.SMALL||10),FRAMES=+(process.env.FRAMES||3),TOP=+(process.env.TOP||18);
-const only=(process.env.ONLY||Object.keys(PLACES).join(',')).split(',').filter(k=>k in PLACES);
+const only=(process.env.ONLY||(process.env.AT?'at':Object.keys(PLACES).join(','))).split(',').filter(k=>k in PLACES); // AT= (v11.191, benchpage.js): the report's place alone
 const roots=(process.env.BASE?[path.resolve(process.env.BASE)]:[]).concat([here]);
 const names=root=>{const f=path.join(root,'src/INDEX.md');if(fs.existsSync(f))return [...fs.readFileSync(f,'utf8').matchAll(/`([A-Za-z_$][\w$]*)`/g)].map(m=>m[1]); // the build's index of top-level names, or (a kept tree has none) the sources' top-level declarations read roughly
   const o=[];for(const n of fs.readdirSync(path.join(root,'src')).filter(n=>n.endsWith('.js')))for(const l of fs.readFileSync(path.join(root,'src',n),'utf8').split('\n'))if(/^(const|let|var) /.test(l))for(const m of l.matchAll(/(?:^(?:const|let|var)\s+|,)\s*([A-Za-z_$][\w$]*)\s*=/g))o.push(m[1]);return o;};

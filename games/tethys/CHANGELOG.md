@@ -9917,3 +9917,59 @@ test/bench_creatures.js reports its simulation differing between two runs of mai
 
 **Unseen, ask in this order:** 1. The shore on the preview at noon and at dusk, on the person's screen (the shots were one hour, software-rendered). 2. Whether
 the reed, scrub and tussock should follow onto `greenAir`. 3. Whether the trunk should part from the whorls (it is the tint × a paler yellow, `JOINT`).
+
+## v11.191 — the flight recorder: every session measured on the machine that plays it, sent as a GitHub issue with F9 (20 Nov 2026)
+
+The person, asked what the project as a whole was missing (analysis_project.md): "an auto flagger that records GPU stats when I play, puts it into a log
+and lets you read it without having to give me specific places to tp to … You could check the log and that would literally be it." Their answer on how it
+reaches a session: "A, the public issue works well too." Every performance question until now was a proxy (SwiftShader's times, the GPU's counts) or a
+readout read out at a `tp()` the person had to be sent to; the person's GPU had never been timed, and an error or a silent fallback on their machine
+(`console.warn` in 19 places) never reached anyone.
+
+- **src/rec.js** (new; first in `src/order.txt` after `WB`, so every file's load is covered): recorded in the browser, always; sent only by F9 or
+  `report()`. The machine at the first frame (`recDevice`: the GPU's unmasked name, WebGL, threads, memory, screen, drawing buffer, tier, effects, the
+  OS's version where Chrome gives it); the boot's stages (`recBoot`); every play frame by its phases (`recFrame`, at the end of main.js `loop`; the menu's
+  frames apart, a hidden tab's gap not a frame) into 176-bin histograms (to 2 s), by the 215 m cell it was played in (600 kept, the rest pooled), with the worst
+  frame's place and heading; the 40 worst frames and what each did (`gen`, `compile×n`, `world-shadows`, `outside`, `boot`, `gc`); a timeline row every
+  2 s; every warning, error, uncaught throw, rejection and lost context, 40 kinds counted; Chrome's long animation frames.
+- **The GPU's own time** (`recGpu`, `recGpuEnd`, `recPoll`; `EXT_disjoint_timer_query_webgl2`, desktop Chrome): a query round the world's pass and the
+  horizon tier's (horizon.js `renderFrame`), the clouds' (atmosphere.js `cloudPass`) and the world's shadow map (scene.js `updateShadowS`); results a few
+  frames late, summed by frame, a disjoint throwing the flight away. The readout's new `gpu` is its EMA (`RG.ema`).
+- **main.js `loop`**: four marks (`a0`, `x0`, `s0`, `h0`; `r0` lifted out of its block) so the frame's work splits into streaming, play, the creatures,
+  the effects, the scene (cull, lights, shadows' setup, sound), the HUD and the render's submit; `recFrame` after the resolution step.
+- **F9** (`recSend`): GitHub's new-issue page opens in a tab (opened in the key's gesture, sent there after the compression), its body a few lines for a
+  person — the card, the frames, the GPU by pass, the boot, the five worst places with their `tp()`, the errors — and one line `tethys-rec:1:z…`: the
+  session as JSON, `deflate-raw`, base64url. `REC_K.url` 7,400: past it the session is cut a level at a time (`recShrink`) and the whole put on the
+  clipboard to paste below. Under a minute of play F9 sends the last stored session (`localStorage['tethys.rec']`, written each minute and at
+  `pagehide` once a session has a minute) and says so.
+- **The machine's name** (`REC.mid`; the person plays on "two work towers and my home computer"): four random characters made once per browser
+  (`crypto`, not `Math.random`, which the benches seed) and kept in `localStorage['tethys.mid']`, in every report's title and machine line, so two towers
+  with the same card still tell apart; `machine('home')` from the console names it. test/report.js's table is by machine, then newest first.
+- **build.js, build.py**: the CHANGELOG's last heading stamped into both pages (`window.TETHYS_BUILD`), so a report says its version; outputs byte-identical.
+- **test/report.js** (new): reads the reports back — `--search` every issue titled "tethys report" (`gh api` search), a table by version, the newest in
+  full; or a file. The worst places with their `tp()` and an `AT=x,y,z,yaw` line: **test/benchpage.js** `PLACES.at` stands **test/gpu.js** and
+  **test/fill.js** at a report's worst frame (alone; gpu.js refuses `AT` with `--check` or `--update`).
+- **test/rec.js** (new, in --test): rec.js alone against a fake page whose GPU timer answers two frames late — 55 checks, among them the percentiles
+  against a sort, the places' GPU time by pass to the hundredth, a slow frame's GPU time filled in late, a disjoint, the link for a two-hour session over
+  900 places (it fits at level 3, 6.1 KB, and decodes), the store, F9 sending the last session. **test/smoke.js**: the recorder's session after the runs,
+  no NaN. **test/boot.js**: the recorder in real Chromium — the machine read, the frames counted, the link built by the browser's own deflate and decoded.
+
+**Seen:** test/boot.js in headless Chromium: 30 play frames and 37 menu frames recorded on SwiftShader's ANGLE name, the boot's stages, a 2.8 KB link
+that test/report.js decodes. A session played in the real dev page (software WebGL, the real clock) at the forest and then the shore, its issue body
+printed by test/report.js (the pull request has it). SwiftShader has no GPU timer, so the GPU's path ran only against test/rec.js's fake.
+
+**What it costs:** `recFrame` 0.87 µs a call in Chromium (20,000 calls timed at the forest), plus four `performance.now()` a frame and, with the timer,
+up to four query pairs and their polls. Frames timed in blocks with it on and off at the forest (renderFrame stubbed) differed more block to block
+(8.7–14.7 ms) than on against off (medians 11.9 and 10.6), which is noise at this grain. What a frame asks of the GPU: every count at all seven places the same as `test/gpu.json` (`node test/gpu.js --check`; SwiftShader has no timer, so no
+query is made there — on the person's Chrome there are up to four pairs a frame, none a draw).
+
+A session played for two minutes in the real dev page (headless Chromium, software WebGL, the real clock) found one fault, fixed before the commit: a
+frame over a second was thrown away as a hidden tab's gap, so the stalls the recorder is for (a shader compile's freeze) would never have shown. Now only the
+page's visibility says a frame is not one (`REC.skip`, set by `visibilitychange` and at load), and the histograms run in 50 ms bins to 2 s.
+
+**Unseen, ask in this order:**
+1. Play the preview for a few minutes, anywhere, then **F9**: does a tab open on GitHub's new-issue page with the report in it, and does it submit? (A
+   blocked tab says so; the clipboard has the report.) If the tab opens on a login page first, log in: GitHub keeps the report through it.
+2. Is the readout's new `gpu` there (backquote) — the GPU's own milliseconds — and does it move with the view? Chrome on the desktop should have it; if
+   it is missing, the report's **gpu** line says "no timer in this browser".
+3. Once one report is in: is the machine line right (the card, the threads, the screen)?
