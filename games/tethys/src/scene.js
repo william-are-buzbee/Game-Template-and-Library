@@ -15,10 +15,11 @@ const Q=(function(){
   const small=Math.min(screen.width||9999,screen.height||9999)<900;
   const tier=HASH_TIER||((isTouch&&small)?'low':'high');
   return tier==='low'
-    ?{tier:tier,pr:1.0,far:1000,flora:0.45,creatures:0.6,lights:2,phong:false,aa:false,budgetMs:8,farMs:2,farQ:6,surf:96,lodNear:0.7,rockLvl:1,target:14,casters:6,shafts:2,cau:3,hrtf:0,vol:1,snow:1000,hz:200,cldSh:0,march:28,sparks:384}
-    :{tier:tier,pr:1.5,far:1600,flora:1.0,creatures:1.0,lights:4,phong:true,aa:true,budgetMs:6,farMs:3,farQ:12,surf:192,lodNear:1.0,rockLvl:2,target:7.5,casters:16,shafts:4,cau:5,hrtf:1,vol:1,snow:1800,hz:100,cldSh:1,march:80,sparks:1024};
+    ?{tier:tier,pr:1.0,far:1000,flora:0.45,creatures:0.6,lights:2,phong:false,aa:false,budgetMs:8,farMs:2,farQ:6,surf:96,lodNear:0.7,rockLvl:1,target:14,casters:6,shafts:2,cau:3,hrtf:0,vol:1,snow:1000,hz:200,cldSh:0,march:28,sparks:384,cloudRes:0.35}
+    :{tier:tier,pr:1.5,far:1600,flora:1.0,creatures:1.0,lights:4,phong:true,aa:true,budgetMs:6,farMs:3,farQ:12,surf:192,lodNear:1.0,rockLvl:2,target:7.5,casters:16,shafts:4,cau:5,hrtf:1,vol:1,snow:1800,hz:100,cldSh:1,march:80,sparks:1024,cloudRes:0.5};
   // snow (v11.24): the marine snow's points (atmosphere.js); the deep is sparse, so many of them are dormant at a time
   // sparks (v11.160): the bioluminescence's pool (fx.js SPK): the most flashes alive at once — a bloom round a sprinting body and a hunter keeps a few hundred
+  // cloudRes (v11.188): the cloud volume's pass, a fraction of the drawing buffer on a side (atmosphere.js CLDP; 1 marches in the dome as to v11.187)
   // march (v11.89; v11.90: the name — `vol` was the master volume's key above, and the clouds' 80 steps played the game at 80× gain, the person's "hilariously bass boosted"): the most steps of the cloud volume's march per sky pixel (atmosphere.js cloudVol); the low tier's 28 unmeasured there
   // cldSh (v11.87): the clouds' shadows on the sea and the land in air — one 3D billow noise per fragment (clouds.js cloudSh); off on the low tier until measured there
   // hrtf, vol (v11.14, the sound): HRTF panning on the placed voices (front/back and up/down; the audio thread's one real cost) or equal-power; the master volume
@@ -32,6 +33,29 @@ const Q=(function(){
 const renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:Q.aa});
 const GL2=!!(renderer.capabilities&&renderer.capabilities.isWebGL2); // WebGL2 (v11.187): the caustic's tiles as one array (CAU_ARR) and the flora's variants pulled (VPULL_GLSL); WebGL1 (and the tests' stub) as before
 renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,Q.pr));
+// ---------- the resolution that holds the frame (v11.188) ----------
+// The person, 20 Nov 2026, on v11.187's third call (a low tier for a weak machine): "I'm not knowledgeable about dynamic resolution, but I'm open to whatever
+// you think would help run on lower end GPUs." A weak GPU is held by its pixels (test/fill.js: the terrain, the sky, the surface, the fog in every
+// material — each a cost per pixel), and fewer pixels is the one lever that helps all of them at once. So the drawing buffer's scale moves to hold
+// RES.target (60 fps): frames slower than it by RES.slow while the CPU's work is under RES.cpu of the frame (a frame the CPU is slow on — the streaming,
+// the creatures — is never helped by fewer pixels), for RES.down seconds, step the scale down by RES.step, to RES.min. Then it checks: a step that did
+// not make the frame faster within RES.check seconds is undone and none is tried for RES.hold seconds (doubling to RES.holdMax) — the frame was not the
+// GPU's: a browser capped at 30 fps on a battery, a screen that slow, a vsync the step was too small to cross. RES.up seconds clean step back up, and an
+// up step that drops again doubles the wait for the next (to RES.maxUp), so it settles instead of swinging. A card that makes 60 fps never moves it. The
+// browser stretches the smaller buffer to the window (the text is the page's, sharp); each step reallocates the buffer once. `hold the frame` on the
+// effects list (FX.autoRes); the readout's `res`. resStep is pure on its state (test/res.js drives it with simulated machines).
+const RES={target:16.7,slow:1.2,cpu:0.6,min:0.5,step:0.1,down:1.0,check:1.5,gain:0.93,hold:60,holdMax:600,up:4,maxUp:64}; // target ms (60 fps); slow: a frame this many targets is a dropped one; cpu: the CPU's share under which the wait is the GPU's; min, step: the scale; down: seconds of drops before a step; check: seconds a step has to show; gain: the frame's ratio after it that counts as helped; hold, holdMax: seconds before trying again after one that did not; up: seconds clean before a step up; maxUp: the longest wait for one
+const RES_PR=Math.min(window.devicePixelRatio||1,Q.pr),RES_S={k:1,ema:RES.target,cpu:0,bad:0,good:0,upW:RES.up,lastUp:-1e9,t:0,holdT:0,holdW:RES.hold,probe:null,moves:0};
+function resStep(S,ivMs,cpuMs){ // a frame's interval and the CPU's work in it (ms) → the scale
+  if(!(ivMs>0)||ivMs>250)return S.k; // a stall or a hidden tab is not a frame
+  const dt=ivMs/1000;S.t+=dt;S.ema+=(ivMs-S.ema)*0.1;S.cpu+=(cpuMs-S.cpu)*0.1;
+  if(S.probe){if(S.t-S.probe.t<RES.check)return S.k; // a step down: did it make the frame faster?
+    if(!(S.ema<S.probe.ema*RES.gain||S.ema<RES.target*RES.slow)){S.k=S.probe.k;S.holdT=S.t+S.holdW;S.holdW=Math.min(RES.holdMax,S.holdW*2);S.moves++;}S.probe=null;S.bad=0;S.good=0;return S.k;}
+  const gpu=S.ema>RES.target*RES.slow&&S.cpu<S.ema*RES.cpu,clean=S.ema<RES.target*1.08;
+  if(gpu){S.bad+=dt;S.good=0;}else if(clean){S.good+=dt;S.bad=0;}else{S.bad=Math.max(0,S.bad-dt);S.good=0;}
+  if(S.bad>=RES.down&&S.k>RES.min+1e-6&&S.t>=S.holdT){S.probe={k:S.k,ema:S.ema,t:S.t};S.k=Math.max(RES.min,Math.round((S.k-RES.step)*100)/100);S.bad=0;S.good=0;S.moves++;if(S.t-S.lastUp<S.upW+RES.down+RES.check*2)S.upW=Math.min(RES.maxUp,S.upW*2);}
+  else if(S.good>=S.upW&&S.k<1-1e-6){S.k=Math.min(1,Math.round((S.k+RES.step)*100)/100);S.good=0;S.lastUp=S.t;S.moves++;}
+  return S.k;}
 renderer.setSize(innerWidth,innerHeight);
 const scene=new THREE.Scene();
 scene.fog=new THREE.FogExp2(0x1a7591,SEA_FOG.dens);
@@ -780,6 +804,13 @@ function farCut(far,fade){return '\nfloat fadeK=1.0;\n#if defined(USE_FOG)&&defi
 const FAR_CUT=farCut(FLORA_FAR,FLORA_FADE),FAR_FADE='\ntransformed*=fadeK;\n';
 // The disturbance loop runs only for plants within DIST_R of the camera: every disturber is within 70 of it (physics.js
 // updateDisturbers) plus a body. It ran for every vertex of every plant to the far plane; this alone was 6.3 → 4.6 ms in the forest.
+// The tidewood's far copy near (v11.188; the person, 20 Nov 2026, on v11.187's "the tidewood's weight": "we can swap for now"). The real tree is ~690 triangles,
+// up to 700 a cell, drawn whole to its cell's FLORA_FAR edge (its cards take over per cell past it): the heaviest plant at the shore after v11.187. Past
+// TREE_LOD.d its far copy draws instead — far.js farTreeGeo, the real one's middle size in 37 triangles, the cards' own — on the pool's own instance buffers
+// (chunks.js poolLod: the same matrix, tint, variant and sight flag), scaled to the instance's variant's height (hs: tidewoodB's 6, 9 and 12 m on the copy's 9).
+// The swap is a cut (fade 1 m): the copy is the real one's silhouette, and at 120 m in air the haze has a little of it.
+const TREE_LOD={d:120,fade:1,hs:[6/9,1,12/9]};
+function lodMaterial(L){const m=farMaterial(),ob=m.onBeforeCompile;m.onBeforeCompile=function(sh){ob.call(m,sh);sh.vertexShader='attribute float aVar;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\n#if defined(USE_FOG)&&defined(USE_INSTANCING)\nif(distance((modelMatrix*vec4(instanceMatrix[3].xyz,1.0)).xyz,uFogC)<'+(L.d-L.fade).toFixed(1)+')'+GONE+'\n#endif\ntransformed.y*=aVar<0.5?'+L.hs[0].toFixed(4)+':(aVar<1.5?'+L.hs[1].toFixed(4)+':'+L.hs[2].toFixed(4)+');\n');};return m;} // the near cut where the real one's fade begins, so the two overlap by the fade, never leave a gap
 const DIST_R=90,DIST_GUARD='\n#ifdef USE_FOG\nif(distance(base,uFogC)<'+DIST_R.toFixed(1)+')\n#endif\n';
 // cut: collapsed beyond FLORA_FAR (the small things); the impostored species leave it off
 function swayMaterial(amp,freq,hn,dir,bob,H,strand,cap,cut,thin){
@@ -788,7 +819,7 @@ function swayMaterial(amp,freq,hn,dir,bob,H,strand,cap,cut,thin){
     if(thin)thinLight(sh,thin);
     sh.uniforms.uChop=chopU;sh.uniforms.uTime=timeU;sh.uniforms.uDistA=distU;sh.uniforms.uDistB=distBU;sh.uniforms.uDistU=distUU;sh.uniforms.uTide=tideU;sh.uniforms.uTideR=tideRU;
     sh.vertexShader='uniform float uTime;uniform float uTide;uniform float uTideR;attribute vec2 aCur;attribute vec2 aTide;\n'+VAR_GLSL+DIST_GLSL+(bob?'attribute float aDip;\n':'')+(bob||cap?'uniform sampler2D uFloorMap;uniform vec2 uWmO;\n'+WAVE_DEP_GLSL+WAVE_GLSL:'')+sh.vertexShader.replace('#include <begin_vertex>',
-      '#include <begin_vertex>\n'+(cut?FAR_CUT:'')+VAR_BRANCH+'{float sx=length(instanceMatrix[0].xyz),sy=length(instanceMatrix[1].xyz),sz=length(instanceMatrix[2].xyz);float ph=uTime*'+freq.toFixed(2)+'+instanceMatrix[3][0]*0.31+instanceMatrix[3][2]*0.23;float hw=max(transformed.y*'+dir.toFixed(1)+',0.0)*sy;float k=clamp(hw/'+hn.toFixed(2)+',0.0,1.3);k=k*k;'+
+      '#include <begin_vertex>\n'+(cut?(typeof cut==='string'?cut:FAR_CUT):'')+VAR_BRANCH+'{float sx=length(instanceMatrix[0].xyz),sy=length(instanceMatrix[1].xyz),sz=length(instanceMatrix[2].xyz);float ph=uTime*'+freq.toFixed(2)+'+instanceMatrix[3][0]*0.31+instanceMatrix[3][2]*0.23;float hw=max(transformed.y*'+dir.toFixed(1)+',0.0)*sy;float k=clamp(hw/'+hn.toFixed(2)+',0.0,1.3);k=k*k;'+
       'vec3 gd=normalize((modelMatrix*vec4(instanceMatrix[1].xyz,0.0)).xyz)*'+dir.toFixed(1)+';float hmax='+H.toFixed(2)+'*sy;'+
       (strand?'vec3 base=(modelMatrix*instanceMatrix*vec4(transformed,1.0)).xyz-gd*hw;':'vec3 base=(modelMatrix*vec4(instanceMatrix[3].xyz,1.0)).xyz;')+
       'vec3 push=vec3(0.0);\n#ifndef DEPTH_PASS\n'+DIST_GUARD+ // at rest in the world's shadow map (v11.30): no pushes, no sway, no wave
@@ -804,7 +835,7 @@ function swayMaterial(amp,freq,hn,dir,bob,H,strand,cap,cut,thin){
       (bob?'\n#ifdef DEPTH_PASS\ntransformed.y+=(uTide-aDip)/sy;\n#else\ntransformed.y+=(waveH(instanceMatrix[3].xz,uTime,0.0,waveDep(instanceMatrix[3].xz,uTide))+uTide-aDip)/sy;\n#endif\n':cap?'float wy=(modelMatrix*instanceMatrix*vec4(transformed,1.0)).y;float wl=uTide-0.45;\n#ifndef DEPTH_PASS\nif(wy>uTide-1.8)wl+=waveH(base.xz,uTime,0.0,waveDep(base.xz,uTide));\n#endif\ntransformed.y-=max(wy-wl,0.0)*0.96/sy;':'')+'}'+(cut?FAR_FADE:''));
   };
   m.sway=true; // the cell gives its instances aCur (chunks.js makeInstanced)
-  return addTint(m,'sway'+amp+freq+hn+dir+(bob?'b':'')+H+(strand?'s':'')+(cap?'c':'')+(cut?'x':'')+(thin?'t'+thin:''),true,undefined,undefined,thin?'blade':'plant');
+  return addTint(m,'sway'+amp+freq+hn+dir+(bob?'b':'')+H+(strand?'s':'')+(cap?'c':'')+(cut?(typeof cut==='string'?'x'+cut.length:'x'):'')+(thin?'t'+thin:''),true,undefined,undefined,thin?'blade':'plant');
 }
 // rigid flora with variants: Lambert, double-sided (the cones' comb legs and the stars are planes), the collapse and nothing else
 // The sessile animals breathe (v11.13): a 2.5% radial pulse of everything above 0.25 m local, 0.4–0.6 Hz, phase from the instance's x,z —
@@ -820,9 +851,10 @@ const MATG=swayMaterial(0.35,1.6,2.4,1,false,2.4,false,true,true,0.35),MATB=sway
   MATSC=swayMaterial(3.2,0.7,40,1,false,1.0,false,true,true), // the stipeling (v11.155): the stipe's sway with the cut and its fade — it has no card, and on MATS a cell's young popped in at once at FLORA_FAR
   MATM=swayMaterial(1.6,1.0,12,1,false,14,false,true,true,0.35), // mid-height weed (ladder, ribbon, the pen): bends over its top ten metres; cut
   MATGL=swayMaterial(0.35,1.6,2.4,1,false,2.4,false,false,true,0.35), // the tussock: the grass sway on land, never folded to the water (cap); cut
-  MATTR=swayMaterial(0.3,0.45,9,1,false,14), // the tidal forest (v11): a trunk in the wind — a slow sway from the crown, never capped to the water, never leaning to the current (land: chunks.js makeInstanced gives it no aCur); no cut (the cards)
+  MATTR=swayMaterial(0.3,0.45,9,1,false,14,false,false,farCut(TREE_LOD.d,TREE_LOD.fade)), // the tidal forest (v11): a trunk in the wind — a slow sway from the crown, never capped to the water, never leaning to the current (land: chunks.js makeInstanced gives it no aCur); since v11.188 cut at TREE_LOD.d, where its far copy takes over (MATTRF), to v11.187 drawn whole to its cell's FLORA_FAR edge
   MATWD=swayMaterial(0.25,0.35,18,1,false,27,false,false,true,0.25); // the platewood (v11.180): a tall trunk in the wind, its plates lit through a little (thin); cut at FLORA_FAR, where the terrain's shell takes over (woodGLSL)
 MATTR.land=true;MATWD.land=true; // thin (the last argument, v11.13): the share of the far face's light that comes through a blade — the weed, bladders, rafts, whips, the tussock; not the stipe, not the trunks
+const MATTRF=addTint(lodMaterial(TREE_LOD),'lamdslod',true,undefined,undefined,'card'); // the tidewood's far copy near (v11.188, TREE_LOD): MATFAR's light and sway, cut inside TREE_LOD.d, scaled by the variant
 // ---------- the variants pulled (v11.187, grow.js VPULL; DESIGN "The flora's vertices") ----------
 // A pulled species' geometry is n vertices that carry only their number (aPull); the vertex shader fetches the instance's own variant's vertex from
 // VPULL_TEX (chunks.js fills it from every species once FLORA is whole) before three's chunks read it: position, normal and colour stand in for the

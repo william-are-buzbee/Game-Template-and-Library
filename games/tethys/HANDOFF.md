@@ -1,5 +1,12 @@
 # HANDOFF — tethys
 
+**v11.188 (20 Nov 2026): the low end** (scene.js `TREE_LOD`, `MATTRF`, `RES`, `resStep`, `Q.cloudRes`; chunks.js `poolLod`; atmosphere.js `CLDP`,
+`cloudPass`; effects.js `hold the frame`; test/res.js; analysis_loading.md; DESIGN "What the GPU spends"; CHANGELOG). The person's three answers to v11.187:
+the tidewood past 120 m is its 37-triangle far copy (a mirror on the pool's own buffers); the cloud volume is marched at half the screen on a side and
+upsampled; the drawing buffer's scale steps down when the GPU drops frames and back up when it can (off on a card that makes 60 fps). On the proxy (test/fill.js) the frame ×0.86–0.91 at the shore, the coast and
+the canopy, the sky ×0.37–0.68 with its pass. **Ask:** the swap at 120 m from the water at the shore, the clouds' edges, and on a weak machine the readout's `res`. And analysis_loading.md §4: the loading
+page's look, one wait or two, a cache in the browser.
+
 **v11.187 (19 Nov 2026): a performance pass — the flora's vertices, the air under the water, and the GPU's time taken** (grow.js `VPULL`; scene.js
 `VPULL_GLSL`, `CAU_ARR`, `fogWaveH2`; atmosphere.js `SURF_OCC`, `OCC`; chunks.js the card species pooled; test/fill.js; test/benchpage.js `PLACES` with the
 shore and the canopy; DESIGN "What the GPU spends"; CHANGELOG). The person's lag at the plants, the shore and the surface. Every plant drew its three

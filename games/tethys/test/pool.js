@@ -32,6 +32,7 @@ const mid=X.chunks.get(X.ckey(ci,cj));ok(!!mid&&mid.pooled.length>0,'the middle 
 const heavy=[...X.POOLS.values()].sort((a,b)=>b.n-a.n).slice(0,6).map(P=>P.f.id+' '+P.n);console.log('  biggest pools: '+heavy.join(', '));
 // the card species pooled since v11.187 (their blocks hide by the cell's sight and FLORA_FAR edge, as their cell meshes did); the padded (the buttons) and glow ones stay per cell
 const cards=X.FAR_IMP.filter(sp=>!sp.f.pads).map(sp=>sp.f.id),pooledC=cards.filter(id=>[...X.POOLS.keys()].some(f=>f.id===id));ok(pooledC.length>0,'card species pooled where they grew: '+pooledC.join(' ')+' of '+cards.join(' '));
+{const L=[...X.POOLS.values()].filter(P=>P.lod);ok(L.length>0&&L.every(P=>P.lod.instanceMatrix===P.im.instanceMatrix&&P.lod.instanceColor===P.im.instanceColor&&P.lod.geometry.attributes.aHide===P.geo.attributes.aHide&&P.lod.geometry.attributes.aVar===P.geo.attributes.aVar),'the far copy\'s mirror (v11.188) on its pool\'s own buffers: '+L.map(P=>P.f.id).join(' '));}
 {const cm=new Set();for(const sp of X.FAR_IMP)if(!sp.f.pads){cm.add(sp.f.mat);if(sp.f.mp)cm.add(sp.f.mp);}ok([...X.chunks.values()].every(ch=>ch.flora.every(m=>!cm.has(m.material))),'no card species left in a cell mesh');}
 // the middle cell's blocks, then the cell out: the others' blocks unchanged
 const before=new Map();for(const P of mid.pooled)before.set(P.f,blockOf(P.f,mid));

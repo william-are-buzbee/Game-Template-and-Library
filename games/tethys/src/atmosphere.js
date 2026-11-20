@@ -286,7 +286,7 @@ const skyU={uVig:{value:VIG},uZen:{value:new THREE.Vector3()},uHor:{value:new TH
   uDay:{value:1},uNight:{value:0},uCover:{value:0},uRain:{value:0},uMoonL:{value:0},uLumL:{value:1},uStarT:{value:0},uTime:timeU,uBow:{value:0},uCloudH:{value:CLOUD_H},uCirrusH:{value:CIRRUS_H},uCirr:{value:0},uCamH:{value:0},uEclS:{value:0},uEclL:{value:0},uFxCloud:{value:1},
   uDeckC:{value:new THREE.Vector3(1,1,1)},uDeckL:{value:0},uCld:{value:FOG_CLD},uCldB:{value:FOG_CLDB},uCellA:{value:FOG_CELLA},uCellB:{value:FOG_CELLB},uCldTex:cldTexU,uVolT:{value:new THREE.Vector2(CLOUD_T,CLOUD_T)},uSkyFx:{value:new THREE.Vector4(1,1,1,1)},uSkD:{value:FOG_SKD},uFloorMap:{value:floorMap},uWmO:{value:WM_O}, // v11.178: the switches (cloud light, airglow, twilight, lagoon glow), the tone's, the floor map for the lagoon glow
    // v11.89 (clouds.js): the atlas, the deck's depth (a plain deck's, the deepest cell's) // v11.87 (clouds.js): the deck's sunlight and its colour, the lumps' share (the deck fades out under them), the field's state
-  uEye:{value:1},uMist:{value:MIST_P},uMistC:{value:MIST_C},uMistW:{value:MIST_W},uPlanD:{value:new Float32Array(9)},uPlanC:{value:new Float32Array(PLANETS.map(p=>[p[1][0],p[1][1],p[1][2],p[2]]).flat())}};
+  uCldRT:{value:null},uCldRes:{value:new THREE.Vector4(1,1,0,1)},uEye:{value:1},uMist:{value:MIST_P},uMistC:{value:MIST_C},uMistW:{value:MIST_W},uPlanD:{value:new Float32Array(9)},uPlanC:{value:new Float32Array(PLANETS.map(p=>[p[1][0],p[1][1],p[1][2],p[2]]).flat())}};
 const SKY_VS='varying vec3 vDir;void main(){vDir=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}';
 // The sky's noise and its clouds as strings (v11.49): the cumulus deck (marched base to top), the scud and the cirrus were inline in SKY_FS; the surface's
 // window draws them too now, refracted per facet, so the clouds are seen from under the water (WATER.md item 6 said the window had none — the person, 14 Sep:
@@ -337,7 +337,7 @@ const VOL_GLSL=['vec4 cloudVol(vec3 d,vec3 zen,vec3 hor){float up=d.y;if(up<0.00
   '  if(uSkyFx.w>0.5){float dep=texture2D(uFloorMap,(sP/sA-uWmO)*'+WM_SCALE+'+0.5).r*'+FM_SCALE.toFixed(1)+';float lg=step('+LAGOON.land.toFixed(2)+',dep)*(1.0-smoothstep('+LAGOON.d0.toFixed(1)+','+LAGOON.d1.toFixed(1)+',dep))*pow(1.0-clamp(sM/sA,0.0,1.0),1.5)*(1.0-0.8*q)*(1.0-uRain)*'+LAGOON.k.toFixed(2)+';col*=mix(vec3(1.0),vec3('+LAGOON.tint.map(v=>v.toFixed(3)).join(',')+'),lg);}', // v11.178 (LAGOON): the base over shallow water lit from below by it
   'float fk=1.0-exp(-(sT/sA)/9000.0);col=mix(col,hor,fk*0.85)*(1.0-0.35*uRain);return vec4(col,sA*hf);}'].join('\n')+'\n';
 const SKY_FS=[DITHER_PARS,EYE_GLSL,'uniform vec3 uZen,uHor,uGlow,uSunC,uLumC,uCirrC,uSun,uMoon,uLum,uCam,uDeckC;uniform vec2 uWind,uUpper;uniform float uDay,uNight,uCover,uRain,uMoonL,uLumL,uStarT,uTime,uBow,uCloudH,uCirrusH,uCirr,uCamH,uEclS,uEclL,uFxCloud,uDeckL,uEye;uniform vec4 uSkyFx,uSkD;uniform sampler2D uFloorMap;uniform vec2 uWmO;',
-  'uniform vec4 uMist,uMistC,uMistW,uCld,uCldB,uCellA,uCellB;uniform vec2 uVolT;uniform vec3 uPlanD[3];uniform vec4 uPlanC[3];varying vec3 vDir;',
+  'uniform vec4 uMist,uMistC,uMistW,uCld,uCldB,uCellA,uCellB;uniform vec2 uVolT;uniform vec3 uPlanD[3];uniform vec4 uPlanC[3];uniform sampler2D uCldRT;uniform vec4 uCldRes;varying vec3 vDir;',
   MIST_GLSL,
   SKY_NOISE_GLSL,CLD_GLSL,CLOUD_GLSL,CLD_VOL_GLSL,VOL_GLSL,
   'float curtain(vec3 d,inout vec3 col,vec4 C,vec3 shd){if(C.w<0.01||d.y<0.0)return 0.0;vec2 c=C.xy-uCld.xy-uCam.xz;float R=inversesqrt(C.z)*'+SHWR.shaft.toFixed(2)+';float hz=max(length(d.xz),1e-4);vec2 dd=d.xz/hz;float tc=dot(c,dd),h2=dot(c,c)-tc*tc;if(h2>R*R||tc+R<0.0)return 0.0;',
@@ -378,7 +378,7 @@ const SKY_FS=[DITHER_PARS,EYE_GLSL,'uniform vec3 uZen,uHor,uGlow,uSunC,uLumC,uCi
   // the cirrus: a thin streaked field high up, stretched along the upper wind, seen through the deck below it
   '  col=mix(col,uCirrC,cirrusA(d));',
   // the cumulus deck, marched base to top
-  '  vec4 cdk=cloudVol(d,uZen,uHor);float ca=cdk.a;if(ca>0.001)col=mix(col,cdk.rgb,ca);', // the volume (v11.89)
+  '  vec4 cdk;float ca;if(uCldRes.z>0.5){cdk=texture2D(uCldRT,gl_FragCoord.xy*uCldRes.xy);ca=cdk.a;col=col*(1.0-ca)+cdk.rgb*uCldRes.w;}else{cdk=cloudVol(d,uZen,uHor);ca=cdk.a;if(ca>0.001)col=mix(col,cdk.rgb,ca);}', // the volume (v11.89); since v11.188 marched at Q.cloudRes of the screen (CLDP below), premultiplied, read back here — the same blend
   // the showers' rain curtains (v11.88): the shaft under each cell as a vertical cylinder from the sea to the base, the ray's path through it
   '  float cta=0.0;if(uFxCloud>0.5){vec3 shdC=mix(uZen*0.42+uHor*0.36,uHor*0.5,0.5)*(0.85-0.35*uRain);cta=max(curtain(d,col,uCellA,shdC),curtain(d,col,uCellB,shdC));}',
   // the boundary layer seen edge on: the marine haze (and the spray) to infinity, whitening the lowest degrees and glowing toward the light
@@ -397,6 +397,25 @@ const SKY_FS=[DITHER_PARS,EYE_GLSL,'uniform vec3 uZen,uHor,uGlow,uSunC,uLumC,uCi
   '  gl_FragColor=vec4(dithering(toneC(eyeC(col,uEye),uSkD.w)),1.0);}'].join('\n'); // v11.178: the tone curve with `soft highlights`, as the world and the horizon pass (to v11.177 the dome was left out: the sky not in the palette) // dithered (v11.29): the dusk gradient bands like the deep does; the eye's gain (v11.159, NIGHT_EYE) as every fogged material takes it in its fog chunk
 const sky=(function(){const g=new THREE.SphereGeometry(FAR*0.94,24,12);
   const m=new THREE.Mesh(g,new THREE.ShaderMaterial({uniforms:skyU,vertexShader:SKY_VS,fragmentShader:SKY_FS,side:THREE.BackSide,depthWrite:false,fog:false}));m.frustumCulled=false;m.renderOrder=-10;m.visible=false;scene.add(m);return m;})();
+// The cloud volume at a fraction of the screen (v11.188; the person, 20 Nov 2026, on v11.187's "the sky's cloud march": "that's not a bad idea, you have my
+// consent"). cloudVol marches up to Q.march steps for every sky pixel — 13–16% of a frame at the shore (test/fill.js), every pixel behind the land and the
+// trees too, since the horizon pass draws before the world. The cloud is soft, so it is marched into a target Q.cloudRes of the drawing buffer on a side (0.5:
+// a quarter of the pixels; 0.35 on the low tier), premultiplied by its alpha so the bilinear upsampling keeps its edges' colour, and the dome reads it at its
+// own pixel (uCldRes); the disc, the moon, the stars, the bow and the haze stay the dome's own at full size. The ray is the camera's through the pass's pixel —
+// exact, where the dome's vDir is its 24×12 facets' chords (a degree off at most). Half floats where the target can be one, else bytes at half scale (uCldRes.w).
+// Q.cloudRes 1 (or CLDP.on false) marches in the dome as to v11.187.
+const CLDP=(function(){const on=Q.cloudRes<1&&GL2,ext=on&&!!renderer.extensions.get('EXT_color_buffer_float'),k=ext?1:2;
+  const rt=new THREE.WebGLRenderTarget(4,4,{type:ext?THREE.HalfFloatType:THREE.UnsignedByteType,minFilter:THREE.LinearFilter,magFilter:THREE.LinearFilter,depthBuffer:false,stencilBuffer:false,generateMipmaps:false});
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute([-1,-1,0,3,-1,0,-1,3,0],3));
+  const u=Object.assign({},skyU,{uPInv:{value:new THREE.Matrix4()},uCRot:{value:new THREE.Matrix3()},uCldK:{value:1/k}});
+  const vi=SKY_FS.indexOf(VOL_GLSL);if(vi<0)throw new Error('CLDP: the sky shader has no cloudVol');const fs=SKY_FS.slice(0,vi+VOL_GLSL.length)+'uniform float uCldK;\nvoid main(){vec4 c=cloudVol(normalize(vDir),uZen,uHor);gl_FragColor=vec4(c.rgb*c.a*uCldK,c.a);}'; // the dome's declarations and functions to cloudVol, then the march alone
+  const m=new THREE.ShaderMaterial({uniforms:u,vertexShader:'uniform mat4 uPInv;uniform mat3 uCRot;varying vec3 vDir;void main(){vec4 v=uPInv*vec4(position.xy,1.0,1.0);vDir=uCRot*(v.xyz/v.w);gl_Position=vec4(position.xy,0.0,1.0);}',fragmentShader:fs,depthTest:false,depthWrite:false,fog:false});
+  const sc=new THREE.Scene(),mesh=new THREE.Mesh(g,m);mesh.frustumCulled=false;sc.add(mesh);skyU.uCldRT.value=rt.texture;
+  return {on:on,k:k,rt:rt,scene:sc,cam:new THREE.OrthographicCamera(-1,1,1,-1,0,1),u:u,v:new THREE.Vector2()};})();
+function cloudPass(){const P=CLDP,R=skyU.uCldRes.value,on=P.on&&sky.visible&&skyU.uFxCloud.value>0.5;R.z=on?1:0;if(!on)return; // horizon.js renderFrame, before the frame's passes
+  renderer.getDrawingBufferSize(P.v);const w=Math.max(1,Math.round(P.v.x*Q.cloudRes)),h=Math.max(1,Math.round(P.v.y*Q.cloudRes));if(P.rt.width!==w||P.rt.height!==h)P.rt.setSize(w,h);
+  R.set(1/P.v.x,1/P.v.y,1,P.k);P.u.uPInv.value.copy(camera.projectionMatrixInverse);P.u.uCRot.value.setFromMatrix4(camera.matrixWorld);
+  const prev=renderer.getRenderTarget();renderer.setRenderTarget(P.rt);renderer.render(P.scene,P.cam);renderer.setRenderTarget(prev);}
 function pushSky(){const K=SKY,U=skyU;U.uZen.value.fromArray(K.zen);U.uHor.value.fromArray(K.hor);U.uGlow.value.fromArray(K.glow);U.uSunC.value.fromArray(K.sunC);U.uLumC.value.fromArray(K.lumC);U.uCirrC.value.fromArray(K.cirrC);
   U.uSun.value.copy(K.sun);U.uMoon.value.copy(K.moon);U.uLum.value.copy(K.lum);U.uCam.value.copy(camera.position);U.uWind.value.set(K.windOff[0],K.windOff[1]);U.uUpper.value.set(K.upperOff[0],K.upperOff[1]);
   U.uSkyFx.value.set(FX.cloudLight?1:0,FX.airglow?1:0,FX.twilight?1:0,FX.lagoon?1:0);U.uDay.value=K.dayK;U.uEye.value=K.eye;U.uNight.value=K.night;U.uCover.value=K.cover;U.uRain.value=K.rainA;U.uMoonL.value=K.moonL/MOONL;U.uLumL.value=clamp(K.lumL,0,1);U.uStarT.value=K.starT;U.uBow.value=K.bow;U.uCirr.value=K.cirrus;U.uEclS.value=K.eclS;U.uEclL.value=K.eclL;U.uFxCloud.value=FX.clouds?1:0;
