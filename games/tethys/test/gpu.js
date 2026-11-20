@@ -20,8 +20,9 @@ const fs=require('fs'),path=require('path');
 const {here,playwright,open,PLACES}=require('./benchpage.js'); // the places are benchpage.js's since v11.187, shared with test/fill.js
 const {glCounting,GL_KEYS,glNumber}=require('../../../tools/lib/browser.ts');
 const argv=process.argv.slice(2),CHECK=argv.includes('--check')||!!process.env.CHECK,UPDATE=argv.includes('--update')||!!process.env.UPDATE;
+if(process.env.AT&&(CHECK||UPDATE)){console.log('AT= is a report\'s place: gpu.json holds the named places only (no --check or --update with it)');process.exit(2);}
 const [W,H]=(process.env.SIZE||'1600x900').split('x').map(Number),FRAMES=+(process.env.FRAMES||12),KEPT=path.join(__dirname,'gpu.json');
-const only=(process.env.ONLY||Object.keys(PLACES).join(',')).split(',').filter(k=>k in PLACES);
+const only=(process.env.ONLY||(process.env.AT?'at':Object.keys(PLACES).join(','))).split(',').filter(k=>k in PLACES); // AT= (v11.191, benchpage.js): the report's place alone
 const roots=(process.env.BASE?[path.resolve(process.env.BASE)]:[]).concat([here]);
 // ---- in the page ----
 function atPlace(a){const take=()=>window.__gl.take(),mean=F=>{const o={};for(const k of Object.keys(F[0]))o[k]=F.reduce((s,f)=>s+f[k],0)/F.length;return o;};

@@ -415,7 +415,7 @@ const CLDP=(function(){const on=Q.cloudRes<1&&GL2,ext=on&&!!renderer.extensions.
 function cloudPass(){const P=CLDP,R=skyU.uCldRes.value,on=P.on&&sky.visible&&skyU.uFxCloud.value>0.5;R.z=on?1:0;if(!on)return; // horizon.js renderFrame, before the frame's passes
   renderer.getDrawingBufferSize(P.v);const w=Math.max(1,Math.round(P.v.x*Q.cloudRes)),h=Math.max(1,Math.round(P.v.y*Q.cloudRes));if(P.rt.width!==w||P.rt.height!==h)P.rt.setSize(w,h);
   R.set(1/P.v.x,1/P.v.y,1,P.k);P.u.uPInv.value.copy(camera.projectionMatrixInverse);P.u.uCRot.value.setFromMatrix4(camera.matrixWorld);
-  const prev=renderer.getRenderTarget();renderer.setRenderTarget(P.rt);renderer.render(P.scene,P.cam);renderer.setRenderTarget(prev);}
+  const prev=renderer.getRenderTarget();renderer.setRenderTarget(P.rt);recGpu(2);renderer.render(P.scene,P.cam);recGpuEnd();renderer.setRenderTarget(prev);}
 function pushSky(){const K=SKY,U=skyU;U.uZen.value.fromArray(K.zen);U.uHor.value.fromArray(K.hor);U.uGlow.value.fromArray(K.glow);U.uSunC.value.fromArray(K.sunC);U.uLumC.value.fromArray(K.lumC);U.uCirrC.value.fromArray(K.cirrC);
   U.uSun.value.copy(K.sun);U.uMoon.value.copy(K.moon);U.uLum.value.copy(K.lum);U.uCam.value.copy(camera.position);U.uWind.value.set(K.windOff[0],K.windOff[1]);U.uUpper.value.set(K.upperOff[0],K.upperOff[1]);
   U.uSkyFx.value.set(FX.cloudLight?1:0,FX.airglow?1:0,FX.twilight?1:0,FX.lagoon?1:0);U.uDay.value=K.dayK;U.uEye.value=K.eye;U.uNight.value=K.night;U.uCover.value=K.cover;U.uRain.value=K.rainA;U.uMoonL.value=K.moonL/MOONL;U.uLumL.value=clamp(K.lumL,0,1);U.uStarT.value=K.starT;U.uBow.value=K.bow;U.uCirr.value=K.cirrus;U.uEclS.value=K.eclS;U.uEclL.value=K.eclL;U.uFxCloud.value=FX.clouds?1:0;

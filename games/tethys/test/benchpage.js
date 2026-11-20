@@ -47,4 +47,9 @@ const PLACES={
   shore:{x:110,y:0.6,z:-380,yaw:Math.PI,above:true,hold:true,what:'the tidewood shore north of ours from the water\'s surface (v11.187): the tidewood and the reeds in the air, the kelp under the camera; the body held at 0.6 m (hold, v11.189: left to float it rests 2–3 m down by the world\'s state, and the camera with it at the waterline, above or under by a wave)'},
   canopy:{x:80,y:-3,z:-360,yaw:Math.PI,above:false,what:'3 m down in the kelp off the same shore (v11.187), facing it: the canopy at the surface, the tidewood above it'},
 };
+// AT=x,y,z[,yaw] (v11.191): one more place, `at`, where a flight recorder's report says the worst frame was (test/report.js prints the line); the benches
+// then stand there alone (test/gpu.js and test/fill.js take ONLY=at when AT is set and ONLY is not). y absolute as above; the camera above the water at y >= 0,
+// the body held there. Not for gpu.js --check or --update: gpu.json holds the named places only
+if(process.env.AT){const a=process.env.AT.split(',').map(Number);if(a.length<3||a.slice(0,3).some(v=>!isFinite(v)))throw new Error('AT=x,y,z[,yaw]: '+process.env.AT);
+  PLACES.at={x:a[0],y:a[1],z:a[2],yaw:isFinite(a[3])?a[3]:0,above:a[1]>=0,hold:a[1]>=0,what:'AT='+process.env.AT+', from a flight recorder\'s report (test/report.js)'};}
 module.exports={here,playwright,pageOf,serve,open,PLACES};

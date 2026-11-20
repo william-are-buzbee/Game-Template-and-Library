@@ -16,12 +16,15 @@ def write(p, s): open(os.path.join(ROOT, p), 'w', encoding='utf-8').write(s)
 
 ORDER = [l.strip() for l in read('src/order.txt').split('\n') if l.strip() and not l.strip().startswith('#')]
 parts = {n: read('src/%s.js' % n) for n in ORDER}
+# the build's version (v11.191): the CHANGELOG's last heading, for the flight recorder's reports (src/rec.js REC.v), as build.js
+VERSION = (re.findall(r'^## (v[0-9][0-9.]*)', read('CHANGELOG.md'), re.M) or ['dev'])[-1]
+STAMP = '<script>window.TETHYS_BUILD={v:"' + VERSION + '"};</script>\n'
 
 # ---------- the two html files ----------
 shell = read('shell.html')
-bundle = THREE + '<script>\nfunction tethysMain(){\n"use strict";\n' + '\n'.join(parts[n] for n in ORDER) + '\n}\nrequestAnimationFrame(function(){setTimeout(tethysMain,0);});\n</script>'  # v11.189: after the first paint, as build.js
+bundle = STAMP + THREE + '<script>\nfunction tethysMain(){\n"use strict";\n' + '\n'.join(parts[n] for n in ORDER) + '\n}\nrequestAnimationFrame(function(){setTimeout(tethysMain,0);});\n</script>'  # v11.189: after the first paint, as build.js
 write('tethys.html', shell.replace('<!--SCRIPTS-->', bundle))
-dev = THREE + ''.join('<script src="src/%s.js"></script>\n' % n for n in ORDER)
+dev = STAMP + THREE + ''.join('<script src="src/%s.js"></script>\n' % n for n in ORDER)
 write('dev.html', shell.replace('<!--SCRIPTS-->', dev))
 
 # ---------- the name index ----------
@@ -106,7 +109,7 @@ if '--test' in sys.argv:
     import shutil, tempfile, threading, time
     from concurrent.futures import ThreadPoolExecutor
     ALONE = [(['test/physics.js'], {}, 4), (['test/audio.js'], {}, 20), (['test/snow.js'], {}, 38), (['test/sky.js'], {}, 2), (['test/glow.js'], {}, 10)]  # the third number: its seconds one at a time, as build.js
-    SIDE = [(['test/res.js'], {}, 4), (['test/smoke.js'], {}, 164), (['test/smoke.js'], {'TIER': 'low'}, 108), (['test/live.js'], {}, 100), (['test/live.js'], {'TIER': 'low'}, 98), (['test/player.js'], {}, 56), (['test/census.js', '40'], {}, 61), (['test/ledger.js'], {}, 135), (['test/falls.js'], {}, 59), (['test/maps.js'], {}, 20), (['test/player.js'], {'TIER': 'low'}, 41), (['test/steer.js'], {}, 25), (['test/steer.js'], {'TIER': 'low'}, 18), (['test/anim.js'], {}, 17), (['test/combat.js'], {}, 10), (['test/registry.js'], {}, 5), (['test/pool.js'], {}, 4), (['test/plankton.js'], {}, 2), (['test/origins.js'], {}, 22), (['test/cells.js'], {}, 13), (['test/horizon.js'], {}, 13), (['test/records.js'], {}, 2), (['test/region.js'], {}, 1), (['test/lint.js'], {}, 1)]
+    SIDE = [(['test/res.js'], {}, 4), (['test/smoke.js'], {}, 164), (['test/smoke.js'], {'TIER': 'low'}, 108), (['test/live.js'], {}, 100), (['test/live.js'], {'TIER': 'low'}, 98), (['test/player.js'], {}, 56), (['test/census.js', '40'], {}, 61), (['test/ledger.js'], {}, 135), (['test/falls.js'], {}, 59), (['test/maps.js'], {}, 20), (['test/player.js'], {'TIER': 'low'}, 41), (['test/steer.js'], {}, 25), (['test/steer.js'], {'TIER': 'low'}, 18), (['test/anim.js'], {}, 17), (['test/combat.js'], {}, 10), (['test/registry.js'], {}, 5), (['test/pool.js'], {}, 4), (['test/plankton.js'], {}, 2), (['test/origins.js'], {}, 22), (['test/cells.js'], {}, 13), (['test/horizon.js'], {}, 13), (['test/records.js'], {}, 2), (['test/rec.js'], {}, 2), (['test/region.js'], {}, 1), (['test/lint.js'], {}, 1)]
     # v11.93.4: SHARD=k/n runs the k-th of n parts, dealt as build.js deals them: longest first to the part with the fewest seconds, ties low
     SH = re.match(r'^(\d+)/(\d+)$', os.environ.get('SHARD', ''))
     if os.environ.get('SHARD') and not (SH and 1 <= int(SH.group(1)) <= int(SH.group(2))):

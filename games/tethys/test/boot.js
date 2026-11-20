@@ -48,6 +48,11 @@ async function boot(page){ // the store's answer waited for with no frame steppe
       const dp=Math.hypot(c.pos[0]-s.pos[0],c.pos[1]-s.pos[1],c.pos[2]-s.pos[2]);ok(dp<0.5,'where it was saved ('+dp.toFixed(3)+' m)');
       ok(c.kept,'nothing cleared: the '+c.n+' cells the menu streamed are the ones played in');
       await page.evaluate(()=>{const rf=window.renderFrame,sh=FX.shadows;window.renderFrame=function(){};FX.shadows=false;for(let i=0;i<29;i++)__step(1);window.renderFrame=rf;FX.shadows=sh;__step(1);}); // the last one drawn
-      const e=errsOf(errs);ok(!e.length,'thirty frames of play after: no page errors'+(e.length?': '+e.slice(0,3).join(' | '):''));});
+      const e=errsOf(errs);ok(!e.length,'thirty frames of play after: no page errors'+(e.length?': '+e.slice(0,3).join(' | '):''));
+      // the flight recorder (v11.191, src/rec.js) in a real browser: the machine read, the frames counted, the session through the browser's own deflate to a link that fits and decodes
+      const r=await page.evaluate(async()=>{const f=__rec.full(),o=await __rec.body();return {frames:f.all.frames,menu:f.menu.frames,gpu:f.dev.gpu,gl:f.dev.gl,timer:f.dev.timer,boot:f.boot,len:o.len,max:__rec.K.url,url:o.url};});
+      ok(r.frames>=30&&r.menu>0&&r.gpu&&r.gl===2,'the recorder: '+r.frames+' play frames, '+r.menu+' menu frames, on '+r.gpu+' (WebGL'+r.gl+', GPU timer '+(r.timer?'yes':'no')+')');
+      ok(r.boot.done>0&&r.boot.first<=r.boot.done,'the boot\'s stages recorded: first frame '+r.boot.first+' s, in '+r.boot.done+' s (the bench\'s clock)');
+      const p=require('./report.js').decode(decodeURIComponent(r.url.split('&body=')[1]));ok(r.len<=r.max&&p&&p.all.frames===r.frames,'its report: '+r.len+' characters, decoded by test/report.js');});
   }catch(e){ok(false,'threw: '+e.message);}finally{await browser.close();server.close();}
   console.log(failed?'boot: FAILED':'boot: all ok');process.exit(failed?1:0);})();
