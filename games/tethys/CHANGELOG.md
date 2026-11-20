@@ -9731,7 +9731,8 @@ the tidewood north of ours from the water, and **the canopy** (80, −3, −360)
 
 Open water is the one rise: the occluder is the surface drawn a second time under water (its 74k triangles, one draw, its program's uniforms) where there is
 nothing in the air to save — the price of the saving everywhere a shore or the sky is in view. The program changes and uniforms up a little in the air: a
-pulled material is a program of its own beside its original. The boot uploads 6.8 MB more to textures (the pulled vertices) and 1.4 MB less to buffers.
+pulled material is a program of its own beside its original. The boot links 69 programs (64; the occluder, MATVD's, the splash's two, the pulled flora's in place of their originals'), uploads 6.8 MB more to textures
+(the pulled vertices) and 1.4 MB less to buffers; compiled at first sight: none at any of the seven places (the forest 1, the shore 3, the canopy 1 before).
 
 The GPU's time as a proxy (test/fill.js, SwiftShader at 1600×900, the frame's draws each timed alone; run per change during the pass, before the card species
 were pooled):
