@@ -9980,7 +9980,7 @@ Step 2 of analysis_project.md (the person, 20 Nov 2026: "Cut those docs down"). 
 HANDOFF.md next: 97.8 KB and 223.6 KB, most of both history — version stamps inside the rules ("since v11.x … to v11.y it was …"), and HANDOFF a
 record of 220 versions back to v11.18 though it said "keep this file short". Nothing in the game changed.
 
-- **CLAUDE.md** 97.8 → 37.8 KB: every rule, gotcha, command, knob and decision of the person kept, their histories taken out (the CHANGELOG has
+- **CLAUDE.md** 97.8 → 40.5 KB: every rule, gotcha, command, knob and decision of the person kept, their histories taken out (the CHANGELOG has
   them). The sections other files cite keep their names ("Performance", "Things that bite", "Look at it", "Left alive on purpose"). New in it:
   F9 and `machine()` where the person's GPU used to be "unmeasurable"; the old ask lists as a record, not pending (the person, 15 Sep 2026, from
   the old HANDOFF); HANDOFF kept to five versions.
@@ -9993,7 +9993,11 @@ record of 220 versions back to v11.18 though it said "keep this file short". Not
 - **.claude/skills/perf**: "when the person says it lags" asks for a report (F9) in Tethys.
 
 **Seen:** the old CLAUDE.md read against the three new files by a reviewer that had not seen the rewrite, for anything actionable lost or
-changed (the pull request has what it found and what was done). **What it costs:** nothing at run time; a session's first read is ~60 KB lighter
+changed. No rule was lost; about forty traps that had been cut with their histories were put back — thresholds and knobs (`DEFS.hp` ≤1/≥1e8,
+`FILL_TOP` −20, `FLORA_FAR` 450, `OCC.cv` 0.25, the combat knobs), `ecoId`'s −1 in an unsplit patch, the poison rule, the swarm never on
+`DEFS.prey`, which flora keeps a mesh per cell, the tape's `LAZY_G`, the oval's own-frame radii, why the GPU counts agree across machines, the
+readout's tune keys, `x`'s conditions, `#bench`'s first click, esc twice when locked. One old line was stale and is corrected: since v11.187
+the card species are pooled; the buttons, rafts and glow clouds keep a mesh per cell. **What it costs:** nothing at run time; a session's first read is ~60 KB lighter
 on CLAUDE.md and ~217 KB on HANDOFF.
 
 **Unseen, ask in this order:**

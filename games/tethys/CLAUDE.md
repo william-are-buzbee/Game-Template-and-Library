@@ -15,7 +15,8 @@ player is a 3–3.5 m animal.
 
 **The rule (8 Sep 2026): the island is fully believable from its logic — no biomes, no magic, even for gameplay.** If a thing can't be derived
 from a young shield volcano (ours is 3 Ma), a big close moon, 28% oxygen, iron, the silled basins' chemoclines where the region model puts them
-(GLOBE §9.1; `oxyAt`, `chemoAt`, `chemoD` — none in today's world is anoxic) and the founder lines, it goes. No place has a name; every species
+(the person, 10 Nov 2026; GLOBE §9.1; `oxyAt`, `chemoAt` — round ours an oxic deep with an oxygen minimum; `chemoD`: a basin is anoxic only when
+the food raining onto its sill outruns its inflow's oxygen, and none in today's world is) and the founder lines, it goes. No place has a name; every species
 places itself by a tolerance envelope over the condition fields. Nothing glows, floats or moves without a physical reason; eyeshine is a
 reflection; bioluminescence only as events. Earth is reference, never template.
 
@@ -55,7 +56,8 @@ npm run smoke            the browser tests CI runs: node test/gpu.js --check, no
    flora.js from grow.js's bauplans.
 2. `node build.js --test` green on both tiers; **what it costs measured** if it touches a hot path ("Performance"); `node test/gpu.js --check`
    passing or `test/gpu.json` updated with the change.
-3. **Look at it.** `node serve.js` and `dev.html` in the app's browser (or `npm run look -- games/tethys` from the root): play to the changed
+3. **Look at it.** `node serve.js` (or the `tethys` launch config in the repository's `.claude/launch.json`) and `dev.html` in the app's browser
+   (or `npm run look -- games/tethys` from the root): play to the changed
    thing, screenshot it. A hidden pane does not tick and its 0×0 viewport NaNs the menu: keep it visible, or drive the loop from the console —
    stub `requestAnimationFrame`, hold `player.pos`, call `loop(last+16.7)` a frame, and post `renderer.domElement.toDataURL()` to
    `/_bench/<name>.png` (serve.js writes `test/render/<name>.png`). A creature: also `node test/preview.js <id>`. "Unseen" in the CHANGELOG is
@@ -67,7 +69,7 @@ npm run smoke            the browser tests CI runs: node test/gpu.js --check, no
 6. One commit and one pull request per version, on a `claude/…` branch, the message the CHANGELOG heading. The root `CLAUDE.md` has the rest
    (the identity, never `main`, never force, no rebase or hard reset). The person's merge is the release.
 7. `main` is the live game at `https://william-are-buzbee.github.io/Game-Template-and-Library/games/tethys/` (`map.html` beside it); a pull
-   request's preview is `…/preview/<number>/games/tethys/`, linked on it. The old site `william-are-buzbee.github.io/Tethys/` stays as it was.
+   request's preview is `…/preview/<number>/games/tethys/`, linked on it and removed when it closes. The old site `william-are-buzbee.github.io/Tethys/` stays as it was.
 
 Without a PC (the claude.ai sandbox): copy `tethys.html` to `/mnt/user-data/outputs/` and zip the folder as `tethys-src.zip`.
 
@@ -104,7 +106,8 @@ request says what it cost before the person plays it (the root `docs/decisions.m
   creep on the person's own hardware.
 - **In CI** no time is held (shared runners are noise). The deterministic proxies are: the records' shape (`test/records.js`), the creatures'
   (`test/live.js`), the build tape's replay (`test/registry.js`) and **the GPU's counts**: `node test/gpu.js --check` fails when a count at any
-  place moves more than 10% from `test/gpu.json`. A change that means it runs `--update` and commits the file, so the diff shows what moved.
+  place moves more than 10% from `test/gpu.json`. A change that means it runs `--update` and commits the file, so the diff shows what moved. The
+  counts are the same on any machine (the bench's clock, `Math.random` seeded, the high tier at pixel ratio 1, 1600×900): a session's and CI's agree.
 
 ## Layout
 
@@ -150,18 +153,20 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
 - **The world is a function.** `sample(x,z,out)` (world.js) is the one truth: the ground and nine fields (`FI`: sub, flow, expo, nut, turb,
   young, heat, shel, rel), analytic geology plus fbm; no biome ids anywhere. The islands are records (`ISLANDS`, `islandH` in each island's own
   frame: ours, the giant and region.js's members) summed by smooth max over the model's floor (two records' meeting filled no higher than
-  `FILL_TOP`), found through the index (`RIX`, `recsAt` — never a loop over every record). `ISLANDS[0]` is ours and stays bit-identical but by a
+  `FILL_TOP`, −20), found through the index (`RIX`, `recsAt` — never a loop over every record). `ISLANDS[0]` is ours and stays bit-identical but by a
   decision with its reason: check any change to `islandH` or `sample` against the last commit's world over the old square. Species and
   structures carry `env` envelopes (`envW`, 0..1). Landmarks: the chimney fixed by the geology, the rest searched at load (`findSpot`, seed
   4242, a fixed sequence — new ones go at the end).
-- **Cells.** 215 m (`CELL`); the world a rectangle of 2,200×1,344 (`WORLD`; x `WX0`…`WX1`, z `WZ0`…`WZ1`; clamped by `worldX`/`worldZ`; `gridIn`
-  its bounds); a table of cells is a `Map` by `ckey(i,j)`. `NCELL` 240 and `HALF` are the old square: the grid's anchor (cell (0, 0) its corner,
+- **Cells.** 215 m (`CELL`); the world a rectangle of 2,200×1,344 cells (`WORLD`; x `WX0`…`WX1` −110.1…362.9 km, z `WZ0`…`WZ1` −118.7…170.3 km;
+  clamped by `worldX`/`worldZ`; `gridIn` its bounds); a table of cells is a `Map` by `ckey(i,j)`. `WORLD70`, the ±70.5 km square, is kept for the
+  records' second pass, the flood's lattice and old saves. `NCELL` 240 and `HALF` 25.8 km are the old square: the grid's anchor (cell (0, 0) its corner,
   so every cell's place and seed holds) and the fine ledger's box. A loaded cell is a 49×49 grid, a terrain mesh, its flora as a block in each
-  species' pool, its colliders and its creatures. `genChunk` is a generator run under a frame budget (what the last frame left of `Q.target`),
+  species' pool (the buttons, the rafts and the glow clouds keep a mesh per cell), its colliders and its creatures. `genChunk` is a generator
+  run under a frame budget (`Q.budgetMs` at most: what the last frame left of `Q.target`),
   nearest first within `LOAD_R`: terrain → the structures' collision → cliffs → rock → flora (each asks `clearOf`) → landmarks → creatures.
 - **Near and far.** far.js builds every big structure, coarse terrain in 4×4-cell regions, the apron to 2000 m past the edge, impostor cards and
   the water/floor maps; cells draw fine terrain and small flora on top (far vertices under loaded cells pushed down; impostors off within
-  `FLORA_FAR` of a loaded cell). Above the water the horizon tier draws every island's land and the sea to 250 km in a pass under the main one;
+  `FLORA_FAR`, 450 m, of a loaded cell). Above the water the horizon tier draws every island's land and the sea to 250 km in a pass under the main one;
   under water the far plane is the end. `bigsFor(i,j)` is cached so near collision and far drawing agree; everything sits on the ground by
   `settleOn`.
 - **Flora.** `FLORA` entries: per-cell tries, envelopes, placement flags, a per-entry rng (order moves nothing); the photosynthetic tinted by
@@ -170,27 +175,33 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
   → `DEFS[kind]` (role, prey, reach, strike, behaviour by hand; speed, accel and turn never typed: `defPhysics` reads the build) and `SPAWN`
   (capacity, envelope) → the ledger → `placeKind`/`spawn` (geometry shared per kind in `KIND_GEO`; rigs the creature's own) →
   `updateCreatures` by role (boid, trap, watch, hunter, graze, wander, coil, ambush, drift, sail, swarm), then contact. A `swarm` has no spec,
-  body or capsule, is drawn by the snow, and is food for any build with a sieve (`FILTER`, on its eater's paper prey) — never chased, held or bitten.
+  body or capsule and is drawn by the snow; its `SPAWN` row's `crop` flag makes its capacity the plankton's (`ecoCap` × `cropK`); it is food for
+  any build with a sieve (`derive.filter` → `DEFS.filter`; creatures_ai.js `FILTER`), and `ecoOf` puts it on that kind's paper prey, never on
+  `DEFS.prey` — never chased, held or bitten.
 - **The ledger is the truth about who lives where** (ecology.js): `POP.n[entry][cell]`; capacity from mean `envW`; unloaded cells run the model
   every `ECO_STEP`; a loaded cell spawns from it and writes back. A kill goes through `kill()`, a creature leaving through `removeCreature`, a new
   spawn through `placeKind` with an `ent` (−1: outside the ledger, never counted or reborn). `SPAWN.n` is capacity; the equilibrium (`node
-  test/census.js 120`) is the count. A loop over the ledger walks `POP.cells[ei]`, never every cell; an index is `ecoId(i,j)`/`ecoIJ(c)`, never
-  `i*NCELL+j`; past the fine box the ledger is coarse patches, split round the player.
+  test/census.js 120`) is the count. A loop over the ledger walks `POP.cells[ei]` (`ecoMark` adds to it, `ecoIndexAll` rebuilds it after a load), never
+  every cell; an index is `ecoId(i,j)` (−1 in a coarse patch not split) and `ecoIJ(c)`, never `i*NCELL+j`; past the fine box the ledger is
+  coarse patches, split round the player.
 - **Combat** (combat.js, COMBAT.md): a fight is a hold — the grip (jaws, arms, claws, read off the spec) and the held body's capsule as one point;
-  the struggle by mass in kilograms. **There are no hit points**: a hold kept is a pin, then the placed act by the edge against the covering
-  (`EDGE`: swallowed, opened, skewered, crushed) or the hunter lets go. Every bite is the edge where the hold is (`biteOn`, `cutAt`): nothing
-  through the covering is a bruise; through it, the bite's radius against the capsule's severs (`SEVER`), opens the vitals (`VITAL`) or wounds,
-  bleeding from a volume (`BLOOD`: weak at 15% lost, collapsed at 30%, dead at 40%). Venom and autotomy ride the hold; a wound edits a live copy
-  of the spec and `derive` reruns; a hold on a part's own capsule takes the part; a dropped arm grows back. `DEFS.hp` is only the
-  forage/immortal flag. A hunter commits its bite 0.25 s out and misses prey that dodges across the line (`MISS`); hungry hunters take a
+  the struggle by mass in kilograms (`kgOfBody`). **There are no hit points**: a hold kept is a pin (subdued: `SUBDUE`; the struggle fades with
+  the held body's `STAMINA`), then the placed act by the edge against the covering (`EDGE`: swallowed — a sequence, `SWALLOW` — opened,
+  skewered, crushed, the nerve cord) or the hunter lets go. Every bite is the edge where the hold is (`biteOn`, `cutAt`): nothing
+  through the covering is a bruise; through it, the bite's radius (`EDGE_RHO` × the gape) against the capsule's severs (`SEVER`), opens the
+  vitals (`VITAL`) or wounds, bleeding from a volume (`BLOOD`: weak at 15% lost, collapsed at 30%, dead at 40%); the piece is the biter's
+  food, and a body `TORN` 0.25 eaten is dead. Venom (`DEFS.venom`) and autotomy ride the hold; a wound edits a live copy of the spec and
+  `derive` reruns (`speedK`, `turnK`); a hold on a part's own capsule (`hitOwn`) takes the part (`losePart`); a dropped arm keeps a stump and
+  grows back (`RIG_STUMP`, `c.grow`). Hingeshells fed under a basin's chemocline or in the vents' heat are poison to eat (`POISON`,
+  `DEFS.immune`). `DEFS.hp` is only the forage (≤1) / immortal (≥1e8) flag. A hunter commits its bite 0.25 s out and misses prey that dodges across the line (`MISS`); hungry hunters take a
   bleeding body within `SMELL_R`. Drifters and the coil's withdraw bypass holds. The player's death ends the slot's animal: you continue as the
   nearest living child of that life, or the save is over (line.js).
 - **The frame** (main.js `loop`): clock and tide → streaming → menu, zoo, lab → `updatePlayer` → `updateCreatures` (and contact, the player
   among the bodies) → `finishPlayer` (pose, own arms, camera) → eggs, ecology → pads, disturbers, snow → wounds, ink, splashes, blood →
   atmosphere, surface → cull, lights, shadows, audio → HUD, effects → render → `recFrame`. **Moving a piece breaks contact silently.**
   Creatures past 150 m step every other frame; `lodNear`/`lodFar` swap parts for baked meshes.
-- **The quality tier** `Q` (scene.js) is numbers, never code paths; `#low`/`#high` force it; low is automatic on small touch screens. `Q.march`
-  is the cloud volume's steps and `Q.vol` the master volume — never one for the other (it once played the game at 80× gain).
+- **The quality tier** `Q` (scene.js) is numbers, never code paths; `#low`/`#high` force it; low is automatic on small touch screens. `Q.cldSh` 0
+  leaves the cloud shadows out of the shaders (the low tier). `Q.march` is the cloud volume's steps and `Q.vol` the master volume — never one for the other (it once played the game at 80× gain).
 - **Sound** (audio.js): one `AudioContext`; the space read from the geometry round the listener four times a second; beds from the world's
   numbers; an eight-voice pool for placed emitters; `M` mutes.
 
@@ -228,7 +239,8 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
 
 ## Things that bite
 
-- **The start is a sequence** (main.js `BOOT`; analysis_loading.md). tethys.html runs the game after the page's first paint; nothing is drawn
+- **The start is a sequence** (main.js `BOOT`; analysis_loading.md). tethys.html runs the game after the page's first paint (dev.html cannot: it
+  loads the files one by one); nothing is drawn
   until the world round the camera has streamed, and the cells wait for the store's answer (the last slot's ledger is what they spawn from).
   Leaving the menu ends the boot at once (`bootFinish`), so a test's `choose` works; a test that drives the menu's own frames steps until
   `__boot.done`. The warm-up compiles with the shadow map as play has it (three keys every program by it). A new material that draws at the
@@ -239,15 +251,16 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
   vertex code reads `transformed`, `objectNormal` and `vColor`, never the `position`, `normal` or `color` attributes. `f.geo` is still the
   packed geometry for the CPU (bounds, previews, the stub, WebGL1).
 - **Under water the surface is drawn first as an occluder** (atmosphere.js `SURF_OCC`, `OCC`): its facets outside the window write depth before
-  the dome and the sky. What must be seen through the surface from below is seen in the window or not at all; a thing drawn before renderOrder
-  −12 is under it; a change to the window's rule (`WIN_LO`, `REFR_MAX`) moves `OCC.cv` with it.
+  the dome and the sky (the facet's cosine to the eye under `OCC.cv` 0.25; the window opens at `WIN_LO` 0.35). What must be seen through the
+  surface from below is seen in the window or not at all; a thing drawn before renderOrder −12 is under it; a change to the window's rule
+  (`WIN_LO`, `REFR_MAX`) moves `OCC.cv` with it.
 - **Sixteen texture units** a fragment shader. The tinted materials use 7 on WebGL2 (the caustic's tiles one array, `CAU_ARR`) and the flora's
   vertex shader an eighth (`uPull`); WebGL1 is at 16 still — a new map there fails every compile. A new map channel goes in the water and floor
-  maps (`waterMap`/`floorMap`: read in shaders at `(p - uWmO)*WM_SCALE + 0.5`, on the CPU through `WM_A`, `WM_I0`), whose free channels are
+  maps (`waterMap`/`floorMap`, 1440×1440, filled together in `wmFill`/`wmBlur`: read in shaders at `(p - uWmO)*WM_SCALE + 0.5`, on the CPU through `WM_A`, `WM_I0`), whose free channels are
   used up (floor b and a the crops, water a the front's X).
 - **A body is built once per kind and coat, then replayed** (parts.js `GEO_TAPE`, creatures_ai.js `tapeBuild`). A builder is a function of its
-  spec, scale and palette; nothing in it reads a primitive's geometry or a part's transform but `merge` (while a tape plays they are not made;
-  `test/registry.js` finds a builder that does). A creature's own rigs, clocks and randomness are made as before; `BUILD_TAPE.on` false builds
+  spec, scale and palette; nothing in it reads a primitive's geometry or a part's transform but `merge` (while a tape plays they are not made:
+  `G.*` returns `LAZY_G` and `part`'s `m` is null; `test/registry.js` finds a builder that does). A creature's own rigs, clocks and randomness are made as before; `BUILD_TAPE.on` false builds
   whole. **Every creature, its `st` and its def are one shape**: a key a creature takes as it lives is in spawn's literal (unset), a `DEFS` key
   is in `DEF_KEYS`, a def is never written after load (`scaledDef` copies it flat); `test/live.js` fails otherwise.
 - **Every record is one shape** (world.js `recNew`): every key any record carries, in one order; a key unset with `undefined`, never `delete`d
@@ -255,12 +268,13 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
   after any change to world.js or region.js: `BASE=<copy> node test/bench.js`.
 - **The wood is the terrain's** (scene.js `woodGLSL` on `TERRAIN_MAT`, horizon.js `HZ_WOOD`): `terrainColor` writes the canopy per vertex
   (`wo`) and the vertex shader raises it past `FLORA_FAR − FLORA_FADE`. A new terrain mesh passes `terrainColor` a `wo` array and sets `aWood`,
-  or it has no forest. Collision and every height the game reads are the ground's, never the shell's; the depth pass leaves the shell down.
-- **A record may be an oval** (region.js `RG_OVAL`: `rot`, `sc`, `asq`): its radii are in its own frame — compare through `rgLoc`/`rgAt`/
+  or it has no forest; a change to `FLORA_FAR` moves the trees' fade and the shell's rise together. Collision and every height the game reads are the ground's, never the shell's; the depth pass leaves the shell down.
+- **A record may be an oval** (region.js `RG_OVAL`: `rot`, `sc`, `asq`): its radii (`rimR`, `land.r`, `reach`, its bound table `hi`, `quiet`) are in
+  its own frame, never closer than the world distance over `sc` — compare through `rgLoc`/`rgAt`/
   `rgAlong` or over `sc`, never against a world distance directly.
 - **Contact** is physics.js: colliders in a per-cell hash (`addSolid/addCapsule/addPad/addEllipsoid/addRock`, `solidPush`, `bodyPush`),
   capsules (`worldShapes/resolveBodies`), chains and rigs (`makeChain/simChain`, `makeRig/rigSkin/stepRigs`, posed by `ringPose/tailPose`).
-  Chain buffers hold ≤39 points and ≤160 segments a rig. Every species geometry gets a per-cell clone for its instance attributes.
+  Chain buffers hold ≤39 points and ≤160 segments a rig. Every species geometry gets a per-cell clone for its instance attributes (`aVar`, `aDip`).
 - **No NaN in a uniform array**: the sway shader's `DIST_A/DIST_B` (`vec4[12]`), the light block's `uSunW`, `uCastA/B` — r128's `flatten()`
   passes a typed array through only if its first element is a number.
 - **The light block** (scene.js `LIGHT_GLSL` in `addTint`): the caustics and the bodies' shadows in every tinted fragment; `LIGHT_FX` false
@@ -275,7 +289,7 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
   to ×4 darker on a moonless night (the dome and the horizon pass take it by hand).
 - **The air** (world.js `HAZE`, `AIR`) is the boundary layer's slab, read by every material in air, the dome's band and the horizon pass; the far
   cut applies only under water, so a change to the far plane, the dome or the surface's far edge has a second consumer. `fogAir(col, o, rd, L,
-  ck, fl)`: `fl` is the far end's height over the flat frame (0 in the world, the curve's drop in the horizon pass). The slab follows
+  ck, fl)`: `fl` is the far end's height over the flat frame (0 in the world, the curve's drop in the horizon pass), or the far sea sinks under the slab. The slab follows
   `CLOUD_H`/`CLOUD_T`. `fogAir` calls `capFog` and `poolFog`, defined when clouds.js appends to the chunk: a shader that takes the chunk before
   clouds.js loads fails to link.
 - **The mist's integral** (scene.js `mistL`) keeps both exponentials bounded: a ray dropping 90 m or more to the water once overflowed to black.
@@ -286,12 +300,12 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
 - **Draw distance.** The flora ends at `FLORA_FAR` and fades into it (`FLORA_FADE`, scene.js `farCut`): a new small species wants a fading
   material (every sway, variant, rock and `MAT` instance has one); a new big one a card in `FAR_IMP` (a low-poly copy of itself, never crossed
   cards) and no cut. The disturbance loop runs only within `DIST_R` of the camera.
-- **The pools** (chunks.js `POOLS`): a cell's small flora is a block in its species' pool, the tail moved down on unload, the written range
+- **The pools** (chunks.js `POOLS`): a cell's small flora is a block in its species' pool (not in `ch.meshes`/`ch.flora`), the tail moved down on unload, the written range
   uploaded (`updateRange`). Out of sight by a per-instance flag (`aHide`) in `addTint`'s vertex code — never moved by the view — so a pooled
   species' material is a tinted one. Placement reads the cell's own hash only (`solidPush(…, own)`), which `placeBigSolids` completes with every
   neighbour's reaching structure (`test/pool.js` fails if a cell's blocks differ by arrival order).
 - **Capsules.** No hit capsule ends past the nose (`compile` clamps at `F.nose − r`; a hand-written list that reaches past it is cut back
-  silently). A spec's own `hit` list puts the shell's capsule first and marks a part's own capsule `own` (the tails). A lost part is hidden and
+  silently). A spec's own `hit` list puts the shell's capsule first and marks a part's own capsule `own` (the tails), or the covering reads the core's. A lost part is hidden and
   struck from the live spec, but the kind's shared far bake still has it past `lodNear`.
 - **Shared geometry.** Never mutate a spawned creature's body geometry (shared per kind in `KIND_GEO`): build a variant. `disposeCreature`
   skips shared geometry.
@@ -314,30 +328,35 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
 ## Dev tools in the game
 
 - **Keys.** `n` the world map (wheel zooms, drag pans, a click teleports, `o` the marks); `z` the bestiary (←→ step, space strike, s cruise);
-  `l` the lab, `p` place its spec; `e` the effects list; `b` the sound bench (needs `node serve.js`); `f` first person; `x` lay a clutch (opens
-  the editor at conception); `r` or right mouse grab, click bite; `Q` the body's ability; `M` mute; **F9** send a report.
+  `l` the lab, `p` place its spec; `e` the effects list; `b` the sound bench (1 one-shots, 2 noise and irs, 3 the beds, 4 a live capture; needs
+  `node serve.js`); `f` first person; `x` lay a clutch (any body but a drifter's, grown, on the floor; a soft ringmouth once, then it broods; a
+  hingeshell at a den; it opens the editor at conception, where `l` lays); `r` or right mouse grab, click bite; `Q` the body's ability; `M` mute; **F9** send a report.
 - **The readout**: backquote (or `'`, F3) — fps, frame ms, work/worst, gen, res, draws, tris, cells, pools, far, creatures, phys, render (the
   submit and any wait), **gpu** (the card's own time, where the browser times it), heap, the tier, the medium, the place, oxygen, tide, hour,
-  year, sun, moon, light, cloud, rain; the fog, audio and ecology lines. With it open the keys tune (`FOG_TUNE`, `AU_TUNE`, `CAM_TUNE`);
-  Backspace resets.
-- **The console**: `tp(x,z,y)` (y above the ground, or a negative absolute depth; clamped to the world); `skip(days)` (the clock on: `skip(28)`
-  the windy peak, `skip(120)` the still); `falls()`, `palls()`, `milky()` (each with the `tp()` or `skip()` to it); `report()` (F9);
+  year, sun, moon, light, cloud, rain; the fog, audio and ecology lines. With it open the keys tune — the fog (`FOG_TUNE`: 1-2 3-4 5-6 7-8 9-0 -= [] ,. ;/
+  o-n t-y u-i), the sound (`AU_TUNE`: g-h j-k v-b), the camera (`CAM_TUNE`: ←→ fov, pgdn-pgup the first person's, ↓↑ the arm); Backspace resets.
+- **The console**: `tp(x,z,y)` (y above the ground, or a negative absolute depth; clamped to the world); `skip(days)` (in play; the clock on by game
+  days, a fraction moving the hour; boot is phase 0.6 of `YEAR_D` 185, so `skip(28)` is the windy peak and `skip(120)` the still); `falls()`, `palls()` (pall ground nearest the start: `tp(2400,-699,-540)`), `milky()` (each with the `tp()` or `skip()` to it); `wmap.st`
+  (what the world map cost); `report()` (F9);
   `machine('home')` (this browser's name in its reports).
-- **The URL**: `#low` `#high`, `#zoo`, `#lab` or `#lab=<base64 spec>`, `#bench`, `#creator`.
+- **The URL**: `#low` `#high`, `#zoo`, `#lab` or `#lab=<base64 spec>`, `#bench` (it arms the first click: an audio context needs a gesture),
+  `#creator` (grants the menu's creator word).
 - **The menu**: new game, continue (slots in IndexedDB — clear the site's data to start clean; the tests use memory), options (the effects
-  list), the creator. Esc in play saves and returns. A death writes its cause to the slot.
+  list), the creator. Esc in play with the pointer free saves and returns (esc twice when locked). A death writes its cause to the slot.
 - **The effects list** (`e`): the cosmetic systems, each switched live; a slider under a switch is a row in `FX_SLIDERS` and a number in `FX_DEF`.
 - `map.html` (planned islands, the `PLAN` string for test/map.js) and `region.html` (the province from region.js, its knobs, a survey of 30
-  seeds) load `src/` as it is; open them through serve.js. Not part of the game.
+  seeds, the recipe to paste into `REGION_K`) load `src/` as it is; open them on serve.js or from the file. Not part of the game.
 - The heaviest place is the weed forest on the shelf at (330, 0).
 
 ## The person
 
 - Concise replies, dry wit, no praise, no constant agreement; disagree when it is reasonable. Be plain about what you can and cannot do: from
-  here you can build, test, serve, look and screenshot; you cannot hear the sound, and their GPU is measured only by their reports (F9).
+  here you can build, test, serve, look and screenshot; you cannot hear the sound, and their GPU is measured only by their reports (F9; the GPU's
+  time needs desktop Chrome's timer).
 - Likes questions and is open to ideas. When a design choice is theirs (a doc's Open list, anything about the planet or the roster, what to
   strike), ask, don't guess, and record the answer in the doc with the date. The old per-version ask lists are a record of what was never
   looked at, not questions pending (15 Sep 2026).
 - Plays on desktop: an RTX 4060, and several machines (home and two work towers, 20 Nov 2026). The phone is secondary and may lose things as
   long as desktop is "fantastically smooth".
-- Cadence: content prompts freely; every change to a hot path says what it cost, so a creep is seen in the version that made it.
+- Cadence: content prompts freely; a performance pass whenever frame time creeps; and since 14 Nov 2026 every change to a hot path says what
+  it cost, so a creep is seen in the version that made it.

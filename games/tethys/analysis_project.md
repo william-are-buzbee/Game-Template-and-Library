@@ -63,7 +63,7 @@ Every session loads CLAUDE.md before any work, and HANDOFF.md is read next: toge
 
 | file | before | after | what moved where |
 |---|---|---|---|
-| CLAUDE.md | 97.8 KB | 37.8 KB | the rules kept, their version histories out; the test table to `test/README.md`; the long docs and source tables to `README.md` |
+| CLAUDE.md | 97.8 KB | 40.5 KB | the rules kept, their version histories out; the test table to `test/README.md`; the long docs and source tables to `README.md` |
 | HANDOFF.md | 223.6 KB | 6.7 KB | the five latest versions and what is open; the old file whole in `archive/HANDOFF-to-v11.191.md`; the archipelago's working notes to the end of analysis_archipelago.md |
 | README.md | 10.1 KB, stale | 21.4 KB | the long map: every doc (the ones the old tables missed added) and every source file |
 | test/README.md | — | 31.1 KB | every test and bench, how `--test` runs, how to write a test |

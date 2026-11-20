@@ -4,7 +4,7 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
-**v11.192 (20 Nov 2026): the docs cut to rules and a map** (analysis_project.md §2; CHANGELOG). CLAUDE.md 97.8 KB → 37.8 KB, every rule kept and the
+**v11.192 (20 Nov 2026): the docs cut to rules and a map** (analysis_project.md §2; CHANGELOG). CLAUDE.md 97.8 KB → 40.5 KB, every rule kept and the
 version history taken out of them; the test table to `test/README.md` and the long docs and source tables to `README.md` (whole, the docs the old
 tables missed added); this file cut to the latest versions, the old one kept whole in `archive/`; the archipelago's working notes (v11.126–154)
 moved to the end of analysis_archipelago.md, where that work lives. Nothing in the game changed. **Ask:** nothing to look at; whether anything the
