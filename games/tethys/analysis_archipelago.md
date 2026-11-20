@@ -972,3 +972,60 @@ The province holds 4% of its islands' surroundings between −150 and −800 m (
 Kerguelen 25, Hawaii 20, Chagos 20, the Azores 17) and even the deep-floor chains 2–6 — its flanks fall from the shelf to the floor in one steep
 step, as the Society Islands' do from 4 km, but it is a plateau archipelago. The measure for the next steps (§11): raise that share toward
 10–30% — landslide debris aprons (D), saddles and benches (C), the plateau's own relief (G).
+
+## Working notes (moved from HANDOFF.md, 20 Nov 2026)
+
+The believability steps' working notes as HANDOFF carried them (v11.126–154; HANDOFF was cut to current state in v11.192 and its whole old text is
+`archive/HANDOFF-to-v11.191.md`). Each is as it was written on its date: read them before touching region.js or `islandH`, and trust the code
+and the CHANGELOG over them where they differ.
+
+**READ FIRST — the archipelago's believability work, where it stands (14 Nov 2026, v11.126–147).** The person's aim: a province "100%
+believable", that cannot be told from Earth's archipelagos, keeping its variety (the peaked islands, the eastern platform's "fast fields"); in
+their words, "making the maps believable is a worthy project that will inevitably make the underwater exploration better".
+- **The method** (keep it): measure Earth first in `test/earth.js`'s own grids (GMRT, cached in test/preview/earth/ by `node test/earth.js`;
+  www.gmrt.org is allowed in the repository's cloud environment), build the step, judge it by the same measure (`node test/measures.js`: the
+  margins, the passes, the floor's grain, the shallows by depth, the banks' tops, the slopes), look at the map (`W=1400 CX= CZ= SPAN= node
+  test/map.js`) and at Earth's scale (`FETCH=0 node test/earth.js` → test/preview/earth-tethys.png), then a blind sheet on an unseen seed
+  (`PSEED=<n> BLIND=<shuffle> FETCH=0 node test/earth.js` → test/preview/earth-blind.png; the key in earth-blind-key.txt — never read before the
+  person's guesses). Ours' square the same to the bit at every step: `mkdir b && cp -r src vendor b/` before, `BASE=b node test/bench.js` after — the
+  `ours` window's hash, and the cost of the step beside it (v11.148).
+- **The sheets:** 4 of 4, 3 of 3, 3 of 3, 2 sure of 3, then (sheet 5) 2 of 3 with an Earth tile chosen and the platform's tile passed. Seeds
+  used: 32, 41, 67, 73, 89 (analysis_archipelago §10.7 has them all). Each sheet's tell was measured and built away: the cakes (lobes,
+  composites), the missing in-between depths (the insular slope, the platform's margins, the saddles), the uniformity (the drowned flat's
+  relief, the banks' flats and basins); the floor's grain gave the deep water Earth's texture. Every measure now sits inside Earth's range.
+- **Never seen from the water** (no GPU in a session; the person's to check): the platform's east margin `tp(327000,40000)` (a slope from
+  −531 m up to the bank), the giant–m153 saddle `tp(-12080,-6680)` (a pass at −251 m, 14 km west-north-west of ours), a seamount
+  `tp(18216,2990)` (its top at −933 m, 256 m over the floor), the drowned flat `tp(240000,60000)` (a basin at −101 m rising east to −53).
+- **The cost** (v11.148 took it up; `node test/bench.js`, µs a sample, v11.137 → v11.147 → v11.148): the whole world 0.57 → 1.11 → 0.75, the
+  ±70.5 km world 0.89 → 1.49 → 0.89, ours ±2 km 1.88 → 2.37 → 1.20, the platform 0.82 → 1.73 → 1.15; the load 1.24 → 1.43 → 1.14 s. What is left is
+  the steps' own work (the grain, the margins, the saddles at every point), flat in the profile. Measure each new step with `BASE=`.
+- **Left, when believability is taken up again:** first, sheet 5's tell — the saddles "look like a blur tool used on paint": measured, 77% of
+  the in-between at moderate slopes (3–20%) where Earth's platforms are flats and scarps (Galápagos 40% under 3%, 14% over 20%; ours 15% and 7%;
+  analysis_archipelago §10.7 has the table): give the saddles' base benches, risers and an edge escarpment. Then a sixth sheet (another seed); the atolls' rims and their islets (the
+  person on sheet 4: the Maldives' "atolls seem a little different"); the near-ridge plume as the plateau's cause (§10.3, the person's call);
+  the landslides (built, dropped: claude/tethys-landslides, §11.3).
+
+**Working notes for the archipelago (13 Nov 2026, from v11.126–137; read before touching region.js or islandH).**
+- **The plan in progress:** analysis_archipelago §11 — the flanks, (A) rift ridges and (E) canyons first (v11.138), then landslides, saddles and
+  shelves, the floor's grain. The person's open questions: §10.3 (the near-ridge plume as the plateau's cause).
+- **Look and measure every change:** `W=1400 OUT=x.png node test/map.js` (or `SPAN`, `CX`, `CZ` for a window); `node test/earth.js` (the
+  province beside fourteen Earth windows, the numbers in test/preview/earth.txt; needs www.gmrt.org, allowed in this repository's cloud
+  environment "Game-Template-and-Library"); `PSEED=<n> BLIND=<seed> node test/earth.js` the blind sheet from an unseen seed, its key in
+  test/preview/earth-blind-key.txt — never shown before the person's guesses.
+- **Ours' square to the bit:** `BASE=<a copy of src/ and vendor/ from before> node test/bench.js` (v11.148): the windows' and every piece's hash beside
+  the old ones, and what the change cost.
+- **The traps that cost time:** a key added to some records and not to `recNew`'s list, or a `delete` on one (v11.148: every record one shape, or `sample()` is
+  a third slower near the islands and only the bench shows it); a `//` comment inserted mid-line swallows the rest of the line (use `/* */`); a feature that raises the ground at
+  some angles breaks sample()'s bounds unless `rgBound`'s `hi` and `R.reach` take it (§11.2); `R.sc` carries the farthest lobe (divide by
+  `R.lmax` for the oval's own); `rgAt`/`rgLoc` invert each other only through `rgLbFix`; a record's noise seed and rifts follow its id (v11.132),
+  so a list change reseeds nothing; the composites (`K.comp`) make the member list — `K.comp:null` gives v11.133's 159 cones for a comparison.
+- **Delivery:** one version per pull request, stacked on the open ones (the base main, the description says the stack); `npm run check` and
+  `npm run build` before every push (the full suite runs inside check, ~8–12 min); the person merges.
+
+**13 Nov 2026: the platform reviewed** (analysis_archipelago §8; nothing built). v11.122's platform is Saya de Malha's size (37,540 km² in
+the model, 27,540 in the world) but a disc — the head plateau's flat top — with no channels or basins, one margin all round, alive everywhere,
+and the world's box cutting its south and east. The person (13 Nov): a chain of banks; Earth's rims for the size; the box OK for now. On this
+slow plate volcanism alone makes one ridge-bank along the track (§8.4); the person chose its saddles drowned (13 Nov, (a)) — built v11.126.
+
+**12 Nov 2026, after v11.115 merged:** the constructors' place waits (DEEP §11: "later once we have the islands down a bit more"). Next, in
+another chat: a believability pass over the archipelago as it now stands — size, scope, shape.

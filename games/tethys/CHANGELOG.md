@@ -9973,3 +9973,32 @@ page's visibility says a frame is not one (`REC.skip`, set by `visibilitychange`
 2. Is the readout's new `gpu` there (backquote) — the GPU's own milliseconds — and does it move with the view? Chrome on the desktop should have it; if
    it is missing, the report's **gpu** line says "no timer in this browser".
 3. Once one report is in: is the machine line right (the card, the threads, the screen)?
+
+## v11.192 — the docs cut to rules and a map (20 Nov 2026)
+
+Step 2 of analysis_project.md (the person, 20 Nov 2026: "Cut those docs down"). Every Tethys session loads CLAUDE.md before any work and reads
+HANDOFF.md next: 97.8 KB and 223.6 KB, most of both history — version stamps inside the rules ("since v11.x … to v11.y it was …"), and HANDOFF a
+record of 220 versions back to v11.18 though it said "keep this file short". Nothing in the game changed.
+
+- **CLAUDE.md** 97.8 → 40.7 KB: every rule, gotcha, command, knob and decision of the person kept, their histories taken out (the CHANGELOG has
+  them). The sections other files cite keep their names ("Performance", "Things that bite", "Look at it", "Left alive on purpose"). New in it:
+  F9 and `machine()` where the person's GPU used to be "unmeasurable"; the old ask lists as a record, not pending (the person, 15 Sep 2026, from
+  the old HANDOFF); HANDOFF kept to five versions.
+- **test/README.md** (new): the test table, how `--test` runs and the stub's notes, moved whole from CLAUDE.md, and how to write a test.
+- **README.md**: rewritten as the long map — the docs table and the source table moved whole from CLAUDE.md, with the docs they missed
+  (WATER.md, analysis_review.md, analysis_flora_diversity.md, archive/). Its stale lines (the Node path, the lily pad, the old test list) went with it.
+- **HANDOFF.md** 223.6 → 6.7 KB: v11.192 and the five versions before it, and what is open (the plan, the reports, the person's open lists by
+  doc). The old file is `archive/HANDOFF-to-v11.191.md`, whole (every version in it has its CHANGELOG entry — checked, 219 of 219).
+- **analysis_archipelago.md**: the archipelago's working notes (v11.126–154, "read before touching region.js") moved to its end from HANDOFF.
+- **.claude/skills/perf**: "when the person says it lags" asks for a report (F9) in Tethys.
+
+**Seen:** the old CLAUDE.md read against the three new files by a reviewer that had not seen the rewrite, for anything actionable lost or
+changed. No rule was lost; about forty traps that had been cut with their histories were put back — thresholds and knobs (`DEFS.hp` ≤1/≥1e8,
+`FILL_TOP` −20, `FLORA_FAR` 450, `OCC.cv` 0.25, the combat knobs), `ecoId`'s −1 in an unsplit patch, the poison rule, the swarm never on
+`DEFS.prey`, which flora keeps a mesh per cell, the tape's `LAZY_G`, the oval's own-frame radii, why the GPU counts agree across machines, the
+readout's tune keys, `x`'s conditions, `#bench`'s first click, esc twice when locked. One old line was stale and is corrected: since v11.187
+the card species are pooled; the buttons, rafts and glow clouds keep a mesh per cell. **What it costs:** nothing at run time; a session's first read is ~60 KB lighter
+on CLAUDE.md and ~217 KB on HANDOFF.
+
+**Unseen, ask in this order:**
+1. Whether anything the person relies on in the docs is now harder to find.

@@ -32,8 +32,8 @@ the way eventually even if it means fucking up our lawn today", and answered eve
 | # | what | status |
 |---|---|---|
 | 1 | the flight recorder, sent as a public GitHub issue (F9) | built v11.191 |
-| 2 | the docs cut to rules and a map | next |
-| 3 | `tsc --checkJs` over src/, a baseline ratcheted down | |
+| 2 | the docs cut to rules and a map | built v11.192 |
+| 3 | `tsc --checkJs` over src/, a baseline ratcheted down | next |
 | 4 | the flora's detail by distance, from the recipes, measured by the recorder | |
 | 5 | the cells generated in workers | |
 | 6 | three.js to a current release | |
@@ -56,3 +56,17 @@ anything in a browser without the timer (the GPU line says so), the CPU's time i
 
 Read with `node test/report.js --search` (every report, a table by version, the newest in full) or `node test/report.js <file>`; its `AT=`
 lines stand test/gpu.js and test/fill.js at a report's worst moment.
+
+## 2. The docs (built v11.192)
+
+Every session loads CLAUDE.md before any work, and HANDOFF.md is read next: together 320 KB, most of it history. Now:
+
+| file | before | after | what moved where |
+|---|---|---|---|
+| CLAUDE.md | 97.8 KB | 40.7 KB | the rules kept, their version histories out; the test table to `test/README.md`; the long docs and source tables to `README.md` |
+| HANDOFF.md | 223.6 KB | 6.7 KB | the five latest versions and what is open; the old file whole in `archive/HANDOFF-to-v11.191.md`; the archipelago's working notes to the end of analysis_archipelago.md |
+| README.md | 10.1 KB, stale | 21.4 KB | the long map: every doc (the ones the old tables missed added) and every source file |
+| test/README.md | — | 31.1 KB | every test and bench, how `--test` runs, how to write a test |
+
+What stays long, on purpose: DESIGN.md (390 KB) and CHANGELOG.md (1.1 MB) are read a section at a time, never whole, and CLAUDE.md says so.
+The rule that keeps it this way is CLAUDE.md's own: HANDOFF is current state only, five versions; history goes to the CHANGELOG.
