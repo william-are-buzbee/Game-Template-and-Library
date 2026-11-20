@@ -8,8 +8,9 @@ const {here,playwright,serve}=require('./benchpage.js');
 let failed=false;const ok=(c,m)=>{console.log((c?'  ok   ':'  FAIL ')+m);if(!c)failed=true;};
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 const errsOf=a=>a.filter(e=>!/Pointer ?Lock|pointer lock/i.test(e)); // requestPointerLock wants a real click; nothing else may throw
-async function boot(page){ // frames until the boot is through, the store's answers let in between
-  for(let k=0;k<200;k++){const r=await page.evaluate(()=>{for(let i=0;i<20&&!window.__boot.done;i++)__step(1);return window.__boot.done;});if(r)break;await wait(20);}
+async function boot(page){ // the store's answer waited for with no frame stepped (as test/gpu.js), then frames until the boot is through
+  for(let k=0;k<500;k++){if(await page.evaluate(()=>window.__boot.stage!=='store'))break;await wait(20);}
+  await page.evaluate(()=>{for(let i=0;i<3000&&!window.__boot.done;i++)__step(1);});
   return page.evaluate(()=>{const B=window.__boot,b=document.getElementById('boot');return {done:B.done,stage:B.stage,off:b.classList.contains('off'),worldOf:menu.worldOf,t:t,cells:chunks.size,cam:[camera.position.x,camera.position.y,camera.position.z],mode:mode,line:document.getElementById('bootline').className};});}
 // one browser, the page left (about:blank) and opened again — never two of this game at once, which is more memory than a cloud session has; one server,
 // so the origin and with it the IndexedDB and the localStorage are the same. (Two persistent-profile sessions lost the IndexedDB between them: Chrome

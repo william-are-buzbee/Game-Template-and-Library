@@ -2176,7 +2176,7 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   line pulsing), then the black fades over 3 s with the title where it was and the column rises `MENU_RISE` 2.4 s later. Continue enters the slot whose
   world is shown, if its body is within 60 m of the camera: no fade, nothing reloaded (the same cells; test/boot.js); otherwise the latest slot through the
   fade, as `saves` (the list) does. Leaving the menu before the boot is through (a game, the bestiary, a test) finishes it at once. The world shadows'
-  depth programs are warmed only with that switch on (45 programs at the boot's end, ~72 before).
+  depth programs are warmed only with that switch on (46 programs at the boot's end, 72 before).
 - **The menu and the saves (v11.47, `menu.js`, `save.js`, shell.html `#mlist` `#msaves`):** the world under the title screen's camera —
   v11.47.2: a table of shots, `MENU_SHOTS` (`sea`: 6 m over the water at (700, −700) looking (−0.55, 0, 0.835), the horizon mid-frame and the
   island's one cone on it, the start; `caldera`: the v11.13.1 shot over the peak, kept, unused), overridden after any play by the camera of the

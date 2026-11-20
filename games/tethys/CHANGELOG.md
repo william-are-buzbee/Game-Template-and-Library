@@ -9824,3 +9824,58 @@ the copy's lighter green a problem (`TREE_LOD.d`; the copy's colour)? 2. The sky
 smeared (`Q.cloudRes` 0.5; 1 is the old)? 3. On a weak machine (a laptop's integrated GPU, if one is to hand): the readout's `res` and fps — does it settle,
 and does the picture's softness at 0.6–0.7 bother? On the person's card it should stay off the readout altogether. `hold the frame` on the effects list
 turns it off.
+
+## v11.189 — the start: a black page with the title, the world built behind it, and continue straight into it (20 Nov 2026)
+
+analysis_loading.md, the person's answers of 20 Nov 2026 (§5): "black screen, tethys + loading, then the scene loads without the tethys name moving"; "the
+slower the card, the longer you extend the black"; the last saved moment rebuilt on boot; "a game world that you can enter by hitting continue, just like
+that, right in the world you already see"; and the scene with no text when idle, "a video wallpaper … We just need to make it economical and smart now."
+
+**What it was** (analysis_loading §1, measured): the page frozen and blank while the scripts ran (~4 s on the cloud machine's software GPU, 1.5 s of it the
+menu's nine cells built at once), frozen again through the first frame (the shaders compiled, ~9–25 s there), the black lifting at a fixed time after, and
+the world round the camera then streaming in under a small budget while the player watched it arrive.
+
+**What it is:**
+- **The loading page** (shell.html `#boot`, `#bootline`; build.js and build.py: the game runs as `tethysMain` after the first paint). Black, the title in its
+  menu place, a thin line under it — sliding while the scripts hold the page (a compositor animation: it moves while nothing else can), then filling.
+- **The boot as stages** (main.js `BOOT`, `bootTick`, `bootSlot`, `bootIn`, `bootFinish`), nothing drawn until the world is there: `store` — the slots read,
+  and the slot the camera note names opened under it (save.js `slotWorld`: its clock, its ledger, its falls; the cells wait for it so what spawns is that
+  world's); `load` — the shaders warmed a program or two a frame (`warmPrep`, `warmStep`, `BOOT.warmMs` 20) while the cells and far regions stream with
+  `BOOT.budget` 24 ms a frame, the line showing both; `settle` — the world drawn behind the black until a frame comes in under 50 ms or 3 s pass (the first
+  draw builds the pipelines; the line pulses); then the black fades over 3 s, the title stays, the column rises `MENU_RISE` 2.4 s later. A slow machine is
+  longer in every stage — longer in the black by its own work. Leaving the menu before the boot is through ends it at once.
+- **The warm-up does less, in pieces:** a program a step with only the scene's lights beside it (three's compile walks every material in the scene), then the
+  scene's own objects one a step, the clouds' pass, the horizon pass's scene (built here, as the first frame in air would); the world shadows' depth programs
+  only with that switch on (`FX.statics`, off by default). Nothing compiles at first sight at any of the seven places; the boot's programs 46 (72 before).
+  Two misses fixed by it: the horizon's and the clouds' programs were the first frame's.
+- **Continue** (menu.js `menuContinue`, `contRec`, `CONT_NEAR` 60; save.js `slotPlayer`): the slot whose world the menu shows, its player put into it where it
+  was — no fade, nothing cleared or reloaded — if its body is within 60 m of the camera; otherwise the latest slot through the fade. **`saves`** (new) is the
+  list; a slot from it goes the same way. Back to the menu from play (esc), the world under the menu is still that slot's, and continue goes straight back.
+- The camera note (`tethys.cam`, written at every autosave, quit, death and page close) names its slot; nothing else about the snapshot changed. The menu's
+  idle fade no longer runs behind the loading page.
+- `#fade` (the deaths' and the games' changes) starts clear; to v11.188 it was the boot's black, over the title.
+
+**What it costs**, the start on the cloud machine's software WebGL at 1280×720 (its absolute times, not a PC's):
+
+| | v11.188 | v11.189 |
+|---|---|---|
+| the page shows | black at ~50 ms, no title | black, the title and the moving line at ~50 ms |
+| the longest freeze | 25 s (the first frame: the shaders, the cloud atlas, the pipelines) | 9.5 s (the first frame drawn, behind the black, the line pulsing) |
+| the scripts' freeze | 4.0 s (the menu's nine cells built in it) | 2.5 s (the line sliding through it) |
+| the scene visible | ~38 s, the world round it still streaming in | ~30 s, the world complete |
+| programs at the boot's end | 72 | 46 (72 before) |
+
+What a frame asks of the GPU in play: the same at every place within the bench's new start (test/gpu.js, `test/gpu.json` updated). The bench changed with the
+game: it now runs the boot through before each place, as the game does — the store's answer waited for with no frame stepped, then the stages, so every
+run has the same clock — and its `boot` counts are all of it (46 programs linked, the menu's world streamed and its settling frames drawn: 1,137 draws, where
+v11.188's were its three menu frames). The shore place's body is held at 0.6 m (`hold`): left to float it rests 2–3 m down by the world's state, and the
+camera with it at the waterline, above or under by a wave — the bench's new start moved it under.
+
+**Tests:** `npm run check`, `npm run build`; **test/boot.js** (new, in `npm run smoke` with test/gpu.js --check): a first visit's boot to the fade with 25
+cells streamed and no slot's world; a game saved; the page again — the slot's world under the menu, its clock, the camera at the saved moment; continue in
+play at once, no fade, as that slot, 0.000 m from where it was, the menu's cells kept, no page errors.
+
+**Unseen, ask in this order:** 1. A cold start of the preview (a new version: every shader compiles): how long the black is on the person's card, whether the
+line feels alive through it, and whether the fade-in reads as the scene arriving. 2. A second start of the same preview (Chrome keeps the compiled shaders):
+how much shorter. 3. Continue: straight into the world on screen — does the body appearing in front of the camera read right, or should it fade in? 4. Esc to
+the menu and continue again. 5. Leave the menu still: the words go after 12 s and the scene plays alone.
