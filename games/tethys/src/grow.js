@@ -10,13 +10,16 @@ function hashStr(s){return WB.hashString(s);} // FNV-1a, @wb/core's since 6 Nov 
 // stopping — greens (green, sunscreen-bright in bright water, olive by −40 and no further), floaters (olive to gold-brown, never
 // green), reds (pale pink where they lay lime in bright water, red-purple below, dark at the light's floor). Photosynthetic
 // entries (`photo`) take their tint from the ground depth at placement through their `line`; where two lines meet the world reads it.
+// A key here is a line's table, and one more: `greenAir`, the greens that stand in air (v11.190; only the tidewood so far — the reed is in air at low tide too).
 const PIG={
   green:[[0,[0.36,0.60,0.20]],[15,[0.36,0.60,0.20]],[40,[0.48,0.50,0.18]],[150,[0.46,0.48,0.18]]],
   float:[[0,[0.50,0.50,0.20]],[15,[0.50,0.50,0.20]],[45,[0.56,0.46,0.17]],[80,[0.56,0.38,0.14]],[150,[0.50,0.34,0.14]]],
-  red:[[0,[0.80,0.58,0.62]],[18,[0.80,0.58,0.62]],[50,[0.50,0.18,0.30]],[120,[0.40,0.13,0.24]],[150,[0.34,0.11,0.20]]]};
+  red:[[0,[0.80,0.58,0.62]],[18,[0.80,0.58,0.62]],[50,[0.50,0.18,0.30]],[120,[0.40,0.13,0.24]],[150,[0.34,0.11,0.20]]],
+  greenAir:[[0,[0.35,0.47,0.21]],[150,[0.35,0.47,0.21]]]}; // the greens standing in air (v11.190, the tidewood): no water over them, so not the water's table and none of its sunscreen boost (PIG_BOOST) — one colour, between the greens' shallow one and the wood's leaf (world.js WOOD_C.leaf, test/leaf.js). The person, 20 Nov 2026: the tidewood at the greens' 0–15 m ×1.22, [0.44, 0.73, 0.24], "too neon or bright" beside the wood; of six tried in the game, this midpoint of the two they liked
+const PIG_BOOST={green:0.22,float:0.22,red:0.1,greenAir:0}; // the sunscreen brightening in bright water (over the top 8 m, gone by 25), by line
 function pigment(h,line){const d=clamp(-h,0,150),T=PIG[line]||PIG.green;let c=T[T.length-1][1];
   for(let i=1;i<T.length;i++)if(d<=T[i][0]){const a=T[i-1],b=T[i],t=(d-a[0])/(b[0]-a[0]||1);c=[lerp(a[1][0],b[1][0],t),lerp(a[1][1],b[1][1],t),lerp(a[1][2],b[1][2],t)];break;}
-  const v=1+(line==='red'?0.1:0.22)*smooth(25,8,d);return [c[0]*v,c[1]*v,c[2]*v];}
+  const v=1+(line in PIG_BOOST?PIG_BOOST[line]:0.22)*smooth(25,8,d);return [c[0]*v,c[1]*v,c[2]*v];}
 // ---------- the ecotype by exposure (v11.67, SEAFLOOR §2) ----------
 // The variant index was a free per-instance channel: species() packs three, the cell drew one at random and nothing drove it. An `eco`
 // species draws it from the wave exposure at the instance instead — k 0 sheltered, 1 the middle, 2 exposed — and its builder reads k as the

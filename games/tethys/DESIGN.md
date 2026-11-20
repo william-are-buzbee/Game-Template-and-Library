@@ -464,7 +464,9 @@ nothing to hold), a whorl of six to eight tapering rods with a kink at every nod
 tip (`whorl`); 510 tris a variant. The **reed** (`reedB`) is its dwarf on the sheltered tide band (`expo` ≤ 0.4, `h` −5.5..1.6, 900 a cell,
 `air`, `MATGL`): jointed leafless uprights in clumps, under water at high tide. The scrub (`scrubB`, jointed dry whorls) and the tussock
 (`tussockB`, small jointed shoots) are the greens on rain above the tide, species with three variants since v11.15, `MATGL`, all tinted
-by `pigment(h,'green')` at land light. `env {h:[−3.5,2.8], expo:[0,0.75]}`, `per` 700, `field` 0.02, `maxSlope` 0.5: the leeward
+by `pigment(h,'green')` — but the tidewood, since v11.190 on pigment's `greenAir` (grow.js `PIG`, `PIG_BOOST`): one colour, [0.35, 0.47, 0.21],
+with no sunscreen boost, between the greens' shallow green and the wood's leaf (`WOOD_C.leaf`); to v11.189 the greens' 0–15 m ×1.22, [0.44, 0.73, 0.24], which the person
+found neon beside the wood (20 Nov 2026; six colours tried in the game, this the midpoint of the two they liked). `env {h:[−3.5,2.8], expo:[0,0.75]}`, `per` 700, `field` 0.02, `maxSlope` 0.5: the leeward
 rim and the island's tidal flat (~530 before the field noise; none on the surf side). The trunk and props are capsules
 (`col`), the crown is soft. Its material `MATTR` is a slow wind sway from the crown, never capped to the water (`air:true` in
 `placeFloraType` lets it stand into the air) and never leaning to the current (`MATTR.land`: `makeInstanced` gives it no `aCur`).

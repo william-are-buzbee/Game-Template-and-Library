@@ -9879,3 +9879,41 @@ play at once, no fade, as that slot, 0.000 m from where it was, the menu's cells
 line feels alive through it, and whether the fade-in reads as the scene arriving. 2. A second start of the same preview (Chrome keeps the compiled shaders):
 how much shorter. 3. Continue: straight into the world on screen — does the body appearing in front of the camera read right, or should it fade in? 4. Esc to
 the menu and continue again. 5. Leave the menu still: the words go after 12 s and the scene plays alone.
+
+## v11.190 — the tidewood's colour: out of the water's green (20 Nov 2026)
+
+The person: the beach trees "look out of place, maybe too neon or bright". The tidewood (`tidetree`) stands in air on the tide band but was tinted as a weed
+under the water: `pigment(h, 'green')` at the greens' 0–15 m colour with the shallow water's sunscreen boost (×1.22 over the top 8 m), [0.44, 0.73, 0.24] —
+the brightest green on the land, beside the wood's leaf (`WOOD_C.leaf`, [0.325, 0.398, 0.207], v11.180's colour from the star through test/leaf.js), which
+it had never been moved to. Six colours were shot in the game at the shore (110, 0.6, −380) and close on the strand (175, 1.2, −372), against the old: A the
+boost off and a little less saturated [0.37, 0.54, 0.21], B the wood's leaf, C a deep green, D a salt-spray grey-green, E an olive-gold, F the wood's dry
+canopy. The person liked A and B; this is their midpoint (B to F read as dead sticks against the sky: the crown is thin rods, mostly in shade).
+
+- **grow.js `PIG.greenAir`** (new): the greens standing in air — one colour, [0.35, 0.47, 0.21], at every height. **`PIG_BOOST`** (new): the sunscreen
+  brightening by line (green and float 0.22, red 0.1, as before; greenAir 0: no water over it). Every other line's colour the same to the digit.
+- **flora.js `tidetree`**: `line: 'greenAir'` (was `'green'`). The far copy past 120 m (far.js `FAR_IMP`, `pig`) reads the same line, so it follows.
+- Not moved: the reed (in air at low tide), the scrub and the tussock keep `pigment(h, 'green')`; one word each if the person wants them to follow.
+
+**Seen:** the real build at both places (headless Chromium, software WebGL): the trees a living mid-green, no longer lime; the far copies on the island to the
+west the same; the reeds on the sand still the old green.
+
+**What it costs:** nothing measurable (`node test/perf.js`, then `--only creatures,fill` again with `N=5`). What a frame asks of the GPU: the same at
+all seven places, every count (test/gpu.js; `test/gpu.json` unchanged) — the tint is the instance's colour, set at placement as before. Every body the same to
+the bit. The code's difference at a cell is one lookup per photosynthetic instance (`line in PIG_BOOST` for `line==='red'`); in a frame, none. The times
+wandered between the two runs with no pattern:
+
+| measure | run 1 | run 2 (N=5) |
+|---|---|---|
+| every kind's build (first) | ×1.55 | ×1.05 |
+| a cell at forest / atoll / platform / sea / giant | ×1.20 / ×1.10 / ×1.10 / ×1.01 / ×1.01 | ×0.89 / ×1.13 / ×1.06 / ×1.05 / ×0.98 |
+| creatures' work a frame at the forest | ×0.97 | ×0.96 |
+| software GPU / renderFrame at the forest | ×0.98 / ×1.54 | ×1.12 / ×0.95 |
+| software GPU at the shore / canopy | ×1.05 / ×1.05 | — |
+
+The pictures differ only where the tidewood is seen: 7.8% of the shore's pixels, 0.1% of the canopy's, 0.05% of the forest's (through the surface's window).
+test/bench_creatures.js reports its simulation differing between two runs of main itself ("something unseeded"), so its "NOT the same" says nothing here.
+
+**Tests:** `node build.js --test` all ok (853 s, 4 at a time); the repository's typecheck, tools' tests, catalog and build.
+
+**Unseen, ask in this order:** 1. The shore on the preview at noon and at dusk, on the person's screen (the shots were one hour, software-rendered). 2. Whether
+the reed, scrub and tussock should follow onto `greenAir`. 3. Whether the trunk should part from the whorls (it is the tint × a paler yellow, `JOINT`).
