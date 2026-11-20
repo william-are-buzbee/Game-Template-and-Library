@@ -29,7 +29,9 @@ request says what it cost before the person plays it.
 
 ## When the person says it feels laggier
 
-Ask where (a `tp()` or the place) and for the readout there: fps, frame ms, physics ms, render ms, draws, creatures. Render ms
+In Tethys, ask for a report: F9 after playing opens a GitHub issue with the session, and `node test/report.js --search` reads it (the
+machine, the frames by phase, the GPU's own time by pass, the worst places with their `tp()` and an `AT=` line for the benches). Elsewhere,
+ask where (a `tp()` or the place) and for the readout there: fps, frame ms, physics ms, render ms, draws, creatures. GPU or render ms
 running away from the rest is the GPU, which no CPU pass helps. Otherwise measure that place, then `BASE=` older versions (Tethys: `node test/perf.js --all --ref <commit>`)
 (`git archive <commit>`) to find the version that moved it.
 
