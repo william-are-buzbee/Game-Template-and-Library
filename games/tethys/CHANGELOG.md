@@ -9770,3 +9770,57 @@ browser (none here) the old path draws, untested on a real one.
    cloud should read the same and cost a quarter to a sixteenth; the stars and the sun's disc stay full size.
 3. **A low tier for a weak machine.** `Q.pr` is 1.0 on low and 1.5 on high (a 1.5× screen draws 2.25× the pixels); a weak GPU is fill-bound, and the
    cheapest lever there is fewer pixels: a resolution scale under 1 (0.6–0.75), or one that moves to hold the frame (dynamic resolution).
+
+## v11.188 — the low end: the tidewood's far copy past 120 m, the clouds at a fraction of the screen, the resolution that holds the frame (20 Nov 2026)
+
+The person, 20 Nov 2026, on v11.187's three calls: "1, we can swap for now. 2, that's not a bad idea, you have my consent. 3. I'm not knowledgeable about
+dynamic resolution, but I'm open to whatever you think would help run on lower end GPUs."
+
+**What changed:**
+- **The tidewood's far copy past 120 m** (scene.js `TREE_LOD`, `lodMaterial`, `MATTRF`; chunks.js `poolLod`; far.js FAR_IMP's `lod`). The real tree (~690
+  triangles, up to 700 a cell) is cut at `TREE_LOD.d` 120 m (a 1 m fade), and past it its far copy draws — far.js `farTreeGeo`, the cards' own 37
+  triangles, the real one's middle size — scaled to the instance's variant's height (`hs`: 6, 9, 12 m). The copy is a mirror of the tidewood's pool: its own
+  geometry over the pool's instance buffers (matrices, tints, variants, sight flags shared, not copied), so whatever the pool writes, moves, packs or hides it
+  follows; one draw more. Its light and sway are MATFAR's. To its cell's FLORA_FAR edge, as before; the cards past that.
+- **The clouds at a fraction of the screen** (atmosphere.js `CLDP`, `cloudPass`; scene.js `Q.cloudRes`; horizon.js `renderFrame`). The cloud volume's march
+  (up to `Q.march` 80 steps a sky pixel) runs in a pass of its own into a target `Q.cloudRes` of the drawing buffer on a side — 0.5 on the high tier (a quarter
+  of the pixels), 0.35 on the low — premultiplied by its alpha so the bilinear upsampling keeps the edges' colour, and the dome reads it at its pixel. The
+  sun's disc, the moon, the stars, the bow and the haze stay the dome's own at full size. The pass's ray is the camera's through the pixel, exact (the dome's
+  vDir is its facets' chords). Half floats where the target can be one, else bytes at half scale. `Q.cloudRes` 1 marches in the dome as before.
+- **The resolution that holds the frame** (scene.js `RES`, `RES_S`, `resStep`; main.js the loop's last line; effects.js `hold the frame`, `FX.autoRes`, on).
+  When frames run slower than 60 fps by a fifth while the CPU's work is under 60% of the frame — the wait is the GPU's — for a second, the drawing buffer's
+  scale steps down 0.1 (to 0.5). A step that does not make the frame faster within 1.5 s is undone and none is tried for a minute (doubling to ten): a browser
+  capped at 30 fps on a battery, a frame the CPU was slow on, a vsync the step could not cross. Four seconds clean step it back up; an up step that drops again
+  doubles that wait (to 64 s). A card that makes 60 fps never moves it. The readout says `res 0.8` when it is under 1. test/res.js drives it with simulated
+  machines (new, in --test).
+
+**Seen** (headless Chromium, 1600×900): at the shore the trees past 120 m are the copy — the same goblets of rods, simpler, a shade lighter green than the
+real ones (the copy's white rods under the tint, MATFAR's light through them); the coast's sky against v11.187's the same clouds, a touch softer at their
+edges; the canopy at a forced scale of 0.6 (960×540 stretched) drawn whole, the refraction and the clouds following the buffer, the page's text sharp.
+
+**What it costs** — The GPU's time as a proxy (`test/fill.js` against v11.187, SwiftShader at 1600×900, one frame each, each draw timed alone):
+
+| place | the frame | the sky: the dome + its cloud pass | the tidewood (+ its copy) | the picture |
+|---|---|---|---|---|
+| the shore, from the surface | 3,158 → 2,812 ×0.89 | 457 → 62 + 105 ×0.37 | 333 → 198 + 52 ×0.75 | 13.9% of pixels differ: the far trees the copy, the clouds softer |
+| the giant's coast, from the surface | 2,209 → 1,906 ×0.86 | 429 → 64 + 103 ×0.39 | — | 12.7%, by at most 24/255: the clouds |
+| the canopy, 3 m down | 2,423 → 2,215 ×0.91 | 204 → 43 + 96 ×0.68 | 141 → 57 + the copy | 0.04% |
+
+The other rows the same within one frame's noise (±15–25% a row here: the creatures, which nothing touched, read ×1.25 at the shore). The CPU's side of
+drawing (renderFrame on the wall clock, one run): the shore 11.8 → 10.8 ms, the canopy 11.4 → 9.8, the coast 11.2 → 13.2 — single runs; the pass is one
+render of a one-triangle scene. The resolution that holds the frame does not move in a bench (its frames are exactly 16.7 ms), so it costs nothing there
+and its saving cannot be shown there: it is the pixels it takes away on a machine that drops frames — at 0.7, half of them.
+
+What a frame asks of the GPU (test/gpu.js, `test/gpu.json` updated): **passes ×2 at every place (2 → 4)** — the cloud pass's target switched to and
+back, the price of marching the clouds at a quarter of the pixels; draws +1 to +2 (the pass, the copy where the tidewood is), program changes +2, uniforms
++3–6% (the pass's), the triangles the same within 0.4% (the real tidewood's cut is in its shader: its triangles are still submitted, and leave at once);
+the boot 69 → 72 programs; compiled at first sight: none at any place.
+
+**Tests:** `npm run check` (types, the tools' tests, the full Tethys suite with test/res.js) and `npm run build`; `node test/gpu.js --update` (below);
+test/pool.js: the far copy's mirror on its pool's own buffers.
+
+**Unseen, ask in this order:** 1. At the shore from the water, `tp(110,-380)`: the swap at 120 m — does a tree visibly change as you swim toward it, and is
+the copy's lighter green a problem (`TREE_LOD.d`; the copy's colour)? 2. The sky from the coast and the giant's flank: the clouds as they were, or soft and
+smeared (`Q.cloudRes` 0.5; 1 is the old)? 3. On a weak machine (a laptop's integrated GPU, if one is to hand): the readout's `res` and fps — does it settle,
+and does the picture's softness at 0.6–0.7 bother? On the person's card it should stay off the readout altogether. `hold the frame` on the effects list
+turns it off.
