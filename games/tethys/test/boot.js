@@ -8,6 +8,9 @@ const {here,playwright,serve}=require('./benchpage.js');
 let failed=false;const ok=(c,m)=>{console.log((c?'  ok   ':'  FAIL ')+m);if(!c)failed=true;};
 const wait=ms=>new Promise(r=>setTimeout(r,ms));
 const errsOf=a=>a.filter(e=>!/Pointer ?Lock|pointer lock/i.test(e)); // requestPointerLock wants a real click; nothing else may throw
+// the software GPU's backlog waited out with a one-pixel read (gl.finish does not wait in Chromium): frames undrawn still render the creatures' shadow map
+// (scene.js updateShadow, outside renderFrame), and on CI's slower runner leaving the page waited behind that queue past the navigation's timeout
+const drain=page=>page.evaluate(()=>{const gl=renderer.getContext(),px=new Uint8Array(4);gl.readPixels(0,0,1,1,gl.RGBA,gl.UNSIGNED_BYTE,px);});
 async function boot(page){ // the store's answer waited for with no frame stepped (as test/gpu.js), then frames until the boot is through
   for(let k=0;k<500;k++){if(await page.evaluate(()=>window.__boot.stage!=='store'))break;await wait(20);}
   await page.evaluate(()=>{for(let i=0;i<3000&&!window.__boot.done;i++)__step(1);});
@@ -17,7 +20,7 @@ async function boot(page){ // the store's answer waited for with no frame steppe
 // commits it lazily, and a closed headless browser does not wait.)
 (async()=>{const pw=playwright(),server=await serve(here),url='http://127.0.0.1:'+server.address().port+'/bench.html';
   const browser=await pw.chromium.launch({args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']}),ctx=await browser.newContext({viewport:{width:800,height:450}}),page0=await ctx.newPage();
-  const session=async fn=>{const errs=[],on=e=>errs.push(String(e));page0.on('pageerror',on);try{await page0.goto(url,{waitUntil:'load',timeout:300000});return await fn(page0,errs);}finally{page0.off('pageerror',on);await page0.goto('about:blank');}};
+  const session=async fn=>{const errs=[],on=e=>errs.push(String(e));page0.on('pageerror',on);try{await page0.goto(url,{waitUntil:'load',timeout:300000});return await fn(page0,errs);}finally{page0.off('pageerror',on);await drain(page0).catch(()=>{});await page0.goto('about:blank',{timeout:300000});}};
   try{
     let s=null;
     await session(async(page,errs)=>{
