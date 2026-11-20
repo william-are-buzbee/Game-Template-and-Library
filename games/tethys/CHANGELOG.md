@@ -9942,6 +9942,9 @@ readout read out at a `tp()` the person had to be sent to; the person's GPU had 
   session as JSON, `deflate-raw`, base64url. `REC_K.url` 7,400: past it the session is cut a level at a time (`recShrink`) and the whole put on the
   clipboard to paste below. Under a minute of play F9 sends the last stored session (`localStorage['tethys.rec']`, written each minute and at
   `pagehide` once a session has a minute) and says so.
+- **The machine's name** (`REC.mid`; the person plays on "two work towers and my home computer"): four random characters made once per browser
+  (`crypto`, not `Math.random`, which the benches seed) and kept in `localStorage['tethys.mid']`, in every report's title and machine line, so two towers
+  with the same card still tell apart; `machine('home')` from the console names it. test/report.js's table is by machine, then newest first.
 - **build.js, build.py**: the CHANGELOG's last heading stamped into both pages (`window.TETHYS_BUILD`), so a report says its version; outputs byte-identical.
 - **test/report.js** (new): reads the reports back — `--search` every issue titled "tethys report" (`gh api` search), a table by version, the newest in
   full; or a file. The worst places with their `tp()` and an `AT=x,y,z,yaw` line: **test/benchpage.js** `PLACES.at` stands **test/gpu.js** and

@@ -2570,7 +2570,8 @@ The repository is public, so the report is (the person's choice, 20 Nov 2026).
 - **What it holds.** The machine at the first frame: the GPU's unmasked name (`WEBGL_debug_renderer_info`), WebGL's version, the threads, the memory
   (Chrome caps it at 8), the screen and pixel ratio, the drawing buffer, the tier, the effects, the user agent and, where Chrome gives it, the OS's
   version. The boot: seconds from the navigation to the scripts, the first frame, the store's answer, the world streamed, the fade; whether this
-  browser has a stored session of this version (a warm shader cache). Every play frame (not the menu's, kept apart; not a hidden tab's gap): the
+  browser has a stored session of this version (a warm shader cache). The machine's name: four random characters made once per browser and kept
+  (`localStorage['tethys.mid']`), or what `machine('home')` set — the person plays on several (20 Nov 2026), and test/report.js's table is by it. Every play frame (not the menu's, kept apart; not a hidden tab's gap): the
   interval, the CPU's work and its phases as main.js marks them — `gen` the streaming, `play` the menus and the player, `sim` the creatures and contact
   (the old `phys`), `fx` the wounds to the surface, `scene` culling, lights, the shadow maps' setup and the sound, `hud`, `render` renderer's submit —
   the draws, the triangles, the creatures and cells in sight, the resolution's scale, the medium. Histograms of 176 bins (0.5 ms to 50, 5 ms to 250, 50 ms to

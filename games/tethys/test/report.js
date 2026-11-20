@@ -3,7 +3,7 @@
 // session written in: a few lines for a person and a `tethys-rec:1:…` line for this (the session as JSON, deflated, base64url). This decodes it and
 // prints what a performance question needs: the machine, the boot, the frames (the CPU's phases, the GPU's passes), the worst places with the tp() to go
 // there and the bench line that stands at the worst moment (AT=x,y,z,yaw for test/gpu.js and test/fill.js), the worst frames and what each was doing,
-// the errors, the worst stretches of the timeline. With several reports, a table of them by version: the creep, on the person's own machine.
+// the errors, the worst stretches of the timeline. With several reports, a table of them by machine and version: the creep, on each of the person's machines.
 //
 //   node test/report.js <file>...    files holding an issue's body, or only its tethys-rec line (a pasted log too: the longest line found wins)
 //   node test/report.js --search     every issue titled "tethys report" in the repository (gh api, its search: no token needed for a public repo),
@@ -29,7 +29,7 @@ function where(u){const m=/\/preview\/(\d+)\//.exec(u||'');return m?'preview #'+
 
 function show(p,label){const a=p.all,d=p.dev||{},b=p.boot||{},L=[];
   L.push('='.repeat(100));L.push((label?label+' — ':'')+'tethys '+p.v+', '+where(p.url)+', '+p.at+': '+(p.play/60).toFixed(1)+' min played of '+(p.wall/60).toFixed(1)+' min drawn');
-  L.push('\nmachine  '+d.gpu+'\n         vendor '+d.vendor+' · WebGL'+d.gl+' · max texture '+d.maxTex+' · GPU timer '+(d.timer?'yes':'no')+' · parallel compile '+(d.par?'yes':'no'));
+  L.push('\nmachine  '+(d.mid?d.mid+': ':'')+d.gpu+'\n         vendor '+d.vendor+' · WebGL'+d.gl+' · max texture '+d.maxTex+' · GPU timer '+(d.timer?'yes':'no')+' · parallel compile '+(d.par?'yes':'no'));
   L.push('         '+d.cores+' threads · '+(d.mem?d.mem+' GB (as the browser rounds and caps it)':'memory not said')+(d.plat?' · '+d.plat.trim():'')+(d.br?' · '+d.br:''));
   L.push('         screen '+(d.screen||[]).join('×')+' ×'+d.dpr+' · window '+(d.win||[]).join('×')+' · drawn '+(d.buf||[]).join('×')+' · tier '+d.tier+' (pr '+d.pr+', aa '+d.aa+')'+(d.touch?' · touch':'')+(a.vsync?' · frames settle at '+a.vsync.toFixed(1)+' ms (~'+Math.round(1000/a.vsync)+' Hz)':''));
   if(d.ua)L.push('         '+d.ua);
@@ -57,8 +57,10 @@ function show(p,label){const a=p.all,d=p.dev||{},b=p.boot||{},L=[];
     L.push('\ntimeline: '+T.rows.length+' rows of '+T.every+' s; the worst stretches');L.push(table(['t s','where','frames','iv','ivMax','work','gen','sim','render','gpu','draws','tris k','cr','res','heap MB'],rows.map(r=>[t('t')(r),tp(t('x')(r),t('z')(r),t('y')(r)),t('frames')(r),f1(t('iv')(r)),f1(t('ivMax')(r)),f2(t('work')(r)),f2(t('gen')(r)),f2(t('sim')(r)),f2(t('render')(r)),f2(t('gpu')(r)),t('draws')(r),t('tris')(r),t('creatures')(r),t('res')(r),t('heap')(r)])));}
   return L.join('\n');}
 
-function versions(list){return table(['issue','filed','version','where','gpu','min','p50','p95','p99','gpu p50','gpu p95','draws','tris k','worst place'],list.map(({n,at,p})=>{const a=p.all,pc=p.pc,S=pc.indexOf('s'),P=pc.indexOf('p95');
-  const w=p.places.filter(r=>r[S]>=5).sort((x,y)=>y[P]-x[P])[0];return ['#'+n,(at||p.at).slice(0,10),p.v,where(p.url),gpuName(p.dev&&p.dev.gpu),(p.play/60).toFixed(0),f1(a.iv[0]),f1(a.iv[2]),f1(a.iv[3]),a.gpu?f1(a.gpu.p50):'–',a.gpu?f1(a.gpu.p95):'–',a.draws[0],a.tris[0],w?tp(w[pc.indexOf('x')],w[pc.indexOf('z')],w[pc.indexOf('y')])+' '+f1(w[P]):'–'];}));}
+// the reports by machine (rec.js's per-browser name, `d.mid`), then newest first: a version's frames compared on one machine, never across two
+function versions(list){list=list.slice().sort((a,b)=>String(a.p.dev&&a.p.dev.mid||'').localeCompare(String(b.p.dev&&b.p.dev.mid||''))||String(b.at||b.p.at).localeCompare(String(a.at||a.p.at)));
+  return table(['issue','filed','machine','version','where','gpu','min','p50','p95','p99','gpu p50','gpu p95','draws','tris k','worst place'],list.map(({n,at,p})=>{const a=p.all,pc=p.pc,S=pc.indexOf('s'),P=pc.indexOf('p95');
+  const w=p.places.filter(r=>r[S]>=5).sort((x,y)=>y[P]-x[P])[0];return ['#'+n,(at||p.at).slice(0,10),p.dev&&p.dev.mid||'?',p.v,where(p.url),gpuName(p.dev&&p.dev.gpu),(p.play/60).toFixed(0),f1(a.iv[0]),f1(a.iv[2]),f1(a.iv[3]),a.gpu?f1(a.gpu.p50):'–',a.gpu?f1(a.gpu.p95):'–',a.draws[0],a.tris[0],w?tp(w[pc.indexOf('x')],w[pc.indexOf('z')],w[pc.indexOf('y')])+' '+f1(w[P]):'–'];}));}
 
 function main(){const args=process.argv.slice(2),json=args.includes('--json'),files=args.filter(a=>!a.startsWith('--')&&!/^\d+$/.test(a));
   if(args.includes('--search')){const ni=args.indexOf('--n'),pick=ni>=0?+args[ni+1]:0,list=[];

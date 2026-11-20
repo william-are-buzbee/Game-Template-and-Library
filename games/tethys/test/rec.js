@@ -23,7 +23,7 @@ function page(opt){opt=opt||{};let now=1000,frame=0,disjoint=false;const handler
     endQuery(){const q=this.open;if(!q)throw new Error('no query open');q.end=frame;this.open=null;},
     getQueryParameter(q,k){if(k===this.QUERY_RESULT_AVAILABLE)return q.end>=0&&frame>=q.end+2;return q.ns;}};
   const g={console:{log(){},warn(...a){warned.push(a.join(' '));},error(...a){warned.push(a.join(' '));}},Math,JSON,Date,Map,Set,Array,Object,String,Number,Error,Promise,
-    Uint8Array,Uint32Array,Int8Array,Int32Array,Float64Array,Blob,Response,CompressionStream,TextEncoder,btoa,unescape,encodeURIComponent,setTimeout:f=>f(),
+    Uint8Array,Uint32Array,Int8Array,Int32Array,Float64Array,Blob,crypto:opt.crypto===false?undefined:globalThis.crypto,Response,CompressionStream,TextEncoder,btoa,unescape,encodeURIComponent,setTimeout:f=>f(),
     performance:{now:()=>now},navigator:{hardwareConcurrency:16,deviceMemory:8,userAgent:'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/131.0.0.0'},
     screen:{width:2560,height:1440},innerWidth:1600,innerHeight:900,devicePixelRatio:1.5,location:{pathname:'/Game-Template-and-Library/preview/135/games/tethys/tethys.html'},
     localStorage:{getItem:k=>store.has(k)?store.get(k):null,setItem:(k,v)=>store.set(k,String(v))},
@@ -125,6 +125,10 @@ async function unpack(tok){const m=/tethys-rec:1:([zj])([A-Za-z0-9_-]+)/.exec(to
     ok(opened&&/issues\/new/.test(opened.location.href)&&opened.opener===null,'F9 opens the tab and sends it there, the opener cut');
     const p=decode(decodeURIComponent(opened.location.href.split('&body=')[1]));ok(p&&p.play===kept&&/previous session/.test(decodeURIComponent(opened.location.href)),'the last session sent, and said so');
     ok(P3.g.hintEl.textContent.indexOf('github issue')>=0,'the hint: '+P3.g.hintEl.textContent);
+    const mid=P1.R().state.mid,f1=P1.R().full();ok(/^[0-9a-z]{4}$/.test(mid)&&store.get('tethys.mid')===mid&&f1.dev.mid===mid,'the machine\'s name made once and kept: '+mid);
+    ok(P3.R().state.mid===mid&&p.dev.mid===mid&&/· [0-9a-z]{4} ·/.test(decodeURIComponent(opened.location.href.split('&body=')[0])),'the same browser the same name, in the report and its title');
+    ok(P3.g.machine('tower 1')==='this browser reports as tower 1'&&store.get('tethys.mid')==='tower 1'&&P3.R().full().dev.mid==='tower 1','machine(\'tower 1\') names it');
+    const Pn=page({crypto:false});ok(/^[0-9a-z]{4}$/.test(Pn.R().state.mid)&&Pn.R().state.mid!==mid,'a fresh browser another name (without crypto too): '+Pn.R().state.mid);
     const P4=page({timer:false});P4.g.BOOT.done=true;for(let i=0;i<100;i++)P4.step(16.7,{pos:A});P4.step(2500,{pos:A,work:2400,compile:30});const f4=P4.R().full();
     ok(f4.all.frames===100&&f4.all.iv[4]===2500&&/compile×30/.test(f4.spikes[0][f4.sc.indexOf('what')]),'a visible frame of seconds is a stall, counted (the first frame never is): '+f4.all.frames+' frames, max '+f4.all.iv[4]+' ms, '+f4.spikes[0][f4.sc.indexOf('what')]);ok(f4.all.gpu===null&&!f4.dev.timer&&P4.gl.made===0,'no timer in the browser: no queries made, the GPU said untimed');}
 

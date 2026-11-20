@@ -22,7 +22,7 @@ const REC={v:(window.TETHYS_BUILD&&window.TETHYS_BUILD.v)||'dev',at:new Date().t
   gN:0,gSum:0,gMax:0,gPass:new Float64Array(4),places:new Map(),cur:null,other:null,progs:0,heap:0,
   sec:{s:0,n:0,ivMax:0,gN:0,g:0,sum:new Float64Array(REC_NM)},tl:[],tlEvery:2,sp:[],spN:0,errs:new Map(),errN:0,
   menu:{n:0,iv:0,work:0,max:0},boot:{scripts:0,first:-1,store:-1,load:-1,done:-1,progs:0,seen:false},loaf:{n:0,ms:0,block:0,by:new Map()},
-  prev:null,saveT:0,sent:0,skip:true}; // skip: the next frame is not one (the first, and the one after the tab was hidden)
+  prev:null,saveT:0,sent:0,skip:true,mid:''}; // skip: the next frame is not one (the first, and the one after the tab was hidden)
 REC.boot.scripts=+(REC.t0/1000).toFixed(2); // the page's own clock: seconds from the navigation to this file's first line (the scripts fetched and parsed)
 function recPlace(key,i,j){return {key:key,i:i,j:j,n:0,s:0,x:0,y:0,z:0,H:new Uint32Array(REC_NB),sum:new Float64Array(REC_NM),dMax:0,tMax:0,
   gN:0,g:0,gp:new Float64Array(4),wIv:0,w:new Float64Array(6)};} // one shape (CLAUDE.md "the shape rule"); w: the worst frame there — x, y, z, the body's yaw, its interval, its work
@@ -54,7 +54,7 @@ function recPoll(){const gl=RG.gl,E=RG.ext;
 // ---------- the machine, once (at the first frame: the renderer exists by then) ----------
 function recGpuName(s){s=String(s||'');const m=/^ANGLE \((.*)\)$/.exec(s);if(m){const p=m[1].split(', ');s=p.length>1?p[1]:p[0];}
   return s.replace(/ \(0x[0-9A-Fa-f]+\)/,'').replace(/ Direct3D.*$/,'').replace(/^ANGLE Metal Renderer: /,'').replace(/ vs_\d.*$/,'').trim();}
-function recDevice(){const d={gpu:'',vendor:'',gl:GL2?2:1,maxTex:0,timer:false,par:false,cores:navigator.hardwareConcurrency||0,mem:navigator.deviceMemory||0,ua:navigator.userAgent||'',plat:'',
+function recDevice(){const d={mid:REC.mid,gpu:'',vendor:'',gl:GL2?2:1,maxTex:0,timer:false,par:false,cores:navigator.hardwareConcurrency||0,mem:navigator.deviceMemory||0,ua:navigator.userAgent||'',plat:'',
   screen:[screen.width||0,screen.height||0],dpr:window.devicePixelRatio||1,win:[innerWidth,innerHeight],buf:[0,0],tier:Q.tier,pr:Q.pr,aa:!!Q.aa,touch:!!isTouch,fx:null};REC.dev=d;
   try{const gl=renderer.getContext(),dbg=gl.getExtension('WEBGL_debug_renderer_info');d.gpu=String(gl.getParameter(dbg?dbg.UNMASKED_RENDERER_WEBGL:gl.RENDERER));d.vendor=String(gl.getParameter(dbg?dbg.UNMASKED_VENDOR_WEBGL:gl.VENDOR));
     d.maxTex=gl.getParameter(gl.MAX_TEXTURE_SIZE)|0;const ex=gl.getSupportedExtensions()||[];d.par=ex.indexOf('KHR_parallel_shader_compile')>=0;
@@ -114,6 +114,10 @@ function recLoaf(e){const L=REC.loaf;L.n++;L.ms+=e.duration;L.block+=e.blockingD
   addEventListener('error',e=>recErr('throw',(e&&(e.message||e.error)||'?')+(e&&e.lineno?' @'+e.lineno+':'+e.colno:'')));
   addEventListener('unhandledrejection',e=>recErr('reject',e&&e.reason&&(e.reason.message||e.reason)));
   try{const PO=window.PerformanceObserver;if(PO&&PO.supportedEntryTypes&&PO.supportedEntryTypes.indexOf('long-animation-frame')>=0)new PO(l=>{for(const e of l.getEntries())recLoaf(e);}).observe({type:'long-animation-frame',buffered:true});}catch(e){}
+  // the machine's name in its reports (the person plays on several, 20 Nov 2026: "two work towers and my home computer"): four random characters made once
+  // per browser and kept in localStorage — two towers with the same card still tell apart — or a name given with machine('home') from the console. Not
+  // Math.random: the benches seed it, and one draw more at load would move every draw after it
+  try{const LS=window.localStorage;let m=LS&&LS.getItem('tethys.mid');if(!m){const C=window.crypto;m=(C&&C.getRandomValues?C.getRandomValues(new Uint32Array(1))[0]:Date.now()).toString(36).slice(-4);if(LS)LS.setItem('tethys.mid',m);}REC.mid=m;}catch(e){REC.mid='?';}
   try{const s=window.localStorage&&window.localStorage.getItem(REC_K.key);if(s){REC.prev=JSON.parse(s);REC.boot.seen=!!(REC.prev&&REC.prev.v===REC.v);}}catch(e){}
   addEventListener('keydown',e=>{if(e&&e.code==='F9'){if(e.preventDefault)e.preventDefault();recSend();}});
   addEventListener('pagehide',()=>recStore());
@@ -161,7 +165,7 @@ function recWhere(p){const m=/\/preview\/(\d+)\//.exec(p.url||'');return m?'prev
 function recTp(x,z,y){return 'tp('+x+','+z+(y<0?','+Math.round(y):'')+')';}
 function recMd(p,tok,cut,prev){const a=p.all,d=p.dev||{},b=p.boot||{},pc=p.pc,I=k=>pc.indexOf(k),L=[];
   L.push('**tethys '+p.v+'** · '+(p.play/60).toFixed(1)+' min played · '+recWhere(p)+(prev?' · the previous session (this one was under a minute)':'')+' · '+p.at.slice(0,16).replace('T',' ')+' UTC');
-  L.push('**machine** '+recGpuName(d.gpu)+' · WebGL'+d.gl+' · '+d.cores+' threads'+(d.mem?' · '+d.mem+' GB':'')+(d.plat?' · '+d.plat.trim():'')+' · screen '+(d.screen||[]).join('×')+' ×'+d.dpr+' · drawn '+(d.buf||[]).join('×')+' · '+d.tier+(a.vsync?' · vsync '+a.vsync.toFixed(1)+' ms':''));
+  L.push('**machine** '+(d.mid?'`'+d.mid+'` ':'')+recGpuName(d.gpu)+' · WebGL'+d.gl+' · '+d.cores+' threads'+(d.mem?' · '+d.mem+' GB':'')+(d.plat?' · '+d.plat.trim():'')+' · screen '+(d.screen||[]).join('×')+' ×'+d.dpr+' · drawn '+(d.buf||[]).join('×')+' · '+d.tier+(a.vsync?' · vsync '+a.vsync.toFixed(1)+' ms':''));
   L.push('**frames** p50 '+recMs(a.iv[0])+' · p95 '+recMs(a.iv[2])+' · p99 '+recMs(a.iv[3])+' · max '+recMs(a.iv[4])+' ms · '+(100*a.over[1]).toFixed(1)+'% over 33 ms · CPU '+recMs(a.work[0])+' ms (sim '+recMs(a.ph.sim)+' · gen '+recMs(a.ph.gen)+' · render '+recMs(a.ph.render)+')');
   L.push(a.gpu?'**gpu** p50 '+recMs(a.gpu.p50)+' · p95 '+recMs(a.gpu.p95)+' ms (main '+recMs(a.gpu.pass.main)+' · horizon '+recMs(a.gpu.pass.horizon)+' · clouds '+recMs(a.gpu.pass.clouds)+' · shadows '+recMs(a.gpu.pass.shadows)+')':'**gpu** no timer in this browser');
   L.push('**boot** scripts '+b.scripts+' s · first frame '+b.first+' s · world in '+b.done+' s · '+b.progs+' programs'+(b.seen?' (seen this version before)':' (first visit of this version)'));
@@ -171,7 +175,7 @@ function recMd(p,tok,cut,prev){const a=p.all,d=p.dev||{},b=p.boot||{},pc=p.pc,I=
   if(cut)L.push('_detail was cut to fit the link; the whole log is on the clipboard: paste it below this line to add it._');
   return L.join('\n')+'\n\n<details><summary>data (test/report.js)</summary>\n\n```\n'+tok+'\n```\n</details>\n';}
 async function recBody(){const prev=REC.s<REC_K.minPlay&&REC.prev&&REC.prev.p&&REC.prev.p.play>REC.s,full=prev?REC.prev.p:recFull(),d=full.dev||{};
-  const title='tethys report · '+full.v+' · '+recGpuName(d.gpu)+' · '+(full.play/60).toFixed(0)+' min';let o=null;
+  const title='tethys report · '+full.v+' · '+(d.mid?d.mid+' · ':'')+recGpuName(d.gpu)+' · '+(full.play/60).toFixed(0)+' min';let o=null;
   for(let L=0;L<=5;L++){const p=recShrink(full,L),tok=await recPack(p),url='https://github.com/'+REC_K.repo+'/issues/new?title='+encodeURIComponent(title)+'&body='+encodeURIComponent(recMd(p,tok,L>0,prev));
     o={url:url,level:L,len:url.length,full:L?await recPack(full):tok,prev:!!prev};if(url.length<=REC_K.url)break;}
   return o;}
@@ -181,5 +185,6 @@ function recSend(){const w=window.open?window.open('','_blank'):null; // the tab
     try{if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(o.full).then(()=>{},()=>{});clip=true;}}catch(e){}
     if(w){try{w.opener=null;}catch(e){}w.location.href=o.url;recHint('report: a github issue opened in a new tab — submit it there');}
     else recHint(clip?'the browser blocked the tab: the report is on the clipboard':'the browser blocked the tab');return o;},e=>{if(w)try{w.close();}catch(_){}recErr('error','report: '+(e&&e.message));recHint('the report failed: '+(e&&e.message));});}
-window.report=function(){return recSend();}; // from the console; the tab may be blocked there (no gesture), the clipboard has it
+window.report=function(){return recSend();};
+window.machine=function(name){name=String(name||'').trim().slice(0,24);if(!name)return 'this browser reports as '+REC.mid;try{window.localStorage.setItem('tethys.mid',name);}catch(e){}REC.mid=name;if(REC.dev)REC.dev.mid=name;return 'this browser reports as '+name;}; // machine('home'): the name its reports carry // from the console; the tab may be blocked there (no gesture), the clipboard has it
 window.__rec={full:()=>recFull(),body:()=>recBody(),shrink:recShrink,pack:recPack,name:recGpuName,state:REC,gpu:RG,K:REC_K}; // the tests (test/rec.js, test/boot.js) and the console
