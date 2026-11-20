@@ -9980,7 +9980,7 @@ Step 2 of analysis_project.md (the person, 20 Nov 2026: "Cut those docs down"). 
 HANDOFF.md next: 97.8 KB and 223.6 KB, most of both history — version stamps inside the rules ("since v11.x … to v11.y it was …"), and HANDOFF a
 record of 220 versions back to v11.18 though it said "keep this file short". Nothing in the game changed.
 
-- **CLAUDE.md** 97.8 → 40.5 KB: every rule, gotcha, command, knob and decision of the person kept, their histories taken out (the CHANGELOG has
+- **CLAUDE.md** 97.8 → 40.7 KB: every rule, gotcha, command, knob and decision of the person kept, their histories taken out (the CHANGELOG has
   them). The sections other files cite keep their names ("Performance", "Things that bite", "Look at it", "Left alive on purpose"). New in it:
   F9 and `machine()` where the person's GPU used to be "unmeasurable"; the old ask lists as a record, not pending (the person, 15 Sep 2026, from
   the old HANDOFF); HANDOFF kept to five versions.
