@@ -18,7 +18,7 @@ const parts={};for(const n of ORDER)parts[n]=read('src/'+n+'.js');
 
 // ---------- the two html files ----------
 const shell=read('shell.html');
-const bundle=THREE+'<script>\n(function(){\n"use strict";\n'+ORDER.map(n=>parts[n]).join('\n')+'\n})();\n</script>';
+const bundle=THREE+'<script>\nfunction tethysMain(){\n"use strict";\n'+ORDER.map(n=>parts[n]).join('\n')+'\n}\nrequestAnimationFrame(function(){setTimeout(tethysMain,0);});\n</script>'; // v11.189: the game runs after the page's first paint — the loading page (shell.html #boot, the title, its line) is on screen while it loads
 write('tethys.html',shell.replace('<!--SCRIPTS-->',()=>bundle)); // a function: the bundle may contain $-patterns a string replacement would expand
 const dev=THREE+ORDER.map(n=>'<script src="src/'+n+'.js"></script>\n').join('');
 write('dev.html',shell.replace('<!--SCRIPTS-->',()=>dev));

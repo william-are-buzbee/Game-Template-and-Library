@@ -49,38 +49,78 @@ function updateStats(dt){
   const r=renderer.info.render;
   statsEl.textContent=fpsEma.toFixed(0)+' fps  '+msEma.toFixed(1)+' ms  work '+frameEma.toFixed(1)+'/'+fMax.toFixed(1)+'ms'+(genEma>0.05?'  gen '+genEma.toFixed(1)+'ms':'')+(resK<1?'  res '+resK.toFixed(1):'')+'  draws '+r.calls+'  tris '+(r.triangles/1000).toFixed(0)+'k  cells '+visibleChunks+'/'+chunks.size+'  pools '+poolLine()+'  far '+visibleRegions+'/'+farBuilt+'  creatures '+visibleCreatures+'/'+creatures.length+'  phys '+physEma.toFixed(2)+'ms  render '+renderEma.toFixed(2)+'ms'+(SHS_P[1]>0?'  wshadow '+shsMs.toFixed(2)+'ms/'+shsN:'')+'  lights '+lightSources.length+(performance.memory?'  heap '+(performance.memory.usedJSHeapSize/1048576).toFixed(0)+'M':'')+'  '+Q.tier+'  '+(player.sub<0.5?(player.grounded?'strand':'air'):'sea')+'  '+player.pos.x.toFixed(0)+','+player.pos.y.toFixed(0)+','+player.pos.z.toFixed(0)+'  oxy '+oxyAt(player.pos.x,player.pos.y,player.pos.z).toFixed(2)+'  tide '+(TIDE>=0?'+':'')+TIDE.toFixed(1)+'m '+(tideRate(clockH)>0.02?'rising':tideRate(clockH)<-0.02?'falling':'slack')+' '+((clockH+SOLAR_H0)%DAY_H).toFixed(1)+'h  year '+yearPhase(clockH).toFixed(3)+(seasonAt(clockH)>0.3?' windy':seasonAt(clockH)<-0.3?' still':' between')+'  sun '+(Math.asin(SKY.sunAlt)*180/Math.PI).toFixed(0)+'°  moon '+(Math.asin(SKY.moonAlt)*180/Math.PI).toFixed(0)+'° '+(SKY.illum*100).toFixed(0)+'%  light '+SKY.skyL.toFixed(2)+(wasAbove===false?'/'+SKY.skyLw.toFixed(2):'')+(SKY.eye>1.005||SKY.eyeT>1.005?'  eye ×'+SKY.eye.toFixed(2)+(Math.abs(SKY.eyeT-SKY.eye)>0.05?'→'+SKY.eyeT.toFixed(2):''):'')+(DSP.g*DSP.hab>0.01?'  displays '+(DSP.g*DSP.hab).toFixed(2):'')+(MILKY_P[0]>0.01?'  milky '+MILKY_P[0].toFixed(2):'')+'  cloud '+SKY.cover.toFixed(2)+'  vis '+SKY.vis.toFixed(0)+' km'+(SKY.rainA>0.02?'  rain '+SKY.rainA.toFixed(2):'')+(SKY.windK<0.5?'  calm':'')+(SKY.eclL>0.02?'  eclipse '+SKY.eclL.toFixed(2):'')+(SKY.dawn>0.02?'  mist '+SKY.dawn.toFixed(2):'')+(SKY.pool>0.002?'  pool '+(SKY.pool/CFOG.pool.k).toFixed(2):'')+(FOG_CAP[3]>0.0005?'  in cloud':'')+'\n'+fogLine()+'\n'+audioLine()+'\n'+camLine()+'\n'+(mode==='play'?hungerLine()+'\n':'')+ecoLine()+holdLine(); // the stomach's line (player.js, v11.73)
 }
-// the first 3x3 cells are built before the first frame; the rest stream in under a per-frame time budget
-cellsAround(); // save.js: the 3×3 round the player (the peak, under the menu's camera)
-profileLoad(()=>{if(HASH_FLAGS.indexOf('creator')>=0)grantCreator();menuRefresh();}); // the profile and the slots (save.js), then the menu's creator word and its list; #creator grants the creator
 // Every shader program compiled behind the fade instead of on first sight (v11.12): a sway program is ~90 ms, and the flicker's
 // translucent material, the big creatures' far ghost, the sky (on the first breach) and the rain compiled mid-play. One tiny mesh per
 // material, in the instanced form where the game uses it (the instanced programs are separate), compiled by renderer.compile with the
 // scene's lights and fog, then removed. Run at the end of the first frame, so the programs that frame compiled anyway cost nothing
 // more and only the rest are paid for (~400 ms, under the black fade). A failure only means the old stalls.
-let warmed=false;
-function warmShaders(){
-  try{
-    const g=new THREE.Group(),geo=new THREE.BufferGeometry();
-    geo.setAttribute('position',new THREE.Float32BufferAttribute([0,0,0,0,0.01,0,0.01,0,0],3));geo.setAttribute('normal',new THREE.Float32BufferAttribute([0,1,0,0,1,0,0,1,0],3));geo.setAttribute('color',new THREE.Float32BufferAttribute([1,1,1,1,1,1,1,1,1],3));
-    for(const m of [MAT,MAT_HIT,MATBIG,MATLM,MATT,TERRAIN_MAT,MAT_HI,shM,new THREE.MeshLambertMaterial({color:0x06080a,transparent:true,opacity:0.9})])g.add(new THREE.Mesh(geo,m)); // the last is the ink cloud's; shM the light shafts' (v11.13)
-    const c=new THREE.Color(1,1,1);
-    const pulled=new Set(vpullMats.values()); // v11.187: a pulled species' geometry has no colour attribute, and three keys the program by it (vertexAlphas), so its warm mesh has none either
-    const flora=[MATV,MATVD,MATG,MATB,MATR,MATW,MATS,MATSC,MATM,MATGL,MATTR,MATWD].filter(m=>!vpullMats.has(m)); // a pulled one's own program is never drawn in the world (every species of it draws its copy): not compiled, nor its depth program
-    for(const m of [MAT,MATROCK,MATROCKF,MATROCKB,MATSHELL,MATFAR,MATTRF,GLOW,...flora,...pulled]){const ig=geo.clone();if(pulled.has(m))ig.deleteAttribute('color');ig.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(1),1));ig.setAttribute('aDip',new THREE.InstancedBufferAttribute(new Float32Array(1),1));ig.setAttribute('aCur',new THREE.InstancedBufferAttribute(new Float32Array(2),2));ig.setAttribute('aTide',new THREE.InstancedBufferAttribute(new Float32Array(2),2));const im=new THREE.InstancedMesh(ig,m,1);im.setColorAt(0,c);g.add(im);}
-    const g2=new THREE.Group();g2.add(new THREE.Mesh(geo,new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide})),new THREE.Points(geo,new THREE.PointsMaterial({transparent:true,depthWrite:false})));g2.position.set(0,-1e5,0); // v11.187: the splash's ring and drops (player.js), made at the first breach — compiled there until now, at the shore's first sight
-    g.position.set(0,-1e5,0);scene.add(g);scene.add(g2);const ov=SURF_OCC.visible;SURF_OCC.visible=true;renderer.compile(scene,camera);SURF_OCC.visible=ov;scene.remove(g2); // v11.187: the surface's occluder too (drawn only under water)
-    g.traverse(o=>{if(o.isMesh){shadowCaster(o,o.material);o.castShadow=true;o.frustumCulled=false;}});shadowFrame();updateShadowS(0,true); // the depth programs of the world's shadow map (v11.30), one forced pass over these meshes; the map itself goes at the next frame if the switch is off
-    scene.remove(g);
-  }catch(e){console.warn('shader warm-up skipped: '+e.message);}
-}
+// The boot's warm-up (v11.189): the same meshes, compiled one at a time behind the loading page — each with only the scene's lights beside it (three's
+// compile walks every material in the scene, drawn or not), so a frame takes a program or two and the page's line moves between them; then the scene once (the
+// sky, the surface and its occluder, the dome, the snow); then, only with the world's shadows on (FX.statics, off by default), the depth programs of its
+// map — a dozen and more programs no default game draws, compiled at every boot to v11.188 (switched on later, they compile at its first pass).
+// warmShaders() is all of it at once (bootFinish: a game, the bestiary or a test before the boot was through).
+function warmPrep(){const g=new THREE.Group(),g2=new THREE.Group(),geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.Float32BufferAttribute([0,0,0,0,0.01,0,0.01,0,0],3));geo.setAttribute('normal',new THREE.Float32BufferAttribute([0,1,0,0,1,0,0,1,0],3));geo.setAttribute('color',new THREE.Float32BufferAttribute([1,1,1,1,1,1,1,1,1],3));
+  for(const m of [MAT,MAT_HIT,MATBIG,MATLM,MATT,TERRAIN_MAT,MAT_HI,shM,new THREE.MeshLambertMaterial({color:0x06080a,transparent:true,opacity:0.9})])g.add(new THREE.Mesh(geo,m)); // the last is the ink cloud's; shM the light shafts' (v11.13)
+  const c=new THREE.Color(1,1,1);
+  const pulled=new Set(vpullMats.values()); // v11.187: a pulled species' geometry has no colour attribute, and three keys the program by it (vertexAlphas), so its warm mesh has none either
+  const flora=[MATV,MATVD,MATG,MATB,MATR,MATW,MATS,MATSC,MATM,MATGL,MATTR,MATWD].filter(m=>!vpullMats.has(m)); // a pulled one's own program is never drawn in the world (every species of it draws its copy): not compiled, nor its depth program
+  for(const m of [MAT,MATROCK,MATROCKF,MATROCKB,MATSHELL,MATFAR,MATTRF,GLOW,...flora,...pulled]){const ig=geo.clone();if(pulled.has(m))ig.deleteAttribute('color');ig.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(1),1));ig.setAttribute('aDip',new THREE.InstancedBufferAttribute(new Float32Array(1),1));ig.setAttribute('aCur',new THREE.InstancedBufferAttribute(new Float32Array(2),2));ig.setAttribute('aTide',new THREE.InstancedBufferAttribute(new Float32Array(2),2));const im=new THREE.InstancedMesh(ig,m,1);im.setColorAt(0,c);g.add(im);}
+  g2.add(new THREE.Mesh(geo,new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide})),new THREE.Points(geo,new THREE.PointsMaterial({transparent:true,depthWrite:false}))); // v11.187: the splash's ring and drops (player.js), made at the first breach
+  g.position.set(0,-1e5,0);g2.position.set(0,-1e5,0);let est=0;scene.traverse(o=>{if(o.material&&!Array.isArray(o.material))est++;}); // the scene's own objects, a guess at the steps the rest will take (most share programs already made)
+  return {g:g,items:g.children.concat(g2.children),i:0,k:0,est:Math.min(est,24),rest:false,more:[],passes:false,hz:false,depth:false};}
+function warmOne(sc,cam,o){const kids=sc.children,L=[],en=renderer.shadowMap.enabled;sc.traverse(x=>{if(x.isLight)L.push(x);});sc.children=L.concat([o]);renderer.shadowMap.enabled=FX.shadows&&LIGHT_K[1]>0; // the shadow map as play has it (scene.js updateShadow sets it every frame, after this): three keys every program by it
+  try{renderer.compile(sc,cam);}finally{sc.children=kids;renderer.shadowMap.enabled=en;}} // one object's programs, with only its scene's lights beside it (three's compile walks every material in the scene, drawn or not)
+function warmStep(W){ // the next program (or the depth pass); true when there is nothing left
+  W.k++;try{
+    if(W.i<W.items.length){warmOne(scene,camera,W.items[W.i++]);return false;}
+    if(!W.rest){W.rest=true;W.more=[];renderer.shadowMap.enabled=FX.shadows&&LIGHT_K[1]>0;const seen=new Set(),pr=m=>{const p=renderer.properties.get(m);return p&&(p.currentProgram||p.program);}; // then the scene's own, one object a step: the sky, the surface and its occluder, the dome, the snow, what has streamed in
+      if(renderer.properties)scene.traverse(o=>{const m=o.material;if(o!==W.g&&m&&!Array.isArray(m)&&!seen.has(m)&&!pr(m)){seen.add(m);W.more.push(o);}});return false;}
+    if(W.more.length){warmOne(scene,camera,W.more.shift());return false;}
+    if(!W.passes){W.passes=true;if(CLDP.on)renderer.compile(CLDP.scene,CLDP.cam);return false;} // the clouds' pass (v11.188)
+    if(!W.hz){W.hz=true;if(wasAbove===true&&!hzTried){hzTried=true;try{hzSeaBuild();hzSetup();}catch(e){console.warn('the horizon tier could not build: '+e.message);}} // the horizon pass's scene, built here as renderFrame would at the first frame in air
+      if(hzSea){const sp=sky.parent,tm=new THREE.Mesh(W.g.children[0].geometry,HZ_TERRAIN_MAT);hzScene.add(sky);hzScene.add(tm);renderer.compile(hzScene,hzCam);hzScene.remove(tm);if(sp)sp.add(sky);}return false;} // its programs with its own lights and fog: the sky in it, the sea disc, the members' land (tm: the first member is built later, hzStep)
+    if(!W.depth){W.depth=true;if(FX.statics){scene.add(W.g);W.g.traverse(o=>{if(o.isMesh){shadowCaster(o,o.material);o.castShadow=true;o.frustumCulled=false;}});shadowFrame();updateShadowS(0,true);scene.remove(W.g);}} // the depth programs of the world's shadow map (v11.30), one forced pass, only when it is on
+  }catch(e){console.warn('shader warm-up: '+e.message);W.i=W.items.length;W.rest=W.passes=W.hz=W.depth=true;W.more=[];}
+  return W.i>=W.items.length&&W.rest&&!W.more.length&&W.passes&&W.hz&&W.depth;}
+function warmShaders(W){W=W||warmPrep();while(!warmStep(W));} // all of it now
+// ---------- the boot (v11.189, analysis_loading.md; the person, 20 Nov 2026) ----------
+// "black screen, tethys + loading, then the scene loads without the tethys name moving"; "the slower the card, the longer you extend the black simple loading
+// screen". The page is black with the title in its menu place before any of this runs (shell.html #boot; the build runs the game after the first paint),
+// and the line under the title slides while the scripts' own work holds the page. Then, a stage a frame at a time, nothing drawn: `store` — the profile and the
+// slots read, and the last slot's world opened under the camera note (bootSlot: its clock, its ledger, its falls; the cells wait for it, so what spawns is
+// that world's); `load` — the warm-up a program or two a frame (BOOT.warmMs) while the cells round the camera and the far regions stream with BOOT.budget a
+// frame, the line showing both; `settle` — the world drawn behind the black (the first draws upload and compile what is left) until a frame comes in under
+// BOOT.settleMs or BOOT.settleMax has passed; then the black fades (3 s, #boot.off) and the column rises MENU_RISE later. A slow machine is longer at every
+// stage and so longer in the black, by its own work, not a guess. Anything that leaves the menu first (a game, the bestiary, a test's choose) finishes it at
+// once (bootFinish): the warm-up whole, the black gone.
+const BOOT={stage:'store',done:false,W:null,world0:0,t0:0,n:0,settleT:0,storeMax:4000,warmMs:20,budget:24,settleMs:50,settleMax:3000,settleN:4,bootEl:document.getElementById('boot'),lineEl:document.getElementById('bootline')};
+function bootLine(f){const L=BOOT.lineEl;if(!L)return;L.classList.remove('wait');const i=L.firstElementChild;if(i)i.style.transform='scaleX('+clamp(f,0,1).toFixed(3)+')';}
+function bootSlot(){if(BOOT.done||BOOT.stage!=='store')return; // the store's answer (main.js profileLoad → menuRefresh), or its timeout
+  if(mode==='menu'){const note=camRead(),rec=note&&note.id?saveList.find(r=>r.id===note.id):null;if(rec&&!rec.over&&rec.pop){try{slotWorld(rec);menu.worldOf=rec.id;}catch(e){console.warn('the last slot\'s world: '+e.message);}}}
+  BOOT.stage='load';BOOT.W=warmPrep();BOOT.world0=0;bootLine(0);}
+function bootTick(iv){if(BOOT.done)return;if(mode!=='menu'){bootFinish();return;}
+  const now=performance.now();if(!BOOT.t0)BOOT.t0=now;
+  if(BOOT.stage==='store'){if(now-BOOT.t0>BOOT.storeMax)bootSlot();return;} // a store that never answers: the boot goes on without the slot
+  if(BOOT.stage==='load'){const w0=performance.now();if(BOOT.W){do{if(warmStep(BOOT.W)){BOOT.W=null;break;}}while(performance.now()-w0<BOOT.warmMs);}
+    const pend=cellsPending()+farPending();BOOT.world0=Math.max(BOOT.world0,pend);const W=BOOT.W,wf=W?W.k/(W.k+(W.items.length-W.i)+(W.rest?W.more.length:W.est+1)+(W.passes?0:1)+(W.hz?0:1)+(W.depth?0:1)):1,gf=BOOT.world0?1-pend/BOOT.world0:1;bootLine(0.5*wf+0.5*gf);
+    if(!W&&pend===0){BOOT.stage='settle';BOOT.settleT=now;BOOT.n=0;bootLine(1);if(BOOT.lineEl)BOOT.lineEl.classList.add('settle');}return;}
+  if(BOOT.stage==='settle'){BOOT.n++;if(BOOT.n>=BOOT.settleN&&(iv<BOOT.settleMs||now-BOOT.settleT>BOOT.settleMax))bootIn();}}
+function bootIn(){BOOT.done=true;BOOT.stage='done';bootLine(1);if(BOOT.bootEl)BOOT.bootEl.classList.add('off');if(BOOT.lineEl)BOOT.lineEl.classList.add('off');menuRise(MENU_RISE);} // the black fades, the title stays, the column rises after
+function bootFinish(){if(BOOT.done)return;warmShaders(BOOT.W||undefined);BOOT.W=null;BOOT.done=true;BOOT.stage='done';if(BOOT.bootEl){BOOT.bootEl.style.transition='none';BOOT.bootEl.classList.add('off');}if(BOOT.lineEl)BOOT.lineEl.classList.add('off');}
+window.bootFinish=bootFinish;window.__boot=BOOT; // the benches (test/gpu.js): the boot's warm-up counted with the boot, as to v11.188
+// the profile and the slots (save.js), then the menu's creator word and its list, then the boot opens the last slot's world under the menu's camera (v11.189,
+// bootSlot; to v11.188 the menu's 3×3 cells were built here, before the first frame, the page frozen meanwhile). After BOOT: a store that answers at once
+// (the tests' memory one) calls bootSlot from here
+profileLoad(()=>{if(HASH_FLAGS.indexOf('creator')>=0)grantCreator();menuRefresh(bootSlot);}); // the profile and the slots (save.js), then the menu's creator word and its list; #creator grants the creator
 let last=performance.now();
 function loop(now){
   requestAnimationFrame(loop);chemoStep(4); // the basins' flood a slice a frame until it is built (v11.113, world.js)
   const f0=performance.now(),iv=now-last,dt=clamp(iv/1000,0,0.05);last=now;t+=dt;timeU.value=t;FOG_TC[0]=t;
   clockH=t*CLOCK_RATE;TIDE=tideAt(clockH);tideU.value=TIDE;tideRU.value=tideRate(clockH);tintU.value.x=TIDE;FOG_W[0]=TIDE; // the clock and the tide (world.js), once a frame, before anything reads the water level (FOG_W[0]: the fog chunk's copy, v11.32 — the daylight curve measures depth from it)
-  readTouch();
+  readTouch();bootTick(iv); // the boot's stages (v11.189), before the streaming they gate
   // the streaming gets what the rest of the last frame left of Q.target (v11.12): a 3 ms frame leaves 4.5 for the cells, a 6 ms frame 2 (the floor)
-  const g0=performance.now();manageChunks(Math.min(Q.budgetMs,Math.max(2,Q.target-(frameMs-genMs))));manageFar(mode==='menu'&&t<2.4?14:Q.farMs);genMs=performance.now()-g0;bloomTick(); // the plankton's clock (far.js, v11.81): the front by the tide's amplitude, the storm's pulse // the far layer streams in behind the fade (black until ~2.2 s), then in the gaps (v11.12: 14 ms all through the menu had its creatures stuttering for the first second)
+  const g0=performance.now(),bl=!BOOT.done&&BOOT.stage==='load';if(BOOT.done||BOOT.stage!=='store')manageChunks(bl?BOOT.budget:Math.min(Q.budgetMs,Math.max(2,Q.target-(frameMs-genMs))));manageFar(bl?BOOT.budget:Q.farMs);genMs=performance.now()-g0;bloomTick(); // v11.189: the cells wait for the boot's slot (its ledger is what they spawn from); behind the loading page both stream with BOOT.budget (to v11.188 the far layer had 14 ms through the menu's first 2.4 s) // the plankton's clock (far.js, v11.81): the front by the tide's amplitude, the storm's pulse // the far layer streams in behind the fade (black until ~2.2 s), then in the gaps (v11.12: 14 ms all through the menu had its creatures stuttering for the first second)
   updateMenu(dt);updateZoo(dt);updateLab(dt);if(mode==='play')updatePlayer(dt); // updateMenu (v11.47.1): the column's rise and the idle fade
   const p0=performance.now();
   updateSchools(dt);updateCreatures(dt);if(mode==='play')finishPlayer(dt,bodies); // bodies, contact, arms, then the camera
@@ -90,12 +130,10 @@ function loop(now){
   updateAtmosphere(dt);updateSurface();
   camera.updateMatrixWorld();updateFogCamera();cullChunks(dt);cullFar();assignLights();updateShadow();updateShadowS(dt);updateAudio(dt); // the shadow map's box and casters (v11.23): after everything has moved; the sound (v11.14) last, with the camera where it is
   updateCompass(dt);updateFX();updateWMap(dt);updateSpark(dt); // the sparkle (line.js, v11.69): the handover's mark, over everything // no health bar since v11.55: the body shows the damage (COMBAT.md §5)
-  const r0=performance.now();renderFrame();renderMs=performance.now()-r0; // v11.64: the horizon pass first when the camera is in air (horizon.js), then the world
-  if(!warmed){warmed=true;warmShaders();} // the first frame, behind the fade
+  if(BOOT.done||BOOT.stage==='settle'){const r0=performance.now();renderFrame();renderMs=performance.now()-r0;}else renderMs=0; // v11.64: the horizon pass first when the camera is in air (horizon.js), then the world; v11.189: nothing drawn behind the loading page until the world is there
   updateStats(dt);frameMs=performance.now()-f0;
   {const k=FX.autoRes?resStep(RES_S,iv,frameMs):1;if(k!==resK){resK=k;renderer.setPixelRatio(RES_PR*k);vigSize();}} // the resolution that holds the frame (v11.188, scene.js RES): applied for the next frame
 }
-setTimeout(()=>{fadeEl.style.opacity=0;},400);
 // tp(x,z,y) from the browser's console (v11.60.2): the player put at x,z (east +, south +), y above the ground there (10 by default; a depth
 // is a negative absolute y), still, the camera with it, the cells round it loaded now. The bundle is one IIFE, so this is the one way in
 // from tethys.html; the map's stat line gives x,z in km under the mouse. A dev tool, not a feature: nothing saves it, nothing reads it.

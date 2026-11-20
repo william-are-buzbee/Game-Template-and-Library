@@ -2167,6 +2167,16 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   `palVariant`; the caption names it; eyes and pupils untouched; nothing in the world reads it), space or a click fires the action,
   s toggles a cruising speed, drag turns, wheel zooms, z or escape returns; touch: drag turns, a tap on an edge steps. The menu's
   column is hidden meanwhile and restored on return (`menuPage`, v11.47; the menu shows no creatures since then).
+- **The start and continue (v11.189, analysis_loading.md; main.js `BOOT`, `bootTick`, `warmPrep`/`warmStep`, `bootSlot`, `bootFinish`; shell.html `#boot`,
+  `#bootline`; save.js `slotWorld`/`slotPlayer`; menu.js `menuContinue`, `CONT_NEAR`; test/boot.js).** The page is black with the title in its menu place before
+  the game's script runs (the build runs it after the first paint), the line under the title sliding while the scripts hold the page. Then, nothing drawn:
+  `store` (the slots read; the camera note's slot — `tethys.cam` names it since v11.189 — has its world opened under the camera: clock, ledger, falls; the
+  cells wait for it), `load` (the warm-up a program or two a frame, `BOOT.warmMs` 20; the cells and far regions streaming with `BOOT.budget` 24 ms a frame;
+  the line their share done), `settle` (the world drawn behind the black — the first frame builds the pipelines — until a frame under 50 ms or 3 s; the
+  line pulsing), then the black fades over 3 s with the title where it was and the column rises `MENU_RISE` 2.4 s later. Continue enters the slot whose
+  world is shown, if its body is within 60 m of the camera: no fade, nothing reloaded (the same cells; test/boot.js); otherwise the latest slot through the
+  fade, as `saves` (the list) does. Leaving the menu before the boot is through (a game, the bestiary, a test) finishes it at once. The world shadows'
+  depth programs are warmed only with that switch on (46 programs at the boot's end, 72 before).
 - **The menu and the saves (v11.47, `menu.js`, `save.js`, shell.html `#mlist` `#msaves`):** the world under the title screen's camera —
   v11.47.2: a table of shots, `MENU_SHOTS` (`sea`: 6 m over the water at (700, −700) looking (−0.55, 0, 0.835), the horizon mid-frame and the
   island's one cone on it, the start; `caldera`: the v11.13.1 shot over the peak, kept, unused), overridden after any play by the camera of the

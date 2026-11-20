@@ -10,7 +10,20 @@ canvas{display:block;outline:none;touch-action:none}
 .layer{position:fixed;inset:0;pointer-events:none}
 #oxy{background:radial-gradient(ellipse at center,rgba(0,0,0,0) 30%,rgba(2,6,14,.9) 100%);opacity:0;transition:opacity .6s} /* v11.101: the oxygen debt closing the view */
 #hurt{background:radial-gradient(ellipse at center,rgba(0,0,0,0) 40%,rgba(110,8,8,.8) 100%);opacity:0;transition:opacity .3s}
-#fade{background:#000;opacity:1;transition:opacity 1.8s}
+#fade{background:#000;opacity:0;transition:opacity 1.8s} /* v11.189: clear at boot — the boot's black is #boot's, under the title; this one is the deaths' and the games' changes, over everything */
+/* the loading page (v11.189, analysis_loading.md; the person, 20 Nov 2026): black with the title in its menu place, painted before the game's script runs; a thin
+   line under the title — waiting (.wait: a segment sliding, on the compositor, so it moves while the script holds the page), then the boot's own progress
+   (main.js BOOT: the slot, the light's programs, the world round the camera); when the world is ready #boot fades over 3 s and the title stays where it is */
+#boot{background:#000;opacity:1;transition:opacity 3s}
+#boot.off{opacity:0}
+#bootline{position:fixed;left:50%;top:calc(8vh + 40px);width:120px;margin-left:-60px;height:1px;background:rgba(215,225,232,.10);overflow:hidden;pointer-events:none;transition:opacity 1.6s}
+#bootline i{position:absolute;inset:0;background:rgba(215,225,232,.5);transform-origin:left;transform:scaleX(0);transition:transform .35s}
+#bootline.settle i{animation:bootp 1.1s ease-in-out infinite alternate} /* settling (the first frames drawn behind the black: their pipelines built, their buffers sent — a long wait on a slow card) */
+@keyframes bootp{from{opacity:1}to{opacity:.3}}
+#bootline.wait i{display:none}
+#bootline.wait::after{content:'';position:absolute;top:0;bottom:0;left:0;width:30%;background:rgba(215,225,232,.45);animation:bootw 1.6s ease-in-out infinite;will-change:transform}
+@keyframes bootw{0%{transform:translateX(-100%)}100%{transform:translateX(340%)}}
+#bootline.off{opacity:0}
 #biome{position:fixed;bottom:26px;right:32px;font-size:13px;text-shadow:0 0 6px rgba(0,0,0,.9),0 1px 2px rgba(0,0,0,.9);letter-spacing:.3em;font-weight:300;opacity:0;transition:opacity .8s;color:rgba(220,230,235,.75);pointer-events:none;font-variant-numeric:tabular-nums}
 #compass{position:fixed;top:22px;left:50%;width:260px;height:24px;margin-left:-130px;overflow:hidden;opacity:0;transition:opacity 1.2s;pointer-events:none;-webkit-mask-image:linear-gradient(90deg,transparent,#000 24%,#000 76%,transparent);mask-image:linear-gradient(90deg,transparent,#000 24%,#000 76%,transparent)}
 #cstrip{position:absolute;top:0;left:0;height:100%;width:2600px;will-change:transform}
@@ -139,11 +152,13 @@ canvas{display:block;outline:none;touch-action:none}
 <div id="biome"></div>
 <div id="hint"></div>
 <div id="compass"><div id="cstrip"><span style="left:0px">n</span><i style="left:108px"></i><span style="left:216px">e</span><i style="left:324px"></i><span style="left:432px">s</span><i style="left:540px"></i><span style="left:648px">w</span><i style="left:756px"></i><span style="left:864px">n</span><i style="left:972px"></i><span style="left:1080px">e</span><i style="left:1188px"></i><span style="left:1296px">s</span><i style="left:1404px"></i><span style="left:1512px">w</span><i style="left:1620px"></i><span style="left:1728px">n</span><i style="left:1836px"></i><span style="left:1944px">e</span><i style="left:2052px"></i><span style="left:2160px">s</span><i style="left:2268px"></i><span style="left:2376px">w</span><i style="left:2484px"></i><span style="left:2592px">n</span></div><b id="ctick"></b><b id="cpeak"></b></div>
+<div id="boot" class="layer"></div>
 <div id="menu">
-  <div id="title">tethys</div>
+  <div id="title">tethys</div><div id="bootline" class="wait"><i></i></div>
   <div id="mlist">
     <div class="mi" id="mnew">new game</div>
     <div class="mi" id="mcont">continue</div>
+    <div class="mi" id="mload">saves</div>
     <div class="mi" id="mopt">options</div>
     <div class="mi" id="mcreator" style="display:none">creator</div>
   </div>

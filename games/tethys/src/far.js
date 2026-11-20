@@ -457,6 +457,8 @@ function manageFar(budgetMs){
   while(farGen&&performance.now()-t0<budgetMs){if(farGen.next().done){farGen=null;break;}}
   for(const reg of farList){if(Math.hypot(reg.cx-px,reg.cz-pz)>FAR_DROP+reg.ext){dropRegion(reg);break;}}
 }
+function farPending(){const px=player.pos.x,pz=player.pos.z,L=FR*CELL,a0=Math.max(RX0,Math.floor((px-FAR_R+HALF)/L)),a1=Math.min(RX1,Math.floor((px+FAR_R+HALF)/L)),b0=Math.max(RZ0,Math.floor((pz-FAR_R+HALF)/L)),b1=Math.min(RZ1,Math.floor((pz+FAR_R+HALF)/L));let n=(farGen?1:0)+(wmGen?1:0); // the far regions manageFar still owes within FAR_R, and its maps' window (v11.189: the boot waits for none)
+  for(let rj=b0;rj<=b1;rj++)for(let ri=a0;ri<=a1;ri++){if(regions.has(ckey(ri,rj)))continue;const dx=(ri+0.5)*L-HALF-px,dz=(rj+0.5)*L-HALF-pz;if(dx*dx+dz*dz<FAR_R*FAR_R)n++;}return n;}
 function dropRegion(reg){scene.remove(reg.group);reg.geo.dispose();for(let dj=0;dj<FR;dj++)for(let di=0;di<FR;di++)rockCache.delete(ckey(reg.ci0+di,reg.cj0+dj)); // the boulders' lists go with it (v11.157); a loaded cell keeps its own in its hash
   for(const o of reg.group.children)if(o.isInstancedMesh)o.dispose();regions.delete(ckey(reg.ri,reg.rj));farList.splice(farList.indexOf(reg),1);farBuilt--;} // the structure and card geometries are shared (FLORA's, FAR_IMP's): only the instance buffers go
 // after cullChunks, which sets the frustum

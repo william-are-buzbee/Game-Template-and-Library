@@ -547,6 +547,7 @@ function manageChunks(budgetMs){
   }
   while(performance.now()-t0<budgetMs){const r=activeGen.next();if(r.done){activeGen=null;activeKey=null;break;}}
 }
+function cellsPending(){const ci=cellOf(player.pos.x),cj=cellOf(player.pos.z);let n=activeGen?1:0;for(let dj=-LOAD_R;dj<=LOAD_R;dj++)for(let di=-LOAD_R;di<=LOAD_R;di++){const i=ci+di,j=cj+dj;if(gridIn(i,j)&&!chunks.has(ckey(i,j)))n++;}return n;} // the cells manageChunks still owes round the streaming centre, one mid-build counted (v11.189: the boot waits for none)
 const frustum=new THREE.Frustum(),_pm=new THREE.Matrix4();
 let visibleChunks=0;
 function cullChunks(dt){

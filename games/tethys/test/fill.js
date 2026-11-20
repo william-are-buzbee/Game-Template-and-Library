@@ -31,6 +31,7 @@ function fillTiming(){
 function atPlace(a){
   window.__step(3);const rf=window.renderFrame;window.renderFrame=function(){};
   choose(0,V3(a.x,a.y,a.z),a.yaw,0);
+  if(a.hold){const st=window.__step;window.__step=n=>{for(let i=0;i<n;i++){player.pos.y=a.y;player.vel.y=0;st(1);}};} // the body held at its height (benchpage.js PLACES `hold`)
   let gens=0;for(const n of ['genChunk','genRegion']){const f=window[n];if(typeof f==='function')window[n]=function(){gens++;return f.apply(this,arguments);};}
   let k=0,quiet=0;for(;k<600&&quiet<20;k++){const n=gens;window.__step(1);quiet=gens===n?quiet+1:0;}window.__step(150);
   window.renderFrame=rf;window.__step(8);
