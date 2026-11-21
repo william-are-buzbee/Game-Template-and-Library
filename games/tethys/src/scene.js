@@ -10,13 +10,16 @@ const isTouch=('ontouchstart' in window)||navigator.maxTouchPoints>0;
 // as the whole hash, so a forced tier and the lab were exclusive — and the lab, which writes its spec into the hash, threw away a
 // #low the person had asked for. HASH_TIER is what the lab puts back (lab.js labHash).
 const HASH_FLAGS=(location.hash||'').replace('#','').split(/[&,]/),HASH_TIER=HASH_FLAGS.indexOf('low')>=0?'low':HASH_FLAGS.indexOf('high')>=0?'high':'';
-// Quality tier: numbers only, never code paths. Override with #low or #high in the URL.
+// Quality tier: numbers only, never code paths. Override with #low or #high in the URL; else this browser's verdict (v11.199, TIER_SAVED below: the
+// tier its GPU chose); else low on a small touch screen, high anywhere else. why: 'hash', 'machine', 'touch' or 'default'.
+const TIER_LS='tethys.tier';
+const TIER_SAVED=(function(){try{const o=JSON.parse((window.localStorage&&window.localStorage.getItem(TIER_LS))||'null');return o&&(o.tier==='low'||o.tier==='high')?o:null;}catch(e){return null;}})();
 const Q=(function(){
   const small=Math.min(screen.width||9999,screen.height||9999)<900;
-  const tier=HASH_TIER||((isTouch&&small)?'low':'high');
+  const tier=HASH_TIER||(TIER_SAVED?TIER_SAVED.tier:(isTouch&&small)?'low':'high'),why=HASH_TIER?'hash':TIER_SAVED?'machine':(isTouch&&small)?'touch':'default';
   return tier==='low'
-    ?{tier:tier,pr:1.0,far:1000,flora:0.45,creatures:0.6,lights:2,phong:false,aa:false,budgetMs:8,farMs:2,farQ:6,surf:96,lodNear:0.7,rockLvl:1,target:14,casters:6,shafts:2,cau:3,hrtf:0,vol:1,snow:1000,hz:200,cldSh:0,march:28,sparks:384,cloudRes:0.35}
-    :{tier:tier,pr:1.5,far:1600,flora:1.0,creatures:1.0,lights:4,phong:true,aa:true,budgetMs:6,farMs:3,farQ:12,surf:192,lodNear:1.0,rockLvl:2,target:7.5,casters:16,shafts:4,cau:5,hrtf:1,vol:1,snow:1800,hz:100,cldSh:1,march:80,sparks:1024,cloudRes:0.5};
+    ?{tier:tier,why:why,pr:1.0,far:1000,flora:0.45,creatures:0.6,lights:2,phong:false,aa:false,budgetMs:8,farMs:2,farQ:6,surf:96,lodNear:0.7,rockLvl:1,target:14,casters:6,shafts:2,cau:3,hrtf:0,vol:1,snow:1000,hz:200,cldSh:0,march:28,sparks:384,cloudRes:0.35}
+    :{tier:tier,why:why,pr:1.5,far:1600,flora:1.0,creatures:1.0,lights:4,phong:true,aa:true,budgetMs:6,farMs:3,farQ:12,surf:192,lodNear:1.0,rockLvl:2,target:7.5,casters:16,shafts:4,cau:5,hrtf:1,vol:1,snow:1800,hz:100,cldSh:1,march:80,sparks:1024,cloudRes:0.5};
   // snow (v11.24): the marine snow's points (atmosphere.js); the deep is sparse, so many of them are dormant at a time
   // sparks (v11.160): the bioluminescence's pool (fx.js SPK): the most flashes alive at once — a bloom round a sprinting body and a hunter keeps a few hundred
   // cloudRes (v11.188): the cloud volume's pass, a fraction of the drawing buffer on a side (atmosphere.js CLDP; 1 marches in the dome as to v11.187)
@@ -56,6 +59,49 @@ function resStep(S,ivMs,cpuMs){ // a frame's interval and the CPU's work in it (
   if(S.bad>=RES.down&&S.k>RES.min+1e-6&&S.t>=S.holdT){S.probe={k:S.k,ema:S.ema,t:S.t};S.k=Math.max(RES.min,Math.round((S.k-RES.step)*100)/100);S.bad=0;S.good=0;S.moves++;if(S.t-S.lastUp<S.upW+RES.down+RES.check*2)S.upW=Math.min(RES.maxUp,S.upW*2);}
   else if(S.good>=S.upW&&S.k<1-1e-6){S.k=Math.min(1,Math.round((S.k+RES.step)*100)/100);S.good=0;S.lastUp=S.t;S.moves++;}
   return S.k;}
+// ---------- the tier that follows the machine (v11.199) ----------
+// The person, 21 Nov 2026 (analysis_project.md §4, "Yeah let's just go for option 2"): the tier was 'high' on any desktop, and the work tower's Intel
+// UHD 730 drew it at 82 ms a frame (#137) where #low made 33 (#138) — its GPU fell with the triangles, which no resolution helps. A tier cannot change
+// in a session (the context's antialias, the materials' lighting, the pools and the flora's density are made at load), so each browser keeps a
+// verdict (localStorage TIER_LS: the tier, the GPU's median that chose it, when) and the next start is that tier (Q above). The evidence is the GPU's
+// own time a frame (rec.js's timer; its junk dropped, v11.198) or, where the browser has no timer, a frame's interval while the CPU's work is under
+// TIER_K.cpu of it. Two verdicts: on the menu before any play, TIER_K.menuS seconds of the high tier over TIER_K.now ms (the work tower's 82: the
+// whole world far too heavy) reloads into the low tier at once, once (TIER_K.again); in play, the median of the first TIER_K.playS seconds over
+// TIER_K.down on high is the low tier from the next start, and under TIER_K.up on a low the machine chose (timer only: a frame on a 60 Hz screen
+// says nothing of the headroom) the high from the next start — each said in a hint. #low or #high in the URL: no verdict. tierStep is pure on its
+// state (test/tier.js drives it with simulated machines).
+const TIER_K={now:40,down:20,up:6,nowIv:60,downIv:36,cpu:0.4,menuS:3,playS:60,settle:1.5,again:600,binMs:0.5,bins:400}; // ms on the GPU (now, down, up) or a frame's interval without the timer (nowIv, downIv); cpu: the CPU's share of a frame under which its interval is the GPU's; menuS, playS: seconds of samples; settle: seconds after the boot before the menu's count; again: seconds within which no second reload; the median's histogram (binMs a bin, bins of them)
+function tierNew(tier,why,timer){return {tier:tier,why:why,timer:!!timer,H:new Uint32Array(TIER_K.bins),n:0,s:0,M:new Uint32Array(TIER_K.bins),mn:0,ms:0,played:false,v:'',med:0};}
+function tierMed(H,n){let c=0;for(let i=0;i<H.length;i++){c+=H[i];if(c*2>=n)return (i+0.5)*TIER_K.binMs;}return H.length*TIER_K.binMs;}
+function tierStep(S,ms,dt,pl){ // a frame's sample (the GPU's ms, or the frame's interval with no timer), its seconds, and whether it is play → '', 'now' (low, reload), 'low' or 'high' (from the next start); one verdict a session
+  if(S.v||S.why==='hash'||!(ms>=0)||!(dt>0))return '';const b=Math.min(TIER_K.bins-1,Math.floor(ms/TIER_K.binMs));
+  if(!pl){if(S.played||S.tier!=='high')return '';S.M[b]++;S.mn++;S.ms+=dt;
+    if(S.ms>=TIER_K.menuS){const m=tierMed(S.M,S.mn);if(m>(S.timer?TIER_K.now:TIER_K.nowIv)){S.med=m;S.v='now';return 'now';}}return '';}
+  S.played=true;S.H[b]++;S.n++;S.s+=dt;if(S.s<TIER_K.playS)return '';
+  const m=tierMed(S.H,S.n);S.med=m;
+  if(S.tier==='high'&&m>(S.timer?TIER_K.down:TIER_K.downIv)){S.v='low';return 'low';}
+  if(S.tier==='low'&&S.why==='machine'&&S.timer&&m<TIER_K.up){S.v='high';return 'high';}
+  S.v='keep';return '';}
+const TIER_S=tierNew(Q.tier,Q.why,false);let tierBoot=-1,tierGpuN=0;
+function tierOff(){const d=REC.dev,g=String((d&&d.gpu)||'');return !!(navigator&&navigator.webdriver)||/swiftshader|llvmpipe|software/i.test(g);} // no verdict under automation (CI's boot, the site's cards, npm run look) or on a software renderer: neither is a machine anyone plays on
+function tierFrame(iv,work){ // main.js, every frame: a sample to tierStep, and what its verdict does
+  if(TIER_S.v||TIER_S.why==='hash')return;const now=performance.now();if(!BOOT.done){return;}if(tierBoot<0){tierBoot=now;if(tierOff()){TIER_S.v='off';return;}tierSaid();return;}
+  const pl=mode==='play'?1:mode==='menu'?0:-1;if(pl<0||(pl===0&&now-tierBoot<TIER_K.settle*1000))return;
+  TIER_S.timer=RG.on;let ms=-1;
+  if(RG.on){if(RG.goodN===tierGpuN)return;tierGpuN=RG.goodN;if(RG.lastPl!==pl)return;ms=RG.last;} // the GPU's latest whole frame (rec.js recGpuFlush)
+  else{if(!(iv>0)||iv>250||work>iv*TIER_K.cpu)return;ms=iv;} // no timer: a frame the CPU did not make slow
+  const v=tierStep(TIER_S,ms,iv/1000,pl===1);if(!v)return;
+  const m=+TIER_S.med.toFixed(1),re=v==='now'&&!(TIER_SAVED&&TIER_SAVED.re&&Date.now()-TIER_SAVED.at<TIER_K.again*1000);
+  try{window.localStorage.setItem(TIER_LS,JSON.stringify({tier:v==='high'?'high':'low',ms:m,from:Q.tier,timer:TIER_S.timer,at:Date.now(),v:String(window.TETHYS_BUILD||''),re:re?1:0,fresh:1}));}catch(e){return;}
+  if(re){location.reload();return;}
+  if(v==='low'||v==='high'){const msg=v==='low'?'this machine\'s GPU: '+m+' ms a frame — the lighter world from the next start (#high keeps this one)':'this machine\'s GPU: '+m+' ms a frame here — the full world from the next start (#low keeps this one)';
+    hintEl.textContent=msg;hintEl.style.opacity='1';setTimeout(()=>{if(hintEl.textContent===msg)hintEl.style.opacity='0';},8000);}}
+window.tier=function(a){ // the console (v11.199): tier() says this start's tier and why, and the verdict; tier('forget') clears the verdict (the next start judges again)
+  if(a==='forget'){try{window.localStorage.removeItem(TIER_LS);}catch(e){}return 'the verdict forgotten: the next start judges again';}
+  const v=TIER_SAVED;return 'tier '+Q.tier+' ('+Q.why+')'+(v?'; the verdict: '+v.tier+' (GPU '+v.ms+' ms a frame on '+v.from+(v.timer?'':', no timer')+', '+new Date(v.at).toISOString().slice(0,10)+')':'; no verdict yet')+(TIER_S.v&&TIER_S.v!=='keep'&&TIER_S.v!=='off'?'; this session: '+TIER_S.v:'');};
+function tierSaid(){if(!TIER_SAVED||!TIER_SAVED.fresh||Q.why!=='machine')return; // the start after a verdict says it once, on the menu
+  menuNote(Q.tier==='low'?'the lighter world for this machine (its GPU '+TIER_SAVED.ms+' ms a frame on the full one) — #high in the address for the full one':'the full world for this machine (its GPU '+TIER_SAVED.ms+' ms a frame on the lighter one)');
+  try{window.localStorage.setItem(TIER_LS,JSON.stringify(Object.assign({},TIER_SAVED,{fresh:0})));}catch(e){}}
 renderer.setSize(innerWidth,innerHeight);
 const scene=new THREE.Scene();
 scene.fog=new THREE.FogExp2(0x1a7591,SEA_FOG.dens);

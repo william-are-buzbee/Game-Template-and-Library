@@ -34,7 +34,7 @@ the way eventually even if it means fucking up our lawn today", and answered eve
 | 1 | the flight recorder, sent as a public GitHub issue (F9) | built v11.191 |
 | 2 | the docs cut to rules and a map | built v11.192 |
 | 3 | `tsc --checkJs` over src/, a baseline ratcheted down | built v11.193 |
-| 4 | the flora's detail by distance, from the recipes, measured by the recorder | built v11.194, **off** (`#lod`): a loss on the proxy; the person's reports decide |
+| 4 | the flora's detail by distance, from the recipes, measured by the recorder; then the tier that follows the machine | built v11.194, **off** (`#lod`); the tier built v11.199: a loss on the proxy; the person's reports decide |
 | 5 | the cells generated in workers | |
 | 6 | three.js to a current release | |
 | 7 | a fixed step and seeded randomness in the sim (replays) | |
@@ -135,3 +135,8 @@ could follow what the machine does rather than what it is called.
 **The person's to decide** (open, 21 Nov 2026): a report each way on the tower at one place — the preview as it is, then with `#lod` — settles
 whether the copies help a real weak card (the proxy's SwiftShader is not one); then whether to build the two pools, or the tier that follows
 the machine first.
+
+**The person's answer (21 Nov 2026)**, after the work tower's `#low` reports (#148–152: 25–31 ms of GPU a frame at low against 82 at high, #137):
+"Yeah let's just go for option 2" — the tier that follows the machine, before any more evidence on the copies. **Built v11.199** (scene.js
+`TIER_K`, `tierStep`, `tierFrame`; DESIGN "Performance and the quality tier"): each browser keeps a verdict from its GPU's own time; the far copies
+stay off and their question open.
