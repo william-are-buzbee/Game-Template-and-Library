@@ -210,7 +210,9 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
   among the bodies) → `finishPlayer` (pose, own arms, camera) → eggs, ecology → pads, disturbers, snow → wounds, ink, splashes, blood →
   atmosphere, surface → cull, lights, shadows, audio → HUD, effects → render → `recFrame`. **Moving a piece breaks contact silently.**
   Creatures past 150 m step every other frame; `lodNear`/`lodFar` swap parts for baked meshes.
-- **The quality tier** `Q` (scene.js) is numbers, never code paths; `#low`/`#high` force it; low is automatic on small touch screens. `Q.cldSh` 0
+- **The quality tier** `Q` (scene.js) is numbers, never code paths; `#low`/`#high` force it; else this browser's verdict from its GPU's own time
+  (v11.199, `TIER_SAVED`, `tierFrame`: low at once from the menu when high is far too heavy, else from the next start; `tier('forget')` in the console to judge
+  again); else low on small touch screens, high elsewhere. A tier is read at load only: never change `Q` in a session. `Q.cldSh` 0
   leaves the cloud shadows out of the shaders (the low tier). `Q.march` is the cloud volume's steps and `Q.vol` the master volume — never one for the other (it once played the game at 80× gain).
 - **Sound** (audio.js): one `AudioContext`; the space read from the geometry round the listener four times a second; beds from the world's
   numbers; an eight-voice pool for placed emitters; `M` mutes.
@@ -370,7 +372,7 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
 - **The console**: `tp(x,z,y)` (y above the ground, or a negative absolute depth; clamped to the world); `skip(days)` (in play; the clock on by game
   days, a fraction moving the hour; boot is phase 0.6 of `YEAR_D` 185, so `skip(28)` is the windy peak and `skip(120)` the still); `falls()`, `palls()` (pall ground nearest the start: `tp(2400,-699,-540)`), `milky()` (each with the `tp()` or `skip()` to it); `wmap.st`
   (what the world map cost); `report()` (F9);
-  `machine('home')` (this browser's name in its reports).
+  `machine('home')` (this browser's name in its reports); `tier()` (this start's tier, why, and the machine's verdict; `tier('forget')` judges again).
 - **The URL**: `#low` `#high`, `#lod` (the flora's far copies on, to compare), `#zoo`, `#lab` or `#lab=<base64 spec>`, `#bench` (it arms the first click: an audio context needs a gesture),
   `#creator` (grants the menu's creator word).
 - **The menu**: new game, continue (slots in IndexedDB — clear the site's data to start clean; the tests use memory), options (the effects

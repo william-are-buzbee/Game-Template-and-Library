@@ -10208,3 +10208,33 @@ GPU timer, so these lines do not run in any bench here — nothing to measure, a
 
 **Unseen, ask in this order:**
 1. Nothing to look at. A later report from the work tower says `junk` on its GPU line if the timer does it again.
+
+## v11.199 — the tier follows the machine: each browser's GPU chooses it (21 Nov 2026)
+
+The work tower's reports: its Intel UHD 730 drew the high tier at 82 ms a frame (#137) and `#low` at 25–33 (#138, #148–152) — the GPU fell with the
+triangles, which the resolution cannot help (it tried, ×0.66–0.9, and stayed GPU-bound). The tier was `high` on any desktop. The person, offered
+two reports on `#lod` first or the tier that follows the machine: "Yeah let's just go for option 2" (analysis_project.md §4).
+
+- **A verdict per browser** (scene.js `TIER_LS` `tethys.tier`, `TIER_SAVED`; `Q.why`): the start's tier is `#low`/`#high`, else the verdict, else a
+  small touch screen's low, else high. A tier is made at load (the context's antialias, the materials' lighting, the pools, the flora's density),
+  so a verdict is the next start's — or a reload.
+- **The evidence** (`tierFrame`, from main.js's loop; rec.js `RG.last`, `RG.lastPl`, `RG.goodN`): the GPU's own time a frame where the browser
+  times it (desktop Chrome; the junk dropped since v11.198), else a frame's interval while the CPU's work is under `TIER_K.cpu` 0.4 of it.
+- **The verdicts** (`tierStep`, pure; `TIER_K`): on the menu before any play, 3 s of the high tier over 40 ms (no timer 60) — the work tower's case —
+  stores low and **reloads into it at once** (once in 600 s); in play, the median of the first 60 s over 20 ms on high (no timer 36) is low from
+  the next start, under 6 ms on a low the verdict chose (timer only) high from the next start. Said in a hint, and on the menu at the start after.
+  One verdict a session. None under automation (`navigator.webdriver`: CI's boot, the site's cards, `npm run look`) or on a software renderer
+  (SwiftShader, llvmpipe) — `tierOff`.
+- **The console**: `tier()` says the start's tier, why and the verdict; `tier('forget')` clears it. **The report** says why (`tierWhy`, `tierV`;
+  test/report.js: "tier low by the machine's verdict (GPU 82 ms on high)").
+- **test/tier.js** (new, in --test): the verdicts by simulated machines (the tower at once from the menu, a 24 ms card from the next start, the home
+  card never, a wrongly low card back up, a touch screen's and the URL's tier never; no timer; one verdict a session), a stored verdict choosing
+  the start's tier, the frame loop storing one and reloading, none under automation or software.
+
+**What it costs:** a frame does a few comparisons and, when a sample counts, one histogram bin (`tierFrame`); nothing else per frame or at load.
+`node test/perf.js --only frames` (the frame loop, against main): the creatures' work at (330, 0) 2.39 → 2.19 ms (p95 3.34 → 2.91), ×0.87–0.91 — noise (nothing in their path changed), the simulation the same to the bit.
+
+**Unseen, ask in this order:**
+1. The work tower **without `#low`** on the preview: within seconds of the menu it should reload itself into the low tier and say so on the menu;
+   from then on, the plain address is low there. F9 says `tier low by the machine's verdict`.
+2. The home machine: stays high (its GPU 8 ms). `tier()` in the console says what each machine decided.

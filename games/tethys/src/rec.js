@@ -37,13 +37,13 @@ REC.other=recPlace(-1,0,0);
 // mean and its place's took it) — drops its frame's sample whole, and is counted (RG.junk, the report's gpu.junk). 2 s: Windows resets a GPU that
 // runs one frame's work longer (its TDR), so a real frame is under it.
 const RG={gl:null,ext:null,on:false,open:null,openK:0,pool:[],q:new Array(64).fill(null),k:new Int8Array(64),f:new Int32Array(64),p:new Array(64).fill(null),pl:new Uint8Array(64),h:0,n:0,did:0,
-  acc:new Float64Array(4),accF:-1,accP:null,accPl:0,accBad:0,junk:0,ema:-1};
+  acc:new Float64Array(4),accF:-1,accP:null,accPl:0,accBad:0,junk:0,ema:-1,last:0,lastPl:0,goodN:0}; // last, lastPl, goodN: the latest whole frame's GPU time, whether it was play, a count of them (scene.js tierFrame, v11.199)
 const RG_MAX=2000; // ms: a frame's pass longer than this is the timer's junk (above)
 function recGpu(k){RG.did|=1<<k;if(!RG.on)return;if(RG.open!==null)recGpuEnd();if(RG.n>=60)return;const gl=RG.gl,q=RG.pool.length?RG.pool.pop():gl.createQuery();
   gl.beginQuery(RG.ext.TIME_ELAPSED_EXT,q);RG.open=q;RG.openK=k;}
 function recGpuEnd(){if(RG.open===null)return;RG.gl.endQuery(RG.ext.TIME_ELAPSED_EXT);const i=RG.h,pl=mode==='play';RG.q[i]=RG.open;RG.k[i]=RG.openK;RG.f[i]=REC.frame;RG.p[i]=pl?REC.cur:null;RG.pl[i]=pl?1:0;
   RG.h=(i+1)&63;RG.n++;RG.open=null;}
-function recGpuFlush(){if(RG.accF<0)return;const a=RG.acc,g=a[0]+a[1]+a[2]+a[3];if(!RG.accBad)RG.ema=RG.ema<0?g:RG.ema+(g-RG.ema)*0.05;
+function recGpuFlush(){if(RG.accF<0)return;const a=RG.acc,g=a[0]+a[1]+a[2]+a[3];if(!RG.accBad){RG.ema=RG.ema<0?g:RG.ema+(g-RG.ema)*0.05;RG.last=g;RG.lastPl=RG.accPl;RG.goodN++;}
   if(RG.accPl&&!RG.accBad){REC.HG[recBin(g)]++;REC.gN++;REC.gSum+=g;if(g>REC.gMax)REC.gMax=g;for(let k=0;k<4;k++)REC.gPass[k]+=a[k];REC.sec.gN++;REC.sec.g+=g;
     const P=RG.accP;if(P){P.gN++;P.g+=g;for(let k=0;k<4;k++)P.gp[k]+=a[k];}
     for(const r of REC.sp)if(r[0]===RG.accF)r[15]=+g.toFixed(2);}
@@ -60,7 +60,7 @@ function recPoll(){const gl=RG.gl,E=RG.ext;
 function recGpuName(s){s=String(s||'');const m=/^ANGLE \((.*)\)$/.exec(s);if(m){const p=m[1].split(', ');s=p.length>1?p[1]:p[0];}
   return s.replace(/ \(0x[0-9A-Fa-f]+\)/,'').replace(/ Direct3D.*$/,'').replace(/^ANGLE Metal Renderer: /,'').replace(/ vs_\d.*$/,'').trim();}
 function recDevice(){const d={mid:REC.mid,gpu:'',vendor:'',gl:GL2?2:1,maxTex:0,timer:false,par:false,cores:navigator.hardwareConcurrency||0,mem:navigator.deviceMemory||0,ua:navigator.userAgent||'',plat:'',
-  screen:[screen.width||0,screen.height||0],dpr:window.devicePixelRatio||1,win:[innerWidth,innerHeight],buf:[0,0],tier:Q.tier,pr:Q.pr,aa:!!Q.aa,touch:!!isTouch,fx:null,
+  screen:[screen.width||0,screen.height||0],dpr:window.devicePixelRatio||1,win:[innerWidth,innerHeight],buf:[0,0],tier:Q.tier,tierWhy:Q.why,tierV:TIER_SAVED?{tier:TIER_SAVED.tier,ms:TIER_SAVED.ms,from:TIER_SAVED.from,timer:!!TIER_SAVED.timer,at:TIER_SAVED.at}:null,pr:Q.pr,aa:!!Q.aa,touch:!!isTouch,fx:null,
   flags:String(location.hash||''),lod:LOD.on?LOD.k+'/'+LOD.dSea+'/'+LOD.dAir:'off'};REC.dev=d; // flags: the URL's (#low, #nolod…), so two reports of one machine say what each ran with (v11.194); lod: the far copies' share, sea and air distances
   try{const gl=renderer.getContext(),dbg=gl.getExtension('WEBGL_debug_renderer_info');d.gpu=String(gl.getParameter(dbg?dbg.UNMASKED_RENDERER_WEBGL:gl.RENDERER));d.vendor=String(gl.getParameter(dbg?dbg.UNMASKED_VENDOR_WEBGL:gl.VENDOR));
     d.maxTex=gl.getParameter(gl.MAX_TEXTURE_SIZE)|0;const ex=gl.getSupportedExtensions()||[];d.par=ex.indexOf('KHR_parallel_shader_compile')>=0;

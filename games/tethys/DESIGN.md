@@ -2513,6 +2513,19 @@ mark) with a 16-point trail comes down from high in the view onto the child over
 
 ## Performance and the quality tier
 
+**v11.199 (21 Nov 2026): the tier follows the machine** (scene.js `TIER_K`, `TIER_SAVED`, `tierStep`, `tierFrame`, `tierOff`; test/tier.js; the
+person's "option 2", analysis_project.md §4). To v11.198 the tier was `high` on any desktop and `low` only on a small touch screen; the work tower's
+Intel UHD 730 drew high at 82 ms a frame, low at 25–33. A tier cannot change in a session — the context's antialias, the materials' lighting, the
+pools and the flora's density are made at load — so each browser keeps a **verdict** (localStorage `tethys.tier`: the tier, the median that chose
+it, from which tier, with or without the timer, when) and the start reads it: `#low`/`#high` first, then the verdict, then the touch screen's
+low, then high (`Q.why`: hash, machine, touch, default). The evidence is the GPU's own time a frame (rec.js's timer, its junk dropped since v11.198;
+`RG.last`), else, with no timer, a frame's interval while the CPU's work is under `TIER_K.cpu` 0.4 of it. **On the menu before any play**: 3 s
+(`menuS`) of the high tier over `now` 40 ms (no timer: `nowIv` 60) is far too heavy — the verdict low and a **reload into it at once**, once in
+`again` 600 s. **In play**: the median of the first `playS` 60 s over `down` 20 ms on high (no timer: `downIv` 36) is low from the next start; under
+`up` 6 ms on a low the verdict chose (timer only — a 60 Hz screen hides the headroom) high from the next start; each said in a hint, and the start
+after says it on the menu once. One verdict a session. None under automation (CI's boot, the site's cards, `npm run look`: `navigator.webdriver`)
+or on a software renderer (SwiftShader, llvmpipe). The report says the tier's reason (`tierWhy`, `tierV`).
+
 **v11.52 (15 Sep 2026): the draw count was the frame, and the flora is pooled per species.** Measured in the app's browser at the
 person's forest spot (147, −3, −443), the loop driven by hand with a `gl.finish()` timed after each render, A/B interleaved: 434 draws, `render`
 3.5 ms of a 5.4 ms frame (8 µs a draw here, 13 in their browser — their `render` 5.8 of 7.3), the GPU idle 0.5 ms after the last draw. All cell
