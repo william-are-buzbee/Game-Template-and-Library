@@ -32,24 +32,29 @@ REC.other=recPlace(-1,0,0);
 // A query brackets each pass (recGpu before it, recGpuEnd or the next recGpu after); its result arrives a few frames later and is added to its frame's
 // sum, which is counted when the next frame's first result arrives. The passes (k): 0 main, renderer.render of the world (three's own shadow map
 // inside it; horizon.js renderFrame); 1 the horizon tier; 2 the cloud volume (atmosphere.js cloudPass); 3 the world's static shadow map (scene.js updateShadowS). One query at a time (WebGL has no nesting). A disjoint (the GPU's clock reset:
-// a power state, another app) throws the queries in flight away. RG.ema is the readout's `gpu`.
+// a power state, another app) throws the queries in flight away. RG.ema is the readout's `gpu`. A result no GPU could give — not a number, negative, or
+// RG_MAX and over (v11.198: the work tower's Intel UHD 730 under ANGLE/D3D11 once answered 960,769 ms with no disjoint, #148–149, and the session's
+// mean and its place's took it) — drops its frame's sample whole, and is counted (RG.junk, the report's gpu.junk). 2 s: Windows resets a GPU that
+// runs one frame's work longer (its TDR), so a real frame is under it.
 const RG={gl:null,ext:null,on:false,open:null,openK:0,pool:[],q:new Array(64).fill(null),k:new Int8Array(64),f:new Int32Array(64),p:new Array(64).fill(null),pl:new Uint8Array(64),h:0,n:0,did:0,
-  acc:new Float64Array(4),accF:-1,accP:null,accPl:0,ema:-1};
+  acc:new Float64Array(4),accF:-1,accP:null,accPl:0,accBad:0,junk:0,ema:-1};
+const RG_MAX=2000; // ms: a frame's pass longer than this is the timer's junk (above)
 function recGpu(k){RG.did|=1<<k;if(!RG.on)return;if(RG.open!==null)recGpuEnd();if(RG.n>=60)return;const gl=RG.gl,q=RG.pool.length?RG.pool.pop():gl.createQuery();
   gl.beginQuery(RG.ext.TIME_ELAPSED_EXT,q);RG.open=q;RG.openK=k;}
 function recGpuEnd(){if(RG.open===null)return;RG.gl.endQuery(RG.ext.TIME_ELAPSED_EXT);const i=RG.h,pl=mode==='play';RG.q[i]=RG.open;RG.k[i]=RG.openK;RG.f[i]=REC.frame;RG.p[i]=pl?REC.cur:null;RG.pl[i]=pl?1:0;
   RG.h=(i+1)&63;RG.n++;RG.open=null;}
-function recGpuFlush(){if(RG.accF<0)return;const a=RG.acc,g=a[0]+a[1]+a[2]+a[3];RG.ema=RG.ema<0?g:RG.ema+(g-RG.ema)*0.05;
-  if(RG.accPl){REC.HG[recBin(g)]++;REC.gN++;REC.gSum+=g;if(g>REC.gMax)REC.gMax=g;for(let k=0;k<4;k++)REC.gPass[k]+=a[k];REC.sec.gN++;REC.sec.g+=g;
+function recGpuFlush(){if(RG.accF<0)return;const a=RG.acc,g=a[0]+a[1]+a[2]+a[3];if(!RG.accBad)RG.ema=RG.ema<0?g:RG.ema+(g-RG.ema)*0.05;
+  if(RG.accPl&&!RG.accBad){REC.HG[recBin(g)]++;REC.gN++;REC.gSum+=g;if(g>REC.gMax)REC.gMax=g;for(let k=0;k<4;k++)REC.gPass[k]+=a[k];REC.sec.gN++;REC.sec.g+=g;
     const P=RG.accP;if(P){P.gN++;P.g+=g;for(let k=0;k<4;k++)P.gp[k]+=a[k];}
     for(const r of REC.sp)if(r[0]===RG.accF)r[15]=+g.toFixed(2);}
-  a.fill(0);RG.accF=-1;RG.accP=null;RG.accPl=0;}
+  a.fill(0);RG.accF=-1;RG.accP=null;RG.accPl=0;RG.accBad=0;}
 function recPoll(){const gl=RG.gl,E=RG.ext;
   while(RG.n>0){const o=(RG.h-RG.n+64)&63,q=RG.q[o];if(!gl.getQueryParameter(q,gl.QUERY_RESULT_AVAILABLE))break;
-    if(gl.getParameter(E.GPU_DISJOINT_EXT)){while(RG.n>0){const i=(RG.h-RG.n+64)&63;RG.pool.push(RG.q[i]);RG.q[i]=null;RG.p[i]=null;RG.n--;}RG.acc.fill(0);RG.accF=-1;RG.accP=null;break;}
+    if(gl.getParameter(E.GPU_DISJOINT_EXT)){while(RG.n>0){const i=(RG.h-RG.n+64)&63;RG.pool.push(RG.q[i]);RG.q[i]=null;RG.p[i]=null;RG.n--;}RG.acc.fill(0);RG.accF=-1;RG.accP=null;RG.accBad=0;break;}
     const ms=gl.getQueryParameter(q,gl.QUERY_RESULT)/1e6;RG.pool.push(q);RG.q[o]=null;RG.n--;
     if(RG.f[o]!==RG.accF){recGpuFlush();RG.accF=RG.f[o];RG.accP=RG.p[o];RG.accPl=RG.pl[o];}
-    RG.acc[RG.k[o]]+=ms;RG.p[o]=null;}}
+    if(ms>=0&&ms<RG_MAX)RG.acc[RG.k[o]]+=ms;else if(!RG.accBad){RG.accBad=1;RG.junk++;} // junk: the frame's sample dropped, counted once
+    RG.p[o]=null;}}
 
 // ---------- the machine, once (at the first frame: the renderer exists by then) ----------
 function recGpuName(s){s=String(s||'');const m=/^ANGLE \((.*)\)$/.exec(s);if(m){const p=m[1].split(', ');s=p.length>1?p[1]:p[0];}
@@ -143,7 +148,7 @@ function recFull(){const n=REC.n||1,S=REC.sum,X=REC.mx,f=v=>+v.toFixed(2),g=REC.
   return {f:1,v:REC.v,url:location.pathname||'',at:REC.at,wall:Math.round(REC.wall/1000),play:Math.round(REC.s),dev:d,boot:Object.assign({nav:nav},REC.boot),
     all:{frames:REC.n,iv:[recPct(REC.H,REC.n,0.5),recPct(REC.H,REC.n,0.9),recPct(REC.H,REC.n,0.95),recPct(REC.H,REC.n,0.99),f(X[0])],work:[f(S[1]/n),recPct(REC.HW,REC.n,0.95),f(X[1])],
       ph:{gen:f(S[2]/n),play:f(S[3]/n),sim:f(S[4]/n),fx:f(S[5]/n),scene:f(S[6]/n),hud:f(S[7]/n),render:f(S[8]/n)},
-      gpu:g?{frames:g,mean:f(REC.gSum/g),p50:recPct(REC.HG,g,0.5),p95:recPct(REC.HG,g,0.95),max:f(REC.gMax),pass:{main:f(REC.gPass[0]/g),horizon:f(REC.gPass[1]/g),clouds:f(REC.gPass[2]/g),shadows:f(REC.gPass[3]/g)}}:null,
+      gpu:g?{frames:g,mean:f(REC.gSum/g),p50:recPct(REC.HG,g,0.5),p95:recPct(REC.HG,g,0.95),max:f(REC.gMax),junk:RG.junk,pass:{main:f(REC.gPass[0]/g),horizon:f(REC.gPass[1]/g),clouds:f(REC.gPass[2]/g),shadows:f(REC.gPass[3]/g)}}:null,
       draws:[Math.round(S[9]/n),X[9]],tris:[Math.round(S[10]/n),Math.round(X[10])],creatures:Math.round(S[11]/n),cells:Math.round(S[12]/n),res:f(S[13]/n),above:f(S[14]/n),vsync:vs,over:[over(16.7),over(33.3),over(50)]},
     menu:{frames:REC.menu.n,iv:REC.menu.n?f(REC.menu.iv/REC.menu.n):0,max:f(REC.menu.max),work:REC.menu.n?f(REC.menu.work/REC.menu.n):0},
     pc:REC_PC,places:places.map(recPlaceRow),tl:{every:REC.tlEvery,cols:REC_TL,rows:REC.tl.slice()},
