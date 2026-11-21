@@ -363,6 +363,19 @@ function sectorW(a,c,hw,fade){const x=a-c;let d=x<TAU&&x>-TAU?x:x%TAU;if(d<0)d+=
 // deleted: set it undefined instead)
 /** @typedef {{id:any,x:any,z:any,rot:any,sc:any,ns:any,state:any,age:any,asq:any,sat:any,h0:any,prof:any,terr:any,rimR:any,rimW:any,rimH:any,lagH:any,patch:any,coll:any,dike:any,rifts:any,riftR:any,vent:any,seep:any,isle:any,flank:any,fade:any,reach:any,core:any,land:any,barrier:any,isl:any,apr:any,carb:any,bare:any,knob:any,arm:any,lobe:any,lmax:any,lbR:any,lbG:any,bite:any,btR:any,rdg:any,cny:any,rdgR:any,rdgF:any,hi:any,hiS:any,quiet:any,an:any,rimM:any,sh:any,vly:any,hops:any,rng:any,_c:any,_s:any}} Rec — a record's every key (recNew), closed: the type checker flags a key misspelt or added later (v11.193, test/types.js) */
 /** @returns {Rec} */function recNew(){return {id:undefined,x:undefined,z:undefined,rot:undefined,sc:undefined,ns:undefined,state:undefined,age:undefined,asq:undefined,sat:undefined,h0:undefined,prof:undefined,terr:undefined,rimR:undefined,rimW:undefined,rimH:undefined,lagH:undefined,patch:undefined,coll:undefined,dike:undefined,rifts:undefined,riftR:undefined,vent:undefined,seep:undefined,isle:undefined,flank:undefined,fade:undefined,reach:undefined,core:undefined,land:undefined,barrier:undefined,isl:undefined,apr:undefined,carb:undefined,bare:undefined,knob:undefined,arm:undefined,lobe:undefined,lmax:undefined,lbR:undefined,lbG:undefined,bite:undefined,btR:undefined,rdg:undefined,cny:undefined,rdgR:undefined,rdgF:undefined,hi:undefined,hiS:undefined,quiet:undefined,an:undefined,rimM:undefined,sh:undefined,vly:undefined,hops:undefined,rng:undefined,_c:undefined,_s:undefined};}
+// The records' own data on shapes of their own (v11.197; the person's GC pauses, analysis_project.md). V8 gives an object literal the shape of every
+// object whose keys begin the same way — {n: …} is every counter in the game — and keeps a field of decimals unboxed; when one of them first holds a
+// decimal where the others held integers, the field's storage changes and V8 retires the shape, and the objects made before keep the retired one. A
+// read of such an object never misses (its handler is cached), so the object is never moved, while the optimiser takes no feedback from a retired
+// shape: islandH was thrown out of optimised code 25 times in 200,000 samples and stayed in the baseline tier, where every decimal is a new heap
+// object — 2 KB of garbage a sample() and twice the time (3.1 against 1.6 µs; L.gully.lee, the gullies on {n, lee}). So every plain object a record
+// holds is rebuilt on RDATA's prototype, a tree of shapes no other object shares, each field first set undefined — which V8 stores as any value from
+// the start, so no storage change is to come and no shape is retired (recNew does the same for the record). recSeal at the end of region.js's load.
+const RDATA={};
+function rdata(o){if(!o||typeof o!=='object')return o;if(Array.isArray(o)){for(let i=0;i<o.length;i++)o[i]=rdata(o[i]);return o;}
+  if(Object.getPrototypeOf(o)!==Object.prototype)return o; // a typed array, a three.js object, one already rebuilt
+  const c=Object.create(RDATA),K=Object.keys(o);for(const k of K)c[k]=undefined;for(const k of K)c[k]=rdata(o[k]);return c;}
+function recSeal(R){for(const k in R){const v=R[k];if(v&&typeof v==='object')R[k]=rdata(v);}}
 const ISLANDS=[
   Object.assign(recNew(),{id:'home',x:0,z:0,rot:0,sc:1,ns:0,h0:-14,prof:[[RIM_R+RIM_W*0.3,330,6],[330,700,40],[1000,1200,94],[1200,1600,40]],terr:{r0:700,r1:1000,n:8,step:12},
    rimR:RIM_R,rimW:RIM_W,lagH:-22,coll:COLL,dike:DIKE,rifts:RIFT_A,riftR:[280,340,1600,1300],vent:VENT,seep:SEEP,isle:ISLE,flank:{r:FLANK_R,w:FLANK_W,s0:FLANK_S0,s1:FLANK_S1,a:FLANK_A,b:FLANK_B},fade:BASIN.fade,reach:8500,core:2400}),
