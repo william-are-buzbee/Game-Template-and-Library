@@ -10280,3 +10280,21 @@ the canopy the same pixel for pixel.
 
 **Unseen, ask in this order:**
 1. Nothing to look at. A cell's generation should be a little quicker; the reports' `gen` will say.
+
+## v11.201 — the flora's far copies struck (21 Nov 2026)
+
+The person: "The far copies can be kept in for now as they look no different to me and they only are at 'risk' of improving performance. if I'm
+wrong about that, axe them." They were off by default (`#lod` turned them on), so what the person saw was the game without them; and on, they cost
+more on every machine — renderFrame's CPU ×1.37–1.48 and 45 draws more a frame, the proxy's GPU ×1.06–1.08 (v11.194), and #144's home report, with
+`#lod` at another place, read 4.5 ms of submit against 2.9. So, by the person's rule, struck.
+
+- **Gone**: parts.js `LOD`, `GEO_K`, `lodN` (the primitives take the sides and segments they are asked); grow.js `lodParts` and a species'
+  copy (`geoL`); chunks.js the copies packed into the pull texture (`gpL`), `poolLodOwn`, `LOD_MATS`, `lodMatOf`, `lodStep`; rec.js the report's
+  `lod`; test/lod.js; `#lod`.
+- **Kept**: every flora material's cut as a uniform (`uCut`, `cutUOf`, `CUT_V`: it costs nothing and the pictures are the same), and the tidewood's
+  own far copy (`TREE_LOD`, v11.188: a card's, which works).
+
+**What it costs:** COSTLINE
+
+**Unseen, ask in this order:**
+1. Nothing to look at: the default game is what it was.
