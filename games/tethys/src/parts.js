@@ -31,6 +31,9 @@ const G={
 // anim's clocks and closures, the arms' random phases — is built for it as before. Nothing in a creature's build reads a primitive or a part's
 // transform but merge (every G call is a part's geometry: test/bench_creatures.js proves the bodies the same to the bit, built and posed).
 // A replay whose merges do not match the recording throws, and buildKind builds whole instead.
+/** the build tape (v11.149): a class of its own (v11.200), so one shape no other object shares — as two literals ({play, list, i} and {play, list}) its `list` read in merge was thrown out of optimised code 125 times in 300 frames */
+class GeoTape{constructor(play,list){this.play=play;this.list=list;this.i=0;}}
+/** @type {GeoTape|null} */
 let GEO_TAPE=null;
 const LAZY_G={lazy:true,dispose(){}};
 for(const k in G){const f=G[k];G[k]=function(){return GEO_TAPE!==null&&GEO_TAPE.play?LAZY_G:f.apply(null,arguments);};} // a primitive while a tape plays: not made
