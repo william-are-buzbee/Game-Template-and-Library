@@ -55,7 +55,8 @@ function recPoll(){const gl=RG.gl,E=RG.ext;
 function recGpuName(s){s=String(s||'');const m=/^ANGLE \((.*)\)$/.exec(s);if(m){const p=m[1].split(', ');s=p.length>1?p[1]:p[0];}
   return s.replace(/ \(0x[0-9A-Fa-f]+\)/,'').replace(/ Direct3D.*$/,'').replace(/^ANGLE Metal Renderer: /,'').replace(/ vs_\d.*$/,'').trim();}
 function recDevice(){const d={mid:REC.mid,gpu:'',vendor:'',gl:GL2?2:1,maxTex:0,timer:false,par:false,cores:navigator.hardwareConcurrency||0,mem:navigator.deviceMemory||0,ua:navigator.userAgent||'',plat:'',
-  screen:[screen.width||0,screen.height||0],dpr:window.devicePixelRatio||1,win:[innerWidth,innerHeight],buf:[0,0],tier:Q.tier,pr:Q.pr,aa:!!Q.aa,touch:!!isTouch,fx:null};REC.dev=d;
+  screen:[screen.width||0,screen.height||0],dpr:window.devicePixelRatio||1,win:[innerWidth,innerHeight],buf:[0,0],tier:Q.tier,pr:Q.pr,aa:!!Q.aa,touch:!!isTouch,fx:null,
+  flags:String(location.hash||''),lod:LOD.on?LOD.k+'/'+LOD.dSea+'/'+LOD.dAir:'off'};REC.dev=d; // flags: the URL's (#low, #nolod…), so two reports of one machine say what each ran with (v11.194); lod: the far copies' share, sea and air distances
   try{const gl=renderer.getContext(),dbg=gl.getExtension('WEBGL_debug_renderer_info');d.gpu=String(gl.getParameter(dbg?dbg.UNMASKED_RENDERER_WEBGL:gl.RENDERER));d.vendor=String(gl.getParameter(dbg?dbg.UNMASKED_VENDOR_WEBGL:gl.VENDOR));
     d.maxTex=gl.getParameter(gl.MAX_TEXTURE_SIZE)|0;const ex=gl.getSupportedExtensions()||[];d.par=ex.indexOf('KHR_parallel_shader_compile')>=0;
     const E=GL2&&ex.indexOf('EXT_disjoint_timer_query_webgl2')>=0?gl.getExtension('EXT_disjoint_timer_query_webgl2'):null;if(E){RG.gl=gl;RG.ext=E;RG.on=true;d.timer=true;}
@@ -165,7 +166,7 @@ function recWhere(p){const m=/\/preview\/(\d+)\//.exec(p.url||'');return m?'prev
 function recTp(x,z,y){return 'tp('+x+','+z+(y<0?','+Math.round(y):'')+')';}
 function recMd(p,tok,cut,prev){const a=p.all,d=p.dev||{},b=p.boot||{},pc=p.pc,I=k=>pc.indexOf(k),L=[];
   L.push('**tethys '+p.v+'** · '+(p.play/60).toFixed(1)+' min played · '+recWhere(p)+(prev?' · the previous session (this one was under a minute)':'')+' · '+p.at.slice(0,16).replace('T',' ')+' UTC');
-  L.push('**machine** '+(d.mid?'`'+d.mid+'` ':'')+recGpuName(d.gpu)+' · WebGL'+d.gl+' · '+d.cores+' threads'+(d.mem?' · '+d.mem+' GB':'')+(d.plat?' · '+d.plat.trim():'')+' · screen '+(d.screen||[]).join('×')+' ×'+d.dpr+' · drawn '+(d.buf||[]).join('×')+' · '+d.tier+(a.vsync?' · vsync '+a.vsync.toFixed(1)+' ms':''));
+  L.push('**machine** '+(d.mid?'`'+d.mid+'` ':'')+recGpuName(d.gpu)+' · WebGL'+d.gl+' · '+d.cores+' threads'+(d.mem?' · '+d.mem+' GB':'')+(d.plat?' · '+d.plat.trim():'')+(d.flags?' · '+d.flags:'')+(d.lod?' · lod '+d.lod:'')+' · screen '+(d.screen||[]).join('×')+' ×'+d.dpr+' · drawn '+(d.buf||[]).join('×')+' · '+d.tier+(a.vsync?' · vsync '+a.vsync.toFixed(1)+' ms':''));
   L.push('**frames** p50 '+recMs(a.iv[0])+' · p95 '+recMs(a.iv[2])+' · p99 '+recMs(a.iv[3])+' · max '+recMs(a.iv[4])+' ms · '+(100*a.over[1]).toFixed(1)+'% over 33 ms · CPU '+recMs(a.work[0])+' ms (sim '+recMs(a.ph.sim)+' · gen '+recMs(a.ph.gen)+' · render '+recMs(a.ph.render)+')');
   L.push(a.gpu?'**gpu** p50 '+recMs(a.gpu.p50)+' · p95 '+recMs(a.gpu.p95)+' ms (main '+recMs(a.gpu.pass.main)+' · horizon '+recMs(a.gpu.pass.horizon)+' · clouds '+recMs(a.gpu.pass.clouds)+' · shadows '+recMs(a.gpu.pass.shadows)+')':'**gpu** no timer in this browser');
   L.push('**boot** scripts '+b.scripts+' s · first frame '+b.first+' s · world in '+b.done+' s · '+b.progs+' programs'+(b.seen?' (seen this version before)':' (first visit of this version)'));

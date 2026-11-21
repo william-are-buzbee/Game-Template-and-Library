@@ -25,11 +25,11 @@ function page(opt){opt=opt||{};let now=1000,frame=0,disjoint=false;const handler
   const g={console:{log(){},warn(...a){warned.push(a.join(' '));},error(...a){warned.push(a.join(' '));}},Math,JSON,Date,Map,Set,Array,Object,String,Number,Error,Promise,
     Uint8Array,Uint32Array,Int8Array,Int32Array,Float64Array,Blob,crypto:opt.crypto===false?undefined:globalThis.crypto,Response,CompressionStream,TextEncoder,btoa,unescape,encodeURIComponent,setTimeout:f=>f(),
     performance:{now:()=>now},navigator:{hardwareConcurrency:16,deviceMemory:8,userAgent:'Mozilla/5.0 (Windows NT 10.0; Win64; x64) Chrome/131.0.0.0'},
-    screen:{width:2560,height:1440},innerWidth:1600,innerHeight:900,devicePixelRatio:1.5,location:{pathname:'/Game-Template-and-Library/preview/135/games/tethys/tethys.html'},
+    screen:{width:2560,height:1440},innerWidth:1600,innerHeight:900,devicePixelRatio:1.5,location:{pathname:'/Game-Template-and-Library/preview/135/games/tethys/tethys.html',hash:'#low'},
     localStorage:{getItem:k=>store.has(k)?store.get(k):null,setItem:(k,v)=>store.set(k,String(v))},
     document:{hidden:false,addEventListener(n,f){(handlers['doc:'+n]=handlers['doc:'+n]||[]).push(f);}},
     addEventListener(n,f){(handlers[n]=handlers[n]||[]).push(f);},
-    THREE:{Vector2:class{constructor(){this.x=0;this.y=0;}}},GL2:true,Q:{tier:'high',pr:1.5,aa:true},isTouch:false,FX:{snow:true,shadows:true,biolum:false},CELL:215,
+    THREE:{Vector2:class{constructor(){this.x=0;this.y=0;}}},LOD:{on:true,k:0.5,dSea:150,dAir:120},GL2:true,Q:{tier:'high',pr:1.5,aa:true},isTouch:false,FX:{snow:true,shadows:true,biolum:false},CELL:215,
     BOOT:{stage:'store',done:false},mode:'menu',player:{pos:{x:0,y:-12,z:0},yaw:0},visibleCreatures:0,visibleChunks:0,resK:1,wasAbove:false,hintEl:{style:{}},
     renderer:{info:{render:{calls:0,triangles:0},programs:[]},getContext:()=>gl,getDrawingBufferSize:v=>{v.x=2400;v.y=1350;return v;},domElement:{addEventListener(){}}}};
   g.window=g;g.open=opt.open||(()=>({location:{href:''},opener:{}}));vm.createContext(g);vm.runInContext(SRC,g,{filename:'rec.js'});
@@ -52,6 +52,7 @@ async function unpack(tok){const m=/tethys-rec:1:([zj])([A-Za-z0-9_-]+)/.exec(to
     const f=P.R().full(),b=f.boot,d=f.dev;
     ok(d.gpu.indexOf('RTX 4060')>0&&d.timer&&d.par&&d.cores===16&&d.mem===8&&d.gl===2&&d.maxTex===16384,'the machine: '+[d.gpu,d.cores+' threads',d.mem+' GB','timer '+d.timer,'parallel '+d.par].join(', '));
     ok(d.buf[0]===2400&&d.buf[1]===1350&&d.screen[0]===2560&&d.dpr===1.5&&d.fx&&d.fx.snow===true,'the screen, the drawing buffer and the effects at the report');
+    ok(d.flags==='#low'&&d.lod==='0.5/150/120','the URL\'s flags and the far copies\' settings (v11.194): '+d.flags+', '+d.lod);
     ok(b.first>0&&b.first<=b.store&&b.store<=b.load&&b.load<=b.done,'the boot\'s stages in order: first '+b.first+', store '+b.store+', load '+b.load+', done '+b.done);
     ok(f.menu.frames===41&&f.all.frames===0,'menu frames apart from play (the page\'s first frame never one): '+f.menu.frames+' and '+f.all.frames);}
 
