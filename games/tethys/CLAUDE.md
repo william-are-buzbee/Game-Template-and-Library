@@ -267,7 +267,8 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
   `LOD.dSea` under the water or `LOD.dAir` in the air, while the material itself is cut there. So a new flora material sets `cutAt`, prepends `CUT_V`
   and sets `sh.uniforms.uCut=cutUOf(m)`; a new primitive in `G` scales its sides by `lodN`; a builder never draws randomness per vertex of a `G`
   primitive or reads its vertex count (the copy would be another plant: `test/lod.js`). The depth pass keeps the base material's cut, so the
-  shadows are as they were; a material a card's own copy cuts (the tidewood's, `TREE_LOD`) gets no generic copy. `#nolod` switches it off.
+  shadows are as they were; a material a card's own copy cuts (the tidewood's, `TREE_LOD`) gets no generic copy. Off by default; `#lod` in the URL switches it on (analysis_project.md §4: on the proxy it cost more than it saved — every far instance still runs the whole plant's
+  vertex shader to leave it, and every species is a draw more — so a report each way on the person's machines decides).
 - **Under water the surface is drawn first as an occluder** (atmosphere.js `SURF_OCC`, `OCC`): its facets outside the window write depth before
   the dome and the sky (the facet's cosine to the eye under `OCC.cv` 0.25; the window opens at `WIN_LO` 0.35). What must be seen through the
   surface from below is seen in the window or not at all; a thing drawn before renderOrder −12 is under it; a change to the window's rule
@@ -358,7 +359,7 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
   days, a fraction moving the hour; boot is phase 0.6 of `YEAR_D` 185, so `skip(28)` is the windy peak and `skip(120)` the still); `falls()`, `palls()` (pall ground nearest the start: `tp(2400,-699,-540)`), `milky()` (each with the `tp()` or `skip()` to it); `wmap.st`
   (what the world map cost); `report()` (F9);
   `machine('home')` (this browser's name in its reports).
-- **The URL**: `#low` `#high`, `#nolod` (the flora's far copies off, to compare), `#zoo`, `#lab` or `#lab=<base64 spec>`, `#bench` (it arms the first click: an audio context needs a gesture),
+- **The URL**: `#low` `#high`, `#lod` (the flora's far copies on, to compare), `#zoo`, `#lab` or `#lab=<base64 spec>`, `#bench` (it arms the first click: an audio context needs a gesture),
   `#creator` (grants the menu's creator word).
 - **The menu**: new game, continue (slots in IndexedDB — clear the site's data to start clean; the tests use memory), options (the effects
   list), the creator. Esc in play with the pointer free saves and returns (esc twice when locked). A death writes its cause to the slot.

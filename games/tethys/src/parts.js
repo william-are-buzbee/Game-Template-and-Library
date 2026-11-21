@@ -5,7 +5,7 @@
 // water and in the air (set each frame, chunks.js lodStep; the fog has the far plants at a few levels of 255 under the water, test/lod.js and
 // analysis_project §4); fade, the full plant's own edge (a cut, as the tidewood's: the copy is its silhouette).
 let GEO_K=1;
-const LOD={on:HASH_FLAGS.indexOf('nolod')<0,k:0.5,minPart:0.05,dSea:150,dAir:120,fade:1,force:false}; // on: off with #nolod in the URL, to compare (a report says which) // minPart: a part smaller than this share of its plant is left out of the far copy (lodParts) // force: the far copies built where they cannot be drawn (test/lod.js)
+const LOD={on:HASH_FLAGS.indexOf('lod')>=0,k:0.5,minPart:0.05,dSea:150,dAir:120,fade:1,force:false}; // on: only with #lod in the URL (v11.194: on the proxy it cost more than it saved — analysis_project.md §4 — so the person's own machines decide, a report each way) // minPart: a part smaller than this share of its plant is left out of the far copy (lodParts) // force: the far copies built where they cannot be drawn (test/lod.js)
 function lodN(n,min){return GEO_K===1?n:Math.max(min,Math.round(n*GEO_K));}
 const G={
   box:(w,h,d)=>new THREE.BoxGeometry(w,h,d),
