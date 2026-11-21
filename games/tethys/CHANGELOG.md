@@ -10187,3 +10187,24 @@ across the world and round home.
 
 **Unseen, ask in this order:**
 1. On the home machine, 20+ minutes of play, then F9: the `gc` frames (worst frames, "outside gc") and the heap column of the timeline.
+
+## v11.198 — the recorder drops the GPU timer's junk (21 Nov 2026)
+
+The work tower's reports #148 and #149 (one session, F9 twice; v11.197 on `#low`) carried one GPU reading of **960,769 ms** — sixteen minutes, in an
+11.9-minute session — with no disjoint flag set. It went into every sum: the session's GPU mean read 63.3 ms against a median of 24.8, and the place
+where it fell, `tp(-8911,3695)`, 72.5 ms. The person: "yes, fix the recorder in its own PR".
+
+- **A result no GPU could give drops its frame** (rec.js `recPoll`, `recGpuFlush`; `RG_MAX` 2000 ms, `RG.accBad`, `RG.junk`): not a number,
+  negative, or 2 s and over — Windows resets a GPU that runs one frame's work longer (its TDR), so no real frame's pass is there. The frame's
+  sample is left out whole (the session's histogram, mean and max, its place's, the readout's EMA, a slow frame's late GPU time), and the
+  reading is counted once a frame: the report's `gpu.junk`.
+- **test/report.js** prints `n junk readings dropped` on the GPU line; for a report from before (a max of 2 s or more and no `junk` field) it
+  says the max is junk and prints the mean without it — #149's: 25.43 ms. One place's GPU still carries it there.
+- **test/rec.js**: a frame answered 960,769 ms on the fake page — its frame dropped (6 of 7 timed), one junk counted, the max and the shore's
+  GPU time unmoved (12 ms; on the code before, 800 ms and a max of 960,772).
+
+**What it costs:** two number comparisons for each query's result (four passes a frame at most) and one a frame; the headless browser has no
+GPU timer, so these lines do not run in any bench here — nothing to measure, and nothing else changed.
+
+**Unseen, ask in this order:**
+1. Nothing to look at. A later report from the work tower says `junk` on its GPU line if the timer does it again.

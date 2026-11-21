@@ -91,6 +91,11 @@ async function unpack(tok){const m=/tethys-rec:1:([zj])([A-Za-z0-9_-]+)/.exec(to
   {const g=P.g,R=P.R(),n0=R.state.gN;for(let i=0;i<3;i++)P.step(16.7,{pos:B,gpu:[9,2,1,0]});P.setDisjoint();for(let i=0;i<10;i++)P.step(16.7,{pos:B,gpu:[9,2,1,0]});
     ok(R.state.gN>n0&&R.state.gN<n0+13,'a disjoint drops the queries in flight: '+(R.state.gN-n0)+' of 13 frames timed');
     const f=R.full(),pB=f.places.find(r=>r[0]===110);ok(Math.abs(pB[f.pc.indexOf('gpu')]-12)<0.01,'and the shore\'s GPU is still 12 ms: '+pB[f.pc.indexOf('gpu')]);
+    // v11.198: a result no GPU could give (the work tower's 960,769 ms, #148–149, with no disjoint): its frame dropped, counted, nothing else moved
+    {const n1=R.state.gN,m0=R.state.gMax,e0=R.gpu.ema;P.step(16.7,{pos:B,gpu:[960769,2,1,0]});for(let i=0;i<6;i++)P.step(16.7,{pos:B,gpu:[9,2,1,0]});
+      const f2=R.full(),pB2=f2.places.find(r=>r[0]===110);
+      ok(R.gpu.junk===1&&f2.all.gpu.junk===1&&R.state.gMax===m0&&R.state.gN===n1+6&&Math.abs(pB2[f2.pc.indexOf('gpu')]-12)<0.01&&Math.abs(R.gpu.ema-e0)<1,
+        'a junk reading (960,769 ms) drops its frame: '+(R.state.gN-n1)+' of 7 timed, '+R.gpu.junk+' junk counted, the max '+R.state.gMax+', the shore still '+pB2[f2.pc.indexOf('gpu')]+' ms');}
     g.console.warn('the horizon tier could not build: x');g.console.warn('the horizon tier could not build: x');g.console.error('THREE.WebGLProgram: shader error',{a:1});
     for(const h of P.handlers.error)h({message:'boom',lineno:12,colno:3});for(const h of P.handlers.unhandledrejection)h({reason:new Error('no store')});
     const e=R.full().errs;ok(e.length===4&&e[0][0]==='warn'&&e[0][1]===2&&e[0][3]===110,'four kinds, the warning twice and where: '+e.map(x=>x[0]+'×'+x[1]).join(' '));

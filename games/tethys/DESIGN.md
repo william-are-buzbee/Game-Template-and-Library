@@ -2608,7 +2608,10 @@ The repository is public, so the report is (the person's choice, 20 Nov 2026).
 - **The GPU's own time** where the browser has `EXT_disjoint_timer_query_webgl2` (desktop Chrome; Firefox hides it): a query round each pass —
   `recGpu(k)` before it, `recGpuEnd()` after — 0 the world (`renderer.render(scene)`, three's own shadow map inside it), 1 the horizon tier, 2 the
   cloud volume, 3 the world's static shadow map. Results come back a few frames late and are summed by frame; a disjoint throws the queries in flight
-  away. The readout shows it as `gpu` (an EMA): render ms is the submit plus any wait, this is the card's own time.
+  away, and a result no GPU could give (not a number, negative, or `RG_MAX` 2 s and over: Windows resets a GPU that runs one frame's work longer) drops
+  its frame's sample whole and is counted (`RG.junk`, the report's `gpu.junk`; v11.198 — the work tower's Intel under ANGLE/D3D11 answered 960,769 ms
+  once with no disjoint, #148–149, and the session's mean and its place's took it). The readout shows it as `gpu` (an EMA): render ms is the submit
+  plus any wait, this is the card's own time.
 - **By place.** The frames are kept by the 215 m cell the body is in (600 cells, the rest pooled): seconds there, p50/p95/p99, the phases' means, the
   GPU's by pass, the draws and triangles mean and max, the worst frame's place and heading (test/report.js's `AT=x,y,z,yaw` line stands test/gpu.js
   and test/fill.js there: test/benchpage.js `PLACES.at`). The 40 worst frames (50 ms, or 33 of work) with what each did: `gen` (a cell or region

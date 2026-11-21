@@ -4,6 +4,11 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.198 (21 Nov 2026): the recorder drops the GPU timer's junk** (rec.js `RG_MAX`, `RG.junk`; test/report.js; test/rec.js; DESIGN "The flight
+recorder"; CHANGELOG). The work tower's reports #148–149 had one GPU reading of 960,769 ms (no disjoint flag), which made the session's GPU mean 63 ms
+(the median 24.8) and one place's 72. A reading under 0, not a number, or 2 s and over now drops its frame and is counted (`gpu.junk`); report.js
+flags an older report that has one and prints its mean without it. **Ask:** nothing; the next work-tower report should show `junk` if it happens again.
+
 **v11.197 (21 Nov 2026): the terrain stays in optimised code** (world.js `RDATA`, `rdata`, `recSeal`; region.js's load; test/opt.js; DESIGN, the
 world's speed; CHANGELOG). The person's GC pauses: the long ones were v11.195's (the list held every slot whole: a full collection ×2.4 with six
 slots here); the rest is garbage. 2.3 of the game's 4.2 MB a frame (the bench page, swimming) was islandH, stuck in V8's baseline tier: a record's
@@ -26,11 +31,6 @@ continue with the slots it has (the first boot migrates them), and an F9 report 
 analysis_project.md §4; CHANGELOG). Every flora material's cut is a uniform now (the same pictures); every species has a copy at half its detail
 drawn past 150 m / 120 m — but on the proxy it cost more than it saved (the GPU ×1.06–1.08, 45 draws more), so only `#lod` turns it on.
 **Ask:** two reports on the work tower at one place, without and with `#lod`; then the two pools or the tier that follows the machine (§4).
-
-**v11.193 (20 Nov 2026): the type checker** (test/types.js, test/types.json, tsconfig.json, types/; analysis_project.md §3; CHANGELOG). TypeScript reads
-src/*.js as the one scope it is; the old errors are a baseline that only goes down; the record, the creature and the player are closed types, so a
-key misspelt or set late on them is an error — the player had twenty such keys, now in its literal. Nothing in the game changed (every body, the
-simulation, the GPU's counts and the pictures the same). **Ask:** nothing to look at.
 
 ## Open
 
