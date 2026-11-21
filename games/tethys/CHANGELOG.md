@@ -10085,9 +10085,11 @@ The person: "yes, fix the save freeze."
   (`slotPut`; the autosave, the import, a death, the shadow copy moved in), deleted with it (`slotDel`); `storeAll` and `storeDel` are gone.
 - **The list from the summaries** (`storeSums`: a key-range `getAll` and `getAllKeys` in one read transaction; the memory and localStorage
   backends' `kvSync` 'sums' and 'keys'). A slot without one — every slot from before — is read whole once and given its summary, then listed.
-- **A slot read whole only when it is needed** (`slotGet`): continue (menu.js `menuContinue`; the slot this session last wrote or loaded is
-  kept, `slotLast`, `menu.worldRec`, so continuing it reads nothing), export, and the boot's last slot (main.js `bootSlot`: the store stage waits
+- **A slot read whole only when it is needed** (`slotGet`): continue (menu.js `menuContinue`; the record esc to the menu wrote, or the boot
+  read, is kept as `menu.worldRec` while the menu shows, so continuing it reads nothing — `saveNow(true)`, `slotLast`; an autosave keeps none), export, and the boot's last slot (main.js `bootSlot`: the store stage waits
   for it, with `BOOT.slotMax` 8 s as a floor; `bootGo`).
+- **The memory it held**: the old list kept every slot whole for the whole session. #143 (23 min at home): the heap 1.5 GB in play, 2.9 GB at
+  each of the list's reads. Now the list is summaries and at most one slot is held (the menu's, for continue).
 - **test/slots.js** (new, in --test): save.js alone on the memory and localStorage backends, every whole read counted — the summary written, the
   list reading no slot, a slot from before read once and the next list none, the summary following a rewrite, delete taking both, the profile no
   slot, the localStorage list parsing no slot. test/smoke.js and test/player.js read slots through `slotGet`.

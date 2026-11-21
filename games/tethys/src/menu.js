@@ -56,7 +56,7 @@ function choose(c,pos,yaw,pitch){ // into play as clade c (an index or the clade
   saveT=SAVE_EVERY;initAudio();tryLock();
 }
 function toMenu(){ // play to the menu (esc with the pointer free): the game saved, the world cleared, the peak's cells back under the menu's camera
-  if(mode!=='play')return;saveNow();const wid=curSave?curSave.id:null,wrec=slotLast&&slotLast.id===wid?slotLast:null;curSave=null;unlock(); // wid (v11.189): the world under the menu is this slot's still — continue goes straight back in
+  if(mode!=='play')return;saveNow(true);const wid=curSave?curSave.id:null,wrec=slotLast&&slotLast.id===wid?slotLast:null;slotLast=null;curSave=null;unlock(); // wid (v11.189): the world under the menu is this slot's still — continue goes straight back in
   const shot=camNow(); // the camera as it is: the title screen opens from here (v11.47.2)
   menuGo(()=>{playerDrop();mode='menu';worldClear();menuCam(shot);cellsAround();menu.worldOf=wid;menu.worldRec=wrec;menuEl.classList.remove('gone');menuPage('main');menuRise(MENU_RISE_BACK);hintEl.style.opacity=0;menuRefresh();});
 }
