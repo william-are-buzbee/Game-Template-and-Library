@@ -61,9 +61,9 @@ function merge(parts){
     o+=pa.length;if(g!==p.g)g.dispose();p.g.dispose();
   }
   const geo=new THREE.BufferGeometry();
-  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
-  geo.setAttribute('normal',new THREE.BufferAttribute(nor,3));
-  geo.setAttribute('color',new THREE.BufferAttribute(col,3));
+  geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); // Float32BufferAttribute, as every other geometry's: one class through three's
+  geo.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));   // per-draw code (a plain BufferAttribute here made renderFrame ×1.16–1.24 at the forest)
+  geo.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
   if(T!==null)T.list.push({n:parts.length,pos:pos.slice(),nor:nor.slice(),col:col.slice()}); // v11.149: recording — a copy, before any caller writes into it
   return geo;
 }
