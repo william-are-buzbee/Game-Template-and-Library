@@ -7,7 +7,7 @@ const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..');
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
 let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n');
-js+='\nglobal.__pl={CLADES,SPECS,DEFS,derive,statsOf,playerClade,player,startNew,startFrom,saveNow,saveRefresh,get saveList(){return saveList;},rec:(id)=>{let o=null;slotGet(id,r=>{o=r;});return o;},get curSave(){return curSave;},get mode(){return mode;},SAVE_V,saveSoon,saveStep,get saveJob(){return saveJob;},ECO_PT,POP_SLICE,specToJSON,founderClade,founderList,founderOf,abilitiesOf,lineKind,keys,CAM_BODY,DERIVE_K,PROFILE,seeSpec};';
+js+='\nglobal.__pl={CLADES,SPECS,DEFS,derive,statsOf,playerClade,player,startNew,startFrom,saveNow,saveRefresh,get saveList(){return saveList;},rec:(id)=>{let o=null;slotGet(id,r=>{o=r;});return o;},get curSave(){return curSave;},get mode(){return mode;},SAVE_V,saveSoon,saveStep,saveLeave,saveFinish,get saveJob(){return saveJob;},ECO_PT,POP_SLICE,specToJSON,founderClade,founderList,founderOf,abilitiesOf,lineKind,keys,CAM_BODY,DERIVE_K,PROFILE,seeSpec};';
 js+='\nglobal.__line={get t(){return t;},setT(v){t=v;clockH=t*CLOCK_RATE;},DAY_S,LINE,BREED,MOULT_P,MOULT,kindOf:()=>lineKind(player.clade.spec),moultAt:(n)=>moultAt(lineCur(),n),moultN:(v)=>moultN(lineCur(),v),scale:()=>lineScale(lineCur()),soft:()=>lineSoft(lineCur()),sheds:()=>sheds,denAt:(x,z)=>{const ch=chunkAt(x,z),h=groundAt(x,z);return !!ch&&denAt(V3(x,h,z),ch,BREED.hingeshells.den);},solidNear:(x,z,r)=>{const ch=chunkAt(x,z),h=groundAt(x,z);return !!ch&&!!solidPush(V3(x,h+0.6,z),r,null,ch,true);},shel:(x,z)=>{const ch=chunkAt(x,z);return ch?ch.f(x,z)[FI.shel]:-1;},breed:()=>lifeBreed(lineCur()),brooding:()=>lineBrooding(),guarded:(b)=>broodGuarded(b),lifeS:()=>lifeS(lineCur()),hint:()=>hintEl.textContent,findCarcass:(c,R)=>findCarcass(c,R),groundAt,lay:()=>playerLay()&&conceiveClose(true),eggs:()=>eggs,cur:()=>lineCur(),line:()=>curSave?curSave.line:null,die:(c)=>die(c),live:(b)=>broodLive(b),young:(b)=>creatures.filter(c=>c.alive&&c.brood===b),tick:(dt)=>lineTick(dt),children:()=>lineChildren(),clear:()=>worldClear(),cells:()=>cellsAround()};';
 js+='\nglobal.__ox={oxyTick,oxySlow,oxyTol,OXYD,oxyAt,ability:()=>ability(),chemoHere:(x,z,c)=>{chemoInit();const B=CHEMO_B,i=Math.floor((x-B.x0)/B.G),j=Math.floor((z-B.z0)/B.G);B.lab[j*B.nx+i]=B.ch.length;B.ch.push(c);},chemoClear:()=>{CHEMO_B=null;}};';
 js+='\nglobal.__cb={coverAt,thruOf,MOULT,sheds,softPrey,findPrey,spawn,chunkAt,solidPush,V3,creatures,FI,groundAt};';
@@ -93,7 +93,13 @@ const Cf=X.player.clade;check(['speed','accel','turn','mass','bite','cam','sprin
     check(a.pop.bin===1&&f>2&&mid&&mid.played===a.played&&b.played>=a.played&&b.pop.bin===1&&same(a.pop,b.pop),'a save in slices: '+f+' frames of '+X.POP_SLICE+' values, the slot unchanged until the last, then the streams a save at once writes');
     const B=X.ECO_PT.bp;X.saveSoon();const j0=X.saveJob;X.saveStep();const keep=B[0];B[0]=keep===-1?0:-1;let g=0;while(X.saveJob===j0&&g<5000){X.saveStep();g++;}
     const restarted=!!X.saveJob&&X.saveJob!==j0&&X.saveJob.J.t===0&&X.rec(id).played===b.played;B[0]=keep;while(X.saveJob&&g<10000){X.saveStep();g++;} // back as it was: the next walk sees it changed again, the one after finishes
-    check(restarted&&!X.saveJob&&same(a.pop,X.rec(id).pop),'a patch\'s slot moved mid-walk: the save starts again, and ends with the ledger as it is');}
+    check(restarted&&!X.saveJob&&same(a.pop,X.rec(id).pop),'a patch\'s slot moved mid-walk: the save starts again, and ends with the ledger as it is');
+    // v11.204: to the menu — the walk begun at the key (saveLeave), walked by the fade's frames, finished at its end (saveFinish): either the walk
+    // ended during the fade and its record is the one kept, or the rest is walked at once; both store the streams a save at once writes
+    {X.saveLeave();let n=0;while(X.saveJob&&n<5000){X.saveStep();n++;}const r1=X.saveFinish(id),s1=X.rec(id);
+      X.saveLeave();X.saveStep();X.saveStep();const r2=X.saveFinish(id),s2=X.rec(id);
+      check(r1&&r1.id===id&&s1&&same(a.pop,s1.pop)&&r2&&r2.id===id&&!X.saveJob&&s2&&same(a.pop,s2.pop),'to the menu: a walk ended in the fade kept as it was ('+n+' frames), a walk cut short finished at the fade\'s end — both the streams of a save at once');}
+  }
 }
 // ---- 5. the editor at conception (v11.72, LINEAGE §13.4): declined, edited within the budget, refused over it, the child on its own derived numbers ----
 {const L=global.__line,V=global.__cv,P=X.player,fin=X.CLADES.find(c=>c.id==='fin'),floor=()=>{const h=L.groundAt(P.pos.x,P.pos.z);P.pos.y=h+1.5;P.vel.set(0,0,0);P.sub=1;};
