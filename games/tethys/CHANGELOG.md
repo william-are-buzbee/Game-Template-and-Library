@@ -10232,7 +10232,7 @@ two reports on `#lod` first or the tier that follows the machine: "Yeah let's ju
   the start's tier, the frame loop storing one and reloading, none under automation or software.
 
 **What it costs:** a frame does a few comparisons and, when a sample counts, one histogram bin (`tierFrame`); nothing else per frame or at load.
-COSTLINE
+`node test/perf.js --only frames` (the frame loop, against main): the creatures' work at (330, 0) 2.39 → 2.19 ms (p95 3.34 → 2.91), ×0.87–0.91 — noise (nothing in their path changed), the simulation the same to the bit.
 
 **Unseen, ask in this order:**
 1. The work tower **without `#low`** on the preview: within seconds of the menu it should reload itself into the low tier and say so on the menu;

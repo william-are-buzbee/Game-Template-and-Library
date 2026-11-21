@@ -7,7 +7,7 @@ Add the new version's paragraph at the top; take out what is no longer true; kee
 **v11.199 (21 Nov 2026): the tier follows the machine** (scene.js `TIER_K`, `TIER_SAVED`, `tierStep`, `tierFrame`; test/tier.js; DESIGN
 "Performance and the quality tier"; analysis_project.md §4; CHANGELOG). The person's "option 2". Each browser keeps a verdict from its GPU's own
 time: high far too heavy on the menu (over 40 ms) reloads into low at once; in play a minute over 20 ms is low from the next start, under 6 ms on
-the machine's low is high again. `#low`/`#high` still win. Built on v11.198 (stacked: its PR first). **Ask:** the work tower without `#low`:
+the machine's low is high again. `#low`/`#high` still win. **Ask:** the work tower without `#low`:
 it should reload itself into low within seconds of the menu, and say so; the home machine should stay high.
 
 **v11.198 (21 Nov 2026): the recorder drops the GPU timer's junk** (rec.js `RG_MAX`, `RG.junk`; test/report.js; test/rec.js; DESIGN "The flight
@@ -25,7 +25,7 @@ world bit-identical. **Ask:** a report from home after 20+ minutes — the `gc` 
 `slotJSON`; test/slots.js, test/player.js, test/boot.js, test/ledger.js; DESIGN, the save paragraph; CHANGELOG). The home report #143: every save in
 play ~160 ms (the autosave, the pointer's release). The ledger is binary streams of runs now (SAVE_V 4), Blobs in IndexedDB, and a save in play is
 walked over ~47 frames (~1.5 ms each) instead of at once; esc, a death, the page leaving still save at once, ×0.15–0.3 of before. Old saves load.
-Built on v11.195 (stacked: its PR first). **Ask:** a report from home after some play — no `IDBRequest`, `pointerlockchange` or autosave hitch.
+**Ask:** a report from home after some play — no `IDBRequest`, `pointerlockchange` or autosave hitch.
 
 **v11.195 (21 Nov 2026): the save list reads summaries** (save.js `slotSum`, `slotPut`, `slotGet`, `slotDel`, `storeSums`; menu.js, main.js
 `bootSlot`; test/slots.js; DESIGN, the save paragraph; CHANGELOG). The home reports (#141, #142) blamed 6 s of freezes on the store: the menu's list
