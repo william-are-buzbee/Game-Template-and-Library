@@ -10072,3 +10072,81 @@ bytes and draws); nothing compiled at first sight; the pictures at the forest, t
 **Unseen, ask in this order:**
 1. On the work tower (`20e1`), at one place, two reports: the preview as it is, then with `#lod` in the address — does the GPU's time move?
 2. Then the person's call (analysis_project.md §4): the two pools that would take the copies' waste out, or the tier that follows the machine first.
+
+## v11.195 — the save list reads summaries: the menu no longer reads every slot whole (21 Nov 2026)
+
+The person's home reports (#141, #142; 120 fps, the GPU 7.8–8.0 ms) had 6 s of freezes that Chrome's long animation frames laid on the save
+store's callbacks: 2.3 s four seconds into play and two ~2 s stalls on the menu. `saveRefresh` listed the slots with one IndexedDB `getAll`, which
+deserialises every slot whole — the ledger's tables with it — to show names and dates, at boot, at every return to the menu and at every new game.
+The person: "yes, fix the save freeze."
+
+- **A summary beside every slot** (save.js `slotSum`, `slotEntry`, `SUM_P`): `sum:<id>`, the list's fields only (name, made, played, time played,
+  clade, the spec's id, the generations, over, the dead and the last cause, where the body is). **Written with the slot in one transaction**
+  (`slotPut`; the autosave, the import, a death, the shadow copy moved in), deleted with it (`slotDel`); `storeAll` and `storeDel` are gone.
+- **The list from the summaries** (`storeSums`: a key-range `getAll` and `getAllKeys` in one read transaction; the memory and localStorage
+  backends' `kvSync` 'sums' and 'keys'). A slot without one — every slot from before — is read whole once and given its summary, then listed.
+- **A slot read whole only when it is needed** (`slotGet`): continue (menu.js `menuContinue`; the record esc to the menu wrote, or the boot
+  read, is kept as `menu.worldRec` while the menu shows, so continuing it reads nothing — `saveNow(true)`, `slotLast`; an autosave keeps none), export, and the boot's last slot (main.js `bootSlot`: the store stage waits
+  for it, with `BOOT.slotMax` 8 s as a floor; `bootGo`).
+- **The memory it held**: the old list kept every slot whole for the whole session. #143 (23 min at home): the heap 1.5 GB in play, 2.9 GB at
+  each of the list's reads. Now the list is summaries and at most one slot is held (the menu's, for continue).
+- **test/slots.js** (new, in --test): save.js alone on the memory and localStorage backends, every whole read counted — the summary written, the
+  list reading no slot, a slot from before read once and the next list none, the summary following a rewrite, delete taking both, the profile no
+  slot, the localStorage list parsing no slot. test/smoke.js and test/player.js read slots through `slotGet`.
+
+**What it costs** (Chromium's IndexedDB, the list's read): six fresh slots (0.19 MB each) 75/27 ms (first/again) → 3.4/1.7 ms; twelve long-played
+slots (25.4 MB each, 30% of the cells distinct) **1,593/1,553 ms → 6.2/1.0 ms**; reading one such slot whole, for continue or the boot, 481 ms
+(as before, once). A slot's write adds a record of a few hundred bytes. Nothing per frame changed. test/boot.js passes in Chromium (the boot
+reads the last slot; continue after esc reads none), and an old-style slot in a real IndexedDB is listed, given its summary and still opens whole.
+
+**Unseen, ask in this order:**
+1. On the home machine: the menu and continue with the slots it already has (the first boot gives them summaries), then F9 — do the long
+   animation frames still name the store?
+
+## v11.196 — a save no longer stalls play: the ledger in binary, a save in play walked over frames (21 Nov 2026)
+
+The person's report from home (#143, 23 min of play on v11.194): every save in play cost a frame ~160 ms — 60 long frames on the pointer's
+release alone (9.6 s), and the autosave every 30 s (a 166–208 ms frame in every minute of the timeline). v11.195 took the list's reads; this is
+the write, the other half of "fix the save freeze". Where it went (Chromium here, a fresh world's ledger): popRows walked the 24M values of the
+ledger (49 kinds × 61,696 cells × five tables, and the patches' four × 46,200) into arrays of runs, 186 ms; IndexedDB's put then copied those
+arrays one by one (1.3 s at a long game's density).
+
+- **The ledger as binary streams** (save.js `encRun`, `encVal`, `encEnd`, `popBin`; `SAVE_V` 4, `pop.bin`): a table's kinds end to end as one
+  stream of runs, `v` the values at the save's rounding (r3's, as v11.58) as a Float32Array and `c` the run lengths as a Uint32Array; a value
+  as it is skips the rounding along a run. The loaded cells' counts go in at their places (`encVal`), as popRows did. popLoad reads the streams
+  (`runsOk` checks every one whole first, `runsInto`, `runsArr` for the patches, which reuse v11.115's move between worlds); a record of
+  v11.58–195's arrays of runs loads as it did. `rle` and `popRows` left the game: test/ledger.js has the old writer to make old saves with.
+- **Blobs in IndexedDB** (`slotPack` at the put, `slotUnpack` in `slotGet`): the put copies a typed array on the main thread (~2.6 ms a MB;
+  6.7 MB 15 ms, 56 MB 125 ms) and takes a Blob by reference (0.2 ms at any size; making it ~0.6 ms a MB). A browser that refuses the Blob gets
+  the arrays. The memory and localStorage backends keep the arrays; as text (`slotJSON`: the shadow, the localStorage store, an export) the
+  streams are plain arrays, which popLoad reads too.
+- **A save in play in slices** (`saveSoon`, `saveStep`, `popJob`, `popStep`, `POP_SLICE` 2¹⁹): the record's header at once, the ledger walked
+  POP_SLICE values a frame (~47 frames), each table packed into its Blob as it is finished; `done` before the counts, so a census that lands
+  mid-walk is saved undone and made again at the load; if a patch's slot moved meanwhile, the walk starts again. The autosave, the pointer's
+  release, a clutch laid and a child taken over save so; to the menu, a death, a new game and the page hidden or leaving save at once (`saveNow`),
+  since the state changes under them next.
+- **Found by the new check in test/boot.js:** popBin had taken the slices' Blob packing, which would have written the page's last shadow copy
+  (localStorage, text) with empty streams in a browser with IndexedDB — only the slices pack.
+
+**What it costs** (Chromium here; v11.195 → v11.196; the ledger fresh / 3% / 30% of its cells with values of their own):
+
+| | fresh | 3% | 30% |
+|---|---|---|---|
+| a save at once (esc to the menu, a death, the page leaving) | 200 → 52 ms | 389 → 86 ms | 2,006 → 304 ms |
+| a save in play: its worst frame (of 47) | 200 → 1.4 ms | 389 → 8.1 ms | 2,006 → 23.7 ms |
+| a slot read whole (continue, the boot) | 2.8 → 2.2 ms | 134 → 14 ms | 724 → 53 ms |
+| its ledger loaded | 480 → 176 ms | 528 → 194 ms | 926 → 465 ms |
+| the ledger stored | 0.20 → 0.26 MB | 5.5 → 6.7 MB | 40 → 56 MB |
+
+A save in play adds ~1–2 ms to ~47 frames every 30 s (a fresh world); nothing else per frame changed (updateSave checks one more field). The
+stored ledger is ~20–40% larger (8 bytes a run against JSON's few characters).
+
+**Checked:** test/slots.js (21: the streams across the tables' ends at the rounding, a value put in, a wrong length refused, as text and through
+the localStorage store); test/player.js (a save in slices: the slot as it was until the walk ends, then the very streams of a save at once; a
+patch's slot moved mid-walk starts it again); test/ledger.js (the binary streams loaded back, as they are and as text, every cell and patch to
+the rounding; the old forms as before); test/boot.js in Chromium (the Blobs read back as written, the slices the same, the next visit's ledger
+loaded from them).
+
+**Unseen, ask in this order:**
+1. On the home machine, after some play: F9 — no `IDBRequest.onsuccess` and no `pointerlockchange` among the long animation frames, and no
+   hitch every 30 s in the timeline.

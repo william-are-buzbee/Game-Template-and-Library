@@ -11,6 +11,14 @@
 // the float. In --test.
 'use strict';
 const fs=require('fs'),path=require('path'),os=require('os'),cp=require('child_process');
+const V3W=`function popRows(){ // the ledger's tables as arrays, the loaded cells counted as ecoTick counts them (creatures alive on the ledger, and the eggs)
+  const n=POP.n.map(a=>Array.from(a,r3));
+  for(const ch of chunks.values()){const c=ecoId(ch.i,ch.j);if(c<0||!POP.done[c])continue;const cnt=new Float32Array(SPAWN.length);for(const o of ch.creatures)if(o.alive&&o.ent>=0)cnt[o.ent]+=1;for(const g of ch.eggs)if(g.ent>=0)cnt[g.ent]+=g.n;for(let ei=0;ei<SPAWN.length;ei++)n[ei][c]=r3(cnt[ei]/Q.creatures);}
+  const R=T=>T.map(rle);
+  const P=ECO_PT,pt=P.on?{n:R(P.n),k:R(P.k),ke:R(P.ke),cd:R(P.cd),done:rle(P.done),bp:Array.from(P.bp),w:[WORLD.i0,WORLD.i1,WORLD.j0,WORLD.j1]}:undefined; // the coarse patches and the split slots (v11.105), only when the world has them; w: the world they tile (v11.115)
+  return {ents:SPAWN.map(e=>e.kind),n:R(n),k:R(POP.k),ke:R(POP.ke),cd:R(POP.cd),ow:R(POP.ow),done:rle(POP.done),pt,last:POP.last,tally:[POP.births,POP.deaths,POP.kills,POP.starved,POP.eaten,POP.recruits,POP.laid,POP.hatched]};
+}
+function rle(a){const o=[],n=a.length;let i=0;while(i<n){const v=r3(a[i]);let k=1;while(i+k<n&&r3(a[i+k])===v)k++;o.push(k>1?[v,k]:v);i+=k;}return o;} // straight off the typed array, rounded as it goes`;
 const ROOT=path.join(__dirname,'..'),MODE=process.env.LEDGER||'',DAYS=+(process.env.LEDGER_DAYS||40),BOX='const ECO_FB={i0:0,j0:0,w:NCELL}',BOXP='const ECO_FB={i0:64,j0:64,w:112}';
 let fails=0;const ok=(c,m)=>{console.log((c?'  ok   ':'  FAIL ')+m);if(!c)fails++;};
 const src=n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8');
@@ -81,7 +89,10 @@ if(MODE==='game'){
   console.log('ledger: the fine box patched in the whole game');
   const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
   let js=ORDER.map(src).join('\n');if(!js.includes(BOX))throw new Error('ecology.js ECO_FB not as expected');js=js.replace(BOX,BOXP);
-  js+='\nglobal.__G={POP,ECO_PT,ECO_FINE,ECO_SLOTS,ECO_PR,ECO_PN,ecoPOf,WORLD70,PATCH,ecoPatchDist,ecoNear,ecoCensusNear,WX1,WZ1,get clock(){return clockH;},sync:()=>{if(clockH<POP.last)clockH=POP.last;},ecoId,ecoSum,ecoOf,popRows,popLoad,chunks,SPAWN,player,cellsAround,HALF,CELL,go:(x,z)=>{player.pos.set(x,dispY,z);cellsAround();},day:(h,st)=>{for(let k=0;k<h;k+=st){clockH+=st;POP.acc=ECO_STEP;ecoTick(ECO_STEP);let g=0;while(POP.model&&g++<5000)ecoTick(0);}}};';
+  // the record's ledger as v11.58–195 wrote it (save.js to v11.195: arrays of runs, rle), to make saves of then for popLoad below; the game writes
+  // binary streams since v11.196 (popBin) and reads both
+  js+='\n'+V3W+'\n';
+  js+='\nglobal.__G={POP,ECO_PT,ECO_FINE,ECO_SLOTS,ECO_PR,ECO_PN,ecoPOf,WORLD70,PATCH,ecoPatchDist,ecoNear,ecoCensusNear,WX1,WZ1,get clock(){return clockH;},sync:()=>{if(clockH<POP.last)clockH=POP.last;},ecoId,ecoSum,ecoOf,popRows,popLoad,popBin,slotJSON,chunks,SPAWN,player,cellsAround,HALF,CELL,go:(x,z)=>{player.pos.set(x,dispY,z);cellsAround();},day:(h,st)=>{for(let k=0;k<h;k+=st){clockH+=st;POP.acc=ECO_STEP;ecoTick(ECO_STEP);let g=0;while(POP.model&&g++<5000)ecoTick(0);}}};';
   const tmp=path.join(os.tmpdir(),'tethys_ledger_game.js');fs.writeFileSync(tmp,'(function(){"use strict";\n'+js+'\n})();');process.env.PICK='1';require('./stub.js');require(tmp);
   const G=__G,P=G.ECO_PT;__step(200);let g=0;while(G.POP.gen&&g++<200000){const r=G.POP.gen.next();if(r.done)G.POP.gen=null;}
   // v11.112: the boot's census is the coarse patches within ECO_PR of the player, nearest first; past it they wait
@@ -91,12 +102,16 @@ if(MODE==='game'){
   const loaded=[...G.chunks.values()];const ids=loaded.map(ch=>G.ecoId(ch.i,ch.j));
   ok(loaded.length>0&&ids.every(c=>c>=G.ECO_FINE),`${loaded.length} cells loaded in the coarse east, every one in a split patch's slot`);
   const spawned=loaded.reduce((a,ch)=>a+ch.creatures.filter(o=>o.ent>=0).length,0);ok(spawned>0,`and spawned from it: ${spawned} creatures on the ledger`);
-  G.day(20,0.05);const rows=G.popRows(),json=JSON.parse(JSON.stringify(rows));
-  ok(!!json.pt&&json.pt.bp.length===G.ECO_SLOTS,'the save carries the patches and the slots');
+  G.day(20,0.05);const rows=G.popBin(),json=JSON.parse(G.slotJSON({pop:rows})).pop; // v11.196: the binary streams, and as text (the localStorage store, an export)
+  ok(rows.bin===1&&!!rows.pt&&rows.pt.bp.length===G.ECO_SLOTS&&rows.n.v instanceof Float32Array&&Array.isArray(json.n.v),'the save carries the patches and the slots, the tables as binary streams (and as arrays in text)');
   const snap=G.SPAWN.map((e,ei)=>[Array.from(P.n[ei]),Array.from(P.k[ei]),Array.from(P.cd[ei])]),bp=Array.from(P.bp),tot=G.SPAWN.map((e,ei)=>G.ecoSum(ei));
+  const fine=['n','k','ke','cd','ow'].map(k=>G.POP[k].map(a=>Array.from(a))),fdone=Array.from(G.POP.done),live=new Set([...G.chunks.values()].map(ch=>G.ecoId(ch.i,ch.j)));
   for(const ch of [...G.chunks.values()]){} // the loaded cells stay; popLoad resets the ledger under them as a load does
-  const okLoad=G.popLoad(json);const same=G.SPAWN.every((e,ei)=>[P.n[ei],P.k[ei],P.cd[ei]].every((A,q)=>A.every((v,x)=>Math.abs(v-snap[ei][q][x])<=1e-3)));
-  ok(okLoad&&same&&Array.from(P.bp).every((v,x)=>v===bp[x]),'loaded back: every patch\'s count, capacity and condition to the save\'s rounding, the slots where they were');
+  for(const [how,src] of [['binary',rows],['as text',json]]){
+    const okLoad=G.popLoad(src);const same=G.SPAWN.every((e,ei)=>[P.n[ei],P.k[ei],P.cd[ei]].every((A,q)=>A.every((v,x)=>Math.abs(v-snap[ei][q][x])<=1e-3)));
+    let off=0;['n','k','ke','cd','ow'].forEach((k,q)=>G.POP[k].forEach((a,ei)=>{for(let c=0;c<a.length;c++){if(q===0&&live.has(c))continue;if(Math.abs(a[c]-fine[q][ei][c])>1e-3)off++;}})); // a loaded cell's count is its living (popJob's ov), not the ledger's
+    const dOff=fdone.reduce((m,v,c)=>m+(G.POP.done[c]!==v?1:0),0);
+    ok(okLoad&&same&&off===0&&dOff===0&&Array.from(P.bp).every((v,x)=>v===bp[x]),`loaded back (${how}): every cell's and patch's count, capacity and condition to the save's rounding (${off} off, ${dOff} censuses), the slots where they were`);}
   // v11.106: the hunters' response tables are not saved — the load pass rebuilds them, the counts untouched, and the model runs on
   {const n0=G.SPAWN.map((e,ei)=>Array.from(P.n[ei]));let g=0;while(G.POP.gen&&g++<200000){const r=G.POP.gen.next();if(r.done)G.POP.gen=null;}
     let miss=0;for(let p=0;p<P.np;p++)if(P.coarse[p]&&P.blk[p]<0&&P.done[p]&&!P.rt[p])miss++; // a censused patch (v11.112: the rest wait)

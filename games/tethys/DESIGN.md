@@ -2198,7 +2198,19 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   asked for). Written every `SAVE_EVERY` 30 s of play (`updateSave`), on esc to the menu, when the pointer lock is released (the first esc
   from locked play, v11.47.1), on `visibilitychange`/`pagehide` — and on `pagehide`/`beforeunload` a synchronous shadow copy to
   localStorage (`saveShadow`, `tethys.last`), since IndexedDB's put may not finish before the page goes; `saveRefresh` moves it into the
-  store at the next boot. Loading: every cell
+  store at the next boot. **The list reads summaries** (v11.195): every slot has a small record beside it, `sum:<id>` (`slotSum`: name, made,
+  played, time played, clade, the spec's id, the generations, over, the dead and the last cause, where the body is), written in the same transaction
+  as the slot (`slotPut`; delete takes both, `slotDel`); `saveRefresh` reads only those, by key range (`storeSums`, with the store's keys to find a
+  slot without one — a slot from before, read whole once and given its summary). A slot is read whole (`slotGet`) only when it is continued,
+  exported, or is the boot's last; a long-played slot is tens of MB of ledger, and the old list (`getAll`) read every one at boot and at every
+  return to the menu — ~2 s each on the person's home machine (#141). **A save in play is in slices** (v11.196): the ledger is written as
+  binary streams of runs (`SAVE_V` 4, `pop.bin`: a table's kinds end to end, `v` the values at r3's rounding as a Float32Array, `c` the run
+  lengths as a Uint32Array; `popBin`), stored in IndexedDB as Blobs (`slotPack`, `slotUnpack`; a typed array the put copies on the main thread at
+  ~2.6 ms a MB, a Blob it takes by reference); the autosave, the pointer's release, a clutch and a child save in slices (`saveSoon`: the record's
+  header at once, the ledger walked `POP_SLICE` 2¹⁹ values a frame — `popJob`, `popStep` — `done` before the counts so a census landing mid-walk is
+  saved undone and made again at the load, and from the start again if a patch's slot moved; ~47 frames). To the menu, a death, a new game and
+  the page leaving save at once (`saveNow`). As text (the shadow, the localStorage store, an export) the streams are plain arrays (`slotJSON`).
+  A record of v11.58–195's arrays of runs loads as it did. Loading: every cell
   out (`worldClear`), `popLoad` (a save from another roster starts fresh with a warning), `playerBody`, `cellsAround` (the 3×3, boot uses it too).
   The profile (`PROFILE`, one record): the creator's key; `seen` — species, clades, cores, part `kind:style` for anything drawn within `SEEN_R`
   30 m in play (`seeSpec`) and the player's own clade; the creator's saved creatures. Nothing is written before the stored profile is read
