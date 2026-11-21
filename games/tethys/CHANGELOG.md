@@ -10249,8 +10249,9 @@ time) raised the question of where else. The person: "Go with your pick first" (
   first: three runs agreed that no hot function of ours was stuck as islandH was.)
 - **What it found in Chromium** (1,471 throw-outs in 400 frames; most "exit from OSR'd inner loop", V8 leaving a loop it optimised mid-run, harmless):
   - **merge** (parts.js), 129 at one read: the build tape's copy taken back through `geo.attributes`, whose shapes differ with every geometry; then
-    125 at `T.list`: the tape was two literals of two shapes. Now merge counts the vertices and writes the typed arrays the geometry keeps (to
-    v11.199 it pushed onto growing arrays that Float32BufferAttribute copied: the same 32-bit values, without the garbage), the tape copies those,
+    125 at `T.list`: the tape was two literals of two shapes. Now merge counts the vertices and writes typed arrays (to v11.199 it pushed onto
+    growing arrays: the same 32-bit values, without the garbage), which Float32BufferAttribute copies once — kept for its class: a plain
+    BufferAttribute on the merged geometries read renderFrame ×1.16–1.24 at the forest (three's per-draw code saw two classes) — the tape copies them,
     and the tape is a class of its own (`GeoTape`). After: 14, none repeated.
   - **vlyCut** (world.js), 24 + 6 "not int32" at `M[o]`: `(k0+j)%n0` is −0 when k0+j is a negative multiple of n0, an index V8 will not take
     as an int. Now `|0` (the same element; the terrain the same to the bit over 1.3M values). After: none.
