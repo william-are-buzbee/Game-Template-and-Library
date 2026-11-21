@@ -4,6 +4,12 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.197 (21 Nov 2026): the terrain stays in optimised code** (world.js `RDATA`, `rdata`, `recSeal`; region.js's load; test/opt.js; DESIGN, the
+world's speed; CHANGELOG). The person's GC pauses: the long ones were v11.195's (the list held every slot whole: a full collection ×2.4 with six
+slots here); the rest is garbage. 2.3 of the game's 4.2 MB a frame (the bench page, swimming) was islandH, stuck in V8's baseline tier: a record's
+objects on shapes V8 had retired, which the optimiser takes no feedback from — 25 throw-outs and never again. Rebuilt on shapes of their own; the
+world bit-identical. **Ask:** a report from home after 20+ minutes — the `gc` frames and the heap's sawtooth.
+
 **v11.196 (21 Nov 2026): a save no longer stalls play** (save.js `popJob`, `popStep`, `popBin`, `saveSoon`, `saveStep`, `slotPack`, `slotUnpack`,
 `slotJSON`; test/slots.js, test/player.js, test/boot.js, test/ledger.js; DESIGN, the save paragraph; CHANGELOG). The home report #143: every save in
 play ~160 ms (the autosave, the pointer's release). The ledger is binary streams of runs now (SAVE_V 4), Blobs in IndexedDB, and a save in play is
@@ -25,12 +31,6 @@ drawn past 150 m / 120 m — but on the proxy it cost more than it saved (the GP
 src/*.js as the one scope it is; the old errors are a baseline that only goes down; the record, the creature and the player are closed types, so a
 key misspelt or set late on them is an error — the player had twenty such keys, now in its literal. Nothing in the game changed (every body, the
 simulation, the GPU's counts and the pictures the same). **Ask:** nothing to look at.
-
-**v11.192 (20 Nov 2026): the docs cut to rules and a map** (analysis_project.md §2; CHANGELOG). CLAUDE.md 97.8 KB → 40.7 KB, every rule kept and the
-version history taken out of them; the test table to `test/README.md` and the long docs and source tables to `README.md` (whole, the docs the old
-tables missed added); this file cut to the latest versions, the old one kept whole in `archive/`; the archipelago's working notes (v11.126–154)
-moved to the end of analysis_archipelago.md, where that work lives. Nothing in the game changed. **Ask:** nothing to look at; whether anything the
-person relies on is now harder to find.
 
 ## Open
 
