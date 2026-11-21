@@ -173,7 +173,7 @@ canvas{display:block;outline:none;touch-action:none}
 <div id="fade" class="layer"></div>
 <canvas id="spark" class="layer"></canvas>
 <div id="stats"></div>
-<script>window.TETHYS_BUILD={v:"v11.199"};</script>
+<script>window.TETHYS_BUILD={v:"v11.200"};</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 function tethysMain(){
@@ -962,15 +962,15 @@ function anT(T,k,a){let u=a*(AN_N/TAU);u-=Math.floor(u/AN_N)*AN_N;const i=Math.m
 // at a point (tl the share of the land's radius in from the coast, negative past it; top the surface there over the record's base); _vy the
 // nearest master's weight across it and its floor (the lagoon's channels and the reef's passes read them)
 const _vy={m:0,mf:0};
-function vlyCut(V,LR,tl,top,av,rw,wet,dB){let cut=0;const M=V.M,n0=V.n0,k0=Math.floor((av-V.mo)/TAU*n0);
-  for(let j=-1;j<=1;j++){let k=(k0+j)%n0;if(k<0)k+=n0;const o=k*6,tlh=M[o+1];if(tl>=tlh)continue;let d=av-M[o];d-=TAU*Math.round(d/TAU);
+function vlyCut(V,LR,tl,top,av,rw,wet,dB){let cut=0;const M=V.M,n0=V.n0,k0=Math.floor((av-V.mo)/TAU*n0)|0; // |0 (v11.200): an index, never −0 or a double — V8 threw this out 24 times in 400 frames for 'not int32'
+  for(let j=-1;j<=1;j++){let k=((k0+j)%n0)|0;if(k<0)k+=n0;const o=k*6,tlh=M[o+1]; /* |0 (v11.200): −9 % 9 is −0, an index V8 will not take as an int (24 throw-outs in 400 frames); the same element */if(tl>=tlh)continue;let d=av-M[o];d-=TAU*Math.round(d/TAU);
     const sv=tl>0?tl/tlh:0,hw=M[o+2]*(1-0.65*sv),lat=Math.abs(d)*rw;if(lat>=hw)continue;
     const dm=dB>0?dB*M[o+4]/V.dmM:M[o+4],dr=Math.min(1,wet*M[o+3])*V.mat;let flo=tl>=0?-dm+(M[o+5]+dm)*Math.pow(sv,V.p):-dm+V.g*tl*LR;
     flo-=0.65*(flo-1)*smooth(-8,-2,flo)*smooth(10,4,flo); // the delta's flat where the floor meets the sea
     const w=smooth(hw,0.2*hw,lat)*(tl>0?smooth(tlh,tlh-0.05,tl):1),c=Math.max(0,top-flo)*V.mat*lerp(1,Math.min(1,wet*M[o+3]),sv)*w;if(c>cut)cut=c;if(w*dr>_vy.m){_vy.m=w*dr;_vy.mf=flo;}} // the mouth at its floor whatever its rain (cut to the sea of its day), the rain how far up
   if(tl<0)return cut;
-  const Q=V.S,n1=V.n1,k1=Math.floor((av-V.so)/TAU*n1);
-  for(let j=-1;j<=1;j++){let k=(k1+j)%n1;if(k<0)k+=n1;const o=k*6,tlh=Q[o+1];if(tl>=tlh)continue;let d=av-Q[o];d-=TAU*Math.round(d/TAU);
+  const Q=V.S,n1=V.n1,k1=Math.floor((av-V.so)/TAU*n1)|0;
+  for(let j=-1;j<=1;j++){let k=((k1+j)%n1)|0;if(k<0)k+=n1;const o=k*6,tlh=Q[o+1];if(tl>=tlh)continue;let d=av-Q[o];d-=TAU*Math.round(d/TAU);
     const sv=tl/tlh,hw=Q[o+2]*(1-0.6*sv),lat=Math.abs(d)*rw;if(lat>=hw)continue;
     const dm=Q[o+4];let flo=-dm+(Q[o+5]+dm)*Math.pow(sv,V.p);flo-=0.65*(flo-1)*smooth(-8,-2,flo)*smooth(10,4,flo);
     const c=Math.max(0,top-flo)*V.mat*lerp(1,Math.min(1,wet*Q[o+3]),sv)*smooth(hw,0.25*hw,lat)*smooth(tlh,tlh-0.05,tl);if(c>cut)cut=c;}
@@ -3953,6 +3953,9 @@ const G={
 // anim's clocks and closures, the arms' random phases — is built for it as before. Nothing in a creature's build reads a primitive or a part's
 // transform but merge (every G call is a part's geometry: test/bench_creatures.js proves the bodies the same to the bit, built and posed).
 // A replay whose merges do not match the recording throws, and buildKind builds whole instead.
+/** the build tape (v11.149): a class of its own (v11.200), so one shape no other object shares — as two literals ({play, list, i} and {play, list}) its `list` read in merge was thrown out of optimised code 125 times in 300 frames */
+class GeoTape{constructor(play,list){this.play=play;this.list=list;this.i=0;}}
+/** @type {GeoTape|null} */
 let GEO_TAPE=null;
 const LAZY_G={lazy:true,dispose(){}};
 for(const k in G){const f=G[k];G[k]=function(){return GEO_TAPE!==null&&GEO_TAPE.play?LAZY_G:f.apply(null,arguments);};} // a primitive while a tape plays: not made
@@ -3969,27 +3972,29 @@ function part(g,x,y,z,c,o){
 function merge(parts){
   const T=GEO_TAPE;if(T!==null&&T.play){const r=T.list[T.i++];if(!r||r.n!==parts.length)throw new Error('the build tape: merge '+(T.i-1)+' does not match its recording');for(const p of parts)p.g.dispose(); // v11.149: the recorded output (fresh arrays: a caller may write into them, helix does)
     const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(r.pos,3));geo.setAttribute('normal',new THREE.Float32BufferAttribute(r.nor,3));geo.setAttribute('color',new THREE.Float32BufferAttribute(r.col,3));return geo;}
-  const pos=[],nor=[],col=[];
-  for(const p of parts){
-    const g=p.g.index?p.g.toNonIndexed():p.g;
-    g.applyMatrix4(p.m);g.computeVertexNormals();
+  // v11.200: the vertices counted first and written into the typed arrays the geometry keeps (to v11.199 pushed onto growing arrays, then copied
+  // by Float32BufferAttribute: the same 32-bit values, without the garbage), and the tape's copy taken from them, not read back through
+  // geo.attributes — a read V8 threw out of optimised code 129 times in 400 frames (the attributes' shapes vary with every geometry)
+  const GS=[];let L=0;for(const p of parts){const g=p.g.index?p.g.toNonIndexed():p.g;g.applyMatrix4(p.m);g.computeVertexNormals();GS.push(g);L+=g.attributes.position.array.length;}
+  const pos=new Float32Array(L),nor=new Float32Array(L),col=new Float32Array(L);let o=0;
+  for(let q=0;q<parts.length;q++){const p=parts[q],g=GS[q];
     const pa=g.attributes.position.array,na=g.attributes.normal.array,ga=g.attributes.color?g.attributes.color.array:null;
     const top=p.c,bot=p.c2||p.c;
     for(let i=0;i<pa.length;i+=3){
-      pos.push(pa[i],pa[i+1],pa[i+2]);nor.push(na[i],na[i+1],na[i+2]);
+      pos[o+i]=pa[i];pos[o+i+1]=pa[i+1];pos[o+i+2]=pa[i+2];nor[o+i]=na[i];nor[o+i+1]=na[i+1];nor[o+i+2]=na[i+2];
       let r,gg,b;
       if(bot===top){r=top[0];gg=top[1];b=top[2];}
       else{const k=smooth(-0.45,0.45,na[i+1]);r=lerp(bot[0],top[0],k);gg=lerp(bot[1],top[1],k);b=lerp(bot[2],top[2],k);}
       if(ga){r*=ga[i];gg*=ga[i+1];b*=ga[i+2];}
-      col.push(r,gg,b);
+      col[o+i]=r;col[o+i+1]=gg;col[o+i+2]=b;
     }
-    if(g!==p.g)g.dispose();p.g.dispose();
+    o+=pa.length;if(g!==p.g)g.dispose();p.g.dispose();
   }
   const geo=new THREE.BufferGeometry();
-  geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
-  geo.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));
+  geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3)); // Float32BufferAttribute, as every other geometry's: one class through three's
+  geo.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));   // per-draw code (a plain BufferAttribute here made renderFrame ×1.16–1.24 at the forest)
   geo.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
-  if(T!==null)T.list.push({n:parts.length,pos:geo.attributes.position.array.slice(),nor:geo.attributes.normal.array.slice(),col:geo.attributes.color.array.slice()}); // v11.149: recording — a copy, before any caller writes into it
+  if(T!==null)T.list.push({n:parts.length,pos:pos.slice(),nor:nor.slice(),col:col.slice()}); // v11.149: recording — a copy, before any caller writes into it
   return geo;
 }
 function eyes(P,x,y,z,r,c,pc){
@@ -10835,9 +10840,9 @@ function buildKind(d,kind,cls){const sp=specOfKind(kind),pk=sp&&typeof sp.coat==
 // BUILD_TAPE.on false builds whole every time, as to v11.148 (test/bench_creatures.js, the comparison)
 const BUILD_TAPE={on:true,map:new WeakMap()};
 function tapeBuild(d,kind,cls){if(!BUILD_TAPE.on||kind==='lab'||GEO_TAPE!==null)return d.build();let M=BUILD_TAPE.map.get(d);if(!M)BUILD_TAPE.map.set(d,M=new Map());const key=cls||'',L=M.get(key);
-  if(L){let b=null,err=null;GEO_TAPE={play:true,list:L,i:0};try{b=d.build();if(GEO_TAPE.i!==L.length)throw new Error('the build tape: '+GEO_TAPE.i+' of '+L.length+' merges replayed');}catch(e){err=e;}finally{GEO_TAPE=null;}
+  if(L){let b=null,err=null;GEO_TAPE=new GeoTape(true,L);try{b=d.build();if(GEO_TAPE.i!==L.length)throw new Error('the build tape: '+GEO_TAPE.i+' of '+L.length+' merges replayed');}catch(e){err=e;}finally{GEO_TAPE=null;}
     if(!err)return b;console.warn('tapeBuild: '+kind+(key?' @'+key:'')+' built whole: '+err.message);M.delete(key);return d.build();}
-  const T={play:false,list:[]};GEO_TAPE=T;let b;try{b=d.build();}finally{GEO_TAPE=null;}M.set(key,T.list);return b;}
+  const T=new GeoTape(false,[]);GEO_TAPE=T;let b;try{b=d.build();}finally{GEO_TAPE=null;}M.set(key,T.list);return b;}
 // a def with the size-dependent numbers scaled by k (a juvenile at ECO.juv, an adult's band at VARY): a flat copy of the kind's (v11.149: creatures_defs.js defFlat — to v11.148 chained to it by Object.create, 26 shapes), every other number as the kind's
 function scaledDef(d,k){const j=defFlat(d),sq=Math.sqrt(k);j.size=d.size*k;if(d.speed)j.speed=d.speed*sq;if(d.top)j.top=d.top*sq;if(d.flee)j.flee=d.flee*sq;if(d.reach)j.reach=d.reach*k;if(d.dmg)j.dmg=d.dmg*k*k;if(d.radius)j.radius=d.radius*k;if(d.lunge)j.lunge=d.lunge*sq;if(d.detect)j.detect=d.detect*k;if(d.clear!==undefined)j.clear=d.clear*k;if(d.food)j.food=Math.max(1,Math.round(d.food*k));if(d.filter)j.filter=d.filter*k*k;return j;} // filter (v11.85): an area, with the square
 // a soft body's place: on the floor within MOULT.hide of p, clear of solids at its own radius but with one within 2 m (a rock, a stalk, a structure's foot); failing that, the floor where it is
@@ -12419,6 +12424,7 @@ function wmSample(x,z,out){
   for(let c=0;c<4;c++){const a=D[(j0*WM_N+i0)*4+c]*(1-fu)+D[(j0*WM_N+i1)*4+c]*fu,b=D[(j1*WM_N+i0)*4+c]*(1-fu)+D[(j1*WM_N+i1)*4+c]*fu;out[c]=(a*(1-fv)+b*fv)/255;}
   return out;
 }
+function wmUpload(){waterMap.needsUpdate=true;floorMap.needsUpdate=true;} // v11.200: on its own — the texture's setter, read in wmBlur's optimised code, threw it out 8–19 times a session (its feedback never held)
 function wmBlur(i0,i1,j0,j1){
   for(let j=Math.max(0,j0);j<Math.min(WM_N,j1);j++)for(let i=Math.max(0,i0);i<Math.min(WM_N,i1);i++){
     let r=0,g=0,b=0,a=0,f=0,wf=0,pg=0,pf=0,n=0;
@@ -12426,7 +12432,7 @@ function wmBlur(i0,i1,j0,j1){
     const k=(j*WM_N+i)*4;WM_DATA[k]=Math.round(255*clamp(r/n,0,1));WM_DATA[k+1]=Math.round(255*clamp(g/n,0,1));WM_DATA[k+2]=Math.round(255*clamp(b/n,0,1));WM_DATA[k+3]=Math.round(255*clamp(a/n,0,1));
     FM_DATA[k]=Math.round(255*clamp(f/n,0,1));FM_DATA[k+1]=Math.round(255*clamp(wf/n,0,1));FM_DATA[k+2]=Math.round(255*clamp(pg/n,0,1));FM_DATA[k+3]=Math.round(255*clamp(pf/n,0,1));
   }
-  waterMap.needsUpdate=true;floorMap.needsUpdate=true;
+  wmUpload();
 }
 WM_O[0]=WM_A+WM_I0*WM_T+WM_HALF;WM_O[1]=WM_A+WM_J0*WM_T+WM_HALF; // the window's centre, the shaders' uWmO (0 today: −25800 + 0 + 25800)
 wmFill(0,WM_N,0,WM_N,4);wmBlur(0,WM_N,0,WM_N);
