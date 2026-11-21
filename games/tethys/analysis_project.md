@@ -36,7 +36,7 @@ the way eventually even if it means fucking up our lawn today", and answered eve
 | 3 | `tsc --checkJs` over src/, a baseline ratcheted down | built v11.193 |
 | 4 | the flora's detail by distance, from the recipes, measured by the recorder; then the tier that follows the machine | built v11.194, **off** (`#lod`); the tier built v11.199: a loss on the proxy; the person's reports decide |
 | 5 | the cells generated in workers | |
-| 6 | three.js to a current release | |
+| 6 | three.js to a current release | (v11.200's survey: r128's per-draw attribute check, WebGLBindingStates.setup, thrown out of optimised code 252 times in 400 frames) |
 | 7 | a fixed step and seeded randomness in the sim (replays) | |
 
 One door and its key, end to end, can go in at any point.
