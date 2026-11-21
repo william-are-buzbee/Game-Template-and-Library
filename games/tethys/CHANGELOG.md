@@ -10072,3 +10072,33 @@ bytes and draws); nothing compiled at first sight; the pictures at the forest, t
 **Unseen, ask in this order:**
 1. On the work tower (`20e1`), at one place, two reports: the preview as it is, then with `#lod` in the address — does the GPU's time move?
 2. Then the person's call (analysis_project.md §4): the two pools that would take the copies' waste out, or the tier that follows the machine first.
+
+## v11.195 — the save list reads summaries: the menu no longer reads every slot whole (21 Nov 2026)
+
+The person's home reports (#141, #142; 120 fps, the GPU 7.8–8.0 ms) had 6 s of freezes that Chrome's long animation frames laid on the save
+store's callbacks: 2.3 s four seconds into play and two ~2 s stalls on the menu. `saveRefresh` listed the slots with one IndexedDB `getAll`, which
+deserialises every slot whole — the ledger's tables with it — to show names and dates, at boot, at every return to the menu and at every new game.
+The person: "yes, fix the save freeze."
+
+- **A summary beside every slot** (save.js `slotSum`, `slotEntry`, `SUM_P`): `sum:<id>`, the list's fields only (name, made, played, time played,
+  clade, the spec's id, the generations, over, the dead and the last cause, where the body is). **Written with the slot in one transaction**
+  (`slotPut`; the autosave, the import, a death, the shadow copy moved in), deleted with it (`slotDel`); `storeAll` and `storeDel` are gone.
+- **The list from the summaries** (`storeSums`: a key-range `getAll` and `getAllKeys` in one read transaction; the memory and localStorage
+  backends' `kvSync` 'sums' and 'keys'). A slot without one — every slot from before — is read whole once and given its summary, then listed.
+- **A slot read whole only when it is needed** (`slotGet`): continue (menu.js `menuContinue`; the record esc to the menu wrote, or the boot
+  read, is kept as `menu.worldRec` while the menu shows, so continuing it reads nothing — `saveNow(true)`, `slotLast`; an autosave keeps none), export, and the boot's last slot (main.js `bootSlot`: the store stage waits
+  for it, with `BOOT.slotMax` 8 s as a floor; `bootGo`).
+- **The memory it held**: the old list kept every slot whole for the whole session. #143 (23 min at home): the heap 1.5 GB in play, 2.9 GB at
+  each of the list's reads. Now the list is summaries and at most one slot is held (the menu's, for continue).
+- **test/slots.js** (new, in --test): save.js alone on the memory and localStorage backends, every whole read counted — the summary written, the
+  list reading no slot, a slot from before read once and the next list none, the summary following a rewrite, delete taking both, the profile no
+  slot, the localStorage list parsing no slot. test/smoke.js and test/player.js read slots through `slotGet`.
+
+**What it costs** (Chromium's IndexedDB, the list's read): six fresh slots (0.19 MB each) 75/27 ms (first/again) → 3.4/1.7 ms; twelve long-played
+slots (25.4 MB each, 30% of the cells distinct) **1,593/1,553 ms → 6.2/1.0 ms**; reading one such slot whole, for continue or the boot, 481 ms
+(as before, once). A slot's write adds a record of a few hundred bytes. Nothing per frame changed. test/boot.js passes in Chromium (the boot
+reads the last slot; continue after esc reads none), and an old-style slot in a real IndexedDB is listed, given its summary and still opens whole.
+
+**Unseen, ask in this order:**
+1. On the home machine: the menu and continue with the slots it already has (the first boot gives them summaries), then F9 — do the long
+   animation frames still name the store?

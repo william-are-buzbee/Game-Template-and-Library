@@ -94,14 +94,18 @@ function warmShaders(W){W=W||warmPrep();while(!warmStep(W));} // all of it now
 // BOOT.settleMs or BOOT.settleMax has passed; then the black fades (3 s, #boot.off) and the column rises MENU_RISE later. A slow machine is longer at every
 // stage and so longer in the black, by its own work, not a guess. Anything that leaves the menu first (a game, the bestiary, a test's choose) finishes it at
 // once (bootFinish): the warm-up whole, the black gone.
-const BOOT={stage:'store',done:false,W:null,world0:0,t0:0,n:0,settleT:0,storeMax:4000,warmMs:20,budget:24,settleMs:50,settleMax:3000,settleN:4,bootEl:document.getElementById('boot'),lineEl:document.getElementById('bootline')};
+const BOOT={stage:'store',done:false,W:null,world0:0,t0:0,n:0,settleT:0,asked:false,askT:0,slotMax:8000,storeMax:4000,warmMs:20,budget:24,settleMs:50,settleMax:3000,settleN:4,bootEl:document.getElementById('boot'),lineEl:document.getElementById('bootline')};
 function bootLine(f){const L=BOOT.lineEl;if(!L)return;L.classList.remove('wait');const i=L.firstElementChild;if(i)i.style.transform='scaleX('+clamp(f,0,1).toFixed(3)+')';}
-function bootSlot(){if(BOOT.done||BOOT.stage!=='store')return; // the store's answer (main.js profileLoad → menuRefresh), or its timeout
-  if(mode==='menu'){const note=camRead(),rec=note&&note.id?saveList.find(r=>r.id===note.id):null;if(rec&&!rec.over&&rec.pop){try{slotWorld(rec);menu.worldOf=rec.id;}catch(e){console.warn('the last slot\'s world: '+e.message);}}}
-  BOOT.stage='load';BOOT.W=warmPrep();BOOT.world0=0;bootLine(0);}
+function bootSlot(){if(BOOT.done||BOOT.stage!=='store'||BOOT.asked)return; // the store's answer (main.js profileLoad → menuRefresh), or its timeout
+  // v11.195: the list is the slots' summaries; the last slot's record is read whole here, the one slot the boot opens (save.js slotGet), and kept for continue
+  if(mode==='menu'){const note=camRead(),s=note&&note.id?saveList.find(r=>r.id===note.id):null;if(s&&!s.over){BOOT.asked=true;BOOT.askT=performance.now();
+    slotGet(s.id,rec=>{if(!BOOT.asked)return;BOOT.asked=false;if(BOOT.done||BOOT.stage!=='store'||mode!=='menu')return; // the boot went on without it (bootTick's wait), or play began
+      if(rec&&!rec.over){try{slotWorld(rec);menu.worldOf=rec.id;menu.worldRec=rec;}catch(e){console.warn('the last slot\'s world: '+e.message);}}bootGo();});return;}}
+  bootGo();}
+function bootGo(){BOOT.stage='load';BOOT.W=warmPrep();BOOT.world0=0;bootLine(0);}
 function bootTick(iv){if(BOOT.done)return;if(mode!=='menu'){bootFinish();return;}
   const now=performance.now();if(!BOOT.t0)BOOT.t0=now;
-  if(BOOT.stage==='store'){if(now-BOOT.t0>BOOT.storeMax)bootSlot();return;} // a store that never answers: the boot goes on without the slot
+  if(BOOT.stage==='store'){if(BOOT.asked){if(now-BOOT.askT>BOOT.slotMax){BOOT.asked=false;bootGo();}}else if(now-BOOT.t0>BOOT.storeMax)bootSlot();return;} // a store that never answers: the boot goes on without the slot (v11.195: and a slot's read past slotMax, without its world)
   if(BOOT.stage==='load'){const w0=performance.now();if(BOOT.W){do{if(warmStep(BOOT.W)){BOOT.W=null;break;}}while(performance.now()-w0<BOOT.warmMs);}
     const pend=cellsPending()+farPending();BOOT.world0=Math.max(BOOT.world0,pend);const W=BOOT.W,wf=W?W.k/(W.k+(W.items.length-W.i)+(W.rest?W.more.length:W.est+1)+(W.passes?0:1)+(W.hz?0:1)+(W.depth?0:1)):1,gf=BOOT.world0?1-pend/BOOT.world0:1;bootLine(0.5*wf+0.5*gf);
     if(!W&&pend===0){BOOT.stage='settle';BOOT.settleT=now;BOOT.n=0;bootLine(1);if(BOOT.lineEl)BOOT.lineEl.classList.add('settle');}return;}

@@ -7,7 +7,7 @@ const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..');
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
 let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n');
-js+='\nglobal.__pl={CLADES,SPECS,DEFS,derive,statsOf,playerClade,player,startNew,startFrom,saveNow,saveRefresh,get saveList(){return saveList;},get curSave(){return curSave;},get mode(){return mode;},SAVE_V,specToJSON,founderClade,founderList,founderOf,abilitiesOf,lineKind,keys,CAM_BODY,DERIVE_K,PROFILE,seeSpec};';
+js+='\nglobal.__pl={CLADES,SPECS,DEFS,derive,statsOf,playerClade,player,startNew,startFrom,saveNow,saveRefresh,get saveList(){return saveList;},rec:(id)=>{let o=null;slotGet(id,r=>{o=r;});return o;},get curSave(){return curSave;},get mode(){return mode;},SAVE_V,specToJSON,founderClade,founderList,founderOf,abilitiesOf,lineKind,keys,CAM_BODY,DERIVE_K,PROFILE,seeSpec};';
 js+='\nglobal.__line={get t(){return t;},setT(v){t=v;clockH=t*CLOCK_RATE;},DAY_S,LINE,BREED,MOULT_P,MOULT,kindOf:()=>lineKind(player.clade.spec),moultAt:(n)=>moultAt(lineCur(),n),moultN:(v)=>moultN(lineCur(),v),scale:()=>lineScale(lineCur()),soft:()=>lineSoft(lineCur()),sheds:()=>sheds,denAt:(x,z)=>{const ch=chunkAt(x,z),h=groundAt(x,z);return !!ch&&denAt(V3(x,h,z),ch,BREED.hingeshells.den);},solidNear:(x,z,r)=>{const ch=chunkAt(x,z),h=groundAt(x,z);return !!ch&&!!solidPush(V3(x,h+0.6,z),r,null,ch,true);},shel:(x,z)=>{const ch=chunkAt(x,z);return ch?ch.f(x,z)[FI.shel]:-1;},breed:()=>lifeBreed(lineCur()),brooding:()=>lineBrooding(),guarded:(b)=>broodGuarded(b),lifeS:()=>lifeS(lineCur()),hint:()=>hintEl.textContent,findCarcass:(c,R)=>findCarcass(c,R),groundAt,lay:()=>playerLay()&&conceiveClose(true),eggs:()=>eggs,cur:()=>lineCur(),line:()=>curSave?curSave.line:null,die:(c)=>die(c),live:(b)=>broodLive(b),young:(b)=>creatures.filter(c=>c.alive&&c.brood===b),tick:(dt)=>lineTick(dt),children:()=>lineChildren(),clear:()=>worldClear(),cells:()=>cellsAround()};';
 js+='\nglobal.__ox={oxyTick,oxySlow,oxyTol,OXYD,oxyAt,ability:()=>ability(),chemoHere:(x,z,c)=>{chemoInit();const B=CHEMO_B,i=Math.floor((x-B.x0)/B.G),j=Math.floor((z-B.z0)/B.G);B.lab[j*B.nx+i]=B.ch.length;B.ch.push(c);},chemoClear:()=>{CHEMO_B=null;}};';
 js+='\nglobal.__cb={coverAt,thruOf,MOULT,sheds,softPrey,findPrey,spawn,chunkAt,solidPush,V3,creatures,FI,groundAt};';
@@ -43,7 +43,7 @@ check(Cs.speed===st.speed&&Cs.turn===st.turn&&Cs.accel===st.accel&&Math.abs(Cs.m
 check(Cs.ability==='shut'&&!Cs.venom&&Cs.abilities.join()==='shut','the sickle\'s parts give it the valves\' shut and nothing else, and its row no venom (v11.75)');
 // ---- 3. the save: the spec on the record, back as it went; a version 1 record's clade id as its preset ----
 X.startNew(Cs);X.saveRefresh();
-const rec=X.saveList.find(r=>r.id===X.curSave.id);
+const rec=X.rec(X.curSave.id);
 check(rec&&rec.v===X.SAVE_V&&X.SAVE_V>=2&&rec.spec&&rec.spec.id==='mine','the record carries the spec (v '+(rec&&rec.v)+')');
 X.startFrom(rec);
 check(X.player.clade.spec.id==='mine'&&X.player.clade.speed===Cs.speed&&X.specToJSON(X.player.clade.spec)===X.specToJSON(sick),'continue builds the saved spec, speed '+X.player.clade.speed);
@@ -51,7 +51,7 @@ const r1=JSON.parse(JSON.stringify(rec));delete r1.spec;r1.v=1;r1.clade='coil';X
 check(X.player.clade===X.CLADES.find(c=>c.id==='coil'),'a version 1 record (clade id only) loads as its preset');
 const r2=JSON.parse(JSON.stringify(rec));r2.spec={clade:'ringmouths',core:{kind:'nothing'},parts:[]};r2.clade='soft';X.startFrom(r2);
 check(X.player.clade===X.CLADES.find(c=>c.id==='soft'),'a spec that no longer compiles falls back to the preset its clade id names');
-const f=X.CLADES.find(c=>c.id==='fin');X.startNew(f);X.saveRefresh();const rf=X.saveList.find(r=>r.id===X.curSave.id);X.startFrom(rf);
+const f=X.CLADES.find(c=>c.id==='fin');X.startNew(f);X.saveRefresh();const rf=X.rec(X.curSave.id);X.startFrom(rf);
 const Cf=X.player.clade;check(['speed','accel','turn','mass','bite','cam','sprint','size'].every(k=>Cf[k]===f[k])&&Cf.name==='finback','the finback round trip plays on the same numbers ('+Cf.name+')');
 // ---- 4. the line (v11.69, LINEAGE.md §13.1–2): lay, hatch, die, continue as the child; an unhatched clutch runs the world on to its hatch; no child ends the save (v11.72: x opens the editor at conception; here every laying is declined, a copy) ----
 {const L=global.__line,P=X.player,fin=X.CLADES.find(c=>c.id==='fin'),floor=()=>{const h=L.groundAt(P.pos.x,P.pos.z);P.pos.y=h+1.5;P.vel.set(0,0,0);P.sub=1;};
@@ -76,13 +76,13 @@ const Cf=X.player.clade;check(['speed','accel','turn','mass','bite','cam','sprin
   L.tick(5);L.tick(5);L.tick(5);const tr=L.cur().track,q=tr[tr.length-1];
   check(q&&q[3]>=2,'the track: still for three samples, one run ('+JSON.stringify(q)+')');
   const id=X.curSave.id;L.die('the test: no young');
-  X.saveRefresh();const rec=X.saveList.find(r=>r.id===id);
+  X.saveRefresh();const rec=X.rec(id);
   check(X.mode==='menu'&&!X.curSave&&rec&&rec.over===true&&rec.line.length===3,'dead with no child: the save is over, the slot written ended with its line of '+(rec&&rec.line.length));
   check(X.startFrom(rec)===false&&X.mode==='menu','an ended slot cannot be continued');
   // an unloaded brood falls by BROOD_SURVIVE a game day; the line through the save
   X.startNew(fin);floor();L.lay();const b2=L.cur().broods[0];L.clear();L.setT(b2.at+L.DAY_S);const cs=L.children();
   check(cs.length===1&&b2.hatched&&Math.abs(b2.n-L.breed().n*L.breed().survive)<0.01,'a brood unloaded for a game day: hatched by the clock, '+L.breed().n+' → '+b2.n.toFixed(2));
-  L.cells();X.saveNow();X.saveRefresh();const r2=X.saveList.find(r=>r.id===X.curSave.id);
+  L.cells();X.saveNow();X.saveRefresh();const r2=X.rec(X.curSave.id);
   check(r2&&r2.v===3&&r2.line[0].broods.length===1&&!('_ch' in r2.line[0].broods[0]),'the line in the save (v '+(r2&&r2.v)+'), the broods without their runtime links');
   X.startFrom(r2);check(L.line()[0].broods[0].hatched&&L.live(L.line()[0].broods[0])===Math.round(r2.line[0].broods[0].n),'continued: the brood back as '+L.live(L.line()[0].broods[0])+' young at its clutch');
 }
@@ -143,14 +143,14 @@ const Cf=X.player.clade;check(['speed','accel','turn','mass','bite','cam','sprin
   // a poisoned carcass sickens instead of feeding
   P.hunger=1;pk.poison=1;P.sickT=0;V.bite();check(P.sickT>0&&P.hunger===1,'a body fed at the seeps: sick, and no meal');pk.poison=0;P.sickT=0;
   // the stomach through the save
-  P.hunger=0.37;P.starveT=0;X.saveNow();X.saveRefresh();const rs=X.saveList.find(r=>r.id===X.curSave.id);X.startFrom(rs);
+  P.hunger=0.37;P.starveT=0;X.saveNow();X.saveRefresh();const rs=X.rec(X.curSave.id);X.startFrom(rs);
   check(Math.abs(P.hunger-0.37)<1e-6,'the stomach through the save: '+P.hunger);
   // starved with only a clutch: a death like any other — the world runs on to the hatch, and the hatchling is fed
   floor();wait();V.noSpark();V.open();V.close(true);const b0=L.cur().broods[0];
   P.hunger=1;P.starveT=K.cycle*L.DAY_S*V.STARVE_T;const dead=V.tick(0.5);
   check(dead===true&&X.mode==='play'&&!P.dead&&L.line().length===2&&L.line()[0].cause==='starved'&&L.t>=b0.hatch&&P.hunger===0,'starved with only a clutch: the parent\'s death is "'+L.line()[0].cause+'", you continue as its child, fed');
   // starved with none: the save is over
-  const id=X.curSave.id;L.setT(L.cur().grown+1);__step(3);P.hunger=1;P.starveT=K.cycle*L.DAY_S*V.STARVE_T;V.tick(0.5);X.saveRefresh();const ro=X.saveList.find(r=>r.id===id);
+  const id=X.curSave.id;L.setT(L.cur().grown+1);__step(3);P.hunger=1;P.starveT=K.cycle*L.DAY_S*V.STARVE_T;V.tick(0.5);X.saveRefresh();const ro=X.rec(id);
   check(X.mode==='menu'&&ro&&ro.over===true&&ro.deaths[ro.deaths.length-1].cause==='starved','starved with no child: the save is over, the cause written');
   // the clutch's price: refused hungry, refused for a child the stomach cannot hold, afforded fed; a child of twice the mass costs twice
   X.startNew(fin);floor();V.noSpark();const par=L.cur().spec,cp=V.cost(par),fp=V.fuel(par);
@@ -209,7 +209,7 @@ const Cf=X.player.clade;check(['speed','accel','turn','mass','bite','cam','sprin
   check(L.live(b2)===Math.round(b2.n)&&L.live(b2)>=m.n-2&&L.line()[1].parent===0,'its siblings round it: '+L.live(b2)+' young of the line (one is you)');
   check(L.brooding()===null&&L.breed()===m,'the child is not brooding, and is the same mode');
   // dies of age unspawned, with no child: the save is over
-  X.startNew(soft);floor();const id3=X.curSave.id;L.setT(L.cur().born+L.lifeS()+1);L.tick(0.5);X.saveRefresh();const r3=X.saveList.find(r=>r.id===id3);
+  X.startNew(soft);floor();const id3=X.curSave.id;L.setT(L.cur().born+L.lifeS()+1);L.tick(0.5);X.saveRefresh();const r3=X.rec(id3);
   check(X.mode==='menu'&&r3&&r3.over===true&&r3.deaths[r3.deaths.length-1].cause==='old'&&r3.line[0].cause==='old','old age unspawned: dead of "'+(r3&&r3.deaths[r3.deaths.length-1].cause)+'" at '+((r3.line[0].died-r3.line[0].born)/L.DAY_S).toFixed(2)+' d, no child, the save over');
   // the coilshell: the nautilus — lays again and again, like the finback, does not age, does not brood
   X.startNew(coil);floor();V.noSpark();const mc=L.breed(),Kc=V.K();
@@ -251,7 +251,7 @@ const Cf=X.player.clade;check(['speed','accel','turn','mass','bite','cam','sprin
   for(const id of ['arrow','needle','hose']){const C=X.founderClade(id);X.startNew(C);const p0=P.pos.clone();X.keys.KeyW=true;X.keys.ShiftLeft=true;__step(240);X.keys.KeyW=false;X.keys.ShiftLeft=false;
     check(X.mode==='play'&&!P.dead&&P.pos.distanceTo(p0)>20&&P.clade.spec.founder===id,'a new game as the '+id+' ('+C.spec.clade+'): four seconds of sprint took it '+P.pos.distanceTo(p0).toFixed(0)+' m, speed '+C.speed+(C.sprint?' × '+C.sprint:'')+(C.jetImp?', kick '+C.jetImp:''));}
   // the record: continue brings the founder back as itself
-  X.saveRefresh();const rec=X.saveList.find(r=>r.id===X.curSave.id);X.startFrom(rec);check(P.clade.founder==='hose'&&P.clade.ability==='shut'&&P.clade.spec.founder==='hose','continued: the hose again, with its valves\' shut');
+  X.saveRefresh();const rec=X.rec(X.curSave.id);X.startFrom(rec);check(P.clade.founder==='hose'&&P.clade.ability==='shut'&&P.clade.spec.founder==='hose','continued: the hose again, with its valves\' shut');
   // a grazer founder: no stomach on the model, a clutch costs nothing of it
   const gz=X.founderClade('grazer');X.startNew(gz);__step(30);check(P.hunger===0&&global.__cv.fuel(gz.spec)===0&&global.__cv.hline().indexOf('no stomach on the model')===0,'a grazer founder runs no hunger clock (the world\'s grazers have none) and its clutch takes nothing from a stomach the model has not got: "'+global.__cv.hline().slice(0,60)+'…"');
   // shut: the covering shell over everything while Q is held, the body still; soft (v11.76) is skin
@@ -296,7 +296,7 @@ const Cf=X.player.clade;check(['speed','accel','turn','mass','bite','cam','sprin
   // killed while soft with a child alive: the child, hard and its own; the moult through the save
   if(den){P.pos.set(den[0],0,den[1]);floor();wait();L.lay();const b2=L.cur().broods[L.cur().broods.length-1];b2._egg.t=0.01;__step(3);check(b2.hatched&&L.live(b2)>=1,'a clutch at the den hatched: '+L.live(b2)+' young');
     const n2=L.moultAt(Lc.moults+1);L.setT(n2+1);L.tick(0.5);check(P.soft===true,'moulted again, soft');
-    X.saveNow();X.saveRefresh();const rs=X.saveList.find(r=>r.id===X.curSave.id);X.startFrom(rs);check(P.soft===true&&L.cur().moults===Lc.moults&&CB.coverAt(P,0)==='skin','through the save: still soft, '+L.cur().moults+' moults');
+    X.saveNow();X.saveRefresh();const rs=X.rec(X.curSave.id);X.startFrom(rs);check(P.soft===true&&L.cur().moults===Lc.moults&&CB.coverAt(P,0)==='skin','through the save: still soft, '+L.cur().moults+' moults');
     L.die('the test: killed soft');const Lk=L.cur();
     check(X.mode==='play'&&!P.dead&&L.line().length===2&&P.soft===false&&Lk.moults===0&&Lk.hardAt===0&&P.clade.juv>0&&L.scale()===V.ECO.juv,'killed soft with young alive: you are a hatchling, hard, at '+L.scale()+' of the adult');
     // growth through the moults: a step of scale at each, soft a short while after
@@ -307,7 +307,7 @@ const Cf=X.player.clade;check(['speed','accel','turn','mass','bite','cam','sprin
     L.setT(Lk.hardAt+1);L.tick(0.5);check(!P.soft&&L.lay()!==undefined,'and hard: grown up through its moults');
     // killed soft with none: the save is over
     X.startNew(hose);floor();const id3=X.curSave.id,Ln=L.cur();L.setT(L.moultAt(Ln.moults+1)+1);L.tick(0.5);check(P.soft===true,'a founder moulted, soft, with no child');
-    L.die('the test: killed soft, no young');X.saveRefresh();const r3=X.saveList.find(r=>r.id===id3);check(X.mode==='menu'&&r3&&r3.over===true,'killed soft with no child: the save is over');}
+    L.die('the test: killed soft, no young');X.saveRefresh();const r3=X.rec(id3);check(X.mode==='menu'&&r3&&r3.over===true,'killed soft with no child: the save is over');}
 }
 // ---- the oxygen debt (v11.101, DEEP §9): survivable in the minimum, a death only under a chemocline ----
 {const O=global.__ox,P=X.player,soft=X.CLADES.find(c=>c.id==='soft'),fin=X.CLADES.find(c=>c.id==='fin');
