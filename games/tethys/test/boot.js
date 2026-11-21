@@ -2,7 +2,8 @@
 // the bench's page (test/benchpage.js: its clock, Math.random seeded): a first visit's boot through its stages to the fade, on the sea shot, with no slot's
 // world; a game played and saved; then the page opened again in the same browser profile (its IndexedDB and localStorage): the boot opens that slot's
 // world under the camera note (the slot's id on menu.worldOf, its clock), streams the world round it, fades in; continue puts the player into that world
-// with no fade, nothing cleared, where it was saved; and the saves list still goes through the fade for a slot elsewhere. Run by `npm run smoke` (CI).
+// with no fade, nothing cleared, where it was saved; and the saves list still goes through the fade for a slot elsewhere. v11.196: the slot's ledger as binary
+// streams in IndexedDB (Blobs), read back as written, a save in slices the same, the next visit's ledger loaded from them. Run by `npm run smoke` (CI).
 'use strict';
 const {here,playwright,serve}=require('./benchpage.js');
 let failed=false;const ok=(c,m)=>{console.log((c?'  ok   ':'  FAIL ')+m);if(!c)failed=true;};
@@ -34,12 +35,22 @@ async function boot(page){ // the store's answer waited for with no frame steppe
       s=await page.evaluate(()=>{const rf=window.renderFrame,sh=FX.shadows;window.renderFrame=function(){};FX.shadows=false;startNew(CLADES[0]);for(let i=0;i<120;i++)__step(1);saveNow();window.renderFrame=rf;FX.shadows=sh;return {id:curSave.id,t:t,pos:[player.pos.x,player.pos.y,player.pos.z],mode:mode};}); // played undrawn: under software WebGL a hundred frames drawn queue minutes of the GPU's work
       ok(s.mode==='play'&&typeof s.id==='string','playing, saved as '+s.id+' at t '+s.t.toFixed(2));
       await wait(500); // the store's write
+      // v11.196: the ledger as binary streams, stored as Blobs in IndexedDB and read back; a save in slices writes the streams a save at once does
+      const q=await page.evaluate(()=>new Promise(done=>{const same=(p,q)=>{const L=[];for(const k of ['n','k','ke','cd','ow','done'])L.push([p[k],q[k]]);if(p.pt)for(const k of ['n','k','ke','cd','done'])L.push([p.pt[k],q.pt&&q.pt[k]]);
+          return L.every(([x,y])=>x&&y&&x.v.length===y.v.length&&x.v.every((v,i)=>v===y.v[i])&&x.c.every((c,i)=>c===y.c[i]));},id=curSave.id,want=popBin();
+        slotGet(id,a=>{const typed=!!(a&&a.pop&&a.pop.bin===1&&a.pop.n.v instanceof Float32Array&&a.pop.n.c instanceof Uint32Array),s1=typed&&same(want,a.pop);
+          saveSoon();let n=0;while(saveJob&&n<10000){saveStep();n++;}
+          const tx=store.db.transaction('kv','readonly');tx.objectStore('kv').get(id);tx.oncomplete=()=>slotGet(id,b=>{done({typed,s1,n,s2:!!(b&&b.pop&&same(want,b.pop)),kb:Math.round(['n','k','ke','cd','ow','done'].reduce((m,k)=>m+want[k].v.byteLength*2,0)/1024)});});});}));
+      ok(q.typed&&q.s1,'the slot in IndexedDB: the ledger\'s streams back as typed arrays, as written ('+q.kb+' KB of the fine box\'s)');
+      ok(q.n>2&&q.s2,'a save in slices ('+q.n+' frames): the same streams, stored as Blobs table by table');
       const e=errsOf(errs);ok(!e.length,'no page errors'+(e.length?': '+e.slice(0,3).join(' | '):''));},true);
     await session(async(page,errs)=>{
       console.log('the game opened again');
       const b=await boot(page);
       ok(b.done&&b.off,'the boot through its stages ('+b.stage+')');
       ok(b.worldOf===s.id,'the slot\'s world under the menu: '+b.worldOf);
+      {const L=await page.evaluate(id=>new Promise(done=>slotGet(id,r=>{const P=ECO_PT,before=P.bp.slice();done({ok:!!r&&popLoad(r.pop),last:r&&r.pop.last});})),s.id);
+        ok(L.ok,'its ledger loads from the stored streams (the last step at '+L.last+')');}
       ok(Math.abs(b.t-s.t)<60,'its clock: the saved '+s.t.toFixed(2)+', now '+b.t.toFixed(2)+' (the boot\'s frames since)');
       const dc=Math.hypot(b.cam[0]-s.pos[0],b.cam[1]-s.pos[1],b.cam[2]-s.pos[2]);ok(dc<20,'the camera at the moment saved, '+dc.toFixed(1)+' m from the body');
       const c=await page.evaluate(()=>{const n=chunks.size,ids=[...chunks.keys()].join();document.getElementById('mcont').click();return {mode:mode,busy:menu.busy,fade:+getComputedStyle(fadeEl).opacity,id:curSave&&curSave.id,pos:[player.pos.x,player.pos.y,player.pos.z],kept:[...chunks.keys()].join()===ids,n:n};});

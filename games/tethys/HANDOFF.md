@@ -4,6 +4,12 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.196 (21 Nov 2026): a save no longer stalls play** (save.js `popJob`, `popStep`, `popBin`, `saveSoon`, `saveStep`, `slotPack`, `slotUnpack`,
+`slotJSON`; test/slots.js, test/player.js, test/boot.js, test/ledger.js; DESIGN, the save paragraph; CHANGELOG). The home report #143: every save in
+play ~160 ms (the autosave, the pointer's release). The ledger is binary streams of runs now (SAVE_V 4), Blobs in IndexedDB, and a save in play is
+walked over ~47 frames (~1.5 ms each) instead of at once; esc, a death, the page leaving still save at once, ×0.15–0.3 of before. Old saves load.
+Built on v11.195 (stacked: its PR first). **Ask:** a report from home after some play — no `IDBRequest`, `pointerlockchange` or autosave hitch.
+
 **v11.195 (21 Nov 2026): the save list reads summaries** (save.js `slotSum`, `slotPut`, `slotGet`, `slotDel`, `storeSums`; menu.js, main.js
 `bootSlot`; test/slots.js; DESIGN, the save paragraph; CHANGELOG). The home reports (#141, #142) blamed 6 s of freezes on the store: the menu's list
 read every slot whole, ledger and all. Every slot now has a summary beside it, written in the same transaction; the list reads only those; a slot is
@@ -26,13 +32,6 @@ tables missed added); this file cut to the latest versions, the old one kept who
 moved to the end of analysis_archipelago.md, where that work lives. Nothing in the game changed. **Ask:** nothing to look at; whether anything the
 person relies on is now harder to find.
 
-**v11.191 (20 Nov 2026): the flight recorder** (src/rec.js; test/report.js, test/rec.js; analysis_project.md, the plan for the project as a whole;
-DESIGN "The flight recorder"; CHANGELOG). Every session is recorded in the browser that plays it — the machine, the boot, every frame by its phases and the
-cell it was played in, the GPU's own time by pass where Chrome times it, the worst frames and what each did, every warning and error — and **F9** opens a
-GitHub issue with it, which the person submits. Read them with `node test/report.js --search`; its `AT=` lines stand test/fill.js and test/gpu.js at a
-report's worst moment. When the person says it lags, ask for a report, not a readout. **Next** (analysis_project.md, the person's order): `tsc --checkJs`, the flora's detail by distance, the cells in workers, three.js upgraded, a fixed step. **Ask:** F9 on the preview, and
-the readout's `gpu`.
-
 ## Open
 
 - **The plan** (analysis_project.md, the person's order, 20 Nov 2026): 1 the recorder (v11.191), 2 the docs (v11.192) and 3 the type checker (v11.193)
@@ -40,8 +39,11 @@ the readout's `gpu`.
   its key end to end at any point.
 - **Reports** (`node test/report.js --search`): #137 and #138, a work tower `20e1` (Intel UHD 730): high tier 82 ms a frame, the GPU 84 ms (main
   pass 75), 3.9M triangles; `#low` 33 ms, the GPU 35, 1.6M triangles — the GPU fell with the triangles (×0.41 against ×0.40), not the pixels (×0.81).
-  They are step 4's before. #141 and #142, the home machine `kasd` (Brave hides the card): 120 fps, the GPU 7.8–8.0 ms of 8.3; its freezes were the
-  save store (v11.195) and the collector (200–325 ms every minute or two, the heap ~600 MB) — open. The desktop tier is `high` on that chip; the boot under `#low` had a 7.4 s menu frame the recorder does not itemise.
+  They are step 4's before. The desktop tier is `high` on that chip; the boot under `#low` had a 7.4 s menu frame the recorder does not itemise.
+  #141–#144, the home machine `kasd` (Brave hides the card), v11.194: 120 fps, the GPU 7.8–8.8 ms of 8.3; its freezes were the save store's read
+  (v11.195) and write (v11.196), and the collector (200–325 ms every minute or two; the heap 1.5 GB in play, 2.9 GB at the list's reads — the old
+  list held every slot whole). #144 is `#lod` at another place and size than #143, so no pair yet: one more without `#lod` at tp(-8479,5431,-11)
+  in the same window settles it on that card (the work tower's pair still decides).
 - **The person's open lists**, each in its doc: analysis_loading.md §4 (the loading page's look, one wait or two, a cache in the browser);
   analysis_fog.md (its questions); BIOLUM.md §7; WATER.md Part 5 (light across the line, an audit, nothing built); DEEP.md §11 (the
   constructors' place); analysis_archipelago.md §8.4; DIRECTION.md's Open list; LINEAGE.md §11; SEAFLOOR.md §6; PIXEL.md (ready to build).
