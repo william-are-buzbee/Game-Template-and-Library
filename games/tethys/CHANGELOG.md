@@ -10263,7 +10263,20 @@ time) raised the question of where else. The person: "Go with your pick first" (
   does: six loads, every one 624. Its earlier ×1.15–1.34 flags on this branch were that.
 - test/types.json lowered to 124 (merge's BufferAttribute types).
 
-**What it costs:** PERFTABLE
+**What it costs:** `node test/perf.js` against main (N=3; world, creatures, frames, gpu, fill):
+
+| measure | before | after | ratio |
+|---|---|---|---|
+| every kind's build, ms (first) | 60.3 | 39.5 | ×0.66 |
+| every kind's build, ms (again: what a spawn pays) | 4.5 | 3.9 | ×0.87 |
+| a cell at forest / atoll / platform / sea / giant, ms | 35.0 / 34.2 / 21.5 / 8.8 / 32.5 | 36.2 / 32.2 / 23.5 / 9.6 / 32.2 | ×1.03 / 0.94 / 1.09 / 1.08 / 0.99 |
+| creatures' work a frame at the forest (Chromium), ms | 1.904 | 1.609 | ×0.85 |
+| creatures' work a frame at (330, 0) (node), ms | 2.263 | 2.048 | ×0.91 (N=5; the N=3 run read ×1.24 — noise: nothing per frame changed) |
+| sample(), µs, five windows | 0.646–0.989 | 0.645–0.978 | ×0.99–1.02 |
+| the proxy's GPU time, forest / shore / canopy, ms | 2,028 / 2,616 / 2,138 | 2,070 / 2,610 / 2,040 | ×1.02 / 1.00 / 0.95 |
+
+The world, the simulation and every body the same to the bit; the GPU's counts the same at every place; the pictures at the forest, the shore and
+the canopy the same pixel for pixel.
 
 **Unseen, ask in this order:**
 1. Nothing to look at. A cell's generation should be a little quicker; the reports' `gen` will say.
