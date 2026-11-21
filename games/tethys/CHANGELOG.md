@@ -10315,7 +10315,10 @@ a screen nobody was watching. Of the list after the GC work ("I want to get all 
 - **test/idle.js** (new, in --test): booted to the menu against the stub, idle after 12 s, 60 of 120 frames drawn at 60 Hz (the clock still at
   2 s), every frame once woken, every frame in play.
 
-**What it costs:** nothing in play. On the idle menu a quarter of the frames at 120 Hz (half at 60).
+**What it costs:** nothing in play. On the idle menu a quarter of the frames at 120 Hz (half at 60). test/frames.js and test/bench_creatures.js measure on the menu
+(they never start a game), so they now keep it awake each frame (`menuWake`, as a moving mouse): with that, against main, the simulation and every
+body the same to the bit, the creatures' frame ×0.96 (node) and ×0.89 (Chromium), nothing worse by more than 10%; the GPU's counts the same at
+every place.
 
 **Unseen, ask in this order:**
 1. Leave the menu still for 12 s: it should look the same (the water and the creatures move at ~30 fps), and the fans quieter.
