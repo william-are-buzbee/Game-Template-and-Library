@@ -208,7 +208,7 @@ function layClutch(child,pr,cv){ // the clutch on the floor where the window ope
   const b={cell:lineCell(ch.i,ch.j),pos:[r3(cv.at.x),r3(cv.at.y),r3(cv.at.z)],n:m.n,born:r3(t),hatch:r3(t+hatchS(child)*(m.hatchK||1)),spec:child,gen:cv.gen+1,price:pr.total,hatched:false,at:r3(t),_ch:ch,_egg:null};
   L.broods.push(b);L.lay=r3(t);b.fuel=r3(clutchCost(child));P.hunger=Math.min(1,P.hunger+clutchHunger(child));broodEgg(ch,b);P.pulse=1;thump(0.3,90,40,null,0.6,0.05); // v11.73: the eggs' material off the stomach (the record keeps it in tonnes)
   if(m.once){const msg='the clutch: '+m.n+' eggs, the hatch in '+((b.hatch-t)/DAY_S).toFixed(2)+' days — you will not feed again; stay by it, or not';hintEl.textContent=msg;hintEl.style.opacity=1;setTimeout(()=>{if(hintEl.textContent===msg)hintEl.style.opacity=0;},6000);} // v11.74: the brood begins
-  if(pr.total>0)sparkStart(cv.at);saveNow();return true;} // the sparkle: only a changed child is the magic (§7); a copy is what any animal lays
+  if(pr.total>0)sparkStart(cv.at);saveSoon();return true;} // the sparkle: only a changed child is the magic (§7); a copy is what any animal lays
 // ---------- the broods in the world ----------
 function broodEgg(ch,b){ // the clutch on the floor: the world's own egg (creatures_ai.js layEggs), outside the ledger (ent −1), its brood on it
   const kind=lineKind(b.spec),sz=0.12*Math.pow(b.spec.size,0.6),m=new THREE.Mesh(eggGeo(b.spec.clade),MATT),at=V3(b.pos[0],b.pos[1],b.pos[2]),n=Math.round(b.n);
@@ -253,7 +253,7 @@ function lineContinue(x,cause){ // you are the child now, where and as it is (LI
   curSave.line.push(lifeNew(spec,L.preset,curSave.line.length-1,born,grown));
   const C=lifeClade(lineCur(),lineScale(lineCur()));
   playerBody(C,pos,yaw,0);if(x.c){player.hunger=x.c.hunger;player.starveT=x.c.starveT;}cellsAround();snapMed=true; // the child's stomach as it was (v11.73); a hatchling's is full
-  setTimeout(()=>{fadeEl.style.opacity=0;},300);sparkStart();saveNow();
+  setTimeout(()=>{fadeEl.style.opacity=0;},300);sparkStart();saveSoon();
 }
 // ---------- the sparkle (LINEAGE §7): the one mark of the magic, and here only at the handover ----------
 // A four-point star on the screen with a short trail: it comes down from high in the view onto the child the camera now looks at, flickers

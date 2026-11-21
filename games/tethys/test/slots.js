@@ -8,9 +8,9 @@
 const fs=require('fs'),path=require('path'),vm=require('vm');
 const SRC=fs.readFileSync(path.join(__dirname,'..','src','save.js'),'utf8');
 let fails=0;const ok=(c,m)=>{console.log((c?'  ok   ':'  FAIL ')+m);if(!c)fails++;};
-function page(ls){const g={console,Math,JSON,Date,Map,Set,Array,Object,String,Number,Error,Promise,Float32Array,Int32Array,Uint8Array,setTimeout:f=>f(),
+function page(ls){const g={console,Math,JSON,Date,Map,Set,Array,Object,String,Number,Error,Promise,Float32Array,Int32Array,Uint8Array,Uint32Array,setTimeout:f=>f(),
     document:{addEventListener(){}},addEventListener(){},navigator:{},performance:{now:()=>0}};
-  g.window=g;if(ls)g.localStorage=ls;vm.createContext(g);vm.runInContext(SRC+'\n;this.__S={store,kvSync,slotSum,slotPut,slotDel,slotGet,storeSums,saveRefresh,storePut,get saveList(){return saveList;},SUM_P};',g,{filename:'save.js'});
+  g.window=g;if(ls)g.localStorage=ls;vm.createContext(g);vm.runInContext(SRC+'\n;this.__S={store,kvSync,slotSum,slotPut,slotDel,slotGet,storeSums,saveRefresh,storePut,get saveList(){return saveList;},SUM_P,encNew,encRun,encVal,encEnd,runsOk,runsInto,runsArr,slotJSON};',g,{filename:'save.js'});
   // every whole read counted: the memory backend's get, the localStorage's getItem of a slot
   const S=g.__S;S.storeOpen=null;return {g,S};}
 function rec(id,o){return Object.assign({id,kind:'save',v:3,name:'game 1',made:1000,played:2000,playT:600,clade:'fin',spec:{id:'needle'},pos:[1,2,3],yaw:0,pitch:0,deaths:[],line:[{},{}],over:false,pop:{ents:['x'],n:[[1]]}},o||{});}
@@ -48,4 +48,21 @@ console.log('the localStorage backend');
   ok(S.saveList.length===2&&S.saveList[0].name==='two'&&parsed.length===0,'the list from the summaries, no slot parsed ('+parsed.length+')');
   let got=null;S.slotGet('a1',r=>{got=r;});ok(got&&got.name==='one'&&got.pop,'a slot read whole when asked');}
 
+console.log('the ledger\'s streams (v11.196: encRun, encVal, encEnd, runsOk, runsInto, slotJSON)');
+{const {g,S}=page(null);const n=5000,A=[new Float32Array(n),new Float32Array(n),new Float32Array(n)];let x=9;
+  for(const a of A)for(let i=0;i<n;i++){x=(x*16807)%2147483647;a[i]=x%7===0?(x%1000)/333:i>4000?0.25:0;}A[1][17]=0.0004;A[1][18]=-0.0004;A[2][3]=NaN; // runs, lone values, values the rounding takes to 0, a NaN
+  const E=S.encNew();for(const a of A)S.encRun(E,a,0,a.length);const R=S.encEnd(E),B=A.map(()=>new Float32Array(n));
+  ok(S.runsOk(R,3*n)&&!S.runsOk(R,3*n-1)&&R.v instanceof Float32Array&&R.c instanceof Uint32Array,'a stream of runs fills exactly its tables ('+R.v.length+' runs for '+3*n+' values)');
+  S.runsInto(R,B,n);let off=0;A.forEach((a,t)=>{for(let i=0;i<n;i++){const w=Math.round(a[i]*1000)/1000,v=B[t][i];if(!(Number.isNaN(w)?Number.isNaN(v):Math.abs(v-w)<1e-6))off++;}});
+  ok(off===0,'decoded: every value at the save\'s rounding, across the tables\' ends ('+off+' off)');
+  const J=JSON.parse(S.slotJSON({pop:{n:R}})).pop.n,C=A.map(()=>new Float32Array(n));S.runsInto(J,C,n);let off2=0;B.forEach((b,t)=>{for(let i=0;i<n;i++)if(!(Number.isNaN(b[i])?C[t][i]===0:Math.abs(C[t][i]-b[i])<1e-6))off2++;});
+  ok(Array.isArray(J.v)&&Array.isArray(J.c)&&S.runsOk(J,3*n)&&off2===0,'as text (the shadow, the localStorage store, a file): plain arrays, the same values ('+off2+' off; a NaN reads as 0, which the load would make it)');
+  const F=S.encNew();S.encRun(F,A[0],0,10);S.encVal(F,7);S.encRun(F,A[0],11,n);const R2=S.encEnd(F),D=[new Float32Array(n)];S.runsInto(R2,D,n);
+  ok(S.runsOk(R2,n)&&D[0][10]===7&&Math.abs(D[0][11]-Math.round(A[0][11]*1000)/1000)<1e-6&&Math.abs(D[0][9]-Math.round(A[0][9]*1000)/1000)<1e-6,'a value put in (a loaded cell\'s count, encVal) in its place, the table round it as it was');
+  ok(S.runsArr({v:[1],c:[3]},2,2)===null&&S.runsArr({v:[1,2],c:[2,2]},2,2)[1][0]===2,'a stream the wrong length is refused whole (runsArr)');}
+console.log('a binary slot through the localStorage store (its text)');
+{const M=new Map();const ls={get length(){return M.size;},key:i=>Array.from(M.keys())[i],getItem:k=>M.has(k)?M.get(k):null,setItem:(k,v)=>M.set(k,String(v)),removeItem:k=>M.delete(k)};
+  const {g,S}=page(ls),E=S.encNew(),a=new Float32Array(100).fill(1.5);a[50]=2;S.encRun(E,a,0,100);const st=S.encEnd(E);
+  S.slotPut(rec('b1',{v:4,pop:{bin:1,ents:['x'],cells:100,n:st}}));let got=null;S.slotGet('b1',r=>{got=r;});const T=[new Float32Array(100)];
+  ok(!!got&&S.runsOk(got.pop.n,100)&&(S.runsInto(got.pop.n,T,100),T[0][50]===2&&T[0][49]===1.5),'stored as text and read back: the stream whole');}
 console.log(fails?fails+' FAILED':'slots: ok');process.exit(fails?1:0);

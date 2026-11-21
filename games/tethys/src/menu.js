@@ -82,7 +82,7 @@ mslotsEl.addEventListener('click',e=>{
   if(mode!=='menu')return;let el=e.target;const act=el.dataset&&el.dataset.act;while(el&&el!==mslotsEl&&!(el.dataset&&el.dataset.id))el=el.parentNode;if(!el||el===mslotsEl)return;
   const id=el.dataset.id,rec=saveList.find(r=>r.id===id);if(!rec)return;
   if(act==='del'){if(menu.confirm===id){menu.confirm=null;if(menu.worldOf===id){menu.worldOf=null;menu.worldRec=null;}slotDel(id,()=>{saveRefresh(menuSlots);});}else{menu.confirm=id;menuSlots();}}
-  else if(act==='export')slotGet(id,r=>{if(r)fileSave((r.name||'game').replace(/[^\w-]+/g,'_')+'.tethys.json',JSON.stringify(r));else menuNote('that save could not be read');}); // the slot whole (v11.195: the list holds its summary)
+  else if(act==='export')slotGet(id,r=>{if(r)fileSave((r.name||'game').replace(/[^\w-]+/g,'_')+'.tethys.json',slotJSON(r));else menuNote('that save could not be read');}); // the slot whole (v11.195: the list holds its summary)
   else if(rec.over)menuNote('this line has ended'); // v11.69: no living child at the last death — the slot is kept to look at (the shrine, later), never continued
   else menuContinue(rec); // the shown slot straight in (v11.189), another through the fade
 });

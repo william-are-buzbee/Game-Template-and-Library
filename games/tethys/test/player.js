@@ -7,7 +7,7 @@ const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..');
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
 let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n');
-js+='\nglobal.__pl={CLADES,SPECS,DEFS,derive,statsOf,playerClade,player,startNew,startFrom,saveNow,saveRefresh,get saveList(){return saveList;},rec:(id)=>{let o=null;slotGet(id,r=>{o=r;});return o;},get curSave(){return curSave;},get mode(){return mode;},SAVE_V,specToJSON,founderClade,founderList,founderOf,abilitiesOf,lineKind,keys,CAM_BODY,DERIVE_K,PROFILE,seeSpec};';
+js+='\nglobal.__pl={CLADES,SPECS,DEFS,derive,statsOf,playerClade,player,startNew,startFrom,saveNow,saveRefresh,get saveList(){return saveList;},rec:(id)=>{let o=null;slotGet(id,r=>{o=r;});return o;},get curSave(){return curSave;},get mode(){return mode;},SAVE_V,saveSoon,saveStep,get saveJob(){return saveJob;},ECO_PT,POP_SLICE,specToJSON,founderClade,founderList,founderOf,abilitiesOf,lineKind,keys,CAM_BODY,DERIVE_K,PROFILE,seeSpec};';
 js+='\nglobal.__line={get t(){return t;},setT(v){t=v;clockH=t*CLOCK_RATE;},DAY_S,LINE,BREED,MOULT_P,MOULT,kindOf:()=>lineKind(player.clade.spec),moultAt:(n)=>moultAt(lineCur(),n),moultN:(v)=>moultN(lineCur(),v),scale:()=>lineScale(lineCur()),soft:()=>lineSoft(lineCur()),sheds:()=>sheds,denAt:(x,z)=>{const ch=chunkAt(x,z),h=groundAt(x,z);return !!ch&&denAt(V3(x,h,z),ch,BREED.hingeshells.den);},solidNear:(x,z,r)=>{const ch=chunkAt(x,z),h=groundAt(x,z);return !!ch&&!!solidPush(V3(x,h+0.6,z),r,null,ch,true);},shel:(x,z)=>{const ch=chunkAt(x,z);return ch?ch.f(x,z)[FI.shel]:-1;},breed:()=>lifeBreed(lineCur()),brooding:()=>lineBrooding(),guarded:(b)=>broodGuarded(b),lifeS:()=>lifeS(lineCur()),hint:()=>hintEl.textContent,findCarcass:(c,R)=>findCarcass(c,R),groundAt,lay:()=>playerLay()&&conceiveClose(true),eggs:()=>eggs,cur:()=>lineCur(),line:()=>curSave?curSave.line:null,die:(c)=>die(c),live:(b)=>broodLive(b),young:(b)=>creatures.filter(c=>c.alive&&c.brood===b),tick:(dt)=>lineTick(dt),children:()=>lineChildren(),clear:()=>worldClear(),cells:()=>cellsAround()};';
 js+='\nglobal.__ox={oxyTick,oxySlow,oxyTol,OXYD,oxyAt,ability:()=>ability(),chemoHere:(x,z,c)=>{chemoInit();const B=CHEMO_B,i=Math.floor((x-B.x0)/B.G),j=Math.floor((z-B.z0)/B.G);B.lab[j*B.nx+i]=B.ch.length;B.ch.push(c);},chemoClear:()=>{CHEMO_B=null;}};';
 js+='\nglobal.__cb={coverAt,thruOf,MOULT,sheds,softPrey,findPrey,spawn,chunkAt,solidPush,V3,creatures,FI,groundAt};';
@@ -83,8 +83,17 @@ const Cf=X.player.clade;check(['speed','accel','turn','mass','bite','cam','sprin
   X.startNew(fin);floor();L.lay();const b2=L.cur().broods[0];L.clear();L.setT(b2.at+L.DAY_S);const cs=L.children();
   check(cs.length===1&&b2.hatched&&Math.abs(b2.n-L.breed().n*L.breed().survive)<0.01,'a brood unloaded for a game day: hatched by the clock, '+L.breed().n+' → '+b2.n.toFixed(2));
   L.cells();X.saveNow();X.saveRefresh();const r2=X.rec(X.curSave.id);
-  check(r2&&r2.v===3&&r2.line[0].broods.length===1&&!('_ch' in r2.line[0].broods[0]),'the line in the save (v '+(r2&&r2.v)+'), the broods without their runtime links');
+  check(r2&&r2.v===X.SAVE_V&&r2.line[0].broods.length===1&&!('_ch' in r2.line[0].broods[0]),'the line in the save (v '+(r2&&r2.v)+'), the broods without their runtime links');
   X.startFrom(r2);check(L.line()[0].broods[0].hatched&&L.live(L.line()[0].broods[0])===Math.round(r2.line[0].broods[0].n),'continued: the brood back as '+L.live(L.line()[0].broods[0])+' young at its clutch');
+  // v11.196: a save in play walks the ledger POP_SLICE values a frame (saveSoon, saveStep) — the slot as it was until the walk ends, then the very
+  // streams a save at once writes; a patch's slot moved while it walks starts it again
+  {X.saveNow();const id=X.curSave.id,a=X.rec(id),same=(p,q)=>{const keys=['n','k','ke','cd','ow','done'],S=[];for(const k of keys)S.push([p[k],q[k]]);if(p.pt)for(const k of keys.slice(0,4).concat('done'))S.push([p.pt[k],q.pt&&q.pt[k]]);
+      return S.every(([x,y])=>x&&y&&x.v.length===y.v.length&&x.v.every((v,i)=>v===y.v[i])&&x.c.every((c,i)=>c===y.c[i]));};
+    X.saveSoon();let f=0,mid=null;while(X.saveJob&&f<5000){X.saveStep();f++;if(f===2)mid=X.rec(id);}const b=X.rec(id);
+    check(a.pop.bin===1&&f>2&&mid&&mid.played===a.played&&b.played>=a.played&&b.pop.bin===1&&same(a.pop,b.pop),'a save in slices: '+f+' frames of '+X.POP_SLICE+' values, the slot unchanged until the last, then the streams a save at once writes');
+    const B=X.ECO_PT.bp;X.saveSoon();const j0=X.saveJob;X.saveStep();const keep=B[0];B[0]=keep===-1?0:-1;let g=0;while(X.saveJob===j0&&g<5000){X.saveStep();g++;}
+    const restarted=!!X.saveJob&&X.saveJob!==j0&&X.saveJob.J.t===0&&X.rec(id).played===b.played;B[0]=keep;while(X.saveJob&&g<10000){X.saveStep();g++;} // back as it was: the next walk sees it changed again, the one after finishes
+    check(restarted&&!X.saveJob&&same(a.pop,X.rec(id).pop),'a patch\'s slot moved mid-walk: the save starts again, and ends with the ledger as it is');}
 }
 // ---- 5. the editor at conception (v11.72, LINEAGE §13.4): declined, edited within the budget, refused over it, the child on its own derived numbers ----
 {const L=global.__line,V=global.__cv,P=X.player,fin=X.CLADES.find(c=>c.id==='fin'),floor=()=>{const h=L.groundAt(P.pos.x,P.pos.z);P.pos.y=h+1.5;P.vel.set(0,0,0);P.sub=1;};
