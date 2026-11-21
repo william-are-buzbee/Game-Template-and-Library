@@ -21,15 +21,35 @@ function storeOpen(cb){
 function storeFallback(){store.kind=window.localStorage?'ls':'mem';store.mem=new Map();}
 function storeOp(mode,fn,cb){try{const tx=store.db.transaction('kv',mode),rq=fn(tx.objectStore('kv'));rq.onsuccess=()=>cb(rq.result);rq.onerror=()=>cb(undefined);}catch(e){cb(undefined);}}
 function kvSync(op,id,rec){ // the localStorage and memory backends
-  if(store.kind==='mem'){const m=store.mem;if(op==='all')return Array.from(m.values());if(op==='get')return m.get(id);if(op==='put')m.set(rec.id,rec);else m.delete(id);return;}
+  if(store.kind==='mem'){const m=store.mem;if(op==='all')return Array.from(m.values());if(op==='keys')return Array.from(m.keys());if(op==='sums')return Array.from(m.values()).filter(r=>r&&r.kind==='sum');if(op==='get')return m.get(id);if(op==='put')m.set(rec.id,rec);else m.delete(id);return;}
   const ls=window.localStorage,P='tethys.kv.';
-  try{if(op==='all'){const out=[];for(let i=0;i<ls.length;i++){const k=ls.key(i);if(k.indexOf(P)===0)out.push(JSON.parse(ls.getItem(k)));}return out;}
+  try{if(op==='all'||op==='keys'||op==='sums'){const out=[];for(let i=0;i<ls.length;i++){const k=ls.key(i);if(k.indexOf(P)!==0)continue;if(op==='keys')out.push(k.slice(P.length));else if(op==='all'||k.indexOf(P+SUM_P)===0)out.push(JSON.parse(ls.getItem(k)));}return out;} // keys and sums parse no slot
     if(op==='get'){const s=ls.getItem(P+id);return s?JSON.parse(s):undefined;}if(op==='put')ls.setItem(P+rec.id,JSON.stringify(rec));else ls.removeItem(P+id);}catch(e){return op==='all'?[]:undefined;}
 }
-function storeAll(cb){storeOpen(()=>{if(store.kind==='idb')storeOp('readonly',os=>os.getAll(),r=>cb(r||[]));else cb(kvSync('all'));});}
+// ---------- the slots and their summaries (v11.195) ----------
+// The person, 21 Nov 2026 (a report from home, #141–142: a 2.3 s freeze seconds into play and ~2 s on the menu, Chrome laying 6 s of long frames on
+// IndexedDB's success callbacks): the menu's list read every slot whole — getAll, the ledger's tables and all — to show a name and a time, at the boot,
+// on every return to the menu and in a new game's first seconds. Now each slot has a summary beside it, `sum:<id>` (slotSum: what the list shows and
+// continue chooses by), written in the slot's own transaction (slotPut, slotDel), and the list reads the summaries alone (a key range) and the
+// store's keys (storeSums); a slot is read whole only to open or export it (slotGet). A slot with no summary — every save from before — gets one
+// the first time the list meets it: its one whole read, once. Nothing is removed but by delete; an older build reads the summaries as not saves.
+const SUM_P='sum:';
+function slotSum(r){const L=Array.isArray(r.line)?r.line:null,D=Array.isArray(r.deaths)?r.deaths:[];
+  return {id:SUM_P+r.id,kind:'sum',slot:r.id,name:String(r.name||''),made:+r.made||0,played:+r.played||0,playT:+r.playT||0,clade:String(r.clade||''),specId:r.spec&&typeof r.spec.id==='string'?r.spec.id:'',gens:L?L.length:0,over:!!r.over,dead:D.length,cause:D.length?String(D[D.length-1].cause||''):'',pos:Array.isArray(r.pos)?r.pos.slice(0,3).map(v=>+v||0):null};}
+function slotEntry(s){return {id:s.slot,name:s.name,made:s.made,played:s.played,playT:s.playT,clade:s.clade,specId:s.specId,gens:s.gens,over:s.over,dead:s.dead,cause:s.cause,pos:s.pos};} // the list's: the slot's id, the summary's fields
+function slotPut(rec,cb){const s=slotSum(rec);storeOpen(()=>{if(store.kind==='idb'){let done=false;const end=()=>{if(!done){done=true;if(cb)cb();}};
+    try{const tx=store.db.transaction('kv','readwrite'),os=tx.objectStore('kv');os.put(rec);os.put(s);tx.oncomplete=end;tx.onerror=end;tx.onabort=end;}catch(e){console.warn('save: '+e.message);end();}}
+  else{kvSync('put',rec.id,rec);kvSync('put',s.id,s);if(cb)cb();}});}
+function slotDel(id,cb){storeOpen(()=>{if(store.kind==='idb'){let done=false;const end=()=>{if(!done){done=true;if(cb)cb();}};
+    try{const tx=store.db.transaction('kv','readwrite'),os=tx.objectStore('kv');os.delete(id);os.delete(SUM_P+id);tx.oncomplete=end;tx.onerror=end;tx.onabort=end;}catch(e){end();}}
+  else{kvSync('del',id);kvSync('del',SUM_P+id);if(cb)cb();}});}
+function slotGet(id,cb){storeGet(id,r=>cb(r&&r.kind==='save'&&r.pop?r:null));} // a slot whole, or null
+function storeSums(cb){storeOpen(()=>{ // the summaries and every key (no slot read): cb(sums, keys)
+  if(store.kind!=='idb'){cb(kvSync('sums')||[],kvSync('keys')||[]);return;}
+  try{const tx=store.db.transaction('kv','readonly'),os=tx.objectStore('kv'),R=window.IDBKeyRange,a=os.getAll(R.bound(SUM_P,SUM_P+'\uffff')),k=os.getAllKeys();let done=false;
+    tx.oncomplete=()=>{if(!done){done=true;cb(a.result||[],(k.result||[]).map(String));}};tx.onerror=tx.onabort=()=>{if(!done){done=true;cb([],[]);}};}catch(e){cb([],[]);}});}
 function storeGet(id,cb){storeOpen(()=>{if(store.kind==='idb')storeOp('readonly',os=>os.get(id),cb);else cb(kvSync('get',id));});}
 function storePut(rec,cb){storeOpen(()=>{if(store.kind==='idb')storeOp('readwrite',os=>os.put(rec),()=>{if(cb)cb();});else{kvSync('put',rec.id,rec);if(cb)cb();}});}
-function storeDel(id,cb){storeOpen(()=>{if(store.kind==='idb')storeOp('readwrite',os=>os.delete(id),()=>{if(cb)cb();});else{kvSync('del',id);if(cb)cb();}});}
 // a file out and a file in: the browser's download, and a file picker; both only on a click
 function fileSave(name,txt){try{const a=document.createElement('a');a.href=window.URL.createObjectURL(new Blob([txt],{type:'application/json'}));a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>{window.URL.revokeObjectURL(a.href);},2000);}catch(e){console.warn('save: could not write the file: '+e.message);}}
 function filePick(cb){try{const i=document.createElement('input');i.type='file';i.accept='.json,application/json';i.onchange=()=>{const f=i.files&&i.files[0];if(!f)return;const r=new window.FileReader();r.onload=()=>{cb(String(r.result));};r.readAsText(f);};i.click();}catch(e){console.warn('save: could not read a file: '+e.message);}}
@@ -90,12 +110,18 @@ function saveRecord(){ // the game as it stands, as a record for the store
   return {id:s.id,kind:'save',v:SAVE_V,name:s.name,made:s.made,played:Date.now(),playT:Math.round(playT),clade:P.clade.id,spec:JSON.parse(specToJSON(P.clade.spec)),pos:[r3(P.pos.x),r3(P.pos.y),r3(P.pos.z)],yaw:r3(P.yaw),pitch:r3(P.pitch),deaths:s.deaths||[],arms:P.armsLost||0,regrow:(P.regrow||[]).map(r3),bleed:r3(P.bleed||0),blood:r3(P.blood||0),eaten:r3(P.eaten||0),wounds:(P.wounds||[]).map(w=>({ci:w.ci|0,at:w.at.map(r3),q:+w.q.toFixed(6),tau:r3(w.tau)})),lost:(P.lost||[]).slice(),hunger:r3(P.hunger||0),starveT:r3(P.starveT||0),t:r3(t),line:lineOut(),over:!!s.over,pop:popRows(),falls:fallsOut()}; // hunger, starveT (v11.73): the stomach as it was // blood, wounds (v11.91): the blood lost and every open wound with its rate // arms, regrow, bleed (v11.56): the animal's injuries — a dropped arm is still dropped when you come back, and regrows by the world's clock // deaths (v11.55): the slot's animals that died, {cause, day, playT}
 }
 function lineOut(){const L=curSave.line;if(!L)return [];for(const M of L)for(const b of M.broods)if(b._ch){b.n=b.hatched?broodLive(b):b._egg?b._egg.n:0;b.at=r3(t);}return JSON.parse(JSON.stringify(L,(k,v)=>k[0]==='_'?undefined:v));} // the line as data (line.js): the loaded broods counted first, the runtime links dropped. at (v11.76, found by the test): a loaded brood's count is current at the save, so its catch-up starts here — to v11.75 it started at the hatch, and a continue took the unloaded losses off young that had been in view the whole time
-function saveNow(){if(!curSave||mode!=='play'||player.dead||!player.clade)return false;camNote();const rec=saveRecord();curSave.played=rec.played;curSave.playT=rec.playT;storePut(rec);if(profileDirty)profileSave();saveT=SAVE_EVERY;return true;}
+let slotLast=null;const slotNot=new Set(); // slotNot: keys the list found were no slot (a record that is neither the profile nor a save), not read again this session
+ // the record saveNow wrote last (toMenu keeps it for continue: menu.worldRec)
+function saveNow(){if(!curSave||mode!=='play'||player.dead||!player.clade)return false;camNote();const rec=saveRecord();curSave.played=rec.played;curSave.playT=rec.playT;slotPut(rec);slotLast=rec;if(profileDirty)profileSave();saveT=SAVE_EVERY;return true;}
 function updateSave(dt){if(mode!=='play'||!curSave)return;playT+=dt;lineTick(dt);saveT-=dt;if(saveT<=0)saveNow();}
 function saveRefresh(cb){ // the slots read again; first, a shadow the page left on its way out (saveShadow) goes into the store — it is the latest state of that slot, nothing later can exist
   let sh=null;try{const ls=window.localStorage,s=ls&&ls.getItem('tethys.last');if(s){ls.removeItem('tethys.last');sh=JSON.parse(s);}}catch(e){}
-  const go=()=>storeAll(rs=>{saveList=rs.filter(r=>r&&r.kind==='save'&&r.pop).sort((a,b)=>(b.played||b.made||0)-(a.played||a.made||0));if(cb)cb();});
-  if(sh&&sh.kind==='save'&&sh.pop&&typeof sh.id==='string')storePut(sh,go);else go();
+  const go=()=>storeSums((sums,keys)=>{const have=new Set();for(const s of sums)if(s&&s.kind==='sum')have.add(s.slot);
+    const miss=keys.filter(k=>k!=='profile'&&k.indexOf(SUM_P)!==0&&!have.has(k)&&!slotNot.has(k)),list=sums.filter(s=>s&&s.kind==='sum');
+    const fin=()=>{saveList=list.map(slotEntry).sort((a,b)=>(b.played||b.made||0)-(a.played||a.made||0));if(cb)cb();};
+    const next=()=>{if(!miss.length){fin();return;}const k=miss.shift();slotGet(k,r=>{if(r){const s=slotSum(r);list.push(s);storePut(s,next);}else{slotNot.add(k);next();}});}; // a slot from before the summaries: read whole once, its summary written
+    next();});
+  if(sh&&sh.kind==='save'&&sh.pop&&typeof sh.id==='string')slotPut(sh,go);else go();
 }
 // The title screen's camera (v11.47.2, the person's ask): from the exact spot you last died, left or saved in, every time. The camera's
 // position and look direction go to localStorage synchronously at every one of those events (saveNow, saveShadow, player.js die) — a few
@@ -108,7 +134,7 @@ function saveImport(txt,cb){ // a file back in (menu.js): checked as far as the 
   let r=null;try{r=JSON.parse(txt);}catch(e){}
   if(!r||r.kind!=='save'||!r.pop||typeof r.clade!=='string'){if(cb)cb(null);return;}const sp=specOk(r.spec);
   const rec={id:typeof r.id==='string'&&!saveList.some(s=>s.id===r.id)?r.id:'s'+Date.now().toString(36),kind:'save',v:+r.v||SAVE_V,name:typeof r.name==='string'?r.name.slice(0,40):saveName(),made:+r.made||Date.now(),played:+r.played||Date.now(),playT:+r.playT||0,clade:r.clade,spec:sp||undefined,pos:Array.isArray(r.pos)?r.pos.slice(0,3).map(v=>+v||0):[0,dispY,0],yaw:+r.yaw||0,pitch:+r.pitch||0,deaths:Array.isArray(r.deaths)?r.deaths.slice(-50):[],arms:Math.max(0,+r.arms||0),regrow:Array.isArray(r.regrow)?r.regrow.map(v=>+v||0):[],bleed:Math.max(0,+r.bleed||0),lost:Array.isArray(r.lost)?r.lost.map(v=>v|0):[],t:Math.max(0,+r.t||0),line:Array.isArray(r.line)?r.line:undefined,over:!!r.over,pop:r.pop};
-  storePut(rec,()=>{saveRefresh(()=>{if(cb)cb(rec);});});
+  slotPut(rec,()=>{saveRefresh(()=>{if(cb)cb(rec);});});
 }
 // ---------- the world in and out ----------
 function worldClear(){ // every cell out (the living written into the ledger), a cell mid-build dropped with what it had spawned, the lists emptied
@@ -155,7 +181,7 @@ function injuriesLoad(rec){const P=player;P.armsLost=Math.max(0,+rec.arms||0);P.
 function slotDeath(cause){const s=curSave;if(!s||mode!=='play')return;(s.deaths||(s.deaths=[])).push({cause:cause||'',day:+(clockH/DAY_H).toFixed(1),playT:Math.round(playT)});
   const L=lineCur();if(L){L.died=r3(t);L.cause=cause||'';}
   const x=lineNext(player.pos);if(x){lineContinue(x,cause);return;}
-  s.over=true;const rec=saveRecord();storePut(rec);if(profileDirty)profileSave();curSave=null;unlock();
+  s.over=true;const rec=saveRecord();slotPut(rec);if(profileDirty)profileSave();curSave=null;unlock();
   const shot=camNow();playerDrop();mode='menu';worldClear();menuCam(shot);cellsAround();menuEl.classList.remove('gone');menuPage('main');menuRise(MENU_RISE_BACK);hintEl.style.opacity=0;menuRefresh();
   setTimeout(()=>{fadeEl.style.opacity=0;},400);menuNote((cause||'dead')+'. no young: the line ends');}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveNow();});

@@ -5,7 +5,7 @@
 // first); a file can be imported; options opens the effects list (effects.js) over the caldera; the creator opens the lab as the player's
 // (lab.js lab.player: only what has been seen). Esc in play with the pointer free saves and returns here; z and l still open the bestiary and
 // the lab from here (dev tools). choose() is the bare start the tests drive (anim, combat, physics): the body as the clade, the cells, play.
-const menu={page:'main',confirm:null,busy:false,rise:0,wakeAt:0,idle:false,worldOf:null,shot:null}; // worldOf (v11.189): the slot whose world is under the menu (continue's straight way in) // rise: the wall-clock ms at which the column comes up; wakeAt: the wall-clock ms the mouse last moved on the menu (the wall clock, not dt: a throttled loop — the app's pane — still idles at the right time)
+const menu={page:'main',confirm:null,busy:false,rise:0,wakeAt:0,idle:false,worldOf:null,worldRec:null,shot:null}; // worldRec (v11.195): that slot's whole record, kept from its read (the boot's) or its write (toMenu's), so continue need not read it again // worldOf (v11.189): the slot whose world is under the menu (continue's straight way in) // rise: the wall-clock ms at which the column comes up; wakeAt: the wall-clock ms the mouse last moved on the menu (the wall clock, not dt: a throttled loop — the app's pane — still idles at the right time)
 const MENU_RISE=2400,MENU_RISE_BACK=1200,MENU_IDLE=12000; // ms after the boot's black begins to fade (v11.189, main.js bootIn; to v11.188 after load) and after a return from play before the column rises; ms still before the menu fades away (v11.47.1)
 function menuRise(ms){menu.rise=performance.now()+ms;mlistEl.classList.remove('up');menuWake();}
 function menuWake(){menu.wakeAt=performance.now();if(menu.idle){menu.idle=false;menuEl.classList.remove('idle');}}
@@ -40,8 +40,8 @@ function fmtAgo(ms){const s=(Date.now()-ms)/1000;return s<90?'just now':s<5400?M
 function fmtPlay(s){return s<3600?Math.max(1,Math.round(s/60))+' min':(s/3600).toFixed(1)+' h';}
 function menuSlots(){
   if(!saveList.length){mslotsEl.innerHTML='<div class="mdim">no saved games</div>';return;}
-  mslotsEl.innerHTML=saveList.map(r=>{const C=CLADES.find(c=>c.id===r.clade),conf=menu.confirm===r.id,sp=r.spec&&typeof r.spec.id==='string'&&(!C||r.spec.id!==C.spec.id)?r.spec.id:''; // a spec that is no preset shows its own id (v11.68)
-    return '<div class="slot" data-id="'+escH(r.id)+'"><b>'+escH(r.name||'game')+'</b><span>'+escH(sp||(C?C.name:r.clade))+'</span>'+(Array.isArray(r.line)&&r.line.length>1?'<span>gen '+r.line.length+'</span>':'')+'<span>'+fmtPlay(+r.playT||0)+'</span>'+(r.over?'<span>the line ended</span>':'')+'<span>'+fmtAgo(+r.played||+r.made||Date.now())+'</span>'+(r.deaths&&r.deaths.length?'<span>'+r.deaths.length+' dead · '+escH(r.deaths[r.deaths.length-1].cause||'')+'</span>':'')+'<i data-act="export">export</i><i data-act="del"'+(conf?' class="warn"':'')+'>'+(conf?'sure?':'delete')+'</i></div>';}).join('');
+  mslotsEl.innerHTML=saveList.map(r=>{const C=CLADES.find(c=>c.id===r.clade),conf=menu.confirm===r.id,sp=r.specId&&(!C||r.specId!==C.spec.id)?r.specId:''; // the list is the slots' summaries (v11.195, save.js slotSum) // a spec that is no preset shows its own id (v11.68)
+    return '<div class="slot" data-id="'+escH(r.id)+'"><b>'+escH(r.name||'game')+'</b><span>'+escH(sp||(C?C.name:r.clade))+'</span>'+(r.gens>1?'<span>gen '+r.gens+'</span>':'')+'<span>'+fmtPlay(+r.playT||0)+'</span>'+(r.over?'<span>the line ended</span>':'')+'<span>'+fmtAgo(+r.played||+r.made||Date.now())+'</span>'+(r.dead?'<span>'+r.dead+' dead · '+escH(r.cause)+'</span>':'')+'<i data-act="export">export</i><i data-act="del"'+(conf?' class="warn"':'')+'>'+(conf?'sure?':'delete')+'</i></div>';}).join('');
 }
 function menuGo(fn){ // a quick fade to black round a change of world (a game starting, the menu coming back); the fade's own 1.8 s is the boot's and death's
   if(menu.busy)return;menu.busy=true;fadeEl.style.transition='opacity .35s';fadeEl.style.opacity=1;
@@ -56,9 +56,9 @@ function choose(c,pos,yaw,pitch){ // into play as clade c (an index or the clade
   saveT=SAVE_EVERY;initAudio();tryLock();
 }
 function toMenu(){ // play to the menu (esc with the pointer free): the game saved, the world cleared, the peak's cells back under the menu's camera
-  if(mode!=='play')return;saveNow();const wid=curSave?curSave.id:null;curSave=null;unlock(); // wid (v11.189): the world under the menu is this slot's still — continue goes straight back in
+  if(mode!=='play')return;saveNow();const wid=curSave?curSave.id:null,wrec=slotLast&&slotLast.id===wid?slotLast:null;curSave=null;unlock(); // wid (v11.189): the world under the menu is this slot's still — continue goes straight back in
   const shot=camNow(); // the camera as it is: the title screen opens from here (v11.47.2)
-  menuGo(()=>{playerDrop();mode='menu';worldClear();menuCam(shot);cellsAround();menu.worldOf=wid;menuEl.classList.remove('gone');menuPage('main');menuRise(MENU_RISE_BACK);hintEl.style.opacity=0;menuRefresh();});
+  menuGo(()=>{playerDrop();mode='menu';worldClear();menuCam(shot);cellsAround();menu.worldOf=wid;menu.worldRec=wrec;menuEl.classList.remove('gone');menuPage('main');menuRise(MENU_RISE_BACK);hintEl.style.opacity=0;menuRefresh();});
 }
 document.getElementById('mnew').addEventListener('click',()=>{if(mode==='menu'&&menu.page==='main')menuPage('found');}); // v11.75: the founder's list (the finback was the start to v11.74)
 document.getElementById('mfback').addEventListener('click',()=>{if(mode==='menu')menuPage('main');});
@@ -69,8 +69,9 @@ mfoundersEl.addEventListener('click',e=>{if(mode!=='menu'||menu.page!=='found')r
 // as a child far off), through the fade as before. With no slot to continue, the list. `saves` is the list (to v11.188 continue was).
 const CONT_NEAR=60;
 function contRec(){const ok=r=>r&&!r.over;return saveList.find(r=>r.id===menu.worldOf&&ok(r))||saveList.find(ok)||null;} // the shown slot, else the latest that can go on
-function menuContinue(rec){if(!rec||rec.over)return;const p=Array.isArray(rec.pos)?rec.pos:null,near=p&&rec.id===menu.worldOf&&Math.hypot(p[0]-camera.position.x,p[1]-camera.position.y,p[2]-camera.position.z)<CONT_NEAR;
-  if(near){menu.worldOf=null;slotPlayer(rec);}else menuGo(()=>{menu.worldOf=null;startFrom(rec);});}
+// v11.195: `s` is a slot's summary; the shown slot's record is menu.worldRec (no read), any other is read whole first (slotGet), then the fade
+function menuContinue(s){if(!s||s.over)return;const p=Array.isArray(s.pos)?s.pos:null,W=menu.worldRec,near=p&&s.id===menu.worldOf&&W&&W.id===s.id&&Math.hypot(p[0]-camera.position.x,p[1]-camera.position.y,p[2]-camera.position.z)<CONT_NEAR;
+  if(near){menu.worldOf=null;menu.worldRec=null;slotPlayer(W);}else slotGet(s.id,rec=>{if(!rec||rec.over||mode!=='menu')return;menuGo(()=>{menu.worldOf=null;menu.worldRec=null;startFrom(rec);});});}
 document.getElementById('mcont').addEventListener('click',()=>{if(mode!=='menu'||menu.busy)return;const rec=contRec();if(rec)menuContinue(rec);else menuPage('saves');});
 document.getElementById('mload').addEventListener('click',()=>{if(mode==='menu')menuPage('saves');});
 document.getElementById('mopt').addEventListener('click',()=>{if(mode==='menu')fxShow(!fxOpen);});
@@ -80,8 +81,8 @@ document.getElementById('mimport').addEventListener('click',()=>{if(mode!=='menu
 mslotsEl.addEventListener('click',e=>{
   if(mode!=='menu')return;let el=e.target;const act=el.dataset&&el.dataset.act;while(el&&el!==mslotsEl&&!(el.dataset&&el.dataset.id))el=el.parentNode;if(!el||el===mslotsEl)return;
   const id=el.dataset.id,rec=saveList.find(r=>r.id===id);if(!rec)return;
-  if(act==='del'){if(menu.confirm===id){menu.confirm=null;storeDel(id,()=>{saveRefresh(menuSlots);});}else{menu.confirm=id;menuSlots();}}
-  else if(act==='export')fileSave((rec.name||'game').replace(/[^\w-]+/g,'_')+'.tethys.json',JSON.stringify(rec));
+  if(act==='del'){if(menu.confirm===id){menu.confirm=null;if(menu.worldOf===id){menu.worldOf=null;menu.worldRec=null;}slotDel(id,()=>{saveRefresh(menuSlots);});}else{menu.confirm=id;menuSlots();}}
+  else if(act==='export')slotGet(id,r=>{if(r)fileSave((r.name||'game').replace(/[^\w-]+/g,'_')+'.tethys.json',JSON.stringify(r));else menuNote('that save could not be read');}); // the slot whole (v11.195: the list holds its summary)
   else if(rec.over)menuNote('this line has ended'); // v11.69: no living child at the last death — the slot is kept to look at (the shrine, later), never continued
   else menuContinue(rec); // the shown slot straight in (v11.189), another through the fade
 });
