@@ -69,6 +69,7 @@ function wmSample(x,z,out){
   for(let c=0;c<4;c++){const a=D[(j0*WM_N+i0)*4+c]*(1-fu)+D[(j0*WM_N+i1)*4+c]*fu,b=D[(j1*WM_N+i0)*4+c]*(1-fu)+D[(j1*WM_N+i1)*4+c]*fu;out[c]=(a*(1-fv)+b*fv)/255;}
   return out;
 }
+function wmUpload(){waterMap.needsUpdate=true;floorMap.needsUpdate=true;} // v11.200: on its own — the texture's setter, read in wmBlur's optimised code, threw it out 8–19 times a session (its feedback never held)
 function wmBlur(i0,i1,j0,j1){
   for(let j=Math.max(0,j0);j<Math.min(WM_N,j1);j++)for(let i=Math.max(0,i0);i<Math.min(WM_N,i1);i++){
     let r=0,g=0,b=0,a=0,f=0,wf=0,pg=0,pf=0,n=0;
@@ -76,7 +77,7 @@ function wmBlur(i0,i1,j0,j1){
     const k=(j*WM_N+i)*4;WM_DATA[k]=Math.round(255*clamp(r/n,0,1));WM_DATA[k+1]=Math.round(255*clamp(g/n,0,1));WM_DATA[k+2]=Math.round(255*clamp(b/n,0,1));WM_DATA[k+3]=Math.round(255*clamp(a/n,0,1));
     FM_DATA[k]=Math.round(255*clamp(f/n,0,1));FM_DATA[k+1]=Math.round(255*clamp(wf/n,0,1));FM_DATA[k+2]=Math.round(255*clamp(pg/n,0,1));FM_DATA[k+3]=Math.round(255*clamp(pf/n,0,1));
   }
-  waterMap.needsUpdate=true;floorMap.needsUpdate=true;
+  wmUpload();
 }
 WM_O[0]=WM_A+WM_I0*WM_T+WM_HALF;WM_O[1]=WM_A+WM_J0*WM_T+WM_HALF; // the window's centre, the shaders' uWmO (0 today: −25800 + 0 + 25800)
 wmFill(0,WM_N,0,WM_N,4);wmBlur(0,WM_N,0,WM_N);

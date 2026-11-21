@@ -10238,3 +10238,46 @@ two reports on `#lod` first or the tier that follows the machine: "Yeah let's ju
 1. The work tower **without `#low`** on the preview: within seconds of the menu it should reload itself into the low tier and say so on the menu;
    from then on, the plain address is low there. F9 says `tier low by the machine's verdict`.
 2. The home machine: stays high (its GPU 8 ms). `tier()` in the console says what each machine decided.
+
+## v11.200 — the survey of where V8 throws the game out of optimised code; three loops out, and the creature bench deterministic again (21 Nov 2026)
+
+v11.197's islandH (a read thrown out of optimised code 25 times, the function left in the baseline tier: 2 KB of garbage a sample, 2.5× the
+time) raised the question of where else. The person: "Go with your pick first" (the survey, of the list from analysis_project.md's follow-ups).
+
+- **test/deopts.js** (new, a bench): the bench's page in headless Chromium with the real three.js, a new game swum 400 frames, V8's verbose
+  deoptimisation trace counted by function and source line, and the sites thrown out five times or more. (The same in node against the stub ran
+  first: three runs agreed that no hot function of ours was stuck as islandH was.)
+- **What it found in Chromium** (1,471 throw-outs in 400 frames; most "exit from OSR'd inner loop", V8 leaving a loop it optimised mid-run, harmless):
+  - **merge** (parts.js), 129 at one read: the build tape's copy taken back through `geo.attributes`, whose shapes differ with every geometry; then
+    125 at `T.list`: the tape was two literals of two shapes. Now merge counts the vertices and writes typed arrays (to v11.199 it pushed onto
+    growing arrays: the same 32-bit values, without the garbage), which Float32BufferAttribute copies once — kept for its class: a plain
+    BufferAttribute on the merged geometries read renderFrame ×1.16–1.24 at the forest (three's per-draw code saw two classes) — the tape copies them,
+    and the tape is a class of its own (`GeoTape`). After: 14, none repeated.
+  - **vlyCut** (world.js), 24 + 6 "not int32" at `M[o]`: `(k0+j)%n0` is −0 when k0+j is a negative multiple of n0, an index V8 will not take
+    as an int. Now `|0` (the same element; the terrain the same to the bit over 1.3M values). After: none.
+  - **wmBlur** (far.js), 8–19 at `waterMap.needsUpdate=true` (the texture's setter): the stores in a function of their own, `wmUpload`. After: none.
+  - **three.js r128's WebGLBindingStates.setup**, 252 "wrong map": its per-draw check walks a geometry's `attributes`, whose shapes differ with
+    every geometry. In three's own code: for step 6 (three.js upgraded), analysis_project.md.
+- **The creature bench deterministic again** (test/bench_creatures.js): it stepped the menu's first frames before the save store answered;
+  IndexedDB answers when it does, and a boot that streamed a few frames before or after it spawned another ledger — "the bodies differ between two
+  runs" (624 or 625 at the forest), since v11.189's boot (1 of 3 runs at v11.190, 3 of 4 on main). It waits for the answer now, as test/gpu.js
+  does: six loads, every one 624. Its earlier ×1.15–1.34 flags on this branch were that.
+- test/types.json lowered to 124 (merge's BufferAttribute types).
+
+**What it costs:** `node test/perf.js` against main (N=3; world, creatures, frames, gpu, fill):
+
+| measure | before | after | ratio |
+|---|---|---|---|
+| every kind's build, ms (first) | 60.3 | 39.5 | ×0.66 |
+| every kind's build, ms (again: what a spawn pays) | 4.5 | 3.9 | ×0.87 |
+| a cell at forest / atoll / platform / sea / giant, ms | 35.0 / 34.2 / 21.5 / 8.8 / 32.5 | 36.2 / 32.2 / 23.5 / 9.6 / 32.2 | ×1.03 / 0.94 / 1.09 / 1.08 / 0.99 |
+| creatures' work a frame at the forest (Chromium), ms | 1.904 | 1.609 | ×0.85 |
+| creatures' work a frame at (330, 0) (node), ms | 2.263 | 2.048 | ×0.91 (N=5; the N=3 run read ×1.24 — noise: nothing per frame changed) |
+| sample(), µs, five windows | 0.646–0.989 | 0.645–0.978 | ×0.99–1.02 |
+| the proxy's GPU time, forest / shore / canopy, ms | 2,028 / 2,616 / 2,138 | 2,070 / 2,610 / 2,040 | ×1.02 / 1.00 / 0.95 |
+
+The world, the simulation and every body the same to the bit; the GPU's counts the same at every place; the pictures at the forest, the shore and
+the canopy the same pixel for pixel.
+
+**Unseen, ask in this order:**
+1. Nothing to look at. A cell's generation should be a little quicker; the reports' `gen` will say.
