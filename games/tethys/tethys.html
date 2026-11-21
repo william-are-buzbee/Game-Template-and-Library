@@ -173,7 +173,7 @@ canvas{display:block;outline:none;touch-action:none}
 <div id="fade" class="layer"></div>
 <canvas id="spark" class="layer"></canvas>
 <div id="stats"></div>
-<script>window.TETHYS_BUILD={v:"v11.194"};</script>
+<script>window.TETHYS_BUILD={v:"v11.195"};</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 function tethysMain(){
@@ -15073,15 +15073,35 @@ function storeOpen(cb){
 function storeFallback(){store.kind=window.localStorage?'ls':'mem';store.mem=new Map();}
 function storeOp(mode,fn,cb){try{const tx=store.db.transaction('kv',mode),rq=fn(tx.objectStore('kv'));rq.onsuccess=()=>cb(rq.result);rq.onerror=()=>cb(undefined);}catch(e){cb(undefined);}}
 function kvSync(op,id,rec){ // the localStorage and memory backends
-  if(store.kind==='mem'){const m=store.mem;if(op==='all')return Array.from(m.values());if(op==='get')return m.get(id);if(op==='put')m.set(rec.id,rec);else m.delete(id);return;}
+  if(store.kind==='mem'){const m=store.mem;if(op==='all')return Array.from(m.values());if(op==='keys')return Array.from(m.keys());if(op==='sums')return Array.from(m.values()).filter(r=>r&&r.kind==='sum');if(op==='get')return m.get(id);if(op==='put')m.set(rec.id,rec);else m.delete(id);return;}
   const ls=window.localStorage,P='tethys.kv.';
-  try{if(op==='all'){const out=[];for(let i=0;i<ls.length;i++){const k=ls.key(i);if(k.indexOf(P)===0)out.push(JSON.parse(ls.getItem(k)));}return out;}
+  try{if(op==='all'||op==='keys'||op==='sums'){const out=[];for(let i=0;i<ls.length;i++){const k=ls.key(i);if(k.indexOf(P)!==0)continue;if(op==='keys')out.push(k.slice(P.length));else if(op==='all'||k.indexOf(P+SUM_P)===0)out.push(JSON.parse(ls.getItem(k)));}return out;} // keys and sums parse no slot
     if(op==='get'){const s=ls.getItem(P+id);return s?JSON.parse(s):undefined;}if(op==='put')ls.setItem(P+rec.id,JSON.stringify(rec));else ls.removeItem(P+id);}catch(e){return op==='all'?[]:undefined;}
 }
-function storeAll(cb){storeOpen(()=>{if(store.kind==='idb')storeOp('readonly',os=>os.getAll(),r=>cb(r||[]));else cb(kvSync('all'));});}
+// ---------- the slots and their summaries (v11.195) ----------
+// The person, 21 Nov 2026 (a report from home, #141–142: a 2.3 s freeze seconds into play and ~2 s on the menu, Chrome laying 6 s of long frames on
+// IndexedDB's success callbacks): the menu's list read every slot whole — getAll, the ledger's tables and all — to show a name and a time, at the boot,
+// on every return to the menu and in a new game's first seconds. Now each slot has a summary beside it, `sum:<id>` (slotSum: what the list shows and
+// continue chooses by), written in the slot's own transaction (slotPut, slotDel), and the list reads the summaries alone (a key range) and the
+// store's keys (storeSums); a slot is read whole only to open or export it (slotGet). A slot with no summary — every save from before — gets one
+// the first time the list meets it: its one whole read, once. Nothing is removed but by delete; an older build reads the summaries as not saves.
+const SUM_P='sum:';
+function slotSum(r){const L=Array.isArray(r.line)?r.line:null,D=Array.isArray(r.deaths)?r.deaths:[];
+  return {id:SUM_P+r.id,kind:'sum',slot:r.id,name:String(r.name||''),made:+r.made||0,played:+r.played||0,playT:+r.playT||0,clade:String(r.clade||''),specId:r.spec&&typeof r.spec.id==='string'?r.spec.id:'',gens:L?L.length:0,over:!!r.over,dead:D.length,cause:D.length?String(D[D.length-1].cause||''):'',pos:Array.isArray(r.pos)?r.pos.slice(0,3).map(v=>+v||0):null};}
+function slotEntry(s){return {id:s.slot,name:s.name,made:s.made,played:s.played,playT:s.playT,clade:s.clade,specId:s.specId,gens:s.gens,over:s.over,dead:s.dead,cause:s.cause,pos:s.pos};} // the list's: the slot's id, the summary's fields
+function slotPut(rec,cb){const s=slotSum(rec);storeOpen(()=>{if(store.kind==='idb'){let done=false;const end=()=>{if(!done){done=true;if(cb)cb();}};
+    try{const tx=store.db.transaction('kv','readwrite'),os=tx.objectStore('kv');os.put(rec);os.put(s);tx.oncomplete=end;tx.onerror=end;tx.onabort=end;}catch(e){console.warn('save: '+e.message);end();}}
+  else{kvSync('put',rec.id,rec);kvSync('put',s.id,s);if(cb)cb();}});}
+function slotDel(id,cb){storeOpen(()=>{if(store.kind==='idb'){let done=false;const end=()=>{if(!done){done=true;if(cb)cb();}};
+    try{const tx=store.db.transaction('kv','readwrite'),os=tx.objectStore('kv');os.delete(id);os.delete(SUM_P+id);tx.oncomplete=end;tx.onerror=end;tx.onabort=end;}catch(e){end();}}
+  else{kvSync('del',id);kvSync('del',SUM_P+id);if(cb)cb();}});}
+function slotGet(id,cb){storeGet(id,r=>cb(r&&r.kind==='save'&&r.pop?r:null));} // a slot whole, or null
+function storeSums(cb){storeOpen(()=>{ // the summaries and every key (no slot read): cb(sums, keys)
+  if(store.kind!=='idb'){cb(kvSync('sums')||[],kvSync('keys')||[]);return;}
+  try{const tx=store.db.transaction('kv','readonly'),os=tx.objectStore('kv'),R=window.IDBKeyRange,a=os.getAll(R.bound(SUM_P,SUM_P+'\uffff')),k=os.getAllKeys();let done=false;
+    tx.oncomplete=()=>{if(!done){done=true;cb(a.result||[],(k.result||[]).map(String));}};tx.onerror=tx.onabort=()=>{if(!done){done=true;cb([],[]);}};}catch(e){cb([],[]);}});}
 function storeGet(id,cb){storeOpen(()=>{if(store.kind==='idb')storeOp('readonly',os=>os.get(id),cb);else cb(kvSync('get',id));});}
 function storePut(rec,cb){storeOpen(()=>{if(store.kind==='idb')storeOp('readwrite',os=>os.put(rec),()=>{if(cb)cb();});else{kvSync('put',rec.id,rec);if(cb)cb();}});}
-function storeDel(id,cb){storeOpen(()=>{if(store.kind==='idb')storeOp('readwrite',os=>os.delete(id),()=>{if(cb)cb();});else{kvSync('del',id);if(cb)cb();}});}
 // a file out and a file in: the browser's download, and a file picker; both only on a click
 function fileSave(name,txt){try{const a=document.createElement('a');a.href=window.URL.createObjectURL(new Blob([txt],{type:'application/json'}));a.download=name;document.body.appendChild(a);a.click();document.body.removeChild(a);setTimeout(()=>{window.URL.revokeObjectURL(a.href);},2000);}catch(e){console.warn('save: could not write the file: '+e.message);}}
 function filePick(cb){try{const i=document.createElement('input');i.type='file';i.accept='.json,application/json';i.onchange=()=>{const f=i.files&&i.files[0];if(!f)return;const r=new window.FileReader();r.onload=()=>{cb(String(r.result));};r.readAsText(f);};i.click();}catch(e){console.warn('save: could not read a file: '+e.message);}}
@@ -15142,12 +15162,17 @@ function saveRecord(){ // the game as it stands, as a record for the store
   return {id:s.id,kind:'save',v:SAVE_V,name:s.name,made:s.made,played:Date.now(),playT:Math.round(playT),clade:P.clade.id,spec:JSON.parse(specToJSON(P.clade.spec)),pos:[r3(P.pos.x),r3(P.pos.y),r3(P.pos.z)],yaw:r3(P.yaw),pitch:r3(P.pitch),deaths:s.deaths||[],arms:P.armsLost||0,regrow:(P.regrow||[]).map(r3),bleed:r3(P.bleed||0),blood:r3(P.blood||0),eaten:r3(P.eaten||0),wounds:(P.wounds||[]).map(w=>({ci:w.ci|0,at:w.at.map(r3),q:+w.q.toFixed(6),tau:r3(w.tau)})),lost:(P.lost||[]).slice(),hunger:r3(P.hunger||0),starveT:r3(P.starveT||0),t:r3(t),line:lineOut(),over:!!s.over,pop:popRows(),falls:fallsOut()}; // hunger, starveT (v11.73): the stomach as it was // blood, wounds (v11.91): the blood lost and every open wound with its rate // arms, regrow, bleed (v11.56): the animal's injuries — a dropped arm is still dropped when you come back, and regrows by the world's clock // deaths (v11.55): the slot's animals that died, {cause, day, playT}
 }
 function lineOut(){const L=curSave.line;if(!L)return [];for(const M of L)for(const b of M.broods)if(b._ch){b.n=b.hatched?broodLive(b):b._egg?b._egg.n:0;b.at=r3(t);}return JSON.parse(JSON.stringify(L,(k,v)=>k[0]==='_'?undefined:v));} // the line as data (line.js): the loaded broods counted first, the runtime links dropped. at (v11.76, found by the test): a loaded brood's count is current at the save, so its catch-up starts here — to v11.75 it started at the hatch, and a continue took the unloaded losses off young that had been in view the whole time
-function saveNow(){if(!curSave||mode!=='play'||player.dead||!player.clade)return false;camNote();const rec=saveRecord();curSave.played=rec.played;curSave.playT=rec.playT;storePut(rec);if(profileDirty)profileSave();saveT=SAVE_EVERY;return true;}
+let slotLast=null;const slotNot=new Set(); // slotLast: the record saveNow(true) wrote (toMenu's, kept for continue as menu.worldRec; an autosave keeps none, so play holds no extra slot) // slotNot: keys the list found were no slot (a record that is neither the profile nor a save), not read again this session
+function saveNow(keep){slotLast=null;if(!curSave||mode!=='play'||player.dead||!player.clade)return false;camNote();const rec=saveRecord();curSave.played=rec.played;curSave.playT=rec.playT;slotPut(rec);if(keep)slotLast=rec;if(profileDirty)profileSave();saveT=SAVE_EVERY;return true;}
 function updateSave(dt){if(mode!=='play'||!curSave)return;playT+=dt;lineTick(dt);saveT-=dt;if(saveT<=0)saveNow();}
 function saveRefresh(cb){ // the slots read again; first, a shadow the page left on its way out (saveShadow) goes into the store — it is the latest state of that slot, nothing later can exist
   let sh=null;try{const ls=window.localStorage,s=ls&&ls.getItem('tethys.last');if(s){ls.removeItem('tethys.last');sh=JSON.parse(s);}}catch(e){}
-  const go=()=>storeAll(rs=>{saveList=rs.filter(r=>r&&r.kind==='save'&&r.pop).sort((a,b)=>(b.played||b.made||0)-(a.played||a.made||0));if(cb)cb();});
-  if(sh&&sh.kind==='save'&&sh.pop&&typeof sh.id==='string')storePut(sh,go);else go();
+  const go=()=>storeSums((sums,keys)=>{const have=new Set();for(const s of sums)if(s&&s.kind==='sum')have.add(s.slot);
+    const miss=keys.filter(k=>k!=='profile'&&k.indexOf(SUM_P)!==0&&!have.has(k)&&!slotNot.has(k)),list=sums.filter(s=>s&&s.kind==='sum');
+    const fin=()=>{saveList=list.map(slotEntry).sort((a,b)=>(b.played||b.made||0)-(a.played||a.made||0));if(cb)cb();};
+    const next=()=>{if(!miss.length){fin();return;}const k=miss.shift();slotGet(k,r=>{if(r){const s=slotSum(r);list.push(s);storePut(s,next);}else{slotNot.add(k);next();}});}; // a slot from before the summaries: read whole once, its summary written
+    next();});
+  if(sh&&sh.kind==='save'&&sh.pop&&typeof sh.id==='string')slotPut(sh,go);else go();
 }
 // The title screen's camera (v11.47.2, the person's ask): from the exact spot you last died, left or saved in, every time. The camera's
 // position and look direction go to localStorage synchronously at every one of those events (saveNow, saveShadow, player.js die) — a few
@@ -15160,7 +15185,7 @@ function saveImport(txt,cb){ // a file back in (menu.js): checked as far as the 
   let r=null;try{r=JSON.parse(txt);}catch(e){}
   if(!r||r.kind!=='save'||!r.pop||typeof r.clade!=='string'){if(cb)cb(null);return;}const sp=specOk(r.spec);
   const rec={id:typeof r.id==='string'&&!saveList.some(s=>s.id===r.id)?r.id:'s'+Date.now().toString(36),kind:'save',v:+r.v||SAVE_V,name:typeof r.name==='string'?r.name.slice(0,40):saveName(),made:+r.made||Date.now(),played:+r.played||Date.now(),playT:+r.playT||0,clade:r.clade,spec:sp||undefined,pos:Array.isArray(r.pos)?r.pos.slice(0,3).map(v=>+v||0):[0,dispY,0],yaw:+r.yaw||0,pitch:+r.pitch||0,deaths:Array.isArray(r.deaths)?r.deaths.slice(-50):[],arms:Math.max(0,+r.arms||0),regrow:Array.isArray(r.regrow)?r.regrow.map(v=>+v||0):[],bleed:Math.max(0,+r.bleed||0),lost:Array.isArray(r.lost)?r.lost.map(v=>v|0):[],t:Math.max(0,+r.t||0),line:Array.isArray(r.line)?r.line:undefined,over:!!r.over,pop:r.pop};
-  storePut(rec,()=>{saveRefresh(()=>{if(cb)cb(rec);});});
+  slotPut(rec,()=>{saveRefresh(()=>{if(cb)cb(rec);});});
 }
 // ---------- the world in and out ----------
 function worldClear(){ // every cell out (the living written into the ledger), a cell mid-build dropped with what it had spawned, the lists emptied
@@ -15207,7 +15232,7 @@ function injuriesLoad(rec){const P=player;P.armsLost=Math.max(0,+rec.arms||0);P.
 function slotDeath(cause){const s=curSave;if(!s||mode!=='play')return;(s.deaths||(s.deaths=[])).push({cause:cause||'',day:+(clockH/DAY_H).toFixed(1),playT:Math.round(playT)});
   const L=lineCur();if(L){L.died=r3(t);L.cause=cause||'';}
   const x=lineNext(player.pos);if(x){lineContinue(x,cause);return;}
-  s.over=true;const rec=saveRecord();storePut(rec);if(profileDirty)profileSave();curSave=null;unlock();
+  s.over=true;const rec=saveRecord();slotPut(rec);if(profileDirty)profileSave();curSave=null;unlock();
   const shot=camNow();playerDrop();mode='menu';worldClear();menuCam(shot);cellsAround();menuEl.classList.remove('gone');menuPage('main');menuRise(MENU_RISE_BACK);hintEl.style.opacity=0;menuRefresh();
   setTimeout(()=>{fadeEl.style.opacity=0;},400);menuNote((cause||'dead')+'. no young: the line ends');}
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')saveNow();});
@@ -15500,7 +15525,7 @@ function updateSpark(dt){
 // first); a file can be imported; options opens the effects list (effects.js) over the caldera; the creator opens the lab as the player's
 // (lab.js lab.player: only what has been seen). Esc in play with the pointer free saves and returns here; z and l still open the bestiary and
 // the lab from here (dev tools). choose() is the bare start the tests drive (anim, combat, physics): the body as the clade, the cells, play.
-const menu={page:'main',confirm:null,busy:false,rise:0,wakeAt:0,idle:false,worldOf:null,shot:null}; // worldOf (v11.189): the slot whose world is under the menu (continue's straight way in) // rise: the wall-clock ms at which the column comes up; wakeAt: the wall-clock ms the mouse last moved on the menu (the wall clock, not dt: a throttled loop — the app's pane — still idles at the right time)
+const menu={page:'main',confirm:null,busy:false,rise:0,wakeAt:0,idle:false,worldOf:null,worldRec:null,shot:null}; // worldRec (v11.195): that slot's whole record, kept from its read (the boot's) or its write (toMenu's), so continue need not read it again // worldOf (v11.189): the slot whose world is under the menu (continue's straight way in) // rise: the wall-clock ms at which the column comes up; wakeAt: the wall-clock ms the mouse last moved on the menu (the wall clock, not dt: a throttled loop — the app's pane — still idles at the right time)
 const MENU_RISE=2400,MENU_RISE_BACK=1200,MENU_IDLE=12000; // ms after the boot's black begins to fade (v11.189, main.js bootIn; to v11.188 after load) and after a return from play before the column rises; ms still before the menu fades away (v11.47.1)
 function menuRise(ms){menu.rise=performance.now()+ms;mlistEl.classList.remove('up');menuWake();}
 function menuWake(){menu.wakeAt=performance.now();if(menu.idle){menu.idle=false;menuEl.classList.remove('idle');}}
@@ -15535,8 +15560,8 @@ function fmtAgo(ms){const s=(Date.now()-ms)/1000;return s<90?'just now':s<5400?M
 function fmtPlay(s){return s<3600?Math.max(1,Math.round(s/60))+' min':(s/3600).toFixed(1)+' h';}
 function menuSlots(){
   if(!saveList.length){mslotsEl.innerHTML='<div class="mdim">no saved games</div>';return;}
-  mslotsEl.innerHTML=saveList.map(r=>{const C=CLADES.find(c=>c.id===r.clade),conf=menu.confirm===r.id,sp=r.spec&&typeof r.spec.id==='string'&&(!C||r.spec.id!==C.spec.id)?r.spec.id:''; // a spec that is no preset shows its own id (v11.68)
-    return '<div class="slot" data-id="'+escH(r.id)+'"><b>'+escH(r.name||'game')+'</b><span>'+escH(sp||(C?C.name:r.clade))+'</span>'+(Array.isArray(r.line)&&r.line.length>1?'<span>gen '+r.line.length+'</span>':'')+'<span>'+fmtPlay(+r.playT||0)+'</span>'+(r.over?'<span>the line ended</span>':'')+'<span>'+fmtAgo(+r.played||+r.made||Date.now())+'</span>'+(r.deaths&&r.deaths.length?'<span>'+r.deaths.length+' dead · '+escH(r.deaths[r.deaths.length-1].cause||'')+'</span>':'')+'<i data-act="export">export</i><i data-act="del"'+(conf?' class="warn"':'')+'>'+(conf?'sure?':'delete')+'</i></div>';}).join('');
+  mslotsEl.innerHTML=saveList.map(r=>{const C=CLADES.find(c=>c.id===r.clade),conf=menu.confirm===r.id,sp=r.specId&&(!C||r.specId!==C.spec.id)?r.specId:''; // the list is the slots' summaries (v11.195, save.js slotSum) // a spec that is no preset shows its own id (v11.68)
+    return '<div class="slot" data-id="'+escH(r.id)+'"><b>'+escH(r.name||'game')+'</b><span>'+escH(sp||(C?C.name:r.clade))+'</span>'+(r.gens>1?'<span>gen '+r.gens+'</span>':'')+'<span>'+fmtPlay(+r.playT||0)+'</span>'+(r.over?'<span>the line ended</span>':'')+'<span>'+fmtAgo(+r.played||+r.made||Date.now())+'</span>'+(r.dead?'<span>'+r.dead+' dead · '+escH(r.cause)+'</span>':'')+'<i data-act="export">export</i><i data-act="del"'+(conf?' class="warn"':'')+'>'+(conf?'sure?':'delete')+'</i></div>';}).join('');
 }
 function menuGo(fn){ // a quick fade to black round a change of world (a game starting, the menu coming back); the fade's own 1.8 s is the boot's and death's
   if(menu.busy)return;menu.busy=true;fadeEl.style.transition='opacity .35s';fadeEl.style.opacity=1;
@@ -15551,9 +15576,9 @@ function choose(c,pos,yaw,pitch){ // into play as clade c (an index or the clade
   saveT=SAVE_EVERY;initAudio();tryLock();
 }
 function toMenu(){ // play to the menu (esc with the pointer free): the game saved, the world cleared, the peak's cells back under the menu's camera
-  if(mode!=='play')return;saveNow();const wid=curSave?curSave.id:null;curSave=null;unlock(); // wid (v11.189): the world under the menu is this slot's still — continue goes straight back in
+  if(mode!=='play')return;saveNow(true);const wid=curSave?curSave.id:null,wrec=slotLast&&slotLast.id===wid?slotLast:null;slotLast=null;curSave=null;unlock(); // wid (v11.189): the world under the menu is this slot's still — continue goes straight back in
   const shot=camNow(); // the camera as it is: the title screen opens from here (v11.47.2)
-  menuGo(()=>{playerDrop();mode='menu';worldClear();menuCam(shot);cellsAround();menu.worldOf=wid;menuEl.classList.remove('gone');menuPage('main');menuRise(MENU_RISE_BACK);hintEl.style.opacity=0;menuRefresh();});
+  menuGo(()=>{playerDrop();mode='menu';worldClear();menuCam(shot);cellsAround();menu.worldOf=wid;menu.worldRec=wrec;menuEl.classList.remove('gone');menuPage('main');menuRise(MENU_RISE_BACK);hintEl.style.opacity=0;menuRefresh();});
 }
 document.getElementById('mnew').addEventListener('click',()=>{if(mode==='menu'&&menu.page==='main')menuPage('found');}); // v11.75: the founder's list (the finback was the start to v11.74)
 document.getElementById('mfback').addEventListener('click',()=>{if(mode==='menu')menuPage('main');});
@@ -15564,8 +15589,9 @@ mfoundersEl.addEventListener('click',e=>{if(mode!=='menu'||menu.page!=='found')r
 // as a child far off), through the fade as before. With no slot to continue, the list. `saves` is the list (to v11.188 continue was).
 const CONT_NEAR=60;
 function contRec(){const ok=r=>r&&!r.over;return saveList.find(r=>r.id===menu.worldOf&&ok(r))||saveList.find(ok)||null;} // the shown slot, else the latest that can go on
-function menuContinue(rec){if(!rec||rec.over)return;const p=Array.isArray(rec.pos)?rec.pos:null,near=p&&rec.id===menu.worldOf&&Math.hypot(p[0]-camera.position.x,p[1]-camera.position.y,p[2]-camera.position.z)<CONT_NEAR;
-  if(near){menu.worldOf=null;slotPlayer(rec);}else menuGo(()=>{menu.worldOf=null;startFrom(rec);});}
+// v11.195: `s` is a slot's summary; the shown slot's record is menu.worldRec (no read), any other is read whole first (slotGet), then the fade
+function menuContinue(s){if(!s||s.over)return;const p=Array.isArray(s.pos)?s.pos:null,W=menu.worldRec,near=p&&s.id===menu.worldOf&&W&&W.id===s.id&&Math.hypot(p[0]-camera.position.x,p[1]-camera.position.y,p[2]-camera.position.z)<CONT_NEAR;
+  if(near){menu.worldOf=null;menu.worldRec=null;slotPlayer(W);}else slotGet(s.id,rec=>{if(!rec||rec.over||mode!=='menu')return;menuGo(()=>{menu.worldOf=null;menu.worldRec=null;startFrom(rec);});});}
 document.getElementById('mcont').addEventListener('click',()=>{if(mode!=='menu'||menu.busy)return;const rec=contRec();if(rec)menuContinue(rec);else menuPage('saves');});
 document.getElementById('mload').addEventListener('click',()=>{if(mode==='menu')menuPage('saves');});
 document.getElementById('mopt').addEventListener('click',()=>{if(mode==='menu')fxShow(!fxOpen);});
@@ -15575,8 +15601,8 @@ document.getElementById('mimport').addEventListener('click',()=>{if(mode!=='menu
 mslotsEl.addEventListener('click',e=>{
   if(mode!=='menu')return;let el=e.target;const act=el.dataset&&el.dataset.act;while(el&&el!==mslotsEl&&!(el.dataset&&el.dataset.id))el=el.parentNode;if(!el||el===mslotsEl)return;
   const id=el.dataset.id,rec=saveList.find(r=>r.id===id);if(!rec)return;
-  if(act==='del'){if(menu.confirm===id){menu.confirm=null;storeDel(id,()=>{saveRefresh(menuSlots);});}else{menu.confirm=id;menuSlots();}}
-  else if(act==='export')fileSave((rec.name||'game').replace(/[^\w-]+/g,'_')+'.tethys.json',JSON.stringify(rec));
+  if(act==='del'){if(menu.confirm===id){menu.confirm=null;if(menu.worldOf===id){menu.worldOf=null;menu.worldRec=null;}slotDel(id,()=>{saveRefresh(menuSlots);});}else{menu.confirm=id;menuSlots();}}
+  else if(act==='export')slotGet(id,r=>{if(r)fileSave((r.name||'game').replace(/[^\w-]+/g,'_')+'.tethys.json',JSON.stringify(r));else menuNote('that save could not be read');}); // the slot whole (v11.195: the list holds its summary)
   else if(rec.over)menuNote('this line has ended'); // v11.69: no living child at the last death — the slot is kept to look at (the shrine, later), never continued
   else menuContinue(rec); // the shown slot straight in (v11.189), another through the fade
 });
@@ -16886,14 +16912,18 @@ function warmShaders(W){W=W||warmPrep();while(!warmStep(W));} // all of it now
 // BOOT.settleMs or BOOT.settleMax has passed; then the black fades (3 s, #boot.off) and the column rises MENU_RISE later. A slow machine is longer at every
 // stage and so longer in the black, by its own work, not a guess. Anything that leaves the menu first (a game, the bestiary, a test's choose) finishes it at
 // once (bootFinish): the warm-up whole, the black gone.
-const BOOT={stage:'store',done:false,W:null,world0:0,t0:0,n:0,settleT:0,storeMax:4000,warmMs:20,budget:24,settleMs:50,settleMax:3000,settleN:4,bootEl:document.getElementById('boot'),lineEl:document.getElementById('bootline')};
+const BOOT={stage:'store',done:false,W:null,world0:0,t0:0,n:0,settleT:0,asked:false,askT:0,slotMax:8000,storeMax:4000,warmMs:20,budget:24,settleMs:50,settleMax:3000,settleN:4,bootEl:document.getElementById('boot'),lineEl:document.getElementById('bootline')};
 function bootLine(f){const L=BOOT.lineEl;if(!L)return;L.classList.remove('wait');const i=L.firstElementChild;if(i)i.style.transform='scaleX('+clamp(f,0,1).toFixed(3)+')';}
-function bootSlot(){if(BOOT.done||BOOT.stage!=='store')return; // the store's answer (main.js profileLoad → menuRefresh), or its timeout
-  if(mode==='menu'){const note=camRead(),rec=note&&note.id?saveList.find(r=>r.id===note.id):null;if(rec&&!rec.over&&rec.pop){try{slotWorld(rec);menu.worldOf=rec.id;}catch(e){console.warn('the last slot\'s world: '+e.message);}}}
-  BOOT.stage='load';BOOT.W=warmPrep();BOOT.world0=0;bootLine(0);}
+function bootSlot(){if(BOOT.done||BOOT.stage!=='store'||BOOT.asked)return; // the store's answer (main.js profileLoad → menuRefresh), or its timeout
+  // v11.195: the list is the slots' summaries; the last slot's record is read whole here, the one slot the boot opens (save.js slotGet), and kept for continue
+  if(mode==='menu'){const note=camRead(),s=note&&note.id?saveList.find(r=>r.id===note.id):null;if(s&&!s.over){BOOT.asked=true;BOOT.askT=performance.now();
+    slotGet(s.id,rec=>{if(!BOOT.asked)return;BOOT.asked=false;if(BOOT.done||BOOT.stage!=='store'||mode!=='menu')return; // the boot went on without it (bootTick's wait), or play began
+      if(rec&&!rec.over){try{slotWorld(rec);menu.worldOf=rec.id;menu.worldRec=rec;}catch(e){console.warn('the last slot\'s world: '+e.message);}}bootGo();});return;}}
+  bootGo();}
+function bootGo(){BOOT.stage='load';BOOT.W=warmPrep();BOOT.world0=0;bootLine(0);}
 function bootTick(iv){if(BOOT.done)return;if(mode!=='menu'){bootFinish();return;}
   const now=performance.now();if(!BOOT.t0)BOOT.t0=now;
-  if(BOOT.stage==='store'){if(now-BOOT.t0>BOOT.storeMax)bootSlot();return;} // a store that never answers: the boot goes on without the slot
+  if(BOOT.stage==='store'){if(BOOT.asked){if(now-BOOT.askT>BOOT.slotMax){BOOT.asked=false;bootGo();}}else if(now-BOOT.t0>BOOT.storeMax)bootSlot();return;} // a store that never answers: the boot goes on without the slot (v11.195: and a slot's read past slotMax, without its world)
   if(BOOT.stage==='load'){const w0=performance.now();if(BOOT.W){do{if(warmStep(BOOT.W)){BOOT.W=null;break;}}while(performance.now()-w0<BOOT.warmMs);}
     const pend=cellsPending()+farPending();BOOT.world0=Math.max(BOOT.world0,pend);const W=BOOT.W,wf=W?W.k/(W.k+(W.items.length-W.i)+(W.rest?W.more.length:W.est+1)+(W.passes?0:1)+(W.hz?0:1)+(W.depth?0:1)):1,gf=BOOT.world0?1-pend/BOOT.world0:1;bootLine(0.5*wf+0.5*gf);
     if(!W&&pend===0){BOOT.stage='settle';BOOT.settleT=now;BOOT.n=0;bootLine(1);if(BOOT.lineEl)BOOT.lineEl.classList.add('settle');}return;}
