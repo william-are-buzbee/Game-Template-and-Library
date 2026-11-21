@@ -29,6 +29,7 @@ Run in `games/tethys`; from the repository's root the same are `npm run build -w
 node build.js            tethys.html (everything inlined), dev.html (src/*.js loaded separately), src/INDEX.md (every top-level name, its line)
 node build.js --test     the build, then every headless test on both tiers; exit 1 on any failure (JOBS=n side by side, SHARD=k/n one part)
 node serve.js            http://localhost:8080/dev.html (edit and refresh) or /tethys.html (the build)
+node test/types.js       the type checker over src/ against its baseline, test/types.json (also `npm run typecheck`, which CI runs)
 npm run smoke            the browser tests CI runs: node test/gpu.js --check, node test/boot.js
 ```
 
@@ -44,6 +45,13 @@ npm run smoke            the browser tests CI runs: node test/gpu.js --check, no
 - The headless tests concatenate `src/` in `order.txt` order against a stubbed THREE (`test/stub.js`: r128's own primitive points, real
   transforms) in Node. The world, terrain, collision and behaviour are real; rendering and sound are not. A new THREE API may need adding to
   the stub.
+- **The type checker** (`test/types.js`; tsconfig.json, `types/globals.d.ts`): TypeScript reads src/*.js as the scripts they are, with r128's
+  types (`@types/three@0.128.0`) and `@wb/core`'s source; nothing is converted or emitted. Its old errors (mostly the DOM's narrow types) are
+  counted in `test/types.json`; a count that moves either way fails — a new error is a bug to fix, a fixed one is `--update`d, so the baseline
+  only goes down. In JavaScript a plain object takes any key unchecked, so the checker guards the game's own objects only where they are
+  typed: the record (`Rec`, world.js), the creature (`Creature`, creatures_ai.js) and the player (`Player`, player.js) are closed shapes
+  listed beside their literals — a key misspelt or set that is not there is an error, the shape rule held at check time. A key added to one of
+  those literals goes in its typedef too. When the checker is wrong, say why in a JSDoc type or `types/globals.d.ts`; never `@ts-ignore`.
 - The benches are not in `--test`: `test/perf.js` (the pull request's table), `test/gpu.js` (exact GPU counts, held in CI), `test/fill.js`
   (GPU time per draw, a proxy), `test/frames.js`, `test/bench.js`, `test/bench_creatures.js`; the person's own machines: `test/report.js`.
 
@@ -54,8 +62,9 @@ npm run smoke            the browser tests CI runs: node test/gpu.js --check, no
    envelope by hand. A part the kit lacks goes in `PARTS`: its styles in `reg` with their clades (and `cores`, `params`), every parameter with
    its `label`, bands and default on its line (`test/registry.js` fails otherwise). There are no hand builders. A new plant is a `species()` in
    flora.js from grow.js's bauplans.
-2. `node build.js --test` green on both tiers; **what it costs measured** if it touches a hot path ("Performance"); `node test/gpu.js --check`
-   passing or `test/gpu.json` updated with the change.
+2. `node build.js --test` green on both tiers; `node test/types.js` holding (or `test/types.json` lowered with `--update` when errors were
+   fixed); **what it costs measured** if it touches a hot path ("Performance"); `node test/gpu.js --check` passing or `test/gpu.json` updated
+   with the change.
 3. **Look at it.** `node serve.js` (or the `tethys` launch config in the repository's `.claude/launch.json`) and `dev.html` in the app's browser
    (or `npm run look -- games/tethys` from the root): play to the changed
    thing, screenshot it. A hidden pane does not tick and its 0×0 viewport NaNs the menu: keep it visible, or drive the loop from the console —
@@ -111,7 +120,8 @@ request says what it cost before the person plays it (the root `docs/decisions.m
 
 ## Layout
 
-`shell.html` the page (the build puts the scripts at `<!--SCRIPTS-->`); `src/` the game; `build.js`, `build.py`; `serve.js` the dev server and
+`shell.html` the page (the build puts the scripts at `<!--SCRIPTS-->`); `src/` the game; `build.js`, `build.py`; `tsconfig.json` and `types/` the
+type checker's; `serve.js` the dev server and
 the sound bench's sink; `test/` the tests, the stub, the benches, the previews (`test/README.md`); `vendor/` `WB`; `tools/` vendor.js and
 dist.js; `archive/` old docs kept whole; the design docs.
 
@@ -261,10 +271,11 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
 - **A body is built once per kind and coat, then replayed** (parts.js `GEO_TAPE`, creatures_ai.js `tapeBuild`). A builder is a function of its
   spec, scale and palette; nothing in it reads a primitive's geometry or a part's transform but `merge` (while a tape plays they are not made:
   `G.*` returns `LAZY_G` and `part`'s `m` is null; `test/registry.js` finds a builder that does). A creature's own rigs, clocks and randomness are made as before; `BUILD_TAPE.on` false builds
-  whole. **Every creature, its `st` and its def are one shape**: a key a creature takes as it lives is in spawn's literal (unset), a `DEFS` key
-  is in `DEF_KEYS`, a def is never written after load (`scaledDef` copies it flat); `test/live.js` fails otherwise.
-- **Every record is one shape** (world.js `recNew`): every key any record carries, in one order; a key unset with `undefined`, never `delete`d
-  (`test/records.js`). In the world's paths a distance is `hyp2(x,z)`, never `Math.sqrt(x*x+z*z)`, which differs in the last place. Before and
+  whole. **Every creature, its `st` and its def are one shape**: a key a creature takes as it lives is in spawn's literal (unset) and its
+  `Creature` typedef, a `DEFS` key is in `DEF_KEYS`, a def is never written after load (`scaledDef` copies it flat); `test/live.js` fails
+  otherwise, and the type checker on any typed path. The player is one shape the same way (`Player`, player.js).
+- **Every record is one shape** (world.js `recNew`, typed `Rec`): every key any record carries, in one order; a key unset with `undefined`, never
+  `delete`d (`test/records.js`). In the world's paths a distance is `hyp2(x,z)`, never `Math.sqrt(x*x+z*z)`, which differs in the last place. Before and
   after any change to world.js or region.js: `BASE=<copy> node test/bench.js`.
 - **The wood is the terrain's** (scene.js `woodGLSL` on `TERRAIN_MAT`, horizon.js `HZ_WOOD`): `terrainColor` writes the canopy per vertex
   (`wo`) and the vertex shader raises it past `FLORA_FAR − FLORA_FADE`. A new terrain mesh passes `terrainColor` a `wo` array and sets `aWood`,

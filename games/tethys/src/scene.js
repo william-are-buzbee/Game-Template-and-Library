@@ -2,7 +2,7 @@
 if(typeof THREE==='undefined'){document.getElementById('title').textContent='three.js did not load';throw new Error('three.js missing');}
 
 let mode='menu',t=0;
-const canvas=document.getElementById('c');
+const canvas=/** @type {HTMLCanvasElement} */(document.getElementById('c'));
 const hurtEl=document.getElementById('hurt'),fadeEl=document.getElementById('fade'),biomeEl=document.getElementById('biome'),hintEl=document.getElementById('hint'),menuEl=document.getElementById('menu'),statsEl=document.getElementById('stats'),compassEl=document.getElementById('compass'),cstripEl=document.getElementById('cstrip'),cpeakEl=document.getElementById('cpeak');
 const isTouch=('ontouchstart' in window)||navigator.maxTouchPoints>0;
 

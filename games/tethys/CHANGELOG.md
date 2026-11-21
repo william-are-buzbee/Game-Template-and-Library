@@ -10002,3 +10002,42 @@ on CLAUDE.md and ~217 KB on HANDOFF.
 
 **Unseen, ask in this order:**
 1. Whether anything the person relies on in the docs is now harder to find.
+
+## v11.193 — the type checker: the game read by TypeScript as the scripts it is, a baseline that only goes down, the record, the creature and the player closed (20 Nov 2026)
+
+Step 3 of analysis_project.md (the person, 20 Nov 2026: "Yes"). The repository's rule 4 is TypeScript, strict; Tethys is grandfathered, one shared
+scope of JavaScript. TypeScript reads files without imports as exactly that — one global scope — so it can check the game as it is, with nothing
+converted and nothing emitted.
+
+- **tsconfig.json**, **types/globals.d.ts** (new): src/*.js as scripts; three.js r128's types (`@types/three@0.128.0`, a devDependency pinned to
+  r128) as the global `THREE`; `WB` typed from `@wb/core`'s own source (the vendored file reads as a CommonJS module, so it is left out); the
+  window's helpers, Chrome's `performance.memory`, `navigator.deviceMemory` and `userAgentData`. TypeScript 7 (the repository's): the whole game in
+  about a second.
+- **test/types.js** (new; package.json `typecheck`, so the root's `npm run typecheck` runs it — CI's quick job, every pull request): the errors
+  counted by file and kind against **test/types.json**; a count that moves either way fails — a new one is a bug, a fixed one is `--update`d — so
+  the baseline only goes down. `--list` every error. Its run on 199 errors first, 129 now.
+- **What it found in the code as it was:** no live bug. Fixed, each the same game: `fx.js` `DSP` had `size` twice (1.5, then 0.8, which won — the
+  dead one dropped; the displays are off); `region.js` pushed a composite's record without the pins' `pin` (`pin:false`, one shape);
+  `horizon.js` gave its tops `to` after making them (in the literal now); `main.js` passed `dt` to `updateMenu()`, which takes none;
+  creatures_spec.js `palk` read `arguments` (rest parameters now: TypeScript 7 no longer reads `arguments` as variadic). Type hints on the
+  tuple tables (`PLANETS`, `WCOL`, `WOPEN`, `WMAP_BANDS`) and the canvas.
+- **The game's own objects closed.** In JavaScript a plain object takes any key, so a misspelt `player.poss` passed the checker. A JSDoc type
+  listing an object's keys closes it: then a key misspelt *or set that is not in the list* is an error — the shape rule held at check time on
+  every path. **`Rec`** (world.js, `recNew`'s 58 keys), **`Creature`** (creatures_ai.js, spawn's 149; `creatures` typed with it, so every
+  loop over them is checked) and **`Player`** (player.js). The record and the creature were clean. **The player was not: twenty keys**
+  (`away`, `sprint`, `eaten`, `oxyD`, `chokeT`, `hopT`, `snapT`, `fovKickT`, `nudgeT`, `nudgeD`, `sw`, `swT`, `ro`, `rollV`, `rollBias`, `turnV`,
+  `accV`, `fxAcc`, `fxJet`, `fxFlop`) were set only as play went, so the object every frame reads changed shape through its first frames.
+  They are declared in its literal now, unset — read as before (nothing uses `in`, keys or spread on the player).
+- **test/report.js**: GitHub's issue search wants `is:issue` (the person's first report could not be fetched without it); the pixel ratio rounded.
+
+**Seen:** planted bugs — a misspelt three.js method (`lenght`), a misspelt and an added key on a record in `sample()`'s path, the same on
+creatures in `updateCreatures` — each flagged as new, with "did you mean". Not caught, and said so in CLAUDE.md: a missing argument (every JS
+parameter is optional to the checker; extra ones are caught) and keys on objects not yet typed.
+
+**What it costs** (`node test/perf.js`; the creature bench again alone): the world, every body built and posed and the simulation the same to the
+bit; what a frame asks of the GPU the same count for count at all seven places; the pictures the same pixel for pixel at the forest, the shore
+and the canopy. Times moved by noise only (creatures' work a frame ×1.01; `sample()` ×0.95–1.14 by window with every piece the same to the bit;
+a cell at the platform ×1.15 and the giant ×1.12, where the giant's cells hold no creatures and nothing changed runs in a cell's generation).
+
+**Unseen, ask in this order:**
+1. Nothing to look at in the game. Whether CLAUDE.md's "The type checker" paragraph reads clearly.

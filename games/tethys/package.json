@@ -8,10 +8,14 @@
     "vendor": "node tools/vendor.js",
     "build": "node tools/vendor.js --check && node build.js && node tools/dist.js",
     "test": "node tools/vendor.js --check && node build.js --test",
-    "smoke": "node test/gpu.js --check && node test/boot.js"
+    "smoke": "node test/gpu.js --check && node test/boot.js",
+    "typecheck": "node test/types.js"
   },
   "shards": 3,
   "dependencies": {
     "@wb/core": "*"
+  },
+  "devDependencies": {
+    "@types/three": "0.128.0"
   }
 }

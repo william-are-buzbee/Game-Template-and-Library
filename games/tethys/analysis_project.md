@@ -33,8 +33,8 @@ the way eventually even if it means fucking up our lawn today", and answered eve
 |---|---|---|
 | 1 | the flight recorder, sent as a public GitHub issue (F9) | built v11.191 |
 | 2 | the docs cut to rules and a map | built v11.192 |
-| 3 | `tsc --checkJs` over src/, a baseline ratcheted down | next |
-| 4 | the flora's detail by distance, from the recipes, measured by the recorder | |
+| 3 | `tsc --checkJs` over src/, a baseline ratcheted down | built v11.193 |
+| 4 | the flora's detail by distance, from the recipes, measured by the recorder | next |
 | 5 | the cells generated in workers | |
 | 6 | three.js to a current release | |
 | 7 | a fixed step and seeded randomness in the sim (replays) | |
@@ -70,3 +70,31 @@ Every session loads CLAUDE.md before any work, and HANDOFF.md is read next: toge
 
 What stays long, on purpose: DESIGN.md (390 KB) and CHANGELOG.md (1.1 MB) are read a section at a time, never whole, and CLAUDE.md says so.
 The rule that keeps it this way is CLAUDE.md's own: HANDOFF is current state only, five versions; history goes to the CHANGELOG.
+
+## 3. The type checker (built v11.193)
+
+`node test/types.js` (and `npm run typecheck`, in CI's quick job on every pull request): TypeScript 7 reads src/*.js as the scripts they are —
+one shared scope, as the build's IIFE has them — with three.js r128's types (`@types/three@0.128.0`) and `@wb/core`'s own source
+(`types/globals.d.ts`); nothing is converted or emitted, and the whole game checks in about a second.
+
+**What it found on its first run** (199 errors, 20 Nov 2026): no live bug. Most was noise — the DOM's narrow types (an event's target, a style's
+opacity as a string), data hung on three's objects, tables of tuples it cannot type unhinted, `WB` (the vendored file reads as a CommonJS module;
+declared from core's source instead). The real items, fixed, each changing nothing the game does:
+- `fx.js` `DSP`: `size` twice in one literal (1.5, then 0.8, which won); the dead first dropped. (The dusk displays are off.)
+- `region.js`: a composite's record pushed without `pin` beside the pins' with it — one shape now (`pin:false`).
+- `horizon.js`: the tops given `to` after they were made — in the literal now.
+- `main.js` passed `dt` to `updateMenu()`, which takes none; `palk` read `arguments` (TypeScript 7 no longer reads that as variadic) — rest
+  parameters now.
+- Type hints on the tables of tuples (`PLANETS`, `WCOL`, `WOPEN`, `WMAP_BANDS`) and the canvas.
+
+**What a check of plain JavaScript cannot see**, and what was done about it: a misspelt key on the game's own objects. In JavaScript an object
+literal takes any key, so `player.poss` passed. A JSDoc type that lists an object's keys closes it, and then the checker flags a key misspelt
+*and a key set that is not in the list* — the shape rule (CLAUDE.md, "Performance"), held at check time on every path, not only where a test runs.
+Three are closed now: the record (`Rec`), the creature (`Creature`, its 149 keys) and the player (`Player`). The first two were clean. **The
+player was not**: twenty of its keys (`fovKickT`, `nudgeD`, `eaten`, `away`, `hopT`, `oxyD`, `turnV`, `accV`, …) were set only as play went, so
+the object read every frame changed shape for its first frames — declared in its literal now, unset, which reads the same.
+
+**Not caught in JavaScript at all**: a missing argument (every parameter of a JS function is optional to the checker; extra ones are caught).
+
+**The ratchet** from here: the baseline (129) goes down as errors are fixed, never up; the next objects worth closing are `DEFS` rows, a
+chunk, a hold. And step 6 (three.js upgraded) starts by swapping the types: every r128 call the new three.js no longer has will be on the list.

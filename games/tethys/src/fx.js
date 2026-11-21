@@ -199,7 +199,7 @@ function bactSee(L){return smooth(BACT.dark[0],BACT.dark[1],L);}
 // second or two and fades, and the others take up the beat, so the strings come in waves. Moonlight stops them. Here the displayers are tiny
 // hingeshells by their trade (a hinged shell, PLANET's line; a background population, no bodies — the person to confirm), shown round the camera
 // where the floor is shallow and sheltered, between DSP.alt's sun altitudes, as the moon allows.
-const DSP={on:false,col:[0.28,0.52,1.0],alt:[-0.42,-0.36,-0.20,-0.15],moon:[0.12,0.4],floor:[-25,-12,-1.5,-0.6],expo:0.7,rate:12,slots:96,view:0.7,size:1.5,n:[6,14],gap:[0.18,0.32],step:[0.15,0.28],life:[1.6,2.6],R:26,beat:7,size:0.8,g:0,hab:0};
+const DSP={on:false,col:[0.28,0.52,1.0],alt:[-0.42,-0.36,-0.20,-0.15],moon:[0.12,0.4],floor:[-25,-12,-1.5,-0.6],expo:0.7,rate:12,slots:96,view:0.7,n:[6,14],gap:[0.18,0.32],step:[0.15,0.28],life:[1.6,2.6],R:26,beat:7,size:0.8,g:0,hab:0};
 // alt: the sun's altitude (sin) — the displays from −25° (rising) to −9° (falling), ~0.75–2 h after sunset; moon: the moon's light (of full) over which they stop; floor: the
 // floor's height (m) over which they live (full −12 to −1.5); expo: how much the surf's exposure takes off; rate: strings a second at full; slots: strings at once;
 // view: the share of strings started in front of the eye (v11.162: 5 a second anywhere round it were a couple of dots at the frame's edge — the person

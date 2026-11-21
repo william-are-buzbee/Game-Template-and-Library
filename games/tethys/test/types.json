@@ -1,0 +1,103 @@
+{
+ "note": "the type checker's errors by file and kind (test/types.js): --update writes it, the check fails when a count moves either way",
+ "tsc": "7.0.2",
+ "total": 129,
+ "files": {
+  "src/atmosphere.js": {
+   "TS2322 Type 'number' is not assignable to type 'string'.": 5,
+   "TS2339 Property 'extensions' does not exist on type 'MeshPhongMaterial'.": 1,
+   "TS2540 Cannot assign to 'height' because it is a read-only property.": 1,
+   "TS2540 Cannot assign to 'width' because it is a read-only property.": 1
+  },
+  "src/audio.js": {
+   "TS2339 Property 'N6' does not exist on type '(dt: any) => void'.": 1
+  },
+  "src/chunks.js": {
+   "TS2339 Property 'set' does not exist on type 'ArrayLike<number>'.": 2,
+   "TS2339 Property 'tick' does not exist on type 'Points<BufferGeometry, PointsMaterial>'.": 1,
+   "TS2542 Index signature in type 'ArrayLike<number>' only permits reading.": 2
+  },
+  "src/creatures_ai.js": {
+   "TS2542 Index signature in type 'ArrayLike<number>' only permits reading.": 2
+  },
+  "src/creatures_builders.js": {
+   "TS2349 This expression is not callable.": 1
+  },
+  "src/creatures_spec.js": {
+   "TS2339 Property 'geometry' does not exist on type 'Object3D'.": 3,
+   "TS2339 Property 'isMesh' does not exist on type 'Object3D'.": 1
+  },
+  "src/effects.js": {
+   "TS2339 Property 'dataset' does not exist on type 'EventTarget'.": 8,
+   "TS2339 Property 'nextElementSibling' does not exist on type 'EventTarget'.": 1,
+   "TS2339 Property 'parentNode' does not exist on type 'EventTarget'.": 1,
+   "TS2339 Property 'tagName' does not exist on type 'EventTarget'.": 1,
+   "TS2339 Property 'value' does not exist on type 'EventTarget'.": 2
+  },
+  "src/far.js": {
+   "TS2339 Property 'reach' does not exist on type 'InstancedMesh<BufferGeometry, any>'.": 1,
+   "TS2339 Property 'set' does not exist on type 'ArrayLike<number>'.": 1,
+   "TS2339 Property 'set' does not exist on type 'number | Float32Array<ArrayBuffe…'.": 1,
+   "TS2339 Property 'slice' does not exist on type 'number | Float32Array<ArrayBuffe…'.": 1,
+   "TS2339 Property 'tide' does not exist on type 'InstancedMesh<BufferGeometry, any>'.": 1,
+   "TS2363 The right-hand side of an arithmetic operation must be of type 'any', 'number', 'bigint' or an enum type.": 3,
+   "TS2740 Type 'number[]' is missing the following properties from type 'Float32Array<ArrayBuffer>': BYTES_PER_ELEMENT, buffer, byteLength, byteOffset, and 3 more.": 2
+  },
+  "src/lab.js": {
+   "TS2322 Type 'number' is not assignable to type 'string'.": 4,
+   "TS2339 Property 'checked' does not exist on type 'Element'.": 2,
+   "TS2339 Property 'dataset' does not exist on type 'Element'.": 1
+  },
+  "src/line.js": {
+   "TS2322 Type 'number' is not assignable to type 'string'.": 12,
+   "TS2339 Property 'getContext' does not exist on type 'HTMLElement'.": 2,
+   "TS2339 Property 'height' does not exist on type 'HTMLElement'.": 2,
+   "TS2339 Property 'width' does not exist on type 'HTMLElement'.": 2
+  },
+  "src/main.js": {
+   "TS2339 Property 'material' does not exist on type 'Object3D'.": 3,
+   "TS2339 Property 'style' does not exist on type 'Element'.": 1
+  },
+  "src/menu.js": {
+   "TS2322 Type 'number' is not assignable to type 'string'.": 7,
+   "TS2339 Property 'dataset' does not exist on type 'EventTarget'.": 8,
+   "TS2339 Property 'parentNode' does not exist on type 'EventTarget'.": 2
+  },
+  "src/parts.js": {
+   "TS2339 Property 'slice' does not exist on type 'ArrayLike<number>'.": 3
+  },
+  "src/physics.js": {
+   "TS2339 Property 'F' does not exist on type '(rig: any, e: any) => void'.": 2,
+   "TS2339 Property 'LP' does not exist on type '(rig: any, e: any) => void'.": 2,
+   "TS2339 Property 'N6' does not exist on type '(dt: any) => void'.": 2,
+   "TS2339 Property 'Q' does not exist on type '(c: any, e: any, s: any, dt: any) => void'.": 2,
+   "TS2339 Property 'RP' does not exist on type '(c: any, e: any, s: any, dt: any) => void'.": 2
+  },
+  "src/player.js": {
+   "TS2322 Type 'number' is not assignable to type 'string'.": 6
+  },
+  "src/rec.js": {
+   "TS2322 Type 'number' is not assignable to type 'string'.": 2,
+   "TS2339 Property 'loadEventEnd' does not exist on type 'PerformanceEntry'.": 1,
+   "TS2339 Property 'transferSize' does not exist on type 'PerformanceEntry'.": 1
+  },
+  "src/save.js": {
+   "TS2322 Type 'number' is not assignable to type 'string'.": 2,
+   "TS2339 Property 'geometry' does not exist on type 'Object3D'.": 2
+  },
+  "src/scene.js": {
+   "TS2339 Property 'map' does not exist on type 'number | number[]'.": 1,
+   "TS2339 Property 'shBounds' does not exist on type 'Object3D'.": 2,
+   "TS2339 Property 'sway' does not exist on type 'MeshLambertMaterial'.": 1,
+   "TS2339 Property 'texture' does not exist on type 'RenderTarget'.": 2
+  },
+  "src/world.js": {
+   "TS2322 Type '(number | number[])[][]' is not assignable to type '[number, number[]][]'.": 1
+  },
+  "src/worldmap.js": {
+   "TS2339 Property 'getContext' does not exist on type 'HTMLElement'.": 1,
+   "TS2339 Property 'height' does not exist on type 'HTMLElement'.": 2,
+   "TS2339 Property 'width' does not exist on type 'HTMLElement'.": 2
+  }
+ }
+}
