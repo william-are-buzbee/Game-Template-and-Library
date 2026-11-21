@@ -10150,3 +10150,40 @@ loaded from them).
 **Unseen, ask in this order:**
 1. On the home machine, after some play: F9 — no `IDBRequest.onsuccess` and no `pointerlockchange` among the long animation frames, and no
    hitch every 30 s in the timeline.
+
+## v11.197 — the terrain stays in optimised code: half the garbage, a record's data on shapes V8 never retires (21 Nov 2026)
+
+The person: "work on the garbage collection pauses". Their home reports had 200–350 ms frames the recorder marked `gc` (the heap falling), a few in
+a 23-minute session, with the heap at 1.5–2.9 GB.
+
+**What was in the heap and what made the garbage** (headless Chromium, the bench page, a new game swum through for 300 frames; the DevTools sampling
+heap profiler, every allocation sampled, and the heap after forced collections):
+- **The live heap is small**: 69 MB after the boot and a new game, 80 after 900 frames more. The reports' 1.5–2.9 GB was the old menu list holding
+  every slot whole (gone in v11.195: a full collection ×2.4 slower with six long-played slots held here, 59 → 145 ms; 44–50 ms with them in the store
+  on main) and the garbage waiting for its collection.
+- **The garbage: 4.1 MB a frame** on this page (which builds a whole cell a frame; the game's budget spreads it). 2.2 MB of it was islandH alone.
+
+**Why islandH**: V8 threw its optimised code away 25 times in 200,000 sample() calls and left it in the baseline tier, where every decimal is a new heap
+object. The throw-outs were all at one read, `L.gully.lee`, for want of type feedback — though the read runs all the time. The gullies' objects
+(`{n, lee}`) were on a **retired shape** (V8's "deprecated map"): a literal's shape is shared with every object whose keys begin the same way, `{n:
+…}` being every counter in the game, and when one of those first holds a decimal where the others held integers V8 changes the field's storage and
+retires the shape; the objects made before keep it. A property read of such an object never misses (its handler is cached), so the object is never
+moved, while the optimiser takes no feedback from a retired shape: thrown out, run in the baseline, optimised again, thrown out — for good. (Not
+in test/bench.js's process, which loads only the world's files: no other `{n: …}` object there retires the shape.)
+
+- **The records' data on shapes of their own** (world.js `RDATA`, `rdata`, `recSeal`, called at the end of region.js's load): every plain object a
+  record holds, at any depth, rebuilt on `RDATA`'s prototype — a tree of shapes no other object shares — every field first set `undefined`, which V8
+  stores as any value from the start, so no storage change is to come and no shape is retired (as `recNew` does for the record itself).
+- **test/opt.js** (new, in --test): every record's plain objects on RDATA's shapes; sample() 200,000 times in a child node with V8's natives and
+  `--trace-deopt` — sample and islandH optimised at the end, islandH thrown out no more than 12 times. On main: 25 throw-outs, islandH in the baseline
+  tier, the shapes check failing; here 6 (the first samples' warming), both optimised.
+
+**What it costs** (the bench page, 300 frames swimming, main → here, the same run of the machine): **the garbage 4,117 → 1,887 KB a frame (×0.46)**,
+islandH's 2,239 → 391; the frame 11.1 → 5.8 ms (×0.52; this page generates a whole cell every frame, so in the game it is the generation's
+share); the live heap the same (80 → 79 MB). sample() alone in node with the whole game loaded: 3.1 → 1.25 µs, 2.0 → 1.3 KB a call.
+`node test/perf.js --only world`: the world the same to the bit (every window, 300,000 points, every piece of the region's data), sample() ×1.00–1.05
+(noise: in that bench islandH was optimised before and after). The terrain also bit-identical over sample()'s height and nine fields, 1.3M values
+across the world and round home.
+
+**Unseen, ask in this order:**
+1. On the home machine, 20+ minutes of play, then F9: the `gc` frames (worst frames, "outside gc") and the heap column of the timeline.
