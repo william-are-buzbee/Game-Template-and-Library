@@ -65,9 +65,9 @@ function buildKind(d,kind,cls){const sp=specOfKind(kind),pk=sp&&typeof sp.coat==
 // BUILD_TAPE.on false builds whole every time, as to v11.148 (test/bench_creatures.js, the comparison)
 const BUILD_TAPE={on:true,map:new WeakMap()};
 function tapeBuild(d,kind,cls){if(!BUILD_TAPE.on||kind==='lab'||GEO_TAPE!==null)return d.build();let M=BUILD_TAPE.map.get(d);if(!M)BUILD_TAPE.map.set(d,M=new Map());const key=cls||'',L=M.get(key);
-  if(L){let b=null,err=null;GEO_TAPE={play:true,list:L,i:0};try{b=d.build();if(GEO_TAPE.i!==L.length)throw new Error('the build tape: '+GEO_TAPE.i+' of '+L.length+' merges replayed');}catch(e){err=e;}finally{GEO_TAPE=null;}
+  if(L){let b=null,err=null;GEO_TAPE=new GeoTape(true,L);try{b=d.build();if(GEO_TAPE.i!==L.length)throw new Error('the build tape: '+GEO_TAPE.i+' of '+L.length+' merges replayed');}catch(e){err=e;}finally{GEO_TAPE=null;}
     if(!err)return b;console.warn('tapeBuild: '+kind+(key?' @'+key:'')+' built whole: '+err.message);M.delete(key);return d.build();}
-  const T={play:false,list:[]};GEO_TAPE=T;let b;try{b=d.build();}finally{GEO_TAPE=null;}M.set(key,T.list);return b;}
+  const T=new GeoTape(false,[]);GEO_TAPE=T;let b;try{b=d.build();}finally{GEO_TAPE=null;}M.set(key,T.list);return b;}
 // a def with the size-dependent numbers scaled by k (a juvenile at ECO.juv, an adult's band at VARY): a flat copy of the kind's (v11.149: creatures_defs.js defFlat — to v11.148 chained to it by Object.create, 26 shapes), every other number as the kind's
 function scaledDef(d,k){const j=defFlat(d),sq=Math.sqrt(k);j.size=d.size*k;if(d.speed)j.speed=d.speed*sq;if(d.top)j.top=d.top*sq;if(d.flee)j.flee=d.flee*sq;if(d.reach)j.reach=d.reach*k;if(d.dmg)j.dmg=d.dmg*k*k;if(d.radius)j.radius=d.radius*k;if(d.lunge)j.lunge=d.lunge*sq;if(d.detect)j.detect=d.detect*k;if(d.clear!==undefined)j.clear=d.clear*k;if(d.food)j.food=Math.max(1,Math.round(d.food*k));if(d.filter)j.filter=d.filter*k*k;return j;} // filter (v11.85): an area, with the square
 // a soft body's place: on the floor within MOULT.hide of p, clear of solids at its own radius but with one within 2 m (a rock, a stalk, a structure's foot); failing that, the floor where it is

@@ -2195,7 +2195,7 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   and death; `camRead` at boot; `menuCam` sets the camera, the shot and `player.pos`, which the cells stream round; `layoutMenu` restores the
   shot after the bestiary or the lab) — the title, and a column in the centre of the screen in a soft dark halo (the words sit on white sand;
   v11.47.1; near white since v11.47.2) that rises over 1.6 s a second after the fade clears (`MENU_RISE` 3200 ms from boot, `MENU_RISE_BACK` 1200 after play, `#mlist.up`),
-  the whole menu fading away after `MENU_IDLE` 12 s without the mouse moving and back on the first move (`#menu.idle`, `updateMenu`, the wall
+  the whole menu fading away after `MENU_IDLE` 12 s without the mouse moving and back on the first move (since v11.202 the idle menu also draws at ~30 fps, `MENU_IDLE_IV`: the screen's rate for a screen nobody watches cost the CPU 3 ms a frame) (`#menu.idle`, `updateMenu`, the wall
   clock so a throttled loop still idles on time) — `new game` (`startNew`: the world cleared, `ecoReset`, `t=0`, the finback
   at the peak, a new slot `game N` written at once), `continue` (the slots newest first: name, clade, time played, when; click loads
   `startFrom`; `export` a .json; `delete` asks `sure?` once; `import a file`), `options` (the effects list), `creator` (the lab as the player's,
@@ -2596,7 +2596,10 @@ marched in a pass of its own at `Q.cloudRes` of the screen on a side (0.5; 0.35 
 help is undone and not tried again for a minute or more; back up after four clean seconds, the wait doubling when that drops again. On the proxy against v11.187: the shore ×0.89, the coast ×0.86, the canopy
 ×0.91; the sky with its pass ×0.37–0.68; the tidewood with its copy ×0.75 at the shore (CHANGELOG v11.188).
 
-**The flora's far copies (v11.194, 21 Nov 2026; off — `#lod`; analysis_project.md §4).** Every flora material's far cut is the uniform `uCut`
+**The flora's far copies (v11.194, 21 Nov 2026; off — `#lod`; analysis_project.md §4). Struck v11.201** (the person, 21 Nov 2026: keep them only
+if they can only help — "if I'm wrong about that, axe them"; on, they cost a frame ×1.37–1.48 of renderFrame's CPU and 45 draws more on any
+machine, and the proxy's GPU ×1.06–1.08): the code, test/lod.js and `#lod` gone; the uniform cut (`uCut`) stays, as it costs nothing. What follows is
+the record of what was built. Every flora material's far cut is the uniform `uCut`
 (near, far, fade; scene.js `farCut`, `cutUOf`), the material's own. With `LOD.on` a pulled species' pool draws a copy of itself — its recipe at
 `LOD.k` 0.5 of every primitive's sides and segments (parts.js `GEO_K`), parts under `LOD.minPart` 5% left out (grow.js `lodParts`) — on its own
 buffers with its material's twin from `LOD.dSea` 150 m in the water, `LOD.dAir` 120 m in the air (chunks.js `poolLodOwn`, `lodStep`). The plants'
