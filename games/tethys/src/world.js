@@ -417,14 +417,14 @@ function anT(T,k,a){let u=a*(AN_N/TAU);u-=Math.floor(u/AN_N)*AN_N;const i=Math.m
 // nearest master's weight across it and its floor (the lagoon's channels and the reef's passes read them)
 const _vy={m:0,mf:0};
 function vlyCut(V,LR,tl,top,av,rw,wet,dB){let cut=0;const M=V.M,n0=V.n0,k0=Math.floor((av-V.mo)/TAU*n0)|0; // |0 (v11.200): an index, never −0 or a double — V8 threw this out 24 times in 400 frames for 'not int32'
-  for(let j=-1;j<=1;j++){let k=(k0+j)%n0;if(k<0)k+=n0;const o=k*6,tlh=M[o+1];if(tl>=tlh)continue;let d=av-M[o];d-=TAU*Math.round(d/TAU);
+  for(let j=-1;j<=1;j++){let k=((k0+j)%n0)|0;if(k<0)k+=n0;const o=k*6,tlh=M[o+1]; /* |0 (v11.200): −9 % 9 is −0, an index V8 will not take as an int (24 throw-outs in 400 frames); the same element */if(tl>=tlh)continue;let d=av-M[o];d-=TAU*Math.round(d/TAU);
     const sv=tl>0?tl/tlh:0,hw=M[o+2]*(1-0.65*sv),lat=Math.abs(d)*rw;if(lat>=hw)continue;
     const dm=dB>0?dB*M[o+4]/V.dmM:M[o+4],dr=Math.min(1,wet*M[o+3])*V.mat;let flo=tl>=0?-dm+(M[o+5]+dm)*Math.pow(sv,V.p):-dm+V.g*tl*LR;
     flo-=0.65*(flo-1)*smooth(-8,-2,flo)*smooth(10,4,flo); // the delta's flat where the floor meets the sea
     const w=smooth(hw,0.2*hw,lat)*(tl>0?smooth(tlh,tlh-0.05,tl):1),c=Math.max(0,top-flo)*V.mat*lerp(1,Math.min(1,wet*M[o+3]),sv)*w;if(c>cut)cut=c;if(w*dr>_vy.m){_vy.m=w*dr;_vy.mf=flo;}} // the mouth at its floor whatever its rain (cut to the sea of its day), the rain how far up
   if(tl<0)return cut;
   const Q=V.S,n1=V.n1,k1=Math.floor((av-V.so)/TAU*n1)|0;
-  for(let j=-1;j<=1;j++){let k=(k1+j)%n1;if(k<0)k+=n1;const o=k*6,tlh=Q[o+1];if(tl>=tlh)continue;let d=av-Q[o];d-=TAU*Math.round(d/TAU);
+  for(let j=-1;j<=1;j++){let k=((k1+j)%n1)|0;if(k<0)k+=n1;const o=k*6,tlh=Q[o+1];if(tl>=tlh)continue;let d=av-Q[o];d-=TAU*Math.round(d/TAU);
     const sv=tl/tlh,hw=Q[o+2]*(1-0.6*sv),lat=Math.abs(d)*rw;if(lat>=hw)continue;
     const dm=Q[o+4];let flo=-dm+(Q[o+5]+dm)*Math.pow(sv,V.p);flo-=0.65*(flo-1)*smooth(-8,-2,flo)*smooth(10,4,flo);
     const c=Math.max(0,top-flo)*V.mat*lerp(1,Math.min(1,wet*Q[o+3]),sv)*smooth(hw,0.25*hw,lat)*smooth(tlh,tlh-0.05,tl);if(c>cut)cut=c;}
