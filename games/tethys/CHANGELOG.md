@@ -10298,3 +10298,20 @@ more on every machine — renderFrame's CPU ×1.37–1.48 and 45 draws more a fr
 
 **Unseen, ask in this order:**
 1. Nothing to look at: the default game is what it was.
+
+## v11.202 — the idle menu draws at ~30 fps (21 Nov 2026)
+
+The person's home report #143: the menu drew the world at 120 fps for 57 minutes after play, 3.2 ms of the CPU a frame (and the GPU's share), for
+a screen nobody was watching. Of the list after the GC work ("I want to get all of these done").
+
+- **The idle menu paced** (main.js `loop`, menu.js `MENU_IDLE_IV`): once the menu is idle (no mouse for `MENU_IDLE` 12 s, its column faded) a frame
+  is drawn only `MENU_IDLE_IV` (31.3 ms) after the last — ~30 fps at 60, 120 or 144 Hz; the first mouse move wakes it to every frame. Play, the boot,
+  the bestiary and the lab are never paced. The resolution that holds the frame and the tier's verdict skip the paced frames (their intervals are
+  the pacing's, not the GPU's).
+- **test/idle.js** (new, in --test): booted to the menu against the stub, idle after 12 s, 60 of 120 frames drawn at 60 Hz (the clock still at
+  2 s), every frame once woken, every frame in play.
+
+**What it costs:** nothing in play. On the idle menu a quarter of the frames at 120 Hz (half at 60).
+
+**Unseen, ask in this order:**
+1. Leave the menu still for 12 s: it should look the same (the water and the creatures move at ~30 fps), and the fans quieter.

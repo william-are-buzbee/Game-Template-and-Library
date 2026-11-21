@@ -2195,7 +2195,7 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   and death; `camRead` at boot; `menuCam` sets the camera, the shot and `player.pos`, which the cells stream round; `layoutMenu` restores the
   shot after the bestiary or the lab) — the title, and a column in the centre of the screen in a soft dark halo (the words sit on white sand;
   v11.47.1; near white since v11.47.2) that rises over 1.6 s a second after the fade clears (`MENU_RISE` 3200 ms from boot, `MENU_RISE_BACK` 1200 after play, `#mlist.up`),
-  the whole menu fading away after `MENU_IDLE` 12 s without the mouse moving and back on the first move (`#menu.idle`, `updateMenu`, the wall
+  the whole menu fading away after `MENU_IDLE` 12 s without the mouse moving and back on the first move (since v11.202 the idle menu also draws at ~30 fps, `MENU_IDLE_IV`: the screen's rate for a screen nobody watches cost the CPU 3 ms a frame) (`#menu.idle`, `updateMenu`, the wall
   clock so a throttled loop still idles on time) — `new game` (`startNew`: the world cleared, `ecoReset`, `t=0`, the finback
   at the peak, a new slot `game N` written at once), `continue` (the slots newest first: name, clade, time played, when; click loads
   `startFrom`; `export` a .json; `delete` asks `sure?` once; `import a file`), `options` (the effects list), `creator` (the lab as the player's,
