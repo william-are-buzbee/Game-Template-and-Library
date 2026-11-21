@@ -10295,7 +10295,10 @@ more on every machine — renderFrame's CPU ×1.37–1.48 and 45 draws more a fr
 - **Kept**: every flora material's cut as a uniform (`uCut`, `cutUOf`, `CUT_V`: it costs nothing and the pictures are the same), and the tidewood's
   own far copy (`TREE_LOD`, v11.188: a card's, which works).
 
-**What it costs:** COSTLINE
+**What it costs:** the default game is what it was — `node test/perf.js` against main (this branch carries v11.200's changes too): what a frame
+asks of the GPU the same at every place, every count; the pictures at the forest, the shore and the canopy the same pixel for pixel; the world, the
+simulation and every body the same to the bit; times within noise (renderFrame at the forest read ×1.12 once; three alternating runs of
+test/fill.js there read ×0.80, ×1.06 and ×0.93). Less code: 120 lines and a test gone, `cullChunks` no longer calls `lodStep` a frame.
 
 **Unseen, ask in this order:**
 1. Nothing to look at: the default game is what it was.
