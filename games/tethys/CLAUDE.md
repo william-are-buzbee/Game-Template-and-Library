@@ -294,6 +294,10 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
 - **Every record is one shape** (world.js `recNew`, typed `Rec`): every key any record carries, in one order; a key unset with `undefined`, never
   `delete`d (`test/records.js`). In the world's paths a distance is `hyp2(x,z)`, never `Math.sqrt(x*x+z*z)`, which differs in the last place. Before and
   after any change to world.js or region.js: `BASE=<copy> node test/bench.js`.
+- **A record's own objects are `rdata`'s** (world.js `RDATA`, `recSeal`; v11.197): rebuilt at the end of region.js's load on a prototype of their own,
+  every field first `undefined`, so V8 never retires their shape (a plain literal's shape is shared with every object whose keys begin the same
+  way, and one retired kept islandH out of optimised code for good: 2 KB of garbage a sample, 2.5× the time). A plain object put on a record
+  after the load goes through `rdata`; `test/opt.js` fails on one that is not, and when islandH or sample ends unoptimised.
 - **The wood is the terrain's** (scene.js `woodGLSL` on `TERRAIN_MAT`, horizon.js `HZ_WOOD`): `terrainColor` writes the canopy per vertex
   (`wo`) and the vertex shader raises it past `FLORA_FAR − FLORA_FADE`. A new terrain mesh passes `terrainColor` a `wo` array and sets `aWood`,
   or it has no forest; a change to `FLORA_FAR` moves the trees' fade and the shell's rise together. Collision and every height the game reads are the ground's, never the shell's; the depth pass leaves the shell down.

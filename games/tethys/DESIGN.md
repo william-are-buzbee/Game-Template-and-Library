@@ -305,6 +305,15 @@ What it was, largest first, and what keeps it:
   path, so each `R.x` in `sample()` and `islandH` was a lookup by name — a third of the cost near the islands. A record starts as `recNew()`'s
   55 keys, all unset, and is filled from there. A new key goes in that list; a key is unset with `undefined`, never deleted (test/records.js).
   The lesson holds for any table of records read in a hot loop: one literal, one key order.
+- **A record's data on shapes V8 never retires** (v11.197; world.js `RDATA`, `rdata`, `recSeal`, at the end of region.js's load). A record's own
+  objects (`land`, its `gully`, `cald`, `flows`, `vly`, `barrier`, `terr`, `flank`, …) were literals, whose shapes V8 shares with every object whose
+  keys begin the same way ({n: …} is every counter in the game). When one of those first holds a decimal where the others held integers, V8 changes
+  the field's storage and retires the shape; the objects made before keep the retired one. A property read of such an object never misses (its
+  handler is cached), so the object is never moved to the new shape, and the optimiser takes no feedback from a retired shape — so islandH was
+  thrown out of optimised code at `L.gully.lee` 25 times in 200,000 samples and stayed in the baseline tier, where every decimal is a new heap
+  object: 2 KB of garbage a sample() and 3.1 µs where optimised it is 1.25. Each such object is now rebuilt on `RDATA`'s prototype (a tree of
+  shapes no other object shares), every field first set `undefined`, which V8 stores as any value from the start: no storage change to come, no
+  shape retired. The terrain is bit-identical (sample()'s height and nine fields over the world and round home, 1.3M values). test/opt.js holds it.
 - **The value noise from tables** (util.js `vnoise`, `permF`): the lattice's four corners read straight, their `/255` done once. `fbm` is a
   quarter of `sample()`.
 - **`hyp2`** (util.js): `Math.hypot` for two arguments in plain arithmetic, the engine's own double. V8's allocates a list a call. Use it in
