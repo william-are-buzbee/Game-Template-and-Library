@@ -1,7 +1,7 @@
 {
  "note": "the type checker's errors by file and kind (test/types.js): --update writes it, the check fails when a count moves either way",
  "tsc": "7.0.2",
- "total": 127,
+ "total": 124,
  "files": {
   "src/atmosphere.js": {
    "TS2322 Type 'number' is not assignable to type 'string'.": 5,
@@ -61,9 +61,6 @@
    "TS2322 Type 'number' is not assignable to type 'string'.": 7,
    "TS2339 Property 'dataset' does not exist on type 'EventTarget'.": 8,
    "TS2339 Property 'parentNode' does not exist on type 'EventTarget'.": 2
-  },
-  "src/parts.js": {
-   "TS2339 Property 'slice' does not exist on type 'ArrayLike<number>'.": 3
   },
   "src/physics.js": {
    "TS2339 Property 'F' does not exist on type '(rig: any, e: any) => void'.": 2,
