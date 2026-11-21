@@ -847,7 +847,7 @@ const VAR_GLSL='attribute float vid;attribute float aVar;\n',VAR_COLLAPSE='if(ab
 // it, after the material's own displacement. Instanced only: MAT's creatures and the depth pass (no USE_FOG) keep their size.
 const FLORA_FAR=450,FLORA_FADE=90;
 // v11.194 (analysis_project.md §4): the cut is a uniform, `uCut` (x: the near edge — an instance nearer is gone, 0 none; y: the far edge; z: the fade
-// into it), each material's own (cutUOf), so one program serves a species' whole draw (cut at LOD.d) and its far copy's (from LOD.d on) — chunks.js poolLod.
+// into it), each material's own (cutUOf) — made for v11.194's far copies (struck v11.201); kept, as it costs nothing and the pictures are the same.
 // The numbers are the ones the shaders had as literals; a material with no cut has its far edge at NO_CUT, which nothing reaches.
 const CUT_V='uniform vec3 uCut;\n',NO_CUT=1e7;
 function farCut(){return '\nfloat fadeK=1.0;\n#if defined(USE_FOG)&&defined(USE_INSTANCING)\n{float fdk=distance((modelMatrix*vec4(instanceMatrix[3].xyz,1.0)).xyz,uFogC);if(fdk>uCut.y||fdk<uCut.x)'+GONE+'fadeK=1.0-smoothstep(uCut.y-uCut.z,uCut.y,fdk);}\n#endif\n';} // uFogC: the camera (fog_pars_vertex)

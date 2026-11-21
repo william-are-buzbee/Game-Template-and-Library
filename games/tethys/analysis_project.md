@@ -34,7 +34,7 @@ the way eventually even if it means fucking up our lawn today", and answered eve
 | 1 | the flight recorder, sent as a public GitHub issue (F9) | built v11.191 |
 | 2 | the docs cut to rules and a map | built v11.192 |
 | 3 | `tsc --checkJs` over src/, a baseline ratcheted down | built v11.193 |
-| 4 | the flora's detail by distance, from the recipes, measured by the recorder; then the tier that follows the machine | built v11.194, **off** (`#lod`); the tier built v11.199: a loss on the proxy; the person's reports decide |
+| 4 | the flora's detail by distance, from the recipes, measured by the recorder; then the tier that follows the machine | built v11.194, off, **struck v11.201** (they cost more than they saved); the tier built v11.199: a loss on the proxy; the person's reports decide |
 | 5 | the cells generated in workers | |
 | 6 | three.js to a current release | |
 | 7 | a fixed step and seeded randomness in the sim (replays) | |
@@ -140,3 +140,8 @@ the machine first.
 "Yeah let's just go for option 2" — the tier that follows the machine, before any more evidence on the copies. **Built v11.199** (scene.js
 `TIER_K`, `tierStep`, `tierFrame`; DESIGN "Performance and the quality tier"): each browser keeps a verdict from its GPU's own time; the far copies
 stay off and their question open.
+
+**The copies struck (21 Nov 2026).** The person: "The far copies can be kept in for now as they look no different to me and they only are at
+'risk' of improving performance. if I'm wrong about that, axe them." They were off by default (what the person saw was the game without them), and
+on they cost more on every machine: renderFrame's CPU ×1.37–1.48 and 45 draws a frame, the proxy's GPU ×1.06–1.08 (#144's home report, with
+`#lod` at another place, read 4.5 ms of submit against 2.9). So, by the person's own rule, **struck in v11.201**; the uniform cut stays.

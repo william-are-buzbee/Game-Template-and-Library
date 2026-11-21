@@ -61,7 +61,7 @@ function recGpuName(s){s=String(s||'');const m=/^ANGLE \((.*)\)$/.exec(s);if(m){
   return s.replace(/ \(0x[0-9A-Fa-f]+\)/,'').replace(/ Direct3D.*$/,'').replace(/^ANGLE Metal Renderer: /,'').replace(/ vs_\d.*$/,'').trim();}
 function recDevice(){const d={mid:REC.mid,gpu:'',vendor:'',gl:GL2?2:1,maxTex:0,timer:false,par:false,cores:navigator.hardwareConcurrency||0,mem:navigator.deviceMemory||0,ua:navigator.userAgent||'',plat:'',
   screen:[screen.width||0,screen.height||0],dpr:window.devicePixelRatio||1,win:[innerWidth,innerHeight],buf:[0,0],tier:Q.tier,tierWhy:Q.why,tierV:TIER_SAVED?{tier:TIER_SAVED.tier,ms:TIER_SAVED.ms,from:TIER_SAVED.from,timer:!!TIER_SAVED.timer,at:TIER_SAVED.at}:null,pr:Q.pr,aa:!!Q.aa,touch:!!isTouch,fx:null,
-  flags:String(location.hash||''),lod:LOD.on?LOD.k+'/'+LOD.dSea+'/'+LOD.dAir:'off'};REC.dev=d; // flags: the URL's (#low, #nolod…), so two reports of one machine say what each ran with (v11.194); lod: the far copies' share, sea and air distances
+  flags:String(location.hash||'')};REC.dev=d; // flags: the URL's (#low, #nolod…), so two reports of one machine say what each ran with (v11.194); lod: the far copies' share, sea and air distances
   try{const gl=renderer.getContext(),dbg=gl.getExtension('WEBGL_debug_renderer_info');d.gpu=String(gl.getParameter(dbg?dbg.UNMASKED_RENDERER_WEBGL:gl.RENDERER));d.vendor=String(gl.getParameter(dbg?dbg.UNMASKED_VENDOR_WEBGL:gl.VENDOR));
     d.maxTex=gl.getParameter(gl.MAX_TEXTURE_SIZE)|0;const ex=gl.getSupportedExtensions()||[];d.par=ex.indexOf('KHR_parallel_shader_compile')>=0;
     const E=GL2&&ex.indexOf('EXT_disjoint_timer_query_webgl2')>=0?gl.getExtension('EXT_disjoint_timer_query_webgl2'):null;if(E){RG.gl=gl;RG.ext=E;RG.on=true;d.timer=true;}
