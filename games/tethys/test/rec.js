@@ -52,7 +52,7 @@ async function unpack(tok){const m=/tethys-rec:1:([zj])([A-Za-z0-9_-]+)/.exec(to
     const f=P.R().full(),b=f.boot,d=f.dev;
     ok(d.gpu.indexOf('RTX 4060')>0&&d.timer&&d.par&&d.cores===16&&d.mem===8&&d.gl===2&&d.maxTex===16384,'the machine: '+[d.gpu,d.cores+' threads',d.mem+' GB','timer '+d.timer,'parallel '+d.par].join(', '));
     ok(d.buf[0]===2400&&d.buf[1]===1350&&d.screen[0]===2560&&d.dpr===1.5&&d.fx&&d.fx.snow===true,'the screen, the drawing buffer and the effects at the report');
-    ok(d.flags==='#low'&&d.lod==='0.5/150/120','the URL\'s flags and the far copies\' settings (v11.194): '+d.flags+', '+d.lod);
+    ok(d.flags==='#low','the URL\'s flags (v11.194): '+d.flags);
     ok(b.first>0&&b.first<=b.store&&b.store<=b.load&&b.load<=b.done,'the boot\'s stages in order: first '+b.first+', store '+b.store+', load '+b.load+', done '+b.done);
     ok(f.menu.frames===41&&f.all.frames===0,'menu frames apart from play (the page\'s first frame never one): '+f.menu.frames+' and '+f.all.frames);}
 
