@@ -4,6 +4,15 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.201 (21 Nov 2026): the flora's far copies struck** (parts.js, grow.js, chunks.js, rec.js; test/lod.js gone; analysis_project.md §4;
+CHANGELOG). The person's rule — keep them only if they cannot hurt — and they did (on: renderFrame ×1.37–1.48, 45 draws more). The uniform cut and
+the tidewood's own copy stay. **Ask:** nothing to look at.
+
+**v11.200 (21 Nov 2026): where V8 throws the game out of optimised code** (test/deopts.js; parts.js `merge`, `GeoTape`; world.js `vlyCut`; far.js
+`wmUpload`; test/bench_creatures.js; CHANGELOG). The survey after islandH: no other hot function stuck as it was; three loops out (merge's tape and
+its reads, vlyCut's −0 index, wmBlur's texture setter); three.js r128's per-draw attribute check (252 in 400 frames) left for step 6. The creature
+bench had a race with the save store since v11.189 (bodies differing between runs) — fixed. **Ask:** nothing to look at.
+
 **v11.199 (21 Nov 2026): the tier follows the machine** (scene.js `TIER_K`, `TIER_SAVED`, `tierStep`, `tierFrame`; test/tier.js; DESIGN
 "Performance and the quality tier"; analysis_project.md §4; CHANGELOG). The person's "option 2". Each browser keeps a verdict from its GPU's own
 time: high far too heavy on the menu (over 40 ms) reloads into low at once; in play a minute over 20 ms is low from the next start, under 6 ms on
@@ -21,22 +30,10 @@ slots here); the rest is garbage. 2.3 of the game's 4.2 MB a frame (the bench pa
 objects on shapes V8 had retired, which the optimiser takes no feedback from — 25 throw-outs and never again. Rebuilt on shapes of their own; the
 world bit-identical. **Ask:** a report from home after 20+ minutes — the `gc` frames and the heap's sawtooth.
 
-**v11.196 (21 Nov 2026): a save no longer stalls play** (save.js `popJob`, `popStep`, `popBin`, `saveSoon`, `saveStep`, `slotPack`, `slotUnpack`,
-`slotJSON`; test/slots.js, test/player.js, test/boot.js, test/ledger.js; DESIGN, the save paragraph; CHANGELOG). The home report #143: every save in
-play ~160 ms (the autosave, the pointer's release). The ledger is binary streams of runs now (SAVE_V 4), Blobs in IndexedDB, and a save in play is
-walked over ~47 frames (~1.5 ms each) instead of at once; esc, a death, the page leaving still save at once, ×0.15–0.3 of before. Old saves load.
-**Ask:** a report from home after some play — no `IDBRequest`, `pointerlockchange` or autosave hitch.
-
-**v11.195 (21 Nov 2026): the save list reads summaries** (save.js `slotSum`, `slotPut`, `slotGet`, `slotDel`, `storeSums`; menu.js, main.js
-`bootSlot`; test/slots.js; DESIGN, the save paragraph; CHANGELOG). The home reports (#141, #142) blamed 6 s of freezes on the store: the menu's list
-read every slot whole, ledger and all. Every slot now has a summary beside it, written in the same transaction; the list reads only those; a slot is
-read whole when it is continued, exported, or is the boot's last; an old slot is read once and given one. **Ask:** on the home machine, the menu and
-continue with the slots it has (the first boot migrates them), and an F9 report — its long animation frames should no longer name the store.
-
 ## Open
 
 - **The plan** (analysis_project.md, the person's order, 20 Nov 2026): 1 the recorder (v11.191), 2 the docs (v11.192) and 3 the type checker (v11.193)
-  done; 4 the flora's far copies built and off (v11.194, `#lod`; their question still open), and the tier that follows the machine (v11.199, the person's call); next 5 the cells in workers, 6 three.js upgraded, 7 a fixed step and seeded sim; one door and
+  done; 4 the flora's far copies built (v11.194) and struck (v11.201), and the tier that follows the machine (v11.199, the person's call); next 5 the cells in workers, 6 three.js upgraded, 7 a fixed step and seeded sim; one door and
   its key end to end at any point.
 - **Reports** (`node test/report.js --search`): #137 and #138, a work tower `20e1` (Intel UHD 730): high tier 82 ms a frame, the GPU 84 ms (main
   pass 75), 3.9M triangles; `#low` 33 ms, the GPU 35, 1.6M triangles — the GPU fell with the triangles (×0.41 against ×0.40), not the pixels (×0.81).

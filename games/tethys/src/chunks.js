@@ -172,9 +172,9 @@ function makeInstanced(ch,rng,geo,mat,tints,list,dip,vars,f){
 const ORIGIN={on:true,x:0,z:0,snap:4000,grid:1000};
 // the variants pulled (v11.187, grow.js VPULL, scene.js VPULL_GLSL): once FLORA is whole (reef.js appends to it), every species' variants into one
 // float texture and each species its pulled geometry (f.gp) and material (f.mp), which makeInstanced draws in place of f.geo and f.mat. WebGL2 only.
-const VPULL_N=(function(){if(!VPULL.on||!GL2||!THREE.FloatType)return 0;const far=FLORA.filter(f=>f.geoL).map(f=>({geo:f.geoL,of:f})),pk=vpullPack(FLORA.concat(far)); // v11.194: the far copies (grow.js species, f.geoL) packed beside their species
+const VPULL_N=(function(){if(!VPULL.on||!GL2||!THREE.FloatType)return 0;const pk=vpullPack(FLORA);
   const t=new THREE.DataTexture(pk.data,VPULL.row*3,pk.rows,THREE.RGBAFormat,THREE.FloatType);t.minFilter=t.magFilter=THREE.NearestFilter;t.generateMipmaps=false;t.needsUpdate=true;t.clone=function(){return this;};VPULL_TEX=t;
-  for(const [f,a] of pk.at){if(f.of){f.of.gpL=vpullGeo(a);continue;}f.gp=vpullGeo(a);f.mp=vpullMat(f.mat);}return pk.at.size;})(); // the species pulled (and their far copies' geometries, f.gpL)
+  for(const [f,a] of pk.at){f.gp=vpullGeo(a);f.mp=vpullMat(f.mat);}return pk.at.size;})(); // the species pulled
 const POOLS=new Map(),poolGroup=new THREE.Group();scene.add(poolGroup); // entry → pool (the group at the render origin, v11.110)
 function poolSnap(px,pz){if(!ORIGIN.on||(Math.abs(px-ORIGIN.x)<ORIGIN.snap&&Math.abs(pz-ORIGIN.z)<ORIGIN.snap))return false; // the render origin to the camera's square; every pooled instance moved by the change
   const nx=Math.round(px/ORIGIN.grid)*ORIGIN.grid,nz=Math.round(pz/ORIGIN.grid)*ORIGIN.grid,dx=nx-ORIGIN.x,dz=nz-ORIGIN.z;
@@ -199,27 +199,11 @@ function poolAlloc(P,cap){ // the pool's mesh at capacity cap, what is written c
 // The far copy's mirror (v11.188, scene.js TREE_LOD): a card species whose FAR_IMP entry has a `lod` material draws its far copy on the pool's own instance
 // buffers — the matrices, the tints, the variant, the sight flags shared, not copied, so whatever the pool writes, moves, packs or hides the mirror follows,
 // and its count is the pool's at each draw. One draw more, no bookkeeping; made again with the pool's mesh (its shared buffers are the new ones). No shadow.
-// The far copy of every other pulled species (v11.194, analysis_project.md §4): its own build at LOD.k of the detail (grow.js species, f.gpL) drawn the
-// same way on the pool's own buffers — every instanced attribute shared — with the pool's material's twin (lodMatOf: one program, its own cut, from
-// LOD.d out), while the pool's material is cut at LOD.d (lodStep). The near plants are whole; past LOD.d the copy, whose fewer facets the fog and the
-// distance leave unseen (test/lod.js). No shadow: the pool's own depth pass keeps its old cut.
-function poolLod(P){const sp=P.f.card?FAR_IMP.find(s=>s.f===P.f&&s.lod):null;if(!sp){poolLodOwn(P);return;} // (at play: far.js, after this file, has loaded)
+// (v11.194–200 drew a far copy of every other pulled species the same way, off unless #lod; struck v11.201 — it cost more than it saved: analysis_project.md §4)
+function poolLod(P){const sp=P.f.card?FAR_IMP.find(s=>s.f===P.f&&s.lod):null;if(!sp)return; // (at play: far.js, after this file, has loaded)
   if(P.lod){poolGroup.remove(P.lod);P.lod.geometry.dispose();} // its own position, normal, colour; the shared ones went with the pool's old mesh
   const g=sp.geo.clone();g.setAttribute('aHide',P.geo.attributes.aHide);if(P.vars)g.setAttribute('aVar',P.geo.attributes.aVar);
   const m=new THREE.InstancedMesh(g,sp.lod,P.cap);m.instanceMatrix=P.im.instanceMatrix;m.instanceColor=P.im.instanceColor;m.frustumCulled=false;m.count=P.im.count;m.onBeforeRender=function(){this.count=P.im.count;};P.lod=m;poolGroup.add(m);}
-function poolLodOwn(P){if(!LOD.on||!P.f.gpL||!(P.mat.cutU)||FAR_IMP.some(s=>s.lod&&s.f.mp===P.mat))return; // a material a card's own copy cuts (the tidewood's, TREE_LOD) keeps its cut
-  if(P.lod){poolGroup.remove(P.lod);P.lod.geometry.dispose();}
-  const g=P.f.gpL.clone(),A=P.geo.attributes;for(const k in A)if(A[k].isInstancedBufferAttribute)g.setAttribute(k,A[k]);
-  const m=new THREE.InstancedMesh(g,lodMatOf(P.mat),P.cap);m.instanceMatrix=P.im.instanceMatrix;m.instanceColor=P.im.instanceColor;m.frustumCulled=false;m.count=P.im.count;m.onBeforeRender=function(){this.count=P.im.count;};P.lod=m;poolGroup.add(m);}
-// a pool's material's twin for its far copy: the same code and key (one program), its own cut — inside LOD.d gone, its far edge the material's own
-const LOD_MATS=new Map(); // the pool's material → {m: its twin, far, fade: the material's own far edge}
-function lodMatOf(p){let L=LOD_MATS.get(p);if(L)return L.m;const q=p.clone(),ob=p.onBeforeCompile,key=p.customProgramCacheKey(),c=p.cutU.value;
-  q.cutU={value:new THREE.Vector3(LOD.dSea,c.y,c.z)};q.onBeforeCompile=function(sh){ob.call(p,sh);if(!(sh.defines&&sh.defines.DEPTH_PASS))sh.uniforms.uCut=q.cutU;};q.customProgramCacheKey=function(){return key;};
-  for(const k of ['sway','land','extensions','defaultAttributeValues'])if(p[k]!==undefined)q[k]=p[k];
-  LOD_MATS.set(p,{m:q,far:c.y,fade:c.z});return q;}
-// each frame (cullChunks): the far copies take over at LOD.dSea under the water, LOD.dAir in the air
-function lodStep(){if(!LOD.on)return;const d=wasAbove===true?LOD.dAir:LOD.dSea;
-  for(const [p,L] of LOD_MATS){const a=p.cutU.value,b=L.m.cutU.value;a.y=Math.min(d,L.far);a.z=LOD.fade;b.x=d;b.y=L.far;b.z=L.fade;}}
 function poolUp(a,s,c,sz){const r=a.updateRange;if(r.count>0){const lo=Math.min(r.offset,s*sz),hi=Math.max(r.offset+r.count,(s+c)*sz);r.offset=lo;r.count=hi-lo;}else{r.offset=s*sz;r.count=c*sz;}a.needsUpdate=true;} // one attribute's range [s,s+c) uploaded at the next draw, joined to a range still pending
 function poolTouch(P,s,c){ // every attribute's range [s,s+c)
   poolUp(P.im.instanceMatrix,s,c,16);poolUp(P.im.instanceColor,s,c,3);if(P.vars)poolUp(P.geo.attributes.aVar,s,c,1);if(P.cur){poolUp(P.geo.attributes.aCur,s,c,2);poolUp(P.geo.attributes.aTide,s,c,2);}poolUp(P.geo.attributes.aHide,s,c,1);
@@ -567,7 +551,7 @@ function manageChunks(budgetMs){
 function cellsPending(){const ci=cellOf(player.pos.x),cj=cellOf(player.pos.z);let n=activeGen?1:0;for(let dj=-LOAD_R;dj<=LOAD_R;dj++)for(let di=-LOAD_R;di<=LOAD_R;di++){const i=ci+di,j=cj+dj;if(gridIn(i,j)&&!chunks.has(ckey(i,j)))n++;}return n;} // the cells manageChunks still owes round the streaming centre, one mid-build counted (v11.189: the boot waits for none)
 const frustum=new THREE.Frustum(),_pm=new THREE.Matrix4();
 let visibleChunks=0;
-function cullChunks(dt){lodStep(); // v11.194: where the far copies take over, by the medium
+function cullChunks(dt){
   _pm.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse);frustum.setFromProjectionMatrix(_pm);visibleChunks=0;
   const cx=camera.position.x,cz=camera.position.z;
   for(const ch of chunks.values()){const d=Math.hypot(ch.cx-cx,ch.cz-cz);const v=d<FAR+CELL&&frustum.intersectsSphere(ch.sphere);ch.group.visible=v;if(v){visibleChunks++;for(const p of ch.plumes)p.tick(dt);}

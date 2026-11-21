@@ -76,7 +76,7 @@ function axis(P,o,rg){const N=[],L=o.len/o.segs,wd=o.wander||0;let x=o.x||0,y=o.
 function nodeAt(N,t){return N[Math.min(N.length-1,Math.max(0,Math.round(t*(N.length-1))))];}
 // one blade: a strip of `segs` quads from (x,y,z), drooping along its length. Euler YXZ: droop first, then spin (the kelp frond's order).
 // a0: the angle above horizontal it leaves at (default -droop/2, so a frond off a stipe starts level); a blade a float lifts starts near vertical
-function bladeAt(P,x,y,z,len,w,yaw,droop,segs,col,a0){segs=lodN(segs,1);const L=len/segs,cy=Math.cos(yaw),sy=Math.sin(yaw);let bx=0,by=0,a=a0===undefined?-droop*0.5:a0;
+function bladeAt(P,x,y,z,len,w,yaw,droop,segs,col,a0){const L=len/segs,cy=Math.cos(yaw),sy=Math.sin(yaw);let bx=0,by=0,a=a0===undefined?-droop*0.5:a0;
   for(let k=0;k<segs;k++){const pg=G.plane(L,w*(1-0.45*k/segs));pg.rotateX(-HPI);pg.translate(L/2,0,0);
     P.push(part(pg,x+cy*bx,y+by,z-sy*bx,col,{r:[0,yaw,a],order:'YXZ'}));bx+=Math.cos(a)*L;by+=Math.sin(a)*L;a-=droop/segs;}
   return V3(x+cy*bx,y+by,z-sy*bx);} // where it ends (a float goes there)
@@ -162,18 +162,8 @@ function vpullGeo(a){const g=new THREE.BufferGeometry(),q=new Float32Array(a.n*2
 // species(id, fields, build): three variants of one species (build(rg,k) → {P, col, pads}), packed. `top` is the tallest variant's
 // highest point (the surface cap in placeFloraType); `vars[k]` carries the variant's own colliders and pads; `pads:true` on the entry
 // says the cell must give the instances a dip attribute.
-// the far copy's parts: those under LOD.minPart of the plant's size left out (they are built all the same: the same random draws), the largest always kept
-function lodParts(P){const r=[];let R=0,big=0; // a part's size: half the diagonal of its placed vertices' box; the plant's: the farthest of them from its root
-  for(let i=0;i<P.length;i++){const p=P[i],A=p.g.attributes.position.array,e=p.m.elements;let x0=1e9,y0=1e9,z0=1e9,x1=-1e9,y1=-1e9,z1=-1e9;
-    for(let j=0;j<A.length;j+=3){const x=A[j],y=A[j+1],z=A[j+2],X=e[0]*x+e[4]*y+e[8]*z+e[12],Y=e[1]*x+e[5]*y+e[9]*z+e[13],Z=e[2]*x+e[6]*y+e[10]*z+e[14];
-      if(X<x0)x0=X;if(X>x1)x1=X;if(Y<y0)y0=Y;if(Y>y1)y1=Y;if(Z<z0)z0=Z;if(Z>z1)z1=Z;R=Math.max(R,Math.sqrt(X*X+Y*Y+Z*Z));}
-    r.push(A.length?0.5*Math.sqrt((x1-x0)*(x1-x0)+(y1-y0)*(y1-y0)+(z1-z0)*(z1-z0)):0);if(r[i]>r[big])big=i;}
-  const out=P.filter((p,i)=>i===big||r[i]>=LOD.minPart*R);for(const p of P)if(out.indexOf(p)<0)p.g.dispose();return out;}
 function species(id,f,build){const vars=[],geos=[];let top=0,hasPads=false;
   for(let k=0;k<3;k++){const rg=mulberry(hashStr(id)+k*7919),v=build(rg,k),g=merge(v.P),pa=g.attributes.position.array;let t=0;for(let i=1;i<pa.length;i+=3)if(pa[i]>t)t=pa[i];
     vars.push({col:v.col||null,pads:v.pads||null});geos.push(g);if(t>top)top=t;if(v.pads)hasPads=true;}
   const e=Object.assign({id:id,geo:packVariants(geos),vars:vars,top:top},f);if(hasPads)e.pads=true;
-  // v11.194: the far copy (chunks.js poolLod) — the same build at LOD.k of its sides and segments (parts.js GEO_K): the same random draws, so the
-  // same plant, fewer facets. Only where it can be drawn (WebGL2, the variants pulled); LOD.force builds it anyway (test/lod.js)
-  if(LOD.on&&(LOD.force||GL2&&VPULL.on)){const lg=[];GEO_K=LOD.k;try{for(let k=0;k<3;k++)lg.push(merge(lodParts(build(mulberry(hashStr(id)+k*7919),k).P)));}finally{GEO_K=1;}e.geoL=packVariants(lg);}
   return e;}

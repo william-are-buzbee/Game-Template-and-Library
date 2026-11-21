@@ -1,23 +1,15 @@
 // parts.js — geometry kit: primitives, merge-with-vertex-colors, arm rings, LOD baking
-// The far copy's detail (v11.194, analysis_project.md §4; grow.js species, chunks.js poolLod): while a species builds its far copy GEO_K is LOD.k, and
-// every primitive's sides and segments are that share of what was asked (never under a closed shape's least) — the same calls, the same random
-// draws, so the same plant with fewer facets. 1 the rest of the time. LOD: on; k, the share; d, the distance the far copy takes over at, under the
-// water and in the air (set each frame, chunks.js lodStep; the fog has the far plants at a few levels of 255 under the water, test/lod.js and
-// analysis_project §4); fade, the full plant's own edge (a cut, as the tidewood's: the copy is its silhouette).
-let GEO_K=1;
-const LOD={on:HASH_FLAGS.indexOf('lod')>=0,k:0.5,minPart:0.05,dSea:150,dAir:120,fade:1,force:false}; // on: only with #lod in the URL (v11.194: on the proxy it cost more than it saved — analysis_project.md §4 — so the person's own machines decide, a report each way) // minPart: a part smaller than this share of its plant is left out of the far copy (lodParts) // force: the far copies built where they cannot be drawn (test/lod.js)
-function lodN(n,min){return GEO_K===1?n:Math.max(min,Math.round(n*GEO_K));}
 const G={
   box:(w,h,d)=>new THREE.BoxGeometry(w,h,d),
-  sph:(r,w,h)=>new THREE.SphereGeometry(r,lodN(w||6,3),lodN(h||5,2)),
-  cyl:(rt,rb,h,s,open)=>new THREE.CylinderGeometry(rt,rb,h,lodN(s||8,3),1,!!open),
-  cone:(r,h,s)=>new THREE.ConeGeometry(r,h,lodN(s||6,3)),
+  sph:(r,w,h)=>new THREE.SphereGeometry(r,w||6,h||5),
+  cyl:(rt,rb,h,s,open)=>new THREE.CylinderGeometry(rt,rb,h,s||8,1,!!open),
+  cone:(r,h,s)=>new THREE.ConeGeometry(r,h,s||6),
   plane:(w,h)=>new THREE.PlaneGeometry(w,h),
   // A lathe's winding follows the profile's order: a profile written from the top down turns the surface inside out, and the
   // mesh vanishes under backface culling (v11.34.1: the finback's tail stem, FIN_TPROF, written nose-to-tip). Reverse a descending
   // profile here — the geometry is identical, only the normals (and so the countershading) come out right. Callers read the array
   // they passed (profR, nose, tail), so the copy stays local.
-  lathe:(pts,s)=>{if(pts.length>1&&pts[pts.length-1][1]<pts[0][1])pts=pts.slice().reverse();return new THREE.LatheGeometry(pts.map(p=>new THREE.Vector2(p[0],p[1])),lodN(s||8,3));},
+  lathe:(pts,s)=>{if(pts.length>1&&pts[pts.length-1][1]<pts[0][1])pts=pts.slice().reverse();return new THREE.LatheGeometry(pts.map(p=>new THREE.Vector2(p[0],p[1])),s||8);},
   // a quad a-b-c-d (each [x,y,z]) seen from both sides: four triangles, no index (the webs and the tail fans)
   quad:(a,b,c,d)=>{const g=new THREE.BufferGeometry(),P=[];const tri=(p,q,r)=>P.push(p[0],p[1],p[2],q[0],q[1],q[2],r[0],r[1],r[2]);tri(a,b,c);tri(a,c,d);tri(c,b,a);tri(d,c,a);g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));return g;}
 };
@@ -31,6 +23,9 @@ const G={
 // anim's clocks and closures, the arms' random phases — is built for it as before. Nothing in a creature's build reads a primitive or a part's
 // transform but merge (every G call is a part's geometry: test/bench_creatures.js proves the bodies the same to the bit, built and posed).
 // A replay whose merges do not match the recording throws, and buildKind builds whole instead.
+/** the build tape (v11.149): a class of its own (v11.200), so one shape no other object shares — as two literals ({play, list, i} and {play, list}) its `list` read in merge was thrown out of optimised code 125 times in 300 frames */
+class GeoTape{constructor(play,list){this.play=play;this.list=list;this.i=0;}}
+/** @type {GeoTape|null} */
 let GEO_TAPE=null;
 const LAZY_G={lazy:true,dispose(){}};
 for(const k in G){const f=G[k];G[k]=function(){return GEO_TAPE!==null&&GEO_TAPE.play?LAZY_G:f.apply(null,arguments);};} // a primitive while a tape plays: not made
@@ -47,27 +42,29 @@ function part(g,x,y,z,c,o){
 function merge(parts){
   const T=GEO_TAPE;if(T!==null&&T.play){const r=T.list[T.i++];if(!r||r.n!==parts.length)throw new Error('the build tape: merge '+(T.i-1)+' does not match its recording');for(const p of parts)p.g.dispose(); // v11.149: the recorded output (fresh arrays: a caller may write into them, helix does)
     const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.Float32BufferAttribute(r.pos,3));geo.setAttribute('normal',new THREE.Float32BufferAttribute(r.nor,3));geo.setAttribute('color',new THREE.Float32BufferAttribute(r.col,3));return geo;}
-  const pos=[],nor=[],col=[];
-  for(const p of parts){
-    const g=p.g.index?p.g.toNonIndexed():p.g;
-    g.applyMatrix4(p.m);g.computeVertexNormals();
+  // v11.200: the vertices counted first and written into the typed arrays the geometry keeps (to v11.199 pushed onto growing arrays, then copied
+  // by Float32BufferAttribute: the same 32-bit values, without the garbage), and the tape's copy taken from them, not read back through
+  // geo.attributes — a read V8 threw out of optimised code 129 times in 400 frames (the attributes' shapes vary with every geometry)
+  const GS=[];let L=0;for(const p of parts){const g=p.g.index?p.g.toNonIndexed():p.g;g.applyMatrix4(p.m);g.computeVertexNormals();GS.push(g);L+=g.attributes.position.array.length;}
+  const pos=new Float32Array(L),nor=new Float32Array(L),col=new Float32Array(L);let o=0;
+  for(let q=0;q<parts.length;q++){const p=parts[q],g=GS[q];
     const pa=g.attributes.position.array,na=g.attributes.normal.array,ga=g.attributes.color?g.attributes.color.array:null;
     const top=p.c,bot=p.c2||p.c;
     for(let i=0;i<pa.length;i+=3){
-      pos.push(pa[i],pa[i+1],pa[i+2]);nor.push(na[i],na[i+1],na[i+2]);
+      pos[o+i]=pa[i];pos[o+i+1]=pa[i+1];pos[o+i+2]=pa[i+2];nor[o+i]=na[i];nor[o+i+1]=na[i+1];nor[o+i+2]=na[i+2];
       let r,gg,b;
       if(bot===top){r=top[0];gg=top[1];b=top[2];}
       else{const k=smooth(-0.45,0.45,na[i+1]);r=lerp(bot[0],top[0],k);gg=lerp(bot[1],top[1],k);b=lerp(bot[2],top[2],k);}
       if(ga){r*=ga[i];gg*=ga[i+1];b*=ga[i+2];}
-      col.push(r,gg,b);
+      col[o+i]=r;col[o+i+1]=gg;col[o+i+2]=b;
     }
-    if(g!==p.g)g.dispose();p.g.dispose();
+    o+=pa.length;if(g!==p.g)g.dispose();p.g.dispose();
   }
   const geo=new THREE.BufferGeometry();
-  geo.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
-  geo.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));
-  geo.setAttribute('color',new THREE.Float32BufferAttribute(col,3));
-  if(T!==null)T.list.push({n:parts.length,pos:geo.attributes.position.array.slice(),nor:geo.attributes.normal.array.slice(),col:geo.attributes.color.array.slice()}); // v11.149: recording — a copy, before any caller writes into it
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  geo.setAttribute('normal',new THREE.BufferAttribute(nor,3));
+  geo.setAttribute('color',new THREE.BufferAttribute(col,3));
+  if(T!==null)T.list.push({n:parts.length,pos:pos.slice(),nor:nor.slice(),col:col.slice()}); // v11.149: recording — a copy, before any caller writes into it
   return geo;
 }
 function eyes(P,x,y,z,r,c,pc){
