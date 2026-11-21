@@ -1,5 +1,5 @@
 // test/lod.js — the flora's far copies (v11.194, analysis_project.md §4; grow.js species, lodParts; parts.js GEO_K, LOD): every species built twice
-// against the stub with real geometry (test/geo.js), the far copy forced (LOD.force: the stub has no WebGL2, where the game builds it). For each species
+// against the stub with real geometry (test/geo.js), the far copy switched on and forced (LOD.on: off in the game but with #lod; LOD.force: the stub has no WebGL2, where the game builds it). For each species
 // and each of its three variants: the copy is no heavier than the plant, and it is the same plant — its bounds inside the plant's to within 10% of its
 // size (a polygon with fewer sides lies inside the one with more when its count divides; a blade with fewer segments follows a coarser line to the
 // same droop and its tip lands up to 8% out — the frond's), as tall to within 15% and at least half as wide (a variant drawn from another random stream would be
@@ -8,7 +8,7 @@
 const fs=require('fs'),path=require('path'),os=require('os');
 const ROOT=path.join(__dirname,'..');
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
-let js='';for(const n of ORDER){js+=fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')+'\n';if(n==='parts')js+='LOD.force=true;\n';}
+let js='';for(const n of ORDER){js+=fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')+'\n';if(n==='parts')js+='LOD.on=true;LOD.force=true;\n';}
 js+='\nglobal.__flora=()=>FLORA;';
 const tmp=path.join(fs.mkdtempSync(path.join(os.tmpdir(),'tethys-lod-')),'bundle.js');fs.writeFileSync(tmp,js);
 require('./stub.js');require('./geo.js')(global.THREE);require(tmp);
