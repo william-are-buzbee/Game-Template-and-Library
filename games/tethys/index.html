@@ -173,7 +173,7 @@ canvas{display:block;outline:none;touch-action:none}
 <div id="fade" class="layer"></div>
 <canvas id="spark" class="layer"></canvas>
 <div id="stats"></div>
-<script>window.TETHYS_BUILD={v:"v11.196"};</script>
+<script>window.TETHYS_BUILD={v:"v11.197"};</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 function tethysMain(){
@@ -904,6 +904,19 @@ function sectorW(a,c,hw,fade){const x=a-c;let d=x<TAU&&x>-TAU?x:x%TAU;if(d<0)d+=
 // deleted: set it undefined instead)
 /** @typedef {{id:any,x:any,z:any,rot:any,sc:any,ns:any,state:any,age:any,asq:any,sat:any,h0:any,prof:any,terr:any,rimR:any,rimW:any,rimH:any,lagH:any,patch:any,coll:any,dike:any,rifts:any,riftR:any,vent:any,seep:any,isle:any,flank:any,fade:any,reach:any,core:any,land:any,barrier:any,isl:any,apr:any,carb:any,bare:any,knob:any,arm:any,lobe:any,lmax:any,lbR:any,lbG:any,bite:any,btR:any,rdg:any,cny:any,rdgR:any,rdgF:any,hi:any,hiS:any,quiet:any,an:any,rimM:any,sh:any,vly:any,hops:any,rng:any,_c:any,_s:any}} Rec — a record's every key (recNew), closed: the type checker flags a key misspelt or added later (v11.193, test/types.js) */
 /** @returns {Rec} */function recNew(){return {id:undefined,x:undefined,z:undefined,rot:undefined,sc:undefined,ns:undefined,state:undefined,age:undefined,asq:undefined,sat:undefined,h0:undefined,prof:undefined,terr:undefined,rimR:undefined,rimW:undefined,rimH:undefined,lagH:undefined,patch:undefined,coll:undefined,dike:undefined,rifts:undefined,riftR:undefined,vent:undefined,seep:undefined,isle:undefined,flank:undefined,fade:undefined,reach:undefined,core:undefined,land:undefined,barrier:undefined,isl:undefined,apr:undefined,carb:undefined,bare:undefined,knob:undefined,arm:undefined,lobe:undefined,lmax:undefined,lbR:undefined,lbG:undefined,bite:undefined,btR:undefined,rdg:undefined,cny:undefined,rdgR:undefined,rdgF:undefined,hi:undefined,hiS:undefined,quiet:undefined,an:undefined,rimM:undefined,sh:undefined,vly:undefined,hops:undefined,rng:undefined,_c:undefined,_s:undefined};}
+// The records' own data on shapes of their own (v11.197; the person's GC pauses, analysis_project.md). V8 gives an object literal the shape of every
+// object whose keys begin the same way — {n: …} is every counter in the game — and keeps a field of decimals unboxed; when one of them first holds a
+// decimal where the others held integers, the field's storage changes and V8 retires the shape, and the objects made before keep the retired one. A
+// read of such an object never misses (its handler is cached), so the object is never moved, while the optimiser takes no feedback from a retired
+// shape: islandH was thrown out of optimised code 25 times in 200,000 samples and stayed in the baseline tier, where every decimal is a new heap
+// object — 2 KB of garbage a sample() and twice the time (3.1 against 1.6 µs; L.gully.lee, the gullies on {n, lee}). So every plain object a record
+// holds is rebuilt on RDATA's prototype, a tree of shapes no other object shares, each field first set undefined — which V8 stores as any value from
+// the start, so no storage change is to come and no shape is retired (recNew does the same for the record). recSeal at the end of region.js's load.
+const RDATA={};
+function rdata(o){if(!o||typeof o!=='object')return o;if(Array.isArray(o)){for(let i=0;i<o.length;i++)o[i]=rdata(o[i]);return o;}
+  if(Object.getPrototypeOf(o)!==Object.prototype)return o; // a typed array, a three.js object, one already rebuilt
+  const c=Object.create(RDATA),K=Object.keys(o);for(const k of K)c[k]=undefined;for(const k of K)c[k]=rdata(o[k]);return c;}
+function recSeal(R){for(const k in R){const v=R[k];if(v&&typeof v==='object')R[k]=rdata(v);}}
 const ISLANDS=[
   Object.assign(recNew(),{id:'home',x:0,z:0,rot:0,sc:1,ns:0,h0:-14,prof:[[RIM_R+RIM_W*0.3,330,6],[330,700,40],[1000,1200,94],[1200,1600,40]],terr:{r0:700,r1:1000,n:8,step:12},
    rimR:RIM_R,rimW:RIM_W,lagH:-22,coll:COLL,dike:DIKE,rifts:RIFT_A,riftR:[280,340,1600,1300],vent:VENT,seep:SEEP,isle:ISLE,flank:{r:FLANK_R,w:FLANK_W,s0:FLANK_S0,s1:FLANK_S1,a:FLANK_A,b:FLANK_B},fade:BASIN.fade,reach:8500,core:2400}),
@@ -2406,7 +2419,7 @@ function rgGrain(x,z,o){const G=RG_GR,K=RG_GR_K,F=G.F,u=x*G.cu+z*G.su,v=x*F.nx+z
   const ci=Math.floor((x-G.gx0)/G.C),cj=Math.floor((z-G.gz0)/G.C);if(ci>=0&&cj>=0&&ci<G.gnx&&cj<G.gnz){const S=G.cells[cj*G.gnx+ci];for(let k=0;k<S.length;k++){const q=S[k],dx=x-q.x,dz=z-q.z,r2=dx*dx+dz*dz,e=q.R*1.3;if(r2>=e*e)continue;
     const r=Math.sqrt(r2)||1e-6,c=dx/r,sn=dz/r,c2=c*c-sn*sn,s2=2*c*sn,c3=c*(4*c*c-3),s3=sn*(3-4*sn*sn),Rl=q.R*(1+q.c2*c2+q.s2*s2+q.c3*c3+q.s3*s3),t=1-r/Rl;if(t>0)g=Math.max(g,q.H*Math.pow(t,1.6));}}
   o.hill=hill;o.s=g;return Math.max(-K.lo,hill+g);}
-const REGION=regionModel();RG_PL=rgPlatform(REGION);const RG_BUILT=rgBuild(REGION);for(const R of RG_BUILT.recs)ISLANDS.push(R);shelterBuild();rangeBuild(REGION);RG_SAD=rgSaddles();RG_GR=rgGrainBuild(REGION); // v11.143: the saddles; v11.144: the floor's grain, last // v11.117: the records' shelter of each other, once every record stands; v11.119 their lineages
+const REGION=regionModel();RG_PL=rgPlatform(REGION);const RG_BUILT=rgBuild(REGION);for(const R of RG_BUILT.recs)ISLANDS.push(R);shelterBuild();rangeBuild(REGION);RG_SAD=rgSaddles();RG_GR=rgGrainBuild(REGION);for(const R of ISLANDS)recSeal(R); // v11.197: every record whole, its data on shapes V8 never retires (world.js rdata) // v11.143: the saddles; v11.144: the floor's grain, last // v11.117: the records' shelter of each other, once every record stands; v11.119 their lineages
 
 // physics.js — contact. Colliders in a per-cell hash (spheres, capsules, bobbing pads), body shapes (capsules) for every
 // creature and the player, verlet chains for arms, tails and tentacles (simulated, collided and skinned into one mesh per
