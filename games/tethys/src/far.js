@@ -99,7 +99,7 @@ function* wmShiftGen(di,dj){const N=WM_N;
 // landmark placed with this sits on the near mesh exactly (sample() alone is off by the interpolation error).
 function gridH(x,z){
   const fx=(x+HALF)/STEP,fz=(z+HALF)/STEP,ix=Math.floor(fx),iz=Math.floor(fz),tx=fx-ix,tz=fz-iz;
-  const H=(gx,gz)=>sample(gx*STEP-HALF,gz*STEP-HALF).h;
+  const H=(gx,gz)=>sampleH(gx*STEP-HALF,gz*STEP-HALF);
   const a=H(ix,iz),b=H(ix+1,iz),c=H(ix,iz+1),d=H(ix+1,iz+1);return a+(b-a)*tx+(c-a)*tz+(a-b-c+d)*tx*tz;
 }
 
@@ -113,7 +113,7 @@ const BIG=FLORA.filter(f=>f.big),bigCache=new Map(),bigD=new THREE.Object3D();
 // One structure of f at (x,z) on ground h: the instance matrix and collision scale, or null if it cannot fit. Under water a
 // structure stays 12 under the surface (scaled down to); on the strand it stands as it likes. Set on the ground by the one
 // rule (chunks.js settleOn), the ground read from sample().
-const bigH=(x,z)=>sample(x,z).h,bigRng=()=>0.5;
+const bigH=(x,z)=>sampleH(x,z),bigRng=()=>0.5;
 function bigPlace(f,x,z,h,sc,yaw,sx,sz,minSc){
   if(h<0.5){const room=(-(f.clear||12)-h)/(f.top-(f.sink||0));sc=f.fill?Math.min(room,f.s?f.s[1]:room):Math.min(sc,room);} // `clear` under mean level (12: the rock; a reef 5: it grows to the lowest tide and stops); `fill`: as tall as that lets it (reef.js)
   if(sc<minSc)return null;
@@ -140,7 +140,7 @@ function* bigsGen(i,j){
       const x=x0+rng()*CELL,z=z0+rng()*CELL,u=rng();
       let q=1;if(f.field)q*=clamp(0.1+4*Math.pow(fbm(x*f.field+31,z*f.field+17,2),2.5),0,1.6);
       if(u>=q)continue; // the envelope can only lower the chance from here
-      const s=sample(x,z),h=s.h,sl=Math.hypot((sample(x+STEP,z).h-h)/STEP,(sample(x,z+STEP).h-h)/STEP);
+      const s=sample(x,z),h=s.h,sl=Math.hypot((sampleH(x+STEP,z)-h)/STEP,(sampleH(x,z+STEP)-h)/STEP);
       if(f.env&&u>=q*envW(f.env,h,sl,fixF(s.f,sl)))continue;
       if(underChemo(x,h,z))continue; // nothing under a basin's chemocline (v11.96; the -450 to v11.95)
       if(nearLandmark(x,z,110))continue;
@@ -183,7 +183,7 @@ function* rocksGen(i,j){
       const x=x0+rng()*CELL,z=z0+rng()*CELL,u=rng();
       const qq=Math.min(G-2,Math.floor((z-z0)/RK_GS))*(G-1)+Math.min(G-2,Math.floor((x-x0)/RK_GS));
       if(u>=RK_Q[qq*NE+e]+RK_M||(f.face&&RK_R[qq]<f.face[1]*0.5))continue; // the coarse look refuses it: no tolerance round here, or no face to lie under
-      const s=sample(x,z,RK_F),h=s.h,sl=Math.hypot((sample(x+STEP,z).h-h)/STEP,(sample(x,z+STEP).h-h)/STEP);
+      const s=sample(x,z,RK_F),h=s.h,sl=Math.hypot((sampleH(x+STEP,z)-h)/STEP,(sampleH(x,z+STEP)-h)/STEP);
       if(u>=envW(f.env,h,sl,fixF(RK_F,sl)))continue;
       if(sl>maxSlope||underChemo(x,h,z))continue; // nothing on a cliff face; nothing under a basin's chemocline
       const sc=f.s[0]+rng()*(f.s[1]-f.s[0]),yaw=rng()*TAU;
@@ -291,7 +291,7 @@ function* impostorsGen(i,j){
       const pocket=f.pocket?0.1+smooth(0.6,0.72,fbm(x*f.pocket+53,z*f.pocket+29,2)):1;
       const cterm=lee?leeW(x,z)*f.leePer/maxN:0;
       if(u>=Math.max(pocket,cterm)*field)continue;
-      const s=sample(x,z),h=s.h,sl=Math.hypot((sample(x+STEP,z).h-h)/STEP,(sample(x,z+STEP).h-h)/STEP);
+      const s=sample(x,z),h=s.h,sl=Math.hypot((sampleH(x+STEP,z)-h)/STEP,(sampleH(x,z+STEP)-h)/STEP);
       if(u>=Math.max((f.per||0)/maxN*(f.env?envW(f.env,h,sl,fixF(s.f,sl)):1)*pocket,cterm)*field)continue;
       if(floor&&underChemo(x,h,z))continue; // nothing on the floor under a basin's chemocline (v11.96; the -450 to v11.95)
       if(!floor&&h>-4)continue;

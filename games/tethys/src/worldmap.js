@@ -91,7 +91,7 @@ function wmapDraw(){if(!wmap.open)return;if(wmap.dirty)wmapCompose();const d=wma
   let sb=100;for(const v of [200,500,1000,2000,5000,10000,20000,50000,100000])if(v/wmap.mpp<=160)sb=v;const sw=sb/m,y0=Hh-16*d,x1=16*d; // the scale bar: the longest round length under 160 px
   g.strokeStyle='rgba(240,240,230,0.85)';g.beginPath();g.moveTo(x1,y0);g.lineTo(x1+sw,y0);g.moveTo(x1,y0-5*d);g.lineTo(x1,y0+5*d);g.moveTo(x1+sw,y0-5*d);g.lineTo(x1+sw,y0+5*d);g.stroke();
   g.fillStyle='rgba(240,240,230,0.85)';g.font=(11*d)+'px Georgia, serif';g.fillText((sb>=1000?sb/1000+' km':sb+' m'),x1+2*d,y0-9*d);
-  const f=n=>{const v=Math.round(n);return (v<0?'−':'')+Math.abs(v);},sp='  ';let s=wmap.hover?'tp('+Math.round(wmap.mx)+', '+Math.round(wmap.mz)+')'+sp+'ground '+f(sample(wmap.mx,wmap.mz).h)+' m':'the world, north up';
+  const f=n=>{const v=Math.round(n);return (v<0?'−':'')+Math.abs(v);},sp='  ';let s=wmap.hover?'tp('+Math.round(wmap.mx)+', '+Math.round(wmap.mz)+')'+sp+'ground '+f(sampleH(wmap.mx,wmap.mz))+' m':'the world, north up';
   if(mode==='play'&&player.clade)s+=sp+'you  x '+f(player.pos.x)+'  z '+f(player.pos.z)+'  y '+f(player.pos.y);
   s+=sp+(wmap.st.done<0?'drawing'+sp:'')+'n close · click go · wheel zoom · drag pan · o marks '+(wmap.marks?'on':'off');if(wmapL.textContent!==s)wmapL.textContent=s;}
 // after the loop's frame (main.js): the tiles' work under its budget, the dot moves

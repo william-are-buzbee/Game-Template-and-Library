@@ -66,8 +66,8 @@ function hzSight(q,cy){return 3570*(Math.sqrt(Math.max(cy,2))+Math.sqrt(Math.max
 function hzWatch(x,y,z){const H=hzSetup();let added=false;for(const q of H.tops){if(H.built.has(q)||q.queued)continue;if(Math.hypot(q.x-x,q.z-z)<hzSight(q,y)){q.queued=true;H.queue.push(q);added=true;}}
   if(added)H.queue.sort((a,b)=>(Math.hypot(a.x-x,a.z-z)-a.to)-(Math.hypot(b.x-x,b.z-z)-b.to));}
 function* hzMember(m){const H=hzSetup(),{S,C,x0,z0,nx,nz,cx,cz,tops}=H,t0=performance.now();let tq=t0;
-  const CH=new Map(),cH=(i,j)=>{const k=j*(cx+1)+i;let h=CH.get(k);if(h===undefined){h=sample(x0+i*C,z0+j*C).h;CH.set(k,h);}return h;};
-  const HH=new Map(),hAt=(i,j)=>{const k=j*nx+i;let h=HH.get(k);if(h===undefined){h=sample(x0+i*S,z0+j*S).h;HH.set(k,h);}return h;};
+  const CH=new Map(),cH=(i,j)=>{const k=j*(cx+1)+i;let h=CH.get(k);if(h===undefined){h=sampleH(x0+i*C,z0+j*C);CH.set(k,h);}return h;};
+  const HH=new Map(),hAt=(i,j)=>{const k=j*nx+i;let h=HH.get(k);if(h===undefined){h=sampleH(x0+i*S,z0+j*S);HH.set(k,h);}return h;};
   const cT=new Float32Array(3),f=new Float32Array(NF),wT=new Float32Array(4);
   const cells=[],i0=Math.max(0,Math.floor((m.x-m.t-x0)/C)),i1=Math.min(cx-1,Math.floor((m.x+m.t-x0)/C)),j0=Math.max(0,Math.floor((m.z-m.t-z0)/C)),j1=Math.min(cz-1,Math.floor((m.z+m.t-z0)/C));
   for(let j=j0;j<=j1;j++){for(let i=i0;i<=i1;i++){const mx=x0+(i+0.5)*C,mz=z0+(j+0.5)*C;let own=null,bu=2,rim=false;
