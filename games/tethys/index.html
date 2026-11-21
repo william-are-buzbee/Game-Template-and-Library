@@ -173,7 +173,7 @@ canvas{display:block;outline:none;touch-action:none}
 <div id="fade" class="layer"></div>
 <canvas id="spark" class="layer"></canvas>
 <div id="stats"></div>
-<script>window.TETHYS_BUILD={v:"v11.191"};</script>
+<script>window.TETHYS_BUILD={v:"v11.193"};</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 function tethysMain(){
@@ -761,7 +761,7 @@ function discOverlap(d,a,b){if(d>=a+b)return 0;if(d<=Math.abs(a-b))return b>=a?1
 // ecliptic is the equator, so they sit on the sun's own track at a fixed elongation east (+) or west (−) of it, for now (a real
 // orbit moves them along it over weeks). Non-specific placeholders until the system is designed: an inner one that is the evening
 // star, a big outer one, a faint outer one. [elongation (deg, + east), colour, brightness]
-const PLANETS=[[38,[1.0,0.96,0.88],1.0],[141,[0.98,0.92,0.80],0.7],[-73,[0.85,0.90,1.0],0.35]];
+/** @type {[number,number[],number][]} */const PLANETS=[[38,[1.0,0.96,0.88],1.0],[141,[0.98,0.92,0.80],0.7],[-73,[0.85,0.90,1.0],0.35]];
 function skyDir(ha,out,dec){const c=Math.cos(ha),sl=Math.sin(LAT),cl=Math.cos(LAT),cd=dec?Math.cos(dec):1,sd=dec?Math.sin(dec):0;return out.set(-cd*Math.sin(ha),sl*sd+cl*cd*c,sl*cd*c-cl*sd);} // hour angle 0 at upper transit; declination dec (v11.83; 0 to v11.82: rises east, transits south of the zenith by LAT, sets west): the standard alt-az from latitude, +z south
 function sunHA(h){return TAU*((h+SOLAR_H0)%DAY_H-DAY_H/2)/DAY_H;}
 function moonHA(h){return TAU*(h-MOON_T0)/LUNAR_H;}
@@ -901,7 +901,8 @@ function sectorW(a,c,hw,fade){const x=a-c;let d=x<TAU&&x>-TAU?x:x%TAU;if(d<0)d+=
 // gives up on a read's fast path: every `R.x` in sample() and islandH was a lookup by name (sample() 30% slower near the islands for it). A key
 // a record lacks reads undefined as before; a new key goes in this list (test/records.js fails on a record with a key outside it, or a key
 // deleted: set it undefined instead)
-function recNew(){return {id:undefined,x:undefined,z:undefined,rot:undefined,sc:undefined,ns:undefined,state:undefined,age:undefined,asq:undefined,sat:undefined,h0:undefined,prof:undefined,terr:undefined,rimR:undefined,rimW:undefined,rimH:undefined,lagH:undefined,patch:undefined,coll:undefined,dike:undefined,rifts:undefined,riftR:undefined,vent:undefined,seep:undefined,isle:undefined,flank:undefined,fade:undefined,reach:undefined,core:undefined,land:undefined,barrier:undefined,isl:undefined,apr:undefined,carb:undefined,bare:undefined,knob:undefined,arm:undefined,lobe:undefined,lmax:undefined,lbR:undefined,lbG:undefined,bite:undefined,btR:undefined,rdg:undefined,cny:undefined,rdgR:undefined,rdgF:undefined,hi:undefined,hiS:undefined,quiet:undefined,an:undefined,rimM:undefined,sh:undefined,vly:undefined,hops:undefined,rng:undefined,_c:undefined,_s:undefined};}
+/** @typedef {{id:any,x:any,z:any,rot:any,sc:any,ns:any,state:any,age:any,asq:any,sat:any,h0:any,prof:any,terr:any,rimR:any,rimW:any,rimH:any,lagH:any,patch:any,coll:any,dike:any,rifts:any,riftR:any,vent:any,seep:any,isle:any,flank:any,fade:any,reach:any,core:any,land:any,barrier:any,isl:any,apr:any,carb:any,bare:any,knob:any,arm:any,lobe:any,lmax:any,lbR:any,lbG:any,bite:any,btR:any,rdg:any,cny:any,rdgR:any,rdgF:any,hi:any,hiS:any,quiet:any,an:any,rimM:any,sh:any,vly:any,hops:any,rng:any,_c:any,_s:any}} Rec — a record's every key (recNew), closed: the type checker flags a key misspelt or added later (v11.193, test/types.js) */
+/** @returns {Rec} */function recNew(){return {id:undefined,x:undefined,z:undefined,rot:undefined,sc:undefined,ns:undefined,state:undefined,age:undefined,asq:undefined,sat:undefined,h0:undefined,prof:undefined,terr:undefined,rimR:undefined,rimW:undefined,rimH:undefined,lagH:undefined,patch:undefined,coll:undefined,dike:undefined,rifts:undefined,riftR:undefined,vent:undefined,seep:undefined,isle:undefined,flank:undefined,fade:undefined,reach:undefined,core:undefined,land:undefined,barrier:undefined,isl:undefined,apr:undefined,carb:undefined,bare:undefined,knob:undefined,arm:undefined,lobe:undefined,lmax:undefined,lbR:undefined,lbG:undefined,bite:undefined,btR:undefined,rdg:undefined,cny:undefined,rdgR:undefined,rdgF:undefined,hi:undefined,hiS:undefined,quiet:undefined,an:undefined,rimM:undefined,sh:undefined,vly:undefined,hops:undefined,rng:undefined,_c:undefined,_s:undefined};}
 const ISLANDS=[
   Object.assign(recNew(),{id:'home',x:0,z:0,rot:0,sc:1,ns:0,h0:-14,prof:[[RIM_R+RIM_W*0.3,330,6],[330,700,40],[1000,1200,94],[1200,1600,40]],terr:{r0:700,r1:1000,n:8,step:12},
    rimR:RIM_R,rimW:RIM_W,lagH:-22,coll:COLL,dike:DIKE,rifts:RIFT_A,riftR:[280,340,1600,1300],vent:VENT,seep:SEEP,isle:ISLE,flank:{r:FLANK_R,w:FLANK_W,s0:FLANK_S0,s1:FLANK_S1,a:FLANK_A,b:FLANK_B},fade:BASIN.fade,reach:8500,core:2400}),
@@ -1301,7 +1302,7 @@ function leeW(x,z){
 // look at the shallow end, holding the deep blue below 250: the darkness of the deep is the light's, v11.28), toward a silty green-grey with turbidity,
 // brown in a vent's plume. The plankton's green is not here since v11.81: it is the crop's, by kind, from the bloom map (plank, below; the veil
 // applies it at the ray's own depth). To v11.80 this held a guess at it (nut × the floor's light × 0.3, greener) and the canopy's WATER_CANOPY.
-const WCOL=[[0,[0.10,0.46,0.58]],[20,[0.10,0.42,0.52]],[60,[0.09,0.34,0.40]],[150,[0.07,0.26,0.36]],[250,[0.05,0.20,0.32]]]; // v11.28: the table ends at the deep blue. It went on to (0.03,0.08,0.16) at 400 and (0.006,0.01,0.03) at 451 — "dark on purpose over the deep and the void" — a black water. Water is not black: the deep is dark because little light reaches it, and that is the daylight term (dl in the fog block and updateAtmosphere), not the colour. The person, 10 Sep: no deliberately black fog.
+/** @type {[number,number[]][]} */const WCOL=[[0,[0.10,0.46,0.58]],[20,[0.10,0.42,0.52]],[60,[0.09,0.34,0.40]],[150,[0.07,0.26,0.36]],[250,[0.05,0.20,0.32]]]; // v11.28: the table ends at the deep blue. It went on to (0.03,0.08,0.16) at 400 and (0.006,0.01,0.03) at 451 — "dark on purpose over the deep and the void" — a black water. Water is not black: the deep is dark because little light reaches it, and that is the daylight term (dl in the fog block and updateAtmosphere), not the colour. The person, 10 Sep: no deliberately black fog.
 const WCOL_D=WCOL[WCOL.length-1][0];
 // The table at a depth, a line between its entries — the maps' colour by the floor's depth (waterColor); the veil reads WOPEN's eased curve (below, v11.177)
 function wcolAt(d){d=clamp(d,0,WCOL_D);let c=WCOL[WCOL.length-1][1];
@@ -1322,7 +1323,7 @@ const FLOOR_H=80,FLOOR_FREE=30,OPEN_D=150;
 // Mach band: the veil takes the colour 260 m along every ray, so a corner in depth is a corner in the veil at a fixed angle below the eye, a line just
 // under the horizon from 140 m and rings looking down, moving with the eye's depth (the person, 18 Nov 2026: "lines in the distance", "rings sort of
 // around you"). wopenAt is the JS (updateAtmosphere's ambient), WOPEN_GLSL the shader's `wopen`, the same curve.
-const WOPEN=[[OPEN_D,wcolAt(OPEN_D)]].concat(WCOL.filter(e=>e[0]>OPEN_D));
+/** @type {[number,number[]][]} */const WOPEN=[[OPEN_D,wcolAt(OPEN_D)]].concat(WCOL.filter(e=>e[0]>OPEN_D));
 function wopenAt(d){const c=WOPEN[0][1].slice();for(let i=1;i<WOPEN.length;i++){const a=WOPEN[i-1],b=WOPEN[i],t=smooth(a[0],b[0],d);for(let k=0;k<3;k++)c[k]+=(b[1][k]-a[1][k])*t;}return c;}
 // The veil's other corners, rounded by a smooth max's knee (util.js smax; the shader's smx, scene.js) — each was a line or a ring (v11.177, the same
 // report): `floor` m, the knee of the floor's say at FLOOR_FREE (a ring on the floor where the sample point 260 m along the ray rises past FLOOR_FREE above it,
@@ -1742,7 +1743,7 @@ function regionModel(Kin){
   // cone each, seed 32's 159 stood 10 km apart and 5 km across, where Earth's chains keep 40–90 km and 9–46 km (analysis_archipelago §9)
   if(K.comp){const C=K.comp.C*1000,tau=K.comp.tau,E=pin.map((p,i)=>({pin:true,x:p.x,z:p.z,last:i?tg:K.ageOurs,vents:[]}));
     for(const v of M.filter(m=>m.pin<0).sort((a,b)=>b.age-a.age)){let best=null,bd=C;for(const e of E){if(e.last-v.age>tau||e.pin&&v.age>e.last)continue; /* a pin takes no vent older than itself */const d=Math.hypot(v.x-e.x,v.z-e.z);if(d<bd){bd=d;best=e;}}
-      if(!best){E.push({x:v.x,z:v.z,last:v.age,vents:[v]});continue;}
+      if(!best){E.push({pin:false,x:v.x,z:v.z,last:v.age,vents:[v]});continue;} /* pin:false — one shape with the pins' (v11.193, test/types.js) */
       best.vents.push(v);best.last=Math.min(best.last,v.age);if(best.pin)continue;let w=0,x=0,z=0;for(const q of best.vents){w+=q.V;x+=q.x*q.V;z+=q.z*q.V;}best.x=x/w;best.z=z/w;}
     const keep=M.filter(m=>m.pin>=0);for(const e of E){if(e.pin||!e.vents.length)continue;const vs=e.vents,big=vs.reduce((a,b)=>b.V>a.V?b:a),first=vs.reduce((a,b)=>b.age>a.age?b:a);
       let V=0,cxx=0,czz=0,cxz=0,s2=0;for(const q of vs){V+=q.V;const dx=q.x-e.x,dz=q.z-e.z;cxx+=q.V*dx*dx;czz+=q.V*dz*dz;cxz+=q.V*dx*dz;s2+=q.V*q.R*q.R/4;} /* s2: each vent's own cone, a disc's second moment */
@@ -2826,7 +2827,7 @@ function flowAt(x,y,z,out){
 if(typeof THREE==='undefined'){document.getElementById('title').textContent='three.js did not load';throw new Error('three.js missing');}
 
 let mode='menu',t=0;
-const canvas=document.getElementById('c');
+const canvas=/** @type {HTMLCanvasElement} */(document.getElementById('c'));
 const hurtEl=document.getElementById('hurt'),fadeEl=document.getElementById('fade'),biomeEl=document.getElementById('biome'),hintEl=document.getElementById('hint'),menuEl=document.getElementById('menu'),statsEl=document.getElementById('stats'),compassEl=document.getElementById('compass'),cstripEl=document.getElementById('cstrip'),cpeakEl=document.getElementById('cpeak');
 const isTouch=('ontouchstart' in window)||navigator.maxTouchPoints>0;
 
@@ -4432,9 +4433,9 @@ const DRY_PAL = (() => {
   for (const k in PAL) for (const key in PAL[k]) if (!o[key]) o[key] = PAL[k][key];
   return o;
 })();
-function palk(pal) {
-  for (let i = 1; i < arguments.length; i++) {
-    const c = pal[arguments[i]];
+function palk(pal, ...keys) {
+  for (const k of keys) {
+    const c = pal[k];
     if (c) return c;
   }
   return [0.5, 0.5, 0.5];
@@ -10676,7 +10677,7 @@ function audioTune(code){if(code==='Backspace'){Object.assign(AU_K,AU_DEF);}else
 function audioLine(){if(!AU.on)return 'audio off';const A=AU_LINE;return 'audio  vol '+AU_K.vol.toFixed(2)+' bed '+AU_K.bed.toFixed(1)+' cut '+AU_K.cut.toFixed(1)+' (g-h j-k v-b)  voices '+A.voices+'  enc '+A.enc.toFixed(2)+'  size '+A.size.toFixed(0)+'  floor '+A.floor.toFixed(0)+'  lid '+(A.lid<AU_REACH?A.lid.toFixed(0):'-')+'  wet '+A.wet.toFixed(2)+'  occ '+A.occ.toFixed(2)+'  wave '+A.wr.toFixed(2)+'  cur '+A.cur.toFixed(2)+'  forest '+A.forest.toFixed(2)+(muted?'  muted':'');}
 
 // creatures_ai.js — registry, spawning (with far-LOD bake), behaviours, per-frame update
-const creatures=[],schools=[],carcasses=[],eggs=[]; // carcasses (v11.26): the dead, lying where they fell until eaten or gone; eggs: the clutches
+const creatures=/** @type {Creature[]} */([]),schools=[],carcasses=[],eggs=[]; // Creature: spawn's closed shape (v11.193, test/types.js) // carcasses (v11.26): the dead, lying where they fell until eaten or gone; eggs: the clutches
 // The eggs (v11.26): a birth the ledger owes a loaded cell is laid as a clutch on the floor near an adult of its kind — a knot of
 // translucent spheres the clade's colour, sized to the animal — and hatches after ECO.hatch days (by mass^¼: a flicker's in five
 // minutes, a ridge's in a day and a half) into juveniles at the clutch. A clutch is a carcass to the scavengers (findCarcass): eaten
@@ -10780,6 +10781,7 @@ function shedFlora(){const byKind={};SPAWN.forEach(e=>{if(e.land||!moults(e.kind
     const f={id:'shed_'+kind,shed:kind,geo:geo,mat:MAT,tints:[[1,1,1],[0.94,0.92,0.88],[0.9,0.9,0.86]],s:[MOULT.keep*0.9,MOULT.keep*1.05],sink:0.08,tilt:true,per:Math.max(1,Math.round(dens)),rare:Math.min(1,dens),envs:K.envs,top:d.size*0.6,maxSlope:1.0};
     FLORA.push(f);FLORA_BY_ID[f.id]=f;}}
 shedFlora();
+/** @typedef {{kind:any,def:any,g:any,anim:any,pos:any,vel:any,home:any,hp:any,state:any,t0:any,lastSpd:any,lastYaw:any,roll:any,rollV:any,sq:any,stunSide:any,target:any,biteT:any,wanderT:any,wander:any,alive:any,gone:any,stun:any,bored:any,cool:any,scanT:any,alarm:any,fleeT:any,lungeT:any,ramT:any,school:any,off:any,offT:any,chunk:any,lod:any,parts:any,lodMeshes:any,sub:any,wet:any,grounded:any,flopT:any,b:any,mass:any,mass0:any,bound:any,reach:any,shapesW:any,chainW:any,grab:any,holding:any,armT:any,touchF:any,hold:any,held:any,bleed:any,blood:any,wounds:any,paraT:any,stungT:any,armsLost:any,regrow:any,sickT:any,poison:any,poisT:any,commitT:any,coastT:any,missN:any,speedK:any,turnK:any,live:any,lost:any,cWith:any,d6:any,par:any,st:any,tellT:any,strikeT:any,recoverT:any,burstT:any,face:any,bit:any,accT:any,threat:any,ent:any,hunger:any,starveT:any,hunt:any,feedT:any,feedAt:any,dead:any,flesh:any,deadT:any,scav:any,scavT:any,glow:any,lumL:any,lumF:any,lumD:any,lumH:any,juv:any,k:any,cls:any,soft:any,softT:any,moultT:any,shM:any,cast:any,lodNear:any,lodFar:any,nearR:any,stepR:any,carried:any,cur:any,curT:any,turnedF:any,turnV:any,accV:any,shapeF:any,rigV:any,rigO:any,hitN:any,hitB:any,lieQ:any,chaseT:any,lungeP:any,strikeP:any,gapMin:any,pivotT:any,sw:any,swT:any,filtT:any,q:any,pig:any,hand:any,fall:any,brood:any,fxStruck:any,fxAcc:any,stam:any,spinV:any,shook:any,shakeYaw:any,shakeP:any,pointD:any,lenM:any,lastHurt:any,eaten:any,liveMass:any,fullMass:any}} Creature — every key a creature carries, closed: spawn's literal below in the same order (CLAUDE.md, "one shape"); a key added to the literal goes here too, and the type checker flags one misspelt or set that is not here (v11.193, test/types.js) */
 function spawn(ch,kind,pos,rng,opt){
   const juv=!!(opt&&opt.juv),D=juv?juvDef(kind):DEFS[kind],EK=ecoOf(kind),ent=opt&&opt.ent!==undefined?opt.ent:-1,vary=ent>=0&&kind!=='lab';
   // the individual (v11.66, above): the size band, the coat class of the place, the soft state; plain outside the ledger
@@ -10787,7 +10789,7 @@ function spawn(ch,kind,pos,rng,opt){
   const soft=vary&&!juv&&moults(kind)&&D.role!=='boid'&&(opt&&opt.soft!==undefined?!!opt.soft:rng()<MOULT.frac);
   const f=vary&&ch?ch.f(pos.x,pos.z):null,cls=soft?'soft':f&&SPECS[kind]?coatClassAt(ch.h(pos.x,pos.z),pos.y,f,SPECS[kind].clade,chemoAt(pos.x,pos.z)):'';
   const b=buildKind(D,kind,cls);if(k!==1){b.g.scale.multiplyScalar(k);b.gape*=k;}
-  const c={kind:kind,def:d,g:b.g,anim:b.anim,pos:pos.clone(),vel:V3(0,0,0),home:pos.clone(),hp:d.hp,state:'wander',t0:rng()*100,lastSpd:0,lastYaw:0,roll:0,rollV:0,sq:0,stunSide:rng()<0.5?-1:1,target:null,biteT:0,wanderT:0,wander:pos.clone(),alive:true,gone:false,stun:0,bored:0,cool:rng()*3,scanT:rng()*0.5,alarm:0,fleeT:0,lungeT:0,ramT:0,school:null,off:null,offT:0,chunk:ch,lod:-1,parts:null,lodMeshes:null,sub:1,wet:true,grounded:false,flopT:0,
+  const c=/** @type {Creature} */({kind:kind,def:d,g:b.g,anim:b.anim,pos:pos.clone(),vel:V3(0,0,0),home:pos.clone(),hp:d.hp,state:'wander',t0:rng()*100,lastSpd:0,lastYaw:0,roll:0,rollV:0,sq:0,stunSide:rng()<0.5?-1:1,target:null,biteT:0,wanderT:0,wander:pos.clone(),alive:true,gone:false,stun:0,bored:0,cool:rng()*3,scanT:rng()*0.5,alarm:0,fleeT:0,lungeT:0,ramT:0,school:null,off:null,offT:0,chunk:ch,lod:-1,parts:null,lodMeshes:null,sub:1,wet:true,grounded:false,flopT:0,
     b:b,mass:0,mass0:0,bound:0,reach:0,shapesW:null,chainW:null,grab:null,holding:0,armT:0,touchF:-1,hold:null,held:0,bleed:0,blood:0,wounds:null,paraT:0,stungT:0,armsLost:0,regrow:null,sickT:0,poison:0,poisT:rng()*2,commitT:0,coastT:0,missN:0,speedK:1,turnK:1,live:null,lost:null,cWith:null,d6:0,par:creatures.length&1, // hold: the hold it has on something, held: how many have hold of it, bleed: the rate its wounds drain at, blood: the share of its blood lost (combat.js, v11.91); mass: kg (combat.js kgOfBody; 1e6 while it sits), mass0 its own
     st:{tell:0,strike:0,jet:false,soft:undefined,lx:undefined,lz:undefined,turn:undefined,acc:undefined},tellT:0, /* st: every key it takes later declared, unset (v11.149: one shape, as the creature's) */strikeT:0,recoverT:0,burstT:rng()*2,face:null,bit:false,accT:0,threat:null,
     ent:ent,hunger:EK.hunter?rng():0,starveT:0,hunt:0,feedT:0,feedAt:null,dead:false,flesh:0,deadT:0,scav:null,scavT:rng()*0.5,glow:0,lumL:0,lumF:0,lumD:0,lumH:0,juv:juv?EK.grow*DAY_S*(0.8+0.4*rng()):0, // ent: the ledger entry; hunger 0 fed..1 starving (ecology.js); juv: seconds until it grows up // st: what the anim reads (creatures_builders.js); the tell and the strike as clocks
@@ -10795,7 +10797,7 @@ function spawn(ch,kind,pos,rng,opt){
     shM:null,cast:false,lodNear:0,lodFar:0,nearR:0,stepR:0, // set below, in this order
     carried:undefined,cur:undefined,curT:undefined,turnedF:undefined,turnV:undefined,accV:undefined,shapeF:undefined,rigV:undefined,rigO:undefined,hitN:undefined,hitB:undefined,lieQ:undefined,chaseT:undefined,lungeP:undefined,strikeP:undefined,gapMin:undefined,pivotT:undefined,
     sw:undefined,swT:undefined,filtT:undefined,q:undefined,pig:undefined,hand:undefined,fall:undefined,brood:undefined,fxStruck:undefined,fxAcc:undefined,stam:undefined,spinV:undefined,shook:undefined,shakeYaw:undefined,shakeP:undefined,pointD:undefined,
-    lenM:undefined,lastHurt:undefined,eaten:undefined,liveMass:undefined,fullMass:undefined}; // the individual (v11.66): its size factor, its coat class, the soft state and its clocks
+    lenM:undefined,lastHurt:undefined,eaten:undefined,liveMass:undefined,fullMass:undefined}); // the individual (v11.66): its size factor, its coat class, the soft state and its clocks
   // v11.149 (the creature performance pass): every creature one shape. The keys above from shM on were added to a creature as it lived — the current
   // it is carried by, its turn, its holds, the falls, the brood, the effects' clocks — each by whichever system reached it first, in that order: the
   // forest's 1,400 creatures had 27 shapes, and past four an engine gives up a property read's fast path, so every c.pos, c.def, c.vel in the frame was
@@ -12748,8 +12750,9 @@ function playerClade(spec,pre,j){ // the player's clade object from a spec (and 
 const CLADES=CLADE_PRESETS.map(p=>playerClade(SPECS[p.spec],p));
 let floor0=-1e9;for(let a=0;a<TAU;a+=0.3)for(let r=0;r<=16;r+=4)floor0=Math.max(floor0,sample(Math.cos(a)*r,Math.sin(a)*r).h);
 const dispY=floor0+4.5,spawnPos=V3(0,floor0+3,0);
-const player={clade:null,pos:V3(0,dispY,0),vel:V3(0,0,0),yaw:0,pitch:0,byaw:0,bpitch:0,angV:0,g:null,b:null,anim:null,inkT:0,withdrawn:false,cd:0,jetT:0,hurtT:0,lastHurt:-100,dead:true,pulse:0,spd:0,biteCD:0,sub:1,wet:true,grounded:false,flopT:0,camAbove:false,camFlipT:0,fp:false,
-  mass:6,bound:0,reach:0,shapesW:null,chainW:null,grab:null,grabT:0,heldT:0,heldK:1,holding:0,armT:0,touchF:-1,hold:null,held:0,grabKey:false,grabCD:0,bleed:0,blood:0,wounds:null,paraT:0,stungT:0,sickT:0,hunger:0,starveT:0,waste:0,soft:false,shut:false,armsLost:0,regrow:null,cause:'',speedK:1,turnK:1,live:null,lost:null,cWith:null,onPad:null,def:{size:1.6},hitRk:0,hitFl:0,landV:0,wasGrounded:false}; // hitRk/hitFl: this frame's push was against rock / a plant; landV: the speed of the last landing on the floor (audio.js consumes both) // def.size: creatures read it when the player is their target
+/** @typedef {{clade:any,pos:any,vel:any,yaw:any,pitch:any,byaw:any,bpitch:any,angV:any,g:any,b:any,anim:any,inkT:any,withdrawn:any,cd:any,jetT:any,hurtT:any,lastHurt:any,dead:any,pulse:any,spd:any,biteCD:any,sub:any,wet:any,grounded:any,flopT:any,camAbove:any,camFlipT:any,fp:any,mass:any,bound:any,reach:any,shapesW:any,chainW:any,grab:any,grabT:any,heldT:any,heldK:any,holding:any,armT:any,touchF:any,hold:any,held:any,grabKey:any,grabCD:any,bleed:any,blood:any,wounds:any,paraT:any,stungT:any,sickT:any,hunger:any,starveT:any,waste:any,soft:any,shut:any,armsLost:any,regrow:any,cause:any,speedK:any,turnK:any,live:any,lost:any,cWith:any,onPad:any,def:any,hitRk:any,hitFl:any,landV:any,wasGrounded:any,away:any,sprint:any,eaten:any,oxyD:any,chokeT:any,hopT:any,snapT:any,fovKickT:any,nudgeT:any,nudgeD:any,sw:any,swT:any,ro:any,rollV:any,rollBias:any,turnV:any,accV:any,fxAcc:any,fxJet:any,fxFlop:any}} Player — every key the player carries, closed: the literal below in the same order; a key added to it goes here too (v11.193, test/types.js: its last twenty keys — fovKickT, eaten, away… — were set only as play went; they are declared in the literal now, unset, so the player is one shape) */
+const player=/** @type {Player} */({clade:null,pos:V3(0,dispY,0),vel:V3(0,0,0),yaw:0,pitch:0,byaw:0,bpitch:0,angV:0,g:null,b:null,anim:null,inkT:0,withdrawn:false,cd:0,jetT:0,hurtT:0,lastHurt:-100,dead:true,pulse:0,spd:0,biteCD:0,sub:1,wet:true,grounded:false,flopT:0,camAbove:false,camFlipT:0,fp:false,
+  mass:6,bound:0,reach:0,shapesW:null,chainW:null,grab:null,grabT:0,heldT:0,heldK:1,holding:0,armT:0,touchF:-1,hold:null,held:0,grabKey:false,grabCD:0,bleed:0,blood:0,wounds:null,paraT:0,stungT:0,sickT:0,hunger:0,starveT:0,waste:0,soft:false,shut:false,armsLost:0,regrow:null,cause:'',speedK:1,turnK:1,live:null,lost:null,cWith:null,onPad:null,def:{size:1.6},hitRk:0,hitFl:0,landV:0,wasGrounded:false,away:undefined,sprint:undefined,eaten:undefined,oxyD:undefined,chokeT:undefined,hopT:undefined,snapT:undefined,fovKickT:undefined,nudgeT:undefined,nudgeD:undefined,sw:undefined,swT:undefined,ro:undefined,rollV:undefined,rollBias:undefined,turnV:undefined,accV:undefined,fxAcc:undefined,fxJet:undefined,fxFlop:undefined}); // hitRk/hitFl: this frame's push was against rock / a plant; landV: the speed of the last landing on the floor (audio.js consumes both) // def.size: creatures read it when the player is their target
 // Out of the world (v11.72.1, the person, 21 Sep 2026: "the game should teleport the player out of existence temporarily or make them invis/invuln while
 // they edit"): while the editor at conception is open (line.js conceiveOpen) the body is hidden and nothing in the world can see, smell, chase, hold,
 // sting or flee it — every read of the player as a thing to react to in creatures_ai.js and combat.js asks playerGone(), which death answers too.
@@ -13901,7 +13904,7 @@ function hzSetup(){if(HZ)return HZ;const E=hzExtent(),S=Q.hz,C=S*HZ_C,x0=E[0],z0
   // (v11.107: and a bare summit over the sea, to its terraces' foot — the low island m150, 50 m, the first record with no land or rim above water)
   // are sampled at all; of them, a cell is live with a corner over the cut or a rim through it. h: the top's height for its sight (v11.113)
   const tops=ISLANDS.map(R=>({x:R.x,z:R.z,t:((R.land?R.land.r:R.rimR!==undefined?R.rimR+R.rimW:R.h0>0&&R.terr?R.terr.r1:0)*1.16+(R.isle?2000:0))*R.sc+C*0.75,r:(R.rimR||0)*R.sc,w:(R.rimW||0)*R.sc+C,id:R.id,
-    h:R.land?R.land.h:R.rimR!==undefined?(R.rimH||0)+6:R.h0+(R.knob||0)})).filter(q=>q.t>C*0.75);
+    h:R.land?R.land.h:R.rimR!==undefined?(R.rimH||0)+6:R.h0+(R.knob||0),to:0})).filter(q=>q.t>C*0.75); // to: set below, in the literal so every top is one shape (v11.193, test/types.js)
   for(const q of tops){const R=ISLANDS.find(I=>I.id===q.id);q.to=R&&R.lmax?(q.t-C*0.75)/R.lmax+C*0.75:q.t;} // v11.135: the order by an island's size without its farthest lobe (t, the cells' and the sight's, is its bound)
   HZ={S,C,x0,z0,nx,nz,cx:Math.ceil((nx-1)/HZ_C),cz:Math.ceil((nz-1)/HZ_C),tops,built:new Set(),queue:[],n:{cells:0,v:0,t:0,ms:0}};return HZ;}
 function hzSight(q,cy){return 3570*(Math.sqrt(Math.max(cy,2))+Math.sqrt(Math.max(q.h,1)))+q.t;} // m: how far off the member's top can stand above the camera's horizon
@@ -14707,7 +14710,7 @@ function bactSee(L){return smooth(BACT.dark[0],BACT.dark[1],L);}
 // second or two and fades, and the others take up the beat, so the strings come in waves. Moonlight stops them. Here the displayers are tiny
 // hingeshells by their trade (a hinged shell, PLANET's line; a background population, no bodies — the person to confirm), shown round the camera
 // where the floor is shallow and sheltered, between DSP.alt's sun altitudes, as the moon allows.
-const DSP={on:false,col:[0.28,0.52,1.0],alt:[-0.42,-0.36,-0.20,-0.15],moon:[0.12,0.4],floor:[-25,-12,-1.5,-0.6],expo:0.7,rate:12,slots:96,view:0.7,size:1.5,n:[6,14],gap:[0.18,0.32],step:[0.15,0.28],life:[1.6,2.6],R:26,beat:7,size:0.8,g:0,hab:0};
+const DSP={on:false,col:[0.28,0.52,1.0],alt:[-0.42,-0.36,-0.20,-0.15],moon:[0.12,0.4],floor:[-25,-12,-1.5,-0.6],expo:0.7,rate:12,slots:96,view:0.7,n:[6,14],gap:[0.18,0.32],step:[0.15,0.28],life:[1.6,2.6],R:26,beat:7,size:0.8,g:0,hab:0};
 // alt: the sun's altitude (sin) — the displays from −25° (rising) to −9° (falling), ~0.75–2 h after sunset; moon: the moon's light (of full) over which they stop; floor: the
 // floor's height (m) over which they live (full −12 to −1.5); expo: how much the surf's exposure takes off; rate: strings a second at full; slots: strings at once;
 // view: the share of strings started in front of the eye (v11.162: 5 a second anywhere round it were a couple of dots at the frame's edge — the person
@@ -14908,7 +14911,7 @@ fxApply();
 // widest zoom's level while nothing else is wanted; the tiles are kept (WMAP_CACHE, the oldest dropped), so a view seen once is back at once.
 // The tiles are composed onto wmap.comp only when the view moves or a tile arrives; a frame draws that, the player and the cursor.
 const WMAP_T=128,WMAP_MPP0=4096,WMAP_UP=1.1,WMAP_BUDGET=6,WMAP_CACHE=900,WMAP_LW=1.25; // a tile's side in samples; level 0's metres a sample; the most a tile's sample may be stretched (×); the tile work a frame (ms); tiles kept; a contour's width in tile pixels (a tile is drawn at 0.65–1.1 of its size)
-const WMAP_BANDS=[[0,[0.55,0.52,0.40]],[-6,[0.62,0.78,0.72]],[-60,[0.30,0.62,0.66]],[-150,[0.18,0.42,0.56]],[-450,[0.12,0.26,0.44]],[-800,[0.10,0.17,0.30]],[-1100,[0.08,0.11,0.20]],[-3000,[0.04,0.05,0.10]]]; // test/mapdraw.js BANDS (test/lint.js holds them equal)
+/** @type {[number,number[]][]} */const WMAP_BANDS=[[0,[0.55,0.52,0.40]],[-6,[0.62,0.78,0.72]],[-60,[0.30,0.62,0.66]],[-150,[0.18,0.42,0.56]],[-450,[0.12,0.26,0.44]],[-800,[0.10,0.17,0.30]],[-1100,[0.08,0.11,0.20]],[-3000,[0.04,0.05,0.10]]]; // test/mapdraw.js BANDS (test/lint.js holds them equal)
 const WMAP_CONT=[0,-60,-150,OXY.top,-800,-1000]; // test/map.js CONT: the sea, the shelf's edge, the light's end, the oxygen minimum's top (the chemocline to v11.95), the deep, the floor's top (the hills cross -1100 everywhere)
 const WMAP_MS=[[],[3,0],[0,1],[3,1],[1,2],[3,0,1,2],[0,2],[3,2],[2,3],[0,2],[0,1,2,3],[1,2],[1,3],[0,1],[3,0],[]]; // marching squares: a cell's corners above the level (bits: nw 1, ne 2, se 4, sw 8) → the edges its line joins (0 top, 1 right, 2 bottom, 3 left), in pairs
 const wmapEl=document.getElementById('wmap'),wmapC=document.getElementById('wmapc'),wmapL=document.getElementById('wmapl');
@@ -16865,7 +16868,7 @@ function loop(now){
   readTouch();bootTick(iv); // the boot's stages (v11.189), before the streaming they gate
   // the streaming gets what the rest of the last frame left of Q.target (v11.12): a 3 ms frame leaves 4.5 for the cells, a 6 ms frame 2 (the floor)
   const g0=performance.now(),bl=!BOOT.done&&BOOT.stage==='load';if(BOOT.done||BOOT.stage!=='store')manageChunks(bl?BOOT.budget:Math.min(Q.budgetMs,Math.max(2,Q.target-(frameMs-genMs))));manageFar(bl?BOOT.budget:Q.farMs);genMs=performance.now()-g0;bloomTick();const a0=performance.now(); // a0…: the phases' marks for the recorder (v11.191, rec.js recFrame) // v11.189: the cells wait for the boot's slot (its ledger is what they spawn from); behind the loading page both stream with BOOT.budget (to v11.188 the far layer had 14 ms through the menu's first 2.4 s) // the plankton's clock (far.js, v11.81): the front by the tide's amplitude, the storm's pulse // the far layer streams in behind the fade (black until ~2.2 s), then in the gaps (v11.12: 14 ms all through the menu had its creatures stuttering for the first second)
-  updateMenu(dt);updateZoo(dt);updateLab(dt);if(mode==='play')updatePlayer(dt); // updateMenu (v11.47.1): the column's rise and the idle fade
+  updateMenu();updateZoo(dt);updateLab(dt);if(mode==='play')updatePlayer(dt); // updateMenu (v11.47.1): the column's rise and the idle fade
   const p0=performance.now();
   updateSchools(dt);updateCreatures(dt);if(mode==='play')finishPlayer(dt,bodies); // bodies, contact, arms, then the camera
   updateEggs(dt);updateSheds(dt);ecoTick(dt);updateSave(dt); // the clutches hatch; the cast carapaces rot (v11.66); the world's ledger (v11.26): the model every few seconds, the births owed; the autosave clock (save.js, v11.47)
