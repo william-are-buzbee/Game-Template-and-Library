@@ -256,6 +256,9 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
   `__boot.done`. The warm-up compiles with the shadow map as play has it (three keys every program by it). A new material that draws at the
   start goes in `warmPrep`'s lists or is in the scene by `load`'s end; test/gpu.js's `sight` says what was missed. The camera note
   (`tethys.cam`) carries its slot's id; a slot's world and player are `slotWorld` and `slotPlayer` (`startFrom` is a clear and both).
+- **A slot is written with its summary** (save.js; v11.195). The menu's list (`saveList`) is the slots' summaries (`sum:<id>`), never the slots,
+  which are tens of MB once played long. Write a slot only with `slotPut` (never `storePut`: its summary would go stale), read one with `slotGet`,
+  delete with `slotDel`; a field the list shows goes in `slotSum` and `slotEntry`. test/slots.js counts the whole reads.
 - **A species' variants are pulled** (grow.js `VPULL`, scene.js `VPULL_GLSL`, chunks.js `VPULL_N`). On WebGL2 a variant species draws `f.gp`
   (vertices that carry only their number) with `f.mp`, and the vertex shader fetches its instance's variant from `VPULL_TEX`: a flora material's
   vertex code reads `transformed`, `objectNormal` and `vColor`, never the `position`, `normal` or `color` attributes. `f.geo` is still the

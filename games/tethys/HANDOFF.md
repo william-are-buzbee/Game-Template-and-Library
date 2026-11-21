@@ -4,6 +4,12 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.195 (21 Nov 2026): the save list reads summaries** (save.js `slotSum`, `slotPut`, `slotGet`, `slotDel`, `storeSums`; menu.js, main.js
+`bootSlot`; test/slots.js; DESIGN, the save paragraph; CHANGELOG). The home reports (#141, #142) blamed 6 s of freezes on the store: the menu's list
+read every slot whole, ledger and all. Every slot now has a summary beside it, written in the same transaction; the list reads only those; a slot is
+read whole when it is continued, exported, or is the boot's last; an old slot is read once and given one. **Ask:** on the home machine, the menu and
+continue with the slots it has (the first boot migrates them), and an F9 report — its long animation frames should no longer name the store.
+
 **v11.194 (21 Nov 2026): the flora's far copies — off** (parts.js `LOD`, grow.js `lodParts`, chunks.js `poolLodOwn`, scene.js `uCut`; test/lod.js;
 analysis_project.md §4; CHANGELOG). Every flora material's cut is a uniform now (the same pictures); every species has a copy at half its detail
 drawn past 150 m / 120 m — but on the proxy it cost more than it saved (the GPU ×1.06–1.08, 45 draws more), so only `#lod` turns it on.
@@ -27,11 +33,6 @@ GitHub issue with it, which the person submits. Read them with `node test/report
 report's worst moment. When the person says it lags, ask for a report, not a readout. **Next** (analysis_project.md, the person's order): `tsc --checkJs`, the flora's detail by distance, the cells in workers, three.js upgraded, a fixed step. **Ask:** F9 on the preview, and
 the readout's `gpu`.
 
-**v11.190 (20 Nov 2026): the tidewood's colour** (grow.js `PIG.greenAir`, `PIG_BOOST`; flora.js `tidetree` on `line: 'greenAir'`; DESIGN "The tidal forest";
-CHANGELOG). The person: the beach trees "too neon or bright". The tidewood was the greens' 0–15 m water colour ×1.22, [0.44, 0.73, 0.24]; six colours were
-shot in the game and the person chose between the softened green and the wood's leaf: [0.35, 0.47, 0.21], flat, no boost. Near and far copy alike. **Ask:**
-the shore at noon on the preview, and whether the reed, scrub and tussock (still the old green) should follow.
-
 ## Open
 
 - **The plan** (analysis_project.md, the person's order, 20 Nov 2026): 1 the recorder (v11.191), 2 the docs (v11.192) and 3 the type checker (v11.193)
@@ -39,7 +40,8 @@ the shore at noon on the preview, and whether the reed, scrub and tussock (still
   its key end to end at any point.
 - **Reports** (`node test/report.js --search`): #137 and #138, a work tower `20e1` (Intel UHD 730): high tier 82 ms a frame, the GPU 84 ms (main
   pass 75), 3.9M triangles; `#low` 33 ms, the GPU 35, 1.6M triangles — the GPU fell with the triangles (×0.41 against ×0.40), not the pixels (×0.81).
-  They are step 4's before. The desktop tier is `high` on that chip; the boot under `#low` had a 7.4 s menu frame the recorder does not itemise.
+  They are step 4's before. #141 and #142, the home machine `kasd` (Brave hides the card): 120 fps, the GPU 7.8–8.0 ms of 8.3; its freezes were the
+  save store (v11.195) and the collector (200–325 ms every minute or two, the heap ~600 MB) — open. The desktop tier is `high` on that chip; the boot under `#low` had a 7.4 s menu frame the recorder does not itemise.
 - **The person's open lists**, each in its doc: analysis_loading.md §4 (the loading page's look, one wait or two, a cache in the browser);
   analysis_fog.md (its questions); BIOLUM.md §7; WATER.md Part 5 (light across the line, an audit, nothing built); DEEP.md §11 (the
   constructors' place); analysis_archipelago.md §8.4; DIRECTION.md's Open list; LINEAGE.md §11; SEAFLOOR.md §6; PIXEL.md (ready to build).

@@ -2198,7 +2198,12 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   asked for). Written every `SAVE_EVERY` 30 s of play (`updateSave`), on esc to the menu, when the pointer lock is released (the first esc
   from locked play, v11.47.1), on `visibilitychange`/`pagehide` — and on `pagehide`/`beforeunload` a synchronous shadow copy to
   localStorage (`saveShadow`, `tethys.last`), since IndexedDB's put may not finish before the page goes; `saveRefresh` moves it into the
-  store at the next boot. Loading: every cell
+  store at the next boot. **The list reads summaries** (v11.195): every slot has a small record beside it, `sum:<id>` (`slotSum`: name, made,
+  played, time played, clade, the spec's id, the generations, over, the dead and the last cause, where the body is), written in the same transaction
+  as the slot (`slotPut`; delete takes both, `slotDel`); `saveRefresh` reads only those, by key range (`storeSums`, with the store's keys to find a
+  slot without one — a slot from before, read whole once and given its summary). A slot is read whole (`slotGet`) only when it is continued,
+  exported, or is the boot's last; a long-played slot is tens of MB of ledger, and the old list (`getAll`) read every one at boot and at every
+  return to the menu — ~2 s each on the person's home machine (#141). Loading: every cell
   out (`worldClear`), `popLoad` (a save from another roster starts fresh with a warning), `playerBody`, `cellsAround` (the 3×3, boot uses it too).
   The profile (`PROFILE`, one record): the creator's key; `seen` — species, clades, cores, part `kind:style` for anything drawn within `SEEN_R`
   30 m in play (`seeSpec`) and the player's own clade; the creator's saved creatures. Nothing is written before the stored profile is read
