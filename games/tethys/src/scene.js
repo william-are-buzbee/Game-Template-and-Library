@@ -718,7 +718,7 @@ function addTint(m,key,small,band,grid,cls){ // grid (v11.40): 'world' puts the 
 const THIN_RE=/reflectedLight\.directDiffuse\s*=\s*\(\s*gl_FrontFacing\s*\)\s*\?\s*vLightFront\s*:\s*vLightBack\s*;/;let thinWarned=false;
 function thinLight(sh,k){if(sh.defines&&sh.defines.DEPTH_PASS)return;const f=sh.fragmentShader;if(!THIN_RE.test(f)){if(!thinWarned){thinWarned=true;console.warn('thinLight: lambert chunk not as expected; blades are opaque');}return;}
   sh.fragmentShader=f.replace(THIN_RE,'reflectedLight.directDiffuse=mix((gl_FrontFacing)?vLightFront:vLightBack,(gl_FrontFacing)?vLightBack:vLightFront,'+k.toFixed(2)+');');}
-function cutLambert(){const m=new THREE.MeshLambertMaterial({vertexColors:true});m.onBeforeCompile=function(sh){sh.vertexShader=sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>'+FAR_CUT+FAR_FADE);};return m;} // v11.155: MAT's instanced flora (the fans, limpets, chimneys, the sheds) fade at FLORA_FAR like the rest; the creatures are never instanced, and the cut is USE_INSTANCING's alone
+function cutLambert(){const m=new THREE.MeshLambertMaterial({vertexColors:true});m.cutAt=null;m.onBeforeCompile=function(sh){sh.uniforms.uCut=cutUOf(m);sh.vertexShader=CUT_V+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>'+FAR_CUT+FAR_FADE);};return m;} // v11.155: MAT's instanced flora (the fans, limpets, chimneys, the sheds) fade at FLORA_FAR like the rest; the creatures are never instanced, and the cut is USE_INSTANCING's alone
 const MAT=addTint(cutLambert(),'lamc',true,undefined,undefined,'body'); // creatures, small flora (instanced: the plant class in the shader). 'lamc' (v11.155): its own program now — MAT_HIT and MATBIG keep 'lam'
 const MATGHOST=new THREE.MeshBasicMaterial({colorWrite:false,depthWrite:false}); // the first-person body (v11.23, player.js): drawn as nothing, still cast into the shadow map
 function ghostBody(g,on){g.traverse(o=>{if(!o.isMesh)return;if(on){if(o.material!==MATGHOST){o.userData.mat0=o.material;o.material=MATGHOST;}}else if(o.userData.mat0){o.material=o.userData.mat0;o.userData.mat0=null;}});}
@@ -729,8 +729,8 @@ const MATLM=addTint(new THREE.MeshLambertMaterial({vertexColors:true}),'lam',fal
 // band where it meets the sand is darkened in the vertex shader — from the sink line up over 0.8 of the scale, by 35% — the
 // occlusion a shadow map would give the one place it shows. Instanced only (the cell's boulders); structures are merged and keep their light.
 const ROCK_FOOT='\n#ifdef USE_INSTANCING\n{float sy=length(instanceMatrix[1].xyz);float wy=(modelMatrix*instanceMatrix*vec4(transformed,1.0)).y;float gy=(modelMatrix*vec4(instanceMatrix[3].xyz,1.0)).y+0.4*sy;vFoot=1.0-0.35*(1.0-smoothstep(gy,gy+0.8*sy,wy));}\n#endif\n';
-function rockMaterial(far,fade){const m=new THREE.MeshLambertMaterial({vertexColors:true});m.onBeforeCompile=function(sh){ // far, fade (v11.155): the instances' fade (farCut, below), FLORA_FAR's by default — read at compile, after FLORA_FAR is declared
-  sh.vertexShader='varying float vFoot;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>'+farCut(far||FLORA_FAR,fade||FLORA_FADE)+'\nvFoot=1.0;'+ROCK_FOOT+FAR_FADE);
+function rockMaterial(far,fade){const m=new THREE.MeshLambertMaterial({vertexColors:true});if(far)m.cutAt=[far,fade||FLORA_FADE];m.onBeforeCompile=function(sh){sh.uniforms.uCut=cutUOf(m); // far, fade (v11.155): the instances' fade (farCut, below), FLORA_FAR's by default — read at compile, after FLORA_FAR is declared
+  sh.vertexShader=CUT_V+'varying float vFoot;\n'+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>'+farCut()+'\nvFoot=1.0;'+ROCK_FOOT+FAR_FADE);
   sh.fragmentShader='varying float vFoot;\n'+sh.fragmentShader.replace('#include <fog_fragment>','gl_FragColor.rgb*=vFoot;\n#include <fog_fragment>');};return m;}
 const MATROCK=addTint(rockMaterial(),'lamrock',true,1,undefined,'rock'); // rock placed by the cell (the ledges; the boulders until v11.157, MATROCKF since): with the tide's band and the foot
 const MATROCKB=addTint(new THREE.MeshLambertMaterial({vertexColors:true}),'lam',false,1,undefined,'rock'); // structures (far.js): the same with the big-thing fog
@@ -800,8 +800,14 @@ const VAR_GLSL='attribute float vid;attribute float aVar;\n',VAR_COLLAPSE='if(ab
 // at once when its nearest edge came within FLORA_FAR. farCut(far, fade) opens a material's vertex code (it declares fadeK), FAR_FADE closes
 // it, after the material's own displacement. Instanced only: MAT's creatures and the depth pass (no USE_FOG) keep their size.
 const FLORA_FAR=450,FLORA_FADE=90;
-function farCut(far,fade){return '\nfloat fadeK=1.0;\n#if defined(USE_FOG)&&defined(USE_INSTANCING)\n{float fdk=distance((modelMatrix*vec4(instanceMatrix[3].xyz,1.0)).xyz,uFogC);if(fdk>'+far.toFixed(1)+')'+GONE+'fadeK=1.0-smoothstep('+(far-fade).toFixed(1)+','+far.toFixed(1)+',fdk);}\n#endif\n';} // uFogC: the camera (fog_pars_vertex)
-const FAR_CUT=farCut(FLORA_FAR,FLORA_FADE),FAR_FADE='\ntransformed*=fadeK;\n';
+// v11.194 (analysis_project.md §4): the cut is a uniform, `uCut` (x: the near edge — an instance nearer is gone, 0 none; y: the far edge; z: the fade
+// into it), each material's own (cutUOf), so one program serves a species' whole draw (cut at LOD.d) and its far copy's (from LOD.d on) — chunks.js poolLod.
+// The numbers are the ones the shaders had as literals; a material with no cut has its far edge at NO_CUT, which nothing reaches.
+const CUT_V='uniform vec3 uCut;\n',NO_CUT=1e7;
+function farCut(){return '\nfloat fadeK=1.0;\n#if defined(USE_FOG)&&defined(USE_INSTANCING)\n{float fdk=distance((modelMatrix*vec4(instanceMatrix[3].xyz,1.0)).xyz,uFogC);if(fdk>uCut.y||fdk<uCut.x)'+GONE+'fadeK=1.0-smoothstep(uCut.y-uCut.z,uCut.y,fdk);}\n#endif\n';} // uFogC: the camera (fog_pars_vertex)
+// a material's cut: made at its first compile or clone (FLORA_FAR is read then, after it is declared); m.cutAt is [far, fade] or null for FLORA_FAR's
+function cutUOf(m){if(!m.cutU){const a=m.cutAt||[FLORA_FAR,FLORA_FADE];m.cutU={value:new THREE.Vector3(0,a[0],a[1])};}return m.cutU;}
+const FAR_CUT=farCut(),FAR_FADE='\ntransformed*=fadeK;\n';
 // The disturbance loop runs only for plants within DIST_R of the camera: every disturber is within 70 of it (physics.js
 // updateDisturbers) plus a body. It ran for every vertex of every plant to the far plane; this alone was 6.3 → 4.6 ms in the forest.
 // The tidewood's far copy near (v11.188; the person, 20 Nov 2026, on v11.187's "the tidewood's weight": "we can swap for now"). The real tree is ~690 triangles,
@@ -815,11 +821,12 @@ const DIST_R=90,DIST_GUARD='\n#ifdef USE_FOG\nif(distance(base,uFogC)<'+DIST_R.t
 // cut: collapsed beyond FLORA_FAR (the small things); the impostored species leave it off
 function swayMaterial(amp,freq,hn,dir,bob,H,strand,cap,cut,thin){
   const m=new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide});
+  m.cutAt=cut===true?null:Array.isArray(cut)?cut:[NO_CUT,1]; // v11.194: every sway material has the cut in its code (a far copy can take over any of them, chunks.js poolLod)
   m.onBeforeCompile=function(sh){
     if(thin)thinLight(sh,thin);
-    sh.uniforms.uChop=chopU;sh.uniforms.uTime=timeU;sh.uniforms.uDistA=distU;sh.uniforms.uDistB=distBU;sh.uniforms.uDistU=distUU;sh.uniforms.uTide=tideU;sh.uniforms.uTideR=tideRU;
-    sh.vertexShader='uniform float uTime;uniform float uTide;uniform float uTideR;attribute vec2 aCur;attribute vec2 aTide;\n'+VAR_GLSL+DIST_GLSL+(bob?'attribute float aDip;\n':'')+(bob||cap?'uniform sampler2D uFloorMap;uniform vec2 uWmO;\n'+WAVE_DEP_GLSL+WAVE_GLSL:'')+sh.vertexShader.replace('#include <begin_vertex>',
-      '#include <begin_vertex>\n'+(cut?(typeof cut==='string'?cut:FAR_CUT):'')+VAR_BRANCH+'{float sx=length(instanceMatrix[0].xyz),sy=length(instanceMatrix[1].xyz),sz=length(instanceMatrix[2].xyz);float ph=uTime*'+freq.toFixed(2)+'+instanceMatrix[3][0]*0.31+instanceMatrix[3][2]*0.23;float hw=max(transformed.y*'+dir.toFixed(1)+',0.0)*sy;float k=clamp(hw/'+hn.toFixed(2)+',0.0,1.3);k=k*k;'+
+    sh.uniforms.uCut=cutUOf(m);sh.uniforms.uChop=chopU;sh.uniforms.uTime=timeU;sh.uniforms.uDistA=distU;sh.uniforms.uDistB=distBU;sh.uniforms.uDistU=distUU;sh.uniforms.uTide=tideU;sh.uniforms.uTideR=tideRU;
+    sh.vertexShader=CUT_V+'uniform float uTime;uniform float uTide;uniform float uTideR;attribute vec2 aCur;attribute vec2 aTide;\n'+VAR_GLSL+DIST_GLSL+(bob?'attribute float aDip;\n':'')+(bob||cap?'uniform sampler2D uFloorMap;uniform vec2 uWmO;\n'+WAVE_DEP_GLSL+WAVE_GLSL:'')+sh.vertexShader.replace('#include <begin_vertex>',
+      '#include <begin_vertex>\n'+FAR_CUT+VAR_BRANCH+'{float sx=length(instanceMatrix[0].xyz),sy=length(instanceMatrix[1].xyz),sz=length(instanceMatrix[2].xyz);float ph=uTime*'+freq.toFixed(2)+'+instanceMatrix[3][0]*0.31+instanceMatrix[3][2]*0.23;float hw=max(transformed.y*'+dir.toFixed(1)+',0.0)*sy;float k=clamp(hw/'+hn.toFixed(2)+',0.0,1.3);k=k*k;'+
       'vec3 gd=normalize((modelMatrix*vec4(instanceMatrix[1].xyz,0.0)).xyz)*'+dir.toFixed(1)+';float hmax='+H.toFixed(2)+'*sy;'+
       (strand?'vec3 base=(modelMatrix*instanceMatrix*vec4(transformed,1.0)).xyz-gd*hw;':'vec3 base=(modelMatrix*vec4(instanceMatrix[3].xyz,1.0)).xyz;')+
       'vec3 push=vec3(0.0);\n#ifndef DEPTH_PASS\n'+DIST_GUARD+ // at rest in the world's shadow map (v11.30): no pushes, no sway, no wave
@@ -835,13 +842,13 @@ function swayMaterial(amp,freq,hn,dir,bob,H,strand,cap,cut,thin){
       (bob?'\n#ifdef DEPTH_PASS\ntransformed.y+=(uTide-aDip)/sy;\n#else\ntransformed.y+=(waveH(instanceMatrix[3].xz,uTime,0.0,waveDep(instanceMatrix[3].xz,uTide))+uTide-aDip)/sy;\n#endif\n':cap?'float wy=(modelMatrix*instanceMatrix*vec4(transformed,1.0)).y;float wl=uTide-0.45;\n#ifndef DEPTH_PASS\nif(wy>uTide-1.8)wl+=waveH(base.xz,uTime,0.0,waveDep(base.xz,uTide));\n#endif\ntransformed.y-=max(wy-wl,0.0)*0.96/sy;':'')+'}'+(cut?FAR_FADE:''));
   };
   m.sway=true; // the cell gives its instances aCur (chunks.js makeInstanced)
-  return addTint(m,'sway'+amp+freq+hn+dir+(bob?'b':'')+H+(strand?'s':'')+(cap?'c':'')+(cut?(typeof cut==='string'?'x'+cut.length:'x'):'')+(thin?'t'+thin:''),true,undefined,undefined,thin?'blade':'plant');
+  return addTint(m,'sway'+amp+freq+hn+dir+(bob?'b':'')+H+(strand?'s':'')+(cap?'c':'')+(cut?'x':'')+(thin?'t'+thin:''),true,undefined,undefined,thin?'blade':'plant');
 }
 // rigid flora with variants: Lambert, double-sided (the cones' comb legs and the stars are planes), the collapse and nothing else
 // The sessile animals breathe (v11.13): a 2.5% radial pulse of everything above 0.25 m local, 0.4–0.6 Hz, phase from the instance's x,z —
 // the tubes, cups, lilies, tulips, chains, burrs and loops, which were rigid. Crusts and cones under 0.25 m don't move; a collapsed vertex stays at zero.
 const PULSE_GLSL='{float pp=uTime*0.7+instanceMatrix[3][0]*0.37+instanceMatrix[3][2]*0.29;float pk=smoothstep(0.25,1.0,transformed.y)*0.025*(1.0+0.5*sin(pp*1.7));transformed.xz*=1.0+pk*sin(pp);}';
-function varMaterial(dead){const m=new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide});m.onBeforeCompile=function(sh){sh.uniforms.uTime=timeU;sh.vertexShader='uniform float uTime;\n'+VAR_GLSL+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>'+FAR_CUT+VAR_COLLAPSE+(dead?'':'\n#if defined(USE_INSTANCING)&&!defined(DEPTH_PASS)\n'+PULSE_GLSL+'\n#endif\n')+FAR_FADE);};return addTint(m,dead?'lamvd':'lamv',true,undefined,undefined,'plant');} // no breathing in the world's shadow map (v11.30) // cut beyond FLORA_FAR too (v11.12)
+function varMaterial(dead){const m=new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide});m.cutAt=null;m.onBeforeCompile=function(sh){sh.uniforms.uCut=cutUOf(m);sh.uniforms.uTime=timeU;sh.vertexShader=CUT_V+'uniform float uTime;\n'+VAR_GLSL+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>'+FAR_CUT+VAR_COLLAPSE+(dead?'':'\n#if defined(USE_INSTANCING)&&!defined(DEPTH_PASS)\n'+PULSE_GLSL+'\n#endif\n')+FAR_FADE);};return addTint(m,dead?'lamvd':'lamv',true,undefined,undefined,'plant');} // no breathing in the world's shadow map (v11.30) // cut beyond FLORA_FAR too (v11.12)
 const MATV=varMaterial(),MATVD=varMaterial(true); // MATVD: the variants without the breath — a stranded float is a corpse (v11.31.4)
 // (v11.33: fogExtinctOnly is gone — nothing has called it since the glow clouds went in v10.1. The rule it carried stands and the
 // light shafts re-implement it by hand: an additive thing must lose its own colour with distance and never take the veil's.)
@@ -851,7 +858,7 @@ const MATG=swayMaterial(0.35,1.6,2.4,1,false,2.4,false,true,true,0.35),MATB=sway
   MATSC=swayMaterial(3.2,0.7,40,1,false,1.0,false,true,true), // the stipeling (v11.155): the stipe's sway with the cut and its fade — it has no card, and on MATS a cell's young popped in at once at FLORA_FAR
   MATM=swayMaterial(1.6,1.0,12,1,false,14,false,true,true,0.35), // mid-height weed (ladder, ribbon, the pen): bends over its top ten metres; cut
   MATGL=swayMaterial(0.35,1.6,2.4,1,false,2.4,false,false,true,0.35), // the tussock: the grass sway on land, never folded to the water (cap); cut
-  MATTR=swayMaterial(0.3,0.45,9,1,false,14,false,false,farCut(TREE_LOD.d,TREE_LOD.fade)), // the tidal forest (v11): a trunk in the wind — a slow sway from the crown, never capped to the water, never leaning to the current (land: chunks.js makeInstanced gives it no aCur); since v11.188 cut at TREE_LOD.d, where its far copy takes over (MATTRF), to v11.187 drawn whole to its cell's FLORA_FAR edge
+  MATTR=swayMaterial(0.3,0.45,9,1,false,14,false,false,[TREE_LOD.d,TREE_LOD.fade]), // the tidal forest (v11): a trunk in the wind — a slow sway from the crown, never capped to the water, never leaning to the current (land: chunks.js makeInstanced gives it no aCur); since v11.188 cut at TREE_LOD.d, where its far copy takes over (MATTRF), to v11.187 drawn whole to its cell's FLORA_FAR edge
   MATWD=swayMaterial(0.25,0.35,18,1,false,27,false,false,true,0.25); // the platewood (v11.180): a tall trunk in the wind, its plates lit through a little (thin); cut at FLORA_FAR, where the terrain's shell takes over (woodGLSL)
 MATTR.land=true;MATWD.land=true; // thin (the last argument, v11.13): the share of the far face's light that comes through a blade — the weed, bladders, rafts, whips, the tussock; not the stipe, not the trunks
 const MATTRF=addTint(lodMaterial(TREE_LOD),'lamdslod',true,undefined,undefined,'card'); // the tidewood's far copy near (v11.188, TREE_LOD): MATFAR's light and sway, cut inside TREE_LOD.d, scaled by the variant
@@ -868,5 +875,6 @@ const VPULL_COLOR='\n#if defined( USE_COLOR_ALPHA )\nvColor=vec4(1.0);\n#elif de
 function vpullGLSL(sh){sh.uniforms.uPull={value:VPULL_TEX};
   sh.vertexShader=VPULL_V+sh.vertexShader.split(VAR_COLLAPSE).join('').replace('void main() {','void main() {\n'+VPULL_MAIN()).replace('#include <color_vertex>',VPULL_COLOR).replace('#include <beginnormal_vertex>','vec3 objectNormal=pNor;').replace('#include <begin_vertex>','vec3 transformed=pPos;');}
 function vpullMat(m){let p=vpullMats.get(m);if(p)return p;p=m.clone();const ob=m.onBeforeCompile,key=m.customProgramCacheKey();
-  p.onBeforeCompile=function(sh){ob.call(m,sh);vpullGLSL(sh);};p.customProgramCacheKey=function(){return key+'pull';};
+  if(m.cutAt!==undefined||m.cutU){p.cutU={value:cutUOf(m).value.clone()};} // v11.194: its own cut (poolLod moves it); the depth pass keeps the base's
+  p.onBeforeCompile=function(sh){ob.call(m,sh);vpullGLSL(sh);if(p.cutU&&!(sh.defines&&sh.defines.DEPTH_PASS))sh.uniforms.uCut=p.cutU;};p.customProgramCacheKey=function(){return key+'pull';};
   for(const k of ['sway','land','extensions','defaultAttributeValues'])if(m[k]!==undefined)p[k]=m[k];vpullMats.set(m,p);return p;}

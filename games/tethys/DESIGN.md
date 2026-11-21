@@ -2562,6 +2562,14 @@ marched in a pass of its own at `Q.cloudRes` of the screen on a side (0.5; 0.35 
 help is undone and not tried again for a minute or more; back up after four clean seconds, the wait doubling when that drops again. On the proxy against v11.187: the shore ×0.89, the coast ×0.86, the canopy
 ×0.91; the sky with its pass ×0.37–0.68; the tidewood with its copy ×0.75 at the shore (CHANGELOG v11.188).
 
+**The flora's far copies (v11.194, 21 Nov 2026; off — `#lod`; analysis_project.md §4).** Every flora material's far cut is the uniform `uCut`
+(near, far, fade; scene.js `farCut`, `cutUOf`), the material's own. With `LOD.on` a pulled species' pool draws a copy of itself — its recipe at
+`LOD.k` 0.5 of every primitive's sides and segments (parts.js `GEO_K`), parts under `LOD.minPart` 5% left out (grow.js `lodParts`) — on its own
+buffers with its material's twin from `LOD.dSea` 150 m in the water, `LOD.dAir` 120 m in the air (chunks.js `poolLodOwn`, `lodStep`). The plants'
+shaded triangles ×0.71–0.75, the pictures all but the same; the proxy's GPU time ×1.06–1.08 *worse* and 45 draws more, every far instance still
+running the whole plant's vertex shader to leave it. Off until a report on a real weak card says otherwise; the version without the waste is two
+pools by cell (§4).
+
 **The flight recorder (v11.191, 20 Nov 2026; src/rec.js, test/report.js, analysis_project.md §1).** The person: "I could just play and you'd learn
 what device I'm on … You could check the log and that would literally be it." Recorded in the browser that plays, always, sent only when the person
 presses F9 (or calls `report()`): GitHub's new-issue page opens in a tab with a few lines for a person and one line, `tethys-rec:1:z…`, holding the

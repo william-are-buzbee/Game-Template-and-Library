@@ -10041,3 +10041,34 @@ a cell at the platform ×1.15 and the giant ×1.12, where the giant's cells hold
 
 **Unseen, ask in this order:**
 1. Nothing to look at in the game. Whether CLAUDE.md's "The type checker" paragraph reads clearly.
+
+## v11.194 — the flora's far copies: measured, built, and off — on the proxy they cost more than they saved; the reports decide (21 Nov 2026)
+
+Step 4 of analysis_project.md (the person: "go ahead with step 4"; their two reports from a work tower, #137 and #138, as its before: an Intel UHD
+730 at 82 ms a frame on the high tier, 33 under `#low`). Everything measured is in analysis_project.md §4; in short:
+
+- **Where the plants' triangles are** (every instanced mesh's instances by distance, at the bench's places): of ~1.9M shaded at the forest, 1.1M at
+  250–450 m and 0.42M within 150; 2.7M more on instances past FLORA_FAR that leave the shader at once. **What the fog leaves of them**: past 250 m
+  in the forest's water almost nothing; in the atoll's clear water faint silhouettes at 300 m; in the air everything — so kept, not cut.
+- **The cut as a uniform** (scene.js `farCut`, `CUT_V`, `cutUOf`, `NO_CUT`; `m.cutAt`): every flora material's far cut is `uCut` (near, far,
+  fade), the material's own, in place of literals in its code — the same numbers, the same pictures pixel for pixel; a sway material with no cut
+  has its far edge at NO_CUT. The pulled copy (vpullMat) has its own; the depth pass keeps the base's. types/three-ext.d.ts names the fields the
+  game keeps on three's materials (`cutAt`, `cutU`, `sway`, `land`, `extensions`): two old type errors gone (the baseline 127).
+- **The far copies** (parts.js `GEO_K`, `lodN`, `LOD`; grow.js `species`, `lodParts`; chunks.js `poolLodOwn`, `lodMatOf`, `LOD_MATS`, `lodStep`):
+  every pulled species rebuilt at half of every primitive's sides and segments, its parts under 5% of the plant left out — the same calls and random
+  draws, so the same plant (**test/lod.js**, new: 63 species, every variant no heavier and inside the plant's bounds; ×0.61 of the triangles) —
+  packed beside the species in the pull texture and drawn on the pool's own buffers with its material's twin (one program) past `LOD.dSea` 150 m
+  under the water and `LOD.dAir` 120 m in the air. The pictures: a speckle along the far stipes, nothing else to the eye (the forest 1,209 pixels
+  by ≤23/255; the atoll 8,808 by ≤61; the shore 183). The plants' shaded triangles ×0.71–0.75.
+- **What it cost, on** (`node test/perf.js`): the proxy's GPU time ×1.06–1.08 worse; renderFrame's CPU ×1.37–1.48; 45 draws more a frame; no
+  compile more. Every far instance still runs the whole plant's vertex shader only to leave it (and every near one the copy's), and a species is a
+  draw more. **So `LOD.on` is false**: `#lod` in the URL turns it on, and the report says so (rec.js: the URL's flags and the copies' settings in
+  every report — `flags`, `lod`).
+
+**What it costs, off (the default):** what a frame asks of the GPU the same at every place, every count; the boot the same (46 programs, the same
+bytes and draws); nothing compiled at first sight; the pictures at the forest, the shore and the canopy the same pixel for pixel. Times by noise
+(the base itself moved ×0.5–1.3 between runs here).
+
+**Unseen, ask in this order:**
+1. On the work tower (`20e1`), at one place, two reports: the preview as it is, then with `#lod` in the address — does the GPU's time move?
+2. Then the person's call (analysis_project.md §4): the two pools that would take the copies' waste out, or the tier that follows the machine first.

@@ -4,6 +4,11 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.194 (21 Nov 2026): the flora's far copies — off** (parts.js `LOD`, grow.js `lodParts`, chunks.js `poolLodOwn`, scene.js `uCut`; test/lod.js;
+analysis_project.md §4; CHANGELOG). Every flora material's cut is a uniform now (the same pictures); every species has a copy at half its detail
+drawn past 150 m / 120 m — but on the proxy it cost more than it saved (the GPU ×1.06–1.08, 45 draws more), so only `#lod` turns it on.
+**Ask:** two reports on the work tower at one place, without and with `#lod`; then the two pools or the tier that follows the machine (§4).
+
 **v11.193 (20 Nov 2026): the type checker** (test/types.js, test/types.json, tsconfig.json, types/; analysis_project.md §3; CHANGELOG). TypeScript reads
 src/*.js as the one scope it is; the old errors are a baseline that only goes down; the record, the creature and the player are closed types, so a
 key misspelt or set late on them is an error — the player had twenty such keys, now in its literal. Nothing in the game changed (every body, the
@@ -27,17 +32,10 @@ CHANGELOG). The person: the beach trees "too neon or bright". The tidewood was t
 shot in the game and the person chose between the softened green and the wood's leaf: [0.35, 0.47, 0.21], flat, no boost. Near and far copy alike. **Ask:**
 the shore at noon on the preview, and whether the reed, scrub and tussock (still the old green) should follow.
 
-**v11.189 (20 Nov 2026): the start** (main.js `BOOT`, `warmPrep`/`warmStep`, `bootFinish`; shell.html `#boot`, `#bootline`; save.js `slotWorld`/`slotPlayer`;
-menu.js `menuContinue`, `saves`; test/boot.js; analysis_loading.md §5; DESIGN "The start and continue"; CHANGELOG). The person's answers of 20 Nov: a black
-page with the title and a line from the first paint; behind it the last slot's world opened under the saved camera, the shaders warmed a program a frame,
-the world streamed, the first frames drawn; then the scene fades in with the title where it was. Continue enters that world where you were, no fade.
-Nothing compiles at first sight anywhere. **Ask:** a cold start of the preview on the person's card (how long, does it feel alive), continue (the body
-appearing), and analysis_loading §4.3, the cache.
-
 ## Open
 
 - **The plan** (analysis_project.md, the person's order, 20 Nov 2026): 1 the recorder (v11.191), 2 the docs (v11.192) and 3 the type checker (v11.193)
-  done; next 4 the flora's detail by distance (measured by reports), 5 the cells in workers, 6 three.js upgraded, 7 a fixed step and seeded sim; one door and
+  done; 4 the flora's far copies built and off (v11.194, `#lod`; §4: a report each way decides, then the person's call); next 5 the cells in workers, 6 three.js upgraded, 7 a fixed step and seeded sim; one door and
   its key end to end at any point.
 - **Reports** (`node test/report.js --search`): #137 and #138, a work tower `20e1` (Intel UHD 730): high tier 82 ms a frame, the GPU 84 ms (main
   pass 75), 3.9M triangles; `#low` 33 ms, the GPU 35, 1.6M triangles — the GPU fell with the triangles (×0.41 against ×0.40), not the pixels (×0.81).
