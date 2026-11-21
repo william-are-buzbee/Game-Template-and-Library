@@ -6,6 +6,7 @@
 // (lab.js lab.player: only what has been seen). Esc in play with the pointer free saves and returns here; z and l still open the bestiary and
 // the lab from here (dev tools). choose() is the bare start the tests drive (anim, combat, physics): the body as the clade, the cells, play.
 const menu={page:'main',confirm:null,busy:false,rise:0,wakeAt:0,idle:false,worldOf:null,worldRec:null,shot:null}; // worldRec (v11.195): that slot's whole record, kept from its read (the boot's) or its write (toMenu's), so continue need not read it again // worldOf (v11.189): the slot whose world is under the menu (continue's straight way in) // rise: the wall-clock ms at which the column comes up; wakeAt: the wall-clock ms the mouse last moved on the menu (the wall clock, not dt: a throttled loop — the app's pane — still idles at the right time)
+const MENU_IDLE_IV=1000/30-2; // ms (v11.202): the least interval between the idle menu's frames — ~30 fps at 60, 120 or 144 Hz (the 2 ms the vsync's jitter); the person's #143 drew the menu at 120 fps for 57 min, 3 ms of the CPU a frame for a screen nobody watched
 const MENU_RISE=2400,MENU_RISE_BACK=1200,MENU_IDLE=12000; // ms after the boot's black begins to fade (v11.189, main.js bootIn; to v11.188 after load) and after a return from play before the column rises; ms still before the menu fades away (v11.47.1)
 function menuRise(ms){menu.rise=performance.now()+ms;mlistEl.classList.remove('up');menuWake();}
 function menuWake(){menu.wakeAt=performance.now();if(menu.idle){menu.idle=false;menuEl.classList.remove('idle');}}

@@ -10302,3 +10302,23 @@ test/fill.js there read ×0.80, ×1.06 and ×0.93). Less code: 120 lines and a t
 
 **Unseen, ask in this order:**
 1. Nothing to look at: the default game is what it was.
+
+## v11.202 — the idle menu draws at ~30 fps (21 Nov 2026)
+
+The person's home report #143: the menu drew the world at 120 fps for 57 minutes after play, 3.2 ms of the CPU a frame (and the GPU's share), for
+a screen nobody was watching. Of the list after the GC work ("I want to get all of these done").
+
+- **The idle menu paced** (main.js `loop`, menu.js `MENU_IDLE_IV`): once the menu is idle (no mouse for `MENU_IDLE` 12 s, its column faded) a frame
+  is drawn only `MENU_IDLE_IV` (31.3 ms) after the last — ~30 fps at 60, 120 or 144 Hz; the first mouse move wakes it to every frame. Play, the boot,
+  the bestiary and the lab are never paced. The resolution that holds the frame and the tier's verdict skip the paced frames (their intervals are
+  the pacing's, not the GPU's).
+- **test/idle.js** (new, in --test): booted to the menu against the stub, idle after 12 s, 60 of 120 frames drawn at 60 Hz (the clock still at
+  2 s), every frame once woken, every frame in play.
+
+**What it costs:** nothing in play. On the idle menu a quarter of the frames at 120 Hz (half at 60). test/frames.js and test/bench_creatures.js measure on the menu
+(they never start a game), so they now keep it awake each frame (`menuWake`, as a moving mouse): with that, against main, the simulation and every
+body the same to the bit, the creatures' frame ×0.96 (node) and ×0.89 (Chromium), nothing worse by more than 10%; the GPU's counts the same at
+every place.
+
+**Unseen, ask in this order:**
+1. Leave the menu still for 12 s: it should look the same (the water and the creatures move at ~30 fps), and the fans quieter.

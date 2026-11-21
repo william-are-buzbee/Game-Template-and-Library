@@ -47,6 +47,7 @@ const ROOT=process.env.FRAMES_ROOT,PX=+(process.env.PX||330),PZ=+(process.env.PZ
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
 let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n');
 js+='\nglobal.__go=(x,y,z)=>{player.pos.set(x,y,z);camera.position.set(x,y,z);cellsAround();};';
+js+='\nglobal.__wake=typeof menuWake==="function"?menuWake:null;'; // v11.202: the bench runs on the menu; a mouse moving keeps it from the idle menu's pace (menu.js MENU_IDLE_IV)
 js+='\nglobal.__W={ms:[],on:false,s:0};{const u=updateCreatures,s=updateSchools;updateCreatures=function(dt){const t0=process.hrtime.bigint();u(dt);if(__W.on)__W.ms.push(Number(process.hrtime.bigint()-t0)/1e6+__W.s);};updateSchools=function(dt){const t0=process.hrtime.bigint();s(dt);__W.s=Number(process.hrtime.bigint()-t0)/1e6;};}';
 js+='\nglobal.__sim=()=>{const f=new Float64Array(1),u=new Uint32Array(f.buffer);let h=2166136261>>>0;const N=v=>{f[0]=v;h=Math.imul(h^u[0],16777619)>>>0;h=Math.imul(h^u[1],16777619)>>>0;};for(const c of creatures){N(c.pos.x);N(c.pos.y);N(c.pos.z);N(c.vel.x);N(c.vel.y);N(c.vel.z);const q=c.g.quaternion;N(q.x);N(q.y);N(q.z);N(q.w);N(c.hunger||0);N(c.alive?1:0);if(c.b&&c.b.rigs)for(const r of c.b.rigs)for(const ch of r.chains)for(const v of ch.pts)N(v);}return h.toString(16);};';
 js+='\nglobal.__bands=()=>{const B={"under 150":0,"150-360":0,"past 360":0,dead:0};for(const c of creatures){if(!c.alive){B.dead++;continue;}const d=c.pos.distanceTo(player.pos);B[d<150?"under 150":d<360?"150-360":"past 360"]++;}return B;};';
@@ -61,6 +62,7 @@ const log=console.log,warn=console.warn;console.log=()=>{};console.warn=()=>{};
 require(path.join(HERE,'test/stub.js')); // this tree's stub for either tree: it holds no game code
 let s=1234;Math.random=()=>{s=(s+0x6D2B79F5)>>>0;let t=s;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;}; // mulberry32: the same run every time
 require(tmp);fs.unlinkSync(tmp);
+{const st=global.__step;global.__step=n=>{for(let i=0;i<n;i++){if(global.__wake)global.__wake();st(1);}};} // every frame drawn, as a player's mouse keeps it (v11.202)
 __go(PX,PY,PZ);__step(400);__go(PX,PY,PZ);__step(200); // the cells round the place loaded and settled
 const bands=__bands();__W.on=true;__step(FR);__W.on=false;
 const m=__W.ms.slice().sort((a,b)=>a-b),out=Object.assign({frames:m.length,mean:m.reduce((a,b)=>a+b,0)/m.length,median:m[m.length>>1],p95:m[Math.floor(m.length*0.95)],max:m[m.length-1],sim:__sim(),bands},__count());

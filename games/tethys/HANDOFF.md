@@ -4,6 +4,9 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.202 (21 Nov 2026): the idle menu at ~30 fps** (main.js `loop`, menu.js `MENU_IDLE_IV`; test/idle.js; CHANGELOG). #143 drew the menu at
+120 fps for 57 minutes; the idle menu (12 s without the mouse) now draws every ~31 ms, woken at the first move. **Ask:** nothing but a still menu.
+
 **v11.201 (21 Nov 2026): the flora's far copies struck** (parts.js, grow.js, chunks.js, rec.js; test/lod.js gone; analysis_project.md §4;
 CHANGELOG). The person's rule — keep them only if they cannot hurt — and they did (on: renderFrame ×1.37–1.48, 45 draws more). The uniform cut and
 the tidewood's own copy stay. **Ask:** nothing to look at.
@@ -23,12 +26,6 @@ it should reload itself into low within seconds of the menu, and say so; the hom
 recorder"; CHANGELOG). The work tower's reports #148–149 had one GPU reading of 960,769 ms (no disjoint flag), which made the session's GPU mean 63 ms
 (the median 24.8) and one place's 72. A reading under 0, not a number, or 2 s and over now drops its frame and is counted (`gpu.junk`); report.js
 flags an older report that has one and prints its mean without it. **Ask:** nothing; the next work-tower report should show `junk` if it happens again.
-
-**v11.197 (21 Nov 2026): the terrain stays in optimised code** (world.js `RDATA`, `rdata`, `recSeal`; region.js's load; test/opt.js; DESIGN, the
-world's speed; CHANGELOG). The person's GC pauses: the long ones were v11.195's (the list held every slot whole: a full collection ×2.4 with six
-slots here); the rest is garbage. 2.3 of the game's 4.2 MB a frame (the bench page, swimming) was islandH, stuck in V8's baseline tier: a record's
-objects on shapes V8 had retired, which the optimiser takes no feedback from — 25 throw-outs and never again. Rebuilt on shapes of their own; the
-world bit-identical. **Ask:** a report from home after 20+ minutes — the `gc` frames and the heap's sawtooth.
 
 ## Open
 
