@@ -61,6 +61,7 @@ function inPage(arg){const now=()=>window.__real(),out={};
 async function onePage(pw,root){const P=await open(pw,root);
   try{const {page,errs}=P;const boot=await page.evaluate(()=>{const n=performance.getEntriesByType('navigation')[0];return n.domContentLoadedEventStart-n.responseEnd;});
     for(let k=0;k<500;k++){if(await page.evaluate(()=>window.__boot.stage!=='store'))break;await new Promise(r=>setTimeout(r,20));} // v11.200: the store's answer first, no frame stepped (as test/gpu.js) — it comes when IndexedDB gives it, and a boot that streamed a few frames before it spawned another ledger: 'the bodies differ between two runs' (since v11.189's boot)
+    await page.evaluate(()=>{const st=window.__step;window.__step=n=>{for(let i=0;i<n;i++){if(typeof menuWake==='function')menuWake();st(1);}};}); // v11.202: the bench runs on the menu — a mouse moving keeps it from the idle menu's pace (menu.js MENU_IDLE_IV)
     await page.evaluate(n=>{const rf=window.renderFrame;window.renderFrame=function(){};window.__step(n);window.renderFrame=rf;},SETTLE); // the menu's first frames, the same in every run
     const o=await page.evaluate(inPage,{only:[...ONLY],frames:FRAMES});o.boot=boot;o.errs=errs;return o;}finally{await P.close();}}
 (async()=>{const pw=playwright(),res=[];
