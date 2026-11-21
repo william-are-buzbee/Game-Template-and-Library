@@ -107,6 +107,8 @@ request says what it cost before the person plays it (the root `docs/decisions.m
 - **The shape rule**: an object read every frame or every sample is made with all its keys at once, in one literal, in one order — never a key
   added later, never `delete`, never built key by key from a list (a dictionary: every read a lookup by name; a third of the cost twice,
   v11.148–149, seen only by a profiler). `SHAPES=1 node test/frames.js` counts the hot tables' shapes; a new hot table goes in its `__tables`.
+  **A function V8 keeps throwing out of optimised code** runs in a slower tier and boxes every decimal (garbage): `node test/deopts.js` lists
+  the sites thrown out again and again during play (v11.200; islandH's was 25 times and 2.5× the time, v11.197).
   Open: the `FLORA` entries are 46 shapes for 92 (read at a cell's generation, not every frame).
 - **When the person says it lags:** ask for a report — F9 after playing — and read it with `node test/report.js --search`: the machine, the
   frames by phase, the GPU's own time by pass, the worst places with their `tp()` and an `AT=` line that stands test/fill.js and test/gpu.js at
