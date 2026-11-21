@@ -173,7 +173,7 @@ canvas{display:block;outline:none;touch-action:none}
 <div id="fade" class="layer"></div>
 <canvas id="spark" class="layer"></canvas>
 <div id="stats"></div>
-<script>window.TETHYS_BUILD={v:"v11.200"};</script>
+<script>window.TETHYS_BUILD={v:"v11.201"};</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 function tethysMain(){
@@ -377,7 +377,7 @@ function recGpuName(s){s=String(s||'');const m=/^ANGLE \((.*)\)$/.exec(s);if(m){
   return s.replace(/ \(0x[0-9A-Fa-f]+\)/,'').replace(/ Direct3D.*$/,'').replace(/^ANGLE Metal Renderer: /,'').replace(/ vs_\d.*$/,'').trim();}
 function recDevice(){const d={mid:REC.mid,gpu:'',vendor:'',gl:GL2?2:1,maxTex:0,timer:false,par:false,cores:navigator.hardwareConcurrency||0,mem:navigator.deviceMemory||0,ua:navigator.userAgent||'',plat:'',
   screen:[screen.width||0,screen.height||0],dpr:window.devicePixelRatio||1,win:[innerWidth,innerHeight],buf:[0,0],tier:Q.tier,tierWhy:Q.why,tierV:TIER_SAVED?{tier:TIER_SAVED.tier,ms:TIER_SAVED.ms,from:TIER_SAVED.from,timer:!!TIER_SAVED.timer,at:TIER_SAVED.at}:null,pr:Q.pr,aa:!!Q.aa,touch:!!isTouch,fx:null,
-  flags:String(location.hash||''),lod:LOD.on?LOD.k+'/'+LOD.dSea+'/'+LOD.dAir:'off'};REC.dev=d; // flags: the URL's (#low, #nolod…), so two reports of one machine say what each ran with (v11.194); lod: the far copies' share, sea and air distances
+  flags:String(location.hash||'')};REC.dev=d; // flags: the URL's (#low, #nolod…), so two reports of one machine say what each ran with (v11.194); lod: the far copies' share, sea and air distances
   try{const gl=renderer.getContext(),dbg=gl.getExtension('WEBGL_debug_renderer_info');d.gpu=String(gl.getParameter(dbg?dbg.UNMASKED_RENDERER_WEBGL:gl.RENDERER));d.vendor=String(gl.getParameter(dbg?dbg.UNMASKED_VENDOR_WEBGL:gl.VENDOR));
     d.maxTex=gl.getParameter(gl.MAX_TEXTURE_SIZE)|0;const ex=gl.getSupportedExtensions()||[];d.par=ex.indexOf('KHR_parallel_shader_compile')>=0;
     const E=GL2&&ex.indexOf('EXT_disjoint_timer_query_webgl2')>=0?gl.getExtension('EXT_disjoint_timer_query_webgl2'):null;if(E){RG.gl=gl;RG.ext=E;RG.on=true;d.timer=true;}
@@ -3691,7 +3691,7 @@ const VAR_GLSL='attribute float vid;attribute float aVar;\n',VAR_COLLAPSE='if(ab
 // it, after the material's own displacement. Instanced only: MAT's creatures and the depth pass (no USE_FOG) keep their size.
 const FLORA_FAR=450,FLORA_FADE=90;
 // v11.194 (analysis_project.md §4): the cut is a uniform, `uCut` (x: the near edge — an instance nearer is gone, 0 none; y: the far edge; z: the fade
-// into it), each material's own (cutUOf), so one program serves a species' whole draw (cut at LOD.d) and its far copy's (from LOD.d on) — chunks.js poolLod.
+// into it), each material's own (cutUOf) — made for v11.194's far copies (struck v11.201); kept, as it costs nothing and the pictures are the same.
 // The numbers are the ones the shaders had as literals; a material with no cut has its far edge at NO_CUT, which nothing reaches.
 const CUT_V='uniform vec3 uCut;\n',NO_CUT=1e7;
 function farCut(){return '\nfloat fadeK=1.0;\n#if defined(USE_FOG)&&defined(USE_INSTANCING)\n{float fdk=distance((modelMatrix*vec4(instanceMatrix[3].xyz,1.0)).xyz,uFogC);if(fdk>uCut.y||fdk<uCut.x)'+GONE+'fadeK=1.0-smoothstep(uCut.y-uCut.z,uCut.y,fdk);}\n#endif\n';} // uFogC: the camera (fog_pars_vertex)
@@ -3921,25 +3921,17 @@ function cldBake(){if(cldBaked)return;cldBaked=true;
   catch(e){cldTexU.value=null;console.warn('clouds: no atlas ('+(e&&e.message)+'); the sky keeps the slices');}}
 
 // parts.js — geometry kit: primitives, merge-with-vertex-colors, arm rings, LOD baking
-// The far copy's detail (v11.194, analysis_project.md §4; grow.js species, chunks.js poolLod): while a species builds its far copy GEO_K is LOD.k, and
-// every primitive's sides and segments are that share of what was asked (never under a closed shape's least) — the same calls, the same random
-// draws, so the same plant with fewer facets. 1 the rest of the time. LOD: on; k, the share; d, the distance the far copy takes over at, under the
-// water and in the air (set each frame, chunks.js lodStep; the fog has the far plants at a few levels of 255 under the water, test/lod.js and
-// analysis_project §4); fade, the full plant's own edge (a cut, as the tidewood's: the copy is its silhouette).
-let GEO_K=1;
-const LOD={on:HASH_FLAGS.indexOf('lod')>=0,k:0.5,minPart:0.05,dSea:150,dAir:120,fade:1,force:false}; // on: only with #lod in the URL (v11.194: on the proxy it cost more than it saved — analysis_project.md §4 — so the person's own machines decide, a report each way) // minPart: a part smaller than this share of its plant is left out of the far copy (lodParts) // force: the far copies built where they cannot be drawn (test/lod.js)
-function lodN(n,min){return GEO_K===1?n:Math.max(min,Math.round(n*GEO_K));}
 const G={
   box:(w,h,d)=>new THREE.BoxGeometry(w,h,d),
-  sph:(r,w,h)=>new THREE.SphereGeometry(r,lodN(w||6,3),lodN(h||5,2)),
-  cyl:(rt,rb,h,s,open)=>new THREE.CylinderGeometry(rt,rb,h,lodN(s||8,3),1,!!open),
-  cone:(r,h,s)=>new THREE.ConeGeometry(r,h,lodN(s||6,3)),
+  sph:(r,w,h)=>new THREE.SphereGeometry(r,w||6,h||5),
+  cyl:(rt,rb,h,s,open)=>new THREE.CylinderGeometry(rt,rb,h,s||8,1,!!open),
+  cone:(r,h,s)=>new THREE.ConeGeometry(r,h,s||6),
   plane:(w,h)=>new THREE.PlaneGeometry(w,h),
   // A lathe's winding follows the profile's order: a profile written from the top down turns the surface inside out, and the
   // mesh vanishes under backface culling (v11.34.1: the finback's tail stem, FIN_TPROF, written nose-to-tip). Reverse a descending
   // profile here — the geometry is identical, only the normals (and so the countershading) come out right. Callers read the array
   // they passed (profR, nose, tail), so the copy stays local.
-  lathe:(pts,s)=>{if(pts.length>1&&pts[pts.length-1][1]<pts[0][1])pts=pts.slice().reverse();return new THREE.LatheGeometry(pts.map(p=>new THREE.Vector2(p[0],p[1])),lodN(s||8,3));},
+  lathe:(pts,s)=>{if(pts.length>1&&pts[pts.length-1][1]<pts[0][1])pts=pts.slice().reverse();return new THREE.LatheGeometry(pts.map(p=>new THREE.Vector2(p[0],p[1])),s||8);},
   // a quad a-b-c-d (each [x,y,z]) seen from both sides: four triangles, no index (the webs and the tail fans)
   quad:(a,b,c,d)=>{const g=new THREE.BufferGeometry(),P=[];const tri=(p,q,r)=>P.push(p[0],p[1],p[2],q[0],q[1],q[2],r[0],r[1],r[2]);tri(a,b,c);tri(a,c,d);tri(c,b,a);tri(d,c,a);g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));return g;}
 };
@@ -4184,7 +4176,7 @@ function axis(P,o,rg){const N=[],L=o.len/o.segs,wd=o.wander||0;let x=o.x||0,y=o.
 function nodeAt(N,t){return N[Math.min(N.length-1,Math.max(0,Math.round(t*(N.length-1))))];}
 // one blade: a strip of `segs` quads from (x,y,z), drooping along its length. Euler YXZ: droop first, then spin (the kelp frond's order).
 // a0: the angle above horizontal it leaves at (default -droop/2, so a frond off a stipe starts level); a blade a float lifts starts near vertical
-function bladeAt(P,x,y,z,len,w,yaw,droop,segs,col,a0){segs=lodN(segs,1);const L=len/segs,cy=Math.cos(yaw),sy=Math.sin(yaw);let bx=0,by=0,a=a0===undefined?-droop*0.5:a0;
+function bladeAt(P,x,y,z,len,w,yaw,droop,segs,col,a0){const L=len/segs,cy=Math.cos(yaw),sy=Math.sin(yaw);let bx=0,by=0,a=a0===undefined?-droop*0.5:a0;
   for(let k=0;k<segs;k++){const pg=G.plane(L,w*(1-0.45*k/segs));pg.rotateX(-HPI);pg.translate(L/2,0,0);
     P.push(part(pg,x+cy*bx,y+by,z-sy*bx,col,{r:[0,yaw,a],order:'YXZ'}));bx+=Math.cos(a)*L;by+=Math.sin(a)*L;a-=droop/segs;}
   return V3(x+cy*bx,y+by,z-sy*bx);} // where it ends (a float goes there)
@@ -4270,20 +4262,10 @@ function vpullGeo(a){const g=new THREE.BufferGeometry(),q=new Float32Array(a.n*2
 // species(id, fields, build): three variants of one species (build(rg,k) → {P, col, pads}), packed. `top` is the tallest variant's
 // highest point (the surface cap in placeFloraType); `vars[k]` carries the variant's own colliders and pads; `pads:true` on the entry
 // says the cell must give the instances a dip attribute.
-// the far copy's parts: those under LOD.minPart of the plant's size left out (they are built all the same: the same random draws), the largest always kept
-function lodParts(P){const r=[];let R=0,big=0; // a part's size: half the diagonal of its placed vertices' box; the plant's: the farthest of them from its root
-  for(let i=0;i<P.length;i++){const p=P[i],A=p.g.attributes.position.array,e=p.m.elements;let x0=1e9,y0=1e9,z0=1e9,x1=-1e9,y1=-1e9,z1=-1e9;
-    for(let j=0;j<A.length;j+=3){const x=A[j],y=A[j+1],z=A[j+2],X=e[0]*x+e[4]*y+e[8]*z+e[12],Y=e[1]*x+e[5]*y+e[9]*z+e[13],Z=e[2]*x+e[6]*y+e[10]*z+e[14];
-      if(X<x0)x0=X;if(X>x1)x1=X;if(Y<y0)y0=Y;if(Y>y1)y1=Y;if(Z<z0)z0=Z;if(Z>z1)z1=Z;R=Math.max(R,Math.sqrt(X*X+Y*Y+Z*Z));}
-    r.push(A.length?0.5*Math.sqrt((x1-x0)*(x1-x0)+(y1-y0)*(y1-y0)+(z1-z0)*(z1-z0)):0);if(r[i]>r[big])big=i;}
-  const out=P.filter((p,i)=>i===big||r[i]>=LOD.minPart*R);for(const p of P)if(out.indexOf(p)<0)p.g.dispose();return out;}
 function species(id,f,build){const vars=[],geos=[];let top=0,hasPads=false;
   for(let k=0;k<3;k++){const rg=mulberry(hashStr(id)+k*7919),v=build(rg,k),g=merge(v.P),pa=g.attributes.position.array;let t=0;for(let i=1;i<pa.length;i+=3)if(pa[i]>t)t=pa[i];
     vars.push({col:v.col||null,pads:v.pads||null});geos.push(g);if(t>top)top=t;if(v.pads)hasPads=true;}
   const e=Object.assign({id:id,geo:packVariants(geos),vars:vars,top:top},f);if(hasPads)e.pads=true;
-  // v11.194: the far copy (chunks.js poolLod) — the same build at LOD.k of its sides and segments (parts.js GEO_K): the same random draws, so the
-  // same plant, fewer facets. Only where it can be drawn (WebGL2, the variants pulled); LOD.force builds it anyway (test/lod.js)
-  if(LOD.on&&(LOD.force||GL2&&VPULL.on)){const lg=[];GEO_K=LOD.k;try{for(let k=0;k<3;k++)lg.push(merge(lodParts(build(mulberry(hashStr(id)+k*7919),k).P)));}finally{GEO_K=1;}e.geoL=packVariants(lg);}
   return e;}
 
 // creatures_builders.js — how each creature is put together from primitives (all face +z)
@@ -11644,9 +11626,9 @@ function makeInstanced(ch,rng,geo,mat,tints,list,dip,vars,f){
 const ORIGIN={on:true,x:0,z:0,snap:4000,grid:1000};
 // the variants pulled (v11.187, grow.js VPULL, scene.js VPULL_GLSL): once FLORA is whole (reef.js appends to it), every species' variants into one
 // float texture and each species its pulled geometry (f.gp) and material (f.mp), which makeInstanced draws in place of f.geo and f.mat. WebGL2 only.
-const VPULL_N=(function(){if(!VPULL.on||!GL2||!THREE.FloatType)return 0;const far=FLORA.filter(f=>f.geoL).map(f=>({geo:f.geoL,of:f})),pk=vpullPack(FLORA.concat(far)); // v11.194: the far copies (grow.js species, f.geoL) packed beside their species
+const VPULL_N=(function(){if(!VPULL.on||!GL2||!THREE.FloatType)return 0;const pk=vpullPack(FLORA);
   const t=new THREE.DataTexture(pk.data,VPULL.row*3,pk.rows,THREE.RGBAFormat,THREE.FloatType);t.minFilter=t.magFilter=THREE.NearestFilter;t.generateMipmaps=false;t.needsUpdate=true;t.clone=function(){return this;};VPULL_TEX=t;
-  for(const [f,a] of pk.at){if(f.of){f.of.gpL=vpullGeo(a);continue;}f.gp=vpullGeo(a);f.mp=vpullMat(f.mat);}return pk.at.size;})(); // the species pulled (and their far copies' geometries, f.gpL)
+  for(const [f,a] of pk.at){f.gp=vpullGeo(a);f.mp=vpullMat(f.mat);}return pk.at.size;})(); // the species pulled
 const POOLS=new Map(),poolGroup=new THREE.Group();scene.add(poolGroup); // entry → pool (the group at the render origin, v11.110)
 function poolSnap(px,pz){if(!ORIGIN.on||(Math.abs(px-ORIGIN.x)<ORIGIN.snap&&Math.abs(pz-ORIGIN.z)<ORIGIN.snap))return false; // the render origin to the camera's square; every pooled instance moved by the change
   const nx=Math.round(px/ORIGIN.grid)*ORIGIN.grid,nz=Math.round(pz/ORIGIN.grid)*ORIGIN.grid,dx=nx-ORIGIN.x,dz=nz-ORIGIN.z;
@@ -11671,27 +11653,11 @@ function poolAlloc(P,cap){ // the pool's mesh at capacity cap, what is written c
 // The far copy's mirror (v11.188, scene.js TREE_LOD): a card species whose FAR_IMP entry has a `lod` material draws its far copy on the pool's own instance
 // buffers — the matrices, the tints, the variant, the sight flags shared, not copied, so whatever the pool writes, moves, packs or hides the mirror follows,
 // and its count is the pool's at each draw. One draw more, no bookkeeping; made again with the pool's mesh (its shared buffers are the new ones). No shadow.
-// The far copy of every other pulled species (v11.194, analysis_project.md §4): its own build at LOD.k of the detail (grow.js species, f.gpL) drawn the
-// same way on the pool's own buffers — every instanced attribute shared — with the pool's material's twin (lodMatOf: one program, its own cut, from
-// LOD.d out), while the pool's material is cut at LOD.d (lodStep). The near plants are whole; past LOD.d the copy, whose fewer facets the fog and the
-// distance leave unseen (test/lod.js). No shadow: the pool's own depth pass keeps its old cut.
-function poolLod(P){const sp=P.f.card?FAR_IMP.find(s=>s.f===P.f&&s.lod):null;if(!sp){poolLodOwn(P);return;} // (at play: far.js, after this file, has loaded)
+// (v11.194–200 drew a far copy of every other pulled species the same way, off unless #lod; struck v11.201 — it cost more than it saved: analysis_project.md §4)
+function poolLod(P){const sp=P.f.card?FAR_IMP.find(s=>s.f===P.f&&s.lod):null;if(!sp)return; // (at play: far.js, after this file, has loaded)
   if(P.lod){poolGroup.remove(P.lod);P.lod.geometry.dispose();} // its own position, normal, colour; the shared ones went with the pool's old mesh
   const g=sp.geo.clone();g.setAttribute('aHide',P.geo.attributes.aHide);if(P.vars)g.setAttribute('aVar',P.geo.attributes.aVar);
   const m=new THREE.InstancedMesh(g,sp.lod,P.cap);m.instanceMatrix=P.im.instanceMatrix;m.instanceColor=P.im.instanceColor;m.frustumCulled=false;m.count=P.im.count;m.onBeforeRender=function(){this.count=P.im.count;};P.lod=m;poolGroup.add(m);}
-function poolLodOwn(P){if(!LOD.on||!P.f.gpL||!(P.mat.cutU)||FAR_IMP.some(s=>s.lod&&s.f.mp===P.mat))return; // a material a card's own copy cuts (the tidewood's, TREE_LOD) keeps its cut
-  if(P.lod){poolGroup.remove(P.lod);P.lod.geometry.dispose();}
-  const g=P.f.gpL.clone(),A=P.geo.attributes;for(const k in A)if(A[k].isInstancedBufferAttribute)g.setAttribute(k,A[k]);
-  const m=new THREE.InstancedMesh(g,lodMatOf(P.mat),P.cap);m.instanceMatrix=P.im.instanceMatrix;m.instanceColor=P.im.instanceColor;m.frustumCulled=false;m.count=P.im.count;m.onBeforeRender=function(){this.count=P.im.count;};P.lod=m;poolGroup.add(m);}
-// a pool's material's twin for its far copy: the same code and key (one program), its own cut — inside LOD.d gone, its far edge the material's own
-const LOD_MATS=new Map(); // the pool's material → {m: its twin, far, fade: the material's own far edge}
-function lodMatOf(p){let L=LOD_MATS.get(p);if(L)return L.m;const q=p.clone(),ob=p.onBeforeCompile,key=p.customProgramCacheKey(),c=p.cutU.value;
-  q.cutU={value:new THREE.Vector3(LOD.dSea,c.y,c.z)};q.onBeforeCompile=function(sh){ob.call(p,sh);if(!(sh.defines&&sh.defines.DEPTH_PASS))sh.uniforms.uCut=q.cutU;};q.customProgramCacheKey=function(){return key;};
-  for(const k of ['sway','land','extensions','defaultAttributeValues'])if(p[k]!==undefined)q[k]=p[k];
-  LOD_MATS.set(p,{m:q,far:c.y,fade:c.z});return q;}
-// each frame (cullChunks): the far copies take over at LOD.dSea under the water, LOD.dAir in the air
-function lodStep(){if(!LOD.on)return;const d=wasAbove===true?LOD.dAir:LOD.dSea;
-  for(const [p,L] of LOD_MATS){const a=p.cutU.value,b=L.m.cutU.value;a.y=Math.min(d,L.far);a.z=LOD.fade;b.x=d;b.y=L.far;b.z=L.fade;}}
 function poolUp(a,s,c,sz){const r=a.updateRange;if(r.count>0){const lo=Math.min(r.offset,s*sz),hi=Math.max(r.offset+r.count,(s+c)*sz);r.offset=lo;r.count=hi-lo;}else{r.offset=s*sz;r.count=c*sz;}a.needsUpdate=true;} // one attribute's range [s,s+c) uploaded at the next draw, joined to a range still pending
 function poolTouch(P,s,c){ // every attribute's range [s,s+c)
   poolUp(P.im.instanceMatrix,s,c,16);poolUp(P.im.instanceColor,s,c,3);if(P.vars)poolUp(P.geo.attributes.aVar,s,c,1);if(P.cur){poolUp(P.geo.attributes.aCur,s,c,2);poolUp(P.geo.attributes.aTide,s,c,2);}poolUp(P.geo.attributes.aHide,s,c,1);
@@ -12039,7 +12005,7 @@ function manageChunks(budgetMs){
 function cellsPending(){const ci=cellOf(player.pos.x),cj=cellOf(player.pos.z);let n=activeGen?1:0;for(let dj=-LOAD_R;dj<=LOAD_R;dj++)for(let di=-LOAD_R;di<=LOAD_R;di++){const i=ci+di,j=cj+dj;if(gridIn(i,j)&&!chunks.has(ckey(i,j)))n++;}return n;} // the cells manageChunks still owes round the streaming centre, one mid-build counted (v11.189: the boot waits for none)
 const frustum=new THREE.Frustum(),_pm=new THREE.Matrix4();
 let visibleChunks=0;
-function cullChunks(dt){lodStep(); // v11.194: where the far copies take over, by the medium
+function cullChunks(dt){
   _pm.multiplyMatrices(camera.projectionMatrix,camera.matrixWorldInverse);frustum.setFromProjectionMatrix(_pm);visibleChunks=0;
   const cx=camera.position.x,cz=camera.position.z;
   for(const ch of chunks.values()){const d=Math.hypot(ch.cx-cx,ch.cz-cz);const v=d<FAR+CELL&&frustum.intersectsSphere(ch.sphere);ch.group.visible=v;if(v){visibleChunks++;for(const p of ch.plumes)p.tick(dt);}
