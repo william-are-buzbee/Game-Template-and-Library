@@ -301,7 +301,7 @@ function fallRemove(F){const k=FALLS.indexOf(F);if(k>=0)FALLS.splice(k,1);fallHi
 function fallDeath(ei,c,n){ecoIJ(c);fallDeathIJ(ei,ECO_IJ[0],ECO_IJ[1],1,n);} // v11.105: the cell by the ledger's lookup; a coarse patch's dead are fallDeathIJ's with its side
 function fallDeathIJ(ei,i,j,span,n){if(!FALL_E)FALL_E=SPAWN.map(e=>{const d=DEFS[e.kind];return !!d&&d.size>=FALL.size&&d.role!=='swarm'&&!d.ghost&&ecoOf(e.kind).mortal;}); // a body: not the plankton's swarms (no body to fall)
   if(!FALL_E[ei]||!(n>0))return;
-  FALL_ACC[ei]=(FALL_ACC[ei]||0)+n;while(FALL_ACC[ei]>=1){FALL_ACC[ei]-=1;const kind=SPAWN[ei].kind,x=(i+FALL_RNG()*span)*CELL-HALF,z=(j+FALL_RNG()*span)*CELL-HALF,h=sample(x,z).h;
+  FALL_ACC[ei]=(FALL_ACC[ei]||0)+n;while(FALL_ACC[ei]>=1){FALL_ACC[ei]-=1;const kind=SPAWN[ei].kind,x=(i+FALL_RNG()*span)*CELL-HALF,z=(j+FALL_RNG()*span)*CELL-HALF,h=sampleH(x,z);
     if(h>-6)continue;fallAdd(kind,x,h+DEFS[kind].size*0.3,z,bioMass(DEFS[kind]),DEFS[kind].size,FALL_RNG()*TAU,(FALL_RNG()*4294967296)>>>0);}}
 // the falls a cell holds, as it loads: the flesh as a carcass (outside the ledger), the bones as a mesh
 function fallsLoad(ch){const t=nowD();for(const F of FALLS){if(F.c||F.mesh||cellOf(F.x)!==ch.i||cellOf(F.z)!==ch.j)continue;const st=fallState(F,t);if(st.gone)continue;

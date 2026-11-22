@@ -4,6 +4,9 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.205 (22 Nov 2026): less garbage** (world.js `sampleH`; ecology.js; CHANGELOG). The garbage 1,880 → 1,710 KB a frame on the bench page; every
+number the same to the bit. What is left is mostly boxed doubles; no report since v11.197 shows the collector, so the hunt stops unless one does.
+
 **v11.204 (22 Nov 2026): esc to the menu saves through the fade** (save.js `saveLeave`, `saveFinish`; menu.js `toMenu`; test/player.js;
 CHANGELOG). The key was 75–270 ms of the whole save at once; now under 1 ms, the fade's frames walk the ledger, and what is left is walked under the
 black. **Ask:** esc after a long play — the fade at once, continue where you were.
@@ -18,11 +21,6 @@ and the refraction off. The software GPU could not rank the per-pixel effects (n
 **v11.201 (21 Nov 2026): the flora's far copies struck** (parts.js, grow.js, chunks.js, rec.js; test/lod.js gone; analysis_project.md §4;
 CHANGELOG). The person's rule — keep them only if they cannot hurt — and they did (on: renderFrame ×1.37–1.48, 45 draws more). The uniform cut and
 the tidewood's own copy stay. **Ask:** nothing to look at.
-
-**v11.200 (21 Nov 2026): where V8 throws the game out of optimised code** (test/deopts.js; parts.js `merge`, `GeoTape`; world.js `vlyCut`; far.js
-`wmUpload`; test/bench_creatures.js; CHANGELOG). The survey after islandH: no other hot function stuck as it was; three loops out (merge's tape and
-its reads, vlyCut's −0 index, wmBlur's texture setter); three.js r128's per-draw attribute check (252 in 400 frames) left for step 6. The creature
-bench had a race with the save store since v11.189 (bodies differing between runs) — fixed. **Ask:** nothing to look at.
 
 ## Open
 

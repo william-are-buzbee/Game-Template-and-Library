@@ -65,7 +65,7 @@ const CAP_GLSL='float erfA(float x){float x2=x*x,ax=0.147*x2;return sign(x)*sqrt
 THREE.ShaderChunk.fog_pars_fragment+='\n#ifdef USE_FOG\n'+CAP_GLSL+'#endif\n';
 // the pools' places: every record with a caldera — its floor sampled at the centre, its rim the mean over eight bearings of where the ground stands half
 // the caldera's depth over the floor, in eighths of its radius to twice it (the oval and the lobes measured, not assumed; 128 samples a caldera at load)
-const POOLS_C=ISLANDS.filter(R=>R.land&&R.land.cald).map(R=>{const fl=sample(R.x,R.z).h,K=R.land.cald,sc=R.sc||1;let rs=0;for(let k=0;k<8;k++){const a=k*TAU/8;let r=0;for(let j=1;j<=16;j++){r=K.r*sc*j/8;if(sample(R.x+Math.cos(a)*r,R.z+Math.sin(a)*r).h>fl+0.5*K.d)break;}rs+=r;}
+const POOLS_C=ISLANDS.filter(R=>R.land&&R.land.cald).map(R=>{const fl=sampleH(R.x,R.z),K=R.land.cald,sc=R.sc||1;let rs=0;for(let k=0;k<8;k++){const a=k*TAU/8;let r=0;for(let j=1;j<=16;j++){r=K.r*sc*j/8;if(sampleH(R.x+Math.cos(a)*r,R.z+Math.sin(a)*r)>fl+0.5*K.d)break;}rs+=r;}
   return {x:R.x,z:R.z,y:fl,r:rs/8*CFOG.pool.rim,h:K.d*CFOG.pool.fill};});
 function updateCloudFog(dt,hs,rising){const K=SKY,P=CFOG.pool,b=FOG_CLDB[3];
   FOG_CAP[0]=CFOG.k*CLD_S.cap/CLD.capA;FOG_CAP[1]=b;FOG_CAP[2]=b+CFOG.top*CLOUD_T;

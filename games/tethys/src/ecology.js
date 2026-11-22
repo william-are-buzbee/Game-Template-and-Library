@@ -91,7 +91,7 @@ function ecoCap(c,ch){
   ecoIJ(c);const i=ECO_IJ[0],j=ECO_IJ[1],x0=i*CELL-HALF,z0=j*CELL-HALF,first=!POP.done[c],rg=mulberry((i>=0&&j>=0&&i<NCELL&&j<NCELL?(i*NCELL+j)*7919+31337:(i*73856093)^(j*19349663)^0x1b873593)>>>0); // the place and the seed are the world cell's (v11.105; the old square's i·NCELL + j as before, past it a hash of the place, v11.106)
   const hs=new Float32Array(36),sl=new Float32Array(36),fs=[];
   for(let b=0;b<6;b++)for(let a=0;a<6;a++){const n=b*6+a,x=x0+(a+0.5)/6*CELL,z=z0+(b+0.5)/6*CELL;
-    if(ch){hs[n]=ch.h(x,z);sl[n]=ch.slope(x,z);fs.push(ch.f(x,z));}else{const s=sample(x,z);hs[n]=s.h;sl[n]=0;fs.push(s.f.slice());}}
+    if(ch){hs[n]=ch.h(x,z);sl[n]=ch.slope(x,z);fs.push(ch.f(x,z));}else{const s=sample(x,z);hs[n]=s.h;sl[n]=0;fs.push(s.f);}} /* s.f is sample's own new array: no copy (v11.205) */
   SPAWN.forEach((e,ei)=>{let w=0;for(let n=0;n<36;n++){let t=envW(e.env,hs[n],sl[n],fs[n]);if(t>0&&e.crop){_ecoS.h=hs[n];_ecoS.f=fs[n];t*=cropK(cropAt(x0+((n%6)+0.5)/6*CELL,z0+(Math.floor(n/6)+0.5)/6*CELL,_ecoS));}w+=t;}let K=e.n*w/36;if(e.max!==undefined)K=Math.min(K,e.max); // crop (v11.84): the swarms' capacity is the lit standing stock's. v11.85: the max clause was inside this comment from v11.84 (the strand's cap of 8 scuttles went unread); back on its line
     const k0=POP.k[ei][c];POP.k[ei][c]=K;POP.ke[ei][c]=K;
     if(first){POP.n[ei][c]=K*(ecoOf(e.kind).hunter?ECO.initH:ECO.init);POP.ow[ei][c]=rg()*Math.min(1,K)/Q.creatures;} // the owed birth starts at a random phase (v11.31.2): a population is not everywhere at the same point in its cycle, and every cell starting at zero was the whole reason the first clutch took two game days to appear. Over Q.creatures because a clutch is one animal the cell *shows*, so the low tier waits the same time for it
@@ -186,7 +186,7 @@ function ecoModel(dt,isLoaded){const g=ecoModelGen(dt,isLoaded);while(!g.next().
 // seven times the fine ledger's (test/ledger.js). The reach is taken inside the patch, scaled up at the edge by the weights it lost
 const RC_S=[0,0.0625,0.125,0.25,0.5,1,2,4];
 function ecoPatchCap(p,tables){const P=ECO_PT,G=16,W=PATCH*CELL,x0=ecoPI(p)*CELL-HALF,z0=ecoPJ(p)*CELL-HALF,hs=new Float32Array(G*G),fs=[],E=SPAWN.length,KC=[],NS=RC_S.length;
-  for(let b=0;b<G;b++)for(let a=0;a<G;a++){const s=sample(x0+(a+0.5)/G*W,z0+(b+0.5)/G*W);hs[b*G+a]=s.h;fs.push(s.f.slice());}
+  for(let b=0;b<G;b++)for(let a=0;a<G;a++){const s=sample(x0+(a+0.5)/G*W,z0+(b+0.5)/G*W);hs[b*G+a]=s.h;fs.push(s.f);} /* sample's own new array: no copy (v11.205) */
   SPAWN.forEach((e,ei)=>{const kc=KC[ei]=new Float32Array(64);let K=0;
     for(let l=0;l<64;l++){const ci=l>>3,cj=l&7;let w=0;for(let q=0;q<4;q++){const a=ci*2+(q&1),b=cj*2+(q>>1),n=b*G+a;let t=envW(e.env,hs[n],0,fs[n]);if(t>0&&e.crop){_ecoS.h=hs[n];_ecoS.f=fs[n];t*=cropK(cropAt(x0+(a+0.5)/G*W,z0+(b+0.5)/G*W,_ecoS));}w+=t;}
       let k=e.n*w/4;if(e.max!==undefined)k=Math.min(k,e.max);kc[l]=k;K+=k;}

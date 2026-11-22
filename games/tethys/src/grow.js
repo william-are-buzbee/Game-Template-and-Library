@@ -63,7 +63,7 @@ function tintBy(h,f,photo){const yg=smooth(0.15,0.6,f[FI.young]),ht=smooth(0.1,0
   const t=1-keep;if(t<0.01)return null;return [r/t,g/t,b/t,t];}
 // flowYaw(x,z): tidal current runs along the contours; a `flow` entry turns its plane (local x-y, normal z) across it, so a slope of
 // fans all facing the same way reads as current. Flat ground gets a slow noise field the whole flat agrees with.
-function flowYaw(x,z){const gx=(sample(x+2,z).h-sample(x-2,z).h)/4,gz=(sample(x,z+2).h-sample(x,z-2).h)/4;
+function flowYaw(x,z){const gx=(sampleH(x+2,z)-sampleH(x-2,z))/4,gz=(sampleH(x,z+2)-sampleH(x,z-2))/4;
   if(Math.hypot(gx,gz)<0.06)return fbm(x*0.003+7,z*0.003+3,2)*TAU*2;return Math.atan2(-gz,gx);}
 // ---------- bauplans: each pushes parts into P ----------
 // axis: a segmented stem from the origin up. segs, len, r0 (base radius), r1 (top), wander, lean, bend (a constant drift: an elbow),

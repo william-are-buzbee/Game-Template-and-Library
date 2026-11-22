@@ -14,13 +14,13 @@ function cellOf(v){return Math.floor((v+HALF)/CELL);}
 // lookup — every creature, every chain point outside its own cell, the player five times, the audio rays, the snow — and it
 // allocated a string on each call. The range check is not optional: i=1,j=-1 would alias onto cell (0,15) in a flat array.
 function chunkAt(x,z){return chunks.get(ckey(cellOf(x),cellOf(z)));} // the loaded cell under (x, z), or undefined (only loaded cells are in the table: no bounds to test)
-function groundAt(x,z){const ch=chunkAt(x,z);return ch?ch.h(x,z):sample(x,z).h;}
+function groundAt(x,z){const ch=chunkAt(x,z);return ch?ch.h(x,z):sampleH(x,z);}
 // hOut(ch,x,z): the ground for *placing* a thing from a cell being built — the cell's own grid inside it, sample() beyond its
 // edge. ch.h clamps at the grid edge, so a probe that reaches past a cell line reads the edge vertex again and every settleOn
 // face/fit/drop test in a band as wide as its radius sees a plateau (v11.31.3: talus lost 2.2% of its tries in a 14 m band on
 // every cell line, one-sided — the face above the point never registered). Deterministic where groundAt is not: it never asks
 // whether a neighbour happens to be loaded. The same rule buildTerrain's hAt1 uses for the cavity term.
-function hOut(ch,x,z){return x<ch.x0||x>ch.x0+CELL||z<ch.z0||z>ch.z0+CELL?sample(x,z).h:ch.h(x,z);}
+function hOut(ch,x,z){return x<ch.x0||x>ch.x0+CELL||z<ch.z0||z>ch.z0+CELL?sampleH(x,z):ch.h(x,z);}
 // underCanopy (v11.13–v11.80: the water's look, the light, the shafts and the sound under the canopy mask) went with the canopy's paint (v11.81, PLANKTON.md §12).
 
 function makeChunk(i,j){
@@ -120,7 +120,7 @@ function* buildTerrain(ch){
   // The cell's own grid; the one-step term reads sample() for the neighbour beyond the edge so both sides of a boundary compute the
   // same number (196 samples a cell, ~7 ms, spread through the yields); the two-step term clamps to the grid (its weight is small).
   // The far terrain has no cavity term: at the loaded boundary the fog leaves 4% of it.
-  const hg=ch.hg,hAt1=(ii,jj)=>ii<0||ii>=GR||jj<0||jj>=GR?sample((ch.i*CH_RES+ii)*STEP-HALF,(ch.j*CH_RES+jj)*STEP-HALF).h:hg[jj*GR+ii],
+  const hg=ch.hg,hAt1=(ii,jj)=>ii<0||ii>=GR||jj<0||jj>=GR?sampleH((ch.i*CH_RES+ii)*STEP-HALF,(ch.j*CH_RES+jj)*STEP-HALF):hg[jj*GR+ii],
     hAt2=(ii,jj)=>hg[clamp(jj,0,GR-1)*GR+clamp(ii,0,GR-1)];
   for(let jj=0;jj<GR;jj++){for(let ii=0;ii<GR;ii++){const n=jj*GR+ii,h=hg[n];
     const c1=h-(hAt1(ii-1,jj)+hAt1(ii+1,jj)+hAt1(ii,jj-1)+hAt1(ii,jj+1))*0.25,c2=h-(hAt2(ii-2,jj)+hAt2(ii+2,jj)+hAt2(ii,jj-2)+hAt2(ii,jj+2))*0.25,cav=c1*0.7+c2*0.15;
