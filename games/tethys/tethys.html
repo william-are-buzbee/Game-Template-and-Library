@@ -173,7 +173,7 @@ canvas{display:block;outline:none;touch-action:none}
 <div id="fade" class="layer"></div>
 <canvas id="spark" class="layer"></canvas>
 <div id="stats"></div>
-<script>window.TETHYS_BUILD={v:"v11.209"};</script>
+<script>window.TETHYS_BUILD={v:"v11.210"};</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 function tethysMain(){
@@ -10951,6 +10951,10 @@ const SCHOOL_INST={on:true,cap:512},SI_MAP=new Map(),SI_LIST=[];
 function siPush(c){const e=c.lodMeshes[0];if(!e)return false;let r=SI_MAP.get(e.geometry);if(!r){const m=new THREE.InstancedMesh(e.geometry,e.material,SCHOOL_INST.cap);m.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(SCHOOL_INST.cap*3).fill(1),3);m.frustumCulled=false;m.castShadow=false;m.count=0;m.visible=false;scene.add(m);r={m:m,n:0};SI_MAP.set(e.geometry,r);SI_LIST.push(r);}
   if(r.n>=SCHOOL_INST.cap||c.lodMeshes.length>1)return false;c.g.updateMatrix();r.m.instanceMatrix.array.set(c.g.matrix.elements,r.n*16);r.n++;return true;}
 function siEnd(){for(const r of SI_LIST){r.m.count=r.n;r.m.visible=r.n>0;if(r.n)r.m.instanceMatrix.needsUpdate=true;r.n=0;}}
+function siFrame(){ // v11.210 (step.js): the far schools' instances written again once a frame from their bodies as drawn — set between the last two steps by lerpApply — so they move at the screen's rate; which fish are instanced stays the step's (siPush, setLOD 2)
+  if(!SCHOOL_INST.on)return;for(const r of SI_LIST)r.n=0;
+  for(const c of creatures){if(c.lod!==2||!c.alive||!c.g.visible)continue;const e=c.lodMeshes[0],r=e?SI_MAP.get(e.geometry):undefined;if(r===undefined||r.n>=SCHOOL_INST.cap)continue;c.g.updateMatrix();r.m.instanceMatrix.array.set(c.g.matrix.elements,r.n*16);r.n++;}
+  siEnd();}
 // ribbons of a kind that meet become one (the smaller into the larger), up to SCHOOL.max; the dead are dropped from the lists on the way
 function schoolMerge(dt){schoolMT-=dt;if(schoolMT>0)return;schoolMT=SCHOOL.mergeT;const M2=SCHOOL.merge*SCHOOL.merge;
   for(let i=schools.length-1;i>=0;i--){const b=schools[i];if(!b.members.length)continue;const kb=b.members[0].kind,nb=schoolLive(b);if(!nb)continue;
@@ -13085,24 +13089,27 @@ function updatePlayer(dt){
   playerGrab(!P.dead&&!P.withdrawn&&!!(keys.KeyR||mouseGrab||touchGrab),dt); // the grab (combat.js): held while the key is; last, with the shapes fresh (it uses the temps)
 }
 // After the creatures have moved and bodies have pushed apart (creatures_ai.js): the body where it ended up, the pose, the
-// arms simulated against the creatures around it, then the camera.
+// arms simulated against the creatures around it. The camera is camFrame's, once a frame (v11.210).
 function finishPlayer(dt,near){
   const P=player,C=P.clade;
-  // the camera's angles are the heading's — the mouse's, as before v11.77 (v11.77.1, the person: a camera that moves on its own disorients); the heading
-  // is held within HEAD_MAX of the body's facing (updatePlayer), so the camera never looks the animal in the face. Its up is composed from the same
-  // angles, so the look never degenerates however steep the pitch
-  const cyaw=P.yaw,cpit=P.pitch;
-  const cp=Math.cos(cpit),sp=Math.sin(cpit),cy=Math.cos(cyaw),sy=Math.sin(cyaw);
-  const fwd=T3.set(-sy*cp,sp,-cy*cp); // the heading's direction: where the camera's arm runs back from, and (dipped) where it looks — its up is composed at the look, below
   P.g.position.copy(P.pos);P.spd=P.vel.length();
   {const ro=P.sub>0.95?1:0;if(P.ro!==ro){P.ro=ro;P.g.traverse(o=>{if(o.isMesh)o.renderOrder=ro;});}} // the body's place in the opaque pass (v11.51, atmosphere.js refrMark): under water it draws after the refraction's copy of the frame, so the surface never samples it and smears its edge into the sky; in the air, or crossing, it is in the copy and seen through the surface refracted like the land
   P.anim(t,P.spd,{jet:P.sprint&&C.jet,withdrawn:P.withdrawn,pulse:P.pulse,strike:P.hold?1:0,soft:(P.soft||P.shut)?1:0,turn:P.turnV||0,acc:P.accV||0}); // strike: the mouth stays open on what is held (the finback's ring blooms); soft (v11.75–76): the valves clamped — shut by Q, or through the moult
   bodyPose(P,dt,P.byaw); // v11.53 (fx.js): squash and stretch, banking, the bite's snap — after the anim, before the rigs step. v11.77: the bank from the body's own turn, not the heading's
   stepRigs(P,near,dt);
   P.pulse=Math.max(0,P.pulse-dt*2);P.snapT=Math.max(0,(P.snapT||0)-dt);P.nudgeT=Math.max(0,(P.nudgeT||0)-dt);P.fovKickT=Math.max(0,(P.fovKickT||0)-dt); // v11.53 (fx.js): the bite's snap, the camera's nudge toward it, the hurt's fov kick; squash and stretch and banking
+}
+function camFrame(dt){ // the camera, once a frame (v11.210, step.js): not stepped — from the body as drawn (P.g.position, set between the last two steps by lerpApply) and the heading as the mouse left it, so the look has no step's lag and the body does not slide in the frame while the camera orbits. Nothing the sim reads is the camera's
+  const P=player,C=P.clade;if(!C)return;const bp=P.g.position;
+  // the camera's angles are the heading's — the mouse's, as before v11.77 (v11.77.1, the person: a camera that moves on its own disorients); the heading
+  // is held within HEAD_MAX of the body's facing (updatePlayer), so the camera never looks the animal in the face. Its up is composed from the same
+  // angles, so the look never degenerates however steep the pitch
+  const cyaw=P.yaw,cpit=P.pitch;
+  const cp=Math.cos(cpit),sp=Math.sin(cpit),cy=Math.cos(cyaw),sy=Math.sin(cyaw);
+  const fwd=T3.set(-sy*cp,sp,-cy*cp); // the heading's direction: where the camera's arm runs back from, and (dipped) where it looks — its up is composed at the look, below
   const arm=C.cam+CAM_K.arm,lift=arm*CAM_LIFT; // the third-person arm and how far above the body's line it sits — a share of the arm, so a 21 m sickle is looked down on as much as a 3 m finback (v11.79: 1.4 m flat put the camera on the body's own axis, "positioned exactly behind … like I was driving a racecar")
-  if(P.fp){const nose=(P.b&&P.b.F?P.b.F.nose*P.g.scale.x:C.size)+FP_AHEAD;T2.copy(P.pos).addScaledVector(bodyFwd(P,T1),nose);} // at the nose, along the body
-  else{T2.copy(P.pos).addScaledVector(fwd,-arm).addScaledVector(UP,lift); // v11.48: CAM_K.arm from the readout's tuner
+  if(P.fp){const nose=(P.b&&P.b.F?P.b.F.nose*P.g.scale.x:C.size)+FP_AHEAD;T2.copy(bp).addScaledVector(bodyFwd(P,T1),nose);} // at the nose, along the body
+  else{T2.copy(bp).addScaledVector(fwd,-arm).addScaledVector(UP,lift); // v11.48: CAM_K.arm from the readout's tuner
   const ch=groundAt(T2.x,T2.z)+1.0;if(T2.y<ch)T2.y=ch;}
   // camAbove is which side the camera's natural spot is on, with hysteresis: it flips CAM_FLIP past the wave and never within CAM_DWELL of
   // the last flip (a wave passing the spot is not a reason to change the light). Since v11.42 it drives only the light's crossfade, the sound
@@ -13123,7 +13130,7 @@ function finishPlayer(dt,near){
   T1.set(-sy*lcp,lsp,-cy*lcp);T4.set(lsp*sy,lcp,lsp*cy);
   T2.copy(camera.position).add(T1);
   _m.lookAt(camera.position,T2,T4);camera.quaternion.setFromRotationMatrix(_m); // the look with the camera's own up (v11.77): never a lookAt against UP
-  plight.position.copy(P.pos).add(V3(0,1,0));
+  plight.position.copy(bp).add(V3(0,1,0));
 }
 
 // atmosphere.js — the sea surface, the sky, marine snow, fog and light by medium/biome/depth, HUD
@@ -16943,6 +16950,42 @@ canvas.addEventListener('touchend',touchEnd);canvas.addEventListener('touchcance
 function readTouch(){syncLock();const r=tstate.R;touchGrab=!!(r&&r.moved<12&&performance.now()-r.t0>350);const s=tstate.L;if(!s){touchL=null;return;}const mx=clamp((s.x-s.x0)/70,-1,1),mz=clamp(-(s.y-s.y0)/70,-1,1);touchL={mx:mx,mz:mz,sprint:(s.y0-s.y)/70>1.5};}
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);vigSize();if(mode==='menu')layoutMenu();});
 
+// step.js — the fixed step (v11.210; analysis_project.md §7 — the person, 22 Nov 2026: "yes please option 2"): the sim advanced SIM_STEP at a time, whatever the
+// screen's rate, and the drawing set between its last two steps
+// To v11.209 the loop stepped once a frame by the frame's own interval: the 4060's 144 Hz stepped 2.4 times as often as a 60 Hz screen, each step smaller,
+// and the work tower at 30 fps stepped 33 ms — contact, drag, the chains' verlet and every rate integrated differently on each. Now main.js's loop adds the
+// frame's interval to stepAcc and runs simStep while a whole SIM_STEP is in it (at most SIM_STEP_MAX: a longer frame slows the world, as the old 0.05 s clamp did);
+// what is only seen runs once a frame on the frame's interval. The sim's state is whatever one step leaves for the next: the clock and the tide, the
+// player, the schools and creatures (their contact, arms and poses), eggs, sheds, the ledger, the line's clocks, wounds and states.
+// The drawing: before each step every moving thing's pose is taken (lerpSnap: the player's body, every creature drawn); after the
+// frame's steps they are set the fraction of a step since the last (stepAcc/SIM_STEP) between that pose and the step's (lerpApply), drawn, and put back with
+// their matrices (lerpRestore) — the sim never sees an in-between pose. The camera is not stepped at all (player.js camFrame): once a frame, from the body
+// as drawn and the heading as the mouse left it; nothing the sim reads is the camera's. test/step.js runs one world at 30, 60 and 144 Hz and holds every creature to the bit.
+const SIM_STEP=1/60,SIM_STEP_MAX=3,LERP_JUMP2=30*30; // s; steps a frame at most; a pose that moved over 30 m in a step jumped (a teleport, a respawn): drawn where it is
+let stepAcc=0,simSteps=0; // the frame time not yet stepped (s); the steps since load
+const LERP=new WeakMap(),LERP_ON=[]; // per object a Float64Array(15): the pose before the last step (0–6), the step's (7–13), the step it was taken before (14); the objects set this frame
+function simStep(h){ // one step of the sim, h seconds
+  t+=h;clockH=t*CLOCK_RATE;TIDE=tideAt(clockH); // the clock and the tide (world.js) before anything reads the water level
+  if(mode==='play')updatePlayer(h);
+  updateSchools(h);updateCreatures(h);if(mode==='play')finishPlayer(h,bodies); // bodies, contact, the player's arms and pose
+  updateEggs(h);updateSheds(h);ecoTick(h);updateSave(h); // the clutches hatch; the cast carapaces rot (v11.66); the world's ledger (v11.26); the autosave and the line's clocks (save.js)
+  updatePads(h);updateWounds(h);updateStates(h);} // the wounds bleed (combat.js, v11.31); poison, venom and the stun
+function lerpTake(o){let r=LERP.get(o);if(r===undefined){r=new Float64Array(15);LERP.set(o,r);}const p=o.position,q=o.quaternion;r[0]=p.x;r[1]=p.y;r[2]=p.z;r[3]=q.x;r[4]=q.y;r[5]=q.z;r[6]=q.w;r[14]=simSteps;}
+function lerpSnap(){ // before each step
+  if(mode==='play'&&player.g)lerpTake(player.g);
+  for(const c of creatures)if(c.g&&c.g.visible)lerpTake(c.g);}
+function lerpOne(o,a){const r=LERP.get(o);if(r===undefined||r[14]!==simSteps-1)return; // taken before the last step, or drawn where it is
+  const p=o.position,q=o.quaternion;r[7]=p.x;r[8]=p.y;r[9]=p.z;r[10]=q.x;r[11]=q.y;r[12]=q.z;r[13]=q.w;
+  const dx=r[7]-r[0],dy=r[8]-r[1],dz=r[9]-r[2];if(dx*dx+dy*dy+dz*dz>LERP_JUMP2)return;
+  p.set(r[0]+dx*a,r[1]+dy*a,r[2]+dz*a);
+  {let bx=r[10],by=r[11],bz=r[12],bw=r[13];if(r[3]*bx+r[4]*by+r[5]*bz+r[6]*bw<0){bx=-bx;by=-by;bz=-bz;bw=-bw;} // the short way round
+    const x=r[3]+(bx-r[3])*a,y=r[4]+(by-r[4])*a,z=r[5]+(bz-r[5])*a,w=r[6]+(bw-r[6])*a,l=Math.sqrt(x*x+y*y+z*z+w*w)||1;q.set(x/l,y/l,z/l,w/l);} // nlerp: a step's turn is small
+  LERP_ON.push(o);}
+function lerpApply(a){LERP_ON.length=0;if(a>=1)return; // after the frame's steps: the drawing a of a step on from the one before the last (a = 0, the last step's start)
+  if(mode==='play'&&player.g)lerpOne(player.g,a);
+  for(const c of creatures)if(c.g&&c.g.visible)lerpOne(c.g,a);}
+function lerpRestore(){for(const o of LERP_ON){const r=LERP.get(o);if(r===undefined)continue;o.position.set(r[7],r[8],r[9]);o.quaternion.set(r[10],r[11],r[12],r[13]);o.updateMatrix();}LERP_ON.length=0;} // after the render: the sim's poses and matrices back
+
 // probe.js — what each part of the frame costs this GPU, here (v11.208): F8 in play, or probe() in the console
 // The recorder times the GPU by pass (rec.js recGpu), not by what a pass draws, and the software GPU's proxy (test/fill.js) cannot stand for a weak card's
 // ratios: the work tower's main pass is 22–35 ms of its ~30 ms frame at 0.6 MP on the low tier (#152), under water as much as in the air, and nothing here
@@ -17138,21 +17181,21 @@ let last=performance.now();
 function loop(now){
   requestAnimationFrame(loop);chemoStep(4); // the basins' flood a slice a frame until it is built (v11.113, world.js)
   const idleM=mode==='menu'&&menu.idle&&BOOT.done;if(idleM&&now-last<MENU_IDLE_IV)return; // v11.202: the menu nobody is moving the mouse over draws at ~30 fps, not the screen's rate (menu.js MENU_IDLE_IV)
-  const f0=performance.now(),iv=now-last,dt=clamp(iv/1000,0,0.05);last=now;t+=dt;timeU.value=t;FOG_TC[0]=t;
-  clockH=t*CLOCK_RATE;TIDE=tideAt(clockH);tideU.value=TIDE;tideRU.value=tideRate(clockH);tintU.value.x=TIDE;FOG_W[0]=TIDE; // the clock and the tide (world.js), once a frame, before anything reads the water level (FOG_W[0]: the fog chunk's copy, v11.32 — the daylight curve measures depth from it)
+  const f0=performance.now(),iv=now-last,dt=clamp(iv/1000,0,0.05);last=now; // dt: the frame's own interval, for what is only seen; the sim steps SIM_STEP below (v11.210, step.js)
   readTouch();bootTick(iv); // the boot's stages (v11.189), before the streaming they gate
   // the streaming gets what the rest of the last frame left of Q.target (v11.12): a 3 ms frame leaves 4.5 for the cells, a 6 ms frame 2 (the floor)
   const g0=performance.now(),bl=!BOOT.done&&BOOT.stage==='load';if(BOOT.done||BOOT.stage!=='store')manageChunks(bl?BOOT.budget:Math.min(Q.budgetMs,Math.max(2,Q.target-(frameMs-genMs))));manageFar(bl?BOOT.budget:Q.farMs);genMs=performance.now()-g0;bloomTick();const a0=performance.now(); // a0…: the phases' marks for the recorder (v11.191, rec.js recFrame) // v11.189: the cells wait for the boot's slot (its ledger is what they spawn from); behind the loading page both stream with BOOT.budget (to v11.188 the far layer had 14 ms through the menu's first 2.4 s) // the plankton's clock (far.js, v11.81): the front by the tide's amplitude, the storm's pulse // the far layer streams in behind the fade (black until ~2.2 s), then in the gaps (v11.12: 14 ms all through the menu had its creatures stuttering for the first second)
-  updateMenu();updateZoo(dt);updateLab(dt);if(mode==='play')updatePlayer(dt); // updateMenu (v11.47.1): the column's rise and the idle fade
+  updateMenu();updateZoo(dt);updateLab(dt); // updateMenu (v11.47.1): the column's rise and the idle fade
   const p0=performance.now();
-  updateSchools(dt);updateCreatures(dt);if(mode==='play')finishPlayer(dt,bodies); // bodies, contact, arms, then the camera
-  updateEggs(dt);updateSheds(dt);ecoTick(dt);updateSave(dt); // the clutches hatch; the cast carapaces rot (v11.66); the world's ledger (v11.26): the model every few seconds, the births owed; the autosave clock (save.js, v11.47)
-  updatePads(dt);updateDisturbers(dt);if(FX.snow)updatePlankton(dt);physMs=performance.now()-p0;const x0=performance.now();
-  updateWounds(dt);updateStates(dt);updateInks(dt);updateSplashes(dt);updateBlood(dt);updateDebris(dt);updateSparks(dt);updateFlush(dt); // the wounds bleed and the blood drifts (combat.js, v11.31)
+  stepAcc=Math.min(stepAcc+dt,SIM_STEP*SIM_STEP_MAX);while(stepAcc>=SIM_STEP-1e-9){lerpSnap();simStep(SIM_STEP);simSteps++;stepAcc-=SIM_STEP;}if(stepAcc<0)stepAcc=0; // the sim (v11.210, step.js): as many whole steps as the frame's time holds, at most SIM_STEP_MAX
+  physMs=performance.now()-p0;const x0=performance.now();
+  {const a=stepAcc/SIM_STEP,tr=t-(1-a)*SIM_STEP;timeU.value=tr;FOG_TC[0]=tr;tideU.value=TIDE;tideRU.value=tideRate(clockH);tintU.value.x=TIDE;FOG_W[0]=TIDE; // the shaders' clock at the drawing's moment; the tide's uniforms (FOG_W[0]: the fog chunk's copy, v11.32 — the daylight curve measures depth from it)
+   lerpApply(a);siFrame();if(mode==='play')camFrame(dt);} // the drawing between the last two steps (step.js), the far schools' instances from it (creatures_ai.js), the camera from the body as drawn (player.js)
+  updateDisturbers(dt);if(FX.snow)updatePlankton(dt);updateInks(dt);updateSplashes(dt);updateBlood(dt);updateDebris(dt);updateSparks(dt);updateFlush(dt); // what is only seen: the plants pushed aside, the snow, ink, splashes, blood, debris, sparks, the flush of a hit (combat.js, v11.31)
   updateAtmosphere(dt);updateSurface();const s0=performance.now();
   camera.updateMatrixWorld();updateFogCamera();cullChunks(dt);cullFar();assignLights();updateShadow();updateShadowS(dt);updateAudio(dt);const h0=performance.now(); // the shadow map's box and casters (v11.23): after everything has moved; the sound (v11.14) last, with the camera where it is
   updateCompass(dt);updateFX();updateWMap(dt);updateSpark(dt); // the sparkle (line.js, v11.69): the handover's mark, over everything // no health bar since v11.55: the body shows the damage (COMBAT.md §5)
-  const r0=performance.now();probeStep();if(BOOT.done||BOOT.stage==='settle'){renderFrame();renderMs=performance.now()-r0;}else renderMs=0; // v11.64: the horizon pass first when the camera is in air (horizon.js), then the world; v11.189: nothing drawn behind the loading page until the world is there
+  const r0=performance.now();probeStep();if(BOOT.done||BOOT.stage==='settle'){renderFrame();renderMs=performance.now()-r0;}else renderMs=0;lerpRestore(); /* the sim's poses back (v11.210) */ // v11.64: the horizon pass first when the camera is in air (horizon.js), then the world; v11.189: nothing drawn behind the loading page until the world is there
   updateStats(dt);frameMs=performance.now()-f0;
   if(!idleM&&PROBE===null){const k=FX.autoRes?resStep(RES_S,iv,frameMs):1;if(k!==resK){resK=k;renderer.setPixelRatio(RES_PR*k);vigSize();}} /* the idle menu's own pace is no slow frame (v11.202) */
   if(!idleM&&PROBE===null)tierFrame(iv,frameMs); /* v11.208: neither the resolution nor the tier moves while a probe runs (probe.js) — v11.207: v11.202's comment above had swallowed this call, so from v11.202 to v11.206 the tier never sampled a frame */ // the tier that follows the machine (v11.199, scene.js): a sample, and the verdict when there is one // the resolution that holds the frame (v11.188, scene.js RES): applied for the next frame
