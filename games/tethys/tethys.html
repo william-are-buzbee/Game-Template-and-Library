@@ -173,7 +173,7 @@ canvas{display:block;outline:none;touch-action:none}
 <div id="fade" class="layer"></div>
 <canvas id="spark" class="layer"></canvas>
 <div id="stats"></div>
-<script>window.TETHYS_BUILD={v:"v11.212"};</script>
+<script>window.TETHYS_BUILD={v:"v11.213"};</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 function tethysMain(){
@@ -15729,8 +15729,8 @@ function menuCam(shot){const p=shot.p,d=shot.d;menu.shot={p:p.slice(),d:d.slice(
 function camNow(){const d=V3(0,0,-1).applyQuaternion(camera.quaternion);return {p:[camera.position.x,camera.position.y,camera.position.z],d:[d.x,d.y,d.z]};}
 function layoutMenu(){menuCam(menu.shot);} // the current shot again (a resize; the bestiary and the lab moved the camera)
 menuCam(camRead()||MENU_SHOTS.sea); // the column rises when the boot has faded in (main.js BOOT), not at a fixed time (to v11.188 MENU_RISE after load)
-function menuPage(p){menu.page=p;menu.confirm=null;mlistEl.style.display=p==='main'?'':'none';msavesEl.classList.toggle('on',p==='saves');mfoundEl.classList.toggle('on',p==='found');if(p==='saves')menuSlots();if(p==='found')menuFounders();menuWake();} // 'main' | 'saves' | 'found' (the founder, v11.75) | 'none' (the bestiary and the lab)
-function menuRefresh(cb){mcreatorEl.style.display=PROFILE.creator?'':'none';saveRefresh(()=>{if(menu.page==='saves')menuSlots();if(cb)cb();});} // the profile and the slots read again (boot, main.js; the creator granted)
+function menuPage(p){menu.page=p;menu.confirm=null;mlistEl.style.display=p==='main'?'':'none';msavesEl.classList.toggle('on',p==='saves');mfoundEl.classList.toggle('on',p==='found');if(p==='saves')menuSlots();if(p==='found')menuFounders();if(p==='main')contShow();menuWake();} // 'main' | 'saves' | 'found' (the founder, v11.75) | 'none' (the bestiary and the lab)
+function menuRefresh(cb){mcreatorEl.style.display=PROFILE.creator?'':'none';saveRefresh(()=>{if(menu.page==='saves')menuSlots();contShow();if(cb)cb();});} // the profile and the slots read again (boot, main.js; the creator granted)
 function menuNote(s){mnoteEl.textContent=s;mnoteEl.style.opacity=s?1:0;if(s)setTimeout(()=>{if(mnoteEl.textContent===s)mnoteEl.style.opacity=0;},3000);}
 function fmtAgo(ms){const s=(Date.now()-ms)/1000;return s<90?'just now':s<5400?Math.round(s/60)+' min ago':s<172800?Math.round(s/3600)+' h ago':Math.round(s/86400)+' days ago';}
 function fmtPlay(s){return s<3600?Math.max(1,Math.round(s/60))+' min':(s/3600).toFixed(1)+' h';}
@@ -15762,13 +15762,18 @@ mfoundersEl.addEventListener('click',e=>{if(mode!=='menu'||menu.page!=='found')r
 // Continue (v11.189; the person, 20 Nov 2026: "a game world that you can enter by hitting continue, just like that, right in the world you already see"):
 // the slot whose world the menu shows (menu.worldOf: the boot opened it under the last camera, or play left it there), the player put into it where it
 // was — no fade, nothing cleared — when its body is within CONT_NEAR of the camera; any other slot, or one whose body is elsewhere (a death that continued
-// as a child far off), through the fade as before. With no slot to continue, the list. `saves` is the list (to v11.188 continue was).
+// as a child far off), through the fade as before. `saves` is the list (to v11.188 continue was).
+// v11.213 (the person, 22 Nov 2026: "continue should only ever do one thing, which is bring you to your last … moment of play. If you died, no continue
+// screen because nothing to continue. You have to go into saves and then continue a save. Otherwise, continue should not be there."): continue is the
+// slot whose world the menu shows, and only it — not the latest slot that can go on, not the list. It is not there when that slot is over (a death that
+// ended the line) or the menu shows no slot's world (a first visit); `saves` continues any other (contShow, after every change of the list or the world).
 const CONT_NEAR=60;
-function contRec(){const ok=r=>r&&!r.over;return saveList.find(r=>r.id===menu.worldOf&&ok(r))||saveList.find(ok)||null;} // the shown slot, else the latest that can go on
+function contRec(){return menu.worldOf===null?null:saveList.find(r=>r.id===menu.worldOf&&!r.over)||null;} // the shown slot, if it can go on (v11.213: nothing else)
+function contShow(){const el=document.getElementById('mcont');if(el)el.style.display=contRec()?'':'none';} // continue there only when it has its one thing to do
 // v11.195: `s` is a slot's summary; the shown slot's record is menu.worldRec (no read), any other is read whole first (slotGet), then the fade
 function menuContinue(s){if(!s||s.over)return;const p=Array.isArray(s.pos)?s.pos:null,W=menu.worldRec,near=p&&s.id===menu.worldOf&&W&&W.id===s.id&&Math.hypot(p[0]-camera.position.x,p[1]-camera.position.y,p[2]-camera.position.z)<CONT_NEAR;
   if(near){menu.worldOf=null;menu.worldRec=null;slotPlayer(W);}else slotGet(s.id,rec=>{if(!rec||rec.over||mode!=='menu')return;menuGo(()=>{menu.worldOf=null;menu.worldRec=null;startFrom(rec);});});}
-document.getElementById('mcont').addEventListener('click',()=>{if(mode!=='menu'||menu.busy)return;const rec=contRec();if(rec)menuContinue(rec);else menuPage('saves');});
+document.getElementById('mcont').addEventListener('click',()=>{if(mode!=='menu'||menu.busy)return;const rec=contRec();if(rec)menuContinue(rec);});
 document.getElementById('mload').addEventListener('click',()=>{if(mode==='menu')menuPage('saves');});
 document.getElementById('mopt').addEventListener('click',()=>{if(mode==='menu')fxShow(!fxOpen);});
 mcreatorEl.addEventListener('click',()=>{if(mode==='menu'&&menu.page==='main')labEnter(undefined,true);});
@@ -17207,7 +17212,7 @@ function bootSlot(){if(BOOT.done||BOOT.stage!=='store'||BOOT.asked)return; // th
   // v11.195: the list is the slots' summaries; the last slot's record is read whole here, the one slot the boot opens (save.js slotGet), and kept for continue
   if(mode==='menu'){const note=camRead(),s=note&&note.id?saveList.find(r=>r.id===note.id):null;if(s&&!s.over){BOOT.asked=true;BOOT.askT=performance.now();
     slotGet(s.id,rec=>{if(!BOOT.asked)return;BOOT.asked=false;if(BOOT.done||BOOT.stage!=='store'||mode!=='menu')return; // the boot went on without it (bootTick's wait), or play began
-      if(rec&&!rec.over){try{slotWorld(rec);menu.worldOf=rec.id;menu.worldRec=rec;}catch(e){console.warn('the last slot\'s world: '+e.message);}}bootGo();});return;}}
+      if(rec&&!rec.over){try{slotWorld(rec);menu.worldOf=rec.id;menu.worldRec=rec;}catch(e){console.warn('the last slot\'s world: '+e.message);}}contShow();bootGo();});return;}}
   bootGo();}
 function bootGo(){BOOT.stage='load';BOOT.W=warmPrep();BOOT.world0=0;bootLine(0);}
 function bootTick(iv){if(BOOT.done)return;if(mode!=='menu'){bootFinish();return;}
