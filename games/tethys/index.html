@@ -173,7 +173,7 @@ canvas{display:block;outline:none;touch-action:none}
 <div id="fade" class="layer"></div>
 <canvas id="spark" class="layer"></canvas>
 <div id="stats"></div>
-<script>window.TETHYS_BUILD={v:"v11.205"};</script>
+<script>window.TETHYS_BUILD={v:"v11.206"};</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 function tethysMain(){
@@ -335,33 +335,33 @@ function recPct(H,n,p){if(!n)return 0;const k=Math.max(1,Math.ceil(p*n));let c=0
 const REC_M=['iv','work','gen','play','sim','fx','scene','hud','render','draws','tris','creatures','cells','res','above'],REC_NM=REC_M.length;
 const REC={v:(window.TETHYS_BUILD&&window.TETHYS_BUILD.v)||'dev',at:new Date().toISOString(),t0:performance.now(),dev:null,frame:0,wall:0,s:0,n:0,
   H:new Uint32Array(REC_NB),HW:new Uint32Array(REC_NB),HG:new Uint32Array(REC_NB),sum:new Float64Array(REC_NM),mx:new Float64Array(REC_NM),F:new Float64Array(REC_NM),
-  gN:0,gSum:0,gMax:0,gPass:new Float64Array(4),places:new Map(),cur:null,other:null,progs:0,heap:0,
+  gN:0,gSum:0,gMax:0,gPass:new Float64Array(5),places:new Map(),cur:null,other:null,progs:0,heap:0,
   sec:{s:0,n:0,ivMax:0,gN:0,g:0,sum:new Float64Array(REC_NM)},tl:[],tlEvery:2,sp:[],spN:0,errs:new Map(),errN:0,
   menu:{n:0,iv:0,work:0,max:0},boot:{scripts:0,first:-1,store:-1,load:-1,done:-1,progs:0,seen:false},loaf:{n:0,ms:0,block:0,by:new Map()},
   prev:null,saveT:0,sent:0,skip:true,mid:''}; // skip: the next frame is not one (the first, and the one after the tab was hidden)
 REC.boot.scripts=+(REC.t0/1000).toFixed(2); // the page's own clock: seconds from the navigation to this file's first line (the scripts fetched and parsed)
 function recPlace(key,i,j){return {key:key,i:i,j:j,n:0,s:0,x:0,y:0,z:0,H:new Uint32Array(REC_NB),sum:new Float64Array(REC_NM),dMax:0,tMax:0,
-  gN:0,g:0,gp:new Float64Array(4),wIv:0,w:new Float64Array(6)};} // one shape (CLAUDE.md "the shape rule"); w: the worst frame there — x, y, z, the body's yaw, its interval, its work
+  gN:0,g:0,gp:new Float64Array(5),wIv:0,w:new Float64Array(6)};} // one shape (CLAUDE.md "the shape rule"); w: the worst frame there — x, y, z, the body's yaw, its interval, its work
 REC.other=recPlace(-1,0,0);
 
 // ---------- the GPU's own time (EXT_disjoint_timer_query_webgl2) ----------
 // A query brackets each pass (recGpu before it, recGpuEnd or the next recGpu after); its result arrives a few frames later and is added to its frame's
 // sum, which is counted when the next frame's first result arrives. The passes (k): 0 main, renderer.render of the world (three's own shadow map
-// inside it; horizon.js renderFrame); 1 the horizon tier; 2 the cloud volume (atmosphere.js cloudPass); 3 the world's static shadow map (scene.js updateShadowS). One query at a time (WebGL has no nesting). A disjoint (the GPU's clock reset:
+// inside it; horizon.js renderFrame); 1 the horizon tier; 2 the cloud volume (atmosphere.js cloudPass); 3 the world's static shadow map (scene.js updateShadowS); 4 the sky in the horizon tier (v11.206: its one draw bracketed by its own onBeforeRender and onAfterRender, horizon.js — to v11.205 inside 1, which is now the far land and sea alone; under water the sky is in 0). One query at a time (WebGL has no nesting). A disjoint (the GPU's clock reset:
 // a power state, another app) throws the queries in flight away. RG.ema is the readout's `gpu`. A result no GPU could give — not a number, negative, or
 // RG_MAX and over (v11.198: the work tower's Intel UHD 730 under ANGLE/D3D11 once answered 960,769 ms with no disjoint, #148–149, and the session's
 // mean and its place's took it) — drops its frame's sample whole, and is counted (RG.junk, the report's gpu.junk). 2 s: Windows resets a GPU that
 // runs one frame's work longer (its TDR), so a real frame is under it.
 const RG={gl:null,ext:null,on:false,open:null,openK:0,pool:[],q:new Array(64).fill(null),k:new Int8Array(64),f:new Int32Array(64),p:new Array(64).fill(null),pl:new Uint8Array(64),h:0,n:0,did:0,
-  acc:new Float64Array(4),accF:-1,accP:null,accPl:0,accBad:0,junk:0,ema:-1,last:0,lastPl:0,goodN:0}; // last, lastPl, goodN: the latest whole frame's GPU time, whether it was play, a count of them (scene.js tierFrame, v11.199)
+  acc:new Float64Array(5),accF:-1,accP:null,accPl:0,accBad:0,junk:0,ema:-1,last:0,lastPl:0,goodN:0}; // last, lastPl, goodN: the latest whole frame's GPU time, whether it was play, a count of them (scene.js tierFrame, v11.199)
 const RG_MAX=2000; // ms: a frame's pass longer than this is the timer's junk (above)
 function recGpu(k){RG.did|=1<<k;if(!RG.on)return;if(RG.open!==null)recGpuEnd();if(RG.n>=60)return;const gl=RG.gl,q=RG.pool.length?RG.pool.pop():gl.createQuery();
   gl.beginQuery(RG.ext.TIME_ELAPSED_EXT,q);RG.open=q;RG.openK=k;}
 function recGpuEnd(){if(RG.open===null)return;RG.gl.endQuery(RG.ext.TIME_ELAPSED_EXT);const i=RG.h,pl=mode==='play';RG.q[i]=RG.open;RG.k[i]=RG.openK;RG.f[i]=REC.frame;RG.p[i]=pl?REC.cur:null;RG.pl[i]=pl?1:0;
   RG.h=(i+1)&63;RG.n++;RG.open=null;}
-function recGpuFlush(){if(RG.accF<0)return;const a=RG.acc,g=a[0]+a[1]+a[2]+a[3];if(!RG.accBad){RG.ema=RG.ema<0?g:RG.ema+(g-RG.ema)*0.05;RG.last=g;RG.lastPl=RG.accPl;RG.goodN++;}
-  if(RG.accPl&&!RG.accBad){REC.HG[recBin(g)]++;REC.gN++;REC.gSum+=g;if(g>REC.gMax)REC.gMax=g;for(let k=0;k<4;k++)REC.gPass[k]+=a[k];REC.sec.gN++;REC.sec.g+=g;
-    const P=RG.accP;if(P){P.gN++;P.g+=g;for(let k=0;k<4;k++)P.gp[k]+=a[k];}
+function recGpuFlush(){if(RG.accF<0)return;const a=RG.acc,g=a[0]+a[1]+a[2]+a[3]+a[4];if(!RG.accBad){RG.ema=RG.ema<0?g:RG.ema+(g-RG.ema)*0.05;RG.last=g;RG.lastPl=RG.accPl;RG.goodN++;}
+  if(RG.accPl&&!RG.accBad){REC.HG[recBin(g)]++;REC.gN++;REC.gSum+=g;if(g>REC.gMax)REC.gMax=g;for(let k=0;k<5;k++)REC.gPass[k]+=a[k];REC.sec.gN++;REC.sec.g+=g;
+    const P=RG.accP;if(P){P.gN++;P.g+=g;for(let k=0;k<5;k++)P.gp[k]+=a[k];}
     for(const r of REC.sp)if(r[0]===RG.accF)r[15]=+g.toFixed(2);}
   a.fill(0);RG.accF=-1;RG.accP=null;RG.accPl=0;RG.accBad=0;}
 function recPoll(){const gl=RG.gl,E=RG.ext;
@@ -447,12 +447,12 @@ function recLoaf(e){const L=REC.loaf;L.n++;L.ms+=e.duration;L.block+=e.blockingD
 function recStore(){if(REC.s<REC_K.minPlay)return;try{const p=recShrink(recFull(),1);window.localStorage.setItem(REC_K.key,JSON.stringify({v:REC.v,at:REC.at,p:p}));}catch(e){}}
 
 // ---------- the session as data ----------
-const REC_PC=['x','z','y','s','frames','p50','p95','p99','max','work','gen','sim','render','gpu','gMain','gHorizon','gClouds','gShadows','draws','drawsMax','tris','trisMax','creatures','above','wx','wy','wz','wyaw','wiv','wwork'];
+const REC_PC=['x','z','y','s','frames','p50','p95','p99','max','work','gen','sim','render','gpu','gMain','gHorizon','gClouds','gShadows','draws','drawsMax','tris','trisMax','creatures','above','wx','wy','wz','wyaw','wiv','wwork','gSky'];
 const REC_SC=['frame','t','x','y','z','yaw','iv','work','gen','play','sim','fx','scene','hud','render','gpu','draws','tris','what'];
 function recPlaceRow(c){const n=c.n||1,S=c.sum,g=c.gN||0,f=v=>+v.toFixed(2);
   return [Math.round(c.x/n),Math.round(c.z/n),+(c.y/n).toFixed(1),+c.s.toFixed(1),c.n,recPct(c.H,c.n,0.5),recPct(c.H,c.n,0.95),recPct(c.H,c.n,0.99),+c.wIv.toFixed(1),f(S[1]/n),f(S[2]/n),f(S[4]/n),f(S[8]/n),
     g?f(c.g/g):-1,g?f(c.gp[0]/g):-1,g?f(c.gp[1]/g):-1,g?f(c.gp[2]/g):-1,g?f(c.gp[3]/g):-1,Math.round(S[9]/n),c.dMax,Math.round(S[10]/n),Math.round(c.tMax),Math.round(S[11]/n),f(S[14]/n),
-    Math.round(c.w[0]),+c.w[1].toFixed(1),Math.round(c.w[2]),+c.w[3].toFixed(2),+c.w[4].toFixed(1),+c.w[5].toFixed(1)];}
+    Math.round(c.w[0]),+c.w[1].toFixed(1),Math.round(c.w[2]),+c.w[3].toFixed(2),+c.w[4].toFixed(1),+c.w[5].toFixed(1),g?f(c.gp[4]/g):-1];}
 function recFull(){const n=REC.n||1,S=REC.sum,X=REC.mx,f=v=>+v.toFixed(2),g=REC.gN,d=REC.dev||{};
   try{const v=renderer.getDrawingBufferSize(new THREE.Vector2());d.buf=[v.x|0,v.y|0];d.fx=Object.assign({},FX);}catch(e){}
   let vs=0,vb=0;for(let b=4;b<70;b++)if(REC.H[b]>REC.H[vb]){vb=b;}if(REC.H[vb]>0)vs=recBinMs(vb); // the interval most frames take: the display's refresh when the frame has room
@@ -464,7 +464,7 @@ function recFull(){const n=REC.n||1,S=REC.sum,X=REC.mx,f=v=>+v.toFixed(2),g=REC.
   return {f:1,v:REC.v,url:location.pathname||'',at:REC.at,wall:Math.round(REC.wall/1000),play:Math.round(REC.s),dev:d,boot:Object.assign({nav:nav},REC.boot),
     all:{frames:REC.n,iv:[recPct(REC.H,REC.n,0.5),recPct(REC.H,REC.n,0.9),recPct(REC.H,REC.n,0.95),recPct(REC.H,REC.n,0.99),f(X[0])],work:[f(S[1]/n),recPct(REC.HW,REC.n,0.95),f(X[1])],
       ph:{gen:f(S[2]/n),play:f(S[3]/n),sim:f(S[4]/n),fx:f(S[5]/n),scene:f(S[6]/n),hud:f(S[7]/n),render:f(S[8]/n)},
-      gpu:g?{frames:g,mean:f(REC.gSum/g),p50:recPct(REC.HG,g,0.5),p95:recPct(REC.HG,g,0.95),max:f(REC.gMax),junk:RG.junk,pass:{main:f(REC.gPass[0]/g),horizon:f(REC.gPass[1]/g),clouds:f(REC.gPass[2]/g),shadows:f(REC.gPass[3]/g)}}:null,
+      gpu:g?{frames:g,mean:f(REC.gSum/g),p50:recPct(REC.HG,g,0.5),p95:recPct(REC.HG,g,0.95),max:f(REC.gMax),junk:RG.junk,pass:{main:f(REC.gPass[0]/g),horizon:f(REC.gPass[1]/g),clouds:f(REC.gPass[2]/g),shadows:f(REC.gPass[3]/g),sky:f(REC.gPass[4]/g)}}:null,
       draws:[Math.round(S[9]/n),X[9]],tris:[Math.round(S[10]/n),Math.round(X[10])],creatures:Math.round(S[11]/n),cells:Math.round(S[12]/n),res:f(S[13]/n),above:f(S[14]/n),vsync:vs,over:[over(16.7),over(33.3),over(50)]},
     menu:{frames:REC.menu.n,iv:REC.menu.n?f(REC.menu.iv/REC.menu.n):0,max:f(REC.menu.max),work:REC.menu.n?f(REC.menu.work/REC.menu.n):0},
     pc:REC_PC,places:places.map(recPlaceRow),tl:{every:REC.tlEvery,cols:REC_TL,rows:REC.tl.slice()},
@@ -489,7 +489,7 @@ function recMd(p,tok,cut,prev){const a=p.all,d=p.dev||{},b=p.boot||{},pc=p.pc,I=
   L.push('**tethys '+p.v+'** · '+(p.play/60).toFixed(1)+' min played · '+recWhere(p)+(prev?' · the previous session (this one was under a minute)':'')+' · '+p.at.slice(0,16).replace('T',' ')+' UTC');
   L.push('**machine** '+(d.mid?'`'+d.mid+'` ':'')+recGpuName(d.gpu)+' · WebGL'+d.gl+' · '+d.cores+' threads'+(d.mem?' · '+d.mem+' GB':'')+(d.plat?' · '+d.plat.trim():'')+(d.flags?' · '+d.flags:'')+(d.lod?' · lod '+d.lod:'')+' · screen '+(d.screen||[]).join('×')+' ×'+d.dpr+' · drawn '+(d.buf||[]).join('×')+' · '+d.tier+(a.vsync?' · vsync '+a.vsync.toFixed(1)+' ms':''));
   L.push('**frames** p50 '+recMs(a.iv[0])+' · p95 '+recMs(a.iv[2])+' · p99 '+recMs(a.iv[3])+' · max '+recMs(a.iv[4])+' ms · '+(100*a.over[1]).toFixed(1)+'% over 33 ms · CPU '+recMs(a.work[0])+' ms (sim '+recMs(a.ph.sim)+' · gen '+recMs(a.ph.gen)+' · render '+recMs(a.ph.render)+')');
-  L.push(a.gpu?'**gpu** p50 '+recMs(a.gpu.p50)+' · p95 '+recMs(a.gpu.p95)+' ms (main '+recMs(a.gpu.pass.main)+' · horizon '+recMs(a.gpu.pass.horizon)+' · clouds '+recMs(a.gpu.pass.clouds)+' · shadows '+recMs(a.gpu.pass.shadows)+')':'**gpu** no timer in this browser');
+  L.push(a.gpu?'**gpu** p50 '+recMs(a.gpu.p50)+' · p95 '+recMs(a.gpu.p95)+' ms (main '+recMs(a.gpu.pass.main)+' · horizon '+recMs(a.gpu.pass.horizon)+' · clouds '+recMs(a.gpu.pass.clouds)+' · shadows '+recMs(a.gpu.pass.shadows)+' · sky '+recMs(a.gpu.pass.sky)+')':'**gpu** no timer in this browser');
   L.push('**boot** scripts '+b.scripts+' s · first frame '+b.first+' s · world in '+b.done+' s · '+b.progs+' programs'+(b.seen?' (seen this version before)':' (first visit of this version)'));
   const w=p.places.filter(r=>r[I('s')]>=5).sort((x,y)=>y[I('p95')]-x[I('p95')]).slice(0,5);
   if(w.length){L.push('**worst places** (p95 · gpu · time there)');for(const r of w)L.push('- `'+recTp(r[I('x')],r[I('z')],r[I('y')])+'` '+recMs(r[I('p95')])+' · '+recMs(r[I('gpu')])+' ms · '+(r[I('s')]/60).toFixed(1)+' min');}
@@ -13945,6 +13945,7 @@ const HZ_NEAR=20,HZ_FAR=250000,HZ_CUT=-5,HZ_R=6371000,HZ_SEA0=0.75; // the pass'
 const HZ_LIGHT=[0.62,1.15,1.0,0.85]; // the horizon mesh's light: the sky's ambient share (zenith over horizon by the normal's tilt), the sun's share by its cosine; the sea disc's water-column weight and its reflection's ceiling (the surface's 0.85) — tuned in the pane (v11.65) against the surface mesh's far end from 300 m up: with the column term at 1 the surface's own ceiling matches it to three levels of 255 (129,149,160 against 128,147,160); without the column the disc stood a shade lighter from any height
 const hzScene=new THREE.Scene(),hzCam=new THREE.PerspectiveCamera(CAM_K.fov,innerWidth/innerHeight,HZ_NEAR,HZ_FAR);
 const hzLand=new THREE.Group();hzScene.add(hzLand);let hzSea=null,hzTried=false; // hzLand: the members' land meshes (v11.106: one mesh, hzMesh)
+sky.onBeforeRender=function(){if(sky.parent===hzScene)recGpu(4);};sky.onAfterRender=function(){if(sky.parent===hzScene)recGpu(1);}; // v11.206: the sky's GPU time apart from the far land and sea (rec.js pass 4) — the timer switched round its one draw, no draw or pass more; the tower's horizon pass was 6.5 ms in air (#149–152), and which of the two it is decides the cut
 // the shared fog and sky uniforms, the same objects the world's materials read (scene.js shares them through ShaderLib)
 function hzUniforms(){const L=(THREE.ShaderLib&&THREE.ShaderLib.lambert&&THREE.ShaderLib.lambert.uniforms)||{},u={};for(const k of ['uFogC','uFogR','uFogW','uFogP','uFogS','uFogT','uFogA','uFogAC','uMist','uMistC','uMistW','uWaterMap','uFloorMap','uWmO','uFogB','uSpec','uDeep','uHaloP','uHaloC','uMurk','uFogTC','uSkA','uSkB','uSkC','uSkD','uSkE','uSkF','uVig','uCld','uCldB','uCellA','uCellB','uCap','uCapC','uPool'])if(L[k])u[k]=L[k];return u;}
 const HZ_VS_HEAD='uniform vec3 uFogC;uniform mat3 uFogR;uniform vec4 uFogW;varying float vFogDepth;varying vec3 vFogPos;\n'; // the fog's vertex stage by hand: vFogPos is the dropped world position
