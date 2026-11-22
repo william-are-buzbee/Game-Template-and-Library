@@ -10478,3 +10478,27 @@ in it changed); the GPU's counts the same at every place.
 1. On the work tower, plain address (its verdict is low), somewhere it lags — under water at the forest's shelf, and on the surface: F8, hold still until
    the hint shows the numbers, then F9. The report carries both probes; that decides what the low tier cuts.
 2. The same on the home machine, for comparison.
+
+## v11.209 — the sim draws its own random numbers (22 Nov 2026)
+
+The first part of the fixed step (analysis_project.md §7; the person, 22 Nov 2026: "yes please option 2"). The sim and the eye candy drew from one
+`Math.random`: a screen that draws more particles a second draws more numbers, and every number a creature drew after them moved. A fixed step alone
+would still have left the world different at 60 and 144 Hz.
+
+- **`SIMR`** (util.js; `srnd(a,b)` is `rnd` on it): a mulberry32 stream of the sim's own, seeded at load (`simSeed(n)` starts it again). Every draw
+  that changes the world's state takes it: the creatures' wander targets and timers (creatures_ai.js `wander`, the schools', the swarms'), a fed
+  body's time at the carcass, the current's sampling, a stranded body's flop, the spawns of a moult, a hardening and a growing up, a shed's rot, a
+  hit's shove of a body's chains and its spin (fx.js `hitFx`), the player's hurt spin, an arm chain's phase at its build (parts.js).
+- **`Math.random` and `rnd` are left to what is only seen or heard**: blood, debris, sparks, bubbles, the glow clouds, the snow and the rain, the
+  splashes, the ink's shape, the camera's shake, the sound.
+- **test/simrand.js** (in `--test`): a new game played 600 frames in two processes, `Math.random` seeded 1 in one and 2 in the other with three
+  draws more a frame — every creature and the player the same to the bit. On v11.208's tree it fails (d0b9bef5 against d4d48bd3).
+- CLAUDE.md's rule on randomness says it.
+
+**What it costs** (main → here): the world the same to the bit, sample() ×0.96–1.01. **The simulation and the rasp's arms are not the same as
+main's, by construction** — their numbers now come from another stream — so this version's times compare two different runs of the world: the
+creatures' frame ×1.02 (p95 ×1.12), a spawn's build ×1.21 (4.3 → 5.2 ms, the least of five), a cell at the forest ×1.11 (×0.88 to ×1.19 on
+identical code, v11.205), the Chromium frame ×1.52 (×0.84 to ×1.47 on identical code). A draw from `SIMR` costs what one from `Math.random` does. The
+GPU's counts move as creatures elsewhere do (draws and triangles within 1%; the shore's uploads 223 → 250 KB): test/gpu.json updated.
+
+**Unseen, ask in this order:** nothing to see — the creatures do what they did, on other dice.

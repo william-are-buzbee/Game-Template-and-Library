@@ -233,7 +233,9 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
 - **Knobs** are top-level `const NAME=value; // meaning, units` or a table with a comment per key (`GRIP`, `ECO`, `AU_K`, `DERIVE_K`, `Q`). The
   readout's tuners change some live; bake a tuned value in by name.
 - **Randomness.** `mulberry(seed)` wherever the world must persist (cells by index, species by `hashStr(id)`, landmarks 4242, noise 1337).
-  `Math.random` only for animation and particles — and the benches seed it, so one draw more at load moves every draw after it.
+  **What a creature or the player does draws from `SIMR`** (`srnd(a,b)`; v11.209): a choice, a timer, a spawn's build, a hit's shove. `Math.random` (and
+  `rnd`) only for what is only seen or heard — particles, snow, sparks, sound — so a faster screen drawing more of them moves nothing in the world
+  (test/simrand.js fails on a sim draw left on `Math.random`). The benches seed `Math.random`, so one draw more at load moves every draw after it.
 - **Units and frames.** 1 unit = 1 m, `GRAV` 9.8, y up, sea level 0, east +x, north −z, angles in radians from +x toward +z. **All creatures face
   +z.** A claws predator's `reach` (and an arms predator's past the near LOD) must exceed the contact distance of its and its prey's capsules or
   it never bites; a jaw bites when its mouth touches a capsule (`mouthOn`), its `reach` only the strike range's floor; near the player an arms
