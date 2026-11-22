@@ -10378,3 +10378,30 @@ the streams a save at once writes.
 
 **Unseen, ask in this order:**
 1. Esc to the menu after a long play: the fade starts at the key; continue comes back where you were.
+
+## v11.205 — less garbage from the world's heights and the ledger's sampling (22 Nov 2026)
+
+What was left of the garbage after v11.197 (the bench page, a new game swum through 600 frames without drawing; the DevTools sampling heap profiler):
+1,880 KB a frame on this page, which builds a whole cell a frame where the game spreads it. The live heap is flat (77 → 80 MB over 1,200 frames).
+
+- **`sampleH(x,z)`** (world.js): the ground's height alone, `sample` writing its fields into one array kept for it (`_SH_F`) instead of a new one a
+  call. The 23 callers that read only `.h` (chunks.js `groundAt`, `hOut`, the grid's edge; far.js, clouds.js, horizon.js, worldmap.js, grow.js
+  `flowYaw`, player.js, creatures_ai.js, world.js's chimney) take it. On this path it saved nothing measurable — these callers are rare here — but
+  each was a typed array and its buffer for nothing.
+- **The ledger's sampling** (ecology.js `ecoCap`, `ecoPatchCap`): `sample(x,z).f.slice()` copied an array sample had just made new; the copy is gone.
+  That was the whole of the builtin `slice`'s 176 KB a frame.
+
+**What it costs** (main → here): **the garbage 1,880 → 1,710 KB a frame (×0.91)**; every height, field, body and step the same to the bit:
+- test/bench.js: the world the same to the bit; sample() ×0.97–1.00.
+- test/frames.js: the creatures' frame ×1.01 (p95 ×1.04), the simulation the same to the bit.
+- test/bench_creatures.js: every body the same, built and posed; the Chromium frame ×1.47 then ×0.84 (noise: the simulation the same to the bit); a
+  cell at the forest ×1.11, ×1.19 and, five pages a side, ×0.88 — all of it inside spawn() and compile(), which nothing here touches: the first place
+  timed pays the JIT's warm-up. The other places ×0.96–1.00.
+- test/gpu.js: every count at every place the same. test/fill.js not run: nothing drawn moved.
+
+**What is left** (KB a frame here): islandH 405, sample 379, fbm 120, rgPlat 79, plank 68, the ledger's capacity 108, recLoc 40, Math.hypot 44 —
+mostly doubles boxed on their way out of a function V8 does not inline (a call returns an object, and a decimal is one). Young garbage is cheap to
+collect (a scavenge's cost is what survives, not what died), and the reports since v11.197 (#150, #152) show no frame the recorder marked `gc`. So the
+hunt stops here unless a report shows the collector again.
+
+**Unseen, ask in this order:** nothing to see; a report after play, as ever.

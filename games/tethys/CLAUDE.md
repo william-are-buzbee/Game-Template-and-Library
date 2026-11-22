@@ -163,7 +163,7 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
 ## Architecture
 
 - **The world is a function.** `sample(x,z,out)` (world.js) is the one truth: the ground and nine fields (`FI`: sub, flow, expo, nut, turb,
-  young, heat, shel, rel), analytic geology plus fbm; no biome ids anywhere. The islands are records (`ISLANDS`, `islandH` in each island's own
+  young, heat, shel, rel), analytic geology plus fbm; no biome ids anywhere. The height alone is `sampleH(x,z)` (v11.205: no array made for fields nobody reads). The islands are records (`ISLANDS`, `islandH` in each island's own
   frame: ours, the giant and region.js's members) summed by smooth max over the model's floor (two records' meeting filled no higher than
   `FILL_TOP`, −20), found through the index (`RIX`, `recsAt` — never a loop over every record). `ISLANDS[0]` is ours and stays bit-identical but by a
   decision with its reason: check any change to `islandH` or `sample` against the last commit's world over the old square. Species and
