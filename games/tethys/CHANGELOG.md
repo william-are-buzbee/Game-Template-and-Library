@@ -10443,3 +10443,38 @@ nothing noticed that the loop no longer called it. Found reading the loop for th
 
 **Unseen, ask in this order:**
 1. A machine that has no verdict yet (a new browser, or `tier('forget')` in the console): `tier()` after a minute of play gives one.
+
+## v11.208 — F8: what each part of the frame costs this GPU, here (22 Nov 2026)
+
+The work tower's report #152 (Intel UHD 730, the low tier, drawn at 866×694 — 0.6 MP): the GPU ~30 ms a frame, the main pass 22–35 ms of it at every
+place, under water as much as in the air, with 1.4 M triangles. The recorder times the GPU by pass, not by what a pass draws; the software GPU can split a
+frame by draw (test/fill.js) but its ratios are not that card's — at the low tier and the tower's size it reads the forest as 212 ms of vertices and 235 of
+pixels, the terrain's pixels the dearest, then the surface, the water's dome, the stipe and the rocks' vertices. Which of those is the tower's 28 ms only
+the tower can say. So the person's own GPU is asked.
+
+- **The probe** (src/probe.js; **F8** in play, `probe()` in the console): each part of the frame skipped at three's `renderBufferDirect` in turn —
+  the terrain, the flora, the rocks and structures, the far cards, the creatures and the player, the water (the surface, its dome, the occluder), the
+  sky, the horizon's land and sea; each with its shadow casting, which goes through the same call — then each heavy effect that is on switched off
+  (`PROBE_FX`: caustics, texel light, shadows, world and ground shadows, sharp, shafts, snow, rain, clouds, refraction, crest, halo, murk, mirror, cloud
+  light); between every two, the frame as it is. A state is the median of 10 frames timed by the GPU's own timer, 3 frames after its switch (the
+  timer's results come back late; an effect may compile). A part's cost is the frame as it is (the mean of the two beside it) less the frame without
+  it. 43 states, ~570 frames: about 10 s at 60 Hz, 19 at the tower's 30. Hold still while it runs; the hint says so, then shows the dearest five.
+- **Kept for the report**: the last four probes in the recorder (`REC.probe`), sent with F9 — the place (an `AT=` for the benches), the drawn size, the
+  tier, the medium, the frame's GPU time, each part with its draws and each effect. `node test/report.js` prints them; the issue's text has a line each.
+- **Nothing moves while it runs** that would move its numbers: the resolution (`autoRes`) and the tier's sampling hold (main.js). Leaving play,
+  opening the effects list (a switch there would save the probe's) or hiding the tab stops it, nothing kept, every effect as it was.
+- **Until the first F8 nothing changes**: three's call is wrapped at the first probe, not before.
+- **test/probe.js** (in `--test`): a probe against the stub with the GPU's times made up from what each state leaves out, two frames late — every part's
+  and effect's cost given back to the hundredth, a skipped part's draws kept from three while the rest reach it, what each object counts as, every
+  effect as it was, the result in the report; leaving play stops one with nothing kept.
+- **What the parts leave out**, one frame in Chromium at the low tier (forest, shore, coast): 4–8 draws in no part — the cloud volume's quad, the snow's
+  and the rain's points, a small instanced mesh or two — and the clouds, snow and rain are measured as effects.
+- **test/benchpage.js**: `TIER=low` stands any browser bench at that tier (`#low` on the page's address).
+
+**What it costs:** nothing until F8 — a null check a frame. Against main: the simulation the same to the bit, the creatures' frame ×0.87 (noise: nothing
+in it changed); the GPU's counts the same at every place.
+
+**Unseen, ask in this order:**
+1. On the work tower, plain address (its verdict is low), somewhere it lags — under water at the forest's shelf, and on the surface: F8, hold still until
+   the hint shows the numbers, then F9. The report carries both probes; that decides what the low tier cuts.
+2. The same on the home machine, for comparison.

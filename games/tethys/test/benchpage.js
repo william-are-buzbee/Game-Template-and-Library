@@ -31,7 +31,7 @@ async function open(pw,root,opt){opt=opt||{};const server=await serve(root),brow
     for(const f of opt.init||[])await page.addInitScript(f);
     await page.route('**/three.min.js',async route=>{if(!THREE_JS){const r=await route.fetch(),t=await r.text(),n=t.split('4294967295*Math.random()').length-1;if(n!==4)throw new Error('three.min.js: '+n+' UUID draws found, 4 expected');THREE_JS=t.split('4294967295*Math.random()').join('4294967295*window.__uuidR()');}
       await route.fulfill({status:200,contentType:'text/javascript',body:THREE_JS});});
-    await page.goto(`http://127.0.0.1:${server.address().port}/bench.html`,{waitUntil:'load',timeout:300000});
+    await page.goto(`http://127.0.0.1:${server.address().port}/bench.html${process.env.TIER?'#'+process.env.TIER:''}`,{waitUntil:'load',timeout:300000}); // TIER=low (v11.208): the page at that tier, as the address's #low
     return {browser,page,server,errs,close:async()=>{await browser.close();server.close();}};}
   catch(e){await browser.close();server.close();throw e;}}
 // the places the browser benches stand at (test/gpu.js, test/fill.js; v11.187 moved them here and added the shore and the canopy, the person's laggy

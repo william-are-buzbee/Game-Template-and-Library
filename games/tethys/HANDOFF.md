@@ -4,6 +4,10 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.208 (22 Nov 2026): F8, the GPU probe** (src/probe.js; rec.js `REC.probe`; test/probe.js; test/report.js; CHANGELOG). Each part of the frame
+skipped and each heavy effect switched off in turn, timed on the person's own GPU, kept for the report. For the tower's main pass (22–35 ms at 0.6 MP on
+low): what the low tier cuts waits on its probe. **Ask:** F8 then F9 on the tower, under water and on the surface.
+
 **v11.207 (22 Nov 2026): the tier samples again** (main.js; test/idle.js; CHANGELOG). v11.202's mid-line `//` comment had swallowed the loop's
 `tierFrame` call: from v11.202 to v11.206 no verdict was made or changed. **Ask:** `tier()` after a minute of play on a browser with no verdict.
 
@@ -17,10 +21,6 @@ number the same to the bit. What is left is mostly boxed doubles; no report sinc
 **v11.204 (22 Nov 2026): esc to the menu saves through the fade** (save.js `saveLeave`, `saveFinish`; menu.js `toMenu`; test/player.js;
 CHANGELOG). The key was 75–270 ms of the whole save at once; now under 1 ms, the fade's frames walk the ledger, and what is left is walked under the
 black. **Ask:** esc after a long play — the fade at once, continue where you were.
-
-**v11.203 (21 Nov 2026): the low tier's own effects** (effects.js `FX_LS`, `FX_LOW_OFF`; test/fxcost.js; test/tier.js; CHANGELOG). The person:
-"It's not low if you can't run it on a low device." The low tier keeps its own effect choices (`tethys.fx.low`) and starts with the world's shadows
-and the refraction off. The software GPU could not rank the per-pixel effects (noise ±6%); the tower's reports will. **Ask:** a report from the tower.
 
 ## Open
 

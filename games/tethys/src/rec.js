@@ -22,7 +22,7 @@ const REC={v:(window.TETHYS_BUILD&&window.TETHYS_BUILD.v)||'dev',at:new Date().t
   gN:0,gSum:0,gMax:0,gPass:new Float64Array(5),places:new Map(),cur:null,other:null,progs:0,heap:0,
   sec:{s:0,n:0,ivMax:0,gN:0,g:0,sum:new Float64Array(REC_NM)},tl:[],tlEvery:2,sp:[],spN:0,errs:new Map(),errN:0,
   menu:{n:0,iv:0,work:0,max:0},boot:{scripts:0,first:-1,store:-1,load:-1,done:-1,progs:0,seen:false},loaf:{n:0,ms:0,block:0,by:new Map()},
-  prev:null,saveT:0,sent:0,skip:true,mid:''}; // skip: the next frame is not one (the first, and the one after the tab was hidden)
+  prev:null,saveT:0,sent:0,skip:true,mid:'',probe:[]}; // probe (v11.208, probe.js): the last PROBE_K.keep probes' results // skip: the next frame is not one (the first, and the one after the tab was hidden)
 REC.boot.scripts=+(REC.t0/1000).toFixed(2); // the page's own clock: seconds from the navigation to this file's first line (the scripts fetched and parsed)
 function recPlace(key,i,j){return {key:key,i:i,j:j,n:0,s:0,x:0,y:0,z:0,H:new Uint32Array(REC_NB),sum:new Float64Array(REC_NM),dMax:0,tMax:0,
   gN:0,g:0,gp:new Float64Array(5),wIv:0,w:new Float64Array(6)};} // one shape (CLAUDE.md "the shape rule"); w: the worst frame there — x, y, z, the body's yaw, its interval, its work
@@ -44,7 +44,7 @@ function recGpu(k){RG.did|=1<<k;if(!RG.on)return;if(RG.open!==null)recGpuEnd();i
 function recGpuEnd(){if(RG.open===null)return;RG.gl.endQuery(RG.ext.TIME_ELAPSED_EXT);const i=RG.h,pl=mode==='play';RG.q[i]=RG.open;RG.k[i]=RG.openK;RG.f[i]=REC.frame;RG.p[i]=pl?REC.cur:null;RG.pl[i]=pl?1:0;
   RG.h=(i+1)&63;RG.n++;RG.open=null;}
 function recGpuFlush(){if(RG.accF<0)return;const a=RG.acc,g=a[0]+a[1]+a[2]+a[3]+a[4];if(!RG.accBad){RG.ema=RG.ema<0?g:RG.ema+(g-RG.ema)*0.05;RG.last=g;RG.lastPl=RG.accPl;RG.goodN++;}
-  if(RG.accPl&&!RG.accBad){REC.HG[recBin(g)]++;REC.gN++;REC.gSum+=g;if(g>REC.gMax)REC.gMax=g;for(let k=0;k<5;k++)REC.gPass[k]+=a[k];REC.sec.gN++;REC.sec.g+=g;
+  if(RG.accPl&&!RG.accBad){if(PROBE!==null)probeGot(RG.accF,g);REC.HG[recBin(g)]++;REC.gN++;REC.gSum+=g;if(g>REC.gMax)REC.gMax=g;for(let k=0;k<5;k++)REC.gPass[k]+=a[k];REC.sec.gN++;REC.sec.g+=g;
     const P=RG.accP;if(P){P.gN++;P.g+=g;for(let k=0;k<5;k++)P.gp[k]+=a[k];}
     for(const r of REC.sp)if(r[0]===RG.accF)r[15]=+g.toFixed(2);}
   a.fill(0);RG.accF=-1;RG.accP=null;RG.accPl=0;RG.accBad=0;}
@@ -152,7 +152,7 @@ function recFull(){const n=REC.n||1,S=REC.sum,X=REC.mx,f=v=>+v.toFixed(2),g=REC.
       draws:[Math.round(S[9]/n),X[9]],tris:[Math.round(S[10]/n),Math.round(X[10])],creatures:Math.round(S[11]/n),cells:Math.round(S[12]/n),res:f(S[13]/n),above:f(S[14]/n),vsync:vs,over:[over(16.7),over(33.3),over(50)]},
     menu:{frames:REC.menu.n,iv:REC.menu.n?f(REC.menu.iv/REC.menu.n):0,max:f(REC.menu.max),work:REC.menu.n?f(REC.menu.work/REC.menu.n):0},
     pc:REC_PC,places:places.map(recPlaceRow),tl:{every:REC.tlEvery,cols:REC_TL,rows:REC.tl.slice()},
-    sc:REC_SC,spikes:REC.sp.slice().sort((a,b)=>b[6]-a[6]),spN:REC.spN,errs:errs,errN:REC.errN,loaf:{n:REC.loaf.n,ms:Math.round(REC.loaf.ms),block:Math.round(REC.loaf.block),by:loaf.slice(0,10)}};}
+    sc:REC_SC,spikes:REC.sp.slice().sort((a,b)=>b[6]-a[6]),spN:REC.spN,errs:errs,errN:REC.errN,loaf:{n:REC.loaf.n,ms:Math.round(REC.loaf.ms),block:Math.round(REC.loaf.block),by:loaf.slice(0,10)},probe:REC.probe.slice()};}
 // a level of detail: 0 everything, each step fewer places, frames and errors, and a coarser timeline — for the link's length (recBody)
 function recShrink(p,L){if(!L)return p;const o=Object.assign({},p),K=[0,60,40,25,15,10][Math.min(L,5)],pc=p.pc,iS=pc.indexOf('s'),i95=pc.indexOf('p95');
   const byS=p.places.slice().sort((a,b)=>b[iS]-a[iS]),byP=p.places.filter(r=>r[iS]>=5).sort((a,b)=>b[i95]-a[i95]),keep=new Set();
@@ -174,6 +174,7 @@ function recMd(p,tok,cut,prev){const a=p.all,d=p.dev||{},b=p.boot||{},pc=p.pc,I=
   L.push('**machine** '+(d.mid?'`'+d.mid+'` ':'')+recGpuName(d.gpu)+' · WebGL'+d.gl+' · '+d.cores+' threads'+(d.mem?' · '+d.mem+' GB':'')+(d.plat?' · '+d.plat.trim():'')+(d.flags?' · '+d.flags:'')+(d.lod?' · lod '+d.lod:'')+' · screen '+(d.screen||[]).join('×')+' ×'+d.dpr+' · drawn '+(d.buf||[]).join('×')+' · '+d.tier+(a.vsync?' · vsync '+a.vsync.toFixed(1)+' ms':''));
   L.push('**frames** p50 '+recMs(a.iv[0])+' · p95 '+recMs(a.iv[2])+' · p99 '+recMs(a.iv[3])+' · max '+recMs(a.iv[4])+' ms · '+(100*a.over[1]).toFixed(1)+'% over 33 ms · CPU '+recMs(a.work[0])+' ms (sim '+recMs(a.ph.sim)+' · gen '+recMs(a.ph.gen)+' · render '+recMs(a.ph.render)+')');
   L.push(a.gpu?'**gpu** p50 '+recMs(a.gpu.p50)+' · p95 '+recMs(a.gpu.p95)+' ms (main '+recMs(a.gpu.pass.main)+' · horizon '+recMs(a.gpu.pass.horizon)+' · clouds '+recMs(a.gpu.pass.clouds)+' · shadows '+recMs(a.gpu.pass.shadows)+' · sky '+recMs(a.gpu.pass.sky)+')':'**gpu** no timer in this browser');
+  if(p.probe&&p.probe.length)for(const q of p.probe)L.push('**probe** at `'+recTp(q.at[0],q.at[2],q.at[1])+'` ('+q.buf.join('×')+', '+q.tier+'): the GPU '+recMs(q.gpu)+' ms — '+q.parts.concat(q.fx).filter(x=>x[1]!==null).sort((x,y)=>y[1]-x[1]).slice(0,8).map(x=>x[0]+' '+recMs(x[1])).join(' · ')); // v11.208 (probe.js): what each part cost the GPU there
   L.push('**boot** scripts '+b.scripts+' s · first frame '+b.first+' s · world in '+b.done+' s · '+b.progs+' programs'+(b.seen?' (seen this version before)':' (first visit of this version)'));
   const w=p.places.filter(r=>r[I('s')]>=5).sort((x,y)=>y[I('p95')]-x[I('p95')]).slice(0,5);
   if(w.length){L.push('**worst places** (p95 · gpu · time there)');for(const r of w)L.push('- `'+recTp(r[I('x')],r[I('z')],r[I('y')])+'` '+recMs(r[I('p95')])+' · '+recMs(r[I('gpu')])+' ms · '+(r[I('s')]/60).toFixed(1)+' min');}
