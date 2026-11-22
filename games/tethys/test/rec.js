@@ -29,7 +29,7 @@ function page(opt){opt=opt||{};let now=1000,frame=0,disjoint=false;const handler
     localStorage:{getItem:k=>store.has(k)?store.get(k):null,setItem:(k,v)=>store.set(k,String(v))},
     document:{hidden:false,addEventListener(n,f){(handlers['doc:'+n]=handlers['doc:'+n]||[]).push(f);}},
     addEventListener(n,f){(handlers[n]=handlers[n]||[]).push(f);},
-    THREE:{Vector2:class{constructor(){this.x=0;this.y=0;}}},LOD:{on:true,k:0.5,dSea:150,dAir:120},GL2:true,Q:{tier:'high',why:'default',pr:1.5,aa:true},TIER_SAVED:null,isTouch:false,FX:{snow:true,shadows:true,biolum:false},CELL:215,
+    THREE:{Vector2:class{constructor(){this.x=0;this.y=0;}}},LOD:{on:true,k:0.5,dSea:150,dAir:120},GL2:true,Q:{tier:'high',why:'default',pr:1.5,aa:true},TIER_SAVED:null,PROBE:null,probeGot(){},isTouch:false,FX:{snow:true,shadows:true,biolum:false},CELL:215,
     BOOT:{stage:'store',done:false},mode:'menu',player:{pos:{x:0,y:-12,z:0},yaw:0},visibleCreatures:0,visibleChunks:0,resK:1,wasAbove:false,hintEl:{style:{}},
     renderer:{info:{render:{calls:0,triangles:0},programs:[]},getContext:()=>gl,getDrawingBufferSize:v=>{v.x=2400;v.y=1350;return v;},domElement:{addEventListener(){}}}};
   g.window=g;g.open=opt.open||(()=>({location:{href:''},opener:{}}));vm.createContext(g);vm.runInContext(SRC,g,{filename:'rec.js'});
