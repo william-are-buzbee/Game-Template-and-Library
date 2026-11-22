@@ -494,7 +494,7 @@ const CAU_TEX=[];let CAU_GTEX=null;
 // one multiplier, so the grain is a step of tone and not quantised away. The chosen cell is the column along the face's dominant axis (pass A),
 // so the pattern is read on the two axes across it (cid) and the across-growth index (ca) is the one not the growth axis.
 const PIX_GRAIN=0.06,PIX_CLASS={terr:[0.6,1.0],rock:0.7,plant:0.4,blade:0.4,card:0.4,body:0.5},PIX_ROCK_CLUMP=3,PIX_VEIN=[3,0.08]; // the tone step; the grain weight per class (terr: [rock, sand] by luminance); rock's grain hashed on clumps of n cells (v11.41.1: the person wanted it "much more coarse"); a vein every n cells across by this much
-const PIX_CLS_GLSL=cls=>(cls==='terr'?'\n#ifdef USE_COLOR\nfloat pw=mix('+PIX_CLASS.terr[0].toFixed(2)+','+PIX_CLASS.terr[1].toFixed(2)+',smoothstep(0.3,0.6,dot(vColor,vec3(0.3,0.5,0.2))));\n#else\nfloat pw='+PIX_CLASS.terr[1].toFixed(2)+';\n#endif\n':'float pw='+(PIX_CLASS[cls]||0).toFixed(2)+';')+
+const PIX_CLS_GLSL=cls=>(cls==='terr'?'\n#ifdef USE_COLOR\nfloat pw=mix('+PIX_CLASS.terr[0].toFixed(2)+','+PIX_CLASS.terr[1].toFixed(2)+',smoothstep(0.3,0.6,dot(vColor.rgb,vec3(0.3,0.5,0.2))));\n#else\nfloat pw='+PIX_CLASS.terr[1].toFixed(2)+';\n#endif\n':'float pw='+(PIX_CLASS[cls]||0).toFixed(2)+';')+
   'float tn=(floor(ph*3.0)-1.0)*'+PIX_GRAIN.toFixed(3)+'*pw;'+
   (cls==='rock'?'ph=fract(sin(dot(floor(cid/'+PIX_ROCK_CLUMP.toFixed(1)+'),vec2(12.9898,78.233)))*43758.5453);tn=(floor(ph*3.0)-1.0)*'+PIX_GRAIN.toFixed(3)+'*pw;':'')+
   (cls==='blade'||cls==='card'?'if(mod(ca,'+PIX_VEIN[0].toFixed(1)+')<0.5)tn-='+PIX_VEIN[1].toFixed(3)+';':'')+
@@ -550,9 +550,9 @@ const PIX_GRID_V=grid=>grid==='world'?'vGrid=(modelMatrix*wpp).xyz;':'vGrid=pGri
 // The tiles as one texture array (v11.187, WebGL2): the ten a tinted material sampled (each ring's S and C, layers 2i and 2i+1) under one sampler, the same
 // bytes, wrap and filter, so the same caustic — and nine of WebGL's sixteen texture units a fragment shader may use come free (the tinted materials were at
 // sixteen: v11.81's third map failed every compile), one of them now the flora's vertex data (VPULL_GLSL). WebGL1 keeps the ten (CAU_TEX[i].s, .c).
-const CAU_ARR=(function(){if(!GL2||!CAU_TEX.length||!THREE.DataTexture2DArray)return null;const N=CAU_N,L=CAU_TEX.length*2,D=new Uint8Array(N*N*4*L);
+const CAU_ARR=(function(){const ArrT=/** @type {any} */(THREE).DataArrayTexture||THREE.DataTexture2DArray; /* v11.215 (three.js-ready): renamed in r138 */if(!GL2||!CAU_TEX.length||!ArrT)return null;const N=CAU_N,L=CAU_TEX.length*2,D=new Uint8Array(N*N*4*L);
   CAU_TEX.forEach((r,i)=>{D.set(r.s.image.data,(2*i)*N*N*4);D.set(r.c.image.data,(2*i+1)*N*N*4);});
-  const t=new THREE.DataTexture2DArray(D,N,N,L);t.format=THREE.RGBAFormat;t.type=THREE.UnsignedByteType;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.minFilter=t.magFilter=THREE.LinearFilter;t.generateMipmaps=false;t.needsUpdate=true;t.clone=function(){return this;};return t;})();
+  const t=new ArrT(D,N,N,L);t.format=THREE.RGBAFormat;t.type=THREE.UnsignedByteType;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.minFilter=t.magFilter=THREE.LinearFilter;t.generateMipmaps=false;t.needsUpdate=true;t.clone=function(){return this;};return t;})();
 const cauTap=(k,i,uv)=>CAU_ARR?'texture(uCauA,vec3('+uv+','+(2*i+(k==='C'?1:0)).toFixed(1)+'))':'texture2D(uCau'+k+i+','+uv+')'; // a ring's S or C tile at uv, from the array or its own texture
 // The ripples' slope at a surface point, for the glitter (v11.46, WATER.md F): the same trains the caustic is drawn from — "the ripple layer that lives only in the
 // light" (PLANET, 14 Sep) — read as a gradient from the tiles' rg/ba parts at the ring's phase, carried by the swell as the caustic's are, gusted by the same
@@ -935,7 +935,7 @@ const MATTRF=addTint(lodMaterial(TREE_LOD),'lamdslod',true,undefined,undefined,'
 let VPULL_TEX=null;const vpullMats=new Map();
 const VPULL_V='uniform highp sampler2D uPull;attribute vec2 aPull;vec3 pPos,pNor,pCol;\n';
 const VPULL_MAIN=()=>'{int v=int(aPull.x+aVar*aPull.y+0.5);ivec2 q=ivec2((v%'+VPULL.row+')*3,v/'+VPULL.row+');vec4 pa=texelFetch(uPull,q,0);if(pa.w>0.5)'+GONE+'pPos=pa.xyz;pNor=texelFetch(uPull,q+ivec2(1,0),0).xyz;pCol=texelFetch(uPull,q+ivec2(2,0),0).xyz;}\n';
-const VPULL_COLOR='\n#if defined( USE_COLOR_ALPHA )\nvColor=vec4(1.0);\n#elif defined( USE_COLOR ) || defined( USE_INSTANCING_COLOR )\nvColor=vec3(1.0);\n#endif\n#ifdef USE_COLOR\nvColor*=pCol;\n#endif\n#ifdef USE_INSTANCING_COLOR\nvColor.xyz*=instanceColor.xyz;\n#endif\n'; // r128's color_vertex on the fetched colour
+const VPULL_COLOR='\n#if defined( USE_COLOR_ALPHA )\nvColor=vec4(1.0);\n#elif defined( USE_COLOR ) || defined( USE_INSTANCING_COLOR ) || defined( USE_BATCHING_COLOR )\nvColor=vec3(1.0);\n#endif\n#ifdef USE_COLOR\nvColor.rgb*=pCol;\n#endif\n#ifdef USE_INSTANCING_COLOR\nvColor.rgb*=instanceColor.xyz;\n#endif\n'; // r128's color_vertex on the fetched colour; v11.215 (three.js-ready): .rgb, for a vColor that is a vec4 (USE_COLOR_ALPHA), and USE_BATCHING_COLOR (r165) declares it too
 function vpullGLSL(sh){sh.uniforms.uPull={value:VPULL_TEX};
   sh.vertexShader=VPULL_V+sh.vertexShader.split(VAR_COLLAPSE).join('').replace('void main() {','void main() {\n'+VPULL_MAIN()).replace('#include <color_vertex>',VPULL_COLOR).replace('#include <beginnormal_vertex>','vec3 objectNormal=pNor;').replace('#include <begin_vertex>','vec3 transformed=pPos;');}
 function vpullMat(m){let p=vpullMats.get(m);if(p)return p;p=m.clone();const ob=m.onBeforeCompile,key=m.customProgramCacheKey();

@@ -1,5 +1,5 @@
-// test/wcache.js — the world cache (v11.214, src/wcache.js; cacheload.js): the game loaded against the stub in four processes. One builds the world as
-// always and keeps what the cache would store; a second is handed that as its cache (window.__WCACHE, as cacheload.js leaves it) and must take both products
+// test/wcache.js — the world cache (v11.214, src/wcache.js; loader.js): the game loaded against the stub in four processes. One builds the world as
+// always and keeps what the cache would store; a second is handed that as its cache (window.__WCACHE, as loader.js leaves it) and must take both products
 // from it and end with the maps and the caustic tiles the same to the bit; a third, on the low tier, takes its three rings from the high tier's five and must
 // match a fourth that baked its own three. Also: the saves list never reads a world record as a slot. In --test (build.js SIDE).
 'use strict';

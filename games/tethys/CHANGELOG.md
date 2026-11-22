@@ -10676,3 +10676,28 @@ test/bench.js's fingerprints.
 
 **Unseen, ask in this order:**
 1. Open the game twice: the second time the black page should give way to the world a little sooner. A report (F9) after the second: its boot line.
+
+## v11.215 — three.js-ready: three.js loaded as a module, and the spike's fixes that work on both versions (22 Nov 2026)
+
+The person, 22 Nov 2026, on the three.js upgrade (analysis_project.md §6): "yes absolutely … we should do it", after the tower's F8. Every release after
+r160 ships only a module; the spike spent half a day on that before it reached the game. This does that half-day on today's r128 — its own module
+build, the same 459 exports as its single file — so the upgrade is mostly the version and the breakages, and loading is measured apart from it.
+
+- **tethys.html: loader.js `tethysStart`** (cacheload.js renamed; it reads the world cache as before): three.js imported (`import()`) beside the cache's
+  read, its exports copied onto a plain `window.THREE` (a module's namespace is frozen), then the next paint, then the game. A three.js that does not
+  load still starts the game, whose scene.js says so as before.
+- **dev.html and the bench page** (test/benchpage.js): a module script, then the src files `defer` — the two run in document order, before the page's
+  load event, so every bench and test waits as it did. The bench page's UUID patch takes the module (the same four draws) and answers it with CORS.
+  test/deopts.js reads `three.module.min.js` positions.
+- **`THREE_URL`**: build.js and build.py (the bench page reads build.js's); in the world cache's hash, so a new three.js is a new world.
+- **The spike's fixes that work on both versions** (grep `three.js-ready`): the refraction texture RGBA from r137 and `copyFramebufferToTexture`'s
+  arguments from r165 (atmosphere.js, by `THREE.REVISION`); `DataArrayTexture` or `DataTexture2DArray` (scene.js `CAU_ARR`); a pool's upload by
+  `updateRanges` where `updateRange` is gone (chunks.js `poolUp`); `vColor.rgb` wherever a shader reads the vertex colour (scene.js, atmosphere.js,
+  combat.js, fx.js), and the pulled colour's `vColor` set as a vec4 or a vec3 by the same defines as three's own chunk.
+
+**What it costs:** nothing per frame. The pictures at five places (forest, canopy, shore, atoll, open water; 640×360, the bench page's seeded frame)
+the same to the bit, base against this; test/gpu.json's counts all the same. The load, a fresh page in headless Chromium, three rounds: the first frame
+3.96 / 3.98 / 4.12 s on base, 3.56 / 4.22 / 4.00 s here; the scripts start 0.18–0.39 s against 0.20–0.23 s; a reload (three from the browser's cache)
+3.96–4.40 against 3.77–4.13 s. So the spike's slower boot (9 → 12 s) was r187's own, not the loading's.
+
+**Unseen, ask:** nothing new to see — the game should look and load as v11.214. If the page stays on its loading screen, F12's console says why.

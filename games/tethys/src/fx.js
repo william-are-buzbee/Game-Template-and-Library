@@ -12,7 +12,7 @@ fxM.onBeforeCompile=function(sh){sh.uniforms.uPL=plU;sh.uniforms.uPLc=plCU;let n
     .replace('gl_PointSize = size;',()=>{n++;return 'gl_PointSize=size*aSz.x;vA=aSz.y*smoothstep(0.4,1.5,-mvPosition.z);{vec3 dl=transformed-uPL.xyz;vL=uPL.w/(0.5+dot(dl,dl));}';})
     .replace('#include <logdepthbuf_vertex>',()=>{n++;return 'gl_PointSize=min(gl_PointSize,36.0);\n#include <logdepthbuf_vertex>';});
   sh.fragmentShader=sh.fragmentShader.replace('uniform vec3 diffuse;',()=>{n++;return 'varying float vA;varying float vL;uniform vec3 uPLc;uniform vec3 diffuse;';})
-    .replace('#include <color_fragment>',()=>{n++;return 'diffuseColor.rgb=vColor*(diffuse+uPLc*vL);diffuseColor.a*=vA;';});
+    .replace('#include <color_fragment>',()=>{n++;return 'diffuseColor.rgb=vColor.rgb*(diffuse+uPLc*vL);diffuseColor.a*=vA;';});
   if(n!==5)console.warn('fx: points chunks not as expected ('+n+' of 5); the debris draws uniform');};
 fxM.customProgramCacheKey=function(){return 'fxpts';};
 const fxPts=new THREE.Points(fxG,fxM);fxPts.frustumCulled=false;fxPts.visible=false;scene.add(fxPts);

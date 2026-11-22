@@ -146,6 +146,29 @@ stay off and their question open.
 on they cost more on every machine: renderFrame's CPU ×1.37–1.48 and 45 draws a frame, the proxy's GPU ×1.06–1.08 (#144's home report, with
 `#lod` at another place, read 4.5 ms of submit against 2.9). So, by the person's own rule, **struck in v11.201**; the uniform cut stays.
 
+## 6. three.js to a current release (the spike, 22 Nov 2026; the groundwork built v11.215)
+
+The spike (a throwaway branch, `claude/tethys-three-spike`, never merged) ran the game on r187 after a handful of fixes. The whole of it, about 4–6
+days: loading (½–1 day: r187 ships only a module); small API changes (½ day); four visible breakages (1–1½ days: the creatures' shadows, which take a
+depth texture now; the refraction's copy of the frame, a FramebufferTexture; the sun lighting by the camera's depth again, a chunk renamed under
+scene.js's regex; thinLight's translucency, the Lambert chunk rewritten); light units (½–1 day, with the person: the sun and sky convert exactly,
+×π, but point lights fall off by a physical decay — the glows, the vents and the lures tuned by eye); tests (½–1 day: the cone and the lathe come out
+slightly different, so test/bench.js's fingerprints move once, and the stub and test/gpu.json with them). It buys: V8 bail-outs inside three.js in 400
+frames 336 → 75 (v11.200's worst, WebGLBindingStates.setup, gone), shaders compiled in the background (KHR_parallel_shader_compile), BatchedMesh.
+It costs: the boot 9 → 12 s on the software GPU, cause unknown; lighting per pixel where r128's Lambert lit per vertex.
+
+The person, 22 Nov 2026: "yes absolutely … we should do it", after the tower's F8 with v11.212 in (#169) — the tower is triangle-bound, and per-pixel
+lighting moves cost the other way — with r128 kept switchable until both are compared in a preview.
+
+**Built v11.215 (three.js-ready), on r128, before the upgrade:** what could be done without changing a pixel. three.js comes in as a module — r128's
+own module build, the same 459 exports as its single file (loader.js `tethysStart`; dev.html and the bench page, a module script before the src files
+deferred) — so the upgrade's loading half-day is spent and measured apart from it: the first frame the same (3.96–4.12 s against 3.56–4.22 s, a fresh
+page in headless Chromium), so the spike's slower boot is r187's own, not the loading's. And the spike's fixes that work on both versions are in, each
+by what exists rather than by version where it can be (grep `three.js-ready`): the refraction texture's format and `copyFramebufferToTexture`'s
+arguments by `THREE.REVISION`; `DataArrayTexture` (its r138 name) or `DataTexture2DArray`; a pool's upload by `updateRanges` (r159) or `updateRange`;
+`vColor.rgb` wherever a shader reads the vertex colour, which a later three may make a vec4. Pictures at five places the same to the bit, base against
+this; test/gpu.json's counts unchanged. The breakages, the light units and the tests remain the upgrade's own.
+
 ## 7. A fixed step (the person's answer, 22 Nov 2026; parts 1 and 2 built v11.209, v11.210)
 
 Asked between (1) the sim's randomness seeded and each frame's length recorded — replays and exact tests, no change in feel — and (2) a fixed 60 Hz
