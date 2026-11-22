@@ -6,7 +6,7 @@
 // localStorage backend's list parses no slot. In --test (build.js SIDE).
 'use strict';
 const fs=require('fs'),path=require('path'),vm=require('vm');
-const SRC=fs.readFileSync(path.join(__dirname,'..','src','save.js'),'utf8');
+const SRC=fs.readFileSync(path.join(__dirname,'..','src','wcache.js'),'utf8')+'\n'+fs.readFileSync(path.join(__dirname,'..','src','save.js'),'utf8'); // wcache.js (v11.214): WORLD_P, which the list skips
 let fails=0;const ok=(c,m)=>{console.log((c?'  ok   ':'  FAIL ')+m);if(!c)fails++;};
 function page(ls){const g={console,Math,JSON,Date,Map,Set,Array,Object,String,Number,Error,Promise,Float32Array,Int32Array,Uint8Array,Uint32Array,setTimeout:f=>f(),
     document:{addEventListener(){}},addEventListener(){},navigator:{},performance:{now:()=>0}};
