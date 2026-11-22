@@ -173,8 +173,43 @@ canvas{display:block;outline:none;touch-action:none}
 <div id="fade" class="layer"></div>
 <canvas id="spark" class="layer"></canvas>
 <div id="stats"></div>
-<script>window.TETHYS_BUILD={v:"v11.213"};</script>
+<script>window.TETHYS_BUILD={v:"v11.214",wh:"c4f85630cc3cea4a"};</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+// cacheload.js — the world cache's reader (v11.214; analysis_loading.md §4.3, the person's yes of 22 Nov 2026). The build puts it in tethys.html only, before
+// the game's script, which it starts: the world this build made on an earlier visit — its maps and its caustic tiles, stored under `world:<the hash of the
+// game's code>` (src/wcache.js writes it) — read from IndexedDB as array buffers into window.__WCACHE, then the game. The database is opened as save.js opens
+// it (the same name, version and store), so whichever comes first makes it the same way. A store that does not answer in WCACHE_WAIT ms, a missing record or
+// any error: the game starts without, and computes as it always did. dev.html, the benches and the tests have no hash, so never read one.
+var WCACHE_WAIT=1500;
+function wcacheRead(go){
+  var B=window.TETHYS_BUILD,done=false;
+  var fin=function(){if(done)return;done=true;go();};
+  if(!B||!B.wh||!window.indexedDB){fin();return;}
+  setTimeout(fin,WCACHE_WAIT);
+  try{
+    var rq=window.indexedDB.open('tethys',1);
+    rq.onupgradeneeded=function(){rq.result.createObjectStore('kv',{keyPath:'id'});};
+    rq.onerror=fin;
+    rq.onsuccess=function(){
+      var db=rq.result;
+      try{
+        var g=db.transaction('kv','readonly').objectStore('kv').get('world:'+B.wh);
+        g.onerror=function(){db.close();fin();};
+        g.onsuccess=function(){
+          var r=g.result;db.close();
+          if(!r||!r.blobs){fin();return;}
+          var keys=Object.keys(r.blobs),n=keys.length,buf={},t0=performance.now();
+          if(!n){fin();return;}
+          keys.forEach(function(k){
+            r.blobs[k].arrayBuffer().then(function(ab){buf[k]=ab;n--;if(n===0){if(!done)window.__WCACHE={meta:r.meta,buf:buf,ms:performance.now()-t0};fin();}},fin);
+          });
+        };
+      }catch(e){db.close();fin();}
+    };
+  }catch(e){fin();}
+}
+</script>
 <script>
 function tethysMain(){
 "use strict";
@@ -2851,6 +2886,27 @@ function flowAt(x,y,z,out){
   out.x=vx;out.y=vy;out.z=vz;
 }
 
+// wcache.js — the world cache (v11.214; analysis_loading.md §4.3 — the person, 22 Nov 2026: "Yes that acceptable for the world cache … We should do this now
+// before the three.js update"): what the load builds the same way every time for one build of the code — the water and floor maps' first fill (far.js
+// wmFill at step 4, then wmBlur; ~0.8 s of the load in Node) and the caustic tiles (scene.js; ~0.35 s) — kept in IndexedDB under `world:<the code's hash>`
+// (build.js WH, stamped in tethys.html as TETHYS_BUILD.wh) and, on the next visit, read before the game's script starts (cacheload.js) and taken instead of
+// computed. Each product's site asks for its buffers (wcBuf); given, it uses them; not, it computes as before. Either way it hands what it has to wcKeep, and
+// when the boot ends (main.js bootIn, bootFinish) a world with anything computed is written whole (wcWrite) and every other build's deleted. dev.html, the
+// benches and the tests carry no hash: they never read or write one. What is stored is a copy, never the arrays the game goes on changing.
+const WORLD_P='world:'; // the store's key prefix for a world; the saves list never reads these (save.js saveRefresh)
+const WC={c:(typeof window!=='undefined'&&window.__WCACHE)||null,hit:{maps:false,cau:false},keep:null,wrote:false};
+if(typeof window!=='undefined'){window.__WCACHE=null;window.__wcache=WC;} // the buffers are ours now; __wcache: the tests (test/wcache_page.js)
+function wcBuf(k){const c=WC.c;return c&&c.buf&&c.buf[k]?c.buf[k]:null;} // a stored product's ArrayBuffer, or null
+function wcMeta(k){const c=WC.c;return c&&c.meta&&c.meta[k]!==undefined?c.meta[k]:null;}
+function wcKeep(k,a,meta){if(!WC.keep)WC.keep={meta:{},blobs:{}};if(a)WC.keep.blobs[k]=a;if(meta!==undefined)WC.keep.meta[k]=meta;} // a typed array or ArrayBuffer to write (copied into a Blob at the write); meta: plain data
+function wcWrite(){ // the boot's end: a world with anything computed this visit, written; the other builds' worlds deleted
+  if(WC.wrote)return;WC.wrote=true;const B=typeof window!=='undefined'?window.TETHYS_BUILD:null,K=WC.keep;WC.keep=null;
+  if(!B||!B.wh||!K||(WC.hit.maps&&WC.hit.cau))return;
+  setTimeout(()=>{storeOpen(()=>{if(store.kind!=='idb')return; // localStorage could not hold it; the memory store would not keep it
+    try{const blobs={};for(const k in K.blobs)blobs[k]=new Blob([K.blobs[k]]);const id=WORLD_P+B.wh;
+      storePut({id:id,kind:'world',v:B.v,meta:K.meta,blobs:blobs},()=>{storeSums((sums,keys)=>{for(const k of keys)if(k.indexOf(WORLD_P)===0&&k!==id)storeOp('readwrite',os=>os.delete(k),()=>{});});});}
+    catch(e){console.warn('the world cache: '+e.message);}});},0);}
+
 // scene.js — app state, quality tier, renderer, camera, lights, shared materials
 if(typeof THREE==='undefined'){document.getElementById('title').textContent='three.js did not load';throw new Error('three.js missing');}
 
@@ -3373,8 +3429,17 @@ const PIX_GLSL=(grid,cls)=>'if(uTex>0.5){vec3 gx=dFdx(vGrid),gy=dFdy(vGrid);floa
 // to metres by the object's and the instance's scale; 'world' takes the world position instead so the cells' terrain and the far terrain share one grid
 const PIX_GRID_V=grid=>grid==='world'?'vGrid=(modelMatrix*wpp).xyz;':'vGrid=pGrid*vec3(length(modelMatrix[0].xyz),length(modelMatrix[1].xyz),length(modelMatrix[2].xyz));\n#ifdef USE_INSTANCING\nvGrid*=vec3(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz),length(instanceMatrix[2].xyz));\n#endif\n';
 (function(){ // the bake: for each ring, the lattice vectors in its band, one train per direction bin within the spread, then the tiles
-  const rng=mulberry(1717),T=CAU_TILE,N=CAU_N,nmax=Math.ceil(T/CAU_RINGS[CAU_RINGS.length-1][0]*1.25)+1;
-  for(let r=0;r<Math.min(Q.cau,CAU_RINGS.length);r++){const L=CAU_RINGS[r][0],A0=CAU_RINGS[r][1],trains=[];
+  const rng=mulberry(1717),T=CAU_TILE,N=CAU_N,nmax=Math.ceil(T/CAU_RINGS[CAU_RINGS.length-1][0]*1.25)+1,R=Math.min(Q.cau,CAU_RINGS.length);
+  const mk=d=>{const t=new THREE.DataTexture(d,N,N,THREE.RGBAFormat,THREE.UnsignedByteType);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.minFilter=t.magFilter=THREE.LinearFilter;t.generateMipmaps=false;t.needsUpdate=true;t.clone=function(){return this;};return t;};
+  // v11.214 (wcache.js): the tiles from the world cache when it holds as many rings as this tier draws (a ring's draws follow the earlier rings', so the
+  // first R of five are a three-ring bake's), else baked as always and kept; the gust tile with them
+  const cm=wcMeta('cau'),G0=CAU_GN;
+  if(cm&&cm.rings>=R&&wcBuf('cauGust')&&wcBuf('cauGust').byteLength===G0*G0*4){let ok=true;for(let r=0;r<R;r++)if(!wcBuf('cauS'+r)||!wcBuf('cauC'+r)||!wcBuf('cauG'+r)||wcBuf('cauS'+r).byteLength!==N*N*4)ok=false;
+    if(ok){for(let r=0;r<R;r++){const e=cm.ring[r];CAU_TEX.push({L:e.L,w:Math.sqrt(9.8*TAU/e.L),n:e.n,s:mk(new Uint8Array(wcBuf('cauS'+r))),c:mk(new Uint8Array(wcBuf('cauC'+r))),g:mk(new Uint8Array(wcBuf('cauG'+r))),sm:e.sm});}
+      {const t=new THREE.DataTexture(new Uint8Array(wcBuf('cauGust')),G0,G0,THREE.RGBAFormat,THREE.UnsignedByteType);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.minFilter=t.magFilter=THREE.LinearFilter;t.generateMipmaps=false;t.needsUpdate=true;t.clone=function(){return this;};CAU_GTEX=t;}
+      WC.hit.cau=true;wcKeep('cau',null,cm);for(let r=0;r<cm.rings;r++)for(const k of ['cauS','cauC','cauG'])wcKeep(k+r,wcBuf(k+r));wcKeep('cauGust',wcBuf('cauGust'));return;}}
+  const kept=[];
+  for(let r=0;r<R;r++){const L=CAU_RINGS[r][0],A0=CAU_RINGS[r][1],trains=[];
     const bins=new Array(CAU_DIRS).fill(null);
     for(let nx=-nmax;nx<=nmax;nx++)for(let nz=-nmax;nz<=nmax;nz++){const nn=Math.hypot(nx,nz);if(nn<0.5)continue;const l=T/nn;if(Math.abs(l/L-1)>0.18)continue;
       let a=Math.atan2(nz,nx)-WIND_A;a=Math.atan2(Math.sin(a),Math.cos(a));if(Math.abs(a)>CAU_SPREAD)continue;
@@ -3386,10 +3451,10 @@ const PIX_GRID_V=grid=>grid==='world'?'vGrid=(modelMatrix*wpp).xyz;':'vGrid=pGri
       for(const w of trains){const p=x*w.kx+z*w.kz+w.ph,sp=Math.sin(p),cp=Math.cos(p),s=sp*w.c,c=cp*w.c,ak=w.ak;sxx+=s*w.dx*w.dx;sxy+=s*w.dx*w.dz;szz+=s*w.dz*w.dz;cxx+=c*w.dx*w.dx;cxy+=c*w.dx*w.dz;czz+=c*w.dz*w.dz;gsx+=sp*ak*w.dx;gsz+=sp*ak*w.dz;gcx+=cp*ak*w.dx;gcz+=cp*ak*w.dz;}
       const o=(j*N+i)*4;S[o]=clamp(sxx*q+127.5,0,255);S[o+1]=clamp(sxy*q+127.5,0,255);S[o+2]=clamp(szz*q+127.5,0,255);S[o+3]=255;C[o]=clamp(cxx*q+127.5,0,255);C[o+1]=clamp(cxy*q+127.5,0,255);C[o+2]=clamp(czz*q+127.5,0,255);C[o+3]=255;
       G[o]=clamp(gsx*qg+127.5,0,255);G[o+1]=clamp(gsz*qg+127.5,0,255);G[o+2]=clamp(gcx*qg+127.5,0,255);G[o+3]=clamp(gcz*qg+127.5,0,255);} // the gradient tile (v11.46, the glitter): the slope's sin part (rg) and cos part (ba) of the same trains — h = Σ A sin(p − ωt), so ∇h = Σ A k dir (cos p cos ωt + sin p sin ωt)
-    const mk=d=>{const t=new THREE.DataTexture(d,N,N,THREE.RGBAFormat,THREE.UnsignedByteType);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.minFilter=t.magFilter=THREE.LinearFilter;t.generateMipmaps=false;t.needsUpdate=true;t.clone=function(){return this;};return t;};
-    CAU_TEX.push({L:L,w:Math.sqrt(9.8*TAU/L),n:trains.length,s:mk(S),c:mk(C),g:mk(G),sm:sm});}
+    CAU_TEX.push({L:L,w:Math.sqrt(9.8*TAU/L),n:trains.length,s:mk(S),c:mk(C),g:mk(G),sm:sm});kept.push({L:L,n:trains.length,sm:sm});wcKeep('cauS'+r,S.slice());wcKeep('cauC'+r,C.slice());wcKeep('cauG'+r,G.slice());}
+  wcKeep('cau',null,{rings:R,ring:kept});
   {const G=CAU_GN,D=new Uint8Array(G*G*4),sc=CAU_GUST[0];for(let j=0;j<G;j++)for(let i=0;i<G;i++){const o=(j*G+i)*4;let v=0,w=0;for(let k=0;k<3;k++){const f=1<<k;v+=fbm(((i/G)*f%1)*sc*0.035+40,((j/G)*f%1)*sc*0.035+70,2)/f;w+=1/f;}v=clamp((v/w-0.5)*4.0+0.5,0,1);D[o]=D[o+1]=D[o+2]=Math.round(v*255);D[o+3]=255;}
-    const t=new THREE.DataTexture(D,G,G,THREE.RGBAFormat,THREE.UnsignedByteType);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.minFilter=t.magFilter=THREE.LinearFilter;t.generateMipmaps=false;t.needsUpdate=true;t.clone=function(){return this;};CAU_GTEX=t;} // the gust tile: three octaves of the world's value noise, wrapped by taking each octave's coordinate mod 1 of the tile (a seam per octave that the blur hides), stretched to fill 0..1
+    const t=new THREE.DataTexture(D,G,G,THREE.RGBAFormat,THREE.UnsignedByteType);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.minFilter=t.magFilter=THREE.LinearFilter;t.generateMipmaps=false;t.needsUpdate=true;t.clone=function(){return this;};CAU_GTEX=t;wcKeep('cauGust',D.slice());} // the gust tile: three octaves of the world's value noise, wrapped by taking each octave's coordinate mod 1 of the tile (a seam per octave that the blur hides), stretched to fill 0..1
 })();
 // The tiles as one texture array (v11.187, WebGL2): the ten a tinted material sampled (each ring's S and C, layers 2i and 2i+1) under one sampler, the same
 // bytes, wrap and filter, so the same caustic — and nine of WebGL's sixteen texture units a fragment shader may use come free (the tinted materials were at
@@ -12456,7 +12521,16 @@ function wmBlur(i0,i1,j0,j1){
   wmUpload();
 }
 WM_O[0]=WM_A+WM_I0*WM_T+WM_HALF;WM_O[1]=WM_A+WM_J0*WM_T+WM_HALF; // the window's centre, the shaders' uWmO (0 today: −25800 + 0 + 25800)
-wmFill(0,WM_N,0,WM_N,4);wmBlur(0,WM_N,0,WM_N);
+if(!wcMaps()){wmFill(0,WM_N,0,WM_N,4);wmBlur(0,WM_N,0,WM_N);}wcKeepMaps(); // v11.214: the first fill from the world cache when this build has one (wcache.js)
+// The first fill is one sample a 4×4 block, copied across it (wmFill's step), so the cache keeps a block's eight values — the colour, the front's X, the
+// floor's depth, the wave energy, the two crops — (WM_N/4)² of them, and the two blurred maps whole: 4.1 + 16.6 MB, not the 66 MB of the raw floats.
+function wcMaps(){const C=wcBuf('mapC'),W=wcBuf('mapW'),Fb=wcBuf('mapF'),N=WM_N,n=N/4;if(!C||!W||!Fb||C.byteLength!==n*n*8*4||W.byteLength!==WM_DATA.length||Fb.byteLength!==FM_DATA.length)return false;
+  const c=new Float32Array(C);for(let bj=0;bj<n;bj++)for(let bi=0;bi<n;bi++){const o=(bj*n+bi)*8;for(let jj=bj*4;jj<bj*4+4;jj++)for(let ii=bi*4;ii<bi*4+4;ii++){const m=jj*N+ii,q=m*4;wmRaw[q]=c[o];wmRaw[q+1]=c[o+1];wmRaw[q+2]=c[o+2];wmRaw[q+3]=c[o+3];fmRaw[m]=c[o+4];wfRaw[m]=c[o+5];pgRaw[m]=c[o+6];pfRaw[m]=c[o+7];}}
+  WM_DATA.set(new Uint8Array(W));FM_DATA.set(new Uint8Array(Fb));wmUpload();WC.hit.maps=true;return true;}
+function wcKeepMaps(){if(WC.hit.maps){if(!WC.hit.cau)for(const k of ['mapC','mapW','mapF'])wcKeep(k,wcBuf(k));return;} // from the cache: kept as read, for a world written again (the caustics computed)
+  const N=WM_N,n=N/4,c=new Float32Array(n*n*8); // the blocks' values as they stand now, before any region refines them
+  for(let bj=0;bj<n;bj++)for(let bi=0;bi<n;bi++){const o=(bj*n+bi)*8,m=(bj*4)*N+bi*4,q=m*4;c[o]=wmRaw[q];c[o+1]=wmRaw[q+1];c[o+2]=wmRaw[q+2];c[o+3]=wmRaw[q+3];c[o+4]=fmRaw[m];c[o+5]=wfRaw[m];c[o+6]=pgRaw[m];c[o+7]=pfRaw[m];}
+  wcKeep('mapC',c);wcKeep('mapW',WM_DATA.slice());wcKeep('mapF',FM_DATA.slice());}
 // moving the window (v11.104): once the player is half a window's half-width from its centre, it is centred on them again, snapped to a region's
 // 24 texels. The overlap is rolled (every map, raw and blurred), the centre and the texture move together, and the uncovered strips — at least a
 // quarter of the window from the player, where no far region stands (they are dropped at FAR_DROP) — are filled coarse a slice a frame and
@@ -15343,7 +15417,7 @@ function updateSave(dt){if(mode!=='play'||!curSave)return;playT+=dt;lineTick(dt)
 function saveRefresh(cb){ // the slots read again; first, a shadow the page left on its way out (saveShadow) goes into the store — it is the latest state of that slot, nothing later can exist
   let sh=null;try{const ls=window.localStorage,s=ls&&ls.getItem('tethys.last');if(s){ls.removeItem('tethys.last');sh=JSON.parse(s);}}catch(e){}
   const go=()=>storeSums((sums,keys)=>{const have=new Set();for(const s of sums)if(s&&s.kind==='sum')have.add(s.slot);
-    const miss=keys.filter(k=>k!=='profile'&&k.indexOf(SUM_P)!==0&&!have.has(k)&&!slotNot.has(k)),list=sums.filter(s=>s&&s.kind==='sum');
+    const miss=keys.filter(k=>k!=='profile'&&k.indexOf(SUM_P)!==0&&k.indexOf(WORLD_P)!==0&&!have.has(k)&&!slotNot.has(k)),list=sums.filter(s=>s&&s.kind==='sum');
     const fin=()=>{saveList=list.map(slotEntry).sort((a,b)=>(b.played||b.made||0)-(a.played||a.made||0));if(cb)cb();};
     const next=()=>{if(!miss.length){fin();return;}const k=miss.shift();slotGet(k,r=>{if(r){const s=slotSum(r);list.push(s);storePut(s,next);}else{slotNot.add(k);next();}});}; // a slot from before the summaries: read whole once, its summary written
     next();});
@@ -17222,8 +17296,8 @@ function bootTick(iv){if(BOOT.done)return;if(mode!=='menu'){bootFinish();return;
     const pend=cellsPending()+farPending();BOOT.world0=Math.max(BOOT.world0,pend);const W=BOOT.W,wf=W?W.k/(W.k+(W.items.length-W.i)+(W.rest?W.more.length:W.est+1)+(W.passes?0:1)+(W.hz?0:1)+(W.depth?0:1)):1,gf=BOOT.world0?1-pend/BOOT.world0:1;bootLine(0.5*wf+0.5*gf);
     if(!W&&pend===0){BOOT.stage='settle';BOOT.settleT=now;BOOT.n=0;bootLine(1);if(BOOT.lineEl)BOOT.lineEl.classList.add('settle');}return;}
   if(BOOT.stage==='settle'){BOOT.n++;if(BOOT.n>=BOOT.settleN&&(iv<BOOT.settleMs||now-BOOT.settleT>BOOT.settleMax))bootIn();}}
-function bootIn(){BOOT.done=true;BOOT.stage='done';bootLine(1);if(BOOT.bootEl)BOOT.bootEl.classList.add('off');if(BOOT.lineEl)BOOT.lineEl.classList.add('off');menuRise(MENU_RISE);} // the black fades, the title stays, the column rises after
-function bootFinish(){if(BOOT.done)return;warmShaders(BOOT.W||undefined);BOOT.W=null;BOOT.done=true;BOOT.stage='done';if(BOOT.bootEl){BOOT.bootEl.style.transition='none';BOOT.bootEl.classList.add('off');}if(BOOT.lineEl)BOOT.lineEl.classList.add('off');}
+function bootIn(){BOOT.done=true;BOOT.stage='done';wcWrite();bootLine(1);if(BOOT.bootEl)BOOT.bootEl.classList.add('off');if(BOOT.lineEl)BOOT.lineEl.classList.add('off');menuRise(MENU_RISE);} // the black fades, the title stays, the column rises after
+function bootFinish(){if(BOOT.done)return;warmShaders(BOOT.W||undefined);BOOT.W=null;BOOT.done=true;BOOT.stage='done';wcWrite();if(BOOT.bootEl){BOOT.bootEl.style.transition='none';BOOT.bootEl.classList.add('off');}if(BOOT.lineEl)BOOT.lineEl.classList.add('off');}
 window.bootFinish=bootFinish;window.__boot=BOOT; // the benches (test/gpu.js): the boot's warm-up counted with the boot, as to v11.188
 // the profile and the slots (save.js), then the menu's creator word and its list, then the boot opens the last slot's world under the menu's camera (v11.189,
 // bootSlot; to v11.188 the menu's 3×3 cells were built here, before the first frame, the page frozen meanwhile). After BOOT: a store that answers at once
@@ -17271,7 +17345,7 @@ window.palls=function(n){const p=player.pos;return creatures.filter(c=>c.kind===
 requestAnimationFrame(loop);
 
 }
-requestAnimationFrame(function(){setTimeout(tethysMain,0);});
+requestAnimationFrame(function(){wcacheRead(function(){setTimeout(tethysMain,0);});});
 </script>
 </body>
 </html>
