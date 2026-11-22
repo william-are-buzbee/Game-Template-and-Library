@@ -2217,8 +2217,9 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   lengths as a Uint32Array; `popBin`), stored in IndexedDB as Blobs (`slotPack`, `slotUnpack`; a typed array the put copies on the main thread at
   ~2.6 ms a MB, a Blob it takes by reference); the autosave, the pointer's release, a clutch and a child save in slices (`saveSoon`: the record's
   header at once, the ledger walked `POP_SLICE` 2¹⁹ values a frame — `popJob`, `popStep` — `done` before the counts so a census landing mid-walk is
-  saved undone and made again at the load, and from the start again if a patch's slot moved; ~47 frames). To the menu, a death, a new game and
-  the page leaving save at once (`saveNow`). As text (the shadow, the localStorage store, an export) the streams are plain arrays (`slotJSON`).
+  saved undone and made again at the load, and from the start again if a patch's slot moved; ~47 frames). A death, a new game and the page leaving
+  save at once (`saveNow`). To the menu (v11.204) the walk begins at the key (`saveLeave`: its header that moment's), the fade to black's 380 ms
+  walks it, and `saveFinish` walks what is left at the fade's end, under the black, before the world is cleared — the key 75–270 ms → under 1. As text (the shadow, the localStorage store, an export) the streams are plain arrays (`slotJSON`).
   A record of v11.58–195's arrays of runs loads as it did. Loading: every cell
   out (`worldClear`), `popLoad` (a save from another roster starts fresh with a warning), `playerBody`, `cellsAround` (the 3×3, boot uses it too).
   The profile (`PROFILE`, one record): the creator's key; `seen` — species, clades, cores, part `kind:style` for anything drawn within `SEEN_R`
@@ -2748,7 +2749,7 @@ distance — a designed pass, not a knob. `render` is CPU submission; the GPU ru
 - **The effects list (v11.23, `effects.js`, `#fx`):** the cosmetic systems switchable live — caustics (with a `brightness` slider under it, v11.38.1: `FX_SLIDERS`, a number in `FX_DEF` that persists with the switches), pixel light (v11.38: the caustic and the shadows in blocks, or smooth; off by default since v11.38.1), texels (v11.40–41, its own row since v11.41.1: every tinted surface in texels with a pattern per cell, PIXEL.md; off by default), banded light (v11.41.2: the light posterised with the texels' colour, or smooth; off), shadows, world shadows, ground shadows (v11.30), sharp shadows, light shafts,
   marine snow, rain, clouds, surface glow, vignette — in the lab panel's look, on the right. `options` on the menu (v11.47; the `effects` word
   at the bottom right is gone), or `e` on the menu and in play (the pointer is released while it is open, taken back on close; escape or a click on the canvas closes it).
-  `free look` (v11.77.3) is the one row that is not a drawing: the camera model (The player). Saved in localStorage (`tethys.fx`). Each system reads `FX.key` where it draws; a switch is a key in `FX_DEF`, a row in `FX_LIST`, a read.
+  `free look` (v11.77.3) is the one row that is not a drawing: the camera model (The player). Saved in localStorage (`tethys.fx`; the low tier's own, `tethys.fx.low`, v11.203: what the high tier switched on never follows a machine down). **The low tier's defaults** (v11.203, `FX_LOW_OFF`; the person, 21 Nov 2026: "turn off effects that kill performance. It's not low if you can't run it on a low device"): world shadows, ground shadows, sharp shadows and refraction off — a pass and its maps, or a copy of the whole frame under the water. Each system reads `FX.key` where it draws; a switch is a key in `FX_DEF`, a row in `FX_LIST`, a read.
 - Controls (the hint, `menu.js`; v11.77.1): mouse steers, w a s d swim, space rise, c dive, shift burst, q ability, click bite, m mute, esc menu; mouse
   look by pointer lock from the first frame of play (`choose` asks for it in the menu word's click), Tab releases it and shows the cursor, Tab or a click
   takes it back; a click while locked is the bite; drag-to-look if the lock is blocked (e.g. inside an iframe). v11.13.1: the invisible

@@ -9,11 +9,11 @@ const ROOT=path.join(__dirname,'..');
 function bundle(extra){const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
   const js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n')+'\n'+extra;
   const tmp=path.join(fs.mkdtempSync(path.join(os.tmpdir(),'tethys-tier-')),'bundle.js');fs.writeFileSync(tmp,'(function(){"use strict";\n'+js+'\n})();');return tmp;}
-const HOOK='global.__T={Q,TIER_K,TIER_LS,TIER_SAVED,tierNew,tierStep,tierFrame,tierOff,REC,TIER_S,BOOT,RG,get mode(){return mode;},set mode(v){mode=v;},hintEl};';
+const HOOK='global.__T={Q,FX,FX_LS,FX_LOW_OFF,TIER_K,TIER_LS,TIER_SAVED,tierNew,tierStep,tierFrame,tierOff,REC,TIER_S,BOOT,RG,get mode(){return mode;},set mode(v){mode=v;},hintEl};';
 // a child: the start's tier from a stored verdict (TIER_JSON) and the URL (TIER)
-if(process.argv[2]==='--start'){const saved=process.env.TIER_JSON||'';global.localStorage={getItem:k=>k==='tethys.tier'&&saved?saved:null,setItem(){}};
+if(process.argv[2]==='--start'){const saved=process.env.TIER_JSON||'',fx=process.env.FX_JSON||'';global.localStorage={getItem:k=>k==='tethys.tier'&&saved?saved:k==='tethys.fx'&&fx?fx:null,setItem(){}};
   const log=console.log;console.log=()=>{};console.warn=()=>{};require('./stub.js');require(bundle(HOOK));console.log=log;
-  console.log(JSON.stringify({tier:__T.Q.tier,why:__T.Q.why,pr:__T.Q.pr,flora:__T.Q.flora}));process.exit(0);}
+  console.log(JSON.stringify({tier:__T.Q.tier,why:__T.Q.why,pr:__T.Q.pr,flora:__T.Q.flora,fxLs:__T.FX_LS,off:__T.FX_LOW_OFF,fx:__T.FX_LOW_OFF.map(k=>__T.FX[k]),caustics:__T.FX.caustics}));process.exit(0);}
 
 let fails=0;const ok=(c,m)=>{console.log((c?'  ok   ':'  FAIL ')+m);if(!c)fails++;};
 const tmp=bundle(HOOK);const log=console.log;console.log=()=>{};console.warn=()=>{};require('./stub.js');require(tmp);console.log=log;
@@ -45,13 +45,17 @@ console.log('one verdict a session; the menu after play');
   ok(T.tierStep(T.tierNew('high','default',true),NaN,0.03,true)===''&&T.tierStep(T.tierNew('high','default',true),5,0,true)==='','a sample that is not a number, or of no time, is none');}
 
 console.log('the start\'s tier, from a stored verdict');
-const start=(json,tier)=>JSON.parse(cp.execFileSync(process.execPath,[__filename,'--start'],{env:Object.assign({},process.env,{TIER_JSON:json||'',TIER:tier||''}),encoding:'utf8'}).trim().split('\n').pop());
+const start=(json,tier,fx)=>JSON.parse(cp.execFileSync(process.execPath,[__filename,'--start'],{env:Object.assign({},process.env,{TIER_JSON:json||'',TIER:tier||'',FX_JSON:fx||''}),encoding:'utf8'}).trim().split('\n').pop());
 {const a=start('',''),b=start(JSON.stringify({tier:'low',ms:82,from:'high',at:1}),''),c=start(JSON.stringify({tier:'low',ms:82,from:'high',at:1}),'high'),d=start('{"tier":"ultra"}','');
   ok(a.tier==='high'&&a.why==='default','no verdict: high, by default');
   ok(b.tier==='low'&&b.why==='machine'&&b.flora<1,'a verdict of low: the low tier, the machine\'s (flora '+b.flora+')');
   ok(c.tier==='high'&&c.why==='hash','#high over the verdict');
   ok(d.tier==='high'&&d.why==='default','a stored verdict that is no tier: ignored');}
 
+console.log('the low tier\'s own effects (v11.203)');
+{const hi=JSON.stringify({v:999,statics:true,ground:true,sharp:true,refract:true,caustics:false}),a=start('','high',hi),b=start('','low',hi);
+  ok(a.fxLs==='tethys.fx'&&a.fx.every(v=>v===true)&&a.caustics===false,'the high tier reads its own choices (world shadows and refraction on, caustics off, as saved)');
+  ok(b.fxLs==='tethys.fx.low'&&b.fx.every(v=>v===false)&&b.caustics===true,'the low tier its own: '+b.off.join(', ')+' off, whatever the high tier saved; the rest at their defaults');}
 console.log('the game\'s frame loop: the verdict stored, the reload');
 {const store=new Map(),reloads=[];global.localStorage={getItem:k=>store.has(k)?store.get(k):null,setItem:(k,v)=>store.set(k,String(v))};global.location.reload=()=>reloads.push(1);
   let clock=0;global.performance.now=()=>clock; // the clock the test's own: the game's loop is not stepped (its frames would be samples too)
