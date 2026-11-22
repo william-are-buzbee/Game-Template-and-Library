@@ -8,7 +8,7 @@ const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..');
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
 let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n');
-js+='\nglobal.__pool={POOLS,poolStats,poolCull,chunks,ckey,cellOf,loadChunkNow,unloadChunk,worldClear,FLORA,FAR_IMP,player,Q,NCELL,distAge,sample,FI};';
+js+='\nglobal.__pool={POOL_TILE,CELL,ORIGIN,camera,cutFarOf,poolFar,POOLS,poolStats,poolCull,chunks,ckey,cellOf,loadChunkNow,unloadChunk,worldClear,FLORA,FAR_IMP,player,Q,NCELL,distAge,sample,FI};';
 const tmp=path.join(require('os').tmpdir(),'tethys_pool.js');
 fs.writeFileSync(tmp,'(function(){"use strict";\n'+js+'\n})();');
 process.env.PICK='0';
@@ -22,7 +22,8 @@ function check(label){ // the invariants over every pool
     const M=P.im.instanceMatrix.array;for(let i=0;i<P.n*16;i++)if(M[i]!==M[i])bad.push(f.id+': NaN');
     }
   ok(bad.length===0,label+': '+X.POOLS.size+' pools, '+JSON.stringify(X.poolStats())+(bad.length?' — '+bad.slice(0,4).join('; '):''));}
-function blockOf(f,ch){const P=X.POOLS.get(f);if(!P)return null;const b=P.blocks.find(b=>b.ch===ch);if(!b)return null;return {m:P.im.instanceMatrix.array.slice(b.start*16,(b.start+b.count)*16),c:P.im.instanceColor.array.slice(b.start*3,(b.start+b.count)*3),v:P.vars?P.geo.attributes.aVar.array.slice(b.start,b.start+b.count):null,cur:P.cur?P.geo.attributes.aCur.array.slice(b.start*2,(b.start+b.count)*2):null,n:b.count};}
+// v11.212: a cell's data across its tiles, in tile order
+function blockOf(f,ch){const P=X.POOLS.get(f);if(!P)return null;const bs=P.blocks.filter(b=>b.ch===ch).sort((a,c)=>a.t-c.t);if(!bs.length)return null;const cat=(A,sz)=>{const o=[];for(const b of bs)for(let k=b.start*sz;k<(b.start+b.count)*sz;k++)o.push(A[k]);return o;};const n=bs.reduce((q,x)=>q+x.count,0);return {m:cat(P.im.instanceMatrix.array,16),c:cat(P.im.instanceColor.array,3),v:P.vars?cat(P.geo.attributes.aVar.array,1):null,cur:P.cur?cat(P.geo.attributes.aCur.array,2):null,n:n};}
 function same(a,b){if(!a||!b)return a===b;if(a.n!==b.n)return false;for(const k of ['m','c','v','cur']){if(!a[k]&&!b[k])continue;if(!a[k]||!b[k]||a[k].length!==b[k].length)return false;for(let i=0;i<a[k].length;i++)if(a[k][i]!==b[k][i])return false;}return true;}
 // the forest's edge, the person's readout spot of 15 Sep (147, -3, -443): a 3×3 of cells
 const ci=X.cellOf(147),cj=X.cellOf(-443);const cells=[];for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++)cells.push([ci+di,cj+dj]);
@@ -53,6 +54,7 @@ X.loadChunkNow(ci,cj);const mid3=X.chunks.get(X.ckey(ci,cj));let sameA=0,diffA=0
 ok(diffs.every(d=>!d.slice(d.indexOf('(')+1,-1).split(',').some(k=>k==='m'||k==='v')),'loaded alone, its blocks match: '+sameA+' same, '+diffA+' different'+(diffs.length?' — '+diffs.join(' '):''));
 // by sight (v11.52.1; v11.125 by flags): every cell seen, then the middle hidden, then a corner — each change writing only that cell's flags,
 // no instance moved — then the pools still long enough to pack (the seen blocks first), then all back
+X.POOL_TILE.on=false; // the cells' sight as v11.125 had it: the tiles' own test is checked below
 X.worldClear();for(const [i,j] of cells)X.loadChunkNow(i,j);const all=[...X.chunks.values()];for(const ch of all){ch.group.visible=true;ch.near=true;}X.poolCull(0);
 const snap=()=>{const L=[];for(const ch of all)for(const P of ch.pooled)L.push([P.f,ch,blockOf(P.f,ch)]);return L;};const s0=snap();
 const ATTRS=['aVar','aCur','aTide'];
@@ -61,7 +63,7 @@ function sent(){ // the ranges pending upload, by attribute, then cleared as thr
     for(const [a,k] of L){const u=a.updateRange;if(u&&u.count>0){r[k]+=u.count*4;u.count=-1;u.offset=0;}}}return r;}
 const starts=()=>{const m=new Map();for(const P of X.POOLS.values())for(const b of P.blocks)m.set(b,b.start);return m;};
 sent();check('every cell in view');ok([...X.POOLS.values()].every(P=>P.nVis===P.n&&P.nDraw===P.n),'every block seen: nVis = nDraw = n');
-const m5=X.chunks.get(X.ckey(ci,cj)),st0=starts();let mb=0;for(const P of m5.pooled)mb+=P.blocks.find(b=>b.ch===m5).count*4;
+const m5=X.chunks.get(X.ckey(ci,cj)),st0=starts();let mb=0;for(const P of m5.pooled)for(const b of P.blocks)if(b.ch===m5)mb+=b.count*4;
 m5.group.visible=false;X.poolCull(0);check('the middle cell out of view');let u=sent();
 ok([...X.POOLS.values()].every(P=>P.blocks.every(b=>(b.ch!==m5)===b.vis)),'only the middle cell\'s blocks hidden');
 ok(u.data===0&&u.hide===mb&&[...st0].every(([b,s])=>b.start===s),'nothing moved: '+u.data+' bytes of instance data and '+u.hide+' of flags sent (its blocks\' '+mb+'), every block where it was');
@@ -72,6 +74,23 @@ let frames=0;for(;frames<200;frames++){X.poolCull(0.05);if([...X.POOLS.values()]
 ok([...X.POOLS.values()].every(P=>{let hid=false;for(const b of P.blocks){if(!b.vis)hid=true;else if(hid&&(P.nDraw-P.nVis)*8>P.nDraw)return false;}return true;}),'after '+frames+' frames every pool draws at most an eighth hidden: '+[...X.POOLS.values()].reduce((n,P)=>n+P.nDraw-P.nVis,0)+' hidden instances drawn, '+[...X.POOLS.values()].reduce((n,P)=>n+P.nVis,0)+' seen');
 ok(s0.every(([f,ch,b])=>same(b,blockOf(f,ch))),'every block\'s data intact after the packing');sent();
 m5.group.visible=true;c5.near=true;X.poolCull(0);check('all back in view');u=sent();ok([...X.POOLS.values()].every(P=>P.nVis===P.n&&P.nDraw===P.n)&&s0.every(([f,ch,b])=>same(b,blockOf(f,ch)))&&u.data===0,'all seen again, data intact, '+u.hide+' bytes of flags sent');
+X.POOL_TILE.on=true;
+// the tiles (v11.212): each cell's block in K×K, in tile order, every instance inside its tile and its sphere, the rng's order kept within a tile, and
+// no instance within its pool's reach ever hidden by its tile (the stub has no frustum: the reach is the part checked here; the view's is the browser's)
+{const K=X.POOL_TILE.k;let bad=[],nb=0,inst=0;
+  for(const P of X.POOLS.values()){const M=P.im.instanceMatrix.array,ox=X.ORIGIN.x,oz=X.ORIGIN.z;
+    for(const b of P.blocks){nb++;const ch=b.ch;for(let k=b.start;k<b.start+b.count;k++){inst++;const x=M[k*16+12]+ox,y=M[k*16+13],z=M[k*16+14]+oz;
+      const ti=Math.min(K-1,Math.max(0,Math.floor((x-ch.x0)/X.CELL*K))),tj=Math.min(K-1,Math.max(0,Math.floor((z-ch.z0)/X.CELL*K)));if(tj*K+ti!==b.t){bad.push(P.f.id+': an instance outside its tile');break;}
+      if(Math.hypot(x-b.x,y-b.y,z-b.z)>b.e+1e-3){bad.push(P.f.id+': an instance outside its sphere');break;}}}}
+  ok(bad.length===0,'every instance in its tile and its sphere: '+nb+' blocks, '+inst+' instances'+(bad.length?' — '+bad.slice(0,3).join('; '):''));}
+{const P=[...X.POOLS.values()].sort((a,b)=>b.n-a.n)[0],ch=[...X.chunks.values()][4],bs=P.blocks.filter(b=>b.ch===ch);
+  ok(bs.length>1&&bs.every((b,i)=>i===0||b.t>bs[i-1].t),'a cell\'s blocks in a pool: '+bs.length+' tiles of '+P.f.id+', in tile order as written');}
+{const all=[...X.chunks.values()];for(const ch of all){ch.group.visible=true;ch.near=true;}const c=X.camera.position,keep=c.clone();
+  let lost=0,hid=0,checked=0;for(const at of [[0,0],[300,0],[-250,180],[0,-320]]){const ch0=all[4];c.set(ch0.cx+at[0],-10,ch0.cz+at[1]);X.poolCull(0);
+    for(const P of X.POOLS.values()){const R=X.poolFar(P),M=P.im.instanceMatrix.array,ox=X.ORIGIN.x,oz=X.ORIGIN.z;
+      for(const b of P.blocks){if(b.vis)continue;hid++;for(let k=b.start;k<b.start+b.count;k++){checked++;if(Math.hypot(M[k*16+12]+ox-c.x,M[k*16+13]-c.y,M[k*16+14]+oz-c.z)<=R)lost++;}}}}
+  c.copy(keep);X.poolCull(0);
+  ok(hid>0&&lost===0,'past the reach: '+hid+' tiles hidden from four places, '+checked+' instances in them, none within the reach of any mesh drawing its pool — its far copy\'s too (lost: '+lost+')');}
 // growth: a 5×5 forces some pools past their first capacity (12 cells' worth); nothing lost on the way
 const caps=new Map();for(const P of X.POOLS.values())caps.set(P.f,P.cap);
 X.worldClear();for(let dj=-2;dj<=2;dj++)for(let di=-2;di<=2;di++){const i=ci+di,j=cj+dj;if(i>=0&&j>=0&&i<X.NCELL&&j<X.NCELL)X.loadChunkNow(i,j);}

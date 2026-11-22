@@ -10581,3 +10581,47 @@ test/gpu.js --check: every count within its 10%.
 **Unseen, ask in this order:**
 1. The work tower, plain address, somewhere it lags, under water: F8, hold still (~30 s), leave the window be; then F9. The report's last probe line says
    what the off-screen exit saved there, and its noise.
+
+## v11.212 — the plants are sent by the tile, not by the cell: a third fewer triangles, nothing on screen changed (22 Nov 2026)
+
+The person's work tower (Intel UHD 730, the low tier) spends its GPU on triangles (#137/#138: the GPU fell ×0.41 with the triangles ×0.40). v11.211's census
+at its own places: plants are 56–76% of the triangles, and of the plants' triangles sent only 21–45% were on screen and within reach — a pool sent a cell's
+whole block whenever any of the cell was seen. The person, 22 Nov 2026, on sending only what is seen: "That suits me great. Go right ahead."
+
+- **Tiles** (chunks.js `POOL_TILE` {k 3}, `poolTiles`): each cell's block in a species' pool is cut into 3×3 tiles (72 m), each a block with its sphere —
+  its instances' extent and its plant's reach from the root by its scale (`P.R0`; the far copy's geometry too, `poolLod`), and 2 m for the sway. The block
+  is written in the rng's order as before and then put in tile order, stable, so every tint and jitter is the one it was.
+- **A tile is out of sight** when its cell is, or its sphere is wholly behind one of the view's planes, or its nearest instance is past the reach any mesh
+  on the pool's buffers draws to (`tileSeen`, `poolFar`: the material's cut, or its far copy's — the tidewood's copy draws where the near tree is cut).
+  `tileView` takes every tile centre's distances to the six planes and to the camera once a frame for all the pools.
+- **The same machinery as v11.125's cells**: a tile out of sight is flagged (`aHide`), never moved by the view; the pools pack once still. A cell's
+  unload takes all its tiles in one sweep (`poolRemove`).
+- **Why tiles, not a list rebuilt as the view turns**: v11.125 was the person's "turning your head inside a kelp forest gives a significant lag spike" —
+  re-sending pool data as the view swept. A simulation over the same pools kept, of what is sent today, 44–59% with 3×3 tiles and 40–55% with 4×4.
+- **A first try that showed nothing on screen was not**: the tidewood's far copy shares its pool's flags, and a tile past the near tree's cut hid the
+  copy with it (the shore's picture 0.4% different). Fixed by `poolFar`; test/pool.js now fails on it (1,052 instances lost with the near cut alone).
+- **test/pool.js**: every instance inside its tile and its sphere, a cell's blocks in tile order, and from four places no instance within the reach of
+  any mesh drawing its pool hidden by its tile; the old checks run with the tiles' own test off, their meaning unchanged.
+
+**What it costs** (test/gpu.js, settled, 1600×900; main → here):
+
+| place | high tier, triangles | low tier, triangles |
+|---|---|---|
+| forest | 3.84M → 2.55M (×0.66) | 1.58M → 1.12M (×0.71) |
+| atoll | 4.62M → 3.25M (×0.70) | 1.89M → 1.22M (×0.65) |
+| coast | 3.66M → 2.71M (×0.74) | 1.51M → 1.11M (×0.74) |
+| shore | 4.87M → 3.39M (×0.70) | 1.94M → 1.30M (×0.67) |
+| canopy | 4.39M → 3.13M (×0.71) | 1.79M → 1.30M (×0.73) |
+| the wood | 1.85M → 1.80M | 541k → 515k |
+| open water | the same | the same |
+
+Draws a few fewer; programs, uniforms and bytes uploaded the same; test/gpu.json updated. **The picture the same pixel for pixel** (test/fill.js against
+main: the low tier at the tower's size at the forest, the shore and a tower place; the high tier at the forest, the shore and the canopy). A revolution in
+1.5 s at (430, 50) (v11.125's test): bytes sent +6.5% on the high tier (31.1 → 33.2 MB), +4.6% on the low, the worst frame the same (838 against 811 KB);
+`poolCull` 0.05–0.08 → 0.16–0.25 ms a frame, one frame over 1 ms in each. The software GPU's frame time moves within its noise (×0.82–1.16): at these
+sizes it is the pixels' — the tower's GPU follows triangles, and its F8 will say.
+
+**Unseen, ask in this order:**
+1. The work tower, plain address, under water where it lagged: frames per second against before; F8 then F9 (its probe, v11.211, reads the plants'
+   share and the off-screen exit's saving on top of this).
+2. The home machine: turn hard in the kelp forest — no lag spike (v11.125's).

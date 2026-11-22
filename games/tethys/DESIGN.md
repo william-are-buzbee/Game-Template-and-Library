@@ -2548,6 +2548,15 @@ re-sent pool data, up to 2.6 MB and 200 moves in a frame (three r128, headless);
 (2042, −18382), from 3.6), at the price of ~10k hidden instances drawn a frame mid-turn (16k in the stand), each vertex a fetch and a branch,
 packed a second after (CHANGELOG v11.125).*
 
+*v11.212: the blocks are tiles — each cell's block in a pool cut into `POOL_TILE.k`² (3×3, 72 m), written in the rng's order and then put in tile order
+(`poolTiles`), each with its sphere: its instances' extent and its plant's reach from the root by its scale (`P.R0`, the packed geometry's), and 2 m for the
+sway. A tile is out of sight when its cell is, or when its sphere is wholly behind one of the view's planes, or its nearest instance is past the reach its
+material's shader cuts at (`tileSeen`, `cutFarOf`); `tileView` takes each tile centre's distances to the six planes and to the camera once a frame for every
+pool. The same flags and packing as the cells', so turning still writes only flags. Why: on the low tier at the work tower's places only 21–45% of the
+plants' triangles sent were on screen and within reach — a cell was sent whole when any of it was. Settled, the triangles sent at test/gpu.js's places at
+1600×900: the forest 3.84M → 2.55M, the atoll 4.62 → 3.25, the shore 4.87 → 3.39, the coast 3.66 → 2.71; a revolution at (430, 50) +6.5% bytes sent; poolCull
+~0.1–0.2 ms a frame more. Invisible by construction (test/pool.js: no instance within reach is hidden by its tile; test/fill.js: the picture the same).*
+
 **What a frame asks of the GPU, counted (v11.179, 18 Nov 2026; `test/gpu.js`, held to `test/gpu.json` in CI).** At 1600×900, the mean a frame of 12
 once the place has loaded, the high tier: the forest (330, −12, 0) 298 draws, 6.07M triangles, 28 program changes, 1,375 uniforms, 2 passes, 327 KB to
 buffers, 5.5 MB copied (the refraction's frame); the atoll's kelp stand (109800, −10, 4000) 264 draws, 7.91M triangles, 268 KB; open water (20000, −30,
