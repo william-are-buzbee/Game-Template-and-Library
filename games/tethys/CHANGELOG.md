@@ -10549,3 +10549,35 @@ not the same, as v11.209 already made them; the creatures' frame ×1.04, ×0.92 
    before, nothing stutters or lags. The F9 report's frame times should be lower in play.
 2. The work tower at 30 fps: the world as it was (two steps a frame), nothing slower.
 3. Combat and grabbing: a fight as before — the arms and the bite read the steps' poses, never the drawn ones.
+
+## v11.211 — the probe settles, stops on a resize and says its noise; it also measures the plants' off-screen exit (22 Nov 2026)
+
+The home machine's first probe (#167; the person, 22 Nov 2026) worked in Brave, and its two runs at one place disagreed: the world's shadows 2.93 ms in
+the first, 0.14 in the second; the clouds 1.05 and −0.04. The window was 1990×1027 for one and 3600×2025 for the other, and a cost could be negative by
+0.4 ms (rain under water). So the probe could not yet be trusted at the tower.
+
+- **A state settles in time as well as frames** (probe.js `PROBE_K.settleMs` 300 ms with the 3 frames): the world's shadow map redraws at most every
+  0.25 s after a switch (scene.js `SHS_GAP`), and a redraw landing in the next state's frames made a cost of the switch.
+- **A change of the window's size stops it**, nothing kept (`PROBE_V`, the drawing buffer each frame): the states before and after would not compare.
+- **Its noise** (`noise`): the median move of the frame as it is between neighbouring measurements. The hint and the report say it; `node test/report.js`
+  marks a cost within it `~` and prints a negative cost as negative (it was `–`, which hid the noise).
+- **The off-screen exit, measured, off in play** (scene.js `viewExit`, `cutFit`, `uCut` now a vec4 whose w is a material's reach): the census at the
+  tower's places on the low tier — of the plants' triangles sent, **only 21–45% are on screen and within reach**; 17–41% are past the reach (collapsed at
+  the top of the vertex shader since v11.155) and 34–45% are off screen in a cell partly in view (shaded in full, then clipped). Plants are 56–76% of the
+  triangles there, rocks 12–26%, the rest under 10%. The exit gives the off-screen ones the same early leave as the far ones (the instance's sphere — its
+  material's reach from the root, by its scale, and 2 m for the sway — wholly outside the view). **On the software GPU it made the frame 7% slower** (243 →
+  259 ms at 160×128, one page, on and off frame by frame): it shades four vertices at a time, masked, so the test costs and the leave saves nothing. A real
+  GPU may skip the work. So it is **off in play**, and the probe has one state more that switches it on and reports what it saved — the tower's F8 decides.
+  The picture with it on is the same pixel for pixel (test/fill.js at three places).
+- test/probe.js: the noise (0 on made-up times), a resize stopping a probe, the exit's saving given back and the exit off after.
+
+**The low tier's visible options, for the person** (pictures at the tower's size; not built): A, the plants' reach 450 → 300 m and the rocks' 620 → 350
+(past 300 m the fog leaves a plant 9% of its contrast — under water the pictures are near the same; the triangles sent fall only by the cells that leave
+the draw whole, since the reach is cut in the shader); B, the plants' density 0.45 → 0.30 (the near kelp visibly thinner; sent ×0.81).
+
+**What it costs:** nothing in play — the exit is off (a uniform branch a vertex, never taken); the probe as before, longer (~15 s at 120 Hz, ~30 at 30).
+test/gpu.js --check: every count within its 10%.
+
+**Unseen, ask in this order:**
+1. The work tower, plain address, somewhere it lags, under water: F8, hold still (~30 s), leave the window be; then F9. The report's last probe line says
+   what the off-screen exit saved there, and its noise.

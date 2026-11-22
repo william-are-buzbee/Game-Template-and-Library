@@ -2653,6 +2653,13 @@ The repository is public, so the report is (the person's choice, 20 Nov 2026).
   resolution and the tier's sampling hold while it runs; leaving play, opening the effects list or hiding the tab stops it with nothing kept. Built
   because the work tower's main pass (22–35 ms of ~30 at 0.6 MP on the low tier, #152) could not be split on the software GPU, whose ratios are not
   an Intel UHD 730's.
+  v11.211: a state settles 3 frames and 0.3 s (the world's shadow map redraws at most every 0.25 s, and one landing in the next state's frames made a
+  cost of a switch: #167's first probe read the shadows at 2.93 ms, its second 0.14); a change of the window's size stops it; it reports its noise — the
+  median move of the frame as it is between neighbouring measurements — and the reader prints a cost within it with ~, a negative one as negative. And one
+  state more: **the off-screen exit** (scene.js `viewExit`, `cutFit`, uCut.w): an instance whose sphere is wholly outside the view leaves its vertex
+  shader at the top, as one past its reach does — off in play, switched on for that state, what it saved reported. On the low tier at the tower's places
+  only 21–45% of the plants' triangles sent are on screen and within reach (17–41% past it, 34–45% off screen in a cell partly in view); the software GPU
+  ran the frame 7% slower with the exit on (it shades four vertices at a time, masked), so the tower's own GPU decides.
 
 **Where the frame goes, measured on the 4060 at the weed forest (330, 0), 13 Sep 2026.** The readout's `work` pair is the
 frame's own cost and the worst frame in the last quarter second (main.js, v11.32.1); `ms` and `fps` are the vsync interval and say

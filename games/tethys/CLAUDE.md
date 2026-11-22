@@ -373,7 +373,7 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
 - **Keys.** `n` the world map (wheel zooms, drag pans, a click teleports, `o` the marks); `z` the bestiary (←→ step, space strike, s cruise);
   `l` the lab, `p` place its spec; `e` the effects list; `b` the sound bench (1 one-shots, 2 noise and irs, 3 the beds, 4 a live capture; needs
   `node serve.js`); `f` first person; `x` lay a clutch (any body but a drifter's, grown, on the floor; a soft ringmouth once, then it broods; a
-  hingeshell at a den; it opens the editor at conception, where `l` lays); `r` or right mouse grab, click bite; `Q` the body's ability; `M` mute; **F9** send a report; **F8** the probe: what each part of the frame costs this GPU here (~10–20 s, hold still; kept for the next report).
+  hingeshell at a den; it opens the editor at conception, where `l` lays); `r` or right mouse grab, click bite; `Q` the body's ability; `M` mute; **F9** send a report; **F8** the probe: what each part of the frame costs this GPU here (~15–30 s, hold still, leave the window be; kept for the next report).
 - **The readout**: backquote (or `'`, F3) — fps, frame ms, work/worst, gen, res, draws, tris, cells, pools, far, creatures, phys, render (the
   submit and any wait), **gpu** (the card's own time, where the browser times it), heap, the tier, the medium, the place, oxygen, tide, hour,
   year, sun, moon, light, cloud, rain; the fog, audio and ecology lines. With it open the keys tune — the fog (`FOG_TUNE`: 1-2 3-4 5-6 7-8 9-0 -= [] ,. ;/

@@ -852,11 +852,16 @@ const FLORA_FAR=450,FLORA_FADE=90;
 const CUT_V='uniform vec4 uCut;\n',NO_CUT=1e7;
 function farCut(){return '\nfloat fadeK=1.0;\n#if defined(USE_FOG)&&defined(USE_INSTANCING)\n{float fdk=distance((modelMatrix*vec4(instanceMatrix[3].xyz,1.0)).xyz,uFogC);if(fdk>uCut.y||fdk<uCut.x)'+GONE+'fadeK=1.0-smoothstep(uCut.y-uCut.z,uCut.y,fdk);'+'if(uCut.w>0.0){vec3 vq=(modelViewMatrix*vec4(instanceMatrix[3].xyz,1.0)).xyz;float rq=uCut.w*max(max(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz)),length(instanceMatrix[2].xyz))+2.0,p0=projectionMatrix[0][0],p1=projectionMatrix[1][1];if(vq.z>rq||p0*abs(vq.x)+vq.z>rq*sqrt(p0*p0+1.0)||p1*abs(vq.y)+vq.z>rq*sqrt(p1*p1+1.0))'+GONE+'}}\n#endif\n';} // uFogC: the camera (fog_pars_vertex)
 // a material's cut: made at its first compile or clone (FLORA_FAR is read then, after it is declared); m.cutAt is [far, fade] or null for FLORA_FAR's
-function cutUOf(m){if(!m.cutU){const a=m.cutAt||[FLORA_FAR,FLORA_FADE];m.cutU={value:new THREE.Vector4(0,a[0],a[1],m.cutR||0)};}return m.cutU;}
+function cutUOf(m){if(!m.cutU){const a=m.cutAt||[FLORA_FAR,FLORA_FADE];m.cutU={value:new THREE.Vector4(0,a[0],a[1],VIEW_EXIT&&m.cutR?m.cutR:0)};}return m.cutU;}
 // v11.211: uCut.w, the reach of the biggest thing an instanced mesh draws with the material, from its root (cutFit: the bounding sphere's centre's distance
 // plus its radius) — an instance whose sphere (that, by its scale, and 2 m for the sway) is wholly outside the view exits at the top of its vertex shader, as
-// one past the far edge does. 0 (no instanced mesh registered): no such test. Every site that makes an instanced mesh with a cut material calls cutFit.
-function cutFit(m,g){if(!m||(m.cutAt===undefined&&!m.cutU)||!g||!g.attributes.position)return;if(!g.boundingSphere&&g.computeBoundingSphere)g.computeBoundingSphere();const b=g.boundingSphere;if(!b||!b.center)return;const r=b.center.length()+b.radius;if(!(r<=(m.cutR||0))){m.cutR=r;cutUOf(m).value.w=r;}}
+// one past the far edge does. 0: no such test. Every site that makes an instanced mesh with a cut material calls cutFit.
+// OFF in play (VIEW_EXIT false, w 0 everywhere): on the software GPU the test cost the frame 7% and saved nothing (it runs the vertices four at a time,
+// masked); a real GPU's may skip the off-screen instances' work — 34–45% of the plants' triangles on the low tier at the tower's places. The probe (F8)
+// switches it on for one state and reports what it saved (probe.js, the `exit` state), so the tower's own GPU decides (CHANGELOG v11.211).
+let VIEW_EXIT=false;const CUT_REG=new Set();
+function viewExit(on){VIEW_EXIT=!!on;for(const m of CUT_REG)(m.cutU||cutUOf(m)).value.w=VIEW_EXIT?m.cutR:0;}
+function cutFit(m,g){if(!m||(m.cutAt===undefined&&!m.cutU)||!g||!g.attributes.position)return;if(!g.boundingSphere&&g.computeBoundingSphere)g.computeBoundingSphere();const b=g.boundingSphere;if(!b||!b.center)return;const r=b.center.length()+b.radius;CUT_REG.add(m);if(!(r<=(m.cutR||0))){m.cutR=r;if(VIEW_EXIT)cutUOf(m).value.w=r;}}
 const FAR_CUT=farCut(),FAR_FADE='\ntransformed*=fadeK;\n';
 // The disturbance loop runs only for plants within DIST_R of the camera: every disturber is within 70 of it (physics.js
 // updateDisturbers) plus a body. It ran for every vertex of every plant to the far plane; this alone was 6.3 → 4.6 ms in the forest.
