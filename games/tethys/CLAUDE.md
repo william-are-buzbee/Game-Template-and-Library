@@ -343,9 +343,11 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
 - **Draw distance.** The flora ends at `FLORA_FAR` and fades into it (`FLORA_FADE`, scene.js `farCut`): a new small species wants a fading
   material (every sway, variant, rock and `MAT` instance has one); a new big one a card in `FAR_IMP` (a low-poly copy of itself, never crossed
   cards) and no cut. The disturbance loop runs only within `DIST_R` of the camera.
-- **The pools** (chunks.js `POOLS`): a cell's small flora is a block in its species' pool (not in `ch.meshes`/`ch.flora`), the tail moved down on unload, the written range
-  uploaded (`updateRange`). Out of sight by a per-instance flag (`aHide`) in `addTint`'s vertex code — never moved by the view — so a pooled
-  species' material is a tinted one. Placement reads the cell's own hash only (`solidPush(…, own)`), which `placeBigSolids` completes with every
+- **The pools** (chunks.js `POOLS`): a cell's small flora is a block in its species' pool (not in `ch.meshes`/`ch.flora`) — since v11.212 one block a
+  tile (`POOL_TILE.k`² a cell, `poolTiles`: written in the rng's order, then put in tile order), each with its sphere — the blocks after a cell's moved
+  down over them in one sweep on unload, the written range uploaded (`updateRange`). Out of sight — its cell's, or its tile wholly out of the view or past
+  the pool's reach (`tileSeen`) — by a per-instance flag (`aHide`) in `addTint`'s vertex code, never moved by the view, packed once still; so a pooled
+  species' material is a tinted one. A tile hides only what is not drawn anyway: test/pool.js fails if one hides an instance within its reach. Placement reads the cell's own hash only (`solidPush(…, own)`), which `placeBigSolids` completes with every
   neighbour's reaching structure (`test/pool.js` fails if a cell's blocks differ by arrival order).
 - **Capsules.** No hit capsule ends past the nose (`compile` clamps at `F.nose − r`; a hand-written list that reaches past it is cut back
   silently). A spec's own `hit` list puts the shell's capsule first and marks a part's own capsule `own` (the tails), or the covering reads the core's. A lost part is hidden and

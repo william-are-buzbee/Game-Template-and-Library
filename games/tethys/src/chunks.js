@@ -25,7 +25,7 @@ function hOut(ch,x,z){return x<ch.x0||x>ch.x0+CELL||z<ch.z0||z>ch.z0+CELL?sample
 
 function makeChunk(i,j){
   const x0=i*CELL-HALF,z0=j*CELL-HALF,hg=new Float32Array(GR*GR),fg=new Float32Array(GR*GR*NF),[ox,oz]=originOf(x0,z0),group=new THREE.Group();group.position.set(ox,0,oz); // v11.110: the group at the cell's corner, everything in it local to that (ox, oz)
-  return {i:i,j:j,k:ckey(i,j),x0:x0,z0:z0,ox:ox,oz:oz,cx:x0+CELL/2,cz:z0+CELL/2,hg:hg,fg:fg,landN:0,minH:0,maxH:-1e9,group:group,creatures:[],schools:[],eggs:[],meshes:[],plumes:[],lightSrc:[],solids:[],seeps:[],hash:makeHash(),solidR:0,sphere:null,terrain:null,shBig:[], // terrain, shBig (v11.30): the ground's mesh and the structures' shadow proxies, casters into the world's map (scene.js updateShadowS)
+  return {i:i,j:j,k:ckey(i,j),x0:x0,z0:z0,ox:ox,oz:oz,cx:x0+CELL/2,cz:z0+CELL/2,hg:hg,fg:fg,landN:0,minH:0,maxH:-1e9,tv:null,group:group,creatures:[],schools:[],eggs:[],meshes:[],plumes:[],lightSrc:[],solids:[],seeps:[],hash:makeHash(),solidR:0,sphere:null,terrain:null,shBig:[], // terrain, shBig (v11.30): the ground's mesh and the structures' shadow proxies, casters into the world's map (scene.js updateShadowS)
     pooled:[],flora:[],near:true,ac:new Float32Array(16),sheds:[], // sheds (v11.66): the cast carapaces dropped in this cell in play (creatures_ai.js dropShed) // pooled (v11.52): the species pools this cell has written a block into (poolAdd); taken out on unload // ac: the swaying flora's height summed in a 4×4 grid of the cell — the forest's sound (audio.js) // flora: the instanced meshes hidden once the cell is past FLORA_FAR (v11.12, cullChunks); near: whether they are drawn now
     h:function(x,z){let fx=clamp((x-x0)/STEP,0,CH_RES-0.001),fz=clamp((z-z0)/STEP,0,CH_RES-0.001);const ix=Math.floor(fx),iz=Math.floor(fz),tx=fx-ix,tz=fz-iz;const a=hg[iz*GR+ix],b=hg[iz*GR+ix+1],c=hg[(iz+1)*GR+ix],d=hg[(iz+1)*GR+ix+1];return a+(b-a)*tx+(c-a)*tz+(a-b-c+d)*tx*tz;},
     f:function(x,z){const ix=clamp(Math.round((x-x0)/STEP),0,CH_RES),iz=clamp(Math.round((z-z0)/STEP),0,CH_RES);return fg.subarray((iz*GR+ix)*NF,(iz*GR+ix+1)*NF);}, // the conditions at the nearest vertex
@@ -184,7 +184,7 @@ function poolSnap(px,pz){if(!ORIGIN.on||(Math.abs(px-ORIGIN.x)<ORIGIN.snap&&Math
 function originOf(x0,z0){return ORIGIN.on?[x0,z0]:[0,0];}
 function instLocal(im,list,ox,oz,get){const a=im.instanceMatrix.array;for(let i=0;i<list.length;i++){const e=get(list[i]).elements;a[i*16+12]=e[12]-ox;a[i*16+14]=e[14]-oz;}}
 const POOL_SPHERE=new THREE.Sphere(new THREE.Vector3(0,0,0),2*Math.max(-WX0,WX1,-WZ0,WZ1)+2000);
-function poolFor(f,geo,mat,vars,cur){let P=POOLS.get(f);if(P)return P;P={f:f,src:geo,mat:mat,vars:!!vars,cur:cur,cap:0,n:0,nVis:0,nDraw:0,calm:0,blocks:[],geo:null,im:null};poolAlloc(P,Math.max(64,Math.round((f.per||60)*Q.flora*12)));POOLS.set(f,P);return P;}
+function poolFor(f,geo,mat,vars,cur){let P=POOLS.get(f);if(P)return P;P={f:f,src:geo,mat:mat,vars:!!vars,cur:cur,cap:0,n:0,nVis:0,nDraw:0,calm:0,blocks:[],geo:null,im:null,R0:poolReach(f,geo)};poolAlloc(P,Math.max(64,Math.round((f.per||60)*Q.flora*12)));POOLS.set(f,P);return P;}
 function poolAlloc(P,cap){ // the pool's mesh at capacity cap, what is written carried over; the old geometry disposed
   const old=P.im,g=P.src.clone();
   if(P.vars)g.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(cap),1));
@@ -203,7 +203,7 @@ function poolAlloc(P,cap){ // the pool's mesh at capacity cap, what is written c
 function poolLod(P){const sp=P.f.card?FAR_IMP.find(s=>s.f===P.f&&s.lod):null;if(!sp)return; // (at play: far.js, after this file, has loaded)
   if(P.lod){poolGroup.remove(P.lod);P.lod.geometry.dispose();} // its own position, normal, colour; the shared ones went with the pool's old mesh
   const g=sp.geo.clone();g.setAttribute('aHide',P.geo.attributes.aHide);if(P.vars)g.setAttribute('aVar',P.geo.attributes.aVar);
-  const m=new THREE.InstancedMesh(g,sp.lod,P.cap);cutFit(sp.lod,sp.geo||g);m.instanceMatrix=P.im.instanceMatrix;m.instanceColor=P.im.instanceColor;m.frustumCulled=false;m.count=P.im.count;m.onBeforeRender=function(){this.count=P.im.count;};P.lod=m;poolGroup.add(m);}
+  const m=new THREE.InstancedMesh(g,sp.lod,P.cap);cutFit(sp.lod,sp.geo||g);P.R0=Math.max(P.R0,poolReach(null,sp.geo)); /* a tile's sphere covers the copy too (v11.212) */m.instanceMatrix=P.im.instanceMatrix;m.instanceColor=P.im.instanceColor;m.frustumCulled=false;m.count=P.im.count;m.onBeforeRender=function(){this.count=P.im.count;};P.lod=m;poolGroup.add(m);}
 function poolUp(a,s,c,sz){const r=a.updateRange;if(r.count>0){const lo=Math.min(r.offset,s*sz),hi=Math.max(r.offset+r.count,(s+c)*sz);r.offset=lo;r.count=hi-lo;}else{r.offset=s*sz;r.count=c*sz;}a.needsUpdate=true;} // one attribute's range [s,s+c) uploaded at the next draw, joined to a range still pending
 function poolTouch(P,s,c){ // every attribute's range [s,s+c)
   poolUp(P.im.instanceMatrix,s,c,16);poolUp(P.im.instanceColor,s,c,3);if(P.vars)poolUp(P.geo.attributes.aVar,s,c,1);if(P.cur){poolUp(P.geo.attributes.aCur,s,c,2);poolUp(P.geo.attributes.aTide,s,c,2);}poolUp(P.geo.attributes.aHide,s,c,1);
@@ -213,13 +213,14 @@ function poolAdd(P,ch,rng,tints,list,mat){ // the cell's instances as one block 
   const s=P.n,M=P.im.instanceMatrix.array,C=P.im.instanceColor.array;P.geo.attributes.aHide.array.fill(AHIDE,s,s+list.length);const V=P.vars?P.geo.attributes.aVar.array:null,A=P.cur?P.geo.attributes.aCur.array:null,B=P.cur?P.geo.attributes.aTide.array:null;
   for(let i=0;i<list.length;i++){const p=list[i],k=s+i;M.set(p.m.elements,k*16);M[k*16+12]=p.m.elements[12]-ORIGIN.x;M[k*16+14]=p.m.elements[14]-ORIGIN.z;let tc=p.tint||tints[Math.floor(rng()*tints.length)];const q=p.chem;if(q)tc=[lerp(tc[0],q[0],q[3]),lerp(tc[1],q[1],q[3]),lerp(tc[2],q[2],q[3])];C[k*3]=tc[0]*(0.85+rng()*0.25);C[k*3+1]=tc[1]*(0.85+rng()*0.25);C[k*3+2]=tc[2]*(0.85+rng()*0.25);if(V)V[k]=p.v; // chem (v11.67): the place's stain over the pick (grow.js tintBy), before the jitter
     if(A){if(p.y>0.5||mat.land){A[k*2]=A[k*2+1]=B[k*2]=B[k*2+1]=0;continue;}steadyOf(ch,p.x,p.z,p.y+8,CURV);A[k*2]=CURV.x;A[k*2+1]=CURV.z;tidalAt(p.x,p.z,CURV);B[k*2]=CURV.x;B[k*2+1]=CURV.z;}} // nothing on land (the tussock) leans to the water
-  P.n+=list.length;P.blocks.push({ch:ch,start:s,count:list.length,vis:false});ch.pooled.push(P);poolTouch(P,s,list.length); // hidden (aHide AHIDE, past nDraw) until poolCull sees its cell (this frame: cullChunks runs after the streaming)
+  P.n+=list.length;poolTiles(P,ch,s,list.length);ch.pooled.push(P);poolTouch(P,s,list.length); // hidden (aHide AHIDE, past nDraw) until poolCull sees its tiles (this frame: cullChunks runs after the streaming); written in the rng's order, then put in tile order (poolTiles)
 }
-function poolRemove(P,ch){ // the cell's block out: the tail moved down over it, the blocks after it re-based
-  const bi=P.blocks.findIndex(b=>b.ch===ch);if(bi<0)return;const b=P.blocks[bi],e=b.start+b.count,n=P.n;
-  if(e<n){for(const [a,sz] of poolArrays(P))a.copyWithin(b.start*sz,e*sz,n*sz);
-    for(let i=bi+1;i<P.blocks.length;i++)P.blocks[i].start-=b.count;}
-  P.blocks.splice(bi,1);P.n-=b.count;if(b.vis)P.nVis-=b.count;P.nDraw=poolEnd(P);P.im.count=P.nDraw;if(e<n)poolTouch(P,b.start,P.n-b.start);
+function poolRemove(P,ch){ // the cell's blocks out (v11.212: its tiles, wherever packing put them): the blocks after the first of them moved down over them in one sweep, re-based
+  const B=P.blocks;let first=-1;for(let i=0;i<B.length;i++)if(B[i].ch===ch){first=i;break;}if(first<0)return;
+  const s0=B[first].start,keep=[];let gone=0,goneV=0;for(const b of B){if(b.ch===ch){gone+=b.count;if(b.vis)goneV+=b.count;}else keep.push(b);}
+  for(const [a,sz] of poolArrays(P)){let s=s0;for(let i=first;i<B.length;i++){const b=B[i];if(b.ch===ch)continue;if(b.start!==s)a.copyWithin(s*sz,b.start*sz,(b.start+b.count)*sz);s+=b.count;}}
+  {let s=s0;for(let i=first;i<B.length;i++){const b=B[i];if(b.ch===ch)continue;b.start=s;s+=b.count;}}
+  P.blocks=keep;P.n-=gone;P.nVis-=goneV;P.nDraw=poolEnd(P);P.im.count=P.nDraw;if(s0<P.n)poolTouch(P,s0,P.n-s0);
 }
 // v11.52.1: the pools partitioned by sight. The person's readouts on v11.52: the CPU halved and the vsync interval rose (9.3 ms in the forest
 // against 8.7, 16 in the air over it) — a pool drew every loaded cell's instances, behind the camera and all (tris 4.7M → 9.6M), and their GPU
@@ -250,10 +251,42 @@ function poolPack(P){ // the seen blocks first, each side in its old order: one 
   let s=s0;for(let k=i;k<O.length;k++){O[k].start=s;s+=O[k].count;}P.blocks=O;
   poolTouch(P,s0,n-s0);P.nDraw=P.nVis;
 }
-function poolCull(dt){ // after cullChunks has set every cell's visible and near: each block's flags to its cell's sight, the count to the last seen block; the loosest pool packed
-  let best=null,bl=0;
+// v11.212: a cell's block in each pool is cut into POOL_TILE.k × k tiles, each a block of its own with its sphere, hidden like a cell when it is wholly
+// out of view or past the pool's reach — the same flags (aHide) and the same packing once still (POOL_CALM) as v11.125's cells, so turning writes only
+// flags. The census on the low tier at the work tower's places (the person's reports #149–152): of the plants' triangles sent, only 21–45% were on screen
+// and within reach, a cell being drawn whole when any of it was; a simulation of tiles over the same pools kept 75–96% of what was sent with whole cells,
+// 44–59% at 3×3, 40–55% at 4×4. Invisible by construction: a tile is hidden only when its sphere — every instance's place and its plant's reach from
+// the root, by its scale, and 2 m for the sway — is out of the view, or its nearest instance past the reach the shader cuts at; the shadow passes draw
+// every block as before (scene.js updateShadowS), and the order within a tile is the rng's.
+const POOL_TILE={on:true,k:3}; // k tiles a side (72 m at 3)
+let tvOn=false;
+function tileView(){ // once a frame, for every loaded cell's tiles: each centre's signed distance to the view's six planes and to the camera (ch.tv, 7 a tile) — a pool's block then compares
+  const pl=frustum.planes,K=POOL_TILE.k,c=camera.position;tvOn=!!pl; // (the stub's frustum has no planes: the reach alone)
+  for(const ch of chunks.values()){if(!ch.sphere)continue;if(!ch.tv)ch.tv=new Float64Array(K*K*7);const v=ch.tv,y=ch.sphere.center.y;
+    for(let tj=0;tj<K;tj++)for(let ti=0;ti<K;ti++){const o=(tj*K+ti)*7,x=ch.x0+(ti+0.5)*CELL/K,z=ch.z0+(tj+0.5)*CELL/K;
+      if(tvOn)for(let i=0;i<6;i++){const p=pl[i];v[o+i]=p.normal.x*x+p.normal.y*y+p.normal.z*z+p.constant;}
+      v[o+6]=len3(x-c.x,y-c.y,z-c.z);}}}
+function poolFar(P){return P.lod?Math.max(cutFarOf(P.mat),cutFarOf(P.lod.material)):cutFarOf(P.mat);} // what any mesh on the pool's buffers draws to: its own material's cut, or its far copy's
+function cutFarOf(m){return m.cutU?m.cutU.value.y:m.cutAt===undefined?1e9:m.cutAt?m.cutAt[0]:FLORA_FAR;} // the far edge the material's shader cuts at (scene.js farCut): none, FLORA_FAR's, or its own. A pool with a far copy (poolLod: the tidewood's) reaches as far as the copy — the copy shares the pool's flags, and the near tree's cut is where the copy begins
+function tileSeen(b,reach){const v=b.ch.tv;if(v===null)return true;const o=b.t*7;if(v[o+6]-b.re>reach)return false; // past the reach: its nearest instance farther than the shader cuts at
+  if(tvOn){const r=-b.rr;if(v[o]<r||v[o+1]<r||v[o+2]<r||v[o+3]<r||v[o+4]<r||v[o+5]<r)return false;}return true;} // wholly behind one of the view's planes
+function poolReach(f,geo){const g=f&&f.geo||geo;if(!g||!g.attributes||!g.attributes.position)return 10;if(!g.boundingSphere&&g.computeBoundingSphere)g.computeBoundingSphere();const b=g.boundingSphere;return b&&b.center?b.center.length()+b.radius:10;} // a plant's reach from its root (the packed geometry's: a pulled one carries no places)
+let tileTmp=new Float32Array(0);const TILE_N=new Int32Array(64),TILE_AT=new Int32Array(64);let tileOf=new Uint8Array(0);
+function poolTiles(P,ch,s,n){ // the block [s, s+n) just written: put in tile order (stable: the rng's order within a tile), a block a tile with its sphere
+  const K=POOL_TILE.k,M=P.im.instanceMatrix.array,ox=ORIGIN.x,oz=ORIGIN.z;if(tileOf.length<n)tileOf=new Uint8Array(n*2);TILE_N.fill(0,0,K*K);
+  for(let i=0;i<n;i++){const k=s+i,ti=Math.min(K-1,Math.max(0,Math.floor((M[k*16+12]+ox-ch.x0)/CELL*K))),tj=Math.min(K-1,Math.max(0,Math.floor((M[k*16+14]+oz-ch.z0)/CELL*K))),t=tj*K+ti;tileOf[i]=t;TILE_N[t]++;}
+  let a=0;for(let t=0;t<K*K;t++){TILE_AT[t]=a;a+=TILE_N[t];}
+  let sorted=true;for(let i=1;i<n;i++)if(tileOf[i]<tileOf[i-1]){sorted=false;break;}
+  if(!sorted)for(const [A,sz] of poolArrays(P)){const len=n*sz;if(tileTmp.length<len)tileTmp=new Float32Array(len*2);tileTmp.set(A.subarray(s*sz,(s+n)*sz));const at=TILE_AT.slice(0,K*K);
+    for(let i=0;i<n;i++){const d=at[tileOf[i]]++;A.set(tileTmp.subarray(i*sz,(i+1)*sz),(s+d)*sz);}}
+  for(let t=0;t<K*K;t++){const c=TILE_N[t];if(!c)continue;const s0=s+TILE_AT[t];let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9,z0=1e9,z1=-1e9,sc=0;
+    for(let k=s0;k<s0+c;k++){const x=M[k*16+12]+ox,y=M[k*16+13],z=M[k*16+14]+oz;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;if(z<z0)z0=z;if(z>z1)z1=z;const q=Math.max(len3(M[k*16],M[k*16+1],M[k*16+2]),len3(M[k*16+4],M[k*16+5],M[k*16+6]),len3(M[k*16+8],M[k*16+9],M[k*16+10]));if(q>sc)sc=q;}
+    const e=0.5*len3(x1-x0,y1-y0,z1-z0),bx=(x0+x1)/2,by=(y0+y1)/2,bz=(z0+z1)/2,ti=t%K,tj=(t-ti)/K,off=len3(bx-(ch.x0+(ti+0.5)*CELL/K),by-(ch.sphere?ch.sphere.center.y:by),bz-(ch.z0+(tj+0.5)*CELL/K)),r=e+P.R0*sc+2;
+    P.blocks.push({ch:ch,start:s0,count:c,vis:false,t:t,x:bx,y:by,z:bz,e:e,r:r,rr:off+r,re:off+e});}} // rr, re: its sphere's and its extent's reach about the tile's centre (tileView's point)
+function poolCull(dt){ // after cullChunks has set every cell's visible and near (and `frustum`): each block's flags to its cell's and its tile's sight, the count to the last seen block; the loosest pool packed
+  let best=null,bl=0;tileView();
   for(const P of POOLS.values()){const B=P.blocks,H=P.geo.attributes.aHide;let moved=false;
-    for(let i=0;i<B.length;i++){const b=B[i],ch=b.ch,v=ch.group.visible&&ch.near;if(v===b.vis)continue;b.vis=v;H.array.fill(v?0:AHIDE,b.start,b.start+b.count);poolUp(H,b.start,b.count,1);P.nVis+=v?b.count:-b.count;moved=true;}
+    const reach=poolFar(P);for(let i=0;i<B.length;i++){const b=B[i],ch=b.ch,v=ch.group.visible&&ch.near&&(!POOL_TILE.on||tileSeen(b,reach));if(v===b.vis)continue;b.vis=v;H.array.fill(v?0:AHIDE,b.start,b.start+b.count);poolUp(H,b.start,b.count,1);P.nVis+=v?b.count:-b.count;moved=true;}
     if(moved){P.calm=0;P.nDraw=poolEnd(P);}else P.calm+=dt||0;
     const loose=P.nDraw-P.nVis;if(P.calm>=POOL_CALM&&loose*8>P.nDraw&&loose>bl){best=P;bl=loose;}
     P.im.count=P.nDraw;}

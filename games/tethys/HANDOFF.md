@@ -4,6 +4,10 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.212 (22 Nov 2026): the plants sent by the tile** (chunks.js `POOL_TILE`, `poolTiles`, `tileSeen`, `poolFar`; test/pool.js; CHANGELOG). Each cell's
+block in a pool cut into 3×3 tiles, a tile out of view or past the reach flagged like a cell: a third fewer triangles at every planted place on both tiers,
+the picture the same. **Ask:** the tower's frame rate, and F8/F9 there; on the home machine, turn hard in the kelp forest (no spike).
+
 **v11.211 (22 Nov 2026): the probe trusted, and the plants' off-screen exit measured** (probe.js; scene.js `viewExit`, `cutFit`; test/probe.js;
 CHANGELOG). Of the plants' triangles sent on the low tier only 21–45% are seen; the exit for the off-screen ones cost the software GPU 7%, so it is off in
 play and the probe measures it. **Ask:** F8 then F9 on the tower, under water.
@@ -20,9 +24,6 @@ step itself, with the drawing smoothed between steps.
 **v11.208 (22 Nov 2026): F8, the GPU probe** (src/probe.js; rec.js `REC.probe`; test/probe.js; test/report.js; CHANGELOG). Each part of the frame
 skipped and each heavy effect switched off in turn, timed on the person's own GPU, kept for the report. For the tower's main pass (22–35 ms at 0.6 MP on
 low): what the low tier cuts waits on its probe. **Ask:** F8 then F9 on the tower, under water and on the surface.
-
-**v11.207 (22 Nov 2026): the tier samples again** (main.js; test/idle.js; CHANGELOG). v11.202's mid-line `//` comment had swallowed the loop's
-`tierFrame` call: from v11.202 to v11.206 no verdict was made or changed. **Ask:** `tier()` after a minute of play on a browser with no verdict.
 
 ## Open
 
