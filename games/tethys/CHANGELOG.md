@@ -10502,3 +10502,50 @@ identical code, v11.205), the Chromium frame ×1.52 (×0.84 to ×1.47 on identic
 GPU's counts move as creatures elsewhere do (draws and triangles within 1%; the shore's uploads 223 → 250 KB): test/gpu.json updated.
 
 **Unseen, ask in this order:** nothing to see — the creatures do what they did, on other dice.
+
+## v11.210 — the fixed step: the world the same at any frame rate, the drawing smoothed between steps (22 Nov 2026)
+
+The second part of step 7 (analysis_project.md §7; the person, 22 Nov 2026: "yes please option 2 … Great ideas on this especially for a fixed
+timestep"). To v11.209 the loop stepped once a frame by the frame's own interval: the 4060's 144 Hz stepped 2.4 times as often as a 60 Hz screen,
+each step smaller, and the work tower at 30 fps stepped 33 ms. On v11.209 one world run 10 s at 30, 60 and 144 Hz came out three different worlds —
+1,311, 1,312 and 1,313 creatures alive.
+
+- **The sim at a fixed step** (src/step.js `simStep`; main.js): `SIM_STEP` 1/60 s. The loop adds the frame's interval to `stepAcc` and steps while a
+  whole step is in it, at most `SIM_STEP_MAX` 3 a frame (a longer frame slows the world, as the old 0.05 s clamp did). A step is the clock and the
+  tide, the player, the schools and creatures, the player's pose and arms, eggs, sheds, the ledger, the save and the line's clocks, pads, wounds and
+  states. What is only seen runs once a frame on the frame's interval: streaming, the menu, the disturbers, snow, ink, splashes, blood, debris,
+  sparks, the atmosphere, culling, lights, shadows, sound, the HUD.
+- **The drawing between steps** (`lerpSnap` before each step, `lerpApply` after the frame's steps, `lerpRestore` after the render): the player's body
+  and every creature drawn are set the fraction of a step since the last between their pose before the last step and after it (positions lerped,
+  turns nlerped the short way), drawn, and put back with their matrices — the sim reads `g.matrix` and never sees an in-between pose. A pose that
+  moved 30 m in a step jumped and is drawn where it is. The shaders' clock is the same in-between moment. The far schools' instances are written
+  again once a frame from the fish as drawn (creatures_ai.js `siFrame`).
+- **The camera is not stepped** (player.js `camFrame`, out of `finishPlayer`): once a frame, from the body as drawn and the heading as the mouse left
+  it — so the look has no step's lag, and the body does not slide in the frame while the camera orbits. Nothing the sim reads is the camera's.
+- **The tests' clocks** (test/stub.js, test/benchpage.js): a frame is 1000/60 ms, not 16.7 (one step a frame, never two); `__FRAME_MS` another.
+- **test/step.js** (in `--test`): one world booted at 60 Hz in three processes, then 600 steps at 30, 60 and 144 Hz — two steps a frame, one, none or
+  one; the clock on by exactly 10 s; **every creature (1,313) and the player the same to the bit on all three**; a creature drawn halfway between its
+  steps and its step's pose back after the render.
+- CLAUDE.md: the frame's order, and under Things that bite, what goes in a step and what never reads one.
+
+**What it costs** (the bench page at the forest, Chromium, the render left out; ms a frame, the mean of three runs each — one run alone swings ±20%
+here):
+
+| | v11.209 | here | ratio |
+|---|---|---|---|
+| 60 Hz | 5.71 (5.37, 5.93, 5.82) | 5.20 (6.14, 4.82, 4.65) | ×0.91 |
+| 144 Hz | 4.80 (5.00, 4.39, 5.01) | 2.40 (2.77, 2.36, 2.08) | **×0.50** |
+
+At 144 Hz the sim runs on 600 of 1,440 frames (median frame 0.7–0.9 ms); at 30 fps it runs twice a frame. The smoothing itself: 0.13 ms a frame
+(snapshot 0.02, apply 0.05, restore 0.03, the far schools 0.014, the camera 0.012; 113 creatures drawn). A moving creature's drawn place at 144 Hz
+changes on every frame by an even step (2.74 m/s: 0.0207 m a frame; none held still). Against main (test/perf.js): the simulation and the rasp's arms
+not the same, as v11.209 already made them; the creatures' frame ×1.04, ×0.92 in Chromium; cells ×0.96–1.10; the GPU's counts within test/gpu.json's
+10%.
+
+**Looked at:** the build boots with no page error (test/boot.js, `npm run look`): the menu over the sea and the island.
+
+**Unseen, ask in this order:**
+1. The home machine at 144 Hz: swim fast past creatures and turn hard with the mouse — the creatures and your body glide, the look follows the mouse as
+   before, nothing stutters or lags. The F9 report's frame times should be lower in play.
+2. The work tower at 30 fps: the world as it was (two steps a frame), nothing slower.
+3. Combat and grabbing: a fight as before — the arms and the bite read the steps' poses, never the drawn ones.

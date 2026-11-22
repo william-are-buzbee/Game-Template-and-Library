@@ -37,7 +37,7 @@ the way eventually even if it means fucking up our lawn today", and answered eve
 | 4 | the flora's detail by distance, from the recipes, measured by the recorder; then the tier that follows the machine | built v11.194, off, **struck v11.201** (they cost more than they saved); the tier built v11.199: a loss on the proxy; the person's reports decide |
 | 5 | the cells generated in workers | |
 | 6 | three.js to a current release | (v11.200's survey: r128's per-draw attribute check, WebGLBindingStates.setup, thrown out of optimised code 252 times in 400 frames); the look will shift (colour management, light units) unless pinned — the person, 22 Nov 2026: "that is perfectly fine", after the low tier's triangles |
-| 7 | a fixed step and seeded randomness in the sim (replays) | the person's answer: a fixed 60 Hz step with the drawing smoothed between steps (22 Nov 2026); §7 |
+| 7 | a fixed step and seeded randomness in the sim (replays) | the person's answer: a fixed 60 Hz step with the drawing smoothed between steps (22 Nov 2026); built v11.209 (the sim's own randomness) and v11.210 (the step); replays wait on step 5; §7 |
 
 One door and its key, end to end, can go in at any point.
 
@@ -146,7 +146,7 @@ stay off and their question open.
 on they cost more on every machine: renderFrame's CPU ×1.37–1.48 and 45 draws a frame, the proxy's GPU ×1.06–1.08 (#144's home report, with
 `#lod` at another place, read 4.5 ms of submit against 2.9). So, by the person's own rule, **struck in v11.201**; the uniform cut stays.
 
-## 7. A fixed step (the person's answer, 22 Nov 2026)
+## 7. A fixed step (the person's answer, 22 Nov 2026; parts 1 and 2 built v11.209, v11.210)
 
 Asked between (1) the sim's randomness seeded and each frame's length recorded — replays and exact tests, no change in feel — and (2) a fixed 60 Hz
 step with the drawing smoothed between steps — physics the same at any frame rate, the sim a fraction of the cost at 120 Hz and over, every moving
