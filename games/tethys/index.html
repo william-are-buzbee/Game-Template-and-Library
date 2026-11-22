@@ -173,7 +173,7 @@ canvas{display:block;outline:none;touch-action:none}
 <div id="fade" class="layer"></div>
 <canvas id="spark" class="layer"></canvas>
 <div id="stats"></div>
-<script>window.TETHYS_BUILD={v:"v11.210"};</script>
+<script>window.TETHYS_BUILD={v:"v11.211"};</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 function tethysMain(){
@@ -490,7 +490,7 @@ function recMd(p,tok,cut,prev){const a=p.all,d=p.dev||{},b=p.boot||{},pc=p.pc,I=
   L.push('**machine** '+(d.mid?'`'+d.mid+'` ':'')+recGpuName(d.gpu)+' · WebGL'+d.gl+' · '+d.cores+' threads'+(d.mem?' · '+d.mem+' GB':'')+(d.plat?' · '+d.plat.trim():'')+(d.flags?' · '+d.flags:'')+(d.lod?' · lod '+d.lod:'')+' · screen '+(d.screen||[]).join('×')+' ×'+d.dpr+' · drawn '+(d.buf||[]).join('×')+' · '+d.tier+(a.vsync?' · vsync '+a.vsync.toFixed(1)+' ms':''));
   L.push('**frames** p50 '+recMs(a.iv[0])+' · p95 '+recMs(a.iv[2])+' · p99 '+recMs(a.iv[3])+' · max '+recMs(a.iv[4])+' ms · '+(100*a.over[1]).toFixed(1)+'% over 33 ms · CPU '+recMs(a.work[0])+' ms (sim '+recMs(a.ph.sim)+' · gen '+recMs(a.ph.gen)+' · render '+recMs(a.ph.render)+')');
   L.push(a.gpu?'**gpu** p50 '+recMs(a.gpu.p50)+' · p95 '+recMs(a.gpu.p95)+' ms (main '+recMs(a.gpu.pass.main)+' · horizon '+recMs(a.gpu.pass.horizon)+' · clouds '+recMs(a.gpu.pass.clouds)+' · shadows '+recMs(a.gpu.pass.shadows)+' · sky '+recMs(a.gpu.pass.sky)+')':'**gpu** no timer in this browser');
-  if(p.probe&&p.probe.length)for(const q of p.probe)L.push('**probe** at `'+recTp(q.at[0],q.at[2],q.at[1])+'` ('+q.buf.join('×')+', '+q.tier+'): the GPU '+recMs(q.gpu)+' ms — '+q.parts.concat(q.fx).filter(x=>x[1]!==null).sort((x,y)=>y[1]-x[1]).slice(0,8).map(x=>x[0]+' '+recMs(x[1])).join(' · ')); // v11.208 (probe.js): what each part cost the GPU there
+  if(p.probe&&p.probe.length)for(const q of p.probe)L.push('**probe** at `'+recTp(q.at[0],q.at[2],q.at[1])+'` ('+q.buf.join('×')+', '+q.tier+'): the GPU '+recMs(q.gpu)+' ms'+(q.noise!==undefined?' (noise ±'+recMs(q.noise)+')':'')+' — '+q.parts.concat(q.fx).filter(x=>x[1]!==null).sort((x,y)=>y[1]-x[1]).slice(0,8).map(x=>x[0]+' '+recMs(x[1])).join(' · ')+(q.exit!==undefined&&q.exit!==null?' · the off-screen exit saved '+q.exit.toFixed(2):'')); // v11.208 (probe.js): what each part cost the GPU there
   L.push('**boot** scripts '+b.scripts+' s · first frame '+b.first+' s · world in '+b.done+' s · '+b.progs+' programs'+(b.seen?' (seen this version before)':' (first visit of this version)'));
   const w=p.places.filter(r=>r[I('s')]>=5).sort((x,y)=>y[I('p95')]-x[I('p95')]).slice(0,5);
   if(w.length){L.push('**worst places** (p95 · gpu · time there)');for(const r of w)L.push('- `'+recTp(r[I('x')],r[I('z')],r[I('y')])+'` '+recMs(r[I('p95')])+' · '+recMs(r[I('gpu')])+' ms · '+(r[I('s')]/60).toFixed(1)+' min');}
@@ -3702,10 +3702,19 @@ const FLORA_FAR=450,FLORA_FADE=90;
 // v11.194 (analysis_project.md §4): the cut is a uniform, `uCut` (x: the near edge — an instance nearer is gone, 0 none; y: the far edge; z: the fade
 // into it), each material's own (cutUOf) — made for v11.194's far copies (struck v11.201); kept, as it costs nothing and the pictures are the same.
 // The numbers are the ones the shaders had as literals; a material with no cut has its far edge at NO_CUT, which nothing reaches.
-const CUT_V='uniform vec3 uCut;\n',NO_CUT=1e7;
-function farCut(){return '\nfloat fadeK=1.0;\n#if defined(USE_FOG)&&defined(USE_INSTANCING)\n{float fdk=distance((modelMatrix*vec4(instanceMatrix[3].xyz,1.0)).xyz,uFogC);if(fdk>uCut.y||fdk<uCut.x)'+GONE+'fadeK=1.0-smoothstep(uCut.y-uCut.z,uCut.y,fdk);}\n#endif\n';} // uFogC: the camera (fog_pars_vertex)
+const CUT_V='uniform vec4 uCut;\n',NO_CUT=1e7;
+function farCut(){return '\nfloat fadeK=1.0;\n#if defined(USE_FOG)&&defined(USE_INSTANCING)\n{float fdk=distance((modelMatrix*vec4(instanceMatrix[3].xyz,1.0)).xyz,uFogC);if(fdk>uCut.y||fdk<uCut.x)'+GONE+'fadeK=1.0-smoothstep(uCut.y-uCut.z,uCut.y,fdk);'+'if(uCut.w>0.0){vec3 vq=(modelViewMatrix*vec4(instanceMatrix[3].xyz,1.0)).xyz;float rq=uCut.w*max(max(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz)),length(instanceMatrix[2].xyz))+2.0,p0=projectionMatrix[0][0],p1=projectionMatrix[1][1];if(vq.z>rq||p0*abs(vq.x)+vq.z>rq*sqrt(p0*p0+1.0)||p1*abs(vq.y)+vq.z>rq*sqrt(p1*p1+1.0))'+GONE+'}}\n#endif\n';} // uFogC: the camera (fog_pars_vertex)
 // a material's cut: made at its first compile or clone (FLORA_FAR is read then, after it is declared); m.cutAt is [far, fade] or null for FLORA_FAR's
-function cutUOf(m){if(!m.cutU){const a=m.cutAt||[FLORA_FAR,FLORA_FADE];m.cutU={value:new THREE.Vector3(0,a[0],a[1])};}return m.cutU;}
+function cutUOf(m){if(!m.cutU){const a=m.cutAt||[FLORA_FAR,FLORA_FADE];m.cutU={value:new THREE.Vector4(0,a[0],a[1],VIEW_EXIT&&m.cutR?m.cutR:0)};}return m.cutU;}
+// v11.211: uCut.w, the reach of the biggest thing an instanced mesh draws with the material, from its root (cutFit: the bounding sphere's centre's distance
+// plus its radius) — an instance whose sphere (that, by its scale, and 2 m for the sway) is wholly outside the view exits at the top of its vertex shader, as
+// one past the far edge does. 0: no such test. Every site that makes an instanced mesh with a cut material calls cutFit.
+// OFF in play (VIEW_EXIT false, w 0 everywhere): on the software GPU the test cost the frame 7% and saved nothing (it runs the vertices four at a time,
+// masked); a real GPU's may skip the off-screen instances' work — 34–45% of the plants' triangles on the low tier at the tower's places. The probe (F8)
+// switches it on for one state and reports what it saved (probe.js, the `exit` state), so the tower's own GPU decides (CHANGELOG v11.211).
+let VIEW_EXIT=false;const CUT_REG=new Set();
+function viewExit(on){VIEW_EXIT=!!on;for(const m of CUT_REG)(m.cutU||cutUOf(m)).value.w=VIEW_EXIT?m.cutR:0;}
+function cutFit(m,g){if(!m||(m.cutAt===undefined&&!m.cutU)||!g||!g.attributes.position)return;if(!g.boundingSphere&&g.computeBoundingSphere)g.computeBoundingSphere();const b=g.boundingSphere;if(!b||!b.center)return;const r=b.center.length()+b.radius;CUT_REG.add(m);if(!(r<=(m.cutR||0))){m.cutR=r;if(VIEW_EXIT)cutUOf(m).value.w=r;}}
 const FAR_CUT=farCut(),FAR_FADE='\ntransformed*=fadeK;\n';
 // The disturbance loop runs only for plants within DIST_R of the camera: every disturber is within 70 of it (physics.js
 // updateDisturbers) plus a body. It ran for every vertex of every plant to the far plane; this alone was 6.3 → 4.6 ms in the forest.
@@ -10948,7 +10957,7 @@ let schoolMT=0;
 // own meshes are hidden (setLOD level 2) and its group stays visible, so nothing that reads c.g.visible changes. The bake was already static far off: the
 // picture is the same, the draws are one per kind and coat instead of one per fish. `cap` instances per mesh (past it the rest draw as before).
 const SCHOOL_INST={on:true,cap:512},SI_MAP=new Map(),SI_LIST=[];
-function siPush(c){const e=c.lodMeshes[0];if(!e)return false;let r=SI_MAP.get(e.geometry);if(!r){const m=new THREE.InstancedMesh(e.geometry,e.material,SCHOOL_INST.cap);m.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(SCHOOL_INST.cap*3).fill(1),3);m.frustumCulled=false;m.castShadow=false;m.count=0;m.visible=false;scene.add(m);r={m:m,n:0};SI_MAP.set(e.geometry,r);SI_LIST.push(r);}
+function siPush(c){const e=c.lodMeshes[0];if(!e)return false;let r=SI_MAP.get(e.geometry);if(!r){const m=new THREE.InstancedMesh(e.geometry,e.material,SCHOOL_INST.cap);cutFit(e.material,e.geometry);m.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(SCHOOL_INST.cap*3).fill(1),3);m.frustumCulled=false;m.castShadow=false;m.count=0;m.visible=false;scene.add(m);r={m:m,n:0};SI_MAP.set(e.geometry,r);SI_LIST.push(r);}
   if(r.n>=SCHOOL_INST.cap||c.lodMeshes.length>1)return false;c.g.updateMatrix();r.m.instanceMatrix.array.set(c.g.matrix.elements,r.n*16);r.n++;return true;}
 function siEnd(){for(const r of SI_LIST){r.m.count=r.n;r.m.visible=r.n>0;if(r.n)r.m.instanceMatrix.needsUpdate=true;r.n=0;}}
 function siFrame(){ // v11.210 (step.js): the far schools' instances written again once a frame from their bodies as drawn — set between the last two steps by lerpApply — so they move at the screen's rate; which fish are instanced stays the step's (siPush, setLOD 2)
@@ -11605,7 +11614,7 @@ function makeInstanced(ch,rng,geo,mat,tints,list,dip,vars,f){
   if(cur){const a=new Float32Array(list.length*2),b=new Float32Array(list.length*2);
     for(let i=0;i<list.length;i++){const p=list[i];if(p.y>0.5||mat.land)continue;steadyOf(ch,p.x,p.z,p.y+8,CURV);a[i*2]=CURV.x;a[i*2+1]=CURV.z;tidalAt(p.x,p.z,CURV);b[i*2]=CURV.x;b[i*2+1]=CURV.z;} // nothing on land (the tussock) leans to the water
     geo.setAttribute('aCur',new THREE.InstancedBufferAttribute(a,2));geo.setAttribute('aTide',new THREE.InstancedBufferAttribute(b,2));} // the steady current and the tidal stream at full flood (world.js): the shader sums them with the tide's rate
-  const im=new THREE.InstancedMesh(geo,mat,list.length);im.frustumCulled=false;const col=new THREE.Color();
+  const im=new THREE.InstancedMesh(geo,mat,list.length);im.frustumCulled=false;cutFit(mat,f&&f.geo||geo);const col=new THREE.Color(); // cutFit (v11.211, scene.js): the material's reach for the off-screen exit — the packed geometry's, a pulled one's own carries no places
   for(let i=0;i<list.length;i++){im.setMatrixAt(i,list[i].m);const e=list[i].m.elements,a=im.instanceMatrix.array;a[i*16+12]=e[12]-ch.ox;a[i*16+14]=e[14]-ch.oz;let tc=list[i].tint||tints[Math.floor(rng()*tints.length)];const q=list[i].chem;if(q)tc=[lerp(tc[0],q[0],q[3]),lerp(tc[1],q[1],q[3]),lerp(tc[2],q[2],q[3])];col.setRGB(tc[0]*(0.85+rng()*0.25),tc[1]*(0.85+rng()*0.25),tc[2]*(0.85+rng()*0.25));im.setColorAt(i,col);} // chem (v11.67): the place's stain over the pick (grow.js tintBy), before the jitter
   im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;ch.group.add(im);ch.meshes.push(im);if(mat!==GLOW){ch.flora.push(im);shadowCaster(im,mat,ch.sphere);}return im; // the glow clouds stay lit at any range (and cast nothing); everything else hides past FLORA_FAR (cullChunks) and casts into the world's map (v11.30)
 }
@@ -11657,7 +11666,7 @@ function poolAlloc(P,cap){ // the pool's mesh at capacity cap, what is written c
   if(P.vars)g.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(cap),1));
   if(P.cur){g.setAttribute('aCur',new THREE.InstancedBufferAttribute(new Float32Array(cap*2),2));g.setAttribute('aTide',new THREE.InstancedBufferAttribute(new Float32Array(cap*2),2));}
   g.setAttribute('aHide',new THREE.InstancedBufferAttribute(new Float32Array(cap).fill(AHIDE),1)); // v11.125: AHIDE an instance out of sight (poolCull), read first by every tinted material's vertex shader (scene.js HIDE_GLSL)
-  const im=new THREE.InstancedMesh(g,P.mat,cap);im.frustumCulled=false;im.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(cap*3),3);
+  const im=new THREE.InstancedMesh(g,P.mat,cap);im.frustumCulled=false;cutFit(P.mat,P.f&&P.f.geo||P.src);im.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(cap*3),3);
   if(old){const n=P.n;im.instanceMatrix.array.set(old.instanceMatrix.array.subarray(0,n*16));im.instanceColor.array.set(old.instanceColor.array.subarray(0,n*3));
     if(P.vars)g.attributes.aVar.array.set(old.geometry.attributes.aVar.array.subarray(0,n));if(P.cur){g.attributes.aCur.array.set(old.geometry.attributes.aCur.array.subarray(0,n*2));g.attributes.aTide.array.set(old.geometry.attributes.aTide.array.subarray(0,n*2));}g.attributes.aHide.array.set(old.geometry.attributes.aHide.array.subarray(0,n));
     poolGroup.remove(old);old.geometry.dispose();old.dispose();}
@@ -11670,7 +11679,7 @@ function poolAlloc(P,cap){ // the pool's mesh at capacity cap, what is written c
 function poolLod(P){const sp=P.f.card?FAR_IMP.find(s=>s.f===P.f&&s.lod):null;if(!sp)return; // (at play: far.js, after this file, has loaded)
   if(P.lod){poolGroup.remove(P.lod);P.lod.geometry.dispose();} // its own position, normal, colour; the shared ones went with the pool's old mesh
   const g=sp.geo.clone();g.setAttribute('aHide',P.geo.attributes.aHide);if(P.vars)g.setAttribute('aVar',P.geo.attributes.aVar);
-  const m=new THREE.InstancedMesh(g,sp.lod,P.cap);m.instanceMatrix=P.im.instanceMatrix;m.instanceColor=P.im.instanceColor;m.frustumCulled=false;m.count=P.im.count;m.onBeforeRender=function(){this.count=P.im.count;};P.lod=m;poolGroup.add(m);}
+  const m=new THREE.InstancedMesh(g,sp.lod,P.cap);cutFit(sp.lod,sp.geo||g);m.instanceMatrix=P.im.instanceMatrix;m.instanceColor=P.im.instanceColor;m.frustumCulled=false;m.count=P.im.count;m.onBeforeRender=function(){this.count=P.im.count;};P.lod=m;poolGroup.add(m);}
 function poolUp(a,s,c,sz){const r=a.updateRange;if(r.count>0){const lo=Math.min(r.offset,s*sz),hi=Math.max(r.offset+r.count,(s+c)*sz);r.offset=lo;r.count=hi-lo;}else{r.offset=s*sz;r.count=c*sz;}a.needsUpdate=true;} // one attribute's range [s,s+c) uploaded at the next draw, joined to a range still pending
 function poolTouch(P,s,c){ // every attribute's range [s,s+c)
   poolUp(P.im.instanceMatrix,s,c,16);poolUp(P.im.instanceColor,s,c,3);if(P.vars)poolUp(P.geo.attributes.aVar,s,c,1);if(P.cur){poolUp(P.geo.attributes.aCur,s,c,2);poolUp(P.geo.attributes.aTide,s,c,2);}poolUp(P.geo.attributes.aHide,s,c,1);
@@ -12698,13 +12707,13 @@ function* genRegion(ri,rj){
   const byGeo=new Map();
   for(let dj=0;dj<FR;dj++)for(let di=0;di<FR;di++){for(const s of (yield* bigsGen(ci0+di,cj0+dj))){let L=byGeo.get(s.f.geo);if(!L){L=[];byGeo.set(s.f.geo,L);}L.push(s);}yield;}
   const c=new THREE.Color();
-  byGeo.forEach((L,g)=>{const im=new THREE.InstancedMesh(g,L[0].f.farMat||MATROCKB,L.length);im.frustumCulled=false;
+  byGeo.forEach((L,g)=>{const im=new THREE.InstancedMesh(g,L[0].f.farMat||MATROCKB,L.length);im.frustumCulled=false;cutFit(im.material,g); // cutFit (v11.211, scene.js)
     for(let i=0;i<L.length;i++){im.setMatrixAt(i,L[i].m);c.setRGB(L[i].col[0],L[i].col[1],L[i].col[2]);im.setColorAt(i,c);}instLocal(im,L,ox,oz,q=>q.m);
     im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;reg.group.add(im);});
   yield;
   // the boulders (v11.157): one instanced mesh for the region's blocks (they share one geometry), drawn near and far — the cells draw none
   {const L=[];for(let dj=0;dj<FR;dj++)for(let di=0;di<FR;di++){for(const s of (yield* rocksGen(ci0+di,cj0+dj)))L.push(s);yield;}
-    if(L.length){const im=new THREE.InstancedMesh(BOULDER_G,MATROCKF,L.length);im.frustumCulled=false;
+    if(L.length){const im=new THREE.InstancedMesh(BOULDER_G,MATROCKF,L.length);im.frustumCulled=false;cutFit(MATROCKF,BOULDER_G);
       for(let i=0;i<L.length;i++){im.setMatrixAt(i,L[i].m);c.setRGB(L[i].col[0],L[i].col[1],L[i].col[2]);im.setColorAt(i,c);}instLocal(im,L,ox,oz,q=>q.m);
       im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;reg.group.add(im);}}
   yield;
@@ -14867,7 +14876,7 @@ const PHO_C=[],PHO_REST={}; // the lit creatures; a kind's lights at rest in its
 const PHO_SH={uniforms:null,vertexShader:'attribute float aGl;uniform float uSoft;varying float vG;varying float vD;varying float vF;\nvoid main(){mat4 im=mat4(1.0);\n#ifdef USE_INSTANCING\nim=instanceMatrix;\n#endif\nvec4 mv=modelViewMatrix*im*vec4(position,1.0);vD=length(mv.xyz);vG=aGl;vec3 n=normalize(mat3(modelViewMatrix)*mat3(im)*normal);vF=abs(dot(n,normalize(-mv.xyz)));gl_Position=projectionMatrix*mv;}',
   fragmentShader:'uniform vec3 uCol;uniform float uK;uniform float uSoft;uniform vec4 uFogP;uniform float uFogD;uniform vec4 uSkE;varying float vG;varying float vD;varying float vF;\nvoid main(){float d=vD;float tn=exp(-uFogD*uFogD*d*d);float ex=mix(exp(-uFogP.x*d),tn,uFogP.y)'+FOG_CUT_GLSL+';float f=mix(1.0,0.15+0.85*vF*vF,uSoft);gl_FragColor=vec4(uCol*(uK*vG*ex*f*uSkE.w),1.0);}'};
 function phoMat(col,K,soft){return new THREE.ShaderMaterial({uniforms:{uCol:{value:new THREE.Color(col[0],col[1],col[2])},uK:{value:K},uSoft:{value:soft},uFogP:{value:FOG_PS},uFogD:{value:SEA_FOG.dens},uSkE:{value:FOG_SKE}},vertexShader:PHO_SH.vertexShader,fragmentShader:PHO_SH.fragmentShader,transparent:true,depthWrite:false,depthTest:true,blending:THREE.AdditiveBlending});}
-function phoIM(geo,mat,n){const g=geo,a=new THREE.InstancedBufferAttribute(new Float32Array(n),1);g.setAttribute('aGl',a);const im=new THREE.InstancedMesh(g,mat,n);im.count=0;im.frustumCulled=false;im.visible=false;scene.add(im);return im;}
+function phoIM(geo,mat,n){const g=geo,a=new THREE.InstancedBufferAttribute(new Float32Array(n),1);g.setAttribute('aGl',a);const im=new THREE.InstancedMesh(g,mat,n);cutFit(mat,g);im.count=0;im.frustumCulled=false;im.visible=false;scene.add(im);return im;}
 const PHO_F=phoIM(new THREE.BoxGeometry(1,1,1),phoMat(PHO.col,1,0),PHO.max); // the faces
 const PHO_B=phoIM(new THREE.DodecahedronGeometry(1,0),phoMat(PHO.col,PHO.cl.K,1),PHO.cl.slots*PHO.cl.n); // the clouds' blobs
 const PHO_CL=[];for(let i=0;i<PHO.cl.slots;i++){const b=[];for(let j=0;j<PHO.cl.n;j++)b.push({x:0,y:0,z:0,vx:0,vy:0,vz:0,r:0,q:new THREE.Quaternion()});PHO_CL.push({on:false,a:0,b:b});}
@@ -16996,12 +17005,13 @@ function lerpRestore(){for(const o of LERP_ON){const r=LERP.get(o);if(r===undefi
 // results come back a few frames late, and a switched effect may compile). A part's cost is the frame as it is (the mean of the two beside it) less the frame
 // without it. The result is shown, logged, and kept for the next report (REC.probe; test/report.js prints it). The world goes on meanwhile: hold still. The
 // resolution and the tier's sampling hold while it runs (main.js).
-const PROBE_K={settle:3,frames:10,keep:4}; // frames after a switch before its results count; frames a state is measured; the probes a report keeps
+const PROBE_K={settle:3,settleMs:300,frames:10,keep:4}; // frames, and ms (v11.212), after a switch before its results count — both: the world's shadow map redraws at most every 0.25 s (scene.js SHS_GAP), and a switch's redraw landing in the next state's frames made a cost of it (the home machine's first probe, #167: shadows 2.93 ms there, 0.14 in the second); frames a state is measured; the probes a report keeps
+const PROBE_V=new THREE.Vector2(); // the drawing buffer's size, each frame: a probe stops if the window changes size (v11.212 — #167's two probes were at 1990×1027 and 3600×2025)
 const PROBE_PARTS=['terrain','flora','rocks','far','creatures','water','sky','horizon'];
 const PROBE_FX=['caustics','texelLight','shadows','statics','ground','sharp','shafts','snow','rain','clouds','refract','crest','halo','murk','mirror','cloudLight']; // the effects with a pass, a copy or a per-pixel term of their own; those on are measured
 let PROBE=null; // a probe under way: {st — the states, i — the current one, skip — the part whose draws are skipped (or null), roots — the creatures' and the player's groups, end — the frame the last state ended (−1 before), at, buf, tier, above}
 const probeCatW=new WeakMap();let probeHooked=false,probeFm=null;
-function probeState(k,name){return {k:k,name:name,F:0,ms:[],n:0};} // one shape: k 'base' | 'part' | 'fx'; F the frame it began; ms its frames' GPU times; n the draws it skipped a frame (the last)
+function probeState(k,name){return {k:k,name:name,F:0,T:0,W:-1,ms:[],n:0};} // one shape: k 'base' | 'part' | 'fx' | 'exit'; F the frame it began, T its time (ms); W the first frame measured, once settled (−1 before); ms its frames' GPU times; n the draws it skipped a frame (the last)
 function probeSay(s){if(typeof hintEl==='undefined')return;hintEl.textContent=s;hintEl.style.opacity='1';const k=s;setTimeout(()=>{if(hintEl.textContent===k)hintEl.style.opacity='0';},12000);}
 function probeHook(){if(probeHooked)return;probeHooked=true;const rbd=renderer.renderBufferDirect;if(typeof rbd!=='function')return; // installed at the first probe only: play before it draws through three's own call
   renderer.renderBufferDirect=function(cam,sc,g,m,o,gr){const P=PROBE;if(P!==null&&P.skip!==null&&probeCat(o,m)===P.skip){P.st[P.i].n++;return;}return rbd.apply(this,arguments);};}
@@ -17024,38 +17034,42 @@ function probe(){ // start one; what it says is for the console
   probeHook();const st=[probeState('base','')];
   for(const p of PROBE_PARTS){st.push(probeState('part',p));st.push(probeState('base',''));}
   for(const k of PROBE_FX)if(FX[k]===true){st.push(probeState('fx',k));st.push(probeState('base',''));}
+  if(!VIEW_EXIT){st.push(probeState('exit','off-screen exit'));st.push(probeState('base',''));} // v11.211 (scene.js viewExit): the plants off screen leaving their vertex shader at its top, switched ON for one state — what it saves, on this GPU
   const v=renderer.getDrawingBufferSize(new THREE.Vector2());
   PROBE={st:st,i:-1,skip:null,roots:null,end:-1,at:[Math.round(camera.position.x),+camera.position.y.toFixed(1),Math.round(camera.position.z),+(player.yaw||0).toFixed(2)],buf:[v.x|0,v.y|0],tier:Q.tier,above:wasAbove===true?1:0};
-  probeNext();const s=Math.round(st.length*(PROBE_K.settle+PROBE_K.frames)/30);
-  probeSay('measuring what each part costs the GPU here: hold still (about '+Math.max(5,Math.round(s/2))+'–'+s+' s)');return 'started: '+st.length+' states';}
+  probeNext();const s0=Math.round(st.length*(PROBE_K.settleMs/1000+PROBE_K.frames/120)),s1=Math.round(st.length*(PROBE_K.settleMs/1000+PROBE_K.frames/30));
+  probeSay('measuring what each part costs the GPU here: hold still, and leave the window as it is (about '+s0+'–'+s1+' s)');return 'started: '+st.length+' states';}
 function probeNext(){const P=PROBE,o=P.i>=0?P.st[P.i]:null; // the current state undone, the next one set
-  if(o!==null&&o.k==='fx'){FX[o.name]=true;fxApply();}
+  if(o!==null&&o.k==='fx'){FX[o.name]=true;fxApply();}else if(o!==null&&o.k==='exit')viewExit(false);
   P.i++;P.skip=null;if(P.i>=P.st.length){P.end=REC.frame;return;}
-  const S=P.st[P.i];S.F=REC.frame;
+  const S=P.st[P.i];S.F=REC.frame;S.T=performance.now();S.W=-1;
   if(S.k==='part'){P.skip=S.name;P.roots=new Set();for(const c of creatures)if(c.g)P.roots.add(c.g);if(player.g)P.roots.add(player.g);}
-  else if(S.k==='fx'){FX[S.name]=false;fxApply();}}
+  else if(S.k==='fx'){FX[S.name]=false;fxApply();}
+  else if(S.k==='exit')viewExit(true);}
 function probeStep(){const P=PROBE;if(P===null)return; // main.js, every frame before the render
   if(mode!=='play'||fxOpen||(typeof document!=='undefined'&&document.hidden)){probeEnd(true);return;} // fxOpen: a switch flipped in the list would save the probe's
+  {const v=renderer.getDrawingBufferSize(PROBE_V);if((v.x|0)!==P.buf[0]||(v.y|0)!==P.buf[1]){probeEnd(true,'the window changed size');return;}} // a different number of pixels: the states before and after would not compare
   if(P.end>=0){if(REC.frame>P.end+8)probeEnd(false);return;} // the last results back from the timer
-  if(REC.frame>=P.st[P.i].F+PROBE_K.settle+PROBE_K.frames)probeNext();
+  {const S=P.st[P.i];if(S.W<0){if(REC.frame>=S.F+PROBE_K.settle&&performance.now()-S.T>=PROBE_K.settleMs)S.W=REC.frame;}else if(REC.frame>=S.W+PROBE_K.frames)probeNext();}
   if(P.end<0)P.st[P.i].n=0;} // the draws skipped counted afresh each frame: a state's count is its last frame's
 function probeGot(fr,ms){const P=PROBE;if(P===null)return; // rec.js recGpuFlush: a whole frame's GPU time, by its frame
-  for(const S of P.st)if(fr>=S.F+PROBE_K.settle&&fr<S.F+PROBE_K.settle+PROBE_K.frames&&S.ms.length<PROBE_K.frames){S.ms.push(ms);return;}}
+  for(const S of P.st)if(S.W>=0&&fr>=S.W&&fr<S.W+PROBE_K.frames&&S.ms.length<PROBE_K.frames){S.ms.push(ms);return;}}
 function probeMed(a){if(a.length<3)return -1;const s=a.slice().sort((x,y)=>x-y);return s[s.length>>1];}
-function probeEnd(cut){const P=PROBE;if(P===null)return;
-  if(P.i<P.st.length){const S=P.st[P.i];if(S.k==='fx'){FX[S.name]=true;fxApply();}}
+function probeEnd(cut,why){const P=PROBE;if(P===null)return;
+  if(P.i<P.st.length){const S=P.st[P.i];if(S.k==='fx'){FX[S.name]=true;fxApply();}else if(S.k==='exit')viewExit(false);}
   P.skip=null;PROBE=null;
-  if(cut){probeSay('the probe stopped (left play, the effects list opened, or the tab hidden)');return;}
-  const f=v=>+v.toFixed(2),med=P.st.map(S=>probeMed(S.ms)),parts=[],fx=[],bases=[];
+  if(cut){probeSay('the probe stopped: '+(why||'left play, the effects list opened, or the tab hidden')+' — nothing kept');return;}
+  const f=v=>+v.toFixed(2),med=P.st.map(S=>probeMed(S.ms)),parts=[],fx=[],bases=[];let exitS=null; // exitS: what the off-screen exit saved (the frame as it is less the frame with it on)
   for(let j=0;j<P.st.length;j++){const S=P.st[j];if(S.k==='base'){if(med[j]>=0)bases.push(med[j]);continue;}
     const a=med[j-1],b=med[j+1],v=med[j];const c=a>=0&&b>=0&&v>=0?f((a+b)/2-v):null; // null: too few frames timed (a disjoint, the timer's junk)
-    if(S.k==='part')parts.push([S.name,c,S.n]);else fx.push([S.name,c]);}
+    if(S.k==='part')parts.push([S.name,c,S.n]);else if(S.k==='exit')exitS=c;else fx.push([S.name,c]);}
+  const dif=[];for(let j=1;j<bases.length;j++)dif.push(Math.abs(bases[j]-bases[j-1]));dif.sort((x,y)=>x-y);const noise=dif.length?f(dif[dif.length>>1]):-1; // v11.212: how far the frame as it is moved between neighbouring measurements (the median) — a cost under it is not measured
   bases.sort((x,y)=>x-y);const base=bases.length?f(bases[bases.length>>1]):-1;
   const by=(x,y)=>(y[1]===null?-1e9:y[1])-(x[1]===null?-1e9:x[1]);parts.sort(by);fx.sort(by);
-  const r={at:P.at,buf:P.buf,tier:P.tier,above:P.above,gpu:base,parts:parts,fx:fx};REC.probe.push(r);if(REC.probe.length>PROBE_K.keep)REC.probe.shift();
+  const r={at:P.at,buf:P.buf,tier:P.tier,above:P.above,gpu:base,noise:noise,parts:parts,fx:fx,exit:exitS};REC.probe.push(r);if(REC.probe.length>PROBE_K.keep)REC.probe.shift();
   const top=parts.concat(fx).filter(x=>x[1]!==null).sort(by).slice(0,5);
-  probeSay('the GPU here '+base+' ms a frame — '+top.map(x=>x[0]+' '+x[1]).join(' · ')+' (kept for the next report, F9)');
-  console.log('probe at tp('+P.at[0]+','+P.at[2]+'), '+P.buf.join('×')+', '+P.tier+': the GPU '+base+' ms a frame\n'+parts.map(x=>'  '+x[0].padEnd(11)+String(x[1]).padStart(7)+' ms  '+x[2]+' draws').join('\n')+'\n'+fx.map(x=>'  '+x[0].padEnd(11)+String(x[1]).padStart(7)+' ms  (effect)').join('\n'));}
+  probeSay('the GPU here '+base+' ms a frame (noise ±'+noise+') — '+top.map(x=>x[0]+' '+x[1]).join(' · ')+' (kept for the next report, F9)');
+  console.log('probe at tp('+P.at[0]+','+P.at[2]+'), '+P.buf.join('×')+', '+P.tier+': the GPU '+base+' ms a frame, noise ±'+noise+'\n'+parts.map(x=>'  '+x[0].padEnd(11)+String(x[1]).padStart(7)+' ms  '+x[2]+' draws').join('\n')+'\n'+fx.map(x=>'  '+x[0].padEnd(11)+String(x[1]).padStart(7)+' ms  (effect)').join('\n'));}
 addEventListener('keydown',e=>{if(e&&e.code==='F8'){if(e.preventDefault)e.preventDefault();probe();}});
 
 // main.js — boot, the frame loop, the debug readout (backquote) and its fog tuner
