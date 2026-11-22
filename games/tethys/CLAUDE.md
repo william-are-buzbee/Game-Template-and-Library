@@ -386,8 +386,9 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
   `machine('home')` (this browser's name in its reports); `tier()` (this start's tier, why, and the machine's verdict; `tier('forget')` judges again).
 - **The URL**: `#low` `#high`, `#zoo`, `#lab` or `#lab=<base64 spec>`, `#bench` (it arms the first click: an audio context needs a gesture),
   `#creator` (grants the menu's creator word).
-- **The menu**: new game, continue (slots in IndexedDB — clear the site's data to start clean; the tests use memory), options (the effects
-  list), the creator. Esc in play with the pointer free saves and returns (esc twice when locked). A death writes its cause to the slot.
+- **The menu**: new game, continue — the slot whose world the menu shows, into it at once, and only it: not there after a death that ended the
+  line or on a first visit (v11.213, the person's rule) — saves (any slot; in IndexedDB — clear the site's data to start clean; the tests use memory),
+  options (the effects list), the creator. Esc in play with the pointer free saves and returns (esc twice when locked). A death writes its cause to the slot.
 - **The effects list** (`e`): the cosmetic systems, each switched live; a slider under a switch is a row in `FX_SLIDERS` and a number in `FX_DEF`.
   Each tier keeps its own choices (`tethys.fx`, `tethys.fx.low`; v11.203); the low tier starts with `FX_LOW_OFF` off.
 - `map.html` (planned islands, the `PLAN` string for test/map.js) and `region.html` (the province from region.js, its knobs, a survey of 30

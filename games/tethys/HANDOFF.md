@@ -4,6 +4,9 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.213 (22 Nov 2026): continue does one thing** (menu.js `contRec`, `contShow`; test/player.js, test/boot.js; CHANGELOG). Continue is the slot whose
+world the menu shows and only it; not there after a death that ended the line or on a first visit (the person's rule). Next: the world cache (yes, 22 Nov).
+
 **v11.212 (22 Nov 2026): the plants sent by the tile** (chunks.js `POOL_TILE`, `poolTiles`, `tileSeen`, `poolFar`; test/pool.js; CHANGELOG). Each cell's
 block in a pool cut into 3×3 tiles, a tile out of view or past the reach flagged like a cell: a third fewer triangles at every planted place on both tiers,
 the picture the same. **Ask:** the tower's frame rate, and F8/F9 there; on the home machine, turn hard in the kelp forest (no spike).
@@ -20,10 +23,6 @@ stutter or lag; a fight as before.
 **v11.209 (22 Nov 2026): the sim's own random numbers** (util.js `SIMR`, `srnd`; test/simrand.js; CHANGELOG). Part 1 of the fixed step (the person:
 option 2; analysis_project.md §7): what a creature or the player does draws from `SIMR`, the eye candy from `Math.random`. Next: v11.210, the fixed
 step itself, with the drawing smoothed between steps.
-
-**v11.208 (22 Nov 2026): F8, the GPU probe** (src/probe.js; rec.js `REC.probe`; test/probe.js; test/report.js; CHANGELOG). Each part of the frame
-skipped and each heavy effect switched off in turn, timed on the person's own GPU, kept for the report. For the tower's main pass (22–35 ms at 0.6 MP on
-low): what the low tier cuts waits on its probe. **Ask:** F8 then F9 on the tower, under water and on the surface.
 
 ## Open
 

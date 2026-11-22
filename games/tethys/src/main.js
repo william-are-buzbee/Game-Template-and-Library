@@ -100,7 +100,7 @@ function bootSlot(){if(BOOT.done||BOOT.stage!=='store'||BOOT.asked)return; // th
   // v11.195: the list is the slots' summaries; the last slot's record is read whole here, the one slot the boot opens (save.js slotGet), and kept for continue
   if(mode==='menu'){const note=camRead(),s=note&&note.id?saveList.find(r=>r.id===note.id):null;if(s&&!s.over){BOOT.asked=true;BOOT.askT=performance.now();
     slotGet(s.id,rec=>{if(!BOOT.asked)return;BOOT.asked=false;if(BOOT.done||BOOT.stage!=='store'||mode!=='menu')return; // the boot went on without it (bootTick's wait), or play began
-      if(rec&&!rec.over){try{slotWorld(rec);menu.worldOf=rec.id;menu.worldRec=rec;}catch(e){console.warn('the last slot\'s world: '+e.message);}}bootGo();});return;}}
+      if(rec&&!rec.over){try{slotWorld(rec);menu.worldOf=rec.id;menu.worldRec=rec;}catch(e){console.warn('the last slot\'s world: '+e.message);}}contShow();bootGo();});return;}}
   bootGo();}
 function bootGo(){BOOT.stage='load';BOOT.W=warmPrep();BOOT.world0=0;bootLine(0);}
 function bootTick(iv){if(BOOT.done)return;if(mode!=='menu'){bootFinish();return;}

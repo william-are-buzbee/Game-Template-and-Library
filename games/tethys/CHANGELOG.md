@@ -10625,3 +10625,23 @@ sizes it is the pixels' — the tower's GPU follows triangles, and its F8 will s
 1. The work tower, plain address, under water where it lagged: frames per second against before; F8 then F9 (its probe, v11.211, reads the plants'
    share and the off-screen exit's saving on top of this).
 2. The home machine: turn hard in the kelp forest — no lag spike (v11.125's).
+
+## v11.213 — continue does one thing, or is not there (22 Nov 2026)
+
+The person, 22 Nov 2026, agreeing to the world cache: "continue should only ever do one thing, which is bring you to your last (in this case, world that is
+pre-loaded) moment of play. If you died, no continue screen because nothing to continue. You have to go into saves and then continue a save. Otherwise,
+continue should not be there." To v11.212 continue took the slot whose world the menu showed, else the latest slot that could go on, else opened the list.
+
+- **Continue is the shown slot, and only it** (menu.js `contRec`): the slot whose world is under the menu — the one the boot opened under the last camera,
+  or the one play just left — into it at once where it was (v11.189's way, unchanged).
+- **It is not there** (`contShow`, after every change of the list or of the world under the menu) when that slot is over — a death that ended the line —
+  or when the menu shows no slot's world (a first visit, or the last slot over). `saves` continues any other slot, as before.
+- A death that passes to a child stays in play; its slot goes on, and so does continue after it.
+- test/player.js: after the line ends, continue is not there. test/boot.js: none on a first visit; there, for the slot alone, when its world is under the menu.
+- analysis_loading.md §5: the person's answer on the cache (§4.3), recorded.
+
+**What it costs:** nothing per frame.
+
+**Unseen, ask in this order:**
+1. Open the game after playing: continue there, straight in. Die with no young: back at the menu, no continue; saves lists the others.
+2. A first visit (a private window): new game, saves, options — no continue.

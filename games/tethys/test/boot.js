@@ -30,6 +30,7 @@ async function boot(page){ // the store's answer waited for with no frame steppe
       const b=await boot(page);
       ok(b.done&&b.stage==='done'&&b.off,'the boot through its stages, the black fading ('+b.stage+', #boot '+(b.off?'off':'on')+', the line '+b.line+')');
       ok(b.worldOf===null&&b.mode==='menu','no slot\'s world on a first visit; the menu');
+      {const cs=await page.evaluate(()=>getComputedStyle(document.getElementById('mcont')).display);ok(cs==='none','no continue on a first visit (v11.213: nothing to continue)');}
       ok(b.cells>=9,'the world round the camera streamed before the fade: '+b.cells+' cells');
       console.log('a game, played and saved');
       s=await page.evaluate(()=>{const rf=window.renderFrame,sh=FX.shadows;window.renderFrame=function(){};FX.shadows=false;startNew(CLADES[0]);for(let i=0;i<120;i++)__step(1);saveNow();window.renderFrame=rf;FX.shadows=sh;return {id:curSave.id,t:t,pos:[player.pos.x,player.pos.y,player.pos.z],mode:mode};}); // played undrawn: under software WebGL a hundred frames drawn queue minutes of the GPU's work
@@ -49,6 +50,7 @@ async function boot(page){ // the store's answer waited for with no frame steppe
       const b=await boot(page);
       ok(b.done&&b.off,'the boot through its stages ('+b.stage+')');
       ok(b.worldOf===s.id,'the slot\'s world under the menu: '+b.worldOf);
+      {const cs=await page.evaluate(()=>getComputedStyle(document.getElementById('mcont')).display);ok(cs!=='none','and continue there, for it alone');}
       {const L=await page.evaluate(id=>new Promise(done=>slotGet(id,r=>{const P=ECO_PT,before=P.bp.slice();done({ok:!!r&&popLoad(r.pop),last:r&&r.pop.last});})),s.id);
         ok(L.ok,'its ledger loads from the stored streams (the last step at '+L.last+')');}
       ok(Math.abs(b.t-s.t)<60,'its clock: the saved '+s.t.toFixed(2)+', now '+b.t.toFixed(2)+' (the boot\'s frames since)');
