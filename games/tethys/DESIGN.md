@@ -2645,6 +2645,14 @@ The repository is public, so the report is (the person's choice, 20 Nov 2026).
   replaces a longer one, and F9 in a session under a minute sends the last (and says so).
 - **What it cannot say:** a time per draw on the person's card (test/fill.js's proxy has that grain, not this), anything of the GPU in a browser
   without the timer, which function inside a phase took the time.
+- **The probe (v11.208, src/probe.js; F8 in play, `probe()`)** is the per-part grain on the person's own card, on demand: each part of the frame skipped
+  at three's `renderBufferDirect` in turn (`PROBE_PARTS`: terrain, flora, rocks and structures, far cards, creatures and the player, water, sky,
+  horizon — by `probeCat`, which caches by object; a part's shadow casting goes through the same call), then each effect of `PROBE_FX` that is on
+  switched off; the frame as it is between every two. A state is the median of `PROBE_K.frames` 10 timed frames after `settle` 3; a part's cost is the
+  mean of the two beside it less it. 43 states, ~570 frames: 9.5 s at 60 Hz, 19 at 30. Kept in `REC.probe` (the last four) for the report. The
+  resolution and the tier's sampling hold while it runs; leaving play, opening the effects list or hiding the tab stops it with nothing kept. Built
+  because the work tower's main pass (22–35 ms of ~30 at 0.6 MP on the low tier, #152) could not be split on the software GPU, whose ratios are not
+  an Intel UHD 730's.
 
 **Where the frame goes, measured on the 4060 at the weed forest (330, 0), 13 Sep 2026.** The readout's `work` pair is the
 frame's own cost and the worst frame in the last quarter second (main.js, v11.32.1); `ms` and `fps` are the vsync interval and say

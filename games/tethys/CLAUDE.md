@@ -129,7 +129,7 @@ dist.js; `archive/` old docs kept whole; the design docs.
 
 | src file | owns |
 |---|---|
-| rec.js | the flight recorder (loaded first): every frame by phase and place, the GPU's time by pass (`recGpu`), the worst frames, the errors; F9 / `report()` sends it, `machine()` names the browser |
+| rec.js · probe.js | the flight recorder (loaded first) · the probe (F8: each part of the frame skipped in turn on the person's GPU, v11.208). The recorder: every frame by phase and place, the GPU's time by pass (`recGpu`), the worst frames, the errors; F9 / `report()` sends it, `machine()` names the browser |
 | util.js | math helpers, `mulberry`, value noise |
 | world.js | the world as a function: `sample(x,z)` → the ground and nine fields `FI`; `envW`; tide, clock, sun, moon, the year, weather, waves; the water's colour and plankton; landmarks `LM`; oxygen; aprons; reef caps `CARB`; `lightPhys`; the wood `woodAt` |
 | region.js | the region as a plume's history (`regionModel`, `REGION_K`); at load its members become the `ISLANDS` records (`rgBuild`) and its floor the world's (`rgFloor`) |
@@ -361,14 +361,14 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
 - **Keys.** `n` the world map (wheel zooms, drag pans, a click teleports, `o` the marks); `z` the bestiary (←→ step, space strike, s cruise);
   `l` the lab, `p` place its spec; `e` the effects list; `b` the sound bench (1 one-shots, 2 noise and irs, 3 the beds, 4 a live capture; needs
   `node serve.js`); `f` first person; `x` lay a clutch (any body but a drifter's, grown, on the floor; a soft ringmouth once, then it broods; a
-  hingeshell at a den; it opens the editor at conception, where `l` lays); `r` or right mouse grab, click bite; `Q` the body's ability; `M` mute; **F9** send a report.
+  hingeshell at a den; it opens the editor at conception, where `l` lays); `r` or right mouse grab, click bite; `Q` the body's ability; `M` mute; **F9** send a report; **F8** the probe: what each part of the frame costs this GPU here (~10–20 s, hold still; kept for the next report).
 - **The readout**: backquote (or `'`, F3) — fps, frame ms, work/worst, gen, res, draws, tris, cells, pools, far, creatures, phys, render (the
   submit and any wait), **gpu** (the card's own time, where the browser times it), heap, the tier, the medium, the place, oxygen, tide, hour,
   year, sun, moon, light, cloud, rain; the fog, audio and ecology lines. With it open the keys tune — the fog (`FOG_TUNE`: 1-2 3-4 5-6 7-8 9-0 -= [] ,. ;/
   o-n t-y u-i), the sound (`AU_TUNE`: g-h j-k v-b), the camera (`CAM_TUNE`: ←→ fov, pgdn-pgup the first person's, ↓↑ the arm); Backspace resets.
 - **The console**: `tp(x,z,y)` (y above the ground, or a negative absolute depth; clamped to the world); `skip(days)` (in play; the clock on by game
   days, a fraction moving the hour; boot is phase 0.6 of `YEAR_D` 185, so `skip(28)` is the windy peak and `skip(120)` the still); `falls()`, `palls()` (pall ground nearest the start: `tp(2400,-699,-540)`), `milky()` (each with the `tp()` or `skip()` to it); `wmap.st`
-  (what the world map cost); `report()` (F9);
+  (what the world map cost); `report()` (F9); `probe()` (F8);
   `machine('home')` (this browser's name in its reports); `tier()` (this start's tier, why, and the machine's verdict; `tier('forget')` judges again).
 - **The URL**: `#low` `#high`, `#zoo`, `#lab` or `#lab=<base64 spec>`, `#bench` (it arms the first click: an audio context needs a gesture),
   `#creator` (grants the menu's creator word).
