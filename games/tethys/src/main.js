@@ -137,7 +137,8 @@ function loop(now){
   updateCompass(dt);updateFX();updateWMap(dt);updateSpark(dt); // the sparkle (line.js, v11.69): the handover's mark, over everything // no health bar since v11.55: the body shows the damage (COMBAT.md §5)
   const r0=performance.now();if(BOOT.done||BOOT.stage==='settle'){renderFrame();renderMs=performance.now()-r0;}else renderMs=0; // v11.64: the horizon pass first when the camera is in air (horizon.js), then the world; v11.189: nothing drawn behind the loading page until the world is there
   updateStats(dt);frameMs=performance.now()-f0;
-  if(!idleM){const k=FX.autoRes?resStep(RES_S,iv,frameMs):1;if(k!==resK){resK=k;renderer.setPixelRatio(RES_PR*k);vigSize();}} // the idle menu's own pace is no slow frame (v11.202)if(!idleM)tierFrame(iv,frameMs); // the tier that follows the machine (v11.199, scene.js): a sample, and the verdict when there is one // the resolution that holds the frame (v11.188, scene.js RES): applied for the next frame
+  if(!idleM){const k=FX.autoRes?resStep(RES_S,iv,frameMs):1;if(k!==resK){resK=k;renderer.setPixelRatio(RES_PR*k);vigSize();}} /* the idle menu's own pace is no slow frame (v11.202) */
+  if(!idleM)tierFrame(iv,frameMs); /* v11.207: v11.202's comment above had swallowed this call, so from v11.202 to v11.206 the tier never sampled a frame */ // the tier that follows the machine (v11.199, scene.js): a sample, and the verdict when there is one // the resolution that holds the frame (v11.188, scene.js RES): applied for the next frame
   recFrame(iv,frameMs,genMs,p0-a0,physMs,s0-x0,h0-s0,r0-h0,renderMs); // the flight recorder (v11.191, rec.js): the frame's interval and its phases — streaming, play, the creatures, the effects, the scene (cull, lights, shadows, sound), the HUD, the render's submit
 }
 // tp(x,z,y) from the browser's console (v11.60.2): the player put at x,z (east +, south +), y above the ground there (10 by default; a depth

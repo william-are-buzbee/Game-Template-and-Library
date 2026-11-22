@@ -4,6 +4,9 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.207 (22 Nov 2026): the tier samples again** (main.js; test/idle.js; CHANGELOG). v11.202's mid-line `//` comment had swallowed the loop's
+`tierFrame` call: from v11.202 to v11.206 no verdict was made or changed. **Ask:** `tier()` after a minute of play on a browser with no verdict.
+
 **v11.206 (22 Nov 2026): the sky timed on its own** (rec.js pass 4; horizon.js; test/report.js; CHANGELOG). The horizon pass split into the sky and
 the far land and sea in the reports. The tower's main pass (22–35 ms of ~30 at 0.6 MP, 1.4 M triangles on low) is the bigger cost. **Ask:** a tower
 report after time on the surface.
@@ -18,9 +21,6 @@ black. **Ask:** esc after a long play — the fade at once, continue where you w
 **v11.203 (21 Nov 2026): the low tier's own effects** (effects.js `FX_LS`, `FX_LOW_OFF`; test/fxcost.js; test/tier.js; CHANGELOG). The person:
 "It's not low if you can't run it on a low device." The low tier keeps its own effect choices (`tethys.fx.low`) and starts with the world's shadows
 and the refraction off. The software GPU could not rank the per-pixel effects (noise ±6%); the tower's reports will. **Ask:** a report from the tower.
-
-**v11.202 (21 Nov 2026): the idle menu at ~30 fps** (main.js `loop`, menu.js `MENU_IDLE_IV`; test/idle.js; CHANGELOG). #143 drew the menu at
-120 fps for 57 minutes; the idle menu (12 s without the mouse) now draws every ~31 ms, woken at the first move. **Ask:** nothing but a still menu.
 
 ## Open
 
