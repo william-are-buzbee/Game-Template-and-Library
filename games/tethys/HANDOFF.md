@@ -4,6 +4,10 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.214 (22 Nov 2026): the world cache, part one** (src/wcache.js, cacheload.js; build.js `WH`; test/wcache.js, test/wcache_page.js; CHANGELOG). The
+maps' first fill and the caustic tiles kept in IndexedDB under the code's hash and read before the game starts: the first frame 0.68 s sooner on a reload
+in headless Chromium. Part two, the island records, not built. **Ask:** open the game twice; F9 after the second.
+
 **v11.213 (22 Nov 2026): continue does one thing** (menu.js `contRec`, `contShow`; test/player.js, test/boot.js; CHANGELOG). Continue is the slot whose
 world the menu shows and only it; not there after a death that ended the line or on a first visit (the person's rule). Next: the world cache (yes, 22 Nov).
 
@@ -19,10 +23,6 @@ play and the probe measures it. **Ask:** F8 then F9 on the tower, under water.
 1/60 s whatever the screen; the bodies drawn between their last two steps; the camera once a frame from the body as drawn and the mouse's heading. One
 world at 30, 60 and 144 Hz is the same to the bit; the frame at 144 Hz ×0.50. **Ask:** the home machine at 144 Hz — swim and turn hard, look for any
 stutter or lag; a fight as before.
-
-**v11.209 (22 Nov 2026): the sim's own random numbers** (util.js `SIMR`, `srnd`; test/simrand.js; CHANGELOG). Part 1 of the fixed step (the person:
-option 2; analysis_project.md §7): what a creature or the player does draws from `SIMR`, the eye candy from `Math.random`. Next: v11.210, the fixed
-step itself, with the drawing smoothed between steps.
 
 ## Open
 

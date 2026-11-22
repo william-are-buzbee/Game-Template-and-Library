@@ -110,8 +110,8 @@ function bootTick(iv){if(BOOT.done)return;if(mode!=='menu'){bootFinish();return;
     const pend=cellsPending()+farPending();BOOT.world0=Math.max(BOOT.world0,pend);const W=BOOT.W,wf=W?W.k/(W.k+(W.items.length-W.i)+(W.rest?W.more.length:W.est+1)+(W.passes?0:1)+(W.hz?0:1)+(W.depth?0:1)):1,gf=BOOT.world0?1-pend/BOOT.world0:1;bootLine(0.5*wf+0.5*gf);
     if(!W&&pend===0){BOOT.stage='settle';BOOT.settleT=now;BOOT.n=0;bootLine(1);if(BOOT.lineEl)BOOT.lineEl.classList.add('settle');}return;}
   if(BOOT.stage==='settle'){BOOT.n++;if(BOOT.n>=BOOT.settleN&&(iv<BOOT.settleMs||now-BOOT.settleT>BOOT.settleMax))bootIn();}}
-function bootIn(){BOOT.done=true;BOOT.stage='done';bootLine(1);if(BOOT.bootEl)BOOT.bootEl.classList.add('off');if(BOOT.lineEl)BOOT.lineEl.classList.add('off');menuRise(MENU_RISE);} // the black fades, the title stays, the column rises after
-function bootFinish(){if(BOOT.done)return;warmShaders(BOOT.W||undefined);BOOT.W=null;BOOT.done=true;BOOT.stage='done';if(BOOT.bootEl){BOOT.bootEl.style.transition='none';BOOT.bootEl.classList.add('off');}if(BOOT.lineEl)BOOT.lineEl.classList.add('off');}
+function bootIn(){BOOT.done=true;BOOT.stage='done';wcWrite();bootLine(1);if(BOOT.bootEl)BOOT.bootEl.classList.add('off');if(BOOT.lineEl)BOOT.lineEl.classList.add('off');menuRise(MENU_RISE);} // the black fades, the title stays, the column rises after
+function bootFinish(){if(BOOT.done)return;warmShaders(BOOT.W||undefined);BOOT.W=null;BOOT.done=true;BOOT.stage='done';wcWrite();if(BOOT.bootEl){BOOT.bootEl.style.transition='none';BOOT.bootEl.classList.add('off');}if(BOOT.lineEl)BOOT.lineEl.classList.add('off');}
 window.bootFinish=bootFinish;window.__boot=BOOT; // the benches (test/gpu.js): the boot's warm-up counted with the boot, as to v11.188
 // the profile and the slots (save.js), then the menu's creator word and its list, then the boot opens the last slot's world under the menu's camera (v11.189,
 // bootSlot; to v11.188 the menu's 3×3 cells were built here, before the first frame, the page frozen meanwhile). After BOOT: a store that answers at once

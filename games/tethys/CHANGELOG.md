@@ -10645,3 +10645,34 @@ continue should not be there." To v11.212 continue took the slot whose world the
 **Unseen, ask in this order:**
 1. Open the game after playing: continue there, straight in. Die with no young: back at the menu, no continue; saves lists the others.
 2. A first visit (a private window): new game, saves, options — no continue.
+
+## v11.214 — the world cache: the maps and the caustics kept between visits (22 Nov 2026)
+
+The person, 22 Nov 2026 (analysis_loading.md §4.3): "Yes that acceptable for the world cache … We should do this now before the three.js update." Of
+the home machine's 5.4 s boot (#166) the scripts are ~1.85 s; in Node they are 2.9 s here, of which the water and floor maps' first fill 0.83 s, the
+island records' pipeline ~1.0 s and the caustic tiles 0.36 s. This is the first part: the two that are plain arrays.
+
+- **The code's hash** (build.js and build.py, `WH`: the game's code, sha-256, 16 hex): stamped in tethys.html as `TETHYS_BUILD.wh`. Any change to the
+  code — a version, a preview's next commit — is a new world; dev.html, the benches and the tests carry none and never cache.
+- **The reader** (cacheload.js, in tethys.html before the game, outside its bundle): `world:<hash>` read from IndexedDB — opened as save.js opens it,
+  the same name, version and store — as array buffers into `window.__WCACHE`, then the game. A store that does not answer in 1.5 s, a missing record or
+  any error: the game starts without.
+- **The products** (src/wcache.js `wcBuf`, `wcKeep`, `wcWrite`): far.js's first fill of the maps — one sample a 4×4 block, so the cache keeps the blocks'
+  eight values (4.1 MB) and the two blurred maps (16.6 MB), not the 66 MB of raw floats (`wcMaps`, `wcKeepMaps`); scene.js's caustic tiles, each ring's
+  three and the gust tile (a low tier takes the first three of a high tier's five — the same bytes as its own bake). Either way each site hands what it
+  has to `wcKeep`; the boot's end writes a world with anything computed (29.6 MB as Blobs), and deletes the other builds' worlds.
+- **The saves list never reads a world** (save.js saveRefresh skips `world:` keys; it reads any other unknown record once a session).
+- **test/wcache.js** (in `--test`): built and kept, then handed as the cache — the maps and the five rings the same to the bit; the low tier's three from
+  the high tier's five, the same as its own bake; the list never reads a world. **test/wcache_page.js** (in `npm run smoke`): the built tethys.html twice
+  in one Chromium — the first visit writes the world, the second takes both products, no page errors. test/benchpage.js serves .html as html.
+
+**What it costs and saves:** the load in Node 2.45–2.58 → 1.45–1.56 s (the products read from memory). In headless Chromium, a reload with the cache
+against a reload without (its record deleted): the first frame 4.80 → 4.12 s; the scripts start 0.16 s later for the read (1.50 → 1.66). The boot's
+end on a reload is ~5 s later than a first visit's either way — the harness's reload, the same with and without (30.7 against 30.6 s). On the person's
+machines: unmeasured; the read is faster on a desktop's disk than this container's. 29.6 MB in IndexedDB, one world kept. Nothing per frame.
+
+**Not cached yet:** the island records (region.js's pipeline, ~1 s in Node): linked objects on the shapes v11.197 made — its own version, held to
+test/bench.js's fingerprints.
+
+**Unseen, ask in this order:**
+1. Open the game twice: the second time the black page should give way to the world a little sooner. A report (F9) after the second: its boot line.

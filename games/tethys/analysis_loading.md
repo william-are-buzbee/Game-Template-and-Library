@@ -88,5 +88,6 @@ beautiful scrolling scene with zero text … A video wallpaper. So far, we basic
 - **The cache (§4.3):** the person, 22 Nov 2026: "Yes that acceptable for the world cache. We might need to change the way 'continue' and 'saves'
   works because continue should only ever do one thing, which is bring you to your last (in this case, world that is pre-loaded) moment of play. If you
   died, no continue screen because nothing to continue. You have to go into saves and then continue a save. Otherwise, continue should not be there." —
-  and to build it before the three.js upgrade. Continue: built v11.213 (menu.js `contRec`, `contShow`). The cache: next; what it can save is ~1–1.2 s of
-  the home machine's 5.4 s boot (its scripts are ~1.85 s of it; the rest is the cells streaming and the programs compiling).
+  and to build it before the three.js upgrade. Continue: built v11.213 (menu.js `contRec`, `contShow`). The cache: its first part built v11.214 (the water and
+  floor maps' first fill and the caustic tiles: src/wcache.js, cacheload.js) — in headless Chromium the first frame 0.68 s sooner on a reload, the
+  read 0.16 s of it; the island records (region.js, ~1 s of the load in Node) are its second part, not built.
