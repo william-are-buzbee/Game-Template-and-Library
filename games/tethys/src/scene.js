@@ -849,10 +849,14 @@ const FLORA_FAR=450,FLORA_FADE=90;
 // v11.194 (analysis_project.md §4): the cut is a uniform, `uCut` (x: the near edge — an instance nearer is gone, 0 none; y: the far edge; z: the fade
 // into it), each material's own (cutUOf) — made for v11.194's far copies (struck v11.201); kept, as it costs nothing and the pictures are the same.
 // The numbers are the ones the shaders had as literals; a material with no cut has its far edge at NO_CUT, which nothing reaches.
-const CUT_V='uniform vec3 uCut;\n',NO_CUT=1e7;
-function farCut(){return '\nfloat fadeK=1.0;\n#if defined(USE_FOG)&&defined(USE_INSTANCING)\n{float fdk=distance((modelMatrix*vec4(instanceMatrix[3].xyz,1.0)).xyz,uFogC);if(fdk>uCut.y||fdk<uCut.x)'+GONE+'fadeK=1.0-smoothstep(uCut.y-uCut.z,uCut.y,fdk);}\n#endif\n';} // uFogC: the camera (fog_pars_vertex)
+const CUT_V='uniform vec4 uCut;\n',NO_CUT=1e7;
+function farCut(){return '\nfloat fadeK=1.0;\n#if defined(USE_FOG)&&defined(USE_INSTANCING)\n{float fdk=distance((modelMatrix*vec4(instanceMatrix[3].xyz,1.0)).xyz,uFogC);if(fdk>uCut.y||fdk<uCut.x)'+GONE+'fadeK=1.0-smoothstep(uCut.y-uCut.z,uCut.y,fdk);'+'if(uCut.w>0.0){vec3 vq=(modelViewMatrix*vec4(instanceMatrix[3].xyz,1.0)).xyz;float rq=uCut.w*max(max(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz)),length(instanceMatrix[2].xyz))+2.0,p0=projectionMatrix[0][0],p1=projectionMatrix[1][1];if(vq.z>rq||p0*abs(vq.x)+vq.z>rq*sqrt(p0*p0+1.0)||p1*abs(vq.y)+vq.z>rq*sqrt(p1*p1+1.0))'+GONE+'}}\n#endif\n';} // uFogC: the camera (fog_pars_vertex)
 // a material's cut: made at its first compile or clone (FLORA_FAR is read then, after it is declared); m.cutAt is [far, fade] or null for FLORA_FAR's
-function cutUOf(m){if(!m.cutU){const a=m.cutAt||[FLORA_FAR,FLORA_FADE];m.cutU={value:new THREE.Vector3(0,a[0],a[1])};}return m.cutU;}
+function cutUOf(m){if(!m.cutU){const a=m.cutAt||[FLORA_FAR,FLORA_FADE];m.cutU={value:new THREE.Vector4(0,a[0],a[1],m.cutR||0)};}return m.cutU;}
+// v11.211: uCut.w, the reach of the biggest thing an instanced mesh draws with the material, from its root (cutFit: the bounding sphere's centre's distance
+// plus its radius) — an instance whose sphere (that, by its scale, and 2 m for the sway) is wholly outside the view exits at the top of its vertex shader, as
+// one past the far edge does. 0 (no instanced mesh registered): no such test. Every site that makes an instanced mesh with a cut material calls cutFit.
+function cutFit(m,g){if(!m||(m.cutAt===undefined&&!m.cutU)||!g||!g.attributes.position)return;if(!g.boundingSphere&&g.computeBoundingSphere)g.computeBoundingSphere();const b=g.boundingSphere;if(!b||!b.center)return;const r=b.center.length()+b.radius;if(!(r<=(m.cutR||0))){m.cutR=r;cutUOf(m).value.w=r;}}
 const FAR_CUT=farCut(),FAR_FADE='\ntransformed*=fadeK;\n';
 // The disturbance loop runs only for plants within DIST_R of the camera: every disturber is within 70 of it (physics.js
 // updateDisturbers) plus a body. It ran for every vertex of every plant to the far plane; this alone was 6.3 → 4.6 ms in the forest.
