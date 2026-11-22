@@ -173,7 +173,7 @@ canvas{display:block;outline:none;touch-action:none}
 <div id="fade" class="layer"></div>
 <canvas id="spark" class="layer"></canvas>
 <div id="stats"></div>
-<script>window.TETHYS_BUILD={v:"v11.207"};</script>
+<script>window.TETHYS_BUILD={v:"v11.208"};</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 function tethysMain(){
@@ -338,7 +338,7 @@ const REC={v:(window.TETHYS_BUILD&&window.TETHYS_BUILD.v)||'dev',at:new Date().t
   gN:0,gSum:0,gMax:0,gPass:new Float64Array(5),places:new Map(),cur:null,other:null,progs:0,heap:0,
   sec:{s:0,n:0,ivMax:0,gN:0,g:0,sum:new Float64Array(REC_NM)},tl:[],tlEvery:2,sp:[],spN:0,errs:new Map(),errN:0,
   menu:{n:0,iv:0,work:0,max:0},boot:{scripts:0,first:-1,store:-1,load:-1,done:-1,progs:0,seen:false},loaf:{n:0,ms:0,block:0,by:new Map()},
-  prev:null,saveT:0,sent:0,skip:true,mid:''}; // skip: the next frame is not one (the first, and the one after the tab was hidden)
+  prev:null,saveT:0,sent:0,skip:true,mid:'',probe:[]}; // probe (v11.208, probe.js): the last PROBE_K.keep probes' results // skip: the next frame is not one (the first, and the one after the tab was hidden)
 REC.boot.scripts=+(REC.t0/1000).toFixed(2); // the page's own clock: seconds from the navigation to this file's first line (the scripts fetched and parsed)
 function recPlace(key,i,j){return {key:key,i:i,j:j,n:0,s:0,x:0,y:0,z:0,H:new Uint32Array(REC_NB),sum:new Float64Array(REC_NM),dMax:0,tMax:0,
   gN:0,g:0,gp:new Float64Array(5),wIv:0,w:new Float64Array(6)};} // one shape (CLAUDE.md "the shape rule"); w: the worst frame there — x, y, z, the body's yaw, its interval, its work
@@ -360,7 +360,7 @@ function recGpu(k){RG.did|=1<<k;if(!RG.on)return;if(RG.open!==null)recGpuEnd();i
 function recGpuEnd(){if(RG.open===null)return;RG.gl.endQuery(RG.ext.TIME_ELAPSED_EXT);const i=RG.h,pl=mode==='play';RG.q[i]=RG.open;RG.k[i]=RG.openK;RG.f[i]=REC.frame;RG.p[i]=pl?REC.cur:null;RG.pl[i]=pl?1:0;
   RG.h=(i+1)&63;RG.n++;RG.open=null;}
 function recGpuFlush(){if(RG.accF<0)return;const a=RG.acc,g=a[0]+a[1]+a[2]+a[3]+a[4];if(!RG.accBad){RG.ema=RG.ema<0?g:RG.ema+(g-RG.ema)*0.05;RG.last=g;RG.lastPl=RG.accPl;RG.goodN++;}
-  if(RG.accPl&&!RG.accBad){REC.HG[recBin(g)]++;REC.gN++;REC.gSum+=g;if(g>REC.gMax)REC.gMax=g;for(let k=0;k<5;k++)REC.gPass[k]+=a[k];REC.sec.gN++;REC.sec.g+=g;
+  if(RG.accPl&&!RG.accBad){if(PROBE!==null)probeGot(RG.accF,g);REC.HG[recBin(g)]++;REC.gN++;REC.gSum+=g;if(g>REC.gMax)REC.gMax=g;for(let k=0;k<5;k++)REC.gPass[k]+=a[k];REC.sec.gN++;REC.sec.g+=g;
     const P=RG.accP;if(P){P.gN++;P.g+=g;for(let k=0;k<5;k++)P.gp[k]+=a[k];}
     for(const r of REC.sp)if(r[0]===RG.accF)r[15]=+g.toFixed(2);}
   a.fill(0);RG.accF=-1;RG.accP=null;RG.accPl=0;RG.accBad=0;}
@@ -468,7 +468,7 @@ function recFull(){const n=REC.n||1,S=REC.sum,X=REC.mx,f=v=>+v.toFixed(2),g=REC.
       draws:[Math.round(S[9]/n),X[9]],tris:[Math.round(S[10]/n),Math.round(X[10])],creatures:Math.round(S[11]/n),cells:Math.round(S[12]/n),res:f(S[13]/n),above:f(S[14]/n),vsync:vs,over:[over(16.7),over(33.3),over(50)]},
     menu:{frames:REC.menu.n,iv:REC.menu.n?f(REC.menu.iv/REC.menu.n):0,max:f(REC.menu.max),work:REC.menu.n?f(REC.menu.work/REC.menu.n):0},
     pc:REC_PC,places:places.map(recPlaceRow),tl:{every:REC.tlEvery,cols:REC_TL,rows:REC.tl.slice()},
-    sc:REC_SC,spikes:REC.sp.slice().sort((a,b)=>b[6]-a[6]),spN:REC.spN,errs:errs,errN:REC.errN,loaf:{n:REC.loaf.n,ms:Math.round(REC.loaf.ms),block:Math.round(REC.loaf.block),by:loaf.slice(0,10)}};}
+    sc:REC_SC,spikes:REC.sp.slice().sort((a,b)=>b[6]-a[6]),spN:REC.spN,errs:errs,errN:REC.errN,loaf:{n:REC.loaf.n,ms:Math.round(REC.loaf.ms),block:Math.round(REC.loaf.block),by:loaf.slice(0,10)},probe:REC.probe.slice()};}
 // a level of detail: 0 everything, each step fewer places, frames and errors, and a coarser timeline — for the link's length (recBody)
 function recShrink(p,L){if(!L)return p;const o=Object.assign({},p),K=[0,60,40,25,15,10][Math.min(L,5)],pc=p.pc,iS=pc.indexOf('s'),i95=pc.indexOf('p95');
   const byS=p.places.slice().sort((a,b)=>b[iS]-a[iS]),byP=p.places.filter(r=>r[iS]>=5).sort((a,b)=>b[i95]-a[i95]),keep=new Set();
@@ -490,6 +490,7 @@ function recMd(p,tok,cut,prev){const a=p.all,d=p.dev||{},b=p.boot||{},pc=p.pc,I=
   L.push('**machine** '+(d.mid?'`'+d.mid+'` ':'')+recGpuName(d.gpu)+' · WebGL'+d.gl+' · '+d.cores+' threads'+(d.mem?' · '+d.mem+' GB':'')+(d.plat?' · '+d.plat.trim():'')+(d.flags?' · '+d.flags:'')+(d.lod?' · lod '+d.lod:'')+' · screen '+(d.screen||[]).join('×')+' ×'+d.dpr+' · drawn '+(d.buf||[]).join('×')+' · '+d.tier+(a.vsync?' · vsync '+a.vsync.toFixed(1)+' ms':''));
   L.push('**frames** p50 '+recMs(a.iv[0])+' · p95 '+recMs(a.iv[2])+' · p99 '+recMs(a.iv[3])+' · max '+recMs(a.iv[4])+' ms · '+(100*a.over[1]).toFixed(1)+'% over 33 ms · CPU '+recMs(a.work[0])+' ms (sim '+recMs(a.ph.sim)+' · gen '+recMs(a.ph.gen)+' · render '+recMs(a.ph.render)+')');
   L.push(a.gpu?'**gpu** p50 '+recMs(a.gpu.p50)+' · p95 '+recMs(a.gpu.p95)+' ms (main '+recMs(a.gpu.pass.main)+' · horizon '+recMs(a.gpu.pass.horizon)+' · clouds '+recMs(a.gpu.pass.clouds)+' · shadows '+recMs(a.gpu.pass.shadows)+' · sky '+recMs(a.gpu.pass.sky)+')':'**gpu** no timer in this browser');
+  if(p.probe&&p.probe.length)for(const q of p.probe)L.push('**probe** at `'+recTp(q.at[0],q.at[2],q.at[1])+'` ('+q.buf.join('×')+', '+q.tier+'): the GPU '+recMs(q.gpu)+' ms — '+q.parts.concat(q.fx).filter(x=>x[1]!==null).sort((x,y)=>y[1]-x[1]).slice(0,8).map(x=>x[0]+' '+recMs(x[1])).join(' · ')); // v11.208 (probe.js): what each part cost the GPU there
   L.push('**boot** scripts '+b.scripts+' s · first frame '+b.first+' s · world in '+b.done+' s · '+b.progs+' programs'+(b.seen?' (seen this version before)':' (first visit of this version)'));
   const w=p.places.filter(r=>r[I('s')]>=5).sort((x,y)=>y[I('p95')]-x[I('p95')]).slice(0,5);
   if(w.length){L.push('**worst places** (p95 · gpu · time there)');for(const r of w)L.push('- `'+recTp(r[I('x')],r[I('z')],r[I('y')])+'` '+recMs(r[I('p95')])+' · '+recMs(r[I('gpu')])+' ms · '+(r[I('s')]/60).toFixed(1)+' min');}
@@ -16936,6 +16937,78 @@ canvas.addEventListener('touchend',touchEnd);canvas.addEventListener('touchcance
 function readTouch(){syncLock();const r=tstate.R;touchGrab=!!(r&&r.moved<12&&performance.now()-r.t0>350);const s=tstate.L;if(!s){touchL=null;return;}const mx=clamp((s.x-s.x0)/70,-1,1),mz=clamp(-(s.y-s.y0)/70,-1,1);touchL={mx:mx,mz:mz,sprint:(s.y0-s.y)/70>1.5};}
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight);vigSize();if(mode==='menu')layoutMenu();});
 
+// probe.js — what each part of the frame costs this GPU, here (v11.208): F8 in play, or probe() in the console
+// The recorder times the GPU by pass (rec.js recGpu), not by what a pass draws, and the software GPU's proxy (test/fill.js) cannot stand for a weak card's
+// ratios: the work tower's main pass is 22–35 ms of its ~30 ms frame at 0.6 MP on the low tier (#152), under water as much as in the air, and nothing here
+// can say which part of it. So the frame is measured on the person's own GPU. Each part's draws are skipped at the renderer in turn (probeCat: the terrain,
+// the flora, the rocks and structures, the far cards, the creatures and the player, the water, the sky, the horizon's land and sea — each with its shadow
+// casting, which goes through the same call), then each heavy effect that is on is switched off (fxApply, as the list does); between every two, the frame as
+// it is. Each state's frames are timed by the GPU's own timer (rec.js recGpuFlush → probeGot), the median of PROBE_K.frames after PROBE_K.settle (the timer's
+// results come back a few frames late, and a switched effect may compile). A part's cost is the frame as it is (the mean of the two beside it) less the frame
+// without it. The result is shown, logged, and kept for the next report (REC.probe; test/report.js prints it). The world goes on meanwhile: hold still. The
+// resolution and the tier's sampling hold while it runs (main.js).
+const PROBE_K={settle:3,frames:10,keep:4}; // frames after a switch before its results count; frames a state is measured; the probes a report keeps
+const PROBE_PARTS=['terrain','flora','rocks','far','creatures','water','sky','horizon'];
+const PROBE_FX=['caustics','texelLight','shadows','statics','ground','sharp','shafts','snow','rain','clouds','refract','crest','halo','murk','mirror','cloudLight']; // the effects with a pass, a copy or a per-pixel term of their own; those on are measured
+let PROBE=null; // a probe under way: {st — the states, i — the current one, skip — the part whose draws are skipped (or null), roots — the creatures' and the player's groups, end — the frame the last state ended (−1 before), at, buf, tier, above}
+const probeCatW=new WeakMap();let probeHooked=false,probeFm=null;
+function probeState(k,name){return {k:k,name:name,F:0,ms:[],n:0};} // one shape: k 'base' | 'part' | 'fx'; F the frame it began; ms its frames' GPU times; n the draws it skipped a frame (the last)
+function probeSay(s){if(typeof hintEl==='undefined')return;hintEl.textContent=s;hintEl.style.opacity='1';const k=s;setTimeout(()=>{if(hintEl.textContent===k)hintEl.style.opacity='0';},12000);}
+function probeHook(){if(probeHooked)return;probeHooked=true;const rbd=renderer.renderBufferDirect;if(typeof rbd!=='function')return; // installed at the first probe only: play before it draws through three's own call
+  renderer.renderBufferDirect=function(cam,sc,g,m,o,gr){const P=PROBE;if(P!==null&&P.skip!==null&&probeCat(o,m)===P.skip){P.st[P.i].n++;return;}return rbd.apply(this,arguments);};}
+function probeCat(o,m){let c=probeCatW.get(o);if(c!==undefined)return c;c=probeCatOf(o,m);if(c!=='other')probeCatW.set(o,c);return c;} // 'other' asked again: a creature spawned after the roots were taken is one at the next state
+function probeCatOf(o,m){
+  if(o===sky)return 'sky';
+  if(o===surface||o===waterDome||o===SURF_OCC)return 'water';
+  if(m===TERRAIN_MAT)return 'terrain';
+  if(m===MATROCKF||m===MATROCKB)return 'rocks';
+  if(m===MATFAR)return 'far';
+  if(probeFm===null){probeFm=new Set();for(const f of FLORA){if(f.mat)probeFm.add(f.mat);if(f.mp)probeFm.add(f.mp);}}
+  let top=o;for(let p=o;p;p=p.parent){if(p===poolGroup)return 'flora';if(PROBE!==null&&PROBE.roots!==null&&PROBE.roots.has(p))return 'creatures';top=p;}
+  if(top===hzScene)return 'horizon';
+  if(probeFm.has(m))return 'flora';
+  return 'other';}
+function probe(){ // start one; what it says is for the console
+  if(PROBE!==null)return 'a probe is under way';
+  if(mode!=='play'){probeSay('the probe runs in play');return 'in play only';}
+  if(!RG.on){probeSay('no GPU timer in this browser: the probe needs one (desktop Chrome has it)');return 'no GPU timer here';}
+  probeHook();const st=[probeState('base','')];
+  for(const p of PROBE_PARTS){st.push(probeState('part',p));st.push(probeState('base',''));}
+  for(const k of PROBE_FX)if(FX[k]===true){st.push(probeState('fx',k));st.push(probeState('base',''));}
+  const v=renderer.getDrawingBufferSize(new THREE.Vector2());
+  PROBE={st:st,i:-1,skip:null,roots:null,end:-1,at:[Math.round(camera.position.x),+camera.position.y.toFixed(1),Math.round(camera.position.z),+(player.yaw||0).toFixed(2)],buf:[v.x|0,v.y|0],tier:Q.tier,above:wasAbove===true?1:0};
+  probeNext();const s=Math.round(st.length*(PROBE_K.settle+PROBE_K.frames)/30);
+  probeSay('measuring what each part costs the GPU here: hold still (about '+Math.max(5,Math.round(s/2))+'–'+s+' s)');return 'started: '+st.length+' states';}
+function probeNext(){const P=PROBE,o=P.i>=0?P.st[P.i]:null; // the current state undone, the next one set
+  if(o!==null&&o.k==='fx'){FX[o.name]=true;fxApply();}
+  P.i++;P.skip=null;if(P.i>=P.st.length){P.end=REC.frame;return;}
+  const S=P.st[P.i];S.F=REC.frame;
+  if(S.k==='part'){P.skip=S.name;P.roots=new Set();for(const c of creatures)if(c.g)P.roots.add(c.g);if(player.g)P.roots.add(player.g);}
+  else if(S.k==='fx'){FX[S.name]=false;fxApply();}}
+function probeStep(){const P=PROBE;if(P===null)return; // main.js, every frame before the render
+  if(mode!=='play'||fxOpen||(typeof document!=='undefined'&&document.hidden)){probeEnd(true);return;} // fxOpen: a switch flipped in the list would save the probe's
+  if(P.end>=0){if(REC.frame>P.end+8)probeEnd(false);return;} // the last results back from the timer
+  if(REC.frame>=P.st[P.i].F+PROBE_K.settle+PROBE_K.frames)probeNext();
+  if(P.end<0)P.st[P.i].n=0;} // the draws skipped counted afresh each frame: a state's count is its last frame's
+function probeGot(fr,ms){const P=PROBE;if(P===null)return; // rec.js recGpuFlush: a whole frame's GPU time, by its frame
+  for(const S of P.st)if(fr>=S.F+PROBE_K.settle&&fr<S.F+PROBE_K.settle+PROBE_K.frames&&S.ms.length<PROBE_K.frames){S.ms.push(ms);return;}}
+function probeMed(a){if(a.length<3)return -1;const s=a.slice().sort((x,y)=>x-y);return s[s.length>>1];}
+function probeEnd(cut){const P=PROBE;if(P===null)return;
+  if(P.i<P.st.length){const S=P.st[P.i];if(S.k==='fx'){FX[S.name]=true;fxApply();}}
+  P.skip=null;PROBE=null;
+  if(cut){probeSay('the probe stopped (left play, the effects list opened, or the tab hidden)');return;}
+  const f=v=>+v.toFixed(2),med=P.st.map(S=>probeMed(S.ms)),parts=[],fx=[],bases=[];
+  for(let j=0;j<P.st.length;j++){const S=P.st[j];if(S.k==='base'){if(med[j]>=0)bases.push(med[j]);continue;}
+    const a=med[j-1],b=med[j+1],v=med[j];const c=a>=0&&b>=0&&v>=0?f((a+b)/2-v):null; // null: too few frames timed (a disjoint, the timer's junk)
+    if(S.k==='part')parts.push([S.name,c,S.n]);else fx.push([S.name,c]);}
+  bases.sort((x,y)=>x-y);const base=bases.length?f(bases[bases.length>>1]):-1;
+  const by=(x,y)=>(y[1]===null?-1e9:y[1])-(x[1]===null?-1e9:x[1]);parts.sort(by);fx.sort(by);
+  const r={at:P.at,buf:P.buf,tier:P.tier,above:P.above,gpu:base,parts:parts,fx:fx};REC.probe.push(r);if(REC.probe.length>PROBE_K.keep)REC.probe.shift();
+  const top=parts.concat(fx).filter(x=>x[1]!==null).sort(by).slice(0,5);
+  probeSay('the GPU here '+base+' ms a frame — '+top.map(x=>x[0]+' '+x[1]).join(' · ')+' (kept for the next report, F9)');
+  console.log('probe at tp('+P.at[0]+','+P.at[2]+'), '+P.buf.join('×')+', '+P.tier+': the GPU '+base+' ms a frame\n'+parts.map(x=>'  '+x[0].padEnd(11)+String(x[1]).padStart(7)+' ms  '+x[2]+' draws').join('\n')+'\n'+fx.map(x=>'  '+x[0].padEnd(11)+String(x[1]).padStart(7)+' ms  (effect)').join('\n'));}
+addEventListener('keydown',e=>{if(e&&e.code==='F8'){if(e.preventDefault)e.preventDefault();probe();}});
+
 // main.js — boot, the frame loop, the debug readout (backquote) and its fog tuner
 // the readout's hold line (v11.54, COMBAT.md §2): every hold near the player — holder grip/edge on held covering: the edge's verdict there, the hold's age and its struggle
 function holdLine(){let s='',n=0;for(const h of holds){if(n>=3)break;if(!(h.a===player||h.b===player||h.a.pos.distanceTo(player.pos)<95))continue;n++;const nm=o=>o===player?'you':o.kind;s+=(s?'   ':'')+nm(h.a)+' '+h.kind+'/'+(h.edge||'-')+' on '+nm(h.b)+' '+(h.cover||'?')+': '+(h.thru||'-')+' k '+(h.k||0).toFixed(2)+(h.saw>1?'×'+h.saw.toFixed(2):'')+'  '+h.t.toFixed(1)+'s pull '+h.pull.toFixed(2)+(h.pinned?' subdued':' calm '+h.calm.toFixed(1))+(h.swallowT>0?' swallow '+h.swallowT.toFixed(1):'')+(h.tear>0?' tear '+h.tear.toFixed(2):'')+' stam '+stamOf(h.b).toFixed(2);}const P=player,L=P.blood||0;let bl='';if(L>0||P.bleed>1e-5)bl='\nblood '+(L*100).toFixed(1)+'% lost'+(P.bleed>1e-5?'  −'+(P.bleed*100).toFixed(2)+'%/s from '+(P.wounds?P.wounds.length:0)+' wound'+(P.wounds&&P.wounds.length===1?'':'s'):'  clotted')+(L>=BLOOD.collapse?'  collapsing':L>=BLOOD.weak?'  weak':'')+'  ×'+bloodK(P).toFixed(2);return (s?'\nhold '+s:'')+bl;} // v11.91: the blood lost and the rate (combat.js)
@@ -17073,10 +17146,10 @@ function loop(now){
   updateAtmosphere(dt);updateSurface();const s0=performance.now();
   camera.updateMatrixWorld();updateFogCamera();cullChunks(dt);cullFar();assignLights();updateShadow();updateShadowS(dt);updateAudio(dt);const h0=performance.now(); // the shadow map's box and casters (v11.23): after everything has moved; the sound (v11.14) last, with the camera where it is
   updateCompass(dt);updateFX();updateWMap(dt);updateSpark(dt); // the sparkle (line.js, v11.69): the handover's mark, over everything // no health bar since v11.55: the body shows the damage (COMBAT.md §5)
-  const r0=performance.now();if(BOOT.done||BOOT.stage==='settle'){renderFrame();renderMs=performance.now()-r0;}else renderMs=0; // v11.64: the horizon pass first when the camera is in air (horizon.js), then the world; v11.189: nothing drawn behind the loading page until the world is there
+  const r0=performance.now();probeStep();if(BOOT.done||BOOT.stage==='settle'){renderFrame();renderMs=performance.now()-r0;}else renderMs=0; // v11.64: the horizon pass first when the camera is in air (horizon.js), then the world; v11.189: nothing drawn behind the loading page until the world is there
   updateStats(dt);frameMs=performance.now()-f0;
-  if(!idleM){const k=FX.autoRes?resStep(RES_S,iv,frameMs):1;if(k!==resK){resK=k;renderer.setPixelRatio(RES_PR*k);vigSize();}} /* the idle menu's own pace is no slow frame (v11.202) */
-  if(!idleM)tierFrame(iv,frameMs); /* v11.207: v11.202's comment above had swallowed this call, so from v11.202 to v11.206 the tier never sampled a frame */ // the tier that follows the machine (v11.199, scene.js): a sample, and the verdict when there is one // the resolution that holds the frame (v11.188, scene.js RES): applied for the next frame
+  if(!idleM&&PROBE===null){const k=FX.autoRes?resStep(RES_S,iv,frameMs):1;if(k!==resK){resK=k;renderer.setPixelRatio(RES_PR*k);vigSize();}} /* the idle menu's own pace is no slow frame (v11.202) */
+  if(!idleM&&PROBE===null)tierFrame(iv,frameMs); /* v11.208: neither the resolution nor the tier moves while a probe runs (probe.js) — v11.207: v11.202's comment above had swallowed this call, so from v11.202 to v11.206 the tier never sampled a frame */ // the tier that follows the machine (v11.199, scene.js): a sample, and the verdict when there is one // the resolution that holds the frame (v11.188, scene.js RES): applied for the next frame
   recFrame(iv,frameMs,genMs,p0-a0,physMs,s0-x0,h0-s0,r0-h0,renderMs); // the flight recorder (v11.191, rec.js): the frame's interval and its phases — streaming, play, the creatures, the effects, the scene (cull, lights, shadows, sound), the HUD, the render's submit
 }
 // tp(x,z,y) from the browser's console (v11.60.2): the player put at x,z (east +, south +), y above the ground there (10 by default; a depth
