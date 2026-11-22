@@ -164,14 +164,25 @@ function saveRecord(slices){ // the game as it stands, as a record for the store
 function lineOut(){const L=curSave.line;if(!L)return [];for(const M of L)for(const b of M.broods)if(b._ch){b.n=b.hatched?broodLive(b):b._egg?b._egg.n:0;b.at=r3(t);}return JSON.parse(JSON.stringify(L,(k,v)=>k[0]==='_'?undefined:v));} // the line as data (line.js): the loaded broods counted first, the runtime links dropped. at (v11.76, found by the test): a loaded brood's count is current at the save, so its catch-up starts here — to v11.75 it started at the hatch, and a continue took the unloaded losses off young that had been in view the whole time
 let slotLast=null;const slotNot=new Set(); // slotLast: the record saveNow(true) wrote (toMenu's, kept for continue as menu.worldRec; an autosave keeps none, so play holds no extra slot) // slotNot: keys the list found were no slot (a record that is neither the profile nor a save), not read again this session
 function saveNow(keep){slotLast=null;saveJob=null;if(!curSave||mode!=='play'||player.dead||!player.clade)return false;camNote();const rec=saveRecord();curSave.played=rec.played;curSave.playT=rec.playT;slotPut(rec);if(keep)slotLast=rec;if(profileDirty)profileSave();saveT=SAVE_EVERY;return true;}
-let saveJob=null; // a save in slices under way (v11.196): {id, rec — the record at its start, its ledger to come; J — popJob}
+let saveJob=null,saveLeft=null; // a save in slices under way (v11.196): {id, rec — the record at its start, its ledger to come; J — popJob; leave — the way to the menu's (v11.204)}; saveLeft: that walk's record once stored, for saveFinish
 function saveSoon(){ // a save in play, its ledger walked over the next frames (the autosave, the pointer's release, a clutch, a child); one at a time — one walking is recent
-  if(saveJob||!curSave||mode!=='play'||player.dead||!player.clade)return;camNote();saveJob={id:curSave.id,rec:saveRecord(true),J:popJob()};saveT=SAVE_EVERY;}
+  if(saveJob||!curSave||mode!=='play'||player.dead||!player.clade)return;camNote();saveJob={id:curSave.id,rec:saveRecord(true),J:popJob(),leave:false};saveT=SAVE_EVERY;}
 function saveStep(){const S=saveJob;if(!S)return; // a frame of it; at its end the record is stored
   if(!curSave||curSave.id!==S.id||mode!=='play'||player.dead){saveJob=null;return;} // the game it was saving is gone (a death and a new game save at once themselves)
   if(!popStep(S.J,POP_SLICE))return;saveJob=null;
-  if(S.J.bp){const B=ECO_PT.bp;for(let i=0;i<B.length;i++)if(B[i]!==S.J.bp[i]){saveSoon();return;}} // a patch split or merged while it walked: its slot's cells and the patch would disagree — from the start again
-  S.rec.pop=popOut(S.J);curSave.played=S.rec.played;curSave.playT=S.rec.playT;slotPut(S.rec);if(profileDirty)profileSave();}
+  if(S.J.bp){const B=ECO_PT.bp;for(let i=0;i<B.length;i++)if(B[i]!==S.J.bp[i]){saveSoon();if(saveJob)saveJob.leave=S.leave;return;}} // a patch split or merged while it walked: its slot's cells and the patch would disagree — from the start again (the way to the menu's still that)
+  S.rec.pop=popOut(S.J);curSave.played=S.rec.played;curSave.playT=S.rec.playT;slotPut(S.rec);if(profileDirty)profileSave();if(S.leave)saveLeft=S.rec;}
+// To the menu (v11.204, menu.js toMenu): esc saved the whole slot at once (52–86 ms here, a hitch at the key); now the walk begins at the key, its record's
+// header that moment's, the fade to black's frames walk it (~380 ms: at 120 Hz most of it), and what is left is walked at once at the fade's end, under
+// the black, before the world is cleared. The record is kept for continue (menu.worldRec), as saveNow(true)'s was.
+function saveLeave(){saveJob=null;saveLeft=null;saveSoon();if(saveJob)saveJob.leave=true;}
+function saveFinish(id){ // the fade's end: the walk finished and stored → its record; or the rest walked now; or, with no walk (a death meanwhile), the save at once
+  const S=saveJob;saveJob=null;slotLast=null;
+  if(!S){const r=saveLeft;saveLeft=null;if(r&&r.id===id)return r;return saveNow(true)?slotLast:null;}
+  if(!curSave||curSave.id!==S.id||player.dead)return null;
+  popStep(S.J,Infinity);
+  if(S.J.bp){const B=ECO_PT.bp;for(let i=0;i<B.length;i++)if(B[i]!==S.J.bp[i])return saveNow(true)?slotLast:null;} // a patch's slot moved meanwhile: the whole save at once
+  S.rec.pop=popOut(S.J);curSave.played=S.rec.played;curSave.playT=S.rec.playT;slotPut(S.rec);if(profileDirty)profileSave();saveT=SAVE_EVERY;return S.rec;}
 function updateSave(dt){if(mode!=='play'||!curSave)return;playT+=dt;lineTick(dt);if(saveJob){saveStep();return;}saveT-=dt;if(saveT<=0)saveSoon();}
 function saveRefresh(cb){ // the slots read again; first, a shadow the page left on its way out (saveShadow) goes into the store — it is the latest state of that slot, nothing later can exist
   let sh=null;try{const ls=window.localStorage,s=ls&&ls.getItem('tethys.last');if(s){ls.removeItem('tethys.last');sh=JSON.parse(s);}}catch(e){}
