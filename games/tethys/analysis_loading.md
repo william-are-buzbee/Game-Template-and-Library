@@ -90,4 +90,8 @@ beautiful scrolling scene with zero text … A video wallpaper. So far, we basic
   died, no continue screen because nothing to continue. You have to go into saves and then continue a save. Otherwise, continue should not be there." —
   and to build it before the three.js upgrade. Continue: built v11.213 (menu.js `contRec`, `contShow`). The cache: its first part built v11.214 (the water and
   floor maps' first fill and the caustic tiles: src/wcache.js, cacheload.js) — in headless Chromium the first frame 0.68 s sooner on a reload, the
-  read 0.16 s of it; the island records (region.js, ~1 s of the load in Node) are its second part, not built.
+  read 0.16 s of it. Its second part, v11.216: region.js's platform and saddles (rgPlatform ~0.6 s, rgSaddles ~0.2 s of the load in Node), plain typed
+  arrays like the first part's — the load in Node 3.1 → 0.95 s with all four cached; a cached reload's first frame in headless Chromium 2.71–2.85 →
+  2.09–2.38 s against v11.215. What is left of region.js's load, regionModel (~0.35 s) and rgBuild (~0.2 s), makes the island records, which hold
+  closures (the track, the plateau's width) and so cannot be stored as they are; storing them would mean rebuilding them from plain data, not judged
+  worth it for ~0.5 s in Node.

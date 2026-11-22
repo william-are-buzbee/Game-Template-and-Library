@@ -18,11 +18,11 @@ const {playwright,serve}=require('./benchpage.js');
       return page.evaluate(()=>({hit:window.__wcache?Object.assign({},window.__wcache.hit):null,boot:window.__rec?window.__rec.full().boot:null}));};
     const stored=()=>page.evaluate(wh=>new Promise(done=>{const rq=indexedDB.open('tethys',1);rq.onsuccess=()=>{const db=rq.result;const g=db.transaction('kv','readonly').objectStore('kv').get('world:'+wh);g.onsuccess=()=>{const r=g.result;db.close();done(r?{keys:Object.keys(r.blobs||{}).length,mb:+(Object.values(r.blobs||{}).reduce((s,b)=>s+b.size,0)/1e6).toFixed(1),rings:r.meta&&r.meta.cau&&r.meta.cau.rings}:null);};g.onerror=()=>{db.close();done(null);};};rq.onerror=()=>done(null);}),wh);
     const a=await visit(true);
-    ok(a.hit&&!a.hit.maps&&!a.hit.cau,'the first visit builds the world (no cache yet)');
+    ok(a.hit&&!Object.values(a.hit).some(Boolean),'the first visit builds the world (no cache yet)');
     let s=null;for(let i=0;i<60&&!s;i++){s=await stored();if(!s)await new Promise(r=>setTimeout(r,500));}
     ok(s&&s.keys>=5&&s.rings>=3,'and writes it at the boot\'s end: '+(s?s.keys+' products, '+s.mb+' MB, '+s.rings+' caustic rings':'nothing stored'));
     const b=await visit(false);
-    ok(b.hit&&b.hit.maps&&b.hit.cau,'the second visit takes the maps and the caustics from it');
+    ok(b.hit&&Object.values(b.hit).every(Boolean),'the second visit takes every product from it: '+(b.hit?Object.keys(b.hit).join(', '):''));
     ok(!errs.length,'no page errors'+(errs.length?': '+errs.slice(0,3).join(' | '):''));
     if(a.boot&&b.boot)console.log('  the boot (the recorder, s): first frame '+a.boot.first+' → '+b.boot.first+', in '+a.boot.done+' → '+b.boot.done+' (software WebGL; the scripts start '+a.boot.scripts+' → '+b.boot.scripts+')');
   }catch(e){ok(false,'threw: '+String(e).slice(0,300));}finally{await browser.close();server.close();}

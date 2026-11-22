@@ -10701,3 +10701,25 @@ the same to the bit, base against this; test/gpu.json's counts all the same. The
 3.96–4.40 against 3.77–4.13 s. So the spike's slower boot (9 → 12 s) was r187's own, not the loading's.
 
 **Unseen, ask:** nothing new to see — the game should look and load as v11.214. If the page stays on its loading screen, F12's console says why.
+
+## v11.216 — the world cache, part two: the platform and the saddles (22 Nov 2026)
+
+Of the load v11.214 left (in Node 1.45–1.56 s with the maps and the caustics cached), region.js's was the most: rgPlatform ~0.6 s, rgSaddles ~0.2 s,
+regionModel ~0.35 s, rgBuild ~0.2 s. The first two make plain data — the platform 16 Float32Arrays on a 3 km grid (1.0 MB), the saddles one on 1 km
+(0.6 MB) and two short lists of plain objects — and are cached here. The other two make the island records, which hold closures (the track, the
+plateau's width): not cached (analysis_loading.md §5).
+
+- **`wcProduct(k, make, build)`** (wcache.js): a product that is one object of typed arrays and values, from the cache or built and kept
+  (`wcKeepObj`: its keys in order, each array a buffer of its own, each value in the meta; `wcObj` rebuilds it). Rebuilt through **the product's own
+  maker** (region.js `rgPlatMake`, `rgSadMake`), which rgPlatform and rgSaddles now return through too: one literal for both, so sample()'s hot path
+  reads one shape. An object set key by key from a list is a dictionary in V8 past a dozen keys (26 keys: `%HasFastProperties` false).
+- **region.js `rgCache`**: the cache's where it is loaded; map.html, region.html and the tests that load region.js alone build as before.
+- **src/order.txt: wcache before world and region** (region.js's load reads it); test/census.js and test/ledger.js likewise.
+- **test/wcache.js**: the platform and the saddles every key in order, every byte, the same from the cache as built (the saddles' own build time
+  aside); both with fast properties, built and cached (the child runs with `--allow-natives-syntax`). test/wcache_page.js: every product taken.
+
+**What it costs and saves:** nothing per frame. The load in Node with every product cached 2.6–3.1 s → 0.94–0.95 s (part one alone: 1.45–1.56). In
+headless Chromium, a reload with the cache, v11.215 against this, four reloads each: the first frame 3.87 / 2.81 / 2.85 / 2.71 s → 3.05 / 2.30 / 2.09 /
+2.38 s. The store 29.6 → 31.2 MB. On the person's machines: unmeasured.
+
+**Unseen, ask:** open the game twice; F9 after the second — its boot line.
