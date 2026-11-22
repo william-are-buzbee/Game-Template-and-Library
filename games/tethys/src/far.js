@@ -80,7 +80,16 @@ function wmBlur(i0,i1,j0,j1){
   wmUpload();
 }
 WM_O[0]=WM_A+WM_I0*WM_T+WM_HALF;WM_O[1]=WM_A+WM_J0*WM_T+WM_HALF; // the window's centre, the shaders' uWmO (0 today: −25800 + 0 + 25800)
-wmFill(0,WM_N,0,WM_N,4);wmBlur(0,WM_N,0,WM_N);
+if(!wcMaps()){wmFill(0,WM_N,0,WM_N,4);wmBlur(0,WM_N,0,WM_N);}wcKeepMaps(); // v11.214: the first fill from the world cache when this build has one (wcache.js)
+// The first fill is one sample a 4×4 block, copied across it (wmFill's step), so the cache keeps a block's eight values — the colour, the front's X, the
+// floor's depth, the wave energy, the two crops — (WM_N/4)² of them, and the two blurred maps whole: 4.1 + 16.6 MB, not the 66 MB of the raw floats.
+function wcMaps(){const C=wcBuf('mapC'),W=wcBuf('mapW'),Fb=wcBuf('mapF'),N=WM_N,n=N/4;if(!C||!W||!Fb||C.byteLength!==n*n*8*4||W.byteLength!==WM_DATA.length||Fb.byteLength!==FM_DATA.length)return false;
+  const c=new Float32Array(C);for(let bj=0;bj<n;bj++)for(let bi=0;bi<n;bi++){const o=(bj*n+bi)*8;for(let jj=bj*4;jj<bj*4+4;jj++)for(let ii=bi*4;ii<bi*4+4;ii++){const m=jj*N+ii,q=m*4;wmRaw[q]=c[o];wmRaw[q+1]=c[o+1];wmRaw[q+2]=c[o+2];wmRaw[q+3]=c[o+3];fmRaw[m]=c[o+4];wfRaw[m]=c[o+5];pgRaw[m]=c[o+6];pfRaw[m]=c[o+7];}}
+  WM_DATA.set(new Uint8Array(W));FM_DATA.set(new Uint8Array(Fb));wmUpload();WC.hit.maps=true;return true;}
+function wcKeepMaps(){if(WC.hit.maps){if(!WC.hit.cau)for(const k of ['mapC','mapW','mapF'])wcKeep(k,wcBuf(k));return;} // from the cache: kept as read, for a world written again (the caustics computed)
+  const N=WM_N,n=N/4,c=new Float32Array(n*n*8); // the blocks' values as they stand now, before any region refines them
+  for(let bj=0;bj<n;bj++)for(let bi=0;bi<n;bi++){const o=(bj*n+bi)*8,m=(bj*4)*N+bi*4,q=m*4;c[o]=wmRaw[q];c[o+1]=wmRaw[q+1];c[o+2]=wmRaw[q+2];c[o+3]=wmRaw[q+3];c[o+4]=fmRaw[m];c[o+5]=wfRaw[m];c[o+6]=pgRaw[m];c[o+7]=pfRaw[m];}
+  wcKeep('mapC',c);wcKeep('mapW',WM_DATA.slice());wcKeep('mapF',FM_DATA.slice());}
 // moving the window (v11.104): once the player is half a window's half-width from its centre, it is centred on them again, snapped to a region's
 // 24 texels. The overlap is rolled (every map, raw and blurred), the centre and the texture move together, and the uncovered strips — at least a
 // quarter of the window from the player, where no far region stands (they are dropped at FAR_DROP) — are filled coarse a slice a frame and

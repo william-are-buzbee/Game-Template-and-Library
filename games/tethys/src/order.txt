@@ -8,6 +8,7 @@ util
 world
 region
 physics
+wcache
 scene
 clouds
 parts

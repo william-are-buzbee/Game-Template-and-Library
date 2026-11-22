@@ -18,10 +18,13 @@ const parts={};for(const n of ORDER)parts[n]=read('src/'+n+'.js');
 // the build's version (v11.191): the CHANGELOG's last heading, for the flight recorder's reports (src/rec.js REC.v); 'dev' where nothing says (the tests, the benches)
 const VERSION=(read('CHANGELOG.md').match(/^## (v[0-9][0-9.]*)/gm)||['## dev']).pop().slice(3);
 const STAMP='<script>window.TETHYS_BUILD={v:"'+VERSION+'"};</script>\n';
+// the world cache's key (v11.214, cacheload.js, src/wcache.js): the game's code hashed, so any change to it — a version, a preview's next commit — is a new world
+const GAME=ORDER.map(n=>parts[n]).join('\n'),WH=require('crypto').createHash('sha256').update(GAME,'utf8').digest('hex').slice(0,16);
+const STAMP_T='<script>window.TETHYS_BUILD={v:"'+VERSION+'",wh:"'+WH+'"};</script>\n',LOADER='<script>\n'+read('cacheload.js')+'</script>\n';
 
 // ---------- the two html files ----------
 const shell=read('shell.html');
-const bundle=STAMP+THREE+'<script>\nfunction tethysMain(){\n"use strict";\n'+ORDER.map(n=>parts[n]).join('\n')+'\n}\nrequestAnimationFrame(function(){setTimeout(tethysMain,0);});\n</script>'; // v11.189: the game runs after the page's first paint — the loading page (shell.html #boot, the title, its line) is on screen while it loads
+const bundle=STAMP_T+THREE+LOADER+'<script>\nfunction tethysMain(){\n"use strict";\n'+GAME+'\n}\nrequestAnimationFrame(function(){wcacheRead(function(){setTimeout(tethysMain,0);});});\n</script>'; // v11.189: the game runs after the page's first paint — the loading page (shell.html #boot, the title, its line) is on screen while it loads
 write('tethys.html',shell.replace('<!--SCRIPTS-->',()=>bundle)); // a function: the bundle may contain $-patterns a string replacement would expand
 const dev=STAMP+THREE+ORDER.map(n=>'<script src="src/'+n+'.js"></script>\n').join('');
 write('dev.html',shell.replace('<!--SCRIPTS-->',()=>dev));
@@ -91,7 +94,7 @@ console.log('built tethys.html, dev.html, src/INDEX.md ('+ORDER.length+' files, 
 if(process.argv.includes('--test')){
   const os=require('os'),{spawn}=require('child_process');
   const ALONE=[[['test/physics.js'],{},4],[['test/audio.js'],{},20],[['test/snow.js'],{},38],[['test/sky.js'],{},2],[['test/glow.js'],{},10]]; // the third number: its seconds one at a time on a sandbox CPU (v11.93.3), for the shards
-  const SIDE=[[['test/res.js'],{},4],[['test/smoke.js'],{},164],[['test/smoke.js'],{TIER:'low'},108],[['test/live.js'],{},100],[['test/live.js'],{TIER:'low'},98],[['test/player.js'],{},56],[['test/probe.js'],{},12],[['test/simrand.js'],{},30],[['test/step.js'],{},40],[['test/census.js','40'],{},61],[['test/ledger.js'],{},135],[['test/falls.js'],{},59],[['test/maps.js'],{},20],[['test/player.js'],{TIER:'low'},41],[['test/steer.js'],{},25],[['test/steer.js'],{TIER:'low'},18],[['test/anim.js'],{},17],[['test/combat.js'],{},10],[['test/registry.js'],{},5],[['test/pool.js'],{},4],[['test/plankton.js'],{},2],[['test/origins.js'],{},22],[['test/cells.js'],{},13],[['test/horizon.js'],{},13],[['test/records.js'],{},2],[['test/rec.js'],{},2],[['test/slots.js'],{},1],[['test/opt.js'],{},3],[['test/tier.js'],{},11],[['test/idle.js'],{},12],[['test/region.js'],{},1],[['test/lint.js'],{},1]]; // longest first
+  const SIDE=[[['test/res.js'],{},4],[['test/smoke.js'],{},164],[['test/smoke.js'],{TIER:'low'},108],[['test/live.js'],{},100],[['test/live.js'],{TIER:'low'},98],[['test/player.js'],{},56],[['test/probe.js'],{},12],[['test/simrand.js'],{},30],[['test/step.js'],{},40],[['test/wcache.js'],{},14],[['test/census.js','40'],{},61],[['test/ledger.js'],{},135],[['test/falls.js'],{},59],[['test/maps.js'],{},20],[['test/player.js'],{TIER:'low'},41],[['test/steer.js'],{},25],[['test/steer.js'],{TIER:'low'},18],[['test/anim.js'],{},17],[['test/combat.js'],{},10],[['test/registry.js'],{},5],[['test/pool.js'],{},4],[['test/plankton.js'],{},2],[['test/origins.js'],{},22],[['test/cells.js'],{},13],[['test/horizon.js'],{},13],[['test/records.js'],{},2],[['test/rec.js'],{},2],[['test/slots.js'],{},1],[['test/opt.js'],{},3],[['test/tier.js'],{},11],[['test/idle.js'],{},12],[['test/region.js'],{},1],[['test/lint.js'],{},1]]; // longest first
   // v11.93.4: SHARD=k/n (CI: package.json's "shards", one machine a part) runs the k-th of n parts. The runs are dealt longest first to the part
   // with the fewest seconds so far, ties to the lower part; build.py deals them the same. Each part runs its own timed runs first and alone.
   const SH=/^(\d+)\/(\d+)$/.exec(process.env.SHARD||'');

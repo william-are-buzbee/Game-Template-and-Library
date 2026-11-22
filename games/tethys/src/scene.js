@@ -520,8 +520,17 @@ const PIX_GLSL=(grid,cls)=>'if(uTex>0.5){vec3 gx=dFdx(vGrid),gy=dFdy(vGrid);floa
 // to metres by the object's and the instance's scale; 'world' takes the world position instead so the cells' terrain and the far terrain share one grid
 const PIX_GRID_V=grid=>grid==='world'?'vGrid=(modelMatrix*wpp).xyz;':'vGrid=pGrid*vec3(length(modelMatrix[0].xyz),length(modelMatrix[1].xyz),length(modelMatrix[2].xyz));\n#ifdef USE_INSTANCING\nvGrid*=vec3(length(instanceMatrix[0].xyz),length(instanceMatrix[1].xyz),length(instanceMatrix[2].xyz));\n#endif\n';
 (function(){ // the bake: for each ring, the lattice vectors in its band, one train per direction bin within the spread, then the tiles
-  const rng=mulberry(1717),T=CAU_TILE,N=CAU_N,nmax=Math.ceil(T/CAU_RINGS[CAU_RINGS.length-1][0]*1.25)+1;
-  for(let r=0;r<Math.min(Q.cau,CAU_RINGS.length);r++){const L=CAU_RINGS[r][0],A0=CAU_RINGS[r][1],trains=[];
+  const rng=mulberry(1717),T=CAU_TILE,N=CAU_N,nmax=Math.ceil(T/CAU_RINGS[CAU_RINGS.length-1][0]*1.25)+1,R=Math.min(Q.cau,CAU_RINGS.length);
+  const mk=d=>{const t=new THREE.DataTexture(d,N,N,THREE.RGBAFormat,THREE.UnsignedByteType);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.minFilter=t.magFilter=THREE.LinearFilter;t.generateMipmaps=false;t.needsUpdate=true;t.clone=function(){return this;};return t;};
+  // v11.214 (wcache.js): the tiles from the world cache when it holds as many rings as this tier draws (a ring's draws follow the earlier rings', so the
+  // first R of five are a three-ring bake's), else baked as always and kept; the gust tile with them
+  const cm=wcMeta('cau'),G0=CAU_GN;
+  if(cm&&cm.rings>=R&&wcBuf('cauGust')&&wcBuf('cauGust').byteLength===G0*G0*4){let ok=true;for(let r=0;r<R;r++)if(!wcBuf('cauS'+r)||!wcBuf('cauC'+r)||!wcBuf('cauG'+r)||wcBuf('cauS'+r).byteLength!==N*N*4)ok=false;
+    if(ok){for(let r=0;r<R;r++){const e=cm.ring[r];CAU_TEX.push({L:e.L,w:Math.sqrt(9.8*TAU/e.L),n:e.n,s:mk(new Uint8Array(wcBuf('cauS'+r))),c:mk(new Uint8Array(wcBuf('cauC'+r))),g:mk(new Uint8Array(wcBuf('cauG'+r))),sm:e.sm});}
+      {const t=new THREE.DataTexture(new Uint8Array(wcBuf('cauGust')),G0,G0,THREE.RGBAFormat,THREE.UnsignedByteType);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.minFilter=t.magFilter=THREE.LinearFilter;t.generateMipmaps=false;t.needsUpdate=true;t.clone=function(){return this;};CAU_GTEX=t;}
+      WC.hit.cau=true;wcKeep('cau',null,cm);for(let r=0;r<cm.rings;r++)for(const k of ['cauS','cauC','cauG'])wcKeep(k+r,wcBuf(k+r));wcKeep('cauGust',wcBuf('cauGust'));return;}}
+  const kept=[];
+  for(let r=0;r<R;r++){const L=CAU_RINGS[r][0],A0=CAU_RINGS[r][1],trains=[];
     const bins=new Array(CAU_DIRS).fill(null);
     for(let nx=-nmax;nx<=nmax;nx++)for(let nz=-nmax;nz<=nmax;nz++){const nn=Math.hypot(nx,nz);if(nn<0.5)continue;const l=T/nn;if(Math.abs(l/L-1)>0.18)continue;
       let a=Math.atan2(nz,nx)-WIND_A;a=Math.atan2(Math.sin(a),Math.cos(a));if(Math.abs(a)>CAU_SPREAD)continue;
@@ -533,10 +542,10 @@ const PIX_GRID_V=grid=>grid==='world'?'vGrid=(modelMatrix*wpp).xyz;':'vGrid=pGri
       for(const w of trains){const p=x*w.kx+z*w.kz+w.ph,sp=Math.sin(p),cp=Math.cos(p),s=sp*w.c,c=cp*w.c,ak=w.ak;sxx+=s*w.dx*w.dx;sxy+=s*w.dx*w.dz;szz+=s*w.dz*w.dz;cxx+=c*w.dx*w.dx;cxy+=c*w.dx*w.dz;czz+=c*w.dz*w.dz;gsx+=sp*ak*w.dx;gsz+=sp*ak*w.dz;gcx+=cp*ak*w.dx;gcz+=cp*ak*w.dz;}
       const o=(j*N+i)*4;S[o]=clamp(sxx*q+127.5,0,255);S[o+1]=clamp(sxy*q+127.5,0,255);S[o+2]=clamp(szz*q+127.5,0,255);S[o+3]=255;C[o]=clamp(cxx*q+127.5,0,255);C[o+1]=clamp(cxy*q+127.5,0,255);C[o+2]=clamp(czz*q+127.5,0,255);C[o+3]=255;
       G[o]=clamp(gsx*qg+127.5,0,255);G[o+1]=clamp(gsz*qg+127.5,0,255);G[o+2]=clamp(gcx*qg+127.5,0,255);G[o+3]=clamp(gcz*qg+127.5,0,255);} // the gradient tile (v11.46, the glitter): the slope's sin part (rg) and cos part (ba) of the same trains — h = Σ A sin(p − ωt), so ∇h = Σ A k dir (cos p cos ωt + sin p sin ωt)
-    const mk=d=>{const t=new THREE.DataTexture(d,N,N,THREE.RGBAFormat,THREE.UnsignedByteType);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.minFilter=t.magFilter=THREE.LinearFilter;t.generateMipmaps=false;t.needsUpdate=true;t.clone=function(){return this;};return t;};
-    CAU_TEX.push({L:L,w:Math.sqrt(9.8*TAU/L),n:trains.length,s:mk(S),c:mk(C),g:mk(G),sm:sm});}
+    CAU_TEX.push({L:L,w:Math.sqrt(9.8*TAU/L),n:trains.length,s:mk(S),c:mk(C),g:mk(G),sm:sm});kept.push({L:L,n:trains.length,sm:sm});wcKeep('cauS'+r,S.slice());wcKeep('cauC'+r,C.slice());wcKeep('cauG'+r,G.slice());}
+  wcKeep('cau',null,{rings:R,ring:kept});
   {const G=CAU_GN,D=new Uint8Array(G*G*4),sc=CAU_GUST[0];for(let j=0;j<G;j++)for(let i=0;i<G;i++){const o=(j*G+i)*4;let v=0,w=0;for(let k=0;k<3;k++){const f=1<<k;v+=fbm(((i/G)*f%1)*sc*0.035+40,((j/G)*f%1)*sc*0.035+70,2)/f;w+=1/f;}v=clamp((v/w-0.5)*4.0+0.5,0,1);D[o]=D[o+1]=D[o+2]=Math.round(v*255);D[o+3]=255;}
-    const t=new THREE.DataTexture(D,G,G,THREE.RGBAFormat,THREE.UnsignedByteType);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.minFilter=t.magFilter=THREE.LinearFilter;t.generateMipmaps=false;t.needsUpdate=true;t.clone=function(){return this;};CAU_GTEX=t;} // the gust tile: three octaves of the world's value noise, wrapped by taking each octave's coordinate mod 1 of the tile (a seam per octave that the blur hides), stretched to fill 0..1
+    const t=new THREE.DataTexture(D,G,G,THREE.RGBAFormat,THREE.UnsignedByteType);t.wrapS=t.wrapT=THREE.RepeatWrapping;t.minFilter=t.magFilter=THREE.LinearFilter;t.generateMipmaps=false;t.needsUpdate=true;t.clone=function(){return this;};CAU_GTEX=t;wcKeep('cauGust',D.slice());} // the gust tile: three octaves of the world's value noise, wrapped by taking each octave's coordinate mod 1 of the tile (a seam per octave that the blur hides), stretched to fill 0..1
 })();
 // The tiles as one texture array (v11.187, WebGL2): the ten a tinted material sampled (each ring's S and C, layers 2i and 2i+1) under one sampler, the same
 // bytes, wrap and filter, so the same caustic — and nine of WebGL's sixteen texture units a fragment shader may use come free (the tinted materials were at

@@ -187,7 +187,7 @@ function updateSave(dt){if(mode!=='play'||!curSave)return;playT+=dt;lineTick(dt)
 function saveRefresh(cb){ // the slots read again; first, a shadow the page left on its way out (saveShadow) goes into the store — it is the latest state of that slot, nothing later can exist
   let sh=null;try{const ls=window.localStorage,s=ls&&ls.getItem('tethys.last');if(s){ls.removeItem('tethys.last');sh=JSON.parse(s);}}catch(e){}
   const go=()=>storeSums((sums,keys)=>{const have=new Set();for(const s of sums)if(s&&s.kind==='sum')have.add(s.slot);
-    const miss=keys.filter(k=>k!=='profile'&&k.indexOf(SUM_P)!==0&&!have.has(k)&&!slotNot.has(k)),list=sums.filter(s=>s&&s.kind==='sum');
+    const miss=keys.filter(k=>k!=='profile'&&k.indexOf(SUM_P)!==0&&k.indexOf(WORLD_P)!==0&&!have.has(k)&&!slotNot.has(k)),list=sums.filter(s=>s&&s.kind==='sum');
     const fin=()=>{saveList=list.map(slotEntry).sort((a,b)=>(b.played||b.made||0)-(a.played||a.made||0));if(cb)cb();};
     const next=()=>{if(!miss.length){fin();return;}const k=miss.shift();slotGet(k,r=>{if(r){const s=slotSum(r);list.push(s);storePut(s,next);}else{slotNot.add(k);next();}});}; // a slot from before the summaries: read whole once, its summary written
     next();});
