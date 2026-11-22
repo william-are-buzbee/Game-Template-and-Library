@@ -10322,3 +10322,27 @@ every place.
 
 **Unseen, ask in this order:**
 1. Leave the menu still for 12 s: it should look the same (the water and the creatures move at ~30 fps), and the fans quieter.
+
+## v11.203 — the low tier has its own effects: the heavy ones off (21 Nov 2026)
+
+The person, after the tier that follows the machine (v11.199): "Low verdict yes, turn off effects that kill performance. It's not low if you can't
+run it on a low device." The work tower's `#low` reports (#149–152) still spent 0.6–1.3 ms of its GPU a frame on the world's shadows — switched on
+from the effects list once, on the high tier, and saved (`tethys.fx`), so they followed the machine down.
+
+- **The low tier keeps its own choices** (effects.js `FX_LS`: `tethys.fx.low`; the high tier's stay `tethys.fx`): what was switched on for the high
+  tier never follows a machine down, and what is switched on for the low tier is the low tier's.
+- **Its defaults** (`FX_LOW_OFF`): the world's shadows (`statics`, `ground`, `sharp` — a pass of their own and their maps; `sharp` doubles the side)
+  and the refraction (`refract`: a copy of the whole frame, every frame under the water) start off, with the bodies' shadows (off on the low tier
+  since v11.57). The rest as the high tier's.
+- **test/fxcost.js** (new, a bench): each switch of the effects list flipped at a place and the frame timed against it flipped back, on the software
+  GPU, a browser for every eight switches (one page for all ran out of memory). It **could not rank** the per-pixel terms: at the forest about half the
+  switches read as making the frame faster, by up to 49 ms — its noise is ±6% of the frame here; only the bodies' shadows stood out (+10%). So the
+  list is what is heavy by its build, and the reports from the tower say the rest.
+- **test/tier.js**: the high tier reads its own saved choices; the low tier its own, its four off whatever the high tier saved.
+
+**What it costs:** nothing per frame; the high tier is as it was (test/gpu.js's counts are the high tier's). On the low tier, under the water a
+frame's copy less, and the world's shadows' pass gone where they had been switched on.
+
+**Unseen, ask in this order:**
+1. The work tower, plain address (its verdict is low): the effects list (`e`) shows world shadows and refraction off; a report after play — the
+   `world shadows` pass gone from the GPU line.

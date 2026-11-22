@@ -375,6 +375,7 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
 - **The menu**: new game, continue (slots in IndexedDB — clear the site's data to start clean; the tests use memory), options (the effects
   list), the creator. Esc in play with the pointer free saves and returns (esc twice when locked). A death writes its cause to the slot.
 - **The effects list** (`e`): the cosmetic systems, each switched live; a slider under a switch is a row in `FX_SLIDERS` and a number in `FX_DEF`.
+  Each tier keeps its own choices (`tethys.fx`, `tethys.fx.low`; v11.203); the low tier starts with `FX_LOW_OFF` off.
 - `map.html` (planned islands, the `PLAN` string for test/map.js) and `region.html` (the province from region.js, its knobs, a survey of 30
   seeds, the recipe to paste into `REGION_K`) load `src/` as it is; open them on serve.js or from the file. Not part of the game.
 - The heaviest place is the weed forest on the shelf at (330, 0).

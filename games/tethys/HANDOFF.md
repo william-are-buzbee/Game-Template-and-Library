@@ -4,6 +4,10 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.203 (21 Nov 2026): the low tier's own effects** (effects.js `FX_LS`, `FX_LOW_OFF`; test/fxcost.js; test/tier.js; CHANGELOG). The person:
+"It's not low if you can't run it on a low device." The low tier keeps its own effect choices (`tethys.fx.low`) and starts with the world's shadows
+and the refraction off. The software GPU could not rank the per-pixel effects (noise ±6%); the tower's reports will. **Ask:** a report from the tower.
+
 **v11.202 (21 Nov 2026): the idle menu at ~30 fps** (main.js `loop`, menu.js `MENU_IDLE_IV`; test/idle.js; CHANGELOG). #143 drew the menu at
 120 fps for 57 minutes; the idle menu (12 s without the mouse) now draws every ~31 ms, woken at the first move. **Ask:** nothing but a still menu.
 
@@ -21,11 +25,6 @@ bench had a race with the save store since v11.189 (bodies differing between run
 time: high far too heavy on the menu (over 40 ms) reloads into low at once; in play a minute over 20 ms is low from the next start, under 6 ms on
 the machine's low is high again. `#low`/`#high` still win. **Ask:** the work tower without `#low`:
 it should reload itself into low within seconds of the menu, and say so; the home machine should stay high.
-
-**v11.198 (21 Nov 2026): the recorder drops the GPU timer's junk** (rec.js `RG_MAX`, `RG.junk`; test/report.js; test/rec.js; DESIGN "The flight
-recorder"; CHANGELOG). The work tower's reports #148–149 had one GPU reading of 960,769 ms (no disjoint flag), which made the session's GPU mean 63 ms
-(the median 24.8) and one place's 72. A reading under 0, not a number, or 2 s and over now drops its frame and is counted (`gpu.junk`); report.js
-flags an older report that has one and prints its mean without it. **Ask:** nothing; the next work-tower report should show `junk` if it happens again.
 
 ## Open
 

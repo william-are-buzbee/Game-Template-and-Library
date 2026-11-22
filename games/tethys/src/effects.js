@@ -39,7 +39,10 @@ const FX_DEF={autoRes:true,freeLook:true,camFx:true,caustics:true,cauK:1,pixel:f
 // The low tier's own (v11.203; the person, 21 Nov 2026: "Low verdict yes, turn off effects that kill performance. It's not low if you can't run it
 // on a low device"): the switches that cost a weak GPU most (test/fxcost.js, FX_LOW_OFF) start off on the low tier, and the low tier keeps its own
 // choices (FX_LS: 'tethys.fx.low'), so what was switched on for the high tier never follows a machine down to the low one.
-const FX_LOW_OFF=[]; // measured: test/fxcost.js (below, the CHANGELOG's table)
+const FX_LOW_OFF=['statics','ground','sharp','refract']; // what costs a weak GPU by its build, not by a guess: the world's shadows (a pass of their own and their
+// maps — 'sharp' doubles the side; the work tower spent 0.6–1.3 ms of its GPU on them at #low, #149–152, switched on from the high tier's list) and the
+// refraction (a copy of the whole frame every frame under the water). test/fxcost.js could not rank the per-pixel terms on the software GPU (its
+// noise ±6% of the frame; only the bodies' shadows stood out, +10%, and those are off on the low tier already, FX_DEF.shadows) — the reports will.
 if(Q.tier==='low')for(const k of FX_LOW_OFF)FX_DEF[k]=false;
 const FX_LS=Q.tier==='low'?'tethys.fx.low':'tethys.fx';
 const FX=Object.assign({},FX_DEF);
