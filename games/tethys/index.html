@@ -173,7 +173,7 @@ canvas{display:block;outline:none;touch-action:none}
 <div id="fade" class="layer"></div>
 <canvas id="spark" class="layer"></canvas>
 <div id="stats"></div>
-<script>window.TETHYS_BUILD={v:"v11.204"};</script>
+<script>window.TETHYS_BUILD={v:"v11.205"};</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 function tethysMain(){
@@ -1226,6 +1226,8 @@ const _isD=[],_isL=[],_isI=[],_isB=[],_isE=[],_isO=[],_isX=[],_isZ=[],_plO={lag:
 let RG_GR=null,_grO={hill:0,s:0}; // v11.144: the floor's grain, region.js rgGrainBuild's (null until region.js has run)
 let RG_SAD=null; // v11.143: the saddles between neighbours, region.js rgSaddles' (null until region.js has run)
 let RG_PL=null; // v11.122: the plateau's platform, region.js rgPlatform's (null until region.js has run, so the chimney's sample() at load sees none) // the records' squared distances in this sample; those in reach, highest bound first, and their bounds (v11.102)
+const _SH_F=new Float32Array(NF); // sampleH's fields, never read (v11.205)
+function sampleH(x,z){return sample(x,z,_SH_F).h;} // the ground's height only (v11.205): sample() without a new Float32Array for fields no one reads — 25 callers made one a call
 function sample(x,z,out){
   // the islands: the highest in reach wins the conditions; the rest raise the ground under it through smax (a volcano on another's flank)
   let o=_islA,spare=_islB,best=null,h=-1e9,hSmooth=-1e9,rNear=1e9,core=false,n=0;const LR=recsAt(x,z),N=LR.length; // the records near here (v11.103: the index's; rNear is theirs, read only where no record is in reach and nothing then uses it)
@@ -1608,7 +1610,7 @@ function findSpot(rng,ok,r0,r1){
 const LM={};
 (function(){const rng=mulberry(4242);
   // the bones (a ~100 m ribcage on the mud, searched first with this rng) struck v11.100 (the person: a holdover; bones are the falls' now, DEEP §4)
-  {const vr=(VENT.r0+VENT.r1)/2,x=Math.cos(VENT.a)*vr,z=Math.sin(VENT.a)*vr;LM.chimney={x:x,z:z,h:sample(x,z).h};} // on the fissure
+  {const vr=(VENT.r0+VENT.r1)/2,x=Math.cos(VENT.a)*vr,z=Math.sin(VENT.a)*vr;LM.chimney={x:x,z:z,h:sampleH(x,z)};} // on the fissure
     LM.all=Object.keys(LM).map(k=>LM[k]);})();
 // ---------- the water's oxygen and the basins' chemoclines (v11.96, DEEP.md §2, §9) ----------
 // Where the dark is, the region model's way (GLOBE §9.1): the water each place exchanges with the open ocean through, by region.js's flood over the
@@ -3836,7 +3838,7 @@ const CAP_GLSL='float erfA(float x){float x2=x*x,ax=0.147*x2;return sign(x)*sqrt
 THREE.ShaderChunk.fog_pars_fragment+='\n#ifdef USE_FOG\n'+CAP_GLSL+'#endif\n';
 // the pools' places: every record with a caldera — its floor sampled at the centre, its rim the mean over eight bearings of where the ground stands half
 // the caldera's depth over the floor, in eighths of its radius to twice it (the oval and the lobes measured, not assumed; 128 samples a caldera at load)
-const POOLS_C=ISLANDS.filter(R=>R.land&&R.land.cald).map(R=>{const fl=sample(R.x,R.z).h,K=R.land.cald,sc=R.sc||1;let rs=0;for(let k=0;k<8;k++){const a=k*TAU/8;let r=0;for(let j=1;j<=16;j++){r=K.r*sc*j/8;if(sample(R.x+Math.cos(a)*r,R.z+Math.sin(a)*r).h>fl+0.5*K.d)break;}rs+=r;}
+const POOLS_C=ISLANDS.filter(R=>R.land&&R.land.cald).map(R=>{const fl=sampleH(R.x,R.z),K=R.land.cald,sc=R.sc||1;let rs=0;for(let k=0;k<8;k++){const a=k*TAU/8;let r=0;for(let j=1;j<=16;j++){r=K.r*sc*j/8;if(sampleH(R.x+Math.cos(a)*r,R.z+Math.sin(a)*r)>fl+0.5*K.d)break;}rs+=r;}
   return {x:R.x,z:R.z,y:fl,r:rs/8*CFOG.pool.rim,h:K.d*CFOG.pool.fill};});
 function updateCloudFog(dt,hs,rising){const K=SKY,P=CFOG.pool,b=FOG_CLDB[3];
   FOG_CAP[0]=CFOG.k*CLD_S.cap/CLD.capA;FOG_CAP[1]=b;FOG_CAP[2]=b+CFOG.top*CLOUD_T;
@@ -4163,7 +4165,7 @@ function tintBy(h,f,photo){const yg=smooth(0.15,0.6,f[FI.young]),ht=smooth(0.1,0
   const t=1-keep;if(t<0.01)return null;return [r/t,g/t,b/t,t];}
 // flowYaw(x,z): tidal current runs along the contours; a `flow` entry turns its plane (local x-y, normal z) across it, so a slope of
 // fans all facing the same way reads as current. Flat ground gets a slow noise field the whole flat agrees with.
-function flowYaw(x,z){const gx=(sample(x+2,z).h-sample(x-2,z).h)/4,gz=(sample(x,z+2).h-sample(x,z-2).h)/4;
+function flowYaw(x,z){const gx=(sampleH(x+2,z)-sampleH(x-2,z))/4,gz=(sampleH(x,z+2)-sampleH(x,z-2))/4;
   if(Math.hypot(gx,gz)<0.06)return fbm(x*0.003+7,z*0.003+3,2)*TAU*2;return Math.atan2(-gz,gx);}
 // ---------- bauplans: each pushes parts into P ----------
 // axis: a segmented stem from the origin up. segs, len, r0 (base radius), r1 (top), wander, lean, bend (a constant drift: an elbow),
@@ -11058,7 +11060,7 @@ function fallRemove(F){const k=FALLS.indexOf(F);if(k>=0)FALLS.splice(k,1);fallHi
 function fallDeath(ei,c,n){ecoIJ(c);fallDeathIJ(ei,ECO_IJ[0],ECO_IJ[1],1,n);} // v11.105: the cell by the ledger's lookup; a coarse patch's dead are fallDeathIJ's with its side
 function fallDeathIJ(ei,i,j,span,n){if(!FALL_E)FALL_E=SPAWN.map(e=>{const d=DEFS[e.kind];return !!d&&d.size>=FALL.size&&d.role!=='swarm'&&!d.ghost&&ecoOf(e.kind).mortal;}); // a body: not the plankton's swarms (no body to fall)
   if(!FALL_E[ei]||!(n>0))return;
-  FALL_ACC[ei]=(FALL_ACC[ei]||0)+n;while(FALL_ACC[ei]>=1){FALL_ACC[ei]-=1;const kind=SPAWN[ei].kind,x=(i+FALL_RNG()*span)*CELL-HALF,z=(j+FALL_RNG()*span)*CELL-HALF,h=sample(x,z).h;
+  FALL_ACC[ei]=(FALL_ACC[ei]||0)+n;while(FALL_ACC[ei]>=1){FALL_ACC[ei]-=1;const kind=SPAWN[ei].kind,x=(i+FALL_RNG()*span)*CELL-HALF,z=(j+FALL_RNG()*span)*CELL-HALF,h=sampleH(x,z);
     if(h>-6)continue;fallAdd(kind,x,h+DEFS[kind].size*0.3,z,bioMass(DEFS[kind]),DEFS[kind].size,FALL_RNG()*TAU,(FALL_RNG()*4294967296)>>>0);}}
 // the falls a cell holds, as it loads: the flesh as a carcass (outside the ledger), the bones as a mesh
 function fallsLoad(ch){const t=nowD();for(const F of FALLS){if(F.c||F.mesh||cellOf(F.x)!==ch.i||cellOf(F.z)!==ch.j)continue;const st=fallState(F,t);if(st.gone)continue;
@@ -11468,13 +11470,13 @@ function cellOf(v){return Math.floor((v+HALF)/CELL);}
 // lookup — every creature, every chain point outside its own cell, the player five times, the audio rays, the snow — and it
 // allocated a string on each call. The range check is not optional: i=1,j=-1 would alias onto cell (0,15) in a flat array.
 function chunkAt(x,z){return chunks.get(ckey(cellOf(x),cellOf(z)));} // the loaded cell under (x, z), or undefined (only loaded cells are in the table: no bounds to test)
-function groundAt(x,z){const ch=chunkAt(x,z);return ch?ch.h(x,z):sample(x,z).h;}
+function groundAt(x,z){const ch=chunkAt(x,z);return ch?ch.h(x,z):sampleH(x,z);}
 // hOut(ch,x,z): the ground for *placing* a thing from a cell being built — the cell's own grid inside it, sample() beyond its
 // edge. ch.h clamps at the grid edge, so a probe that reaches past a cell line reads the edge vertex again and every settleOn
 // face/fit/drop test in a band as wide as its radius sees a plateau (v11.31.3: talus lost 2.2% of its tries in a 14 m band on
 // every cell line, one-sided — the face above the point never registered). Deterministic where groundAt is not: it never asks
 // whether a neighbour happens to be loaded. The same rule buildTerrain's hAt1 uses for the cavity term.
-function hOut(ch,x,z){return x<ch.x0||x>ch.x0+CELL||z<ch.z0||z>ch.z0+CELL?sample(x,z).h:ch.h(x,z);}
+function hOut(ch,x,z){return x<ch.x0||x>ch.x0+CELL||z<ch.z0||z>ch.z0+CELL?sampleH(x,z):ch.h(x,z);}
 // underCanopy (v11.13–v11.80: the water's look, the light, the shafts and the sound under the canopy mask) went with the canopy's paint (v11.81, PLANKTON.md §12).
 
 function makeChunk(i,j){
@@ -11574,7 +11576,7 @@ function* buildTerrain(ch){
   // The cell's own grid; the one-step term reads sample() for the neighbour beyond the edge so both sides of a boundary compute the
   // same number (196 samples a cell, ~7 ms, spread through the yields); the two-step term clamps to the grid (its weight is small).
   // The far terrain has no cavity term: at the loaded boundary the fog leaves 4% of it.
-  const hg=ch.hg,hAt1=(ii,jj)=>ii<0||ii>=GR||jj<0||jj>=GR?sample((ch.i*CH_RES+ii)*STEP-HALF,(ch.j*CH_RES+jj)*STEP-HALF).h:hg[jj*GR+ii],
+  const hg=ch.hg,hAt1=(ii,jj)=>ii<0||ii>=GR||jj<0||jj>=GR?sampleH((ch.i*CH_RES+ii)*STEP-HALF,(ch.j*CH_RES+jj)*STEP-HALF):hg[jj*GR+ii],
     hAt2=(ii,jj)=>hg[clamp(jj,0,GR-1)*GR+clamp(ii,0,GR-1)];
   for(let jj=0;jj<GR;jj++){for(let ii=0;ii<GR;ii++){const n=jj*GR+ii,h=hg[n];
     const c1=h-(hAt1(ii-1,jj)+hAt1(ii+1,jj)+hAt1(ii,jj-1)+hAt1(ii,jj+1))*0.25,c2=h-(hAt2(ii-2,jj)+hAt2(ii+2,jj)+hAt2(ii,jj-2)+hAt2(ii,jj+2))*0.25,cav=c1*0.7+c2*0.15;
@@ -12109,7 +12111,7 @@ function ecoCap(c,ch){
   ecoIJ(c);const i=ECO_IJ[0],j=ECO_IJ[1],x0=i*CELL-HALF,z0=j*CELL-HALF,first=!POP.done[c],rg=mulberry((i>=0&&j>=0&&i<NCELL&&j<NCELL?(i*NCELL+j)*7919+31337:(i*73856093)^(j*19349663)^0x1b873593)>>>0); // the place and the seed are the world cell's (v11.105; the old square's i·NCELL + j as before, past it a hash of the place, v11.106)
   const hs=new Float32Array(36),sl=new Float32Array(36),fs=[];
   for(let b=0;b<6;b++)for(let a=0;a<6;a++){const n=b*6+a,x=x0+(a+0.5)/6*CELL,z=z0+(b+0.5)/6*CELL;
-    if(ch){hs[n]=ch.h(x,z);sl[n]=ch.slope(x,z);fs.push(ch.f(x,z));}else{const s=sample(x,z);hs[n]=s.h;sl[n]=0;fs.push(s.f.slice());}}
+    if(ch){hs[n]=ch.h(x,z);sl[n]=ch.slope(x,z);fs.push(ch.f(x,z));}else{const s=sample(x,z);hs[n]=s.h;sl[n]=0;fs.push(s.f);}} /* s.f is sample's own new array: no copy (v11.205) */
   SPAWN.forEach((e,ei)=>{let w=0;for(let n=0;n<36;n++){let t=envW(e.env,hs[n],sl[n],fs[n]);if(t>0&&e.crop){_ecoS.h=hs[n];_ecoS.f=fs[n];t*=cropK(cropAt(x0+((n%6)+0.5)/6*CELL,z0+(Math.floor(n/6)+0.5)/6*CELL,_ecoS));}w+=t;}let K=e.n*w/36;if(e.max!==undefined)K=Math.min(K,e.max); // crop (v11.84): the swarms' capacity is the lit standing stock's. v11.85: the max clause was inside this comment from v11.84 (the strand's cap of 8 scuttles went unread); back on its line
     const k0=POP.k[ei][c];POP.k[ei][c]=K;POP.ke[ei][c]=K;
     if(first){POP.n[ei][c]=K*(ecoOf(e.kind).hunter?ECO.initH:ECO.init);POP.ow[ei][c]=rg()*Math.min(1,K)/Q.creatures;} // the owed birth starts at a random phase (v11.31.2): a population is not everywhere at the same point in its cycle, and every cell starting at zero was the whole reason the first clutch took two game days to appear. Over Q.creatures because a clutch is one animal the cell *shows*, so the low tier waits the same time for it
@@ -12204,7 +12206,7 @@ function ecoModel(dt,isLoaded){const g=ecoModelGen(dt,isLoaded);while(!g.next().
 // seven times the fine ledger's (test/ledger.js). The reach is taken inside the patch, scaled up at the edge by the weights it lost
 const RC_S=[0,0.0625,0.125,0.25,0.5,1,2,4];
 function ecoPatchCap(p,tables){const P=ECO_PT,G=16,W=PATCH*CELL,x0=ecoPI(p)*CELL-HALF,z0=ecoPJ(p)*CELL-HALF,hs=new Float32Array(G*G),fs=[],E=SPAWN.length,KC=[],NS=RC_S.length;
-  for(let b=0;b<G;b++)for(let a=0;a<G;a++){const s=sample(x0+(a+0.5)/G*W,z0+(b+0.5)/G*W);hs[b*G+a]=s.h;fs.push(s.f.slice());}
+  for(let b=0;b<G;b++)for(let a=0;a<G;a++){const s=sample(x0+(a+0.5)/G*W,z0+(b+0.5)/G*W);hs[b*G+a]=s.h;fs.push(s.f);} /* sample's own new array: no copy (v11.205) */
   SPAWN.forEach((e,ei)=>{const kc=KC[ei]=new Float32Array(64);let K=0;
     for(let l=0;l<64;l++){const ci=l>>3,cj=l&7;let w=0;for(let q=0;q<4;q++){const a=ci*2+(q&1),b=cj*2+(q>>1),n=b*G+a;let t=envW(e.env,hs[n],0,fs[n]);if(t>0&&e.crop){_ecoS.h=hs[n];_ecoS.f=fs[n];t*=cropK(cropAt(x0+(a+0.5)/G*W,z0+(b+0.5)/G*W,_ecoS));}w+=t;}
       let k=e.n*w/4;if(e.max!==undefined)k=Math.min(k,e.max);kc[l]=k;K+=k;}
@@ -12420,7 +12422,7 @@ function* wmShiftGen(di,dj){const N=WM_N;
 // landmark placed with this sits on the near mesh exactly (sample() alone is off by the interpolation error).
 function gridH(x,z){
   const fx=(x+HALF)/STEP,fz=(z+HALF)/STEP,ix=Math.floor(fx),iz=Math.floor(fz),tx=fx-ix,tz=fz-iz;
-  const H=(gx,gz)=>sample(gx*STEP-HALF,gz*STEP-HALF).h;
+  const H=(gx,gz)=>sampleH(gx*STEP-HALF,gz*STEP-HALF);
   const a=H(ix,iz),b=H(ix+1,iz),c=H(ix,iz+1),d=H(ix+1,iz+1);return a+(b-a)*tx+(c-a)*tz+(a-b-c+d)*tx*tz;
 }
 
@@ -12434,7 +12436,7 @@ const BIG=FLORA.filter(f=>f.big),bigCache=new Map(),bigD=new THREE.Object3D();
 // One structure of f at (x,z) on ground h: the instance matrix and collision scale, or null if it cannot fit. Under water a
 // structure stays 12 under the surface (scaled down to); on the strand it stands as it likes. Set on the ground by the one
 // rule (chunks.js settleOn), the ground read from sample().
-const bigH=(x,z)=>sample(x,z).h,bigRng=()=>0.5;
+const bigH=(x,z)=>sampleH(x,z),bigRng=()=>0.5;
 function bigPlace(f,x,z,h,sc,yaw,sx,sz,minSc){
   if(h<0.5){const room=(-(f.clear||12)-h)/(f.top-(f.sink||0));sc=f.fill?Math.min(room,f.s?f.s[1]:room):Math.min(sc,room);} // `clear` under mean level (12: the rock; a reef 5: it grows to the lowest tide and stops); `fill`: as tall as that lets it (reef.js)
   if(sc<minSc)return null;
@@ -12461,7 +12463,7 @@ function* bigsGen(i,j){
       const x=x0+rng()*CELL,z=z0+rng()*CELL,u=rng();
       let q=1;if(f.field)q*=clamp(0.1+4*Math.pow(fbm(x*f.field+31,z*f.field+17,2),2.5),0,1.6);
       if(u>=q)continue; // the envelope can only lower the chance from here
-      const s=sample(x,z),h=s.h,sl=Math.hypot((sample(x+STEP,z).h-h)/STEP,(sample(x,z+STEP).h-h)/STEP);
+      const s=sample(x,z),h=s.h,sl=Math.hypot((sampleH(x+STEP,z)-h)/STEP,(sampleH(x,z+STEP)-h)/STEP);
       if(f.env&&u>=q*envW(f.env,h,sl,fixF(s.f,sl)))continue;
       if(underChemo(x,h,z))continue; // nothing under a basin's chemocline (v11.96; the -450 to v11.95)
       if(nearLandmark(x,z,110))continue;
@@ -12504,7 +12506,7 @@ function* rocksGen(i,j){
       const x=x0+rng()*CELL,z=z0+rng()*CELL,u=rng();
       const qq=Math.min(G-2,Math.floor((z-z0)/RK_GS))*(G-1)+Math.min(G-2,Math.floor((x-x0)/RK_GS));
       if(u>=RK_Q[qq*NE+e]+RK_M||(f.face&&RK_R[qq]<f.face[1]*0.5))continue; // the coarse look refuses it: no tolerance round here, or no face to lie under
-      const s=sample(x,z,RK_F),h=s.h,sl=Math.hypot((sample(x+STEP,z).h-h)/STEP,(sample(x,z+STEP).h-h)/STEP);
+      const s=sample(x,z,RK_F),h=s.h,sl=Math.hypot((sampleH(x+STEP,z)-h)/STEP,(sampleH(x,z+STEP)-h)/STEP);
       if(u>=envW(f.env,h,sl,fixF(RK_F,sl)))continue;
       if(sl>maxSlope||underChemo(x,h,z))continue; // nothing on a cliff face; nothing under a basin's chemocline
       const sc=f.s[0]+rng()*(f.s[1]-f.s[0]),yaw=rng()*TAU;
@@ -12612,7 +12614,7 @@ function* impostorsGen(i,j){
       const pocket=f.pocket?0.1+smooth(0.6,0.72,fbm(x*f.pocket+53,z*f.pocket+29,2)):1;
       const cterm=lee?leeW(x,z)*f.leePer/maxN:0;
       if(u>=Math.max(pocket,cterm)*field)continue;
-      const s=sample(x,z),h=s.h,sl=Math.hypot((sample(x+STEP,z).h-h)/STEP,(sample(x,z+STEP).h-h)/STEP);
+      const s=sample(x,z),h=s.h,sl=Math.hypot((sampleH(x+STEP,z)-h)/STEP,(sampleH(x,z+STEP)-h)/STEP);
       if(u>=Math.max((f.per||0)/maxN*(f.env?envW(f.env,h,sl,fixF(s.f,sl)):1)*pocket,cterm)*field)continue;
       if(floor&&underChemo(x,h,z))continue; // nothing on the floor under a basin's chemocline (v11.96; the -450 to v11.95)
       if(!floor&&h>-4)continue;
@@ -12829,7 +12831,7 @@ function playerClade(spec,pre,j){ // the player's clade object from a spec (and 
     sprint:st.burst>1?st.burst:undefined,jetImp:st.jet?st.jetImp*sq:undefined,buoy:st.buoyancy,mode:st.mode,canSwim:st.mode!=='walk',legsBack:legsBackOf(spec),clear:fd&&fd.clear!==undefined?fd.clear*j:spec.size*j*0.35,cam:+(CAM_BODY.at+CAM_BODY.per*st.length*j).toFixed(1),venom:fd?fd.venom:undefined,immune:!!(fd&&fd.immune),founder:founderOf(spec),abilities:ab,ability:ab[0]||null}; // v11.75: every number off the build or the founder's row; a hatchling's arm and kick with its scale. mass (v11.91): derive's, in kg — every body's (combat.js kgOfBody)
 }
 const CLADES=CLADE_PRESETS.map(p=>playerClade(SPECS[p.spec],p));
-let floor0=-1e9;for(let a=0;a<TAU;a+=0.3)for(let r=0;r<=16;r+=4)floor0=Math.max(floor0,sample(Math.cos(a)*r,Math.sin(a)*r).h);
+let floor0=-1e9;for(let a=0;a<TAU;a+=0.3)for(let r=0;r<=16;r+=4)floor0=Math.max(floor0,sampleH(Math.cos(a)*r,Math.sin(a)*r));
 const dispY=floor0+4.5,spawnPos=V3(0,floor0+3,0);
 /** @typedef {{clade:any,pos:any,vel:any,yaw:any,pitch:any,byaw:any,bpitch:any,angV:any,g:any,b:any,anim:any,inkT:any,withdrawn:any,cd:any,jetT:any,hurtT:any,lastHurt:any,dead:any,pulse:any,spd:any,biteCD:any,sub:any,wet:any,grounded:any,flopT:any,camAbove:any,camFlipT:any,fp:any,mass:any,bound:any,reach:any,shapesW:any,chainW:any,grab:any,grabT:any,heldT:any,heldK:any,holding:any,armT:any,touchF:any,hold:any,held:any,grabKey:any,grabCD:any,bleed:any,blood:any,wounds:any,paraT:any,stungT:any,sickT:any,hunger:any,starveT:any,waste:any,soft:any,shut:any,armsLost:any,regrow:any,cause:any,speedK:any,turnK:any,live:any,lost:any,cWith:any,onPad:any,def:any,hitRk:any,hitFl:any,landV:any,wasGrounded:any,away:any,sprint:any,eaten:any,oxyD:any,chokeT:any,hopT:any,snapT:any,fovKickT:any,nudgeT:any,nudgeD:any,sw:any,swT:any,ro:any,rollV:any,rollBias:any,turnV:any,accV:any,fxAcc:any,fxJet:any,fxFlop:any}} Player — every key the player carries, closed: the literal below in the same order; a key added to it goes here too (v11.193, test/types.js: its last twenty keys — fovKickT, eaten, away… — were set only as play went; they are declared in the literal now, unset, so the player is one shape) */
 const player=/** @type {Player} */({clade:null,pos:V3(0,dispY,0),vel:V3(0,0,0),yaw:0,pitch:0,byaw:0,bpitch:0,angV:0,g:null,b:null,anim:null,inkT:0,withdrawn:false,cd:0,jetT:0,hurtT:0,lastHurt:-100,dead:true,pulse:0,spd:0,biteCD:0,sub:1,wet:true,grounded:false,flopT:0,camAbove:false,camFlipT:0,fp:false,
@@ -13992,8 +13994,8 @@ function hzSight(q,cy){return 3570*(Math.sqrt(Math.max(cy,2))+Math.sqrt(Math.max
 function hzWatch(x,y,z){const H=hzSetup();let added=false;for(const q of H.tops){if(H.built.has(q)||q.queued)continue;if(Math.hypot(q.x-x,q.z-z)<hzSight(q,y)){q.queued=true;H.queue.push(q);added=true;}}
   if(added)H.queue.sort((a,b)=>(Math.hypot(a.x-x,a.z-z)-a.to)-(Math.hypot(b.x-x,b.z-z)-b.to));}
 function* hzMember(m){const H=hzSetup(),{S,C,x0,z0,nx,nz,cx,cz,tops}=H,t0=performance.now();let tq=t0;
-  const CH=new Map(),cH=(i,j)=>{const k=j*(cx+1)+i;let h=CH.get(k);if(h===undefined){h=sample(x0+i*C,z0+j*C).h;CH.set(k,h);}return h;};
-  const HH=new Map(),hAt=(i,j)=>{const k=j*nx+i;let h=HH.get(k);if(h===undefined){h=sample(x0+i*S,z0+j*S).h;HH.set(k,h);}return h;};
+  const CH=new Map(),cH=(i,j)=>{const k=j*(cx+1)+i;let h=CH.get(k);if(h===undefined){h=sampleH(x0+i*C,z0+j*C);CH.set(k,h);}return h;};
+  const HH=new Map(),hAt=(i,j)=>{const k=j*nx+i;let h=HH.get(k);if(h===undefined){h=sampleH(x0+i*S,z0+j*S);HH.set(k,h);}return h;};
   const cT=new Float32Array(3),f=new Float32Array(NF),wT=new Float32Array(4);
   const cells=[],i0=Math.max(0,Math.floor((m.x-m.t-x0)/C)),i1=Math.min(cx-1,Math.floor((m.x+m.t-x0)/C)),j0=Math.max(0,Math.floor((m.z-m.t-z0)/C)),j1=Math.min(cz-1,Math.floor((m.z+m.t-z0)/C));
   for(let j=j0;j<=j1;j++){for(let i=i0;i<=i1;i++){const mx=x0+(i+0.5)*C,mz=z0+(j+0.5)*C;let own=null,bu=2,rim=false;
@@ -15078,7 +15080,7 @@ function wmapDraw(){if(!wmap.open)return;if(wmap.dirty)wmapCompose();const d=wma
   let sb=100;for(const v of [200,500,1000,2000,5000,10000,20000,50000,100000])if(v/wmap.mpp<=160)sb=v;const sw=sb/m,y0=Hh-16*d,x1=16*d; // the scale bar: the longest round length under 160 px
   g.strokeStyle='rgba(240,240,230,0.85)';g.beginPath();g.moveTo(x1,y0);g.lineTo(x1+sw,y0);g.moveTo(x1,y0-5*d);g.lineTo(x1,y0+5*d);g.moveTo(x1+sw,y0-5*d);g.lineTo(x1+sw,y0+5*d);g.stroke();
   g.fillStyle='rgba(240,240,230,0.85)';g.font=(11*d)+'px Georgia, serif';g.fillText((sb>=1000?sb/1000+' km':sb+' m'),x1+2*d,y0-9*d);
-  const f=n=>{const v=Math.round(n);return (v<0?'−':'')+Math.abs(v);},sp='  ';let s=wmap.hover?'tp('+Math.round(wmap.mx)+', '+Math.round(wmap.mz)+')'+sp+'ground '+f(sample(wmap.mx,wmap.mz).h)+' m':'the world, north up';
+  const f=n=>{const v=Math.round(n);return (v<0?'−':'')+Math.abs(v);},sp='  ';let s=wmap.hover?'tp('+Math.round(wmap.mx)+', '+Math.round(wmap.mz)+')'+sp+'ground '+f(sampleH(wmap.mx,wmap.mz))+' m':'the world, north up';
   if(mode==='play'&&player.clade)s+=sp+'you  x '+f(player.pos.x)+'  z '+f(player.pos.z)+'  y '+f(player.pos.y);
   s+=sp+(wmap.st.done<0?'drawing'+sp:'')+'n close · click go · wheel zoom · drag pan · o marks '+(wmap.marks?'on':'off');if(wmapL.textContent!==s)wmapL.textContent=s;}
 // after the loop's frame (main.js): the tiles' work under its budget, the dot moves

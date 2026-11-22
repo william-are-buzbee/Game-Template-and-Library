@@ -680,6 +680,8 @@ const _isD=[],_isL=[],_isI=[],_isB=[],_isE=[],_isO=[],_isX=[],_isZ=[],_plO={lag:
 let RG_GR=null,_grO={hill:0,s:0}; // v11.144: the floor's grain, region.js rgGrainBuild's (null until region.js has run)
 let RG_SAD=null; // v11.143: the saddles between neighbours, region.js rgSaddles' (null until region.js has run)
 let RG_PL=null; // v11.122: the plateau's platform, region.js rgPlatform's (null until region.js has run, so the chimney's sample() at load sees none) // the records' squared distances in this sample; those in reach, highest bound first, and their bounds (v11.102)
+const _SH_F=new Float32Array(NF); // sampleH's fields, never read (v11.205)
+function sampleH(x,z){return sample(x,z,_SH_F).h;} // the ground's height only (v11.205): sample() without a new Float32Array for fields no one reads — 25 callers made one a call
 function sample(x,z,out){
   // the islands: the highest in reach wins the conditions; the rest raise the ground under it through smax (a volcano on another's flank)
   let o=_islA,spare=_islB,best=null,h=-1e9,hSmooth=-1e9,rNear=1e9,core=false,n=0;const LR=recsAt(x,z),N=LR.length; // the records near here (v11.103: the index's; rNear is theirs, read only where no record is in reach and nothing then uses it)
@@ -1062,7 +1064,7 @@ function findSpot(rng,ok,r0,r1){
 const LM={};
 (function(){const rng=mulberry(4242);
   // the bones (a ~100 m ribcage on the mud, searched first with this rng) struck v11.100 (the person: a holdover; bones are the falls' now, DEEP §4)
-  {const vr=(VENT.r0+VENT.r1)/2,x=Math.cos(VENT.a)*vr,z=Math.sin(VENT.a)*vr;LM.chimney={x:x,z:z,h:sample(x,z).h};} // on the fissure
+  {const vr=(VENT.r0+VENT.r1)/2,x=Math.cos(VENT.a)*vr,z=Math.sin(VENT.a)*vr;LM.chimney={x:x,z:z,h:sampleH(x,z)};} // on the fissure
     LM.all=Object.keys(LM).map(k=>LM[k]);})();
 // ---------- the water's oxygen and the basins' chemoclines (v11.96, DEEP.md §2, §9) ----------
 // Where the dark is, the region model's way (GLOBE §9.1): the water each place exchanges with the open ocean through, by region.js's flood over the
