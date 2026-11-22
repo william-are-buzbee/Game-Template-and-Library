@@ -85,4 +85,8 @@ beautiful scrolling scene with zero text … A video wallpaper. So far, we basic
   program a frame behind the loading page (the line moves between them), the world shadows' depth programs left out while that switch is off, and the
   horizon's and the clouds' passes warmed with the rest — so nothing compiles at first sight anywhere. On a software GPU (and partly on Windows) the
   pipelines are built at the first draw, so the first frame behind the black is the longest wait; the line pulses through it.
-- **The cache (§4.3):** not built; open.
+- **The cache (§4.3):** the person, 22 Nov 2026: "Yes that acceptable for the world cache. We might need to change the way 'continue' and 'saves'
+  works because continue should only ever do one thing, which is bring you to your last (in this case, world that is pre-loaded) moment of play. If you
+  died, no continue screen because nothing to continue. You have to go into saves and then continue a save. Otherwise, continue should not be there." —
+  and to build it before the three.js upgrade. Continue: built v11.213 (menu.js `contRec`, `contShow`). The cache: next; what it can save is ~1–1.2 s of
+  the home machine's 5.4 s boot (its scripts are ~1.85 s of it; the rest is the cells streaming and the programs compiling).
