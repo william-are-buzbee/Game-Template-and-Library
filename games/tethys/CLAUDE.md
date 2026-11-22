@@ -149,6 +149,7 @@ dist.js; `archive/` old docs kept whole; the design docs.
 | combat.js · fx.js | holds, the edge and covering, wounds, blood, the player's grab and bite · debris, `bodyPose`, `hitFx`, the night's lights |
 | audio.js · bench.js | procedural WebAudio · the sound bench |
 | effects.js · worldmap.js · save.js | the effects list (`e`) · the world map (`n`) · slots, the profile, `startNew`/`startFrom`, `slotDeath` |
+| step.js | the fixed step (v11.210): `simStep`, the accumulator's constants, the drawing between steps (`lerpSnap`, `lerpApply`, `lerpRestore`) |
 | menu.js zoo.js lab.js · input.js main.js | the menu, the bestiary, the creature lab · input; the boot `BOOT`, the frame loop, the readout |
 
 **The docs**, most upstream first (each at length in README.md). When a doc's Open list says a choice is the person's, ask.
@@ -208,10 +209,12 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
   `DEFS.immune`). `DEFS.hp` is only the forage (≤1) / immortal (≥1e8) flag. A hunter commits its bite 0.25 s out and misses prey that dodges across the line (`MISS`); hungry hunters take a
   bleeding body within `SMELL_R`. Drifters and the coil's withdraw bypass holds. The player's death ends the slot's animal: you continue as the
   nearest living child of that life, or the save is over (line.js).
-- **The frame** (main.js `loop`): clock and tide → streaming → menu, zoo, lab → `updatePlayer` → `updateCreatures` (and contact, the player
-  among the bodies) → `finishPlayer` (pose, own arms, camera) → eggs, ecology → pads, disturbers, snow → wounds, ink, splashes, blood →
-  atmosphere, surface → cull, lights, shadows, audio → HUD, effects → render → `recFrame`. **Moving a piece breaks contact silently.**
-  Creatures past 150 m step every other frame; `lodNear`/`lodFar` swap parts for baked meshes.
+- **The frame** (main.js `loop`; v11.210, step.js): streaming → menu, zoo, lab → **the sim at a fixed step** (`simStep`, `SIM_STEP` 1/60 s,
+  as many as the frame's time holds, at most `SIM_STEP_MAX` 3: clock and tide → `updatePlayer` → `updateCreatures` (and contact, the player among
+  the bodies) → `finishPlayer` (pose, own arms) → eggs, ecology, the save and the line's clocks → pads, wounds, states) → the drawing set between the
+  last two steps (`lerpApply`), the far schools' instances (`siFrame`), the camera (`camFrame`) → disturbers, snow, ink, splashes, blood → atmosphere,
+  surface → cull, lights, shadows, audio → HUD, effects → render → the poses back (`lerpRestore`) → `recFrame`. **Moving a piece breaks contact
+  silently.** Creatures past 150 m step every other step; `lodNear`/`lodFar` swap parts for baked meshes.
 - **The quality tier** `Q` (scene.js) is numbers, never code paths; `#low`/`#high` force it; else this browser's verdict from its GPU's own time
   (v11.199, `TIER_SAVED`, `tierFrame`: low at once from the menu when high is far too heavy, else from the next start; `tier('forget')` in the console to judge
   again); else low on small touch screens, high elsewhere. A tier is read at load only: never change `Q` in a session. `Q.cldSh` 0
@@ -254,6 +257,13 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
   15 Sep 2026).
 
 ## Things that bite
+
+- **The sim steps; the drawing does not** (step.js, v11.210; analysis_project.md §7). Whatever one step leaves for the next goes in `simStep`, on
+  its `h` (never the frame's `dt`); whatever is only seen runs once a frame on `dt` and is never read by a step — the camera above all (`camFrame`:
+  from the body as drawn and the heading as the mouse left it), the particles, the snow, the sway. A thing that moves goes in `lerpSnap` and
+  `lerpApply` or it is drawn at 60 Hz on a faster screen; an instance buffer written from bodies is written again once a frame from them as drawn
+  (`siFrame`). The sim reads `g.matrix`, so `lerpRestore` puts back the pose and its matrix after the render. test/step.js runs one world at 30, 60
+  and 144 Hz and holds every creature to the bit; test/simrand.js holds the sim's draws to `SIMR`.
 
 - **The start is a sequence** (main.js `BOOT`; analysis_loading.md). tethys.html runs the game after the page's first paint (dev.html cannot: it
   loads the files one by one); nothing is drawn

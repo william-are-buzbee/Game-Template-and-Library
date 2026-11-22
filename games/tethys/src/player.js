@@ -285,24 +285,27 @@ function updatePlayer(dt){
   playerGrab(!P.dead&&!P.withdrawn&&!!(keys.KeyR||mouseGrab||touchGrab),dt); // the grab (combat.js): held while the key is; last, with the shapes fresh (it uses the temps)
 }
 // After the creatures have moved and bodies have pushed apart (creatures_ai.js): the body where it ended up, the pose, the
-// arms simulated against the creatures around it, then the camera.
+// arms simulated against the creatures around it. The camera is camFrame's, once a frame (v11.210).
 function finishPlayer(dt,near){
   const P=player,C=P.clade;
-  // the camera's angles are the heading's — the mouse's, as before v11.77 (v11.77.1, the person: a camera that moves on its own disorients); the heading
-  // is held within HEAD_MAX of the body's facing (updatePlayer), so the camera never looks the animal in the face. Its up is composed from the same
-  // angles, so the look never degenerates however steep the pitch
-  const cyaw=P.yaw,cpit=P.pitch;
-  const cp=Math.cos(cpit),sp=Math.sin(cpit),cy=Math.cos(cyaw),sy=Math.sin(cyaw);
-  const fwd=T3.set(-sy*cp,sp,-cy*cp); // the heading's direction: where the camera's arm runs back from, and (dipped) where it looks — its up is composed at the look, below
   P.g.position.copy(P.pos);P.spd=P.vel.length();
   {const ro=P.sub>0.95?1:0;if(P.ro!==ro){P.ro=ro;P.g.traverse(o=>{if(o.isMesh)o.renderOrder=ro;});}} // the body's place in the opaque pass (v11.51, atmosphere.js refrMark): under water it draws after the refraction's copy of the frame, so the surface never samples it and smears its edge into the sky; in the air, or crossing, it is in the copy and seen through the surface refracted like the land
   P.anim(t,P.spd,{jet:P.sprint&&C.jet,withdrawn:P.withdrawn,pulse:P.pulse,strike:P.hold?1:0,soft:(P.soft||P.shut)?1:0,turn:P.turnV||0,acc:P.accV||0}); // strike: the mouth stays open on what is held (the finback's ring blooms); soft (v11.75–76): the valves clamped — shut by Q, or through the moult
   bodyPose(P,dt,P.byaw); // v11.53 (fx.js): squash and stretch, banking, the bite's snap — after the anim, before the rigs step. v11.77: the bank from the body's own turn, not the heading's
   stepRigs(P,near,dt);
   P.pulse=Math.max(0,P.pulse-dt*2);P.snapT=Math.max(0,(P.snapT||0)-dt);P.nudgeT=Math.max(0,(P.nudgeT||0)-dt);P.fovKickT=Math.max(0,(P.fovKickT||0)-dt); // v11.53 (fx.js): the bite's snap, the camera's nudge toward it, the hurt's fov kick; squash and stretch and banking
+}
+function camFrame(dt){ // the camera, once a frame (v11.210, step.js): not stepped — from the body as drawn (P.g.position, set between the last two steps by lerpApply) and the heading as the mouse left it, so the look has no step's lag and the body does not slide in the frame while the camera orbits. Nothing the sim reads is the camera's
+  const P=player,C=P.clade;if(!C)return;const bp=P.g.position;
+  // the camera's angles are the heading's — the mouse's, as before v11.77 (v11.77.1, the person: a camera that moves on its own disorients); the heading
+  // is held within HEAD_MAX of the body's facing (updatePlayer), so the camera never looks the animal in the face. Its up is composed from the same
+  // angles, so the look never degenerates however steep the pitch
+  const cyaw=P.yaw,cpit=P.pitch;
+  const cp=Math.cos(cpit),sp=Math.sin(cpit),cy=Math.cos(cyaw),sy=Math.sin(cyaw);
+  const fwd=T3.set(-sy*cp,sp,-cy*cp); // the heading's direction: where the camera's arm runs back from, and (dipped) where it looks — its up is composed at the look, below
   const arm=C.cam+CAM_K.arm,lift=arm*CAM_LIFT; // the third-person arm and how far above the body's line it sits — a share of the arm, so a 21 m sickle is looked down on as much as a 3 m finback (v11.79: 1.4 m flat put the camera on the body's own axis, "positioned exactly behind … like I was driving a racecar")
-  if(P.fp){const nose=(P.b&&P.b.F?P.b.F.nose*P.g.scale.x:C.size)+FP_AHEAD;T2.copy(P.pos).addScaledVector(bodyFwd(P,T1),nose);} // at the nose, along the body
-  else{T2.copy(P.pos).addScaledVector(fwd,-arm).addScaledVector(UP,lift); // v11.48: CAM_K.arm from the readout's tuner
+  if(P.fp){const nose=(P.b&&P.b.F?P.b.F.nose*P.g.scale.x:C.size)+FP_AHEAD;T2.copy(bp).addScaledVector(bodyFwd(P,T1),nose);} // at the nose, along the body
+  else{T2.copy(bp).addScaledVector(fwd,-arm).addScaledVector(UP,lift); // v11.48: CAM_K.arm from the readout's tuner
   const ch=groundAt(T2.x,T2.z)+1.0;if(T2.y<ch)T2.y=ch;}
   // camAbove is which side the camera's natural spot is on, with hysteresis: it flips CAM_FLIP past the wave and never within CAM_DWELL of
   // the last flip (a wave passing the spot is not a reason to change the light). Since v11.42 it drives only the light's crossfade, the sound
@@ -323,5 +326,5 @@ function finishPlayer(dt,near){
   T1.set(-sy*lcp,lsp,-cy*lcp);T4.set(lsp*sy,lcp,lsp*cy);
   T2.copy(camera.position).add(T1);
   _m.lookAt(camera.position,T2,T4);camera.quaternion.setFromRotationMatrix(_m); // the look with the camera's own up (v11.77): never a lookAt against UP
-  plight.position.copy(P.pos).add(V3(0,1,0));
+  plight.position.copy(bp).add(V3(0,1,0));
 }

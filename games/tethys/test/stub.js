@@ -101,7 +101,7 @@ function fire(k,e){const L=handlers[k];if(L)for(const f of L.slice())f(e||{});} 
 global.document={getElementById:el,querySelectorAll(){return[];},addEventListener(n,f){(handlers['doc:'+n]=handlers['doc:'+n]||[]).push(f);},createElement(){return el('cv');},pointerLockElement:null,exitPointerLock(){this.pointerLockElement=null;fire('doc:pointerlockchange');}};
 global.window=global;global.innerWidth=1280;global.innerHeight=720;global.screen={width:1920,height:1080};global.location={hash:process.env.TIER?'#'+process.env.TIER:''};global.navigator={maxTouchPoints:0};
 global.addEventListener=(n,f)=>{(handlers['win:'+n]=handlers['win:'+n]||[]).push(f);};
-let __now=0;let raf=null;global.requestAnimationFrame=f=>{raf=f;};global.__step=function(n){for(let i=0;i<n;i++){const f=raf;raf=null;__now+=16.7;f(__now);}};global.performance={now:()=>__now};
+let __now=0;let raf=null;global.requestAnimationFrame=f=>{raf=f;};global.__step=function(n){for(let i=0;i<n;i++){const f=raf;raf=null;__now+=global.__FRAME_MS||1000/60;f(__now);}};global.performance={now:()=>__now};
 global.setTimeout=(f)=>{f();};
 // A fake AudioContext (v11.14): every node is an inert object, every AudioParam checks the value it is given is finite — the smoke test drives
 // the whole audio graph (audio.js) headlessly and fails on an undefined name, a NaN into a param, a node method it lacks. It proves nothing about sound.

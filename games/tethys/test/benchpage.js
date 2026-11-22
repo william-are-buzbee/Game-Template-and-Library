@@ -8,7 +8,7 @@
 //                         init: [functions run in the page before any script, e.g. tools/lib/browser.ts glCounting]}
 //   playwright()          Playwright: PLAYWRIGHT_MODULE, else the global one (a cloud session has one; CI installs one)
 // In the page: performance.now and requestAnimationFrame are the bench's (the page's clock is still between steps, so a streaming budget never
-// runs out: each frame generates one whole cell and one whole far region), setTimeout runs at once, and `__step(n)` runs n frames of 16.7 ms.
+// runs out: each frame generates one whole cell and one whole far region), setTimeout runs at once, and `__step(n)` runs n frames of 1000/60 ms (`window.__FRAME_MS` another: v11.210, a screen at another rate).
 // `__real()` is the wall clock, for the benches' own timings.
 'use strict';
 const fs=require('fs'),path=require('path'),http=require('http'),{execSync}=require('child_process');
@@ -18,7 +18,7 @@ function pageOf(root){const shell=fs.readFileSync(path.join(fs.existsSync(path.j
   const seed='<script>(function(){let s=20261114>>>0;Math.random=function(){s=(s+0x6D2B79F5)>>>0;let t=s;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};'+ // mulberry32: the same draws in every run
     'const real=performance.now.bind(performance);window.__real=real;let now=0,raf=null;performance.now=()=>now;window.requestAnimationFrame=f=>{raf=f;return 1;};window.setTimeout=(f)=>{f();return 1;};'+ // the page's own clock: still between the bench's steps
     'let su=777;window.__uuidR=function(){su=(su+0x6D2B79F5)>>>0;let t=su;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};'+ // three's UUIDs on a stream of their own (below)
-    'window.__step=n=>{for(let i=0;i<n;i++){const f=raf;raf=null;if(!f)break;now+=16.7;f(now);}};})();</script>\n';
+    'window.__step=n=>{for(let i=0;i<n;i++){const f=raf;raf=null;if(!f)break;now+=window.__FRAME_MS||1000/60;f(now);}};})();</script>\n';
   return shell.replace('<!--SCRIPTS-->',()=>seed+'<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>\n'+order.map(n=>'<script src="src/'+n+'.js"></script>\n').join(''));}
 function serve(root){const html=pageOf(root);return new Promise(ok=>{const s=http.createServer((req,res)=>{const u=decodeURIComponent(new URL(req.url,'http://x').pathname);if(u==='/'||u==='/bench.html'){res.writeHead(200,{'content-type':'text/html'});res.end(html);return;}
   const p=path.normalize(path.join(root,u));if(!p.startsWith(root)||!fs.existsSync(p)||fs.statSync(p).isDirectory()){res.writeHead(404).end();return;}res.writeHead(200,{'content-type':p.endsWith('.js')?'text/javascript':'application/octet-stream'});fs.createReadStream(p).pipe(res);});s.listen(0,'127.0.0.1',()=>ok(s));});}

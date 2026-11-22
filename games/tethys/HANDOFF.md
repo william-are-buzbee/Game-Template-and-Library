@@ -4,6 +4,11 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.210 (22 Nov 2026): the fixed step** (src/step.js; main.js; player.js `camFrame`; creatures_ai.js `siFrame`; test/step.js; CHANGELOG). The sim at
+1/60 s whatever the screen; the bodies drawn between their last two steps; the camera once a frame from the body as drawn and the mouse's heading. One
+world at 30, 60 and 144 Hz is the same to the bit; the frame at 144 Hz ×0.50. **Ask:** the home machine at 144 Hz — swim and turn hard, look for any
+stutter or lag; a fight as before.
+
 **v11.209 (22 Nov 2026): the sim's own random numbers** (util.js `SIMR`, `srnd`; test/simrand.js; CHANGELOG). Part 1 of the fixed step (the person:
 option 2; analysis_project.md §7): what a creature or the player does draws from `SIMR`, the eye candy from `Math.random`. Next: v11.210, the fixed
 step itself, with the drawing smoothed between steps.
@@ -18,9 +23,6 @@ low): what the low tier cuts waits on its probe. **Ask:** F8 then F9 on the towe
 **v11.206 (22 Nov 2026): the sky timed on its own** (rec.js pass 4; horizon.js; test/report.js; CHANGELOG). The horizon pass split into the sky and
 the far land and sea in the reports. The tower's main pass (22–35 ms of ~30 at 0.6 MP, 1.4 M triangles on low) is the bigger cost. **Ask:** a tower
 report after time on the surface.
-
-**v11.205 (22 Nov 2026): less garbage** (world.js `sampleH`; ecology.js; CHANGELOG). The garbage 1,880 → 1,710 KB a frame on the bench page; every
-number the same to the bit. What is left is mostly boxed doubles; no report since v11.197 shows the collector, so the hunt stops unless one does.
 
 ## Open
 
