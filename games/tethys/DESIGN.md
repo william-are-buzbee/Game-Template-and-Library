@@ -2623,8 +2623,9 @@ The repository is public, so the report is (the person's choice, 20 Nov 2026).
   the draws, the triangles, the creatures and cells in sight, the resolution's scale, the medium. Histograms of 176 bins (0.5 ms to 50, 5 ms to 250, 50 ms to
   2 s) give the percentiles to half a millisecond where it matters and a stall's size where it does not.
 - **The GPU's own time** where the browser has `EXT_disjoint_timer_query_webgl2` (desktop Chrome; Firefox hides it): a query round each pass —
-  `recGpu(k)` before it, `recGpuEnd()` after — 0 the world (`renderer.render(scene)`, three's own shadow map inside it), 1 the horizon tier, 2 the
-  cloud volume, 3 the world's static shadow map. Results come back a few frames late and are summed by frame; a disjoint throws the queries in flight
+  `recGpu(k)` before it, `recGpuEnd()` after — 0 the world (`renderer.render(scene)`, three's own shadow map inside it), 1 the horizon tier's far land and sea, 2 the
+  cloud volume, 3 the world's static shadow map, 4 the sky in the air (v11.206: its one draw in the horizon tier bracketed by its own
+  `onBeforeRender`/`onAfterRender`; to v11.205 it was inside 1, and under water it is in 0). Results come back a few frames late and are summed by frame; a disjoint throws the queries in flight
   away, and a result no GPU could give (not a number, negative, or `RG_MAX` 2 s and over: Windows resets a GPU that runs one frame's work longer) drops
   its frame's sample whole and is counted (`RG.junk`, the report's `gpu.junk`; v11.198 — the work tower's Intel under ANGLE/D3D11 answered 960,769 ms
   once with no disjoint, #148–149, and the session's mean and its place's took it). The readout shows it as `gpu` (an EMA): render ms is the submit

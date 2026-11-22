@@ -4,6 +4,10 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.206 (22 Nov 2026): the sky timed on its own** (rec.js pass 4; horizon.js; test/report.js; CHANGELOG). The horizon pass split into the sky and
+the far land and sea in the reports. The tower's main pass (22–35 ms of ~30 at 0.6 MP, 1.4 M triangles on low) is the bigger cost. **Ask:** a tower
+report after time on the surface.
+
 **v11.205 (22 Nov 2026): less garbage** (world.js `sampleH`; ecology.js; CHANGELOG). The garbage 1,880 → 1,710 KB a frame on the bench page; every
 number the same to the bit. What is left is mostly boxed doubles; no report since v11.197 shows the collector, so the hunt stops unless one does.
 
@@ -17,10 +21,6 @@ and the refraction off. The software GPU could not rank the per-pixel effects (n
 
 **v11.202 (21 Nov 2026): the idle menu at ~30 fps** (main.js `loop`, menu.js `MENU_IDLE_IV`; test/idle.js; CHANGELOG). #143 drew the menu at
 120 fps for 57 minutes; the idle menu (12 s without the mouse) now draws every ~31 ms, woken at the first move. **Ask:** nothing but a still menu.
-
-**v11.201 (21 Nov 2026): the flora's far copies struck** (parts.js, grow.js, chunks.js, rec.js; test/lod.js gone; analysis_project.md §4;
-CHANGELOG). The person's rule — keep them only if they cannot hurt — and they did (on: renderFrame ×1.37–1.48, 45 draws more). The uniform cut and
-the tidewood's own copy stay. **Ask:** nothing to look at.
 
 ## Open
 

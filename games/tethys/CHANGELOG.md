@@ -10405,3 +10405,25 @@ collect (a scavenge's cost is what survives, not what died), and the reports sin
 hunt stops here unless a report shows the collector again.
 
 **Unseen, ask in this order:** nothing to see; a report after play, as ever.
+
+## v11.206 — the recorder times the sky apart from the far land and sea (22 Nov 2026)
+
+The work tower's reports put the horizon pass at up to 5.4 ms a frame where most of the time was in the air (#152, tp(2266,-14944): 5.36 of 29.3 ms;
+#149–150 the same), and that pass is two things: the sky dome, a heavy per-pixel shader over every pixel above the horizon, and the far land and sea
+to 250 km, a vertex-heavy mesh. The software GPU cannot say which is heavy on an Intel UHD 730 (here the sky is 2.4% of the frame at the shore). The
+next report will.
+
+- **rec.js pass 4, the sky** (horizon.js `sky.onBeforeRender`, `sky.onAfterRender`): the timer switched to it round its one draw in the horizon tier and
+  back to pass 1 after. No draw, pass or render call more; under water the sky stays in the main pass (0). Pass 1 is now the far land and sea alone.
+- **The report**: `gpu.pass.sky`, a place's `gSky` (a column at the end: old readers and old reports are unaffected); `node test/report.js` prints
+  `sky` where a report has it and says that `horizon` includes the sky where it does not.
+- **test/rec.js**: the sky's time by place and over the session, apart from the horizon's.
+
+**What it costs:** two function calls a frame in the air, and a timer query more (none where the browser has no timer). The picture and the GPU's
+counts cannot move: no draw changed (test/gpu.js --check).
+
+**And what the same report says first:** the main pass is 22–35 ms of the tower's ~30 ms GPU frame at every place, under water as much as in the air,
+at 866×694 on the low tier with 1.4 M triangles a frame. The horizon is the smaller question; the low tier's triangles are the larger.
+
+**Unseen, ask in this order:**
+1. On the tower, a report after some time on the surface: the GPU line's `sky` against `horizon`.

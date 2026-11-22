@@ -36,7 +36,7 @@ function page(opt){opt=opt||{};let now=1000,frame=0,disjoint=false;const handler
   // one frame: the passes timed (ms each), then the loop's end (main.js recFrame)
   function step(iv,o){o=o||{};const R=g.__rec;frame++;now+=iv;g.mode=o.mode||'play';if(o.pos){g.player.pos.x=o.pos[0];g.player.pos.y=o.pos[1];g.player.pos.z=o.pos[2];}
     g.renderer.info.render.calls=o.draws||100;g.renderer.info.render.triangles=o.tris||1e6;if(o.compile)for(let i=0;i<o.compile;i++)g.renderer.info.programs.push({});
-    const ps=o.gpu||[3,0,0,0];for(let k=0;k<4;k++)if(ps[k]>0){gl.ns=ps[k]*1e6;g.recGpu(k);}g.recGpuEnd();
+    const ps=o.gpu||[3,0,0,0,0];for(let k=0;k<5;k++)if(ps[k]>0){gl.ns=ps[k]*1e6;g.recGpu(k);}g.recGpuEnd();
     const w=o.work||4;g.recFrame(iv,w,o.gen||0.2,0.1,1.5,0.3,0.4,0.1,0.8);return R;}
   return {g,gl,step,handlers,store,warned,setDisjoint:()=>{disjoint=true;},R:()=>g.__rec};}
 function nanFree(o,where){let bad=[];(function walk(v,p){if(typeof v==='number'){if(!isFinite(v))bad.push(p);}else if(v&&typeof v==='object')for(const k of Object.keys(v))walk(v[k],p+'.'+k);})(o,where);return bad;}
@@ -61,10 +61,10 @@ async function unpack(tok){const m=/tethys-rec:1:([zj])([A-Za-z0-9_-]+)/.exec(to
   for(let i=0;i<5;i++)P.step(16.7,{mode:'menu'});P.g.BOOT.done=true;
   for(let i=0;i<1800;i++){const iv=6.9;ivs.push(iv);P.step(iv,{pos:A,gpu:[3,0,0.5,0],draws:120,tris:2e6});} // the forest: 12.4 s at 145 fps, 3.5 ms on the GPU
   P.g.wasAbove=true;
-  for(let i=0;i<1200;i++){const iv=i%10<8?16.7:33.3;ivs.push(iv);P.step(iv,{pos:B,gpu:[9,2,1,0],draws:300,tris:4.8e6,work:5});} // the shore: 30 s, every fifth frame dropped, 12 ms on the GPU
-  ivs.push(120);P.step(120,{pos:B,gpu:[9,2,1,0.5],work:60,gen:11,compile:2}); // a slow frame: two programs and a cell
-  P.g.document.hidden=true;P.step(5000,{pos:B,gpu:[9,2,1,0]});P.g.document.hidden=false;P.step(4000,{pos:B,gpu:[9,2,1,0]}); // a hidden tab and the gap after it
-  for(let i=0;i<4;i++)P.step(16.7,{pos:B,gpu:[9,2,1,0]});ivs.push(16.7,16.7,16.7,16.7);
+  for(let i=0;i<1200;i++){const iv=i%10<8?16.7:33.3;ivs.push(iv);P.step(iv,{pos:B,gpu:[9,1.5,1,0,0.5],draws:300,tris:4.8e6,work:5});} // the shore: 30 s, every fifth frame dropped, 12 ms on the GPU
+  ivs.push(120);P.step(120,{pos:B,gpu:[9,1.5,1,0.5,0.5],work:60,gen:11,compile:2}); // a slow frame: two programs and a cell
+  P.g.document.hidden=true;P.step(5000,{pos:B,gpu:[9,1.5,1,0,0.5]});P.g.document.hidden=false;P.step(4000,{pos:B,gpu:[9,1.5,1,0,0.5]}); // a hidden tab and the gap after it
+  for(let i=0;i<4;i++)P.step(16.7,{pos:B,gpu:[9,1.5,1,0,0.5]});ivs.push(16.7,16.7,16.7,16.7);
   {const R=P.R(),f=R.full(),a=f.all,pc=f.pc,c=k=>r=>r[pc.indexOf(k)];
     ok(a.frames===ivs.length,'play frames '+a.frames+' (fed '+ivs.length+'; the hidden tab and its gap not frames)');
     const s=ivs.slice().sort((x,y)=>x-y),pct=p=>s[Math.max(0,Math.ceil(p*s.length)-1)];
@@ -75,14 +75,14 @@ async function unpack(tok){const m=/tethys-rec:1:([zj])([A-Za-z0-9_-]+)/.exec(to
     ok(Math.abs(c('s')(pA)-12.4)<0.1&&Math.abs(c('s')(pB)-(960*16.7+240*33.3+120+4*16.7)/1000)<0.1,'their seconds: '+c('s')(pA)+' and '+c('s')(pB));
     ok(c('p95')(pA)===6.75&&c('p95')(pB)===33.25,'their p95 (bin centres): '+c('p95')(pA)+' and '+c('p95')(pB));
     ok(Math.abs(c('gpu')(pA)-3.5)<0.01&&Math.abs(c('gMain')(pA)-3)<0.01&&Math.abs(c('gClouds')(pA)-0.5)<0.01,'the forest\'s GPU: '+c('gpu')(pA)+' ms, main '+c('gMain')(pA)+', clouds '+c('gClouds')(pA));
-    ok(Math.abs(c('gpu')(pB)-12)<0.01&&Math.abs(c('gHorizon')(pB)-2)<0.01,'the shore\'s: '+c('gpu')(pB)+' ms, horizon '+c('gHorizon')(pB)+' (the last frames\' results still in flight)');
+    ok(Math.abs(c('gpu')(pB)-12)<0.01&&Math.abs(c('gHorizon')(pB)-1.5)<0.01&&Math.abs(c('gSky')(pB)-0.5)<0.01&&c('gSky')(pA)===0,'the shore\'s: '+c('gpu')(pB)+' ms, horizon '+c('gHorizon')(pB)+', sky '+c('gSky')(pB)+' (the last frames\' results still in flight)');
     ok(c('drawsMax')(pB)===300&&c('trisMax')(pB)===4800&&c('above')(pB)===1&&c('above')(pA)===0,'draws, triangles and the medium by place');
     ok(c('wiv')(pB)===120&&c('wx')(pB)===110&&c('wy')(pB)===0.6,'the worst frame\'s place, to stand a bench there: AT='+[c('wx')(pB),c('wy')(pB),c('wz')(pB),c('wyaw')(pB)].join(','));
     const sp=f.spikes[0],sc=f.sc,S=k=>sp[sc.indexOf(k)];
     ok(f.spikes.length===1&&S('iv')===120&&/compile×2/.test(S('what'))&&/gen/.test(S('what')),'the slow frame kept with what it did: '+S('what'));
     ok(S('gpu')===12.5,'its GPU time filled in when the query came back: '+S('gpu'));
-    ok(a.gpu&&Math.abs(a.gpu.pass.horizon-2*(a.gpu.frames-1800)/a.gpu.frames)<0.01&&a.gpu.frames>=3000,'the GPU over the session: '+a.gpu.mean+' ms, '+a.gpu.frames+' frames timed, main '+a.gpu.pass.main+', horizon '+a.gpu.pass.horizon);
-    ok(R.gpu.ema>3&&R.gpu.n<=6,'the readout\'s EMA '+R.gpu.ema.toFixed(2)+' ms; '+R.gpu.n+' queries in flight; '+P.gl.made+' made in all');
+    ok(a.gpu&&Math.abs(a.gpu.pass.horizon-1.5*(a.gpu.frames-1800)/a.gpu.frames)<0.01&&Math.abs(a.gpu.pass.sky-0.5*(a.gpu.frames-1800)/a.gpu.frames)<0.01&&a.gpu.frames>=3000,'the GPU over the session: '+a.gpu.mean+' ms, '+a.gpu.frames+' frames timed, main '+a.gpu.pass.main+', horizon '+a.gpu.pass.horizon+', sky '+a.gpu.pass.sky);
+    ok(R.gpu.ema>3&&R.gpu.n<=10,'the readout\'s EMA '+R.gpu.ema.toFixed(2)+' ms; '+R.gpu.n+' queries in flight; '+P.gl.made+' made in all');
     ok(Math.abs(a.vsync-6.75)<0.01,'the interval most frames take: '+a.vsync+' ms');
     ok(f.tl.rows.length>=16&&f.tl.rows.length<=19&&f.tl.every===2,'the timeline: '+f.tl.rows.length+' rows of '+f.tl.every+' s');
     const bad=nanFree(f,'session');ok(!bad.length,'no NaN or Infinity'+(bad.length?': '+bad.slice(0,5).join(' '):''));}
