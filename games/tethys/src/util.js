@@ -16,6 +16,12 @@ const rnd=(a,b)=>a+Math.random()*(b-a);
 const T1=V3(0,0,0),T2=V3(0,0,0),T3=V3(0,0,0),T4=V3(0,0,0);
 const _m=new THREE.Matrix4(),_q=new THREE.Quaternion();
 function mulberry(seed){const r=new WB.Rng(seed|0);return function(){return r.next();};} // @wb/core's Rng since 6 Nov 2026: the same mulberry32, the same numbers (packages/core/test/golden.test.ts)
+// The sim's own randomness (v11.209; analysis_project.md §7, the fixed step): every draw that changes the world's state — a creature's choices, its
+// spawns' builds, timers, a hit's shove — comes from SIMR, seeded at load; Math.random (and rnd) is left to what is only seen or heard, so a screen that draws
+// more particles a second moves nothing a creature does. simSeed(n) starts it again (a test). srnd is rnd on it.
+let SIMR=mulberry(0x51D5EED);
+function simSeed(n){SIMR=mulberry(n);}
+const srnd=(a,b)=>a+SIMR()*(b-a);
 
 // ---------- noise ----------
 const perm=new Uint8Array(512);
