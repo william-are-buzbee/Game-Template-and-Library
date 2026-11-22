@@ -10427,3 +10427,19 @@ at 866×694 on the low tier with 1.4 M triangles a frame. The horizon is the sma
 
 **Unseen, ask in this order:**
 1. On the tower, a report after some time on the surface: the GPU line's `sky` against `horizon`.
+
+## v11.207 — the tier that follows the machine samples again (22 Nov 2026)
+
+v11.202 (the idle menu's pace) put a `//` comment in the middle of main.js's last loop line, and the comment swallowed the call after it,
+`tierFrame(iv,frameMs)`. So from v11.202 to v11.206 the tier that follows the machine (v11.199) never sampled a frame: a browser's saved verdict
+stayed as it was, a new browser never got one (high, the default), and `tier()` said nothing new. test/tier.js drives `tierFrame` directly, so
+nothing noticed that the loop no longer called it. Found reading the loop for the fixed step.
+
+- **main.js loop**: the call on its own line again, the comment before it closed (`/* */`).
+- **test/idle.js** (it runs the real loop against the stub): after the boot the loop has sampled the tier (its settle started, or `off` where it
+  should be). It fails on v11.206's loop.
+
+**What it costs:** what v11.199 measured — a sample a frame, nothing worth a number.
+
+**Unseen, ask in this order:**
+1. A machine that has no verdict yet (a new browser, or `tier('forget')` in the console): `tier()` after a minute of play gives one.
