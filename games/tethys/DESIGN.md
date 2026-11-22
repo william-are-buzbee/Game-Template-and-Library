@@ -2217,8 +2217,9 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   lengths as a Uint32Array; `popBin`), stored in IndexedDB as Blobs (`slotPack`, `slotUnpack`; a typed array the put copies on the main thread at
   ~2.6 ms a MB, a Blob it takes by reference); the autosave, the pointer's release, a clutch and a child save in slices (`saveSoon`: the record's
   header at once, the ledger walked `POP_SLICE` 2¹⁹ values a frame — `popJob`, `popStep` — `done` before the counts so a census landing mid-walk is
-  saved undone and made again at the load, and from the start again if a patch's slot moved; ~47 frames). To the menu, a death, a new game and
-  the page leaving save at once (`saveNow`). As text (the shadow, the localStorage store, an export) the streams are plain arrays (`slotJSON`).
+  saved undone and made again at the load, and from the start again if a patch's slot moved; ~47 frames). A death, a new game and the page leaving
+  save at once (`saveNow`). To the menu (v11.204) the walk begins at the key (`saveLeave`: its header that moment's), the fade to black's 380 ms
+  walks it, and `saveFinish` walks what is left at the fade's end, under the black, before the world is cleared — the key 75–270 ms → under 1. As text (the shadow, the localStorage store, an export) the streams are plain arrays (`slotJSON`).
   A record of v11.58–195's arrays of runs loads as it did. Loading: every cell
   out (`worldClear`), `popLoad` (a save from another roster starts fresh with a warning), `playerBody`, `cellsAround` (the 3×3, boot uses it too).
   The profile (`PROFILE`, one record): the creator's key; `seen` — species, clades, cores, part `kind:style` for anything drawn within `SEEN_R`

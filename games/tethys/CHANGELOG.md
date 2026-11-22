@@ -10346,3 +10346,35 @@ frame's copy less, and the world's shadows' pass gone where they had been switch
 **Unseen, ask in this order:**
 1. The work tower, plain address (its verdict is low): the effects list (`e`) shows world shadows and refraction off; a report after play — the
    `world shadows` pass gone from the GPU line.
+
+## v11.204 — esc to the menu saves through the fade, not at the key (22 Nov 2026)
+
+Esc to the menu saved the whole slot at once (`saveNow`) before the fade began: the game stood still for 75 ms with a light ledger and 270 ms with
+a dense one (here), then faded. v11.196 put the autosave in slices; this puts the way to the menu through them too.
+
+- **At the key** (save.js `saveLeave`, menu.js `toMenu`): the walk begins — the record's header as it is that moment, the ledger to come — and the
+  fade starts at once.
+- **The fade's frames walk it** (`saveStep`, `POP_SLICE` a frame, as the autosave): 380 ms is ~22 frames at 60 Hz, ~45 at 120.
+- **At the fade's end** (`saveFinish`, under the black, before the world is cleared): what is left is walked at once and stored; the record is kept
+  for continue (`menu.worldRec`), as before. A walk that ended in the fade is the one kept; a patch's slot that moved mid-walk starts it again (the
+  flag carried); with no walk at all (a death meanwhile) it saves at once, as before.
+- **Esc twice during the fade** does nothing (`menu.busy`): before, a second key saved the whole slot again.
+
+**What it costs** (the bench's page, Chromium, ms on the main thread; the ledger filled 3% or 30% with values — the second a synthetic worst case;
+the person's own saves at once were 52–86 ms):
+
+| | main: at the key | this: at the key | a fade frame's worst | left at the fade's end |
+|---|---|---|---|---|
+| 3%, 60 Hz | 75.7 | 0.7 | 3.6 | 43.8 (22 frames walked) |
+| 3%, 120 Hz | 74.9 | 0.7 | 4.6 | 3.8 (45) |
+| 30%, 60 Hz | 277.2 | 0.6 | 16.9 | 162.1 (22) |
+| 30%, 120 Hz | 262.5 | 0.5 | 21.0 | 21.5 (45) |
+
+The fade's frames cost what the autosave's do (a slice); what is left at the end lengthens the black by that much, on a frame that clears the world
+anyway. Nothing per frame in play.
+
+**Checked:** test/player.js — a walk ended in the fade is kept as it was (47 frames), a walk cut short is finished at the fade's end, both storing
+the streams a save at once writes.
+
+**Unseen, ask in this order:**
+1. Esc to the menu after a long play: the fade starts at the key; continue comes back where you were.

@@ -266,8 +266,8 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
 - **A save in play is in slices** (save.js; v11.196). The ledger is binary streams of runs (`popBin`, `popJob`/`popStep`; `pop.bin`, SAVE_V 4),
   Blobs in IndexedDB (`slotPack` at the put, `slotUnpack` in `slotGet`: never read a slot from the store but through `slotGet`), plain arrays as
   text (`slotJSON`: the shadow, the localStorage store, an export — never `JSON.stringify` a record). In play save with `saveSoon` (walked
-  `POP_SLICE` values a frame); `saveNow` is the whole save at once, for when the state is about to change under it (to the menu, a new game, the
-  page leaving). A record from before (arrays of runs) still loads; test/ledger.js writes them to check.
+  `POP_SLICE` values a frame); `saveNow` is the whole save at once, for when the state is about to change under it (a new game, the page
+  leaving). To the menu the walk begins at the key (`saveLeave`), the fade's frames walk it, and `saveFinish` ends it under the black (v11.204). A record from before (arrays of runs) still loads; test/ledger.js writes them to check.
 - **A species' variants are pulled** (grow.js `VPULL`, scene.js `VPULL_GLSL`, chunks.js `VPULL_N`). On WebGL2 a variant species draws `f.gp`
   (vertices that carry only their number) with `f.mp`, and the vertex shader fetches its instance's variant from `VPULL_TEX`: a flora material's
   vertex code reads `transformed`, `objectNormal` and `vColor`, never the `position`, `normal` or `color` attributes. `f.geo` is still the

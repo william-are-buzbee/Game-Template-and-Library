@@ -170,7 +170,7 @@ function saveSoon(){ // a save in play, its ledger walked over the next frames (
 function saveStep(){const S=saveJob;if(!S)return; // a frame of it; at its end the record is stored
   if(!curSave||curSave.id!==S.id||mode!=='play'||player.dead){saveJob=null;return;} // the game it was saving is gone (a death and a new game save at once themselves)
   if(!popStep(S.J,POP_SLICE))return;saveJob=null;
-  if(S.J.bp){const B=ECO_PT.bp;for(let i=0;i<B.length;i++)if(B[i]!==S.J.bp[i]){saveSoon();return;}} // a patch split or merged while it walked: its slot's cells and the patch would disagree — from the start again
+  if(S.J.bp){const B=ECO_PT.bp;for(let i=0;i<B.length;i++)if(B[i]!==S.J.bp[i]){saveSoon();if(saveJob)saveJob.leave=S.leave;return;}} // a patch split or merged while it walked: its slot's cells and the patch would disagree — from the start again (the way to the menu's still that)
   S.rec.pop=popOut(S.J);curSave.played=S.rec.played;curSave.playT=S.rec.playT;slotPut(S.rec);if(profileDirty)profileSave();if(S.leave)saveLeft=S.rec;}
 // To the menu (v11.204, menu.js toMenu): esc saved the whole slot at once (52–86 ms here, a hitch at the key); now the walk begins at the key, its record's
 // header that moment's, the fade to black's frames walk it (~380 ms: at 120 Hz most of it), and what is left is walked at once at the fade's end, under
