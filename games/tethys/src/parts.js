@@ -105,7 +105,7 @@ function armRing(parent,n,z,ringR,len,w,col,segs,curve,o){
     const pl=(o.plan&&o.plan[i])||{},dz=len*(pl.len||1)/segs;
     const phi=pl.phi!==undefined?pl.phi:i/n*TAU+(o.phase!==undefined?o.phase:Math.PI/n);
     const up=o.flat?[0,1,0]:o.down?[Math.cos(phi),0,Math.sin(phi)]:[-Math.sin(phi),Math.cos(phi),0];
-    const c=makeChain(segs,1,up[0],up[1],up[2],o);c.phi=phi;c.ph=Math.random()*TAU;c.z=z;c.ringR=ringR;c.curve=curve||0;c.z0=o.z0||0;c.y0=o.y0||0;c.kind=o.flat?1:o.down?2:0;c.dz=dz;c.i=i;c.sp0=pl.sp||0;
+    const c=makeChain(segs,1,up[0],up[1],up[2],o);c.phi=phi;c.ph=SIMR()*TAU;c.z=z;c.ringR=ringR;c.curve=curve||0;c.z0=o.z0||0;c.y0=o.y0||0;c.kind=o.flat?1:o.down?2:0;c.dz=dz;c.i=i;c.sp0=pl.sp||0;
     let ww=w*(pl.w||1);for(let k=0;k<segs;k++){const sp=[part(G.box(ww,ww*(o.h||1),dz*1.06),0,0,dz/2,col,{c2:o.c2})];
       // web: a quad between this arm and the mid-angle to each neighbour, at the arms' radial distance in the pose o.web.spread
       // (the arm's frame: y radial, x tangential); the halves of neighbouring arms meet in that pose and shear a little off it

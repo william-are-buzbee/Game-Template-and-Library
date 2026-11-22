@@ -4,6 +4,10 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.209 (22 Nov 2026): the sim's own random numbers** (util.js `SIMR`, `srnd`; test/simrand.js; CHANGELOG). Part 1 of the fixed step (the person:
+option 2; analysis_project.md §7): what a creature or the player does draws from `SIMR`, the eye candy from `Math.random`. Next: v11.210, the fixed
+step itself, with the drawing smoothed between steps.
+
 **v11.208 (22 Nov 2026): F8, the GPU probe** (src/probe.js; rec.js `REC.probe`; test/probe.js; test/report.js; CHANGELOG). Each part of the frame
 skipped and each heavy effect switched off in turn, timed on the person's own GPU, kept for the report. For the tower's main pass (22–35 ms at 0.6 MP on
 low): what the low tier cuts waits on its probe. **Ask:** F8 then F9 on the tower, under water and on the surface.
@@ -17,10 +21,6 @@ report after time on the surface.
 
 **v11.205 (22 Nov 2026): less garbage** (world.js `sampleH`; ecology.js; CHANGELOG). The garbage 1,880 → 1,710 KB a frame on the bench page; every
 number the same to the bit. What is left is mostly boxed doubles; no report since v11.197 shows the collector, so the hunt stops unless one does.
-
-**v11.204 (22 Nov 2026): esc to the menu saves through the fade** (save.js `saveLeave`, `saveFinish`; menu.js `toMenu`; test/player.js;
-CHANGELOG). The key was 75–270 ms of the whole save at once; now under 1 ms, the fade's frames walk the ledger, and what is left is walked under the
-black. **Ask:** esc after a long play — the fade at once, continue where you were.
 
 ## Open
 

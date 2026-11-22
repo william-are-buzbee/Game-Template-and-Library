@@ -78,12 +78,12 @@ function hideSpot(ch,p,rng,d){const r=d.size*0.5,cl=(d.clear!==undefined?d.clear
 function softPrey(c,o){return kgOf(c)>=MOULT.prey*kgOf(o);} // whether c, a hunter, takes o, a soft body (findPrey)
 // the soft state's clock: hardened out of sight (a new adult in its place); true when c is gone
 function updateSoft(c,dt,dp){c.softT-=dt;if(c.softT>0)return false;if(dp>90||!c.g.visible){harden(c);return true;}c.softT=20;return false;}
-function harden(c){const a=spawn(c.chunk,c.kind,c.pos,Math.random,{ent:c.ent,soft:false});a.home.copy(c.home);removeCreature(c);return a;}
+function harden(c){const a=spawn(c.chunk,c.kind,c.pos,SIMR,{ent:c.ent,soft:false});a.home.copy(c.home);removeCreature(c);return a;}
 // the moult itself, out of sight: the soft twin where the animal was, its cast carapace on the floor beside it
-function moult(c){const s=spawn(c.chunk,c.kind,c.pos,Math.random,{ent:c.ent,soft:true});s.home.copy(c.home);dropShed(c.chunk,c.kind,c.pos,c.g.quaternion,c.b.g.scale.x);removeCreature(c);return s;}
+function moult(c){const s=spawn(c.chunk,c.kind,c.pos,SIMR,{ent:c.ent,soft:true});s.home.copy(c.home);dropShed(c.chunk,c.kind,c.pos,c.g.quaternion,c.b.g.scale.x);removeCreature(c);return s;}
 const sheds=[]; // the cast carapaces dropped in play (a mesh each, MOULT.shedT days); the old ones are flora (shedFlora)
 function dropShed(ch,kind,pos,q,s){const geo=shedGeo(kind);if(!geo)return null;const m=new THREE.Mesh(geo,MAT);m.position.set(pos.x,groundAt(pos.x,pos.z),pos.z);T4.set(0,0,1).applyQuaternion(q);m.rotation.y=Math.atan2(T4.x,T4.z);m.scale.setScalar(s*MOULT.keep);scene.add(m);
-  const sh={mesh:m,chunk:ch,t:MOULT.shedT*DAY_S*(0.7+0.6*Math.random())};sheds.push(sh);ch.sheds.push(sh);return sh;}
+  const sh={mesh:m,chunk:ch,t:MOULT.shedT*DAY_S*(0.7+0.6*SIMR())};sheds.push(sh);ch.sheds.push(sh);return sh;}
 function removeShed(sh){scene.remove(sh.mesh);let k=sheds.indexOf(sh);if(k>=0)sheds.splice(k,1);k=sh.chunk.sheds.indexOf(sh);if(k>=0)sh.chunk.sheds.splice(k,1);}
 function updateSheds(dt){for(let i=sheds.length-1;i>=0;i--){const s=sheds[i];s.t-=dt;if(s.t<=0)removeShed(s);}}
 // the cast carapace of a kind: the body built in the shed coat with its valves clamped (st.soft) and flattened to one geometry, the rigs (whips,
@@ -195,7 +195,7 @@ function disposeCreature(c){if(c.fall&&c.fall.c===c)c.fall.c=null;c.alive=false;
 function removeCreature(c){disposeCreature(c);let k=creatures.indexOf(c);if(k>=0)creatures.splice(k,1);if(c.chunk){k=c.chunk.creatures.indexOf(c);if(k>=0)c.chunk.creatures.splice(k,1);}
   if(c.school){k=c.school.members.indexOf(c);if(k>=0)c.school.members.splice(k,1);}k=carcasses.indexOf(c);if(k>=0)carcasses.splice(k,1);}
 // a juvenile grows up: the adult is spawned in its place with its ledger entry, school and state, and the small one goes
-function growUp(c){const ch=c.chunk,a=spawn(ch,c.kind,c.pos,Math.random,{ent:c.ent});a.vel.copy(c.vel);a.home.copy(c.home);a.g.quaternion.copy(c.g.quaternion);a.hunger=c.hunger;a.brood=c.brood; // a brood's young stays its brood's (line.js)
+function growUp(c){const ch=c.chunk,a=spawn(ch,c.kind,c.pos,SIMR,{ent:c.ent});a.vel.copy(c.vel);a.home.copy(c.home);a.g.quaternion.copy(c.g.quaternion);a.hunger=c.hunger;a.brood=c.brood; // a brood's young stays its brood's (line.js)
   
   if(c.school){a.school=c.school;c.school.members.push(a);}if(c.state==='sit'){a.state='sit';}removeCreature(c);return a;}
 
@@ -224,14 +224,14 @@ function seekAway(c,from,speed,dt){speed*=slowOf(c);T1.copy(c.pos).sub(from);T1.
 function setWander(c){
   const d=c.def,R=d.home||30;let p,fh;
   for(let k=0;k<6;k++){ // swimmers steer for wet ground only; a legged creature goes where it likes
-    p=c.home.clone().add(V3(rnd(-R,R),0,rnd(-R,R)));p.x=worldX(p.x,30);p.z=worldZ(p.z,30);
+    p=c.home.clone().add(V3(srnd(-R,R),0,srnd(-R,R)));p.x=worldX(p.x,30);p.z=worldZ(p.z,30);
     fh=groundAt(p.x,p.z);if(d.legs||fh<-3-d.size*0.6)break;
   }
-  if(d.floor)p.y=fh+rnd(0.5,2.5)+d.size*0.4;
-  else if(d.deep)p.y=clamp(c.home.y+rnd(-60,60),Math.max(fh+8,OXY.core[1]),OXY.core[0]); // the pall: in the oxygen minimum's core, off the mud (v11.96, DEEP §2)
-  else if(fh<OXY.top)p.y=clamp(c.home.y+rnd(-80,80),-420,-30); // over the deep: above the minimum
-  else p.y=clamp(fh+rnd(4,d.cruise||30),fh+3,-4-d.size*0.4);
-  c.wander.copy(p);c.wanderT=rnd(6,14);
+  if(d.floor)p.y=fh+srnd(0.5,2.5)+d.size*0.4;
+  else if(d.deep)p.y=clamp(c.home.y+srnd(-60,60),Math.max(fh+8,OXY.core[1]),OXY.core[0]); // the pall: in the oxygen minimum's core, off the mud (v11.96, DEEP §2)
+  else if(fh<OXY.top)p.y=clamp(c.home.y+srnd(-80,80),-420,-30); // over the deep: above the minimum
+  else p.y=clamp(fh+srnd(4,d.cruise||30),fh+3,-4-d.size*0.4);
+  c.wander.copy(p);c.wanderT=srnd(6,14);
 }
 function wander(c,dt){if(filterSeek(c,dt))return;c.wanderT-=dt;if(c.wanderT<=0||c.pos.distanceTo(c.wander)<3)setWander(c);const k=burstK(c,dt);seek(c,c.wander,c.def.speed*(c.def.cruiseF||0.45)*k,dt,0.8*k);} // v11.85: a hungry filter feeder goes to the swarm instead (the veil, the comb; the ram between hunts)
 // o is on d's prey list: by its kind, or (v11.69) a young of the player's line to whatever hunts the player (line.js lineKind; the crusher's preyClade by the line's preset)
@@ -253,7 +253,7 @@ function kill(c,by,whole){if(!c.alive)return;c.alive=false;c.target=null;c.grab=
   if(c.def.size>=FALL.size){c.fall=fallAdd(c.kind,c.pos.x,c.pos.y,c.pos.z,mass,c.def.size,Math.atan2(c.vel.x,c.vel.z)||0,(POP.kills*7919)>>>0);c.fall.c=c;} // a fall (v11.99, DEEP §4): its record outlives the cell
   _q.setFromAxisAngle(V3(0,0,1),c.t0>50?HPI:-HPI);c.lieQ=c.g.quaternion.clone().multiply(_q); // rolled onto its side
   if(c.b.rigs)for(const r of c.b.rigs)rigRest(r);
-  if(by&&by!==player){by.state='feed';by.feedAt=c;by.feedT=12+mass*0.4*(1+Math.random());by.target=null;by.grab=null;}
+  if(by&&by!==player){by.state='feed';by.feedAt=c;by.feedT=12+mass*0.4*(1+SIMR());by.target=null;by.grab=null;}
 }
 // a carcass: sinks at a body's terminal fall, settles, decays; a scavenger or its killer at it eats it faster (c.flesh)
 function updateCarcass(c,dt,dp){
@@ -456,7 +456,7 @@ function updateHunter(c,dt){
     if(c.scanT<=0){c.scanT=0.4;c.hunt=0;if(c.cool<=0&&c.hunger>ECO.hungry){const tb=findBleeding(c,SMELL_R);if(tb){c.state='chase';c.target=tb;c.bored=0;c.chaseT=0;}else{const tg=findPrey(c,d.detect*HUNT_SEEK); // the blood first (combat.js, v11.56): a bleeding body it eats within SMELL_R is the chase, past its eyes
       if(tg){const tp=tg===player?player.pos:tg.pos,dd=c.pos.distanceTo(tp);
         if(dd<d.detect){c.state='chase';c.target=tg;c.bored=0;c.chaseT=0;} // seen: the chase
-        else if(tp.distanceTo(c.home)<(d.home||30)*HUNT_HOME){c.wander.copy(tp);c.wanderT=rnd(4,8);c.hunt=1;}}}}} // sensed: swim that way and look again
+        else if(tp.distanceTo(c.home)<(d.home||30)*HUNT_HOME){c.wander.copy(tp);c.wanderT=srnd(4,8);c.hunt=1;}}}}} // sensed: swim that way and look again
     if(c.hunt){const k=burstK(c,dt);seek(c,c.wander,d.speed*HUNT_CAST*k,dt,1.2*k);}else wander(c,dt);
   }
 }
@@ -502,8 +502,8 @@ function updateSchools(dt){schoolMerge(dt);
   for(const s of schools){
     let n=0;T1.set(0,0,0);for(const c of s.members)if(c.alive){n++;T1.add(c.pos);}if(n)s.pos.copy(T1.multiplyScalar(1/n));
     s.t-=dt;
-    if(s.t<=0||s.pos.distanceTo(s.target)<3){if(s.sw&&s.sw.alive){const R=swarmR(s.sw);s.t=rnd(3,6);s.target.set(s.sw.pos.x+(Math.random()-0.5)*R,s.sw.pos.y+(Math.random()-0.5)*R*0.4,s.sw.pos.z+(Math.random()-0.5)*R);} // v11.85: a hungry school of filter feeders moves through the swarm it found
-      else{s.t=rnd(5,12);const p=s.home.clone().add(V3(rnd(-30,30),0,rnd(-30,30)));const fh=groundAt(p.x,p.z),mid=s.members.length&&s.members[0].def.mid;p.y=fh<OXY.top?clamp(s.home.y+rnd(-30,30),-400,-20):mid?clamp(s.home.y+rnd(-12,12),fh+8,-8):clamp(fh+rnd(1.5,8),fh+1.5,-3);s.target.copy(p);}} // mid (v11.66): a swarm of the water column keeps its own depth
+    if(s.t<=0||s.pos.distanceTo(s.target)<3){if(s.sw&&s.sw.alive){const R=swarmR(s.sw);s.t=srnd(3,6);s.target.set(s.sw.pos.x+(SIMR()-0.5)*R,s.sw.pos.y+(SIMR()-0.5)*R*0.4,s.sw.pos.z+(SIMR()-0.5)*R);} // v11.85: a hungry school of filter feeders moves through the swarm it found
+      else{s.t=srnd(5,12);const p=s.home.clone().add(V3(srnd(-30,30),0,srnd(-30,30)));const fh=groundAt(p.x,p.z),mid=s.members.length&&s.members[0].def.mid;p.y=fh<OXY.top?clamp(s.home.y+srnd(-30,30),-400,-20):mid?clamp(s.home.y+srnd(-12,12),fh+8,-8):clamp(fh+srnd(1.5,8),fh+1.5,-3);s.target.copy(p);}} // mid (v11.66): a swarm of the water column keeps its own depth
     // threats: the player, and any hunter of the members' kind, scanned four times a second (every member reading every creature
     // was a thousand by a thousand a frame)
     s.scanT=(s.scanT||0)-dt;if(s.scanT<=0){s.scanT=0.25;let th=null,td=14;const kind=s.members.length?s.members[0].kind:'';
@@ -564,7 +564,7 @@ const _swC=[0,0,0];
 function swarmPig(x,y,z){plankAt(x,y,z,_swC);return _swC[1]>_swC[0]&&_swC[1]>=_swC[2]?1:_swC[2]>_swC[0]?2:0;}
 function updateSwarm(c,dt){
   const d=c.def,q=c.q||0.5,floor=groundAt(c.pos.x,c.pos.z),ty=swarmDepth(floor,SKY.dayK,SKY.moonL,q);
-  c.wanderT-=dt;if(c.wanderT<=0){c.wanderT=rnd(6,14);const a=Math.random()*TAU,r=Math.random()*(d.home||90);c.wander.set(c.home.x+Math.cos(a)*r,0,c.home.z+Math.sin(a)*r);}
+  c.wanderT-=dt;if(c.wanderT<=0){c.wanderT=srnd(6,14);const a=SIMR()*TAU,r=SIMR()*(d.home||90);c.wander.set(c.home.x+Math.cos(a)*r,0,c.home.z+Math.sin(a)*r);}
   const dx=c.wander.x-c.pos.x,dz=c.wander.z-c.pos.z,dl=Math.hypot(dx,dz)||1,sp=Math.min(SW_WANDER,dl*0.2);
   c.vel.x+=(dx/dl*sp-c.vel.x)*Math.min(1,dt);c.vel.z+=(dz/dl*sp-c.vel.z)*Math.min(1,dt);
   const dy=ty-c.pos.y;c.vel.y+=(clamp(dy*0.5,-SW_RISE,SW_RISE)-c.vel.y)*Math.min(1,2*dt);
@@ -598,7 +598,7 @@ function filterSeek(c,dt){const d=c.def;if(!(d.filter>0))return false;
   const sw=c.sw;if(!sw||!sw.alive){if(c.state==='filter'){c.state='wander';setWander(c);}return false;}
   const R=swarmR(sw),dist=c.pos.distanceTo(sw.pos),k=burstK(c,dt),sp=d.speed*(d.cruiseF||0.45)*k;if(c.state!=='filter'){c.state='filter';c.wanderT=0;}
   if(dist>R*0.7)seek(c,sw.pos,sp,dt,0.8*k);
-  else{c.wanderT-=dt;if(c.wanderT<=0||c.pos.distanceTo(c.wander)<2){c.wanderT=rnd(3,7);c.wander.set(sw.pos.x+(Math.random()-0.5)*R*1.2,sw.pos.y+(Math.random()-0.5)*R*0.6,sw.pos.z+(Math.random()-0.5)*R*1.2);}seek(c,c.wander,sp*0.7,dt,0.8*k);} // inside: circling through the cloud
+  else{c.wanderT-=dt;if(c.wanderT<=0||c.pos.distanceTo(c.wander)<2){c.wanderT=srnd(3,7);c.wander.set(sw.pos.x+(SIMR()-0.5)*R*1.2,sw.pos.y+(SIMR()-0.5)*R*0.6,sw.pos.z+(SIMR()-0.5)*R*1.2);}seek(c,c.wander,sp*0.7,dt,0.8*k);} // inside: circling through the cloud
   filterIntake(c,dt);return true;}
 function filterPlayer(dt){const P=player;P.swT=(P.swT||0)-dt;if(P.swT<=0){P.swT=FILTER.scan;P.sw=eaterK(P).filter>0?swarmNear(P.pos,FILTER.see):null;}filterIntake(P,dt);} // the player's nearest swarm within FILTER.see, for the readout and the intake
 function updateJelly(c,dt){
@@ -659,15 +659,15 @@ function updateCreatures(dt0){
     // or a floor crawler; a swimmer's steering (seek, the boids) subtracts the current from the way it wants to go, so it crabs upstream,
     // holds station facing into the flow with its tail beating, and is swept only when the current outruns it
     c.carried=sub>0&&!c.grounded&&c.state!=='sit'&&d.role!=='trap'&&!d.floor;
-    if(dp<200&&c.carried){if(!c.cur){c.cur=V3(0,0,0);c.curT=0;}c.curT-=dt;if(c.curT<=0){c.curT=0.4+Math.random()*0.2;currentAt(c.pos.x,c.pos.z,c.pos.y,c.cur);}c.pos.addScaledVector(c.cur,dt*sub);}
+    if(dp<200&&c.carried){if(!c.cur){c.cur=V3(0,0,0);c.curT=0;}c.curT-=dt;if(c.curT<=0){c.curT=0.4+SIMR()*0.2;currentAt(c.pos.x,c.pos.z,c.pos.y,c.cur);}c.pos.addScaledVector(c.cur,dt*sub);}
     let pad=null;if(dp<200&&!d.ghost)pad=bodyPush(c.pos,c.vel,c.g.quaternion,d.size*0.75,d.size*0.35,d.size*0.28);
     const fh=groundAt(c.pos.x,c.pos.z)+(d.clear!==undefined?d.clear:d.size*0.35);c.grounded=false;if(c.pos.y<fh){c.pos.y=fh;if(c.vel.y<0)c.vel.y*=-0.15;c.grounded=true;} // clear: how high the origin sits over the floor (a buried trap sits low). v11.92 tried the body's own radius (a ridge hangs 3 m up on 0.35 × size, its mouth over a floor prey's head) and wedged it in the floor's rocks: the lunge pitches down instead
     if(d.surface){c.pos.y=waveH(c.pos.x,c.pos.z)+(d.ys||0);c.vel.y=0;c.grounded=false;} // a float: on the wave, always (the sailers)
     if(pad){c.grounded=true;loadPad(pad,clamp(d.size*0.3/pad.r,0.02,0.5));} // a fish that lands on a lily pad lies on it (and flops off)
     // beached: a swimmer lies still, then flops downhill for the sea
     if(c.grounded&&sub<0.5&&!d.legs){c.vel.x*=Math.exp(-5*dt);c.vel.z*=Math.exp(-5*dt);c.flopT-=dt;
-      if(c.flopT<=0){c.flopT=rnd(0.7,1.3);const gx=groundAt(c.pos.x+1,c.pos.z)-groundAt(c.pos.x-1,c.pos.z),gz=groundAt(c.pos.x,c.pos.z+1)-groundAt(c.pos.x,c.pos.z-1),gl=Math.hypot(gx,gz)||1;
-        c.vel.x+=-gx/gl*3.4+rnd(-0.5,0.5);c.vel.z+=-gz/gl*3.4+rnd(-0.5,0.5);c.vel.y=3.6+d.size*0.25;}}
+      if(c.flopT<=0){c.flopT=srnd(0.7,1.3);const gx=groundAt(c.pos.x+1,c.pos.z)-groundAt(c.pos.x-1,c.pos.z),gz=groundAt(c.pos.x,c.pos.z+1)-groundAt(c.pos.x,c.pos.z-1),gl=Math.hypot(gx,gz)||1;
+        c.vel.x+=-gx/gl*3.4+srnd(-0.5,0.5);c.vel.z+=-gz/gl*3.4+srnd(-0.5,0.5);c.vel.y=3.6+d.size*0.25;}}
     const wet=sub>0.5;if(wet!==c.wet){if(dp<160&&Math.abs(c.vel.y)>2.5)splash(c.pos,Math.abs(c.vel.y)*(0.5+d.size*0.12));c.wet=wet;}
     c.pos.x=worldX(c.pos.x,12);c.pos.z=worldZ(c.pos.z,12);
     if(!d.noOrient){if(c.shook){_q.setFromAxisAngle(UP,-c.shook);c.g.quaternion.multiply(_q);c.shook=0;} // the shake (v11.93, combat.js holderWork): last frame's head yaw taken off before the facing is steered, and this frame's put on after — a yaw about the body's own up, composed on the facing, never fought by it

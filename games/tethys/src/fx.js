@@ -97,10 +97,10 @@ function bodyPose(o,dt,yaw){
 // ---------- at a wound (combat.js wound): the flinch (23), the flush (24), the debris (26) ----------
 function hitFx(o,by,at,dmg){
   if(!o||!at||!o.g)return;const from=by&&by.pos?by.pos:null;
-  if(PHO_K[o.kind])phoCloud(o,from); /* v11.163: a bitten pall leaves its cloud (PHO) */T4.copy(at);if(from)T4.sub(from);else T4.set(rnd(-1,1),rnd(-0.3,0.3),rnd(-1,1));if(T4.lengthSq()<1e-4)T4.set(0,0,1);T4.normalize();
+  if(PHO_K[o.kind])phoCloud(o,from); /* v11.163: a bitten pall leaves its cloud (PHO) */T4.copy(at);if(from)T4.sub(from);else T4.set(srnd(-1,1),srnd(-0.3,0.3),srnd(-1,1));if(T4.lengthSq()<1e-4)T4.set(0,0,1);T4.normalize();
   const k=clamp(0.25+dmg*0.02,0.25,0.8); // the flinch: the chain points shoved along the bite, the tips most — the constraint pass does the rest (physics.js simChain)
   if(o.b&&o.b.rigs)for(const rig of o.b.rigs)for(const c of rig.chains){const Pp=c.pts,n=c.n;for(let i=1;i<=n;i++){const w=k*i/n;Pp[i*3]+=T4.x*w;Pp[i*3+1]+=T4.y*w;Pp[i*3+2]+=T4.z*w;}}
-  o.rollV=(o.rollV||0)+rnd(-1,1)*POSE_K.jerk*clamp(dmg*0.06,0.3,1); // the spin, damped over a second (bodyPose)
+  o.rollV=(o.rollV||0)+srnd(-1,1)*POSE_K.jerk*clamp(dmg*0.06,0.3,1); // the spin, damped over a second (bodyPose)
   flushBody(o);
   if(at.y-groundAt(at.x,at.z)<2.2)fxSilt(at.x,at.y,at.z,8,0.6);fxScraps(o,at,6+Math.min(10,dmg*0.3));
 }

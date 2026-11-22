@@ -36,8 +36,8 @@ the way eventually even if it means fucking up our lawn today", and answered eve
 | 3 | `tsc --checkJs` over src/, a baseline ratcheted down | built v11.193 |
 | 4 | the flora's detail by distance, from the recipes, measured by the recorder; then the tier that follows the machine | built v11.194, off, **struck v11.201** (they cost more than they saved); the tier built v11.199: a loss on the proxy; the person's reports decide |
 | 5 | the cells generated in workers | |
-| 6 | three.js to a current release | (v11.200's survey: r128's per-draw attribute check, WebGLBindingStates.setup, thrown out of optimised code 252 times in 400 frames) |
-| 7 | a fixed step and seeded randomness in the sim (replays) | |
+| 6 | three.js to a current release | (v11.200's survey: r128's per-draw attribute check, WebGLBindingStates.setup, thrown out of optimised code 252 times in 400 frames); the look will shift (colour management, light units) unless pinned — the person, 22 Nov 2026: "that is perfectly fine", after the low tier's triangles |
+| 7 | a fixed step and seeded randomness in the sim (replays) | the person's answer: a fixed 60 Hz step with the drawing smoothed between steps (22 Nov 2026); §7 |
 
 One door and its key, end to end, can go in at any point.
 
@@ -145,3 +145,32 @@ stay off and their question open.
 'risk' of improving performance. if I'm wrong about that, axe them." They were off by default (what the person saw was the game without them), and
 on they cost more on every machine: renderFrame's CPU ×1.37–1.48 and 45 draws a frame, the proxy's GPU ×1.06–1.08 (#144's home report, with
 `#lod` at another place, read 4.5 ms of submit against 2.9). So, by the person's own rule, **struck in v11.201**; the uniform cut stays.
+
+## 7. A fixed step (the person's answer, 22 Nov 2026)
+
+Asked between (1) the sim's randomness seeded and each frame's length recorded — replays and exact tests, no change in feel — and (2) a fixed 60 Hz
+step with the drawing smoothed between steps — physics the same at any frame rate, the sim a fraction of the cost at 120 Hz and over, every moving
+thing reworked. The person: "for 1, yes please option 2 … Great ideas on this especially for a fixed timestep."
+
+**What it is here.** The loop steps once a frame by the frame's own interval (`dt=clamp(iv/1000,0,0.05)`): the 4060's 144 Hz steps 2.4 times as
+often as a 60 Hz screen, each step smaller, and the work tower at 30 fps steps 33 ms — contact, drag, the chains' verlet and every rate integrate
+differently on each. And the sim and the eye candy draw from one `Math.random`: a faster screen draws more particles, which moves every number a
+creature draws after them. So a fixed step alone would still not make the world the same at every frame rate.
+
+**The parts, each its own version:**
+1. **The sim's own randomness** (v11.209): every draw that changes the world's state — a creature's choices, spawns, combat, the player's body —
+   from `SIMR`, a seeded stream of its own; `Math.random` left to what is only seen or heard (particles, snow, sparks, sound). Nothing else moves.
+2. **The fixed step** (v11.210): an accumulator in main.js; the sim (`simStep`: the clock and the tide, the player, the schools and creatures,
+   contact, the camera's follow, eggs, sheds, the ledger, the line's clocks, wounds and states) at `STEP` 1/60 s, at most three a frame (a longer
+   frame slows the world, as the 0.05 clamp did); what is only seen — streaming, the atmosphere, particles, culling, lights, shadows, sound, the
+   HUD — once a frame on its own interval. The drawing interpolated: the camera, the player's body and each creature's set between their last two
+   steps by the fraction of a step since the last (`alpha`) for the render and put back after it, the shaders' clock at the same in-between time.
+   **test/step.js**: one world run at 30, 60 and 144 Hz has the same creatures to the bit after the same seconds — any eye candy that feeds the sim,
+   or a draw left on the wrong stream, breaks it.
+3. **Not yet: a replay from a recording.** The cells load under a wall-clock budget, so the step on which a cell and its creatures arrive still
+   follows the machine; tying the cells' generation to steps is step 5's (the workers).
+
+**What it costs, expected:** at 60 Hz the same work. At 144 Hz the sim runs 60 times a second, not 144 (its ~2 ms on ~42% of frames). At 30 fps,
+two steps a frame (the tower's sim 1.9 → ~3.8 ms; its frame is the GPU's). The smoothing: a few hundred transforms set and put back a frame.
+Measured in each version's pull request.
+

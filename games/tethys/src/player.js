@@ -134,7 +134,7 @@ function toggleFP(){const P=player;P.fp=!P.fp;if(P.g)ghostBody(P.g,P.fp);applyCa
 
 function hurtPlayer(dmg,from){
   const P=player;if(P.dead||mode!=='play')return;if(P.withdrawn)return;
-  P.hurtT=0.7;P.lastHurt=t;P.fovKickT=0.2;P.rollV=(P.rollV||0)+rnd(-1,1)*2.5;hurtEl.style.opacity=1;setTimeout(()=>{hurtEl.style.opacity=0;},240);thump(0.6,80,30,from,0.5,0.1);
+  P.hurtT=0.7;P.lastHurt=t;P.fovKickT=0.2;P.rollV=(P.rollV||0)+srnd(-1,1)*2.5;hurtEl.style.opacity=1;setTimeout(()=>{hurtEl.style.opacity=0;},240);thump(0.6,80,30,from,0.5,0.1);
   if(from){T4.copy(P.pos).sub(from).normalize();P.vel.addScaledVector(T4,7);}
 }
 function die(cause){ // v11.55: a placed act (combat.js killBy) — swallowed, opened, skewered, crushed, the nerve cord; the slot's animal is dead (the person, 15 Sep 2026): its world kept, the menu, a new animal on continue
