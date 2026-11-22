@@ -7,7 +7,7 @@ const fs=require('fs'),path=require('path'),os=require('os');
 const ROOT=path.join(__dirname,'..');
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
 const js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n')+
-  '\nglobal.__P={probe,probeStep,probeGot,probeCat,PROBE_K,PROBE_PARTS,PROBE_FX,get PROBE(){return PROBE;},REC,RG,FX,fxApply,renderer,sky,surface,waterDome,SURF_OCC,POOLS,chunks,creatures,player,startNew,CLADES,BOOT,recFull,get mode(){return mode;},set mode(v){mode=v;}};';
+  '\nglobal.__P={probe,probeStep,probeGot,probeCat,PROBE_K,PROBE_PARTS,PROBE_FX,get PROBE(){return PROBE;},get VIEW_EXIT(){return VIEW_EXIT;},REC,RG,FX,fxApply,renderer,sky,surface,waterDome,SURF_OCC,POOLS,chunks,creatures,player,startNew,CLADES,BOOT,recFull,get mode(){return mode;},set mode(v){mode=v;}};';
 const tmp=path.join(fs.mkdtempSync(path.join(os.tmpdir(),'tethys-probe-')),'bundle.js');fs.writeFileSync(tmp,'(function(){"use strict";\n'+js+'\n})();');
 const log=console.log;console.log=()=>{};console.warn=()=>{};require('./stub.js');require(tmp);
 const P=global.__P;let fails=0;const ok=(c,m)=>{log((c?'  ok   ':'  FAIL ')+m);if(!c)fails++;};
@@ -16,14 +16,15 @@ P.startNew(P.CLADES[1]);for(let i=0;i<120;i++)__step(1);
 ok(P.mode==='play','in play');
 ok(/timer/.test(P.probe()),'no GPU timer: the probe says so and does not start');
 P.RG.on=true; // the stub's browser has no timer; the results are fed by hand below
+P.PROBE_K.settleMs=0; // the stub's clock stands still between the frames fed by hand here: the settle in frames alone (v11.212)
 const drawn=[];P.renderer.renderBufferDirect=function(c,s,g,m,o){drawn.push(o);}; // three's call, as the stub has none: what reaches it
 const COST={terrain:8,flora:5,rocks:2,far:1,creatures:3,water:4,sky:1.5,horizon:0.25},FXC={caustics:2,texelLight:0.7,shadows:1.2,statics:0.9,shafts:0.6,snow:0.4,rain:0.1,clouds:1.1,refract:1.6,crest:0.3,halo:0.2,murk:0.5,mirror:0.15,cloudLight:0.35,ground:0.8,sharp:0.45};
 const was=Object.assign({},P.FX),BASE=10;
-const gpuNow=()=>{let g=BASE;for(const k in COST)if(!(P.PROBE&&P.PROBE.skip===k))g+=COST[k];for(const k of P.PROBE_FX)if(P.FX[k]===true)g+=FXC[k];return g;};
+const EXIT_SAVE=1.7,gpuNow=()=>{let g=BASE;if(P.VIEW_EXIT)g-=EXIT_SAVE;for(const k in COST)if(!(P.PROBE&&P.PROBE.skip===k))g+=COST[k];for(const k of P.PROBE_FX)if(P.FX[k]===true)g+=FXC[k];return g;};
 const full=gpuNow();
 const said=P.probe();ok(/^started: \d+ states/.test(said),said);
-const fxOn=P.PROBE_FX.filter(k=>was[k]===true),nSt=1+2*(P.PROBE_PARTS.length+fxOn.length);
-ok(P.PROBE.st.length===nSt,'its states: the frame as it is, then each part and each effect that is on ('+fxOn.join(' ')+'), the frame as it is between every two — '+P.PROBE.st.length);
+const fxOn=P.PROBE_FX.filter(k=>was[k]===true),nSt=1+2*(P.PROBE_PARTS.length+fxOn.length+1);
+ok(P.PROBE.st.length===nSt,'its states: the frame as it is, then each part, each effect that is on ('+fxOn.join(' ')+') and the off-screen exit switched on, the frame as it is between every two — '+P.PROBE.st.length);
 // what each thing counts as, and the skip at three's call
 const ch=[...P.chunks.values()].find(c=>c.terrain),pool=[...P.POOLS.values()].find(p=>p.im),cr=P.creatures.find(c=>c.alive&&c.g);let crMesh=null;if(cr)cr.g.traverse(o=>{if(!crMesh&&o.isMesh)crMesh=o;});
 {let hit=0;const cat={};const lag=[];let frames=0;
@@ -40,12 +41,17 @@ ok(P.probeCat(P.sky,P.sky.material)==='sky'&&P.probeCat(P.surface,P.surface.mate
 ok(P.probeCat(ch.terrain,ch.terrain.material)==='terrain'&&P.probeCat(pool.im,pool.im.material)==='flora','a cell\'s terrain, a species\' pool');
 ok(crMesh&&P.probeCat(crMesh,crMesh.material)==='creatures','a creature\'s mesh (it was one while its part was measured)');
 const R=P.REC.probe[0];
+ok(R&&R.noise===0,'its noise: '+(R&&R.noise)+' ms (the frame as it is never moved here)');
 ok(P.REC.probe.length===1&&R&&Math.abs(R.gpu-full)<1e-6,'kept for the report: the frame as it is '+(R&&R.gpu)+' ms (made up: '+full+')');
 {const bad=R.parts.filter(x=>Math.abs(x[1]-COST[x[0]])>0.011);ok(R.parts.length===P.PROBE_PARTS.length&&!bad.length,'every part\'s cost given back: '+R.parts.map(x=>x[0]+' '+x[1]).join(', ')+(bad.length?' — wrong: '+bad.map(x=>x[0]).join(' '):''));}
 {const bad=R.fx.filter(x=>Math.abs(x[1]-FXC[x[0]])>0.011);ok(R.fx.length===fxOn.length&&!bad.length,'every effect that was on: '+R.fx.map(x=>x[0]+' '+x[1]).join(', '));}
+ok(R&&Math.abs(R.exit-EXIT_SAVE)<0.011&&P.VIEW_EXIT===false,'the off-screen exit (v11.211): '+(R&&R.exit)+' ms saved (made up: '+EXIT_SAVE+'), and off again after');
 ok(R.parts[0][0]==='terrain'&&R.parts[R.parts.length-1][0]==='horizon','the dearest first');
 ok(Object.keys(was).every(k=>P.FX[k]===was[k]),'every effect as it was before');
 ok(Array.isArray(P.recFull().probe)&&P.recFull().probe.length===1,'in the report (recFull)');
+// the window changing size stops one (v11.212), nothing kept, the effects as they were
+{P.probe();const gb=P.renderer.getDrawingBufferSize;let n=0;while(P.PROBE&&n<200){P.probeStep();P.REC.frame++;n++;if(n===40)P.renderer.getDrawingBufferSize=v=>{v.x=800;v.y=600;return v;};}P.renderer.getDrawingBufferSize=gb;
+  ok(!P.PROBE&&n<60&&P.REC.probe.length===1&&Object.keys(was).every(k=>P.FX[k]===was[k]),'the window changing size stops a probe at once: nothing kept, every effect as it was');}
 // leaving play stops one, nothing kept, the effects as they were
 {P.probe();let n=0;while(P.PROBE&&n<200){P.probeStep();P.REC.frame++;n++;if(n===60)P.mode='menu';}
   ok(!P.PROBE&&P.REC.probe.length===1&&Object.keys(was).every(k=>P.FX[k]===was[k]),'leaving play stops a probe: nothing kept, every effect as it was');P.mode='play';}

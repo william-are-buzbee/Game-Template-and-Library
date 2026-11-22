@@ -182,7 +182,7 @@ let schoolMT=0;
 // own meshes are hidden (setLOD level 2) and its group stays visible, so nothing that reads c.g.visible changes. The bake was already static far off: the
 // picture is the same, the draws are one per kind and coat instead of one per fish. `cap` instances per mesh (past it the rest draw as before).
 const SCHOOL_INST={on:true,cap:512},SI_MAP=new Map(),SI_LIST=[];
-function siPush(c){const e=c.lodMeshes[0];if(!e)return false;let r=SI_MAP.get(e.geometry);if(!r){const m=new THREE.InstancedMesh(e.geometry,e.material,SCHOOL_INST.cap);m.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(SCHOOL_INST.cap*3).fill(1),3);m.frustumCulled=false;m.castShadow=false;m.count=0;m.visible=false;scene.add(m);r={m:m,n:0};SI_MAP.set(e.geometry,r);SI_LIST.push(r);}
+function siPush(c){const e=c.lodMeshes[0];if(!e)return false;let r=SI_MAP.get(e.geometry);if(!r){const m=new THREE.InstancedMesh(e.geometry,e.material,SCHOOL_INST.cap);cutFit(e.material,e.geometry);m.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(SCHOOL_INST.cap*3).fill(1),3);m.frustumCulled=false;m.castShadow=false;m.count=0;m.visible=false;scene.add(m);r={m:m,n:0};SI_MAP.set(e.geometry,r);SI_LIST.push(r);}
   if(r.n>=SCHOOL_INST.cap||c.lodMeshes.length>1)return false;c.g.updateMatrix();r.m.instanceMatrix.array.set(c.g.matrix.elements,r.n*16);r.n++;return true;}
 function siEnd(){for(const r of SI_LIST){r.m.count=r.n;r.m.visible=r.n>0;if(r.n)r.m.instanceMatrix.needsUpdate=true;r.n=0;}}
 function siFrame(){ // v11.210 (step.js): the far schools' instances written again once a frame from their bodies as drawn — set between the last two steps by lerpApply — so they move at the screen's rate; which fish are instanced stays the step's (siPush, setLOD 2)

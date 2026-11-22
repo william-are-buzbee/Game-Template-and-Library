@@ -364,13 +364,13 @@ function* genRegion(ri,rj){
   const byGeo=new Map();
   for(let dj=0;dj<FR;dj++)for(let di=0;di<FR;di++){for(const s of (yield* bigsGen(ci0+di,cj0+dj))){let L=byGeo.get(s.f.geo);if(!L){L=[];byGeo.set(s.f.geo,L);}L.push(s);}yield;}
   const c=new THREE.Color();
-  byGeo.forEach((L,g)=>{const im=new THREE.InstancedMesh(g,L[0].f.farMat||MATROCKB,L.length);im.frustumCulled=false;
+  byGeo.forEach((L,g)=>{const im=new THREE.InstancedMesh(g,L[0].f.farMat||MATROCKB,L.length);im.frustumCulled=false;cutFit(im.material,g); // cutFit (v11.211, scene.js)
     for(let i=0;i<L.length;i++){im.setMatrixAt(i,L[i].m);c.setRGB(L[i].col[0],L[i].col[1],L[i].col[2]);im.setColorAt(i,c);}instLocal(im,L,ox,oz,q=>q.m);
     im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;reg.group.add(im);});
   yield;
   // the boulders (v11.157): one instanced mesh for the region's blocks (they share one geometry), drawn near and far — the cells draw none
   {const L=[];for(let dj=0;dj<FR;dj++)for(let di=0;di<FR;di++){for(const s of (yield* rocksGen(ci0+di,cj0+dj)))L.push(s);yield;}
-    if(L.length){const im=new THREE.InstancedMesh(BOULDER_G,MATROCKF,L.length);im.frustumCulled=false;
+    if(L.length){const im=new THREE.InstancedMesh(BOULDER_G,MATROCKF,L.length);im.frustumCulled=false;cutFit(MATROCKF,BOULDER_G);
       for(let i=0;i<L.length;i++){im.setMatrixAt(i,L[i].m);c.setRGB(L[i].col[0],L[i].col[1],L[i].col[2]);im.setColorAt(i,c);}instLocal(im,L,ox,oz,q=>q.m);
       im.instanceMatrix.needsUpdate=true;if(im.instanceColor)im.instanceColor.needsUpdate=true;reg.group.add(im);}}
   yield;

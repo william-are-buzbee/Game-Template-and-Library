@@ -4,6 +4,10 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.211 (22 Nov 2026): the probe trusted, and the plants' off-screen exit measured** (probe.js; scene.js `viewExit`, `cutFit`; test/probe.js;
+CHANGELOG). Of the plants' triangles sent on the low tier only 21–45% are seen; the exit for the off-screen ones cost the software GPU 7%, so it is off in
+play and the probe measures it. **Ask:** F8 then F9 on the tower, under water.
+
 **v11.210 (22 Nov 2026): the fixed step** (src/step.js; main.js; player.js `camFrame`; creatures_ai.js `siFrame`; test/step.js; CHANGELOG). The sim at
 1/60 s whatever the screen; the bodies drawn between their last two steps; the camera once a frame from the body as drawn and the mouse's heading. One
 world at 30, 60 and 144 Hz is the same to the bit; the frame at 144 Hz ×0.50. **Ask:** the home machine at 144 Hz — swim and turn hard, look for any
@@ -19,10 +23,6 @@ low): what the low tier cuts waits on its probe. **Ask:** F8 then F9 on the towe
 
 **v11.207 (22 Nov 2026): the tier samples again** (main.js; test/idle.js; CHANGELOG). v11.202's mid-line `//` comment had swallowed the loop's
 `tierFrame` call: from v11.202 to v11.206 no verdict was made or changed. **Ask:** `tier()` after a minute of play on a browser with no verdict.
-
-**v11.206 (22 Nov 2026): the sky timed on its own** (rec.js pass 4; horizon.js; test/report.js; CHANGELOG). The horizon pass split into the sky and
-the far land and sea in the reports. The tower's main pass (22–35 ms of ~30 at 0.6 MP, 1.4 M triangles on low) is the bigger cost. **Ask:** a tower
-report after time on the surface.
 
 ## Open
 
