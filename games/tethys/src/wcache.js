@@ -1,7 +1,7 @@
 // wcache.js — the world cache (v11.214; analysis_loading.md §4.3 — the person, 22 Nov 2026: "Yes that acceptable for the world cache … We should do this now
 // before the three.js update"): what the load builds the same way every time for one build of the code — the water and floor maps' first fill (far.js
 // wmFill at step 4, then wmBlur; ~0.8 s of the load in Node) and the caustic tiles (scene.js; ~0.35 s) — kept in IndexedDB under `world:<the code's hash>`
-// (build.js WH, stamped in tethys.html as TETHYS_BUILD.wh) and, on the next visit, read before the game's script starts (cacheload.js) and taken instead of
+// (build.js WH, stamped in tethys.html as TETHYS_BUILD.wh) and, on the next visit, read before the game's script starts (loader.js) and taken instead of
 // computed. Each product's site asks for its buffers (wcBuf); given, it uses them; not, it computes as before. Either way it hands what it has to wcKeep, and
 // when the boot ends (main.js bootIn, bootFinish) a world with anything computed is written whole (wcWrite) and every other build's deleted. dev.html, the
 // benches and the tests carry no hash: they never read or write one. What is stored is a copy, never the arrays the game goes on changing.

@@ -4,7 +4,11 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
-**v11.214 (22 Nov 2026): the world cache, part one** (src/wcache.js, cacheload.js; build.js `WH`; test/wcache.js, test/wcache_page.js; CHANGELOG). The
+**v11.215 (22 Nov 2026): three.js-ready** (loader.js `tethysStart`, cacheload.js renamed; build.js `THREE_URL`; test/benchpage.js; CHANGELOG;
+analysis_project.md §6). r128 loaded as a module, as every current three.js is; the spike's fixes that work on both versions in. Pictures the same to the
+bit, the load the same. Next: the tower's F8 and F9 (Wednesday), then the upgrade itself. **Ask:** nothing to see; it should load as before.
+
+**v11.214 (22 Nov 2026): the world cache, part one** (src/wcache.js, cacheload.js — loader.js since v11.215; build.js `WH`; test/wcache.js, test/wcache_page.js; CHANGELOG). The
 maps' first fill and the caustic tiles kept in IndexedDB under the code's hash and read before the game starts: the first frame 0.68 s sooner on a reload
 in headless Chromium. Part two, the island records, not built. **Ask:** open the game twice; F9 after the second.
 
@@ -19,16 +23,13 @@ the picture the same. **Ask:** the tower's frame rate, and F8/F9 there; on the h
 CHANGELOG). Of the plants' triangles sent on the low tier only 21–45% are seen; the exit for the off-screen ones cost the software GPU 7%, so it is off in
 play and the probe measures it. **Ask:** F8 then F9 on the tower, under water.
 
-**v11.210 (22 Nov 2026): the fixed step** (src/step.js; main.js; player.js `camFrame`; creatures_ai.js `siFrame`; test/step.js; CHANGELOG). The sim at
-1/60 s whatever the screen; the bodies drawn between their last two steps; the camera once a frame from the body as drawn and the mouse's heading. One
-world at 30, 60 and 144 Hz is the same to the bit; the frame at 144 Hz ×0.50. **Ask:** the home machine at 144 Hz — swim and turn hard, look for any
-stutter or lag; a fight as before.
-
 ## Open
 
 - **The plan** (analysis_project.md, the person's order, 20 Nov 2026): 1 the recorder (v11.191), 2 the docs (v11.192) and 3 the type checker (v11.193)
-  done; 4 the flora's far copies built (v11.194) and struck (v11.201), and the tier that follows the machine (v11.199, the person's call); next 5 the cells in workers, 6 three.js upgraded, 7 a fixed step and seeded sim; one door and
-  its key end to end at any point.
+  done; 4 the flora's far copies built (v11.194) and struck (v11.201), and the tier that follows the machine (v11.199, the person's call); 7 a fixed step and seeded sim done
+  (v11.209, v11.210); 6 three.js: the spike scoped it (4–6 days, analysis_project.md §6), v11.215 did the loading and the fixes that work on both
+  versions, the rest after the tower's F8 (the person, 22 Nov); 5 the cells in workers: judged low value against the world cache (v11.214), not
+  started; one door and its key end to end at any point.
 - **Reports** (`node test/report.js --search`): #137 and #138, a work tower `20e1` (Intel UHD 730): high tier 82 ms a frame, the GPU 84 ms (main
   pass 75), 3.9M triangles; `#low` 33 ms, the GPU 35, 1.6M triangles — the GPU fell with the triangles (×0.41 against ×0.40), not the pixels (×0.81).
   They are step 4's before. The desktop tier is `high` on that chip; the boot under `#low` had a 7.4 s menu frame the recorder does not itemise.

@@ -1,4 +1,4 @@
-// test/wcache_page.js — the world cache in a real browser (v11.214; cacheload.js, src/wcache.js): the built tethys.html (its hash stamped, its loader
+// test/wcache_page.js — the world cache in a real browser (v11.214; loader.js, src/wcache.js): the built tethys.html (its hash stamped, its loader
 // before the game) opened twice in one headless Chromium with the same storage. The first visit builds the world and, at the boot's end, writes it to
 // IndexedDB under world:<the hash>; the second reads it before the game starts and takes the maps and the caustics from it. No page errors either time;
 // the boot's own times (the recorder's) printed for both. Run with `npm run smoke` (CI); needs `node build.js` first.

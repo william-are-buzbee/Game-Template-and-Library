@@ -9,7 +9,10 @@
 'use strict';
 const fs=require('fs'),path=require('path');
 const ROOT=__dirname;
-const THREE='<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>\n';
+// three.js (v11.215, three.js-ready): its module build, as every release after r160 ships only that. tethys.html imports it in loader.js beside the world
+// cache's read; dev.html with a module script, which runs in order with the src files' deferred scripts, before the page's load event
+const THREE_URL='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.min.js';
+const THREE_DEV='<script type="module">import * as T from "'+THREE_URL+'";window.THREE=Object.assign({},T);</script>\n';
 const read=p=>fs.readFileSync(path.join(ROOT,p),'utf8');
 const write=(p,s)=>fs.writeFileSync(path.join(ROOT,p),s,'utf8');
 
@@ -18,15 +21,16 @@ const parts={};for(const n of ORDER)parts[n]=read('src/'+n+'.js');
 // the build's version (v11.191): the CHANGELOG's last heading, for the flight recorder's reports (src/rec.js REC.v); 'dev' where nothing says (the tests, the benches)
 const VERSION=(read('CHANGELOG.md').match(/^## (v[0-9][0-9.]*)/gm)||['## dev']).pop().slice(3);
 const STAMP='<script>window.TETHYS_BUILD={v:"'+VERSION+'"};</script>\n';
-// the world cache's key (v11.214, cacheload.js, src/wcache.js): the game's code hashed, so any change to it — a version, a preview's next commit — is a new world
-const GAME=ORDER.map(n=>parts[n]).join('\n'),WH=require('crypto').createHash('sha256').update(GAME,'utf8').digest('hex').slice(0,16);
-const STAMP_T='<script>window.TETHYS_BUILD={v:"'+VERSION+'",wh:"'+WH+'"};</script>\n',LOADER='<script>\n'+read('cacheload.js')+'</script>\n';
+// the world cache's key (v11.214, loader.js, src/wcache.js): the game's code and three.js's address hashed, so any change to either — a version, a preview's
+// next commit, a new three.js — is a new world
+const GAME=ORDER.map(n=>parts[n]).join('\n'),WH=require('crypto').createHash('sha256').update(THREE_URL+'\n'+GAME,'utf8').digest('hex').slice(0,16);
+const STAMP_T='<script>window.TETHYS_BUILD={v:"'+VERSION+'",wh:"'+WH+'"};</script>\n',LOADER='<script>\n'+read('loader.js')+'</script>\n';
 
 // ---------- the two html files ----------
 const shell=read('shell.html');
-const bundle=STAMP_T+THREE+LOADER+'<script>\nfunction tethysMain(){\n"use strict";\n'+GAME+'\n}\nrequestAnimationFrame(function(){wcacheRead(function(){setTimeout(tethysMain,0);});});\n</script>'; // v11.189: the game runs after the page's first paint — the loading page (shell.html #boot, the title, its line) is on screen while it loads
+const bundle=STAMP_T+LOADER+'<script>\nfunction tethysMain(){\n"use strict";\n'+GAME+'\n}\ntethysStart("'+THREE_URL+'",tethysMain);\n</script>'; // v11.189: the game runs after the page's first paint — the loading page (shell.html #boot, the title, its line) is on screen while it loads
 write('tethys.html',shell.replace('<!--SCRIPTS-->',()=>bundle)); // a function: the bundle may contain $-patterns a string replacement would expand
-const dev=STAMP+THREE+ORDER.map(n=>'<script src="src/'+n+'.js"></script>\n').join('');
+const dev=STAMP+THREE_DEV+ORDER.map(n=>'<script defer src="src/'+n+'.js"></script>\n').join('');
 write('dev.html',shell.replace('<!--SCRIPTS-->',()=>dev));
 
 // ---------- the name index ----------

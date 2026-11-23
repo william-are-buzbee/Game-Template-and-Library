@@ -9,7 +9,7 @@ file is for, at length: `README.md`. The plan for the project as a whole: `analy
 An underwater exploration game in one three.js file. Subnautica-like: no tech, no oxygen — swimming, an ecology, predators, a surface to breach
 and land to flop onto. The player is one animal of a convergent-evolution roster: the three roster players are **soft-arm** (a ringmouth jetter),
 **finback** (a slowblood) and **coilshell** (a ringmouth with a flat coiled shell), and any founder species can be played. three.js r128 from
-cdnjs, global `THREE`, no modules, no framework; the one library is `@wb/core`. Old-school low-poly: boxes, lathes and spheres, flat shading,
+cdnjs (its module build since v11.215, copied onto the global `THREE`), the game itself no module, no framework; the one library is `@wb/core`. Old-school low-poly: boxes, lathes and spheres, flat shading,
 countershaded vertex colours; the fog is the look. Text in the game: minimal, lowercase, letterspaced serif, only when needed. 1 unit = 1 m; the
 player is a 3–3.5 m animal.
 
@@ -122,7 +122,7 @@ request says what it cost before the person plays it (the root `docs/decisions.m
 
 ## Layout
 
-`shell.html` the page (the build puts the scripts at `<!--SCRIPTS-->`); `src/` the game; `build.js`, `build.py`; `tsconfig.json` and `types/` the
+`shell.html` the page (the build puts the scripts at `<!--SCRIPTS-->`); `src/` the game; `build.js`, `build.py`; `loader.js` tethys.html's loader (three.js and the world cache, then the game); `tsconfig.json` and `types/` the
 type checker's; `serve.js` the dev server and
 the sound bench's sink; `test/` the tests, the stub, the benches, the previews (`test/README.md`); `vendor/` `WB`; `tools/` vendor.js and
 dist.js; `archive/` old docs kept whole; the design docs.
@@ -258,7 +258,14 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
 
 ## Things that bite
 
-- **The world cache** (src/wcache.js, cacheload.js; v11.214): tethys.html carries a hash of the game's code (build.js `WH`, `TETHYS_BUILD.wh`), and
+- **three.js is a module** (v11.215, three.js-ready; analysis_project.md §6): every release after r160 ships only that, so r128's does too here.
+  tethys.html imports it in loader.js (`tethysStart`) beside the world cache's read; dev.html and the bench page (test/benchpage.js) with a module
+  script before the src files, which are `defer` so the two run in order, before the page's load event. Either way its exports are copied onto a plain
+  `window.THREE` (a namespace is frozen). Its address is `THREE_URL` in build.js and build.py (the bench page reads build.js's), and is in the world
+  cache's hash. What differs between r128 and a current three and costs nothing to say both ways is said both ways (`THREE.REVISION`, a name that
+  exists, `vColor.rgb`): grep `three.js-ready`.
+
+- **The world cache** (src/wcache.js, loader.js — cacheload.js until v11.215; v11.214): tethys.html carries a hash of the game's code (build.js `WH`, `TETHYS_BUILD.wh`), and
   what the load builds the same way every time for one build — the maps' first fill, the caustic tiles — is read from IndexedDB (`world:<hash>`) before
   the game's script runs and taken instead of computed (`wcBuf`); a miss computes as always and the boot's end writes it (`wcWrite`). A new product
   goes the same way: its site asks `wcBuf`, hands what it has to `wcKeep`, and test/wcache.js holds it to the bit against a fresh build. A change to

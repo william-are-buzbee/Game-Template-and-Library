@@ -10,7 +10,9 @@ files use it. Do not edit INDEX.md by hand; it is rewritten on every build.
 import hashlib
 import os, re, subprocess, sys
 ROOT = os.path.dirname(os.path.abspath(__file__))
-THREE = '<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>\n'
+# three.js (v11.215): its module build, as build.js
+THREE_URL = 'https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.min.js'
+THREE_DEV = '<script type="module">import * as T from "' + THREE_URL + '";window.THREE=Object.assign({},T);</script>\n'
 
 def read(p): return open(os.path.join(ROOT, p), encoding='utf-8').read()
 def write(p, s): open(os.path.join(ROOT, p), 'w', encoding='utf-8').write(s)
@@ -20,17 +22,17 @@ parts = {n: read('src/%s.js' % n) for n in ORDER}
 # the build's version (v11.191): the CHANGELOG's last heading, for the flight recorder's reports (src/rec.js REC.v), as build.js
 VERSION = (re.findall(r'^## (v[0-9][0-9.]*)', read('CHANGELOG.md'), re.M) or ['dev'])[-1]
 STAMP = '<script>window.TETHYS_BUILD={v:"' + VERSION + '"};</script>\n'
-# the world cache's key (v11.214, cacheload.js, src/wcache.js): the game's code hashed, as build.js
+# the world cache's key (v11.214, loader.js, src/wcache.js): the game's code and three.js's address hashed, as build.js
 GAME = '\n'.join(parts[n] for n in ORDER)
-WH = hashlib.sha256(GAME.encode('utf-8')).hexdigest()[:16]
+WH = hashlib.sha256((THREE_URL + '\n' + GAME).encode('utf-8')).hexdigest()[:16]
 STAMP_T = '<script>window.TETHYS_BUILD={v:"' + VERSION + '",wh:"' + WH + '"};</script>\n'
-LOADER = '<script>\n' + read('cacheload.js') + '</script>\n'
+LOADER = '<script>\n' + read('loader.js') + '</script>\n'
 
 # ---------- the two html files ----------
 shell = read('shell.html')
-bundle = STAMP_T + THREE + LOADER + '<script>\nfunction tethysMain(){\n"use strict";\n' + GAME + '\n}\nrequestAnimationFrame(function(){wcacheRead(function(){setTimeout(tethysMain,0);});});\n</script>'  # v11.189: after the first paint, as build.js
+bundle = STAMP_T + LOADER + '<script>\nfunction tethysMain(){\n"use strict";\n' + GAME + '\n}\ntethysStart("' + THREE_URL + '",tethysMain);\n</script>'  # v11.189: after the first paint, as build.js
 write('tethys.html', shell.replace('<!--SCRIPTS-->', bundle))
-dev = STAMP + THREE + ''.join('<script src="src/%s.js"></script>\n' % n for n in ORDER)
+dev = STAMP + THREE_DEV + ''.join('<script defer src="src/%s.js"></script>\n' % n for n in ORDER)
 write('dev.html', shell.replace('<!--SCRIPTS-->', dev))
 
 # ---------- the name index ----------

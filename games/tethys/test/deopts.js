@@ -1,6 +1,6 @@
 // test/deopts.js — where V8 throws the game out of optimised code (v11.200; v11.197's islandH was the find that started it): the bench's page in
 // headless Chromium with the real three.js, a new game swum FRAMES frames (default 400) across cells and regions, V8's verbose deoptimisation trace
-// read from the browser's output and counted by function and source line (src/<file>.js:<line>, or three.min.js:<line>:<column>), then the sites
+// read from the browser's output and counted by function and source line (src/<file>.js:<line>, or three.module.min.js:<line>:<column>), then the sites
 // thrown out five times or more. A site thrown out again and again is the pattern to fix: a shape that changes or was retired (islandH's gullies,
 // merge's geometry attributes), a value that is sometimes a double where an int was learned (vlyCut's index); "exit from OSR'd inner loop" is V8
 // leaving a loop it optimised mid-run, and harmless. Not in --test: the trace is tens of MB and the counts move a little with the compiles' timing.
@@ -11,7 +11,7 @@ if(process.argv[2]!=='--child'){ // the parent: the child's debug output is the 
   const r=cp.spawnSync(process.execPath,[__filename,'--child',process.argv[2]||process.env.FRAMES||'400'],{env:Object.assign({},process.env,{DEBUG:'pw:browser'}),encoding:'utf8',maxBuffer:1<<30});
   const lines=(r.stderr||'').split('\n'),by=new Map(),site=new Map();
   for(let i=0;i<lines.length;i++){const m=/reason: ([^)]*)\): begin\. deoptimizing 0x[0-9a-f]+ <JSFunction ([^ ]*) /.exec(lines[i]);if(!m)continue;
-    let pos='';for(let j=i+1;j<Math.min(lines.length,i+16);j++){const p=/;;; deoptimize at <[^>]*\/(src\/[a-z_]+\.js|three\.min\.js|bench\.html):(\d+):(\d+)>/.exec(lines[j]);if(p){pos=p[1]+':'+p[2]+(p[1]==='three.min.js'?':'+p[3]:'');break;}}
+    let pos='';for(let j=i+1;j<Math.min(lines.length,i+16);j++){const p=/;;; deoptimize at <[^>]*\/(src\/[a-z_]+\.js|three\.module\.min\.js|bench\.html):(\d+):(\d+)>/.exec(lines[j]);if(p){pos=p[1]+':'+p[2]+(p[1]==='three.min.js'?':'+p[3]:'');break;}}
     const k=m[2];let e=by.get(k);if(!e){e={n:0,why:new Map()};by.set(k,e);}e.n++;const w=m[1]+' @ '+pos;e.why.set(w,(e.why.get(w)||0)+1);site.set(k+'  '+w,(site.get(k+'  '+w)||0)+1);}
   process.stdout.write(r.stdout||'');
   const rows=[...by.entries()].sort((a,b)=>b[1].n-a[1].n);console.log('deoptimisations: '+rows.reduce((a,x)=>a+x[1].n,0)+' in '+rows.length+' functions; the most:');
