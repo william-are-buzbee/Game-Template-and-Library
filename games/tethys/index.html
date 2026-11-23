@@ -173,14 +173,22 @@ canvas{display:block;outline:none;touch-action:none}
 <div id="fade" class="layer"></div>
 <canvas id="spark" class="layer"></canvas>
 <div id="stats"></div>
-<script>window.TETHYS_BUILD={v:"v11.214",wh:"c4f85630cc3cea4a"};</script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>window.TETHYS_BUILD={v:"v11.215",wh:"bfaf281a7314028d"};</script>
 <script>
-// cacheload.js — the world cache's reader (v11.214; analysis_loading.md §4.3, the person's yes of 22 Nov 2026). The build puts it in tethys.html only, before
-// the game's script, which it starts: the world this build made on an earlier visit — its maps and its caustic tiles, stored under `world:<the hash of the
-// game's code>` (src/wcache.js writes it) — read from IndexedDB as array buffers into window.__WCACHE, then the game. The database is opened as save.js opens
-// it (the same name, version and store), so whichever comes first makes it the same way. A store that does not answer in WCACHE_WAIT ms, a missing record or
-// any error: the game starts without, and computes as it always did. dev.html, the benches and the tests have no hash, so never read one.
+// loader.js — the page's loader, in tethys.html only, outside the game's bundle and before it: three.js and the world cache fetched side by side, then the
+// game. Since v11.215 (three.js-ready) three.js is loaded as a module — every release after r160 is only that — with import(); its exports are copied onto
+// a plain object, window.THREE, as the game has always found it (a module's namespace is frozen). A three.js that does not load still starts the game, whose
+// scene.js says so. dev.html and the benches load it with a module script of their own (build.js THREE_DEV, test/benchpage.js).
+// The world cache's reader (v11.214; analysis_loading.md §4.3, the person's yes of 22 Nov 2026): the world this build made on an earlier visit — its maps and
+// its caustic tiles, stored under `world:<the hash of the game's code>` (src/wcache.js writes it) — read from IndexedDB as array buffers into window.__WCACHE.
+// The database is opened as save.js opens it (the same name, version and store), so whichever comes first makes it the same way. A store that does not
+// answer in WCACHE_WAIT ms, a missing record or any error: the game starts without, and computes as it always did. dev.html, the benches and the tests have
+// no hash, so never read one.
+function tethysStart(url,main){ // both fetched, then the page's next paint (v11.189: the loading page is on screen first), then the game
+  var n=0,go=function(){if(++n===2)requestAnimationFrame(function(){setTimeout(main,0);});};
+  import(url).then(function(T){window.THREE=Object.assign({},T);go();},function(e){console.error('three.js did not load: '+(e&&e.message||e));go();});
+  wcacheRead(go);
+}
 var WCACHE_WAIT=1500;
 function wcacheRead(go){
   var B=window.TETHYS_BUILD,done=false;
@@ -2889,7 +2897,7 @@ function flowAt(x,y,z,out){
 // wcache.js — the world cache (v11.214; analysis_loading.md §4.3 — the person, 22 Nov 2026: "Yes that acceptable for the world cache … We should do this now
 // before the three.js update"): what the load builds the same way every time for one build of the code — the water and floor maps' first fill (far.js
 // wmFill at step 4, then wmBlur; ~0.8 s of the load in Node) and the caustic tiles (scene.js; ~0.35 s) — kept in IndexedDB under `world:<the code's hash>`
-// (build.js WH, stamped in tethys.html as TETHYS_BUILD.wh) and, on the next visit, read before the game's script starts (cacheload.js) and taken instead of
+// (build.js WH, stamped in tethys.html as TETHYS_BUILD.wh) and, on the next visit, read before the game's script starts (loader.js) and taken instead of
 // computed. Each product's site asks for its buffers (wcBuf); given, it uses them; not, it computes as before. Either way it hands what it has to wcKeep, and
 // when the boot ends (main.js bootIn, bootFinish) a world with anything computed is written whole (wcWrite) and every other build's deleted. dev.html, the
 // benches and the tests carry no hash: they never read or write one. What is stored is a copy, never the arrays the game goes on changing.
@@ -3403,7 +3411,7 @@ const CAU_TEX=[];let CAU_GTEX=null;
 // one multiplier, so the grain is a step of tone and not quantised away. The chosen cell is the column along the face's dominant axis (pass A),
 // so the pattern is read on the two axes across it (cid) and the across-growth index (ca) is the one not the growth axis.
 const PIX_GRAIN=0.06,PIX_CLASS={terr:[0.6,1.0],rock:0.7,plant:0.4,blade:0.4,card:0.4,body:0.5},PIX_ROCK_CLUMP=3,PIX_VEIN=[3,0.08]; // the tone step; the grain weight per class (terr: [rock, sand] by luminance); rock's grain hashed on clumps of n cells (v11.41.1: the person wanted it "much more coarse"); a vein every n cells across by this much
-const PIX_CLS_GLSL=cls=>(cls==='terr'?'\n#ifdef USE_COLOR\nfloat pw=mix('+PIX_CLASS.terr[0].toFixed(2)+','+PIX_CLASS.terr[1].toFixed(2)+',smoothstep(0.3,0.6,dot(vColor,vec3(0.3,0.5,0.2))));\n#else\nfloat pw='+PIX_CLASS.terr[1].toFixed(2)+';\n#endif\n':'float pw='+(PIX_CLASS[cls]||0).toFixed(2)+';')+
+const PIX_CLS_GLSL=cls=>(cls==='terr'?'\n#ifdef USE_COLOR\nfloat pw=mix('+PIX_CLASS.terr[0].toFixed(2)+','+PIX_CLASS.terr[1].toFixed(2)+',smoothstep(0.3,0.6,dot(vColor.rgb,vec3(0.3,0.5,0.2))));\n#else\nfloat pw='+PIX_CLASS.terr[1].toFixed(2)+';\n#endif\n':'float pw='+(PIX_CLASS[cls]||0).toFixed(2)+';')+
   'float tn=(floor(ph*3.0)-1.0)*'+PIX_GRAIN.toFixed(3)+'*pw;'+
   (cls==='rock'?'ph=fract(sin(dot(floor(cid/'+PIX_ROCK_CLUMP.toFixed(1)+'),vec2(12.9898,78.233)))*43758.5453);tn=(floor(ph*3.0)-1.0)*'+PIX_GRAIN.toFixed(3)+'*pw;':'')+
   (cls==='blade'||cls==='card'?'if(mod(ca,'+PIX_VEIN[0].toFixed(1)+')<0.5)tn-='+PIX_VEIN[1].toFixed(3)+';':'')+
@@ -3459,9 +3467,9 @@ const PIX_GRID_V=grid=>grid==='world'?'vGrid=(modelMatrix*wpp).xyz;':'vGrid=pGri
 // The tiles as one texture array (v11.187, WebGL2): the ten a tinted material sampled (each ring's S and C, layers 2i and 2i+1) under one sampler, the same
 // bytes, wrap and filter, so the same caustic — and nine of WebGL's sixteen texture units a fragment shader may use come free (the tinted materials were at
 // sixteen: v11.81's third map failed every compile), one of them now the flora's vertex data (VPULL_GLSL). WebGL1 keeps the ten (CAU_TEX[i].s, .c).
-const CAU_ARR=(function(){if(!GL2||!CAU_TEX.length||!THREE.DataTexture2DArray)return null;const N=CAU_N,L=CAU_TEX.length*2,D=new Uint8Array(N*N*4*L);
+const CAU_ARR=(function(){const ArrT=/** @type {any} */(THREE).DataArrayTexture||THREE.DataTexture2DArray; /* v11.215 (three.js-ready): renamed in r138 */if(!GL2||!CAU_TEX.length||!ArrT)return null;const N=CAU_N,L=CAU_TEX.length*2,D=new Uint8Array(N*N*4*L);
   CAU_TEX.forEach((r,i)=>{D.set(r.s.image.data,(2*i)*N*N*4);D.set(r.c.image.data,(2*i+1)*N*N*4);});
-  const t=new THREE.DataTexture2DArray(D,N,N,L);t.format=THREE.RGBAFormat;t.type=THREE.UnsignedByteType;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.minFilter=t.magFilter=THREE.LinearFilter;t.generateMipmaps=false;t.needsUpdate=true;t.clone=function(){return this;};return t;})();
+  const t=new ArrT(D,N,N,L);t.format=THREE.RGBAFormat;t.type=THREE.UnsignedByteType;t.wrapS=t.wrapT=THREE.RepeatWrapping;t.minFilter=t.magFilter=THREE.LinearFilter;t.generateMipmaps=false;t.needsUpdate=true;t.clone=function(){return this;};return t;})();
 const cauTap=(k,i,uv)=>CAU_ARR?'texture(uCauA,vec3('+uv+','+(2*i+(k==='C'?1:0)).toFixed(1)+'))':'texture2D(uCau'+k+i+','+uv+')'; // a ring's S or C tile at uv, from the array or its own texture
 // The ripples' slope at a surface point, for the glitter (v11.46, WATER.md F): the same trains the caustic is drawn from — "the ripple layer that lives only in the
 // light" (PLANET, 14 Sep) — read as a gradient from the tiles' rg/ba parts at the ring's phase, carried by the swell as the caustic's are, gusted by the same
@@ -3844,7 +3852,7 @@ const MATTRF=addTint(lodMaterial(TREE_LOD),'lamdslod',true,undefined,undefined,'
 let VPULL_TEX=null;const vpullMats=new Map();
 const VPULL_V='uniform highp sampler2D uPull;attribute vec2 aPull;vec3 pPos,pNor,pCol;\n';
 const VPULL_MAIN=()=>'{int v=int(aPull.x+aVar*aPull.y+0.5);ivec2 q=ivec2((v%'+VPULL.row+')*3,v/'+VPULL.row+');vec4 pa=texelFetch(uPull,q,0);if(pa.w>0.5)'+GONE+'pPos=pa.xyz;pNor=texelFetch(uPull,q+ivec2(1,0),0).xyz;pCol=texelFetch(uPull,q+ivec2(2,0),0).xyz;}\n';
-const VPULL_COLOR='\n#if defined( USE_COLOR_ALPHA )\nvColor=vec4(1.0);\n#elif defined( USE_COLOR ) || defined( USE_INSTANCING_COLOR )\nvColor=vec3(1.0);\n#endif\n#ifdef USE_COLOR\nvColor*=pCol;\n#endif\n#ifdef USE_INSTANCING_COLOR\nvColor.xyz*=instanceColor.xyz;\n#endif\n'; // r128's color_vertex on the fetched colour
+const VPULL_COLOR='\n#if defined( USE_COLOR_ALPHA )\nvColor=vec4(1.0);\n#elif defined( USE_COLOR ) || defined( USE_INSTANCING_COLOR ) || defined( USE_BATCHING_COLOR )\nvColor=vec3(1.0);\n#endif\n#ifdef USE_COLOR\nvColor.rgb*=pCol;\n#endif\n#ifdef USE_INSTANCING_COLOR\nvColor.rgb*=instanceColor.xyz;\n#endif\n'; // r128's color_vertex on the fetched colour; v11.215 (three.js-ready): .rgb, for a vColor that is a vec4 (USE_COLOR_ALPHA), and USE_BATCHING_COLOR (r165) declares it too
 function vpullGLSL(sh){sh.uniforms.uPull={value:VPULL_TEX};
   sh.vertexShader=VPULL_V+sh.vertexShader.split(VAR_COLLAPSE).join('').replace('void main() {','void main() {\n'+VPULL_MAIN()).replace('#include <color_vertex>',VPULL_COLOR).replace('#include <beginnormal_vertex>','vec3 objectNormal=pNor;').replace('#include <begin_vertex>','vec3 transformed=pPos;');}
 function vpullMat(m){let p=vpullMats.get(m);if(p)return p;p=m.clone();const ob=m.onBeforeCompile,key=m.customProgramCacheKey();
@@ -11745,7 +11753,7 @@ function poolLod(P){const sp=P.f.card?FAR_IMP.find(s=>s.f===P.f&&s.lod):null;if(
   if(P.lod){poolGroup.remove(P.lod);P.lod.geometry.dispose();} // its own position, normal, colour; the shared ones went with the pool's old mesh
   const g=sp.geo.clone();g.setAttribute('aHide',P.geo.attributes.aHide);if(P.vars)g.setAttribute('aVar',P.geo.attributes.aVar);
   const m=new THREE.InstancedMesh(g,sp.lod,P.cap);cutFit(sp.lod,sp.geo||g);P.R0=Math.max(P.R0,poolReach(null,sp.geo)); /* a tile's sphere covers the copy too (v11.212) */m.instanceMatrix=P.im.instanceMatrix;m.instanceColor=P.im.instanceColor;m.frustumCulled=false;m.count=P.im.count;m.onBeforeRender=function(){this.count=P.im.count;};P.lod=m;poolGroup.add(m);}
-function poolUp(a,s,c,sz){const r=a.updateRange;if(r.count>0){const lo=Math.min(r.offset,s*sz),hi=Math.max(r.offset+r.count,(s+c)*sz);r.offset=lo;r.count=hi-lo;}else{r.offset=s*sz;r.count=c*sz;}a.needsUpdate=true;} // one attribute's range [s,s+c) uploaded at the next draw, joined to a range still pending
+function poolUp(a,s,c,sz){if(!a.updateRange){const R=a.updateRanges;if(R.length){const q=R[0],lo=Math.min(q.start,s*sz),hi=Math.max(q.start+q.count,(s+c)*sz);q.start=lo;q.count=hi-lo;}else a.addUpdateRange(s*sz,c*sz);a.needsUpdate=true;return;} /* v11.215 (three.js-ready): a later three keeps a list of ranges, updateRanges (r159+); r128 one, updateRange */const r=a.updateRange;if(r.count>0){const lo=Math.min(r.offset,s*sz),hi=Math.max(r.offset+r.count,(s+c)*sz);r.offset=lo;r.count=hi-lo;}else{r.offset=s*sz;r.count=c*sz;}a.needsUpdate=true;} // one attribute's range [s,s+c) uploaded at the next draw, joined to a range still pending
 function poolTouch(P,s,c){ // every attribute's range [s,s+c)
   poolUp(P.im.instanceMatrix,s,c,16);poolUp(P.im.instanceColor,s,c,3);if(P.vars)poolUp(P.geo.attributes.aVar,s,c,1);if(P.cur){poolUp(P.geo.attributes.aCur,s,c,2);poolUp(P.geo.attributes.aTide,s,c,2);}poolUp(P.geo.attributes.aHide,s,c,1);
 }
@@ -13372,7 +13380,7 @@ const sg=(function(){
 // surface can fringe, narrow while the cap is. Five taps blurred REFR_BLUR px, wider with distance, where the ripples are under a pixel. The switch is
 // `refraction` on the effects list with its `wobble` slider (FX.refrK, a multiplier on REFR_K); off, the underside blends over the frame plainly as v11.50 did.
 const REFR_K=1.0,REFR_RIP=0.35,REFR_MAX=0.05,REFR_BLUR=1.5; // REFR_K: the differential shift's gain (1 physical); REFR_RIP: the ripple layer's share of the facet's tilt (the rings alone, ripSlopeR — with the capillaries the sky from 17 m was an interlace of 4–8 px stripes, their shift more than their wavelength; seen); REFR_MAX: the cap, fraction of the screen's height (0.05: 45 px at 900); REFR_BLUR: the taps' radius in px at the eye, ×2.5 at 120 m
-const refrTex=new THREE.DataTexture(null,1,1,THREE.RGBFormat,THREE.UnsignedByteType);refrTex.minFilter=refrTex.magFilter=THREE.LinearFilter;refrTex.generateMipmaps=false;refrTex.wrapS=refrTex.wrapT=THREE.ClampToEdgeWrapping;refrTex.needsUpdate=true; // RGB: the drawing buffer has no alpha (WebGLRenderer alpha:false), and a copy may not ask for a component the framebuffer lacks
+const refrTex=new THREE.DataTexture(null,1,1,+THREE.REVISION>=137?THREE.RGBAFormat:THREE.RGBFormat,THREE.UnsignedByteType) /* v11.215 (three.js-ready): a later three's WebGL2 storage takes no unsized RGB; r128 keeps RGB */;refrTex.minFilter=refrTex.magFilter=THREE.LinearFilter;refrTex.generateMipmaps=false;refrTex.wrapS=refrTex.wrapT=THREE.ClampToEdgeWrapping;refrTex.needsUpdate=true; // RGB: the drawing buffer has no alpha (WebGLRenderer alpha:false), and a copy may not ask for a component the framebuffer lacks
 const REFR_V=new THREE.Vector2();
 const surfaceU={uSss:{value:new THREE.Vector3(0,0,0)},uRefr:{value:refrTex},uRefrOn:{value:0},uRefrRes:{value:new THREE.Vector4(1,1,1,1)},uRefrK:{value:REFR_K},uAmp:{value:WAVE_AMP},uUnder:{value:1},uWin:{value:new THREE.Vector3(1,1,1)},uGlint:{value:new THREE.Vector3(1.0,0.97,0.88)},uRain:{value:0},uBody:{value:SURF_BODY},uMirK:{value:1},uRim:{value:RIM.k},uWinD:{value:1/WIN_DET.L}}; // (uSpk, the breakers' glow of v11.160.1, struck v11.162 with the wake)
 // uRefr (v11.51): the frame before the surface, uRefrOn 1 while it is fresh, uRefrRes (width, height, focal x, focal y — all px), uRefrK the wobble's gain; uUnder: 1 when the camera is under water; uWin: Snell's window's light relative to noon; uGlint: the sun's (or the moon's) colour for the refracted glint;
@@ -13432,7 +13440,7 @@ const SURF_OCC=(function(){const m=new THREE.MeshPhongMaterial({flatShading:true
   m.customProgramCacheKey=function(){return 'surfocc';};m.extensions={derivatives:true};
   const o=new THREE.Mesh(sg,m);o.frustumCulled=false;o.renderOrder=-12;o.visible=false;scene.add(o);return o;})();
 const refrMark=(function(){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(0),3));const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({colorWrite:false,depthWrite:false}));m.frustumCulled=false;m.renderOrder=0.5;scene.add(m);return m;})(); // the copy's place in the frame (v11.51, REFR_* above): an empty mesh (r128 lists it and returns from renderBufferDirect at its zero-length position) whose onBeforeRender runs in the opaque pass after everything at renderOrder 0 and before the player's body at 1
-refrMark.onBeforeRender=function(r,sc,cam){surfaceU.uRefrOn.value=0;if(!FX.refract||surfaceU.uUnder.value<0.5||cam!==camera||r.getRenderTarget()!==null)return;r.getDrawingBufferSize(REFR_V);const w=REFR_V.x|0,h=REFR_V.y|0;if(w<2||h<2)return;refrTex.image.width=w;refrTex.image.height=h;const pm=camera.projectionMatrix.elements;surfaceU.uRefrRes.value.set(w,h,pm[0]*w*0.5,pm[5]*h*0.5);surfaceU.uRefrK.value=REFR_K*FX.refrK;try{r.copyFramebufferToTexture(REFR_V.set(0,0),refrTex);surfaceU.uRefrOn.value=1;}catch(e){}}; // the frame so far (v11.51): copied only under water, only to the screen (the world shadow pass renders the scene to a target and would copy that), sized to the drawing buffer every time (a resize just changes what the next copy allocates); the focal lengths in px from the projection; the uniforms are read when the surface draws, later in the same render
+refrMark.onBeforeRender=function(r,sc,cam){surfaceU.uRefrOn.value=0;if(!FX.refract||surfaceU.uUnder.value<0.5||cam!==camera||r.getRenderTarget()!==null)return;r.getDrawingBufferSize(REFR_V);const w=REFR_V.x|0,h=REFR_V.y|0;if(w<2||h<2)return;refrTex.image.width=w;refrTex.image.height=h;const pm=camera.projectionMatrix.elements;surfaceU.uRefrRes.value.set(w,h,pm[0]*w*0.5,pm[5]*h*0.5);surfaceU.uRefrK.value=REFR_K*FX.refrK;try{if(+THREE.REVISION>=165)/** @type {any} */(r).copyFramebufferToTexture(refrTex,REFR_V.set(0,0));else r.copyFramebufferToTexture(REFR_V.set(0,0),refrTex); /* v11.215 (three.js-ready): r165 swapped the arguments */surfaceU.uRefrOn.value=1;}catch(e){}}; // the frame so far (v11.51): copied only under water, only to the screen (the world shadow pass renders the scene to a target and would copy that), sized to the drawing buffer every time (a resize just changes what the next copy allocates); the focal lengths in px from the projection; the uniforms are read when the surface draws, later in the same render
 function updateSurface(){nearBuild();SHORE_U.x=FX.shore?FX.shoreK:0; // the shore's foam (v11.169): its near map and strength
   surface.position.set(Math.round(camera.position.x/SSTEP)*SSTEP,TIDE,Math.round(camera.position.z/SSTEP)*SSTEP);SURF_OCC.position.copy(surface.position);SURF_OCC.visible=OCC.on&&surfaceU.uUnder.value>0.5;} // the occluder (v11.187) under water only // the mesh rides the tide; the shader adds the waves
 // ---------- the sky (v11) ----------
@@ -13852,7 +13860,7 @@ pm.onBeforeCompile=function(sh){sh.uniforms.uPL=plU;sh.uniforms.uPLc=plCU;sh.uni
     .replace('gl_PointSize = size;',()=>{n++;return 'gl_PointSize=size*aSz.x;vA=aSz.y*smoothstep(0.5,2.0,-mvPosition.z)*mix(1.0,exp(-max(uSnA.x-transformed.y,0.0)*uSnA.y),uSnA.z);{vec3 dl=transformed-uPL.xyz;vL=uPL.w/(0.5+dot(dl,dl));}';})
     .replace('#include <logdepthbuf_vertex>',()=>{n++;return 'gl_PointSize=min(gl_PointSize,24.0);\n#include <logdepthbuf_vertex>';});
   sh.fragmentShader=sh.fragmentShader.replace('uniform vec3 diffuse;',()=>{n++;return 'varying float vA;varying float vL;uniform vec3 uPLc;uniform vec3 diffuse;';})
-    .replace('#include <color_fragment>',()=>{n++;return 'diffuseColor.rgb=vColor*(diffuse+uPLc*vL);diffuseColor.a*=vA;';});
+    .replace('#include <color_fragment>',()=>{n++;return 'diffuseColor.rgb=vColor.rgb*(diffuse+uPLc*vL);diffuseColor.a*=vA;';});
   if(n!==5)console.warn('snow: points chunks not as expected ('+n+' of 5); the snow draws uniform');};
 pm.customProgramCacheKey=function(){return 'snow';};
 const plankton=new THREE.Points(pg,pm);plankton.frustumCulled=false;scene.add(plankton);
@@ -14663,7 +14671,7 @@ blM.onBeforeCompile=function(sh){sh.uniforms.uPL=plU;sh.uniforms.uPLc=plCU;let n
     .replace('gl_PointSize = size;',()=>{n++;return 'gl_PointSize=size*aSz.x;vA=aSz.y*smoothstep(0.4,1.5,-mvPosition.z);{vec3 dl=transformed-uPL.xyz;vL=uPL.w/(0.5+dot(dl,dl));}';})
     .replace('#include <logdepthbuf_vertex>',()=>{n++;return 'gl_PointSize=min(gl_PointSize,40.0);\n#include <logdepthbuf_vertex>';});
   sh.fragmentShader=sh.fragmentShader.replace('uniform vec3 diffuse;',()=>{n++;return 'varying float vA;varying float vL;uniform vec3 uPLc;uniform vec3 diffuse;';})
-    .replace('#include <color_fragment>',()=>{n++;return 'diffuseColor.rgb=vColor*(diffuse+uPLc*vL);diffuseColor.a*=vA;';});
+    .replace('#include <color_fragment>',()=>{n++;return 'diffuseColor.rgb=vColor.rgb*(diffuse+uPLc*vL);diffuseColor.a*=vA;';});
   if(n!==5)console.warn('blood: points chunks not as expected ('+n+' of 5); the blood draws uniform');};
 blM.customProgramCacheKey=function(){return 'blood';};
 const blood=new THREE.Points(blG,blM);blood.frustumCulled=false;blood.visible=false;scene.add(blood);
@@ -14737,7 +14745,7 @@ fxM.onBeforeCompile=function(sh){sh.uniforms.uPL=plU;sh.uniforms.uPLc=plCU;let n
     .replace('gl_PointSize = size;',()=>{n++;return 'gl_PointSize=size*aSz.x;vA=aSz.y*smoothstep(0.4,1.5,-mvPosition.z);{vec3 dl=transformed-uPL.xyz;vL=uPL.w/(0.5+dot(dl,dl));}';})
     .replace('#include <logdepthbuf_vertex>',()=>{n++;return 'gl_PointSize=min(gl_PointSize,36.0);\n#include <logdepthbuf_vertex>';});
   sh.fragmentShader=sh.fragmentShader.replace('uniform vec3 diffuse;',()=>{n++;return 'varying float vA;varying float vL;uniform vec3 uPLc;uniform vec3 diffuse;';})
-    .replace('#include <color_fragment>',()=>{n++;return 'diffuseColor.rgb=vColor*(diffuse+uPLc*vL);diffuseColor.a*=vA;';});
+    .replace('#include <color_fragment>',()=>{n++;return 'diffuseColor.rgb=vColor.rgb*(diffuse+uPLc*vL);diffuseColor.a*=vA;';});
   if(n!==5)console.warn('fx: points chunks not as expected ('+n+' of 5); the debris draws uniform');};
 fxM.customProgramCacheKey=function(){return 'fxpts';};
 const fxPts=new THREE.Points(fxG,fxM);fxPts.frustumCulled=false;fxPts.visible=false;scene.add(fxPts);
@@ -17345,7 +17353,7 @@ window.palls=function(n){const p=player.pos;return creatures.filter(c=>c.kind===
 requestAnimationFrame(loop);
 
 }
-requestAnimationFrame(function(){wcacheRead(function(){setTimeout(tethysMain,0);});});
+tethysStart("https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.module.min.js",tethysMain);
 </script>
 </body>
 </html>
