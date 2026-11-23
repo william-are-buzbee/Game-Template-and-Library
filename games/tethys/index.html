@@ -173,7 +173,7 @@ canvas{display:block;outline:none;touch-action:none}
 <div id="fade" class="layer"></div>
 <canvas id="spark" class="layer"></canvas>
 <div id="stats"></div>
-<script>window.TETHYS_BUILD={v:"v11.217",wh:"fe534beef6995816"};</script>
+<script>window.TETHYS_BUILD={v:"v11.218",wh:"f3e8337b0c4f5ecb"};</script>
 <script>
 // loader.js — the page's loader, in tethys.html only, outside the game's bundle and before it: three.js and the world cache fetched side by side, then the
 // game. Since v11.215 (three.js-ready) three.js is loaded as a module — every release after r160 is only that — with import(); its exports are copied onto
@@ -2942,6 +2942,17 @@ function flowAt(x,y,z,out){
 
 // scene.js — app state, quality tier, renderer, camera, lights, shared materials
 if(typeof THREE==='undefined'){document.getElementById('title').textContent='three.js did not load';throw new Error('three.js missing');}
+// v11.218 (the three.js upgrade's work, analysis_project.md §6): r187, the upgrade's target. What differs between it and r128 and is mended both ways
+// keys on this; only these two are tested (test/benchpage.js THREE=187), so a version between is neither. grep `three.js-ready` for the rest.
+const T187=+THREE.REVISION>=187;
+// r128's look on r187 (v11.218): no colour management — r128 took every colour as given and wrote the result as it came (r187 converts sRGB in and
+// out); and the lights' units — r128's three multiplied every light's colour by π (WebGLLights, its legacy mode) where r187 does not, so a light set
+// here is set ×LI and read back ÷LI (atmosphere.js, the snow; haloSet); point lights fall off by r128's formula (below, lightLegacy). Exact, not by eye.
+if(T187)/** @type {any} */(THREE).ColorManagement.enabled=false;
+const LI=T187?Math.PI:1;
+// oneP (v11.218): a transparent double-sided material drawn in one pass, as r128 drew every one — r187 draws its back faces, then its front, unless told
+// (forceSinglePass). The surface from below came out as the sky through it, its fog and refraction lost (test/benchpage.js THREE=187). r187 declares the key.
+function oneP(m){if(T187)/** @type {any} */(m).forceSinglePass=true;return m;}
 
 let mode='menu',t=0;
 const canvas=/** @type {HTMLCanvasElement} */(document.getElementById('c'));
@@ -2976,6 +2987,7 @@ const Q=(function(){
 })();
 
 const renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:Q.aa});
+if(T187)/** @type {any} */(renderer).outputColorSpace=/** @type {any} */(THREE).LinearSRGBColorSpace; // v11.218: written as computed, as r128 wrote it
 const GL2=!!(renderer.capabilities&&renderer.capabilities.isWebGL2); // WebGL2 (v11.187): the caustic's tiles as one array (CAU_ARR) and the flora's variants pulled (VPULL_GLSL); WebGL1 (and the tests' stub) as before
 renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,Q.pr));
 // ---------- the resolution that holds the frame (v11.188) ----------
@@ -3311,11 +3323,14 @@ const MIST_GLSL='float blR(float y,float e){float u=y-e+'+HAZE.soft.toFixed(1)+'
   // plain sun. If a chunk doesn't match, it warns and the sun stays as it was.
   const SUNK_V='\n#ifdef USE_FOG\ndirectLight.color*='+DL_GLSL('(uFogC+uFogR*mvPosition.xyz).y')+'*'+SPEC_DOWN('(uFogC+uFogR*mvPosition.xyz).y')+';\n#endif\n';
   const SUNK_F='\n#ifdef USE_FOG\ndirectLight.color*='+DL_GLSL('vFogPos.y')+'*'+SPEC_DOWN('vFogPos.y')+';\n#endif\n';
-  const reDir=/(getDirectional\w*\s*\(\s*directionalLights?\s*(?:\[\s*i\s*\])?\s*,\s*geometry\s*,\s*directLight\s*\)\s*;)/g;
+  const reDir=/(getDirectional\w*\s*\(\s*directionalLights?\s*(?:\[\s*i\s*\])?\s*,\s*(?:geometry\s*,\s*)?directLight\s*\)\s*;)/g; // r187 (v11.218): getDirectionalLightInfo( directionalLight, directLight ), in the fragment for Lambert too
   let nv=0,nf=0;
   if(C.lights_lambert_vertex)C.lights_lambert_vertex=C.lights_lambert_vertex.replace(reDir,(m)=>{nv++;return m+SUNK_V;});
   if(C.lights_fragment_begin)C.lights_fragment_begin=C.lights_fragment_begin.replace(reDir,(m)=>{nf++;return m+SUNK_F;});
-  if(nv!==1||nf!==1)console.warn('sun-by-depth: light chunks not as expected (lambert '+nv+', phong '+nf+'); the sun is lit by the player\'s depth');
+  if(T187?nf!==1:(nv!==1||nf!==1))console.warn('sun-by-depth: light chunks not as expected (lambert '+nv+', phong '+nf+'); the sun is lit by the player\'s depth');
+  if(T187){const L0='float getDistanceAttenuation(',L1='return distanceFalloff;\n}',s=C.lights_pars_begin||'',a=s.indexOf(L0),b=s.indexOf(L1,a); // lightLegacy (v11.218): r128's point-light falloff
+    if(a<0||b<0)console.warn('lightLegacy: getDistanceAttenuation not as expected; point lights fall off as r187\'s');
+    else C.lights_pars_begin=s.slice(0,a)+'float getDistanceAttenuation( const in float lightDistance, const in float cutoffDistance, const in float decayExponent ) {\n\tif ( cutoffDistance > 0.0 && decayExponent > 0.0 ) return pow( saturate( - lightDistance / cutoffDistance + 1.0 ), decayExponent );\n\treturn 1.0;\n}'+s.slice(b+L1.length);}
 })();
 const hemi=new THREE.HemisphereLight(0x9fd6e0,0x101c1c,0.9);scene.add(hemi);
 const sun=new THREE.DirectionalLight(0xfff2d8,1.2);sun.position.set(SUN_POS[0],SUN_POS[1],SUN_POS[2]);scene.add(sun);
@@ -3329,10 +3344,10 @@ function assignLights(){
   const cx=camera.position.x,cy=camera.position.y,cz=camera.position.z;
   for(const s of lightSources){const dx=s.x-cx,dy=s.y-cy,dz=s.z-cz;s.d=Math.sqrt(dx*dx+dy*dy+dz*dz)-s.distance*0.6;}
   lightSources.sort((a,b)=>a.d-b.d);
-  for(let i=0;i<lightPool.length;i++){const l=lightPool[i],s=lightSources[i];if(s&&s.d<FAR){l.position.set(s.x,s.y,s.z);l.color.setHex(s.color);l.intensity=s.intensity;l.distance=s.distance;}else l.intensity=0;}
+  for(let i=0;i<lightPool.length;i++){const l=lightPool[i],s=lightSources[i];if(s&&s.d<FAR){l.position.set(s.x,s.y,s.z);l.color.setHex(s.color);l.intensity=s.intensity*LI;l.distance=s.distance;}else l.intensity=0;}
   haloSet(0,plight);for(let i=1;i<4;i++)haloSet(i,lightPool[i-1]||null); // the halo's four (v11.166): the own light, then the pool's nearest
 }
-function haloSet(i,l){const k=(typeof FX!=='undefined'&&FX.halo?HALO.k*FX.haloK:0),j=i*4;if(!l||!(l.intensity>0)||!(k>0)){HALO_C[j+3]=0;return;}const p=l.position,c=l.color,e=l.intensity*k;HALO_P[j]=p.x;HALO_P[j+1]=p.y;HALO_P[j+2]=p.z;HALO_P[j+3]=l.distance||40;HALO_C[j]=c.r*e;HALO_C[j+1]=c.g*e;HALO_C[j+2]=c.b*e;HALO_C[j+3]=1;} // never NaN into the arrays (r128 passes a typed array through only if its first element is a number)
+function haloSet(i,l){const k=(typeof FX!=='undefined'&&FX.halo?HALO.k*FX.haloK:0),j=i*4;if(!l||!(l.intensity>0)||!(k>0)){HALO_C[j+3]=0;return;}const p=l.position,c=l.color,e=l.intensity/LI*k;HALO_P[j]=p.x;HALO_P[j+1]=p.y;HALO_P[j+2]=p.z;HALO_P[j+3]=l.distance||40;HALO_C[j]=c.r*e;HALO_C[j+1]=c.g*e;HALO_C[j+2]=c.b*e;HALO_C[j+3]=1;} // never NaN into the arrays (r128 passes a typed array through only if its first element is a number)
 
 // The through-water tint from above (v5–v11.41: every fragment under the water level mixed toward TINT_COL by 1−exp(−0.05·depth) when the camera
 // was in air) is gone in v11.42: the two-segment fog paints the water's part of the ray instead, by path length and place (UPWELL is what is left of
@@ -3543,7 +3558,12 @@ sun.castShadow=true;sun.shadow.bias=0;sun.shadow.camera.up.set(0,0,1);
 renderer.shadowMap.enabled=false;renderer.shadowMap.type=THREE.BasicShadowMap; // enabled per frame by updateShadow; Basic: a plain depth pass (the filtering is ours)
 function setShadowSize(L){L=L||sun;const n=shadowSize();if(L.shadow.mapSize.x===n)return;L.shadow.mapSize.set(n,n);dropShadowMap(L);} // three makes the map again at the next shadow pass
 function dropShadowMap(L){if(L.shadow.map){L.shadow.map.dispose();L.shadow.map=null;}}
-function castOn(g){g.traverse(o=>{if(o.isMesh)o.castShadow=true;});} // a built creature casts: the menu's, the bestiary's, the lab's, every spawn
+// v11.218: on r187 the casters' depth is written as r128 writes it by default, packed into the colour (RGBADepthPacking) — what shDepth unpacks. r187's
+// own depth material packs nothing (its map keeps depth in a depth texture), so without this the creatures' shadows vanish there. r187 declares
+// customDepthMaterial on every Object3D, so setting it changes no object's shape; r128 does not (and needs none), so there it is left alone.
+const SH_DEPTH=T187?new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking}):null;
+function shCast(o,on){if(SH_DEPTH&&!o.customDepthMaterial)o.customDepthMaterial=SH_DEPTH;o.castShadow=on;}
+function castOn(g){g.traverse(o=>{if(o.isMesh)shCast(o,true);});} // a built creature casts: the menu's, the bestiary's, the lab's, every spawn
 const SHM_BEST=[];for(let i=0;i<Q.casters;i++)SHM_BEST.push({c:null,s:0});
 // The box's frame (v11.30, shared with the static map below): SH_F holds x (0..2), y (3..5) and z = the light (6..8). The light: the
 // refracted sun under water and the true one in air, blended by the crossing; under cloud the key rises to the zenith. z the light,
@@ -3580,7 +3600,7 @@ function updateShadow(){
     if(m<room){SHM_BEST[m].c=c;SHM_BEST[m].s=s;m++;}else{let w=0;for(let i=1;i<m;i++)if(SHM_BEST[i].s>SHM_BEST[w].s)w=i;if(s<SHM_BEST[w].s){if(SHM_BEST[w].c.cast)castSet(SHM_BEST[w].c,false);SHM_BEST[w].c=c;SHM_BEST[w].s=s;}else if(c.cast)castSet(c,false);}}
   for(let i=0;i<m;i++)if(!SHM_BEST[i].c.cast)castSet(SHM_BEST[i].c,true);
 }
-function castSet(c,on){c.cast=on;for(const o of c.shM)o.castShadow=on;}
+function castSet(c,on){c.cast=on;for(const o of c.shM)shCast(o,on);}
 // ---------- the world's shadows (v11.30): a second map for what does not move, rendered only when something has changed ----------
 // The creatures' map above is redrawn every frame because they move. The flora, the rock, the structures and the ground don't, so
 // their map (`sunS`, a DirectionalLight that is never in the scene — it lights nothing; only its shadow is used) is rendered by hand,
@@ -3679,10 +3699,11 @@ const LIGHT_GLSL=LIGHT_FX?'\n#ifdef USE_FOG\n{float dep=uTint.x-vFogPos.y;if(uSu
   'float dl='+DL_GLSL('vFogPos.y')+';gl_FragColor.rgb*=1.0-uLightK.y*(1.0-sh)*uSunW.w*dl*nl*sd;}'+ // v11.164: a shadow takes away the beam it stands in, by channel
   (Q.cldSh?'if(dep<0.0&&uSunW.w>0.002){vec3 fc=normalize(cross(dFdx(vFogPos),dFdy(vFogPos)));float ncl=clamp(dot(fc,uFogS.xyz)*2.5,0.0,1.0);float cs=cloudSh(vFogPos),ch=1.0-'+CLD_SHADE.toFixed(2)+'*uCld.w;gl_FragColor.rgb*=1.0-uSunW.w*ncl*(1.0-clamp(cs/max(ch,0.05),0.0,1.0));}':'')+ // the clouds' shadows in air (v11.87, clouds.js): the beam's share taken where the deck stands between the point and the luminary, relative to the shade over the player (the sun light is already the player's own: a face under more cloud than the player darkens, one under less is left as it is — the surface restores its direct light exactly, atmosphere.js SURF_MAT)
   '}\n#endif\n':'';
-// shDepth: three's RGBA depth packing undone (packing.glsl's unpackRGBAToDepth, written out so no chunk is relied on); shTap: one tap of
+// shDepth: three's RGBA depth packing undone (packing.glsl's unpackRGBAToDepth, written out so no chunk is relied on; r187 packs the bytes the other way
+// round, its most significant in red — v11.218); shTap: one tap of
 // the map, a shadow if the caster is nearer the light than the fragment, faded by the metres between them
 const LIGHT_PARS=CAU_PARS+'uniform float uTime;uniform float uChop;uniform vec4 uSunW;uniform vec2 uLightK;uniform sampler2D uShMap;uniform mat4 uShMat;uniform vec4 uShP;uniform vec4 uShL;uniform sampler2D uShMapS;uniform mat4 uShMatS;uniform vec4 uShPS;uniform vec4 uShLS;\n'+
-  'float shDepth(vec4 v){return dot(v,vec4(0.99609375/16777216.0,0.99609375/65536.0,0.99609375/256.0,0.99609375));}\n'+
+  (T187?'float shDepth(vec4 v){return dot(v,vec4(0.99609375,0.99609375/256.0,0.99609375/65536.0,1.0/16777216.0));}':'float shDepth(vec4 v){return dot(v,vec4(0.99609375/16777216.0,0.99609375/65536.0,0.99609375/256.0,0.99609375));}')+'\n'+
   'float shTap(sampler2D m,vec2 uv,float z,float fd){float dz=z-shDepth(texture2D(m,uv));return dz>0.0?exp(-dz*uShL.w/fd):0.0;}\n'; // both maps are 2·SHM_D deep, so uShL.w serves the world's too
 // A vertex that draws nothing leaves the shader at once (v11.125): GONE puts it outside every clip plane and returns, before three's lighting,
 // the fog and the tint's own vertex work, so all its triangles are dropped as the collapse to the instance's origin dropped them (degenerate),
@@ -3713,7 +3734,11 @@ function addTint(m,key,small,band,grid,cls){ // grid (v11.40): 'world' puts the 
 // face through — the canopy from below, lit through at a sunset. `k` is the share (0.35 blades); a stipe or a trunk is not thin. If the
 // chunk isn't the expected text it warns once and the material lights as before. A depth material (DEPTH_PASS, v11.30) has no Lambert chunk and is left alone.
 const THIN_RE=/reflectedLight\.directDiffuse\s*=\s*\(\s*gl_FrontFacing\s*\)\s*\?\s*vLightFront\s*:\s*vLightBack\s*;/;let thinWarned=false;
-function thinLight(sh,k){if(sh.defines&&sh.defines.DEPTH_PASS)return;const f=sh.fragmentShader;if(!THIN_RE.test(f)){if(!thinWarned){thinWarned=true;console.warn('thinLight: lambert chunk not as expected; blades are opaque');}return;}
+const THIN_NL='float dotNL = saturate( dot( geometryNormal, directLight.direction ) );',THIN_INC='#include <lights_lambert_pars_fragment>';
+function thinLight(sh,k){if(sh.defines&&sh.defines.DEPTH_PASS)return;const f=sh.fragmentShader;
+  if(T187){const C=THREE.ShaderChunk.lights_lambert_pars_fragment; // v11.218: r187 lights Lambert by the pixel: each light's share of the far face's light, in RE_Direct_Lambert (the normal is the face's own there)
+    if(!C||C.indexOf(THIN_NL)<0||f.indexOf(THIN_INC)<0){if(!thinWarned){thinWarned=true;console.warn('thinLight: lambert chunk not as expected; blades are opaque');}return;}
+    sh.fragmentShader=f.replace(THIN_INC,()=>C.replace(THIN_NL,'float dotNL = mix( saturate( dot( geometryNormal, directLight.direction ) ), saturate( - dot( geometryNormal, directLight.direction ) ), '+k.toFixed(2)+' );'));return;}if(!THIN_RE.test(f)){if(!thinWarned){thinWarned=true;console.warn('thinLight: lambert chunk not as expected; blades are opaque');}return;}
   sh.fragmentShader=f.replace(THIN_RE,'reflectedLight.directDiffuse=mix((gl_FrontFacing)?vLightFront:vLightBack,(gl_FrontFacing)?vLightBack:vLightFront,'+k.toFixed(2)+');');}
 function cutLambert(){const m=new THREE.MeshLambertMaterial({vertexColors:true});m.cutAt=null;m.onBeforeCompile=function(sh){sh.uniforms.uCut=cutUOf(m);sh.vertexShader=CUT_V+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>'+FAR_CUT+FAR_FADE);};return m;} // v11.155: MAT's instanced flora (the fans, limpets, chimneys, the sheds) fade at FLORA_FAR like the rest; the creatures are never instanced, and the cut is USE_INSTANCING's alone
 const MAT=addTint(cutLambert(),'lamc',true,undefined,undefined,'body'); // creatures, small flora (instanced: the plant class in the shader). 'lamc' (v11.155): its own program now — MAT_HIT and MATBIG keep 'lam'
@@ -3877,7 +3902,8 @@ const MATTRF=addTint(lodMaterial(TREE_LOD),'lamdslod',true,undefined,undefined,'
 let VPULL_TEX=null;const vpullMats=new Map();
 const VPULL_V='uniform highp sampler2D uPull;attribute vec2 aPull;vec3 pPos,pNor,pCol;\n';
 const VPULL_MAIN=()=>'{int v=int(aPull.x+aVar*aPull.y+0.5);ivec2 q=ivec2((v%'+VPULL.row+')*3,v/'+VPULL.row+');vec4 pa=texelFetch(uPull,q,0);if(pa.w>0.5)'+GONE+'pPos=pa.xyz;pNor=texelFetch(uPull,q+ivec2(1,0),0).xyz;pCol=texelFetch(uPull,q+ivec2(2,0),0).xyz;}\n';
-const VPULL_COLOR='\n#if defined( USE_COLOR_ALPHA )\nvColor=vec4(1.0);\n#elif defined( USE_COLOR ) || defined( USE_INSTANCING_COLOR ) || defined( USE_BATCHING_COLOR )\nvColor=vec3(1.0);\n#endif\n#ifdef USE_COLOR\nvColor.rgb*=pCol;\n#endif\n#ifdef USE_INSTANCING_COLOR\nvColor.rgb*=instanceColor.xyz;\n#endif\n'; // r128's color_vertex on the fetched colour; v11.215 (three.js-ready): .rgb, for a vColor that is a vec4 (USE_COLOR_ALPHA), and USE_BATCHING_COLOR (r165) declares it too
+const VPULL_COLOR=T187?'\n#if defined( USE_COLOR ) || defined( USE_COLOR_ALPHA ) || defined( USE_INSTANCING_COLOR ) || defined( USE_BATCHING_COLOR )\nvColor=vec4(1.0);\n#endif\n#ifdef USE_COLOR\nvColor.rgb*=pCol;\n#endif\n#ifdef USE_INSTANCING_COLOR\nvColor.rgb*=instanceColor.xyz;\n#endif\n' // v11.218: r187's vColor is a vec4 whenever it is declared (its color_pars_vertex)
+  :'\n#if defined( USE_COLOR_ALPHA )\nvColor=vec4(1.0);\n#elif defined( USE_COLOR ) || defined( USE_INSTANCING_COLOR )\nvColor=vec3(1.0);\n#endif\n#ifdef USE_COLOR\nvColor.rgb*=pCol;\n#endif\n#ifdef USE_INSTANCING_COLOR\nvColor.rgb*=instanceColor.xyz;\n#endif\n'; // r128's color_vertex on the fetched colour (a vec3 unless USE_COLOR_ALPHA)
 function vpullGLSL(sh){sh.uniforms.uPull={value:VPULL_TEX};
   sh.vertexShader=VPULL_V+sh.vertexShader.split(VAR_COLLAPSE).join('').replace('void main() {','void main() {\n'+VPULL_MAIN()).replace('#include <color_vertex>',VPULL_COLOR).replace('#include <beginnormal_vertex>','vec3 objectNormal=pNor;').replace('#include <begin_vertex>','vec3 transformed=pPos;');}
 function vpullMat(m){let p=vpullMats.get(m);if(p)return p;p=m.clone();const ob=m.onBeforeCompile,key=m.customProgramCacheKey();
@@ -13124,10 +13150,10 @@ function splash(pos,v){
   // crossing within 160 m makes one too (creatures_ai). No radial gradient: a flat polygon, the low-poly foam.
   const r0=0.35+0.18*Math.sqrt(v),K=SKY,lit=K.skyL; // 0.86 m at v 8, grown to 1.7: a patch 3–4 m across for a 3 m animal (the first cut at twice this read as a raft, seen)
   const mk=(dy,cr,cg,cb,ro)=>{const m=10,pa=new Float32Array((m+2)*3),idx=[],rr=[];for(let i=0;i<m;i++)rr.push(rnd(0.7,1.15));for(let i=0;i<=m;i++){const a=i/m*TAU,q=rr[i%m];pa[(i+1)*3]=Math.cos(a)*q;pa[(i+1)*3+1]=0;pa[(i+1)*3+2]=Math.sin(a)*q;if(i<m)idx.push(0,i+2,i+1);}
-    const gg=new THREE.BufferGeometry();gg.setAttribute('position',new THREE.BufferAttribute(pa,3));gg.setIndex(idx);const mm=new THREE.Mesh(gg,new THREE.MeshBasicMaterial({color:new THREE.Color(cr*K.tint[0]*lit,cg*K.tint[1]*lit,cb*K.tint[2]*lit),transparent:true,opacity:0.8,depthWrite:false,side:THREE.DoubleSide}));
+    const gg=new THREE.BufferGeometry();gg.setAttribute('position',new THREE.BufferAttribute(pa,3));gg.setIndex(idx);const mm=new THREE.Mesh(gg,oneP(new THREE.MeshBasicMaterial({color:new THREE.Color(cr*K.tint[0]*lit,cg*K.tint[1]*lit,cb*K.tint[2]*lit),transparent:true,opacity:0.8,depthWrite:false,side:THREE.DoubleSide})));
     mm.renderOrder=ro;mm.frustumCulled=false;mm.position.set(pos.x,y0+dy,pos.z);mm.scale.set(r0,1,r0);scene.add(mm);return mm;};
   const ring=(()=>{const m=12,pa=new Float32Array(m*2*3),idx=[];for(let i=0;i<m;i++){const a=i/m*TAU,q=rnd(0.9,1.08);pa[i*6]=Math.cos(a)*q;pa[i*6+2]=Math.sin(a)*q;pa[i*6+3]=Math.cos(a)*q*0.8;pa[i*6+5]=Math.sin(a)*q*0.8;const j=(i+1)%m;idx.push(i*2,j*2,i*2+1,j*2,j*2+1,i*2+1);} // the ring (v11.53, POLISH 16): an annulus that runs out from the patch and fades
-    const gg=new THREE.BufferGeometry();gg.setAttribute('position',new THREE.BufferAttribute(pa,3));gg.setIndex(idx);const mm=new THREE.Mesh(gg,new THREE.MeshBasicMaterial({color:new THREE.Color(0.92*K.tint[0]*lit,0.95*K.tint[1]*lit,0.95*K.tint[2]*lit),transparent:true,opacity:0.5,depthWrite:false,side:THREE.DoubleSide}));mm.renderOrder=1.5;mm.frustumCulled=false;mm.position.set(pos.x,y0+RES_UP+0.02,pos.z);mm.scale.set(r0,1,r0);scene.add(mm);return mm;})();
+    const gg=new THREE.BufferGeometry();gg.setAttribute('position',new THREE.BufferAttribute(pa,3));gg.setIndex(idx);const mm=new THREE.Mesh(gg,oneP(new THREE.MeshBasicMaterial({color:new THREE.Color(0.92*K.tint[0]*lit,0.95*K.tint[1]*lit,0.95*K.tint[2]*lit),transparent:true,opacity:0.5,depthWrite:false,side:THREE.DoubleSide})));mm.renderOrder=1.5;mm.frustumCulled=false;mm.position.set(pos.x,y0+RES_UP+0.02,pos.z);mm.scale.set(r0,1,r0);scene.add(mm);return mm;})();
   residues.push({up:mk(RES_UP,0.90,0.93,0.93,1.5),dn:mk(-RES_DN,0.70,0.74,0.74,-0.5),ring:ring,x:pos.x,z:pos.z,r0:r0,t:0});
   if(residues.length>RES_N)dropRes(residues.shift());
   const nb=20,ba=new Float32Array(nb*3),bv=new Float32Array(nb*3);for(let i=0;i<nb;i++){ba[i*3]=rnd(-0.5,0.5);ba[i*3+1]=y0-rnd(0.3,1.8);ba[i*3+2]=rnd(-0.5,0.5);bv[i*3]=rnd(-0.15,0.15);bv[i*3+1]=rnd(0.2,0.35);bv[i*3+2]=rnd(-0.15,0.15);}
@@ -13405,7 +13431,10 @@ const sg=(function(){
 // surface can fringe, narrow while the cap is. Five taps blurred REFR_BLUR px, wider with distance, where the ripples are under a pixel. The switch is
 // `refraction` on the effects list with its `wobble` slider (FX.refrK, a multiplier on REFR_K); off, the underside blends over the frame plainly as v11.50 did.
 const REFR_K=1.0,REFR_RIP=0.35,REFR_MAX=0.05,REFR_BLUR=1.5; // REFR_K: the differential shift's gain (1 physical); REFR_RIP: the ripple layer's share of the facet's tilt (the rings alone, ripSlopeR — with the capillaries the sky from 17 m was an interlace of 4–8 px stripes, their shift more than their wavelength; seen); REFR_MAX: the cap, fraction of the screen's height (0.05: 45 px at 900); REFR_BLUR: the taps' radius in px at the eye, ×2.5 at 120 m
-const refrTex=new THREE.DataTexture(null,1,1,+THREE.REVISION>=137?THREE.RGBAFormat:THREE.RGBFormat,THREE.UnsignedByteType) /* v11.215 (three.js-ready): a later three's WebGL2 storage takes no unsized RGB; r128 keeps RGB */;refrTex.minFilter=refrTex.magFilter=THREE.LinearFilter;refrTex.generateMipmaps=false;refrTex.wrapS=refrTex.wrapT=THREE.ClampToEdgeWrapping;refrTex.needsUpdate=true; // RGB: the drawing buffer has no alpha (WebGLRenderer alpha:false), and a copy may not ask for a component the framebuffer lacks
+// v11.218: on r187 a copy of the frame goes into a FramebufferTexture (its storage made at its size; r187 copies into nothing else), a new one when the
+// drawing buffer's size changes; r128's DataTexture of no data, sized each copy, as before
+function refrFb(w,h){const t=new /** @type {any} */(THREE).FramebufferTexture(w,h);t.minFilter=t.magFilter=THREE.LinearFilter;t.generateMipmaps=false;return t;}
+let refrTex=T187?refrFb(1,1):new THREE.DataTexture(null,1,1,+THREE.REVISION>=137?THREE.RGBAFormat:THREE.RGBFormat,THREE.UnsignedByteType) /* v11.215 (three.js-ready): a later three's WebGL2 storage takes no unsized RGB; r128 keeps RGB */;if(!T187){refrTex.minFilter=refrTex.magFilter=THREE.LinearFilter;refrTex.generateMipmaps=false;refrTex.wrapS=refrTex.wrapT=THREE.ClampToEdgeWrapping;refrTex.needsUpdate=true;} // RGB: the drawing buffer has no alpha (WebGLRenderer alpha:false), and a copy may not ask for a component the framebuffer lacks
 const REFR_V=new THREE.Vector2();
 const surfaceU={uSss:{value:new THREE.Vector3(0,0,0)},uRefr:{value:refrTex},uRefrOn:{value:0},uRefrRes:{value:new THREE.Vector4(1,1,1,1)},uRefrK:{value:REFR_K},uAmp:{value:WAVE_AMP},uUnder:{value:1},uWin:{value:new THREE.Vector3(1,1,1)},uGlint:{value:new THREE.Vector3(1.0,0.97,0.88)},uRain:{value:0},uBody:{value:SURF_BODY},uMirK:{value:1},uRim:{value:RIM.k},uWinD:{value:1/WIN_DET.L}}; // (uSpk, the breakers' glow of v11.160.1, struck v11.162 with the wake)
 // uRefr (v11.51): the frame before the surface, uRefrOn 1 while it is fresh, uRefrRes (width, height, focal x, focal y — all px), uRefrK the wobble's gain; uUnder: 1 when the camera is under water; uWin: Snell's window's light relative to noon; uGlint: the sun's (or the moon's) colour for the refracted glint;
@@ -13417,7 +13446,7 @@ const SURF_MAT=(function(){
   // swung it from 0.7 to 0.9 and the foreshortened grid read as tennis-court wedges from just above the water; the facet still lights the
   // diffuse, the specular and the glint. The underside's window (cv) stays per facet: each facet flipping between the bright window and
   // the mirror is what makes the surface from below read as moving water (v11.7's first cut smoothed it too, and the person missed it).
-  const m=new THREE.MeshPhongMaterial({color:0x123a4c,specular:0xd8d8d8,shininess:500,emissive:0x081820,transparent:true,opacity:0.66,side:THREE.DoubleSide,flatShading:true,depthWrite:true}); // depth is written since v11.5: a crest's front slope hides the slopes behind it (from a low camera the far waves' back slopes are back faces, and they were drawn over the front ones in index order)
+  const m=oneP(new THREE.MeshPhongMaterial({color:0x123a4c,specular:0xd8d8d8,shininess:500,emissive:0x081820,transparent:true,opacity:0.66,side:THREE.DoubleSide,flatShading:true,depthWrite:true})); // depth is written since v11.5: a crest's front slope hides the slopes behind it (from a low camera the far waves' back slopes are back faces, and they were drawn over the front ones in index order)
   m.onBeforeCompile=function(sh){
     sh.uniforms.uTime=timeU;sh.uniforms.uChop=chopU;sh.uniforms.uNearF={value:NEAR_F};sh.uniforms.uNearO={value:NEAR_O};sh.uniforms.uShore={value:SHORE_U};sh.uniforms.uSss=surfaceU.uSss;sh.uniforms.uAmp=surfaceU.uAmp;sh.uniforms.uUnder=surfaceU.uUnder;sh.uniforms.uWin=surfaceU.uWin;sh.uniforms.uGlint=surfaceU.uGlint;sh.uniforms.uRain=surfaceU.uRain;sh.uniforms.uBody=surfaceU.uBody;sh.uniforms.uMirK=surfaceU.uMirK;sh.uniforms.uRim=surfaceU.uRim;sh.uniforms.uSunW={value:SUN_W};sh.uniforms.uWinD=surfaceU.uWinD;sh.uniforms.uRefr=surfaceU.uRefr;sh.uniforms.uRefrOn=surfaceU.uRefrOn;sh.uniforms.uRefrRes=surfaceU.uRefrRes;sh.uniforms.uRefrK=surfaceU.uRefrK;sh.uniforms.uFogP={value:FOG_PSURF};for(let i=0;i<CAU_TEX.length;i++)sh.uniforms['uCauR'+i]={value:CAU_TEX[i].g};sh.uniforms.uCauG={value:CAU_GTEX};sh.uniforms.uWindOff=windOffU;// v11.52: the Snell window and its cloud march are gone from the surface (the person, 15 Sep: it looks bad); the sky's uniforms are no longer wired here. FOG_PSURF (v11.42): the surface is the boundary — its ray is fogged in the camera's medium whole (scene.js). v11.44: for one version this comment sat mid-line and ate the six bindings after it — the surface's fog set fell back to the split one and its own crests were classed under water: dark patches along every far crest from above
     sh.vertexShader='uniform float uTime;uniform sampler2D uFloorMap;uniform vec2 uWmO;attribute float aSpace;varying float vH;varying vec2 vWp;varying vec3 vNup;varying float vBrk;varying float vSpace;varying vec2 vDw;\n'+WAVE_DEP_GLSL+WAVE_GLSL+WAVE_SLOPE_GLSL+sh.vertexShader.replace('#include <begin_vertex>',
@@ -13465,7 +13494,7 @@ const SURF_OCC=(function(){const m=new THREE.MeshPhongMaterial({flatShading:true
   m.customProgramCacheKey=function(){return 'surfocc';};m.extensions={derivatives:true};
   const o=new THREE.Mesh(sg,m);o.frustumCulled=false;o.renderOrder=-12;o.visible=false;scene.add(o);return o;})();
 const refrMark=(function(){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(0),3));const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({colorWrite:false,depthWrite:false}));m.frustumCulled=false;m.renderOrder=0.5;scene.add(m);return m;})(); // the copy's place in the frame (v11.51, REFR_* above): an empty mesh (r128 lists it and returns from renderBufferDirect at its zero-length position) whose onBeforeRender runs in the opaque pass after everything at renderOrder 0 and before the player's body at 1
-refrMark.onBeforeRender=function(r,sc,cam){surfaceU.uRefrOn.value=0;if(!FX.refract||surfaceU.uUnder.value<0.5||cam!==camera||r.getRenderTarget()!==null)return;r.getDrawingBufferSize(REFR_V);const w=REFR_V.x|0,h=REFR_V.y|0;if(w<2||h<2)return;refrTex.image.width=w;refrTex.image.height=h;const pm=camera.projectionMatrix.elements;surfaceU.uRefrRes.value.set(w,h,pm[0]*w*0.5,pm[5]*h*0.5);surfaceU.uRefrK.value=REFR_K*FX.refrK;try{if(+THREE.REVISION>=165)/** @type {any} */(r).copyFramebufferToTexture(refrTex,REFR_V.set(0,0));else r.copyFramebufferToTexture(REFR_V.set(0,0),refrTex); /* v11.215 (three.js-ready): r165 swapped the arguments */surfaceU.uRefrOn.value=1;}catch(e){}}; // the frame so far (v11.51): copied only under water, only to the screen (the world shadow pass renders the scene to a target and would copy that), sized to the drawing buffer every time (a resize just changes what the next copy allocates); the focal lengths in px from the projection; the uniforms are read when the surface draws, later in the same render
+refrMark.onBeforeRender=function(r,sc,cam){surfaceU.uRefrOn.value=0;if(!FX.refract||surfaceU.uUnder.value<0.5||cam!==camera||r.getRenderTarget()!==null)return;r.getDrawingBufferSize(REFR_V);const w=REFR_V.x|0,h=REFR_V.y|0;if(w<2||h<2)return;if(T187){if(refrTex.image.width!==w||refrTex.image.height!==h){refrTex.dispose();refrTex=refrFb(w,h);surfaceU.uRefr.value=refrTex;}}else{refrTex.image.width=w;refrTex.image.height=h;}const pm=camera.projectionMatrix.elements;surfaceU.uRefrRes.value.set(w,h,pm[0]*w*0.5,pm[5]*h*0.5);surfaceU.uRefrK.value=REFR_K*FX.refrK;try{if(+THREE.REVISION>=165)/** @type {any} */(r).copyFramebufferToTexture(refrTex,REFR_V.set(0,0));else r.copyFramebufferToTexture(REFR_V.set(0,0),refrTex); /* v11.215 (three.js-ready): r165 swapped the arguments */surfaceU.uRefrOn.value=1;}catch(e){}}; // the frame so far (v11.51): copied only under water, only to the screen (the world shadow pass renders the scene to a target and would copy that), sized to the drawing buffer every time (a resize just changes what the next copy allocates); the focal lengths in px from the projection; the uniforms are read when the surface draws, later in the same render
 function updateSurface(){nearBuild();SHORE_U.x=FX.shore?FX.shoreK:0; // the shore's foam (v11.169): its near map and strength
   surface.position.set(Math.round(camera.position.x/SSTEP)*SSTEP,TIDE,Math.round(camera.position.z/SSTEP)*SSTEP);SURF_OCC.position.copy(surface.position);SURF_OCC.visible=OCC.on&&surfaceU.uUnder.value>0.5;} // the occluder (v11.187) under water only // the mesh rides the tide; the shader adds the waves
 // ---------- the sky (v11) ----------
@@ -13754,12 +13783,12 @@ for(let i=0;i<SH_N;i++){const b=i*4;shV[b]=0;shV[b+1]=0;shV[b+2]=1;shV[b+3]=1;sh
 const shI=new Uint16Array(SH_N*6);for(let i=0;i<SH_N;i++){const b=i*4,k=i*6;shI[k]=b;shI[k+1]=b+1;shI[k+2]=b+2;shI[k+3]=b;shI[k+4]=b+2;shI[k+5]=b+3;}
 const shG=new THREE.BufferGeometry();shG.setAttribute('position',new THREE.BufferAttribute(shP,3));shG.setAttribute('uv',new THREE.BufferAttribute(shUV,2));shG.setAttribute('aA',new THREE.BufferAttribute(shA,1));shG.setAttribute('aV',new THREE.BufferAttribute(shV,1));shG.setAttribute('aPh',new THREE.BufferAttribute(shPh,1));shG.setIndex(new THREE.BufferAttribute(shI,1));
 const shU={uTime:timeU,uCol:{value:new THREE.Color(0.55,0.72,0.8)},uK:{value:0},uFogP:{value:FOG_PS},uFogD:{value:SEA_FOG.dens}};
-const shM=new THREE.ShaderMaterial({uniforms:shU,transparent:true,depthWrite:false,depthTest:true,blending:THREE.CustomBlending,blendEquation:THREE.AddEquation,blendSrc:THREE.OneMinusDstColorFactor,blendDst:THREE.OneFactor,side:THREE.DoubleSide, // screen, not additive (v11.50.2): dst+src*(1-dst) — what a shaft adds is scaled by the pixel's distance from white, so it can never clip. Kept as a bound; the person's white patch the shape of a shaft (15 Sep) was the draw order, see renderOrder below (v11.50.3)
+const shM=oneP(new THREE.ShaderMaterial({uniforms:shU,transparent:true,depthWrite:false,depthTest:true,blending:THREE.CustomBlending,blendEquation:THREE.AddEquation,blendSrc:THREE.OneMinusDstColorFactor,blendDst:THREE.OneFactor,side:THREE.DoubleSide, // screen, not additive (v11.50.2): dst+src*(1-dst) — what a shaft adds is scaled by the pixel's distance from white, so it can never clip. Kept as a bound; the person's white patch the shape of a shaft (15 Sep) was the draw order, see renderOrder below (v11.50.3)
   
   vertexShader:'attribute float aA;attribute float aV;attribute float aPh;varying float vA;varying float vV;varying float vPh;varying float vD;varying vec2 vU;\nvoid main(){vA=aA;vV=aV;vPh=aPh;vU=uv;vec4 mv=modelViewMatrix*vec4(position,1.0);vD=length(mv.xyz);gl_Position=projectionMatrix*mv;}',
   fragmentShader:'uniform float uTime;uniform vec3 uCol;uniform float uK;uniform vec4 uFogP;uniform float uFogD;varying float vA;varying float vV;varying float vPh;varying float vD;varying vec2 vU;\n'+
     'void main(){float w=1.0-abs(vU.x*2.0-1.0);w*=w;float pr=smoothstep(0.0,0.14,vV)*exp(-vV*2.4);float fl=1.0;'+
-    'float d=vD;float tn=exp(-uFogD*uFogD*d*d);float ex=mix(exp(-uFogP.x*d),tn,uFogP.y)'+FOG_CUT_GLSL+';gl_FragColor=vec4(uCol*(uK*vA*w*pr*fl*ex),1.0);}'});
+    'float d=vD;float tn=exp(-uFogD*uFogD*d*d);float ex=mix(exp(-uFogP.x*d),tn,uFogP.y)'+FOG_CUT_GLSL+';gl_FragColor=vec4(uCol*(uK*vA*w*pr*fl*ex),1.0);}'}));
 const shafts=new THREE.Mesh(shG,shM);shafts.frustumCulled=false;shafts.renderOrder=0;shafts.visible=false;scene.add(shafts); // renderOrder 0 (v11.50.3; was -3): after the surface, which is -1 under water and writes depth. Drawn before it, a shaft was erased wherever the surface was drawn over it — the whole far water above the horizon line — and survived only on the far kelp crowns and the floor, which sit in front of the surface: the person's white patch the shape of a shaft, made of crowns (15 Sep). After the surface its light lies over the water and the crowns alike; before the fume and the rain (2)
 function shHash(i,j,k){let n=(Math.imul(i,73856093)^Math.imul(j,19349663)^Math.imul(k,83492791))|0;n=Math.imul(n^(n>>>13),1274126177);n=(n^(n>>>16))>>>0;return n/4294967296;}
 function updateShafts(above,wk){
@@ -13980,7 +14009,7 @@ function updatePlankton(dt){
   }
   {const ox=ORIGIN.x,oz=ORIGIN.z;for(let i=0;i<PN;i++){ppG[i*3]=pp[i*3]-ox;ppG[i*3+1]=pp[i*3+1];ppG[i*3+2]=pp[i*3+2]-oz;}plankton.position.set(ox,0,oz);}
   pg.attributes.position.needsUpdate=true;pg.attributes.aSz.needsUpdate=true;if(snDirty){pg.attributes.color.needsUpdate=true;snDirty=false;}
-  plU.value.set(plight.position.x-ORIGIN.x,plight.position.y,plight.position.z-ORIGIN.z,plight.intensity*1.6); // against the render origin (v11.113): the snow, the debris and the blood read it beside their points'
+  plU.value.set(plight.position.x-ORIGIN.x,plight.position.y,plight.position.z-ORIGIN.z,plight.intensity/LI*1.6); // against the render origin (v11.113): the snow, the debris and the blood read it beside their points'
 }
 
 const fogTarget=new THREE.Color(),hemiSkyA=new THREE.Color(AIR.hemiSky),hemiSkyW=new THREE.Color(ABOVE.sky[0],ABOVE.sky[1],ABOVE.sky[2]),hemiGroundA=new THREE.Color(AIR.hemiGround),wmHere=[0,0,0,0],skyT=new THREE.Color(),skyT2=new THREE.Color(),WHITE=new THREE.Color(1,1,1);
@@ -14056,11 +14085,11 @@ function updateAtmosphere(dt){
   // below, the pads of the canopy above all, read as water-dark rather than black)
   hemiAir.copy(FX.warm?hemiSkyW:hemiSkyA).multiplyScalar(Math.pow(K.skyL,0.85)).multiply(skyT2.setRGB(K.tintS[0],K.tintS[1],K.tintS[2]));hemiAirG.copy(hemiGroundA).multiplyScalar(K.skyL).multiply(skyT2.setRGB(tint[0],tint[1],tint[2])); // v11.172: the air's fill is the sky's light (tintS), the ground's bounce the sun's and the sky's (tint)
   hemiSea.copy(seaFogC).multiplyScalar(1.8);hemiSeaG.copy(seaFogC).multiplyScalar(SEA_FOG.ground);
-  hemi.intensity=lerp(glowK(player.pos.y,df),FX.warm?ABOVE.fill:0.85,k); // v11.175: the air's fill (ABOVE, `warm sun`)hemi.color.copy(hemiSea).lerp(hemiAir,k);hemi.groundColor.copy(hemiSeaG).lerp(hemiAirG,k);
+  hemi.intensity=lerp(glowK(player.pos.y,df),FX.warm?ABOVE.fill:0.85,k)*LI; // v11.175: the air's fill (ABOVE, `warm sun`)hemi.color.copy(hemiSea).lerp(hemiAir,k);hemi.groundColor.copy(hemiSeaG).lerp(hemiAirG,k);
   const sunSea=(0.9+0.2*Math.sin(t*2.3)+0.1*Math.sin(t*3.9))*1.2*K.lumLw; // the surface value: the shader scales it by the daylight at the lit point (scene.js, sun-by-depth)
-  sun.intensity=lerp(sunSea,(FX.warm?ABOVE.key:1.35)*K.lumL,k); // v11.175: the air's key (ABOVE)
+  sun.intensity=lerp(sunSea,(FX.warm?ABOVE.key:1.35)*K.lumL,k)*LI; // v11.175: the air's key (ABOVE); ×LI (v11.218)
   const wk=above?0:1-k; // the water's things: fading in under the water (k falls from 1), gone the frame the camera is in air (v11.7.2)
-  plight.intensity=(1.3*(1-dfD)*(1-dfD)+0.5*(1-K.skyL)*(1-K.skyL))*wk*(FX.plight?1:0)/K.eye; // ÷ the eye (v11.159): the halo as it was before the eye adapted (the person: keep it); the player's own light: in the deep as before, and a little at night; `own light` on the effects list (v11.52, POLISH.md Raised 13 Sep: the person wants to see the world without it)
+  plight.intensity=(1.3*(1-dfD)*(1-dfD)+0.5*(1-K.skyL)*(1-K.skyL))*wk*(FX.plight?1:0)/K.eye*LI; // ÷ the eye (v11.159): the halo as it was before the eye adapted (the person: keep it); the player's own light: in the deep as before, and a little at night; `own light` on the effects list (v11.52, POLISH.md Raised 13 Sep: the person wants to see the world without it)
   updateShafts(above,wk);
   updateHaze(dt,above);sky.visible=true;sky.position.copy(camera.position);pushSky();updateClouds(dt); // the volume's atlas, once (clouds.js) // every frame since v11.43: the surface's window reads the sky's uniforms from under the water, where the sphere is hidden // the sky stays up within SKY_NEAR under the line (v11.42): a camera just under sees air through the near plane's gap above the water, and that is the sky, not the dome
   plankton.visible=FX.snow;snAU.value.set(TIDE,1/2.5,above?1:0,0);tintU.value.set(TIDE,above?1:0,K.skyL,0); // the snow from the air too (v11.82.1, the person: none showed below the surface): the top few metres, fading over 2.5 m, through the surface's body // x the water level (LIGHT_GLSL's depth); the through-water tint that read y and z went with v11.42 (scene.js)
@@ -17285,7 +17314,7 @@ function warmPrep(){const g=new THREE.Group(),g2=new THREE.Group(),geo=new THREE
   const pulled=new Set(vpullMats.values()); // v11.187: a pulled species' geometry has no colour attribute, and three keys the program by it (vertexAlphas), so its warm mesh has none either
   const flora=[MATV,MATVD,MATG,MATB,MATR,MATW,MATS,MATSC,MATM,MATGL,MATTR,MATWD].filter(m=>!vpullMats.has(m)); // a pulled one's own program is never drawn in the world (every species of it draws its copy): not compiled, nor its depth program
   for(const m of [MAT,MATROCK,MATROCKF,MATROCKB,MATSHELL,MATFAR,MATTRF,GLOW,...flora,...pulled]){const ig=geo.clone();if(pulled.has(m))ig.deleteAttribute('color');ig.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(1),1));ig.setAttribute('aDip',new THREE.InstancedBufferAttribute(new Float32Array(1),1));ig.setAttribute('aCur',new THREE.InstancedBufferAttribute(new Float32Array(2),2));ig.setAttribute('aTide',new THREE.InstancedBufferAttribute(new Float32Array(2),2));const im=new THREE.InstancedMesh(ig,m,1);im.setColorAt(0,c);g.add(im);}
-  g2.add(new THREE.Mesh(geo,new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide})),new THREE.Points(geo,new THREE.PointsMaterial({transparent:true,depthWrite:false}))); // v11.187: the splash's ring and drops (player.js), made at the first breach
+  g2.add(new THREE.Mesh(geo,oneP(new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide}))),new THREE.Points(geo,new THREE.PointsMaterial({transparent:true,depthWrite:false}))); // v11.187: the splash's ring and drops (player.js), made at the first breach
   g.position.set(0,-1e5,0);g2.position.set(0,-1e5,0);let est=0;scene.traverse(o=>{if(o.material&&!Array.isArray(o.material))est++;}); // the scene's own objects, a guess at the steps the rest will take (most share programs already made)
   return {g:g,items:g.children.concat(g2.children),i:0,k:0,est:Math.min(est,24),rest:false,more:[],passes:false,hz:false,depth:false};}
 function warmOne(sc,cam,o){const kids=sc.children,L=[],en=renderer.shadowMap.enabled;sc.traverse(x=>{if(x.isLight)L.push(x);});sc.children=L.concat([o]);renderer.shadowMap.enabled=FX.shadows&&LIGHT_K[1]>0; // the shadow map as play has it (scene.js updateShadow sets it every frame, after this): three keys every program by it
