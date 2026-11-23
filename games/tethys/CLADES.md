@@ -2,7 +2,8 @@
 
 **Status: proposed 9 Sep 2026; the ringmouth pass built the same day** (the person: try the flat coil, the veil is a ringmouth
 with rethought eyes, no glowing eyes anywhere, the tread stays, "continue onward"). The slowblood and hingeshell passes are next,
-each seen before the other. The coats (palette variants in the bestiary) are built too. Downstream of `PLANET.md` (the planet, the stalemate rule, blood, the niche audit — those stand);
+each seen before the other. The coats (palette variants in the bestiary) are built too. **23 Nov 2026: the radiation decided, nothing built** ([The radiation](#the-radiation-decided-23-nov-2026--nothing-built)):
+individuals generated, species authored from a radiation table; the hanger first; the slowbloods' reference the jawless armoured fish; habitat at three scales proposed. Downstream of `PLANET.md` (the planet, the stalemate rule, blood, the niche audit — those stand);
 upstream of `creatures_builders.js` once the person has struck what they don't want. Where this contradicts PLANET's clade
 section it is a *proposed change* to PLANET, listed under [What this changes in PLANET](#what-this-changes-in-planet).
 
@@ -328,3 +329,103 @@ Five forms by mechanism, each with its two Earth tells at most (stalked eyes, cl
 | wedge | walkers | the scuttle's exposure ecotype: low, wide, short-legged, heavy-valved on the surf's rock | mouth under |
 | plough | walkers | the flats' deposit feeder: feeding combs under the front, no weapon | stalked eyes, mouth under |
 | relict | paddlers | the sill relict: the hose's line larger and pale on the drowned summits below the light | stalked eyes, flap rows |
+
+## The radiation (decided 23 Nov 2026 — nothing built)
+
+The person's brief (23 Nov 2026): the ecology mirrors Earth a little too closely at times; the hingeshells are largely radiodonts and the whole
+reads as mammals, bugs and squids; the ringmouths are *"a little too clean looking"*. The fix is to look at more of Earth, not less — other
+periods than the Cretaceous — for patterns rather than animals: Endoceras as the imaging shows it (shell colours and patterns, limb lengths,
+size, all varying), a cone that hangs point-up and drops on what is below, and existing shapes repurposed for new niches (the ridge as a
+whale-like filter feeder). Convergence stays: what exists is fine, it is the variety that is short.
+
+### The diagnosis
+
+1. **Every individual of a ringmouth or slowblood kind is identical.** Size varies ±15% (`VARY`), and the coat by the place's chemistry
+   only on hingeshells (`COAT_CHEM_KEYS` is empty for the other two). Every ortho has the same perfect cone, bands and arm lengths:
+   identical copies read as made, and the clean read is that.
+2. **One fresh design per niche.** Earth reads real because a few body plans radiate into many niches and kin look like kin. That is the
+   pattern to take from Earth.
+3. **Hingeshells are 17 of the 41 species** (ringmouths 10, slowbloods 10, drifters 4). New variety goes to the other two.
+
+### Decided (the person, 23 Nov 2026)
+
+1. **The generator is split.** *Individuals are generated* — in the world, per instance, by what the place and the animal's age say.
+   *Species are authored*, from a radiation table (below): each a parent's spec plus overrides, so kinship shows; a niche and a
+   behaviour are what make a species, and those are written by hand. The raptor family (v11.9.1) is the model. Nothing makes species at
+   run time; if that comes, it comes from LINEAGE's mutation.
+2. **The slowbloods' Earth reference becomes the jawless armoured fish** of the Silurian and Devonian — heterostracans, osteostracans,
+   galeaspids: bone, no hinged jaw, head shields, eyes on top. That is the clade's own premise (PLANET: the bite and the bone, a ring
+   mouth); the lathe and the fin layout of a modern fish are the read the slowbloods still carry (the audit read the finback as a tuna).
+   A pass of its own.
+3. **The hanger** (below) is first, *"if we can make it"* — it can. **The ortho stays as it is.**
+4. Then the ringmouths' individuals, the slowblood filter giant, the jawless pass — the order proposed; the person may move it.
+
+### The radiation table (Earth's patterns, and what each gives Tethys)
+
+| pattern | Earth's precedent | on Tethys | parent | status |
+|---|---|---|---|---|
+| the unballasted cone | orthocones without ballast deposits float vertical, shell up (hydrostatic models of Palaeozoic nautiloids, Peterman et al. 2019); Endoceras's endocones were its ballast | **the hanger** | ortho | decided, first |
+| predators become giant filter feeders | Aegirocassis (Ordovician, from predatory radiodonts), Leedsichthys (Jurassic, ~16 m, from predatory fish), basking sharks, baleen whales | **the slowblood filter giant**: the mouth ring held open as a round hoop, the petals' plate rows grown into fringes — no Earth animal gapes radially; a gigantotherm (holds its heat by size) of the cold fed water; eats the swarms (`FILTER`, `derive.filter`); fills the slowbloods' empty slot in the big filter feeders (the veil's niche, the comb the minor one) and gives the abyssal its prey | ridge (the sawmouths) | agreed |
+| the shell's tip shed | Sphooceras truncatum dropped its old chambers and sealed the end | young long and pointed, old blunt — age read at 50 m | — | with the individuals |
+| encrusted shells | crinoids, bryozoans, cornulitids on Palaeozoic orthocones, some settled while it lived | an old shell wears the reef's sessile taxa (TAXA) | — | with the individuals |
+| healed injuries | repaired shell breaks are common in fossil cephalopods | a survivor keeps its scar | combat's wounds | with the individuals |
+| armour without a jaw | heterostracans, osteostracans, galeaspids (whose head shields alone are a shape vocabulary) | the slowbloods' reference | every slowblood | decided, a pass |
+| two sexes like two species | argonauts (the female's thin egg case secreted from her arms; a tiny male), anglerfish | a brooding ringmouth female grows a shell from her arms for the brood — the clade's one mineral, worn only for its one spawning (LINEAGE §3) | soft-arm | candidate |
+| a squatter in a dead shell | hermit crabs; Phronima in a hollowed salp | a small hingeshell in a dead coilshell's shell — the ecology already makes the shells | coilshell's shell, a walker | candidate |
+| a larva that breeds | larvaceans: tunicates that never grow up | a ringmouth that breeds small and never grows its shell | a straightshell juvenile | candidate |
+
+Why the straightshells were never displaced, and may be big: on Earth the orthocones gave way when fish put jaws, bone and a fast
+metabolism in one body; here the stalemate rule (PLANET) says no clade has all three. The 28% oxygen does the size. No sparkle needed.
+
+### The individuals (generated)
+
+Per instance, by what: size (built, `VARY`); the coat by chemistry (built for hingeshells; extended to the ringmouths' shells and the
+slowbloods' plates); arm lengths and asymmetry (the rigs are each creature's own, so these are cheap); the shell's banding; the tip shed
+by age; encrusters and scars by age. A shell is shared geometry, so it varies as a few variants per kind and coat (as the flora's three per
+species), never one per animal; what it costs is measured (`test/bench_creatures.js`, `test/gpu.js`).
+
+### The hanger (decided, first to build)
+
+- **The body**: the straightshell cone with no ballast, hung vertical — the shell up, the 2-4-2 ring down as a curtain. The ortho's spec
+  is its parent; bigger than the ortho (the person: larger).
+- **The physics**: the gas in the chambers is why it floats and why it points up. It rises and sinks by buoyancy — slow and cheap — and
+  cannot hold station in a current (it is a mast), so it lives in still water.
+- **The behaviour**: holds a station beside a wall over open water; its depth follows the swarm's daily layer (`swarmDepth`, built for
+  the swarm, v11.84) — down by day, up at night, as what it eats follows the layer; the strike is downward: the mouth dips, the ring
+  blooms, a jet with the funnel turned up.
+- **How it is made**: the facing code points a body's +z where it goes or at `c.face` (creatures_ai.js), so a hanger is a body held
+  nose-down and turned to its prey in the strike. New: its role (or the ambush's with a vertical station) and its station (below).
+- **Depth**: a gas shell cannot be pumped below about −450 (PLANET, Ringmouths); its day depth stays above that.
+
+### Habitat: three scales (proposed and agreed 23 Nov 2026)
+
+The person (23 Nov): think about what habitat an animal would want — the ortho against the hanger. Today a habitat is an envelope at the
+cell's scale (215 m): which cells, by depth and one or two fields. In the cell a creature is placed at one seeded point near the block's
+middle in its depth band and roams its `home`. Two species with one envelope live in one place, and nothing makes a wall a place.
+
+1. **The range (the cells)** — the envelope, as now; its bounds taken from the body where the body sets them (a gas shell's depth, an
+   ectotherm's heat, a sieve's food and flow), the hand-written band inside them. A test flags a species placed past its body's limits.
+2. **The station (in the cell)** — the missing scale, and the one the player sees. A small vocabulary, each a score over the cell's
+   grid: *the wall* (a steep drop, open water beside it), *the lee* (low flow behind relief), *the lip* (`rel` high), *the edge* (sand
+   against rock), *the canopy* (in the weed), *the open* (far from anything), *the crevice*. A species names one or two, is placed at
+   the best-scoring points, and its `home` is the station. Walls have hangers; the lip has lashes; the hook gets its rock face.
+3. **The clock** — a station moves: the day (the swarm's layer, built); the tide (the lee changes sides of a pinnacle as the stream turns,
+   `tidalAt` — the hangers swing round it twice a day); the year (the filter giant comes with the bloom, PLANKTON §6).
+4. **Habitat made by animals** — later: the giant's carcass as a fall (a floor community that lasts), the dead shells squatters take, the
+   hingeshells' dens (unbuilt).
+
+| | ortho | hanger |
+|---|---|---|
+| ballast | yes: lies level | none: hangs vertical |
+| water | the current (`flow` 0.3–1, as now) | still: the lee |
+| space | the open slope, cruising | a wall over a drop, holding station |
+| depth | as now | above −450 always; deep by day, up at night with the layer |
+| the hunt | the chase, a spear | the hang and the drop |
+
+### Open (the person's)
+
+1. ~~The habitat's three scales, and the station vocabulary~~ — **answered 23 Nov 2026: yes, both, as the start.** The person: *"If we
+   do it right, it will all work just based off believable logic and physics."*
+2. ~~The ortho's envelope past a gas shell's −450~~ — **answered 23 Nov 2026: moved up. "No exceptions for any animal as of yet":** every
+   species is held to the limits its body sets.
+3. The candidates (the brooding female's shell, the squatter, the larva): which, if any.

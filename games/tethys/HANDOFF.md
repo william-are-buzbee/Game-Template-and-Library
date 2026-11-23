@@ -4,6 +4,11 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.222 (23 Nov 2026): the radiation** (CLADES.md, The radiation; PLANET.md; CHANGELOG). Docs only. The person's answers: individuals
+generated, species authored from a radiation table; the hanger first — a straightshell with no ballast, hung vertical beside walls, rising with the
+swarm's layer at night — and the ortho kept as it is; the slowbloods' reference becomes the jawless armoured fish; then the ringmouths' individuals and
+the slowblood filter giant. Habitat at three scales (range, station, clock), agreed; no exceptions — every species held to its body's limits, so the ortho moves up. **Next:** the hanger.
+
 **v11.221 (23 Nov 2026): the sparkle as a parallel ecosystem** (LINEAGE.md §7c, §12.39–46; CLAUDE.md and PLANET.md's no-magic rule;
 CHANGELOG). Docs only, and a rough draft, not gospel: the aim is the sparkle as a fun mechanic that motivates the player. The
 person's answers: not §7b's island but an ecosystem of its own over the whole world, the gods placed by hand and
@@ -21,10 +26,6 @@ the look under water, better or worse than these six days (either is fine).
 **v11.218 (23 Nov 2026): the three.js breakages mended both ways** (scene.js `T187`, `oneP`, `SH_DEPTH`, `LI`; atmosphere.js `refrFb`; benchpage
 `THREE=187`; test/three187.js; analysis_project.md §6). r187 now draws the game as r128 does (mean change ≤ 0.43 of 255 at seven places); r128 the same
 to the bit. The spike's slow boot does not reproduce. Next: the tower's F8 and F9, then the upgrade (the version, the loader's import map, the tests).
-
-**v11.217 (23 Nov 2026): a quick F9 says this visit's boot** (rec.js `recWc`, recBody `now`; wcache.js; test/rec.js, test/report.js; CHANGELOG). F9
-under a minute in sends the session before (why #176 said 9.5 min, its boot uncached); now this visit's boot rides with it, and every boot says what it
-took from the world cache. The cache's read let go after the boot: 20.7 MB. **Ask:** open the game twice, F9; the "this visit" line.
 
 ## Open
 
