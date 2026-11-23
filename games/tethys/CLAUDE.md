@@ -263,7 +263,9 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
   script before the src files, which are `defer` so the two run in order, before the page's load event. Either way its exports are copied onto a plain
   `window.THREE` (a namespace is frozen). Its address is `THREE_URL` in build.js and build.py (the bench page reads build.js's), and is in the world
   cache's hash. What differs between r128 and a current three and costs nothing to say both ways is said both ways (`THREE.REVISION`, a name that
-  exists, `vColor.rgb`): grep `three.js-ready`.
+  exists, `vColor.rgb`): grep `three.js-ready`. Since v11.218 what differs and is mended both ways keys on scene.js `T187` (r187, the upgrade's target;
+  only r128 and r187 are tested): `test/three187.js` (smoke) boots it on r187 and fails on a shader that does not compile or a chunk not as expected;
+  `THREE=187` before any bench runs that bench on r187. A shader string written for one version's chunk text is checked on both.
 
 - **The world cache** (src/wcache.js, loader.js — cacheload.js until v11.215; v11.214): tethys.html carries a hash of the game's code (build.js `WH`, `TETHYS_BUILD.wh`), and
   what the load builds the same way every time for one build — the maps' first fill, the caustic tiles, region.js's platform and saddles (v11.216) — is read from IndexedDB (`world:<hash>`) before

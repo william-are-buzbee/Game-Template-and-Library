@@ -15,24 +15,30 @@ const fs=require('fs'),path=require('path'),http=require('http'),{execSync}=requ
 const here=path.join(__dirname,'..');
 function playwright(){try{return require(process.env.PLAYWRIGHT_MODULE||'playwright');}catch(e){return require(path.join(execSync('npm root -g',{encoding:'utf8'}).trim(),'playwright'));}}
 const THREE_URL=fs.readFileSync(path.join(here,'build.js'),'utf8').match(/const THREE_URL='([^']+)'/)[1]; // build.js's three.js (v11.215): one address to change
+// THREE=187 (v11.218, the upgrade's work): the page on r187 instead — its module, and by an import map its minified core (cdnjs minified the module
+// itself and kept its import of the unminified core, 1.5 MB). For comparing the two versions' pictures and costs; the game ships build.js's.
+const THREE_ALT={'187':{url:'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.187.0/three.module.min.js',map:{'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.187.0/three.core.js':'https://cdnjs.cloudflare.com/ajax/libs/three.js/0.187.0/three.core.min.js'}}};
+const THREE_PAGE=THREE_ALT[process.env.THREE||'']||{url:THREE_URL,map:null};
 function pageOf(root){const shell=fs.readFileSync(path.join(fs.existsSync(path.join(root,'shell.html'))?root:here,'shell.html'),'utf8'),order=fs.readFileSync(path.join(root,'src/order.txt'),'utf8').split('\n').map(l=>l.trim()).filter(l=>l&&!l.startsWith('#'));
   const seed='<script>(function(){let s=20261114>>>0;Math.random=function(){s=(s+0x6D2B79F5)>>>0;let t=s;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};'+ // mulberry32: the same draws in every run
     'const real=performance.now.bind(performance);window.__real=real;let now=0,raf=null;performance.now=()=>now;window.requestAnimationFrame=f=>{raf=f;return 1;};window.setTimeout=(f)=>{f();return 1;};'+ // the page's own clock: still between the bench's steps
     'let su=777;window.__uuidR=function(){su=(su+0x6D2B79F5)>>>0;let t=su;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return ((t^(t>>>14))>>>0)/4294967296;};'+ // three's UUIDs on a stream of their own (below)
     'window.__step=n=>{for(let i=0;i<n;i++){const f=raf;raf=null;if(!f)break;now+=window.__FRAME_MS||1000/60;f(now);}};})();</script>\n';
   // three.js as dev.html takes it (v11.215): its module, then the src files deferred — the two run in order, before the page's load event
-  return shell.replace('<!--SCRIPTS-->',()=>seed+'<script type="module">import * as T from "'+THREE_URL+'";window.THREE=Object.assign({},T);</script>\n'+order.map(n=>'<script defer src="src/'+n+'.js"></script>\n').join(''));}
+  return shell.replace('<!--SCRIPTS-->',()=>(THREE_PAGE.map?'<script type="importmap">'+JSON.stringify({imports:THREE_PAGE.map})+'</script>\n':'')+seed+'<script type="module">import * as T from "'+THREE_PAGE.url+'";window.THREE=Object.assign({},T);</script>\n'+order.map(n=>'<script defer src="src/'+n+'.js"></script>\n').join(''));}
 function serve(root){const html=pageOf(root);return new Promise(ok=>{const s=http.createServer((req,res)=>{const u=decodeURIComponent(new URL(req.url,'http://x').pathname);if(u==='/'||u==='/bench.html'){res.writeHead(200,{'content-type':'text/html'});res.end(html);return;}
   const p=path.normalize(path.join(root,u));if(!p.startsWith(root)||!fs.existsSync(p)||fs.statSync(p).isDirectory()){res.writeHead(404).end();return;}res.writeHead(200,{'content-type':p.endsWith('.js')?'text/javascript':p.endsWith('.html')?'text/html':'application/octet-stream'});fs.createReadStream(p).pipe(res);});s.listen(0,'127.0.0.1',()=>ok(s));});}
 // three.js r128 draws four Math.random() for every geometry's UUID (its ct()): a build that makes fewer geometries (v11.149's replay) would shift
 // every later draw — the arms' phases — and two trees could not be compared draw for draw. The page's three.js has those four on a stream of their
 // own (__uuidR); the game's own draws stay on Math.random. In the game Math.random is not seeded at all, so this is the comparison's, nothing else
-let THREE_JS=null;
+const THREE_JS=new Map(); // each three.js file as fetched, its UUID draws on __uuidR
 async function open(pw,root,opt){opt=opt||{};const server=await serve(root),browser=await pw.chromium.launch({args:['--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader','--ignore-gpu-blocklist']});
   try{const page=await browser.newPage({viewport:{width:opt.width||1280,height:opt.height||720}}),errs=[];page.on('pageerror',e=>errs.push(String(e)));
     for(const f of opt.init||[])await page.addInitScript(f);
-    await page.route(THREE_URL,async route=>{if(!THREE_JS){const r=await route.fetch(),t=await r.text(),n=t.split('4294967295*Math.random()').length-1;if(n!==4)throw new Error('three.js: '+n+' UUID draws found, 4 expected');THREE_JS=t.split('4294967295*Math.random()').join('4294967295*window.__uuidR()');}
-      await route.fulfill({status:200,contentType:'text/javascript',headers:{'access-control-allow-origin':'*'},body:THREE_JS});}); // a module from another host: fetched with CORS
+    await page.route('**/ajax/libs/three.js/**',async route=>{const u=route.request().url();let t=THREE_JS.get(u); // every file of three's (r187: the module and its core)
+      if(t===undefined){const r=await route.fetch();t=await r.text();const a=t.split('4294967295*Math.random()').length-1,b=t.split('Math.random()*4294967295').length-1; // r128's UUID draws, r187's
+        if(a+b!==0&&a+b!==4)throw new Error('three.js: '+(a+b)+' UUID draws found in '+u+', 4 expected');t=t.split('4294967295*Math.random()').join('4294967295*window.__uuidR()').split('Math.random()*4294967295').join('window.__uuidR()*4294967295');THREE_JS.set(u,t);}
+      await route.fulfill({status:200,contentType:'text/javascript',headers:{'access-control-allow-origin':'*'},body:t});}); // a module from another host: fetched with CORS
     await page.goto(`http://127.0.0.1:${server.address().port}/bench.html${process.env.TIER?'#'+process.env.TIER:''}`,{waitUntil:'load',timeout:300000}); // TIER=low (v11.208): the page at that tier, as the address's #low
     return {browser,page,server,errs,close:async()=>{await browser.close();server.close();}};}
   catch(e){await browser.close();server.close();throw e;}}
