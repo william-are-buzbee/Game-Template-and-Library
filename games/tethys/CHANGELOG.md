@@ -10955,3 +10955,24 @@ sure"*. The coilshell player held above −450: *"yes it should. No rule skip."*
   Where plumbs stand, each is one more body with an eight-arm rig, as an ortho is; the busiest wall near the centre holds about four.
 - **Unseen, ask in this order**: (1) does it read as hanging now — off the floor, swaying, drifting — and is it common enough; (2) LINEAGE §7c.6's
   Open: demigods for every god or the Plumb's alone, which demigods, where the Plumb hangs, and the ordinary plumb at 30 m now.
+
+## v11.224 — the individual: a design for the variety generator and palettes; the person's answers on the plumb and the gods (23 Nov 2026)
+
+Docs only; nothing in `src/` moved. Stacked on v11.223.1 (#185).
+
+- **The person on v11.223.1**: *"It reads better and it's more common which I greatly appreciate."* Asked: a shallow version, and smaller ones that
+  still point up. Answered in CLADES: the young (0.55, ~11 m) hang the same way at the same walls; nothing hangs in the shallows (its floor is 30 m
+  down); a shallow one would be a species — **the stipe**, a 2–4 m upright straightshell hung among the weed forest's stipes, added to the radiation
+  table as a candidate (shrimpfish and trumpetfish, which hide vertically among grass and spines).
+- **The gods** (LINEAGE §7c.6): **demigods for every god** — *"we find out what each god is and then allow some variants"*; the Plumb a god,
+  provisionally; *"let 30 m be a reasonable new size"* for the ordinary plumb, and the generator decides who is 30.
+- **VARIETY.md** (new; proposed): the person's brief — *"start discussing or working on docs for implementing the diversity generator per individual,
+  as well as color palettes… should it be 30 m or 20 m — is exactly something that will come up in the generator."* What exists (size ±15%, the
+  hingeshells' place coat, `coatFor` the lab's alone, one pattern a clade); the principle — every difference has a cause the world can name: the
+  morph (genes; melanic, erythristic, leucistic, a rare one a find), age (by the clade's growth law: ringmouths stop and their shells keep a record;
+  slowbloods never stop; hingeshells in moult steps), the place (the chemistry coat for every clade, fouling), history (scars, the shed tip),
+  development (proportions inside the registry's bands, derive per individual); variants as shared keys under a budget per kind; palettes drawn
+  by `coatFor`'s physics and morphs as transforms with causes; the cost and its benches; an order; five questions. Indexed in README.md and CLAUDE.md.
+- The build and `npm run check` green; nothing to look at.
+- **Unseen, ask in this order**: VARIETY.md §8 — (1) stable individuals or re-rolled; (2) how rare is rare; (3) the budget; (4) the founder as a draw;
+  (5) size by age; and whether the stipe is worth building.

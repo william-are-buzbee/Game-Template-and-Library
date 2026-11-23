@@ -4,6 +4,11 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.224 (23 Nov 2026): the individual, designed** (VARIETY.md, new; LINEAGE §7c.6; CLADES; CHANGELOG). Docs only. The variety generator and
+palettes proposed: every difference with a cause (morph, age by the clade's growth law, place, history, development), variants as shared keys
+under a budget, palettes by `coatFor`'s physics. The person's answers: demigods for every god, the Plumb a god provisionally, 30 m for the old
+plumbs. The stipe (a shallow upright straightshell) a candidate. **Ask:** VARIETY.md §8.
+
 **v11.223.1 (23 Nov 2026): the plumb hangs, sways and is common; the coilshell held above −450** (creatures_ai.js `HANG`, `updatePlumb`; creatures_defs.js
 `STATION`, `SPAWN`; player.js `deepY`, `DEEP_SOFT`; LINEAGE §7c.5–6; CHANGELOG). The person liked it but it read as standing still on the floor and was
 too rare: now 7.7 m clear of the floor, bobbing, swaying, drifting, carried by the current and pushable; walls from 11 m faces and `n` 12 (~8,100 in the
@@ -26,9 +31,6 @@ person's answers: not §7b's island but an ecosystem of its own over the whole w
 designed first, the generation count kept, the sparkle released at laying and drained while not eating, the player just another sparkle
 creature and hunted for it. The model (a substance moved by eating) is proposed; nine candidate gods in §7c.5. The ordinary ecology gets more passes
 first. **Ask:** §7c.4, the first three.
-
-**v11.220 (23 Nov 2026): F9 reports this visit first** (rec.js recBody, `recBrief`; test/report.js; test/rec.js; DESIGN.md; CHANGELOG). The person's
-choice: the visit you are in, its time in seconds under a minute, and the session before below it when short. **Ask:** open twice, F9 at once.
 
 ## Open
 
