@@ -4,6 +4,13 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.221 (23 Nov 2026): the sparkle as a parallel ecosystem** (LINEAGE.md §7c, §12.39–46; CLAUDE.md and PLANET.md's no-magic rule;
+CHANGELOG). Docs only, and a rough draft, not gospel: the aim is the sparkle as a fun mechanic that motivates the player. The
+person's answers: not §7b's island but an ecosystem of its own over the whole world, the gods placed by hand and
+designed first, the generation count kept, the sparkle released at laying and drained while not eating, the player just another sparkle
+creature and hunted for it. The model (a substance moved by eating) is proposed; nine candidate gods in §7c.5. The ordinary ecology gets more passes
+first. **Ask:** §7c.4, the first three.
+
 **v11.220 (23 Nov 2026): F9 reports this visit first** (rec.js recBody, `recBrief`; test/report.js; test/rec.js; DESIGN.md; CHANGELOG). The person's
 choice: the visit you are in, its time in seconds under a minute, and the session before below it when short. **Ask:** open twice, F9 at once.
 
@@ -18,10 +25,6 @@ to the bit. The spike's slow boot does not reproduce. Next: the tower's F8 and F
 **v11.217 (23 Nov 2026): a quick F9 says this visit's boot** (rec.js `recWc`, recBody `now`; wcache.js; test/rec.js, test/report.js; CHANGELOG). F9
 under a minute in sends the session before (why #176 said 9.5 min, its boot uncached); now this visit's boot rides with it, and every boot says what it
 took from the world cache. The cache's read let go after the boot: 20.7 MB. **Ask:** open the game twice, F9; the "this visit" line.
-
-**v11.216 (22 Nov 2026): the world cache, part two** (wcache.js `wcProduct`; region.js `rgCache`, `rgPlatMake`, `rgSadMake`; order.txt; test/wcache.js;
-CHANGELOG). The platform and the saddles cached too: the load in Node 3.1 → 0.95 s with everything cached, a cached reload's first frame 0.5–0.8 s sooner
-than v11.215 in headless Chromium. The island records stay uncached (closures). **Ask:** open the game twice; F9 after the second.
 
 ## Open
 
@@ -39,4 +42,4 @@ than v11.215 in headless Chromium. The island records stay uncached (closures). 
   in the same window settles it on that card (the work tower's pair still decides).
 - **The person's open lists**, each in its doc: analysis_loading.md §4 (the loading page's look, one wait or two, a cache in the browser);
   analysis_fog.md (its questions); BIOLUM.md §7; WATER.md Part 5 (light across the line, an audit, nothing built); DEEP.md §11 (the
-  constructors' place); analysis_archipelago.md §8.4; DIRECTION.md's Open list; LINEAGE.md §11; SEAFLOOR.md §6; PIXEL.md (ready to build).
+  constructors' place); analysis_archipelago.md §8.4; DIRECTION.md's Open list; LINEAGE.md §11 and §7c.4; SEAFLOOR.md §6; PIXEL.md (ready to build).

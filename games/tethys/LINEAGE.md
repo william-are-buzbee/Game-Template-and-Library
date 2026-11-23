@@ -5,7 +5,8 @@ ringmouths' one spawning, brood and scheduled death; v11.76 the hingeshells' den
 unload, the handover at death to the nearest living child, the save ended with none, the sparkle, the player as a spec (v11.68) and any species of
 the roster as the founder (v11.75), the editor at conception with its budget (v11.72) paid from the stomach (v11.73). Not built: the crude shrine
 page, §8's sparse entries (a survival knob stands in), §6b's materials, and §12.33's zoom-and-fade into the editor — §13.4 ships as a jump cut.
-Design otherwise, 20 Sep 2026. The person's answers are in §12 (32–38 added 22 Sep 2026) and are folded through the body of this doc.** Written
+Design otherwise, 20 Sep 2026. The person's answers are in §12 (32–38 added 22 Sep 2026; 39–46 on 23 Nov 2026 with §7c, the sparkle as a parallel ecosystem: a rough
+draft, nothing built) and are folded through the body of this doc.** Written
 at the head of the creator pass (the person, 20 Sep: the creator becomes the default start of the game, and the game becomes "a genetic
 lineage game where you can trace your ancestry, lives and activity levels"). Upstream: `PLANET.md` (the clades and their limits),
 `CLADES.md` (the three signatures), `COMBAT.md` (death, and `slotDeath` as built), `CREATOR.md` (the spec, the compiler, the lab as it
@@ -24,6 +25,9 @@ with the generations — is answered by the person's framing, which is the more 
 So Tethys is not a game about evolution. **Tethys is a believable simulation with exactly one thing in it that does not obey the rules,
 and that thing is you.** You mutate in a generation what a lineage would take a hundred thousand years to do. The duration is not meant
 to be accurate and no in-world explanation is owed. What is owed is **honesty about which moments are the magic** — see §7, the sparkle.
+
+*Amended 23 Nov 2026 (§7c, §12.43): you are not the only thing outside the rules. The sparkle is a substance that runs through a parallel
+ecosystem of its own, and you are "just another sparkle creature". What follows holds for everything without the mark.*
 
 Everything else in the world keeps its rules. The ecology stays the steady state `test/census.js` measures; the geology does not move;
 no species gets an exemption. The wrench is a single object in the simulation, and the simulation's job is to **absorb it**: to take
@@ -245,6 +249,9 @@ drawn once as a shape both uses so the icon and the effect are literally the sam
 
 ### 7b. The home of the sparkle (the person, 20 Sep — the far end, and the reason the rest can stay strict)
 
+*Superseded 23 Nov 2026 by §7c (§12.39): not an island of wackiness but a parallel ecosystem over the whole world. Kept as the 20 Sep
+record; whether the wisp and the home survive in another form is §7c.4, question 5.*
+
 The sparkle eventually becomes a place to follow. *"The player can follow the 'sparkle' in-game. To 'home' or 'back' or some vague, far
 away, mystical place. It would follow on a current, leading you in the direction. Sometimes it would travel like a wisp ball, faster than
 any creature could follow, leaving a long trail of particulate behind."* And at the end of it: **an island of creatures that sparkle the
@@ -264,6 +271,118 @@ This is endgame content and nothing about it is urgent, but it is recorded now b
   game would have. It wants the same mark and the same emitter as everything else in §7.
 - **The one rule it must not break**: the sparkle still means the magic. An animal that sparkles is an animal outside the simulation's
   rules, and the player learns that by meeting the home's inhabitants — which is exactly the lesson the tell was for.
+
+### 7c. The sparkle as a substance: a parallel ecosystem (the person, 23 Nov 2026 — a rough draft, nothing built)
+
+**A rough draft, not gospel** (the person, 23 Nov 2026: *"we don't want to be looking back on these docs and treating it like gospel"*).
+The aim is one thing: **the sparkle as a fun, interesting mechanic that motivates the player.** Everything below serves that aim and is
+rewritten the moment it doesn't — the answers included. Where the game needs the sparkle to excuse physics or size, it may.
+
+*Supersedes §7b's box. §7's rule stands: whatever carries the sparkle shows the mark, and nothing else does.*
+
+The person, 23 Nov 2026: *"the idea is no longer for an island of wackyness, but a world where the sparkle has created its own parallel
+ecosystem on top of the world and also interacting with it."* The picture that started it: something magical over here — a behemoth
+jelly with its offspring round it, some of which try to zap you for your sparkle — and later the real behemoth, so large that the first
+was only its child, and whose own children are your size. Lines of sparkle animals, each a god's family stepping down in size and up in
+number, the god's shape carried down (a tall, thin god has a tall, thin line), and round them the plants and reefs their sparkle has made
+staggeringly large.
+
+So §1's thesis moves: Tethys is a believable simulation with **one substance** in it that does not obey the rules, and the player is **one
+of the animals it runs through** — *"just another sparkle creature."* Perhaps later the implication that you came from a particular line;
+not now.
+
+#### 7c.1 The person's answers so far (23 Nov 2026; §12.39–46)
+
+1. **A parallel ecosystem, not a box**: over the whole world and interacting with it. The sparkle reaches our island too (how: §7c.4).
+2. **The gods are placed by hand, and designed in order**: the gods first — what each is and does — then their lines, then the ecologies
+   their sparkle makes: the overgrown plants, the staggeringly large reefs.
+3. **The generation count stays** as the licence (§6 unchanged): how far a child may move from its parent.
+4. **The sparkle is released when you lay eggs, and drains slowly while you are not eating.**
+5. **The player is just another sparkle creature.**
+6. **Sparkle hunters come for the player** ("of course").
+
+#### 7c.2 A model (proposed 23 Nov 2026, with answer 4 folded in — a starting point, not a rule set)
+
+The person's instinct is the magic built on a believable foundation. Its precise form is **a substance the simulation already knows how
+to move** — mercury, with growth where the poison would be. Nothing in it needs a system the game lacks: it rides the bites, kills,
+carcasses and clutches that already move food.
+
+1. **Sources.** It enters the world at a few places, never explained. Its rules must be learnable, because the player acts on them; its
+   origin need not be (§7: admitted, not explained).
+2. **It moves only by eating, and living does not use it up** — so it concentrates up the food web and in the long-lived
+   (biomagnification). The biggest hold the most because they have eaten the most.
+3. **A threshold.** Below it the sparkle is inert and unseen; above it the animal shows the mark and the sparkle acts. This keeps §7's
+   rule — the trace in a grazer near a source shows nothing — and gives the player a first moment: feed near a source long enough and one
+   day you flicker.
+4. **It drains while the stomach is short** (answer 4), and that drain is the whole of its upkeep. What it buys is a body past what its
+   food can pay for, so a sparkle animal that eats well barely drains, and a god — a body its food never fills — drains always and must
+   keep taking sparkle to stay what it is. That is the engine: without a sink nothing would compete. It is the one hunger every animal
+   runs (§12.25): the sparkle burns before the body wastes (§12.35). A god that cannot keep up shrinks back toward the size its food
+   supports (marine iguanas shrink in a famine).
+5. **Laying releases it** (answer 4) **into the clutch, split among the eggs** (that part proposed; the other reading is out into the
+   world, a sink — §7c.4). Into the clutch is what makes the tiers: a god's children enormous, its grandchildren huge, its
+   great-grandchildren large, and below the threshold the line is an ordinary species of the world. §5's "the wildness stops one
+   generation down", generalised: it stops where the dose does. (Orca mothers offload much of their PCB load into their first calf.)
+6. **Death returns it.** A sparkled carcass seeds the place it falls, and what grows on it grows staggering — a whale fall's garden,
+   mutated. With the sources, this is where the overgrown plants and the giant reefs come from, and how the sparkle reaches places no god
+   lives.
+7. **By default it pays for size and form, not habitat.** A god placed by hand (answer 2) sits where its founder's envelope holds: the
+   sparkle lets a jelly be sixty metres, not live where a jelly cannot. That keeps the parallel ecosystem on top of the believable one
+   rather than instead of it — a default, broken whenever a god is more fun for it (the head note).
+8. **Sparkle hunters weigh their prey by its dose** — one term in prey choice. Where two lines' ranges overlap their young take each
+   other's; no war is simulated, and the border makes its own skirmishes. Peaceful or hostile is what the founder eats: a filter-feeding
+   god's line grazes its source's dosed plankton and stings poachers; a hunter's line hunts the dosed, the player among them (answer 6).
+
+What falls out for the player: **carry or spend** — carrying makes you flicker and brings the dosed hunters; laying spends it into a
+clutch that is bigger and stranger for it. And **the gradient** — bigger and brighter toward a god or a source, a family resemblance at
+every step, so "this one is still a child" is found by walking upstream. The fog does the rest: under water a sixty-metre animal is never
+seen whole; you meet a flank, then a shadow.
+
+#### 7c.3 What it needs (none of it next)
+
+- **§8.2's derived `DEFS`**: every mutated child of a god is a body with no hand-written row.
+- **§8's sparse ledger entries**: a line's lower tiers are variants in the ledger, as the player's are.
+- **Hosting a giant** (CREATOR.md, The size ceiling): a body to 240 m can be expressed; the world cannot host one yet (collision, LOD,
+  the far layer).
+- **The gods as records, not ledger entries**: individuals placed by hand and saved with the slot; their lines join the ledger once under
+  the threshold.
+- **The substance itself is cheap**: a number on a body and on a ledger entry, moved where food already moves (`kill`, `eatAt`, the
+  bite's piece, the clutch) and drained in `hungerTick`.
+
+#### 7c.4 Open (the person's)
+
+1. **Where laying releases it**: into the clutch (proposed: it makes the tiers, and makes your own young sparkle creatures) or out into
+   the world?
+2. **What the sparkle buys the player**, now that the generations keep the licence. Proposed: the generation says how far a child may
+   differ, the dose it is given how far past its food's support it may be built.
+3. **What happens at none.** Can a line with no sparkle still edit at conception? Either editing within physics stays (the generations'
+   licence) and only the past-physics needs sparkle, or a line that lets it run out becomes ordinary animals — an ending beside death.
+4. **How it reaches our island**: a fall on the island's slope, a current carrying dosed plankton or larvae from a source up-current, a
+   god's line's range, or a weak source of its own.
+5. **Does §7b survive in another form** — the wisp on a current as the way to a source, the home as the largest one?
+6. **The gods**: who they are and what they do — candidates in §7c.5. The person's design, and first in the order (§7c.1, 2).
+
+#### 7c.5 Candidate gods (a rough draft, 23 Nov 2026)
+
+Picked by what each gives the player to do, not by the animal: nine gods that are nine boss fights are one god nine times. Each founder
+is an existing species; the names are ours, never the game's. ★ the person's favourites (23 Nov 2026). **Not before the ordinary ecology
+has had more passes** (the person: *"we will probably do another pass over the regular ecology a few times before building this"*); the
+list will change in a later conversation.
+
+| god | founder | what it is | its line, and its sparkle's ecology | the player's verb |
+|---|---|---|---|---|
+| **the Bell** ★ | jelly | 60 m, tall and thin, in lit water up-current of the nursery; its curtain reaches the floor | young drift on the current, the widest scatter (the first sparkle met is likely a great-grandchild) and sting for sparkle; under it, pens and whips tree-tall | follow the gradient upstream; the first god |
+| **the Reef** | polyps | one animal kilometres long | spawns on the eclipse night, the one dark night every ten days: the water full of dosed larvae, every line feeding; satellite reefs down-current | keep the appointment: read the moon, load up, lay |
+| **the Walking Reef** | plough | a terminal moult long ago, so a sparkled reef grew on its back | walks a circuit over the flats over game-months; the flats bloom behind it | live on it: den, garden, ride |
+| **the Mother** ★ | arrow (the soft-arm's family) | too big to jet; never leaves a lava tube | packs of her young hunt the dosed — you — and bring it home; her midden a hoard | the heist: the midden while the packs are out |
+| **the Drowned Shell** ★ | great (coilshell) | too heavy to rise, settled and cracked on the rim; lives in its last chamber | young hatch inside and leave by the cracks | the dungeon: sized holes, and growing shuts you out |
+| **the Wanderer** | abyssal | the one that moves; hunts the other lines | leaves dosed carcasses behind it | the jackal: shadow it, eat its leavings |
+| **the Iron Walker** | cinder | iron plates, poison by its diet | the richest sparkle, behind poison; vent chimneys grown to towers | come back with immunity (suggested cut: the Shell's verb again) |
+| **the Raft** ★ | greatsailer | a floating forest a field across | its young sail the surface; a storm beaches it | the strand after the storm |
+| **the Watcher** | watcher | intelligent; watches, does not attack | its young shadow you; it remembers how its line was treated | the relationship: its garden, or its line's hunt |
+
+Between them: the Wanderer eats the Bell's and the Walking Reef's lines; the Mother's packs raid the Walking Reef's back; the eclipse
+spawning is where every line meets; nothing eats the Iron Walker's line. Suggested first: the Bell, the Reef, the Mother.
 
 ## 8. The ledger: absorbing what the player looses
 
@@ -346,6 +465,7 @@ coordinates and days in a form that could be exported.
    body, and `DEFS` has no term for it — the same gap as §8.2.
 7. **Drifters** (§3): later, or never?
 8. **The budget's constants** — playtest, so: what is the first guess, and does the pass that builds it ship a readout tuner for them?
+9. **The sparkle's questions** are §7c.4 (23 Nov 2026).
 
 ## 12. Decisions (answered 20 Sep 2026, the person)
 
@@ -371,6 +491,7 @@ coordinates and days in a form that could be exported.
 14. **The budget grows with the generation** (§6), against the mass and materials the body still has to be fuelled with.
 15. **The home of the sparkle** (§7b): an island of creatures that mutate as the player does, reached by following the wisp on a
     current. Endgame, and the box the larger-than-life animals go in so the rest of the world stays strict.
+    *Superseded 23 Nov 2026 by 39: not a box.*
 16. **You only take a child when the current body dies** (§4, answering the first pass's open question; the person, 20 Sep: *"a full
     life is a good place to start for each creature"*). There is no hatch moment and no stepping out of a healthy animal. **Swapping
     while alive is left open for later** — it would be an addition to this loop, not a change to it, so nothing built against §4 has to
@@ -431,6 +552,20 @@ coordinates and days in a form that could be exported.
     `Q` firing the first ability the body has (v11.75) is the stand-in until then; §12.30's ganglion model is where it lands.
 38. **The founder list stays wide open for now** (22 Sep 2026): the traps, the hood, the forage and the giants are all still offered — "I need to be
     able to quickly occupy any animal and test them out." Narrowing it is a decision for when the game is being balanced, not while it is being built.
+39. **The sparkle is a parallel ecosystem, not a box** (23 Nov 2026; §7c): *"the idea is no longer for an island of wackyness, but a world
+    where the sparkle has created its own parallel ecosystem on top of the world and also interacting with it."* It reaches our island too.
+    Supersedes 15.
+40. **The gods are placed by hand, and designed in order** (23 Nov 2026): the gods (what they are and do), then their lines, then the
+    ecologies their sparkle makes — overgrown plants, staggeringly large reefs.
+41. **The generation count stays** as the licence (23 Nov 2026): the sparkle does not replace it.
+42. **The sparkle is released when you lay eggs, and drains slowly while you are not eating** (23 Nov 2026).
+43. **The player is just another sparkle creature** (23 Nov 2026): perhaps later implied to come from a particular line, but "for now
+    you're just you". §1's "that thing is you" amended.
+44. **Sparkle hunters come for the player** (23 Nov 2026): "Of course."
+45. **§7c is a rough draft, not gospel** (23 Nov 2026): the aim is the sparkle as a fun, interesting mechanic that motivates the player;
+    if the sparkle is needed to justify ignoring physics and size, it may. 39–44 stand as today's answers, not as law.
+46. **Candidate gods** (23 Nov 2026; §7c.5): a rough draft to iterate on. The person's favourites: the Bell (a jelly), the Raft (a floating
+    forest), the Drowned Shell (a cave system), the Mother (packs of ringmouths). The regular ecology gets more passes before any is built.
 
 ## 13. Build order
 
