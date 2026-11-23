@@ -343,6 +343,7 @@ the clever ones) and **the deep line** (below the light, low metabolism, webbed 
 | **rasp** | coilshells | floor grazer | reef, shallows, kelp | 0.5 | a fist-sized coiled shell dragged by six short arms that rasp algae off rock; eye ring on the mantle; cream on the reef, rust in the rockfall; edible. Loses the grazing niche to the herds and keeps the rock |
 | great | coilshells | shelf apex, coil | shallows, flats, bladders, terraces, the arch | 6 | exists |
 | ortho | straightshells | player-size predator, spear | spires, vent field, lantern fields — **out of the dark** | 8 | exists; gets a forward eye cluster |
+| **plumb** | straightshells | hangs at walls, drops on what passes under | the walls in still water, −30 to −450 (v11.223: a station, CLADES The radiation) | 11 | v11.223, the person's hanger: the ortho's cone with no ballast, so it hangs shell-up, off the floor, swaying (v11.223.1); rises with the swarm's layer at night; strikes only down. A god candidate (LINEAGE §7c.6) |
 | soft-arm (player) | jetters | — | — | 1.6 | exists |
 | arrow | jetters | small-prey hunter, pack | the shelf | 1.0 | exists; forward eyes |
 | lurker | crawlers | floor ambush, grab | kelp, rockfall, spires, the arch | 2.4 | exists |

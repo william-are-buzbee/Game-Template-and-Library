@@ -384,7 +384,7 @@ slowbloods' plates); arm lengths and asymmetry (the rigs are each creature's own
 by age; encrusters and scars by age. A shell is shared geometry, so it varies as a few variants per kind and coat (as the flora's three per
 species), never one per animal; what it costs is measured (`test/bench_creatures.js`, `test/gpu.js`).
 
-### The hanger (decided, first to build)
+### The hanger (decided, first to build — built v11.223 as the **plumb**)
 
 - **The body**: the straightshell cone with no ballast, hung vertical — the shell up, the 2-4-2 ring down as a curtain. The ortho's spec
   is its parent; bigger than the ortho (the person: larger).
@@ -396,6 +396,15 @@ species), never one per animal; what it costs is measured (`test/bench_creatures
 - **How it is made**: the facing code points a body's +z where it goes or at `c.face` (creatures_ai.js), so a hanger is a body held
   nose-down and turned to its prey in the strike. New: its role (or the ambush's with a vertical station) and its station (below).
 - **Depth**: a gas shell cannot be pumped below about −450 (PLANET, Ringmouths); its day depth stays above that.
+- **Built v11.223** (CHANGELOG): `SPECS.plumb` (the ortho's cone, L 9.5 at ×1.35, the helix at 5 turns, a ring 3.6 long; a rose-grey shell under a dark
+  helix), `DEFS.plumb` (`upright`, `station` wall and lee, `below` 0.5), creatures_ai.js `updatePlumb`, chunks.js `stationPoint`. Named for a plumb line;
+  "the hanger" in this section is the same animal. Its day depth is the swarm's (or its arms' reach over the floor), its night depth near the surface
+  (−28, deeper under a full moon); 1.2 m/s between. About 1,700 in the world at the census's equilibrium (the ortho 17,000), at walls only.
+- **Seen by the person (23 Nov 2026), v11.223.1**: *"I really enjoy it"* — but it did not read as hanging (*"more like it's just... there... stands
+  perfectly still, you get close and it grabs you"*, standing on the floor) and was too rare. So: its arms' tips at least 0.7 × size over the floor
+  (`HANG.gap`); a slow bob, a pendulum sway that turns it, a drift round its station; carried by the current and pushed by bodies, drifting back;
+  the arms hanging (rest spread 0.42 → 0.22); a paler shell. Walls from 11 m faces (`STATION.wall` 0.3–0.75) and `n` 4 → 12: about 8,100 in the
+  world (the census at day 60). The person also wants it a god (LINEAGE §7c.6).
 
 ### Habitat: three scales (proposed and agreed 23 Nov 2026)
 
@@ -405,7 +414,8 @@ middle in its depth band and roams its `home`. Two species with one envelope liv
 
 1. **The range (the cells)** — the envelope, as now; its bounds taken from the body where the body sets them (a gas shell's depth, an
    ectotherm's heat, a sieve's food and flow), the hand-written band inside them. A test flags a species placed past its body's limits.
-2. **The station (in the cell)** — the missing scale, and the one the player sees. A small vocabulary, each a score over the cell's
+   (v11.223: the gas shell's built — derive's `deepY`, held every step; the ectotherm's waits for a temperature field, the sieve's is the envelope's `nut`.)
+2. **The station (in the cell)** — the missing scale, and the one the player sees (wall and lee built v11.223: creatures_defs.js `STATION`). A small vocabulary, each a score over the cell's
    grid: *the wall* (a steep drop, open water beside it), *the lee* (low flow behind relief), *the lip* (`rel` high), *the edge* (sand
    against rock), *the canopy* (in the weed), *the open* (far from anything), *the crevice*. A species names one or two, is placed at
    the best-scoring points, and its `home` is the station. Walls have hangers; the lip has lashes; the hook gets its rock face.

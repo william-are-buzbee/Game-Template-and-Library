@@ -10856,3 +10856,102 @@ A design conversation with the person, recorded. Docs only; nothing in `src/` mo
   work just based off believable logic and physics"*); the ortho moves up — no exceptions for any animal: every species held to the limits
   its body sets.
 - **Unseen, ask**: which candidates (the brooding female's shell, the squatter, the larva).
+
+## v11.223 — the plumb: a straightshell that hangs at walls; the stations; a gas shell's floor (23 Nov 2026)
+
+The person's first pick from the radiation (v11.222; CLADES, The radiation): *"the hanging ortho, the vertical one, should be primary if we can make
+it. I love that idea. but keep orthos how they are"*, the three scales of habitat agreed (*"if we do it right, it will all work just based off
+believable logic and physics"*), and *"no exceptions for any animal as of yet"* for the limits a body sets.
+
+- **The plumb** (`SPECS.plumb`, `DEFS.plumb`, `PAL.plumb`, `ROSTER`; creatures_ai.js `updatePlumb`, `plumbY`, `plumbPose`, `HANG`). The ortho's
+  straightshell with no ballast in its chambers, so it hangs shell-up, as a Palaeozoic orthocone without cameral deposits would. About 20 m from the
+  shell's point to the arms' tips at 1.35× the ortho's build (the ortho 11 m), the helix tighter (5 turns), a rose-grey shell under a dark helix, a
+  ring 3.6 long hanging as a curtain. It holds a station beside a wall in still water, nose-down (its face a point 10 m under it, leaning 0.8 m off the
+  wall, so its eyes look into the open water); its depth is the swarm's layer over its floor (`swarmDepth`: deep by day, near the surface at night,
+  deeper under a full moon), never under its arms' reach of the floor (`clear` 11) or −450, never nearer the surface than its shell's length;
+  climbed and sunk by buoyancy at `HANG.rise` 1.2 m/s. It strikes only at what is 30° or more under it (`below` 0.5) within `radius` 22: it tips toward
+  the prey at its own slow turn and drops at `lunge` 8, lets go of anything that rises over it (a shell held up by gas cannot turn over), and climbs back
+  shell-first. Its prey: the player, darters, needles, arrows, flickers, sifters, hoses, eels, watchers, grazers. In the bestiary it hangs nose-down.
+- **The stations** (creatures_defs.js `STATION`, `stationW`, `gridRise`; ecology.js `ecoCap`, `ecoPatchCap`; chunks.js `stationPoint`, `unseenAt`).
+  Habitat's second scale: a kind names where in its cell it stands (`DEFS.station`), the capacity of a cell is weighed by it point by point (a cell
+  with no wall holds no plumb), and the animal is stood at one of 64 points drawn by score, its wall's way kept (`c.wallD`). Two built: **wall** (a
+  16–32 m face over 36 m, topping out above the body's floor) and **lee** (flow under 0.2 full, none past 0.5). ~5% of wet cells in the old square
+  have a 30 m face.
+- **A gas shell's floor** (creatures_spec.js `DERIVE_K.chamberY` −450, derive's `deepY`; creatures_defs.js `defPhysics`; creatures_ai.js
+  `reachable`). Every gas-chambered body — coil, rasp, great, ortho, plumb, and the sailers' floats — is held above −450 each step, and goes for
+  nothing more than 2 m under it. **The ortho's envelope is not moved**: its `h` −800…−100 is the floor under the cells it lives over, and it was already
+  placed and wandered above −420 there (chunks.js `openY`, `setWander`); the rule is now held on the animal, which only ever went deeper chasing a picker
+  on the deep mud. Said plainly because v11.222 read the band as the animal's depth; it is the floor's.
+- **The census** (`node test/census.js 60`, the world): the plumb 2,999 at day 0 settling to 1,671 by day 60 (the ortho 16,961, as without it);
+  every other kind within 0.5% of main's run at day 42 (darters 2,665,081 against 2,667,818; eels 22,553 against 22,682). The abyssal's fall from
+  392 to 105 is main's too.
+- **The plumb's `SPAWN` row is the last** (a new row goes at the end): every row before it draws from a cell's rng as it did, so the seeded runs hold —
+  put beside the ortho's first, it moved test/live.js's minute of play to one where no hunter was chasing at a sample. A save from before has its ledger
+  censused afresh, as with every new kind (save.js: the roster changed).
+- **test/plumb.js** (new, in `--test`, ~6 s): the stations by hand; the ledger's wall cell and a flat one; placeKind's plumb at a wall, sitting
+  nose-down between the floor and the surface; it hangs plumb and stays where a push left it; its station rises at night at ≤ 1.2 m/s; it does not
+  strike the player level with it, strikes the player 12 m under, lets go when the player rises over it; an ortho put under −450 is back at it the next
+  step, a ridge is not, and an ortho does not go for a picker under the line.
+- **Seen** in headless Chromium (software WebGL), a plumb placed at cell (118, 119)'s wall by day: hanging plumb (its axis 0.997 of straight down) at
+  −69 over a floor at −80, a dark spike rising off its ring in front of the rock face, the arms a curtain under it; the preview sheet (test/preview.js)
+  beside the ortho's. Not seen: a strike drawn, the night's climb drawn, its far bake hanging (it is baked as built and the group turned).
+- **What it cost** (`node test/perf.js` against main; the benches' seeded draws moved — a new kind built at load shifts every draw after it — so the
+  frames and the cells are the same places with the same counts, not the same bodies):
+
+  | bench | main | here | ratio |
+  |---|---|---|---|
+  | frames, the forest (1,332 creatures), ms a frame | mean 2.80, p95 4.58 | mean 2.61, p95 3.65 | ×0.93, ×0.80 |
+  | a cell's generation, the forest, ms (two runs) | 40.3; 47.8 | 47.8; 35.2 | ×1.19; ×0.74 — noise: the giant, no creatures, ×1.22; ×0.91 |
+  | GPU, draws / triangles / programs, seven places | | | within ±2% at all seven |
+  | GPU, bytes uploaded a frame, the forest | 323 KB | 368 KB | ×1.14 — the arms near the camera, other bodies of the same 114 in sight; `test/gpu.json` updated |
+  | fill (a proxy), the frame, forest / shore / canopy | 2,090 / 2,674 / 2,234 | 2,248 / 2,719 / 2,223 | ×1.08 / ×1.02 / ×1.00 — the surface, untouched, ×1.26 at the forest |
+
+  What the plumb adds per frame: `plumbPose` and a clamp each step, `groundAt` four times a second, a plumb at a time; `findPrey` one call more per
+  candidate (`reachable`); `ecoCap` a lookup per row per cell; `stationPoint` 64 points × 9 heights when a plumb is placed.
+- **Unseen, ask in this order**: (1) the plumb at a wall in the preview (`tp(-322,-322,-80)`: the cell near the centre with the most room for one, 1.2)
+  — does it read as an animal that hangs, and from how far; (2) its numbers:
+  ~1,700 in the world, at walls only, rarely met (n 4 per full station; more?); (3) should the coilshell player be held above −450 as the rest are
+  (the rule's one exception left, by omission); (4) the tide turning the lee (the clock's next station: the plumbs swinging round a pinnacle).
+
+## v11.223.1 — the plumb hangs, sways and is common; the coilshell player held above −450; the Plumb as a god (23 Nov 2026)
+
+The person, on v11.223's preview: *"I really enjoy it. I like it quite a lot"* — but *"it doesn't really read as one that hangs, more like it's just...
+there. Sort of resists the current I suppose. Just stands perfectly still, you get close and it grabs you. Scary and strong but not very legible. Also
+super hard to find… it doesn't float or suspend itself off the ground really… I just would like them to be more common."* More of them: *"yes I do for
+sure"*. The coilshell player held above −450: *"yes it should. No rule skip."*
+
+- **Off the floor** (creatures_ai.js `HANG.gap` 0.7, `plumbY`): its arms' tips at least 0.7 × size (7.7 m) over the floor; it had hung its arms' reach
+  over it by day, 1 m, and read as standing.
+- **Never still** (`HANG.bob`, `sway`, `drift`, `pull`, `hold`; `updatePlumb`'s sit, `plumbPose`): a bob of 0.6 m over 7 s; a pendulum sway of ~6° on two
+  periods (23 s, 31 s), which turns it as it goes; its station wandering 2.2 m round where it was placed (47 s, 61 s); the current carries it
+  (`c.carried` for an upright body sitting) and it drifts back at 0.45 m/s at most; it is no longer as heavy as rock while it sits (`c.mass`), so a body
+  pushes it and it swings. test/plumb.js: 7.9 m wandered in 30 s, at most 2.7 m off its station, the least cos to straight down 0.981.
+- **Its look** (`SPECS.plumb` arms `s0` 0.42 → 0.22: the arms hang rather than splay; `PAL.plumb` shell 0.66 → 0.80, paler against the rock).
+- **Common** (creatures_defs.js `STATION.wall` 0.45–0.9 → 0.3–0.75: an 11 m face starts a wall, a 27 m one is full; `SPAWN` plumb `n` 4 → 12): within
+  ~5 km of the centre 145 cells have room for them (54 before), the busiest (cell 118, 118) 4.4; six stood within 400 m of it in the look below. The
+  census (60 days, the world): 14,490 at day 0 settling to 8,125 (v11.223: 1,671; the ortho 16,945). Its prey at day 60 against main's run: darters
+  −0.4%, needles −0.6%, arrows −0.5%, hoses −0.6%, eels −2.2%.
+- **The coilshell player** (player.js `playerClade` `deepY`, `DEEP_SOFT` 12, `updatePlayer`): a gas-chambered player body is held above −450 as every
+  one in the world is — the descent slowed over the last 12 m, stopped at the line. test/plumb.js: the coilshell driven down at 12 m/s for 4 s stops
+  at −447; the soft-arm goes on to −466.
+- **The Plumb as a god** (LINEAGE §7c.5, the tenth candidate, ★; §7c.6, new): the person — *"it should be one of the 10 gods. Or, there should be a
+  god, with a handful of 'demigods' that are distinct from their parent but still obviously a child… a sea full of these things is a very appealing
+  image."* Recorded with the answer to *how much larger*: pressure limits a gas shell's depth, not its size; hanging is the shape that scales (pulled
+  along its length, never bent); growth, trim (a big one cannot follow the swarm up and down) and food limit it; PLANET's ringmouth limit allows 30 m
+  now; the sparkle allows 150–300 m. Five candidate demigods (the cut one, the fringe, the post, the crozier, the colony). Nothing built.
+- **Seen** in headless Chromium at cell (118, 118), the world's own placing: six plumbs within 400 m, their middles 19–32 m over floors at −81 to −117 (the arms' tips 8–21 m clear); one in
+  frame from 45 m, a vertical spike clear of the slope. Not seen: the sway and the drift moving (a still), the current carrying one, a night.
+- **What it cost** against v11.223 (`node test/perf.js --ref 42376e7 --only frames,creatures,gpu`):
+
+  | measure | v11.223 | here | ratio |
+  |---|---|---|---|
+  | creatures' work a frame at the forest, ms (mean) | 3.023 | 3.139 | ×1.04 — the simulation the same to the bit (no plumb there) |
+  | the same, p95 | 4.766 | 5.765 | ×1.21 — the same simulation: noise (the bench reads identical sources up to ×1.09 on p95) |
+  | every kind's build, ms (again) | 5.5 | 6.1 | ×1.11 — 38 kinds at 0.1 ms grain; only the plumb's spec moved |
+  | a cell at the forest, ms | 44.0 | 44.6 | ×1.02 |
+  | GPU draws / triangles / programs, seven places | | | within ±2% (shore draws 310 → 317.5) |
+  | GPU bytes uploaded a frame, the forest | 368 KB | 316 KB | ×0.86 — the seeded draws moved again (main's was 323); `test/gpu.json` updated |
+
+  Where plumbs stand, each is one more body with an eight-arm rig, as an ortho is; the busiest wall near the centre holds about four.
+- **Unseen, ask in this order**: (1) does it read as hanging now — off the floor, swaying, drifting — and is it common enough; (2) LINEAGE §7c.6's
+  Open: demigods for every god or the Plumb's alone, which demigods, where the Plumb hangs, and the ordinary plumb at 30 m now.

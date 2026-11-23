@@ -35,7 +35,7 @@ function playerClade(spec,pre,j){ // the player's clade object from a spec (and 
   pre=pre||presetFor(spec);j=j||1;const st=statsOf(spec),base=SPECS[pre.spec],fd=founderDef(spec),ab=abilitiesOf(spec),sq=Math.sqrt(j);
   return {id:pre.id,name:spec===base?pre.name:(spec.id&&spec.id!==pre.spec?spec.id:pre.name),spec:spec,preset:pre,build:j===1?()=>compile(spec):()=>compile(spec,j*(spec.s||1)),juv:j<1?j:0,
     speed:st.speed*sq,accel:st.accel,turn:st.turn,mass:+(st.mass*1000*j*j*j).toFixed(1),bite:Math.round(st.mass*3+2)*j*j,size:spec.size*j,jet:!!st.jet,legs:!!st.legs,landSpeed:st.legs?st.walk*sq:undefined, // bite for a spec without the lock: the lab's DEFS rule (specExport, dmg = mass × 3)
-    sprint:st.burst>1?st.burst:undefined,jetImp:st.jet?st.jetImp*sq:undefined,buoy:st.buoyancy,mode:st.mode,canSwim:st.mode!=='walk',legsBack:legsBackOf(spec),clear:fd&&fd.clear!==undefined?fd.clear*j:spec.size*j*0.35,cam:+(CAM_BODY.at+CAM_BODY.per*st.length*j).toFixed(1),venom:fd?fd.venom:undefined,immune:!!(fd&&fd.immune),founder:founderOf(spec),abilities:ab,ability:ab[0]||null}; // v11.75: every number off the build or the founder's row; a hatchling's arm and kick with its scale. mass (v11.91): derive's, in kg — every body's (combat.js kgOfBody)
+    sprint:st.burst>1?st.burst:undefined,jetImp:st.jet?st.jetImp*sq:undefined,buoy:st.buoyancy,deepY:st.deepY,mode:st.mode,canSwim:st.mode!=='walk',legsBack:legsBackOf(spec),clear:fd&&fd.clear!==undefined?fd.clear*j:spec.size*j*0.35,cam:+(CAM_BODY.at+CAM_BODY.per*st.length*j).toFixed(1),venom:fd?fd.venom:undefined,immune:!!(fd&&fd.immune),founder:founderOf(spec),abilities:ab,ability:ab[0]||null}; // v11.75: every number off the build or the founder's row; a hatchling's arm and kick with its scale. mass (v11.91): derive's, in kg — every body's (combat.js kgOfBody)
 }
 const CLADES=CLADE_PRESETS.map(p=>playerClade(SPECS[p.spec],p));
 let floor0=-1e9;for(let a=0;a<TAU;a+=0.3)for(let r=0;r<=16;r+=4)floor0=Math.max(floor0,sampleH(Math.cos(a)*r,Math.sin(a)*r));
@@ -69,6 +69,7 @@ function oxyTick(P,dt){if(P.sub<0.3)return false; // in the air the gills are no
   P.oxyD=D=clamp(D,0,1);
   if(an&&D>=1){P.chokeT=(P.chokeT||0)+dt;if(P.chokeT>OXYD.choke){P.oxyD=0;P.chokeT=0;oxyView(0);die('suffocated under the chemocline');return true;}}else P.chokeT=0;
   oxyView(D);return false;}
+const DEEP_SOFT=12; // m: over the last of these above a gas shell's floor the player's descent is slowed to nothing (v11.223.1)
 function oxySlow(P){const D=P.oxyD||0;return D>OXYD.slow?lerp(1,OXYD.slowK,smooth(OXYD.slow,1,D)):1;}
 function oxyView(D){const v=0.8*smooth(0.15,1,D);if(Math.abs(v-oxyShown)>0.01&&oxyEl){oxyEl.style.opacity=v.toFixed(2);oxyShown=v;}} // the view closes in, dark, as the debt grows
 function hungerLine(){const P=player,C=P.clade;if(!C||mode!=='play')return '';if((P.oxyD||0)>0.005)return hungerLine0()+'  oxygen debt '+P.oxyD.toFixed(2)+(P.chokeT>0?' choking '+P.chokeT.toFixed(0)+'s':'');return hungerLine0();}
@@ -275,6 +276,9 @@ function updatePlayer(dt){
     else{P.pos.y=fh;if(P.vel.y<0)P.vel.y*=-0.2;P.grounded=true;}
   }
   else if(C.legs&&P.wasGrounded&&!(P.hopT>0)&&!P.dead&&P.pos.y-fh<WALK.step*Math.max(0.8,C.size)){P.pos.y=fh;if(P.vel.y<0)P.vel.y=0;P.grounded=true;} // v11.78: a walker keeps its feet down a step; a deeper drop is a ledge and it falls
+  // a gas shell's floor (v11.223.1; the person, 23 Nov 2026: the coilshell too, "no rule skip"): a chambered body (derive's deepY, −450) is
+  // held above the depth its chambers flood at, as every one in the world is (creatures_ai.js) — the descent slows over its last DEEP_SOFT m and stops
+  if(C.deepY!==undefined&&P.pos.y<C.deepY+DEEP_SOFT&&!P.held){if(P.vel.y<0)P.vel.y*=clamp((P.pos.y-C.deepY)/DEEP_SOFT,0,1);if(P.pos.y<C.deepY){P.pos.y=C.deepY;if(P.vel.y<0)P.vel.y=0;}}
   if(P.grounded&&!P.wasGrounded&&vy0<0)P.landV=-vy0;P.wasGrounded=P.grounded; // the landing's speed, for its thud (audio.js)
   // on a lily pad: it takes your weight (dips more the smaller it is) and you are ashore on it
   P.onPad=pad;if(pad){P.grounded=true;loadPad(pad,clamp(0.6/pad.r,0.03,0.45));}

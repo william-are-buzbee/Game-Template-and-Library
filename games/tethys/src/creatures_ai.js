@@ -103,7 +103,7 @@ function shedFlora(){const byKind={};SPAWN.forEach(e=>{if(e.land||!moults(e.kind
     const f={id:'shed_'+kind,shed:kind,geo:geo,mat:MAT,tints:[[1,1,1],[0.94,0.92,0.88],[0.9,0.9,0.86]],s:[MOULT.keep*0.9,MOULT.keep*1.05],sink:0.08,tilt:true,per:Math.max(1,Math.round(dens)),rare:Math.min(1,dens),envs:K.envs,top:d.size*0.6,maxSlope:1.0};
     FLORA.push(f);FLORA_BY_ID[f.id]=f;}}
 shedFlora();
-/** @typedef {{kind:any,def:any,g:any,anim:any,pos:any,vel:any,home:any,hp:any,state:any,t0:any,lastSpd:any,lastYaw:any,roll:any,rollV:any,sq:any,stunSide:any,target:any,biteT:any,wanderT:any,wander:any,alive:any,gone:any,stun:any,bored:any,cool:any,scanT:any,alarm:any,fleeT:any,lungeT:any,ramT:any,school:any,off:any,offT:any,chunk:any,lod:any,parts:any,lodMeshes:any,sub:any,wet:any,grounded:any,flopT:any,b:any,mass:any,mass0:any,bound:any,reach:any,shapesW:any,chainW:any,grab:any,holding:any,armT:any,touchF:any,hold:any,held:any,bleed:any,blood:any,wounds:any,paraT:any,stungT:any,armsLost:any,regrow:any,sickT:any,poison:any,poisT:any,commitT:any,coastT:any,missN:any,speedK:any,turnK:any,live:any,lost:any,cWith:any,d6:any,par:any,st:any,tellT:any,strikeT:any,recoverT:any,burstT:any,face:any,bit:any,accT:any,threat:any,ent:any,hunger:any,starveT:any,hunt:any,feedT:any,feedAt:any,dead:any,flesh:any,deadT:any,scav:any,scavT:any,glow:any,lumL:any,lumF:any,lumD:any,lumH:any,juv:any,k:any,cls:any,soft:any,softT:any,moultT:any,shM:any,cast:any,lodNear:any,lodFar:any,nearR:any,stepR:any,carried:any,cur:any,curT:any,turnedF:any,turnV:any,accV:any,shapeF:any,rigV:any,rigO:any,hitN:any,hitB:any,lieQ:any,chaseT:any,lungeP:any,strikeP:any,gapMin:any,pivotT:any,sw:any,swT:any,filtT:any,q:any,pig:any,hand:any,fall:any,brood:any,fxStruck:any,fxAcc:any,stam:any,spinV:any,shook:any,shakeYaw:any,shakeP:any,pointD:any,lenM:any,lastHurt:any,eaten:any,liveMass:any,fullMass:any}} Creature — every key a creature carries, closed: spawn's literal below in the same order (CLAUDE.md, "one shape"); a key added to the literal goes here too, and the type checker flags one misspelt or set that is not here (v11.193, test/types.js) */
+/** @typedef {{kind:any,def:any,g:any,anim:any,pos:any,vel:any,home:any,hp:any,state:any,t0:any,lastSpd:any,lastYaw:any,roll:any,rollV:any,sq:any,stunSide:any,target:any,biteT:any,wanderT:any,wander:any,alive:any,gone:any,stun:any,bored:any,cool:any,scanT:any,alarm:any,fleeT:any,lungeT:any,ramT:any,school:any,off:any,offT:any,chunk:any,lod:any,parts:any,lodMeshes:any,sub:any,wet:any,grounded:any,flopT:any,b:any,mass:any,mass0:any,bound:any,reach:any,shapesW:any,chainW:any,grab:any,holding:any,armT:any,touchF:any,hold:any,held:any,bleed:any,blood:any,wounds:any,paraT:any,stungT:any,armsLost:any,regrow:any,sickT:any,poison:any,poisT:any,commitT:any,coastT:any,missN:any,speedK:any,turnK:any,live:any,lost:any,cWith:any,d6:any,par:any,st:any,tellT:any,strikeT:any,recoverT:any,burstT:any,face:any,bit:any,accT:any,threat:any,ent:any,hunger:any,starveT:any,hunt:any,feedT:any,feedAt:any,dead:any,flesh:any,deadT:any,scav:any,scavT:any,glow:any,lumL:any,lumF:any,lumD:any,lumH:any,juv:any,k:any,cls:any,soft:any,softT:any,moultT:any,shM:any,cast:any,lodNear:any,lodFar:any,nearR:any,stepR:any,carried:any,cur:any,curT:any,turnedF:any,turnV:any,accV:any,shapeF:any,rigV:any,rigO:any,hitN:any,hitB:any,lieQ:any,chaseT:any,lungeP:any,strikeP:any,gapMin:any,pivotT:any,sw:any,swT:any,filtT:any,q:any,pig:any,hand:any,fall:any,brood:any,fxStruck:any,fxAcc:any,stam:any,spinV:any,shook:any,shakeYaw:any,shakeP:any,pointD:any,lenM:any,lastHurt:any,eaten:any,liveMass:any,fullMass:any,wallD:any}} Creature — every key a creature carries, closed: spawn's literal below in the same order (CLAUDE.md, "one shape"); a key added to the literal goes here too, and the type checker flags one misspelt or set that is not here (v11.193, test/types.js) */
 function spawn(ch,kind,pos,rng,opt){
   const juv=!!(opt&&opt.juv),D=juv?juvDef(kind):DEFS[kind],EK=ecoOf(kind),ent=opt&&opt.ent!==undefined?opt.ent:-1,vary=ent>=0&&kind!=='lab';
   // the individual (v11.66, above): the size band, the coat class of the place, the soft state; plain outside the ledger
@@ -119,7 +119,7 @@ function spawn(ch,kind,pos,rng,opt){
     shM:null,cast:false,lodNear:0,lodFar:0,nearR:0,stepR:0, // set below, in this order
     carried:undefined,cur:undefined,curT:undefined,turnedF:undefined,turnV:undefined,accV:undefined,shapeF:undefined,rigV:undefined,rigO:undefined,hitN:undefined,hitB:undefined,lieQ:undefined,chaseT:undefined,lungeP:undefined,strikeP:undefined,gapMin:undefined,pivotT:undefined,
     sw:undefined,swT:undefined,filtT:undefined,q:undefined,pig:undefined,hand:undefined,fall:undefined,brood:undefined,fxStruck:undefined,fxAcc:undefined,stam:undefined,spinV:undefined,shook:undefined,shakeYaw:undefined,shakeP:undefined,pointD:undefined,
-    lenM:undefined,lastHurt:undefined,eaten:undefined,liveMass:undefined,fullMass:undefined}); // the individual (v11.66): its size factor, its coat class, the soft state and its clocks
+    lenM:undefined,lastHurt:undefined,eaten:undefined,liveMass:undefined,fullMass:undefined,wallD:undefined}); // wallD (v11.223): the way to the wall from a station (chunks.js stationPoint), a unit vector // the individual (v11.66): its size factor, its coat class, the soft state and its clocks
   // v11.149 (the creature performance pass): every creature one shape. The keys above from shM on were added to a creature as it lived — the current
   // it is carried by, its turn, its holds, the falls, the brood, the effects' clocks — each by whichever system reached it first, in that order: the
   // forest's 1,400 creatures had 27 shapes, and past four an engine gives up a property read's fast path, so every c.pos, c.def, c.vel in the frame was
@@ -240,10 +240,13 @@ function setWander(c){
 function wander(c,dt){if(filterSeek(c,dt))return;c.wanderT-=dt;if(c.wanderT<=0||c.pos.distanceTo(c.wander)<3)setWander(c);const k=burstK(c,dt);seek(c,c.wander,c.def.speed*(c.def.cruiseF||0.45)*k,dt,0.8*k);} // v11.85: a hungry filter feeder goes to the swarm instead (the veil, the comb; the ram between hunts)
 // o is on d's prey list: by its kind, or (v11.69) a young of the player's line to whatever hunts the player (line.js lineKind; the crusher's preyClade by the line's preset)
 function preyOn(d,o){if(d.prey.indexOf(o.kind)>=0)return true;return !!(o.def.line&&d.prey.indexOf('player')>=0&&(!d.preyClade||o.def.lineId===d.preyClade));}
+// whether a hunter can go for a thing at p, dist away (v11.223): never below the depth its body is held above (deepY — a gas shell's); and for a body
+// that strikes only downward, only what is under it by d.below of the distance (the plumb's 0.5: 30° or more below level)
+function reachable(c,d,p,dist){if(d.deepY!==undefined&&p.y<d.deepY-2)return false;if(d.below!==undefined&&c.pos.y-p.y<d.below*dist)return false;return true;}
 function findPrey(c,R){
   const d=c.def;let best=null,bd=1e9;if(R===undefined)R=d.detect;
-  if(!playerGone()&&player.inkT<=0&&((d.prey.indexOf('player')>=0&&(!d.preyClade||(player.clade&&player.clade.id===d.preyClade)))||(player.soft&&softPrey(c,player)))){const dp=c.pos.distanceTo(player.pos);if(dp<R){best=player;bd=dp*0.7;}} // v11.76: the player through its moult is a soft body like any other — prey to whatever is big enough (MOULT.prey), listed or not
-  for(const o of creatures){if(!o.alive||o===c)continue;if(!preyOn(d,o)&&!(o.soft&&softPrey(c,o)))continue;const dd=c.pos.distanceTo(o.pos);if(dd<R&&dd<bd){bd=dd;best=o;}} // a soft body of any kind is prey to a hunter big enough (v11.66, MOULT)
+  if(!playerGone()&&player.inkT<=0&&((d.prey.indexOf('player')>=0&&(!d.preyClade||(player.clade&&player.clade.id===d.preyClade)))||(player.soft&&softPrey(c,player)))){const dp=c.pos.distanceTo(player.pos);if(dp<R&&reachable(c,d,player.pos,dp)){best=player;bd=dp*0.7;}} // v11.76: the player through its moult is a soft body like any other — prey to whatever is big enough (MOULT.prey), listed or not
+  for(const o of creatures){if(!o.alive||o===c)continue;if(!preyOn(d,o)&&!(o.soft&&softPrey(c,o)))continue;const dd=c.pos.distanceTo(o.pos);if(dd<R&&dd<bd&&reachable(c,d,o.pos,dd)){bd=dd;best=o;}} // a soft body of any kind is prey to a hunter big enough (v11.66, MOULT)
   return best;
 }
 // The kill (v11.26): the ledger is debited and nothing comes back. Eaten whole (the player's bite, a small prey in a big mouth) the
@@ -555,6 +558,39 @@ function updateLurker(c,dt){
   else{c.grab=null;if(!c.hold)c.target=null;seek(c,c.home,4,dt,2);if(c.pos.distanceTo(c.home)<0.8){c.state='sit';c.cool=3;c.pos.copy(c.home);}} // v11.31: what it has hold of comes home with it
   if(c.state==='flee')c.state='return';
 }
+// ---------- the plumb (v11.223; CLADES, The radiation) ----------
+// A straightshell with no ballast in its chambers: the gas holds it shell-up, so it hangs nose-down at its station — beside a wall, in still water
+// (chunks.js stationPoint) — at the depth of the swarm's daily layer over its floor (swarmDepth: deep by day, near the surface by night, as what it
+// eats follows the layer), climbed and sunk by buoyancy at HANG.rise m/s, never under its arms' reach of the floor (clear) or its shell's floor (deepY),
+// never closer to the surface than its shell is long (HANG.above × size) and HANG.surf more. It strikes only at what passes under it (DEFS.below;
+// findPrey's reachable): it tips toward the prey at its own slow turn and drops, the ring closing on the way down (the cone pose) and blooming on the
+// catch — what rises above it is let go, a shell held up by its gas cannot turn over — then rises back to its station shell-first. Hanging, its face is a point HANG.face m under it and HANG.tip of that out from the wall, so it
+// leans off the rock and its eyes look into the open water; c.wander holds the point (a plumb never wanders).
+const HANG={rise:1.2,back:2,above:0.82,surf:3,tip:0.08,face:10,scan:0.25,
+  gap:0.7, // v11.223.1 (the person: "it doesn't float or suspend itself off the ground really"): its arms' tips this × size over the floor at the least, so it hangs and never stands
+  bob:[0.6,7], // m, s: the slow rise and fall of a body held by its own gas — never quite at rest
+  sway:[0.11,23,31], // the tilt's reach (of the face's 10 m, so ~6°) and its two periods (s): a pendulum's wander, which turns it slowly as it goes
+  drift:[2.2,47,61], // m, s, s: the wander of its station round where it was placed — still water, not a fixed post
+  pull:0.15,hold:0.45}; // 1/s and m/s: how hard it keeps its station against a push or the current (it is carried by the water, v11.223.1); a push moves it and it drifts back
+function plumbY(d,floor){let lo=floor+(d.clear||0)+d.size*HANG.gap;if(d.deepY!==undefined)lo=Math.max(lo,d.deepY);return Math.min(Math.max(swarmDepth(floor,SKY.dayK,SKY.moonL,0.5),lo),-(d.size*HANG.above+HANG.surf));}
+// the face point under it; snap: turn the body there at once (at its placing)
+function plumbPose(c,snap){const w=c.wallD,k=HANG.face*HANG.tip,S=HANG.sway,a=HANG.face*S[0],p=c.t0;c.wander.set(c.pos.x-(w?w.x*k:0)+a*Math.sin(TAU*t/S[1]+p),c.pos.y-HANG.face,c.pos.z-(w?w.z*k:k)+a*Math.cos(TAU*t/S[2]+p));c.face=c.wander; // leaning off the wall, swaying (v11.223.1)
+  if(snap){_m.lookAt(c.wander,c.pos,UP);c.g.quaternion.setFromRotationMatrix(_m);c.g.position.copy(c.pos);}}
+function updatePlumb(c,dt){
+  const d=c.def;if(hungerTick(c,dt))return;
+  if(c.state==='sit'){c.scanT-=dt;c.cool-=dt;
+    if(c.scanT<=0){c.scanT=HANG.scan;c.home.y=plumbY(d,groundAt(c.home.x,c.home.z)); // the layer moves with the sky: the station's depth read four times a second
+      if(c.cool<=0&&c.hunger>ECO.hungry){const tg=findPrey(c,d.radius);if(tg){c.state='lunge';c.target=tg;c.lungeT=2;c.bit=false;}}}
+    if(c.state==='sit'){const D=HANG.drift,B=HANG.bob,p=c.t0,tx=c.home.x+D[0]*Math.sin(TAU*t/D[1]+p)-c.pos.x,tz=c.home.z+D[0]*Math.cos(TAU*t/D[2]+p*1.7)-c.pos.z,ty=c.home.y+B[0]*Math.sin(TAU*t/B[1]+p*2.3)-c.pos.y; // where it wants to be: its station, wandering and bobbing
+      let vx=tx*HANG.pull*4,vz=tz*HANG.pull*4;const hv=Math.hypot(vx,vz);if(hv>HANG.hold){vx*=HANG.hold/hv;vz*=HANG.hold/hv;}
+      c.vel.set(vx,clamp(ty*0.5,-HANG.rise,HANG.rise),vz);plumbPose(c,false);}} // v11.223.1: held by its gas and the water, not fixed — carried by the current, pushed by bodies, drifting back
+  if(c.state==='lunge'){const tg=c.target,tp=tg===player?player.pos:tg?tg.pos:c.home,dist=c.pos.distanceTo(tp);c.lungeT-=dt;c.biteT-=dt;c.face=tp;c.grab=c.b.rigs&&tg&&dist<armReach(c,tg,1.6)?tg:null;
+    if(c.hold)c.vel.multiplyScalar(1-1.5*dt); // holding: the pair drifts
+    else{seek(c,tp,d.lunge,dt,4);if(tg&&c.biteT<=0&&landsOn(c,tg)){c.biteT=1;c.bit=true;landBite(c,tg);if(!c.hold&&tg!==player&&!tg.alive)c.state='feed';}}
+    if(c.state==='lunge'&&((c.lungeT<=0&&!c.hold)||!tg||(!c.hold&&tp.y>c.pos.y+1)||(tg!==player&&!tg.alive)||(tg===player&&playerGone()))){if(!c.hold&&c.lungeT<=0&&tg&&!c.bit)missed(c,tg);c.state='return';c.cool=4;}}
+  else if(c.state==='feed'){const f=c.feedAt;c.feedT-=dt;if(!f||f.gone||f.flesh<=0||c.feedT<=0){c.state='return';c.feedAt=null;return;}const dist=c.pos.distanceTo(f.pos);c.face=f.pos;if(dist>reachOf(c,f)*0.8)seek(c,f.pos,2,dt,2);else{c.vel.multiplyScalar(1-3*dt);eatAt(c,f,dt);}}
+  else if(c.state!=='sit'){c.grab=null;if(!c.hold)c.target=null;plumbPose(c,false);seek(c,c.home,HANG.back,dt,1.5);if(c.pos.distanceTo(c.home)<1){c.state='sit';c.scanT=0;}} // back to its station shell-first, by its buoyancy
+}
 // The swarm's day (v11.84, PLANKTON.md §5, §10): the largest daily movement of animals on the planet, ours included. swarmDepth is the
 // height the cloud wants — the night layer SW_NIGHT under the surface, the day layer SW_DAY (or SW_FLOOR over the floor where the floor comes
 // first: on the shelf the grazers hide near the bottom by day), the moon holding the night layer deeper by SW_MOON at full (Tethys' moon is nine
@@ -651,7 +687,7 @@ function updateCreatures(dt0){
       case 'graze':updateGrazer(c,dt);break;
       case 'wander':if(d.filter>0&&hungerTick(c,dt))break;wander(c,dt);break; // v11.85: a filter feeder runs the stomach's clock (the veil, the comb); a wanderer with no sieve has no stomach on the model
       case 'coil':updateCoil(c,dt);break;
-      case 'ambush':updateLurker(c,dt);break;
+      case 'ambush':if(d.upright)updatePlumb(c,dt);else updateLurker(c,dt);break; // upright (v11.223): the plumb
       case 'drift':updateJelly(c,dt);break;
       case 'sail':updateSailer(c,dt);break;
       case 'swarm':updateSwarm(c,dt);break;
@@ -662,10 +698,10 @@ function updateCreatures(dt0){
     // the current (v11.18): a body in the water is carried by it (re-read twice a second) unless it holds on — sitting, on the ground,
     // or a floor crawler; a swimmer's steering (seek, the boids) subtracts the current from the way it wants to go, so it crabs upstream,
     // holds station facing into the flow with its tail beating, and is swept only when the current outruns it
-    c.carried=sub>0&&!c.grounded&&c.state!=='sit'&&d.role!=='trap'&&!d.floor;
+    c.carried=sub>0&&!c.grounded&&(c.state!=='sit'||d.upright===true)&&d.role!=='trap'&&!d.floor; // upright (v11.223.1): a hanging plumb is in the water, not on anything — the current carries it and it drifts back
     if(dp<200&&c.carried){if(!c.cur){c.cur=V3(0,0,0);c.curT=0;}c.curT-=dt;if(c.curT<=0){c.curT=0.4+SIMR()*0.2;currentAt(c.pos.x,c.pos.z,c.pos.y,c.cur);}c.pos.addScaledVector(c.cur,dt*sub);}
     let pad=null;if(dp<200&&!d.ghost)pad=bodyPush(c.pos,c.vel,c.g.quaternion,d.size*0.75,d.size*0.35,d.size*0.28);
-    const fh=groundAt(c.pos.x,c.pos.z)+(d.clear!==undefined?d.clear:d.size*0.35);c.grounded=false;if(c.pos.y<fh){c.pos.y=fh;if(c.vel.y<0)c.vel.y*=-0.15;c.grounded=true;} // clear: how high the origin sits over the floor (a buried trap sits low). v11.92 tried the body's own radius (a ridge hangs 3 m up on 0.35 × size, its mouth over a floor prey's head) and wedged it in the floor's rocks: the lunge pitches down instead
+    const fh=groundAt(c.pos.x,c.pos.z)+(d.clear!==undefined?d.clear:d.size*0.35);c.grounded=false;if(c.pos.y<fh){c.pos.y=fh;if(c.vel.y<0)c.vel.y*=-0.15;c.grounded=true;}if(d.deepY!==undefined&&c.pos.y<d.deepY&&!c.held){c.pos.y=d.deepY;if(c.vel.y<0)c.vel.y=0;} /* deepY (v11.223): a gas-chambered body is held above the depth its chambers flood at (derive; the person, 23 Nov 2026: no exceptions) — a held one goes where its holder takes it */ // clear: how high the origin sits over the floor (a buried trap sits low). v11.92 tried the body's own radius (a ridge hangs 3 m up on 0.35 × size, its mouth over a floor prey's head) and wedged it in the floor's rocks: the lunge pitches down instead
     if(d.surface){c.pos.y=waveH(c.pos.x,c.pos.z)+(d.ys||0);c.vel.y=0;c.grounded=false;} // a float: on the wave, always (the sailers)
     if(pad){c.grounded=true;loadPad(pad,clamp(d.size*0.3/pad.r,0.02,0.5));} // a fish that lands on a lily pad lies on it (and flops off)
     // beached: a swimmer lies still, then flops downhill for the sea
@@ -688,7 +724,7 @@ function updateCreatures(dt0){
   }
   // contact: bodies near the player push apart by their actual shapes (the player among them), the player is kept out
   // of every arm and tail near it, then the arms and tails of everything at near LOD are simulated against the bodies.
-  for(const c of near){c.g.updateMatrix();worldShapes(c);c.shapeF=frameNo;if((c.def.role==='ambush'&&c.state==='sit')||c.def.role==='trap'||c.dead)c.mass=1e6;else c.mass=c.mass0;}
+  for(const c of near){c.g.updateMatrix();worldShapes(c);c.shapeF=frameNo;if((c.def.role==='ambush'&&c.state==='sit'&&!c.def.upright)||c.def.role==='trap'||c.dead)c.mass=1e6;else c.mass=c.mass0;}
   const P=player,live=mode==='play'&&!P.dead;let heldBy=0;bodies.length=0;for(const c of near)bodies.push(c);if(live)bodies.push(P);
   resolveBodies(bodies);
   updateHolds(dt0); // the holds' ropes (combat.js, v11.31): after the bodies have pushed apart, before the arms are simulated
