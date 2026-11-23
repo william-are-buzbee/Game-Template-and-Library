@@ -596,7 +596,9 @@ function rgPlatform(Rg){const K=Rg.K,M=Rg.M,G=RG_PLG,P=RG_PL_K,A=Math.max(K.plat
       if((i>0&&S[k-1]<0)||(i<nx-1&&S[k+1]<0)||(j>0&&S[k-nx]<0)||(j<nz-1&&S[k+nx]<0))seeds.push(i,j);}
     const o=Float32Array.from(S);for(let j=0;j<nz;j++)for(let i=0;i<nx;i++){const k=j*nx+i;if(S[k]>0||S[k]<-reachN*G)continue;let m=1e18;for(let q=0;q<seeds.length;q+=2){const di=seeds[q]-i,dj=seeds[q+1]-j,r=di*di+dj*dj;if(r<m)m=r;}o[k]=-(Math.sqrt(m)*G-G/2);}return o;};
   const so=exo(sd),so2=exo(sd2);
-  const pad=P.warp+P.warp2+Math.max(P.isl,1.1*P.reach)+G;return {G,x0,z0,nx,nz,sd,top,lg,fe,sd2,top2,wl,mq,nX,nZ,wl2,mq2,nX2,nZ2,so,so2,n,nd,area:n*G*G/1e6,drowned:nd*G*G/1e6,bb:[bb[0]-pad,bb[1]+pad,bb[2]-pad,bb[3]+pad]};}
+  const pad=P.warp+P.warp2+Math.max(P.isl,1.1*P.reach)+G;return rgPlatMake({G,x0,z0,nx,nz,sd,top,lg,fe,sd2,top2,wl,mq,nX,nZ,wl2,mq2,nX2,nZ2,so,so2,n,nd,area:n*G*G/1e6,drowned:nd*G*G/1e6,bb:[bb[0]-pad,bb[1]+pad,bb[2]-pad,bb[3]+pad]});}
+// v11.216: the platform made in one place, built or from the world cache (wcache.js wcProduct), so RG_PL has one shape either way; a key rgPlatform adds goes here too
+function rgPlatMake(o){const b=o.bb;return {G:o.G,x0:o.x0,z0:o.z0,nx:o.nx,nz:o.nz,sd:o.sd,top:o.top,lg:o.lg,fe:o.fe,sd2:o.sd2,top2:o.top2,wl:o.wl,mq:o.mq,nX:o.nX,nZ:o.nZ,wl2:o.wl2,mq2:o.mq2,nX2:o.nX2,nZ2:o.nZ2,so:o.so,so2:o.so2,n:o.n,nd:o.nd,area:o.area,drowned:o.drowned,bb:[b[0],b[1],b[2],b[3]]};}
 // the platform's signed distance at a point, unwarped (rgBuild's burial test); −1e9 off it. carb (v11.126): the carbonate's, living or drowned — the greater of
 // the living's and the drowned's (chunks.js chRange)
 function rgPlatSd(x,z,carb){const P=RG_PL;if(!P||x<P.bb[0]||x>P.bb[1]||z<P.bb[2]||z>P.bb[3])return -1e9;const u=(x-P.x0)/P.G,v=(z-P.z0)/P.G,i=Math.floor(u),j=Math.floor(v);if(i<0||j<0||i>=P.nx-1||j>=P.nz-1)return -1e9;
@@ -713,7 +715,11 @@ function rgSaddles(){const K=RG_SAD_K;if(!K.on)return null;const T0=Date.now();c
       if(i>0){const q=k-1,v=B[q]>w?B[q]:w;if(v<W[q])push(q,v);}if(i<nx-1){const q=k+1,v=B[q]>w?B[q]:w;if(v<W[q])push(q,v);}
       if(j>0){const q=k-nx,v=B[q]>w?B[q]:w;if(v<W[q])push(q,v);}if(j<nz-1){const q=k+nx,v=B[q]>w?B[q]:w;if(v<W[q])push(q,v);}}
     for(let k=0;k<N;k++)if(W[k]>B[k])B[k]+=K.fill*(W[k]-B[k]);}
-  return {G,x0,z0,nx,nz,B,regs,pairs,ms:Date.now()-T0};}
+  return rgSadMake({G,x0,z0,nx,nz,B,regs,pairs,ms:Date.now()-T0});}
+function rgSadMake(o){return {G:o.G,x0:o.x0,z0:o.z0,nx:o.nx,nz:o.nz,B:o.B,regs:o.regs,pairs:o.pairs,ms:o.ms};} // v11.216: as rgPlatMake
+// v11.216 (the world cache, part two): a product of region.js's load from the cache (wcache.js wcProduct) or built; map.html, region.html and the tests that
+// load region.js alone have no cache and build
+function rgCache(k,make,build){return typeof wcProduct==='function'?wcProduct(k,make,build):build();}
 // the saddles' base at (x, z), Catmull-Rom on the grid (−1e9 off it or far under any)
 function rgSad(x,z){const S=RG_SAD,u=(x-S.x0)/S.G,v=(z-S.z0)/S.G,i=Math.floor(u),j=Math.floor(v);if(i<1||j<1||i>=S.nx-2||j>=S.nz-2)return -1e9;const B=S.B,nx=S.nx,k=j*nx+i;
   if(B[k]<-3000&&B[k+1]<-3000&&B[k+nx]<-3000&&B[k+nx+1]<-3000)return -1e9;const tu=u-i,tv=v-j,row=q=>rgCR(B[q-1],B[q],B[q+1],B[q+2],tu);
@@ -769,4 +775,4 @@ function rgGrain(x,z,o){const G=RG_GR,K=RG_GR_K,F=G.F,u=x*G.cu+z*G.su,v=x*F.nx+z
   const ci=Math.floor((x-G.gx0)/G.C),cj=Math.floor((z-G.gz0)/G.C);if(ci>=0&&cj>=0&&ci<G.gnx&&cj<G.gnz){const S=G.cells[cj*G.gnx+ci];for(let k=0;k<S.length;k++){const q=S[k],dx=x-q.x,dz=z-q.z,r2=dx*dx+dz*dz,e=q.R*1.3;if(r2>=e*e)continue;
     const r=Math.sqrt(r2)||1e-6,c=dx/r,sn=dz/r,c2=c*c-sn*sn,s2=2*c*sn,c3=c*(4*c*c-3),s3=sn*(3-4*sn*sn),Rl=q.R*(1+q.c2*c2+q.s2*s2+q.c3*c3+q.s3*s3),t=1-r/Rl;if(t>0)g=Math.max(g,q.H*Math.pow(t,1.6));}}
   o.hill=hill;o.s=g;return Math.max(-K.lo,hill+g);}
-const REGION=regionModel();RG_PL=rgPlatform(REGION);const RG_BUILT=rgBuild(REGION);for(const R of RG_BUILT.recs)ISLANDS.push(R);shelterBuild();rangeBuild(REGION);RG_SAD=rgSaddles();RG_GR=rgGrainBuild(REGION);for(const R of ISLANDS)recSeal(R); // v11.197: every record whole, its data on shapes V8 never retires (world.js rdata) // v11.143: the saddles; v11.144: the floor's grain, last // v11.117: the records' shelter of each other, once every record stands; v11.119 their lineages
+const REGION=regionModel();RG_PL=rgCache('plat',rgPlatMake,()=>rgPlatform(REGION));const RG_BUILT=rgBuild(REGION);for(const R of RG_BUILT.recs)ISLANDS.push(R);shelterBuild();rangeBuild(REGION);RG_SAD=rgCache('sad',rgSadMake,rgSaddles);RG_GR=rgGrainBuild(REGION);for(const R of ISLANDS)recSeal(R); // v11.197: every record whole, its data on shapes V8 never retires (world.js rdata) // v11.143: the saddles; v11.144: the floor's grain, last // v11.117: the records' shelter of each other, once every record stands; v11.119 their lineages

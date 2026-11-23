@@ -23,7 +23,7 @@ const ROOT=path.join(__dirname,'..'),MODE=process.env.LEDGER||'',DAYS=+(process.
 let fails=0;const ok=(c,m)=>{console.log((c?'  ok   ':'  FAIL ')+m);if(!c)fails++;};
 const src=n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8');
 function ecoBundle(patched){ // the model alone, as test/census.js loads it
-  require('./stub.js');let js=['../vendor/wb-core.global','util','world','region','physics','wcache','scene','parts','grow','creatures_builders','creatures_spec','creatures_defs','ecology'].map(src).join('\n');
+  require('./stub.js');let js=['../vendor/wb-core.global','util','wcache','world','region','physics','scene','parts','grow','creatures_builders','creatures_spec','creatures_defs','ecology'].map(src).join('\n');
   if(patched){if(!js.includes(BOX))throw new Error('ecology.js ECO_FB not as expected');js=js.replace(BOX,BOXP);}
   const pre='function chunkIJ(){return undefined;}const chunks=new Map(),creatures=[],carcasses=[],player={pos:{x:0,y:0,z:0}};function cellOf(v){return Math.floor((v+HALF)/CELL);}function placeKind(){}\n';
   return new Function('return (function(){"use strict";'+pre+js+'\nreturn {SPAWN,POP,ECO_PT,ECO_FB,ECO_FINE,ECO_CELLS,ECO_SLOTS,ECO_COARSE,ECO_R,PATCH,NCELL,CELL,HALF,WORLD,WORLD70,ecoPI,ecoPJ,ecoPOf,ecoPatchDist,ecoId,ecoIJ,ecoCap,ecoPatchCap,ecoSum,ecoModel,ecoSettle,ecoSplit,ecoMerge,ecoBubble,ecoCellOf,ecoOf,player,sample};})()')();}

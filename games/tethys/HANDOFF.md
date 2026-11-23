@@ -4,13 +4,17 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.216 (22 Nov 2026): the world cache, part two** (wcache.js `wcProduct`; region.js `rgCache`, `rgPlatMake`, `rgSadMake`; order.txt; test/wcache.js;
+CHANGELOG). The platform and the saddles cached too: the load in Node 3.1 → 0.95 s with everything cached, a cached reload's first frame 0.5–0.8 s sooner
+than v11.215 in headless Chromium. The island records stay uncached (closures). **Ask:** open the game twice; F9 after the second.
+
 **v11.215 (22 Nov 2026): three.js-ready** (loader.js `tethysStart`, cacheload.js renamed; build.js `THREE_URL`; test/benchpage.js; CHANGELOG;
 analysis_project.md §6). r128 loaded as a module, as every current three.js is; the spike's fixes that work on both versions in. Pictures the same to the
 bit, the load the same. Next: the tower's F8 and F9 (Wednesday), then the upgrade itself. **Ask:** nothing to see; it should load as before.
 
 **v11.214 (22 Nov 2026): the world cache, part one** (src/wcache.js, cacheload.js — loader.js since v11.215; build.js `WH`; test/wcache.js, test/wcache_page.js; CHANGELOG). The
 maps' first fill and the caustic tiles kept in IndexedDB under the code's hash and read before the game starts: the first frame 0.68 s sooner on a reload
-in headless Chromium. Part two, the island records, not built. **Ask:** open the game twice; F9 after the second.
+in headless Chromium. Part two: v11.216. **Ask:** open the game twice; F9 after the second.
 
 **v11.213 (22 Nov 2026): continue does one thing** (menu.js `contRec`, `contShow`; test/player.js, test/boot.js; CHANGELOG). Continue is the slot whose
 world the menu shows and only it; not there after a death that ended the line or on a first visit (the person's rule). Next: the world cache (yes, 22 Nov).
@@ -18,10 +22,6 @@ world the menu shows and only it; not there after a death that ended the line or
 **v11.212 (22 Nov 2026): the plants sent by the tile** (chunks.js `POOL_TILE`, `poolTiles`, `tileSeen`, `poolFar`; test/pool.js; CHANGELOG). Each cell's
 block in a pool cut into 3×3 tiles, a tile out of view or past the reach flagged like a cell: a third fewer triangles at every planted place on both tiers,
 the picture the same. **Ask:** the tower's frame rate, and F8/F9 there; on the home machine, turn hard in the kelp forest (no spike).
-
-**v11.211 (22 Nov 2026): the probe trusted, and the plants' off-screen exit measured** (probe.js; scene.js `viewExit`, `cutFit`; test/probe.js;
-CHANGELOG). Of the plants' triangles sent on the low tier only 21–45% are seen; the exit for the off-screen ones cost the software GPU 7%, so it is off in
-play and the probe measures it. **Ask:** F8 then F9 on the tower, under water.
 
 ## Open
 

@@ -266,10 +266,13 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
   exists, `vColor.rgb`): grep `three.js-ready`.
 
 - **The world cache** (src/wcache.js, loader.js — cacheload.js until v11.215; v11.214): tethys.html carries a hash of the game's code (build.js `WH`, `TETHYS_BUILD.wh`), and
-  what the load builds the same way every time for one build — the maps' first fill, the caustic tiles — is read from IndexedDB (`world:<hash>`) before
+  what the load builds the same way every time for one build — the maps' first fill, the caustic tiles, region.js's platform and saddles (v11.216) — is read from IndexedDB (`world:<hash>`) before
   the game's script runs and taken instead of computed (`wcBuf`); a miss computes as always and the boot's end writes it (`wcWrite`). A new product
   goes the same way: its site asks `wcBuf`, hands what it has to `wcKeep`, and test/wcache.js holds it to the bit against a fresh build. A change to
-  anything the product reads changes the code's hash, so nothing stale is read; dev.html, the benches and the tests carry no hash and never cache.
+  anything the product reads changes the code's hash, so nothing stale is read; dev.html, the benches and the tests carry no hash and never cache. A
+  product that is one object of arrays and values goes through `wcProduct` and a maker of its own (region.js `rgPlatMake`, `rgSadMake`): one literal
+  for the built and the cached, so a hot path reads one shape — an object rebuilt key by key from a list is a dictionary past a dozen keys, which
+  test/wcache.js checks (`%HasFastProperties`). The island records themselves (regionModel, rgBuild) hold closures and are not cached.
 
 - **The sim steps; the drawing does not** (step.js, v11.210; analysis_project.md §7). Whatever one step leaves for the next goes in `simStep`, on
   its `h` (never the frame's `dt`); whatever is only seen runs once a frame on `dt` and is never read by a step — the camera above all (`camFrame`:
