@@ -173,7 +173,7 @@ canvas{display:block;outline:none;touch-action:none}
 <div id="fade" class="layer"></div>
 <canvas id="spark" class="layer"></canvas>
 <div id="stats"></div>
-<script>window.TETHYS_BUILD={v:"v11.223",wh:"1a38957e6edfacde"};</script>
+<script>window.TETHYS_BUILD={v:"v11.223.1",wh:"b01e66d2a14c1df3"};</script>
 <script>
 // loader.js — the page's loader, in tethys.html only, outside the game's bundle and before it: three.js and the world cache fetched side by side, then the
 // game. Since v11.215 (three.js-ready) three.js is loaded as a module — every release after r160 is only that — with import(); its exports are copied onto
@@ -4434,7 +4434,7 @@ const PAL={
   great:{shell:[0.36,0.40,0.26],band:[0.18,0.17,0.12],flesh:[0.28,0.38,0.36],belly:[0.40,0.48,0.46],mouth:[0.04,0.05,0.06],eye:[0.76,0.80,0.72],pupil:[0.04,0.04,0.05]},
   ridge:{top:[0.11,0.15,0.19],belly:[0.45,0.50,0.48],mouth:[0.06,0.04,0.04],band:[0.32,0.13,0.09],plate:[0.09,0.12,0.15],eye:[0.04,0.04,0.05]},
   ortho:{shell:[0.86,0.83,0.72],band:[0.30,0.26,0.24],flesh:[0.32,0.46,0.44],belly:[0.46,0.58,0.55],mouth:[0.04,0.05,0.06],eye:[0.80,0.84,0.76],pupil:[0.04,0.04,0.05]},
-  plumb:{shell:[0.66,0.56,0.50],band:[0.24,0.15,0.14],flesh:[0.30,0.44,0.43],belly:[0.44,0.56,0.54],mouth:[0.04,0.05,0.06],eye:[0.80,0.84,0.76],pupil:[0.04,0.04,0.05]}, // v11.223: a rose-grey shell under a dark helix, to tell from the ortho's cream at a distance
+  plumb:{shell:[0.80,0.70,0.63],band:[0.32,0.19,0.17],flesh:[0.30,0.44,0.43],belly:[0.44,0.56,0.54],mouth:[0.04,0.05,0.06],eye:[0.80,0.84,0.76],pupil:[0.04,0.04,0.05]}, // v11.223: a rose shell under a dark helix, to tell from the ortho's cream at a distance (v11.223.1: paler, 0.66 to 0.80 — it read dark against the rock at 70 m)
   eel:{top:[0.20,0.28,0.14],belly:[0.55,0.60,0.40],fin:[0.32,0.42,0.18],mouth:[0.06,0.04,0.04],band:[0.30,0.15,0.09],eye:[0.05,0.05,0.04]},
   lurker:{top:[0.34,0.38,0.40],belly:[0.5,0.52,0.52],ridge:[0.26,0.30,0.32],mouth:[0.05,0.06,0.07],eye:[0.80,0.84,0.76],pupil:[0.04,0.04,0.05]},
   abyss:{top:[0.05,0.06,0.09],belly:[0.22,0.25,0.28],mouth:[0.06,0.04,0.04],band:[0.24,0.10,0.08],plate:[0.04,0.05,0.07],eye:[0.02,0.02,0.03]},
@@ -8061,7 +8061,7 @@ const SPECS = {
   },
   // the plumb (v11.223; CLADES, The radiation): the ortho's straightshell with no ballast in its chambers, so it hangs shell-up like a plumb line
   // (a Palaeozoic orthocone without cameral deposits floats vertical: the hydrostatic models). Longer and more slender than the ortho, the helix
-  // tighter, the ring longer — a curtain under it. Built in the frame every creature is (facing +z); the AI holds it nose-down (creatures_ai.js
+  // tighter, the ring longer — a curtain under it (v11.223.1: its rest spread 0.42 to 0.22, so the arms hang rather than splay). Built in the frame every creature is (facing +z); the AI holds it nose-down (creatures_ai.js
   // updatePlumb)
   plumb: {
     id: 'plumb',
@@ -8086,7 +8086,7 @@ const SPECS = {
         curve: 0.04,
         ks: 55,
         damp: 9,
-        s0: 0.42,
+        s0: 0.22,
         s1: 0.1,
         a0: 0.2,
         a1: 0.08,
@@ -10671,17 +10671,17 @@ const SPAWN=[
   {kind:'ortho',n:0.12,env:{heat:[0.3,1]}}, // the vents: warm water below the thermocline
   {kind:'veil',n:0.2,env:{h:[-800,-150]}},
   {kind:'abyssal',n:0.1,env:{h:[-560,-380],nut:[0.25,1]}}, // the rim of the dark where the water is fed (PLANET: the rim, forays below). v11.66: it was h −800..−400 over the whole basin's flanks, where the sill's and the far floor's cells reach no combs, and the 120-day census had it collapsing 70 → 12 since v11.65 (the 40-day run --test makes does not see it); the ledger's reach is 5×5 cells, so its home band is the two cells over the combs' deep edge
-  {kind:'plumb',n:4,env:{h:[-520,-30],flow:[0,0.45]}} // v11.223: the walls in still water (DEFS station: the capacity is the cell's share of wall and lee, ecology.js ecoCap) — the foot to −520, the face up past −450 (its shell's floor); the ortho's opposite, which wants the current. Last: a new row goes at the end, so every row before it draws from a cell's rng as it did (the seeded tests' runs)
+  {kind:'plumb',n:12,env:{h:[-520,-30],flow:[0,0.45]}} // v11.223: the walls in still water (DEFS station: the capacity is the cell's share of wall and lee, ecology.js ecoCap) — the foot to −520, the face up past −450 (its shell's floor); the ortho's opposite, which wants the current. Last: a new row goes at the end, so every row before it draws from a cell's rng as it did (the seeded tests' runs)
 ];
 // ---------- the stations (v11.223; CLADES, The radiation: habitat at three scales) ----------
 // Habitat's second scale, where in its cell an animal stands (the first is SPAWN's envelope, the cells; the third the clock). A kind names its
 // stations (DEFS.station); each is a score 0..1 at a point from the ground round it, and the kind's is their product. The ledger weighs a cell's
 // capacity by it point by point (ecology.js ecoCap, ecoPatchCap: a cell with no wall holds no plumb) and placeKind stands the animal at the best
 // of the cell's points (chunks.js stationPoint). wall: the ground rises steeply beside the point — the rise to its highest neighbour over their
-// distance, a smooth step from lo to hi — and the face reaches up past the deepest the body may be (deepY) by `reach` m, so it hangs beside rock and
+// distance, a smooth step from lo to hi (over 36 m: an 11 m face starts it, a 27 m one is full) — and the face reaches up past the deepest the body may be (deepY) by `reach` m, so it hangs beside rock and
 // not over a step far below it. lee: still water, 1 at flow lo to 0 at hi (a body hung vertical is a mast in a current). Seven are proposed
 // (wall, lee, lip, edge, canopy, open, crevice); these two are built.
-const STATION={wall:{lo:0.45,hi:0.9,reach:10},lee:{lo:0.2,hi:0.5}};
+const STATION={wall:{lo:0.3,hi:0.75,reach:10},lee:{lo:0.2,hi:0.5}}; // wall lo/hi 0.45/0.9 to v11.223 (16–32 m faces); v11.223.1 (the person: more common, "a sea full of these things") 11–27 m
 function stationW(st,h,rise,run,flow,deepY){let w=1;
   for(let i=0;i<st.length;i++){const s=st[i];if(s==='wall'){w*=smooth(STATION.wall.lo,STATION.wall.hi,rise/run);if(deepY!==undefined&&h+rise<deepY+STATION.wall.reach)return 0;}else if(s==='lee')w*=1-smooth(STATION.lee.lo,STATION.lee.hi,flow);if(w<=0)return 0;}
   return w;}
@@ -11534,17 +11534,24 @@ function updateLurker(c,dt){
 // findPrey's reachable): it tips toward the prey at its own slow turn and drops, the ring closing on the way down (the cone pose) and blooming on the
 // catch — what rises above it is let go, a shell held up by its gas cannot turn over — then rises back to its station shell-first. Hanging, its face is a point HANG.face m under it and HANG.tip of that out from the wall, so it
 // leans off the rock and its eyes look into the open water; c.wander holds the point (a plumb never wanders).
-const HANG={rise:1.2,back:2,above:0.82,surf:3,tip:0.08,face:10,scan:0.25};
-function plumbY(d,floor){let lo=floor+(d.clear||0);if(d.deepY!==undefined)lo=Math.max(lo,d.deepY);return Math.min(Math.max(swarmDepth(floor,SKY.dayK,SKY.moonL,0.5),lo),-(d.size*HANG.above+HANG.surf));}
+const HANG={rise:1.2,back:2,above:0.82,surf:3,tip:0.08,face:10,scan:0.25,
+  gap:0.7, // v11.223.1 (the person: "it doesn't float or suspend itself off the ground really"): its arms' tips this × size over the floor at the least, so it hangs and never stands
+  bob:[0.6,7], // m, s: the slow rise and fall of a body held by its own gas — never quite at rest
+  sway:[0.11,23,31], // the tilt's reach (of the face's 10 m, so ~6°) and its two periods (s): a pendulum's wander, which turns it slowly as it goes
+  drift:[2.2,47,61], // m, s, s: the wander of its station round where it was placed — still water, not a fixed post
+  pull:0.15,hold:0.45}; // 1/s and m/s: how hard it keeps its station against a push or the current (it is carried by the water, v11.223.1); a push moves it and it drifts back
+function plumbY(d,floor){let lo=floor+(d.clear||0)+d.size*HANG.gap;if(d.deepY!==undefined)lo=Math.max(lo,d.deepY);return Math.min(Math.max(swarmDepth(floor,SKY.dayK,SKY.moonL,0.5),lo),-(d.size*HANG.above+HANG.surf));}
 // the face point under it; snap: turn the body there at once (at its placing)
-function plumbPose(c,snap){const w=c.wallD,k=HANG.face*HANG.tip;c.wander.set(c.pos.x-(w?w.x*k:0),c.pos.y-HANG.face,c.pos.z-(w?w.z*k:k));c.face=c.wander;
+function plumbPose(c,snap){const w=c.wallD,k=HANG.face*HANG.tip,S=HANG.sway,a=HANG.face*S[0],p=c.t0;c.wander.set(c.pos.x-(w?w.x*k:0)+a*Math.sin(TAU*t/S[1]+p),c.pos.y-HANG.face,c.pos.z-(w?w.z*k:k)+a*Math.cos(TAU*t/S[2]+p));c.face=c.wander; // leaning off the wall, swaying (v11.223.1)
   if(snap){_m.lookAt(c.wander,c.pos,UP);c.g.quaternion.setFromRotationMatrix(_m);c.g.position.copy(c.pos);}}
 function updatePlumb(c,dt){
   const d=c.def;if(hungerTick(c,dt))return;
   if(c.state==='sit'){c.scanT-=dt;c.cool-=dt;
     if(c.scanT<=0){c.scanT=HANG.scan;c.home.y=plumbY(d,groundAt(c.home.x,c.home.z)); // the layer moves with the sky: the station's depth read four times a second
       if(c.cool<=0&&c.hunger>ECO.hungry){const tg=findPrey(c,d.radius);if(tg){c.state='lunge';c.target=tg;c.lungeT=2;c.bit=false;}}}
-    if(c.state==='sit'){c.vel.set(0,clamp((c.home.y-c.pos.y)*0.5,-HANG.rise,HANG.rise),0);c.home.x=c.pos.x;c.home.z=c.pos.z;plumbPose(c,false);}} // still water holds it where it hangs; a push (the rock, a body) moves the station with it
+    if(c.state==='sit'){const D=HANG.drift,B=HANG.bob,p=c.t0,tx=c.home.x+D[0]*Math.sin(TAU*t/D[1]+p)-c.pos.x,tz=c.home.z+D[0]*Math.cos(TAU*t/D[2]+p*1.7)-c.pos.z,ty=c.home.y+B[0]*Math.sin(TAU*t/B[1]+p*2.3)-c.pos.y; // where it wants to be: its station, wandering and bobbing
+      let vx=tx*HANG.pull*4,vz=tz*HANG.pull*4;const hv=Math.hypot(vx,vz);if(hv>HANG.hold){vx*=HANG.hold/hv;vz*=HANG.hold/hv;}
+      c.vel.set(vx,clamp(ty*0.5,-HANG.rise,HANG.rise),vz);plumbPose(c,false);}} // v11.223.1: held by its gas and the water, not fixed — carried by the current, pushed by bodies, drifting back
   if(c.state==='lunge'){const tg=c.target,tp=tg===player?player.pos:tg?tg.pos:c.home,dist=c.pos.distanceTo(tp);c.lungeT-=dt;c.biteT-=dt;c.face=tp;c.grab=c.b.rigs&&tg&&dist<armReach(c,tg,1.6)?tg:null;
     if(c.hold)c.vel.multiplyScalar(1-1.5*dt); // holding: the pair drifts
     else{seek(c,tp,d.lunge,dt,4);if(tg&&c.biteT<=0&&landsOn(c,tg)){c.biteT=1;c.bit=true;landBite(c,tg);if(!c.hold&&tg!==player&&!tg.alive)c.state='feed';}}
@@ -11659,7 +11666,7 @@ function updateCreatures(dt0){
     // the current (v11.18): a body in the water is carried by it (re-read twice a second) unless it holds on — sitting, on the ground,
     // or a floor crawler; a swimmer's steering (seek, the boids) subtracts the current from the way it wants to go, so it crabs upstream,
     // holds station facing into the flow with its tail beating, and is swept only when the current outruns it
-    c.carried=sub>0&&!c.grounded&&c.state!=='sit'&&d.role!=='trap'&&!d.floor;
+    c.carried=sub>0&&!c.grounded&&(c.state!=='sit'||d.upright===true)&&d.role!=='trap'&&!d.floor; // upright (v11.223.1): a hanging plumb is in the water, not on anything — the current carries it and it drifts back
     if(dp<200&&c.carried){if(!c.cur){c.cur=V3(0,0,0);c.curT=0;}c.curT-=dt;if(c.curT<=0){c.curT=0.4+SIMR()*0.2;currentAt(c.pos.x,c.pos.z,c.pos.y,c.cur);}c.pos.addScaledVector(c.cur,dt*sub);}
     let pad=null;if(dp<200&&!d.ghost)pad=bodyPush(c.pos,c.vel,c.g.quaternion,d.size*0.75,d.size*0.35,d.size*0.28);
     const fh=groundAt(c.pos.x,c.pos.z)+(d.clear!==undefined?d.clear:d.size*0.35);c.grounded=false;if(c.pos.y<fh){c.pos.y=fh;if(c.vel.y<0)c.vel.y*=-0.15;c.grounded=true;}if(d.deepY!==undefined&&c.pos.y<d.deepY&&!c.held){c.pos.y=d.deepY;if(c.vel.y<0)c.vel.y=0;} /* deepY (v11.223): a gas-chambered body is held above the depth its chambers flood at (derive; the person, 23 Nov 2026: no exceptions) — a held one goes where its holder takes it */ // clear: how high the origin sits over the floor (a buried trap sits low). v11.92 tried the body's own radius (a ridge hangs 3 m up on 0.35 × size, its mouth over a floor prey's head) and wedged it in the floor's rocks: the lunge pitches down instead
@@ -11685,7 +11692,7 @@ function updateCreatures(dt0){
   }
   // contact: bodies near the player push apart by their actual shapes (the player among them), the player is kept out
   // of every arm and tail near it, then the arms and tails of everything at near LOD are simulated against the bodies.
-  for(const c of near){c.g.updateMatrix();worldShapes(c);c.shapeF=frameNo;if((c.def.role==='ambush'&&c.state==='sit')||c.def.role==='trap'||c.dead)c.mass=1e6;else c.mass=c.mass0;}
+  for(const c of near){c.g.updateMatrix();worldShapes(c);c.shapeF=frameNo;if((c.def.role==='ambush'&&c.state==='sit'&&!c.def.upright)||c.def.role==='trap'||c.dead)c.mass=1e6;else c.mass=c.mass0;}
   const P=player,live=mode==='play'&&!P.dead;let heldBy=0;bodies.length=0;for(const c of near)bodies.push(c);if(live)bodies.push(P);
   resolveBodies(bodies);
   updateHolds(dt0); // the holds' ropes (combat.js, v11.31): after the bodies have pushed apart, before the arms are simulated
@@ -13128,7 +13135,7 @@ function playerClade(spec,pre,j){ // the player's clade object from a spec (and 
   pre=pre||presetFor(spec);j=j||1;const st=statsOf(spec),base=SPECS[pre.spec],fd=founderDef(spec),ab=abilitiesOf(spec),sq=Math.sqrt(j);
   return {id:pre.id,name:spec===base?pre.name:(spec.id&&spec.id!==pre.spec?spec.id:pre.name),spec:spec,preset:pre,build:j===1?()=>compile(spec):()=>compile(spec,j*(spec.s||1)),juv:j<1?j:0,
     speed:st.speed*sq,accel:st.accel,turn:st.turn,mass:+(st.mass*1000*j*j*j).toFixed(1),bite:Math.round(st.mass*3+2)*j*j,size:spec.size*j,jet:!!st.jet,legs:!!st.legs,landSpeed:st.legs?st.walk*sq:undefined, // bite for a spec without the lock: the lab's DEFS rule (specExport, dmg = mass × 3)
-    sprint:st.burst>1?st.burst:undefined,jetImp:st.jet?st.jetImp*sq:undefined,buoy:st.buoyancy,mode:st.mode,canSwim:st.mode!=='walk',legsBack:legsBackOf(spec),clear:fd&&fd.clear!==undefined?fd.clear*j:spec.size*j*0.35,cam:+(CAM_BODY.at+CAM_BODY.per*st.length*j).toFixed(1),venom:fd?fd.venom:undefined,immune:!!(fd&&fd.immune),founder:founderOf(spec),abilities:ab,ability:ab[0]||null}; // v11.75: every number off the build or the founder's row; a hatchling's arm and kick with its scale. mass (v11.91): derive's, in kg — every body's (combat.js kgOfBody)
+    sprint:st.burst>1?st.burst:undefined,jetImp:st.jet?st.jetImp*sq:undefined,buoy:st.buoyancy,deepY:st.deepY,mode:st.mode,canSwim:st.mode!=='walk',legsBack:legsBackOf(spec),clear:fd&&fd.clear!==undefined?fd.clear*j:spec.size*j*0.35,cam:+(CAM_BODY.at+CAM_BODY.per*st.length*j).toFixed(1),venom:fd?fd.venom:undefined,immune:!!(fd&&fd.immune),founder:founderOf(spec),abilities:ab,ability:ab[0]||null}; // v11.75: every number off the build or the founder's row; a hatchling's arm and kick with its scale. mass (v11.91): derive's, in kg — every body's (combat.js kgOfBody)
 }
 const CLADES=CLADE_PRESETS.map(p=>playerClade(SPECS[p.spec],p));
 let floor0=-1e9;for(let a=0;a<TAU;a+=0.3)for(let r=0;r<=16;r+=4)floor0=Math.max(floor0,sampleH(Math.cos(a)*r,Math.sin(a)*r));
@@ -13162,6 +13169,7 @@ function oxyTick(P,dt){if(P.sub<0.3)return false; // in the air the gills are no
   P.oxyD=D=clamp(D,0,1);
   if(an&&D>=1){P.chokeT=(P.chokeT||0)+dt;if(P.chokeT>OXYD.choke){P.oxyD=0;P.chokeT=0;oxyView(0);die('suffocated under the chemocline');return true;}}else P.chokeT=0;
   oxyView(D);return false;}
+const DEEP_SOFT=12; // m: over the last of these above a gas shell's floor the player's descent is slowed to nothing (v11.223.1)
 function oxySlow(P){const D=P.oxyD||0;return D>OXYD.slow?lerp(1,OXYD.slowK,smooth(OXYD.slow,1,D)):1;}
 function oxyView(D){const v=0.8*smooth(0.15,1,D);if(Math.abs(v-oxyShown)>0.01&&oxyEl){oxyEl.style.opacity=v.toFixed(2);oxyShown=v;}} // the view closes in, dark, as the debt grows
 function hungerLine(){const P=player,C=P.clade;if(!C||mode!=='play')return '';if((P.oxyD||0)>0.005)return hungerLine0()+'  oxygen debt '+P.oxyD.toFixed(2)+(P.chokeT>0?' choking '+P.chokeT.toFixed(0)+'s':'');return hungerLine0();}
@@ -13368,6 +13376,9 @@ function updatePlayer(dt){
     else{P.pos.y=fh;if(P.vel.y<0)P.vel.y*=-0.2;P.grounded=true;}
   }
   else if(C.legs&&P.wasGrounded&&!(P.hopT>0)&&!P.dead&&P.pos.y-fh<WALK.step*Math.max(0.8,C.size)){P.pos.y=fh;if(P.vel.y<0)P.vel.y=0;P.grounded=true;} // v11.78: a walker keeps its feet down a step; a deeper drop is a ledge and it falls
+  // a gas shell's floor (v11.223.1; the person, 23 Nov 2026: the coilshell too, "no rule skip"): a chambered body (derive's deepY, −450) is
+  // held above the depth its chambers flood at, as every one in the world is (creatures_ai.js) — the descent slows over its last DEEP_SOFT m and stops
+  if(C.deepY!==undefined&&P.pos.y<C.deepY+DEEP_SOFT&&!P.held){if(P.vel.y<0)P.vel.y*=clamp((P.pos.y-C.deepY)/DEEP_SOFT,0,1);if(P.pos.y<C.deepY){P.pos.y=C.deepY;if(P.vel.y<0)P.vel.y=0;}}
   if(P.grounded&&!P.wasGrounded&&vy0<0)P.landV=-vy0;P.wasGrounded=P.grounded; // the landing's speed, for its thud (audio.js)
   // on a lily pad: it takes your weight (dips more the smaller it is) and you are ashore on it
   P.onPad=pad;if(pad){P.grounded=true;loadPad(pad,clamp(0.6/pad.r,0.03,0.45));}
