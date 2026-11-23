@@ -4,11 +4,12 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
-**v11.221 (23 Nov 2026): the sparkle as a parallel ecosystem** (LINEAGE.md §7c, §12.39–45; CLAUDE.md and PLANET.md's no-magic rule;
+**v11.221 (23 Nov 2026): the sparkle as a parallel ecosystem** (LINEAGE.md §7c, §12.39–46; CLAUDE.md and PLANET.md's no-magic rule;
 CHANGELOG). Docs only, and a rough draft, not gospel: the aim is the sparkle as a fun mechanic that motivates the player. The
 person's answers: not §7b's island but an ecosystem of its own over the whole world, the gods placed by hand and
 designed first, the generation count kept, the sparkle released at laying and drained while not eating, the player just another sparkle
-creature and hunted for it. The model (a substance moved by eating) is proposed. **Ask:** §7c.4, the first three.
+creature and hunted for it. The model (a substance moved by eating) is proposed; nine candidate gods in §7c.5. The ordinary ecology gets more passes
+first. **Ask:** §7c.4, the first three.
 
 **v11.220 (23 Nov 2026): F9 reports this visit first** (rec.js recBody, `recBrief`; test/report.js; test/rec.js; DESIGN.md; CHANGELOG). The person's
 choice: the visit you are in, its time in seconds under a minute, and the session before below it when short. **Ask:** open twice, F9 at once.

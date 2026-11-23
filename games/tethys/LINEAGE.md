@@ -5,7 +5,7 @@ ringmouths' one spawning, brood and scheduled death; v11.76 the hingeshells' den
 unload, the handover at death to the nearest living child, the save ended with none, the sparkle, the player as a spec (v11.68) and any species of
 the roster as the founder (v11.75), the editor at conception with its budget (v11.72) paid from the stomach (v11.73). Not built: the crude shrine
 page, §8's sparse entries (a survival knob stands in), §6b's materials, and §12.33's zoom-and-fade into the editor — §13.4 ships as a jump cut.
-Design otherwise, 20 Sep 2026. The person's answers are in §12 (32–38 added 22 Sep 2026; 39–45 on 23 Nov 2026 with §7c, the sparkle as a parallel ecosystem: a rough
+Design otherwise, 20 Sep 2026. The person's answers are in §12 (32–38 added 22 Sep 2026; 39–46 on 23 Nov 2026 with §7c, the sparkle as a parallel ecosystem: a rough
 draft, nothing built) and are folded through the body of this doc.** Written
 at the head of the creator pass (the person, 20 Sep: the creator becomes the default start of the game, and the game becomes "a genetic
 lineage game where you can trace your ancestry, lives and activity levels"). Upstream: `PLANET.md` (the clades and their limits),
@@ -291,7 +291,7 @@ So §1's thesis moves: Tethys is a believable simulation with **one substance** 
 of the animals it runs through** — *"just another sparkle creature."* Perhaps later the implication that you came from a particular line;
 not now.
 
-#### 7c.1 The person's answers so far (23 Nov 2026; §12.39–45)
+#### 7c.1 The person's answers so far (23 Nov 2026; §12.39–46)
 
 1. **A parallel ecosystem, not a box**: over the whole world and interacting with it. The sparkle reaches our island too (how: §7c.4).
 2. **The gods are placed by hand, and designed in order**: the gods first — what each is and does — then their lines, then the ecologies
@@ -360,7 +360,29 @@ seen whole; you meet a flank, then a shadow.
 4. **How it reaches our island**: a fall on the island's slope, a current carrying dosed plankton or larvae from a source up-current, a
    god's line's range, or a weak source of its own.
 5. **Does §7b survive in another form** — the wisp on a current as the way to a source, the home as the largest one?
-6. **The gods**: who they are and what they do. The person's design, and first in the order (§7c.1, 2).
+6. **The gods**: who they are and what they do — candidates in §7c.5. The person's design, and first in the order (§7c.1, 2).
+
+#### 7c.5 Candidate gods (a rough draft, 23 Nov 2026)
+
+Picked by what each gives the player to do, not by the animal: nine gods that are nine boss fights are one god nine times. Each founder
+is an existing species; the names are ours, never the game's. ★ the person's favourites (23 Nov 2026). **Not before the ordinary ecology
+has had more passes** (the person: *"we will probably do another pass over the regular ecology a few times before building this"*); the
+list will change in a later conversation.
+
+| god | founder | what it is | its line, and its sparkle's ecology | the player's verb |
+|---|---|---|---|---|
+| **the Bell** ★ | jelly | 60 m, tall and thin, in lit water up-current of the nursery; its curtain reaches the floor | young drift on the current, the widest scatter (the first sparkle met is likely a great-grandchild) and sting for sparkle; under it, pens and whips tree-tall | follow the gradient upstream; the first god |
+| **the Reef** | polyps | one animal kilometres long | spawns on the eclipse night, the one dark night every ten days: the water full of dosed larvae, every line feeding; satellite reefs down-current | keep the appointment: read the moon, load up, lay |
+| **the Walking Reef** | plough | a terminal moult long ago, so a sparkled reef grew on its back | walks a circuit over the flats over game-months; the flats bloom behind it | live on it: den, garden, ride |
+| **the Mother** ★ | arrow (the soft-arm's family) | too big to jet; never leaves a lava tube | packs of her young hunt the dosed — you — and bring it home; her midden a hoard | the heist: the midden while the packs are out |
+| **the Drowned Shell** ★ | great (coilshell) | too heavy to rise, settled and cracked on the rim; lives in its last chamber | young hatch inside and leave by the cracks | the dungeon: sized holes, and growing shuts you out |
+| **the Wanderer** | abyssal | the one that moves; hunts the other lines | leaves dosed carcasses behind it | the jackal: shadow it, eat its leavings |
+| **the Iron Walker** | cinder | iron plates, poison by its diet | the richest sparkle, behind poison; vent chimneys grown to towers | come back with immunity (suggested cut: the Shell's verb again) |
+| **the Raft** ★ | greatsailer | a floating forest a field across | its young sail the surface; a storm beaches it | the strand after the storm |
+| **the Watcher** | watcher | intelligent; watches, does not attack | its young shadow you; it remembers how its line was treated | the relationship: its garden, or its line's hunt |
+
+Between them: the Wanderer eats the Bell's and the Walking Reef's lines; the Mother's packs raid the Walking Reef's back; the eclipse
+spawning is where every line meets; nothing eats the Iron Walker's line. Suggested first: the Bell, the Reef, the Mother.
 
 ## 8. The ledger: absorbing what the player looses
 
@@ -542,6 +564,8 @@ coordinates and days in a form that could be exported.
 44. **Sparkle hunters come for the player** (23 Nov 2026): "Of course."
 45. **§7c is a rough draft, not gospel** (23 Nov 2026): the aim is the sparkle as a fun, interesting mechanic that motivates the player;
     if the sparkle is needed to justify ignoring physics and size, it may. 39–44 stand as today's answers, not as law.
+46. **Candidate gods** (23 Nov 2026; §7c.5): a rough draft to iterate on. The person's favourites: the Bell (a jelly), the Raft (a floating
+    forest), the Drowned Shell (a cave system), the Mother (packs of ringmouths). The regular ecology gets more passes before any is built.
 
 ## 13. Build order
 

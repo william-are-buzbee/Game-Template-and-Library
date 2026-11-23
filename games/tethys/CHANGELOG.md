@@ -10818,7 +10818,7 @@ DESIGN.md "The flight recorder" records it.
 A design conversation with the person, recorded. Docs only; nothing in `src/` moved. **A rough draft, not gospel** (§12.45): the aim
 is the sparkle as a fun, interesting mechanic that motivates the player, and it may excuse physics and size where that serves it.
 
-- **The sparkle is a parallel ecosystem, not a box** (LINEAGE §7c, new; §12.39–45). The person: *"no longer for an island of wackyness,
+- **The sparkle is a parallel ecosystem, not a box** (LINEAGE §7c, new; §12.39–46). The person: *"no longer for an island of wackyness,
   but a world where the sparkle has created its own parallel ecosystem on top of the world and also interacting with it."* Gods placed by
   hand and designed first, then their lines (a god's family stepping down in size, its shape carried down), then the ecologies their
   sparkle makes — overgrown plants, staggeringly large reefs. It reaches our island. §7b's island is superseded, kept as the record.
@@ -10828,6 +10828,8 @@ is the sparkle as a fun, interesting mechanic that motivates the player, and it 
   eating, so it concentrates up the food web; a threshold under which it is inert and unseen; the drain while hungry as its only upkeep,
   which a god, never full, pays always (the engine of the competition); released into the clutch, so a line's tiers are its dilution;
   returned at death, a fall's garden made staggering; size and form, not habitat, by default; hunters weighing prey by the dose.
+- **Candidate gods** (§7c.5): nine, picked by what each gives the player to do. The person's favourites: the Bell (a jelly), the Raft (a
+  floating forest), the Drowned Shell (a cave system), the Mother (packs of ringmouths). More passes over the ordinary ecology come first.
 - **The rule amended** (CLAUDE.md, PLANET.md Hooks): the 8 Sep rule holds for everything without the mark; the sparkle is the one
   exception, and may excuse physics and size. LINEAGE §1's "that thing is you" amended to match.
 - The build and `npm run check` green; nothing to look at.
