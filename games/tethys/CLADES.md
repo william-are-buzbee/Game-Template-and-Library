@@ -373,11 +373,12 @@ whale-like filter feeder). Convergence stays: what exists is fine, it is the var
 | two sexes like two species | argonauts (the female's thin egg case secreted from her arms; a tiny male), anglerfish | a brooding ringmouth female grows a shell from her arms for the brood — the clade's one mineral, worn only for its one spawning (LINEAGE §3) | soft-arm | candidate |
 | a squatter in a dead shell | hermit crabs; Phronima in a hollowed salp | a small hingeshell in a dead coilshell's shell — the ecology already makes the shells | coilshell's shell, a walker | candidate |
 | a larva that breeds | larvaceans: tunicates that never grow up | a ringmouth that breeds small and never grows its shell | a straightshell juvenile | candidate |
+| a vertical body among vertical stalks | shrimpfish and trumpetfish, hanging head-down among sea grass and urchin spines | **the stipe** (the person, 23 Nov 2026, asked for a shallow plumb and smaller ones that still point up): a 2–4 m upright straightshell hung among the weed forest's stipes, a stalk among stalks, dropping on darters and flickers | plumb | candidate |
 
 Why the straightshells were never displaced, and may be big: on Earth the orthocones gave way when fish put jaws, bone and a fast
 metabolism in one body; here the stalemate rule (PLANET) says no clade has all three. The 28% oxygen does the size. No sparkle needed.
 
-### The individuals (generated)
+### The individuals (generated) — designed in VARIETY.md (23 Nov 2026)
 
 Per instance, by what: size (built, `VARY`); the coat by chemistry (built for hingeshells; extended to the ringmouths' shells and the
 slowbloods' plates); arm lengths and asymmetry (the rigs are each creature's own, so these are cheap); the shell's banding; the tip shed
@@ -405,6 +406,10 @@ species), never one per animal; what it costs is measured (`test/bench_creatures
   (`HANG.gap`); a slow bob, a pendulum sway that turns it, a drift round its station; carried by the current and pushed by bodies, drifting back;
   the arms hanging (rest spread 0.42 → 0.22); a paler shell. Walls from 11 m faces (`STATION.wall` 0.3–0.75) and `n` 4 → 12: about 8,100 in the
   world (the census at day 60). The person also wants it a god (LINEAGE §7c.6).
+- **Seen again (23 Nov 2026)**: *"It reads better and it's more common which I greatly appreciate."* Asked: a shallow version, and smaller ones that
+  still point up. The young are smaller (0.55, ~11 m) and hang the same way, at the same walls; nothing hangs in the shallows — its floor is 30 m down
+  and its shell's length and its gap keep it deeper still. A shallow one is a species of its own: the stipe (the radiation table). Its size: 20 m
+  typical, 30 m old, by the individual generator (VARIETY.md §3).
 
 ### Habitat: three scales (proposed and agreed 23 Nov 2026)
 

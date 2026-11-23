@@ -156,7 +156,7 @@ dist.js; `archive/` old docs kept whole; the design docs.
 
 **The docs**, most upstream first (each at length in README.md). When a doc's Open list says a choice is the person's, ask.
 `PLANET.md` the planet, its rules and the roster — the game changes when it conflicts · `TAXA.md`, `FLORA.md`, `REEF.md` the sessile life
-(TAXA wins) · `CLADES.md`, `DRIFTERS.md`, `CREATOR.md` the bodies and the lab · `ARCHIPELAGO.md`, `GLOBE.md`, `DEEP.md`, `SEAFLOOR.md` the
+(TAXA wins) · `CLADES.md`, `DRIFTERS.md`, `CREATOR.md` the bodies and the lab, `VARIETY.md` the individual · `ARCHIPELAGO.md`, `GLOBE.md`, `DEEP.md`, `SEAFLOOR.md` the
 islands, the region and the deep — read before placing an island or touching `CHEMO` · `PLANKTON.md`, `BIOLUM.md` (before any light on a
 creature), `CLOUDS.md`, `WATER.md`, `PIXEL.md`, `POLISH.md`, `COMBAT.md`, `AUDIO.md` (every number chosen blind), `LINEAGE.md` ·
 `DIRECTION.md` the game's loop; its Open list is the person's · **`DESIGN.md` the reference: a section per system, its numbers, knobs and

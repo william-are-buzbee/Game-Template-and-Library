@@ -391,6 +391,7 @@ spawning is where every line meets; nothing eats the Iron Walker's line. Suggest
 The person, on seeing the plumb (v11.223): *"I think it should be one of the 10 gods. Or, there should be a god, with a handful of 'demigods' that
 are distinct from their parent but still obviously a child. Either way, a sea full of these things is a very appealing image."* So the tenth god,
 and a new word for §7c.2's line: **demigods**, the god's first children — few, each with a body of its own, each read at once as its parent's.
+**Every god has demigods** (the person, 23 Nov 2026): §7c.5's "its line" column is each god's demigods to come.
 
 **How big, by physics and past it** (the person asked):
 - *Pressure limits depth, not size.* A gas chamber's wall holds the water by its thickness against its radius (a thin shell's t/r = P/σ), so a big
@@ -412,8 +413,11 @@ and a new word for §7c.2's line: **demigods**, the god's first children — few
 - **the crozier** — the tip of its cone curled back on itself: a hook that it hangs from rock by, under an overhang.
 - **the colony** — the young never leave: a stand of them round the parent's column, the sea full of them.
 
-Open (the person's): demigods for every god, or the Plumb's alone; which demigods; where the Plumb hangs (a caldera's wall, the island's drowned
-flank, the giant's shelf edge); whether the ordinary plumb grows to 30 m now.
+Open (the person's): ~~demigods for every god, or the Plumb's alone~~ — **answered 23 Nov 2026: demigods for every god** — the way of it: *"the
+idea is that we find out what each god is and then allow some variants"*, so a god is designed first and its demigods are its variants. ~~Whether the
+Plumb is a god~~ — *"I am not sure if the plumb should be a god or a demigod… so maybe the plumb is a god"*: a god, provisionally. ~~The ordinary
+plumb at 30 m~~ — *"I think we should let 30 m be a reasonable new size for it"*, and the generator decides who is 30 (VARIETY.md §3: the old ones).
+Still open: which demigods; where the Plumb hangs (a caldera's wall, the island's drowned flank, the giant's shelf edge).
 ## 8. The ledger: absorbing what the player looses
 
 The person, 20 Sep: *"the game needs to just find a way to absorb whatever 'added animals' the player throws into the game"* — and the
