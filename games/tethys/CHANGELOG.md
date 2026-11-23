@@ -10835,3 +10835,22 @@ is the sparkle as a fun, interesting mechanic that motivates the player, and it 
 - The build and `npm run check` green; nothing to look at.
 - **Unseen, ask in this order**: LINEAGE §7c.4 — (1) where laying releases the sparkle, into the clutch or the world; (2) what it buys the
   player with the generations kept as the licence; (3) what happens to a line with none.
+
+## v11.222 — the radiation: individuals generated, species authored, the hanger first (23 Nov 2026)
+
+A design conversation with the person, recorded. Docs only; nothing in `src/` moved.
+
+- **The brief**: the ecology mirrors Earth a little too closely at times, the ringmouths look *"a little too clean"*; look at more of
+  Earth's history (past the Cretaceous) for patterns, not animals, and repurpose existing shapes for new niches.
+- **The diagnosis** (CLADES, The radiation): every ringmouth and slowblood of a kind is identical (`COAT_CHEM_KEYS` empty for both, only
+  `VARY`'s ±15% size); one fresh design per niche instead of a few plans radiated; hingeshells already 17 of 41 species.
+- **Decided** (the person): the generator split — individuals generated in the world (coat, arms, banding, the shed tip, encrusters,
+  scars), species authored from a radiation table as a parent's spec with overrides; **the hanger first** (a straightshell with no ballast,
+  hung vertical, the Palaeozoic orthocones' hydrostatics), **the ortho kept as it is**; the slowbloods' Earth reference becomes the jawless
+  armoured fish (a pass of its own); the slowblood filter giant (the ridge's line) and the ringmouths' individuals after.
+- **Proposed**: habitat at three scales — the range (the envelope, bounded by the body), the station in the cell (a vocabulary: wall, lee,
+  lip, edge, canopy, open, crevice; the missing scale and the one the player sees), the clock (the day's layer, the tide's lee, the
+  year's bloom). The ortho against the hanger as the worked pair. PLANET.md gets a dated section pointing at it.
+- The build and `npm run check` green; nothing to look at.
+- **Unseen, ask in this order**: CLADES, The radiation, Open — (1) the three scales and the station vocabulary; (2) the ortho's envelope
+  past a gas shell's depth; (3) which candidates.

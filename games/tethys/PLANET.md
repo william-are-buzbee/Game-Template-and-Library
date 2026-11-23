@@ -476,6 +476,16 @@ The consequence, accepted by the person: the life is compressed against the sky 
 life against a real octopus's year) and the sky is not, so a season spans some thirty soft-arm generations. The season is something a
 line lives through, not something one animal adapts to — `LINEAGE.md`'s generations are what sees the year.
 
+## Decided 23 Nov 2026 — the radiation (CLADES.md, The radiation)
+
+More of Earth, not less, for patterns rather than animals (the person: the ringmouths "a little too clean looking"; the whole a little too
+close to Earth at times). **Individuals are generated, species authored** from a radiation table, each a parent's spec with overrides so kin
+look like kin. **The hanger** is first: a straightshell with no ballast, hung vertical, holding station beside walls in still water and
+following the swarm's layer up at night; **the ortho stays as it is**. **The slowbloods' Earth reference becomes the jawless armoured fish**
+(heterostracans, osteostracans, galeaspids) — the clade section's "reptilian" and its fish-shaped fins give way to it when that pass is built.
+The slowblood filter giant (the ridge's line) and the ringmouths' individual variety follow. Habitat at three scales — the range, the
+station in the cell, the clock — is proposed there, not decided.
+
 ## Open
 
 Asked and not yet answered; do not decide these for the person.
