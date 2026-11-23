@@ -5,8 +5,8 @@ ringmouths' one spawning, brood and scheduled death; v11.76 the hingeshells' den
 unload, the handover at death to the nearest living child, the save ended with none, the sparkle, the player as a spec (v11.68) and any species of
 the roster as the founder (v11.75), the editor at conception with its budget (v11.72) paid from the stomach (v11.73). Not built: the crude shrine
 page, §8's sparse entries (a survival knob stands in), §6b's materials, and §12.33's zoom-and-fade into the editor — §13.4 ships as a jump cut.
-Design otherwise, 20 Sep 2026. The person's answers are in §12 (32–38 added 22 Sep 2026; 39–44 on 23 Nov 2026 with §7c, the sparkle as a parallel ecosystem: decided
-in outline, the model proposed, nothing built) and are folded through the body of this doc.** Written
+Design otherwise, 20 Sep 2026. The person's answers are in §12 (32–38 added 22 Sep 2026; 39–45 on 23 Nov 2026 with §7c, the sparkle as a parallel ecosystem: a rough
+draft, nothing built) and are folded through the body of this doc.** Written
 at the head of the creator pass (the person, 20 Sep: the creator becomes the default start of the game, and the game becomes "a genetic
 lineage game where you can trace your ancestry, lives and activity levels"). Upstream: `PLANET.md` (the clades and their limits),
 `CLADES.md` (the three signatures), `COMBAT.md` (death, and `slotDeath` as built), `CREATOR.md` (the spec, the compiler, the lab as it
@@ -272,9 +272,13 @@ This is endgame content and nothing about it is urgent, but it is recorded now b
 - **The one rule it must not break**: the sparkle still means the magic. An animal that sparkles is an animal outside the simulation's
   rules, and the player learns that by meeting the home's inhabitants — which is exactly the lesson the tell was for.
 
-### 7c. The sparkle as a substance: a parallel ecosystem (the person, 23 Nov 2026 — decided in outline, the model proposed, nothing built)
+### 7c. The sparkle as a substance: a parallel ecosystem (the person, 23 Nov 2026 — a rough draft, nothing built)
 
-*Supersedes §7b's box. §7's rule stands and now carries more weight: whatever carries the sparkle shows the mark, and nothing else does.*
+**A rough draft, not gospel** (the person, 23 Nov 2026: *"we don't want to be looking back on these docs and treating it like gospel"*).
+The aim is one thing: **the sparkle as a fun, interesting mechanic that motivates the player.** Everything below serves that aim and is
+rewritten the moment it doesn't — the answers included. Where the game needs the sparkle to excuse physics or size, it may.
+
+*Supersedes §7b's box. §7's rule stands: whatever carries the sparkle shows the mark, and nothing else does.*
 
 The person, 23 Nov 2026: *"the idea is no longer for an island of wackyness, but a world where the sparkle has created its own parallel
 ecosystem on top of the world and also interacting with it."* The picture that started it: something magical over here — a behemoth
@@ -287,7 +291,7 @@ So §1's thesis moves: Tethys is a believable simulation with **one substance** 
 of the animals it runs through** — *"just another sparkle creature."* Perhaps later the implication that you came from a particular line;
 not now.
 
-#### 7c.1 Decided (the person, 23 Nov 2026; §12.39–44)
+#### 7c.1 The person's answers so far (23 Nov 2026; §12.39–45)
 
 1. **A parallel ecosystem, not a box**: over the whole world and interacting with it. The sparkle reaches our island too (how: §7c.4).
 2. **The gods are placed by hand, and designed in order**: the gods first — what each is and does — then their lines, then the ecologies
@@ -297,7 +301,7 @@ not now.
 5. **The player is just another sparkle creature.**
 6. **Sparkle hunters come for the player** ("of course").
 
-#### 7c.2 The model (proposed 23 Nov 2026, with 4 folded in — not decided)
+#### 7c.2 A model (proposed 23 Nov 2026, with answer 4 folded in — a starting point, not a rule set)
 
 The person's instinct is the magic built on a believable foundation. Its precise form is **a substance the simulation already knows how
 to move** — mercury, with growth where the poison would be. Nothing in it needs a system the game lacks: it rides the bites, kills,
@@ -310,24 +314,24 @@ carcasses and clutches that already move food.
 3. **A threshold.** Below it the sparkle is inert and unseen; above it the animal shows the mark and the sparkle acts. This keeps §7's
    rule — the trace in a grazer near a source shows nothing — and gives the player a first moment: feed near a source long enough and one
    day you flicker.
-4. **It drains while the stomach is short** (decided, 4), and that drain is the whole of its upkeep. What it buys is a body past what its
+4. **It drains while the stomach is short** (answer 4), and that drain is the whole of its upkeep. What it buys is a body past what its
    food can pay for, so a sparkle animal that eats well barely drains, and a god — a body its food never fills — drains always and must
    keep taking sparkle to stay what it is. That is the engine: without a sink nothing would compete. It is the one hunger every animal
    runs (§12.25): the sparkle burns before the body wastes (§12.35). A god that cannot keep up shrinks back toward the size its food
    supports (marine iguanas shrink in a famine).
-5. **Laying releases it** (decided, 4) **into the clutch, split among the eggs** (that part proposed; the other reading is out into the
+5. **Laying releases it** (answer 4) **into the clutch, split among the eggs** (that part proposed; the other reading is out into the
    world, a sink — §7c.4). Into the clutch is what makes the tiers: a god's children enormous, its grandchildren huge, its
    great-grandchildren large, and below the threshold the line is an ordinary species of the world. §5's "the wildness stops one
    generation down", generalised: it stops where the dose does. (Orca mothers offload much of their PCB load into their first calf.)
 6. **Death returns it.** A sparkled carcass seeds the place it falls, and what grows on it grows staggering — a whale fall's garden,
    mutated. With the sources, this is where the overgrown plants and the giant reefs come from, and how the sparkle reaches places no god
    lives.
-7. **It pays for size and form, never for habitat.** A god placed by hand (decided, 2) is placed where its founder's envelope holds: the
-   sparkle lets a jelly be sixty metres, not live where a jelly cannot. This is what keeps the parallel ecosystem on top of the
-   believable one rather than instead of it.
+7. **By default it pays for size and form, not habitat.** A god placed by hand (answer 2) sits where its founder's envelope holds: the
+   sparkle lets a jelly be sixty metres, not live where a jelly cannot. That keeps the parallel ecosystem on top of the believable one
+   rather than instead of it — a default, broken whenever a god is more fun for it (the head note).
 8. **Sparkle hunters weigh their prey by its dose** — one term in prey choice. Where two lines' ranges overlap their young take each
    other's; no war is simulated, and the border makes its own skirmishes. Peaceful or hostile is what the founder eats: a filter-feeding
-   god's line grazes its source's dosed plankton and stings poachers; a hunter's line hunts the dosed, the player among them (decided, 6).
+   god's line grazes its source's dosed plankton and stings poachers; a hunter's line hunts the dosed, the player among them (answer 6).
 
 What falls out for the player: **carry or spend** — carrying makes you flicker and brings the dosed hunters; laying spends it into a
 clutch that is bigger and stranger for it. And **the gradient** — bigger and brighter toward a god or a source, a family resemblance at
@@ -536,6 +540,8 @@ coordinates and days in a form that could be exported.
 43. **The player is just another sparkle creature** (23 Nov 2026): perhaps later implied to come from a particular line, but "for now
     you're just you". §1's "that thing is you" amended.
 44. **Sparkle hunters come for the player** (23 Nov 2026): "Of course."
+45. **§7c is a rough draft, not gospel** (23 Nov 2026): the aim is the sparkle as a fun, interesting mechanic that motivates the player;
+    if the sparkle is needed to justify ignoring physics and size, it may. 39–44 stand as today's answers, not as law.
 
 ## 13. Build order
 

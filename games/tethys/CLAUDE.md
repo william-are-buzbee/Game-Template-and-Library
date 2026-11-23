@@ -19,8 +19,8 @@ from a young shield volcano (ours is 3 Ma), a big close moon, 28% oxygen, iron, 
 the food raining onto its sill outruns its inflow's oxygen, and none in today's world is) and the founder lines, it goes. No place has a name; every species
 places itself by a tolerance envelope over the condition fields. Nothing glows, floats or moves without a physical reason; eyeshine is a
 reflection; bioluminescence only as events. Earth is reference, never template. **The one exception (the person, 23 Nov 2026; LINEAGE
-§7c): the sparkle**, a parallel ecosystem over the world, marked on everything that carries it; everything without the mark stays under
-this rule.
+§7c, a rough draft): the sparkle**, a parallel ecosystem over the world, marked on everything that carries it, which may excuse physics
+and size where that makes it a better mechanic; everything without the mark stays under this rule.
 
 ## Build, test, run, look
 

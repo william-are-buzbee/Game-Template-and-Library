@@ -304,7 +304,8 @@ The jelly is an outsider (a cnidarian analogue); "all clades represented" does n
   the displays struck.) **Revised 17 Nov 2026 (the person; BIOLUM.md §6): never a lamp without a payoff to its owner.** A lure may glow steadily,
   because what it draws is eaten; the v10.1 reason stands for a sessile lantern, and so does the person's "no lanterns" (16 Nov 2026). The cross-clade
   rules' emissive clause and the Light bullet were revised the same day. v11.163: the first light on a creature, the pall's (BIOLUM §8). **23 Nov 2026 (the person; LINEAGE §7c): the sparkle is
-  the one exception** — the magic, shown by its mark on whatever carries it and on nothing else.
+  the one exception** — the magic, shown by its mark on whatever carries it and on nothing else; it may excuse physics and size
+  where the game needs it to (§7c is a rough draft).
 - **The tide** — built (v10.3, DESIGN The surface): 6–9 m twice a 30 h day on a clock that runs a day in forty minutes; the rim
   floods, the passes run in and out, the strand walks, the rocks wear the band; the current turns with it (the tidal stream,
   `tidalAt`, splitting round the shield). Still open: the cones and crowns opening on the flood; day and night on the same clock.
