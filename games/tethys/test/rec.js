@@ -5,8 +5,8 @@
 // their GPU time by pass to the hundredth; a slow frame kept with what it was doing (a compile, a cell's generation) and its GPU time filled in late;
 // a disjoint dropping the queries in flight and nothing else; a hidden tab's gap not a frame; the warnings and errors counted once each; the timeline's
 // rows and their halving; no NaN anywhere; the session through deflate and back to the bit (test/report.js's decoder); a two-hour session over 900
-// places fitting the link (REC_K.url) and still decoding; the store keeping a long session and not a short one over it, and F9 sending the last
-// when this one is short. In --test (build.js SIDE). It reads no wall clock: the page's performance.now is the test's.
+// places fitting the link (REC_K.url) and still decoding; the store keeping a long session and not a short one over it, and F9 sending this visit
+// with the session before beside it when this one is short (v11.220). In --test (build.js SIDE). It reads no wall clock: the page's performance.now is the test's.
 'use strict';
 const fs=require('fs'),path=require('path'),vm=require('vm'),zlib=require('zlib');
 const ROOT=path.join(__dirname,'..'),SRC=fs.readFileSync(path.join(ROOT,'src','rec.js'),'utf8');
@@ -121,7 +121,7 @@ async function unpack(tok){const m=/tethys-rec:1:([zj])([A-Za-z0-9_-]+)/.exec(to
     const full=await unpack(o.full);ok(full.places.length===601&&full.tl.rows.length===f.tl.rows.length,'the clipboard holds the whole: '+o.full.length+' characters');
     ok(!nanFree(f,'s').length,'no NaN');}
 
-  console.log('the store: a long session kept, a short one not over it; F9 sends the last when this one is short');
+  console.log('the store: a long session kept, a short one not over it; F9 sends this visit, and the session before with it when this one is short');
   {const store=new Map(),P1=page({store});P1.g.BOOT.done=true;for(let i=0;i<5000;i++)P1.step(16.7,{pos:A});for(const h of P1.handlers.pagehide)h();
     const kept=Math.round(P1.R().state.s);ok(store.has('tethys.rec')&&JSON.parse(store.get('tethys.rec')).p.play===kept,'a session of '+P1.R().state.s.toFixed(0)+' s stored at pagehide');
     const P2=page({store});P2.g.BOOT.done=true;for(let i=0;i<100;i++)P2.step(16.7,{pos:B});for(const h of P2.handlers.pagehide)h();
@@ -129,10 +129,11 @@ async function unpack(tok){const m=/tethys-rec:1:([zj])([A-Za-z0-9_-]+)/.exec(to
     let opened=null;const P3=page({store,open:()=>(opened={location:{href:''},opener:{}})});P3.g.WC={hit:{maps:true,cau:true,plat:true,sad:false},ms:31.5};P3.g.TETHYS_BUILD={v:'v',wh:'abc'};P3.g.BOOT.done=true; /* v11.217: a visit that took three of the world cache's four */for(let i=0;i<100;i++)P3.step(16.7,{pos:B});
     for(const h of P3.handlers.keydown)h({code:'F9',preventDefault(){}});await new Promise(r=>setTimeout(r,300)); // the compression is a promise
     ok(opened&&/issues\/new/.test(opened.location.href)&&opened.opener===null,'F9 opens the tab and sends it there, the opener cut');
-    const p=decode(decodeURIComponent(opened.location.href.split('&body=')[1]));ok(p&&p.play===kept&&/previous session/.test(decodeURIComponent(opened.location.href)),'the last session sent, and said so');
-    {const body=decodeURIComponent(opened.location.href.split('&body=')[1]),n=p.now&&p.now.boot;
-      ok(n&&n.done>=0&&n.wc==='maps cau plat'&&n.wcMs===0.03&&/\*\*this visit\*\*[^\n]*world cache maps cau plat \(read 0\.03 s\)/.test(body),'with this visit\'s own boot (v11.217), what it took from the world cache and the read\'s time: '+(n?n.wc+', '+n.wcMs+' s':'none'));
-      ok(!p.boot.wc&&P1.R().full().boot.wc==='','the session before, recorded with no cache in its page, says none');}
+    const p=decode(decodeURIComponent(opened.location.href.split('&body=')[1])),short=Math.round(P3.R().state.s),title=decodeURIComponent(opened.location.href.split('&body=')[0]);
+    ok(p&&p.play===short&&p.before&&p.before.play===kept&&/\(\+ the session before\)/.test(title)&&/ 2 s /.test(title),'this visit sent (v11.220, the person\'s "This visit first"): '+(p?p.play:'?')+' s played, its title in seconds, the session before ('+(p&&p.before?p.before.play:'?')+' s) with it');
+    {const body=decodeURIComponent(opened.location.href.split('&body=')[1]),n=p.boot;
+      ok(n&&n.done>=0&&n.wc==='maps cau plat'&&n.wcMs===0.03&&/\*\*boot\*\*[^\n]*world cache maps cau plat \(read 0\.03 s\)/.test(body)&&/\*\*the session before\*\*/.test(body),'its own boot, what it took from the world cache and the read\'s time ('+(n?n.wc+', '+n.wcMs+' s':'none')+'), and the session before labelled in the body');
+      ok(!p.before.boot.wc&&P1.R().full().boot.wc==='','the session before, recorded with no cache in its page, says none');}
     ok(P3.g.hintEl.textContent.indexOf('github issue')>=0,'the hint: '+P3.g.hintEl.textContent);
     const mid=P1.R().state.mid,f1=P1.R().full();ok(/^[0-9a-z]{4}$/.test(mid)&&store.get('tethys.mid')===mid&&f1.dev.mid===mid,'the machine\'s name made once and kept: '+mid);
     ok(P3.R().state.mid===mid&&p.dev.mid===mid&&/· [0-9a-z]{4} ·/.test(decodeURIComponent(opened.location.href.split('&body=')[0])),'the same browser the same name, in the report and its title');

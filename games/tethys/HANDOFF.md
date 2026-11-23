@@ -4,6 +4,9 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.220 (23 Nov 2026): F9 reports this visit first** (rec.js recBody, `recBrief`; test/report.js; test/rec.js; DESIGN.md; CHANGELOG). The person's
+choice: the visit you are in, its time in seconds under a minute, and the session before below it when short. **Ask:** open twice, F9 at once.
+
 **v11.219 (23 Nov 2026): the fill light's colours again** (atmosphere.js; test/lint.js; test/combat.js; CHANGELOG). A `//` mid-line had swallowed
 them since v11.175: under water the fill takes the water's colour again (greener, darker in the shade). Lint now fails on code in a comment. **Ask:**
 the look under water, better or worse than these six days (either is fine).
@@ -19,10 +22,6 @@ took from the world cache. The cache's read let go after the boot: 20.7 MB. **As
 **v11.216 (22 Nov 2026): the world cache, part two** (wcache.js `wcProduct`; region.js `rgCache`, `rgPlatMake`, `rgSadMake`; order.txt; test/wcache.js;
 CHANGELOG). The platform and the saddles cached too: the load in Node 3.1 → 0.95 s with everything cached, a cached reload's first frame 0.5–0.8 s sooner
 than v11.215 in headless Chromium. The island records stay uncached (closures). **Ask:** open the game twice; F9 after the second.
-
-**v11.215 (22 Nov 2026): three.js-ready** (loader.js `tethysStart`, cacheload.js renamed; build.js `THREE_URL`; test/benchpage.js; CHANGELOG;
-analysis_project.md §6). r128 loaded as a module, as every current three.js is; the spike's fixes that work on both versions in. Pictures the same to the
-bit, the load the same. Next: the tower's F8 and F9 (Wednesday), then the upgrade itself. **Ask:** nothing to see; it should load as before.
 
 ## Open
 

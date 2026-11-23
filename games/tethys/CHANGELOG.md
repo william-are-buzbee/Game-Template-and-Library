@@ -10794,3 +10794,21 @@ wood 4.8 (in the air, the fill a small share of the light).
 
 **Unseen, ask:** dive in the forest and the canopy, then come up on land: does the water's colour in the shade read better or worse than these six
 days? Either answer is fine — the colours can be pinned to how they have looked instead.
+
+## v11.220 — F9 reports this visit first; the session before rides below it when the visit is short (23 Nov 2026)
+
+The person, 23 Nov 2026, after #178 again said 9 minutes for a quick visit ("still says 9 minutes, not sure why it's doing that"), chose of three ways
+for F9 in a visit under a minute: **"This visit first"** — the report is the visit you are in; the session before comes with it, below and labelled.
+DESIGN.md "The flight recorder" records it.
+
+- **rec.js recBody**: always this visit (recFull). Under a minute, `before`: the stored session briefly (`recBrief`: its version, time, frames, GPU,
+  boot and five worst places). The title says this visit's time — seconds under a minute — and "(+ the session before)". v11.217's `now` is gone;
+  test/report.js still reads it in #178.
+- **The body**: the boot line is this visit's (its world cache, v11.217); "**the session before**" below, with its worst places.
+- **test/report.js**: the session before under the boot; a visit's time in seconds under a minute.
+- **test/rec.js**: a 2 s visit's F9 sends that visit, its title in seconds and "(+ the session before)", its own boot and cache, the 83 s session
+  before beside it.
+
+**What it costs:** nothing per frame; a report under a minute carries a few hundred bytes more.
+
+**Unseen, ask:** open the game twice, F9 at once: the title says seconds, the boot line says the world cache, and "the session before" sits below.
