@@ -173,7 +173,7 @@ canvas{display:block;outline:none;touch-action:none}
 <div id="fade" class="layer"></div>
 <canvas id="spark" class="layer"></canvas>
 <div id="stats"></div>
-<script>window.TETHYS_BUILD={v:"v11.216",wh:"c764611b26a0cd49"};</script>
+<script>window.TETHYS_BUILD={v:"v11.217",wh:"fe534beef6995816"};</script>
 <script>
 // loader.js — the page's loader, in tethys.html only, outside the game's bundle and before it: three.js and the world cache fetched side by side, then the
 // game. Since v11.215 (three.js-ready) three.js is loaded as a module — every release after r160 is only that — with import(); its exports are copied onto
@@ -380,7 +380,7 @@ const REC={v:(window.TETHYS_BUILD&&window.TETHYS_BUILD.v)||'dev',at:new Date().t
   H:new Uint32Array(REC_NB),HW:new Uint32Array(REC_NB),HG:new Uint32Array(REC_NB),sum:new Float64Array(REC_NM),mx:new Float64Array(REC_NM),F:new Float64Array(REC_NM),
   gN:0,gSum:0,gMax:0,gPass:new Float64Array(5),places:new Map(),cur:null,other:null,progs:0,heap:0,
   sec:{s:0,n:0,ivMax:0,gN:0,g:0,sum:new Float64Array(REC_NM)},tl:[],tlEvery:2,sp:[],spN:0,errs:new Map(),errN:0,
-  menu:{n:0,iv:0,work:0,max:0},boot:{scripts:0,first:-1,store:-1,load:-1,done:-1,progs:0,seen:false},loaf:{n:0,ms:0,block:0,by:new Map()},
+  menu:{n:0,iv:0,work:0,max:0},boot:{scripts:0,first:-1,store:-1,load:-1,done:-1,progs:0,seen:false,wc:'',wcMs:-1},loaf:{n:0,ms:0,block:0,by:new Map()},
   prev:null,saveT:0,sent:0,skip:true,mid:'',probe:[]}; // probe (v11.208, probe.js): the last PROBE_K.keep probes' results // skip: the next frame is not one (the first, and the one after the tab was hidden)
 REC.boot.scripts=+(REC.t0/1000).toFixed(2); // the page's own clock: seconds from the navigation to this file's first line (the scripts fetched and parsed)
 function recPlace(key,i,j){return {key:key,i:i,j:j,n:0,s:0,x:0,y:0,z:0,H:new Uint32Array(REC_NB),sum:new Float64Array(REC_NM),dMax:0,tMax:0,
@@ -431,7 +431,10 @@ function recDevice(){const d={mid:REC.mid,gpu:'',vendor:'',gl:GL2?2:1,maxTex:0,t
 // ---------- the boot's stages (main.js BOOT), seconds from the page's navigation ----------
 function recBoot(){const B=REC.boot;if(B.done>=0)return;const now=+(performance.now()/1000).toFixed(2);if(B.first<0)B.first=now;
   if(BOOT.stage!=='store'&&B.store<0)B.store=now;if((BOOT.stage==='settle'||BOOT.done)&&B.load<0)B.load=now;
-  if(BOOT.done){B.done=now;B.progs=renderer.info.programs?renderer.info.programs.length:0;}}
+  if(BOOT.done){B.done=now;B.progs=renderer.info.programs?renderer.info.programs.length:0;recWc(B);}}
+// v11.217: the world cache in the boot — what this visit took from it (wcache.js WC.hit: maps cau plat sad), 'none' (a first visit of this build), 'off'
+// (no hash: dev.html, a bench) — and the read's own time (loader.js, before the scripts start)
+function recWc(B){if(typeof WC==='undefined')return;const b=window.TETHYS_BUILD,h=Object.keys(WC.hit).filter(k=>WC.hit[k]);B.wc=!b||!b.wh?'off':h.length?h.join(' '):'none';B.wcMs=WC.ms>=0?+(WC.ms/1000).toFixed(2):-1;}
 
 // ---------- a frame (main.js loop, at its end): iv the interval, then the CPU's work and its phases, ms ----------
 function recFrame(iv,work,gen,pl,sim,fx,sc,hud,rd){
@@ -496,12 +499,13 @@ function recPlaceRow(c){const n=c.n||1,S=c.sum,g=c.gN||0,f=v=>+v.toFixed(2);
   return [Math.round(c.x/n),Math.round(c.z/n),+(c.y/n).toFixed(1),+c.s.toFixed(1),c.n,recPct(c.H,c.n,0.5),recPct(c.H,c.n,0.95),recPct(c.H,c.n,0.99),+c.wIv.toFixed(1),f(S[1]/n),f(S[2]/n),f(S[4]/n),f(S[8]/n),
     g?f(c.g/g):-1,g?f(c.gp[0]/g):-1,g?f(c.gp[1]/g):-1,g?f(c.gp[2]/g):-1,g?f(c.gp[3]/g):-1,Math.round(S[9]/n),c.dMax,Math.round(S[10]/n),Math.round(c.tMax),Math.round(S[11]/n),f(S[14]/n),
     Math.round(c.w[0]),+c.w[1].toFixed(1),Math.round(c.w[2]),+c.w[3].toFixed(2),+c.w[4].toFixed(1),+c.w[5].toFixed(1),g?f(c.gp[4]/g):-1];}
+function recNav(){const f=v=>+v.toFixed(2);try{const e=performance.getEntriesByType('navigation')[0],fcp=performance.getEntriesByType('paint').find(p=>p.name==='first-contentful-paint');return {loaded:e?f(e.loadEventEnd/1000):-1,fcp:fcp?f(fcp.startTime/1000):-1,bytes:e?e.transferSize|0:0};}catch(e){return null;}}
 function recFull(){const n=REC.n||1,S=REC.sum,X=REC.mx,f=v=>+v.toFixed(2),g=REC.gN,d=REC.dev||{};
   try{const v=renderer.getDrawingBufferSize(new THREE.Vector2());d.buf=[v.x|0,v.y|0];d.fx=Object.assign({},FX);}catch(e){}
   let vs=0,vb=0;for(let b=4;b<70;b++)if(REC.H[b]>REC.H[vb]){vb=b;}if(REC.H[vb]>0)vs=recBinMs(vb); // the interval most frames take: the display's refresh when the frame has room
   const over=ms=>{let c=0;for(let b=recBin(ms)+1;b<REC_NB;b++)c+=REC.H[b];return f(c/n);};
   const places=[];for(const c of REC.places.values())places.push(c);if(REC.other.n)places.push(REC.other);places.sort((a,b)=>b.s-a.s);
-  let nav=null;try{const e=performance.getEntriesByType('navigation')[0],fcp=performance.getEntriesByType('paint').find(p=>p.name==='first-contentful-paint');nav={loaded:e?f(e.loadEventEnd/1000):-1,fcp:fcp?f(fcp.startTime/1000):-1,bytes:e?e.transferSize|0:0};}catch(e){}
+  const nav=recNav();
   const errs=[];for(const e of REC.errs.values())errs.push([e.kind,e.n,e.t,e.x,e.z,e.msg]);
   const loaf=[];for(const a of REC.loaf.by.values())loaf.push([a.k,a.n,Math.round(a.ms)]);loaf.sort((a,b)=>b[2]-a[2]);
   return {f:1,v:REC.v,url:location.pathname||'',at:REC.at,wall:Math.round(REC.wall/1000),play:Math.round(REC.s),dev:d,boot:Object.assign({nav:nav},REC.boot),
@@ -526,21 +530,24 @@ function recPack(p){const s=JSON.stringify(p),CS=window.CompressionStream,TE=win
   if(CS&&window.Response){try{const st=new Blob([s]).stream().pipeThrough(new CS('deflate-raw'));return new window.Response(st).arrayBuffer().then(b=>'tethys-rec:1:z'+recB64(new Uint8Array(b)));}catch(e){}}
   return Promise.resolve('tethys-rec:1:j'+recB64(TE?new TE().encode(s):new Uint8Array(Array.from(unescape(encodeURIComponent(s)),ch=>ch.charCodeAt(0)))));}
 function recMs(v){return v<0?'–':v>=100?v.toFixed(0):v.toFixed(1);}
+function recWcMd(b){return b.wc?' · world cache '+b.wc+(b.wcMs>=0?' (read '+b.wcMs+' s)':''):'';}
 function recWhere(p){const m=/\/preview\/(\d+)\//.exec(p.url||'');return m?'preview #'+m[1]:/github\.io/.test(p.url||'')||/Game-Template-and-Library\/games/.test(p.url||'')?'live':'local';}
 function recTp(x,z,y){return 'tp('+x+','+z+(y<0?','+Math.round(y):'')+')';}
 function recMd(p,tok,cut,prev){const a=p.all,d=p.dev||{},b=p.boot||{},pc=p.pc,I=k=>pc.indexOf(k),L=[];
-  L.push('**tethys '+p.v+'** · '+(p.play/60).toFixed(1)+' min played · '+recWhere(p)+(prev?' · the previous session (this one was under a minute)':'')+' · '+p.at.slice(0,16).replace('T',' ')+' UTC');
+  L.push('**tethys '+p.v+'** · '+(p.play/60).toFixed(1)+' min played · '+recWhere(p)+(prev?' · the previous session (this visit was under a minute: its boot is below)':'')+' · '+p.at.slice(0,16).replace('T',' ')+' UTC');
   L.push('**machine** '+(d.mid?'`'+d.mid+'` ':'')+recGpuName(d.gpu)+' · WebGL'+d.gl+' · '+d.cores+' threads'+(d.mem?' · '+d.mem+' GB':'')+(d.plat?' · '+d.plat.trim():'')+(d.flags?' · '+d.flags:'')+(d.lod?' · lod '+d.lod:'')+' · screen '+(d.screen||[]).join('×')+' ×'+d.dpr+' · drawn '+(d.buf||[]).join('×')+' · '+d.tier+(a.vsync?' · vsync '+a.vsync.toFixed(1)+' ms':''));
   L.push('**frames** p50 '+recMs(a.iv[0])+' · p95 '+recMs(a.iv[2])+' · p99 '+recMs(a.iv[3])+' · max '+recMs(a.iv[4])+' ms · '+(100*a.over[1]).toFixed(1)+'% over 33 ms · CPU '+recMs(a.work[0])+' ms (sim '+recMs(a.ph.sim)+' · gen '+recMs(a.ph.gen)+' · render '+recMs(a.ph.render)+')');
   L.push(a.gpu?'**gpu** p50 '+recMs(a.gpu.p50)+' · p95 '+recMs(a.gpu.p95)+' ms (main '+recMs(a.gpu.pass.main)+' · horizon '+recMs(a.gpu.pass.horizon)+' · clouds '+recMs(a.gpu.pass.clouds)+' · shadows '+recMs(a.gpu.pass.shadows)+' · sky '+recMs(a.gpu.pass.sky)+')':'**gpu** no timer in this browser');
   if(p.probe&&p.probe.length)for(const q of p.probe)L.push('**probe** at `'+recTp(q.at[0],q.at[2],q.at[1])+'` ('+q.buf.join('×')+', '+q.tier+'): the GPU '+recMs(q.gpu)+' ms'+(q.noise!==undefined?' (noise ±'+recMs(q.noise)+')':'')+' — '+q.parts.concat(q.fx).filter(x=>x[1]!==null).sort((x,y)=>y[1]-x[1]).slice(0,8).map(x=>x[0]+' '+recMs(x[1])).join(' · ')+(q.exit!==undefined&&q.exit!==null?' · the off-screen exit saved '+q.exit.toFixed(2):'')); // v11.208 (probe.js): what each part cost the GPU there
-  L.push('**boot** scripts '+b.scripts+' s · first frame '+b.first+' s · world in '+b.done+' s · '+b.progs+' programs'+(b.seen?' (seen this version before)':' (first visit of this version)'));
+  L.push('**boot** scripts '+b.scripts+' s · first frame '+b.first+' s · world in '+b.done+' s · '+b.progs+' programs'+(b.seen?' (seen this version before)':' (first visit of this version)')+recWcMd(b));
+  if(p.now){const n=p.now.boot||{};L.push('**this visit** (F9 under a minute in: the session above is the one before it) · scripts '+n.scripts+' s · first frame '+n.first+' s · world in '+n.done+' s'+recWcMd(n));}
   const w=p.places.filter(r=>r[I('s')]>=5).sort((x,y)=>y[I('p95')]-x[I('p95')]).slice(0,5);
   if(w.length){L.push('**worst places** (p95 · gpu · time there)');for(const r of w)L.push('- `'+recTp(r[I('x')],r[I('z')],r[I('y')])+'` '+recMs(r[I('p95')])+' · '+recMs(r[I('gpu')])+' ms · '+(r[I('s')]/60).toFixed(1)+' min');}
   if(p.errs.length)L.push('**errors** '+p.errs.length+(p.errN?'+':'')+' kinds: '+p.errs.slice(0,2).map(e=>e[0]+' ×'+e[1]+' "'+String(e[5]).slice(0,70)+'"').join(' · '));
   if(cut)L.push('_detail was cut to fit the link; the whole log is on the clipboard: paste it below this line to add it._');
   return L.join('\n')+'\n\n<details><summary>data (test/report.js)</summary>\n\n```\n'+tok+'\n```\n</details>\n';}
-async function recBody(){const prev=REC.s<REC_K.minPlay&&REC.prev&&REC.prev.p&&REC.prev.p.play>REC.s,full=prev?REC.prev.p:recFull(),d=full.dev||{};
+async function recBody(){const prev=REC.s<REC_K.minPlay&&REC.prev&&REC.prev.p&&REC.prev.p.play>REC.s,d0=prev?REC.prev.p:null;
+  const full=prev?Object.assign({},d0,{now:{v:REC.v,at:REC.at,play:Math.round(REC.s),boot:Object.assign({nav:recNav()},REC.boot)}}):recFull(),d=full.dev||{}; // v11.217: the previous session carries this visit's boot (now), which is what a quick F9 after opening asks about
   const title='tethys report · '+full.v+' · '+(d.mid?d.mid+' · ':'')+recGpuName(d.gpu)+' · '+(full.play/60).toFixed(0)+' min';let o=null;
   for(let L=0;L<=5;L++){const p=recShrink(full,L),tok=await recPack(p),url='https://github.com/'+REC_K.repo+'/issues/new?title='+encodeURIComponent(title)+'&body='+encodeURIComponent(recMd(p,tok,L>0,prev));
     o={url:url,level:L,len:url.length,full:L?await recPack(full):tok,prev:!!prev};if(url.length<=REC_K.url)break;}
@@ -603,13 +610,15 @@ function angN(c,s,k,seed){return (fbm(c*k+seed,s*k+seed*0.37,3)-0.5)*2;} // v11.
 // when the boot ends (main.js bootIn, bootFinish) a world with anything computed is written whole (wcWrite) and every other build's deleted. dev.html, the
 // benches and the tests carry no hash: they never read or write one. What is stored is a copy, never the arrays the game goes on changing.
 const WORLD_P='world:'; // the store's key prefix for a world; the saves list never reads these (save.js saveRefresh)
-const WC={c:(typeof window!=='undefined'&&window.__WCACHE)||null,hit:{maps:false,cau:false,plat:false,sad:false},keep:null,wrote:false}; // hit: each product taken from the cache this visit
+const WC={c:(typeof window!=='undefined'&&window.__WCACHE)||null,hit:{maps:false,cau:false,plat:false,sad:false},keep:null,wrote:false,ms:-1}; // hit: each product taken from the cache this visit
+if(WC.c&&WC.c.ms>=0)WC.ms=WC.c.ms; // the read's time (loader.js), for the recorder's boot (rec.js recWc)
 if(typeof window!=='undefined'){window.__WCACHE=null;window.__wcache=WC;} // the buffers are ours now; __wcache: the tests (test/wcache_page.js)
 function wcBuf(k){const c=WC.c;return c&&c.buf&&c.buf[k]?c.buf[k]:null;} // a stored product's ArrayBuffer, or null
 function wcMeta(k){const c=WC.c;return c&&c.meta&&c.meta[k]!==undefined?c.meta[k]:null;}
 function wcKeep(k,a,meta){if(!WC.keep)WC.keep={meta:{},blobs:{}};if(a)WC.keep.blobs[k]=a;if(meta!==undefined)WC.keep.meta[k]=meta;} // a typed array or ArrayBuffer to write (copied into a Blob at the write); meta: plain data
 function wcWrite(){ // the boot's end: a world with anything computed this visit, written; the other builds' worlds deleted
   if(WC.wrote)return;WC.wrote=true;const B=typeof window!=='undefined'?window.TETHYS_BUILD:null,K=WC.keep;WC.keep=null;
+  WC.c=null; // v11.217: the read buffers let go — the maps' were copied (far.js wcMaps), ~20 MB held for the session to v11.216; what the game wraps it keeps
   if(!B||!B.wh||!K||Object.keys(WC.hit).every(k=>WC.hit[k]))return;
   setTimeout(()=>{storeOpen(()=>{if(store.kind!=='idb')return; // localStorage could not hold it; the memory store would not keep it
     try{const blobs={};for(const k in K.blobs)blobs[k]=new Blob([K.blobs[k]]);const id=WORLD_P+B.wh;
