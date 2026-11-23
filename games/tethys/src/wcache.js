@@ -7,13 +7,15 @@
 // when the boot ends (main.js bootIn, bootFinish) a world with anything computed is written whole (wcWrite) and every other build's deleted. dev.html, the
 // benches and the tests carry no hash: they never read or write one. What is stored is a copy, never the arrays the game goes on changing.
 const WORLD_P='world:'; // the store's key prefix for a world; the saves list never reads these (save.js saveRefresh)
-const WC={c:(typeof window!=='undefined'&&window.__WCACHE)||null,hit:{maps:false,cau:false,plat:false,sad:false},keep:null,wrote:false}; // hit: each product taken from the cache this visit
+const WC={c:(typeof window!=='undefined'&&window.__WCACHE)||null,hit:{maps:false,cau:false,plat:false,sad:false},keep:null,wrote:false,ms:-1}; // hit: each product taken from the cache this visit
+if(WC.c&&WC.c.ms>=0)WC.ms=WC.c.ms; // the read's time (loader.js), for the recorder's boot (rec.js recWc)
 if(typeof window!=='undefined'){window.__WCACHE=null;window.__wcache=WC;} // the buffers are ours now; __wcache: the tests (test/wcache_page.js)
 function wcBuf(k){const c=WC.c;return c&&c.buf&&c.buf[k]?c.buf[k]:null;} // a stored product's ArrayBuffer, or null
 function wcMeta(k){const c=WC.c;return c&&c.meta&&c.meta[k]!==undefined?c.meta[k]:null;}
 function wcKeep(k,a,meta){if(!WC.keep)WC.keep={meta:{},blobs:{}};if(a)WC.keep.blobs[k]=a;if(meta!==undefined)WC.keep.meta[k]=meta;} // a typed array or ArrayBuffer to write (copied into a Blob at the write); meta: plain data
 function wcWrite(){ // the boot's end: a world with anything computed this visit, written; the other builds' worlds deleted
   if(WC.wrote)return;WC.wrote=true;const B=typeof window!=='undefined'?window.TETHYS_BUILD:null,K=WC.keep;WC.keep=null;
+  WC.c=null; // v11.217: the read buffers let go — the maps' were copied (far.js wcMaps), ~20 MB held for the session to v11.216; what the game wraps it keeps
   if(!B||!B.wh||!K||Object.keys(WC.hit).every(k=>WC.hit[k]))return;
   setTimeout(()=>{storeOpen(()=>{if(store.kind!=='idb')return; // localStorage could not hold it; the memory store would not keep it
     try{const blobs={};for(const k in K.blobs)blobs[k]=new Blob([K.blobs[k]]);const id=WORLD_P+B.wh;

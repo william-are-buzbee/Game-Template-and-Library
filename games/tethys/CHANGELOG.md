@@ -10723,3 +10723,23 @@ headless Chromium, a reload with the cache, v11.215 against this, four reloads e
 2.38 s. The store 29.6 → 31.2 MB. On the person's machines: unmeasured.
 
 **Unseen, ask:** open the game twice; F9 after the second — its boot line.
+
+## v11.217 — a quick F9 says this visit's boot and what it took from the world cache; the cache's read let go (23 Nov 2026)
+
+The person, 23 Nov 2026, after merging #170–#173: "I exit out the program, wait 30 seconds, open it again, click tethys, new game, then I do it again and
+then hit continue and F9 after that. and boom, still says 20 minutes or 12 minutes or 9 minutes." Since v11.191, F9 in a visit under a minute sends the
+session before it — the last over a minute, kept in localStorage — and says so in a line easy to miss. #176 was such a one: 9.5 minutes of v11.215
+played at 01:16, its boot the first visit of that build (no world cache yet). The cached visit the person meant to report was not in it.
+
+- **The previous session carries this visit's boot** (rec.js recBody, `now`): the report's line "**this visit**", and test/report.js's under the boot.
+- **The boot says the world cache** (rec.js `recWc`, at the boot's end): what this visit took from it (maps cau plat sad), `none` (a first visit of this
+  build), `off` (no hash: dev.html, a bench), and the read's time (wcache.js `WC.ms`, loader.js's).
+- **The cache's read let go at the boot's end** (wcache.js wcWrite: `WC.c=null`): the maps' buffers are copied into the game's own (far.js wcMaps), so
+  what was read stayed held for the session; what the game wraps (the caustic textures, the platform, the saddles) it keeps.
+- test/rec.js: a quick F9 carries this visit's boot, its cache and the read's time; the session before, recorded with no cache, says none.
+
+**What it costs and saves:** nothing per frame. After a cached boot and a forced GC in headless Chromium, the array buffers' backing stores 324.1 →
+303.4 MB and 625.0 → 604.3 MB (two pairs; the runs fall into two sizes, the trees do not): 20.7 MB let go.
+
+**Unseen, ask:** play over a minute or not, as you like: open the game twice, then F9. The report's "this visit" line (or its boot line, after a minute)
+says "world cache maps cau plat sad" and the read's time.

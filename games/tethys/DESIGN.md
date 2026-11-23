@@ -2651,7 +2651,9 @@ The repository is public, so the report is (the person's choice, 20 Nov 2026).
   clipboard for the person to paste below. test/rec.js: two hours over 900 places fit at level 3 in 6.1 KB. The tab is opened in the key's own gesture
   and sent there after the compression (a pop-up blocker allows only the gesture's call); blocked, the clipboard has it.
 - **Kept.** The session is written to `localStorage['tethys.rec']` every minute and at `pagehide` once it has a minute of play; a shorter session never
-  replaces a longer one, and F9 in a session under a minute sends the last (and says so).
+  replaces a longer one, and F9 in a session under a minute sends the last (and says so) — with this visit's own boot beside it since v11.217 (`now`),
+  for the question a quick F9 after opening is asking. The boot says what the visit took from the world cache (`wc`: maps cau plat sad, none, off) and
+  how long its read took (`wcMs`).
 - **What it cannot say:** a time per draw on the person's card (test/fill.js's proxy has that grain, not this), anything of the GPU in a browser
   without the timer, which function inside a phase took the time.
 - **The probe (v11.208, src/probe.js; F8 in play, `probe()`)** is the per-part grain on the person's own card, on demand: each part of the frame skipped

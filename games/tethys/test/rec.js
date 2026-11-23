@@ -126,10 +126,13 @@ async function unpack(tok){const m=/tethys-rec:1:([zj])([A-Za-z0-9_-]+)/.exec(to
     const kept=Math.round(P1.R().state.s);ok(store.has('tethys.rec')&&JSON.parse(store.get('tethys.rec')).p.play===kept,'a session of '+P1.R().state.s.toFixed(0)+' s stored at pagehide');
     const P2=page({store});P2.g.BOOT.done=true;for(let i=0;i<100;i++)P2.step(16.7,{pos:B});for(const h of P2.handlers.pagehide)h();
     ok(JSON.parse(store.get('tethys.rec')).p.play===kept,'a short one (2 s) not stored over it');
-    let opened=null;const P3=page({store,open:()=>(opened={location:{href:''},opener:{}})});P3.g.BOOT.done=true;for(let i=0;i<100;i++)P3.step(16.7,{pos:B});
+    let opened=null;const P3=page({store,open:()=>(opened={location:{href:''},opener:{}})});P3.g.WC={hit:{maps:true,cau:true,plat:true,sad:false},ms:31.5};P3.g.TETHYS_BUILD={v:'v',wh:'abc'};P3.g.BOOT.done=true; /* v11.217: a visit that took three of the world cache's four */for(let i=0;i<100;i++)P3.step(16.7,{pos:B});
     for(const h of P3.handlers.keydown)h({code:'F9',preventDefault(){}});await new Promise(r=>setTimeout(r,300)); // the compression is a promise
     ok(opened&&/issues\/new/.test(opened.location.href)&&opened.opener===null,'F9 opens the tab and sends it there, the opener cut');
     const p=decode(decodeURIComponent(opened.location.href.split('&body=')[1]));ok(p&&p.play===kept&&/previous session/.test(decodeURIComponent(opened.location.href)),'the last session sent, and said so');
+    {const body=decodeURIComponent(opened.location.href.split('&body=')[1]),n=p.now&&p.now.boot;
+      ok(n&&n.done>=0&&n.wc==='maps cau plat'&&n.wcMs===0.03&&/\*\*this visit\*\*[^\n]*world cache maps cau plat \(read 0\.03 s\)/.test(body),'with this visit\'s own boot (v11.217), what it took from the world cache and the read\'s time: '+(n?n.wc+', '+n.wcMs+' s':'none'));
+      ok(!p.boot.wc&&P1.R().full().boot.wc==='','the session before, recorded with no cache in its page, says none');}
     ok(P3.g.hintEl.textContent.indexOf('github issue')>=0,'the hint: '+P3.g.hintEl.textContent);
     const mid=P1.R().state.mid,f1=P1.R().full();ok(/^[0-9a-z]{4}$/.test(mid)&&store.get('tethys.mid')===mid&&f1.dev.mid===mid,'the machine\'s name made once and kept: '+mid);
     ok(P3.R().state.mid===mid&&p.dev.mid===mid&&/· [0-9a-z]{4} ·/.test(decodeURIComponent(opened.location.href.split('&body=')[0])),'the same browser the same name, in the report and its title');
