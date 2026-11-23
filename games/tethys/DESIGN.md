@@ -2651,8 +2651,10 @@ The repository is public, so the report is (the person's choice, 20 Nov 2026).
   clipboard for the person to paste below. test/rec.js: two hours over 900 places fit at level 3 in 6.1 KB. The tab is opened in the key's own gesture
   and sent there after the compression (a pop-up blocker allows only the gesture's call); blocked, the clipboard has it.
 - **Kept.** The session is written to `localStorage['tethys.rec']` every minute and at `pagehide` once it has a minute of play; a shorter session never
-  replaces a longer one, and F9 in a session under a minute sends the last (and says so) — with this visit's own boot beside it since v11.217 (`now`),
-  for the question a quick F9 after opening is asking. The boot says what the visit took from the world cache (`wc`: maps cau plat sad, none, off) and
+  replaces a longer one. **F9 reports this visit first** (v11.220; the person, 23 Nov 2026, asked how F9 should behave under a minute: "This visit
+  first"): its title, its time played (seconds under a minute), its boot; in a visit under a minute the session before rides below it, briefly — its
+  frames, its GPU, its boot, its five worst places — labelled. From v11.191 to v11.219 such a visit sent the session before in its place, and its title
+  said that session's minutes (#176, #178 said 9 minutes for a quick visit). The boot says what the visit took from the world cache (`wc`: maps cau plat sad, none, off) and
   how long its read took (`wcMs`).
 - **What it cannot say:** a time per draw on the person's card (test/fill.js's proxy has that grain, not this), anything of the GPU in a browser
   without the timer, which function inside a phase took the time.
