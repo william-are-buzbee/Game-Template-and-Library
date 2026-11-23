@@ -566,17 +566,24 @@ function updateLurker(c,dt){
 // findPrey's reachable): it tips toward the prey at its own slow turn and drops, the ring closing on the way down (the cone pose) and blooming on the
 // catch — what rises above it is let go, a shell held up by its gas cannot turn over — then rises back to its station shell-first. Hanging, its face is a point HANG.face m under it and HANG.tip of that out from the wall, so it
 // leans off the rock and its eyes look into the open water; c.wander holds the point (a plumb never wanders).
-const HANG={rise:1.2,back:2,above:0.82,surf:3,tip:0.08,face:10,scan:0.25};
-function plumbY(d,floor){let lo=floor+(d.clear||0);if(d.deepY!==undefined)lo=Math.max(lo,d.deepY);return Math.min(Math.max(swarmDepth(floor,SKY.dayK,SKY.moonL,0.5),lo),-(d.size*HANG.above+HANG.surf));}
+const HANG={rise:1.2,back:2,above:0.82,surf:3,tip:0.08,face:10,scan:0.25,
+  gap:0.7, // v11.223.1 (the person: "it doesn't float or suspend itself off the ground really"): its arms' tips this × size over the floor at the least, so it hangs and never stands
+  bob:[0.6,7], // m, s: the slow rise and fall of a body held by its own gas — never quite at rest
+  sway:[0.11,23,31], // the tilt's reach (of the face's 10 m, so ~6°) and its two periods (s): a pendulum's wander, which turns it slowly as it goes
+  drift:[2.2,47,61], // m, s, s: the wander of its station round where it was placed — still water, not a fixed post
+  pull:0.15,hold:0.45}; // 1/s and m/s: how hard it keeps its station against a push or the current (it is carried by the water, v11.223.1); a push moves it and it drifts back
+function plumbY(d,floor){let lo=floor+(d.clear||0)+d.size*HANG.gap;if(d.deepY!==undefined)lo=Math.max(lo,d.deepY);return Math.min(Math.max(swarmDepth(floor,SKY.dayK,SKY.moonL,0.5),lo),-(d.size*HANG.above+HANG.surf));}
 // the face point under it; snap: turn the body there at once (at its placing)
-function plumbPose(c,snap){const w=c.wallD,k=HANG.face*HANG.tip;c.wander.set(c.pos.x-(w?w.x*k:0),c.pos.y-HANG.face,c.pos.z-(w?w.z*k:k));c.face=c.wander;
+function plumbPose(c,snap){const w=c.wallD,k=HANG.face*HANG.tip,S=HANG.sway,a=HANG.face*S[0],p=c.t0;c.wander.set(c.pos.x-(w?w.x*k:0)+a*Math.sin(TAU*t/S[1]+p),c.pos.y-HANG.face,c.pos.z-(w?w.z*k:k)+a*Math.cos(TAU*t/S[2]+p));c.face=c.wander; // leaning off the wall, swaying (v11.223.1)
   if(snap){_m.lookAt(c.wander,c.pos,UP);c.g.quaternion.setFromRotationMatrix(_m);c.g.position.copy(c.pos);}}
 function updatePlumb(c,dt){
   const d=c.def;if(hungerTick(c,dt))return;
   if(c.state==='sit'){c.scanT-=dt;c.cool-=dt;
     if(c.scanT<=0){c.scanT=HANG.scan;c.home.y=plumbY(d,groundAt(c.home.x,c.home.z)); // the layer moves with the sky: the station's depth read four times a second
       if(c.cool<=0&&c.hunger>ECO.hungry){const tg=findPrey(c,d.radius);if(tg){c.state='lunge';c.target=tg;c.lungeT=2;c.bit=false;}}}
-    if(c.state==='sit'){c.vel.set(0,clamp((c.home.y-c.pos.y)*0.5,-HANG.rise,HANG.rise),0);c.home.x=c.pos.x;c.home.z=c.pos.z;plumbPose(c,false);}} // still water holds it where it hangs; a push (the rock, a body) moves the station with it
+    if(c.state==='sit'){const D=HANG.drift,B=HANG.bob,p=c.t0,tx=c.home.x+D[0]*Math.sin(TAU*t/D[1]+p)-c.pos.x,tz=c.home.z+D[0]*Math.cos(TAU*t/D[2]+p*1.7)-c.pos.z,ty=c.home.y+B[0]*Math.sin(TAU*t/B[1]+p*2.3)-c.pos.y; // where it wants to be: its station, wandering and bobbing
+      let vx=tx*HANG.pull*4,vz=tz*HANG.pull*4;const hv=Math.hypot(vx,vz);if(hv>HANG.hold){vx*=HANG.hold/hv;vz*=HANG.hold/hv;}
+      c.vel.set(vx,clamp(ty*0.5,-HANG.rise,HANG.rise),vz);plumbPose(c,false);}} // v11.223.1: held by its gas and the water, not fixed — carried by the current, pushed by bodies, drifting back
   if(c.state==='lunge'){const tg=c.target,tp=tg===player?player.pos:tg?tg.pos:c.home,dist=c.pos.distanceTo(tp);c.lungeT-=dt;c.biteT-=dt;c.face=tp;c.grab=c.b.rigs&&tg&&dist<armReach(c,tg,1.6)?tg:null;
     if(c.hold)c.vel.multiplyScalar(1-1.5*dt); // holding: the pair drifts
     else{seek(c,tp,d.lunge,dt,4);if(tg&&c.biteT<=0&&landsOn(c,tg)){c.biteT=1;c.bit=true;landBite(c,tg);if(!c.hold&&tg!==player&&!tg.alive)c.state='feed';}}
@@ -691,7 +698,7 @@ function updateCreatures(dt0){
     // the current (v11.18): a body in the water is carried by it (re-read twice a second) unless it holds on — sitting, on the ground,
     // or a floor crawler; a swimmer's steering (seek, the boids) subtracts the current from the way it wants to go, so it crabs upstream,
     // holds station facing into the flow with its tail beating, and is swept only when the current outruns it
-    c.carried=sub>0&&!c.grounded&&c.state!=='sit'&&d.role!=='trap'&&!d.floor;
+    c.carried=sub>0&&!c.grounded&&(c.state!=='sit'||d.upright===true)&&d.role!=='trap'&&!d.floor; // upright (v11.223.1): a hanging plumb is in the water, not on anything — the current carries it and it drifts back
     if(dp<200&&c.carried){if(!c.cur){c.cur=V3(0,0,0);c.curT=0;}c.curT-=dt;if(c.curT<=0){c.curT=0.4+SIMR()*0.2;currentAt(c.pos.x,c.pos.z,c.pos.y,c.cur);}c.pos.addScaledVector(c.cur,dt*sub);}
     let pad=null;if(dp<200&&!d.ghost)pad=bodyPush(c.pos,c.vel,c.g.quaternion,d.size*0.75,d.size*0.35,d.size*0.28);
     const fh=groundAt(c.pos.x,c.pos.z)+(d.clear!==undefined?d.clear:d.size*0.35);c.grounded=false;if(c.pos.y<fh){c.pos.y=fh;if(c.vel.y<0)c.vel.y*=-0.15;c.grounded=true;}if(d.deepY!==undefined&&c.pos.y<d.deepY&&!c.held){c.pos.y=d.deepY;if(c.vel.y<0)c.vel.y=0;} /* deepY (v11.223): a gas-chambered body is held above the depth its chambers flood at (derive; the person, 23 Nov 2026: no exceptions) — a held one goes where its holder takes it */ // clear: how high the origin sits over the floor (a buried trap sits low). v11.92 tried the body's own radius (a ridge hangs 3 m up on 0.35 × size, its mouth over a floor prey's head) and wedged it in the floor's rocks: the lunge pitches down instead
@@ -717,7 +724,7 @@ function updateCreatures(dt0){
   }
   // contact: bodies near the player push apart by their actual shapes (the player among them), the player is kept out
   // of every arm and tail near it, then the arms and tails of everything at near LOD are simulated against the bodies.
-  for(const c of near){c.g.updateMatrix();worldShapes(c);c.shapeF=frameNo;if((c.def.role==='ambush'&&c.state==='sit')||c.def.role==='trap'||c.dead)c.mass=1e6;else c.mass=c.mass0;}
+  for(const c of near){c.g.updateMatrix();worldShapes(c);c.shapeF=frameNo;if((c.def.role==='ambush'&&c.state==='sit'&&!c.def.upright)||c.def.role==='trap'||c.dead)c.mass=1e6;else c.mass=c.mass0;}
   const P=player,live=mode==='play'&&!P.dead;let heldBy=0;bodies.length=0;for(const c of near)bodies.push(c);if(live)bodies.push(P);
   resolveBodies(bodies);
   updateHolds(dt0); // the holds' ropes (combat.js, v11.31): after the bodies have pushed apart, before the arms are simulated

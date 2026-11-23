@@ -4,12 +4,16 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.223.1 (23 Nov 2026): the plumb hangs, sways and is common; the coilshell held above −450** (creatures_ai.js `HANG`, `updatePlumb`; creatures_defs.js
+`STATION`, `SPAWN`; player.js `deepY`, `DEEP_SOFT`; LINEAGE §7c.5–6; CHANGELOG). The person liked it but it read as standing still on the floor and was
+too rare: now 7.7 m clear of the floor, bobbing, swaying, drifting, carried by the current and pushable; walls from 11 m faces and `n` 12 (~8,100 in the
+world). The coilshell player stops at −450. The Plumb is the tenth candidate god, with demigods (§7c.6). **Ask:** does it read as hanging now; §7c.6's Open.
+
 **v11.223 (23 Nov 2026): the plumb, the stations, a gas shell's floor** (creatures_spec.js `SPECS.plumb`, `DERIVE_K.chamberY`; creatures_defs.js
 `DEFS.plumb`, `STATION`, `stationW`; creatures_ai.js `updatePlumb`, `reachable`; chunks.js `stationPoint`; ecology.js; zoo.js; test/plumb.js; CLADES,
 DESIGN The ecology, PLANET's roster; CHANGELOG). The person's hanger: the ortho's cone with no ballast, hung shell-up at walls in still water, riding
 the swarm's layer, striking only down; the wall and lee stations weigh the ledger and place it; every gas-shelled body held above −450 (the ortho's
-band left: it is the floor's). Seen in headless Chromium hanging at the wall at cell (118, 119). **Ask:** the plumb at a wall in the preview — the
-look, its numbers (rare: ~1,700 in the world), and whether the coilshell player is held above −450 too.
+band left: it is the floor's). Seen in headless Chromium hanging at the wall at cell (118, 119). The person's answers are v11.223.1's.
 
 **v11.222 (23 Nov 2026): the radiation** (CLADES.md, The radiation; PLANET.md; CHANGELOG). Docs only. The person's answers: individuals
 generated, species authored from a radiation table; the hanger first — a straightshell with no ballast, hung vertical beside walls, rising with the
@@ -25,10 +29,6 @@ first. **Ask:** §7c.4, the first three.
 
 **v11.220 (23 Nov 2026): F9 reports this visit first** (rec.js recBody, `recBrief`; test/report.js; test/rec.js; DESIGN.md; CHANGELOG). The person's
 choice: the visit you are in, its time in seconds under a minute, and the session before below it when short. **Ask:** open twice, F9 at once.
-
-**v11.219 (23 Nov 2026): the fill light's colours again** (atmosphere.js; test/lint.js; test/combat.js; CHANGELOG). A `//` mid-line had swallowed
-them since v11.175: under water the fill takes the water's colour again (greener, darker in the shade). Lint now fails on code in a comment. **Ask:**
-the look under water, better or worse than these six days (either is fine).
 
 ## Open
 

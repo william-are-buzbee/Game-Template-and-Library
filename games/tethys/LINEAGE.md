@@ -380,10 +380,40 @@ list will change in a later conversation.
 | **the Iron Walker** | cinder | iron plates, poison by its diet | the richest sparkle, behind poison; vent chimneys grown to towers | come back with immunity (suggested cut: the Shell's verb again) |
 | **the Raft** ★ | greatsailer | a floating forest a field across | its young sail the surface; a storm beaches it | the strand after the storm |
 | **the Watcher** | watcher | intelligent; watches, does not attack | its young shadow you; it remembers how its line was treated | the relationship: its garden, or its line's hunt |
+| **the Plumb** ★ | plumb (v11.223) | added by the person (23 Nov 2026), §7c.6: a straightshell hundreds of metres long, too big to migrate, hanging in one column of water for ever | its demigods — each plainly its child and each its own animal — and a water column hung with its line at every depth | (to design) |
 
 Between them: the Wanderer eats the Bell's and the Walking Reef's lines; the Mother's packs raid the Walking Reef's back; the eclipse
 spawning is where every line meets; nothing eats the Iron Walker's line. Suggested first: the Bell, the Reef, the Mother.
 
+
+#### 7c.6 The Plumb, and demigods (the person, 23 Nov 2026 — nothing built)
+
+The person, on seeing the plumb (v11.223): *"I think it should be one of the 10 gods. Or, there should be a god, with a handful of 'demigods' that
+are distinct from their parent but still obviously a child. Either way, a sea full of these things is a very appealing image."* So the tenth god,
+and a new word for §7c.2's line: **demigods**, the god's first children — few, each with a body of its own, each read at once as its parent's.
+
+**How big, by physics and past it** (the person asked):
+- *Pressure limits depth, not size.* A gas chamber's wall holds the water by its thickness against its radius (a thin shell's t/r = P/σ), so a big
+  shell is as heavy for its lift as a small one at the same depth: −450 holds at any size.
+- *Hanging is the shape that scales.* A level Endoceras is a beam that must not snap (and its ballast is more weight to carry); a plumb is held up at
+  the top by its gas and hangs its body below — the shell is pulled along its length, never bent. Earth's straight shells stopped near 6 m lying level.
+- *What does limit it:* growth (one chamber at a time — a giant is old, and the ringmouths are short-lived but for the deep line); trim (its pump's
+  bore grows as L², the gas it moves as L³, so a big one changes depth slowly: past a few tens of metres it can no longer follow the swarm up and down
+  in a night, and a giant stays at one depth); and food (a sit-and-wait body's need ∝ mass^¾).
+- *Within the rule:* PLANET lets a ringmouth claim 16 m of half-length (`CLADE_LIMIT`), so a plumb 30 m long is believable today; v11.223's is ~20 m.
+- *With the sparkle:* §7c excuses size. A Plumb of 150–300 m is within what the game already carries (CREATOR, the size ceiling: a 300 m body is
+  pushed and animated out to where it is drawn). Under water it is never seen whole: a column of shell rising into the murk, its ring a forest round
+  your head — a pillar before it is an animal.
+
+**Candidate demigods** (a starting point; each keeps the cone, the helix and the hanging ring, and changes one thing):
+- **the cut one** — its old chambers shed and sealed (Sphooceras): short, blunt, the one that still migrates, so the one you meet everywhere.
+- **the fringe** — its arms grown into a sieve hung for metres: the line's filter feeder on the swarm's daily layer (the whale idea, upside down).
+- **the post** — trimmed so light its tip stands out of the sea: shells like posts in the water, seen from the surface.
+- **the crozier** — the tip of its cone curled back on itself: a hook that it hangs from rock by, under an overhang.
+- **the colony** — the young never leave: a stand of them round the parent's column, the sea full of them.
+
+Open (the person's): demigods for every god, or the Plumb's alone; which demigods; where the Plumb hangs (a caldera's wall, the island's drowned
+flank, the giant's shelf edge); whether the ordinary plumb grows to 30 m now.
 ## 8. The ledger: absorbing what the player looses
 
 The person, 20 Sep: *"the game needs to just find a way to absorb whatever 'added animals' the player throws into the game"* — and the

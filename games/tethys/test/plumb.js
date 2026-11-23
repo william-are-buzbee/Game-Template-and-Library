@@ -6,7 +6,7 @@ const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..');
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
 let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n');
-js+='\nglobal.__pl={NCELL,CELL,HALF,FI,STATION,HANG,DEFS,SPAWN,SKY,POP,stationW,gridRise,stationPoint,envW,sample,ecoCap,ecoId,swarmDepth,plumbY,chunkIJ,loadChunkNow,cellOf,groundAt,creatures,player,spawn,removeCreature,placeKind,findPrey,updateCreatures,updatePlayer,finishPlayer,get bodies(){return bodies;},get mode(){return mode;},choose,faceQ,V3,mulberry,setT(v){t=v;},get t(){return t;}};';
+js+='\nglobal.__pl={CLADES,NCELL,CELL,HALF,FI,STATION,HANG,DEFS,SPAWN,SKY,POP,stationW,gridRise,stationPoint,envW,sample,ecoCap,ecoId,swarmDepth,plumbY,chunkIJ,loadChunkNow,cellOf,groundAt,creatures,player,spawn,removeCreature,placeKind,findPrey,updateCreatures,updatePlayer,finishPlayer,get bodies(){return bodies;},get mode(){return mode;},choose,faceQ,V3,mulberry,setT(v){t=v;},get t(){return t;}};';
 const tmp=path.join(require('os').tmpdir(),'tethys_plumb.js');
 fs.writeFileSync(tmp,'(function(){"use strict";\n'+js+'\n})();');
 process.env.PICK='0';
@@ -51,7 +51,7 @@ if(wall){X.loadChunkNow(wall.i,wall.j);const ch=X.chunkIJ(wall.i,wall.j);for(con
   check(r.value===1&&!!P,'placeKind stands one at the wall cell');
   if(P){const fl=X.groundAt(P.home.x,P.home.z),w=P.wallD,up=X.groundAt(P.home.x+w.x*X.CELL/6,P.home.z+w.z*X.CELL/6)-fl;
     check(up>12,'the wall rises '+up.toFixed(0)+' m within 36 m of its station, the way wallD says');
-    check(P.state==='sit'&&P.pos.y>=fl+D.clear-0.01&&P.pos.y>=-450&&P.pos.y<=-(D.size*X.HANG.above+X.HANG.surf)+0.01,'it sits between its arms\' reach of the floor and its shell\'s length under the surface ('+P.pos.y.toFixed(0)+' over a floor at '+fl.toFixed(0)+')');
+    check(P.state==='sit'&&P.pos.y>=fl+D.clear+D.size*X.HANG.gap-0.01&&P.pos.y>=-450&&P.pos.y<=-(D.size*X.HANG.above+X.HANG.surf)+0.01,'it hangs between its arms\' reach and HANG.gap × size over the floor and its shell\'s length under the surface ('+P.pos.y.toFixed(0)+' over a floor at '+fl.toFixed(0)+')');
     check(down(P)>0.98,'placed nose-down (cos '+down(P).toFixed(3)+')');}}
 
 // ---- 4. hanging, and the layer ----
@@ -60,12 +60,15 @@ if(P){for(const c of X.creatures.slice())if(c!==P)X.removeCreature(c); // the ce
   P.hunger=0;P.cool=1e9;const x0=P.home.x,z0=P.home.z;const away=()=>{X.player.pos.set(P.pos.x-P.wallD.x*150,Math.min(-20,P.pos.y),P.pos.z-P.wallD.z*150);hold();}; // in reach of the loop's update (360 m), out of its strike
   away();
   X.SKY.dayK=1;frames(60*3,()=>{away();});const dayY=P.home.y,x1=P.pos.x,z1=P.pos.z;
-  check(down(P)>0.98,'it hangs plumb (cos '+down(P).toFixed(3)+'; settled '+Math.hypot(x1-x0,z1-z0).toFixed(1)+' m off where it was placed, pushed clear of what is there)');
-  frames(60*3,()=>{away();});
-  check(Math.hypot(P.pos.x-x1,P.pos.z-z1)<0.05,'and stays there, not crept along by what pushed it');
+  check(down(P)>0.98,'it hangs plumb (cos '+down(P).toFixed(3)+'), swaying a few degrees');
+  let path=0,far=0,lo=1,hi=-1;const q=X.V3();q.copy(P.pos);frames(60*30,()=>{away();path+=P.pos.distanceTo(q);q.copy(P.pos);far=Math.max(far,Math.hypot(P.pos.x-x0,P.pos.z-z0));const c=down(P);lo=Math.min(lo,c);});
+  check(path>1&&far<X.HANG.drift[0]+4,'it is never still and never leaves its station: '+path.toFixed(1)+' m wandered in 30 s, at most '+far.toFixed(1)+' m off it');
+  check(lo>0.97,'it sways but stays upright (the least cos '+lo.toFixed(3)+')');
+  P.vel.set(3,0,0);frames(2,()=>{away();});const pushed=P.pos.x;frames(60*20,()=>{away();});
+  check(Math.hypot(P.pos.x-x0,P.pos.z-z0)<X.HANG.drift[0]+4,'a push moves it and it drifts back');
   X.SKY.dayK=0;X.SKY.moonL=0;let maxV=0;frames(60*40,()=>{away();maxV=Math.max(maxV,Math.abs(P.vel.y));});const nightY=P.home.y;
   check(nightY>dayY+5,'its station rises at night with the swarm\'s layer (day '+dayY.toFixed(0)+', night '+nightY.toFixed(0)+')');
-  check(maxV<=X.HANG.rise+1e-6,'by buoyancy, no faster than '+X.HANG.rise+' m/s ('+maxV.toFixed(2)+')');
+  check(maxV<=X.HANG.rise*1.1,'by buoyancy, at about '+X.HANG.rise+' m/s at most ('+maxV.toFixed(2)+'; the water\'s own drift on top)');
   check(Math.abs(P.pos.y-nightY)<Math.abs(dayY-nightY),'and climbs toward it');}
 
 // ---- 5. the strike: only down ----
@@ -91,5 +94,13 @@ console.log('a gas shell\'s floor');
   check(low>=-450-1e-6,'an ortho put under −450 is back at it the next step ('+low.toFixed(1)+')');
   check(lowR<-470,'a ridge put there stays (no gas in it: '+lowR.toFixed(1)+')');X.removeCreature(rd);
   o.state='wander';o.target=null;o.pos.y=-440;check(X.findPrey(o,400)!==pk,'and does not go for it');X.removeCreature(o);X.removeCreature(pk);}}
+
+// ---- 7. the player's gas shell (v11.223.1: the coilshell held above −450 as every chambered body is) ----
+console.log('the player\'s gas shell');
+{let dx=0,dz=0;for(let r=500;r<20000&&!dx;r+=250)for(let a=0;a<32;a++){const x=Math.cos(a/32*Math.PI*2)*r,z=Math.sin(a/32*Math.PI*2)*r;if(X.groundAt(x,z)<-900){dx=x;dz=z;break;}}
+  for(const id of ['coil','soft']){const ci=X.CLADES.findIndex(C=>C.id===id);X.choose(ci);const P2=X.player;P2.pos.set(dx,-420,dz);P2.vel.set(0,-12,0);let low=0;
+    for(let i=0;i<60*4;i++){P2.vel.y=Math.min(P2.vel.y,-12);frames(1);low=Math.min(low,P2.pos.y);} // driven down every step
+    if(id==='coil')check(X.CLADES[ci].deepY===-450&&low>=-450-1e-6,'the coilshell driven down at 12 m/s for 4 s stops at −450 (lowest '+low.toFixed(1)+')');
+    else check(X.CLADES[ci].deepY===undefined&&low<-460,'the soft-arm, no gas in it, goes on ('+low.toFixed(0)+')');}}
 
 if(fails){console.error('plumb: '+fails+' FAILED');process.exit(1);}console.log('plumb: ok');

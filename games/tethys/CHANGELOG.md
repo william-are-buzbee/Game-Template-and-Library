@@ -10912,3 +10912,46 @@ believable logic and physics"*), and *"no exceptions for any animal as of yet"* 
   — does it read as an animal that hangs, and from how far; (2) its numbers:
   ~1,700 in the world, at walls only, rarely met (n 4 per full station; more?); (3) should the coilshell player be held above −450 as the rest are
   (the rule's one exception left, by omission); (4) the tide turning the lee (the clock's next station: the plumbs swinging round a pinnacle).
+
+## v11.223.1 — the plumb hangs, sways and is common; the coilshell player held above −450; the Plumb as a god (23 Nov 2026)
+
+The person, on v11.223's preview: *"I really enjoy it. I like it quite a lot"* — but *"it doesn't really read as one that hangs, more like it's just...
+there. Sort of resists the current I suppose. Just stands perfectly still, you get close and it grabs you. Scary and strong but not very legible. Also
+super hard to find… it doesn't float or suspend itself off the ground really… I just would like them to be more common."* More of them: *"yes I do for
+sure"*. The coilshell player held above −450: *"yes it should. No rule skip."*
+
+- **Off the floor** (creatures_ai.js `HANG.gap` 0.7, `plumbY`): its arms' tips at least 0.7 × size (7.7 m) over the floor; it had hung its arms' reach
+  over it by day, 1 m, and read as standing.
+- **Never still** (`HANG.bob`, `sway`, `drift`, `pull`, `hold`; `updatePlumb`'s sit, `plumbPose`): a bob of 0.6 m over 7 s; a pendulum sway of ~6° on two
+  periods (23 s, 31 s), which turns it as it goes; its station wandering 2.2 m round where it was placed (47 s, 61 s); the current carries it
+  (`c.carried` for an upright body sitting) and it drifts back at 0.45 m/s at most; it is no longer as heavy as rock while it sits (`c.mass`), so a body
+  pushes it and it swings. test/plumb.js: 7.9 m wandered in 30 s, at most 2.7 m off its station, the least cos to straight down 0.981.
+- **Its look** (`SPECS.plumb` arms `s0` 0.42 → 0.22: the arms hang rather than splay; `PAL.plumb` shell 0.66 → 0.80, paler against the rock).
+- **Common** (creatures_defs.js `STATION.wall` 0.45–0.9 → 0.3–0.75: an 11 m face starts a wall, a 27 m one is full; `SPAWN` plumb `n` 4 → 12): within
+  ~5 km of the centre 145 cells have room for them (54 before), the busiest (cell 118, 118) 4.4; six stood within 400 m of it in the look below. The
+  census (60 days, the world): 14,490 at day 0 settling to 8,125 (v11.223: 1,671; the ortho 16,945). Its prey at day 60 against main's run: darters
+  −0.4%, needles −0.6%, arrows −0.5%, hoses −0.6%, eels −2.2%.
+- **The coilshell player** (player.js `playerClade` `deepY`, `DEEP_SOFT` 12, `updatePlayer`): a gas-chambered player body is held above −450 as every
+  one in the world is — the descent slowed over the last 12 m, stopped at the line. test/plumb.js: the coilshell driven down at 12 m/s for 4 s stops
+  at −447; the soft-arm goes on to −466.
+- **The Plumb as a god** (LINEAGE §7c.5, the tenth candidate, ★; §7c.6, new): the person — *"it should be one of the 10 gods. Or, there should be a
+  god, with a handful of 'demigods' that are distinct from their parent but still obviously a child… a sea full of these things is a very appealing
+  image."* Recorded with the answer to *how much larger*: pressure limits a gas shell's depth, not its size; hanging is the shape that scales (pulled
+  along its length, never bent); growth, trim (a big one cannot follow the swarm up and down) and food limit it; PLANET's ringmouth limit allows 30 m
+  now; the sparkle allows 150–300 m. Five candidate demigods (the cut one, the fringe, the post, the crozier, the colony). Nothing built.
+- **Seen** in headless Chromium at cell (118, 118), the world's own placing: six plumbs within 400 m, their middles 19–32 m over floors at −81 to −117 (the arms' tips 8–21 m clear); one in
+  frame from 45 m, a vertical spike clear of the slope. Not seen: the sway and the drift moving (a still), the current carrying one, a night.
+- **What it cost** against v11.223 (`node test/perf.js --ref 42376e7 --only frames,creatures,gpu`):
+
+  | measure | v11.223 | here | ratio |
+  |---|---|---|---|
+  | creatures' work a frame at the forest, ms (mean) | 3.023 | 3.139 | ×1.04 — the simulation the same to the bit (no plumb there) |
+  | the same, p95 | 4.766 | 5.765 | ×1.21 — the same simulation: noise (the bench reads identical sources up to ×1.09 on p95) |
+  | every kind's build, ms (again) | 5.5 | 6.1 | ×1.11 — 38 kinds at 0.1 ms grain; only the plumb's spec moved |
+  | a cell at the forest, ms | 44.0 | 44.6 | ×1.02 |
+  | GPU draws / triangles / programs, seven places | | | within ±2% (shore draws 310 → 317.5) |
+  | GPU bytes uploaded a frame, the forest | 368 KB | 316 KB | ×0.86 — the seeded draws moved again (main's was 323); `test/gpu.json` updated |
+
+  Where plumbs stand, each is one more body with an eight-arm rig, as an ortho is; the busiest wall near the centre holds about four.
+- **Unseen, ask in this order**: (1) does it read as hanging now — off the floor, swaying, drifting — and is it common enough; (2) LINEAGE §7c.6's
+  Open: demigods for every god or the Plumb's alone, which demigods, where the Plumb hangs, and the ordinary plumb at 30 m now.

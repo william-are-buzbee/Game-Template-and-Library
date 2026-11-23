@@ -3437,7 +3437,7 @@ const SPECS = {
   },
   // the plumb (v11.223; CLADES, The radiation): the ortho's straightshell with no ballast in its chambers, so it hangs shell-up like a plumb line
   // (a Palaeozoic orthocone without cameral deposits floats vertical: the hydrostatic models). Longer and more slender than the ortho, the helix
-  // tighter, the ring longer — a curtain under it. Built in the frame every creature is (facing +z); the AI holds it nose-down (creatures_ai.js
+  // tighter, the ring longer — a curtain under it (v11.223.1: its rest spread 0.42 to 0.22, so the arms hang rather than splay). Built in the frame every creature is (facing +z); the AI holds it nose-down (creatures_ai.js
   // updatePlumb)
   plumb: {
     id: 'plumb',
@@ -3462,7 +3462,7 @@ const SPECS = {
         curve: 0.04,
         ks: 55,
         damp: 9,
-        s0: 0.42,
+        s0: 0.22,
         s1: 0.1,
         a0: 0.2,
         a1: 0.08,

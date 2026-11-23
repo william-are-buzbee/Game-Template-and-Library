@@ -179,17 +179,17 @@ const SPAWN=[
   {kind:'ortho',n:0.12,env:{heat:[0.3,1]}}, // the vents: warm water below the thermocline
   {kind:'veil',n:0.2,env:{h:[-800,-150]}},
   {kind:'abyssal',n:0.1,env:{h:[-560,-380],nut:[0.25,1]}}, // the rim of the dark where the water is fed (PLANET: the rim, forays below). v11.66: it was h −800..−400 over the whole basin's flanks, where the sill's and the far floor's cells reach no combs, and the 120-day census had it collapsing 70 → 12 since v11.65 (the 40-day run --test makes does not see it); the ledger's reach is 5×5 cells, so its home band is the two cells over the combs' deep edge
-  {kind:'plumb',n:4,env:{h:[-520,-30],flow:[0,0.45]}} // v11.223: the walls in still water (DEFS station: the capacity is the cell's share of wall and lee, ecology.js ecoCap) — the foot to −520, the face up past −450 (its shell's floor); the ortho's opposite, which wants the current. Last: a new row goes at the end, so every row before it draws from a cell's rng as it did (the seeded tests' runs)
+  {kind:'plumb',n:12,env:{h:[-520,-30],flow:[0,0.45]}} // v11.223: the walls in still water (DEFS station: the capacity is the cell's share of wall and lee, ecology.js ecoCap) — the foot to −520, the face up past −450 (its shell's floor); the ortho's opposite, which wants the current. Last: a new row goes at the end, so every row before it draws from a cell's rng as it did (the seeded tests' runs)
 ];
 // ---------- the stations (v11.223; CLADES, The radiation: habitat at three scales) ----------
 // Habitat's second scale, where in its cell an animal stands (the first is SPAWN's envelope, the cells; the third the clock). A kind names its
 // stations (DEFS.station); each is a score 0..1 at a point from the ground round it, and the kind's is their product. The ledger weighs a cell's
 // capacity by it point by point (ecology.js ecoCap, ecoPatchCap: a cell with no wall holds no plumb) and placeKind stands the animal at the best
 // of the cell's points (chunks.js stationPoint). wall: the ground rises steeply beside the point — the rise to its highest neighbour over their
-// distance, a smooth step from lo to hi — and the face reaches up past the deepest the body may be (deepY) by `reach` m, so it hangs beside rock and
+// distance, a smooth step from lo to hi (over 36 m: an 11 m face starts it, a 27 m one is full) — and the face reaches up past the deepest the body may be (deepY) by `reach` m, so it hangs beside rock and
 // not over a step far below it. lee: still water, 1 at flow lo to 0 at hi (a body hung vertical is a mast in a current). Seven are proposed
 // (wall, lee, lip, edge, canopy, open, crevice); these two are built.
-const STATION={wall:{lo:0.45,hi:0.9,reach:10},lee:{lo:0.2,hi:0.5}};
+const STATION={wall:{lo:0.3,hi:0.75,reach:10},lee:{lo:0.2,hi:0.5}}; // wall lo/hi 0.45/0.9 to v11.223 (16–32 m faces); v11.223.1 (the person: more common, "a sea full of these things") 11–27 m
 function stationW(st,h,rise,run,flow,deepY){let w=1;
   for(let i=0;i<st.length;i++){const s=st[i];if(s==='wall'){w*=smooth(STATION.wall.lo,STATION.wall.hi,rise/run);if(deepY!==undefined&&h+rise<deepY+STATION.wall.reach)return 0;}else if(s==='lee')w*=1-smooth(STATION.lee.lo,STATION.lee.hi,flow);if(w<=0)return 0;}
   return w;}
