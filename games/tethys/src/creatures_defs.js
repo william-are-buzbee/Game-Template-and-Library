@@ -63,6 +63,7 @@ const DEFS={
   stone:{build:()=>compile(SPECS.stone),size:3,hp:200,role:'trap',prey:['player','picker','rasp','grazer','plough'],cycle:5,detect:2.8,reach:3.0,dmg:22,strike:{tell:0.15,dur:0.35},cool:2.5,floor:true,clear:0.8},
   crusher:{build:()=>compile(SPECS.crusher),size:4,hp:110,role:'hunter',prey:['rasp','scuttle','player','wedge'],preyClade:'coil',scav:40,detect:24,reach:4.2,dmg:28,biteCD:1.5,strike:{tell:0.3,dur:0.35,speed:9,range:1.7},home:50,cruise:14,cruiseF:0.4,cool:4},
   trap:{build:()=>compile(SPECS.trap),size:2,hp:60,role:'trap',prey:['player','flicker','needle','darter','scuttle','sifter'],detect:4.5,reach:3.3,dmg:24,strike:{tell:0.35,dur:0.3},cool:3,floor:true,clear:0.45},
+  plumb:{build:()=>compile(SPECS.plumb),size:11,hp:120,role:'ambush',upright:true,station:['wall','lee'],below:0.5,prey:['player','darter','needle','arrow','flicker','sifter','hose','eel','watcher','grazer'],radius:22,lunge:8,reach:6.5,dmg:26,clear:11}, // v11.223 (CLADES, The radiation): hangs shell-up at a wall in still water (station), strikes only down (below), rides the swarm's layer (creatures_ai.js updatePlumb); clear: its arms' tips under its origin
   hook:{build:()=>compile(SPECS.hook),size:2.5,hp:50,role:'ambush',prey:['player','flicker','darter','needle'],hang:true,radius:11,lunge:11,reach:2.8,dmg:18},
   tread:{build:()=>compile(SPECS.tread),size:7,pace:0.17,hp:800,role:'graze',calm:true,home:90,floor:true,legs:true,cruiseF:1},
   picker:{build:()=>compile(SPECS.picker),stock:3,size:1.5,pace:0.62,flee:true,hp:1,edible:true,food:10,role:'graze',home:40,floor:true,legs:true,cruiseF:0.6,scav:90},
@@ -104,14 +105,14 @@ function founderDef(spec){const k=founderOf(spec);return k?DEFS[k]:null;}
 // The physics off the build (v11.71): top is derive's speed, speed is what the AI has always read (top × pace), flee the top speed where a kind bolts,
 // turn and accel derive's. A kind made later (the lab's, the line's young) goes through the same function. accel reaches the AI through seek
 // (creatures_ai.js ACC_REF): a heavy body closes on the speed it wants more slowly than a light one.
-function defPhysics(d,spec){const st=derive(spec);d.top=st.speed;d.speed=+(st.speed*(d.pace||1)).toFixed(2);if(d.flee)d.flee=st.speed;d.turn=st.turn;d.accel=st.accel;d.filter=st.filter||0;d.sprint=st.burst||1;return d;} // sprint (v11.92): derive's burst over the top speed — the committed lunge's speed (creatures_ai.js) // v11.85: filter, the sieve's m² off the build — a kind with any is a filter feeder (ecology.js ecoOf puts the swarm on its prey; creatures_ai.js filterIntake feeds it)
+function defPhysics(d,spec){const st=derive(spec);d.top=st.speed;d.speed=+(st.speed*(d.pace||1)).toFixed(2);if(d.flee)d.flee=st.speed;d.turn=st.turn;d.accel=st.accel;d.filter=st.filter||0;d.sprint=st.burst||1;d.deepY=st.deepY;return d;} // sprint (v11.92): derive's burst over the top speed — the committed lunge's speed (creatures_ai.js) // v11.85: filter, the sieve's m² off the build — a kind with any is a filter feeder (ecology.js ecoOf puts the swarm on its prey; creatures_ai.js filterIntake feeds it) // deepY (v11.223): the deepest the body may be, derive's — a gas-chambered shell's DERIVE_K.chamberY; undefined for every other body (creatures_ai.js holds it there, findPrey looks no deeper)
 for(const k in DEFS)if(SPECS[k])defPhysics(DEFS[k],SPECS[k]);
 // v11.149 (the creature performance pass): every def one shape. The rows above are each their own literal, and an individual's def was its kind's
 // chained under a copy of its own size (creatures_ai.js scaledDef: Object.create) — 26 shapes among the forest's creatures, so every d.role, d.size,
 // d.prey in the frame was a lookup by name. Now each row is remade with DEF_KEYS — every key any row, a line's young or a scaled copy carries, in one
 // order, unset where it has none (undefined reads as a missing key did) — and scaledDef copies one flat (defFlat), its keys outside the list kept
 // after them. No def is written after load, so a copy reads as the chain did. A new key on a row goes in DEF_KEYS, or that row is a shape of its own
-const DEF_KEYS=(()=>{const K=new Set();for(const k in DEFS)for(const q in DEFS[k])K.add(q);for(const q of ['size','speed','top','flee','reach','dmg','radius','lunge','detect','clear','food','filter','juv','build','spec','line','lineId','legs','jetter','prey'])K.add(q);return [...K];})(),DEF_SET=new Set(DEF_KEYS);
+const DEF_KEYS=(()=>{const K=new Set();for(const k in DEFS)for(const q in DEFS[k])K.add(q);for(const q of ['size','speed','top','flee','reach','dmg','radius','lunge','detect','clear','food','filter','juv','build','spec','line','lineId','legs','jetter','prey','deepY'])K.add(q);return [...K];})(),DEF_SET=new Set(DEF_KEYS);
 const DEF_LIT=new Function('d','return {'+DEF_KEYS.map(k=>JSON.stringify(k)+':d['+JSON.stringify(k)+']').join(',')+'};'); // one object literal of every key: a def made key by key from a list is a dictionary (V8's slow mode past a dozen added keys), however few shapes
 function defFlat(d){const o=DEF_LIT(d);for(const k in d)if(!DEF_SET.has(k))o[k]=d[k];return o;}
 for(const k in DEFS)DEFS[k]=defFlat(DEFS[k]);
@@ -177,8 +178,23 @@ const SPAWN=[
   {kind:'ortho',n:0.3,env:{h:[-800,-100],flow:[0.3,1]}},
   {kind:'ortho',n:0.12,env:{heat:[0.3,1]}}, // the vents: warm water below the thermocline
   {kind:'veil',n:0.2,env:{h:[-800,-150]}},
-  {kind:'abyssal',n:0.1,env:{h:[-560,-380],nut:[0.25,1]}} // the rim of the dark where the water is fed (PLANET: the rim, forays below). v11.66: it was h −800..−400 over the whole basin's flanks, where the sill's and the far floor's cells reach no combs, and the 120-day census had it collapsing 70 → 12 since v11.65 (the 40-day run --test makes does not see it); the ledger's reach is 5×5 cells, so its home band is the two cells over the combs' deep edge
+  {kind:'abyssal',n:0.1,env:{h:[-560,-380],nut:[0.25,1]}}, // the rim of the dark where the water is fed (PLANET: the rim, forays below). v11.66: it was h −800..−400 over the whole basin's flanks, where the sill's and the far floor's cells reach no combs, and the 120-day census had it collapsing 70 → 12 since v11.65 (the 40-day run --test makes does not see it); the ledger's reach is 5×5 cells, so its home band is the two cells over the combs' deep edge
+  {kind:'plumb',n:4,env:{h:[-520,-30],flow:[0,0.45]}} // v11.223: the walls in still water (DEFS station: the capacity is the cell's share of wall and lee, ecology.js ecoCap) — the foot to −520, the face up past −450 (its shell's floor); the ortho's opposite, which wants the current. Last: a new row goes at the end, so every row before it draws from a cell's rng as it did (the seeded tests' runs)
 ];
+// ---------- the stations (v11.223; CLADES, The radiation: habitat at three scales) ----------
+// Habitat's second scale, where in its cell an animal stands (the first is SPAWN's envelope, the cells; the third the clock). A kind names its
+// stations (DEFS.station); each is a score 0..1 at a point from the ground round it, and the kind's is their product. The ledger weighs a cell's
+// capacity by it point by point (ecology.js ecoCap, ecoPatchCap: a cell with no wall holds no plumb) and placeKind stands the animal at the best
+// of the cell's points (chunks.js stationPoint). wall: the ground rises steeply beside the point — the rise to its highest neighbour over their
+// distance, a smooth step from lo to hi — and the face reaches up past the deepest the body may be (deepY) by `reach` m, so it hangs beside rock and
+// not over a step far below it. lee: still water, 1 at flow lo to 0 at hi (a body hung vertical is a mast in a current). Seven are proposed
+// (wall, lee, lip, edge, canopy, open, crevice); these two are built.
+const STATION={wall:{lo:0.45,hi:0.9,reach:10},lee:{lo:0.2,hi:0.5}};
+function stationW(st,h,rise,run,flow,deepY){let w=1;
+  for(let i=0;i<st.length;i++){const s=st[i];if(s==='wall'){w*=smooth(STATION.wall.lo,STATION.wall.hi,rise/run);if(deepY!==undefined&&h+rise<deepY+STATION.wall.reach)return 0;}else if(s==='lee')w*=1-smooth(STATION.lee.lo,STATION.lee.hi,flow);if(w<=0)return 0;}
+  return w;}
+// the rise to the highest of a grid point's four neighbours (a G×G grid of heights hs): the wall's height beside it
+function gridRise(hs,G,n){const a=n%G,b=(n-a)/G,h=hs[n];let r=0;if(a>0)r=Math.max(r,hs[n-1]-h);if(a<G-1)r=Math.max(r,hs[n+1]-h);if(b>0)r=Math.max(r,hs[n-G]-h);if(b<G-1)r=Math.max(r,hs[n+G]-h);return r;}
 // The roster (PLANET.md) in the order the bestiary shows it (zoo.js). Display only: clade, family, niche, size is DEFS's (or the
 // clade's, for the three players), floor: sits on the ground (shown at the game's floor clearance), new: built and not yet placed.
 const ROSTER=[
@@ -187,6 +203,7 @@ const ROSTER=[
   {id:'rasp',clade:'ringmouths',family:'coilshells',niche:'floor grazer, shelled',floor:true},
   {id:'great',clade:'ringmouths',family:'coilshells',niche:'shelf apex'},
   {id:'ortho',clade:'ringmouths',family:'straightshells',niche:'player-size predator, spear'},
+  {id:'plumb',clade:'ringmouths',family:'straightshells',niche:'hangs at walls, drops on what passes under'},
   {id:'arrow',clade:'ringmouths',family:'jetters',niche:'small-prey hunter, in packs'},
   {id:'lurker',clade:'ringmouths',family:'crawlers',niche:'floor ambush, grab',floor:true},
   {id:'watcher',clade:'ringmouths',family:'crawlers',niche:'a curious omnivore',floor:true},

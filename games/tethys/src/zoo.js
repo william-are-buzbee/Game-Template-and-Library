@@ -23,8 +23,8 @@ function zooShow(i){
   let b;try{b=d.build();}finally{if(pal0)PAL[pk]=pal0;}
   b.owner={b:b,pos:b.g.position,grab:null,reach:0,shapesW:null};
   const size=d.size,floor=r.floor||d.floor;
-  zoo.floor=!!floor;zoo.cy=floor?floor0+size*0.35:clamp(floor0+4.5+size*0.5,floor0+3,TIDE-2-size*0.4);
-  b.g.position.set(0,zoo.cy,0);b.g.rotation.y=0;castOn(b.g);scene.add(b.g);zoo.b=b;
+  zoo.floor=!!floor;zoo.cy=floor?floor0+size*0.35:d.upright?Math.min(floor0+(d.clear||0)+1,TIDE-2-size*HANG.above):clamp(floor0+4.5+size*0.5,floor0+3,TIDE-2-size*0.4);
+  b.g.position.set(0,zoo.cy,0);b.g.rotation.set(d.upright?Math.PI/2:0,0,0);castOn(b.g);scene.add(b.g);zoo.b=b; // upright (v11.223): the plumb hangs nose-down, as in the world
   zoo.radius=Math.max(0.6,zooRadius(b.g));zoo.dist=Math.max(4,zoo.radius*2.0+1.5);zoo.act=-1;
   zooNameEl.textContent=r.name||r.id;
   // a species with a spec (creatures_spec.js) shows the calculator's numbers beside DEFS's, so the scale can be tuned (CREATOR.md)

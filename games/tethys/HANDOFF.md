@@ -4,6 +4,13 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.223 (23 Nov 2026): the plumb, the stations, a gas shell's floor** (creatures_spec.js `SPECS.plumb`, `DERIVE_K.chamberY`; creatures_defs.js
+`DEFS.plumb`, `STATION`, `stationW`; creatures_ai.js `updatePlumb`, `reachable`; chunks.js `stationPoint`; ecology.js; zoo.js; test/plumb.js; CLADES,
+DESIGN The ecology, PLANET's roster; CHANGELOG). The person's hanger: the ortho's cone with no ballast, hung shell-up at walls in still water, riding
+the swarm's layer, striking only down; the wall and lee stations weigh the ledger and place it; every gas-shelled body held above −450 (the ortho's
+band left: it is the floor's). Seen in headless Chromium hanging at the wall at cell (118, 119). **Ask:** the plumb at a wall in the preview — the
+look, its numbers (rare: ~1,700 in the world), and whether the coilshell player is held above −450 too.
+
 **v11.222 (23 Nov 2026): the radiation** (CLADES.md, The radiation; PLANET.md; CHANGELOG). Docs only. The person's answers: individuals
 generated, species authored from a radiation table; the hanger first — a straightshell with no ballast, hung vertical beside walls, rising with the
 swarm's layer at night — and the ortho kept as it is; the slowbloods' reference becomes the jawless armoured fish; then the ringmouths' individuals and
@@ -22,10 +29,6 @@ choice: the visit you are in, its time in seconds under a minute, and the sessio
 **v11.219 (23 Nov 2026): the fill light's colours again** (atmosphere.js; test/lint.js; test/combat.js; CHANGELOG). A `//` mid-line had swallowed
 them since v11.175: under water the fill takes the water's colour again (greener, darker in the shade). Lint now fails on code in a comment. **Ask:**
 the look under water, better or worse than these six days (either is fine).
-
-**v11.218 (23 Nov 2026): the three.js breakages mended both ways** (scene.js `T187`, `oneP`, `SH_DEPTH`, `LI`; atmosphere.js `refrFb`; benchpage
-`THREE=187`; test/three187.js; analysis_project.md §6). r187 now draws the game as r128 does (mean change ≤ 0.43 of 255 at seven places); r128 the same
-to the bit. The spike's slow boot does not reproduce. Next: the tower's F8 and F9, then the upgrade (the version, the loader's import map, the tests).
 
 ## Open
 

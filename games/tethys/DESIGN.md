@@ -2073,7 +2073,7 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   the prey and drives `st.tell`, then a burst at `speed` with `st.strike` on and one bite within `reach`; `burst {on, off}`
   for burst-and-coast: speed and accel on a duty cycle, full for `on` s then a third for `off` s, in the chase and the wander
   alike), graze (`calm`: ignores threats — the tread), ambush (the lurker; `hang`: the hook, a home 5–14 m up in the structure,
-  the strike pose on the drop), trap (sits and never moves: prey within `detect` starts the tell — it turns to face it — then the
+  the strike pose on the drop; `upright`: the plumb, v11.223 — `updatePlumb`, below), trap (sits and never moves: prey within `detect` starts the tell — it turns to face it — then the
   strike, a bite within `reach`, then `cool`; as heavy as rock for contact), watch (the watcher: within `detect` of the player it
   walks to a standoff of `stand`, faces them, follows, backs off inside half the standoff, wanders when they leave), coil, drift,
   wander (`deep`: keeps its wander below −458 — the pall), boid (below). `preyClade`: the player is prey only as that clade (the
@@ -2283,6 +2283,20 @@ the save brings it all back. The model's step costs ~6% more for the lookups (th
   scuttle 4, picker 3, grazer 3 — one drawn stands for that many, as the snow's points do), food = mass × stock, r, m, cycle
   `ECO.cyc·mass^¼` days (fed to starving), need, meal = need × cycle, prey (kinds), mortal, grow. A def may override `r`, `cycle`,
   `need`, `meal` (the stone: `cycle` 5, torpid; the abyssal 10).
+- **The stations (v11.223; CLADES, The radiation; `creatures_defs.js STATION`, `stationW`, `gridRise`; `chunks.js stationPoint`).** Habitat's second
+  scale: where in its cell an animal stands (the envelope is the first, the cells; the clock the third). A kind names its stations (`DEFS.station`), each a
+  score 0..1 at a point off the ground round it, the kind's their product: **wall** — the rise to the highest neighbour over their distance, a smooth step
+  `lo` 0.45 to `hi` 0.9 (a 16 m to 32 m face over 36 m), and none where the face tops out under the body's `deepY` + `reach` 10 m; **lee** — still water,
+  1 at `flow` 0.2 to 0 at 0.5. `ecoCap` multiplies each of its 36 points' tolerance by it (its 6×6 grid, 36 m apart; `ecoPatchCap` the same on its 107 m
+  grid, where only a tall wall shows), so a cell with no wall holds no plumb; `placeKind` stands the animal at one of 64 jittered points over the cell drawn
+  by its score squared (the rise to a neighbour 36 m off in eight directions, the wall's way kept as `c.wallD`), or places none — the ledger holds what
+  stood. Over the old square ~5% of wet cells have a 30 m face (test/plumb.js finds one at cell (118, 119): x −430…−215, z −215…0). Five more are
+  proposed (lip, edge, canopy, open, crevice); a kind names none and nothing changes for it.
+- **A gas shell's floor (v11.223; `DERIVE_K.chamberY` −450, derive's `deepY`, `d.deepY`).** A body whose build is gas-chambered — the ringmouths' shells
+  (coil, rasp, great, ortho, plumb) and the sailers' floats — is held above −450 every step (`updateCreatures`, after the floor's clamp; not while held:
+  its holder takes it), and `reachable` keeps `findPrey` from anything more than 2 m under it. The person (23 Nov 2026): no exceptions for any animal.
+  The ortho's envelope stays `h` −800…−100: that is the floor of the cells it lives over, and it was placed (`openY`) and wandered (`setWander`) above
+  −420 there already; what it lost is the dive after a picker on the deep mud. The player's coilshell is not held (asked).
 - **Hunger, live** (`creatures_ai.js hungerTick`): `c.hunger` 0..1 over the cycle; hunts past `ECO.hungry` 0.4; the chase bursts
   (1.6× for 2 s, tired by 6) and gives up at `ECO_CHASE` 9 s on anything but the player; a kill takes `food/meal` off; `feed` state at
   a carcass; starving at 1, dead at `STARVE_T` 1.2 cycles past. Ambushers `findPrey(c, radius)` when hungry; traps past 0.16. **The player

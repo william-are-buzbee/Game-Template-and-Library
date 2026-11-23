@@ -2914,6 +2914,7 @@ const DERIVE_K = {
   walk: 1.0, // a walker's Froude number: speed = walk × sqrt(g × leg). A leg is a pendulum; the five walkers that flee fit 0.59 of this at the old 0.6
   walkTD: 1.5, // a walker's grip on the ground, standing in for thrust/drag in its accel
   chamber: 0.8, // a gas-chambered shell: the drag of a wheel carried flat, and no hard jetting against a shell's own buoyancy
+  chamberY: -450, // m: the deepest a gas-chambered shell can be pumped empty at (PLANET, Ringmouths: below it the chambers flood, and they implode by −800) — the body's own floor (defPhysics d.deepY, v11.223: the person, 23 Nov 2026, "no exceptions for any animal")
   flex: 1.8, // turn, a body that bends along its whole length (the chain core) against a stiff hull of the same length: the eel's hand turn was 1.9× derive's
   lobeT: 4.3, // a tail lobe's thrust per m² of lobe at amplitude 1 and beat 1 (the three lobes of tailTrio); 3 to v11.72 against no lobe drag — v11.73: refit with lobeF and lobeI so the nine tailed kinds' geometric mean of speed holds (1.002): the broad-lobed small boids −5%, the tall-lobed big bodies +6–7%
   lobeF: 0.1, // the lobes' skin friction as frontal-equivalent area per m² of lobe: six faces at Cf ~0.008 against a body cd ~0.45
@@ -3046,8 +3047,8 @@ function derive(spec0) {
   if (spec.clade === 'hingeshells' && tail) plausible.push('a hingeshell cannot undulate');
   if (spec.clade === 'drifters' && eyes > 0) plausible.push('a drifter has no eyes');
   if (spec.clade === 'slowbloods' && !tail && !(spec.behaviour && spec.behaviour.floor)) plausible.push('a slowblood off the floor wants a tail');
-  if (spec.clade === 'ringmouths' && chambered && spec.depth !== undefined && spec.depth < -450)
-    plausible.push('a chambered shell implodes below −450');
+  if (spec.clade === 'ringmouths' && chambered && spec.depth !== undefined && spec.depth < K.chamberY)
+    plausible.push('a chambered shell cannot be pumped below ' + K.chamberY);
   if (spec.depth !== undefined && spec.depth < -200 && eyes > 8) plausible.push('many eyes below the light');
   if (thrust < 0.01) plausible.push('nothing propels it');
   if (capped) plausible.push('the lobes outrun the stem that swings them (' + Math.round(capped * 100) + '% driven)'); // v11.74: DERIVE_K.stemM
@@ -3062,6 +3063,7 @@ function derive(spec0) {
     turn: +turnK.toFixed(2),
     mode: mode,
     buoyancy: buoy,
+    deepY: chambered ? K.chamberY : undefined, // v11.223: the deepest the body may be (a gas-chambered one's: a shell, a float; none for any other)
     jet: jet && !legs,
     legs: legs,
     walk: +walk.toFixed(2),
@@ -3432,6 +3434,47 @@ const SPECS = {
       {a: [0, 0, 3.4], b: [0, 0, 4.1], r: 0.6}
     ],
     behaviour: {role: 'hunter'}
+  },
+  // the plumb (v11.223; CLADES, The radiation): the ortho's straightshell with no ballast in its chambers, so it hangs shell-up like a plumb line
+  // (a Palaeozoic orthocone without cameral deposits floats vertical: the hydrostatic models). Longer and more slender than the ortho, the helix
+  // tighter, the ring longer — a curtain under it. Built in the frame every creature is (facing +z); the AI holds it nose-down (creatures_ai.js
+  // updatePlumb)
+  plumb: {
+    id: 'plumb',
+    clade: 'ringmouths',
+    size: 11,
+    s: 1.35,
+    coat: 'plumb',
+    core: {kind: 'coilbody', R: 0.66, z: 3.55, sx: 1, sy: 0.95, sz: 0.8, beat: [2, 1]},
+    parts: [
+      {kind: 'shell', style: 'cone', L: 9.5, z0: 3.35, r0: 0.6, segs: 9, turns: 5},
+      {kind: 'eyes', style: 'collar', n: 10, z: 3.75, R: 0.6, r: 0.07, sy: 0.82, y0: 0},
+      {kind: 'eyes', style: 'cluster', n: 5, y: 0.38, z: 3.85, R: 0.28, r: 0.11},
+      {kind: 'mouth', style: 'beak', y: -0.05, z: 4.0, R: 0.2},
+      {
+        kind: 'arms',
+        style: 'cone',
+        z: 3.95,
+        R: 0.36,
+        len: 3.6,
+        w: 0.18,
+        segs: 5,
+        curve: 0.04,
+        ks: 55,
+        damp: 9,
+        s0: 0.42,
+        s1: 0.1,
+        a0: 0.2,
+        a1: 0.08,
+        k0: 0.6,
+        k1: 1.5
+      }
+    ],
+    hit: [
+      {a: [0, 0, -5.6], b: [0, 0, 3.4], r: 0.48},
+      {a: [0, 0, 3.4], b: [0, 0, 4.1], r: 0.58}
+    ],
+    behaviour: {role: 'ambush'}
   },
   fin: {
     id: 'fin',

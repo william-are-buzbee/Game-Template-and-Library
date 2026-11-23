@@ -505,6 +505,20 @@ function* spawnChunkCreatures(ch,rng){
 // recruits are never seen appearing
 function kindPoint(ch,rng,e,off){for(let tr=0;tr<(off?8:1);tr++){const p=chunkPoint(ch,rng,e.env,!!e.land);if(!p)return null;if(!off||mode!=='play')return p;
   const dx=p.x-player.pos.x,dz=p.z-player.pos.z,d2=dx*dx+dz*dz;if(d2>110*110)return p;if(d2>30*30){T1.set(dx,0,dz);T2.set(0,0,-1).applyQuaternion(camera.quaternion);T2.y=0;if(T1.dot(T2)<0)return p;}}return null;}
+// the best of a cell's points for a kind's stations (v11.223, creatures_defs.js STATION): an 8×8 grid jittered over the cell, each scored by the kind's
+// envelope and its stations off the cell's own heights (the rise to a neighbour STATION_RUN m off in eight directions — the ledger's 6×6 points are as
+// far apart), one drawn by its score squared. Writes the point (on the ground) into p and the wall's way (toward the higher ground) into dir; false
+// when the cell has none
+const STATION_RUN=CELL/6,ST_DIR=[[1,0],[-1,0],[0,1],[0,-1],[0.7071,0.7071],[0.7071,-0.7071],[-0.7071,0.7071],[-0.7071,-0.7071]],ST_W=new Float32Array(64),ST_X=new Float32Array(64),ST_Z=new Float32Array(64),ST_D=new Int8Array(64);
+function stationPoint(ch,e,D,rng,p,dir){const st=D.station;let tot=0;
+  for(let n=0;n<64;n++){const x=ch.x0+((n&7)+0.2+0.6*rng())/8*CELL,z=ch.z0+((n>>3)+0.2+0.6*rng())/8*CELL,h=ch.h(x,z);let rise=0,k=0;
+    for(let q=0;q<8;q++){const r=ch.h(x+ST_DIR[q][0]*STATION_RUN,z+ST_DIR[q][1]*STATION_RUN)-h;if(r>rise){rise=r;k=q;}}
+    const f=ch.f(x,z);let w=envW(e.env,h,ch.slope(x,z),f);if(w>0)w*=stationW(st,h,rise,STATION_RUN,f[FI.flow],D.deepY);w*=w;ST_W[n]=w;ST_X[n]=x;ST_Z[n]=z;ST_D[n]=k;tot+=w;}
+  if(tot<1e-6)return false;let u=rng()*tot;
+  for(let n=0;n<64;n++){u-=ST_W[n];if(u<=0||n===63){p.set(ST_X[n],ch.h(ST_X[n],ST_Z[n]),ST_Z[n]);dir.set(ST_DIR[ST_D[n]][0],0,ST_DIR[ST_D[n]][1]);return true;}}
+  return false;}
+// whether p is out of the player's sight for a recruit (kindPoint's rule: past 110 m, or behind the camera and past 30)
+function unseenAt(p){if(mode!=='play')return true;const dx=p.x-player.pos.x,dz=p.z-player.pos.z,d2=dx*dx+dz*dz;if(d2>110*110)return true;if(d2>30*30){T1.set(dx,0,dz);T2.set(0,0,-1).applyQuaternion(camera.quaternion);T2.y=0;if(T1.dot(T2)<0)return true;}return false;}
 // place `count` of an entry's kind in the cell in its groups (e.grp), each the way its kind lives: a school for the boids, a pack or
 // herd or three spread round a point, a trap or stone lying on its floor, a hook hung in the structure, a lurker among rock, the
 // pall in the dark, a floor kind on the floor, the big swimmers in open water. Yields after every member (a build is 1–5 ms);
@@ -521,6 +535,8 @@ function* placeKind(ch,e,count,rng,opt){
       if(left>0){yield* makeSchool(ch,kind,p,left,rng,o);placed+=left;}}
     else if(D.role==='swarm'){p.y=openY(ch,p,rng,10,40);const c=spawn(ch,kind,p,rng,o);c.pig=swarmPig(p.x,p.y,p.z);c.q=rng();c.home.copy(p);c.flesh=bioMass(c.def);placed++;yield;} // v11.84: a swarm in the open water over its place, its pigment kind read off the crop there; v11.85: its biomass, which the filter feeders eat through (creatures_ai.js filterIntake)
     else if(e.grp){const sp=kind==='grazer'?16:kind==='arrow'?8:5;for(let i=0;i<g;i++){const q=p.clone().add(V3((rng()-0.5)*sp,0,(rng()-0.5)*sp)),h=ch.h(q.x,q.z);q.y=D.floor?h+1.5+rng()*1.5:clamp(h+1+rng()*4,h+1,-5);spawn(ch,kind,q,rng,o);placed++;yield;}}
+    else if(D.station){const dir=V3(0,0,0);if(!stationPoint(ch,e,D,rng,p,dir)||(opt.off&&!unseenAt(p)))break; // a kind with stations (v11.223): at the best of the cell's, or not at all — the ledger holds what stood
+      const fl=p.y;p.y=fl+(D.clear!==undefined?D.clear:D.size*0.35);const c=spawn(ch,kind,p,rng,o);c.wallD=dir;c.state='sit';if(D.upright){c.pos.y=c.home.y=plumbY(c.def,fl);plumbPose(c,true);}else c.home.copy(c.pos);placed++;}
     else if(D.role==='trap'){p.y+=(D.clear!==undefined?D.clear:D.size*0.35)+0.05;if(solidPush(p,1.5,null,ch))continue;const c=spawn(ch,kind,p,rng,o);c.state='sit';c.g.rotation.y=rng()*TAU;placed++;} // the trap, the stone: lying on its floor, any way round (by role since v11.66)
     else if(D.role==='ambush'&&D.hang){let ok=false;for(let tr=0;tr<6&&!ok;tr++){const q=chunkPoint(ch,rng,e.env);if(!q)break;p.copy(q);p.y=clamp(p.y+5+rng()*9,p.y+4,-6);ok=!solidPush(p,2.5,null,ch);}if(!ok)continue;const c=spawn(ch,kind,p,rng,o);c.state='sit';c.g.rotation.y=rng()*TAU;placed++;} // the hook: hung up in the structure
     else if(D.role==='ambush'){let ok=false;for(let tr=0;tr<6&&!ok;tr++){const q=chunkPoint(ch,rng,e.env);if(!q)break;p.copy(q);p.y+=(D.clear!==undefined?D.clear:D.size*0.35)+0.1;ok=!solidPush(p,2,null,ch);}if(!ok)continue;const c=spawn(ch,kind,p,rng,o);c.state='sit';c.g.rotation.y=rng()*TAU;placed++;} // the lurker among rock, the hood under the sand (v11.66: by role, at its own clearance)
