@@ -10743,3 +10743,33 @@ played at 01:16, its boot the first visit of that build (no world cache yet). Th
 
 **Unseen, ask:** play over a minute or not, as you like: open the game twice, then F9. The report's "this visit" line (or its boot line, after a minute)
 says "world cache maps cau plat sad" and the read's time.
+
+## v11.218 — the three.js breakages mended both ways: the game on r187 looks as on r128 (23 Nov 2026)
+
+The person, 23 Nov 2026: "as for 1 and 2, I agree yes" — 1, why r187 booted slower in the spike; 2, its breakages mended now, each changing nothing on
+r128. analysis_project.md §6 has the whole of it.
+
+- **test/benchpage.js `THREE=187`**: any bench on r187 — its module, and by an import map its minified core (cdnjs's minified module imports the
+  unminified one, 1.5 MB); the UUID draws found in either file.
+- **scene.js `T187`** (r187: `+THREE.REVISION>=187`), and on it:
+  - the pulled colour's `vColor` a vec4 (`VPULL_COLOR`): r187 declares it so whenever it is declared, and v11.215's vec3 failed every pulled pool's
+    program — the plants did not draw at all;
+  - the creatures' depth packed as r128 packs it (`SH_DEPTH`, `shCast`), and `shDepth` unpacking r187's byte order — the shadows were gone, then acne;
+  - `oneP`: the five transparent double-sided materials (the surface, the shafts, the splash, the player's two) in one pass — r187's two passes lost the
+    surface's fog and refraction from below (the sky showed through it);
+  - the sun by depth in r187's per-pixel Lambert (`getDirectionalLightInfo( directionalLight, directLight )`); thinLight's share of the far face's
+    light in `RE_Direct_Lambert`;
+  - the look exact: colour management off, the output linear; the lights ×π (`LI`; r128's three multiplied by π itself) and read back ÷π (the snow, the
+    halo); r128's point-light falloff in `lights_pars_begin`;
+  - the refraction's copy into a FramebufferTexture (atmosphere.js `refrFb`), a new one at a new size.
+- **test/three187.js** (in `npm run smoke`): the boot on r187, a place under water drawn, the plants' pools, the creatures' packed depth, the copy taken,
+  no shader failed, none of the game's "not as expected" warnings, no page errors.
+- test/types.json: 124 → 122 (refrTex no longer sized through a read-only image).
+
+**What it costs:** nothing on r128 (the live game): the pictures at all seven bench places the same to the bit, base against this; test/gpu.json's
+counts unchanged. **On r187** (the bench's seeded frame, 640×360, against r128's): the mean change 0.00–0.43 levels of 255 at the seven places, at most
+0.2% of pixels by more than 24 (forest 0.20, canopy 0.17, shore 0.04, atoll 0.43, open 0.00, coast 0.11, wood 0.09) — before this, 14–67. **The spike's
+slower boot** does not reproduce on today's code: the first frame 4.64/4.77 s on r128, 4.82/4.91 s on r187 (minified core), the world in no later;
+59 programs to 45 (r187 keys programs on `opaque` and `vertexNormals`).
+
+**Unseen, ask:** nothing on the live game changes. The upgrade itself is the next step, after the tower's F8 and F9.

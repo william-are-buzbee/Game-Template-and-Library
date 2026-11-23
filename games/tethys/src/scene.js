@@ -1,5 +1,16 @@
 // scene.js — app state, quality tier, renderer, camera, lights, shared materials
 if(typeof THREE==='undefined'){document.getElementById('title').textContent='three.js did not load';throw new Error('three.js missing');}
+// v11.218 (the three.js upgrade's work, analysis_project.md §6): r187, the upgrade's target. What differs between it and r128 and is mended both ways
+// keys on this; only these two are tested (test/benchpage.js THREE=187), so a version between is neither. grep `three.js-ready` for the rest.
+const T187=+THREE.REVISION>=187;
+// r128's look on r187 (v11.218): no colour management — r128 took every colour as given and wrote the result as it came (r187 converts sRGB in and
+// out); and the lights' units — r128's three multiplied every light's colour by π (WebGLLights, its legacy mode) where r187 does not, so a light set
+// here is set ×LI and read back ÷LI (atmosphere.js, the snow; haloSet); point lights fall off by r128's formula (below, lightLegacy). Exact, not by eye.
+if(T187)/** @type {any} */(THREE).ColorManagement.enabled=false;
+const LI=T187?Math.PI:1;
+// oneP (v11.218): a transparent double-sided material drawn in one pass, as r128 drew every one — r187 draws its back faces, then its front, unless told
+// (forceSinglePass). The surface from below came out as the sky through it, its fog and refraction lost (test/benchpage.js THREE=187). r187 declares the key.
+function oneP(m){if(T187)/** @type {any} */(m).forceSinglePass=true;return m;}
 
 let mode='menu',t=0;
 const canvas=/** @type {HTMLCanvasElement} */(document.getElementById('c'));
@@ -34,6 +45,7 @@ const Q=(function(){
 })();
 
 const renderer=new THREE.WebGLRenderer({canvas:canvas,antialias:Q.aa});
+if(T187)/** @type {any} */(renderer).outputColorSpace=/** @type {any} */(THREE).LinearSRGBColorSpace; // v11.218: written as computed, as r128 wrote it
 const GL2=!!(renderer.capabilities&&renderer.capabilities.isWebGL2); // WebGL2 (v11.187): the caustic's tiles as one array (CAU_ARR) and the flora's variants pulled (VPULL_GLSL); WebGL1 (and the tests' stub) as before
 renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,Q.pr));
 // ---------- the resolution that holds the frame (v11.188) ----------
@@ -369,11 +381,14 @@ const MIST_GLSL='float blR(float y,float e){float u=y-e+'+HAZE.soft.toFixed(1)+'
   // plain sun. If a chunk doesn't match, it warns and the sun stays as it was.
   const SUNK_V='\n#ifdef USE_FOG\ndirectLight.color*='+DL_GLSL('(uFogC+uFogR*mvPosition.xyz).y')+'*'+SPEC_DOWN('(uFogC+uFogR*mvPosition.xyz).y')+';\n#endif\n';
   const SUNK_F='\n#ifdef USE_FOG\ndirectLight.color*='+DL_GLSL('vFogPos.y')+'*'+SPEC_DOWN('vFogPos.y')+';\n#endif\n';
-  const reDir=/(getDirectional\w*\s*\(\s*directionalLights?\s*(?:\[\s*i\s*\])?\s*,\s*geometry\s*,\s*directLight\s*\)\s*;)/g;
+  const reDir=/(getDirectional\w*\s*\(\s*directionalLights?\s*(?:\[\s*i\s*\])?\s*,\s*(?:geometry\s*,\s*)?directLight\s*\)\s*;)/g; // r187 (v11.218): getDirectionalLightInfo( directionalLight, directLight ), in the fragment for Lambert too
   let nv=0,nf=0;
   if(C.lights_lambert_vertex)C.lights_lambert_vertex=C.lights_lambert_vertex.replace(reDir,(m)=>{nv++;return m+SUNK_V;});
   if(C.lights_fragment_begin)C.lights_fragment_begin=C.lights_fragment_begin.replace(reDir,(m)=>{nf++;return m+SUNK_F;});
-  if(nv!==1||nf!==1)console.warn('sun-by-depth: light chunks not as expected (lambert '+nv+', phong '+nf+'); the sun is lit by the player\'s depth');
+  if(T187?nf!==1:(nv!==1||nf!==1))console.warn('sun-by-depth: light chunks not as expected (lambert '+nv+', phong '+nf+'); the sun is lit by the player\'s depth');
+  if(T187){const L0='float getDistanceAttenuation(',L1='return distanceFalloff;\n}',s=C.lights_pars_begin||'',a=s.indexOf(L0),b=s.indexOf(L1,a); // lightLegacy (v11.218): r128's point-light falloff
+    if(a<0||b<0)console.warn('lightLegacy: getDistanceAttenuation not as expected; point lights fall off as r187\'s');
+    else C.lights_pars_begin=s.slice(0,a)+'float getDistanceAttenuation( const in float lightDistance, const in float cutoffDistance, const in float decayExponent ) {\n\tif ( cutoffDistance > 0.0 && decayExponent > 0.0 ) return pow( saturate( - lightDistance / cutoffDistance + 1.0 ), decayExponent );\n\treturn 1.0;\n}'+s.slice(b+L1.length);}
 })();
 const hemi=new THREE.HemisphereLight(0x9fd6e0,0x101c1c,0.9);scene.add(hemi);
 const sun=new THREE.DirectionalLight(0xfff2d8,1.2);sun.position.set(SUN_POS[0],SUN_POS[1],SUN_POS[2]);scene.add(sun);
@@ -387,10 +402,10 @@ function assignLights(){
   const cx=camera.position.x,cy=camera.position.y,cz=camera.position.z;
   for(const s of lightSources){const dx=s.x-cx,dy=s.y-cy,dz=s.z-cz;s.d=Math.sqrt(dx*dx+dy*dy+dz*dz)-s.distance*0.6;}
   lightSources.sort((a,b)=>a.d-b.d);
-  for(let i=0;i<lightPool.length;i++){const l=lightPool[i],s=lightSources[i];if(s&&s.d<FAR){l.position.set(s.x,s.y,s.z);l.color.setHex(s.color);l.intensity=s.intensity;l.distance=s.distance;}else l.intensity=0;}
+  for(let i=0;i<lightPool.length;i++){const l=lightPool[i],s=lightSources[i];if(s&&s.d<FAR){l.position.set(s.x,s.y,s.z);l.color.setHex(s.color);l.intensity=s.intensity*LI;l.distance=s.distance;}else l.intensity=0;}
   haloSet(0,plight);for(let i=1;i<4;i++)haloSet(i,lightPool[i-1]||null); // the halo's four (v11.166): the own light, then the pool's nearest
 }
-function haloSet(i,l){const k=(typeof FX!=='undefined'&&FX.halo?HALO.k*FX.haloK:0),j=i*4;if(!l||!(l.intensity>0)||!(k>0)){HALO_C[j+3]=0;return;}const p=l.position,c=l.color,e=l.intensity*k;HALO_P[j]=p.x;HALO_P[j+1]=p.y;HALO_P[j+2]=p.z;HALO_P[j+3]=l.distance||40;HALO_C[j]=c.r*e;HALO_C[j+1]=c.g*e;HALO_C[j+2]=c.b*e;HALO_C[j+3]=1;} // never NaN into the arrays (r128 passes a typed array through only if its first element is a number)
+function haloSet(i,l){const k=(typeof FX!=='undefined'&&FX.halo?HALO.k*FX.haloK:0),j=i*4;if(!l||!(l.intensity>0)||!(k>0)){HALO_C[j+3]=0;return;}const p=l.position,c=l.color,e=l.intensity/LI*k;HALO_P[j]=p.x;HALO_P[j+1]=p.y;HALO_P[j+2]=p.z;HALO_P[j+3]=l.distance||40;HALO_C[j]=c.r*e;HALO_C[j+1]=c.g*e;HALO_C[j+2]=c.b*e;HALO_C[j+3]=1;} // never NaN into the arrays (r128 passes a typed array through only if its first element is a number)
 
 // The through-water tint from above (v5–v11.41: every fragment under the water level mixed toward TINT_COL by 1−exp(−0.05·depth) when the camera
 // was in air) is gone in v11.42: the two-segment fog paints the water's part of the ray instead, by path length and place (UPWELL is what is left of
@@ -601,7 +616,12 @@ sun.castShadow=true;sun.shadow.bias=0;sun.shadow.camera.up.set(0,0,1);
 renderer.shadowMap.enabled=false;renderer.shadowMap.type=THREE.BasicShadowMap; // enabled per frame by updateShadow; Basic: a plain depth pass (the filtering is ours)
 function setShadowSize(L){L=L||sun;const n=shadowSize();if(L.shadow.mapSize.x===n)return;L.shadow.mapSize.set(n,n);dropShadowMap(L);} // three makes the map again at the next shadow pass
 function dropShadowMap(L){if(L.shadow.map){L.shadow.map.dispose();L.shadow.map=null;}}
-function castOn(g){g.traverse(o=>{if(o.isMesh)o.castShadow=true;});} // a built creature casts: the menu's, the bestiary's, the lab's, every spawn
+// v11.218: on r187 the casters' depth is written as r128 writes it by default, packed into the colour (RGBADepthPacking) — what shDepth unpacks. r187's
+// own depth material packs nothing (its map keeps depth in a depth texture), so without this the creatures' shadows vanish there. r187 declares
+// customDepthMaterial on every Object3D, so setting it changes no object's shape; r128 does not (and needs none), so there it is left alone.
+const SH_DEPTH=T187?new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking}):null;
+function shCast(o,on){if(SH_DEPTH&&!o.customDepthMaterial)o.customDepthMaterial=SH_DEPTH;o.castShadow=on;}
+function castOn(g){g.traverse(o=>{if(o.isMesh)shCast(o,true);});} // a built creature casts: the menu's, the bestiary's, the lab's, every spawn
 const SHM_BEST=[];for(let i=0;i<Q.casters;i++)SHM_BEST.push({c:null,s:0});
 // The box's frame (v11.30, shared with the static map below): SH_F holds x (0..2), y (3..5) and z = the light (6..8). The light: the
 // refracted sun under water and the true one in air, blended by the crossing; under cloud the key rises to the zenith. z the light,
@@ -638,7 +658,7 @@ function updateShadow(){
     if(m<room){SHM_BEST[m].c=c;SHM_BEST[m].s=s;m++;}else{let w=0;for(let i=1;i<m;i++)if(SHM_BEST[i].s>SHM_BEST[w].s)w=i;if(s<SHM_BEST[w].s){if(SHM_BEST[w].c.cast)castSet(SHM_BEST[w].c,false);SHM_BEST[w].c=c;SHM_BEST[w].s=s;}else if(c.cast)castSet(c,false);}}
   for(let i=0;i<m;i++)if(!SHM_BEST[i].c.cast)castSet(SHM_BEST[i].c,true);
 }
-function castSet(c,on){c.cast=on;for(const o of c.shM)o.castShadow=on;}
+function castSet(c,on){c.cast=on;for(const o of c.shM)shCast(o,on);}
 // ---------- the world's shadows (v11.30): a second map for what does not move, rendered only when something has changed ----------
 // The creatures' map above is redrawn every frame because they move. The flora, the rock, the structures and the ground don't, so
 // their map (`sunS`, a DirectionalLight that is never in the scene — it lights nothing; only its shadow is used) is rendered by hand,
@@ -737,10 +757,11 @@ const LIGHT_GLSL=LIGHT_FX?'\n#ifdef USE_FOG\n{float dep=uTint.x-vFogPos.y;if(uSu
   'float dl='+DL_GLSL('vFogPos.y')+';gl_FragColor.rgb*=1.0-uLightK.y*(1.0-sh)*uSunW.w*dl*nl*sd;}'+ // v11.164: a shadow takes away the beam it stands in, by channel
   (Q.cldSh?'if(dep<0.0&&uSunW.w>0.002){vec3 fc=normalize(cross(dFdx(vFogPos),dFdy(vFogPos)));float ncl=clamp(dot(fc,uFogS.xyz)*2.5,0.0,1.0);float cs=cloudSh(vFogPos),ch=1.0-'+CLD_SHADE.toFixed(2)+'*uCld.w;gl_FragColor.rgb*=1.0-uSunW.w*ncl*(1.0-clamp(cs/max(ch,0.05),0.0,1.0));}':'')+ // the clouds' shadows in air (v11.87, clouds.js): the beam's share taken where the deck stands between the point and the luminary, relative to the shade over the player (the sun light is already the player's own: a face under more cloud than the player darkens, one under less is left as it is — the surface restores its direct light exactly, atmosphere.js SURF_MAT)
   '}\n#endif\n':'';
-// shDepth: three's RGBA depth packing undone (packing.glsl's unpackRGBAToDepth, written out so no chunk is relied on); shTap: one tap of
+// shDepth: three's RGBA depth packing undone (packing.glsl's unpackRGBAToDepth, written out so no chunk is relied on; r187 packs the bytes the other way
+// round, its most significant in red — v11.218); shTap: one tap of
 // the map, a shadow if the caster is nearer the light than the fragment, faded by the metres between them
 const LIGHT_PARS=CAU_PARS+'uniform float uTime;uniform float uChop;uniform vec4 uSunW;uniform vec2 uLightK;uniform sampler2D uShMap;uniform mat4 uShMat;uniform vec4 uShP;uniform vec4 uShL;uniform sampler2D uShMapS;uniform mat4 uShMatS;uniform vec4 uShPS;uniform vec4 uShLS;\n'+
-  'float shDepth(vec4 v){return dot(v,vec4(0.99609375/16777216.0,0.99609375/65536.0,0.99609375/256.0,0.99609375));}\n'+
+  (T187?'float shDepth(vec4 v){return dot(v,vec4(0.99609375,0.99609375/256.0,0.99609375/65536.0,1.0/16777216.0));}':'float shDepth(vec4 v){return dot(v,vec4(0.99609375/16777216.0,0.99609375/65536.0,0.99609375/256.0,0.99609375));}')+'\n'+
   'float shTap(sampler2D m,vec2 uv,float z,float fd){float dz=z-shDepth(texture2D(m,uv));return dz>0.0?exp(-dz*uShL.w/fd):0.0;}\n'; // both maps are 2·SHM_D deep, so uShL.w serves the world's too
 // A vertex that draws nothing leaves the shader at once (v11.125): GONE puts it outside every clip plane and returns, before three's lighting,
 // the fog and the tint's own vertex work, so all its triangles are dropped as the collapse to the instance's origin dropped them (degenerate),
@@ -771,7 +792,11 @@ function addTint(m,key,small,band,grid,cls){ // grid (v11.40): 'world' puts the 
 // face through — the canopy from below, lit through at a sunset. `k` is the share (0.35 blades); a stipe or a trunk is not thin. If the
 // chunk isn't the expected text it warns once and the material lights as before. A depth material (DEPTH_PASS, v11.30) has no Lambert chunk and is left alone.
 const THIN_RE=/reflectedLight\.directDiffuse\s*=\s*\(\s*gl_FrontFacing\s*\)\s*\?\s*vLightFront\s*:\s*vLightBack\s*;/;let thinWarned=false;
-function thinLight(sh,k){if(sh.defines&&sh.defines.DEPTH_PASS)return;const f=sh.fragmentShader;if(!THIN_RE.test(f)){if(!thinWarned){thinWarned=true;console.warn('thinLight: lambert chunk not as expected; blades are opaque');}return;}
+const THIN_NL='float dotNL = saturate( dot( geometryNormal, directLight.direction ) );',THIN_INC='#include <lights_lambert_pars_fragment>';
+function thinLight(sh,k){if(sh.defines&&sh.defines.DEPTH_PASS)return;const f=sh.fragmentShader;
+  if(T187){const C=THREE.ShaderChunk.lights_lambert_pars_fragment; // v11.218: r187 lights Lambert by the pixel: each light's share of the far face's light, in RE_Direct_Lambert (the normal is the face's own there)
+    if(!C||C.indexOf(THIN_NL)<0||f.indexOf(THIN_INC)<0){if(!thinWarned){thinWarned=true;console.warn('thinLight: lambert chunk not as expected; blades are opaque');}return;}
+    sh.fragmentShader=f.replace(THIN_INC,()=>C.replace(THIN_NL,'float dotNL = mix( saturate( dot( geometryNormal, directLight.direction ) ), saturate( - dot( geometryNormal, directLight.direction ) ), '+k.toFixed(2)+' );'));return;}if(!THIN_RE.test(f)){if(!thinWarned){thinWarned=true;console.warn('thinLight: lambert chunk not as expected; blades are opaque');}return;}
   sh.fragmentShader=f.replace(THIN_RE,'reflectedLight.directDiffuse=mix((gl_FrontFacing)?vLightFront:vLightBack,(gl_FrontFacing)?vLightBack:vLightFront,'+k.toFixed(2)+');');}
 function cutLambert(){const m=new THREE.MeshLambertMaterial({vertexColors:true});m.cutAt=null;m.onBeforeCompile=function(sh){sh.uniforms.uCut=cutUOf(m);sh.vertexShader=CUT_V+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>'+FAR_CUT+FAR_FADE);};return m;} // v11.155: MAT's instanced flora (the fans, limpets, chimneys, the sheds) fade at FLORA_FAR like the rest; the creatures are never instanced, and the cut is USE_INSTANCING's alone
 const MAT=addTint(cutLambert(),'lamc',true,undefined,undefined,'body'); // creatures, small flora (instanced: the plant class in the shader). 'lamc' (v11.155): its own program now — MAT_HIT and MATBIG keep 'lam'
@@ -935,7 +960,8 @@ const MATTRF=addTint(lodMaterial(TREE_LOD),'lamdslod',true,undefined,undefined,'
 let VPULL_TEX=null;const vpullMats=new Map();
 const VPULL_V='uniform highp sampler2D uPull;attribute vec2 aPull;vec3 pPos,pNor,pCol;\n';
 const VPULL_MAIN=()=>'{int v=int(aPull.x+aVar*aPull.y+0.5);ivec2 q=ivec2((v%'+VPULL.row+')*3,v/'+VPULL.row+');vec4 pa=texelFetch(uPull,q,0);if(pa.w>0.5)'+GONE+'pPos=pa.xyz;pNor=texelFetch(uPull,q+ivec2(1,0),0).xyz;pCol=texelFetch(uPull,q+ivec2(2,0),0).xyz;}\n';
-const VPULL_COLOR='\n#if defined( USE_COLOR_ALPHA )\nvColor=vec4(1.0);\n#elif defined( USE_COLOR ) || defined( USE_INSTANCING_COLOR ) || defined( USE_BATCHING_COLOR )\nvColor=vec3(1.0);\n#endif\n#ifdef USE_COLOR\nvColor.rgb*=pCol;\n#endif\n#ifdef USE_INSTANCING_COLOR\nvColor.rgb*=instanceColor.xyz;\n#endif\n'; // r128's color_vertex on the fetched colour; v11.215 (three.js-ready): .rgb, for a vColor that is a vec4 (USE_COLOR_ALPHA), and USE_BATCHING_COLOR (r165) declares it too
+const VPULL_COLOR=T187?'\n#if defined( USE_COLOR ) || defined( USE_COLOR_ALPHA ) || defined( USE_INSTANCING_COLOR ) || defined( USE_BATCHING_COLOR )\nvColor=vec4(1.0);\n#endif\n#ifdef USE_COLOR\nvColor.rgb*=pCol;\n#endif\n#ifdef USE_INSTANCING_COLOR\nvColor.rgb*=instanceColor.xyz;\n#endif\n' // v11.218: r187's vColor is a vec4 whenever it is declared (its color_pars_vertex)
+  :'\n#if defined( USE_COLOR_ALPHA )\nvColor=vec4(1.0);\n#elif defined( USE_COLOR ) || defined( USE_INSTANCING_COLOR )\nvColor=vec3(1.0);\n#endif\n#ifdef USE_COLOR\nvColor.rgb*=pCol;\n#endif\n#ifdef USE_INSTANCING_COLOR\nvColor.rgb*=instanceColor.xyz;\n#endif\n'; // r128's color_vertex on the fetched colour (a vec3 unless USE_COLOR_ALPHA)
 function vpullGLSL(sh){sh.uniforms.uPull={value:VPULL_TEX};
   sh.vertexShader=VPULL_V+sh.vertexShader.split(VAR_COLLAPSE).join('').replace('void main() {','void main() {\n'+VPULL_MAIN()).replace('#include <color_vertex>',VPULL_COLOR).replace('#include <beginnormal_vertex>','vec3 objectNormal=pNor;').replace('#include <begin_vertex>','vec3 transformed=pPos;');}
 function vpullMat(m){let p=vpullMats.get(m);if(p)return p;p=m.clone();const ob=m.onBeforeCompile,key=m.customProgramCacheKey();

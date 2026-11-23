@@ -169,6 +169,32 @@ arguments by `THREE.REVISION`; `DataArrayTexture` (its r138 name) or `DataTextur
 `vColor.rgb` wherever a shader reads the vertex colour, which a later three may make a vec4. Pictures at five places the same to the bit, base against
 this; test/gpu.json's counts unchanged. The breakages, the light units and the tests remain the upgrade's own.
 
+**Built v11.218 (the breakages mended both ways), on r128, before the upgrade** — the person, 23 Nov 2026: "as for 1 and 2, I agree yes". The game now
+runs on r187 looking as on r128: the bench page's seeded frame at its seven places, r128 against r187 (test/benchpage.js THREE=187), a mean change of
+0.00–0.43 levels of 255 (0.1% of pixels or fewer move by more than 24), where it was 14–67 before; on r128 every picture the same to the bit. What r187
+broke, and how each is mended (scene.js `T187`; only r128 and r187 are tested):
+- **The plants did not draw** (not in the spike's list: its run predates v11.215's version of the pulled colour). r187's `vColor` is a vec4 whenever it
+  is declared; v11.215 wrote a vec3 for it there. Every pulled pool's program failed to link. `VPULL_COLOR` by version.
+- **The creatures' shadows**: r187's own depth pass packs nothing (its map keeps depth in a depth texture), and where depth is packed (`depthFor`) its
+  bytes run the other way round (most significant in red). On r187 the casters take a depth material that packs (`SH_DEPTH`; r187 declares
+  customDepthMaterial on every object, so no shape changes), and `shDepth` unpacks r187's order — r128's order read r187's bytes as noise (acne).
+- **The surface from below showed the sky**: r187 draws a transparent double-sided material in two passes; the surface's fog and refraction came out
+  wrong in them. `oneP`: one pass, as r128 drew it (forceSinglePass), on the five such materials.
+- **The sun by the camera's depth**: r187 lights Lambert by the pixel and calls `getDirectionalLightInfo( directionalLight, directLight )`; the regex
+  takes that form too, in the fragment.
+- **Translucency** (thinLight): r187 has no front/back light per vertex; the share of the far face's light goes into `RE_Direct_Lambert` by the pixel.
+- **The look**: colour management off and the output written linear, as r128 did; the light units exact, not by eye — r128's three multiplied every
+  light's colour by π in its legacy mode, so intensities are set ×π on r187 (`LI`) and read back ÷π (the snow, the halo), and r128's point-light
+  falloff replaces r187's in `lights_pars_begin`.
+- **The refraction's copy** goes into a FramebufferTexture (r187 copies into nothing else), a new one at a new size.
+Left for the upgrade itself: lighting is per pixel on r187 (the pictures above say it reads the same here; its cost on the person's GPUs is the tower's
+question), 59 programs to r128's 45 (r187 keys programs on `opaque` and `vertexNormals` too: more compiles on a cold first visit, which r187's
+`compileAsync` can take off the main thread), the cone's and the lathe's slightly different shapes (test/bench.js's fingerprints), the stub's version.
+**The spike's slower boot does not reproduce** on today's code: a fresh page in headless Chromium, the first frame 4.64/4.77 s on r128, 4.82/4.91 s on
+r187 with its minified core, the world in no later (28.0/28.9 against 28.1/33.1 s). cdnjs's minified r187 module imports its *unminified* core
+(cdnjs minified the module itself): 0.57 MB on the wire against 0.31 with an import map pointing it at the minified core — the build's loader needs
+that map when it moves to r187.
+
 ## 7. A fixed step (the person's answer, 22 Nov 2026; parts 1 and 2 built v11.209, v11.210)
 
 Asked between (1) the sim's randomness seeded and each frame's length recorded — replays and exact tests, no change in feel — and (2) a fixed 60 Hz
