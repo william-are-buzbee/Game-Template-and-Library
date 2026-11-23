@@ -1,6 +1,6 @@
 # VARIETY — the individual: what differs between two animals of one kind, why, and how it is made
 
-**Status: proposed 23 Nov 2026, nothing built.** The person's brief (23 Nov 2026): *"now is a good time to start discussing or working on docs for
+**Status: proposed 23 Nov 2026; §8's questions answered the same day; nothing built.** The person's brief (23 Nov 2026): *"now is a good time to start discussing or working on docs for
 implementing the diversity generator per individual, as well as color palettes for variety as well. But that kind of thing — should it be 30 m or
 20 m — is exactly something that will come up in the generator."* Downstream of CLADES.md, *The radiation* (decided 23 Nov 2026: **individuals are
 generated, species authored**) and PLANET's colour rules (blood tints, shell colour by water chemistry); beside LINEAGE §6 (a line's mutation is
@@ -69,13 +69,13 @@ old ones blunt-tipped, fouled in fed water, the band faded; juveniles at 0.55, h
   pattern}]`, the params that vary and by how much, its growth law (the clade's unless it says), and which marks apply.
 - **Variants are keys.** Geometry is shared by `kind · morph · proportion bin · coat class · age class` (young, adult, old). Each key is built
   once on the tape and shared. The proportions are quantised into a few bins so the keys stay few; size stays continuous (a scale, as now).
-- **A budget per kind** (`VARIETY_MAX`, proposed 8 built variants a kind): past it, an individual takes the nearest built key. Common kinds hit
-  their budget; rare ones never do.
+- **A budget per kind** (§8.3: the clade's default — the ringmouths' the largest, the hingeshells' next — and the species' own where it says):
+  past it, an individual takes the nearest built key. Common kinds hit their budget; rare ones never do.
 - **Physics per variant.** `derive` on the variant's spec, a flat def per variant (as `scaledDef` makes one now), so speed, turn and mass are the
   individual's. The ledger keeps counting kinds; its mass per kind is the type's (the spread averages out).
-- **Stable or re-rolled** (Open 1): seeded by the cell, the entry and the spawn's place in it, the same cell shows the same animals each visit while
-  its counts hold — *the old blunt plumb at that wall*, recognisable, until it dies. Re-rolled is simpler and nobody may notice.
-- **Heredity.** The species' variance is its standing variation; the player's founder is one draw from it (Open 4), and LINEAGE §6's mutation moves
+- **Stable** (decided, §8.1): seeded by the cell, the entry and the spawn's place in it, the same cell shows the same animals each visit while
+  its counts hold — *the old blunt plumb at that wall*, recognisable, until it dies. 
+- **Heredity.** The species' variance is its standing variation; the player's founder stays the type specimen for now (§8.4), and LINEAGE §6's mutation moves
   a line through the same space — one set of bands for the wild and the line.
 
 ## 5. Colour: palettes by physics
@@ -111,10 +111,16 @@ frequencies hold over a census; no variant past the budget; every proportion ins
 4. **Marks**: scars, the shed tip, fouling everywhere it applies.
 5. The rest of the roster, a clade a pass, each seen before the next.
 
-## 8. Open (the person's)
+## 8. Decided (the person, 23 Nov 2026)
 
-1. Stable individuals (the same animals in the same cell each visit) or re-rolled each time a cell loads?
-2. How rare is rare: a rare morph one in 50, or one in 500?
-3. The budget: 8 built variants a kind, or more where it is worth it (the plumb, the players' clades)?
-4. The player's founder: the type specimen, as now, or a draw from its species' variation (you start as an individual)?
-5. Size by age: as proposed (the plumb 20 m typical, 30 m old), or a flat band per species?
+1. **Stable individuals.** *"For now, leave them. But eventually the AI will have almost everything roaming according to how it ought to. Right now
+   the fixed locations feel good though, in a tangible, stable kind of way in such a huge world."* An individual is seeded by its cell, its entry and
+   its place among them, so the same animals stand in the same cell each visit; roaming is a later pass.
+2. **Rarity is the species'.** *"Some animals should have high diversity and some should be uniform. I am a 1 in 50 kind of guy."* Each `VARIETY`
+   row sets its own spread and morphs (none for a uniform species); a rare morph is about one in 50.
+3. **The budget is the species'**, every clade has one, and **the ringmouths vary the most**, the hingeshells next: *"all the clades need it but I'd
+   imagine ringmouths vary more as well as hingeshells, but in truth we need each species to have its own variety."* The clade sets the default
+   (ringmouths highest), the species may move it.
+4. **The player's founder is left alone** for now: the type specimen, as built.
+5. **Size by age, and a range on top**: *"size by age for sure, but there should also be range on top of that."* The growth law gives the size an
+   age gives; each animal then varies by its species' `range` around it.

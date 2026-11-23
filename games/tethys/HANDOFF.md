@@ -7,7 +7,8 @@ Add the new version's paragraph at the top; take out what is no longer true; kee
 **v11.224 (23 Nov 2026): the individual, designed** (VARIETY.md, new; LINEAGE §7c.6; CLADES; CHANGELOG). Docs only. The variety generator and
 palettes proposed: every difference with a cause (morph, age by the clade's growth law, place, history, development), variants as shared keys
 under a budget, palettes by `coatFor`'s physics. The person's answers: demigods for every god, the Plumb a god provisionally, 30 m for the old
-plumbs. The stipe (a shallow upright straightshell) a candidate. **Ask:** VARIETY.md §8.
+plumbs. The stipe (a shallow upright straightshell) a candidate. §8 answered the same day: stable individuals, rarity and budget per species (the
+ringmouths vary most), the founder left alone, size by age with a range on top. **Next:** VARIETY §7 step 1.
 
 **v11.223.1 (23 Nov 2026): the plumb hangs, sways and is common; the coilshell held above −450** (creatures_ai.js `HANG`, `updatePlumb`; creatures_defs.js
 `STATION`, `SPAWN`; player.js `deepY`, `DEEP_SOFT`; LINEAGE §7c.5–6; CHANGELOG). The person liked it but it read as standing still on the floor and was

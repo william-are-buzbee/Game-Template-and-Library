@@ -10974,5 +10974,7 @@ Docs only; nothing in `src/` moved. Stacked on v11.223.1 (#185).
   development (proportions inside the registry's bands, derive per individual); variants as shared keys under a budget per kind; palettes drawn
   by `coatFor`'s physics and morphs as transforms with causes; the cost and its benches; an order; five questions. Indexed in README.md and CLAUDE.md.
 - The build and `npm run check` green; nothing to look at.
-- **Unseen, ask in this order**: VARIETY.md §8 — (1) stable individuals or re-rolled; (2) how rare is rare; (3) the budget; (4) the founder as a draw;
-  (5) size by age; and whether the stipe is worth building.
+- **Answered the same day** (VARIETY.md §8): stable individuals (*"the fixed locations feel good… tangible, stable"*; roaming later); rarity
+  per species, a rare morph about one in 50; a budget per species, the ringmouths varying most and the hingeshells next; the founder left alone;
+  size by age with a range on top.
+- **Unseen, ask**: whether the stipe is worth building.
