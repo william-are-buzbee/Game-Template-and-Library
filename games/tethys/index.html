@@ -173,7 +173,7 @@ canvas{display:block;outline:none;touch-action:none}
 <div id="fade" class="layer"></div>
 <canvas id="spark" class="layer"></canvas>
 <div id="stats"></div>
-<script>window.TETHYS_BUILD={v:"v11.219",wh:"0a49bf2241257126"};</script>
+<script>window.TETHYS_BUILD={v:"v11.220",wh:"3a5b14a2e4441ab5"};</script>
 <script>
 // loader.js — the page's loader, in tethys.html only, outside the game's bundle and before it: three.js and the world cache fetched side by side, then the
 // game. Since v11.215 (three.js-ready) three.js is loaded as a module — every release after r160 is only that — with import(); its exports are copied onto
@@ -533,23 +533,31 @@ function recMs(v){return v<0?'–':v>=100?v.toFixed(0):v.toFixed(1);}
 function recWcMd(b){return b.wc?' · world cache '+b.wc+(b.wcMs>=0?' (read '+b.wcMs+' s)':''):'';}
 function recWhere(p){const m=/\/preview\/(\d+)\//.exec(p.url||'');return m?'preview #'+m[1]:/github\.io/.test(p.url||'')||/Game-Template-and-Library\/games/.test(p.url||'')?'live':'local';}
 function recTp(x,z,y){return 'tp('+x+','+z+(y<0?','+Math.round(y):'')+')';}
-function recMd(p,tok,cut,prev){const a=p.all,d=p.dev||{},b=p.boot||{},pc=p.pc,I=k=>pc.indexOf(k),L=[];
-  L.push('**tethys '+p.v+'** · '+(p.play/60).toFixed(1)+' min played · '+recWhere(p)+(prev?' · the previous session (this visit was under a minute: its boot is below)':'')+' · '+p.at.slice(0,16).replace('T',' ')+' UTC');
+function recPlayed(s){return s<60?Math.round(s)+' s':(s/60).toFixed(1)+' min';} // a visit's play: seconds under a minute (v11.220)
+function recMd(p,tok,cut){const a=p.all,d=p.dev||{},b=p.boot||{},pc=p.pc,I=k=>pc.indexOf(k),L=[];
+  L.push('**tethys '+p.v+'** · '+recPlayed(p.play)+' played · '+recWhere(p)+(p.before?' · this visit (under a minute: the session before is below it)':'')+' · '+p.at.slice(0,16).replace('T',' ')+' UTC');
   L.push('**machine** '+(d.mid?'`'+d.mid+'` ':'')+recGpuName(d.gpu)+' · WebGL'+d.gl+' · '+d.cores+' threads'+(d.mem?' · '+d.mem+' GB':'')+(d.plat?' · '+d.plat.trim():'')+(d.flags?' · '+d.flags:'')+(d.lod?' · lod '+d.lod:'')+' · screen '+(d.screen||[]).join('×')+' ×'+d.dpr+' · drawn '+(d.buf||[]).join('×')+' · '+d.tier+(a.vsync?' · vsync '+a.vsync.toFixed(1)+' ms':''));
   L.push('**frames** p50 '+recMs(a.iv[0])+' · p95 '+recMs(a.iv[2])+' · p99 '+recMs(a.iv[3])+' · max '+recMs(a.iv[4])+' ms · '+(100*a.over[1]).toFixed(1)+'% over 33 ms · CPU '+recMs(a.work[0])+' ms (sim '+recMs(a.ph.sim)+' · gen '+recMs(a.ph.gen)+' · render '+recMs(a.ph.render)+')');
   L.push(a.gpu?'**gpu** p50 '+recMs(a.gpu.p50)+' · p95 '+recMs(a.gpu.p95)+' ms (main '+recMs(a.gpu.pass.main)+' · horizon '+recMs(a.gpu.pass.horizon)+' · clouds '+recMs(a.gpu.pass.clouds)+' · shadows '+recMs(a.gpu.pass.shadows)+' · sky '+recMs(a.gpu.pass.sky)+')':'**gpu** no timer in this browser');
   if(p.probe&&p.probe.length)for(const q of p.probe)L.push('**probe** at `'+recTp(q.at[0],q.at[2],q.at[1])+'` ('+q.buf.join('×')+', '+q.tier+'): the GPU '+recMs(q.gpu)+' ms'+(q.noise!==undefined?' (noise ±'+recMs(q.noise)+')':'')+' — '+q.parts.concat(q.fx).filter(x=>x[1]!==null).sort((x,y)=>y[1]-x[1]).slice(0,8).map(x=>x[0]+' '+recMs(x[1])).join(' · ')+(q.exit!==undefined&&q.exit!==null?' · the off-screen exit saved '+q.exit.toFixed(2):'')); // v11.208 (probe.js): what each part cost the GPU there
   L.push('**boot** scripts '+b.scripts+' s · first frame '+b.first+' s · world in '+b.done+' s · '+b.progs+' programs'+(b.seen?' (seen this version before)':' (first visit of this version)')+recWcMd(b));
-  if(p.now){const n=p.now.boot||{};L.push('**this visit** (F9 under a minute in: the session above is the one before it) · scripts '+n.scripts+' s · first frame '+n.first+' s · world in '+n.done+' s'+recWcMd(n));}
   const w=p.places.filter(r=>r[I('s')]>=5).sort((x,y)=>y[I('p95')]-x[I('p95')]).slice(0,5);
   if(w.length){L.push('**worst places** (p95 · gpu · time there)');for(const r of w)L.push('- `'+recTp(r[I('x')],r[I('z')],r[I('y')])+'` '+recMs(r[I('p95')])+' · '+recMs(r[I('gpu')])+' ms · '+(r[I('s')]/60).toFixed(1)+' min');}
   if(p.errs.length)L.push('**errors** '+p.errs.length+(p.errN?'+':'')+' kinds: '+p.errs.slice(0,2).map(e=>e[0]+' ×'+e[1]+' "'+String(e[5]).slice(0,70)+'"').join(' · '));
+  if(p.before){const q=p.before,qa=q.all,qb=q.boot||{},J=k=>q.pc.indexOf(k); // v11.220: the session before, briefly (recBrief)
+    L.push('**the session before** '+q.v+' · '+recPlayed(q.play)+' played · '+q.at.slice(0,16).replace('T',' ')+' UTC · frames p50 '+recMs(qa.iv[0])+' · p95 '+recMs(qa.iv[2])+' · p99 '+recMs(qa.iv[3])+' ms · CPU '+recMs(qa.work[0])+' ms'+(qa.gpu?' · gpu p50 '+recMs(qa.gpu.p50)+' · p95 '+recMs(qa.gpu.p95)+' ms':'')+' · its boot: first frame '+qb.first+' s, world in '+qb.done+' s'+recWcMd(qb));
+    for(const r of q.places)L.push('- `'+recTp(r[J('x')],r[J('z')],r[J('y')])+'` '+recMs(r[J('p95')])+' · '+recMs(r[J('gpu')])+' ms · '+(r[J('s')]/60).toFixed(1)+' min');}
   if(cut)L.push('_detail was cut to fit the link; the whole log is on the clipboard: paste it below this line to add it._');
   return L.join('\n')+'\n\n<details><summary>data (test/report.js)</summary>\n\n```\n'+tok+'\n```\n</details>\n';}
-async function recBody(){const prev=REC.s<REC_K.minPlay&&REC.prev&&REC.prev.p&&REC.prev.p.play>REC.s,d0=prev?REC.prev.p:null;
-  const full=prev?Object.assign({},d0,{now:{v:REC.v,at:REC.at,play:Math.round(REC.s),boot:Object.assign({nav:recNav()},REC.boot)}}):recFull(),d=full.dev||{}; // v11.217: the previous session carries this visit's boot (now), which is what a quick F9 after opening asks about
-  const title='tethys report · '+full.v+' · '+(d.mid?d.mid+' · ':'')+recGpuName(d.gpu)+' · '+(full.play/60).toFixed(0)+' min';let o=null;
-  for(let L=0;L<=5;L++){const p=recShrink(full,L),tok=await recPack(p),url='https://github.com/'+REC_K.repo+'/issues/new?title='+encodeURIComponent(title)+'&body='+encodeURIComponent(recMd(p,tok,L>0,prev));
+// F9 (v11.220; the person, 23 Nov 2026, of a visit under a minute: "This visit first"): the report is always this visit's — its title, its time played,
+// its boot. Under a minute, the session before rides below it, briefly (recBrief: its frames, its GPU, its boot, its five worst places), labelled. From
+// v11.191 to v11.219 a visit under a minute sent the session before in its place, and the title said that session's minutes (#176, #178: "9 minutes").
+function recBrief(p){const pc=p.pc,I=k=>pc.indexOf(k),w=(p.places||[]).filter(r=>r[I('s')]>=5).sort((x,y)=>y[I('p95')]-x[I('p95')]).slice(0,5);
+  return {v:p.v,at:p.at,url:p.url,wall:p.wall,play:p.play,boot:p.boot,all:p.all,pc:pc,places:w};}
+async function recBody(){const prev=REC.s<REC_K.minPlay&&REC.prev&&REC.prev.p&&REC.prev.p.play>REC.s,full=recFull(),d=full.dev||{};
+  if(prev)full.before=recBrief(REC.prev.p);
+  const title='tethys report · '+full.v+' · '+(d.mid?d.mid+' · ':'')+recGpuName(d.gpu)+' · '+recPlayed(full.play)+(prev?' (+ the session before)':'');let o=null;
+  for(let L=0;L<=5;L++){const p=recShrink(full,L),tok=await recPack(p),url='https://github.com/'+REC_K.repo+'/issues/new?title='+encodeURIComponent(title)+'&body='+encodeURIComponent(recMd(p,tok,L>0));
     o={url:url,level:L,len:url.length,full:L?await recPack(full):tok,prev:!!prev};if(url.length<=REC_K.url)break;}
   return o;}
 function recHint(s){try{hintEl.textContent=s;hintEl.style.opacity=1;setTimeout(()=>{hintEl.style.opacity=0;},6000);}catch(e){}}
