@@ -10773,3 +10773,24 @@ slower boot** does not reproduce on today's code: the first frame 4.64/4.77 s on
 59 programs to 45 (r187 keys programs on `opaque` and `vertexNormals`).
 
 **Unseen, ask:** nothing on the live game changes. The upgrade itself is the next step, after the tower's F8 and F9.
+
+## v11.219 — the fill light's colours again (a comment had swallowed them since v11.175); lint fails on code in a comment (23 Nov 2026)
+
+Found while mending r187 (v11.218): atmosphere.js's fill light — the hemisphere — had its colours set after a `//` comment on the same line since
+v11.175 (17 Nov), so they never ran. Its intensity followed the depth and the air; its sky and ground colours stayed what scene.js made them at boot
+(0x9fd6e0 over 0x101c1c), never the sea's colour under water (v11.172's `hemiSea`, the fog's ×1.8) nor the sky's in the air. **The look changes,
+the person's call**: under water the fill takes the water's colour again — greener and a little darker on the shaded sides — and in the air it follows
+the sky's light and the sun's bounce.
+
+- **atmosphere.js**: `hemi.color` and `hemi.groundColor` before the comment, as before v11.175.
+- **test/combat.js**: the same fault — a trap's and an ambusher's placing in front of the player swallowed by a comment (since its v11.92 note). Its
+  table is the same with it running.
+- **test/lint.js**: a line comment whose text runs two statements together, as densely as the code is written, fails the check (src/ and test/; code
+  in backticks is prose). It finds exactly these two in the tree before this version, none after.
+
+**What it costs:** nothing per frame (two colour copies a frame that were meant to be there). The pictures (r128, the bench's seeded frame, 640×360),
+before against after, the mean change in levels of 255: forest 11.9, canopy 11.0, atoll 9.6, open water 1.2 (under water); shore 1.8, coast 2.1,
+wood 4.8 (in the air, the fill a small share of the light).
+
+**Unseen, ask:** dive in the forest and the canopy, then come up on land: does the water's colour in the shade read better or worse than these six
+days? Either answer is fine — the colours can be pinned to how they have looked instead.
