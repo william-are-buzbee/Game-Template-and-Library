@@ -258,6 +258,10 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
 
 ## Things that bite
 
+- **A `//` mid-line swallows the rest of the line** (v11.219): the code style is dense, and a comment added before more code on the same line hides
+  that code with no error — the fill light's colours for six days (v11.175 → v11.219), the tier's frame (v11.202 → v11.207), a test's placing of
+  traps. test/lint.js now fails on a line comment whose text runs two statements together; put a comment at the line's end, or `/* */` mid-line.
+
 - **three.js is a module** (v11.215, three.js-ready; analysis_project.md §6): every release after r160 ships only that, so r128's does too here.
   tethys.html imports it in loader.js (`tethysStart`) beside the world cache's read; dev.html and the bench page (test/benchpage.js) with a module
   script before the src files, which are `defer` so the two run in order, before the page's load event. Either way its exports are copied onto a plain

@@ -775,7 +775,7 @@ function updateAtmosphere(dt){
   // below, the pads of the canopy above all, read as water-dark rather than black)
   hemiAir.copy(FX.warm?hemiSkyW:hemiSkyA).multiplyScalar(Math.pow(K.skyL,0.85)).multiply(skyT2.setRGB(K.tintS[0],K.tintS[1],K.tintS[2]));hemiAirG.copy(hemiGroundA).multiplyScalar(K.skyL).multiply(skyT2.setRGB(tint[0],tint[1],tint[2])); // v11.172: the air's fill is the sky's light (tintS), the ground's bounce the sun's and the sky's (tint)
   hemiSea.copy(seaFogC).multiplyScalar(1.8);hemiSeaG.copy(seaFogC).multiplyScalar(SEA_FOG.ground);
-  hemi.intensity=lerp(glowK(player.pos.y,df),FX.warm?ABOVE.fill:0.85,k)*LI; // v11.175: the air's fill (ABOVE, `warm sun`)hemi.color.copy(hemiSea).lerp(hemiAir,k);hemi.groundColor.copy(hemiSeaG).lerp(hemiAirG,k);
+  hemi.intensity=lerp(glowK(player.pos.y,df),FX.warm?ABOVE.fill:0.85,k)*LI;hemi.color.copy(hemiSea).lerp(hemiAir,k);hemi.groundColor.copy(hemiSeaG).lerp(hemiAirG,k); // v11.175: the air's fill (ABOVE, `warm sun`); v11.219: the colours after it again — v11.175's comment had swallowed them, so the fill kept its first colours
   const sunSea=(0.9+0.2*Math.sin(t*2.3)+0.1*Math.sin(t*3.9))*1.2*K.lumLw; // the surface value: the shader scales it by the daylight at the lit point (scene.js, sun-by-depth)
   sun.intensity=lerp(sunSea,(FX.warm?ABOVE.key:1.35)*K.lumL,k)*LI; // v11.175: the air's key (ABOVE); ×LI (v11.218)
   const wk=above?0:1-k; // the water's things: fading in under the water (k falls from 1), gone the frame the camera is in air (v11.7.2)

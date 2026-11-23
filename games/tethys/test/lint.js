@@ -4,6 +4,7 @@
 //   - every identifier that is not declared anywhere it can see (a typo, a rename missed in another file) -> exit 1
 //   - every name declared twice at the top level (two files, one scope: the later silently replaces the earlier) -> exit 1
 //   - top-level names no other line references (dead code, or a hook kept on purpose) -> informational
+//   - code swallowed by a comment (v11.219): a `//` written mid-line before code, in src/ or test/ -> exit 1
 // Needs acorn, vendored as test/acorn.js (v11.33: this said "not vendored" long after it was).
 const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..');
@@ -21,8 +22,13 @@ const files=[],starts=[];let js='',line=1;
 for(const n of ORDER){const src=fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8');files.push(n);starts.push(line);js+=src+'\n';line+=src.split('\n').length;}
 function where(loc){let f=0;for(let i=0;i<starts.length;i++)if(starts[i]<=loc.line)f=i;return files[f]+'.js:'+(loc.line-starts[f]+1);}
 
+// v11.219: code swallowed by a comment — a `//` written mid-line before more code hides it with no error (v11.175 hid the fill light's colours for six
+// days, v11.202 the tier's frame, a test's placing of traps for longer). A line comment whose text runs two statements together, as densely as the
+// code is written, is a fault; code in `backticks` is prose.
+const SWALLOW=/[A-Za-z_$][\w$.\[\]]*(?:\([^()\s]*(?:\([^()]*\))?[^()\s]*\)|=[^=\s;][^;\s]*);[A-Za-z_$][\w$.\[\]]*(?:\(|=[^=])/,swallow=[];
+const onComment=at=>(block,text,s,e,ls)=>{if(!block&&SWALLOW.test(text.replace(/`[^`]*`/g,'')))swallow.push(at(ls)+': //'+text.trim().slice(0,110));};
 let ast;
-try{ast=acorn.parse(js,{ecmaVersion:2022,sourceType:'script',locations:true});}
+try{ast=acorn.parse(js,{ecmaVersion:2022,sourceType:'script',locations:true,onComment:onComment(where)});}
 catch(e){console.error('lint: parse error '+e.message);process.exit(1);}
 
 // what the browser (and the test stub) provide
@@ -123,6 +129,9 @@ const unused=[...top.names].filter(n=>!used.has(n)).sort();
 if(unused.length)console.log('lint: top-level names nothing references: '+unused.join(' '));
 if(dups.length){console.error('lint: DECLARED TWICE at the top level (one scope — the later file wins): '+dups.join(' '));process.exit(1);}
 if(undeclared.length){console.error('lint: UNDECLARED\n  '+undeclared.join('\n  '));process.exit(1);}
+for(const f of fs.readdirSync(__dirname).filter(f=>f.endsWith('.js')&&f!=='acorn.js').sort()){ // the tests' own lines too
+  try{acorn.parse(fs.readFileSync(path.join(__dirname,f),'utf8'),{ecmaVersion:'latest',sourceType:'script',allowHashBang:true,allowReturnOutsideFunction:true,allowAwaitOutsideFunction:true,locations:true,onComment:onComment(l=>'test/'+f+':'+l.line)});}catch(e){}}
+if(swallow.length){console.error('lint: CODE IN A COMMENT (a // mid-line before code: what follows it never runs)\n  '+swallow.join('\n  '));process.exit(1);}
 // the world map's look is test/mapdraw.js's (v11.158): its bands and contours the same numbers as mapdraw's and map.js's, or the game's map and the renders the person judges by drift apart
 {const wm=fs.readFileSync(path.join(ROOT,'src','worldmap.js'),'utf8'),mj=fs.readFileSync(path.join(__dirname,'map.js'),'utf8'),b=/const WMAP_BANDS=(\[.*?\]\]\]);/.exec(wm),c=/const WMAP_CONT=(\[[^\]]*\]);/.exec(wm),mc=/const CONT=(\[[^\]]*\]);/.exec(mj);
   if(!b||!c||!mc||JSON.stringify(JSON.parse(b[1]))!==JSON.stringify(require('./mapdraw.js').BANDS)||c[1]!==mc[1].replace('Wd.OXY','OXY')){console.error('lint: worldmap.js WMAP_BANDS / WMAP_CONT out of step with test/mapdraw.js BANDS and test/map.js CONT');process.exit(1);}}
