@@ -484,7 +484,7 @@ look like kin. **The hanger** is first: a straightshell with no ballast, hung ve
 following the swarm's layer up at night; **the ortho stays as it is**. **The slowbloods' Earth reference becomes the jawless armoured fish**
 (heterostracans, osteostracans, galeaspids) — the clade section's "reptilian" and its fish-shaped fins give way to it when that pass is built.
 The slowblood filter giant (the ridge's line) and the ringmouths' individual variety follow. Habitat at three scales — the range, the
-station in the cell, the clock — is proposed there, not decided.
+station in the cell, the clock — is agreed there (the same day), and no species is excepted from the limits its body sets.
 
 ## Open
 

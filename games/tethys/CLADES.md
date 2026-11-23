@@ -397,7 +397,7 @@ species), never one per animal; what it costs is measured (`test/bench_creatures
   nose-down and turned to its prey in the strike. New: its role (or the ambush's with a vertical station) and its station (below).
 - **Depth**: a gas shell cannot be pumped below about −450 (PLANET, Ringmouths); its day depth stays above that.
 
-### Habitat: three scales (proposed 23 Nov 2026)
+### Habitat: three scales (proposed and agreed 23 Nov 2026)
 
 The person (23 Nov): think about what habitat an animal would want — the ortho against the hanger. Today a habitat is an envelope at the
 cell's scale (215 m): which cells, by depth and one or two fields. In the cell a creature is placed at one seeded point near the block's
@@ -424,6 +424,8 @@ middle in its depth band and roams its `home`. Two species with one envelope liv
 
 ### Open (the person's)
 
-1. The habitat's three scales, and the station vocabulary: what to add, what to strike.
-2. The ortho's envelope reaches −800 (`SPAWN`), past a gas shell's −450: kept as it is, or moved by the range test when it comes?
+1. ~~The habitat's three scales, and the station vocabulary~~ — **answered 23 Nov 2026: yes, both, as the start.** The person: *"If we
+   do it right, it will all work just based off believable logic and physics."*
+2. ~~The ortho's envelope past a gas shell's −450~~ — **answered 23 Nov 2026: moved up. "No exceptions for any animal as of yet":** every
+   species is held to the limits its body sets.
 3. The candidates (the brooding female's shell, the squatter, the larva): which, if any.

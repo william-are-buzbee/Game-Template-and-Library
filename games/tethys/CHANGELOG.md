@@ -10852,5 +10852,7 @@ A design conversation with the person, recorded. Docs only; nothing in `src/` mo
   lip, edge, canopy, open, crevice; the missing scale and the one the player sees), the clock (the day's layer, the tide's lee, the
   year's bloom). The ortho against the hanger as the worked pair. PLANET.md gets a dated section pointing at it.
 - The build and `npm run check` green; nothing to look at.
-- **Unseen, ask in this order**: CLADES, The radiation, Open — (1) the three scales and the station vocabulary; (2) the ortho's envelope
-  past a gas shell's depth; (3) which candidates.
+- **Answered the same day** (CLADES, The radiation, Open): the three scales and the station vocabulary, yes, as the start (*"it will all
+  work just based off believable logic and physics"*); the ortho moves up — no exceptions for any animal: every species held to the limits
+  its body sets.
+- **Unseen, ask**: which candidates (the brooding female's shell, the squatter, the larva).

@@ -7,7 +7,7 @@ Add the new version's paragraph at the top; take out what is no longer true; kee
 **v11.222 (23 Nov 2026): the radiation** (CLADES.md, The radiation; PLANET.md; CHANGELOG). Docs only. The person's answers: individuals
 generated, species authored from a radiation table; the hanger first — a straightshell with no ballast, hung vertical beside walls, rising with the
 swarm's layer at night — and the ortho kept as it is; the slowbloods' reference becomes the jawless armoured fish; then the ringmouths' individuals and
-the slowblood filter giant. Habitat at three scales (range, station, clock) proposed. **Ask:** the radiation's Open list, the first two. **Next:** the hanger.
+the slowblood filter giant. Habitat at three scales (range, station, clock), agreed; no exceptions — every species held to its body's limits, so the ortho moves up. **Next:** the hanger.
 
 **v11.221 (23 Nov 2026): the sparkle as a parallel ecosystem** (LINEAGE.md §7c, §12.39–46; CLAUDE.md and PLANET.md's no-magic rule;
 CHANGELOG). Docs only, and a rough draft, not gospel: the aim is the sparkle as a fun mechanic that motivates the player. The
