@@ -155,7 +155,7 @@ Not built (left for the clade passes): the player's own crypsis (its coat agains
 ## 4. The plan (the passes)
 
 0. **The clock and the risk** — built v11.228 (§2, §3, §6).
-1. **The senses** — built v11.229 (§3b), but for the bucketing (§7) and what §3b leaves. As planned: (PLANET Hooks "detection modes"; DIRECTION "senses per clade"; BIOLUM §7.6, answered yes): sight by the light at the animal's depth
+1. **The senses** — built v11.229 (§3b), but for what §3b leaves (the bucketing was not needed: §7). As planned: (PLANET Hooks "detection modes"; DIRECTION "senses per clade"; BIOLUM §7.6, answered yes): sight by the light at the animal's depth
    and hour (`lightPhys`, the moon), by the target's motion and by its contrast against its ground (the morphs' place: a dark one on dark rock is seen
    late — VARIETY's favour then has a gameplay reason); the lateral line, short and light-blind, loud for a moving body and silent for a still one;
    scent carried downstream (`currentAt`), for blood and carrion (COMBAT §10.6, pass D). Prey with the same senses: a flight distance per kind, freezing
@@ -210,7 +210,8 @@ the drawing makes the cloud's blobs for each the step queues (`PHO_Q`). **The pl
 - The paper model (ecology.js) knows nothing of hours, rest, risk or the look: the ledger's rates and the census are unchanged, and only what is seen in
   the loaded cells moves. A pass that changes how often things eat on screen checks `test/live.js`'s starving share.
 - The cost (`docs/decisions.md` 26): every scan is throttled (0.25–0.5 s) and allocation-free; `findPrey` walks every creature per scan (about 1,400 at
-  the forest), so pass 1's richer senses bucket them by cell first. `node test/perf.js` before and after.
+  the forest). Pass 1's senses ask more of each candidate within the reach and the frame held (v11.229: ×1.00 at the forest), so the creatures are not
+  bucketed by cell yet; the next scan that asks more of every creature measures first. `node test/perf.js` before and after.
 
 ## 8. Open (the person's)
 
