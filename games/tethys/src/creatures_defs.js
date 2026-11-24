@@ -234,6 +234,16 @@ const MORPHS={type:null,
   senescent:(c,k)=>MORPH_KEYS[k]?[c[0],c[1]*0.7,lerp(c[2],0.62,0.2)]:c, // a soft ringmouth near its end: the chromatophores fail, the skin pales
   weathered:(c,k)=>MORPH_KEYS[k]?[c[0],c[1]*0.85,c[2]*0.86]:c, // an old slowblood: darker, duller
   worn:(c,k)=>MORPH_KEYS[k]?[c[0],c[1]*0.72,lerp(c[2],0.42,0.25)]:c}; // an old hingeshell's carapace between its rare moults: dull, abraded
+// where a morph is favoured (v11.226.1). The person (24 Nov 2026): "darker ones in darker biomes, but otherwise should not have random really dark
+// ones in the bright dunes… the totally black ridge should show up a lot more often in darker waters or open ocean… not deterministic, just chance."
+// A morph's odds are its frequency times its favour at the place an animal is drawn: what a hunter sees an animal against picks off the ones that
+// stand out (Earth: the pocket mice dark on the lava and pale on the sand, the peppered moth). The place is read once, at the spawn (creatures_ai.js
+// placeOf), as terms 0..1 — dark: how dark the animal's background is (the light lost with its depth, the ground's tone near the floor, the open
+// ocean's depth beneath it); lit: the lit shallows, whose food carries carotenoids; rock, sand, floor: the ground within reach of it; vent: the
+// vents' heat. A favour f multiplies the frequency by k[0] + (k[1] − k[0])·f²; the type and the pale one follow nothing.
+const FAVOUR={k:[0.08,3.2]}; // the multiplier runs with the favour's square: a dark morph in the bright dunes is about one in 100, not one in 25
+const MORPH_FAVOUR={melanic:'dark',erythristic:'dark',xanthic:'lit',banded:'rock',spotted:'floor'}; // the term a morph follows unless the row names its own (a morph's third element: a term, or 'none')
+const GROUND_TONE={lime:0.02,'':0.05,rust:0.5,mn:0.85,sulfide:1}; // the ground's darkness by its chemistry class (coatClassAt): the reef's lime and the sand and ooze pale, the iron rust mid, manganese and sulfide black; fresh basalt ('d') 0.35 darker
 // a pattern morph's pattern (PATTERNS: kind, cells a period, tone), in place of the clade's: banded the disruptive stripe of a body among structure,
 // spotted the mottle of one on rubble, sand or weed
 const MORPH_PAT={banded:{kind:'stripes',scale:2,tone:0.24},spotted:{kind:'spots',scale:3,tone:0.24}};
@@ -247,7 +257,7 @@ const VARY_AUTO={arms:[['len',0.14]],legs:[['ll',0.1]],fins:[['len',0.12],['h',0
     sac:[['R',0.06],['sy',0.06]],bean:[['sx',0.06],['sz',0.06]],arches:[['L',0.05],['w0',0.05]]}};
 // the rows (v11.225 the shelled ringmouths, v11.226 every placed species: the person, 24 Nov 2026, "variety for more species first"). grow: the law
 // (the clade's unless set); size: the adult band about the type; old: the age rank past which an animal is old (1.1: never); morphs: [name,
-// frequency], the first the type; vary: [part kind or 'core', param, ± fraction] (VARY_AUTO's unless set); oldShell: what age does to the shell (a
+// frequency, and the place's term it follows if not MORPH_FAVOUR's], the first the type; vary: [part kind or 'core', param, ± fraction] (VARY_AUTO's unless set); oldShell: what age does to the shell (a
 // straightshell sheds its tip: Sphooceras, VARIETY §2.4); max, sets, range, oldPal: the clade's unless set. A uniform species has the type alone:
 // the schooling forage (the oddity effect — the one that differs is the one a hunter picks out), the deep line's pall, the sulfide-black cinder.
 // The person on v11.225 (24 Nov 2026): "I love how they can match their environment… their larger size is SO much more threatening and unique to
@@ -257,10 +267,10 @@ const VARIETY={
   plumb:{grow:'shell',size:[0.85,1.5],old:0.9,morphs:[['type',0.82],['melanic',0.16],['leucistic',0.02]],vary:[['arms','len',0.14],['shell','L',0.06],['shell','r0',0.1],['shell','turns',0.2]],oldShell:{L:0.82},oldPal:'old'}, // 20 m typical, 30 m the oldest (the person, 23 Nov 2026)
   ortho:{grow:'shell',size:[0.85,1.35],old:0.9,morphs:[['type',0.82],['erythristic',0.16],['leucistic',0.02]],vary:[['arms','len',0.14],['shell','L',0.06],['shell','r0',0.1],['shell','turns',0.2]],oldShell:{L:0.85},oldPal:'old'},
   great:{grow:'shell',size:[0.85,1.3],old:0.9,morphs:[['type',0.84],['melanic',0.14],['leucistic',0.02]],vary:[['arms','len',0.14],['shell','R1',0.08],['shell','k',0.05]],oldPal:'old'},
-  rasp:{grow:'shell',size:[0.8,1.25],old:0.9,morphs:[['type',0.68],['erythristic',0.3],['leucistic',0.02]],vary:[['arms','len',0.16],['shell','R1',0.1]],oldPal:'old'}, // the rasp: a grazer of the lit rock, where a red shell among the red crusts is the common second
-  arrow:{size:[0.9,1.12],old:0.92,morphs:[['type',0.78],['erythristic',0.2],['leucistic',0.02]]}, // a pack's jetters: the flush of red is the chromatophores'
-  lurker:{size:[0.85,1.2],old:0.92,morphs:[['type',0.58],['melanic',0.2],['spotted',0.2],['leucistic',0.02]]}, // among rock: dark on the basalt, mottled on the rubble
-  watcher:{size:[0.88,1.15],old:0.92,morphs:[['type',0.7],['erythristic',0.15],['banded',0.13],['leucistic',0.02]]},
+  rasp:{grow:'shell',size:[0.8,1.25],old:0.9,morphs:[['type',0.68],['erythristic',0.3,'lit'],['leucistic',0.02]],vary:[['arms','len',0.16],['shell','R1',0.1]],oldPal:'old'}, // the rasp: a grazer of the lit rock, where a red shell among the red crusts is the common second
+  arrow:{size:[0.9,1.12],old:0.92,morphs:[['type',0.78],['erythristic',0.2,'none'],['leucistic',0.02]]}, // a pack's jetters: the flush of red is the chromatophores'
+  lurker:{size:[0.85,1.2],old:0.92,morphs:[['type',0.58],['melanic',0.2],['spotted',0.2,'rock'],['leucistic',0.02]]}, // among rock: dark on the basalt, mottled on the rubble
+  watcher:{size:[0.88,1.15],old:0.92,morphs:[['type',0.7],['erythristic',0.15,'none'],['banded',0.13],['leucistic',0.02]]},
   veil:{size:[0.85,1.25],old:0.92,morphs:[['type',0.9],['melanic',0.08],['leucistic',0.02]]}, // the deep line's filter feeder: long-lived and slow, a wider band
   pall:{size:[0.92,1.1],old:1.1,morphs:[['type',1]],sets:1}, // uniform: black in the oxygen minimum, nothing to show to anything there
   // slowbloods: never stop growing
@@ -268,24 +278,24 @@ const VARIETY={
   needle:{size:[0.85,1.3],old:0.92,morphs:[['type',0.8],['banded',0.18],['leucistic',0.02]]},
   grazer:{size:[0.8,1.45],old:0.92,morphs:[['type',0.7],['melanic',0.16],['xanthic',0.12],['leucistic',0.02]]}, // the herds on the lit sand: carotenoid-rich from the green they crop
   basker:{size:[0.85,1.45],old:0.92,morphs:[['type',0.82],['melanic',0.16],['leucistic',0.02]]}, // the vents' warmth: melanin
-  ridge:{size:[0.85,1.55],old:0.92,morphs:[['type',0.84],['melanic',0.14],['leucistic',0.02]]},
+  ridge:{size:[0.85,1.55],old:0.92,morphs:[['type',0.78],['melanic',0.2],['leucistic',0.02]]}, // the black ridge: the open ocean's and the dark water's (the person, 24 Nov 2026), rare in the lit
   abyssal:{size:[0.85,1.6],old:0.92,morphs:[['type',0.9],['erythristic',0.08],['leucistic',0.02]]}, // the deep's red, which is black where it lives
-  eel:{size:[0.8,1.5],old:0.92,morphs:[['type',0.78],['spotted',0.2],['leucistic',0.02]]}, // mottled in the weed's cover
+  eel:{size:[0.8,1.5],old:0.92,morphs:[['type',0.78],['spotted',0.2,'rock'],['leucistic',0.02]]}, // mottled in the weed's cover
   stone:{size:[0.85,1.4],old:0.92,morphs:[['type',0.8],['melanic',0.18],['leucistic',0.02]]}, // dark on the pavement and the crust
   crusher:{size:[0.85,1.45],old:0.92,morphs:[['type',0.82],['banded',0.16],['leucistic',0.02]]},
   // hingeshells: in moult steps
   flicker:{size:[0.85,1.2],old:1.1,morphs:[['type',1]],sets:1}, // uniform: a ribbon (the oddity effect)
   sifter:{size:[0.85,1.2],old:1.1,morphs:[['type',1]],sets:1}, // uniform: a swarm
-  scuttle:{size:[0.8,1.4],old:0.92,morphs:[['type',0.7],['erythristic',0.18],['banded',0.1],['leucistic',0.02]]}, // the strand's: red from a shore diet
+  scuttle:{size:[0.8,1.4],old:0.92,morphs:[['type',0.7],['erythristic',0.18,'lit'],['banded',0.1],['leucistic',0.02]]}, // the strand's: red from a shore diet
   wedge:{size:[0.85,1.3],old:0.92,morphs:[['type',0.75],['melanic',0.23],['leucistic',0.02]]}, // dark on the surf's basalt
-  trap:{size:[0.85,1.35],old:0.92,morphs:[['type',0.7],['spotted',0.28],['leucistic',0.02]]}, // buried in sand: the mottle of it
-  plough:{size:[0.85,1.3],old:0.92,morphs:[['type',0.8],['banded',0.18],['leucistic',0.02]]},
+  trap:{size:[0.85,1.35],old:0.92,morphs:[['type',0.7],['spotted',0.28,'sand'],['leucistic',0.02]]}, // buried in sand: the mottle of it
+  plough:{size:[0.85,1.3],old:0.92,morphs:[['type',0.8],['banded',0.18,'sand'],['leucistic',0.02]]},
   hood:{size:[0.85,1.3],old:0.92,morphs:[['type',0.85],['melanic',0.13],['leucistic',0.02]]},
-  hose:{size:[0.85,1.3],old:0.92,morphs:[['type',0.8],['erythristic',0.18],['leucistic',0.02]]}, // the weed forest's carotenoids
+  hose:{size:[0.85,1.3],old:0.92,morphs:[['type',0.8],['erythristic',0.18,'lit'],['leucistic',0.02]]}, // the weed forest's carotenoids
   lash:{size:[0.85,1.3],old:0.92,morphs:[['type',0.85],['banded',0.13],['leucistic',0.02]]},
   hook:{size:[0.85,1.35],old:0.92,morphs:[['type',0.8],['melanic',0.18],['leucistic',0.02]]},
   sickle:{size:[0.85,1.4],old:0.92,morphs:[['type',0.85],['melanic',0.13],['leucistic',0.02]]},
-  ram:{size:[0.85,1.35],old:0.92,morphs:[['type',0.88],['banded',0.1],['leucistic',0.02]]},
+  ram:{size:[0.85,1.35],old:0.92,morphs:[['type',0.88],['banded',0.1,'none'],['leucistic',0.02]]},
   comb:{size:[0.85,1.35],old:0.92,morphs:[['type',0.9],['melanic',0.08],['leucistic',0.02]]},
   relict:{size:[0.85,1.3],old:0.92,morphs:[['type',0.92],['melanic',0.06],['leucistic',0.02]]},
   picker:{size:[0.85,1.3],old:0.92,morphs:[['type',0.85],['melanic',0.15]]}, // the vents' swarm: melanin, and no pale one in the dark

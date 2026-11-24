@@ -76,8 +76,14 @@ function autoVary(sp){const out=[],seen={};for(const p of sp.parts){const L=VARY
   const C=VARY_AUTO.core[sp.core.kind];if(C)for(const v of C)out.push(['core',v[0],v[1]]);return out;}
 function indivSeed(ch,ent,nth){return ((ch.i*73856093)^(ch.j*19349663)^Math.imul(ent+1,83492791)^Math.imul(nth+1,0x9E3779B1))>>>0;} // the cell, the entry, its place among them: the same animal each visit while the counts hold
 function nthOf(ch,ent){let n=0;for(const c of ch.creatures)if(c.ent===ent)n++;return n;}
-function indiv(kind,seed,nut){const V=varKind(kind);if(!V)return null;const R=V.row,r=mulberry(seed);let u=r(),m=R.morphs.length-1;for(let i=0;i<R.morphs.length;i++){u-=R.morphs[i][1];if(u<=0){m=i;break;}}
-  const q=r(),b=V.sets>1?Math.floor(r()*V.sets):0,k=GROW[V.grow](q,R.size,nut)*(1+V.range*(2*r()-1));return {m:m,b:b,o:q>=R.old,k:k};} // nut: the place's food, for a law that reads it (the drifters')
+// a morph's favour at a place (v11.226.1; creatures_defs.js FAVOUR): its frequency's multiplier, 1 with no place or no term
+function favourOf(mo,P){const t=mo.length>2?mo[2]:MORPH_FAVOUR[mo[0]];if(!P||!t||t==='none')return 1;const v=P[t];return v===undefined?1:lerp(FAVOUR.k[0],FAVOUR.k[1],v*v);}
+// the place an animal is drawn at, as the favour's terms (v11.226.1): one literal, every key at once
+function placeOf(ch,pos){const x=pos.x,z=pos.z,y=pos.y,h=ch.h(x,z),f=ch.f(x,z),cls=coatClassAt(h,y,f,null,chemoAt(x,z)),young=/d$/.test(cls),gt=Math.min(1,(GROUND_TONE[young?cls.slice(0,-1):cls]||0)+(young?0.35:0)),near=smooth(60,5,y-h);
+  return {dark:Math.max(smooth(-15,-250,y),gt*near,0.85*smooth(-80,-450,h)),lit:smooth(-60,-8,y),rock:f[FI.sub]*near,sand:(1-f[FI.sub])*near,floor:near,vent:f[FI.heat],nut:f[FI.nut]};}
+function indiv(kind,seed,P){const V=varKind(kind);if(!V)return null;const R=V.row,r=mulberry(seed);let W=0;for(let i=0;i<R.morphs.length;i++)W+=R.morphs[i][1]*favourOf(R.morphs[i],P);
+  let u=r()*W,m=R.morphs.length-1;for(let i=0;i<R.morphs.length;i++){u-=R.morphs[i][1]*favourOf(R.morphs[i],P);if(u<=0){m=i;break;}} // P: the place (placeOf), or null — the frequencies as written
+  const q=r(),b=V.sets>1?Math.floor(r()*V.sets):0,k=GROW[V.grow](q,R.size,P?P.nut:undefined)*(1+V.range*(2*r()-1));return {m:m,b:b,o:q>=R.old,k:k};} // the place's food for a law that reads it (the drifters')
 // a param's registry entry: a part kind's (PARTS) or, for 'core', the core kind's (CORES)
 function regParam(target,sp,param){const R=target==='core'?CORES[sp.core.kind]:PARTS[target];return R&&R.params?R.params[param]:undefined;}
 // a param moved within its believable band (the registry's b), widened to hold the type's own value
@@ -148,7 +154,7 @@ function spawn(ch,kind,pos,rng,opt){
   // VARIETY row is an individual of its seed (indiv: its morph, its age's size and marks, its proportion set) built as its shared variant, its def that
   // variant's; the seed its cell's, entry's and place's (or what it was: a juvenile grown up, a moult, keeps its seed). The VARY draw is still taken
   // from the cell's rng for every kind, so the draws after it in the cell are as they were
-  const seed=vary&&VARIETY[kind]?(opt&&opt.seed!==undefined?opt.seed:ch?indivSeed(ch,ent,nthOf(ch,ent)):0):undefined,ind=vary&&!juv&&seed!==undefined?indiv(kind,seed,ch?ch.f(pos.x,pos.z)[FI.nut]:undefined):null,vx=ind?variantOf(kind,ind):null,D=vx?vx.def:D0;
+  const seed=vary&&VARIETY[kind]?(opt&&opt.seed!==undefined?opt.seed:ch?indivSeed(ch,ent,nthOf(ch,ent)):0):undefined,ind=vary&&!juv&&seed!==undefined?indiv(kind,seed,ch?placeOf(ch,pos):null):null,vx=ind?variantOf(kind,ind):null,D=vx?vx.def:D0;
   const kv=vary?1+VARY.spread*(2*rng()-1):1,k=ind?ind.k:kv,d=k!==1?scaledDef(D,k):D;
   const soft=vary&&!juv&&moults(kind)&&D.role!=='boid'&&(opt&&opt.soft!==undefined?!!opt.soft:rng()<MOULT.frac);
   const f=vary&&ch?ch.f(pos.x,pos.z):null,cls=soft?'soft':f&&SPECS[kind]?coatClassAt(ch.h(pos.x,pos.z),pos.y,f,SPECS[kind].clade,chemoAt(pos.x,pos.z)):'';

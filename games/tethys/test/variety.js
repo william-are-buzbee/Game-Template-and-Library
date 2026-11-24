@@ -7,7 +7,7 @@ const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..');
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
 let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n');
-js+='\nglobal.__vy={SPAWN,INSTAR,MORPH_PAT,regParam,indiv,variantOf,variantSpec,varKind,VAR_KINDS,VARIETY,VARIETY_CLADE,MORPHS,PARTS,PAL,PAL_FIXED,DEFS,SPECS,derive,palMorph,coatChem,rgb2hsl,creatures,chunkIJ,loadChunkNow,unloadChunk,player,choose,mulberry};';
+js+='\nglobal.__vy={placeOf,sample,FI,SPAWN,INSTAR,MORPH_PAT,regParam,indiv,variantOf,variantSpec,varKind,VAR_KINDS,VARIETY,VARIETY_CLADE,MORPHS,PARTS,PAL,PAL_FIXED,DEFS,SPECS,derive,palMorph,coatChem,rgb2hsl,creatures,chunkIJ,loadChunkNow,unloadChunk,player,choose,mulberry};';
 const tmp=path.join(require('os').tmpdir(),'tethys_variety_'+process.pid+'.js');
 fs.writeFileSync(tmp,'(function(){"use strict";\n'+js+'\n})();');
 process.env.PICK='0';
@@ -49,6 +49,19 @@ for(const kind of Object.keys(X.VARIETY)){const V=X.varKind(kind);if(V.grow!=='m
 check(true,'every hingeshell\'s sizes come in moult steps of '+X.INSTAR+', within its range');
 {const sp=X.variantSpec('plumb',0,0,true),sh=sp.parts.find(p=>p.kind==='shell'),T=X.SPECS.plumb,tsh=T.parts.find(p=>p.kind==='shell');
   check(Math.abs(sh.L-tsh.L*pl.oldShell.L)<1e-9&&sp.hit[0].a[2]>T.hit[0].a[2],'an old plumb\'s tip is shed: its shell '+sh.L.toFixed(2)+' m of '+tsh.L+', its shell\'s capsule shortened with it');}
+
+console.log('the place (v11.226.1: a morph\'s odds follow what the animal is seen against)');
+{const share=(kind,name,P)=>{const R=X.VARIETY[kind],mi=R.morphs.findIndex(e=>e[0]===name);let n=0;for(let s=1;s<=N;s++)if(X.indiv(kind,seedOf(s),P).m===mi)n++;return n/N;};
+  const bright={dark:0.05,lit:1,rock:0.05,sand:0.95,floor:1,vent:0,nut:0.5},dark={dark:0.95,lit:0,rock:0.9,sand:0.1,floor:1,vent:0,nut:0.5},open={dark:0.85,lit:0.3,rock:0,sand:0,floor:0,vent:0,nut:0.5};
+  const gb=share('grazer','melanic',bright),gd=share('grazer','melanic',dark),g0=share('grazer','melanic',null);
+  check(gb<0.04&&gd>0.25,'the grazer\'s dark morph: '+(gb*100).toFixed(1)+'% on the bright dunes, '+(gd*100).toFixed(1)+'% in a dark place ('+(g0*100).toFixed(1)+'% as written)');
+  const lb=share('grazer','leucistic',bright),ld=share('grazer','leucistic',dark);check(lb>0.01&&lb<0.035&&ld>0.01&&ld<0.035,'its pale one follows nothing: '+(lb*100).toFixed(1)+'% and '+(ld*100).toFixed(1)+'%');
+  const ro=share('ridge','melanic',open),r0=share('ridge','melanic',null);const rb=share('ridge','melanic',bright);check(ro>0.35&&rb<0.08,'the black ridge: '+(ro*100).toFixed(1)+'% over the open ocean, '+(rb*100).toFixed(1)+'% in bright water ('+(r0*100).toFixed(1)+'% as written)');
+  const sl=share('scuttle','erythristic',bright),sd=share('scuttle','erythristic',dark);check(sl>sd*3,'the scuttle\'s red (a shore diet) follows the lit water: '+(sl*100).toFixed(1)+'% against '+(sd*100).toFixed(1)+'% in the dark');
+  const fake={h:(x,z)=>X.sample(x,z).h,f:(x,z)=>X.sample(x,z).f};let sh=null,dp=null;
+  for(let r=200;r<30000&&!(sh&&dp);r+=97)for(let a=0;a<24&&!(sh&&dp);a++){const x=Math.cos(a/24*6.283)*r,z=Math.sin(a/24*6.283)*r,q=X.sample(x,z);if(!sh&&q.h<-8&&q.h>-25&&q.f[X.FI.sub]<0.3)sh={x:x,y:q.h+2,z:z};if(!dp&&q.h<-500)dp={x:x,y:-300,z:z};}
+  const ps=X.placeOf(fake,sh),pd=X.placeOf(fake,dp);
+  check(ps.dark<0.3&&ps.lit>0.6&&pd.dark>0.7&&pd.lit===0,'read off the ground: the shallow sand '+ps.dark.toFixed(2)+' dark, '+ps.lit.toFixed(2)+' lit; mid-water over the deep '+pd.dark.toFixed(2)+' dark');}
 
 console.log('the palettes');
 {const P=X.PAL.plumb,L=X.palMorph(P,X.MORPHS.leucistic),M=X.palMorph(P,X.MORPHS.melanic),l=c=>X.rgb2hsl(c)[2];
