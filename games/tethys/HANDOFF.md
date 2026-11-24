@@ -4,6 +4,14 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.230 (24 Nov 2026): the ringmouths** (creatures_ai.js `updatePlumb`, `PLUMB`, `trimOf`, `phaseOf`, `QUILL`, `PACK`, `INK`, `LURK`, `landBite`;
+creatures_defs.js `DEFS.great`, `BEHAVE`; creatures_spec.js `SPECS.great.hit`; test/ringmouths.js; BEHAVIOUR §3c; DESIGN Creatures; CHANGELOG). The person:
+*"go ahead with the ringmouths pass and the plumb."* A hungry plumb leaves its wall at night to forage at the layer's depth, goes up a carcass's scent
+to eat, and is home at dawn; the oldest hang at their day depth (the trim). A quill's stand sways as one and drops into the stalks when you come close.
+The arrows hunt as a pack, coming at a school from both sides, and ink when a chaser closes. The lurker leaves a post where nothing passes. The great
+hunts (the grazer, the eel, the plough, you), its ram the bite's opening blow; the `coil` role is gone. COST **Ask:** the plumb's night and its
+gathering at a fall; the pack; whether a lethal great on the shelf is wanted. **Next:** the slowbloods (BEHAVIOUR §4: the temperature model first).
+
 **v11.229 (24 Nov 2026): the senses** (creatures_ai.js `clockTick`, `sightOf`, `hearOf`, `notices`, `plumeK`, `SENSE`, `SCENT`, `FREEZE`;
 creatures_defs.js `EYE_K`, `LAT_CLADE`, `BEHAVE`; combat.js `findBleeding`; fx.js `phoStep`; test/senses.js; BEHAVIOUR §3b; DESIGN Creatures; BIOLUM §7.6;
 CHANGELOG). Pass 1, after the person's playtest of v11.228 (*"enjoyed it, go ahead with pass 1"*). Animals notice each other by sight — the light at
@@ -11,7 +19,7 @@ the body seen through each clade's and kind's eyes, a silhouette from below, a s
 later still — and by the lateral line (light-blind, silent for a still body); blood and carrion are smelt down the current. Prey use the same senses; the
 cryptic grazers freeze (a hingeshell clamped) and bolt close. The step reads its own sky (the plumb's and the swarms' layer, the eclipses), and the
 pall's cloud and flee are the step's, whatever the effects list says. The frame within noise (×1.00, p95 ×1.06; Chromium ×1.02), the GPU's counts the same. **Ask:** BEHAVIOUR §8.4–5 — whether the night hides you now, or too
-well; whether your own colour should. **Next:** a pass a clade (BEHAVIOUR §4: the ringmouths first — the plumb's night).
+well; whether your own colour should.
 
 **v11.228 (24 Nov 2026): the clock and the risk** (creatures_defs.js `BEHAVE`; creatures_ai.js `CLK`, `CK`, `REST`, `RISK`, `findPrey`, the roles;
 combat.js `dread`; test/clock.js; BEHAVIOUR.md, new; DESIGN Creatures; CHANGELOG). The behaviour overhaul's pass 0, after the person's answers (24 Nov
@@ -39,12 +47,6 @@ laws (soft ringmouths narrow, slowbloods' old giants, hingeshells in moult steps
 banded, spotted), proportions by part; five uniform (the schools, the pall, the cinder). First sight of a busy place ×1.13 (once a session); the
 frame level; no hitch on the person's card. **v11.226.1**: a morph's odds follow the place (`placeOf`, `FAVOUR`) — the dark ones where the background
 is dark, about one in 100 on the bright dunes; the black ridge 37% over the open ocean. **Ask:** whether the dark morphs now sit where the dark is.
-
-**v11.225 (23 Nov 2026): the individual, step 1** (creatures_defs.js `VARIETY`, `GROW`, `MORPHS`; creatures_ai.js `indiv`, `variantOf`; zoo.js `i`;
-test/variety.js; test/preview.js `INDIV=1`; VARIETY.md; DESIGN The individual's variants; CHANGELOG). The plumb, ortho, great and rasp are individuals:
-stable in their cell, size by age with a range (the plumb 20 m typical, 30 m old), a morph (a rare pale one in 50), a proportion set, old shells shed
-and faded, their shells coloured by the place. The rest of the roster is the type, as before. **Ask:** the bestiary's `i` on those four; whether the
-morphs read. **Next:** VARIETY §7 step 2, the growth laws for every clade.
 
 ## Open
 

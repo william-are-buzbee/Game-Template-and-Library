@@ -2132,7 +2132,7 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   under their band and hold still `hide` 20 s. The arrows: `packCall` (idle mates within `PACK.r` 30 m past hunger `join` 0.2 join a hunt), `flankPt`
   (up to `flank` 9 m to their side of the line, straight from `close` 6 m); `inkEscape` (a chaser within `INK.near` 5 m, or held: once in `cool` 25 s,
   unseen `hide` 6 s, the chaser losing it at `slip` 0.6 for `lose` 4 s, the arrow off `run` 4 s). The lurker moves after `LURK.give` 90 s hungry at a post
-  with nothing taken (`coverSpot`). The great is a hunter (prey the player, the grazer, the eel, the lurker, the plough; `insp` `stand`), its ram the
+  with nothing taken (`coverSpot`). The great is a hunter (prey the player, the grazer, the eel, the plough; `insp` `stand`), its ram the
   bite's opening blow (`landBite`); the `coil` role is struck. `POP.chases` counts the hunts begun (test/live.js).
 - **Removed by request:** the mid-water `weed` flora (the "floating spiky objects"); the `colony` creature (pink/cyan
   glowing chains); darter/glim **schools are no longer spawned** — the code (`school` role, `makeSchool`,

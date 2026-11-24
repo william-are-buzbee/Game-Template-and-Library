@@ -180,8 +180,8 @@ PLANET's ringmouths are *"fast, clever, short-lived … packs … intelligence a
 - **The lurker gives up a post that does not pay** (`LURK`): hungry in its hours, `LURK.give` 90 s at its post with nothing taken, it crawls to another
   among the rock within 24 m (`coverSpot`) — Earth's sit-and-wait hunters' giving-up time (the marginal value theorem). The hook keeps its place up in the
   structure.
-- **The great hunts** (`DEFS.great`: role `hunter`, prey the player, the grazer, the eel, the lurker, the plough — the shelf's bodies of a tonne and
-  more; a ringmouth's look, `insp` `stand`): its ram is its bite's opening blow (`landBite`: the prey stunned, then the beak). To v11.229 it was a
+- **The great hunts** (`DEFS.great`: role `hunter`, prey the player, the grazer, the eel, the plough — the shelf's bodies of a tonne and more, not the
+  lurker, which it cut by a third on the ledger; a ringmouth's look, `insp` `stand`): its ram is its bite's opening blow (`landBite`: the prey stunned, then the beak). To v11.229 it was a
   `coil` that rammed the player and ate nothing; the role is struck. Its forward capsule ended 1.3 m into its arms, so a prey's body was held 1.6–2.5 m
   off its beak at contact; it ends at the beak now (`SPECS.great`), the arms before it their own chains. The crusher is not its prey: its plates kept
   the beak a metre off even so.
