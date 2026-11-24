@@ -11207,3 +11207,82 @@ giant's shelf.
   change in behaviour, so the person's call, with the AI pass.
 - **Unseen, ask**: whether a stand reads, and whether ~40 on the start's shelf is enough to come across them or too many.
 
+## v11.228 — the clock and the risk: every kind's hours and its rest, prey weighed, the look before the attack; the player's bias struck (24 Nov 2026)
+
+The person (24 Nov 2026), the behaviour overhaul's start: *"Have creatures like the new hovering plumb actually move, have a schedule, do things… Have
+animals that are predatory be more complex than simply aggroing when hungry… Make animals within the ecology distinct based on behavior."* An audit of
+the roles and a sweep of every doc for the behaviour they ask for (BEHAVIOUR.md, new: §1 what there was, §5 what the docs ask for that is not built),
+then the plan, and the person's answers: the parts every animal shares first (*"Clock and risk first"*), then a clade a pass; the player's bias
+struck (*"remove the bias for now"*); sight by light for the creatures too (*"Yes"*, pass 1); readable predators that look before they commit
+(*"Yes absolutely"*). This is pass 0.
+
+- **The clock** (creatures_defs.js `BEHAVE`; creatures_ai.js `CLK`, `CK`, `clockTick`, `awakeOf`): the sim's own sun, once a step from `clockH` —
+  never `SKY`, which the drawing sets once a frame — `CK.day`, `night` and `dusk` summing to one (dusk the ~2.6 game hours of the changeover at each
+  end of the day), `CK.hi` the tide's height. Each kind's hours, `act` [day, night, dusk(, tide)], from Earth's reef shifts (BEHAVIOUR §2's table):
+  the night's — the eel (the moray), the lurker (the octopus), the arrow (the squid), the rasp (the limpet), the scuttle (the ghost crab), the
+  flicker (the demersal plankton out of the weed), the hose after them, the trap, the hook, the lash, the plough; the day's — the grazer, the
+  darter, the crusher (the triggerfish), the watcher, the hood, the quill; the changeover's — the ridge, the needle, the sickle, the ortho; the
+  tide's — the wedge; no hours for what lives below the light, follows its food, or has no brain to keep them.
+- **Rest** (`REST`, `restBegin`, `restStep`, `coverSpot`; `DEFS.rest`): under `REST.on` 0.35 of its activity an animal rests, up again over
+  `REST.off` 0.5 — `cover` against a rock, a stalk or a structure's foot within 24 m (the moult's `hideSpot` test), `floor` where it is (the grazer
+  herd lies down), `bury` sunk to 0.3 of its clearance (`c.sink`, the floor clamp's: the plough and the scuttle under the sand by day), `hover` in the
+  water (the arrows, the needles, the ortho), `slow` cruising on at 0.45 (the ridge, the basker, the abyssal: bodies that never stop). One lying on
+  the floor holds against the current. A hunter hunts past `huntAt` = `ECO.hungry` + `REST.k` 0.45 × (1 − awake) — 0.85 at none of its hours; hunger
+  gets it up — and at rest takes only an easy meal within `REST.see` 0.35 of its detect. An ambusher (the lurker, the hook, the plumb, the quill) out of
+  its hours looks that share of its radius and waits hungrier; a trap's reflex rises by half as much. The schools settle (`s.rest`): their marks
+  0.8–2.5 m over the floor within 12 m of home, the members at 0.45 of their speed. The great holds still at night and rams only what comes close.
+- **The risk** (`RISK`, `riskOf`, `needOf`, `dares`; `findPrey`): the prey's mass as a share of the hunter's (`RISK.m` 0.08 → 1), 0.6 of it for a body
+  with no bite, +0.3 for venom, × (1 + 2 × its own blood lost over `BLOOD.weak`), −0.7 for a failing body (bleeding, soft, stunned, paralysed; half for
+  the young or the held). It goes for what it dares — its need (the hunger past its threshold, as a share of the way to starving) ≥ 0.9 × the risk,
+  never more than 0.95 asked — the nearest by distance × (1 + risk). A hook (1.1 t) leaves a finback (1.8 t) until it is nearly starving and takes
+  darters meanwhile; an ortho leaves a grazer; a ridge (45 t) weighs a finback at nothing. **The player's bias struck**: `findPrey` took the player at
+  0.7 of its distance (PLANET: *"hunt the player because the player is prey-sized, not because it is the player"*).
+- **The look** (`inspects`, `takeOn`, `inspectStep`, `driveOff`; `DEFS.insp`; state `inspect`): prey that is watching the hunter — the player facing it
+  within 60°, a school or a grazer whose threat it is — is not taken head on by a hunter that reads it, unless it is a mouthful (`RISK.tiny`), failing,
+  or the hunter is past `RISK.reckless` 0.85. A slowblood circles it (`circle`: the ridge, the needle, the crusher, the basker, the abyssal; the ring
+  closing from 2.4 × size + 2 m to 1.3 × size + 1 as the look runs on); a ringmouth holds off facing it, sliding round (`stand`: the arrow, the ortho,
+  and the eel, which watches from its post); a hingeshell never looks (no pursuit, nothing to read between its strikes: PLANET). The prey's answer:
+  running (2.5 m/s away) is chased; a back turned 0.7 s is the opening; coming at it while watching drives it off after 3 s × (0.5 + need) (a watch
+  alone a quarter), for 20 s and 40 m; the look lasts 4 s and up to 10 s more the less it needs (`RISK.insp`; a first [3, 7] was a quarter of the ridge's circle and read as a pass), at `RISK.pace` 0.65 of its speed, and at its end it goes in at need 0.5 or more, else leaves. A resting scavenger takes what comes within `REST.see` of its smell and goes back to its rest.
+- **Fixed on the way** (BEHAVIOUR §6): the crusher's carrion (`scav` 40 was dead: `scavenge` ran in the graze and watch roles only — a hunter with
+  `scav` now eats at a carcass between hunts); the arrow's jet pose (`jetter` on its row: mantle-first in the chase, as PLANET has the jetters — it was
+  the player's line's alone); a wounded hunter fled the player whatever hurt it (`c.dread`: the biter at a lost part, `lastWounder` at the blood); a
+  carcass's glow for the scavengers was the drawing's, zeroed by the effects list's switch (`carcGlow`: the sim's own, the same law). Open, for pass 1:
+  the pall's lights run in the drawing (its flee goes with the effects switch), and the plumb's layer and the swarms read `SKY`.
+- **One shape**: the creature's `awake`, `sink`, `inspT`, `deter`, `dread` in spawn's literal and the `Creature` typedef; the defs' `act`, `rest`, `insp`
+  from `BEHAVE` before `DEF_KEYS` is made; a school's `awake`, `rest` in `makeSchool`'s literal. test/live.js: every creature its spawn's keys.
+- **Tests.** test/clock.js (new, ~6 s, in `--test`; at (900, 0), the open water east of the start, 140 m deep): the sim's noon, midnight and a
+  dusk summing to one; the eel's night, the grazer's day, the abyssal's every hour, the wedge's tide; an eel at noon lies still on the floor, hunts past
+  0.78, lets a darter 12 m off go and takes one within 5.9 m, gets up starving or at midnight; a plough at noon 0.19 m up against its 0.62; a darter
+  school's mark 1.1 m over the floor at midnight and up by day; a hook leaves the player at need 0.3 and takes a darter, the player when nothing else;
+  a ridge takes a picker 9.5 m off before the player 10 m off; a bleeding grazer's risk 0.33 → 0.10; a ridge watched looks, circles 64° in 5 s at
+  17–29 m without a bite, comes in 0.68 s after the back is turned, is driven off 2.3 s after the player comes at it, chases a bolt at once; an ortho's
+  face on the player the whole look at 14 m; a sickle never looks; a starving ridge goes straight in; a ridge wounded by a grazer flees it, toward the
+  player; a crusher eats a carcass 12 m off; a carcass glows for the scavengers with the effects list's switch off; an arrow jets in the chase.
+  test/player.js: the eel that takes the parent back out of the window has the parent's hatchlings moved out of its way (they are the easier meal now
+  that the player is weighed as any body), and the clutch eaten when the parent strays is eaten by a picker (no hours) in place of the scuttle,
+  which keeps the night and lies buried by day. test/live.js (one seeded run against main's): kills since the egg days 3 (5), 6% of the hunter role at
+  hunger 1.00 (5%), every creature its spawn's keys.
+- **What it cost** (`node test/perf.js` against the merge base; a scan's arithmetic, a step's sun, five keys a creature):
+
+  | measure | before | after | ratio |
+  |---|---|---|---|
+  | creatures' work a frame at (330, 0), ms (mean) | 3.243 | 3.156 | ×0.97 |
+  | the same, p95 | 4.925 | 4.388 | ×0.89 |
+  | creatures' work a frame at the forest (Chromium), ms | 2.829 | 2.667 | ×0.94 |
+  | every kind's build, ms (first; best of five) | 83.5 | 88.7 | ×1.06 |
+  | every kind's build, ms (again) | 8.4 | 7.9 | ×0.94 |
+  | a cell at forest / atoll / platform / sea / giant, ms (best of five) | 60.2 / 40.2 / 26.4 / 10.0 / 37.4 | 63.6 / 37.7 / 26.6 / 9.8 / 37.2 | ×1.06 / 0.94 / 1.00 / 0.98 / 0.99 |
+  | the GPU's counts (test/gpu.js), every place | | | within 8%: the forest's bytes to buffers 323 → 348 KB, the coast's draws 166.7 → 159.2 |
+
+  Nothing measured is worse by more than the bench's noise (the first run's platform cell read ×1.16 and ×1.00 on five; the frame bench's identical
+  sources read up to ×1.02 mean and ×1.09 p95 here). The
+  simulation and the bodies posed after the frames differ from main's, as they must (the behaviour moved); `test/gpu.json` is within its 10%.
+- **Seen** (headless, and Chromium's software WebGL): a ridge at noon, need 0.35, 30 m off a finback facing it at (900, −55, 0): six pictures
+  over ten seconds, the ridge passing broadside from the player's right round to its left, 28 → 13 m, 0° → 151° round, side-on and never turning
+  in — the look of a shark at a seal; it did not bite. Top-down traces of the sim: watched, the ridge sweeps half round and leaves; the back turned at
+  4 s, it comes in and kills; stood up to, it turns away; the ortho slides round at its standoff facing the player.
+- **Unseen, ask in this order**: (1) whether the look reads — a ridge or an abyssal circling you while you face it, an ortho or an eel holding off
+  facing you — and what facing it down, turning away and bolting do; whether driving one off is too easy (`RISK.deter`) or the look too long; (2) the
+  shifts: eels, lurkers and arrows out at night, the grazer herd lying down, the darters settled and the flickers up at night, the ploughs under the
+  sand by day, the dusk the busiest hour; (3) whether the shelf by day is now too quiet or too safe; (4) BEHAVIOUR §2's hours, kind by kind.

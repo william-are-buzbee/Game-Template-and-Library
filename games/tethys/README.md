@@ -23,6 +23,7 @@ Most upstream first. When a doc's Open list says a choice is the person's, it is
 | `REEF.md` | the reef as a landform (v11.20; the coat struck v11.22 — the head note says what stands) |
 | `CLADES.md` | the three clade signatures as built (v11.8–11.9.1), the raptor family, and the radiation (v11.222: individuals generated, species authored; the plumb) |
 | `VARIETY.md` | the individual (proposed 23 Nov 2026): what differs between two animals of one kind and why — morph, age, place, history, development — the growth laws by clade, palettes by physics, and how variants are built and budgeted |
+| `BEHAVIOUR.md` | what the animals do (24 Nov 2026): the behaviour overhaul's plan and the person's answers — the clock (a kind's hours and its rest), the risk and the look (readable predators), the senses next, then a pass a clade; what the docs ask for that is not built, and the rules a behaviour change keeps |
 | `DRIFTERS.md` | the fourth clade: bells, buttons, sailers (v11.16) |
 | `CREATOR.md` | the spec-compiled body plans and the lab (v11.10–11.25); the person's decisions at its end; "The size ceiling" (20 Sep 2026) is what a monstrous animal costs — the two knobs built, the rest ranked |
 | `ARCHIPELAGO.md` | the chain (15 Sep 2026): the islands as records (built v11.61), the giant's record and its land term (built v11.62), the horizon tier (built v11.64), the world grown to 240 cells (built v11.65), the person's answers — read before building any second island |

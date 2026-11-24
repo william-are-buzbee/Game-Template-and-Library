@@ -4,6 +4,17 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.228 (24 Nov 2026): the clock and the risk** (creatures_defs.js `BEHAVE`; creatures_ai.js `CLK`, `CK`, `REST`, `RISK`, `findPrey`, the roles;
+combat.js `dread`; test/clock.js; BEHAVIOUR.md, new; DESIGN Creatures; CHANGELOG). The behaviour overhaul's pass 0, after the person's answers (24 Nov
+2026: the shared parts first, *"Clock and risk first"*; the player's bias struck; sight by light for the creatures, pass 1; readable predators, *"yes
+absolutely"*). Every kind keeps hours from Earth's reef shifts (the night's eel, lurker, arrow, rasp, flicker; the day's grazer, darter, crusher; the
+changeover's ridge and needle; the wedge the tide's) and rests out of them (cover, floor, sand, hover, a slow cruise), hungrier before it hunts; the
+schools settle at night. Prey is weighed by its mass, its bite, its venom, the hunter's own wounds and how far it is failing; the player is weighed as any
+body. Prey that watches a hunter is looked at first — a slowblood circles, a ringmouth holds off facing it, a hingeshell never looks — and its answer
+decides: running is chased, a turned back is the opening, coming at it drives it off. Fixed: the crusher's carrion, the arrow's jet pose, a wounded
+hunter fleeing the player whatever hurt it, the carcass glow read from the drawing. The frame within noise (the forest ×0.97, p95 ×0.89; Chromium ×0.94), the GPU's counts the same. **Ask:** BEHAVIOUR §8 — whether the look reads and facing it down
+is fair; whether the shifts show; whether the shelf by day is too quiet. **Next:** pass 1, the senses (BEHAVIOUR §4).
+
 **v11.227 (24 Nov 2026): the hoop and the quill; the abyssal fed** (creatures_spec.js `SPECS.hoop`, `SPECS.quill`, the tentacles' `sieve`;
 creatures_defs.js `DEFS`, `STATION.canopy`, `stationW`, `SPAWN`, `VARIETY`; creatures_ai.js `filterSeek`'s `gape`, `plumbY`'s `canopy`; test/hoop.js;
 test/plumb.js §8; CLADES, PLANET, DESIGN; CHANGELOG). The person's *"filter feeding slow blood giant and the smaller cone vertical ring mouth"*. The hoop:
@@ -11,8 +22,7 @@ the ridge's line as a 16 m filter giant in the fed open water, its mouth's tenta
 quill: the plumb's line at 3 m, hung among the weed forest's stalks by the new canopy station (~29,000). The abyssal, which was collapsing on main
 (392 → 73 in 90 days: its prey breed too slowly), now eats the ortho too: from 2,017 it settles near half that (its least ~970 at day 325, rising after), the ortho steady at ~12,900. **v11.227.1**: the person found the hoop by accident while searching the island for a single quill — there were ~15 on the whole shelf;
 now ~40 there, in stands of five (`grp`, `n` 8). **Ask:** does the hoop read as a filter
-giant (its ring open in a swarm); can the quill be found among the stalks, and is it the small upright one they meant. **Next:** AI and behaviour,
-in another chat (the person).
+giant (its ring open in a swarm); can the quill be found among the stalks, and is it the small upright one they meant.
 
 **v11.226 (24 Nov 2026): the individual for every placed species** (creatures_defs.js `VARIETY`, `GROW`, `MORPHS`, `VARY_AUTO`; creatures_ai.js
 `autoVary`, `KIND_LOD`; test/variety.js, test/combat.js; VARIETY.md; DESIGN; CHANGELOG). All 38 kinds the ledger places are individuals: the clades' growth
@@ -32,11 +42,6 @@ palettes proposed: every difference with a cause (morph, age by the clade's grow
 under a budget, palettes by `coatFor`'s physics. The person's answers: demigods for every god, the Plumb a god provisionally, 30 m for the old
 plumbs. The stipe (a shallow upright straightshell) a candidate. §8 answered the same day: stable individuals, rarity and budget per species (the
 ringmouths vary most), the founder left alone, size by age with a range on top. **Next:** VARIETY §7 step 1.
-
-**v11.223.1 (23 Nov 2026): the plumb hangs, sways and is common; the coilshell held above −450** (creatures_ai.js `HANG`, `updatePlumb`; creatures_defs.js
-`STATION`, `SPAWN`; player.js `deepY`, `DEEP_SOFT`; LINEAGE §7c.5–6; CHANGELOG). The person liked it but it read as standing still on the floor and was
-too rare: now 7.7 m clear of the floor, bobbing, swaying, drifting, carried by the current and pushable; walls from 11 m faces and `n` 12 (~8,100 in the
-world). The coilshell player stops at −450. The Plumb is the tenth candidate god, with demigods (§7c.6). **Ask:** does it read as hanging now; §7c.6's Open.
 
 ## Open
 

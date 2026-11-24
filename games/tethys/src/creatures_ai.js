@@ -147,7 +147,7 @@ function shedFlora(){const byKind={};SPAWN.forEach(e=>{if(e.land||!moults(e.kind
     const f={id:'shed_'+kind,shed:kind,geo:geo,mat:MAT,tints:[[1,1,1],[0.94,0.92,0.88],[0.9,0.9,0.86]],s:[MOULT.keep*0.9,MOULT.keep*1.05],sink:0.08,tilt:true,per:Math.max(1,Math.round(dens)),rare:Math.min(1,dens),envs:K.envs,top:d.size*0.6,maxSlope:1.0};
     FLORA.push(f);FLORA_BY_ID[f.id]=f;}}
 shedFlora();
-/** @typedef {{kind:any,def:any,g:any,anim:any,pos:any,vel:any,home:any,hp:any,state:any,t0:any,lastSpd:any,lastYaw:any,roll:any,rollV:any,sq:any,stunSide:any,target:any,biteT:any,wanderT:any,wander:any,alive:any,gone:any,stun:any,bored:any,cool:any,scanT:any,alarm:any,fleeT:any,lungeT:any,ramT:any,school:any,off:any,offT:any,chunk:any,lod:any,parts:any,lodMeshes:any,sub:any,wet:any,grounded:any,flopT:any,b:any,mass:any,mass0:any,bound:any,reach:any,shapesW:any,chainW:any,grab:any,holding:any,armT:any,touchF:any,hold:any,held:any,bleed:any,blood:any,wounds:any,paraT:any,stungT:any,armsLost:any,regrow:any,sickT:any,poison:any,poisT:any,commitT:any,coastT:any,missN:any,speedK:any,turnK:any,live:any,lost:any,cWith:any,d6:any,par:any,st:any,tellT:any,strikeT:any,recoverT:any,burstT:any,face:any,bit:any,accT:any,threat:any,ent:any,hunger:any,starveT:any,hunt:any,feedT:any,feedAt:any,dead:any,flesh:any,deadT:any,scav:any,scavT:any,glow:any,lumL:any,lumF:any,lumD:any,lumH:any,juv:any,k:any,cls:any,soft:any,softT:any,moultT:any,shM:any,cast:any,lodNear:any,lodFar:any,nearR:any,stepR:any,carried:any,cur:any,curT:any,turnedF:any,turnV:any,accV:any,shapeF:any,rigV:any,rigO:any,hitN:any,hitB:any,lieQ:any,chaseT:any,lungeP:any,strikeP:any,gapMin:any,pivotT:any,sw:any,swT:any,filtT:any,q:any,pig:any,hand:any,fall:any,brood:any,fxStruck:any,fxAcc:any,stam:any,spinV:any,shook:any,shakeYaw:any,shakeP:any,pointD:any,lenM:any,lastHurt:any,eaten:any,liveMass:any,fullMass:any,wallD:any,seed:any,vk:any}} Creature — every key a creature carries, closed: spawn's literal below in the same order (CLAUDE.md, "one shape"); a key added to the literal goes here too, and the type checker flags one misspelt or set that is not here (v11.193, test/types.js) */
+/** @typedef {{kind:any,def:any,g:any,anim:any,pos:any,vel:any,home:any,hp:any,state:any,t0:any,lastSpd:any,lastYaw:any,roll:any,rollV:any,sq:any,stunSide:any,target:any,biteT:any,wanderT:any,wander:any,alive:any,gone:any,stun:any,bored:any,cool:any,scanT:any,alarm:any,fleeT:any,lungeT:any,ramT:any,school:any,off:any,offT:any,chunk:any,lod:any,parts:any,lodMeshes:any,sub:any,wet:any,grounded:any,flopT:any,b:any,mass:any,mass0:any,bound:any,reach:any,shapesW:any,chainW:any,grab:any,holding:any,armT:any,touchF:any,hold:any,held:any,bleed:any,blood:any,wounds:any,paraT:any,stungT:any,armsLost:any,regrow:any,sickT:any,poison:any,poisT:any,commitT:any,coastT:any,missN:any,speedK:any,turnK:any,live:any,lost:any,cWith:any,d6:any,par:any,st:any,tellT:any,strikeT:any,recoverT:any,burstT:any,face:any,bit:any,accT:any,threat:any,ent:any,hunger:any,starveT:any,hunt:any,feedT:any,feedAt:any,dead:any,flesh:any,deadT:any,scav:any,scavT:any,glow:any,lumL:any,lumF:any,lumD:any,lumH:any,juv:any,k:any,cls:any,soft:any,softT:any,moultT:any,shM:any,cast:any,lodNear:any,lodFar:any,nearR:any,stepR:any,carried:any,cur:any,curT:any,turnedF:any,turnV:any,accV:any,shapeF:any,rigV:any,rigO:any,hitN:any,hitB:any,lieQ:any,chaseT:any,lungeP:any,strikeP:any,gapMin:any,pivotT:any,sw:any,swT:any,filtT:any,q:any,pig:any,hand:any,fall:any,brood:any,fxStruck:any,fxAcc:any,stam:any,spinV:any,shook:any,shakeYaw:any,shakeP:any,pointD:any,lenM:any,lastHurt:any,eaten:any,liveMass:any,fullMass:any,wallD:any,seed:any,vk:any,awake:any,sink:any,inspT:any,deter:any,dread:any}} Creature — every key a creature carries, closed: spawn's literal below in the same order (CLAUDE.md, "one shape"); a key added to the literal goes here too, and the type checker flags one misspelt or set that is not here (v11.193, test/types.js) */
 function spawn(ch,kind,pos,rng,opt){
   const juv=!!(opt&&opt.juv),D0=juv?juvDef(kind):DEFS[kind],EK=ecoOf(kind),ent=opt&&opt.ent!==undefined?opt.ent:-1,vary=ent>=0&&kind!=='lab';
   // the individual (v11.66, above): the size band, the coat class of the place, the soft state; plain outside the ledger. v11.225: a kind with a
@@ -167,7 +167,7 @@ function spawn(ch,kind,pos,rng,opt){
     shM:null,cast:false,lodNear:0,lodFar:0,nearR:0,stepR:0, // set below, in this order
     carried:undefined,cur:undefined,curT:undefined,turnedF:undefined,turnV:undefined,accV:undefined,shapeF:undefined,rigV:undefined,rigO:undefined,hitN:undefined,hitB:undefined,lieQ:undefined,chaseT:undefined,lungeP:undefined,strikeP:undefined,gapMin:undefined,pivotT:undefined,
     sw:undefined,swT:undefined,filtT:undefined,q:undefined,pig:undefined,hand:undefined,fall:undefined,brood:undefined,fxStruck:undefined,fxAcc:undefined,stam:undefined,spinV:undefined,shook:undefined,shakeYaw:undefined,shakeP:undefined,pointD:undefined,
-    lenM:undefined,lastHurt:undefined,eaten:undefined,liveMass:undefined,fullMass:undefined,wallD:undefined,seed:seed,vk:vx?vx.key:undefined}); // wallD (v11.223): the way to the wall from a station (chunks.js stationPoint), a unit vector; seed, vk (v11.225): the individual's seed and its variant's key // the individual (v11.66): its size factor, its coat class, the soft state and its clocks
+    lenM:undefined,lastHurt:undefined,eaten:undefined,liveMass:undefined,fullMass:undefined,wallD:undefined,seed:seed,vk:vx?vx.key:undefined,awake:1,sink:1,inspT:0,deter:0,dread:null}); // wallD (v11.223): the way to the wall from a station (chunks.js stationPoint), a unit vector; seed, vk (v11.225): the individual's seed and its variant's key // the individual (v11.66): its size factor, its coat class, the soft state and its clocks // awake, sink, inspT, deter, dread (v11.228, BEHAVIOUR.md): how much it is about (awakeOf, at its last scan), its clearance's share (a buried rest), the look's clock and how far it has been stood up to (RISK), what it flees
   // v11.149 (the creature performance pass): every creature one shape. The keys above from shM on were added to a creature as it lived — the current
   // it is carried by, its turn, its holds, the falls, the brood, the effects' clocks — each by whichever system reached it first, in that order: the
   // forest's 1,400 creatures had 27 shapes, and past four an engine gives up a property read's fast path, so every c.pos, c.def, c.vel in the frame was
@@ -207,7 +207,7 @@ function setLOD(c,level){ // 0 near (the parts), 1 far (the bake), 2 drawn by it
 // A school is a loose ribbon (the boid role): its members flock among themselves and follow the school's wandering target;
 // the school's pos is the members' mean. sp: the spread they start in, in units of the member's size.
 function* makeSchool(ch,kind,p,n,rng,opt){ // a generator (v11.12): one member a step of the cell's build
-  const s={pos:p.clone(),home:p.clone(),target:p.clone(),t:0,chunk:ch,members:[],threat:null,scanT:0};schools.push(s);ch.schools.push(s);
+  const s={pos:p.clone(),home:p.clone(),target:p.clone(),t:0,chunk:ch,members:[],threat:null,scanT:0,awake:1,rest:false};schools.push(s);ch.schools.push(s);
   const sz=DEFS[kind].size*3;
   for(let i=0;i<n;i++){const c=spawn(ch,kind,p.clone().add(V3((rng()-0.5)*sz,(rng()-0.5)*sz*0.4,(rng()-0.5)*sz)),rng,schoolOpt(opt,rng));c.school=s;s.members.push(c);c.vel.set((rng()-0.5)*2,0,(rng()-0.5)*2);yield;}
 }
@@ -294,10 +294,12 @@ function preyOn(d,o){if(d.prey.indexOf(o.kind)>=0)return true;return !!(o.def.li
 // whether a hunter can go for a thing at p, dist away (v11.223): never below the depth its body is held above (deepY — a gas shell's); and for a body
 // that strikes only downward, only what is under it by d.below of the distance (the plumb's 0.5: 30° or more below level)
 function reachable(c,d,p,dist){if(d.deepY!==undefined&&p.y<d.deepY-2)return false;if(d.below!==undefined&&c.pos.y-p.y<d.below*dist)return false;return true;}
-function findPrey(c,R){
-  const d=c.def;let best=null,bd=1e9;if(R===undefined)R=d.detect;
-  if(!playerGone()&&player.inkT<=0&&((d.prey.indexOf('player')>=0&&(!d.preyClade||(player.clade&&player.clade.id===d.preyClade)))||(player.soft&&softPrey(c,player)))){const dp=c.pos.distanceTo(player.pos);if(dp<R&&reachable(c,d,player.pos,dp)){best=player;bd=dp*0.7;}} // v11.76: the player through its moult is a soft body like any other — prey to whatever is big enough (MOULT.prey), listed or not
-  for(const o of creatures){if(!o.alive||o===c)continue;if(!preyOn(d,o)&&!(o.soft&&softPrey(c,o)))continue;const dd=c.pos.distanceTo(o.pos);if(dd<R&&dd<bd&&reachable(c,d,o.pos,dd)){bd=dd;best=o;}} // a soft body of any kind is prey to a hunter big enough (v11.66, MOULT)
+// v11.228 (RISK): only prey it dares at its need (thr: the hunger it hunts past — huntAt, the trap's reflex, a resting hunter's ECO.hungry), the nearest by
+// distance × (1 + risk); the player weighed as any body is (to v11.227 at 0.7 of its distance)
+function findPrey(c,R,thr){
+  const d=c.def;let best=null,bd=1e9;if(R===undefined)R=d.detect;const n=needOf(c,thr===undefined?huntAt(c):thr);
+  if(!playerGone()&&player.inkT<=0&&((d.prey.indexOf('player')>=0&&(!d.preyClade||(player.clade&&player.clade.id===d.preyClade)))||(player.soft&&softPrey(c,player)))){const dp=c.pos.distanceTo(player.pos);if(dp<R&&reachable(c,d,player.pos,dp)){const r=riskOf(c,player);if(dares(n,r)){best=player;bd=dp*(1+r);}}} // v11.76: the player through its moult is a soft body like any other — prey to whatever is big enough (MOULT.prey), listed or not
+  for(const o of creatures){if(!o.alive||o===c)continue;if(!preyOn(d,o)&&!(o.soft&&softPrey(c,o)))continue;const dd=c.pos.distanceTo(o.pos);if(dd>=R||dd>=bd||!reachable(c,d,o.pos,dd))continue;const r=riskOf(c,o),e=dd*(1+r);if(e<bd&&dares(n,r)){bd=e;best=o;}} // a soft body of any kind is prey to a hunter big enough (v11.66, MOULT)
   return best;
 }
 // The kill (v11.26): the ledger is debited and nothing comes back. Eaten whole (the player's bite, a small prey in a big mouth) the
@@ -330,9 +332,12 @@ function eatAt(o,c,dt){if(!feeds(o))return;if(c.poison>POISON.min&&!o.def.immune
   const om=bioMass(o.def),K=eaterK(o),bite=(K.hunter?Math.min(om/75,K.meal/20):om/40)*dt;c.flesh-=bite;if(o.hunger>0){o.hunger=Math.max(0,o.hunger-bite/K.meal);o.starveT=0;}} // o may be the player (v11.73: a mouthful is EAT.bite seconds of this)
 // the eater's numbers in the ledger's terms (v11.73): a creature's kind, or the player's line kind — the player's stomach is the model every creature runs (the person, 21 Sep 2026: one rule, not a special case)
 function eaterK(o){return ecoOf(o===player?lineKind(o.clade.spec):o.kind);}
+// a carcass's glow, the sim's own (v11.228): fx.js sets c.glow once a frame for the drawing and zeroes it with the effects list's switch, so the scavengers
+// read the same law here — what a scavenger finds never turns on the frame's rate or a cosmetic switch
+function carcGlow(c){const F=c.fall,m0=F?F.m0:bioMass(c.def);return bactGlow(F?nowD()-F.t0:c.deadT/DAY_S,c.flesh/m0);}
 // the nearest carcass within R of o, still worth eating
 function findCarcass(o,R){let best=null,bd=R;for(const c of carcasses){if(c.gone||c.flesh<=0||c.fall&&c.fall.anox)continue; // a fall under a chemocline draws nothing (DEEP §4: the graveyard)
-    const d=o.pos.distanceTo(c.pos)/(1+SPK.see*c.glow);if(d<bd){bd=d;best=c;}} // a glowing carcass is seen from further (v11.161, fx.js BACT: what its bacteria are for)
+    const d=o.pos.distanceTo(c.pos)/(1+SPK.see*carcGlow(c));if(d<bd){bd=d;best=c;}} // a glowing carcass is seen from further (v11.161, fx.js BACT: what its bacteria are for)
   for(const g of eggs){if(g.gone||g.flesh<=0||g.kind===o.kind||(g.brood&&broodGuarded(g.brood)))continue;const d=o.pos.distanceTo(g.pos);if(d<bd*0.5){bd=d;best=g;}}return best;} // a clutch too (not its own kind's), from half the distance; never one its parent is brooding over (line.js broodGuarded, v11.74)
 // ---------- carcass falls (v11.99, DEEP.md §4) ----------
 // A big body that dies and is not eaten whole sinks and is a fall: on an oxic floor it goes through Earth's whale-fall stages on the game's
@@ -396,6 +401,110 @@ function fallsOut(){const r=v=>Math.round(v*1000)/1000;return FALLS.map(F=>({kin
 function fallsIn(a){FALLS.length=0;FALL_ACC.length=0;if(!Array.isArray(a))return;for(const o of a){if(!o||!DEFS[o.kind])continue;const F={kind:o.kind,c:null,mesh:null,ch:null};
   for(const k of ['x','y','z','m0','size','yaw','flesh','tF','t0','tB']){const v=+o[k];if(!Number.isFinite(v)){F.bad=true;break;}F[k]=v;}if(F.bad)continue;F.seed=(+o.seed)>>>0;F.anox=!!o.anox;F.apron=!!o.apron;FALLS.push(F);if(FALLS.length>=FALL.max)break;}}
 
+// ---------- the clock (v11.228; BEHAVIOUR.md §2; creatures_defs.js BEHAVE) ----------
+// The sim's own sky: the sun's height from the clock, read once a step. SKY is the drawing's (atmosphere.js updateSky, once a frame), and a step reads
+// nothing the drawing sets (step.js); the plumb's layer and the swarms still read SKY (BEHAVIOUR.md §6, open). day, night and dusk sum to one: the
+// day from the sun on the horizon to full at ~11° up, the night full ~14° under it and gone ~3° under, dusk the changeover between them (~2.6 game
+// hours, three and a half real minutes, at each end of the day). hi: the tide's height, 0 at its low water to 1 at its high.
+const CLK={day:[0,0.2],night:[-0.25,-0.05]}; // the sun's height (the sine of its altitude) where the day begins and is full; where the night is full and ends
+const CK={sun:0,day:1,night:0,dusk:0,hi:0.5},CK_V=V3();
+function clockTick(){skyDir(sunHA(clockH),CK_V,sunDec(clockH));const s=CK_V.y,A=tideAmp(clockH);CK.sun=s;CK.day=smooth(CLK.day[0],CLK.day[1],s);CK.night=1-smooth(CLK.night[0],CLK.night[1],s);CK.dusk=Math.max(0,1-CK.day-CK.night);CK.hi=A>0?clamp(0.5+0.5*TIDE/A,0,1):0.5;}
+// how much a kind is about now, 0..1: its act's blend of the day's parts, and the tide's term (+ about at high water, − at low); 1 for a kind with no hours
+function awakeOf(d){const a=d.act;if(!a)return 1;let k=a[0]*CK.day+a[1]*CK.night+a[2]*CK.dusk;if(a.length>3){const w=a[3];k*=1-Math.abs(w)*(1-(w>0?CK.hi:1-CK.hi));}return clamp(k,0,1);}
+// Rest. Outside its hours an animal is hungrier before it hunts (huntAt: ECO.hungry + REST.k × how far it is from awake) — hunger gets it up, so a
+// starving night hunter hunts at noon — and it goes to its rest (DEFS.rest) when it is not. A resting hunter still takes an easy meal that comes within
+// REST.see of its detect (the moray bites the hand put in its hole)
+const REST={k:0.45, // the hunger a resting animal hunts at, above ECO.hungry, at none of its hours (0.85)
+  on:0.35,off:0.5, // the activity under which it goes to rest, and over which it gets up (between them it keeps what it is doing)
+  see:0.35, // the share of its detect (an ambusher's radius) it reacts within when out of its hours
+  go:0.35, // the share of its speed it goes to its rest at
+  r:24, // m round it a 'cover' rest is looked for in (coverSpot: twelve tries); the open floor where it is when there is none
+  arrive:1.5, // m from its rest at which it is there
+  bury:0.3, // a buried body's clearance as a share of its own (its back at the sand's face)
+  lift:2, // m over the floor, plus its size, that a 'hover' rest holds at the least
+  slow:0.45, // the share of its cruise a 'slow' rest keeps up
+  school:0.45}; // the share of its speed a settled school's member keeps
+function huntAt(c){return ECO.hungry+REST.k*(1-c.awake);}
+function needOf(c,thr){return thr>=1?0:clamp((c.hunger-thr)/(1-thr),0,1);} // the hunger past the threshold, as a share of the way on to starving
+function bodyClear(d){return d.clear!==undefined?d.clear:d.size*0.35;} // how high its origin sits over the floor (updateCreatures)
+// a rest against a solid near it: on the floor, clear of solids at its own radius with one within 2 m of it — a rock, a stalk, a structure's foot (MOULT's hideSpot's test); false if none
+function coverSpot(c,p){const d=c.def,ch=c.chunk;if(!ch)return false;const r=d.size*0.5,cl=bodyClear(d)+0.05;
+  for(let k=0;k<12;k++){const a=SIMR()*TAU,dd=2+SIMR()*REST.r,x=c.pos.x+Math.cos(a)*dd,z=c.pos.z+Math.sin(a)*dd,h=groundAt(x,z);if(h>-3&&!d.legs)continue;
+    T1.set(x,h+cl,z);if(solidPush(T1,r,null,ch,true))continue;T2.set(x,h+cl,z);if(!solidPush(T2,r+2,null,ch,true))continue;p.set(x,h+cl,z);return true;}
+  return false;}
+// to rest: the place (c.wander holds it — a resting animal does not wander) by its kind's rest
+function restBegin(c){const d=c.def,m=d.rest,p=c.wander;c.state='rest';c.face=null;c.hunt=0;c.wanderT=0;
+  if(m==='slow'){setWander(c);return;}
+  if(m==='hover'){const fh=groundAt(c.pos.x,c.pos.z);p.set(c.pos.x,clamp(c.pos.y,fh+REST.lift+d.size,-4-d.size*0.4),c.pos.z);return;}
+  if(m==='cover'&&coverSpot(c,p))return;
+  p.set(c.pos.x,groundAt(c.pos.x,c.pos.z)+bodyClear(d)*(m==='bury'?REST.bury:1),c.pos.z);}
+function restEnd(c){c.state='wander';c.sink=1;setWander(c);}
+// a step of rest: to its place at REST.go of its speed, then still (a buried one sunk to REST.bury of its clearance: updateCreatures' floor reads c.sink); a 'slow' one cruises on
+function restStep(c,dt){const d=c.def,m=d.rest,p=c.wander;
+  if(m==='slow'){c.wanderT-=dt;if(c.wanderT<=0||c.pos.distanceTo(p)<3)setWander(c);seek(c,p,d.speed*(d.cruiseF||0.45)*REST.slow,dt,0.6);return;}
+  const dx=p.x-c.pos.x,dz=p.z-c.pos.z,far=Math.sqrt(dx*dx+dz*dz);
+  if(far>REST.arrive||(m==='hover'&&Math.abs(p.y-c.pos.y)>REST.arrive)){c.sink=1;seek(c,p,Math.min(d.speed*REST.go,0.4+far*0.5),dt,1.2);return;}
+  c.sink=m==='bury'?REST.bury:1;const k=Math.min(1,2*dt);c.vel.x-=c.vel.x*k;c.vel.z-=c.vel.z*k;c.vel.y+=((p.y-c.pos.y)*0.8-c.vel.y)*k;}
+// ---------- the risk, and the approach (v11.228; BEHAVIOUR.md §3) ----------
+// A hunter no longer takes whatever it eats once hungry. Each prey is weighed (riskOf): a body near its own mass can fight (a share for one with no bite),
+// venom stings whatever clamps it, a hunter already bleeding is warier, and a body already failing — bleeding, soft, stunned, paralysed, young or held — is
+// worth the try. It goes for prey only while its need (the hunger past its threshold) is at least RISK.k × the risk (dares), and among what it dares it
+// takes the nearest by distance × (1 + risk). The player is weighed as any body is: to v11.227 findPrey took the player at 0.7 of its distance, which
+// PLANET's rule forbids ("hunt the player because the player is prey-sized, not because it is the player"; the person, 24 Nov 2026: "remove the bias").
+// The approach (the person, 24 Nov 2026, asked whether some predators should inspect before they commit so the player can see it coming: "yes
+// absolutely"): prey that is watching the hunter — the player facing it, a school or a grazer whose threat it is — is not taken head on by a hunter that
+// reads it (DEFS.insp). A slowblood circles it, the ring tightening; a ringmouth holds off at its standoff facing it, sliding round. It commits when the
+// prey runs (the chase — bolting is what a chase is for), turns its back (the opening), weakens, or when the hunter's need passes RISK.reckless; it
+// is driven off by prey that comes at it while watching it (standing up to it, RISK.deter), and at the end of its look it goes in only if its need is
+// RISK.commit or more. A hingeshell never reads this way: no pursuit, and nothing to read between its strikes (PLANET)
+const RISK={m:[0.08,1], // the prey's mass as a share of the hunter's at which the risk of the fight begins and is whole
+  unarmed:0.6, // the share of that for a body with no bite (a grazer's bulk, a filter giant's)
+  sting:0.3, // added for a body with venom (its spines sting what clamps it; a paralysing beak)
+  hurt:2, // the hunter's own blood lost, over BLOOD.weak, multiplies the risk by 1 + this × it
+  weak:0.7, // the share taken off for a failing body (bleeding, soft, stunned, paralysed); half of it for a young one or one held
+  k:0.9,cap:0.95, // the need a risk of 1 asks for; no risk asks more than cap (a starving animal takes anything it eats)
+  tiny:0.002, // a prey under this share of the hunter's mass is a mouthful: never looked at first
+  reckless:0.85, // the need past which a hunter goes straight in
+  insp:[4,10], // s it looks: the least, and more by how little it needs (4–14 s; v11.228's first [3, 7] was a quarter of the ridge's circle, read as a pass)
+  commit:0.5, // the need at which it goes in at the end of its look; under it, it leaves
+  face:0.5, // cos: the prey is watching it (its heading within 60° of the hunter)
+  run:2.5, // m/s away from the hunter: the prey is running
+  close:0.6, // m/s toward it, watching: the prey is standing up to it
+  deter:3, // s of being stood up to, × (0.5 + need), that drive it off (a watch alone counts a quarter)
+  back:0.7, // s of the prey's back turned: the opening
+  cool:20, // s a hunter driven off leaves prey alone
+  away:40, // m it swims off when driven off
+  orbit:[2.4,1.3,2,1], // the circle's radius: × size + m, at the look's start and at its end (a hungrier hunter starts closer)
+  stand:[1.8,1.15,2,1], // the standoff's, the same way
+  pace:0.65, // the share of its speed it circles or slides at
+  lead:0.5}; // rad: how far round the circle ahead of itself it steers
+function weakOf(o){if(o===player)return player.soft||bleeding(player)?1:0;if(o.soft||o.bleed>1e-5||o.stun>0||o.paraT>0)return 1;return o.def.juv||o.held>0?0.5:0;}
+function riskOf(c,o){const kr=kgOf(o)/Math.max(1,kgOf(c)),pl=o===player,od=pl?null:o.def;
+  let r=smooth(RISK.m[0],RISK.m[1],kr)*(pl||od.dmg>0||!!od.prey?1:RISK.unarmed);
+  if(pl?!!(player.clade&&player.clade.venom):!!od.venom)r+=RISK.sting;
+  if(c.blood>0)r*=1+RISK.hurt*c.blood/BLOOD.weak;
+  const w=weakOf(o);if(w>0)r*=1-RISK.weak*w;return Math.min(1,r);}
+function dares(n,r){return n>=Math.min(RISK.cap,RISK.k*r);}
+// is tg watching c: the player facing it; a school or a grazer whose threat it is
+function watches(tg,c){if(tg===player){if(!player.g)return false;T3.set(0,0,1).applyQuaternion(player.g.quaternion);T4.copy(c.pos).sub(player.pos);const l=T4.length()||1;return T3.dot(T4)/l>=RISK.face;}
+  return (tg.school?tg.school.threat:tg.threat)===c.pos;}
+function inspects(c,tg,n){return !!c.def.insp&&n<RISK.reckless&&kgOf(tg)/Math.max(1,kgOf(c))>=RISK.tiny&&weakOf(tg)<1&&watches(tg,c);}
+// a target taken: the look first when the prey watches a hunter that reads it, else the chase
+function takeOn(c,tg,n){c.target=tg;c.bored=0;c.chaseT=0;c.sink=1;if(inspects(c,tg,n)){c.state='inspect';c.inspT=RISK.insp[0]+RISK.insp[1]*(1-n);c.deter=0;}else c.state='chase';}
+function driveOff(c,tp){dropTarget(c,RISK.cool);T2.copy(c.pos).sub(tp);T2.y=0;const l=T2.length()||1;c.wander.set(c.pos.x+T2.x*RISK.away/l,c.pos.y,c.pos.z+T2.z*RISK.away/l);c.wanderT=srnd(8,12);}
+// a step of the look: the prey's answer read, then the circle or the standoff
+function inspectStep(c,dt){const d=c.def,tg=c.target,tp=tg===player?player.pos:tg.pos,tv=tg===player?player.vel:tg.vel;
+  T1.copy(tp).sub(c.pos);const dist=T1.length()||1,away=tv.dot(T1)/dist; // its speed away from the hunter
+  c.inspT-=dt;if(watches(tg,c))c.deter+=dt*(away<-RISK.close?1:0.25);else c.deter=Math.min(c.deter,0)-dt;
+  const n=needOf(c,huntAt(c));
+  if(away>RISK.run||c.deter<-RISK.back||n>=RISK.reckless||weakOf(tg)>=1||(c.inspT<=0&&n>=RISK.commit)){c.state='chase';c.chaseT=0;c.face=null;return;} // it runs, turns its back, weakens, or the hunter will wait no longer: the chase
+  if(c.deter>RISK.deter*(0.5+n)||c.inspT<=0){driveOff(c,tp);return;}
+  const hand=c.t0>50?1:-1,k=clamp(c.inspT/(RISK.insp[0]+RISK.insp[1]),0,1);
+  if(d.insp==='circle'){const O=RISK.orbit,R=lerp(d.size*O[1]+O[3],d.size*O[0]+O[2],k),a=Math.atan2(c.pos.z-tp.z,c.pos.x-tp.x)+hand*RISK.lead; // round it, the ring closing as the look runs on
+    T2.set(tp.x+Math.cos(a)*R,tp.y-d.size*0.15,tp.z+Math.sin(a)*R);const fh=groundAt(T2.x,T2.z)+bodyClear(d)+1;if(T2.y<fh)T2.y=fh;c.face=null;seekTurn(c,T2,d.speed*RISK.pace,dt,1.6);}
+  else{const S=RISK.stand,R=Math.max(lerp(d.size*S[1]+S[3],d.size*S[0]+S[2],k),noseD(c)+1);T2.copy(c.pos).sub(tp);T2.y*=0.5;T2.normalize();T3.crossVectors(T2,UP).multiplyScalar(hand*0.35);T2.add(T3).normalize().multiplyScalar(R).add(tp); // held off, sliding round, facing it
+    c.face=tp;seek(c,T2,Math.min(d.speed*RISK.pace,0.3+dist*0.4),dt,1.5);}}
+
 // ---------- behaviours ----------
 // Burst and coast (PLANET, hingeshells: paddles in a metachronal wave; nothing they do is a steady swim): a hunter or wanderer
 // with d.burst {on, off} runs its speed and accel on a duty cycle — full for `on` seconds, then a coast for `off` where it only
@@ -424,7 +533,7 @@ function armReach(c,tg,k){return Math.max((c.def.reach||0)*k,reachOf(c,tg))+(tg.
 // a kill each cleared a different subset and left c.grab pointing at the old target, so a rigged hunter's arms went on reaching for
 // the player out of wander. Everything that ends a pursuit goes through here.
 function dropTarget(c,cool){
-  c.target=null;c.grab=null;c.bored=0;c.tellT=0;c.strikeT=0;c.face=null;c.chaseT=0;c.commitT=0;c.coastT=0;c.pivotT=0;
+  c.target=null;c.grab=null;c.bored=0;c.tellT=0;c.strikeT=0;c.face=null;c.chaseT=0;c.commitT=0;c.coastT=0;c.pivotT=0;c.sink=1;
   if(c.hold)releaseHold(c.hold);
   if(cool!==undefined)c.cool=cool;
   if(c.state!=='feed'&&c.state!=='sit'){c.state=c.def.role==='ambush'?'return':'wander';if(c.state==='wander')setWander(c);}
@@ -471,8 +580,10 @@ function updateHunter(c,dt){
   if(hungerTick(c,dt))return; // the stun is every role's now, before the roles (updateCreatures, v11.66)
   if(c.state==='feed'){const f=c.feedAt;c.feedT-=dt;if(!f||f.gone||f.flesh<=0||c.feedT<=0||c.hunger<=0){c.state='wander';c.feedAt=null;c.cool=d.cool||4;setWander(c);return;}
     const dist=c.pos.distanceTo(f.pos),at=reachOf(c,f);if(dist>at*0.9)seek(c,f.pos,d.speed*0.35,dt,1.5);else{c.vel.multiplyScalar(1-3*dt);eatAt(c,f,dt);}c.face=dist<at*1.5?f.pos:null;return;}
-  if(c.state==='flee'){c.grab=null;c.fleeT-=dt;if(c.fleeT<=0)c.state='wander';seekAway(c,player.pos,d.speed,dt);return;}
+  if(c.state==='flee'){c.grab=null;c.fleeT-=dt;if(c.fleeT<=0){c.state='wander';c.dread=null;}seekAway(c,c.dread&&c.dread!==player?c.dread.pos:player.pos,d.speed,dt);return;} // v11.228: away from what hurt it (c.dread, combat.js), not from the player whatever did
   c.scanT-=dt;c.cool-=dt;
+  if(c.state==='inspect'){const tg=c.target,tp=tg===player?player.pos:tg?tg.pos:c.pos; // the look (v11.228, RISK): lost as a chase is, else inspectStep
+    if(!tg||(tg!==player&&!tg.alive)||(tg===player&&(playerGone()||player.inkT>0))||c.pos.distanceTo(tp)>d.detect*1.6||c.pos.distanceTo(c.home)>(d.home||30)*1.9)dropTarget(c,d.cool||4);else inspectStep(c,dt);return;}
   if(c.state==='chase'){
     const tg=c.target;const tpos=tg===player?player.pos:tg.pos;const dist=c.pos.distanceTo(tpos);
     const ashore=tg&&tg.grounded&&tg.sub<0.5&&!d.legs; // prey on the strand is out of reach: the sea ends here
@@ -511,11 +622,19 @@ function updateHunter(c,dt){
       else{aimAt(c,tg,T2);approachPt(c,T2,T2);seekTurn(c,T2,d.speed*k,dt,2.2*k);const jaw=gripOf(c)&&gripOf(c).kind==='jaw';if(c.biteT<=0&&dist<strikeRange(c,tg)&&mouthAhead(c,tpos,STRIKE.face)&&(!jaw||mouthGap(c,tg)<strikeReach(c)))commit(c,tg);} // the pursuit's clock restarts at a strike (ECO_CHASE counts the run-up, not a hunter at its prey)
     }
   }else{
-    if(c.scanT<=0){c.scanT=0.4;c.hunt=0;if(c.cool<=0&&c.hunger>ECO.hungry){const tb=findBleeding(c,SMELL_R);if(tb){c.state='chase';c.target=tb;c.bored=0;c.chaseT=0;}else{const tg=findPrey(c,d.detect*HUNT_SEEK); // the blood first (combat.js, v11.56): a bleeding body it eats within SMELL_R is the chase, past its eyes
-      if(tg){const tp=tg===player?player.pos:tg.pos,dd=c.pos.distanceTo(tp);
-        if(dd<d.detect){c.state='chase';c.target=tg;c.bored=0;c.chaseT=0;} // seen: the chase
-        else if(tp.distanceTo(c.home)<(d.home||30)*HUNT_HOME){c.wander.copy(tp);c.wanderT=srnd(4,8);c.hunt=1;}}}}} // sensed: swim that way and look again
-    if(c.hunt){const k=burstK(c,dt);seek(c,c.wander,d.speed*HUNT_CAST*k,dt,1.2*k);}else wander(c,dt);
+    // v11.228 (the clock, RISK): it hunts past huntAt (higher out of its hours), weighs what it finds (findPrey), and takes it on (takeOn: the look or the
+    // chase); out of its hours it rests (DEFS.rest), taking only an easy meal that comes to it; hunger gets it up
+    if(c.scanT<=0){c.scanT=0.4;c.hunt=0;c.awake=awakeOf(d);const thr=huntAt(c),rest=c.state==='rest';
+      if(c.cool<=0&&c.hunger>thr){const tb=findBleeding(c,SMELL_R);if(tb){c.state='chase';c.target=tb;c.bored=0;c.chaseT=0;c.sink=1;}else{const tg=findPrey(c,d.detect*HUNT_SEEK,thr); // the blood first (combat.js, v11.56): a bleeding body it eats within SMELL_R is the chase, past its eyes
+        if(tg){const tp=tg===player?player.pos:tg.pos,dd=c.pos.distanceTo(tp);
+          if(dd<d.detect)takeOn(c,tg,needOf(c,thr)); // seen: the look or the chase
+          else if(tp.distanceTo(c.home)<(d.home||30)*HUNT_HOME){if(rest){c.state='wander';c.sink=1;}c.wander.copy(tp);c.wanderT=srnd(4,8);c.hunt=1;}}}} // sensed: swim that way and look again
+      else if(rest&&c.cool<=0&&c.hunger>ECO.hungry){const tg=findPrey(c,d.detect*REST.see,ECO.hungry);if(tg)takeOn(c,tg,needOf(c,ECO.hungry));} // at rest: what comes to it
+      if(c.state==='rest'){if(c.awake>REST.off||c.hunger>thr)restEnd(c);}
+      else if(c.state==='wander'&&!c.hunt&&d.rest&&c.awake<REST.on&&c.hunger<=thr)restBegin(c);}
+    if(c.state==='rest')restStep(c,dt);
+    else if(c.hunt){const k=burstK(c,dt);seek(c,c.wander,d.speed*HUNT_CAST*k,dt,1.2*k);}
+    else{const was=!!c.scav;if(!(d.scav&&c.hunger>ECO.hungry&&scavenge(c,dt))){if(was||c.scav){c.scav=null;c.face=null;}wander(c,dt);}} // v11.228: a hunter with a nose for carrion (the crusher's scav, dead to now: scavenge was the grazers' and the watcher's alone) eats at a carcass between hunts
   }
 }
 // Sit and strike (the trap, the stone): buried or lying on its floor, it never moves. Prey within `radius` starts the tell — the
@@ -525,13 +644,15 @@ function updateTrap(c,dt){
   const d=c.def,S=d.strike;c.vel.set(0,0,0);c.cool-=dt;
   if(c.strikeT>0){c.strikeT-=dt;c.st.strike=1;const tg=c.target;if(tg&&!c.bit){const tpos=tg===player?player.pos:tg.pos;if((tg===player||tg.alive)&&landsOn(c,tg)){c.bit=true;landBite(c,tg);}}if(c.strikeT<=0){if(!c.bit&&tg)missed(c,tg);c.cool=d.cool||2;c.face=null;if(!c.hold)c.target=null;c.state='sit';}return;} // v11.31: the target stays while it is held
   if(c.tellT>0){c.tellT-=dt;c.st.tell=Math.min(1,c.st.tell+dt/S.tell*1.5);const tg=c.target;if(tg)c.face=tg===player?player.pos:tg.pos;if(c.tellT<=0){c.strikeT=S.dur;c.bit=false;}return;}
-  c.scanT-=dt;if(hungerTick(c,dt))return;if(c.scanT<=0){c.scanT=0.25;if(c.cool<=0&&c.hunger>ECO.hungry*0.4){const tg=findPrey(c);if(tg){c.target=tg;c.tellT=S.tell;c.st.tell=0;c.state='strike';}}} // a trap strikes at most things (a reflex), but not on a full stomach
+  c.scanT-=dt;if(hungerTick(c,dt))return;if(c.scanT<=0){c.scanT=0.25;c.awake=awakeOf(d);const thr=ECO.hungry*0.4+0.5*REST.k*(1-c.awake);if(c.cool<=0&&c.hunger>thr){const tg=findPrey(c,undefined,thr);if(tg){c.target=tg;c.tellT=S.tell;c.st.tell=0;c.state='strike';}}} // a trap strikes at most things (a reflex), but not on a full stomach; v11.228: readier in its hours (half a hunter's rise out of them), and at what it dares
 }
 // The watcher (PLANET: a curious omnivore that never attacks and never flees far): wanders the floor; within `detect` of the
 // player it walks up to a standoff of `stand` and holds there facing the player, following if they move, backing off if they
 // come closer than half the standoff, and drifting back to its wander when they leave.
 function updateWatcher(c,dt){
   const d=c.def,dp=playerGone()?1e9:c.pos.distanceTo(player.pos),stand=d.stand||6;
+  c.scanT-=dt;if(c.scanT<=0){c.scanT=0.5;c.awake=awakeOf(d);if(c.state==='rest'){if(c.awake>REST.off||(dp<d.detect*REST.see&&mode==='play'))restEnd(c);}else if(c.state!=='curious'&&d.rest&&c.awake<REST.on)restBegin(c);} // v11.228: in a crevice out of its hours, woken by the player close
+  if(c.state==='rest'){restStep(c,dt);return;}
   if(c.state!=='curious'){if(dp<d.detect&&mode==='play'){c.state='curious';}else{c.face=null;if(!scavenge(c,dt))wander(c,dt);return;}}
   if(dp>d.detect*1.4||playerGone()){c.state='wander';c.face=null;setWander(c);return;}
   T1.copy(c.pos).sub(player.pos);T1.y=0;const L=T1.length()||1;T1.multiplyScalar((dp<stand*0.55?stand*1.5:stand)/L).add(player.pos);
@@ -552,7 +673,7 @@ function updateBoid(c,dt){
   T3.x+=0.35*Math.sin(t*1.1+c.t0);T3.y+=0.15*Math.sin(t*0.9+c.t0*1.7);T3.z+=0.35*Math.cos(t*1.3+c.t0*0.6); // its own wander, so the ribbon frays and re-forms
   let fl=0;if(!playerGone()){const dd=c.pos.distanceTo(player.pos);if(dd<6){T2.copy(c.pos).sub(player.pos).normalize().multiplyScalar(2);T3.add(T2);fl=1;}}
   if(s.threat){const dd=c.pos.distanceTo(s.threat);if(dd<8){T2.copy(c.pos).sub(s.threat).normalize().multiplyScalar(2);T3.add(T2);fl=1;}} // the school scans for hunters; a member only reads the answer
-  T3.y*=0.5;const M=T3.length()||0.01,sp=fl?d.flee:d.speed*Math.min(1,0.35+M);T3.multiplyScalar(sp/M);curComp(c,T3,sp);
+  T3.y*=0.5;const M=T3.length()||0.01,sp=fl?d.flee:d.speed*Math.min(1,0.35+M)*(s.rest?REST.school:1);T3.multiplyScalar(sp/M);curComp(c,T3,sp);
   c.vel.lerp(T3,1-Math.exp(-3.5*dt));
 }
 // The schools: a wandering target near home (fleeing threats), and the school's position as its members' mean.
@@ -561,10 +682,11 @@ function updateSchools(dt){schoolMerge(dt);
     let n=0;T1.set(0,0,0);for(const c of s.members)if(c.alive){n++;T1.add(c.pos);}if(n)s.pos.copy(T1.multiplyScalar(1/n));
     s.t-=dt;
     if(s.t<=0||s.pos.distanceTo(s.target)<3){if(s.sw&&s.sw.alive){const R=swarmR(s.sw);s.t=srnd(3,6);s.target.set(s.sw.pos.x+(SIMR()-0.5)*R,s.sw.pos.y+(SIMR()-0.5)*R*0.4,s.sw.pos.z+(SIMR()-0.5)*R);} // v11.85: a hungry school of filter feeders moves through the swarm it found
-      else{s.t=srnd(5,12);const p=s.home.clone().add(V3(srnd(-30,30),0,srnd(-30,30)));const fh=groundAt(p.x,p.z),mid=s.members.length&&s.members[0].def.mid;p.y=fh<OXY.top?clamp(s.home.y+srnd(-30,30),-400,-20):mid?clamp(s.home.y+srnd(-12,12),fh+8,-8):clamp(fh+srnd(1.5,8),fh+1.5,-3);s.target.copy(p);}} // mid (v11.66): a swarm of the water column keeps its own depth
+      else{s.t=srnd(5,12);const W=s.rest?12:30,p=s.home.clone().add(V3(srnd(-W,W),0,srnd(-W,W)));const fh=groundAt(p.x,p.z),mid=s.members.length&&s.members[0].def.mid;p.y=fh<OXY.top?clamp(s.home.y+srnd(-30,30),-400,-20):mid?clamp(s.home.y+srnd(-12,12),fh+8,-8):s.rest?clamp(fh+srnd(0.8,2.5),fh+0.8,-3):clamp(fh+srnd(1.5,8),fh+1.5,-3);s.target.copy(p);}} // mid (v11.66): a swarm of the water column keeps its own depth; s.rest (v11.228): a school out of its hours settles close over the floor, near home
     // threats: the player, and any hunter of the members' kind, scanned four times a second (every member reading every creature
     // was a thousand by a thousand a frame)
     s.scanT=(s.scanT||0)-dt;if(s.scanT<=0){s.scanT=0.25;let th=null,td=14;const kind=s.members.length?s.members[0].kind:'';
+      if(kind){s.awake=awakeOf(s.members[0].def);const was=s.rest;s.rest=was?s.awake<REST.off:s.awake<REST.on;if(s.rest!==was)s.t=0;} // v11.228: the school's hours (BEHAVE), with the hunters' hysteresis; a change of shift takes a new target at once
       if(!playerGone()){const d=s.pos.distanceTo(player.pos);if(d<td){th=player.pos;td=d;}}
       for(const c of creatures){if(!c.alive||!c.def.prey||c.def.prey.indexOf(kind)<0)continue;const d=s.pos.distanceTo(c.pos);if(d<td){th=c.pos;td=d;}}
       s.threat=th;
@@ -580,34 +702,36 @@ function updateGrazer(c,dt){
   c.scanT-=dt;if(c.scanT<=0){c.scanT=0.3;let threat=null;
     if(!playerGone()&&c.pos.distanceTo(player.pos)<8)threat=player.pos;
     if(!threat)for(const o of creatures){if(!o.alive||!o.def.prey)continue;const big=o.def.size>=6;if((big||preyOn(o.def,c))&&c.pos.distanceTo(o.pos)<(big?18:7)){threat=o.pos;break;}}
-    c.threat=threat;}
+    c.threat=threat;c.awake=awakeOf(d);if(c.state==='rest'){if(threat||c.awake>REST.off)restEnd(c);}else if(!threat&&c.alarm<=0&&d.rest&&c.awake<REST.on)restBegin(c);} // v11.228: out of its hours it rests (DEFS.rest: the herd lies down, the rasp clamps to its rock, the plough and the scuttle go under); a threat gets it up
   const threat=c.threat;
   if(threat){seekAway(c,threat,d.flee,dt);c.alarm=2.5;c.scav=null;}
   else if(c.alarm>0){c.alarm-=dt;c.vel.multiplyScalar(1-0.8*dt);}
+  else if(c.state==='rest'){if(!scavenge(c,dt,d.scav*REST.see))restStep(c,dt);} // a resting scavenger takes what comes close, as a resting hunter does (REST.see of its range), and goes back to its rest
   else if(!scavenge(c,dt))wander(c,dt);
 }
 // A scavenger (def.scav: the distance it smells a carcass from — the picker 90, the watcher 50, the crusher 40, the scuttle 30, the
 // rasp 12) walks to the nearest carcass in range and eats at it until it is gone; true while it is at that
-function scavenge(c,dt){const d=c.def;if(!d.scav)return false;
-  c.scavT-=dt;if(c.scavT<=0){c.scavT=0.6;if(c.scav&&c.scav.brood&&broodGuarded(c.scav.brood))c.scav=null;if(!c.scav||c.scav.gone||c.scav.flesh<=0)c.scav=findCarcass(c,d.scav);} // a clutch whose parent has come back over it is left (v11.74)
+function scavenge(c,dt,R){const d=c.def;if(!d.scav)return false; // R (v11.228): how far it smells, d.scav unless less (a resting one's REST.see of it)
+  c.scavT-=dt;if(c.scavT<=0){c.scavT=0.6;if(c.scav&&c.scav.brood&&broodGuarded(c.scav.brood))c.scav=null;if(!c.scav||c.scav.gone||c.scav.flesh<=0)c.scav=findCarcass(c,R===undefined?d.scav:R);} // a clutch whose parent has come back over it is left (v11.74)
   const f=c.scav;if(!f)return false;const dist=c.pos.distanceTo(f.pos),at=d.size*0.9+f.def.size*0.7;
   if(dist>at)seek(c,f.pos,d.speed*0.7,dt,1.4);else{c.vel.multiplyScalar(1-3*dt);eatAt(c,f,dt);c.face=f.pos;}return true;}
 function updateCoil(c,dt){
   const d=c.def;c.cool-=dt;const dist=c.pos.distanceTo(player.pos);
   if(c.state==='ram'){c.ramT-=dt;seek(c,player.pos,d.ram,dt,3);c.biteT-=dt;if(dist<reachOf(c,player)&&c.biteT<=0){c.biteT=2;blow(player,c);}if(c.ramT<=0||playerGone()){c.state='wander';c.cool=8;setWander(c);}}
-  else{if(dist<d.radius&&c.cool<=0&&!playerGone()){c.state='ram';c.ramT=3.5;}wander(c,dt);}
+  else{c.scanT-=dt;if(c.scanT<=0){c.scanT=0.5;c.awake=awakeOf(d);if(c.state==='rest'){if(c.awake>REST.off)restEnd(c);}else if(d.rest&&c.awake<REST.on)restBegin(c);} // v11.228: held still in the water out of its hours, and rams only what comes close then
+    if(dist<d.radius*(c.state==='rest'?REST.see:1)&&c.cool<=0&&!playerGone()){c.state='ram';c.ramT=3.5;c.sink=1;}else if(c.state==='rest')restStep(c,dt);else wander(c,dt);}
 }
 // the ambushers (the lurker, the hook) lunge at their prey (v11.26: a prey list, not only the player), when hungry
 function updateLurker(c,dt){
   const d=c.def;if(hungerTick(c,dt))return;
-  if(c.state==='sit'){c.vel.set(0,0,0);c.cool-=dt;c.scanT-=dt;if(c.scanT<=0){c.scanT=0.25;if(c.cool<=0&&c.hunger>ECO.hungry){const tg=findPrey(c,d.radius);if(tg){c.state='lunge';c.target=tg;c.lungeT=1.3;}}}}
+  if(c.state==='sit'){c.vel.set(0,0,0);c.cool-=dt;c.scanT-=dt;if(c.scanT<=0){c.scanT=0.25;c.awake=awakeOf(d);const thr=huntAt(c);if(c.cool<=0&&c.hunger>thr){const tg=findPrey(c,d.radius*lerp(REST.see,1,c.awake),thr);if(tg){c.state='lunge';c.target=tg;c.lungeT=1.3;}}}} // v11.228: out of its hours it waits hungrier and strikes only what comes close
   else if(c.state==='lunge'){const tg=c.target,tp=tg===player?player.pos:tg?tg.pos:c.home,dist=c.pos.distanceTo(tp);c.lungeT-=dt;c.biteT-=dt;c.grab=c.b.rigs&&tg&&dist<armReach(c,tg,1.6)?tg:null;if(d.hang||d.strikeOnLunge)c.st.strike=1; // strikeOnLunge (v11.66): the hood's claws open on the way up
     if(c.hold)c.vel.multiplyScalar(1-1.5*dt); // holding: the pair drifts (v11.92)
     else{seek(c,tp,d.lunge,dt,6);if(tg&&c.biteT<=0&&landsOn(c,tg)){c.biteT=1;landBite(c,tg);if(!c.hold&&tg!==player&&!tg.alive)c.state='feed';}} // the lunge is the commit: the bite on contact (v11.92)
     if(c.state==='lunge'&&((c.lungeT<=0&&!c.hold)||!tg||(tg!==player&&!tg.alive)||(tg===player&&playerGone()))){if(!c.hold&&c.lungeT<=0&&tg&&!c.bit)missed(c,tg);c.state='return';}}
   else if(c.state==='feed'){const f=c.feedAt;c.feedT-=dt;if(!f||f.gone||f.flesh<=0||c.feedT<=0){c.state='return';c.feedAt=null;return;}const dist=c.pos.distanceTo(f.pos);if(dist>reachOf(c,f)*0.8)seek(c,f.pos,3,dt,2);else{c.vel.multiplyScalar(1-3*dt);eatAt(c,f,dt);}}
   else{c.grab=null;if(!c.hold)c.target=null;seek(c,c.home,4,dt,2);if(c.pos.distanceTo(c.home)<0.8){c.state='sit';c.cool=3;c.pos.copy(c.home);}} // v11.31: what it has hold of comes home with it
-  if(c.state==='flee')c.state='return';
+  if(c.state==='flee'){c.state='return';c.dread=null;}
 }
 // ---------- the plumb (v11.223; CLADES, The radiation) ----------
 // A straightshell with no ballast in its chambers: the gas holds it shell-up, so it hangs nose-down at its station — beside a wall, in still water
@@ -633,7 +757,7 @@ function updatePlumb(c,dt){
   const d=c.def;if(hungerTick(c,dt))return;
   if(c.state==='sit'){c.scanT-=dt;c.cool-=dt;
     if(c.scanT<=0){c.scanT=HANG.scan;c.home.y=plumbY(d,groundAt(c.home.x,c.home.z),c); // the layer moves with the sky: the station's depth read four times a second
-      if(c.cool<=0&&c.hunger>ECO.hungry){const tg=findPrey(c,d.radius);if(tg){c.state='lunge';c.target=tg;c.lungeT=2;c.bit=false;}}}
+      c.awake=awakeOf(d);const thr=huntAt(c);if(c.cool<=0&&c.hunger>thr){const tg=findPrey(c,d.radius*lerp(REST.see,1,c.awake),thr);if(tg){c.state='lunge';c.target=tg;c.lungeT=2;c.bit=false;}}} // v11.228: readier at night, when its layer has come up to it
     if(c.state==='sit'){const D=HANG.drift,B=HANG.bob,p=c.t0,sk=Math.min(1,d.size/11),tx=c.home.x+sk*D[0]*Math.sin(TAU*t/D[1]+p)-c.pos.x,tz=c.home.z+sk*D[0]*Math.cos(TAU*t/D[2]+p*1.7)-c.pos.z,ty=c.home.y+sk*B[0]*Math.sin(TAU*t/B[1]+p*2.3)-c.pos.y; // sk (v11.227): the drift and the bob in proportion to a body smaller than the plumb's 11 // where it wants to be: its station, wandering and bobbing
       let vx=tx*HANG.pull*4,vz=tz*HANG.pull*4;const hv=Math.hypot(vx,vz);if(hv>HANG.hold){vx*=HANG.hold/hv;vz*=HANG.hold/hv;}
       c.vel.set(vx,clamp(ty*0.5,-HANG.rise,HANG.rise),vz);plumbPose(c,false);}} // v11.223.1: held by its gas and the water, not fixed — carried by the current, pushed by bodies, drifting back
@@ -718,6 +842,7 @@ function updateSailer(c,dt){
 const nearList=[],simList=[],bodies=[]; // this frame's creatures within 90 of the player; those at near LOD (arms simulated); near plus the player
 let frameNo=0;
 function updateCreatures(dt0){
+  clockTick(); // v11.228: the sim's sun and tide for the step's hours (the schools, updated before this, read the step before's)
   visibleCreatures=0;nearList.length=0;simList.length=0;const near=nearList;frameNo++;
   for(const c of creatures){
     const d=c.def,dp=c.pos.distanceTo(player.pos);
@@ -752,10 +877,10 @@ function updateCreatures(dt0){
     // the current (v11.18): a body in the water is carried by it (re-read twice a second) unless it holds on — sitting, on the ground,
     // or a floor crawler; a swimmer's steering (seek, the boids) subtracts the current from the way it wants to go, so it crabs upstream,
     // holds station facing into the flow with its tail beating, and is swept only when the current outruns it
-    c.carried=sub>0&&!c.grounded&&(c.state!=='sit'||d.upright===true)&&d.role!=='trap'&&!d.floor; // upright (v11.223.1): a hanging plumb is in the water, not on anything — the current carries it and it drifts back
+    c.carried=sub>0&&!c.grounded&&(c.state!=='sit'||d.upright===true)&&d.role!=='trap'&&!d.floor&&!(c.state==='rest'&&(d.rest==='cover'||d.rest==='floor'||d.rest==='bury')); // v11.228: an animal resting on the floor holds on, as one sitting does // upright (v11.223.1): a hanging plumb is in the water, not on anything — the current carries it and it drifts back
     if(dp<200&&c.carried){if(!c.cur){c.cur=V3(0,0,0);c.curT=0;}c.curT-=dt;if(c.curT<=0){c.curT=0.4+SIMR()*0.2;currentAt(c.pos.x,c.pos.z,c.pos.y,c.cur);}c.pos.addScaledVector(c.cur,dt*sub);}
     let pad=null;if(dp<200&&!d.ghost)pad=bodyPush(c.pos,c.vel,c.g.quaternion,d.size*0.75,d.size*0.35,d.size*0.28);
-    const fh=groundAt(c.pos.x,c.pos.z)+(d.clear!==undefined?d.clear:d.size*0.35);c.grounded=false;if(c.pos.y<fh){c.pos.y=fh;if(c.vel.y<0)c.vel.y*=-0.15;c.grounded=true;}if(d.deepY!==undefined&&c.pos.y<d.deepY&&!c.held){c.pos.y=d.deepY;if(c.vel.y<0)c.vel.y=0;} /* deepY (v11.223): a gas-chambered body is held above the depth its chambers flood at (derive; the person, 23 Nov 2026: no exceptions) — a held one goes where its holder takes it */ // clear: how high the origin sits over the floor (a buried trap sits low). v11.92 tried the body's own radius (a ridge hangs 3 m up on 0.35 × size, its mouth over a floor prey's head) and wedged it in the floor's rocks: the lunge pitches down instead
+    const fh=groundAt(c.pos.x,c.pos.z)+(d.clear!==undefined?d.clear:d.size*0.35)*c.sink;c.grounded=false;if(c.pos.y<fh){c.pos.y=fh;if(c.vel.y<0)c.vel.y*=-0.15;c.grounded=true;}if(d.deepY!==undefined&&c.pos.y<d.deepY&&!c.held){c.pos.y=d.deepY;if(c.vel.y<0)c.vel.y=0;} /* deepY (v11.223): a gas-chambered body is held above the depth its chambers flood at (derive; the person, 23 Nov 2026: no exceptions) — a held one goes where its holder takes it */ // clear: how high the origin sits over the floor (a buried trap sits low). v11.92 tried the body's own radius (a ridge hangs 3 m up on 0.35 × size, its mouth over a floor prey's head) and wedged it in the floor's rocks: the lunge pitches down instead
     if(d.surface){c.pos.y=waveH(c.pos.x,c.pos.z)+(d.ys||0);c.vel.y=0;c.grounded=false;} // a float: on the wave, always (the sailers)
     if(pad){c.grounded=true;loadPad(pad,clamp(d.size*0.3/pad.r,0.02,0.5));} // a fish that lands on a lily pad lies on it (and flops off)
     // beached: a swimmer lies still, then flops downhill for the sea
