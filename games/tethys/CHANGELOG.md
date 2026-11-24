@@ -11029,3 +11029,30 @@ good… tangible, stable"*), rarity and budget per species with the ringmouths v
   for the four kinds, then replayed like any kind's.
 - **Unseen, ask in this order**: (1) the bestiary's `i` on the plumb, ortho, great and rasp — do the morphs read, is the spread of sizes right;
   (2) whether the rare pale one is rare enough to be a find at one in 50; (3) step 2 next (the growth laws for every clade), or more rows first.
+
+## v11.226 — the individual for every placed species: the clades' growth laws, more morphs, proportions by part (24 Nov 2026)
+
+The person on v11.225 (24 Nov 2026): *"I love it, looks great"*; one in 50 *"feels right for now"*; *"variety for more species first please"*; and,
+having played it, *"I love the variety and I love how they can match their environment… their larger size is SO much more threatening and unique
+to this setting."*
+
+- **A row for each of the 38 kinds the ledger places** (creatures_defs.js `VARIETY`), each with its morphs and a cause for each (see the rows'
+  comments): the lurker dark on basalt or mottled on rubble; the grazer's yellow (carotenoids from the green it crops); the scuttle red from a
+  shore diet; the trap mottled in its sand; the basker, the wedge, the hook, the picker dark by the vents and the basalt; the abyssal and the
+  jelly red, which is black where they live; a pale one in 50 nearly everywhere (not the vents' pickers). **Uniform**: the darter, flicker and
+  sifter (a school — the one that differs is the one picked out), the pall, the cinder.
+- **The clades' growth laws** (`GROW`, `VARIETY_CLADE.grow`; VARIETY §3): `stop` for the soft ringmouths (a narrow, even band), `never` for the
+  slowbloods (the old giants: the ridge to 1.55, the abyssal to 1.6), `moult` for the hingeshells (`INSTAR` 1.18: sizes in steps, the steps inside
+  the band, the range 0.02 so a step stays a step), `food` for the drifters (the place's `nut`, `indiv(kind, seed, nut)`). The old take their clade's
+  palette (`MORPHS` senescent, weathered, worn).
+- **Proportions by part** (`VARY_AUTO`, `autoVary`, `regParam`): a row without its own list varies its arms, fins, tails, legs, combs, eyestalks,
+  spines and barbels and its core's proportions (a trunk's widths, a shield's, a mantle's length and girth, a bell's) and a lathe's girth (its
+  profile's every radius), each where the spec sets it or its registry default is a number, within its believable band. Every variant compiles;
+  none is NaN (a few frame-derived defaults land a hair past a believable band — validate's soft warning, as some types already do).
+- **Morphs** (`MORPHS`, `MORPH_KEYS`, `MORPH_PAT`): `erythristic` now on the coat's pigmented keys, `hueTo` going all the way round from teal (a red
+  arrow was yellow in the first strip); `xanthic`; `banded` and `spotted` with their own pattern (drawn with the texels on) and a coat that reads with
+  them off.
+- **Tools**: `PIX=1 INDIV=1 node test/preview.js <id>` draws the strips with the patterns.
+- **test/variety.js**: every placed species has a row; the five uniform ones have one morph and one set; a pattern morph wears its pattern; every
+  hingeshell's sizes come in moult steps within its range; the general checks (frequencies, bands, budget, derive per variant, set 0 the type,
+  stable reloads — 26 individuals at the busiest wall) over all 38.

@@ -2140,6 +2140,16 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   the type. The ringmouths' shells take the place's chemistry since v11.225 (`COAT_CHEM_KEYS.ringmouths` shell, band). Not yet: combat's live spec
   and `kgOfKind` read the type's spec (a variant's mass is the type's at its scale); the clades' other growth laws, fouling and scars (VARIETY §7).
   `INDIV=1 node test/preview.js <id>` draws eight individuals at their sizes on one scale; test/variety.js holds it.
+  **v11.226, every placed species** (the person, 24 Nov 2026: "variety for more species first"): a row for each of the 38 kinds the ledger places.
+  The clade's law unless the row says (`VARIETY_CLADE.grow`): ringmouths `stop` (soft: grown and done, a narrow even band; the shelled keep
+  `shell`), slowbloods `never` (an ectotherm's long tail of old giants), hingeshells `moult` (sizes in steps of `INSTAR` 1.18, Dyar's rule, the
+  steps inside the row's band, `range` 0.02 so they stay steps), drifters `food` (the place's `nut` first, age second). The old take the clade's
+  palette (`oldPal`: senescent, weathered, worn; the shelled `old`). A row without `vary` takes `VARY_AUTO`'s by its parts' and core's kinds (arm
+  length, fins, tails, legs, combs, eyestalks, spines, barbels; the core's proportions; a lathe's girth as `prof`'s every radius), a param moving
+  only where the spec sets it or its registry default is a number. Morphs: `melanic`, `erythristic` (the coat's pigmented keys, `MORPH_KEYS`;
+  `hueTo` goes all the way round from teal so a red ringmouth is red, not yellow), `xanthic` (yellow: the lit shallows' carotenoids, the grazer),
+  `leucistic`, and the pattern morphs `banded` and `spotted` (`MORPH_PAT`: their own pattern, drawn with the texels on, and a coat that reads with
+  them off — a hard dark back, the floor's paler grey). Uniform (one morph, one set): darter, flicker, sifter (the oddity effect), pall, cinder.
 - **The moult (v11.66, `MOULT`):** `frac` 0.05 of a moulting clade's placed adults start soft (never a boid); soft is `c.soft` — the `soft` class
   (pale), `st.soft` 1 (the valves clamp), `b.cover` all skin, state `sit`, laid by `hideSpot` on the floor within `hide` 6 m where a solid stands
   within 2 m; `updateSoft` hardens it after `soft` 0.5 days × mass^¼ out of sight (`harden`: a new adult spawned in its place, as `growUp`); a hard

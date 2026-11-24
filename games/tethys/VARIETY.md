@@ -1,7 +1,9 @@
 # VARIETY — the individual: what differs between two animals of one kind, why, and how it is made
 
 **Status: proposed 23 Nov 2026; §8's questions answered the same day; §7 step 1 built v11.225** (the machinery; the plumb, ortho, great and
-rasp; DESIGN, The individual's variants). The person's brief (23 Nov 2026): *"now is a good time to start discussing or working on docs for
+rasp; DESIGN, The individual's variants); **every placed species' row and §3's growth laws built v11.226** (the person, 24 Nov 2026: "variety for
+more species first"; on v11.225: *"I love the variety and I love how they can match their environment… their larger size is SO much more threatening
+and unique to this setting"*). Still to come: fouling and scars (§7.4), combat's live spec per variant. The person's brief (23 Nov 2026): *"now is a good time to start discussing or working on docs for
 implementing the diversity generator per individual, as well as color palettes for variety as well. But that kind of thing — should it be 30 m or
 20 m — is exactly something that will come up in the generator."* Downstream of CLADES.md, *The radiation* (decided 23 Nov 2026: **individuals are
 generated, species authored**) and PLANET's colour rules (blood tints, shell colour by water chemistry); beside LINEAGE §6 (a line's mutation is

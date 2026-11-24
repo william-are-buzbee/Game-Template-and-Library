@@ -123,11 +123,11 @@ if(process.env.INDIV){
   const want8=[[0,0,0],[0,1,0],[0,2,0],[0,0,1],[1,0,0],[1,1,1],[2,0,0],[2,1,1]];let n=0;
   for(const r of ids){const R=Z.VARIETY[r.id];if(!R)continue;const picks=[];
     for(const w of want8){let best=null;for(let sd=1;sd<40000&&!best;sd++){const ind=Z.indiv(r.id,Math.imul(sd,0x9E3779B1)>>>0);if(ind.m===w[0]&&ind.b===w[1]&&ind.o===!!w[2])best=ind;}if(best)picks.push(best);}
-    const built=picks.map(ind=>{const vx=Z.variantOf(r.id,ind),b=Z.buildKind(vx.def,r.id,'',vx);b.anim(T0,SPD,{});if(b.rigs)for(const rig of b.rigs)Z.rigRest(rig);b.g.scale.multiplyScalar(ind.k);return {ind,vx,tris:gather(b.g)};});
+    const built=picks.map(ind=>{const vx=Z.variantOf(r.id,ind),b=Z.buildKind(vx.def,r.id,'',vx);b.anim(T0,SPD,{});if(b.rigs)for(const rig of b.rigs)Z.rigRest(rig);b.g.scale.multiplyScalar(ind.k);return {ind,vx,pat:b.pat,tris:gather(b.g)};});
     let lo=[1e9,1e9,1e9],hi=[-1e9,-1e9,-1e9];for(const x of built)for(const t of x.tris)for(let q=0;q<9;q+=3)for(let a=0;a<3;a++){lo[a]=Math.min(lo[a],t.p[q+a]);hi[a]=Math.max(hi[a],t.p[q+a]);}
     const radius=Math.max(hi[0]-lo[0],hi[1]-lo[1],hi[2]-lo[2])/2||1,W=S*built.length,H=S,img=new Uint8Array(W*H*3);
     built.forEach((x,k)=>{let l2=[1e9,1e9,1e9],h2=[-1e9,-1e9,-1e9];for(const t of x.tris)for(let q=0;q<9;q+=3)for(let a=0;a<3;a++){l2[a]=Math.min(l2[a],t.p[q+a]);h2[a]=Math.max(h2[a],t.p[q+a]);}
-      renderTile(img,W,k*S,0,S,x.tris,VIEWS.quarter,[(l2[0]+h2[0])/2,(l2[1]+h2[1])/2,(l2[2]+h2[2])/2],radius,null,null);});
+      renderTile(img,W,k*S,0,S,x.tris,VIEWS.quarter,[(l2[0]+h2[0])/2,(l2[1]+h2[1])/2,(l2[2]+h2[2])/2],radius,null,PIX&&x.pat?{pat:x.pat}:null);}); // PIX=1: the patterns drawn
     fs.writeFileSync(path.join(outDir,r.id+'_indiv.png'),png(img,W,H));n++;
     console.log(r.id.padEnd(8),built.map(x=>x.vx.m+(x.ind.b?' set'+x.ind.b:'')+(x.ind.o?' old':'')+' ×'+x.ind.k.toFixed(2)).join(' | '));}
   console.log('wrote',n,'individual strips to test/preview/');process.exit(0);
