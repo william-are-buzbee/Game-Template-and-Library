@@ -11108,3 +11108,30 @@ or open ocean and such. Not deterministic, just chance."* No hitch on their card
   which draws its parts into the shadow maps too. The morphs drawn differently fill the variants' budgets in another order, an animal or two takes
   another proportion set, and the simulation drifts; nothing new is drawn. `test/gpu.json` updated.
 - **Unseen, ask**: the dunes and the dark places side by side — does the dark morph now sit where the dark is; the black ridge over the open ocean.
+
+## v11.227 — the hoop and the quill: a slowblood filter giant and a small hanger among the stalks; the abyssal fed (24 Nov 2026)
+
+The person (24 Nov 2026): *"I think we are ready now to begin creating the more niche animals like the filter feeding slow blood giant and the
+smaller cone vertical ring mouth. I want to ensure we have a pretty solidly functioning ecology. Then move onto improving AI and behavior in another
+chat."* Two of the radiation table's rows (CLADES.md, The radiation), and the ledger checked over 90 days and longer.
+
+- **The hoop** (creatures_spec.js `SPECS.hoop`; creatures_defs.js `DEFS.hoop`, its `SPAWN` row, `ROSTER`, `VARIETY`; creatures_builders.js its
+  palette): the ridge's line — the sawmouths — grown into a filter giant, as Earth's predators became filter feeders (Aegirocassis from the
+  radiodonts, Leedsichthys from predatory fish, the basking shark, the baleen whales). A round lathe body 16 m long as built (size 8, s 4.15; by age
+  and range 0.85–1.5, so 13.5–24 m), dark above and pale below, chevrons down its flanks, the slowbloods' ring of eyes, and a mouth that is **a ring
+  of eight short tentacles held open as a sieve** — no Earth animal gapes radially. The tentacles' new `sieve` switch gives derive's `filter` half
+  of π(r + 0.8·len)²: 32.7 m² (the comb's 13.3, the veil's 99.8), so on the ledger it is a hunter of the swarms (`ecoOf`) and never chases one.
+  **`gape`** (creatures_ai.js `filterSeek`): within a swarm's radius its ring opens (`st.strike`), outside it shuts, so a hoop is seen feeding.
+  Its place: the fed open water, `h` −450…−80 with `nut` ≥ 0.5 (the flank's upwelling, where the swarms are; the veil's is deeper, the comb's on
+  the plain), `n` 0.12. A slow swimmer (`pace` 0.22: 1.96 m/s): the swarm moves between its day and night layers at up to 4 m/s, so a hoop
+  finds a swarm where it rests, not on the move. Morphs: the type 80%, a dark one 18% (weighed by the place: the dark water's), a pale one 2%.
+- **The quill** (`SPECS.quill`, `DEFS.quill`, …): the person's *"smaller cone vertical ring mouth"* (23 Nov 2026: a shallow plumb, smaller ones that
+  still point up). Named the stipe in CLADES first, which is the kelp's name. The plumb's line at 3 m (size 1.8): a thin nine-chambered cone, a
+  collar of eight eyespots and three forward, a crown of short arms. It hangs shell-up among the weed forest's stalks, a stalk among stalks, at its own height
+  2–9 m over the floor (`canopy` [2, 9], drawn per animal from its `t0`; it does not ride the swarm's layer as the plumb does), and drops on
+  darters, flickers and needles under it (`radius` 7, `lunge` 5). Morphs: the type 68%, yellow 30% (the lit weed's; weighed by `lit`), pale 2%;
+  `shell` growth as the plumb's, the old faded and shed.
+- **The canopy station** (creatures_defs.js `STATION.canopy`, `stationW`): habitat's second scale, the third station after the wall and the lee —
+  the stipe flora's own envelope (`h` −54…−16, `sub`, `nut`, `flow`, `young`) by `envW` at the point, so the quill's capacity and its place in
+  the cell are where the stalks stand. `stationW` now takes the point's fields, not the flow alone (ecology.js, chunks.js); `plumbY` takes the
+  creature, for its own canopy height.

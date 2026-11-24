@@ -4,7 +4,7 @@
 // fall is the one the deep was written for) — their hp is now an ordinary mortal's, meaning nothing but that;
 // any other value is nothing. dmg is a bite's size for the blood and the debris. venom {kind: 'paralyse' (t seconds, against: clades) | 'sting'}
 // is the clade's chemistry (§3b): the lurker's beak paralyses, the basker's and the grazer's spines sting whatever clamps them. immune: the
-// abyssal eats combs that fed at the chemocline without sickening (v11.56; the garter snake's answer to the newt — its comb is its whole diet).
+// abyssal eats combs that fed at the chemocline without sickening (v11.56; the garter snake's answer to the newt — its comb was its whole diet; v11.227 adds the hoop and the ortho).
 // roles: boid (a loose ribbon: flickers, darters) hunter (chases prey) graze ambush (sits, lunges; hang: from up in the structure)
 // trap (sits, strikes) watch (the curious one) coil drift wander. legs: can move out of the water (walks); everything else is a
 // swimmer and flops when beached. size: rough half-length, used for collision, LOD and floor clearance (clear overrides the
@@ -43,7 +43,7 @@ const DEFS={
   great:{build:()=>compile(SPECS.great),size:6,pace:0.14,ram:5,dmg:12,radius:9,reach:5.2,hp:600,role:'coil',home:45,cruise:10,cruiseF:1},
   ridge:{build:()=>compile(SPECS.ridge),size:9,hp:140,role:'hunter',prey:['player','grazer','picker','plough'],detect:46,reach:6.6,dmg:32,biteCD:1.5,home:240,cruise:60,cruiseF:0.4,cool:5},
   ortho:{build:()=>compile(SPECS.ortho),size:8,hp:90,role:'hunter',prey:['player','needle','darter','grazer','picker'],detect:40,reach:5.6,dmg:24,biteCD:1.2,home:220,cruise:70,cruiseF:0.4,cool:5},
-  abyssal:{build:()=>compile(SPECS.abyssal),size:15,immune:true,hp:400,role:'hunter',prey:['player','comb','hoop'],cycle:10,detect:85,reach:10,dmg:55,biteCD:1.8,home:420,cruise:200,cruiseF:0.45,cool:6},
+  abyssal:{build:()=>compile(SPECS.abyssal),size:15,immune:true,hp:400,role:'hunter',prey:['player','comb','hoop','ortho'],cycle:10,detect:85,reach:10,dmg:55,biteCD:1.8,home:420,cruise:200,cruiseF:0.45,cool:6}, // v11.227: the ortho too — the comb and the hoop breed too slowly to feed it (the 90-day census: 392 → 73); an apex is a generalist, and the ortho shares its water (the sperm whale's giant squid)
   eel:{build:()=>compile(SPECS.eel),size:4,hp:55,role:'hunter',prey:['player','darter','flicker','sifter'],detect:17,reach:4.0,dmg:16,biteCD:1.1,home:40,cruise:14,cruiseF:0.35,cool:4},
   lurker:{build:()=>compile(SPECS.lurker),size:2.4,venom:{kind:'paralyse',t:7,against:{slowbloods:1,ringmouths:1}},hp:45,role:'ambush',prey:['player','darter','flicker','rasp','scuttle','needle','grazer','wedge','sifter'],radius:9,lunge:14,reach:3.2,dmg:20,lodNear:75},
   // drifters (DRIFTERS.md): no eyes, no hunting; they sting what touches them. surface: rides the wave (ys under the crest's origin)
