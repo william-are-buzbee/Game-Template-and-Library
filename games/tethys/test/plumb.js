@@ -14,7 +14,7 @@ require('./stub.js');require(tmp);
 const X=global.__pl;let fails=0;
 Math.random=X.mulberry(23);
 function check(ok,msg){if(!ok){fails++;console.error('  FAIL '+msg);}else console.log('  ok   '+msg);}
-const dt=1/60,D=X.DEFS.plumb,ei=X.SPAWN.findIndex(e=>e.kind==='plumb'),E=X.SPAWN[ei];
+const fl=v=>{const a=new Float32Array(9);a[X.FI.flow]=v;return a;},dt=1/60,D=X.DEFS.plumb,ei=X.SPAWN.findIndex(e=>e.kind==='plumb'),E=X.SPAWN[ei];
 function frames(n,each){for(let i=0;i<n;i++){X.setT(X.t+dt);if(X.mode==='play')X.updatePlayer(dt);X.updateCreatures(dt);if(X.mode==='play')X.finishPlayer(dt,X.bodies);if(each&&each(i))return i;}return -1;} // one frame of the game's creature path, as test/combat.js's
 const hold=()=>{X.player.vel.set(0,0,0);}; // the player kept where a check puts it
 const down=c=>{const q=c.g.quaternion,z=X.V3(0,0,1).applyQuaternion(q);return -z.y;}; // the body's +z (its arms' way) against straight down: 1 is plumb
@@ -23,16 +23,16 @@ const down=c=>{const q=c.g.quaternion,z=X.V3(0,0,1).applyQuaternion(q);return -z
 console.log('the stations');
 check(D.deepY===-450,'the plumb is gas-chambered: derive gives it the shell\'s floor, −450 (deepY '+D.deepY+')');
 check(X.DEFS.ortho.deepY===-450&&X.DEFS.ridge.deepY===undefined,'so is the ortho; a slowblood has none');
-check(X.stationW(D.station,-200,0,36,0.1,D.deepY)===0,'flat ground is no wall');
-check(X.stationW(D.station,-200,34,36,0.1,D.deepY)>0.99,'a 34 m face over 36 m in still water is a full station');
-check(X.stationW(D.station,-200,34,36,0.6,D.deepY)===0,'the same face in a current is none (a hung body is a mast)');
-check(X.stationW(D.station,-520,40,36,0.1,D.deepY)===0,'a face that tops out under −450 + reach is none (the plumb could not hang beside it)');
+check(X.stationW(D.station,-200,0,36,fl(0.1),D.deepY)===0,'flat ground is no wall');
+check(X.stationW(D.station,-200,34,36,fl(0.1),D.deepY)>0.99,'a 34 m face over 36 m in still water is a full station');
+check(X.stationW(D.station,-200,34,36,fl(0.6),D.deepY)===0,'the same face in a current is none (a hung body is a mast)');
+check(X.stationW(D.station,-520,40,36,fl(0.1),D.deepY)===0,'a face that tops out under −450 + reach is none (the plumb could not hang beside it)');
 check(X.gridRise([0,0,0,0,-30,0,0,0,0],3,4)===30&&X.gridRise([0,0,0,0,30,0,0,0,0],3,4)===0,'gridRise: the rise to the highest neighbour, none on a summit');
 
 // ---- 2. the ledger: a wall cell holds plumbs, a flat one none ----
 console.log('the ledger');
 const cellW=(i,j)=>{const x0=i*X.CELL-X.HALF,z0=j*X.CELL-X.HALF,hs=[],fs=[];for(let b=0;b<6;b++)for(let a=0;a<6;a++){const s=X.sample(x0+(a+0.5)/6*X.CELL,z0+(b+0.5)/6*X.CELL);hs.push(s.h);fs.push(s.f);}
-  let w=0,flat=true;for(let n=0;n<36;n++){const r=X.gridRise(hs,6,n);if(r>3)flat=false;let t=X.envW(E.env,hs[n],0,fs[n]);if(t>0)t*=X.stationW(D.station,hs[n],r,X.CELL/6,fs[n][X.FI.flow],D.deepY);w+=t;}return {w:w,flat:flat,deep:Math.min(...hs)};};
+  let w=0,flat=true;for(let n=0;n<36;n++){const r=X.gridRise(hs,6,n);if(r>3)flat=false;let t=X.envW(E.env,hs[n],0,fs[n]);if(t>0)t*=X.stationW(D.station,hs[n],r,X.CELL/6,fs[n],D.deepY);w+=t;}return {w:w,flat:flat,deep:Math.min(...hs)};};
 let wall=null,flat=null;const c0=X.cellOf(0);
 for(let r=1;r<40&&!(wall&&flat);r++)for(let a=0;a<r*8&&!(wall&&flat);a++){const ang=a/(r*8)*Math.PI*2,i=c0+Math.round(Math.cos(ang)*r),j=c0+Math.round(Math.sin(ang)*r);if(i<0||j<0||i>=X.NCELL||j>=X.NCELL)continue;
   const q=cellW(i,j);if(!wall&&q.w>2)wall={i:i,j:j,w:q.w};if(!flat&&q.flat&&q.deep<-40&&q.deep>-400)flat={i:i,j:j};}
@@ -102,5 +102,18 @@ console.log('the player\'s gas shell');
     for(let i=0;i<60*4;i++){P2.vel.y=Math.min(P2.vel.y,-12);frames(1);low=Math.min(low,P2.pos.y);} // driven down every step
     if(id==='coil')check(X.CLADES[ci].deepY===-450&&low>=-450-1e-6,'the coilshell driven down at 12 m/s for 4 s stops at −450 (lowest '+low.toFixed(1)+')');
     else check(X.CLADES[ci].deepY===undefined&&low<-460,'the soft-arm, no gas in it, goes on ('+low.toFixed(0)+')');}}
+
+// ---- 8. the quill (v11.227): the plumb's small line, hung among the weed forest's stalks ----
+console.log('the quill');
+{const Q=X.DEFS.quill,S=X.STATION.canopy.env,weed=new Float32Array(9),bare=new Float32Array(9);weed[X.FI.sub]=0.8;weed[X.FI.nut]=0.7;weed[X.FI.flow]=0.4;bare[X.FI.sub]=0.2;bare[X.FI.nut]=0.2;bare[X.FI.flow]=0.4;
+  check(X.stationW(Q.station,-30,0,36,weed,Q.deepY)>0.99&&X.stationW(Q.station,-30,0,36,bare,Q.deepY)===0&&X.stationW(Q.station,-90,0,36,weed,Q.deepY)===0,'its canopy station is the stalks\' own envelope: the weed at −30 yes, sand or −90 no');
+  let qc=null;const c0=X.cellOf(0);for(let r=1;r<40&&!qc;r++)for(let a=0;a<r*8&&!qc;a++){const i=c0+Math.round(Math.cos(a/(r*8)*6.283)*r),j=c0+Math.round(Math.sin(a/(r*8)*6.283)*r);const c=X.ecoId(i,j);if(c<0)continue;X.ecoCap(c,null);const ei=X.SPAWN.findIndex(e=>e.kind==='quill');if(X.POP.k[ei][c]>0.5)qc={i,j};}
+  check(!!qc,'a weed cell holds quills'+(qc?' ('+qc.i+', '+qc.j+')':''));
+  if(qc){X.loadChunkNow(qc.i,qc.j);const ch=X.chunkIJ(qc.i,qc.j);for(const c of X.creatures.slice())if(c.kind==='quill')X.removeCreature(c);const e=X.SPAWN.find(e=>e.kind==='quill'),g=X.placeKind(ch,e,1,X.mulberry(9),{ent:-1});let r=g.next();while(!r.done)r=g.next();
+    const q=X.creatures.find(c=>c.kind==='quill');check(!!q,'placeKind stands one in it');
+    if(q){const fl0=X.groundAt(q.pos.x,q.pos.z),lo=fl0+Q.clear+Q.size*X.HANG.gap+Q.canopy[0]-0.01,hi=fl0+Q.clear+Q.size*X.HANG.gap+Q.canopy[1]+0.01;for(const c of X.creatures.slice())if(c!==q)X.removeCreature(c);
+      X.player.pos.set(q.pos.x+80,Math.min(-10,q.pos.y),q.pos.z);hold();let out=0,lowC=1;frames(60*10,()=>{X.player.pos.set(q.pos.x+80,Math.min(-10,q.pos.y),q.pos.z);hold();if(q.home.y<lo||q.home.y>hi)out++;lowC=Math.min(lowC,down(q));});
+      check(out===0&&lowC>0.97,'it hangs nose-down at its own height among the stalks, '+(q.home.y-fl0).toFixed(1)+' m over the floor (no layer to follow), the least cos '+lowC.toFixed(3));
+      check(Math.abs(q.home.y-q.pos.y)<1.5,'and stays there ('+q.pos.y.toFixed(1)+' against its station '+q.home.y.toFixed(1)+')');}}}
 
 if(fails){console.error('plumb: '+fails+' FAILED');process.exit(1);}console.log('plumb: ok');

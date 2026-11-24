@@ -623,16 +623,18 @@ const HANG={rise:1.2,back:2,above:0.82,surf:3,tip:0.08,face:10,scan:0.25,
   sway:[0.11,23,31], // the tilt's reach (of the face's 10 m, so ~6°) and its two periods (s): a pendulum's wander, which turns it slowly as it goes
   drift:[2.2,47,61], // m, s, s: the wander of its station round where it was placed — still water, not a fixed post
   pull:0.15,hold:0.45}; // 1/s and m/s: how hard it keeps its station against a push or the current (it is carried by the water, v11.223.1); a push moves it and it drifts back
-function plumbY(d,floor){let lo=floor+(d.clear||0)+d.size*HANG.gap;if(d.deepY!==undefined)lo=Math.max(lo,d.deepY);return Math.min(Math.max(swarmDepth(floor,SKY.dayK,SKY.moonL,0.5),lo),-(d.size*HANG.above+HANG.surf));}
+function plumbY(d,floor,c){let lo=floor+(d.clear||0)+d.size*HANG.gap;if(d.deepY!==undefined)lo=Math.max(lo,d.deepY);const top=-(d.size*HANG.above+HANG.surf);
+  if(d.canopy)return Math.min(lo+lerp(d.canopy[0],d.canopy[1],c?(c.t0%1):0.5),top); // the quill (v11.227): among the stalks, at its own height in the canopy's band over the floor — no layer to follow in the lit weed
+  return Math.min(Math.max(swarmDepth(floor,SKY.dayK,SKY.moonL,0.5),lo),top);}
 // the face point under it; snap: turn the body there at once (at its placing)
 function plumbPose(c,snap){const w=c.wallD,k=HANG.face*HANG.tip,S=HANG.sway,a=HANG.face*S[0],p=c.t0;c.wander.set(c.pos.x-(w?w.x*k:0)+a*Math.sin(TAU*t/S[1]+p),c.pos.y-HANG.face,c.pos.z-(w?w.z*k:k)+a*Math.cos(TAU*t/S[2]+p));c.face=c.wander; // leaning off the wall, swaying (v11.223.1)
   if(snap){_m.lookAt(c.wander,c.pos,UP);c.g.quaternion.setFromRotationMatrix(_m);c.g.position.copy(c.pos);}}
 function updatePlumb(c,dt){
   const d=c.def;if(hungerTick(c,dt))return;
   if(c.state==='sit'){c.scanT-=dt;c.cool-=dt;
-    if(c.scanT<=0){c.scanT=HANG.scan;c.home.y=plumbY(d,groundAt(c.home.x,c.home.z)); // the layer moves with the sky: the station's depth read four times a second
+    if(c.scanT<=0){c.scanT=HANG.scan;c.home.y=plumbY(d,groundAt(c.home.x,c.home.z),c); // the layer moves with the sky: the station's depth read four times a second
       if(c.cool<=0&&c.hunger>ECO.hungry){const tg=findPrey(c,d.radius);if(tg){c.state='lunge';c.target=tg;c.lungeT=2;c.bit=false;}}}
-    if(c.state==='sit'){const D=HANG.drift,B=HANG.bob,p=c.t0,tx=c.home.x+D[0]*Math.sin(TAU*t/D[1]+p)-c.pos.x,tz=c.home.z+D[0]*Math.cos(TAU*t/D[2]+p*1.7)-c.pos.z,ty=c.home.y+B[0]*Math.sin(TAU*t/B[1]+p*2.3)-c.pos.y; // where it wants to be: its station, wandering and bobbing
+    if(c.state==='sit'){const D=HANG.drift,B=HANG.bob,p=c.t0,sk=Math.min(1,d.size/11),tx=c.home.x+sk*D[0]*Math.sin(TAU*t/D[1]+p)-c.pos.x,tz=c.home.z+sk*D[0]*Math.cos(TAU*t/D[2]+p*1.7)-c.pos.z,ty=c.home.y+sk*B[0]*Math.sin(TAU*t/B[1]+p*2.3)-c.pos.y; // sk (v11.227): the drift and the bob in proportion to a body smaller than the plumb's 11 // where it wants to be: its station, wandering and bobbing
       let vx=tx*HANG.pull*4,vz=tz*HANG.pull*4;const hv=Math.hypot(vx,vz);if(hv>HANG.hold){vx*=HANG.hold/hv;vz*=HANG.hold/hv;}
       c.vel.set(vx,clamp(ty*0.5,-HANG.rise,HANG.rise),vz);plumbPose(c,false);}} // v11.223.1: held by its gas and the water, not fixed — carried by the current, pushed by bodies, drifting back
   if(c.state==='lunge'){const tg=c.target,tp=tg===player?player.pos:tg?tg.pos:c.home,dist=c.pos.distanceTo(tp);c.lungeT-=dt;c.biteT-=dt;c.face=tp;c.grab=c.b.rigs&&tg&&dist<armReach(c,tg,1.6)?tg:null;
@@ -690,6 +692,7 @@ function filterSeek(c,dt){const d=c.def;if(!(d.filter>0))return false;
   const R=swarmR(sw),dist=c.pos.distanceTo(sw.pos),k=burstK(c,dt),sp=d.speed*(d.cruiseF||0.45)*k;if(c.state!=='filter'){c.state='filter';c.wanderT=0;}
   if(dist>R*0.7)seek(c,sw.pos,sp,dt,0.8*k);
   else{c.wanderT-=dt;if(c.wanderT<=0||c.pos.distanceTo(c.wander)<2){c.wanderT=srnd(3,7);c.wander.set(sw.pos.x+(SIMR()-0.5)*R*1.2,sw.pos.y+(SIMR()-0.5)*R*0.6,sw.pos.z+(SIMR()-0.5)*R*1.2);}seek(c,c.wander,sp*0.7,dt,0.8*k);} // inside: circling through the cloud
+  if(d.gape&&dist<R)c.st.strike=1; // the hoop (v11.227): its mouth's ring held open while it is in the cloud, shut as it leaves (the strike's decay)
   filterIntake(c,dt);return true;}
 function filterPlayer(dt){const P=player;P.swT=(P.swT||0)-dt;if(P.swT<=0){P.swT=FILTER.scan;P.sw=eaterK(P).filter>0?swarmNear(P.pos,FILTER.see):null;}filterIntake(P,dt);} // the player's nearest swarm within FILTER.see, for the readout and the intake
 function updateJelly(c,dt){

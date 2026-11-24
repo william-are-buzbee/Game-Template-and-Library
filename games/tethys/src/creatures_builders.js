@@ -15,6 +15,8 @@ const PAL={
   ridge:{top:[0.11,0.15,0.19],belly:[0.45,0.50,0.48],mouth:[0.06,0.04,0.04],band:[0.32,0.13,0.09],plate:[0.09,0.12,0.15],eye:[0.04,0.04,0.05]},
   ortho:{shell:[0.86,0.83,0.72],band:[0.30,0.26,0.24],flesh:[0.32,0.46,0.44],belly:[0.46,0.58,0.55],mouth:[0.04,0.05,0.06],eye:[0.80,0.84,0.76],pupil:[0.04,0.04,0.05]},
   plumb:{shell:[0.80,0.70,0.63],band:[0.32,0.19,0.17],flesh:[0.30,0.44,0.43],belly:[0.44,0.56,0.54],mouth:[0.04,0.05,0.06],eye:[0.80,0.84,0.76],pupil:[0.04,0.04,0.05]}, // v11.223: a rose shell under a dark helix, to tell from the ortho's cream at a distance (v11.223.1: paler, 0.66 to 0.80 — it read dark against the rock at 70 m)
+  quill:{shell:[0.40,0.36,0.20],band:[0.22,0.18,0.08],flesh:[0.30,0.40,0.34],belly:[0.46,0.52,0.44],mouth:[0.04,0.05,0.06],eye:[0.80,0.84,0.76],pupil:[0.04,0.04,0.05]}, // v11.227: the weed's olive under a darker helix — a stalk among stalks
+  hoop:{top:[0.20,0.23,0.26],belly:[0.66,0.64,0.58],mouth:[0.10,0.08,0.08],band:[0.14,0.13,0.14],plate:[0.24,0.26,0.28],eye:[0.70,0.72,0.74]}, // v11.227: open water's slate over a pale belly, the iron's rust in the dark of the mouth
   eel:{top:[0.20,0.28,0.14],belly:[0.55,0.60,0.40],fin:[0.32,0.42,0.18],mouth:[0.06,0.04,0.04],band:[0.30,0.15,0.09],eye:[0.05,0.05,0.04]},
   lurker:{top:[0.34,0.38,0.40],belly:[0.5,0.52,0.52],ridge:[0.26,0.30,0.32],mouth:[0.05,0.06,0.07],eye:[0.80,0.84,0.76],pupil:[0.04,0.04,0.05]},
   abyss:{top:[0.05,0.06,0.09],belly:[0.22,0.25,0.28],mouth:[0.06,0.04,0.04],band:[0.24,0.10,0.08],plate:[0.04,0.05,0.07],eye:[0.02,0.02,0.03]},
