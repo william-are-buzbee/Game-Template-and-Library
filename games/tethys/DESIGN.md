@@ -2113,6 +2113,17 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   ringmouth `stand`s off facing it; a hingeshell never looks) is looked at first (`inspect`, `inspectStep`): it runs — the chase; turns its back
   `RISK.back` 0.7 s — the chase; comes at it while watching — driven off after `deter` 3 s × (0.5 + need), for `cool` 20 s; at the look's end (`insp`
   4 + 10 × (1 − need) s) in at need ≥ `commit` 0.5, else away. Past `reckless` 0.85, straight in.
+- **The senses (v11.229; BEHAVIOUR.md §3b; creatures_defs.js `EYE_K`, `LAT_CLADE`, `BEHAVE` `eye`/`lat`/`freeze`; creatures_ai.js `SENSE`, `SCENT`,
+  `FREEZE`).** An animal notices another (`notices`) by sight or by its lateral line. Sight (`sightOf`): the light at the body seen, `CK.lg0` (the step's
+  surface light, log10 of noon's, world.js `LIGHT_P`) falling a decade every 60 m, through the eye's [nothing, all] (`ring` −10.5/−5.5, `two` −10/−6,
+  `stalk` −9/−5, `night` −11/−7, `deep` −12/−8); + `sil` 1.5 decades × the sine of the body's height over the eye (a silhouette); × `still` 0.35 + `big`
+  0.08 a metre of its size for a still body, all of it from `move` 1.5 m/s; × (1 − `crypt` 0.6 × `c.crypt`, 1 when buried; `c.crypt` 0.25 + 0.5 × its
+  morph's favour at its place); × (1 − `cover` 0.5 × the weed's envelope, `coverOf`, read once a second a body). The lateral line (`hearOf`): `lat` ×
+  the hearer's size from 0.2 to 1.5 m/s (`SENSE.lat`), × √(the felt body's size over the hearer's) within 0.4–1.6; nothing for a still body. `findPrey`,
+  the ambushers' and traps' scans, the schools' and grazers' threats and the watcher's curiosity all go through it. Scent (`plumeK`): blood and carrion
+  ×1.6 downstream, ×0.2 upstream, by the current at the nose to 0.25 m/s. The freezers (rasp, scuttle, wedge, plough, cinder) hold still — a hingeshell
+  clamped — at a threat beyond `FREEZE.bolt` 3 m + their size. The sky the step reads is `CK` (`clockTick`: `dayK`, `moonL`, the eclipses, `lg0`),
+  and the pall's hold, cloud, dark and flee are the step's (fx.js `phoStep`).
 - **Removed by request:** the mid-water `weed` flora (the "floating spiky objects"); the `colony` creature (pink/cyan
   glowing chains); darter/glim **schools are no longer spawned** — the code (`school` role, `makeSchool`,
   `updateSchools`, `buildDarter`) is intact. They went because the rigid formation read as a block; if they return it

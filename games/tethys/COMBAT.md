@@ -398,7 +398,8 @@ The crippling bite is the eel's, and anything's from behind; the ridge's is deat
   soft-arm, a ringmouth, clots at 10%.
 - **The look follows the rate**: the burst at the wound ∝ q₀ (none when nothing went through), the trail's emission ∝ the current rate — a
   torn tail pours, a graze threads, a bruise shows nothing. `SMELL_R` by the rate: SMELL_R × √(q ÷ q_ref), at most twice, so a pouring
-  wound is found from 180 m and a thread from 40 (downcurrent is the true direction of a scent: pass D).
+  wound is found from 180 m and a thread from 40 (downcurrent is the true direction of a scent: pass D — built v11.229, BEHAVIOUR.md §3b: a wound is smelt from 1.6× its reach
+  below it in a current and 0.2× above it).
 
 ### 10.7 What goes, what stays, the knobs
 

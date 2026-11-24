@@ -178,7 +178,10 @@ chemistry and electroreception still matter where nothing glows." (The game's ow
    blue window than the Sun's at the same total light: every limit 4–7 m shallower — the water decides).
 4. ~~**Which options, in what order**~~ — **answered 17 Nov 2026: start with the pall** ("sure, start there"); §8.
 5. ~~**The look**~~ — **answered 17 Nov 2026** ("Your creature pics are good"): flat square faces as in the mock-ups.
-6. **Sight by light:** a minimal term so creatures see lights (and lit bodies) further at night and below the light — or the player's eyes only, for now.
+6. ~~**Sight by light:** a minimal term so creatures see lights (and lit bodies) further at night and below the light — or the player's eyes only, for now.~~ —
+   **answered 24 Nov 2026: yes, the creatures too** ("Yes"; BEHAVIOUR.md §1). Built v11.229 (creatures_ai.js `sightOf`, creatures_defs.js `EYE_K`): every eye sees by
+   the light at the body it looks at, through two numbers by clade and kind (BEHAVIOUR §3b). A lit body's own light is not a term yet: a glowing carcass is
+   still the one light a creature reads (`carcGlow`, the scavengers').
 7. **The gardens (G):** do touch flashes on the deep gardens count as the binned "bioluminescence purely as a function of moving"?
 8. **The kits:** keep the wake's (`FLASH`, `skBody`, `sparkBurst`) and the displays' (`DSP`) code, or strike them now the rethink is written down.
 9. ~~**The deep by day**~~ — **answered 17 Nov 2026: dark, the eye adapting** (built v11.170, world.js `DEEP`): the deep's lights read by day below the twilight zone.
