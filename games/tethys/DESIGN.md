@@ -2150,6 +2150,15 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   `hueTo` goes all the way round from teal so a red ringmouth is red, not yellow), `xanthic` (yellow: the lit shallows' carotenoids, the grazer),
   `leucistic`, and the pattern morphs `banded` and `spotted` (`MORPH_PAT`: their own pattern, drawn with the texels on, and a coat that reads with
   them off — a hard dark back, the floor's paler grey). Uniform (one morph, one set): darter, flicker, sifter (the oddity effect), pall, cinder.
+  **v11.226.1, a morph's odds follow the place** (the person, 24 Nov 2026: no "random really dark ones in the bright dunes"; the black ridge "a lot
+  more often in darker waters or open ocean"; "not deterministic, just chance"): `indiv(kind, seed, P)` weighs each morph's frequency by its favour
+  at the place (`favourOf`: `FAVOUR.k` 0.08 + 3.12·f², the term `MORPH_FAVOUR`'s — melanic and erythristic `dark`, xanthic `lit`, banded `rock`,
+  spotted `floor` — or the row's third element: `lit` for a red from a shore or weed diet, `sand`, `none` for a chromatophore red). `placeOf(ch,
+  pos)` reads the place once at the spawn: `dark` the most of the light lost with depth (`smooth(−15, −250, y)`), the ground's tone near the floor
+  (`GROUND_TONE` by `coatClassAt`'s class — lime and sand pale, rust mid, manganese and sulfide black, fresh basalt +0.35 — times `smooth(60, 5, y −
+  floor)`) and the open ocean beneath (0.85 · `smooth(−80, −450, floor)`); `lit`, `rock`, `sand`, `floor`, `vent`, `nut`. The pale one and the type
+  follow nothing. test/variety.js: the grazer's dark morph 1.3% on the bright dunes and 38.8% in a dark place (16% as written); the black ridge 37.3%
+  over the open ocean and 2.1% in bright water; the pale one 1.5% in both.
 - **The moult (v11.66, `MOULT`):** `frac` 0.05 of a moulting clade's placed adults start soft (never a boid); soft is `c.soft` — the `soft` class
   (pale), `st.soft` 1 (the valves clamp), `b.cover` all skin, state `sit`, laid by `hideSpot` on the floor within `hide` 6 m where a solid stands
   within 2 m; `updateSoft` hardens it after `soft` 0.5 days × mass^¼ out of sight (`harden`: a new adult spawned in its place, as `growUp`); a hard

@@ -91,6 +91,9 @@ countershade, the shelf's olives and browns, the slope's reds and blacks, the de
 - **A morph is a transform of the species' palette with a cause**: melanic (melanin up: value down, saturation down), erythristic (hue to red, the
   belly holds), leucistic (value up, saturation down; the eyes stay), carotenoid-rich (warmer — only where the diet allows). `PAL_VARIANTS` already
   holds most of these as looks; here they become morphs with frequencies.
+- **The place picks the morph** (v11.226.1; the person, 24 Nov 2026: dark ones in dark places, none at random in the bright dunes — *"not
+  deterministic, just chance"*): a morph's frequency is weighed by its favour where the animal is drawn — the dark morphs by how dark the background
+  is, a diet's red or yellow by the lit water, a mottle by the ground — as a hunter's eye would weigh them (DESIGN, The individual's variants).
 - **The place shifts the coat** (`coatChem`) for every clade: a shell's and a plate's keys get the chemistry; flesh does not (blood decides it).
 - **The pattern follows the habit**: disruptive (bands, mottle) among structure (reef, kelp, rubble), countershaded in open water, plain below the
   light; a pattern morph changes its scale or breaks it. Today's per-clade pattern is the default.

@@ -11084,3 +11084,27 @@ to this setting."*
   variety is the change.
 - **Unseen, ask in this order**: (1) the bestiary's `i` across the roster — does each species' variety read, are any too subtle or too loud; (2) the
   first visit to a busy place (the shelf forest) — any hitch while its variants are first built; (3) which species should be uniform beyond the five.
+
+## v11.226.1 — a morph's odds follow the place (24 Nov 2026)
+
+The person on v11.226: *"the varieties for the squat looking slowblood fish that are spikey and damage you should have darker ones in darker biomes,
+but otherwise should not have random really dark ones in the bright dunes… the totally black ridge should show up a lot more often in darker waters
+or open ocean and such. Not deterministic, just chance."* No hitch on their card; no more uniform species for now.
+
+- **A morph's frequency is weighed by its favour where the animal is drawn** (creatures_ai.js `placeOf`, `favourOf`, `indiv(kind, seed, P)`;
+  creatures_defs.js `FAVOUR`, `MORPH_FAVOUR`, `GROUND_TONE`): what a hunter sees an animal against picks off the ones that stand out (Earth's pocket
+  mice, dark on the lava and pale on the sand). The place's terms, read once at the spawn: `dark` (the light lost with depth, the ground's tone near
+  the floor — lime, sand and ooze pale, rust mid, manganese and sulfide black, fresh basalt darker — and the open ocean beneath), `lit`, `rock`,
+  `sand`, `floor`, `vent`. The multiplier runs with the favour's square, 0.08 to 3.2. Melanic and the deep red follow `dark`; yellow and a diet's red
+  (the rasp's, the scuttle's, the hose's) `lit`; banded `rock`; spotted the floor (the trap's sand, the lurker's and the eel's rock); the arrow's and
+  the watcher's chromatophore red and the ram's bands nothing; the pale one never.
+- **The ridge's black morph** 0.14 → 0.2 as written: 37% of ridges over the open ocean, 2% in bright water.
+- **test/variety.js**: the grazer's dark morph 1.3% on the bright dunes and 38.8% in a dark place (16% as written); its pale one 1.6% and 1.5%;
+  the black ridge 37.3% and 2.1%; the scuttle's red 44.2% in the lit water against 1.5% in the dark; the place read off real ground — shallow sand
+  0.05 dark and 0.91 lit, mid-water over the deep 1.00 dark.
+- **What it cost**: at the spawn, the place read once (`placeOf`: the cell's own height and fields, `coatClassAt`, `chemoAt` — what the coat class
+  already read) and a sum over a row's few morphs; nothing a frame. `node test/gpu.js --check` moved the canopy's draws 267 → 316 (+18%) with the same
+  31 cells and 80 → 82 creatures in sight: counted at that frame on both trees, the same 435 meshes, and one needle more at the near LOD (17 → 18) —
+  which draws its parts into the shadow maps too. The morphs drawn differently fill the variants' budgets in another order, an animal or two takes
+  another proportion set, and the simulation drifts; nothing new is drawn. `test/gpu.json` updated.
+- **Unseen, ask**: the dunes and the dark places side by side — does the dark morph now sit where the dark is; the black ridge over the open ocean.

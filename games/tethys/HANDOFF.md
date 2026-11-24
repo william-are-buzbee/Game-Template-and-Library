@@ -8,7 +8,8 @@ Add the new version's paragraph at the top; take out what is no longer true; kee
 `autoVary`, `KIND_LOD`; test/variety.js, test/combat.js; VARIETY.md; DESIGN; CHANGELOG). All 38 kinds the ledger places are individuals: the clades' growth
 laws (soft ringmouths narrow, slowbloods' old giants, hingeshells in moult steps, drifters by food), morphs with causes (red, yellow, dark, pale,
 banded, spotted), proportions by part; five uniform (the schools, the pall, the cinder). First sight of a busy place ×1.13 (once a session); the
-frame level. **Ask:** the bestiary's `i` across the roster; a hitch on first visiting the shelf forest.
+frame level; no hitch on the person's card. **v11.226.1**: a morph's odds follow the place (`placeOf`, `FAVOUR`) — the dark ones where the background
+is dark, about one in 100 on the bright dunes; the black ridge 37% over the open ocean. **Ask:** whether the dark morphs now sit where the dark is.
 
 **v11.225 (23 Nov 2026): the individual, step 1** (creatures_defs.js `VARIETY`, `GROW`, `MORPHS`; creatures_ai.js `indiv`, `variantOf`; zoo.js `i`;
 test/variety.js; test/preview.js `INDIV=1`; VARIETY.md; DESIGN The individual's variants; CHANGELOG). The plumb, ortho, great and rasp are individuals:
