@@ -114,6 +114,9 @@ console.log('the quill');
     if(q){const fl0=X.groundAt(q.pos.x,q.pos.z),lo=fl0+Q.clear+Q.size*X.HANG.gap+Q.canopy[0]-0.01,hi=fl0+Q.clear+Q.size*X.HANG.gap+Q.canopy[1]+0.01;for(const c of X.creatures.slice())if(c!==q)X.removeCreature(c);
       X.player.pos.set(q.pos.x+80,Math.min(-10,q.pos.y),q.pos.z);hold();let out=0,lowC=1;frames(60*10,()=>{X.player.pos.set(q.pos.x+80,Math.min(-10,q.pos.y),q.pos.z);hold();if(q.home.y<lo||q.home.y>hi)out++;lowC=Math.min(lowC,down(q));});
       check(out===0&&lowC>0.97,'it hangs nose-down at its own height among the stalks, '+(q.home.y-fl0).toFixed(1)+' m over the floor (no layer to follow), the least cos '+lowC.toFixed(3));
-      check(Math.abs(q.home.y-q.pos.y)<1.5,'and stays there ('+q.pos.y.toFixed(1)+' against its station '+q.home.y.toFixed(1)+')');}}}
+      check(Math.abs(q.home.y-q.pos.y)<1.5,'and stays there ('+q.pos.y.toFixed(1)+' against its station '+q.home.y.toFixed(1)+')');}
+    for(const c of X.creatures.slice())if(c.kind==='quill')X.removeCreature(c);const g2=X.placeKind(ch,e,5,X.mulberry(11),{ent:-1});let r2=g2.next();while(!r2.done)r2=g2.next(); // v11.227.1: its group, a stand
+    const st=X.creatures.filter(c=>c.kind==='quill');let span=0,lowH=1e9;for(const a of st){lowH=Math.min(lowH,a.pos.y-X.groundAt(a.pos.x,a.pos.z));for(const b of st)span=Math.max(span,Math.hypot(a.pos.x-b.pos.x,a.pos.z-b.pos.z));}
+    check(e.grp===5&&st.length===5&&span<9&&lowH>Q.clear+Q.size*X.HANG.gap+Q.canopy[0]-1,'five placed are a stand round one point, '+span.toFixed(1)+' m across, each hung over its own floor (the least '+lowH.toFixed(1)+' m)');}}
 
 if(fails){console.error('plumb: '+fails+' FAILED');process.exit(1);}console.log('plumb: ok');

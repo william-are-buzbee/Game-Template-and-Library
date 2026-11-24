@@ -11176,3 +11176,34 @@ chat."* Two of the radiation table's rows (CLADES.md, The radiation), and the le
 - **Unseen, ask**: whether the hoop reads as a filter giant and not a fish, and whether the open ring shows at the distances it is met; whether the
   quill can be found among the stalks without being lost in them, and whether it is the small upright one meant; the hoop's dark morph over the
   open deep and the quill's yellow one in the lit weed; the abyssal now chasing orthos in play (nothing was tuned for that fight).
+
+## v11.227.1 — the quills in stands (24 Nov 2026)
+
+The person on v11.227's preview: *"I found the hoop on accident while scouring the island for a single quill."* The ledger gave the quill 1–2 a weed
+cell round the start (n 3), about 15 on the whole shelf: one 3 m cone in a 215 m square of kelp. Its 28,000 in the world were nearly all on the
+giant's shelf.
+
+- **Stands** (chunks.js `placeKind`; the quill's `SPAWN` row `grp` 5): a kind with stations is placed in its row's groups — the first member at the
+  station's point, the rest within 3 m of it, each hung over its own floor — as shrimpfish hang head-down together. The station branch runs before
+  the generic group branch now; the plumb (no `grp`) is placed as before, draw for draw.
+- **More of them**: `n` 3 → 8. Round the start, ~40 in the shelf's weed cells, in stands of up to five (61 at `n` 12). The census at 60 days: the
+  quill 74,288 → 88,429 at day 24 → 58,105, the fall slowing (−3.6% in the last six days) — about where `n` 12 was heading too (111k → 62k and still
+  falling), so ~55k is what its prey feeds; `n` 12 also took the hook, its rival for the same small fish in the same kelp, to 18,663 (47%). At `n` 8
+  the hook is 21,189 at day 60 (25,770 at `n` 3), its fall slowing.
+- **test/plumb.js §8**: five placed are a stand round one point, 5.3 m across, each over its own floor.
+- **What it cost** — **the creatures' frame at the forest's shelf ×1.13–1.14**, worth it because the person searched and found none: 98 creatures
+  within 150 m of it against main's 85, and a quill costs what any animal near the player costs (`updatePlumb` 4.1% of the frame, `findPrey` 4.1% →
+  6.6%, its arms' rigs). Against the merge base, v11.227 and this together:
+
+  | measure | before | after | ratio |
+  |---|---|---|---|
+  | creatures' work a frame at (330, 0), ms (mean), node, best of 5 | 2.787 | 3.182 | ×1.14 |
+  | the same, p95 | 3.680 | 4.419 | ×1.20 |
+  | creatures' work a frame at the forest (Chromium), ms | 2.286 | 2.588 | ×1.13 |
+  | every kind's build, ms (first / again) | 83.0 / 7.3 | 80.8 / 7.3 | ×0.97 / ×1.00 |
+  | a cell at forest / atoll / platform / sea / giant, ms | 61.1 / 38.6 / 27.7 / 10.1 / 37.7 | 63.6 / 38.9 / 28.4 / 10.5 / 37.5 | ×1.04 / 1.01 / 1.02 / 1.04 / 1.00 |
+
+  `node test/gpu.js --check` passes (nothing moved 10%). Cheaper would be a sitting hanger that looks for prey less often than every frame — a
+  change in behaviour, so the person's call, with the AI pass.
+- **Unseen, ask**: whether a stand reads, and whether ~40 on the start's shelf is enough to come across them or too many.
+

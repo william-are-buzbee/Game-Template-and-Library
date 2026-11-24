@@ -9,7 +9,8 @@ creatures_defs.js `DEFS`, `STATION.canopy`, `stationW`, `SPAWN`, `VARIETY`; crea
 test/plumb.js §8; CLADES, PLANET, DESIGN; CHANGELOG). The person's *"filter feeding slow blood giant and the smaller cone vertical ring mouth"*. The hoop:
 the ridge's line as a 16 m filter giant in the fed open water, its mouth's tentacle ring a sieve held open inside a swarm (~7,500 in the world). The
 quill: the plumb's line at 3 m, hung among the weed forest's stalks by the new canopy station (~29,000). The abyssal, which was collapsing on main
-(392 → 73 in 90 days: its prey breed too slowly), now eats the ortho too: from 2,017 it settles near half that (its least ~970 at day 325, rising after), the ortho steady at ~12,900. **Ask:** does the hoop read as a filter
+(392 → 73 in 90 days: its prey breed too slowly), now eats the ortho too: from 2,017 it settles near half that (its least ~970 at day 325, rising after), the ortho steady at ~12,900. **v11.227.1**: the person found the hoop by accident while searching the island for a single quill — there were ~15 on the whole shelf;
+now ~40 there, in stands of five (`grp`, `n` 8). **Ask:** does the hoop read as a filter
 giant (its ring open in a swarm); can the quill be found among the stalks, and is it the small upright one they meant. **Next:** AI and behaviour,
 in another chat (the person).
 
