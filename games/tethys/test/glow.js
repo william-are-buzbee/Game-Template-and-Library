@@ -8,7 +8,7 @@ const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..');
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
 let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n');
-js+='\nglobal.__gl={spawn,chunkAt,mulberry,stepRigs,hitFx,holds,lightPhys,phoGate,PHO,PHO_C,PHO_F,PHO_B,PHO_CL,PHO_L,FX,OXY,ORIGIN,sample,plank,flashAt,flashK,flashC,FLASH,FLASH_P,FOG_B,PLK,bloomTick,updateSky,updateSparks,sparkBurst,SPK,SK_N,FLOW,SKY,creatures,CURV,FI,bactGlow,bactSee,BACT,BACT_L,dspGate,dspHab,DSP,DSP_S,MILKY,MILKY_P,milkyPulse,updateNightLights,carcasses,kill,findCarcass,FOG_SKF,DAY_S,MOONL,V3,player,camera,DAY_H,SOLAR_H0,CUR_A,'+
+js+='\nglobal.__gl={phoStep,spawn,chunkAt,mulberry,stepRigs,hitFx,holds,lightPhys,phoGate,PHO,PHO_C,PHO_F,PHO_B,PHO_CL,PHO_L,FX,OXY,ORIGIN,sample,plank,flashAt,flashK,flashC,FLASH,FLASH_P,FOG_B,PLK,bloomTick,updateSky,updateSparks,sparkBurst,SPK,SK_N,FLOW,SKY,creatures,CURV,FI,bactGlow,bactSee,BACT,BACT_L,dspGate,dspHab,DSP,DSP_S,MILKY,MILKY_P,milkyPulse,updateNightLights,carcasses,kill,findCarcass,FOG_SKF,DAY_S,MOONL,V3,player,camera,DAY_H,SOLAR_H0,CUR_A,'+
   'setClock:h=>{clockH=h;TIDE=tideAt(h);},setT:v=>{t=v;},getT:()=>t,tide:()=>TIDE,setFlow:n=>{flowN=n;},live:()=>skLive,alpha:()=>skG,pos:()=>skP,ground:(x,z)=>groundAt(x,z),'+
   'load:(x,z)=>{const ci=cellOf(x),cj=cellOf(z);for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++)if(gridIn(ci+di,cj+dj))loadChunkNow(ci+di,cj+dj);}};';
 const tmp=path.join(require('os').tmpdir(),'tethys_glow_bundle.js');
@@ -89,7 +89,7 @@ console.log('the pall'+"'"+'s lights');
 {noon();const g5=G.phoGate(G.tide()-500),g6=G.phoGate(G.tide()-620);night();const n5=G.phoGate(G.tide()-500);
   ok(g5<0.15&&g6>0.95&&n5>0.99,'the web'+"'"+'s gate: noon at −500 '+T(g5)+' (the core'+"'"+'s top still lit for a deep eye), at −620 '+T(g6)+'; midnight at −500 '+T(n5));}
 {const x=2400,z=-699;G.load(x,z);night();const y0=Math.max(G.tide()-560,G.ground(x,z)+12);const c=G.spawn(G.chunkAt(x,z),'pall',G.V3(x,y0,z),G.mulberry(5));G.camera.position.set(x,y0+3,z+30);
-  const run=(s,f)=>{for(let k=0;k<s*60;k++){if(f)f(k);G.setT(G.getT()+1/60);G.updateNightLights(1/60);}};
+  const run=(s,f)=>{for(let k=0;k<s*60;k++){if(f)f(k);G.setT(G.getT()+1/60);G.phoStep(1/60);G.updateNightLights(1/60);}}; // v11.229: a step (the lights' state: phoStep) and a frame (the drawing)
   run(5);const nf=G.PHO_F.count,A=G.PHO_F.instanceMatrix.array,gl=G.PHO_F.geometry.attributes.aGl.array;let nan=0,far=0,mine=0;
   for(let i=0;i<nf;i++){for(let q=0;q<16;q++)if(!(A[i*16+q]===A[i*16+q]))nan++;const wx=A[i*16+12]+G.ORIGIN.x,wy=A[i*16+13],wz=A[i*16+14]+G.ORIGIN.z;if(Math.hypot(wx-c.pos.x,wy-c.pos.y,wz-c.pos.z)<14)mine++;if(!G.PHO_C.some(o=>Math.hypot(wx-o.pos.x,wy-o.pos.y,wz-o.pos.z)<14))far++;}
   ok(c.lumL>0.9&&mine===32,'a pall at '+Math.round(G.tide()-y0)+' m at midnight: the lure on ('+T(c.lumL)+'), 32 faces ('+mine+'): four on each of eight arms ('+G.PHO_C.length+' palls lit here, the ledger'+"'"+'s and this one)');
@@ -97,7 +97,7 @@ console.log('the pall'+"'"+'s lights');
   noon();const yS=c.pos.y;c.pos.y=c.g.position.y=G.tide()-505;run(5);ok(c.lumL<0.2,'at noon at −505 its web dims ('+T(c.lumL)+')');c.pos.y=c.g.position.y=yS;night();run(5);
   for(let k=0;k<10;k++)G.stepRigs(c,[],1/60);const q=c.b.rigs[0].chains[0],n=q.n;G.player.pos.set(q.pts[n*3],q.pts[n*3+1],q.pts[n*3+2]);run(0.1);
   ok(c.lumF>0.9,'touched at an arm'+"'"+'s tip: a flash ('+T(c.lumF)+')');G.player.pos.set(x,y0+40,z+60);run(2);ok(c.lumF<0.05,'gone two seconds after ('+T(c.lumF)+')');
-  const P0=G.V3(c.pos.x-10,c.pos.y,c.pos.z);G.hitFx(c,{pos:P0},c.pos.clone(),5);const cl=G.PHO_CL.filter(s=>s.on).length,away=(c.wander.x-c.pos.x)*(c.pos.x-P0.x)>0;
+  const P0=G.V3(c.pos.x-10,c.pos.y,c.pos.z);G.hitFx(c,{pos:P0},c.pos.clone(),5);run(1/60);const cl=G.PHO_CL.filter(s=>s.on).length,away=(c.wander.x-c.pos.x)*(c.pos.x-P0.x)>0;
   ok(cl===1&&c.lumD>89&&away,'bitten: a cloud ('+cl+'), dark for '+Math.round(c.lumD)+' s, heading away from the biter');
   run(3);ok(c.lumL<0.15&&G.PHO_B.count===G.PHO.cl.n&&G.PHO_L.intensity>0.3,'three seconds on: the pall dark ('+T(c.lumL)+'), the cloud'+"'"+'s '+G.PHO_B.count+' blobs glowing and lighting the water ('+T(G.PHO_L.intensity)+')');
   run(G.PHO.cl.life);ok(G.PHO_B.count===0,'the cloud gone after '+G.PHO.cl.life+' s');

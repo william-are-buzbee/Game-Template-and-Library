@@ -127,36 +127,51 @@ for(const k in DEFS)if(SPECS[k])defPhysics(DEFS[k],SPECS[k]);
 // demersal plankton that rises out of the weed) and the changeover's hunters (the jacks, the grouper, the trumpetfish) — "Earth is reference, never template"
 const BEHAVE={
   // ringmouths: high metabolism and the ring's eyes; the night is the cephalopods'
-  arrow:{act:[0.15,0.9,1],rest:'hover',insp:'stand'}, // the squid's: in a loose hover by day, hunting the ribbons at dusk and through the night
+  arrow:{act:[0.15,0.9,1],rest:'hover',insp:'stand',eye:'night'}, // the squid's: in a loose hover by day, hunting the ribbons at dusk and through the night
   ortho:{act:[0.3,0.8,1],rest:'hover',insp:'stand'}, // the slope's spear: about at dusk and in the dark, held in the current by day
   great:{act:[0.8,0.3,0.6],rest:'hover'}, // the shelf's coil: by day; it holds still in the water at night
   plumb:{act:[0.4,1,1]}, // its post at the wall (HANG): the layer it eats comes up at night, and it drops readily then; by day only the hungry drop
   quill:{act:[1,0.3,0.6]}, // the lit weed's (the shrimpfish feeds by day among the spines)
-  lurker:{act:[0.3,1,0.8]}, // the octopus's hours: the night
+  lurker:{act:[0.3,1,0.8],eye:'night'}, // the octopus's hours: the night
   watcher:{act:[1,0.15,0.6],rest:'cover'}, // curious by day; in a crevice at night
-  rasp:{act:[0.3,1,0.7],rest:'cover'}, // grazes the rock at night (the limpet's, the chiton's), clamped against it by day
+  rasp:{act:[0.3,1,0.7],rest:'cover',freeze:true}, // grazes the rock at night (the limpet's, the chiton's), clamped against it by day
   // slowbloods: the reef fish's shifts (the temperature model, PLANET Hooks, will move them by the water's warmth)
   darter:{act:[1,0.1,0.5]}, // a planktivore's school: up in the water by day, settled to the floor at night
   needle:{act:[0.6,0.1,1],rest:'hover',insp:'circle'}, // the trumpetfish's: the ribbons at dawn and dusk
   grazer:{act:[1,0.1,0.4],rest:'floor'}, // the herd crops by day and lies down on the sand at night
   ridge:{act:[0.35,0.6,1],rest:'slow',insp:'circle'}, // the changeover's hunter: a mixotherm that never stops swimming
-  eel:{act:[0.15,1,0.8],rest:'cover',insp:'stand'}, // the moray's: in the rubble by day, out at night; it watches from its post rather than circling
+  eel:{act:[0.15,1,0.8],rest:'cover',insp:'stand',eye:'night',lat:2.6}, // the moray's: in the rubble by day, out at night; it watches from its post rather than circling
   crusher:{act:[1,0.15,0.6],rest:'cover',insp:'circle'}, // the shell-crusher's (the triggerfish, the wrasse): by day, in a crevice at night
-  basker:{rest:'slow',insp:'circle'}, // the vents are dark and warm at every hour
-  abyssal:{rest:'slow',insp:'circle'}, // below the light
+  basker:{rest:'slow',insp:'circle',eye:'deep'}, // the vents are dark and warm at every hour
+  abyssal:{rest:'slow',insp:'circle',eye:'deep'}, // below the light
   // hingeshells: no pursuit, the strike; the night shift's walkers
-  scuttle:{act:[0.2,1,0.6],rest:'bury'}, // the ghost crab's: out at night, in the sand by day
-  trap:{act:[0.4,1,0.8]}, // buried at every hour; it strikes readily at night
-  hook:{act:[0.4,1,0.8]},
+  scuttle:{act:[0.2,1,0.6],rest:'bury',freeze:true}, // the ghost crab's: out at night, in the sand by day
+  trap:{act:[0.4,1,0.8],eye:'night'}, // buried at every hour; it strikes readily at night
+  hook:{act:[0.4,1,0.8],eye:'night'},
   flicker:{act:[0.2,1,0.7]}, // the demersal plankton's: in the weed by day, up in the water at night
-  hose:{act:[0.2,1,0.8],rest:'cover'}, // after the flickers
+  hose:{act:[0.2,1,0.8],rest:'cover',eye:'night'}, // after the flickers
   sickle:{act:[0.3,0.7,1],rest:'cover'}, // among the rockfall's blocks out of its hours
   hood:{act:[1,0.2,0.6],rest:'floor'}, // the sand flats' by day
-  lash:{act:[0.3,1,0.8],rest:'cover'}, // the ledges at night
-  wedge:{act:[1,1,1,1],rest:'cover'}, // the surf zone's walker: about when the water is over it, clamped to the rock at low tide
-  plough:{act:[0.3,1,0.6],rest:'bury'} // ploughs the flats at night, under the sand by day
+  lash:{act:[0.3,1,0.8],rest:'cover',eye:'night'}, // the ledges at night
+  wedge:{act:[1,1,1,1],rest:'cover',freeze:true}, // the surf zone's walker: about when the water is over it, clamped to the rock at low tide
+  plough:{act:[0.3,1,0.6],rest:'bury',freeze:true}, // ploughs the flats at night, under the sand by day
+  // v11.229, the senses (eye, lat, freeze; BEHAVIOUR §4): the deep's eyes, tuned to what light there is (DEEP, BIOLUM §2)
+  relict:{eye:'deep'},picker:{eye:'deep'},pall:{eye:'deep'},veil:{eye:'deep'},cinder:{freeze:true}
 };
-for(const k in BEHAVE){const d=DEFS[k],b=BEHAVE[k];if(!d)continue;d.act=b.act;d.rest=b.rest;d.insp=b.insp;}
+// The senses (v11.229; BEHAVIOUR §4, pass 1; PLANET, Light, revised 17 Nov 2026, and the eyes by clade; the person, 24 Nov 2026, on sight by light — BIOLUM §7.6 —
+// "Yes", for the creatures too). An eye is two numbers: log10 of the light, as a share of the surface's noon (world.js lightPhys), where it sees nothing and
+// where it sees all it can — its reach between by a smooth step (creatures_ai.js sightOf). PLANET: big eyes see daylight to ~1e-10 of the surface's
+// (−600 in the island's fed water), a full moon to half that depth, starlight to −100…−180. By clade: the ringmouths' (a ring of simple eyes and a
+// predator's forward cluster: a cephalopod's eyes are among the best in the dim), the slowbloods' (two good eyes, a fish's), the hingeshells' (stalked
+// compound eyes, duller in the dim); by kind (BEHAVE.eye): a night hunter's (the moray's, the squid's: wide pupils and a tapetum — the eyeshine PLANET
+// allows is its reflection) and the deep's (tuned to its own lights). The drifters have none (DRIFTERS). lat: the lateral line's reach, × the body's own
+// size, for a body moving at SENSE.lat's top (creatures_ai.js hearOf): the slowbloods' canals, the hingeshells' comb (the shield's sensing plates,
+// PLANET), the ringmouths' epidermal lines (the cephalopods' analogue) — light-blind, and silent for a body that holds still. freeze: a cryptic grazer
+// that holds still at a threat it can see coming and bolts only when it is close (a hingeshell clamps its valves: PLANET's "clamped shut when threatened")
+const EYE_K={ring:[-10.5,-5.5],two:[-10,-6],stalk:[-9,-5],night:[-11,-7],deep:[-12,-8]};
+const EYE_CLADE={ringmouths:'ring',slowbloods:'two',hingeshells:'stalk'},LAT_CLADE={ringmouths:1.3,slowbloods:2.0,hingeshells:1.6,drifters:0};
+for(const k in DEFS){const d=DEFS[k],sp=SPECS[k],b=BEHAVE[k]||{};if(b.act!==undefined)d.act=b.act;if(b.rest!==undefined)d.rest=b.rest;if(b.insp!==undefined)d.insp=b.insp;if(!sp)continue;
+  const e=b.eye||EYE_CLADE[sp.clade];d.eye=e?EYE_K[e]:undefined;d.lat=b.lat!==undefined?b.lat:LAT_CLADE[sp.clade]||0;d.freeze=b.freeze||undefined;}
 // v11.149 (the creature performance pass): every def one shape. The rows above are each their own literal, and an individual's def was its kind's
 // chained under a copy of its own size (creatures_ai.js scaledDef: Object.create) — 26 shapes among the forest's creatures, so every d.role, d.size,
 // d.prey in the frame was a lookup by name. Now each row is remade with DEF_KEYS — every key any row, a line's young or a scaled copy carries, in one

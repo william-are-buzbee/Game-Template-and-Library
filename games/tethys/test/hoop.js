@@ -6,7 +6,7 @@ const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..');
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
 let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n');
-js+='\nglobal.__hp={swarmDepth,SKY,SPECS,DEFS,derive,ecoOf,bioMass,swarmPig,spawn,removeCreature,creatures,player,choose,updateCreatures,updatePlayer,finishPlayer,get bodies(){return bodies;},get mode(){return mode;},chunkIJ,loadChunkNow,cellOf,groundAt,V3,mulberry,setT(v){t=v;},get t(){return t;}};';
+js+='\nglobal.__hp={swarmDepth,SKY,CK,clockTick,SPECS,DEFS,derive,ecoOf,bioMass,swarmPig,spawn,removeCreature,creatures,player,choose,updateCreatures,updatePlayer,finishPlayer,get bodies(){return bodies;},get mode(){return mode;},chunkIJ,loadChunkNow,cellOf,groundAt,V3,mulberry,setT(v){t=v;},get t(){return t;}};';
 const tmp=path.join(require('os').tmpdir(),'tethys_hoop_'+process.pid+'.js');
 fs.writeFileSync(tmp,'(function(){"use strict";\n'+js+'\n})();');
 process.env.PICK='0';
@@ -27,7 +27,7 @@ console.log('the body');
 
 console.log('in a swarm');
 {X.choose(1);const i=X.cellOf(0)+6,j=X.cellOf(0)+6;X.loadChunkNow(i,j);const ch=X.chunkIJ(i,j);for(const c of X.creatures.slice())X.removeCreature(c);
-  const x=ch.x0+100,z=ch.z0+100,y=X.swarmDepth(X.groundAt(x,z),X.SKY.dayK,X.SKY.moonL,0.5);X.player.pos.set(x+120,y,z);X.player.vel.set(0,0,0); // the swarm at its daily layer, where it rests between the dusk and the dawn
+  const x=ch.x0+100,z=ch.z0+100,y=(X.clockTick(),X.swarmDepth(X.groundAt(x,z),X.CK.dayK,X.CK.moonL,0.5));X.player.pos.set(x+120,y,z);X.player.vel.set(0,0,0); // the swarm at its daily layer, where it rests between the dusk and the dawn
   const sw=X.spawn(ch,'swarm',X.V3(x,y,z),X.mulberry(4),{ent:-1});sw.pig=X.swarmPig(x,y,z);sw.q=0.5;sw.home.copy(sw.pos);sw.flesh=X.bioMass(sw.def);
   const h=X.spawn(ch,'hoop',X.V3(x-40,y,z),X.mulberry(5),{ent:-1});h.hunger=0.9;const f0=sw.flesh;let open=0,inside=0,reached=-1;
   frames(60*60,k=>{X.player.pos.set(x+120,y,z);X.player.vel.set(0,0,0);const dd=h.pos.distanceTo(sw.pos);if(dd<8){inside++;if(h.st.strike>0.5)open++;if(reached<0)reached=k;}return h.hunger<0.1||!sw.alive;});

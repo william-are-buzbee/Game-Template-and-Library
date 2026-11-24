@@ -304,7 +304,7 @@ const Cf=X.player.clade;check(['speed','accel','turn','mass','bite','cam','sprin
   const sh=L.sheds();check(sh.length===ns+1&&sh[sh.length-1].mesh.position.distanceTo(V.V3?V.V3(P.pos.x,sh[sh.length-1].mesh.position.y,P.pos.z):P.pos)<1.5||sh.length===ns+1,'the cast carapace on the floor where it stood ('+sh.length+' shed'+(sh.length===1?'':'s')+' in the world)');
   check(V.hline().indexOf('soft, hard in')>0&&L.hint().indexOf('the moult')===0,'the readout says soft, the hint "'+L.hint()+'"');
   // prey to a hunter that never lists the player, big enough: another hose
-  const hh=V.put('hose',12,0);hh.hunger=1;hh.state='wander';hh.cool=0;check(X.DEFS.hose.prey.indexOf('player')<0&&CB.softPrey(hh,P)===true&&CB.findPrey(hh,30)===P,'a hose (which never hunts the player) takes the soft body as prey');
+  const hh=V.put('hose',12,0);hh.hunger=1;hh.state='wander';hh.cool=0;P.vel.set(1.6,0,0); /* v11.229: moving, so the hose notices it (the senses) */check(X.DEFS.hose.prey.indexOf('player')<0&&CB.softPrey(hh,P)===true&&CB.findPrey(hh,30)===P,'a hose (which never hunts the player) takes the soft body as prey');
   P.soft=false;check(CB.findPrey(hh,30)!==P,'and would not, hard');P.soft=true;hh.alive&&V.kill(hh,null);
   // hardened at its time
   L.setT(Lc.hardAt+1);const g1=P.g;L.tick(0.5);check(P.soft===false&&!L.soft()&&P.g!==g1&&CB.coverAt(P,0)==='shell'&&L.hint()==='hardened','hardened at its time: the body rebuilt, shell again, "'+L.hint()+'"');

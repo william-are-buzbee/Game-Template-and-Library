@@ -276,15 +276,24 @@ const PHO_M=new THREE.Matrix4(),PHO_V=V3(),PHO_S=V3(),PHO_P=V3();
 function phoGate(y){const L=lightPhys(SKY.sunAlt,SKY.moonL/MOONL,y);return smooth(PHO.dark[0],PHO.dark[1],-Math.log10(Math.max(L,1e-30)));}
 // a new lit creature (spawn, right after its rigs are posed at rest: their chains' points are in its own frame then)
 function phoSpawn(c){const R=c.b.rigs;if(!R)return;if(!PHO_REST[c.kind]){const L=[];for(const r of R)for(const q of r.chains){const n=q.n;for(const k of PHO.web)if(k<n)L.push(q.pts[k*3],q.pts[k*3+1],q.pts[k*3+2],0);L.push(q.pts[n*3],q.pts[n*3+1],q.pts[n*3+2],1);}PHO_REST[c.kind]=L;}PHO_C.push(c);}
-// the cloud: c's arm tips leave it, c goes dark and heads away from `from` (a position, or null)
-function phoCloud(c,from){if(c.lumD>0||!FX.biolum)return;c.lumD=PHO.darkT;c.lumF=0;c.lumH=0;
+// The lights' state in the step (v11.229; BEHAVIOUR §6, pass 1): the hold that ends in a cloud, the dark after it and the flee are what the pall does,
+// so they run in the sim (simStep, updateCreatures' end: phoStep on its h) whatever the effects list says — to v11.228 all of it ran once a frame on
+// the frame's dt, and phoCloud returned when `biolum` was off, so a cosmetic switch took away the pall's escape. The drawing (updatePho) keeps the
+// flash at a touch, the lure's easing and the cloud's blobs, which it makes for each cloud the step queued (PHO_Q) when the switch is on.
+const PHO_Q=[];
+function phoStep(h){for(let i=PHO_C.length-1;i>=0;i--){const c=PHO_C[i];if(c.gone||!c.alive){PHO_C[i]=PHO_C[PHO_C.length-1];PHO_C.pop();}}
+  for(const c of PHO_C){if(c.lumD>0)c.lumD=Math.max(0,c.lumD-h);let held=null;for(const hd of holds)if(hd.b===c){held=hd;break;}
+    if(held){c.lumH+=h;if(c.lumH>=PHO.holdT)phoCloud(c,held.a&&held.a.pos?held.a.pos:null);}else c.lumH=0;}}
+// the cloud: c goes dark and heads away from `from` (a position, or null); its arm tips leave the cloud the drawing makes (phoBlobs)
+function phoCloud(c,from){if(c.lumD>0)return;c.lumD=PHO.darkT;c.lumF=0;c.lumH=0;PHO_Q.push(c);
+  if(from){PHO_V.set(c.pos.x-from.x,(c.pos.y-from.y)*0.3,c.pos.z-from.z);if(PHO_V.lengthSq()<1e-4)PHO_V.set(1,0,0);PHO_V.normalize();c.wander.copy(c.pos).addScaledVector(PHO_V,PHO.flee);c.wander.y=clamp(c.wander.y,OXY.core[1],OXY.core[0]);c.wanderT=30;}}
+function phoBlobs(c){
   let S=PHO_CL[0];for(const s of PHO_CL)if(!s.on||s.a>S.a)S=s;S.on=true;S.a=0;const k=c.k||1;
   // where the tips are: their mean (the chains' own points once simulated, else at rest)
   let x=0,y=0,z=0,m=0;for(const r of c.b.rigs||[])for(const q of r.chains){if(q.fresh)continue;const n=q.n;x+=q.pts[n*3];y+=q.pts[n*3+1];z+=q.pts[n*3+2];m++;}
   if(m){x/=m;y/=m;z/=m;}else{PHO_V.set(0,0,1).applyQuaternion(c.g.quaternion);x=c.pos.x+PHO_V.x*4*k;y=c.pos.y+PHO_V.y*4*k;z=c.pos.z+PHO_V.z*4*k;}
   for(const b of S.b){b.x=x+rnd(-2,2)*k;b.y=Math.min(y+rnd(-2,2)*k,TIDE-1);b.z=z+rnd(-2,2)*k;const a=Math.random()*TAU,u=Math.random()*2-1,w=Math.sqrt(1-u*u);b.vx=w*Math.cos(a)*PHO.cl.spread;b.vy=u*PHO.cl.spread;b.vz=w*Math.sin(a)*PHO.cl.spread;b.r=rnd(PHO.cl.r[0],PHO.cl.r[1])*k;
-    b.q.setFromAxisAngle(PHO_S.set(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize(),Math.random()*TAU);}
-  if(from){PHO_V.set(c.pos.x-from.x,(c.pos.y-from.y)*0.3,c.pos.z-from.z);if(PHO_V.lengthSq()<1e-4)PHO_V.set(1,0,0);PHO_V.normalize();c.wander.copy(c.pos).addScaledVector(PHO_V,PHO.flee);c.wander.y=clamp(c.wander.y,OXY.core[1],OXY.core[0]);c.wanderT=30;}}
+    b.q.setFromAxisAngle(PHO_S.set(Math.random()-0.5,Math.random()-0.5,Math.random()-0.5).normalize(),Math.random()*TAU);}}
 // the body's capsules and the arms' points against a point: the nearest surface distance (m)
 function phoNear(c,p){let best=1e9;const W=c.shapesW;if(W)for(const w of W){const ex=w.bx-w.ax,ey=w.by-w.ay,ez=w.bz-w.az,l2=ex*ex+ey*ey+ez*ez;let tt=l2>1e-6?((p.x-w.ax)*ex+(p.y-w.ay)*ey+(p.z-w.az)*ez)/l2:0;tt=tt<0?0:tt>1?1:tt;
     const d=len3(p.x-w.ax-ex*tt,p.y-w.ay-ey*tt,p.z-w.az-ez*tt)-w.r;if(d<best)best=d;}
@@ -292,12 +301,9 @@ function phoNear(c,p){let best=1e9;const W=c.shapesW;if(W)for(const w of W){cons
   return best;}
 function updatePho(dt,on){
   const cam=camera.position,ox=ORIGIN.x,oz=ORIGIN.z,FA=PHO_F.geometry.attributes.aGl.array,BA=PHO_B.geometry.attributes.aGl.array;let nf=0,nl=0;
-  for(let i=PHO_C.length-1;i>=0;i--){const c=PHO_C[i];if(c.gone||!c.alive){PHO_C[i]=PHO_C[PHO_C.length-1];PHO_C.pop();}}
+  for(const c of PHO_Q)if(on&&!c.gone)phoBlobs(c);PHO_Q.length=0; // the clouds the steps made since the last frame (v11.229), drawn when the switch is on
   for(const c of PHO_C){
-    // the state: dark after a cloud; held long enough, a cloud; touched, a flash; the lure toward its gate
-    if(c.lumD>0)c.lumD=Math.max(0,c.lumD-dt);
-    let held=null;for(const h of holds)if(h.b===c){held=h;break;}
-    if(held){c.lumH+=dt;if(c.lumH>=PHO.holdT)phoCloud(c,held.a&&held.a.pos?held.a.pos:null);}else c.lumH=0;
+    // the drawing's state (v11.229: the dark and the cloud are the step's, phoStep): touched, a flash; the lure toward its gate
     if(on&&c.lumD<=0&&!playerGone()&&c.g.visible&&player.pos.distanceTo(c.pos)<c.def.size*1.4&&phoNear(c,player.pos)<PHO.touch)c.lumF=1+PHO.flash[0]/PHO.flash[1]; // a touch: full for flash[0] s, then down over flash[1]
     else c.lumF=Math.max(0,c.lumF-dt/PHO.flash[1]);
     const tg=on&&c.lumD<=0?phoGate(c.pos.y):0;c.lumL+=(tg-c.lumL)*Math.min(1,dt*(tg>c.lumL?PHO.up:PHO.down));
