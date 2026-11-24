@@ -189,7 +189,7 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
 - **Creatures.** `SPECS[id]` → `compile` (a core's frame; parts merged into the body or made rigs; `derive` the mass, drag, thrust, speed, turn)
   → `DEFS[kind]` (role, prey, reach, strike, behaviour by hand; speed, accel and turn never typed: `defPhysics` reads the build) and `SPAWN`
   (capacity, envelope) → the ledger → `placeKind`/`spawn` (geometry shared per kind in `KIND_GEO`; rigs the creature's own) →
-  `updateCreatures` by role (boid, trap, watch, hunter, graze, wander, coil, ambush, drift, sail, swarm), then contact. A `swarm` has no spec,
+  `updateCreatures` by role (boid, trap, watch, hunter, graze, wander, ambush, drift, sail, swarm; `coil` struck v11.230), then contact. A `swarm` has no spec,
   body or capsule and is drawn by the snow; its `SPAWN` row's `crop` flag makes its capacity the plankton's (`ecoCap` × `cropK`); it is food for
   any build with a sieve (`derive.filter` → `DEFS.filter`; creatures_ai.js `FILTER`), and `ecoOf` puts it on that kind's paper prey, never on
   `DEFS.prey` — never chased, held or bitten.

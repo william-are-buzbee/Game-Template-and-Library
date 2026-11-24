@@ -147,7 +147,7 @@ function shedFlora(){const byKind={};SPAWN.forEach(e=>{if(e.land||!moults(e.kind
     const f={id:'shed_'+kind,shed:kind,geo:geo,mat:MAT,tints:[[1,1,1],[0.94,0.92,0.88],[0.9,0.9,0.86]],s:[MOULT.keep*0.9,MOULT.keep*1.05],sink:0.08,tilt:true,per:Math.max(1,Math.round(dens)),rare:Math.min(1,dens),envs:K.envs,top:d.size*0.6,maxSlope:1.0};
     FLORA.push(f);FLORA_BY_ID[f.id]=f;}}
 shedFlora();
-/** @typedef {{kind:any,def:any,g:any,anim:any,pos:any,vel:any,home:any,hp:any,state:any,t0:any,lastSpd:any,lastYaw:any,roll:any,rollV:any,sq:any,stunSide:any,target:any,biteT:any,wanderT:any,wander:any,alive:any,gone:any,stun:any,bored:any,cool:any,scanT:any,alarm:any,fleeT:any,lungeT:any,ramT:any,school:any,off:any,offT:any,chunk:any,lod:any,parts:any,lodMeshes:any,sub:any,wet:any,grounded:any,flopT:any,b:any,mass:any,mass0:any,bound:any,reach:any,shapesW:any,chainW:any,grab:any,holding:any,armT:any,touchF:any,hold:any,held:any,bleed:any,blood:any,wounds:any,paraT:any,stungT:any,armsLost:any,regrow:any,sickT:any,poison:any,poisT:any,commitT:any,coastT:any,missN:any,speedK:any,turnK:any,live:any,lost:any,cWith:any,d6:any,par:any,st:any,tellT:any,strikeT:any,recoverT:any,burstT:any,face:any,bit:any,accT:any,threat:any,ent:any,hunger:any,starveT:any,hunt:any,feedT:any,feedAt:any,dead:any,flesh:any,deadT:any,scav:any,scavT:any,glow:any,lumL:any,lumF:any,lumD:any,lumH:any,juv:any,k:any,cls:any,soft:any,softT:any,moultT:any,shM:any,cast:any,lodNear:any,lodFar:any,nearR:any,stepR:any,carried:any,cur:any,curT:any,turnedF:any,turnV:any,accV:any,shapeF:any,rigV:any,rigO:any,hitN:any,hitB:any,lieQ:any,chaseT:any,lungeP:any,strikeP:any,gapMin:any,pivotT:any,sw:any,swT:any,filtT:any,q:any,pig:any,hand:any,fall:any,brood:any,fxStruck:any,fxAcc:any,stam:any,spinV:any,shook:any,shakeYaw:any,shakeP:any,pointD:any,lenM:any,lastHurt:any,eaten:any,liveMass:any,fullMass:any,wallD:any,seed:any,vk:any,awake:any,sink:any,inspT:any,deter:any,dread:any,crypt:any,cov:any,covT:any}} Creature — every key a creature carries, closed: spawn's literal below in the same order (CLAUDE.md, "one shape"); a key added to the literal goes here too, and the type checker flags one misspelt or set that is not here (v11.193, test/types.js) */
+/** @typedef {{kind:any,def:any,g:any,anim:any,pos:any,vel:any,home:any,hp:any,state:any,t0:any,lastSpd:any,lastYaw:any,roll:any,rollV:any,sq:any,stunSide:any,target:any,biteT:any,wanderT:any,wander:any,alive:any,gone:any,stun:any,bored:any,cool:any,scanT:any,alarm:any,fleeT:any,lungeT:any,ramT:any,school:any,off:any,offT:any,chunk:any,lod:any,parts:any,lodMeshes:any,sub:any,wet:any,grounded:any,flopT:any,b:any,mass:any,mass0:any,bound:any,reach:any,shapesW:any,chainW:any,grab:any,holding:any,armT:any,touchF:any,hold:any,held:any,bleed:any,blood:any,wounds:any,paraT:any,stungT:any,armsLost:any,regrow:any,sickT:any,poison:any,poisT:any,commitT:any,coastT:any,missN:any,speedK:any,turnK:any,live:any,lost:any,cWith:any,d6:any,par:any,st:any,tellT:any,strikeT:any,recoverT:any,burstT:any,face:any,bit:any,accT:any,threat:any,ent:any,hunger:any,starveT:any,hunt:any,feedT:any,feedAt:any,dead:any,flesh:any,deadT:any,scav:any,scavT:any,glow:any,lumL:any,lumF:any,lumD:any,lumH:any,juv:any,k:any,cls:any,soft:any,softT:any,moultT:any,shM:any,cast:any,lodNear:any,lodFar:any,nearR:any,stepR:any,carried:any,cur:any,curT:any,turnedF:any,turnV:any,accV:any,shapeF:any,rigV:any,rigO:any,hitN:any,hitB:any,lieQ:any,chaseT:any,lungeP:any,strikeP:any,gapMin:any,pivotT:any,sw:any,swT:any,filtT:any,q:any,pig:any,hand:any,fall:any,brood:any,fxStruck:any,fxAcc:any,stam:any,spinV:any,shook:any,shakeYaw:any,shakeP:any,pointD:any,lenM:any,lastHurt:any,eaten:any,liveMass:any,fullMass:any,wallD:any,seed:any,vk:any,awake:any,sink:any,inspT:any,deter:any,dread:any,crypt:any,cov:any,covT:any,goal:any,waitT:any,inkT:any}} Creature — every key a creature carries, closed: spawn's literal below in the same order (CLAUDE.md, "one shape"); a key added to the literal goes here too, and the type checker flags one misspelt or set that is not here (v11.193, test/types.js) */
 function spawn(ch,kind,pos,rng,opt){
   const juv=!!(opt&&opt.juv),D0=juv?juvDef(kind):DEFS[kind],EK=ecoOf(kind),ent=opt&&opt.ent!==undefined?opt.ent:-1,vary=ent>=0&&kind!=='lab';
   // the individual (v11.66, above): the size band, the coat class of the place, the soft state; plain outside the ledger. v11.225: a kind with a
@@ -168,7 +168,7 @@ function spawn(ch,kind,pos,rng,opt){
     shM:null,cast:false,lodNear:0,lodFar:0,nearR:0,stepR:0, // set below, in this order
     carried:undefined,cur:undefined,curT:undefined,turnedF:undefined,turnV:undefined,accV:undefined,shapeF:undefined,rigV:undefined,rigO:undefined,hitN:undefined,hitB:undefined,lieQ:undefined,chaseT:undefined,lungeP:undefined,strikeP:undefined,gapMin:undefined,pivotT:undefined,
     sw:undefined,swT:undefined,filtT:undefined,q:undefined,pig:undefined,hand:undefined,fall:undefined,brood:undefined,fxStruck:undefined,fxAcc:undefined,stam:undefined,spinV:undefined,shook:undefined,shakeYaw:undefined,shakeP:undefined,pointD:undefined,
-    lenM:undefined,lastHurt:undefined,eaten:undefined,liveMass:undefined,fullMass:undefined,wallD:undefined,seed:seed,vk:vx?vx.key:undefined,awake:1,sink:1,inspT:0,deter:0,dread:null,crypt:crypt,cov:0,covT:-1}); // wallD (v11.223): the way to the wall from a station (chunks.js stationPoint), a unit vector; seed, vk (v11.225): the individual's seed and its variant's key // the individual (v11.66): its size factor, its coat class, the soft state and its clocks // awake, sink, inspT, deter, dread (v11.228, BEHAVIOUR.md): how much it is about (awakeOf, at its last scan), its clearance's share (a buried rest), the look's clock and how far it has been stood up to (RISK), what it flees; crypt, cov, covT (v11.229): how well it matches its ground (SENSE), the weed's cover where it is and when that was read
+    lenM:undefined,lastHurt:undefined,eaten:undefined,liveMass:undefined,fullMass:undefined,wallD:undefined,seed:seed,vk:vx?vx.key:undefined,awake:1,sink:1,inspT:0,deter:0,dread:null,crypt:crypt,cov:0,covT:-1,goal:null,waitT:0,inkT:0}); // wallD (v11.223): the way to the wall from a station (chunks.js stationPoint), a unit vector; seed, vk (v11.225): the individual's seed and its variant's key // the individual (v11.66): its size factor, its coat class, the soft state and its clocks // awake, sink, inspT, deter, dread (v11.228, BEHAVIOUR.md): how much it is about (awakeOf, at its last scan), its clearance's share (a buried rest), the look's clock and how far it has been stood up to (RISK), what it flees; crypt, cov, covT (v11.229): how well it matches its ground (SENSE), the weed's cover where it is and when that was read; goal, waitT, inkT (v11.230): where it makes for (a plumb foraging), how long it has waited (a plumb, a lurker) or a quill hides, how long until it inks again (an arrow)
   // v11.149 (the creature performance pass): every creature one shape. The keys above from shM on were added to a creature as it lived — the current
   // it is carried by, its turn, its holds, the falls, the brood, the effects' clocks — each by whichever system reached it first, in that order: the
   // forest's 1,400 creatures had 27 shapes, and past four an engine gives up a property read's fast path, so every c.pos, c.def, c.vel in the frame was
@@ -497,7 +497,22 @@ function watches(tg,c){if(tg===player){if(!player.g)return false;T3.set(0,0,1).a
   return (tg.school?tg.school.threat:tg.threat)===c.pos;}
 function inspects(c,tg,n){return !!c.def.insp&&n<RISK.reckless&&kgOf(tg)/Math.max(1,kgOf(c))>=RISK.tiny&&weakOf(tg)<1&&watches(tg,c);}
 // a target taken: the look first when the prey watches a hunter that reads it, else the chase
-function takeOn(c,tg,n){c.target=tg;c.bored=0;c.chaseT=0;c.sink=1;POP.chases++; /* v11.229: the hunts begun (test/live.js), as POP.kills the ones that ended in a meal */if(inspects(c,tg,n)){c.state='inspect';c.inspT=RISK.insp[0]+RISK.insp[1]*(1-n);c.deter=0;}else c.state='chase';}
+function takeOn(c,tg,n){c.target=tg;c.bored=0;c.chaseT=0;c.sink=1;POP.chases++; /* v11.229: the hunts begun (test/live.js), as POP.kills the ones that ended in a meal */if(inspects(c,tg,n)){c.state='inspect';c.inspT=RISK.insp[0]+RISK.insp[1]*(1-n);c.deter=0;}else c.state='chase';if(c.def.pack)packCall(c,tg);}
+// ---------- the pack, the ink (v11.230; BEHAVIOUR §4, the ringmouths' pass; PLANET: the ringmouths "fast, clever … packs"; the jetters ink) ----------
+// To v11.229 the arrows were placed in fives and hunted alone. Now when one takes on prey its idle packmates within PACK.r join it on the same prey
+// (packCall: wandering or resting ones not too fed), and in the chase each comes in from its own side (flankPt: half the pack swings left of the line
+// to the prey, half right, by up to PACK.flank m, straight in from PACK.close m) — a school pressed from two sides has nowhere to turn. An arrow inks
+// (inkEscape, once in INK.cool s) when a hunter chasing it closes within INK.near m, or when it is taken hold of and lives (a jaw's first bite takes a
+// small one outright): its cloud hides it from every eye for INK.hide s (sightOf), its chaser loses it with a chance of INK.slip (the holder its grip)
+// and leaves it alone for INK.lose s, and the arrow jets off from it. The soft-arm player's ink is the same act (player.js)
+const PACK={r:30,flank:9,close:6,join:0.2}; // m the packmates join within; m the flank's widest; m within which it closes straight; the hunger a mate joins past
+const INK={cool:25,hide:6,slip:0.6,lose:4,run:4,near:5}; // s between clouds; s it hides the inker; the chance the chaser or holder loses it in it; s it then leaves it; s the inker flees; m a chaser closes within before the cloud
+function packCall(c,tg){for(const o of creatures){if(o===c||!o.alive||o.kind!==c.kind||o.soft||o.hold||o.held>0||o.paraT>0||o.stun>0||(o.state!=='wander'&&o.state!=='rest')||o.hunger<PACK.join||o.pos.distanceTo(c.pos)>PACK.r)continue;
+  o.target=tg;o.state='chase';o.bored=0;o.chaseT=0;o.sink=1;o.cool=0;o.hunt=0;POP.chases++;}}
+function flankPt(c,p,dist){T3.copy(p).sub(c.pos);T3.y=0;const l=T3.length();if(l<1e-3)return;const h=c.t0>50?1:-1,o=Math.min(PACK.flank,(dist-PACK.close)*0.5);p.x+=-T3.z/l*h*o;p.z+=T3.x/l*h*o;}
+function inkEscape(c,by){c.inkT=INK.cool;spawnInk(c.pos);if(by){c.dread=by;if(by!==player&&SIMR()<INK.slip)dropTarget(by,INK.lose);}
+  for(let i=holds.length-1;i>=0;i--){const h=holds[i];if(h.b!==c)continue;const a=h.a;c.dread=a;if(SIMR()<INK.slip){releaseHold(h);if(a!==player)dropTarget(a,INK.lose);}}
+  if(!(c.held>0)){if(c.hold)releaseHold(c.hold);c.target=null;c.grab=null;c.state='flee';c.fleeT=INK.run;}}
 function driveOff(c,tp){dropTarget(c,RISK.cool);T2.copy(c.pos).sub(tp);T2.y=0;const l=T2.length()||1;c.wander.set(c.pos.x+T2.x*RISK.away/l,c.pos.y,c.pos.z+T2.z*RISK.away/l);c.wanderT=srnd(8,12);}
 // a step of the look: the prey's answer read, then the circle or the standoff
 function inspectStep(c,dt){const d=c.def,tg=c.target,tp=tg===player?player.pos:tg.pos,tv=tg===player?player.vel:tg.vel;
@@ -539,7 +554,7 @@ const PL_COV={v:0,t:-1};
 function weedAt(x,z){const ch=chunkAt(x,z);if(!ch)return 0;return envW(STATION.canopy.env,ch.h(x,z),0,ch.f(x,z));}
 function coverOf(o){if(o===player){if(t-PL_COV.t>1){PL_COV.t=t;PL_COV.v=weedAt(player.pos.x,player.pos.z);}return PL_COV.v;}
   if(!(t-o.covT<=1)){o.covT=t;o.cov=weedAt(o.pos.x,o.pos.z);}return o.cov;}
-function sightOf(d,vy,o,dist){const E=d.eye;if(!E)return 0;const ty=o.pos.y;let lg=CK.lg0+Math.min(0,ty-TIDE)/LIGHT_P.dec;const el=(ty-vy)/(dist||1);if(el>0)lg+=SENSE.sil*el;
+function sightOf(d,vy,o,dist){const E=d.eye;if(!E)return 0;if(o!==player&&o.inkT>INK.cool-INK.hide)return 0; /* v11.230: in its own ink cloud (INK) */const ty=o.pos.y;let lg=CK.lg0+Math.min(0,ty-TIDE)/LIGHT_P.dec;const el=(ty-vy)/(dist||1);if(el>0)lg+=SENSE.sil*el;
   let k=smooth(E[0],E[1],lg);if(k<=0)return 0;k*=lerp(Math.min(1,SENSE.still+SENSE.big*(o===player?(player.clade?player.clade.size:1.8):o.def.size)),1,smooth(0,SENSE.move,o.vel.length()));
   k*=1-SENSE.crypt*(o===player?0:o.sink<1?1:o.crypt);k*=1-SENSE.cover*coverOf(o);return k;}
 function hearOf(d,o){const k=d.lat;if(!k)return 0;const v=o.vel.length();if(v<=SENSE.lat[0])return 0;const os=o===player?(player.clade?player.clade.size:1.8):o.def.size;
@@ -590,7 +605,7 @@ function dropTarget(c,cool){
   if(c.state!=='feed'&&c.state!=='sit'){c.state=c.def.role==='ambush'?'return':'wander';if(c.state==='wander')setWander(c);}
 }
 // The bite that lands (v11.31: combat.js): forage dies at the touch; anything that can fight is taken hold of, and the hold bites
-function landBite(c,tg){if(tg)combatBite(c,tg);} // the guard is here and not at the four call sites: dropTarget can null a target mid-strike (v11.33)
+function landBite(c,tg){if(!tg)return;if(c.def.ram&&c.def.role==='hunter'&&edgeOf(c)!=='ram')blow(tg,c);combatBite(c,tg);} // v11.230: the great's ram opens its bite (the blow stuns, then the beak; a ram-edged hunter's blow is its whole strike, combatBite) // the guard is here and not at the four call sites: dropTarget can null a target mid-strike (v11.33)
 // Hunger (v11.26): a hunter's clock runs from fed (0) to starving (1) over its kind's cycle (ecology.js) and it hunts only past
 // ECO.hungry — a fed ridge cruises past the player; a kill sets it back by the prey's mass over its meal; at 1 it starves, and
 // past a cycle and a fifth of that it dies (a carcass). The feed state: it stays at a carcass it made and eats
@@ -628,7 +643,8 @@ function commit(c,tg){const d=c.def;c.commitT=STRIKE.dur;c.gapMin=1e9;c.chaseT=0
   const v=c.vel.length();if(v<d.speed*0.5){T3.set(0,0,1).applyQuaternion(c.g.quaternion);c.vel.copy(T3).multiplyScalar(v);}}
 function updateHunter(c,dt){
   const d=c.def;
-  if(hungerTick(c,dt))return; // the stun is every role's now, before the roles (updateCreatures, v11.66)
+  if(hungerTick(c,dt))return;
+  if(c.inkT>0)c.inkT=Math.max(0,c.inkT-dt);else if(d.ink&&c.held>0)inkEscape(c); // v11.230: an arrow taken hold of inks (INK) // the stun is every role's now, before the roles (updateCreatures, v11.66)
   if(c.state==='feed'){const f=c.feedAt;c.feedT-=dt;if(!f||f.gone||f.flesh<=0||c.feedT<=0||c.hunger<=0){c.state='wander';c.feedAt=null;c.cool=d.cool||4;setWander(c);return;}
     const dist=c.pos.distanceTo(f.pos),at=reachOf(c,f);if(dist>at*0.9)seek(c,f.pos,d.speed*0.35,dt,1.5);else{c.vel.multiplyScalar(1-3*dt);eatAt(c,f,dt);}c.face=dist<at*1.5?f.pos:null;return;}
   if(c.state==='flee'){c.grab=null;c.fleeT-=dt;if(c.fleeT<=0){c.state='wander';c.dread=null;}seekAway(c,c.dread&&c.dread!==player?c.dread.pos:player.pos,d.speed,dt);return;} // v11.228: away from what hurt it (c.dread, combat.js), not from the player whatever did
@@ -637,6 +653,7 @@ function updateHunter(c,dt){
     if(!tg||(tg!==player&&!tg.alive)||(tg===player&&(playerGone()||player.inkT>0))||c.pos.distanceTo(tp)>d.detect*1.6||c.pos.distanceTo(c.home)>(d.home||30)*1.9)dropTarget(c,d.cool||4);else inspectStep(c,dt);return;}
   if(c.state==='chase'){
     const tg=c.target;const tpos=tg===player?player.pos:tg.pos;const dist=c.pos.distanceTo(tpos);
+    if(tg&&tg!==player&&tg.def.ink&&tg.alive&&tg.inkT<=0&&dist<INK.near&&!tg.paraT&&!(tg.stun>0)){inkEscape(tg,c);if(c.state!=='chase')return;} // v11.230: it closes on an arrow, and the arrow inks (INK)
     const ashore=tg&&tg.grounded&&tg.sub<0.5&&!d.legs; // prey on the strand is out of reach: the sea ends here
     // the chase (v11.26): a burst — the hunter runs at chaseK times its speed for the first seconds and tires to a cruise — and it gives up a
     // pursuit that has run ECO_CHASE seconds without a bite (a real pursuit is short; prey with a flee speed at its hunter's cruise outran
@@ -670,7 +687,7 @@ function updateHunter(c,dt){
         if(landsOn(c,tg)){c.commitT=0;c.face=null;landBite(c,tg);}else if(c.commitT<=0||(STRIKE.dur-c.commitT>STRIKE.min&&gap>c.gapMin+STRIKE.pass&&mouthPast(c,tpos))){c.commitT=0;c.face=null;missed(c,tg);c.coastT=STRIKE.coast;}}
       else if(c.coastT>0)c.coastT-=dt;
       else if(pivots(c,tg,tpos,dist,dt)){}
-      else{aimAt(c,tg,T2);approachPt(c,T2,T2);seekTurn(c,T2,d.speed*k,dt,2.2*k);const jaw=gripOf(c)&&gripOf(c).kind==='jaw';if(c.biteT<=0&&dist<strikeRange(c,tg)&&mouthAhead(c,tpos,STRIKE.face)&&(!jaw||mouthGap(c,tg)<strikeReach(c)))commit(c,tg);} // the pursuit's clock restarts at a strike (ECO_CHASE counts the run-up, not a hunter at its prey)
+      else{aimAt(c,tg,T2);approachPt(c,T2,T2);if(d.pack&&dist>PACK.close)flankPt(c,T2,dist);seekTurn(c,T2,d.speed*k,dt,2.2*k);const jaw=gripOf(c)&&gripOf(c).kind==='jaw';if(c.biteT<=0&&dist<strikeRange(c,tg)&&mouthAhead(c,tpos,STRIKE.face)&&(!jaw||mouthGap(c,tg)<strikeReach(c)))commit(c,tg);} // the pursuit's clock restarts at a strike (ECO_CHASE counts the run-up, not a hunter at its prey) // v11.230: a packmate from its side (flankPt)
     }
   }else{
     // v11.228 (the clock, RISK): it hunts past huntAt (higher out of its hours), weighs what it finds (findPrey), and takes it on (takeOn: the look or the
@@ -769,16 +786,16 @@ function scavenge(c,dt,R){const d=c.def;if(!d.scav)return false; // R (v11.228):
   c.scavT-=dt;if(c.scavT<=0){c.scavT=0.6;if(c.scav&&c.scav.brood&&broodGuarded(c.scav.brood))c.scav=null;if(!c.scav||c.scav.gone||c.scav.flesh<=0)c.scav=findCarcass(c,R===undefined?d.scav:R);} // a clutch whose parent has come back over it is left (v11.74)
   const f=c.scav;if(!f)return false;const dist=c.pos.distanceTo(f.pos),at=d.size*0.9+f.def.size*0.7;
   if(dist>at)seek(c,f.pos,d.speed*0.7,dt,1.4);else{c.vel.multiplyScalar(1-3*dt);eatAt(c,f,dt);c.face=f.pos;}return true;}
-function updateCoil(c,dt){
-  const d=c.def;c.cool-=dt;const dist=c.pos.distanceTo(player.pos);
-  if(c.state==='ram'){c.ramT-=dt;seek(c,player.pos,d.ram,dt,3);c.biteT-=dt;if(dist<reachOf(c,player)&&c.biteT<=0){c.biteT=2;blow(player,c);}if(c.ramT<=0||playerGone()){c.state='wander';c.cool=8;setWander(c);}}
-  else{c.scanT-=dt;if(c.scanT<=0){c.scanT=0.5;c.awake=awakeOf(d);if(c.state==='rest'){if(c.awake>REST.off)restEnd(c);}else if(d.rest&&c.awake<REST.on)restBegin(c);} // v11.228: held still in the water out of its hours, and rams only what comes close then
-    if(dist<d.radius*(c.state==='rest'?REST.see:1)&&c.cool<=0&&!playerGone()){c.state='ram';c.ramT=3.5;c.sink=1;}else if(c.state==='rest')restStep(c,dt);else wander(c,dt);}
-}
-// the ambushers (the lurker, the hook) lunge at their prey (v11.26: a prey list, not only the player), when hungry
+// (v11.230: updateCoil, the 'coil' role — the great's ram at the player and nothing else — struck: the great is a hunter, its ram its bite's opening blow)
+// the ambushers (the lurker, the hook) lunge at their prey (v11.26: a prey list, not only the player), when hungry. v11.230 (BEHAVIOUR §4, the
+// ringmouths' pass): the lurker gives up a post that does not pay — hungry in its hours, LURK.give s at it with nothing taken — and crawls to another
+// among the rock within REST.r (coverSpot), the giving-up time of Earth's sit-and-wait hunters (the marginal value theorem); the hook keeps its place up
+// in the structure
+const LURK={give:90}; // s at a post, hungry in its hours, with nothing taken, before it moves
 function updateLurker(c,dt){
   const d=c.def;if(hungerTick(c,dt))return;
-  if(c.state==='sit'){c.vel.set(0,0,0);c.cool-=dt;c.scanT-=dt;if(c.scanT<=0){c.scanT=0.25;c.awake=awakeOf(d);const thr=huntAt(c);if(c.cool<=0&&c.hunger>thr){const tg=findPrey(c,d.radius*lerp(REST.see,1,c.awake),thr);if(tg){c.state='lunge';c.target=tg;c.lungeT=1.3;POP.chases++;}}}} // v11.228: out of its hours it waits hungrier and strikes only what comes close
+  if(c.state==='sit'){c.vel.set(0,0,0);c.cool-=dt;c.scanT-=dt;if(c.scanT<=0){c.scanT=0.25;c.awake=awakeOf(d);const thr=huntAt(c);if(c.cool<=0&&c.hunger>thr){const tg=findPrey(c,d.radius*lerp(REST.see,1,c.awake),thr);if(tg){c.state='lunge';c.target=tg;c.lungeT=1.3;c.waitT=0;POP.chases++;}}
+      if(c.state==='sit'&&!d.hang){if(c.hunger>thr&&c.awake>=REST.on){c.waitT+=0.25;if(c.waitT>LURK.give&&c.chunk){const g=c.goal||(c.goal=V3());if(coverSpot(c,g)){c.home.copy(g);c.state='return';}c.waitT=0;}}else c.waitT=0;}}} // v11.228: out of its hours it waits hungrier and strikes only what comes close; v11.230 (LURK): a post where nothing passes is given up
   else if(c.state==='lunge'){const tg=c.target,tp=tg===player?player.pos:tg?tg.pos:c.home,dist=c.pos.distanceTo(tp);c.lungeT-=dt;c.biteT-=dt;c.grab=c.b.rigs&&tg&&dist<armReach(c,tg,1.6)?tg:null;if(d.hang||d.strikeOnLunge)c.st.strike=1; // strikeOnLunge (v11.66): the hood's claws open on the way up
     if(c.hold)c.vel.multiplyScalar(1-1.5*dt); // holding: the pair drifts (v11.92)
     else{seek(c,tp,d.lunge,dt,6);if(tg&&c.biteT<=0&&landsOn(c,tg)){c.biteT=1;landBite(c,tg);if(!c.hold&&tg!==player&&!tg.alive)c.state='feed';}} // the lunge is the commit: the bite on contact (v11.92)
@@ -803,24 +820,76 @@ const HANG={rise:1.2,back:2,above:0.82,surf:3,tip:0.08,face:10,scan:0.25,
   pull:0.15,hold:0.45}; // 1/s and m/s: how hard it keeps its station against a push or the current (it is carried by the water, v11.223.1); a push moves it and it drifts back
 function plumbY(d,floor,c){let lo=floor+(d.clear||0)+d.size*HANG.gap;if(d.deepY!==undefined)lo=Math.max(lo,d.deepY);const top=-(d.size*HANG.above+HANG.surf);
   if(d.canopy)return Math.min(lo+lerp(d.canopy[0],d.canopy[1],c?(c.t0%1):0.5),top); // the quill (v11.227): among the stalks, at its own height in the canopy's band over the floor — no layer to follow in the lit weed
-  return Math.min(Math.max(swarmDepth(floor,CK.dayK,CK.moonL,0.5),lo),top);} // v11.229: the step's sky (CK), not the drawing's
+  const lay=swarmDepth(floor,CK.dayK,CK.moonL,0.5),k=c?trimOf(c):1,y=k<1?lerp(swarmDepth(floor,1,0,0.5),lay,k):lay; // v11.230 (PLUMB.trim): an old giant keeps to its day depth
+  return Math.min(Math.max(y,lo),top);} // v11.229: the step's sky (CK), not the drawing's
+// The trim (v11.230; CLADES, The hanger: "pump bore ∝ L², gas ∝ L³ … past a few tens of metres it can no longer follow the swarm … a giant stays at one
+// depth"): the share of the layer's climb a plumb follows by its size factor (c.k, its age's: VARIETY), 1 to PLUMB.trim[0], none from PLUMB.trim[1] —
+// the young and the typical rise every night, the oldest few (30 m and more) hang at their day depth; and its buoyant rate is HANG.rise over its size
+function trimOf(c){return 1-smooth(PLUMB.trim[0],PLUMB.trim[1],c.k||1);}
+// a stand's phase (v11.230): the quills of a stand (placed within 3 m of their station's point, chunks.js placeKind) sway and drift as one — their phase
+// the stand's square of STAND m, not each animal's own t0 (shrimpfish move together); a plumb's its own
+const STAND=6;
+function phaseOf(c){if(!c.def.canopy)return c.t0;return ((Math.imul(Math.floor(c.home.x/STAND),73856093)^Math.imul(Math.floor(c.home.z/STAND),19349663))>>>0)%997/9.97;}
 // the face point under it; snap: turn the body there at once (at its placing)
-function plumbPose(c,snap){const w=c.wallD,k=HANG.face*HANG.tip,S=HANG.sway,a=HANG.face*S[0],p=c.t0;c.wander.set(c.pos.x-(w?w.x*k:0)+a*Math.sin(TAU*t/S[1]+p),c.pos.y-HANG.face,c.pos.z-(w?w.z*k:k)+a*Math.cos(TAU*t/S[2]+p));c.face=c.wander; // leaning off the wall, swaying (v11.223.1)
+function plumbPose(c,snap){const w=c.wallD,k=HANG.face*HANG.tip,S=HANG.sway,a=HANG.face*S[0]*(c.waitT>0&&c.def.canopy?0.2:1),p=phaseOf(c);c.wander.set(c.pos.x-(w?w.x*k:0)+a*Math.sin(TAU*t/S[1]+p),c.pos.y-HANG.face,c.pos.z-(w?w.z*k:k)+a*Math.cos(TAU*t/S[2]+p));c.face=c.wander; // leaning off the wall, swaying (v11.223.1)
   if(snap){_m.lookAt(c.wander,c.pos,UP);c.g.quaternion.setFromRotationMatrix(_m);c.g.position.copy(c.pos);}}
+// ---------- the plumb's night, the quill's stand (v11.230; BEHAVIOUR §4, the ringmouths' pass) ----------
+// The person (24 Nov 2026), the overhaul's first ask: "Have creatures like the new hovering plumb actually move, have a schedule, do things." The
+// nautilus is the reference (Earth: it rests deep on the reef's slope by day, climbs the wall at night to forage — mostly by smell, for carrion — and
+// sinks back at dawn). A plumb now: hangs at its wall station and ambushes there (as v11.223), climbing with the layer at dusk; hungry at night, after
+// PLUMB.wait s of nothing passing under it, it leaves the wall to forage ('forage': a slow jet at PLUMB.jet m/s to points within PLUMB.range of its
+// station, at the layer's depth there, leaning into its way, dropping on what passes under it as at its post); it smells carrion down the current from
+// DEFS.scav m (findCarcass, the plume) and goes up the scent to it, over a fall on the floor or a carcass, to eat ('feed'; its arms reach down
+// PLUMB.reach past its clearance) — never under its shell's floor (deepY); fed (PLUMB.full) or at the dawn it goes home to its wall ('return'). The old
+// giants (trimOf) hang at their day depth and forage there. A quill keeps to its stand: they sway and drift as one (phaseOf), and when something big
+// or the player comes near (QUILL.alarm, noticed) the stand slips down into the stalks, under its band (its arms' reach and gap over the floor), and holds
+// still for QUILL.hide s, hunting nothing
+const PLUMB={wait:15, // s it waits at its post, hungry at night, before it forages
+  range:90, // m from its station it forages within
+  leg:[18,36], // s between the points it makes for
+  jet:0.8, // m/s: the slow jet (a nautilus cruises at 0.2–0.5; the plumb is four times its length)
+  full:0.15, // the hunger at which it goes home fed
+  trim:[1.2,1.45], // its size factor (c.k) from which it follows less of the layer, and at which none (trimOf)
+  sniff:2, // s between its scent's reads
+  reach:3}; // m its arms reach down past its clearance over a carcass on the floor
+const QUILL={alarm:8,big:12,hide:20,stand:4}; // m it notices the player within, m a hunter of 4 m or more; s it stays down in the stalks after; m within which its standmates take fright with it
+function plumbFeedR(c,f){return Math.max(reachOf(c,f)*0.8,(c.def.clear||0)+f.def.size*0.5+PLUMB.reach);}
+// carrion it smells (findCarcass: the current's plume) and can reach: never under its shell's floor
+function plumbCarrion(c){const d=c.def,f=findCarcass(c,d.scav);if(!f)return null;if(d.deepY!==undefined&&f.pos.y<d.deepY-2)return null;return f;}
+// a point to forage toward: round its station, out to PLUMB.range, at the layer's depth over its floor there
+function plumbGoal(c){const d=c.def,g=c.goal||(c.goal=V3());for(let k=0;k<6;k++){const a=SIMR()*TAU,r=srnd(PLUMB.range*0.25,PLUMB.range),x=c.home.x+Math.cos(a)*r,z=c.home.z+Math.sin(a)*r,fl=groundAt(x,z);if(fl>-12)continue;g.set(x,plumbY(d,fl,c),z);c.wanderT=Math.max(srnd(PLUMB.leg[0],PLUMB.leg[1]),r/PLUMB.jet+5);return;} // long enough to get there: a leg, not a random walk
+  g.copy(c.home);c.wanderT=PLUMB.leg[0];}
+function plumbLean(c){c.wander.set(c.pos.x+c.vel.x*3,c.pos.y-HANG.face,c.pos.z+c.vel.z*3);c.face=c.wander;} // foraging: its face point under it, ahead of its way — it leans into the jet
+// the quill's alarm: the player or a big hunter it notices close
+function quillAlarm(c){const d=c.def;if(!playerGone()){const dp=c.pos.distanceTo(player.pos);if(dp<QUILL.alarm&&notices(d,c.pos.y,player,dp,QUILL.alarm))return true;}
+  for(const o of c.chunk.creatures){if(!o.alive||o===c||!o.def.prey||o.def.size<4)continue;const dd=c.pos.distanceTo(o.pos);if(dd<QUILL.big&&notices(d,c.pos.y,o,dd,QUILL.big))return true;}return false;}
 function updatePlumb(c,dt){
   const d=c.def;if(hungerTick(c,dt))return;
   if(c.state==='sit'){c.scanT-=dt;c.cool-=dt;
     if(c.scanT<=0){c.scanT=HANG.scan;c.home.y=plumbY(d,groundAt(c.home.x,c.home.z),c); // the layer moves with the sky: the station's depth read four times a second
-      c.awake=awakeOf(d);const thr=huntAt(c);if(c.cool<=0&&c.hunger>thr){const tg=findPrey(c,d.radius*lerp(REST.see,1,c.awake),thr);if(tg){c.state='lunge';c.target=tg;c.lungeT=2;c.bit=false;POP.chases++;}}} // v11.228: readier at night, when its layer has come up to it
-    if(c.state==='sit'){const D=HANG.drift,B=HANG.bob,p=c.t0,sk=Math.min(1,d.size/11),tx=c.home.x+sk*D[0]*Math.sin(TAU*t/D[1]+p)-c.pos.x,tz=c.home.z+sk*D[0]*Math.cos(TAU*t/D[2]+p*1.7)-c.pos.z,ty=c.home.y+sk*B[0]*Math.sin(TAU*t/B[1]+p*2.3)-c.pos.y; // sk (v11.227): the drift and the bob in proportion to a body smaller than the plumb's 11 // where it wants to be: its station, wandering and bobbing
+      c.awake=awakeOf(d);const thr=huntAt(c);
+      if(d.canopy){if(c.chunk&&quillAlarm(c)){c.waitT=QUILL.hide;for(const o of c.chunk.creatures)if(o!==c&&o.kind===c.kind&&o.alive&&o.pos.distanceTo(c.pos)<QUILL.stand)o.waitT=QUILL.hide;}else c.waitT=Math.max(0,c.waitT-HANG.scan);} // v11.230: the stand slips into the stalks — all of it, when one takes fright (QUILL.stand)
+      if(c.cool<=0&&c.hunger>thr&&!(d.canopy&&c.waitT>0)){const tg=findPrey(c,d.radius*lerp(REST.see,1,c.awake),thr);if(tg){c.state='lunge';c.target=tg;c.lungeT=2;c.bit=false;POP.chases++;}} // v11.228: readier at night, when its layer has come up to it
+      if(c.state==='sit'&&!d.canopy&&d.scav){if(c.cool<=0&&c.hunger>thr&&c.awake>REST.off){c.waitT+=HANG.scan;if(c.waitT>PLUMB.wait){c.state='forage';c.waitT=0;c.wanderT=0;c.scavT=0;}}else c.waitT=0;}} // v11.230: nothing under it for a while, hungry, at night: it forages
+    if(c.state==='sit'){const D=HANG.drift,B=HANG.bob,p=phaseOf(c),hid=d.canopy&&c.waitT>0,sk=Math.min(1,d.size/11)*(hid?0.2:1),hy=hid?groundAt(c.home.x,c.home.z)+(d.clear||0)+d.size*HANG.gap:c.home.y,tx=c.home.x+sk*D[0]*Math.sin(TAU*t/D[1]+p)-c.pos.x,tz=c.home.z+sk*D[0]*Math.cos(TAU*t/D[2]+p*1.7)-c.pos.z,ty=hy+sk*B[0]*Math.sin(TAU*t/B[1]+p*2.3)-c.pos.y,rr=HANG.rise/Math.max(1,c.k||1); // sk (v11.227): the drift and the bob in proportion to a body smaller than the plumb's 11; v11.230: a stand's phase (phaseOf), down and still when it hides, the climb slower for a bigger body (the trim)
       let vx=tx*HANG.pull*4,vz=tz*HANG.pull*4;const hv=Math.hypot(vx,vz);if(hv>HANG.hold){vx*=HANG.hold/hv;vz*=HANG.hold/hv;}
-      c.vel.set(vx,clamp(ty*0.5,-HANG.rise,HANG.rise),vz);plumbPose(c,false);}} // v11.223.1: held by its gas and the water, not fixed — carried by the current, pushed by bodies, drifting back
+      c.vel.set(vx,clamp(ty*0.5,-rr,rr),vz);plumbPose(c,false);}} // v11.223.1: held by its gas and the water, not fixed — carried by the current, pushed by bodies, drifting back
+  if(c.state==='forage'){c.scanT-=dt;c.wanderT-=dt;c.cool-=dt;
+    if(c.scanT<=0){c.scanT=HANG.scan;c.awake=awakeOf(d);const thr=huntAt(c);
+      if(c.hunger<PLUMB.full||c.awake<REST.on){c.state='return';c.feedAt=null;return;} // fed, or the dawn: home to its wall
+      if(c.cool<=0){const tg=findPrey(c,d.radius,thr);if(tg){c.state='lunge';c.target=tg;c.lungeT=2;c.bit=false;POP.chases++;return;}}
+      c.scavT-=HANG.scan;if(c.scavT<=0){c.scavT=PLUMB.sniff;const f=plumbCarrion(c);if(f){c.feedAt=f;const g=c.goal||(c.goal=V3());g.copy(f.pos);g.y=Math.max(f.pos.y+(d.clear||0)+PLUMB.reach*0.5,d.deepY!==undefined?d.deepY:-1e9);}}
+      if(!c.feedAt&&c.goal)c.goal.y=plumbY(d,groundAt(c.goal.x,c.goal.z),c);}
+    const f=c.feedAt;if(f&&(f.gone||f.flesh<=0)){c.feedAt=null;c.wanderT=0;}
+    if(c.feedAt){if(c.pos.distanceTo(f.pos)<plumbFeedR(c,f)){c.state='feed';c.feedT=40+bioMass(d)*0.02;return;}}
+    else if(!c.goal||c.wanderT<=0||c.pos.distanceTo(c.goal)<4)plumbGoal(c);
+    seek(c,c.goal,PLUMB.jet,dt,0.8);plumbLean(c);return;}
   if(c.state==='lunge'){const tg=c.target,tp=tg===player?player.pos:tg?tg.pos:c.home,dist=c.pos.distanceTo(tp);c.lungeT-=dt;c.biteT-=dt;c.face=tp;c.grab=c.b.rigs&&tg&&dist<armReach(c,tg,1.6)?tg:null;
     if(c.hold)c.vel.multiplyScalar(1-1.5*dt); // holding: the pair drifts
     else{seek(c,tp,d.lunge,dt,4);if(tg&&c.biteT<=0&&landsOn(c,tg)){c.biteT=1;c.bit=true;landBite(c,tg);if(!c.hold&&tg!==player&&!tg.alive)c.state='feed';}}
     if(c.state==='lunge'&&((c.lungeT<=0&&!c.hold)||!tg||(!c.hold&&tp.y>c.pos.y+1)||(tg!==player&&!tg.alive)||(tg===player&&playerGone()))){if(!c.hold&&c.lungeT<=0&&tg&&!c.bit)missed(c,tg);c.state='return';c.cool=4;}}
-  else if(c.state==='feed'){const f=c.feedAt;c.feedT-=dt;if(!f||f.gone||f.flesh<=0||c.feedT<=0){c.state='return';c.feedAt=null;return;}const dist=c.pos.distanceTo(f.pos);c.face=f.pos;if(dist>reachOf(c,f)*0.8)seek(c,f.pos,2,dt,2);else{c.vel.multiplyScalar(1-3*dt);eatAt(c,f,dt);}}
-  else if(c.state!=='sit'){c.grab=null;if(!c.hold)c.target=null;plumbPose(c,false);seek(c,c.home,HANG.back,dt,1.5);if(c.pos.distanceTo(c.home)<1){c.state='sit';c.scanT=0;}} // back to its station shell-first, by its buoyancy
+  else if(c.state==='feed'){const f=c.feedAt;c.feedT-=dt;if(!f||f.gone||f.flesh<=0||c.feedT<=0||c.hunger<=0){c.state='return';c.feedAt=null;return;}const dist=c.pos.distanceTo(f.pos);c.face=f.pos;if(dist>plumbFeedR(c,f))seek(c,f.pos,2,dt,2);else{c.vel.multiplyScalar(1-3*dt);eatAt(c,f,dt);}} // v11.230: over a carcass on the floor its arms reach down to it (plumbFeedR); full, it goes
+  else if(c.state!=='sit'){c.grab=null;if(!c.hold)c.target=null;c.scanT-=dt;if(c.scanT<=0){c.scanT=HANG.scan;c.home.y=plumbY(d,groundAt(c.home.x,c.home.z),c);}plumbPose(c,false);seek(c,c.home,HANG.back,dt,1.5);if(c.pos.distanceTo(c.home)<1){c.state='sit';c.scanT=0;c.waitT=0;}} // back to its station shell-first, by its buoyancy (v11.230: the station's depth kept up on the way)
 }
 // The swarm's day (v11.84, PLANKTON.md §5, §10): the largest daily movement of animals on the planet, ours included. swarmDepth is the
 // height the cloud wants — the night layer SW_NIGHT under the surface, the day layer SW_DAY (or SW_FLOOR over the floor where the floor comes
@@ -919,7 +988,6 @@ function updateCreatures(dt0){
       case 'hunter':updateHunter(c,dt);break;
       case 'graze':updateGrazer(c,dt);break;
       case 'wander':if(d.filter>0&&hungerTick(c,dt))break;wander(c,dt);break; // v11.85: a filter feeder runs the stomach's clock (the veil, the comb); a wanderer with no sieve has no stomach on the model
-      case 'coil':updateCoil(c,dt);break;
       case 'ambush':if(d.upright)updatePlumb(c,dt);else updateLurker(c,dt);break; // upright (v11.223): the plumb
       case 'drift':updateJelly(c,dt);break;
       case 'sail':updateSailer(c,dt);break;

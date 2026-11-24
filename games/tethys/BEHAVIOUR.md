@@ -1,8 +1,9 @@
 # BEHAVIOUR.md — what the animals do
 
 **Status (24 Nov 2026): pass 0 built (v11.228): the clock, the risk and the look; the player's bias struck; the bugs §6 lists fixed. Pass 1 built
-(v11.229): the senses (§3b); the sky and the pall's lights in the step.** The person on v11.228: *"I play tested and enjoyed it, go ahead with pass 1."*
-Next, a pass a clade (§4). Downstream of `PLANET.md` (each clade's deep decision is where its behaviour comes from), `CLADES.md`
+(v11.229): the senses (§3b); the sky and the pall's lights in the step. The ringmouths' pass built (v11.230, §3c): the plumb's night, the quill's
+stand, the arrows' pack and ink, the lurker's giving-up, the great a hunter.** The person on v11.228: *"I play tested and enjoyed it, go ahead with pass 1."*
+On v11.229 (24 Nov 2026): *"go ahead with the ringmouths pass and the plumb."* Next, the slowbloods (§4). Downstream of `PLANET.md` (each clade's deep decision is where its behaviour comes from), `CLADES.md`
 (habitat at three scales: the range, the station, the clock), `COMBAT.md` (what a hold means; pass D is the person's predator pass) and `DIRECTION.md`
 (the loop). The numbers live in `creatures_defs.js` (`BEHAVE`, `EYE_K`, `LAT_CLADE`) and `creatures_ai.js` (`CLK`, `REST`, `RISK`, `SENSE`, `SCENT`, `FREEZE`);
 `DESIGN.md`, Creatures, has them.
@@ -152,6 +153,42 @@ hiding, bleeding upstream of a hunter is safer than bleeding downstream of it.
 Not built (left for the clade passes): the player's own crypsis (its coat against the ground: `c.crypt` is the world's animals'); a lit body seen further
 (a lure's draw on prey: BIOLUM §7.11); prey seeking cover as it flees; a flight distance by kind beyond the three ranges; hearing.
 
+## 3c. The ringmouths (built v11.230)
+
+PLANET's ringmouths are *"fast, clever, short-lived … packs … intelligence and manipulation"*, a ring of eyes for motion, the jetters' ink. The pass:
+
+- **The plumb's night** (`updatePlumb`, `PLUMB`; the person's first ask, 24 Nov 2026: *"have creatures like the new hovering plumb actually move, have a
+  schedule, do things"*). The nautilus is the reference: it rests deep on the reef's slope by day, climbs the wall at night to forage — mostly by smell, for
+  carrion — and sinks back at dawn. A plumb hangs at its wall station and ambushes there (v11.223), climbing with the layer at dusk; hungry at night,
+  after `PLUMB.wait` 15 s with nothing under it, it leaves the wall to forage (`'forage'`): legs at `PLUMB.jet` 0.8 m/s to points within `PLUMB.range`
+  90 m of its station, at the layer's depth over the floor there, leaning into its way, dropping on what passes under it as at its post. It smells
+  carrion down the current from `DEFS.scav` 150 m (`findCarcass`'s plume, §3b) and goes up the scent to eat at it (`'feed'`: its arms reach
+  `PLUMB.reach` 3 m down past its clearance, `plumbFeedR`) — never under its shell's floor. Fed (`PLUMB.full` 0.15) or at the dawn it goes home to its
+  wall. **The trim** (CLADES, The hanger: *"pump bore ∝ L², gas ∝ L³ … a giant stays at one depth"*): a plumb follows the layer's climb by its size
+  factor (`trimOf`: all of it to `PLUMB.trim` 1.2, none from 1.45), and climbs at `HANG.rise` over that factor — the young and the typical rise every
+  night, the oldest few (30 m and more) hang at their day depth. Not built: neighbours spacing on a wall, the tide swinging them round a pinnacle.
+- **The quill's stand** (`phaseOf`, `QUILL`): a stand sways and drifts as one (its phase the stand's `STAND` 6 m square's, not each animal's); when
+  one notices the player within `QUILL.alarm` 8 m or a hunter of 4 m or more within 12, it and its standmates within `QUILL.stand` 4 m slip down into
+  the stalks, under their band, and hold still, hunting nothing, for `QUILL.hide` 20 s. Among the stalks the player is covered: a quill sees it there
+  within about 4 m (§3b).
+- **The arrows' pack** (`packCall`, `flankPt`, `PACK`): when one takes on prey, its idle packmates within `PACK.r` 30 m (past hunger `PACK.join` 0.2)
+  join it on the same prey, and in the chase each comes in from its own side — half the pack left of the line to the prey, half right, by up to
+  `PACK.flank` 9 m, straight in from `PACK.close` 6 m: a school pressed from two sides has nowhere to turn. **The ink** (`inkEscape`, `INK`): an arrow
+  inks when a hunter chasing it closes within `INK.near` 5 m, or when it is taken hold of and lives (a jaw's first bite takes a small one outright),
+  once in `INK.cool` 25 s: its cloud hides it from every eye for `INK.hide` 6 s, its chaser loses it with a chance of `INK.slip` 0.6 and leaves it for
+  `INK.lose` 4 s, and it jets off from what came at it.
+- **The lurker gives up a post that does not pay** (`LURK`): hungry in its hours, `LURK.give` 90 s at its post with nothing taken, it crawls to another
+  among the rock within 24 m (`coverSpot`) — Earth's sit-and-wait hunters' giving-up time (the marginal value theorem). The hook keeps its place up in the
+  structure.
+- **The great hunts** (`DEFS.great`: role `hunter`, prey the player, the grazer, the eel, the lurker, the plough — the shelf's bodies of a tonne and
+  more; a ringmouth's look, `insp` `stand`): its ram is its bite's opening blow (`landBite`: the prey stunned, then the beak). To v11.229 it was a
+  `coil` that rammed the player and ate nothing; the role is struck. Its forward capsule ended 1.3 m into its arms, so a prey's body was held 1.6–2.5 m
+  off its beak at contact; it ends at the beak now (`SPECS.great`), the arms before it their own chains. The crusher is not its prey: its plates kept
+  the beak a metre off even so.
+
+Not built in the pass: reputation (DIRECTION: *"some species remember"*); the watcher watching other animals; the pall's lure's meal (BIOLUM §7.11, the
+person's); the ortho's spear as a jet; the plumb's demigods (LINEAGE §7c.6).
+
 ## 4. The plan (the passes)
 
 0. **The clock and the risk** — built v11.228 (§2, §3, §6).
@@ -160,7 +197,7 @@ Not built (left for the clade passes): the player's own crypsis (its coat agains
    late — VARIETY's favour then has a gameplay reason); the lateral line, short and light-blind, loud for a moving body and silent for a still one;
    scent carried downstream (`currentAt`), for blood and carrion (COMBAT §10.6, pass D). Prey with the same senses: a flight distance per kind, freezing
    for the cryptic, cover. The pall's lights moved into the step (§6). A cell's creatures bucketed for the scans (§7, the cost).
-2. **Ringmouths**: the plumb's night (off its wall into the risen layer to hunt, scavenging by smell up a carcass's scent, back to the wall at dawn; the
+2. **Ringmouths** — built v11.230 (§3c), but for what §3c leaves. As planned: the plumb's night (off its wall into the risen layer to hunt, scavenging by smell up a carcass's scent, back to the wall at dawn; the
    old giants too heavy to follow the layer — CLADES' trim physics — so age changes what a plumb does; neighbours spacing on a wall; the tide swinging
    them round a pinnacle); the arrows as a pack (flanking a school, inking when held); the quill's stand moving as one and slipping into the stalks; the
    great a hunter; the lurker leaving an ambush that does not pay. Reputation as part of intelligence (DIRECTION, decided 12 Sep 2026: "some species
@@ -204,8 +241,8 @@ the drawing makes the cloud's blobs for each the step queues (`PHO_Q`). **The pl
 
 - The fixed step: every choice and timer from `SIMR`; nothing the drawing sets is read by a step (test/step.js, test/simrand.js).
 - One shape: a key a creature takes is in spawn's literal and the `Creature` typedef (v11.228: `awake`, `sink`, `inspT`, `deter`, `dread`; v11.229:
-  `crypt`, `cov`, `covT`); a `DEFS` key in `DEF_KEYS` (`act`, `rest`, `insp`, and v11.229's `eye`, `lat`, `freeze`, come from `BEHAVE`, `EYE_K` and
-  `LAT_CLADE` before it is made); a school's keys in `makeSchool`'s literal (`awake`, `rest`).
+  `crypt`, `cov`, `covT`; v11.230: `goal`, `waitT`, `inkT`); a `DEFS` key in `DEF_KEYS` (`act`, `rest`, `insp`, and v11.229's `eye`, `lat`, `freeze`, come from `BEHAVE`, `EYE_K` and
+  `LAT_CLADE` before it is made; v11.230's `scav` from `BEHAVE`, `pack`, `ink`); a school's keys in `makeSchool`'s literal (`awake`, `rest`).
 - `dropTarget` is the one way out of a pursuit; `kill()`, `removeCreature`, `placeKind` with `ent` for the ledger.
 - The paper model (ecology.js) knows nothing of hours, rest, risk or the look: the ledger's rates and the census are unchanged, and only what is seen in
   the loaded cells moves. A pass that changes how often things eat on screen checks `test/live.js`'s starving share.

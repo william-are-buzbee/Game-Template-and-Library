@@ -40,7 +40,7 @@ const DEFS={
   arrow:{build:()=>compile(SPECS.arrow),size:1.0,hp:1,edible:true,food:24,role:'hunter',jetter:true,prey:['darter','flicker','scuttle','sifter'],detect:14,reach:0.9,dmg:0,biteCD:1,home:26,cruise:8,cruiseF:0.5,cool:2}, // jetter (v11.228): mantle-first with the arms trailing in the chase (PLANET, the jet pose) — only the player's line carried it
   grazer:{build:()=>compile(SPECS.grazer),stock:3,size:2.6,venom:{kind:'sting'},pace:0.55,flee:true,hp:70,role:'graze',home:32,floor:true}, // mortal since v11.26: the ridge's and the sickle's meal (it was 1e9 and every hunt ended bored)
   veil:{build:()=>compile(SPECS.veil),size:16,pace:0.19,hp:900,role:'wander',home:200,cruise:70,cruiseF:1},
-  great:{build:()=>compile(SPECS.great),size:6,pace:0.14,ram:5,dmg:12,radius:9,reach:5.2,hp:600,role:'coil',home:45,cruise:10,cruiseF:1},
+  great:{build:()=>compile(SPECS.great),size:6,ram:5,dmg:12,radius:9,reach:5.2,hp:600,role:'hunter',prey:['player','grazer','eel','lurker','plough'],detect:30,biteCD:2,home:60,cruise:10,cruiseF:0.4,cool:6}, // v11.230 (BEHAVIOUR §4, the ringmouths' pass): the shelf's apex hunts at last — the shelf's bodies of a tonne and more — its ram the strike's opening blow (landBite): the prey stunned, then the beak. To v11.229 a 'coil' that rammed the player and ate nothing
   ridge:{build:()=>compile(SPECS.ridge),size:9,hp:140,role:'hunter',prey:['player','grazer','picker','plough'],detect:46,reach:6.6,dmg:32,biteCD:1.5,home:240,cruise:60,cruiseF:0.4,cool:5},
   ortho:{build:()=>compile(SPECS.ortho),size:8,hp:90,role:'hunter',prey:['player','needle','darter','grazer','picker'],detect:40,reach:5.6,dmg:24,biteCD:1.2,home:220,cruise:70,cruiseF:0.4,cool:5},
   abyssal:{build:()=>compile(SPECS.abyssal),size:15,immune:true,hp:400,role:'hunter',prey:['player','comb','hoop','ortho'],cycle:10,detect:85,reach:10,dmg:55,biteCD:1.8,home:420,cruise:200,cruiseF:0.45,cool:6}, // v11.227: the ortho too — the comb and the hoop breed too slowly to feed it (the 90-day census: 392 → 73); an apex is a generalist, and the ortho shares its water (the sperm whale's giant squid)
@@ -127,10 +127,10 @@ for(const k in DEFS)if(SPECS[k])defPhysics(DEFS[k],SPECS[k]);
 // demersal plankton that rises out of the weed) and the changeover's hunters (the jacks, the grouper, the trumpetfish) — "Earth is reference, never template"
 const BEHAVE={
   // ringmouths: high metabolism and the ring's eyes; the night is the cephalopods'
-  arrow:{act:[0.15,0.9,1],rest:'hover',insp:'stand',eye:'night'}, // the squid's: in a loose hover by day, hunting the ribbons at dusk and through the night
+  arrow:{act:[0.15,0.9,1],rest:'hover',insp:'stand',eye:'night',pack:true,ink:true}, // the squid's: in a loose hover by day, hunting the ribbons at dusk and through the night; v11.230: a pack (PACK) that inks when held (INK)
   ortho:{act:[0.3,0.8,1],rest:'hover',insp:'stand'}, // the slope's spear: about at dusk and in the dark, held in the current by day
-  great:{act:[0.8,0.3,0.6],rest:'hover'}, // the shelf's coil: by day; it holds still in the water at night
-  plumb:{act:[0.4,1,1]}, // its post at the wall (HANG): the layer it eats comes up at night, and it drops readily then; by day only the hungry drop
+  great:{act:[0.8,0.3,0.6],rest:'hover',insp:'stand'}, // the shelf's coil: by day; it holds still in the water at night; v11.230: a hunter, a ringmouth's look
+  plumb:{act:[0.4,1,1],scav:150}, // its post at the wall (HANG): the layer it eats comes up at night, and it drops readily then; by day only the hungry drop. v11.230: hungry at night it leaves the wall to forage (PLUMB), and smells carrion from 150 m down the current (the nautilus's nose: it finds bait by odour from far off)
   quill:{act:[1,0.3,0.6]}, // the lit weed's (the shrimpfish feeds by day among the spines)
   lurker:{act:[0.3,1,0.8],eye:'night'}, // the octopus's hours: the night
   watcher:{act:[1,0.15,0.6],rest:'cover'}, // curious by day; in a crevice at night
@@ -170,7 +170,7 @@ const BEHAVE={
 // that holds still at a threat it can see coming and bolts only when it is close (a hingeshell clamps its valves: PLANET's "clamped shut when threatened")
 const EYE_K={ring:[-10.5,-5.5],two:[-10,-6],stalk:[-9,-5],night:[-11,-7],deep:[-12,-8]};
 const EYE_CLADE={ringmouths:'ring',slowbloods:'two',hingeshells:'stalk'},LAT_CLADE={ringmouths:1.3,slowbloods:2.0,hingeshells:1.6,drifters:0};
-for(const k in DEFS){const d=DEFS[k],sp=SPECS[k],b=BEHAVE[k]||{};if(b.act!==undefined)d.act=b.act;if(b.rest!==undefined)d.rest=b.rest;if(b.insp!==undefined)d.insp=b.insp;if(!sp)continue;
+for(const k in DEFS){const d=DEFS[k],sp=SPECS[k],b=BEHAVE[k]||{};if(b.act!==undefined)d.act=b.act;if(b.rest!==undefined)d.rest=b.rest;if(b.insp!==undefined)d.insp=b.insp;if(b.scav!==undefined)d.scav=b.scav;d.pack=b.pack||undefined;d.ink=b.ink||undefined;if(!sp)continue; // v11.230: scav, pack, ink (the ringmouths' pass)
   const e=b.eye||EYE_CLADE[sp.clade];d.eye=e?EYE_K[e]:undefined;d.lat=b.lat!==undefined?b.lat:LAT_CLADE[sp.clade]||0;d.freeze=b.freeze||undefined;}
 // v11.149 (the creature performance pass): every def one shape. The rows above are each their own literal, and an individual's def was its kind's
 // chained under a copy of its own size (creatures_ai.js scaledDef: Object.create) — 26 shapes among the forest's creatures, so every d.role, d.size,
