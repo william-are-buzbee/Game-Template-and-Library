@@ -2123,6 +2123,23 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   buildKind swaps the preset for the build and puts it back); and, for a clade with `GRAMMAR.moult`, the **soft state**. `coatFor` takes the
   fields as a fifth argument and applies the class to a drawn coat. Cost: none per spawn beyond the build (40 sickles 17 ms either way); the
   cache held 18–29 class geometries over a tour of the island.
+- **The individual's variants (v11.225; VARIETY.md; creatures_defs.js `VARIETY`, `VARIETY_CLADE`, `GROW`, `MORPHS`; creatures_ai.js `indiv`,
+  `variantOf`, `variantSpec`, `variantDef`, `indivSeed`, `palMorph`).** A kind with a `VARIETY` row (v11.225: plumb, ortho, great, rasp) is, at its
+  spawn, an individual of its **seed** — `indivSeed(cell, entry, its place among the entry's in the cell)`, so a cell shows the same animals each visit
+  while its counts hold (the person, 23 Nov 2026: "the fixed locations feel good"); a juvenile grown up, a moult and a hardening keep it (`opt.seed`,
+  `c.seed`). The seed draws a **morph** by the row's frequencies (the rare one 2%: the person, "1 in 50"), an **age rank** q (old past the row's `old`
+  0.9), a **proportion set** b (of `sets`, the clade's default; set 0 the type) and its share of the **range**; its size is `GROW[law](q, size) × (1 ±
+  range)` (`shell`: half the adults between the band's least and the type, the oldest few to its most — the plumb 0.85–1.5, so 20 m typical and 30 m
+  old) and replaces VARY's ±15% (whose draw is still taken from the cell's stream, so every draw after it holds). The variant (`morph.set`, `o` if old)
+  is shared by every animal that is it: its spec (`variantSpec`: the row's `vary` params moved by up to their fraction, drawn from the kind's own seed,
+  clamped to the registry's believable band widened to hold the type's value; old, the shell takes `oldShell` — a straightshell's tip shed, its shell's
+  capsule shortened with it), its def (`variantDef`: a flat copy of the kind's with `defPhysics` on its own spec — speed, turn, accel are its), its
+  palette (`buildKind`: the morph's transform, then `MORPHS.old` if old — the shell and band faded — then the place's class; untouched keys exact), its
+  tape and its geometry (`KIND_GEO` `kind#key@cls`). A kind builds at most `max` (the clade's: ringmouths 12, hingeshells 10, slowbloods 6, drifters 4 —
+  the person: "ringmouths in general should vary the most"); past it an animal takes the nearest built — its morph's type set, the common morph's set,
+  the type. The ringmouths' shells take the place's chemistry since v11.225 (`COAT_CHEM_KEYS.ringmouths` shell, band). Not yet: combat's live spec
+  and `kgOfKind` read the type's spec (a variant's mass is the type's at its scale); the clades' other growth laws, fouling and scars (VARIETY §7).
+  `INDIV=1 node test/preview.js <id>` draws eight individuals at their sizes on one scale; test/variety.js holds it.
 - **The moult (v11.66, `MOULT`):** `frac` 0.05 of a moulting clade's placed adults start soft (never a boid); soft is `c.soft` — the `soft` class
   (pale), `st.soft` 1 (the valves clamp), `b.cover` all skin, state `sit`, laid by `hideSpot` on the floor within `hide` 6 m where a solid stands
   within 2 m; `updateSoft` hardens it after `soft` 0.5 days × mass^¼ out of sight (`harden`: a new adult spawned in its place, as `growUp`); a hard

@@ -195,6 +195,38 @@ function stationW(st,h,rise,run,flow,deepY){let w=1;
   return w;}
 // the rise to the highest of a grid point's four neighbours (a G×G grid of heights hs): the wall's height beside it
 function gridRise(hs,G,n){const a=n%G,b=(n-a)/G,h=hs[n];let r=0;if(a>0)r=Math.max(r,hs[n-1]-h);if(a<G-1)r=Math.max(r,hs[n+1]-h);if(b>0)r=Math.max(r,hs[n-G]-h);if(b<G-1)r=Math.max(r,hs[n+G]-h);return r;}
+// ---------- the individual (v11.225; VARIETY.md) ----------
+// What differs between two of a kind, each by a cause the world can name (VARIETY §2): a morph (genes — a palette transform drawn by frequency, a
+// rare one about one in 50: the person, 23 Nov 2026), an age (its size by its growth law, VARIETY §3, with the species' range on top — the person:
+// "size by age for sure, but there should also be range on top of that" — and the marks of the old past `old` of the ages), a proportion set
+// (development — the build's params moved within the registry's believable bands; `sets` of them a kind, the first the type, so the physics follows
+// through derive) and the place's coat (coatChem: COAT_CHEM_KEYS, the ringmouths' shells since v11.225). An individual is seeded by its cell, its
+// entry and its place among them (creatures_ai.js indivSeed), so a cell shows the same animals each visit (the person: "the fixed locations feel
+// good… tangible, stable"). A kind with no row is built as the type, its size VARY's ±15%, as before; rows come a clade a pass (VARIETY §7).
+// the clade's defaults (the person: "ringmouths in general should vary the most", the hingeshells next): max, the variants a kind may build (morph ×
+// set × old; past it an animal takes the nearest built one); sets, the proportion sets; range, ± the size an animal takes on top of its age's
+const VARIETY_CLADE={ringmouths:{max:12,sets:3,range:0.06},hingeshells:{max:10,sets:3,range:0.05},slowbloods:{max:6,sets:2,range:0.05},drifters:{max:4,sets:1,range:0.04}};
+// the size an age gives: q the animal's age as its rank among its kind's adults (0 the youngest, 1 the oldest), S the adult band [least, most] about
+// the type's 1. shell: a shell grows all its life, slower as it goes — half the adults between the least and the type, the oldest few the largest
+const GROW={shell:(q,S)=>q<0.5?lerp(S[0],1,q/0.5):lerp(1,S[1],Math.pow((q-0.5)/0.5,2.5))};
+// a morph or a mark as a palette transform, on [hue°, sat, light] for a key (the eyes, the mouth and the claws are never moved: PAL_FIXED); each
+// with its cause. melanic: more melanin (cold, deep and vent water favour it); erythristic: red in the shell (free camouflage below −15, where a red
+// animal is black); leucistic: little pigment at all (the rare pale one); old: an old shell's colour worn and faded
+function hueTo(a,b,t){return a+((((b-a)%360)+540)%360-180)*t;}
+const MORPHS={type:null,
+  melanic:(c,k)=>PAL_PALE[k]?[c[0],c[1]*0.7,c[2]*0.72]:[c[0],c[1]*0.6,c[2]*0.5],
+  erythristic:(c,k)=>k==='shell'||k==='band'?[hueTo(c[0],8,0.7),Math.max(c[1],0.42),c[2]*(k==='shell'?0.82:0.9)]:c,
+  leucistic:(c,k)=>[c[0],c[1]*0.35,lerp(c[2],0.86,0.55)],
+  old:(c,k)=>k==='shell'||k==='band'?[c[0],c[1]*0.62,lerp(c[2],0.6,0.3)]:c};
+// the rows. grow: the law; size: the adult band about the type; old: the age rank past which an animal is old; morphs: [name, frequency];
+// vary: [part kind, param, ± fraction]; oldShell: what age does to the shell's params (a straightshell sheds its tip: Sphooceras, VARIETY §2.4);
+// max, sets, range: the clade's unless set
+const VARIETY={
+  plumb:{grow:'shell',size:[0.85,1.5],old:0.9,morphs:[['type',0.82],['melanic',0.16],['leucistic',0.02]],vary:[['arms','len',0.14],['shell','L',0.06],['shell','r0',0.1],['shell','turns',0.2]],oldShell:{L:0.82}}, // 20 m typical, 30 m the oldest (the person, 23 Nov 2026)
+  ortho:{grow:'shell',size:[0.85,1.35],old:0.9,morphs:[['type',0.82],['erythristic',0.16],['leucistic',0.02]],vary:[['arms','len',0.14],['shell','L',0.06],['shell','r0',0.1],['shell','turns',0.2]],oldShell:{L:0.85}},
+  great:{grow:'shell',size:[0.85,1.3],old:0.9,morphs:[['type',0.84],['melanic',0.14],['leucistic',0.02]],vary:[['arms','len',0.14],['shell','R1',0.08],['shell','k',0.05]]},
+  rasp:{grow:'shell',size:[0.8,1.25],old:0.9,morphs:[['type',0.68],['erythristic',0.3],['leucistic',0.02]],vary:[['arms','len',0.16],['shell','R1',0.1]]} // the rasp: a grazer of the lit rock, where a red shell among the red crusts is the common second
+};
 // The roster (PLANET.md) in the order the bestiary shows it (zoo.js). Display only: clade, family, niche, size is DEFS's (or the
 // clade's, for the three players), floor: sits on the ground (shown at the game's floor clearance), new: built and not yet placed.
 const ROSTER=[

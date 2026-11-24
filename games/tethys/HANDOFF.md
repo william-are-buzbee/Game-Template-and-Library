@@ -4,6 +4,12 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.225 (23 Nov 2026): the individual, step 1** (creatures_defs.js `VARIETY`, `GROW`, `MORPHS`; creatures_ai.js `indiv`, `variantOf`; zoo.js `i`;
+test/variety.js; test/preview.js `INDIV=1`; VARIETY.md; DESIGN The individual's variants; CHANGELOG). The plumb, ortho, great and rasp are individuals:
+stable in their cell, size by age with a range (the plumb 20 m typical, 30 m old), a morph (a rare pale one in 50), a proportion set, old shells shed
+and faded, their shells coloured by the place. The rest of the roster is the type, as before. **Ask:** the bestiary's `i` on those four; whether the
+morphs read. **Next:** VARIETY §7 step 2, the growth laws for every clade.
+
 **v11.224 (23 Nov 2026): the individual, designed** (VARIETY.md, new; LINEAGE §7c.6; CLADES; CHANGELOG). Docs only. The variety generator and
 palettes proposed: every difference with a cause (morph, age by the clade's growth law, place, history, development), variants as shared keys
 under a budget, palettes by `coatFor`'s physics. The person's answers: demigods for every god, the Plumb a god provisionally, 30 m for the old
@@ -25,13 +31,6 @@ band left: it is the floor's). Seen in headless Chromium hanging at the wall at 
 generated, species authored from a radiation table; the hanger first — a straightshell with no ballast, hung vertical beside walls, rising with the
 swarm's layer at night — and the ortho kept as it is; the slowbloods' reference becomes the jawless armoured fish; then the ringmouths' individuals and
 the slowblood filter giant. Habitat at three scales (range, station, clock), agreed; no exceptions — every species held to its body's limits, so the ortho moves up. **Next:** the hanger.
-
-**v11.221 (23 Nov 2026): the sparkle as a parallel ecosystem** (LINEAGE.md §7c, §12.39–46; CLAUDE.md and PLANET.md's no-magic rule;
-CHANGELOG). Docs only, and a rough draft, not gospel: the aim is the sparkle as a fun mechanic that motivates the player. The
-person's answers: not §7b's island but an ecosystem of its own over the whole world, the gods placed by hand and
-designed first, the generation count kept, the sparkle released at laying and drained while not eating, the player just another sparkle
-creature and hunted for it. The model (a substance moved by eating) is proposed; nine candidate gods in §7c.5. The ordinary ecology gets more passes
-first. **Ask:** §7c.4, the first three.
 
 ## Open
 

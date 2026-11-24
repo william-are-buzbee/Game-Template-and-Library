@@ -10978,3 +10978,54 @@ Docs only; nothing in `src/` moved. Stacked on v11.223.1 (#185).
   per species, a rare morph about one in 50; a budget per species, the ringmouths varying most and the hingeshells next; the founder left alone;
   size by age with a range on top.
 - **Unseen, ask**: whether the stipe is worth building.
+
+## v11.225 — the individual, step 1: stable individuals, size by age, morphs, proportion sets; the shelled ringmouths first (23 Nov 2026)
+
+VARIETY.md §7's first step, built on the person's answers (§8, 23 Nov 2026): individuals stable in their cell (*"the fixed locations feel
+good… tangible, stable"*), rarity and budget per species with the ringmouths varying most, a rare morph about one in 50, the founder left alone,
+*"size by age for sure, but there should also be range on top of that."*
+
+- **The machinery** (creatures_defs.js `VARIETY`, `VARIETY_CLADE`, `GROW`, `MORPHS`, `hueTo`; creatures_ai.js `indiv`, `indivSeed`, `nthOf`,
+  `variantOf`, `variantSpec`, `variantDef`, `varKind`, `bandClamp`, `palMorph`; `spawn`, `buildKind`). An animal of a kind with a row is the individual
+  of its seed — its cell, its entry, its place among them (a juvenile grown up, a moult, a hardening keep it: `c.seed`) — drawn as a morph (by
+  frequency), an age rank (old past 0.9), a proportion set (of 3 for the ringmouths; set 0 the type) and a share of the range; its size the growth law
+  at its age times that share, in place of VARY's ±15% (whose draw from the cell's stream is still taken, so every later draw holds). It is built as its
+  variant, shared by every animal that is it: the spec's params moved within their fraction and the registry's believable band, old shells shed at
+  the tip; its own def by `defPhysics` (speed, turn, accel are the variant's: an old plumb, shorter-shelled, is a little slower and turns quicker);
+  its palette the morph's, then `old`'s fade, then the place's class; its own tape and geometry (`KIND_GEO` `kind#morph.set[o]@class`). A kind builds at
+  most its clade's budget (ringmouths 12, hingeshells 10, slowbloods 6, drifters 4) and past it takes the nearest built.
+- **The rows** (VARIETY, the shelled ringmouths): **plumb** 0.85–1.5 (20 m typical, 30 m old), rose 82% / melanic 16% / leucistic 2%, the old
+  shell 0.82 long; **ortho** 0.85–1.35, cream / erythristic / leucistic, the old shell 0.85; **great** 0.85–1.3, type / melanic / leucistic; **rasp**
+  0.8–1.25, cream / erythristic 30% (a red shell among the lit rock's red crusts) / leucistic. Each varies its arms' length ±14–16% and its shell's
+  proportions (a cone's length, front radius and helix; a coil's outer radius and whorl).
+- **The ringmouths' shells take the place's chemistry** (creatures_spec.js `COAT_CHEM_KEYS.ringmouths` shell, band): rust near the basalt,
+  cream-lime on the reef, black in sulfide — PLANET's rule, the hingeshells' since v11.66. The flesh is the blood's.
+- **The bestiary** (zoo.js): `i` shows an individual of a species with a row, a random seed, its morph, set, age and size in the caption; stepping
+  on shows the type. **`INDIV=1 node test/preview.js <id>`** draws eight individuals at their own sizes on one scale.
+- **test/variety.js** (new, in `--test`, ~5 s): a seed gives the same animal; over 5,000 seeds each kind's rare morph at 1.9%, its old at 10.5%, its
+  size median 0.98–0.99 and inside its band with the range; every kind at 12 variants, its budget; set 0 the type, every moved param inside its
+  fraction and band; an old plumb's shell 7.79 m of 9.5, its capsule shortened; each variant's def derive's for its own spec; the pale, dark and red
+  morphs move what they say and leave the eyes and the flesh; a ringmouth's shell takes rust; and the busiest wall near the centre, unloaded and
+  loaded again, shows the same seven individuals.
+- Not yet (VARIETY §7): the other clades' rows and growth laws, fouling and scars; combat's live spec and `kgOfKind` read the type's spec (a
+  variant's mass is the type's at its scale).
+- **Seen**: `INDIV=1 node test/preview.js` for the four — the plumb rose, dark and pale, the old bigger and blunter; the rasp cream, pink-red, faded
+  old and grey; and in headless Chromium the busiest wall near the centre as the world placed it: six plumbs at ×0.93–1.55 of the type, three of them
+  old (a wall's chance: over 57,600 cells' seeds 9.9% are old and the morphs come at 82/16/2%), the one in frame the dark old one, ~31 m, over the
+  rocks. Not seen: a morph against the others side by side in the water, the shells' place coats.
+- **What it cost** against v11.224 (`node test/perf.js --ref 2846343 --only frames,creatures,gpu`; the seeded draws moved, so the same places and
+  counts, not the same bodies):
+
+  | measure | v11.224 | here | ratio |
+  |---|---|---|---|
+  | creatures' work a frame at the forest, ms (mean / p95) | 2.572 / 3.822 | 2.369 / 3.405 | ×0.92 / ×0.89 |
+  | a cell at the forest, ms — whole / in spawn() / the far bake | 41.4 / 18.6 / 0.5 | 39.5 / 21.4 / 1.7 | ×0.95 — spawn +2.8 ms and the bakes +1.2 ms over nine cells: the variants' first builds |
+  | a cell at the giant, ms (no creatures) | 31.1 | 37.8 | ×1.21 — nothing of this runs there: noise (×1.22 then ×0.80 in v11.223's two runs) |
+  | every kind's build, ms (again) | 6.3 | 7.1 | ×1.13 — 38 kinds at 0.1 ms grain; v11.223.1, with no build change, read ×1.11 |
+  | GPU draws / triangles / programs, seven places | | | within ±2% |
+  | GPU bytes uploaded a frame, the forest | 316 KB | 355 KB | ×1.12 — the seeded draws again; `test/gpu.json` updated |
+
+  The cost that is real: an individual's variant is built whole the first time it is met (a compile and a far bake, ~0.3–1 ms), at most 12 a kind
+  for the four kinds, then replayed like any kind's.
+- **Unseen, ask in this order**: (1) the bestiary's `i` on the plumb, ortho, great and rasp — do the morphs read, is the spread of sizes right;
+  (2) whether the rare pale one is rare enough to be a find at one in 50; (3) step 2 next (the growth laws for every clade), or more rows first.

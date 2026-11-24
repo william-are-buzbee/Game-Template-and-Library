@@ -9,6 +9,8 @@
 //   POSE=idle|act|all  TILE=320  T=1.0 (the anim time)  SPD=0.6 (the anim speed)
 //   PALV=k  builds every species in palette variant k (creatures_builders.js PAL_VARIANTS; the zoo's up/down)
 //   COATS=1 writes <id>_coats.png instead: the three-quarter view in every variant side by side
+//   INDIV=1 writes <id>_indiv.png instead (v11.225, VARIETY.md): eight individuals of a kind with a VARIETY row, at their own sizes on one scale —
+//            the type young, its other proportion sets, an old one, each morph, the rare one old; the caption lists each one's morph, set, age and size
 //   NORIG=1  hides the chain rigs (arms, lines) so a body with 25 m lines can be looked at
 //   SPEC=path.json   renders a lab spec (the lab's "copy json") instead of the roster, to test/preview/spec_<id>.png
 //   FLORA=1 [DEPTH=-30] node test/preview.js reed rind   a flora species' three variants (quarter over side), tinted by pigment at DEPTH
@@ -18,7 +20,7 @@ const fs=require('fs'),path=require('path'),zlib=require('zlib');
 const ROOT=path.join(__dirname,'..');
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
 let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n');
-js+='\nglobal.__zoo={DEFS,CLADES,ROSTER,rigRest,V3,PAL,PAL_VARIANTS,palVariant,palKey,compile,validate,derive,specFromJSON,FLORA,pigment};';
+js+='\nglobal.__zoo={DEFS,CLADES,ROSTER,rigRest,V3,PAL,PAL_VARIANTS,palVariant,palKey,compile,validate,derive,specFromJSON,FLORA,pigment,VARIETY,indiv,variantOf,buildKind};';
 const tmp=path.join(require('os').tmpdir(),'tethys_preview.js');
 fs.writeFileSync(tmp,'(function(){"use strict";\n'+js+'\n})();');
 process.env.PICK='0';
@@ -117,6 +119,19 @@ if(process.env.FLORA){
 }
 // build a species in a palette variant: swap its PAL entry while the builder runs, as the zoo does
 function buildIn(r,build,k){if(r.spec)return Z.compile(r.spec);const pk=Z.palKey(r.id),pal0=pk?Z.PAL[pk]:null;if(pal0&&k)Z.PAL[pk]=Z.palVariant(pal0,k,r.clade);try{return build();}finally{if(pal0)Z.PAL[pk]=pal0;}}
+if(process.env.INDIV){
+  const want8=[[0,0,0],[0,1,0],[0,2,0],[0,0,1],[1,0,0],[1,1,1],[2,0,0],[2,1,1]];let n=0;
+  for(const r of ids){const R=Z.VARIETY[r.id];if(!R)continue;const picks=[];
+    for(const w of want8){let best=null;for(let sd=1;sd<40000&&!best;sd++){const ind=Z.indiv(r.id,Math.imul(sd,0x9E3779B1)>>>0);if(ind.m===w[0]&&ind.b===w[1]&&ind.o===!!w[2])best=ind;}if(best)picks.push(best);}
+    const built=picks.map(ind=>{const vx=Z.variantOf(r.id,ind),b=Z.buildKind(vx.def,r.id,'',vx);b.anim(T0,SPD,{});if(b.rigs)for(const rig of b.rigs)Z.rigRest(rig);b.g.scale.multiplyScalar(ind.k);return {ind,vx,tris:gather(b.g)};});
+    let lo=[1e9,1e9,1e9],hi=[-1e9,-1e9,-1e9];for(const x of built)for(const t of x.tris)for(let q=0;q<9;q+=3)for(let a=0;a<3;a++){lo[a]=Math.min(lo[a],t.p[q+a]);hi[a]=Math.max(hi[a],t.p[q+a]);}
+    const radius=Math.max(hi[0]-lo[0],hi[1]-lo[1],hi[2]-lo[2])/2||1,W=S*built.length,H=S,img=new Uint8Array(W*H*3);
+    built.forEach((x,k)=>{let l2=[1e9,1e9,1e9],h2=[-1e9,-1e9,-1e9];for(const t of x.tris)for(let q=0;q<9;q+=3)for(let a=0;a<3;a++){l2[a]=Math.min(l2[a],t.p[q+a]);h2[a]=Math.max(h2[a],t.p[q+a]);}
+      renderTile(img,W,k*S,0,S,x.tris,VIEWS.quarter,[(l2[0]+h2[0])/2,(l2[1]+h2[1])/2,(l2[2]+h2[2])/2],radius,null,null);});
+    fs.writeFileSync(path.join(outDir,r.id+'_indiv.png'),png(img,W,H));n++;
+    console.log(r.id.padEnd(8),built.map(x=>x.vx.m+(x.ind.b?' set'+x.ind.b:'')+(x.ind.o?' old':'')+' ×'+x.ind.k.toFixed(2)).join(' | '));}
+  console.log('wrote',n,'individual strips to test/preview/');process.exit(0);
+}
 if(COATS){
   const nv=Z.PAL_VARIANTS.length;
   for(const r of ids){

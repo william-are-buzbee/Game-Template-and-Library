@@ -6,8 +6,10 @@
 // game's floor clearance (size*0.35 over the ground), swimmers mid-water. The arms and tails are simulated as in the menu.
 // Up and down (w, x) cycle the coat: the species rebuilt in a palette variant (creatures_builders.js PAL_VARIANTS — hue shifts, the
 // clade's blood tint, dark water, bleached, a hard countershade); the caption names it. For looking, nothing in the world reads it.
+// i (v11.225, VARIETY.md) shows an individual of a species with a VARIETY row — a random seed, as the world draws them: its morph, proportion set, age and
+// size, in the caption; again for another; stepping to the next species shows the type.
 const zooEl=document.getElementById('zoo'),zooNameEl=document.getElementById('zooname'),zooLineEl=document.getElementById('zooline'),zooHintEl=document.getElementById('zoohint');
-const zoo={i:0,v:0,b:null,yaw:0.6,pitch:0.22,dist:10,auto:0,drag:null,act:-1,cruise:false,radius:2,cy:0,floor:false};
+const zoo={i:0,v:0,ind:0,b:null,yaw:0.6,pitch:0.22,dist:10,auto:0,drag:null,act:-1,cruise:false,radius:2,cy:0,floor:false};
 function zooRadius(g){ // the bounding radius of a built creature in world units (child transforms taken as translations only)
   let r2=0;const s=g.scale.x;
   g.traverse(o=>{if(!o.isMesh||!o.geometry.attributes.position)return;const a=o.geometry.attributes.position.array,px=o.position.x,py=o.position.y,pz=o.position.z;
@@ -20,7 +22,8 @@ function zooShow(i){
   // the coat: swap the species' PAL entry for the variant while it builds (the builders read PAL.x at call time), then put it back
   const pk=palKey(r.id),pal0=pk?PAL[pk]:null,vk=zoo.v%PAL_VARIANTS.length;
   if(pal0&&vk)PAL[pk]=palVariant(pal0,vk,r.clade);
-  let b;try{b=d.build();}finally{if(pal0)PAL[pk]=pal0;}
+  const ind=zoo.ind&&!r.player&&VARIETY[r.id]?indiv(r.id,zoo.ind):null,vx=ind?variantOf(r.id,ind):null;
+  let b;if(vx){b=buildKind(vx.def,r.id,'',vx);b.g.scale.multiplyScalar(ind.k);}else try{b=d.build();}finally{if(pal0)PAL[pk]=pal0;}
   b.owner={b:b,pos:b.g.position,grab:null,reach:0,shapesW:null};
   const size=d.size,floor=r.floor||d.floor;
   zoo.floor=!!floor;zoo.cy=floor?floor0+size*0.35:d.upright?Math.min(floor0+(d.clear||0)+1,TIDE-2-size*HANG.above):clamp(floor0+4.5+size*0.5,floor0+3,TIDE-2-size*0.4);
@@ -30,12 +33,12 @@ function zooShow(i){
   // a species with a spec (creatures_spec.js) shows the calculator's numbers beside DEFS's, so the scale can be tuned (CREATOR.md)
   const sp=SPECS[r.id],dv=sp?derive(sp):null;
   zooLineEl.innerHTML=r.clade+', '+r.family+'<br>'+r.niche+'<br>half-length '+size+' m'+(r.new?'<br><i>built, not yet placed</i>':'')+
-    (vk?'<br><i>coat: '+PAL_VARIANTS[vk][0]+(pal0?'':' (no palette)')+'</i>':'')+
+    (vx?'<br><i>an individual: '+vx.m+(ind.b?', proportions '+ind.b:'')+(ind.o?', old':'')+', ×'+ind.k.toFixed(2)+' — i for another</i>':vk?'<br><i>coat: '+PAL_VARIANTS[vk][0]+(pal0?'':' (no palette)')+'</i>':'')+
     (dv?'<br><i>derived: '+dv.mode+', speed '+dv.speed+' (defs '+(d.speed||'–')+'), turn '+dv.turn+' ('+(d.turn||'–')+'), '+dv.mass+' t, '+dv.cost+' points — l to edit</i>':'<br><i>a hand builder, no spec</i>');
 }
 function zooEnter(){
   if(mode!=='menu')return;mode='zoo';menuPage('none');zooEl.classList.add('on');player.pos.set(0,dispY,0); // the cells stream round player.pos: the peak, where the creature is shown (v11.47.2: the menu's camera may be anywhere)
-  zooHintEl.textContent=isTouch?'drag to turn. tap an edge for the next one':'left and right for the next one, up and down for another coat, space for the strike, s to cruise, drag to turn, wheel to close in, l for the lab, z to go back';
+  zooHintEl.textContent=isTouch?'drag to turn. tap an edge for the next one':'left and right for the next one, up and down for another coat, i for an individual, space for the strike, s to cruise, drag to turn, wheel to close in, l for the lab, z to go back';
   zooShow(zoo.i);
 }
 function zooLeave(){
@@ -68,8 +71,9 @@ addEventListener('keydown',e=>{
   if(mode!=='zoo')return;
   if(e.code==='KeyZ'||e.code==='Escape')zooLeave();
   else if(showStats&&/^Arrow/.test(e.code))return; // v11.48: the readout's camera tuner has the arrows; a/d w/x still step
-  else if(e.code==='ArrowRight'||e.code==='KeyD')zooShow(zoo.i+1);
-  else if(e.code==='ArrowLeft'||e.code==='KeyA')zooShow(zoo.i-1);
+  else if(e.code==='ArrowRight'||e.code==='KeyD'){zoo.ind=0;zooShow(zoo.i+1);}
+  else if(e.code==='ArrowLeft'||e.code==='KeyA'){zoo.ind=0;zooShow(zoo.i-1);}
+  else if(e.code==='KeyI'){zoo.ind=(Math.random()*4294967296)>>>0||1;zooShow(zoo.i);} // an individual (v11.225): a display's draw, so Math.random
   else if(e.code==='ArrowUp'||e.code==='KeyW'){e.preventDefault();zoo.v=(zoo.v+1)%PAL_VARIANTS.length;zooShow(zoo.i);}
   else if(e.code==='ArrowDown'||e.code==='KeyX'){e.preventDefault();zoo.v=(zoo.v+PAL_VARIANTS.length-1)%PAL_VARIANTS.length;zooShow(zoo.i);}
   else if(e.code==='Space'){e.preventDefault();zooAct();}

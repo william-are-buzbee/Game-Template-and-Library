@@ -56,8 +56,38 @@ function juvDef(kind){let j=JUV_DEF[kind];if(j)return j;const d=DEFS[kind],s=ECO
 const VARY={spread:0.15}; // ±: the adult size band as a fraction of the kind's size
 const MOULT={frac:0.05,soft:0.5,every:20,hide:6,prey:0.5,shedT:4,shedPer:0.5,keep:0.85}; // frac: the share of a moulting clade's placed adults that start soft; soft: game days soft at unit mass (× mass^¼); every: game days between moults at unit mass (× mass^¼); hide: m a soft one looks about for a solid to lie against; prey: a hunter takes a soft body of any kind while its own mass is at least this share of the body's; shedT: game days a cast carapace dropped in play lasts; shedPer: sheds placed per cell per unit of the kind's capacity; keep: a shed's scale against the animal's (it grew at the moult)
 function moults(kind){const sp=specOfKind(kind),g=sp&&GRAMMAR[sp.clade];return !!(g&&g.moult);}
-// the kind built in a coat class: its PAL preset swapped for the shifted twin for the build and put back (the zoo's own trick for the variants)
-function buildKind(d,kind,cls){const sp=specOfKind(kind),pk=sp&&typeof sp.coat==='string'?sp.coat:null;if(!cls||!pk||!PAL[pk])return tapeBuild(d,kind,cls);const p0=PAL[pk];PAL[pk]=coatChem(p0,cls,sp.clade);try{return tapeBuild(d,kind,cls);}finally{PAL[pk]=p0;}}
+// the kind built in a coat class (and, v11.225, an individual's variant: its morph and its age's marks): its PAL preset swapped for the shifted twin
+// for the build and put back (the zoo's own trick for the variants). d is the variant's def when there is one, so its tape is its own
+function buildKind(d,kind,cls,vx){const sp=specOfKind(kind),pk=sp&&typeof sp.coat==='string'?sp.coat:null,mo=!!vx&&(vx.m!=='type'||vx.o);if((!cls&&!mo)||!pk||!PAL[pk])return tapeBuild(d,kind,cls);const p0=PAL[pk];let p=p0;
+  if(vx&&MORPHS[vx.m])p=palMorph(p,MORPHS[vx.m]);if(vx&&vx.o)p=palMorph(p,MORPHS.old);PAL[pk]=cls?coatChem(p,cls,sp.clade):p;try{return tapeBuild(d,kind,cls);}finally{PAL[pk]=p0;}}
+// a palette through a morph's or a mark's transform (creatures_defs.js MORPHS), the eyes, mouth and claws left as they are
+function palMorph(pal,fn){const out={};for(const key in pal){const c=pal[key];if(PAL_FIXED[key]||!Array.isArray(c)){out[key]=c;continue;}const c0=rgb2hsl(c),h=fn(c0,key);out[key]=h===c0?c:hsl2rgb(h[0],clamp(h[1],0,1),clamp(h[2],0.02,0.97));}return out;} // a key the transform hands back untouched is the palette's own colour, not its round trip through hsl
+// ---------- the individual's variants (v11.225; creatures_defs.js VARIETY, VARIETY.md §4) ----------
+// indiv(kind, seed): the animal a seed gives — its morph m (an index into the row's morphs, by frequency), its proportion set b, whether it is old o
+// (its age rank past the row's old), its size k (the growth law at its age, times its own share of the range) — or null for a kind with no row.
+// variantOf(kind, ind): the variant it is built as, shared: its key (morph.set, 'o' if old), its def (derive's numbers for its own spec, a flat copy
+// of the kind's: test/live.js's one shape) and its morph for buildKind. A kind builds at most its budget (max) of them; past it an animal takes the
+// nearest one built — the type's set, then the common morph, then the type — so a common kind fills its budget and a rare one never does.
+const VAR_KINDS={};
+function varKind(kind){let V=VAR_KINDS[kind];if(V!==undefined)return V;const R=VARIETY[kind],sp=SPECS[kind];if(!R||!sp)return VAR_KINDS[kind]=null;const C=VARIETY_CLADE[sp.clade]||VARIETY_CLADE.ringmouths;
+  return VAR_KINDS[kind]={row:R,max:R.max||C.max,sets:R.sets||C.sets,range:R.range!==undefined?R.range:C.range,keys:new Map()};}
+function indivSeed(ch,ent,nth){return ((ch.i*73856093)^(ch.j*19349663)^Math.imul(ent+1,83492791)^Math.imul(nth+1,0x9E3779B1))>>>0;} // the cell, the entry, its place among them: the same animal each visit while the counts hold
+function nthOf(ch,ent){let n=0;for(const c of ch.creatures)if(c.ent===ent)n++;return n;}
+function indiv(kind,seed){const V=varKind(kind);if(!V)return null;const R=V.row,r=mulberry(seed);let u=r(),m=R.morphs.length-1;for(let i=0;i<R.morphs.length;i++){u-=R.morphs[i][1];if(u<=0){m=i;break;}}
+  const q=r(),b=V.sets>1?Math.floor(r()*V.sets):0,k=GROW[R.grow](q,R.size)*(1+V.range*(2*r()-1));return {m:m,b:b,o:q>=R.old,k:k};}
+// a param moved within its believable band (PARTS params' b), widened to hold the type's own value
+function bandClamp(kind,param,v,t){const P=PARTS[kind]&&PARTS[kind].params[param],b=P&&P.b;return b?clamp(v,Math.min(b[0],t),Math.max(b[1],t)):v;}
+// the spec of proportion set b, old or not: set 0 is the type's; the others move each of the row's params by up to its fraction, drawn from the kind's
+// own seed so a set is the same in every session; old, the shell takes the row's oldShell (a straightshell's tip shed: the shell's hit capsule follows)
+function variantSpec(kind,b,o){const R=VARIETY[kind],sp=JSON.parse(JSON.stringify(SPECS[kind])),r=mulberry((hashStr(kind)^Math.imul(b+1,0x85EBCA6B))>>>0);
+  if(b>0)for(const v of R.vary){const p=sp.parts.find(q=>q.kind===v[0]);if(!p||typeof p[v[1]]!=='number')continue;const t=p[v[1]];p[v[1]]=bandClamp(v[0],v[1],t*(1+v[2]*(2*r()-1)),t);}
+  if(o&&R.oldShell){const p=sp.parts.find(q=>q.kind==='shell');if(p){const L0=p.L;for(const k in R.oldShell)if(typeof p[k]==='number')p[k]*=R.oldShell[k];
+    if(L0&&p.L!==L0&&sp.hit&&sp.hit[0]&&p.z0!==undefined)sp.hit[0].a[2]=p.z0-(p.z0-sp.hit[0].a[2])*p.L/L0;}}
+  return sp;}
+function variantDef(kind,sp){const d=defFlat(DEFS[kind]);defPhysics(d,sp);d.build=()=>compile(sp);return d;} // the kind's def with its own build and derive's numbers for it
+function variantOf(kind,ind){const V=varKind(kind),ok=ind.o?'o':'',key=ind.m+'.'+ind.b+ok;let x=V.keys.get(key);if(x)return x;
+  if(V.keys.size>=V.max)for(const k2 of [ind.m+'.0'+ok,'0.'+ind.b+ok,'0.0'+ok,'0.0']){x=V.keys.get(k2);if(x)return x;}
+  x={key:key,m:V.row.morphs[ind.m][0],o:ind.o,def:variantDef(kind,variantSpec(kind,ind.b,ind.o))};V.keys.set(key,x);return x;}
 // v11.149 (the creature performance pass; parts.js GEO_TAPE): a kind's body built once per def and coat class, then replayed — its first build's
 // merges recorded, every later build of it handed them back, its primitives not made. A def is a kind's (DEFS, a juvenile's JUV_DEF, a line's
 // kind per spec), so the tape is kept on it (a WeakMap: a def that goes, goes with it); the lab's placed spec is built whole, as it changes. A
@@ -78,9 +108,9 @@ function hideSpot(ch,p,rng,d){const r=d.size*0.5,cl=(d.clear!==undefined?d.clear
 function softPrey(c,o){return kgOf(c)>=MOULT.prey*kgOf(o);} // whether c, a hunter, takes o, a soft body (findPrey)
 // the soft state's clock: hardened out of sight (a new adult in its place); true when c is gone
 function updateSoft(c,dt,dp){c.softT-=dt;if(c.softT>0)return false;if(dp>90||!c.g.visible){harden(c);return true;}c.softT=20;return false;}
-function harden(c){const a=spawn(c.chunk,c.kind,c.pos,SIMR,{ent:c.ent,soft:false});a.home.copy(c.home);removeCreature(c);return a;}
+function harden(c){const a=spawn(c.chunk,c.kind,c.pos,SIMR,{ent:c.ent,soft:false,seed:c.seed});a.home.copy(c.home);removeCreature(c);return a;}
 // the moult itself, out of sight: the soft twin where the animal was, its cast carapace on the floor beside it
-function moult(c){const s=spawn(c.chunk,c.kind,c.pos,SIMR,{ent:c.ent,soft:true});s.home.copy(c.home);dropShed(c.chunk,c.kind,c.pos,c.g.quaternion,c.b.g.scale.x);removeCreature(c);return s;}
+function moult(c){const s=spawn(c.chunk,c.kind,c.pos,SIMR,{ent:c.ent,soft:true,seed:c.seed});s.home.copy(c.home);dropShed(c.chunk,c.kind,c.pos,c.g.quaternion,c.b.g.scale.x);removeCreature(c);return s;}
 const sheds=[]; // the cast carapaces dropped in play (a mesh each, MOULT.shedT days); the old ones are flora (shedFlora)
 function dropShed(ch,kind,pos,q,s){const geo=shedGeo(kind);if(!geo)return null;const m=new THREE.Mesh(geo,MAT);m.position.set(pos.x,groundAt(pos.x,pos.z),pos.z);T4.set(0,0,1).applyQuaternion(q);m.rotation.y=Math.atan2(T4.x,T4.z);m.scale.setScalar(s*MOULT.keep);scene.add(m);
   const sh={mesh:m,chunk:ch,t:MOULT.shedT*DAY_S*(0.7+0.6*SIMR())};sheds.push(sh);ch.sheds.push(sh);return sh;}
@@ -103,14 +133,18 @@ function shedFlora(){const byKind={};SPAWN.forEach(e=>{if(e.land||!moults(e.kind
     const f={id:'shed_'+kind,shed:kind,geo:geo,mat:MAT,tints:[[1,1,1],[0.94,0.92,0.88],[0.9,0.9,0.86]],s:[MOULT.keep*0.9,MOULT.keep*1.05],sink:0.08,tilt:true,per:Math.max(1,Math.round(dens)),rare:Math.min(1,dens),envs:K.envs,top:d.size*0.6,maxSlope:1.0};
     FLORA.push(f);FLORA_BY_ID[f.id]=f;}}
 shedFlora();
-/** @typedef {{kind:any,def:any,g:any,anim:any,pos:any,vel:any,home:any,hp:any,state:any,t0:any,lastSpd:any,lastYaw:any,roll:any,rollV:any,sq:any,stunSide:any,target:any,biteT:any,wanderT:any,wander:any,alive:any,gone:any,stun:any,bored:any,cool:any,scanT:any,alarm:any,fleeT:any,lungeT:any,ramT:any,school:any,off:any,offT:any,chunk:any,lod:any,parts:any,lodMeshes:any,sub:any,wet:any,grounded:any,flopT:any,b:any,mass:any,mass0:any,bound:any,reach:any,shapesW:any,chainW:any,grab:any,holding:any,armT:any,touchF:any,hold:any,held:any,bleed:any,blood:any,wounds:any,paraT:any,stungT:any,armsLost:any,regrow:any,sickT:any,poison:any,poisT:any,commitT:any,coastT:any,missN:any,speedK:any,turnK:any,live:any,lost:any,cWith:any,d6:any,par:any,st:any,tellT:any,strikeT:any,recoverT:any,burstT:any,face:any,bit:any,accT:any,threat:any,ent:any,hunger:any,starveT:any,hunt:any,feedT:any,feedAt:any,dead:any,flesh:any,deadT:any,scav:any,scavT:any,glow:any,lumL:any,lumF:any,lumD:any,lumH:any,juv:any,k:any,cls:any,soft:any,softT:any,moultT:any,shM:any,cast:any,lodNear:any,lodFar:any,nearR:any,stepR:any,carried:any,cur:any,curT:any,turnedF:any,turnV:any,accV:any,shapeF:any,rigV:any,rigO:any,hitN:any,hitB:any,lieQ:any,chaseT:any,lungeP:any,strikeP:any,gapMin:any,pivotT:any,sw:any,swT:any,filtT:any,q:any,pig:any,hand:any,fall:any,brood:any,fxStruck:any,fxAcc:any,stam:any,spinV:any,shook:any,shakeYaw:any,shakeP:any,pointD:any,lenM:any,lastHurt:any,eaten:any,liveMass:any,fullMass:any,wallD:any}} Creature — every key a creature carries, closed: spawn's literal below in the same order (CLAUDE.md, "one shape"); a key added to the literal goes here too, and the type checker flags one misspelt or set that is not here (v11.193, test/types.js) */
+/** @typedef {{kind:any,def:any,g:any,anim:any,pos:any,vel:any,home:any,hp:any,state:any,t0:any,lastSpd:any,lastYaw:any,roll:any,rollV:any,sq:any,stunSide:any,target:any,biteT:any,wanderT:any,wander:any,alive:any,gone:any,stun:any,bored:any,cool:any,scanT:any,alarm:any,fleeT:any,lungeT:any,ramT:any,school:any,off:any,offT:any,chunk:any,lod:any,parts:any,lodMeshes:any,sub:any,wet:any,grounded:any,flopT:any,b:any,mass:any,mass0:any,bound:any,reach:any,shapesW:any,chainW:any,grab:any,holding:any,armT:any,touchF:any,hold:any,held:any,bleed:any,blood:any,wounds:any,paraT:any,stungT:any,armsLost:any,regrow:any,sickT:any,poison:any,poisT:any,commitT:any,coastT:any,missN:any,speedK:any,turnK:any,live:any,lost:any,cWith:any,d6:any,par:any,st:any,tellT:any,strikeT:any,recoverT:any,burstT:any,face:any,bit:any,accT:any,threat:any,ent:any,hunger:any,starveT:any,hunt:any,feedT:any,feedAt:any,dead:any,flesh:any,deadT:any,scav:any,scavT:any,glow:any,lumL:any,lumF:any,lumD:any,lumH:any,juv:any,k:any,cls:any,soft:any,softT:any,moultT:any,shM:any,cast:any,lodNear:any,lodFar:any,nearR:any,stepR:any,carried:any,cur:any,curT:any,turnedF:any,turnV:any,accV:any,shapeF:any,rigV:any,rigO:any,hitN:any,hitB:any,lieQ:any,chaseT:any,lungeP:any,strikeP:any,gapMin:any,pivotT:any,sw:any,swT:any,filtT:any,q:any,pig:any,hand:any,fall:any,brood:any,fxStruck:any,fxAcc:any,stam:any,spinV:any,shook:any,shakeYaw:any,shakeP:any,pointD:any,lenM:any,lastHurt:any,eaten:any,liveMass:any,fullMass:any,wallD:any,seed:any,vk:any}} Creature — every key a creature carries, closed: spawn's literal below in the same order (CLAUDE.md, "one shape"); a key added to the literal goes here too, and the type checker flags one misspelt or set that is not here (v11.193, test/types.js) */
 function spawn(ch,kind,pos,rng,opt){
-  const juv=!!(opt&&opt.juv),D=juv?juvDef(kind):DEFS[kind],EK=ecoOf(kind),ent=opt&&opt.ent!==undefined?opt.ent:-1,vary=ent>=0&&kind!=='lab';
-  // the individual (v11.66, above): the size band, the coat class of the place, the soft state; plain outside the ledger
-  const k=vary?1+VARY.spread*(2*rng()-1):1,d=k!==1?scaledDef(D,k):D;
+  const juv=!!(opt&&opt.juv),D0=juv?juvDef(kind):DEFS[kind],EK=ecoOf(kind),ent=opt&&opt.ent!==undefined?opt.ent:-1,vary=ent>=0&&kind!=='lab';
+  // the individual (v11.66, above): the size band, the coat class of the place, the soft state; plain outside the ledger. v11.225: a kind with a
+  // VARIETY row is an individual of its seed (indiv: its morph, its age's size and marks, its proportion set) built as its shared variant, its def that
+  // variant's; the seed its cell's, entry's and place's (or what it was: a juvenile grown up, a moult, keeps its seed). The VARY draw is still taken
+  // from the cell's rng for every kind, so the draws after it in the cell are as they were
+  const seed=vary&&VARIETY[kind]?(opt&&opt.seed!==undefined?opt.seed:ch?indivSeed(ch,ent,nthOf(ch,ent)):0):undefined,ind=vary&&!juv?indiv(kind,seed):null,vx=ind?variantOf(kind,ind):null,D=vx?vx.def:D0;
+  const kv=vary?1+VARY.spread*(2*rng()-1):1,k=ind?ind.k:kv,d=k!==1?scaledDef(D,k):D;
   const soft=vary&&!juv&&moults(kind)&&D.role!=='boid'&&(opt&&opt.soft!==undefined?!!opt.soft:rng()<MOULT.frac);
   const f=vary&&ch?ch.f(pos.x,pos.z):null,cls=soft?'soft':f&&SPECS[kind]?coatClassAt(ch.h(pos.x,pos.z),pos.y,f,SPECS[kind].clade,chemoAt(pos.x,pos.z)):'';
-  const b=buildKind(D,kind,cls);if(k!==1){b.g.scale.multiplyScalar(k);b.gape*=k;}
+  const b=buildKind(D,kind,cls,vx);if(k!==1){b.g.scale.multiplyScalar(k);b.gape*=k;}
   const c=/** @type {Creature} */({kind:kind,def:d,g:b.g,anim:b.anim,pos:pos.clone(),vel:V3(0,0,0),home:pos.clone(),hp:d.hp,state:'wander',t0:rng()*100,lastSpd:0,lastYaw:0,roll:0,rollV:0,sq:0,stunSide:rng()<0.5?-1:1,target:null,biteT:0,wanderT:0,wander:pos.clone(),alive:true,gone:false,stun:0,bored:0,cool:rng()*3,scanT:rng()*0.5,alarm:0,fleeT:0,lungeT:0,ramT:0,school:null,off:null,offT:0,chunk:ch,lod:-1,parts:null,lodMeshes:null,sub:1,wet:true,grounded:false,flopT:0,
     b:b,mass:0,mass0:0,bound:0,reach:0,shapesW:null,chainW:null,grab:null,holding:0,armT:0,touchF:-1,hold:null,held:0,bleed:0,blood:0,wounds:null,paraT:0,stungT:0,armsLost:0,regrow:null,sickT:0,poison:0,poisT:rng()*2,commitT:0,coastT:0,missN:0,speedK:1,turnK:1,live:null,lost:null,cWith:null,d6:0,par:creatures.length&1, // hold: the hold it has on something, held: how many have hold of it, bleed: the rate its wounds drain at, blood: the share of its blood lost (combat.js, v11.91); mass: kg (combat.js kgOfBody; 1e6 while it sits), mass0 its own
     st:{tell:0,strike:0,jet:false,soft:undefined,lx:undefined,lz:undefined,turn:undefined,acc:undefined},tellT:0, /* st: every key it takes later declared, unset (v11.149: one shape, as the creature's) */strikeT:0,recoverT:0,burstT:rng()*2,face:null,bit:false,accT:0,threat:null,
@@ -119,7 +153,7 @@ function spawn(ch,kind,pos,rng,opt){
     shM:null,cast:false,lodNear:0,lodFar:0,nearR:0,stepR:0, // set below, in this order
     carried:undefined,cur:undefined,curT:undefined,turnedF:undefined,turnV:undefined,accV:undefined,shapeF:undefined,rigV:undefined,rigO:undefined,hitN:undefined,hitB:undefined,lieQ:undefined,chaseT:undefined,lungeP:undefined,strikeP:undefined,gapMin:undefined,pivotT:undefined,
     sw:undefined,swT:undefined,filtT:undefined,q:undefined,pig:undefined,hand:undefined,fall:undefined,brood:undefined,fxStruck:undefined,fxAcc:undefined,stam:undefined,spinV:undefined,shook:undefined,shakeYaw:undefined,shakeP:undefined,pointD:undefined,
-    lenM:undefined,lastHurt:undefined,eaten:undefined,liveMass:undefined,fullMass:undefined,wallD:undefined}); // wallD (v11.223): the way to the wall from a station (chunks.js stationPoint), a unit vector // the individual (v11.66): its size factor, its coat class, the soft state and its clocks
+    lenM:undefined,lastHurt:undefined,eaten:undefined,liveMass:undefined,fullMass:undefined,wallD:undefined,seed:seed,vk:vx?vx.key:undefined}); // wallD (v11.223): the way to the wall from a station (chunks.js stationPoint), a unit vector; seed, vk (v11.225): the individual's seed and its variant's key // the individual (v11.66): its size factor, its coat class, the soft state and its clocks
   // v11.149 (the creature performance pass): every creature one shape. The keys above from shM on were added to a creature as it lived — the current
   // it is carried by, its turn, its holds, the falls, the brood, the effects' clocks — each by whichever system reached it first, in that order: the
   // forest's 1,400 creatures had 27 shapes, and past four an engine gives up a property read's fast path, so every c.pos, c.def, c.vel in the frame was
@@ -135,7 +169,7 @@ function spawn(ch,kind,pos,rng,opt){
   // arms raised, lines splayed) until the near LOD switched them on, which read as floating and then falling
   if(b.anim)b.anim(0,0,c.st);if(b.rigs)for(const r of b.rigs)rigRest(r);
   if(PHO_K[kind])phoSpawn(c); // v11.163 (fx.js PHO): a kind with lights reads them off its chains here, at rest in its own frame; lumL, lumF, lumD, lumH in the literal above are their state (the lure, a flash, dark after a cloud, held)
-  const gk=kind+(juv?'~':'')+(cls?'@'+cls:''),K=kind==='lab'?null:(KIND_GEO[gk]||(KIND_GEO[gk]={geos:[],lod:null})); // a geometry per kind, age and coat class (v11.66)
+  const gk=kind+(juv?'~':'')+(vx?'#'+vx.key:'')+(cls?'@'+cls:''),K=kind==='lab'?null:(KIND_GEO[gk]||(KIND_GEO[gk]={geos:[],lod:null})); // a geometry per kind, age and coat class (v11.66)
   if(K){const rigMeshes=new Set();if(b.rigs)for(const r of b.rigs)rigMeshes.add(r.mesh);let n=0;
     b.g.traverse(o=>{if(!o.isMesh||rigMeshes.has(o))return;const g=K.geos[n++];if(g){if(o.geometry!==g){o.geometry.dispose();o.geometry=g;}}else{K.geos[n-1]=o.geometry;SHARED_GEO.add(o.geometry);}});}
   if(K&&K.lod)c.lodMeshes=K.lod.map(e=>{const m=new THREE.Mesh(e.geo,e.mat);m.visible=false;return m;});
@@ -199,7 +233,7 @@ function disposeCreature(c){if(c.fall&&c.fall.c===c)c.fall.c=null;c.alive=false;
 function removeCreature(c){disposeCreature(c);let k=creatures.indexOf(c);if(k>=0)creatures.splice(k,1);if(c.chunk){k=c.chunk.creatures.indexOf(c);if(k>=0)c.chunk.creatures.splice(k,1);}
   if(c.school){k=c.school.members.indexOf(c);if(k>=0)c.school.members.splice(k,1);}k=carcasses.indexOf(c);if(k>=0)carcasses.splice(k,1);}
 // a juvenile grows up: the adult is spawned in its place with its ledger entry, school and state, and the small one goes
-function growUp(c){const ch=c.chunk,a=spawn(ch,c.kind,c.pos,SIMR,{ent:c.ent});a.vel.copy(c.vel);a.home.copy(c.home);a.g.quaternion.copy(c.g.quaternion);a.hunger=c.hunger;a.brood=c.brood; // a brood's young stays its brood's (line.js)
+function growUp(c){const ch=c.chunk,a=spawn(ch,c.kind,c.pos,SIMR,{ent:c.ent,seed:c.seed});a.vel.copy(c.vel);a.home.copy(c.home);a.g.quaternion.copy(c.g.quaternion);a.hunger=c.hunger;a.brood=c.brood; // a brood's young stays its brood's (line.js)
   
   if(c.school){a.school=c.school;c.school.members.push(a);}if(c.state==='sit'){a.state='sit';}removeCreature(c);return a;}
 
