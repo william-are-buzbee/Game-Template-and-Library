@@ -68,7 +68,7 @@ function palMorph(pal,fn){const out={};for(const key in pal){const c=pal[key];if
 // variantOf(kind, ind): the variant it is built as, shared: its key (morph.set, 'o' if old), its def (derive's numbers for its own spec, a flat copy
 // of the kind's: test/live.js's one shape) and its morph for buildKind. A kind builds at most its budget (max) of them; past it an animal takes the
 // nearest one built — the type's set, then the common morph, then the type — so a common kind fills its budget and a rare one never does.
-const VAR_KINDS={};
+const VAR_KINDS={},KIND_LOD={}; // KIND_LOD (v11.226): the far bakes an individual's variants share, by kind, morph, age and class (spawn)
 function varKind(kind){let V=VAR_KINDS[kind];if(V!==undefined)return V;const R=VARIETY[kind],sp=SPECS[kind];if(!R||!sp)return VAR_KINDS[kind]=null;const C=VARIETY_CLADE[sp.clade]||VARIETY_CLADE.ringmouths;
   return VAR_KINDS[kind]={row:R,max:R.max||C.max,sets:R.sets||C.sets,range:R.range!==undefined?R.range:C.range,grow:R.grow||C.grow,oldPal:R.oldPal!==undefined?R.oldPal:C.oldPal,vary:R.vary||autoVary(sp),keys:new Map()};}
 // the proportions a species varies when its row lists none (v11.226): VARY_AUTO's by each of its parts' kinds and its core's
@@ -180,8 +180,11 @@ function spawn(ch,kind,pos,rng,opt){
   const gk=kind+(juv?'~':'')+(vx?'#'+vx.key:'')+(cls?'@'+cls:''),K=kind==='lab'?null:(KIND_GEO[gk]||(KIND_GEO[gk]={geos:[],lod:null})); // a geometry per kind, age and coat class (v11.66)
   if(K){const rigMeshes=new Set();if(b.rigs)for(const r of b.rigs)rigMeshes.add(r.mesh);let n=0;
     b.g.traverse(o=>{if(!o.isMesh||rigMeshes.has(o))return;const g=K.geos[n++];if(g){if(o.geometry!==g){o.geometry.dispose();o.geometry=g;}}else{K.geos[n-1]=o.geometry;SHARED_GEO.add(o.geometry);}});}
-  if(K&&K.lod)c.lodMeshes=K.lod.map(e=>{const m=new THREE.Mesh(e.geo,e.mat);m.visible=false;return m;});
-  else{c.lodMeshes=bakeLOD(b.g);if(K)K.lod=c.lodMeshes.map(m=>{SHARED_GEO.add(m.geometry);return {geo:m.geometry,mat:m.material};});}
+  // the far bake (v11.226): an individual's is shared by every proportion set of its morph, age and class (KIND_LOD) — a tenth of a limb's length is
+  // not seen at the far LOD's distance, and a set's own bake was a third of a variant's first build
+  const LK=vx?(KIND_LOD[kind+(juv?'~':'')+'#'+vx.m+(vx.o?'o':'')+(cls?'@'+cls:'')]||(KIND_LOD[kind+(juv?'~':'')+'#'+vx.m+(vx.o?'o':'')+(cls?'@'+cls:'')]={geos:[],lod:null})):K;
+  if(LK&&LK.lod)c.lodMeshes=LK.lod.map(e=>{const m=new THREE.Mesh(e.geo,e.mat);m.visible=false;return m;});
+  else{c.lodMeshes=bakeLOD(b.g);if(LK)LK.lod=c.lodMeshes.map(m=>{SHARED_GEO.add(m.geometry);return {geo:m.geometry,mat:m.material};});}
   for(const m of c.lodMeshes){if(d.size>=6&&m.material===MAT)m.material=MATBIG;patternOn(m.geometry,b.pat);b.g.add(m);} // a big animal's far LOD keeps the far ghost (scene.js, addTint)
   c.shM=[];b.g.traverse(o=>{if(o.isMesh)c.shM.push(o);});c.cast=false; // the meshes that cast into the shadow map when this body is among the nearest (scene.js updateShadow)
   c.lodNear=(d.lodNear||45+d.size*4)*Q.lodNear;c.lodFar=Math.min(FAR*0.7,120+d.size*40); // lodNear on the def (v11.18): the long-appendaged are simulated from further off; a veil is drawn to 760, an abyssal to 720

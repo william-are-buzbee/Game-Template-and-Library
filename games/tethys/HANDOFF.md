@@ -4,6 +4,12 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.226 (24 Nov 2026): the individual for every placed species** (creatures_defs.js `VARIETY`, `GROW`, `MORPHS`, `VARY_AUTO`; creatures_ai.js
+`autoVary`, `KIND_LOD`; test/variety.js, test/combat.js; VARIETY.md; DESIGN; CHANGELOG). All 38 kinds the ledger places are individuals: the clades' growth
+laws (soft ringmouths narrow, slowbloods' old giants, hingeshells in moult steps, drifters by food), morphs with causes (red, yellow, dark, pale,
+banded, spotted), proportions by part; five uniform (the schools, the pall, the cinder). First sight of a busy place ×1.13 (once a session); the
+frame level. **Ask:** the bestiary's `i` across the roster; a hitch on first visiting the shelf forest.
+
 **v11.225 (23 Nov 2026): the individual, step 1** (creatures_defs.js `VARIETY`, `GROW`, `MORPHS`; creatures_ai.js `indiv`, `variantOf`; zoo.js `i`;
 test/variety.js; test/preview.js `INDIV=1`; VARIETY.md; DESIGN The individual's variants; CHANGELOG). The plumb, ortho, great and rasp are individuals:
 stable in their cell, size by age with a range (the plumb 20 m typical, 30 m old), a morph (a rare pale one in 50), a proportion set, old shells shed
@@ -26,11 +32,6 @@ world). The coilshell player stops at −450. The Plumb is the tenth candidate g
 DESIGN The ecology, PLANET's roster; CHANGELOG). The person's hanger: the ortho's cone with no ballast, hung shell-up at walls in still water, riding
 the swarm's layer, striking only down; the wall and lee stations weigh the ledger and place it; every gas-shelled body held above −450 (the ortho's
 band left: it is the floor's). Seen in headless Chromium hanging at the wall at cell (118, 119). The person's answers are v11.223.1's.
-
-**v11.222 (23 Nov 2026): the radiation** (CLADES.md, The radiation; PLANET.md; CHANGELOG). Docs only. The person's answers: individuals
-generated, species authored from a radiation table; the hanger first — a straightshell with no ballast, hung vertical beside walls, rising with the
-swarm's layer at night — and the ortho kept as it is; the slowbloods' reference becomes the jawless armoured fish; then the ringmouths' individuals and
-the slowblood filter giant. Habitat at three scales (range, station, clock), agreed; no exceptions — every species held to its body's limits, so the ortho moves up. **Next:** the hanger.
 
 ## Open
 
