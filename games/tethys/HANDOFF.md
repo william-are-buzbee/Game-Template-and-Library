@@ -10,7 +10,7 @@ CHANGELOG). Pass 1, after the person's playtest of v11.228 (*"enjoyed it, go ahe
 the body seen through each clade's and kind's eyes, a silhouette from below, a still body seen late, a matching or buried one later, one in the weed
 later still — and by the lateral line (light-blind, silent for a still body); blood and carrion are smelt down the current. Prey use the same senses; the
 cryptic grazers freeze (a hingeshell clamped) and bolt close. The step reads its own sky (the plumb's and the swarms' layer, the eclipses), and the
-pall's cloud and flee are the step's, whatever the effects list says. COST **Ask:** BEHAVIOUR §8.4–5 — whether the night hides you now, or too
+pall's cloud and flee are the step's, whatever the effects list says. The frame within noise (×1.00, p95 ×1.06; Chromium ×1.02), the GPU's counts the same. **Ask:** BEHAVIOUR §8.4–5 — whether the night hides you now, or too
 well; whether your own colour should. **Next:** a pass a clade (BEHAVIOUR §4: the ringmouths first — the plumb's night).
 
 **v11.228 (24 Nov 2026): the clock and the risk** (creatures_defs.js `BEHAVE`; creatures_ai.js `CLK`, `CK`, `REST`, `RISK`, `findPrey`, the roles;
