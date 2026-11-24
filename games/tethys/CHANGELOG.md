@@ -11355,3 +11355,54 @@ The person on v11.228 (24 Nov 2026): *"I play tested and enjoyed it, go ahead wi
   safe; (2) whether swimming in the open at noon draws hunters from too far; (3) whether the freezers read (a scuttle or a plough holding still, a
   hingeshell's valves shut, the bolt at 3 m); (4) whether you should be hidden by your own colour against the ground, as the world's animals are
   (BEHAVIOUR §8.5).
+
+## v11.230 — the ringmouths: the plumb's night, the quill's stand, the arrows' pack and ink, the lurker's giving-up, the great a hunter (24 Nov 2026)
+
+The person (24 Nov 2026), on v11.229: *"go ahead with the ringmouths pass and the plumb. I am testing right now."* BEHAVIOUR.md §4's second pass, and
+the overhaul's first ask answered for the plumb: *"have creatures like the new hovering plumb actually move, have a schedule, do things."* PLANET's
+ringmouths are *"fast, clever, short-lived … packs"*; the pass gives them what that says (BEHAVIOUR §3c).
+
+- **The plumb's night** (creatures_ai.js `updatePlumb`, `PLUMB`, `plumbGoal`, `plumbCarrion`, `plumbFeedR`, `plumbLean`; creatures_defs.js `BEHAVE.plumb.scav`).
+  The nautilus is the reference: deep on the reef's slope by day, up the wall at night to forage — mostly by smell, for carrion — and down at dawn. A
+  plumb hangs at its wall and ambushes there, climbing with the layer at dusk; hungry at night, after `PLUMB.wait` 15 s with nothing under it, it leaves
+  the wall (`'forage'`): legs at `PLUMB.jet` 0.8 m/s to points within `PLUMB.range` 90 m of its station, at the layer's depth there, leaning into its way,
+  dropping on what passes under it. It smells carrion down the current from 150 m (`scav`, v11.229's plume) and goes up the scent to eat over it (its
+  arms `PLUMB.reach` 3 m down past its clearance), never under its shell's floor; fed (`PLUMB.full` 0.15) or at the dawn it goes home to its wall.
+- **The trim** (`trimOf`; LINEAGE's *"pump bore ∝ L², gas ∝ L³ … a giant stays at one depth"*): a plumb follows the layer's climb by its size factor —
+  all of it to 1.2, none from 1.45 (`PLUMB.trim`) — and climbs at `HANG.rise` over that factor: the oldest few, 30 m and more, hang at their day depth.
+- **The quill's stand** (`phaseOf`, `STAND`, `QUILL`, `quillAlarm`): a stand sways and drifts as one (its phase its 6 m square's); when one notices the
+  player within 8 m or a hunter of 4 m or more within 12, it and its standmates within 4 m slip under their band into the stalks and hold still for 20 s,
+  taking nothing. Among the stalks the player is covered (v11.229): a quill sees it there within about 4 m.
+- **The arrows' pack and ink** (`packCall`, `flankPt`, `PACK`; `inkEscape`, `INK`; `BEHAVE.arrow` `pack`, `ink`): an arrow taking on prey brings its idle
+  packmates within 30 m onto it, and each comes in from its own side (up to 9 m off the line, straight from 6 m). An arrow inks when a chaser closes
+  within 5 m, or when held and alive, once in 25 s: unseen for 6 s, the chaser losing it at 0.6 for 4 s, the arrow jetting off.
+- **The lurker's giving-up** (`LURK`): hungry in its hours, 90 s at a post with nothing taken, it crawls to another among the rock (`coverSpot`).
+- **The great hunts** (`DEFS.great`: role `hunter`, prey the player, the grazer, the eel, the plough; `insp` `stand`; combat via `landBite`: its ram the
+  bite's opening blow, the prey stunned, then the beak). To v11.229 a `coil` that rammed the player and ate nothing — the shelf's apex on paper too;
+  the role is struck (`updateCoil`; player.js's stun reads hunters and ambushers). Its forward capsule (`SPECS.great.hit`) ended 1.3 m into its arms,
+  clamped at the nose: a prey's body was held 1.6–2.5 m off its beak at contact (test/combat.js's grip check); it ends at the beak now. The crusher is
+  not its prey (its plates kept the beak a metre off even so), nor the lurker (on the ledger it took a third of them: below).
+- **One shape**: the creature's `goal`, `waitT`, `inkT`; the defs' `pack`, `ink` (and `scav` from `BEHAVE`); the quill's `QUILL.stand`.
+- **Tests.** test/ringmouths.js (new, ~9 s, in `--test`): at the wall cell (118, 119), a hungry plumb at a moonless midnight waits
+  16 s at its post, forages off it (47 m out in a minute, never under −450, leaning into its way 100% of its moving frames), goes 60 m up a carcass's
+  scent to eat at it, and is home at noon; a typical plumb's station rises with the layer (−61 → −35), an old one's (1.5) stays at −61; three quills of
+  a stand share a phase and drop 2.0, 4.1 and 6.2 m into the stalks with the player 3 m off (one notices, its standmates follow) and take nothing
+  hiding; an arrow taking on a darter brings its two packmates, which come in from either side; an eel closing on an arrow, the arrow inks at 4.5 m,
+  unseen, off from it; a lurker hungry with nothing passing moves 12 m to a new post after 96 s and sits. test/live.js: high tier 6 hunts begun and 4
+  kills in 60 s (6% at hunger 1.00), low tier 4 and 2 in 180 s (11%). test/combat.js's matrix takes the great (its grip within a metre of each prey's body).
+- **The ledger** (`node test/census.js 120`, against main's run of the same): the great, now a hunter on paper, settles near its start (20,436 →
+  21,146; main's, a non-hunter, 36,452 → 38,519); its prey the grazer 1.01 (1.02), the plough 1.04 (1.05), the eel 0.67 (0.81: its share of the great's
+  meals). With the lurker on its list the lurker fell to 0.70 (0.97 on main) — a third of them — and the great took it off (live, its venom makes it a
+  risk the great rarely dares). The rest as main (the plumb 0.52, the quill 0.77, the hook 0.53, the arrow 1.24); census ok.
+- **What it cost** (`node test/perf.js`, five runs a side): **the ringmouths cost nothing measurable — against v11.229, the creatures' frame at (330, 0)
+  ×1.00 mean, ×0.99 p95.** Against main (v11.228), which takes in v11.229's senses too: ×1.05 mean, ×1.14 and ×1.18 p95 in two five-run sets (the
+  bench's identical sources read up to ×1.09), Chromium ×1.15 in one run. The profile puts it in the senses: `findPrey` 5.2% → 6.3% of
+  `updateCreatures` (a candidate within reach now asks its light, motion, ground and cover), nothing else moving a point. Cells and builds within
+  noise; the GPU's counts the same (the forest's buffer bytes 348 → 323 KB). On the way, a swimmer's scent reads its own current (`c.cur`) instead of
+  a fresh `currentAt` — the plume's reads were a third of `findCarcass`'s time.
+- **Seen** (Chromium, software WebGL): the wall cell at dusk, a hungry plumb off its wall 20 m and foraging at −84 — a long dark shell over the
+  finback in the dusk's dark water, legible as a shape and no more; the build booted with no page error. The rest is test/ringmouths.js's numbers.
+- **Unseen, ask in this order**: (1) the plumb's night — whether a plumb off its wall in the dark, moving slowly through the layer, reads, and whether
+  plumbs gathering at a fall do; (2) the arrows' pack coming at a school from two sides, and their ink; (3) the quill's stand dropping into the stalks as
+  you come; (4) the great as a hunter on the shelf — its look (held off, facing you), its ram and its bite: whether a lethal great on the shelf is wanted
+  (to v11.229 it only rammed); (5) BEHAVIOUR §3c's not-built list — reputation, the watcher watching animals, the pall's lure's meal.

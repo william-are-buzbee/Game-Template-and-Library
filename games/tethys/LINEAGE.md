@@ -400,7 +400,7 @@ and a new word for §7c.2's line: **demigods**, the god's first children — few
   the top by its gas and hangs its body below — the shell is pulled along its length, never bent. Earth's straight shells stopped near 6 m lying level.
 - *What does limit it:* growth (one chamber at a time — a giant is old, and the ringmouths are short-lived but for the deep line); trim (its pump's
   bore grows as L², the gas it moves as L³, so a big one changes depth slowly: past a few tens of metres it can no longer follow the swarm up and down
-  in a night, and a giant stays at one depth); and food (a sit-and-wait body's need ∝ mass^¾).
+  in a night, and a giant stays at one depth — built v11.230, creatures_ai.js `trimOf`: BEHAVIOUR §3c); and food (a sit-and-wait body's need ∝ mass^¾).
 - *Within the rule:* PLANET lets a ringmouth claim 16 m of half-length (`CLADE_LIMIT`), so a plumb 30 m long is believable today; v11.223's is ~20 m.
 - *With the sparkle:* §7c excuses size. A Plumb of 150–300 m is within what the game already carries (CREATOR, the size ceiling: a 300 m body is
   pushed and animated out to where it is drawn). Under water it is never seen whole: a column of shell rising into the murk, its ring a forest round

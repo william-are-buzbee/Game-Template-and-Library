@@ -3396,9 +3396,9 @@ const SPECS = {
     ],
     hit: [
       {a: [0, 0.7, -1.15], b: [0, 1.2, -1.15], r: 0.9},
-      {a: [0, 0, -0.5], b: [0, 0, 1.0], r: 0.55}
+      {a: [0, 0, -0.5], b: [0, 0, 0.06], r: 0.55} // v11.230: the body to its beak at the arm ring (z 0.61; b z 1.0 to v11.229, clamped at the nose — a capsule 1.3 m into the arms kept a prey's body 1.6–2.5 m off the beak at contact, test/combat.js); the arms before it are their own chains
     ],
-    behaviour: {role: 'coil'}
+    behaviour: {role: 'hunter'} // v11.230: the coil role struck (the great hunts)
   },
   ortho: {
     id: 'ortho',

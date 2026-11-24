@@ -2075,7 +2075,7 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   alike), graze (`calm`: ignores threats — the tread), ambush (the lurker; `hang`: the hook, a home 5–14 m up in the structure,
   the strike pose on the drop; `upright`: the plumb, v11.223, and the quill, v11.227 — `updatePlumb`, below; a `canopy` [lo, hi] hangs it at its own height over the floor, drawn per animal, in place of the swarm's layer), trap (sits and never moves: prey within `detect` starts the tell — it turns to face it — then the
   strike, a bite within `reach`, then `cool`; as heavy as rock for contact), watch (the watcher: within `detect` of the player it
-  walks to a standoff of `stand`, faces them, follows, backs off inside half the standoff, wanders when they leave), coil, drift,
+  walks to a standoff of `stand`, faces them, follows, backs off inside half the standoff, wanders when they leave), drift,
   wander (`deep`: keeps its wander below −458 — the pall), boid (below). `preyClade`: the player is prey only as that clade (the
   crusher and the coilshell). `clear`: the floor clearance in place of `size*0.35` (the trap at 0.45, the stone at 0.8: buried).
   Every creature carries `st` (tell, strike, jet) for its anim and may set `face`, a point it turns to instead of its velocity.
@@ -2124,6 +2124,16 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   ×1.6 downstream, ×0.2 upstream, by the current at the nose to 0.25 m/s. The freezers (rasp, scuttle, wedge, plough, cinder) hold still — a hingeshell
   clamped — at a threat beyond `FREEZE.bolt` 3 m + their size. The sky the step reads is `CK` (`clockTick`: `dayK`, `moonL`, the eclipses, `lg0`),
   and the pall's hold, cloud, dark and flee are the step's (fx.js `phoStep`).
+- **The ringmouths (v11.230; BEHAVIOUR.md §3c; creatures_ai.js `PLUMB`, `QUILL`, `PACK`, `INK`, `LURK`).** The plumb forages at night (`'forage'`, after
+  `PLUMB.wait` 15 s hungry at its post: legs at `jet` 0.8 m/s within `range` 90 m of its station at the layer's depth, leaning into its way), goes up a
+  carrion's scent from `DEFS.scav` 150 m to eat over it (`plumbFeedR`: its clearance + `reach` 3 m), home at `full` 0.15 or the dawn; `trimOf` (its size
+  factor, all of the layer to `trim` 1.2, none from 1.45) and its climb at `HANG.rise` over that factor. The quill's stand shares a phase (`phaseOf`, a
+  `STAND` 6 m square) and, alarmed (the player within `QUILL.alarm` 8 m, a 4 m hunter within 12, noticed), it and its standmates within `stand` 4 m drop
+  under their band and hold still `hide` 20 s. The arrows: `packCall` (idle mates within `PACK.r` 30 m past hunger `join` 0.2 join a hunt), `flankPt`
+  (up to `flank` 9 m to their side of the line, straight from `close` 6 m); `inkEscape` (a chaser within `INK.near` 5 m, or held: once in `cool` 25 s,
+  unseen `hide` 6 s, the chaser losing it at `slip` 0.6 for `lose` 4 s, the arrow off `run` 4 s). The lurker moves after `LURK.give` 90 s hungry at a post
+  with nothing taken (`coverSpot`). The great is a hunter (prey the player, the grazer, the eel, the plough; `insp` `stand`), its ram the
+  bite's opening blow (`landBite`); the `coil` role is struck. `POP.chases` counts the hunts begun (test/live.js).
 - **Removed by request:** the mid-water `weed` flora (the "floating spiky objects"); the `colony` creature (pink/cyan
   glowing chains); darter/glim **schools are no longer spawned** — the code (`school` role, `makeSchool`,
   `updateSchools`, `buildDarter`) is intact. They went because the rigid formation read as a block; if they return it
