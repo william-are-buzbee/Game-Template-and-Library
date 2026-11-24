@@ -11108,3 +11108,102 @@ or open ocean and such. Not deterministic, just chance."* No hitch on their card
   which draws its parts into the shadow maps too. The morphs drawn differently fill the variants' budgets in another order, an animal or two takes
   another proportion set, and the simulation drifts; nothing new is drawn. `test/gpu.json` updated.
 - **Unseen, ask**: the dunes and the dark places side by side — does the dark morph now sit where the dark is; the black ridge over the open ocean.
+
+## v11.227 — the hoop and the quill: a slowblood filter giant and a small hanger among the stalks; the abyssal fed (24 Nov 2026)
+
+The person (24 Nov 2026): *"I think we are ready now to begin creating the more niche animals like the filter feeding slow blood giant and the
+smaller cone vertical ring mouth. I want to ensure we have a pretty solidly functioning ecology. Then move onto improving AI and behavior in another
+chat."* Two of the radiation table's rows (CLADES.md, The radiation), and the ledger checked over 90 days and longer.
+
+- **The hoop** (creatures_spec.js `SPECS.hoop`; creatures_defs.js `DEFS.hoop`, its `SPAWN` row, `ROSTER`, `VARIETY`; creatures_builders.js its
+  palette): the ridge's line — the sawmouths — grown into a filter giant, as Earth's predators became filter feeders (Aegirocassis from the
+  radiodonts, Leedsichthys from predatory fish, the basking shark, the baleen whales). A round lathe body 16 m long as built (size 8, s 4.15; by age
+  and range 0.85–1.5, so 13.5–24 m), dark above and pale below, chevrons down its flanks, the slowbloods' ring of eyes, and a mouth that is **a ring
+  of eight short tentacles held open as a sieve** — no Earth animal gapes radially. The tentacles' new `sieve` switch gives derive's `filter` half
+  of π(r + 0.8·len)²: 32.7 m² (the comb's 13.3, the veil's 99.8), so on the ledger it is a hunter of the swarms (`ecoOf`) and never chases one.
+  **`gape`** (creatures_ai.js `filterSeek`): within a swarm's radius its ring opens (`st.strike`), outside it shuts, so a hoop is seen feeding.
+  Its place: the fed open water, `h` −450…−80 with `nut` ≥ 0.5 (the flank's upwelling, where the swarms are; the veil's is deeper, the comb's on
+  the plain), `n` 0.12. A slow swimmer (`pace` 0.22: 1.96 m/s): the swarm moves between its day and night layers at up to 4 m/s, so a hoop
+  finds a swarm where it rests, not on the move. Morphs: the type 80%, a dark one 18% (weighed by the place: the dark water's), a pale one 2%.
+- **The quill** (`SPECS.quill`, `DEFS.quill`, …): the person's *"smaller cone vertical ring mouth"* (23 Nov 2026: a shallow plumb, smaller ones that
+  still point up). Named the stipe in CLADES first, which is the kelp's name. The plumb's line at 3 m (size 1.8): a thin nine-chambered cone, a
+  collar of eight eyespots and three forward, a crown of short arms. It hangs shell-up among the weed forest's stalks, a stalk among stalks, at its own height
+  2–9 m over the floor (`canopy` [2, 9], drawn per animal from its `t0`; it does not ride the swarm's layer as the plumb does), and drops on
+  darters, flickers and needles under it (`radius` 7, `lunge` 5). Morphs: the type 68%, yellow 30% (the lit weed's; weighed by `lit`), pale 2%;
+  `shell` growth as the plumb's, the old faded and shed.
+- **The canopy station** (creatures_defs.js `STATION.canopy`, `stationW`): habitat's second scale, the third station after the wall and the lee —
+  the stipe flora's own envelope (`h` −54…−16, `sub`, `nut`, `flow`, `young`) by `envW` at the point, so the quill's capacity and its place in
+  the cell are where the stalks stand. `stationW` now takes the point's fields, not the flow alone (ecology.js, chunks.js); `plumbY` takes the
+  creature, for its own canopy height.
+- **The abyssal fed** (`DEFS.abyssal.prey` + `'hoop'`, `'ortho'`). On main the 90-day census fails: the abyssal 392 → 73 (CI runs 40 days and
+  never sees it). Its one prey, the comb, is a slow-breeding giant: it took ~1.8% of its patches' prey biomass a day where they make at most ~0.5%,
+  so it ate them down until its response failed, and starvation (7 a day) outran its births (0.4). The hoop was meant to feed it (the radiation
+  table) and is not enough on its own (998 → 474 in 90 days; 375 at 120). An apex is a generalist: the ortho shares its water (−800…−100 against
+  its −560…−380) and nothing hunted it — the sperm whale and the giant squid. With it the census's start is 2,017 and the abyssal holds within 4% to
+  day 105 (2,088 at its height), then falls as it crops the orthos in its own patches: 1,654 at day 150 (82%). The ortho 21,280 → 12,927 at day 150
+  (15,623 at day 120 with nothing eating it), its fall slowing to −0.7% in the last 15 days. Traced on to day 225 (the coarse patches, where
+  nearly all of them live): the orthos hold at ~12,050 and their biomass at 2.45M from day 175, and the abyssal's starvation halves every 25 days
+  (8.4 → 5.3 → 2.6 a day against ~1.2 births) — 1,014 at day 225, its least ~970 at day 325, 995 at day 350 and rising: about half its start, the number its prey's production feeds.
+- **The rest of the web at 150 days** (`node test/census.js 150`, ok): the hoop 6,757 → 7,727, the comb 6,249 → 7,690, the quill 27,858 → 29,144
+  (34,506 at its height, day 36), the swarms 794k → 828k. As on main: the sickle 5,364 → 1,646, the plumb 14,490 → 7,539, the hook 39,548 → 26,632
+  (23,508 at its least) — the hunters start at what their prey's standing stock allows and settle to what its production feeds, the slow breeders
+  slowest; none under a fifth.
+- **Tests.** test/hoop.js (new, ~5 s, in `--test`): the sieve off the build, a giant's length, the swarm on its paper prey and it on the abyssal's;
+  a hungry hoop 40 m from a swarm at its daily layer reaches it in 22 s, its ring open 100% of its time inside, eats it (hunger 0.90 → 0.10), and
+  shuts its ring 0.3 s after it is fed and away. test/plumb.js §8: the canopy station is the weed at −30 and not sand or −90; a weed cell holds
+  quills (121, 120); `placeKind` stands one there, nose-down 10.8 m over the floor, and it stays. test/variety.js takes both rows (a seed gives
+  the same animal; the pale morph 1.9% asked 2%; sizes inside their bands; the quill's 12 variants within its budget).
+- **What it cost** (`node test/perf.js` against the merge base, `node test/gpu.js`):
+
+  | measure | before | after | ratio |
+  |---|---|---|---|
+  | creatures' work a frame at (330, 0), ms (mean), node, best of 5 | 2.500 | 2.731 | ×1.09 |
+  | the same, p95 | 3.718 | 3.835 | ×1.03 |
+  | creatures' work a frame at the forest (Chromium), ms | 2.112 | 2.092 | ×0.99 |
+  | every kind's build, ms (first) | 84.4 | 76.0 | ×0.90 |
+  | every kind's build, ms (again) | 5.8 | 6.5 | ×1.12 (two kinds more in the sum) |
+  | a cell at forest / atoll / platform / sea / giant, ms | 55.3 / 35.5 / 28.3 / 12.3 / 37.2 | 58.3 / 38.2 / 25.3 / 10.3 / 36.4 | ×1.05 / 1.08 / 0.90 / 0.83 / 0.98 |
+  | the canopy's draws (gpu.js) | 316 | 272 | ×0.86 |
+
+  The frame's ×1.09 is what seven more animals cost: 92 creatures inside 150 m of the forest's shelf against 85 (stepped every frame), the quills
+  — by the profile, `updatePlumb` 1.9% of the frame and `findPrey` 4.1% → 5.6% (the quills' and their prey's), `updateCreatures` +4% over the
+  run. The first run (beside a low-priority ledger trace) read ×1.11 and p95 ×1.23; the Chromium frame at the forest reads ×0.99. "Every kind's build (again)" is a sum over every kind, and there
+  are two more. The canopy's draws fall because v11.226.1's one needle at the near LOD (with its shadow passes) is no longer near (17 near now: 15
+  flickers, a jelly, a scuttle; three quills in sight at the far LOD) — the seeded simulation drifting, as it did then; `test/gpu.json` updated.
+- **Seen** (headless Chromium, software WebGL): a quill placed in the weed cell (121, 120), 11 m over the floor, shell-up and still among the
+  stalks, brown against their green-gold, legible at 7 m; a hoop inside a swarm at its day layer (a cell 97 m deep near the centre), ring open,
+  the tentacles spread like spokes — at 40 m its dark back is hard to pick from the slope in that light.
+- **Unseen, ask**: whether the hoop reads as a filter giant and not a fish, and whether the open ring shows at the distances it is met; whether the
+  quill can be found among the stalks without being lost in them, and whether it is the small upright one meant; the hoop's dark morph over the
+  open deep and the quill's yellow one in the lit weed; the abyssal now chasing orthos in play (nothing was tuned for that fight).
+
+## v11.227.1 — the quills in stands (24 Nov 2026)
+
+The person on v11.227's preview: *"I found the hoop on accident while scouring the island for a single quill."* The ledger gave the quill 1–2 a weed
+cell round the start (n 3), about 15 on the whole shelf: one 3 m cone in a 215 m square of kelp. Its 28,000 in the world were nearly all on the
+giant's shelf.
+
+- **Stands** (chunks.js `placeKind`; the quill's `SPAWN` row `grp` 5): a kind with stations is placed in its row's groups — the first member at the
+  station's point, the rest within 3 m of it, each hung over its own floor — as shrimpfish hang head-down together. The station branch runs before
+  the generic group branch now; the plumb (no `grp`) is placed as before, draw for draw.
+- **More of them**: `n` 3 → 8. Round the start, ~40 in the shelf's weed cells, in stands of up to five (61 at `n` 12). The census at 60 days: the
+  quill 74,288 → 88,429 at day 24 → 58,105, the fall slowing (−3.6% in the last six days) — about where `n` 12 was heading too (111k → 62k and still
+  falling), so ~55k is what its prey feeds; `n` 12 also took the hook, its rival for the same small fish in the same kelp, to 18,663 (47%). At `n` 8
+  the hook is 21,189 at day 60 (25,770 at `n` 3), its fall slowing.
+- **test/plumb.js §8**: five placed are a stand round one point, 5.3 m across, each over its own floor.
+- **What it cost** — **the creatures' frame at the forest's shelf ×1.13–1.14**, worth it because the person searched and found none: 98 creatures
+  within 150 m of it against main's 85, and a quill costs what any animal near the player costs (`updatePlumb` 4.1% of the frame, `findPrey` 4.1% →
+  6.6%, its arms' rigs). Against the merge base, v11.227 and this together:
+
+  | measure | before | after | ratio |
+  |---|---|---|---|
+  | creatures' work a frame at (330, 0), ms (mean), node, best of 5 | 2.787 | 3.182 | ×1.14 |
+  | the same, p95 | 3.680 | 4.419 | ×1.20 |
+  | creatures' work a frame at the forest (Chromium), ms | 2.286 | 2.588 | ×1.13 |
+  | every kind's build, ms (first / again) | 83.0 / 7.3 | 80.8 / 7.3 | ×0.97 / ×1.00 |
+  | a cell at forest / atoll / platform / sea / giant, ms | 61.1 / 38.6 / 27.7 / 10.1 / 37.7 | 63.6 / 38.9 / 28.4 / 10.5 / 37.5 | ×1.04 / 1.01 / 1.02 / 1.04 / 1.00 |
+
+  `node test/gpu.js --check` passes (nothing moved 10%). Cheaper would be a sitting hanger that looks for prey less often than every frame — a
+  change in behaviour, so the person's call, with the AI pass.
+- **Unseen, ask**: whether a stand reads, and whether ~40 on the start's shelf is enough to come across them or too many.
+

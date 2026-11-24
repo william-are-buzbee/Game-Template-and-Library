@@ -1213,7 +1213,7 @@ const PARTS = {
   mouth: {
     reg:{
       beak:{clades:['ringmouths'],params:['z','y','R']},
-      tentacles:{clades:['slowbloods'],params:['z','r','len','n','w','segs','idle','tell','kk','pulse','edge']},
+      tentacles:{clades:['slowbloods'],params:['z','r','len','n','w','segs','idle','tell','kk','pulse','edge','sieve']},
       plates:{clades:['hingeshells'],params:['where','z','y','R','plen','feed','fn','flen','snap']},
       rasp:{clades:['ringmouths'],params:['z','y','R','h']},
       peck:{clades:['hingeshells'],params:['z','y','len','r','dip','pk','wob']},
@@ -1260,6 +1260,7 @@ const PARTS = {
       tell: {label: 'cock', k: 'k', b: [0, 0.3], x: [0, 1], d: 0},
       kk: {label: 'strike share', k: 'k', b: [0, 1], x: [0, 1.5], d: 1},
       pulse: {label: 'opens on the bite', k: 'b', d: false},
+      sieve: {label: 'a sieve when open', k: 'b', d: false}, // v11.227 (CLADES, The radiation): the petals' plate rows grown into fringes — the ring held open is a hoop that sieves the water (the hoop; derive's filter)
       edge: {label: 'inner edge', k: 's', opts: ['hold', 'cut', 'point', 'crush'], d: 'hold'} // the petals' inner edges (COMBAT.md §2, v11.54): hold (a clamp that swallows or lets go), cut (tears a piece out with a thrash), point (a needle jaw: skewers), crush (the crusher's plate jaw: shell and plate)
     },
     build: (ctx, p) => {
@@ -1334,7 +1335,8 @@ const PARTS = {
         anim: (t, spd, st) => {
           snout.open(idle + tk * (st.tell || 0) + kk * Math.max(st.strike || 0, p.pulse ? st.pulse || 0 : 0), t);
         },
-        mass: p.n * p.len * p.w * p.w * 0.5
+        mass: p.n * p.len * p.w * p.w * 0.5,
+        filter: p.sieve ? Math.PI * Math.pow(p.r + p.len * 0.8, 2) * 0.5 : 0 // v11.227: the hoop the ring opens to, its fringes half of it (a sieve's area, as the combs' and the net's)
       };
     }
   },
@@ -3476,6 +3478,30 @@ const SPECS = {
     ],
     behaviour: {role: 'ambush'}
   },
+  // the quill (v11.227; CLADES, The radiation — the person, 23–24 Nov 2026: a shallow plumb, "the smaller cone vertical ring mouth"): the plumb's line
+  // grown small in the weed forest, hung head-down among the stalks it matches — a stalk among stalks (Earth: the shrimpfish and the trumpetfish,
+  // vertical among spines and grass) — dropping on the darters and flickers that pass under it. The plumb's build at a fifth of its size, the cone
+  // slimmer and the ring longer for its size
+  quill: {
+    id: 'quill',
+    clade: 'ringmouths',
+    size: 1.8,
+    s: 0.3,
+    coat: 'quill',
+    core: {kind: 'coilbody', R: 0.66, z: 3.55, sx: 1, sy: 0.95, sz: 0.8, beat: [2, 1]},
+    parts: [
+      {kind: 'shell', style: 'cone', L: 9.5, z0: 3.35, r0: 0.55, segs: 9, turns: 4},
+      {kind: 'eyes', style: 'collar', n: 8, z: 3.75, R: 0.58, r: 0.08, sy: 0.82, y0: 0},
+      {kind: 'eyes', style: 'cluster', n: 3, y: 0.36, z: 3.85, R: 0.26, r: 0.12},
+      {kind: 'mouth', style: 'beak', y: -0.05, z: 4.0, R: 0.2},
+      {kind: 'arms', style: 'cone', z: 3.95, R: 0.34, len: 4.2, w: 0.2, segs: 5, curve: 0.04, ks: 55, damp: 9, s0: 0.18, s1: 0.08, a0: 0.2, a1: 0.08, k0: 0.6, k1: 1.5}
+    ],
+    hit: [
+      {a: [0, 0, -5.6], b: [0, 0, 3.4], r: 0.46},
+      {a: [0, 0, 3.4], b: [0, 0, 4.1], r: 0.56}
+    ],
+    behaviour: {role: 'ambush'}
+  },
   fin: {
     id: 'fin',
     clade: 'slowbloods',
@@ -3516,6 +3542,44 @@ const SPECS = {
       {a: [0, 0, -1.8], b: [0, 0, -0.45], r: 0.24, own: 'tail'}
     ],
     behaviour: {role: 'hunter'}
+  },
+  // the hoop (v11.227; CLADES, The radiation — predators become filter feeders: Leedsichthys from the pachycormids, Aegirocassis, the basking shark):
+  // the ridge's line grown into a filter giant of the fed, cold water. Its ring of mouth tentacles, which closes to a point on every slowblood, opens
+  // into a hoop while it sieves a swarm (DEFS gape; creatures_ai.js filterSeek) — no Earth animal gapes radially — and shuts while it cruises. A deep
+  // body and a blunt, wide front for the ring; an even ring of eyes (it hunts nothing that sees it); a gigantotherm, slow
+  hoop: {
+    id: 'hoop',
+    clade: 'slowbloods',
+    size: 8,
+    s: 4.15,
+    coat: 'hoop',
+    depth: -200,
+    core: {
+      kind: 'lathe',
+      prof: [
+        [0.02, -0.8],
+        [0.38, -0.72],
+        [0.6, -0.25],
+        [0.68, 0.35],
+        [0.66, 0.95],
+        [0.58, 1.3],
+        [0.5, 1.45]
+      ],
+      segs: 9,
+      beat: [1.1, 0.6]
+    },
+    parts: [
+      {kind: 'eyes', style: 'ring', z: 1.2, R: 0.52},
+      {kind: 'chevrons', z0: 0.9, z1: -0.5, ds: 0.24, sz: 0.1},
+      {kind: 'mouth', style: 'tentacles', z: 1.5, r: 0.42, len: 0.85, n: 8, w: 0.1, segs: 3, kk: 1, sieve: true, edge: 'hold'},
+      {kind: 'fins', z: 0.4, R: 0.62, h: 0.75, len: 0.85, amp: 0.18, dorsal: 0.3},
+      {kind: 'tail', style: 'lathe', prof: FIN_TPROF, z: -0.7, lz: -1.4, lh: 0.9, ll: 0.55, amp: 0.35, sp0: 0.25, spk: 0.2, body: 0.05}
+    ],
+    hit: [
+      {a: [0, 0, -0.6], b: [0, 0, 1.6], r: 0.62},
+      {a: [0, 0, -1.9], b: [0, 0, -0.6], r: 0.28, own: 'tail'}
+    ],
+    behaviour: {role: 'wander'}
   },
   abyssal: {
     id: 'abyssal',

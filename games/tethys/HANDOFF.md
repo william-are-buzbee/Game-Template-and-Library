@@ -4,6 +4,16 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.227 (24 Nov 2026): the hoop and the quill; the abyssal fed** (creatures_spec.js `SPECS.hoop`, `SPECS.quill`, the tentacles' `sieve`;
+creatures_defs.js `DEFS`, `STATION.canopy`, `stationW`, `SPAWN`, `VARIETY`; creatures_ai.js `filterSeek`'s `gape`, `plumbY`'s `canopy`; test/hoop.js;
+test/plumb.js §8; CLADES, PLANET, DESIGN; CHANGELOG). The person's *"filter feeding slow blood giant and the smaller cone vertical ring mouth"*. The hoop:
+the ridge's line as a 16 m filter giant in the fed open water, its mouth's tentacle ring a sieve held open inside a swarm (~7,500 in the world). The
+quill: the plumb's line at 3 m, hung among the weed forest's stalks by the new canopy station (~29,000). The abyssal, which was collapsing on main
+(392 → 73 in 90 days: its prey breed too slowly), now eats the ortho too: from 2,017 it settles near half that (its least ~970 at day 325, rising after), the ortho steady at ~12,900. **v11.227.1**: the person found the hoop by accident while searching the island for a single quill — there were ~15 on the whole shelf;
+now ~40 there, in stands of five (`grp`, `n` 8). **Ask:** does the hoop read as a filter
+giant (its ring open in a swarm); can the quill be found among the stalks, and is it the small upright one they meant. **Next:** AI and behaviour,
+in another chat (the person).
+
 **v11.226 (24 Nov 2026): the individual for every placed species** (creatures_defs.js `VARIETY`, `GROW`, `MORPHS`, `VARY_AUTO`; creatures_ai.js
 `autoVary`, `KIND_LOD`; test/variety.js, test/combat.js; VARIETY.md; DESIGN; CHANGELOG). All 38 kinds the ledger places are individuals: the clades' growth
 laws (soft ringmouths narrow, slowbloods' old giants, hingeshells in moult steps, drifters by food), morphs with causes (red, yellow, dark, pale,
@@ -27,12 +37,6 @@ ringmouths vary most), the founder left alone, size by age with a range on top. 
 `STATION`, `SPAWN`; player.js `deepY`, `DEEP_SOFT`; LINEAGE §7c.5–6; CHANGELOG). The person liked it but it read as standing still on the floor and was
 too rare: now 7.7 m clear of the floor, bobbing, swaying, drifting, carried by the current and pushable; walls from 11 m faces and `n` 12 (~8,100 in the
 world). The coilshell player stops at −450. The Plumb is the tenth candidate god, with demigods (§7c.6). **Ask:** does it read as hanging now; §7c.6's Open.
-
-**v11.223 (23 Nov 2026): the plumb, the stations, a gas shell's floor** (creatures_spec.js `SPECS.plumb`, `DERIVE_K.chamberY`; creatures_defs.js
-`DEFS.plumb`, `STATION`, `stationW`; creatures_ai.js `updatePlumb`, `reachable`; chunks.js `stationPoint`; ecology.js; zoo.js; test/plumb.js; CLADES,
-DESIGN The ecology, PLANET's roster; CHANGELOG). The person's hanger: the ortho's cone with no ballast, hung shell-up at walls in still water, riding
-the swarm's layer, striking only down; the wall and lee stations weigh the ledger and place it; every gas-shelled body held above −450 (the ortho's
-band left: it is the floor's). Seen in headless Chromium hanging at the wall at cell (118, 119). The person's answers are v11.223.1's.
 
 ## Open
 

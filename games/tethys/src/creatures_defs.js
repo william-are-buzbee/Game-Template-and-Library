@@ -4,7 +4,7 @@
 // fall is the one the deep was written for) — their hp is now an ordinary mortal's, meaning nothing but that;
 // any other value is nothing. dmg is a bite's size for the blood and the debris. venom {kind: 'paralyse' (t seconds, against: clades) | 'sting'}
 // is the clade's chemistry (§3b): the lurker's beak paralyses, the basker's and the grazer's spines sting whatever clamps them. immune: the
-// abyssal eats combs that fed at the chemocline without sickening (v11.56; the garter snake's answer to the newt — its comb is its whole diet).
+// abyssal eats combs that fed at the chemocline without sickening (v11.56; the garter snake's answer to the newt — its comb was its whole diet; v11.227 adds the hoop and the ortho).
 // roles: boid (a loose ribbon: flickers, darters) hunter (chases prey) graze ambush (sits, lunges; hang: from up in the structure)
 // trap (sits, strikes) watch (the curious one) coil drift wander. legs: can move out of the water (walks); everything else is a
 // swimmer and flops when beached. size: rough half-length, used for collision, LOD and floor clearance (clear overrides the
@@ -43,7 +43,7 @@ const DEFS={
   great:{build:()=>compile(SPECS.great),size:6,pace:0.14,ram:5,dmg:12,radius:9,reach:5.2,hp:600,role:'coil',home:45,cruise:10,cruiseF:1},
   ridge:{build:()=>compile(SPECS.ridge),size:9,hp:140,role:'hunter',prey:['player','grazer','picker','plough'],detect:46,reach:6.6,dmg:32,biteCD:1.5,home:240,cruise:60,cruiseF:0.4,cool:5},
   ortho:{build:()=>compile(SPECS.ortho),size:8,hp:90,role:'hunter',prey:['player','needle','darter','grazer','picker'],detect:40,reach:5.6,dmg:24,biteCD:1.2,home:220,cruise:70,cruiseF:0.4,cool:5},
-  abyssal:{build:()=>compile(SPECS.abyssal),size:15,immune:true,hp:400,role:'hunter',prey:['player','comb'],cycle:10,detect:85,reach:10,dmg:55,biteCD:1.8,home:420,cruise:200,cruiseF:0.45,cool:6},
+  abyssal:{build:()=>compile(SPECS.abyssal),size:15,immune:true,hp:400,role:'hunter',prey:['player','comb','hoop','ortho'],cycle:10,detect:85,reach:10,dmg:55,biteCD:1.8,home:420,cruise:200,cruiseF:0.45,cool:6}, // v11.227: the ortho too — the comb and the hoop breed too slowly to feed it (the 90-day census: 392 → 73); an apex is a generalist, and the ortho shares its water (the sperm whale's giant squid)
   eel:{build:()=>compile(SPECS.eel),size:4,hp:55,role:'hunter',prey:['player','darter','flicker','sifter'],detect:17,reach:4.0,dmg:16,biteCD:1.1,home:40,cruise:14,cruiseF:0.35,cool:4},
   lurker:{build:()=>compile(SPECS.lurker),size:2.4,venom:{kind:'paralyse',t:7,against:{slowbloods:1,ringmouths:1}},hp:45,role:'ambush',prey:['player','darter','flicker','rasp','scuttle','needle','grazer','wedge','sifter'],radius:9,lunge:14,reach:3.2,dmg:20,lodNear:75},
   // drifters (DRIFTERS.md): no eyes, no hunting; they sting what touches them. surface: rides the wave (ys under the crest's origin)
@@ -64,6 +64,8 @@ const DEFS={
   crusher:{build:()=>compile(SPECS.crusher),size:4,hp:110,role:'hunter',prey:['rasp','scuttle','player','wedge'],preyClade:'coil',scav:40,detect:24,reach:4.2,dmg:28,biteCD:1.5,strike:{tell:0.3,dur:0.35,speed:9,range:1.7},home:50,cruise:14,cruiseF:0.4,cool:4},
   trap:{build:()=>compile(SPECS.trap),size:2,hp:60,role:'trap',prey:['player','flicker','needle','darter','scuttle','sifter'],detect:4.5,reach:3.3,dmg:24,strike:{tell:0.35,dur:0.3},cool:3,floor:true,clear:0.45},
   plumb:{build:()=>compile(SPECS.plumb),size:11,hp:120,role:'ambush',upright:true,station:['wall','lee'],below:0.5,prey:['player','darter','needle','arrow','flicker','sifter','hose','eel','watcher','grazer'],radius:22,lunge:8,reach:6.5,dmg:26,clear:11}, // v11.223 (CLADES, The radiation): hangs shell-up at a wall in still water (station), strikes only down (below), rides the swarm's layer (creatures_ai.js updatePlumb); clear: its arms' tips under its origin
+  quill:{build:()=>compile(SPECS.quill),size:1.8,hp:30,role:'ambush',upright:true,station:['canopy'],canopy:[2,9],below:0.5,prey:['darter','flicker','needle'],radius:7,lunge:5,reach:1.2,dmg:6,clear:1.9}, // v11.227: the plumb's small line in the weed (CLADES, The radiation): hangs among the stalks (canopy: its height over the floor, a band, each its own), drops on the small
+  hoop:{build:()=>compile(SPECS.hoop),size:8,pace:0.22,hp:500,role:'wander',gape:true,home:220,cruise:60,cruiseF:0.9,lodNear:110}, // v11.227: the filter giant — gape: its mouth's ring held open while it sieves (creatures_ai.js filterSeek); the abyssal's prey
   hook:{build:()=>compile(SPECS.hook),size:2.5,hp:50,role:'ambush',prey:['player','flicker','darter','needle'],hang:true,radius:11,lunge:11,reach:2.8,dmg:18},
   tread:{build:()=>compile(SPECS.tread),size:7,pace:0.17,hp:800,role:'graze',calm:true,home:90,floor:true,legs:true,cruiseF:1},
   picker:{build:()=>compile(SPECS.picker),stock:3,size:1.5,pace:0.62,flee:true,hp:1,edible:true,food:10,role:'graze',home:40,floor:true,legs:true,cruiseF:0.6,scav:90},
@@ -179,7 +181,9 @@ const SPAWN=[
   {kind:'ortho',n:0.12,env:{heat:[0.3,1]}}, // the vents: warm water below the thermocline
   {kind:'veil',n:0.2,env:{h:[-800,-150]}},
   {kind:'abyssal',n:0.1,env:{h:[-560,-380],nut:[0.25,1]}}, // the rim of the dark where the water is fed (PLANET: the rim, forays below). v11.66: it was h −800..−400 over the whole basin's flanks, where the sill's and the far floor's cells reach no combs, and the 120-day census had it collapsing 70 → 12 since v11.65 (the 40-day run --test makes does not see it); the ledger's reach is 5×5 cells, so its home band is the two cells over the combs' deep edge
-  {kind:'plumb',n:12,env:{h:[-520,-30],flow:[0,0.45]}} // v11.223: the walls in still water (DEFS station: the capacity is the cell's share of wall and lee, ecology.js ecoCap) — the foot to −520, the face up past −450 (its shell's floor); the ortho's opposite, which wants the current. Last: a new row goes at the end, so every row before it draws from a cell's rng as it did (the seeded tests' runs)
+  {kind:'plumb',n:12,env:{h:[-520,-30],flow:[0,0.45]}}, // v11.223: the walls in still water (DEFS station: the capacity is the cell's share of wall and lee, ecology.js ecoCap) — the foot to −520, the face up past −450 (its shell's floor); the ortho's opposite, which wants the current. Last: a new row goes at the end, so every row before it draws from a cell's rng as it did (the seeded tests' runs)
+  {kind:'quill',grp:5,n:8,env:{h:[-54,-16],sub:[0.55,1],nut:[0.45,1]}}, // v11.227: the weed forest (its canopy station: the stalks' envelope); new rows go last. v11.227.1: in stands of five (shrimpfish hang together), and n 3 → 8 — the person found none round the island at 1–2 a cell (n 12 overshot: the quill halved in 60 days and took the hook, its rival for the same small fish, to 47%)
+  {kind:'hoop',n:0.12,env:{h:[-450,-80],nut:[0.5,1]}} // v11.227: the open water over the fed, cold flank — the upwelling, where the swarms are (the veil's deeper, the comb's on the plain)
 ];
 // ---------- the stations (v11.223; CLADES, The radiation: habitat at three scales) ----------
 // Habitat's second scale, where in its cell an animal stands (the first is SPAWN's envelope, the cells; the third the clock). A kind names its
@@ -187,11 +191,11 @@ const SPAWN=[
 // capacity by it point by point (ecology.js ecoCap, ecoPatchCap: a cell with no wall holds no plumb) and placeKind stands the animal at the best
 // of the cell's points (chunks.js stationPoint). wall: the ground rises steeply beside the point — the rise to its highest neighbour over their
 // distance, a smooth step from lo to hi (over 36 m: an 11 m face starts it, a 27 m one is full) — and the face reaches up past the deepest the body may be (deepY) by `reach` m, so it hangs beside rock and
-// not over a step far below it. lee: still water, 1 at flow lo to 0 at hi (a body hung vertical is a mast in a current). Seven are proposed
-// (wall, lee, lip, edge, canopy, open, crevice); these two are built.
-const STATION={wall:{lo:0.3,hi:0.75,reach:10},lee:{lo:0.2,hi:0.5}}; // wall lo/hi 0.45/0.9 to v11.223 (16–32 m faces); v11.223.1 (the person: more common, "a sea full of these things") 11–27 m
-function stationW(st,h,rise,run,flow,deepY){let w=1;
-  for(let i=0;i<st.length;i++){const s=st[i];if(s==='wall'){w*=smooth(STATION.wall.lo,STATION.wall.hi,rise/run);if(deepY!==undefined&&h+rise<deepY+STATION.wall.reach)return 0;}else if(s==='lee')w*=1-smooth(STATION.lee.lo,STATION.lee.hi,flow);if(w<=0)return 0;}
+// not over a step far below it. lee: still water, 1 at flow lo to 0 at hi (a body hung vertical is a mast in a current). canopy (v11.227): in
+// the weed forest, by the stalks' own envelope. Seven are proposed (wall, lee, lip, edge, canopy, open, crevice); these three are built.
+const STATION={wall:{lo:0.3,hi:0.75,reach:10},lee:{lo:0.2,hi:0.5},canopy:{env:{h:[-54,-16],sub:[0.55,1],nut:[0.45,1],flow:[0.15,0.85],young:[0,0.45]}}}; // canopy (v11.227): in the weed forest — the stalks' own envelope (flora.js stipe), so a kind that names it stands where the stalks stand // wall lo/hi 0.45/0.9 to v11.223 (16–32 m faces); v11.223.1 (the person: more common, "a sea full of these things") 11–27 m
+function stationW(st,h,rise,run,f,deepY){let w=1; // f: the place's fields (FI)
+  for(let i=0;i<st.length;i++){const s=st[i];if(s==='wall'){w*=smooth(STATION.wall.lo,STATION.wall.hi,rise/run);if(deepY!==undefined&&h+rise<deepY+STATION.wall.reach)return 0;}else if(s==='lee')w*=1-smooth(STATION.lee.lo,STATION.lee.hi,f[FI.flow]);else if(s==='canopy')w*=envW(STATION.canopy.env,h,0,f);if(w<=0)return 0;}
   return w;}
 // the rise to the highest of a grid point's four neighbours (a G×G grid of heights hs): the wall's height beside it
 function gridRise(hs,G,n){const a=n%G,b=(n-a)/G,h=hs[n];let r=0;if(a>0)r=Math.max(r,hs[n-1]-h);if(a<G-1)r=Math.max(r,hs[n+1]-h);if(b>0)r=Math.max(r,hs[n-G]-h);if(b<G-1)r=Math.max(r,hs[n+G]-h);return r;}
@@ -265,6 +269,7 @@ const VARY_AUTO={arms:[['len',0.14]],legs:[['ll',0.1]],fins:[['len',0.12],['h',0
 const VARIETY={
   // ringmouths: the shelled grow by their shells, the soft stop; they vary most
   plumb:{grow:'shell',size:[0.85,1.5],old:0.9,morphs:[['type',0.82],['melanic',0.16],['leucistic',0.02]],vary:[['arms','len',0.14],['shell','L',0.06],['shell','r0',0.1],['shell','turns',0.2]],oldShell:{L:0.82},oldPal:'old'}, // 20 m typical, 30 m the oldest (the person, 23 Nov 2026)
+  quill:{grow:'shell',size:[0.85,1.4],old:0.9,morphs:[['type',0.68],['xanthic',0.3],['leucistic',0.02]],vary:[['arms','len',0.14],['shell','L',0.06],['shell','r0',0.1],['shell','turns',0.2]],oldShell:{L:0.85},oldPal:'old'}, // olive, or the bladders' gold (lit: the weed's own colours)
   ortho:{grow:'shell',size:[0.85,1.35],old:0.9,morphs:[['type',0.82],['erythristic',0.16],['leucistic',0.02]],vary:[['arms','len',0.14],['shell','L',0.06],['shell','r0',0.1],['shell','turns',0.2]],oldShell:{L:0.85},oldPal:'old'},
   great:{grow:'shell',size:[0.85,1.3],old:0.9,morphs:[['type',0.84],['melanic',0.14],['leucistic',0.02]],vary:[['arms','len',0.14],['shell','R1',0.08],['shell','k',0.05]],oldPal:'old'},
   rasp:{grow:'shell',size:[0.8,1.25],old:0.9,morphs:[['type',0.68],['erythristic',0.3,'lit'],['leucistic',0.02]],vary:[['arms','len',0.16],['shell','R1',0.1]],oldPal:'old'}, // the rasp: a grazer of the lit rock, where a red shell among the red crusts is the common second
@@ -279,6 +284,7 @@ const VARIETY={
   grazer:{size:[0.8,1.45],old:0.92,morphs:[['type',0.7],['melanic',0.16],['xanthic',0.12],['leucistic',0.02]]}, // the herds on the lit sand: carotenoid-rich from the green they crop
   basker:{size:[0.85,1.45],old:0.92,morphs:[['type',0.82],['melanic',0.16],['leucistic',0.02]]}, // the vents' warmth: melanin
   ridge:{size:[0.85,1.55],old:0.92,morphs:[['type',0.78],['melanic',0.2],['leucistic',0.02]]}, // the black ridge: the open ocean's and the dark water's (the person, 24 Nov 2026), rare in the lit
+  hoop:{size:[0.85,1.5],old:0.92,morphs:[['type',0.8],['melanic',0.18],['leucistic',0.02]]}, // 16 m typical, 24 m the oldest (the abyssal, 19 m and to 30 old, takes the young and the typical); dark over the open deep
   abyssal:{size:[0.85,1.6],old:0.92,morphs:[['type',0.9],['erythristic',0.08],['leucistic',0.02]]}, // the deep's red, which is black where it lives
   eel:{size:[0.8,1.5],old:0.92,morphs:[['type',0.78],['spotted',0.2,'rock'],['leucistic',0.02]]}, // mottled in the weed's cover
   stone:{size:[0.85,1.4],old:0.92,morphs:[['type',0.8],['melanic',0.18],['leucistic',0.02]]}, // dark on the pavement and the crust
@@ -315,6 +321,7 @@ const ROSTER=[
   {id:'great',clade:'ringmouths',family:'coilshells',niche:'shelf apex'},
   {id:'ortho',clade:'ringmouths',family:'straightshells',niche:'player-size predator, spear'},
   {id:'plumb',clade:'ringmouths',family:'straightshells',niche:'hangs at walls, drops on what passes under'},
+  {id:'quill',clade:'ringmouths',family:'straightshells',niche:'hangs among the weed\'s stalks, drops on the small'},
   {id:'arrow',clade:'ringmouths',family:'jetters',niche:'small-prey hunter, in packs'},
   {id:'lurker',clade:'ringmouths',family:'crawlers',niche:'floor ambush, grab',floor:true},
   {id:'watcher',clade:'ringmouths',family:'crawlers',niche:'a curious omnivore',floor:true},
@@ -326,6 +333,7 @@ const ROSTER=[
   {id:'grazer',clade:'slowbloods',family:'finbacks',niche:'floor grazer, herds',floor:true},
   {id:'basker',clade:'slowbloods',family:'finbacks',niche:'mid predator, vent-bound'},
   {id:'ridge',clade:'slowbloods',family:'ridgebacks',niche:'player-size predator, mixotherm'},
+  {id:'hoop',clade:'slowbloods',family:'ridgebacks',niche:'big filter feeder, the open ring'},
   {id:'abyssal',clade:'slowbloods',family:'ridgebacks',niche:'apex, gigantotherm'},
   {id:'eel',clade:'slowbloods',family:'longbacks',niche:'structure hunter'},
   {id:'stone',clade:'slowbloods',family:'platebacks',niche:'floor ambush, torpid, bite',floor:true},

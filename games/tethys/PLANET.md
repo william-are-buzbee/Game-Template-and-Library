@@ -342,8 +342,9 @@ the clever ones) and **the deep line** (below the light, low metabolism, webbed 
 | coilshell (player) | coilshells | — | reef, shelf | 1.5 | exists |
 | **rasp** | coilshells | floor grazer | reef, shallows, kelp | 0.5 | a fist-sized coiled shell dragged by six short arms that rasp algae off rock; eye ring on the mantle; cream on the reef, rust in the rockfall; edible. Loses the grazing niche to the herds and keeps the rock |
 | great | coilshells | shelf apex, coil | shallows, flats, bladders, terraces, the arch | 6 | exists |
-| ortho | straightshells | player-size predator, spear | spires, vent field, lantern fields — **out of the dark** | 8 | exists; gets a forward eye cluster |
+| ortho | straightshells | player-size predator, spear | spires, vent field, lantern fields — **out of the dark** | 8 | exists; gets a forward eye cluster. The abyssal's prey since v11.227 |
 | **plumb** | straightshells | hangs at walls, drops on what passes under | the walls in still water, −30 to −450 (v11.223: a station, CLADES The radiation) | 11 | v11.223, the person's hanger: the ortho's cone with no ballast, so it hangs shell-up, off the floor, swaying (v11.223.1); rises with the swarm's layer at night; strikes only down. A god candidate (LINEAGE §7c.6) |
+| **quill** | straightshells | hangs among the weed's stalks, drops on the small | the weed forest, −16 to −54 (v11.227: the canopy station, the stalks' own envelope) | 1.8 | v11.227, the person's small upright one (CLADES The radiation, there called the stipe — the kelp's name): the plumb's line at 3 m, a stalk among stalks, hung 2–9 m over the floor and still; strikes darters, flickers and needles under it. In stands of five (v11.227.1: shrimpfish hang together). Yellow morphs in the lit weed |
 | soft-arm (player) | jetters | — | — | 1.6 | exists |
 | arrow | jetters | small-prey hunter, pack | the shelf | 1.0 | exists; forward eyes |
 | lurker | crawlers | floor ambush, grab | kelp, rockfall, spires, the arch | 2.4 | exists |
@@ -367,7 +368,8 @@ needle's spine, the grazer's rake, the crusher's plate).
 | grazer | finbacks | floor grazer, herd | flats, bladders, terraces | 2.6 | exists; gets a rake jaw |
 | **basker** | ridgebacks (24 Sep 2026: moved from the finbacks — a sawmouth, COMBAT §10.10) | mid predator, vent-bound | the vent field | 5 | smooth-skinned (the back rows lost in the warm water; the petals' crest kept, as teeth outlast scales), iron-black with rust; quick in the warm water round the vents, sluggish if it strays; hunts what comes to the warmth (pickers, the player) |
 | ridge | ridgebacks | player-size predator, mixotherm | the drop, terraces, plain, the arch | 9 | exists; forward eyes |
-| abyssal | ridgebacks | apex, gigantotherm | **the rim** of the dark, forays below | 15 | exists; home moves to the rim |
+| abyssal | ridgebacks | apex, gigantotherm | **the rim** of the dark, forays below | 15 | exists; home moves to the rim. Eats the combs, the hoops and the orthos (v11.227: two slow-breeding filter giants could not feed it; the ortho is the sperm whale's giant squid) |
+| **hoop** | ridgebacks | big filter feeder, gigantotherm | the fed open water, −80 to −450 | 8 | v11.227, the ridge's line grown into a filter giant (Leedsichthys and Aegirocassis: predators become filter feeders): 16 m, its mouth's ring held open as a sieve inside a swarm and shut outside it; the abyssal's prey. Dark morphs in the dark water |
 | eel | longbacks | structure hunter | kelp towers | 4 | exists |
 | **stone** | platebacks | floor ambush, torpid, bite | plain, terraces, lanterns | 3 | a plated lump the colour of its floor (v11.97: pale on ooze, black on pavement and crust; once manganese-black on the plain), two eyes on top; sits for minutes, bites what touches it |
 | **crusher** | platebacks | shell-eater | rockfall, reef, kelp | 4 | short, thick, plated; plate jaws; hunts rasps and coilshells — the coilshell player's particular enemy (withdrawing won't save you; mechanic later) |
@@ -484,7 +486,7 @@ close to Earth at times). **Individuals are generated, species authored** from a
 look like kin. **The hanger** is first: a straightshell with no ballast, hung vertical, holding station beside walls in still water and
 following the swarm's layer up at night; **the ortho stays as it is**. **The slowbloods' Earth reference becomes the jawless armoured fish**
 (heterostracans, osteostracans, galeaspids) — the clade section's "reptilian" and its fish-shaped fins give way to it when that pass is built.
-The slowblood filter giant (the ridge's line) and the ringmouths' individual variety follow. Habitat at three scales — the range, the
+The slowblood filter giant (the ridge's line) and the ringmouths' individual variety follow (built: the variety v11.225–226; the giant, the hoop, and the shallow hanger, the quill, v11.227). Habitat at three scales — the range, the
 station in the cell, the clock — is agreed there (the same day), and no species is excepted from the limits its body sets.
 
 ## Open
