@@ -11406,3 +11406,70 @@ ringmouths are *"fast, clever, short-lived … packs"*; the pass gives them what
   plumbs gathering at a fall do; (2) the arrows' pack coming at a school from two sides, and their ink; (3) the quill's stand dropping into the stalks as
   you come; (4) the great as a hunter on the shelf — its look (held off, facing you), its ram and its bite: whether a lethal great on the shelf is wanted
   (to v11.229 it only rammed); (5) BEHAVIOUR §3c's not-built list — reputation, the watcher watching animals, the pall's lure's meal.
+
+## v11.230.1 — the hangers roam: the plumb's day round its post and its night just under the surface, the quills alone and roaming; the ranges by where they can live (24 Nov 2026)
+
+The person on v11.230 (24 Nov 2026), playing it: *"I am enjoying the changes to the ringmouths a lot. … For the ringmouth plumbs, it would make more
+sense if they moved somewhat, as opposed to being a direct earth copy that just floats there … some roaming or even just a small radius with a small
+wander chance"*; the quills *"should roam like any other animal in the game, unless there is some reason I am misunderstanding why they can't move
+about during the day. This goes for the plumbs as well"*, and *"they can spawn as one, but don't have to"*. On the plumb's rise: *"they would be easier
+to tell if they roamed at like -10 to -20 feet below the surface instead of roaming at their normal levels. I like the way they float but without
+movement laterally the verticality change doesn't read right."* On range: *"can this animal go here and survive? is a big open area lethal for them?
+Where can they make it? Then put them there to expand their range … why can't there be squids out in the shallows, or in the open ocean the way there
+are a billion slowbloods?"* — and *"perhaps more thoroughly in another chat."* A patch to the open pull request (BEHAVIOUR.md §3d).
+
+- **The day's roam** (creatures_ai.js `ROAM`, `plumbRoam`, `standFollow`, `quillHide`; the state `'roam'`; the creature's `post`). By day a sitting
+  hanger moves its station now and then: a chance a scan that comes every `ROAM.hang.every` 90 s on the mean for a plumb (`step` 10–30 m, `leash` 50 m
+  from its post, `jet` 0.35 m/s), every `ROAM.stand.every` 25 s for a quill (5–15 m, 40 m, 0.5 m/s); in still water (`STATION.lee`), a quill of the
+  weed among the stalks; leaning into its way, taking what passes under it, then sitting there: its station now. Its **post** is where it was placed —
+  a wall's foot, a stand's point (one object, shared: a stand keeps its phase as it roams, `phaseOf`). A stand roams together, each keeping its place;
+  a quill that takes fright on the way stops and drops into the stalks where it is.
+- **The plumb's night just under the surface** (`plumbY`, `PLUMB.surf` 3, `plumbWait`, `hangGo`). Every plumb leaves its station at dusk, fed or not,
+  after its own wait (`PLUMB.wait` 15 s × 0.5–1.5, so a wall's go one by one), and roams the night in legs within `PLUMB.range` 90 m of its post with
+  its shell's top 3–6 m under the surface — up past the layer (35–80 m), which v11.230 kept it in. It goes across by its jet and up by its gas at once
+  (`hangGo`: across at the leg's speed against the current, up and down at `HANG.rise` over its size factor), so the dusk's climb is a slant out from
+  the wall. Hungry it drops on what passes under and goes up a carrion's scent as v11.230; fed it roams on (`PLUMB.full` struck); after a strike or a meal
+  it roams on; at the dawn it goes home. The trim holds: the old giants roam at their day depth. A leg's goal is over floor at least its arms' reach
+  and gap under a shell at the surface's limit (`hangFloor`: −31 m for a typical plumb), and the floor along the way stays under it (`hangPath`, five
+  points) — without them the floor clamp lifted a night's plumb crossing a reef top until its shell broke the surface (seen in the test: −8.4).
+- **Fixed** (v11.230): a hungry plumb that found nothing at night foraged on through the day — the exit was `REST.on` 0.35, and the plumb's day
+  activity is 0.4; it leaves at `REST.off` 0.5 now, as it came. v11.230's test fed its plumb, which hid it.
+- **The ranges by where they can live** (creatures_defs.js `SPAWN`'s last rows — last, so every row before draws as it did; `stOf`, a row's own
+  stations `st`; `mid`; chunks.js `placeKind`, `stationPoint`; ecology.js `ecoCap`, `ecoPatchCap`). A plumb's wall is cover, not a need — a hung body
+  needs still water (it is a mast in a current) — so plumbs hang off the walls too, over the slopes and the flank (`st` `lee`, floor −600 to −40, flow
+  under 0.3, `n` 0.4 a cell against the wall row's 12), with no wall to lean from (`wallD` unset). Quills alone in the weed (`n` 1) and alone past it
+  over the shallows' still water, turf, rock and sand, where the ribbons and the needles they eat are (`st` `lee`, −40 to −8, out of the surf, `n` 0.4:
+  out of the stalks they have no cover). An arrow pack in the open water over the upwelling, with the sifters it hunts (`n` 1.2, `mid`: placed in the
+  column 10–50 m over the floor, `c.pel`, and its wanders keep within 20 m of that depth — `setWander` put every other hunter over its floor; most of
+  Earth's squid are oceanic). The first draw (the open plumbs 1.5, the quills 1.2) put 7× and 3× the kinds on paper and pressed the hunters' biomass
+  up half again; cut. Every kind's range by the same question is the person's, for a session of its own (BEHAVIOUR §8.7).
+- **One shape**: the creature's `post`, `pel`. **Docs**: BEHAVIOUR §3d (new) and §8.6–7 (the person's answers, recorded: the lethal great wanted —
+  *"I want these things to actually be threatening, they used to be almost entirely non threatening"*; the plumb's rise did not read; the quills *"fall
+  if you bite them for sure"*; the arrows not yet seen), DESIGN Creatures, CLADES (the hanger).
+- **Tests.** test/ringmouths.js (~12 s; was 9): a fed plumb at a moonless midnight leaves its station after 10.7 s all the same, climbs −34 → −15.5
+  (its shell's top 6.5 m under) going 11 m across as it climbs (97% of its climbing frames move it sideways), roams two minutes between −15.5 and −12.1
+  up to 60 m from its post, and is back at its day depth (−46) 35 s after noon; by day, a roam's chance taken, it makes for a new station 12 m off in
+  still water, jets there in 26 s leaning into its way 99% of its moving frames, and sits there; roaming every 5 s on the mean for ten minutes it is
+  never more than 44 m from its post (the leash 50); a stand of three quills roams together, each keeping its place, its goal among the stalks (cover
+  1.00), all sitting again in 24 s; the new rows: a quill alone past the weed in still water (flow 0.19, no weed) at its post, a plumb off the walls
+  hung at −92 over a floor at −111 with no wall, a pelagic pack of 5 in the column whose wanders keep within 20 m of its depth. The night's station at
+  the wall cell now rises −61 → −12.8 (its shell's top 3.8 m under); the hungry plumb's wait is its own (19.4 s). test/plumb.js: the day's roam is
+  off there (its hang, its drift and its strike are a station's). test/clock.js: the resting eel's take of a darter 3 m off is asked within the half
+  second, not at its end — the roam's draws moved the shared sequence, and this run's eel had struck by then (it chased from the first scan).
+- **The ledger** (`node test/census.js 120`, against v11.230's run): census ok. The plumb 38,113 → 25,415 (0.67; v11.230 14,490 → 7,548, 0.52) —
+  ×3.4 in the world, the most off the walls; the quill 124,848 → 114,523 (0.92; 74,288 → 57,402, 0.77) — ×2.0; the arrow 671,284 → 822,137 (604,980 →
+  752,528). Their prey at day 120 against v11.230's: the flicker 0.98, the darter 0.97, the grazer 0.94, the sifter 0.97, the needle 0.96; their
+  rivals: the hook 0.96, the eel 0.91, the hose 0.97; the great 1.00, the lurker 1.00, the ridge 1.00.
+- **What it cost** (`node test/perf.js --ref` v11.230, five runs a side): the creatures' frame at (330, 0) ×1.04 mean, ×0.96 p95 (1,378 creatures
+  against 1,367: the new rows); Chromium's at the forest ×1.00; the GPU's counts within 7% (the coast's draws ×1.05, 159 → 167: more creatures in
+  sight). Two flags in the first run, on code the change does not reach — every kind's rebuild ×1.22 (forty sums of 0.1 ms readings) and a cell at the
+  giant ×1.10, where no creature is placed; a second run read them ×1.06 and ×0.92, and flagged the atoll's cell ×1.20 instead, its spawn and compile
+  time lower than before (2.9 and 2.1 ms against 3.4 and 2.6): the bench's noise in a cell's terrain and flora. The roam's costs are a scan's chance and,
+  when it is taken, four tries of a cell's height, its fields and five heights along the way, once a minute or two a hanger.
+- **Seen** (Chromium, software WebGL): the wall cell at (118, 119) an hour into the night, a fed plumb off its station: 40 s in, climbing at −49 and
+  19 m out; 90 s more, at −13.4 with its shell's top 4.7 m under the surface, 85 m from its station among the weed's tops — a dark shell and its arms
+  above the finback's back; legible as a shape. No page error. The rest is test/ringmouths.js's numbers.
+- **Unseen, ask in this order**: (1) whether the plumbs' night now reads — a shell slanting up off its wall at dusk, roaming just under the surface;
+  (2) whether a plumb or a stand of quills moving its station by day reads as roaming, and is often enough (`ROAM` every 90 s and 25 s on the mean);
+  (3) the solo quills past the weed and the plumbs off the walls — whether you meet them, and too often; (4) the arrows over the upwelling; (5) still
+  v11.230's: the pack's two sides and the ink.

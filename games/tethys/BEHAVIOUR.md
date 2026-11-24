@@ -2,7 +2,8 @@
 
 **Status (24 Nov 2026): pass 0 built (v11.228): the clock, the risk and the look; the player's bias struck; the bugs §6 lists fixed. Pass 1 built
 (v11.229): the senses (§3b); the sky and the pall's lights in the step. The ringmouths' pass built (v11.230, §3c): the plumb's night, the quill's
-stand, the arrows' pack and ink, the lurker's giving-up, the great a hunter.** The person on v11.228: *"I play tested and enjoyed it, go ahead with pass 1."*
+stand, the arrows' pack and ink, the lurker's giving-up, the great a hunter; v11.230.1 the hangers' roam, the plumb's night under the surface, the
+wider ranges (§3d).** The person on v11.228: *"I play tested and enjoyed it, go ahead with pass 1."*
 On v11.229 (24 Nov 2026): *"go ahead with the ringmouths pass and the plumb."* Next, the slowbloods (§4). Downstream of `PLANET.md` (each clade's deep decision is where its behaviour comes from), `CLADES.md`
 (habitat at three scales: the range, the station, the clock), `COMBAT.md` (what a hold means; pass D is the person's predator pass) and `DIRECTION.md`
 (the loop). The numbers live in `creatures_defs.js` (`BEHAVE`, `EYE_K`, `LAT_CLADE`) and `creatures_ai.js` (`CLK`, `REST`, `RISK`, `SENSE`, `SCENT`, `FREEZE`);
@@ -189,6 +190,38 @@ PLANET's ringmouths are *"fast, clever, short-lived … packs … intelligence a
 Not built in the pass: reputation (DIRECTION: *"some species remember"*); the watcher watching other animals; the pall's lure's meal (BIOLUM §7.11, the
 person's); the ortho's spear as a jet; the plumb's demigods (LINEAGE §7c.6).
 
+## 3d. The hangers roam; the ranges by survival (v11.230.1)
+
+The person on v11.230 (24 Nov 2026): *"For the ringmouth plumbs, it would make more sense if they moved somewhat, as opposed to being a direct earth
+copy that just floats there … some roaming or even just a small radius with a small wander chance"*; the quills *"should roam like any other animal in
+the game … This goes for the plumbs as well"*, and *"they can spawn as one, but don't have to"*; on the plumb's rise, *"they would be easier to tell if
+they roamed at like -10 to -20 feet below the surface … without movement laterally the verticality change doesn't read right"*; and on range: *"can
+this animal go here and survive? is a big open area lethal for them? Where can they make it? Then put them there to expand their range … why can't
+there be squids out in the shallows, or in the open ocean the way there are a billion slowbloods?"*
+
+- **The day's roam** (`ROAM`, `plumbRoam`, `standFollow`; the state `'roam'`): by day, sitting, a hanger moves its station now and then — a chance a scan
+  that comes every `ROAM.hang.every` 90 s on the mean for a plumb, `ROAM.stand.every` 25 s for a quill — `step` (10–30 m; 5–15) off, never past `leash`
+  (50; 40 m) from its **post** (`c.post`: where it was placed, a wall's foot or a stand's point), in still water (`STATION.lee`), a quill of the weed
+  among the stalks; it jets there at `jet` (0.35; 0.5 m/s) leaning into its way, takes what passes under it on the way, and sits: its station now. A
+  stand goes together — one moves and its mates on the same post come, each keeping its place — and holds its phase (the post's square, `phaseOf`).
+  A quill that takes fright on the way stops and drops into the stalks where it is (`quillHide`).
+- **The plumb's night under the surface** (`plumbY`, `PLUMB.surf`, `plumbWait`, `hangGo`): every plumb leaves its station at dusk, hungry or not, after
+  its own wait (`PLUMB.wait` × 0.5–1.5), and roams the night with its shell's top 3–6 m under the surface (`HANG.surf` and `PLUMB.surf` 3 more) — past
+  the layer, which stays at 35–80 m: the dark hides a shell near the surface, and what the layer feeds comes up under it. It goes across by its jet and
+  up by its gas at once (`hangGo`), so the dusk's climb is a slant out from the wall. Hungry, it drops on what passes under and smells carrion as v11.230;
+  fed, it roams on; after a strike or a meal it roams on; at the dawn it goes home. The trim holds: the old giants roam at their day depth. Its legs keep
+  off shoals: the floor at the goal and along the way stays under it by its arms' reach and gap (`hangFloor`, `hangPath`), or the floor clamp lifted its
+  shell out of the water over a reef top.
+- **Fixed**: a hungry plumb that found nothing at night foraged on through the day (its day's activity 0.4 is over `REST.on` 0.35, the exit v11.230
+  used; it now leaves at `REST.off`, as it came).
+- **The wider ranges** (creatures_defs.js `SPAWN`'s last rows; a row's own stations `st`, `stOf`; `mid`, the creature's `pel`). The plumb's wall is
+  cover, not a need: a hung body needs still water (a mast in a current), so plumbs hang off the walls too, over the slopes and the flank (`st` `lee`,
+  floor −600 to −40, 0.4 a cell against the wall row's 12, which is where they are thick). Quills alone in the weed (1 a cell), and alone past it in the
+  shallows' still water — turf, rock, sand — where their prey is (0.4; out of the stalks they have no cover). An arrow pack in the open water over the
+  upwelling with the sifters it hunts (1.2; `mid`: placed in the column, and its wander keeps to its depth there, not the floor's — most squid on Earth
+  are oceanic). The numbers were cut from the first draw (the open plumbs 1.5 and the quills 1.2 put 7× and 3× their kinds on paper). The question as a
+  whole — every kind's range by where it can live — is the person's, for another session (§8).
+
 ## 4. The plan (the passes)
 
 0. **The clock and the risk** — built v11.228 (§2, §3, §6).
@@ -259,3 +292,9 @@ the drawing makes the cloud's blobs for each the step queues (`PHO_Q`). **The pl
 4. Whether the night is now the hiding it should be (holding still in the weed; a hunter feeling you only when you move close), or too safe; whether
    the eyes' numbers (§3b) want moving.
 5. Whether the player's own colour against its ground should hide it as the world's animals' does (§3b, not built).
+6. **Answered (24 Nov 2026), on v11.230**: the great's bite is wanted — *"I want these things to actually be threatening, they used to be almost entirely
+   non threatening."* The plumb's rise did not read: *"Seeing them go up is less clear than I thought … without movement laterally the verticality change
+   doesn't read right"* — v11.230.1 (§3d). The quills: *"They fall if you bite them for sure."* The arrows' pack and ink: not seen yet.
+7. **Ranges by survival** (the person, 24 Nov 2026: *"perhaps more thoroughly in another chat"*): every kind's envelope asked again — can it live
+   there, is a big open area lethal for it, where can it make it — rather than where its Earth reference is found. v11.230.1 opened the plumb, the quill
+   and the arrow (§3d); the rest is open.

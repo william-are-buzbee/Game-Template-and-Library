@@ -2134,6 +2134,14 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   unseen `hide` 6 s, the chaser losing it at `slip` 0.6 for `lose` 4 s, the arrow off `run` 4 s). The lurker moves after `LURK.give` 90 s hungry at a post
   with nothing taken (`coverSpot`). The great is a hunter (prey the player, the grazer, the eel, the plough; `insp` `stand`), its ram the
   bite's opening blow (`landBite`); the `coil` role is struck. `POP.chases` counts the hunts begun (test/live.js).
+- **The hangers roam; the plumb's night under the surface; the wider ranges (v11.230.1; BEHAVIOUR.md §3d; creatures_ai.js `ROAM`, `hangGo`, `hangPath`,
+  `hangFloor`).** By day a sitting hanger moves its station by a chance a scan (`ROAM.hang` every 90 s on the mean, `step` 10–30 m, `leash` 50 m of its
+  `post`, `jet` 0.35 m/s; `ROAM.stand` 25 s, 5–15 m, 40 m, 0.5 m/s), in still water or, a quill of the weed, among the stalks; a stand goes together
+  (`standFollow`). Every plumb leaves at dusk after `plumbWait` (`PLUMB.wait` × 0.5–1.5), hungry or not, and roams the night with its shell's top
+  `HANG.surf` + 0–`PLUMB.surf` 3 m under the surface, across by its jet and up by its gas together (`hangGo`), its legs over floor and paths at least its
+  arms' reach and gap under it; home at the dawn (`REST.off`). `PLUMB.full` struck. Rows with their own stations (`SPAWN` `st`, `stOf`): plumbs off the
+  walls (`lee`, 0.4), quills alone in the weed (1) and past it (`lee`, 0.4); a pelagic arrow pack over the upwelling (`mid`, the creature's `pel`: placed
+  in the column, wandering ±20 m of its depth).
 - **Removed by request:** the mid-water `weed` flora (the "floating spiky objects"); the `colony` creature (pink/cyan
   glowing chains); darter/glim **schools are no longer spawned** — the code (`school` role, `makeSchool`,
   `updateSchools`, `buildDarter`) is intact. They went because the rigid formation read as a block; if they return it

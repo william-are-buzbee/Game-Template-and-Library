@@ -54,8 +54,8 @@ if(S){clearAll();X.setClock(noon);P.pos.set(S.x+150,Y,S.z);hold();
   const thr=X.huntAt(e);check(Math.abs(thr-(X.ECO.hungry+X.REST.k*(1-e.awake)))<1e-9&&thr>0.7,'resting, it hunts only past hunger '+thr.toFixed(2)+' (awake '+e.awake.toFixed(2)+')');
   const far=fish('darter',X.V3(e.pos.x+12,e.pos.y+1,e.pos.z));e.hunger=0.6;e.scanT=0;frames(30);
   check(e.state==='rest','hungry but under that, it lets a darter 12 m off go by');
-  const near=fish('darter',X.V3(e.pos.x+3,e.pos.y+0.5,e.pos.z));e.scanT=0;frames(30);
-  check(e.state==='chase'&&e.target===near,'and takes one that comes within '+(D.eel.detect*X.REST.see).toFixed(1)+' m ('+e.state+')');
+  const near=fish('darter',X.V3(e.pos.x+3,e.pos.y+0.5,e.pos.z));e.scanT=0;const tk=frames(30,()=>e.state==='chase'&&e.target===near); // v11.230.1: within the half-second, not at its end — by then a run's chase may have struck already
+  check(tk>=0,'and takes one that comes within '+(D.eel.detect*X.REST.see).toFixed(1)+' m ('+(tk>=0?'in '+(tk/60).toFixed(2)+' s':e.state)+')');
   clearAll();const e2=put('eel',X.V3(S.x,S.h+6,S.z),0.2);frames(60*3);const dd=fish('darter',X.V3(S.x+10,S.h+6,S.z));e2.hunger=0.95;e2.scanT=0;frames(30);
   check(e2.state==='chase'&&e2.target===dd,'starving, it gets up at noon and hunts a darter 10 m off ('+e2.state+')');
   clearAll();const e3=put('eel',X.V3(S.x,S.h+6,S.z),0.2);frames(60*3);X.setClock(mid);frames(60*1.5);
