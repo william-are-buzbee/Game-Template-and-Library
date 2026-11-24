@@ -12,7 +12,7 @@ changeover's ridge and needle; the wedge the tide's) and rests out of them (cove
 schools settle at night. Prey is weighed by its mass, its bite, its venom, the hunter's own wounds and how far it is failing; the player is weighed as any
 body. Prey that watches a hunter is looked at first — a slowblood circles, a ringmouth holds off facing it, a hingeshell never looks — and its answer
 decides: running is chased, a turned back is the opening, coming at it drives it off. Fixed: the crusher's carrion, the arrow's jet pose, a wounded
-hunter fleeing the player whatever hurt it, the carcass glow read from the drawing. COST **Ask:** BEHAVIOUR §8 — whether the look reads and facing it down
+hunter fleeing the player whatever hurt it, the carcass glow read from the drawing. The frame within noise (the forest ×0.97, p95 ×0.89; Chromium ×0.94), the GPU's counts the same. **Ask:** BEHAVIOUR §8 — whether the look reads and facing it down
 is fair; whether the shifts show; whether the shelf by day is too quiet. **Next:** pass 1, the senses (BEHAVIOUR §4).
 
 **v11.227 (24 Nov 2026): the hoop and the quill; the abyssal fed** (creatures_spec.js `SPECS.hoop`, `SPECS.quill`, the tentacles' `sieve`;
