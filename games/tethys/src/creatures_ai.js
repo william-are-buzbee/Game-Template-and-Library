@@ -465,7 +465,7 @@ const RISK={m:[0.08,1], // the prey's mass as a share of the hunter's at which t
   k:0.9,cap:0.95, // the need a risk of 1 asks for; no risk asks more than cap (a starving animal takes anything it eats)
   tiny:0.002, // a prey under this share of the hunter's mass is a mouthful: never looked at first
   reckless:0.85, // the need past which a hunter goes straight in
-  insp:[3,7], // s it looks: the least, and more by how little it needs
+  insp:[4,10], // s it looks: the least, and more by how little it needs (4–14 s; v11.228's first [3, 7] was a quarter of the ridge's circle, read as a pass)
   commit:0.5, // the need at which it goes in at the end of its look; under it, it leaves
   face:0.5, // cos: the prey is watching it (its heading within 60° of the hunter)
   run:2.5, // m/s away from the hunter: the prey is running
@@ -476,7 +476,7 @@ const RISK={m:[0.08,1], // the prey's mass as a share of the hunter's at which t
   away:40, // m it swims off when driven off
   orbit:[2.4,1.3,2,1], // the circle's radius: × size + m, at the look's start and at its end (a hungrier hunter starts closer)
   stand:[1.8,1.15,2,1], // the standoff's, the same way
-  pace:0.55, // the share of its speed it circles or slides at
+  pace:0.65, // the share of its speed it circles or slides at
   lead:0.5}; // rad: how far round the circle ahead of itself it steers
 function weakOf(o){if(o===player)return player.soft||bleeding(player)?1:0;if(o.soft||o.bleed>1e-5||o.stun>0||o.paraT>0)return 1;return o.def.juv||o.held>0?0.5:0;}
 function riskOf(c,o){const kr=kgOf(o)/Math.max(1,kgOf(c)),pl=o===player,od=pl?null:o.def;
@@ -706,13 +706,13 @@ function updateGrazer(c,dt){
   const threat=c.threat;
   if(threat){seekAway(c,threat,d.flee,dt);c.alarm=2.5;c.scav=null;}
   else if(c.alarm>0){c.alarm-=dt;c.vel.multiplyScalar(1-0.8*dt);}
-  else if(c.state==='rest')restStep(c,dt);
+  else if(c.state==='rest'){if(!scavenge(c,dt,d.scav*REST.see))restStep(c,dt);} // a resting scavenger takes what comes close, as a resting hunter does (REST.see of its range), and goes back to its rest
   else if(!scavenge(c,dt))wander(c,dt);
 }
 // A scavenger (def.scav: the distance it smells a carcass from — the picker 90, the watcher 50, the crusher 40, the scuttle 30, the
 // rasp 12) walks to the nearest carcass in range and eats at it until it is gone; true while it is at that
-function scavenge(c,dt){const d=c.def;if(!d.scav)return false;
-  c.scavT-=dt;if(c.scavT<=0){c.scavT=0.6;if(c.scav&&c.scav.brood&&broodGuarded(c.scav.brood))c.scav=null;if(!c.scav||c.scav.gone||c.scav.flesh<=0)c.scav=findCarcass(c,d.scav);} // a clutch whose parent has come back over it is left (v11.74)
+function scavenge(c,dt,R){const d=c.def;if(!d.scav)return false; // R (v11.228): how far it smells, d.scav unless less (a resting one's REST.see of it)
+  c.scavT-=dt;if(c.scavT<=0){c.scavT=0.6;if(c.scav&&c.scav.brood&&broodGuarded(c.scav.brood))c.scav=null;if(!c.scav||c.scav.gone||c.scav.flesh<=0)c.scav=findCarcass(c,R===undefined?d.scav:R);} // a clutch whose parent has come back over it is left (v11.74)
   const f=c.scav;if(!f)return false;const dist=c.pos.distanceTo(f.pos),at=d.size*0.9+f.def.size*0.7;
   if(dist>at)seek(c,f.pos,d.speed*0.7,dt,1.4);else{c.vel.multiplyScalar(1-3*dt);eatAt(c,f,dt);c.face=f.pos;}return true;}
 function updateCoil(c,dt){

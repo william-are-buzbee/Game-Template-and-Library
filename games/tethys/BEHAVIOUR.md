@@ -103,7 +103,7 @@ or the hunter's need is past `RISK.reckless` (0.85). Instead:
 The prey's answer decides it (`inspectStep`). **Running** (moving away at `RISK.run`, 2.5 m/s) is chased — bolting is what a chase is for. **A back
 turned** for `RISK.back` (0.7 s) is the opening. **Coming at it while watching it** (`RISK.close`, 0.6 m/s) drives it off after `RISK.deter` (3 s) ×
 (0.5 + need) — a watch alone counts a quarter — and it leaves for `RISK.cool` (20 s), swimming `RISK.away` (40 m) off. The look lasts `RISK.insp`
-(3 s, and up to 7 s more the less it needs); at its end it goes in if its need is `RISK.commit` (0.5) or more, else it leaves. The player's lesson:
+(4 s, and up to 10 s more the less it needs); at its end it goes in if its need is `RISK.commit` (0.5) or more, else it leaves. The player's lesson:
 face it, and back off toward cover; never bolt from what is circling unless the cover is close.
 
 ## 4. The plan (the passes)

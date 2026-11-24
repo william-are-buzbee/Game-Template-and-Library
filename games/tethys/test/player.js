@@ -135,8 +135,8 @@ const Cf=X.player.clade;check(['speed','accel','turn','mass','bite','cam','sprin
   // v11.72.1: out of the world while the window is open — a hungry eel 7 m off neither sees nor takes the parent; back in the world on the close, it does
   floor();L.setT(L.cur().grown+2);const eel=V.hunter('eel',7);V.open();__step(180);
   check(V.gone()&&P.g.visible===false&&eel.target!==P&&!P.hold&&!(P.bleed>0),'the window open: the parent is hidden and a hungry eel 7 m off leaves it alone for 3 s (its target: '+(eel.target?(eel.target===P?'the player':eel.target.kind):'none')+')');
-  V.close(true);const vis=P.g.visible;let took=false;for(let i=0;i<40&&!took;i++){eel.pos.set(P.pos.x+7,P.pos.y+1,P.pos.z);eel.hunger=1;eel.state='wander';eel.cool=0;eel.target=null;__step(15);took=eel.target===P;} // v11.86: the cooldown a lost chase leaves (dropTarget) and a stray target cleared each try — the check failed once on the world's own creatures drifting past the spawn
-  check(!V.gone()&&vis===true&&took,'the window closed: the body is back, and the eel takes it as prey');eel.alive&&(eel.target=null);L.setT(L.t+L.DAY_S);wait();
+  V.close(true);const vis=P.g.visible;let took=false;for(let i=0;i<40&&!took;i++){for(const o of global.__cb.creatures)if(o.def.line&&o!==eel&&o.pos.distanceTo(P.pos)<60)o.pos.x+=200;eel.pos.set(P.pos.x+7,P.pos.y+1,P.pos.z);eel.hunger=1;eel.state='wander';eel.cool=0;eel.target=null;__step(15);took=eel.target===P;} // v11.86: the cooldown a lost chase leaves (dropTarget) and a stray target cleared each try — the check failed once on the world's own creatures drifting past the spawn; v11.228: and the parent's own young moved out of its way — the player is weighed as any body now (no 0.7), and a hatchling beside it is the easier meal
+  check(!V.gone()&&vis===true&&took,'the window closed: the body is back, and the eel takes it as prey (its target: '+(eel.target?(eel.target===P?'the player':eel.target.kind+' '+eel.target.pos.distanceTo(eel.pos).toFixed(1)+' m'):'none')+', the player '+P.pos.distanceTo(eel.pos).toFixed(1)+' m)');eel.alive&&(eel.target=null);L.setT(L.t+L.DAY_S);wait();
   floor();V.open();check(V.lab.conceive&&V.lab.conceive.gen===2&&V.lab.conceive.budget===V.budget(2)&&X.specToJSON(V.lab.conceive.parent)===X.specToJSON(kid2),'and its own conception starts from its spec with generation 2\'s budget ('+V.budget(2)+')');V.close(true);
 }
 // ---- 6. the stomach (v11.73, LINEAGE §6's fuel half): fed by a gulp, a kill and a carcass on the ledger's numbers; starved to death with a child and with none; a clutch refused for want of reserves and one afforded; a child twice the mass costs twice ----
@@ -194,14 +194,14 @@ const Cf=X.player.clade;check(['speed','accel','turn','mass','bite','cam','sprin
   // does not feed
   P.hunger=0.8;const ar=V.put('arrow',0,0.8);V.bite();
   check(!ar.alive&&P.hunger===0.8,'a brooding body kills and is not fed: an arrow bitten, the stomach stays at 0.80');
-  // guards: the parent on the clutch, a scuttle 10 m off finds no carcass in it and walks its wander; the parent 40 m off, the scuttle takes the clutch and eats it down
-  P.pos.set(b.pos[0],b.pos[1]+1.5,b.pos[2]);const sc=V.put('scuttle',10,0);sc.hunger=1;sc.pos.set(b.pos[0]+10,b.pos[1]+0.5,b.pos[2]);sc.home.copy(sc.pos);
-  check(L.guarded(b)===true&&L.findCarcass(sc,30)===null,'the parent on the clutch guards it (within '+m.guard+' m): the scuttle\'s smell finds no carcass in it');
-  __step(60);check(L.guarded(b)&&sc.scav!==b._egg&&b._egg.flesh===b._egg.flesh0&&b.n===m.n,'a second of the world: the scuttle does not go to it, the clutch whole ('+b.n+' eggs)');
+  // guards: the parent on the clutch, a picker 10 m off finds no carcass in it and walks its wander; the parent 40 m off, the picker takes the clutch and eats it down (v11.228: a picker, which keeps no hours — the scuttle this was keeps the night and lies buried by day, smelling only what comes close)
+  P.pos.set(b.pos[0],b.pos[1]+1.5,b.pos[2]);const sc=V.put('picker',10,0);sc.hunger=1;sc.pos.set(b.pos[0]+10,b.pos[1]+0.5,b.pos[2]);sc.home.copy(sc.pos);
+  check(L.guarded(b)===true&&L.findCarcass(sc,30)===null,'the parent on the clutch guards it (within '+m.guard+' m): the picker\'s smell finds no carcass in it');
+  __step(60);check(L.guarded(b)&&sc.scav!==b._egg&&b._egg.flesh===b._egg.flesh0&&b.n===m.n,'a second of the world: the picker does not go to it, the clutch whole ('+b.n+' eggs)');
   P.pos.set(b.pos[0]+40,b.pos[1]+1.5,b.pos[2]);floor();sc.pos.set(b.pos[0]+10,b.pos[1]+0.5,b.pos[2]);
-  check(L.guarded(b)===false&&L.findCarcass(sc,30)===b._egg,'the parent 40 m off: strayed, and the scuttle smells the clutch');
+  check(L.guarded(b)===false&&L.findCarcass(sc,30)===b._egg,'the parent 40 m off: strayed, and the picker smells the clutch');
   const f0=b._egg.flesh;let ate=false;for(let i=0;i<40&&!ate;i++){__step(30);ate=b._egg&&b._egg.flesh<f0;}
-  check(ate&&sc.scav===b._egg,'and goes to it and eats: the clutch down to '+(b._egg.flesh/f0).toFixed(3)+' of itself, the scuttle '+((sc.pos.distanceTo(b._egg.pos)).toFixed(1))+' m');
+  check(ate&&sc.scav===b._egg,'and goes to it and eats: the clutch down to '+(b._egg.flesh/f0).toFixed(3)+' of itself, the picker '+((sc.pos.distanceTo(b._egg.pos)).toFixed(1))+' m');
   sc.alive&&V.kill(sc,null);
   // strays: the clock's losses off the loaded clutch while the parent is off it, none while it is on it
   const n0=b.n;L.tick(0.1*L.DAY_S);const n1=b.n;

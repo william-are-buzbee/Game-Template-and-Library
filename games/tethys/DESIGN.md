@@ -2112,7 +2112,7 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   (1 + risk) — the player weighed as any body (the 0.7 of v11.227 struck). Prey that watches a hunter that reads it (`insp`: a slowblood `circle`s, a
   ringmouth `stand`s off facing it; a hingeshell never looks) is looked at first (`inspect`, `inspectStep`): it runs — the chase; turns its back
   `RISK.back` 0.7 s — the chase; comes at it while watching — driven off after `deter` 3 s × (0.5 + need), for `cool` 20 s; at the look's end (`insp`
-  3 + 7 × (1 − need) s) in at need ≥ `commit` 0.5, else away. Past `reckless` 0.85, straight in.
+  4 + 10 × (1 − need) s) in at need ≥ `commit` 0.5, else away. Past `reckless` 0.85, straight in.
 - **Removed by request:** the mid-water `weed` flora (the "floating spiky objects"); the `colony` creature (pink/cyan
   glowing chains); darter/glim **schools are no longer spawned** — the code (`school` role, `makeSchool`,
   `updateSchools`, `buildDarter`) is intact. They went because the rigid formation read as a block; if they return it
