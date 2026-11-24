@@ -566,7 +566,7 @@ function notices(d,vy,o,dist,R){return dist<hearOf(d,o)||dist<R*sightOf(d,vy,o,d
 // in still water as before. scentFrom reads the current at the nose once (chunks.js currentAt), plumeK weighs a source by where it lies along it
 const SCENT={down:1.6,up:0.2,v:0.25};
 const SC_CUR=V3();let SC_W=0;
-function scentFrom(c){currentAt(c.pos.x,c.pos.z,c.pos.y,SC_CUR);SC_W=SC_CUR.length();}
+function scentFrom(c){if(c!==player&&c.carried&&c.cur)SC_CUR.copy(c.cur);else currentAt(c.pos.x,c.pos.z,c.pos.y,SC_CUR);SC_W=SC_CUR.length();} // v11.230: a swimmer's own current (c.cur, read twice a second while it is carried) rather than a fresh read — the plume's reads were a third of findCarcass's and most of findBleeding's time
 function plumeK(c,s,dist){if(SC_W<1e-4)return 1;const al=((c.pos.x-s.x)*SC_CUR.x+(c.pos.y-s.y)*SC_CUR.y+(c.pos.z-s.z)*SC_CUR.z)/((dist||1)*SC_W);return lerp(1,al>0?lerp(1,SCENT.down,al):lerp(1,SCENT.up,-al),smooth(0,SCENT.v,SC_W));}
 // a cryptic grazer at a threat (DEFS.freeze): still beyond FREEZE.bolt + its size, bolting within it; a hingeshell clamps its valves (st.soft, the anim's)
 const FREEZE={bolt:3};

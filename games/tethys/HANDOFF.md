@@ -9,7 +9,7 @@ creatures_defs.js `DEFS.great`, `BEHAVE`; creatures_spec.js `SPECS.great.hit`; t
 *"go ahead with the ringmouths pass and the plumb."* A hungry plumb leaves its wall at night to forage at the layer's depth, goes up a carcass's scent
 to eat, and is home at dawn; the oldest hang at their day depth (the trim). A quill's stand sways as one and drops into the stalks when you come close.
 The arrows hunt as a pack, coming at a school from both sides, and ink when a chaser closes. The lurker leaves a post where nothing passes. The great
-hunts (the grazer, the eel, the plough, you), its ram the bite's opening blow; the `coil` role is gone. COST **Ask:** the plumb's night and its
+hunts (the grazer, the eel, the plough, you), its ram the bite's opening blow; the `coil` role is gone. The pass costs nothing measurable over v11.229 (×1.00); v11.229's senses ×1.05 over v11.228 (`findPrey`). **Ask:** the plumb's night and its
 gathering at a fall; the pack; whether a lethal great on the shelf is wanted. **Next:** the slowbloods (BEHAVIOUR §4: the temperature model first).
 
 **v11.229 (24 Nov 2026): the senses** (creatures_ai.js `clockTick`, `sightOf`, `hearOf`, `notices`, `plumeK`, `SENSE`, `SCENT`, `FREEZE`;
