@@ -11135,3 +11135,44 @@ chat."* Two of the radiation table's rows (CLADES.md, The radiation), and the le
   the stipe flora's own envelope (`h` −54…−16, `sub`, `nut`, `flow`, `young`) by `envW` at the point, so the quill's capacity and its place in
   the cell are where the stalks stand. `stationW` now takes the point's fields, not the flow alone (ecology.js, chunks.js); `plumbY` takes the
   creature, for its own canopy height.
+- **The abyssal fed** (`DEFS.abyssal.prey` + `'hoop'`, `'ortho'`). On main the 90-day census fails: the abyssal 392 → 73 (CI runs 40 days and
+  never sees it). Its one prey, the comb, is a slow-breeding giant: it took ~1.8% of its patches' prey biomass a day where they make at most ~0.5%,
+  so it ate them down until its response failed, and starvation (7 a day) outran its births (0.4). The hoop was meant to feed it (the radiation
+  table) and is not enough on its own (998 → 474 in 90 days; 375 at 120). An apex is a generalist: the ortho shares its water (−800…−100 against
+  its −560…−380) and nothing hunted it — the sperm whale and the giant squid. With it the census's start is 2,017 and the abyssal holds within 4% to
+  day 105 (2,088 at its height), then falls as it crops the orthos in its own patches: 1,654 at day 150 (82%). The ortho 21,280 → 12,927 at day 150
+  (15,623 at day 120 with nothing eating it), its fall slowing to −0.7% in the last 15 days. Traced on to day 225 (the coarse patches, where
+  nearly all of them live): the orthos hold at ~12,050 and their biomass at 2.45M from day 175, and the abyssal's starvation halves every 25 days
+  (8.4 → 5.3 → 2.6 a day against ~1.2 births) — 1,014 at day 225, its least ~970 at day 325, 995 at day 350 and rising: about half its start, the number its prey's production feeds.
+- **The rest of the web at 150 days** (`node test/census.js 150`, ok): the hoop 6,757 → 7,727, the comb 6,249 → 7,690, the quill 27,858 → 29,144
+  (34,506 at its height, day 36), the swarms 794k → 828k. As on main: the sickle 5,364 → 1,646, the plumb 14,490 → 7,539, the hook 39,548 → 26,632
+  (23,508 at its least) — the hunters start at what their prey's standing stock allows and settle to what its production feeds, the slow breeders
+  slowest; none under a fifth.
+- **Tests.** test/hoop.js (new, ~5 s, in `--test`): the sieve off the build, a giant's length, the swarm on its paper prey and it on the abyssal's;
+  a hungry hoop 40 m from a swarm at its daily layer reaches it in 22 s, its ring open 100% of its time inside, eats it (hunger 0.90 → 0.10), and
+  shuts its ring 0.3 s after it is fed and away. test/plumb.js §8: the canopy station is the weed at −30 and not sand or −90; a weed cell holds
+  quills (121, 120); `placeKind` stands one there, nose-down 10.8 m over the floor, and it stays. test/variety.js takes both rows (a seed gives
+  the same animal; the pale morph 1.9% asked 2%; sizes inside their bands; the quill's 12 variants within its budget).
+- **What it cost** (`node test/perf.js` against the merge base, `node test/gpu.js`):
+
+  | measure | before | after | ratio |
+  |---|---|---|---|
+  | creatures' work a frame at (330, 0), ms (mean), node, best of 5 | 2.500 | 2.731 | ×1.09 |
+  | the same, p95 | 3.718 | 3.835 | ×1.03 |
+  | creatures' work a frame at the forest (Chromium), ms | 2.112 | 2.092 | ×0.99 |
+  | every kind's build, ms (first) | 84.4 | 76.0 | ×0.90 |
+  | every kind's build, ms (again) | 5.8 | 6.5 | ×1.12 (two kinds more in the sum) |
+  | a cell at forest / atoll / platform / sea / giant, ms | 55.3 / 35.5 / 28.3 / 12.3 / 37.2 | 58.3 / 38.2 / 25.3 / 10.3 / 36.4 | ×1.05 / 1.08 / 0.90 / 0.83 / 0.98 |
+  | the canopy's draws (gpu.js) | 316 | 272 | ×0.86 |
+
+  The frame's ×1.09 is what seven more animals cost: 92 creatures inside 150 m of the forest's shelf against 85 (stepped every frame), the quills
+  — by the profile, `updatePlumb` 1.9% of the frame and `findPrey` 4.1% → 5.6% (the quills' and their prey's), `updateCreatures` +4% over the
+  run. The first run (beside a low-priority ledger trace) read ×1.11 and p95 ×1.23; the Chromium frame at the forest reads ×0.99. "Every kind's build (again)" is a sum over every kind, and there
+  are two more. The canopy's draws fall because v11.226.1's one needle at the near LOD (with its shadow passes) is no longer near (17 near now: 15
+  flickers, a jelly, a scuttle; three quills in sight at the far LOD) — the seeded simulation drifting, as it did then; `test/gpu.json` updated.
+- **Seen** (headless Chromium, software WebGL): a quill placed in the weed cell (121, 120), 11 m over the floor, shell-up and still among the
+  stalks, brown against their green-gold, legible at 7 m; a hoop inside a swarm at its day layer (a cell 97 m deep near the centre), ring open,
+  the tentacles spread like spokes — at 40 m its dark back is hard to pick from the slope in that light.
+- **Unseen, ask**: whether the hoop reads as a filter giant and not a fish, and whether the open ring shows at the distances it is met; whether the
+  quill can be found among the stalks without being lost in them, and whether it is the small upright one meant; the hoop's dark morph over the
+  open deep and the quill's yellow one in the lit weed; the abyssal now chasing orthos in play (nothing was tuned for that fight).

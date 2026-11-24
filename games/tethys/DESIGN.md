@@ -2377,8 +2377,10 @@ the giant's shelf is ~30× ours, so a world K is mostly the giant's. **The 120-d
 rim now, h −560..−380 with `nut` ≥ 0.25). **v11.227: the abyssal fed.** By v11.226 the rule was broken and unseen: the abyssal fell 392 → 73 in
 90 days. Its two prey, the comb and (since v11.227) the hoop, are slow-breeding giants; it took ~1.8% of their biomass in its patches a day, they make
 at most ~0.5%, so it ate them down until its response failed and starvation (7 a day) outran its births (0.4). An apex is a generalist: the
-ortho, which shares its water and which nothing hunted, is on its prey (the sperm whale and the giant squid). The 150-day census: the abyssal
-2,017 → 1,912 at day 120, a slow swing with its prey; the ortho 21,280 → 13,212 (15,623 with nothing eating it), its fall slowing. A soft (moulting) body is prey to any hunter big enough, live only: the paper model knows nothing of it.
+ortho, which shares its water and which nothing hunted, is on its prey (the sperm whale and the giant squid). The census: the abyssal
+2,017 → 1,654 at day 150 as it crops the orthos in its own patches, then settling near half its start (in the patches 1,014 at day 225, its
+least ~970 at day 325, 995 at day 350 and rising) — the number its prey's production feeds; the ortho 21,280 → ~12,900, steady from day 150 (15,623 at day 120 with
+nothing eating it). A soft (moulting) body is prey to any hunter big enough, live only: the paper model knows nothing of it.
 The `mid` flag on a boid's def keeps its ribbons at their own depth (placeKind `openY` 10–50 m up, `updateSchools` ±12 m about home, 8 m off the floor).
 
 **The index** (v11.65, ARCHIPELAGO step 4): the tables stay dense (five per entry over 57,600 cells) but every loop of the model, the settle and the
