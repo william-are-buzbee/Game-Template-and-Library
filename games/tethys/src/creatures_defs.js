@@ -138,12 +138,14 @@ const BEHAVE={
   // slowbloods: the reef fish's shifts (the temperature model, PLANET Hooks, will move them by the water's warmth)
   darter:{act:[1,0.1,0.5]}, // a planktivore's school: up in the water by day, settled to the floor at night
   needle:{act:[0.6,0.1,1],rest:'hover',insp:'circle'}, // the trumpetfish's: the ribbons at dawn and dusk
-  grazer:{act:[1,0.1,0.4],rest:'floor'}, // the herd crops by day and lies down on the sand at night
-  ridge:{act:[0.35,0.6,1],rest:'slow',insp:'circle'}, // the changeover's hunter: a mixotherm that never stops swimming
+  grazer:{act:[1,0.1,0.4],rest:'floor',herd:true}, // the herd crops by day and lies down on the sand at night; v11.231: one that takes fright takes the herd with it (HERD)
+  ridge:{act:[0.35,0.6,1],rest:'slow',insp:'circle',therm:'mixo'}, // the changeover's hunter: a mixotherm that never stops swimming (v11.231: its warm muscles keep it at THERM_F.mixo in the cold of the slope)
   eel:{act:[0.15,1,0.8],rest:'cover',insp:'stand',eye:'night',lat:2.6}, // the moray's: in the rubble by day, out at night; it watches from its post rather than circling
   crusher:{act:[1,0.15,0.6],rest:'cover',insp:'circle'}, // the shell-crusher's (the triggerfish, the wrasse): by day, in a crevice at night
-  basker:{rest:'slow',insp:'circle',eye:'deep'}, // the vents are dark and warm at every hour
-  abyssal:{rest:'slow',insp:'circle',eye:'deep'}, // below the light
+  basker:{rest:'slow',insp:'circle',eye:'deep',bask:true}, // the vents are dark and warm at every hour; v11.231: cooled, it goes back to their warmth to bask (BASK)
+  abyssal:{rest:'slow',insp:'circle',eye:'deep',therm:'giga',foray:true}, // below the light; v11.231: a gigantotherm (its bulk holds its warmth), which forays down past its rim (FORAY)
+  hoop:{therm:'giga'}, // v11.231: the filter giant holds its warmth by its bulk
+  stone:{therm:'torpid'}, // v11.231: the plain's torpid stone: cold slows it less than it slows an active body — it does little enough — and it starves slower
   // hingeshells: no pursuit, the strike; the night shift's walkers
   scuttle:{act:[0.2,1,0.6],rest:'bury',freeze:true}, // the ghost crab's: out at night, in the sand by day
   trap:{act:[0.4,1,0.8],eye:'night'}, // buried at every hour; it strikes readily at night
@@ -169,8 +171,14 @@ const BEHAVE={
 // PLANET), the ringmouths' epidermal lines (the cephalopods' analogue) — light-blind, and silent for a body that holds still. freeze: a cryptic grazer
 // that holds still at a threat it can see coming and bolts only when it is close (a hingeshell clamps its valves: PLANET's "clamped shut when threatened")
 const EYE_K={ring:[-10.5,-5.5],two:[-10,-6],stalk:[-9,-5],night:[-11,-7],deep:[-12,-8]};
+// therm (v11.231; PLANET, Slowbloods: "activity is a function of water temperature … the cold deep belongs to gigantotherms (big enough to hold
+// heat: the abyssal) and the torpid … mixothermy … the ridge"): the least of its activity the cold takes a slowblood to (creatures_ai.js THERM) —
+// an ectotherm's, a mixotherm's warm muscles', a gigantotherm's bulk's, a torpid body's that does little anyway. The schools are not in it (their
+// motion is the school's); nor the player, whose cold is the loop's (DIRECTION decision 2) and the person's to place
+const THERM_F={ecto:0.25,mixo:0.8,giga:0.85,torpid:0.75};
 const EYE_CLADE={ringmouths:'ring',slowbloods:'two',hingeshells:'stalk'},LAT_CLADE={ringmouths:1.3,slowbloods:2.0,hingeshells:1.6,drifters:0};
-for(const k in DEFS){const d=DEFS[k],sp=SPECS[k],b=BEHAVE[k]||{};if(b.act!==undefined)d.act=b.act;if(b.rest!==undefined)d.rest=b.rest;if(b.insp!==undefined)d.insp=b.insp;if(b.scav!==undefined)d.scav=b.scav;d.pack=b.pack||undefined;d.ink=b.ink||undefined;if(!sp)continue; // v11.230: scav, pack, ink (the ringmouths' pass)
+for(const k in DEFS){const d=DEFS[k],sp=SPECS[k],b=BEHAVE[k]||{};if(b.act!==undefined)d.act=b.act;if(b.rest!==undefined)d.rest=b.rest;if(b.insp!==undefined)d.insp=b.insp;if(b.scav!==undefined)d.scav=b.scav;d.pack=b.pack||undefined;d.ink=b.ink||undefined;d.herd=b.herd||undefined;d.bask=b.bask||undefined;d.foray=b.foray||undefined;if(!sp)continue; // v11.230: scav, pack, ink (the ringmouths' pass); v11.231: herd, bask, foray (the slowbloods')
+  d.thermF=sp.clade==='slowbloods'&&d.role!=='boid'&&d.role!=='player'?THERM_F[b.therm||'ecto']:undefined;
   const e=b.eye||EYE_CLADE[sp.clade];d.eye=e?EYE_K[e]:undefined;d.lat=b.lat!==undefined?b.lat:LAT_CLADE[sp.clade]||0;d.freeze=b.freeze||undefined;}
 // v11.149 (the creature performance pass): every def one shape. The rows above are each their own literal, and an individual's def was its kind's
 // chained under a copy of its own size (creatures_ai.js scaledDef: Object.create) — 26 shapes among the forest's creatures, so every d.role, d.size,

@@ -103,7 +103,7 @@ if(S){clearAll();X.setClock(dusk);P.pos.set(S.x-40,Y,S.z);hold();const rg=put('r
   rg.state='flee';rg.fleeT=5;rg.dread=gz;const x0=rg.pos.x;frames(60*2,()=>{hold();});
   check(rg.pos.x<x0-3,'a ridge wounded by a grazer flees the grazer ('+(rg.pos.x-x0).toFixed(1)+' m along x), toward the player behind it if need be');
   clearAll();X.setClock(noon);P.pos.set(S.x+200,Y,S.z);hold();const g=put('grazer',X.V3(S.x+12,S.h+3,S.z),0);X.kill(g,null);const cu=X.currentAt(g.pos.x,g.pos.z,g.pos.y,X.V3()),cl=Math.hypot(cu.x,cu.z)||1,cr=put('crusher',X.V3(g.pos.x+cu.x/cl*12,S.h+5,g.pos.z+cu.z/cl*12),0.7); // v11.229: downstream of it (the carrion's scent runs with the current)
-  const f0=g.flesh;frames(60*25,()=>{hold();});check(g.flesh<f0&&cr.pos.distanceTo(g.pos)<8,'a hungry crusher eats at a carcass 12 m off (flesh '+(100*g.flesh/f0).toFixed(0)+'%)');
+  const f0=g.flesh;let near=1e9;frames(60*25,()=>{hold();near=Math.min(near,cr.pos.distanceTo(g.pos));});check(g.flesh<f0&&near<8,'a hungry crusher eats at a carcass 12 m off (flesh '+(100*g.flesh/f0).toFixed(0)+'%, within '+near.toFixed(1)+' m of it)'); // v11.231: its closest, not where it is at the end — at −138 it is cold (THERM), and fed it drifts off before its slowed hunger brings it back
   X.FX.biolum=false;g.deadT=X.ECO.carc*2400*0.9;g.glow=0;const gl=X.carcGlow(g);X.FX.biolum=true;check(gl>0,'a carcass glows for the scavengers by its own law, whatever the effects list says ('+gl.toFixed(2)+')');
   clearAll();X.setClock(mid);P.pos.set(S.x+200,Y,S.z);hold();const ar=put('arrow',X.V3(S.x,Y,S.z),1);const dr=fish('darter',X.V3(S.x,Y,S.z+8));frames(60*0.5);
   check(D.arrow.jetter===true&&ar.state==='chase'&&ar.st.jet===true,'an arrow chases mantle-first (the jet pose: '+ar.st.jet+')');}

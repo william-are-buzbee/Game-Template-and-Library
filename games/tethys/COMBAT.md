@@ -555,6 +555,8 @@ petals blown back, the ortho for the tentacles through you, both for the circlin
 - **Pass 4 — the chase** (point 8): a pursuit paid from the clade's stamina (`STAMINA`): a few seconds at the sprint, then tired, then gone.
   A ridge outruns you for 3–4 s; the escape is the hard turn as it commits (its 7.7 m turning circle overshoots you) or outlasting its burst.
   The cruise speeds stay.
+  **Built v11.231** (BEHAVIOUR §3e; creatures_ai.js `CHASE`, `chaseStam`): the sprint × (1 + 0.6 a slowblood, 0.5 a ringmouth, 0.25 a hingeshell)
+  × `stamK`, the player's chase too; spent, it gives up. A ridge kept 16 m off sprints at 14.3 m/s (its speed 9.5) and gives up at ~12 s.
 
 ### 11.3 The person's answers (19 Nov 2026)
 

@@ -3,7 +3,8 @@
 **Status (24 Nov 2026): pass 0 built (v11.228): the clock, the risk and the look; the player's bias struck; the bugs §6 lists fixed. Pass 1 built
 (v11.229): the senses (§3b); the sky and the pall's lights in the step. The ringmouths' pass built (v11.230, §3c): the plumb's night, the quill's
 stand, the arrows' pack and ink, the lurker's giving-up, the great a hunter; v11.230.1 the hangers' roam, the plumb's night under the surface, the
-wider ranges (§3d).** The person on v11.228: *"I play tested and enjoyed it, go ahead with pass 1."*
+wider ranges (§3d). The slowbloods' pass built (v11.231, §3e): the water's warmth and the body's, the basker's basking, the herd's alarm, the
+abyssal's forays, the chase paid from stamina.** The person on v11.228: *"I play tested and enjoyed it, go ahead with pass 1."*
 On v11.229 (24 Nov 2026): *"go ahead with the ringmouths pass and the plumb."* Next, the slowbloods (§4). Downstream of `PLANET.md` (each clade's deep decision is where its behaviour comes from), `CLADES.md`
 (habitat at three scales: the range, the station, the clock), `COMBAT.md` (what a hold means; pass D is the person's predator pass) and `DIRECTION.md`
 (the loop). The numbers live in `creatures_defs.js` (`BEHAVE`, `EYE_K`, `LAT_CLADE`) and `creatures_ai.js` (`CLK`, `REST`, `RISK`, `SENSE`, `SCENT`, `FREEZE`);
@@ -222,6 +223,43 @@ there be squids out in the shallows, or in the open ocean the way there are a bi
   are oceanic). The numbers were cut from the first draw (the open plumbs 1.5 and the quills 1.2 put 7× and 3× their kinds on paper). The question as a
   whole — every kind's range by where it can live — is the person's, for another session (§8).
 
+## 3e. The slowbloods (v11.231)
+
+The person (24 Nov 2026): *"go ahead with the slowbloods pass."* PLANET's slowbloods are ectotherms: *"activity is a function of water temperature,
+so the shelf is home, the vent field is the deep exception where the big active ones bask between hunts, and the cold deep belongs to gigantotherms
+(big enough to hold heat: the abyssal) and the torpid"*; the ridge a mixotherm. PLANET's Hooks asked for *"a temperature model `temp(x,z,y)` … one
+function, one multiplier in the hunters"*, and DIRECTION's decision 2 said yes to it.
+
+- **The water** (creatures_ai.js `TEMP`, `waterT`, `tempAt`): `TEMP.top` 27 °C in the mixed layer down to `TEMP.mix` −60 (the shelf's base), falling
+  through the thermocline to `TEMP.deep` 3 °C with an e-fold of `TEMP.L` 200 m — 14.9 °C at −200, 5.7 at −500, 3.2 at −1000 (Earth's tropical ocean:
+  ~15, ~6, ~4) — and over a vent (world.js's `heat` field) `TEMP.vent` 40 °C more at full heat on its floor, falling off with height by `TEMP.ventH` 60 m.
+- **The body** (`THERM`, `thermTick`; creatures_defs.js `THERM_F`, `BEHAVE.therm`): a slowblood's warmth (`c.bodyT`) follows the water's, read once a
+  second, with a time constant of `THERM.tau` 20 s a metre of its length — a big body holds its heat, so the abyssal's floor is its bulk's lag as well,
+  and a basker that leaves its vents cools over minutes. Its activity (`c.therm`) is `THERM.q10` 2 to the tenth of its degrees under `THERM.opt` 27, never
+  under its kind's floor: an ectotherm's 0.25, the ridge's warm muscles' 0.8, the abyssal's and the hoop's bulk's 0.85, the torpid stone's 0.75 (it does
+  little enough that the cold takes less from it). It scales the body's speed (combat.js `slowOf`), its turn (`seekTurn`), its reach of notice
+  (`findPrey`, the grazers' threats) and its hunger's clock (`hungerTick`: a cold body starves slower — PLANET's torpor). On the shelf it is 1: the pass
+  changes the slope and the deep. A grazer on the terraces at −150 is at 0.55, an eel at −250 at 0.36. The schools are not in it (their motion is
+  the school's), nor the ringmouths, the hingeshells or the drifters; nor the player — see §8.8.
+- **The basker basks** (`BASK`, `baskStep`, the state `'bask'`): cooled under `BASK.go` 0.55 it leaves what it is doing for its vents (its home, over
+  the floor where the bubble is hottest) and lies there until `BASK.warm` 0.92, taking what comes within its resting reach; a chase that cools it to
+  `BASK.go` × `BASK.quit` 0.8 it gives up.
+- **The herd's alarm** (`HERD`, `herdCall`): a grazer that notices a threat flees it and calls its herd within `HERD.r` 12 m, which flee the same threat
+  for `HERD.hold` 3 s; each that flees on another's call calls on in turn, `HERD.step` 0.5 s shorter, so the alarm runs through the herd as a wave
+  faster than any one sees the threat, and dies out when the threat is gone.
+- **The abyssal's forays** (`FORAY`; PLANET's roster: *"the rim, forays below"*): a quarter of its wanders over the deep go `FORAY.dy` 120–320 m below its
+  home's depth — past the oxygen minimum's top, which the open water's other hunters keep above — to −900 at the most and 20 m over the floor, after the
+  ortho (to −800); its bulk keeps it at 0.85 there.
+- **The chase paid from stamina** (`CHASE`, `chaseStam`; COMBAT §11 pass 4 — the person, 19 Nov 2026: *"Hunters may outrun you in a short burst …
+  Yeah that's totally fine"*): a hunter chasing sprints at 1 + its clade's share over its speed (`CHASE` 0.6 a slowblood, 0.5 a ringmouth, 0.25 a
+  hingeshell) while its stamina lasts (combat.js `STAMINA`: full, then fading to the clade's floor — a slowblood's 6 s and 6 more), the chase draining
+  it as a struggle in a hold does, and gives up a chase it has not closed when it is spent (`CHASE.give`); its breath comes back at rest. To v11.230 a
+  hunter ran at its speed after the player for as long as it could see it (and at 1.6 falling to 1 by 6 s after anything else). The escape is now the
+  hard turn as it commits, or outlasting its sprint: a ridge kept 16 m off is spent and gives up at ~12 s.
+
+Not built in the pass: the player's cold (§8.8); the schools' (their motion is the school's); the seasons in the mixed layer; the stone's own strike in
+the cold (its notice and hunger only).
+
 ## 4. The plan (the passes)
 
 0. **The clock and the risk** — built v11.228 (§2, §3, §6).
@@ -235,7 +273,7 @@ there be squids out in the shallows, or in the open ocean the way there are a bi
    them round a pinnacle); the arrows as a pack (flanking a school, inking when held); the quill's stand moving as one and slipping into the stalks; the
    great a hunter; the lurker leaving an ambush that does not pay. Reputation as part of intelligence (DIRECTION, decided 12 Sep 2026: "some species
    remember"), if wanted, as a wariness a cell's kind keeps — VARIETY forbids the ledger remembering an individual.
-3. **Slowbloods**: the temperature model (the basker basking, sluggish if it strays; the stone torpid; the ridge's mixothermy); the grazers a herd whose
+3. **Slowbloods** — built v11.231 (§3e), but for what §3e leaves. As planned: the temperature model (the basker basking, sluggish if it strays; the stone torpid; the ridge's mixothermy); the grazers a herd whose
    alarm spreads; the abyssal's forays below the light; the chase paid from stamina (COMBAT §11 pass 4: *"hunters may outrun you in a short burst"*).
 4. **Hingeshells**: the valves clamped at a threat and breathing at rest; the dens; the moult's cue (LINEAGE §12.34); the hook climbing and dropping from
    above; the scuttles on the strand at low tide; the strike as the clade's only hunt.
@@ -298,3 +336,7 @@ the drawing makes the cloud's blobs for each the step queues (`PHO_Q`). **The pl
 7. **Ranges by survival** (the person, 24 Nov 2026: *"perhaps more thoroughly in another chat"*): every kind's envelope asked again — can it live
    there, is a big open area lethal for it, where can it make it — rather than where its Earth reference is found. v11.230.1 opened the plumb, the quill
    and the arrow (§3d); the rest is open.
+8. **The player's cold** (DIRECTION decision 2: the temperature *"read by the creatures … and by the player (the loop's cold and depth doors)"*): v11.231
+   gives it to the world's slowbloods only. Played as a finback, should the thermocline slow you as it slows them (a finback at −200 at 0.43 of its
+   speed and turn, warming again in the shallows or at the vents) — and how strongly, since it changes where a finback can go? The ringmouths and the
+   coilshell would be untouched (PLANET: their clade is not cold-limited).

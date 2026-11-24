@@ -314,6 +314,7 @@ The jelly is an outsider (a cnidarian analogue); "all clades represented" does n
   chemocline (real chemoclines carry a visible bacterial plate), the water below it browner and stiller.
 - **A temperature model** `temp(x,z,y)`: warm above ~−60, cold below, a hot bubble at the vents; slowbloods scale
   speed, turn and detect by it, gigantotherms and mixotherms with a floor. One function, one multiplier in the hunters.
+  **Built v11.231** (BEHAVIOUR §3e; creatures_ai.js `TEMP`, `tempAt`, `THERM`): the world's slowbloods, not yet the player (BEHAVIOUR §8.8).
 - **Burst-and-coast movement** for hingeshells: gate `accel` on a duty cycle, low `turn`, high `speed`, a tell before
   a strike.
 - **Moulting**: a `soft` state (pale palette, `edible`), shed carapaces as floor flora, dens.

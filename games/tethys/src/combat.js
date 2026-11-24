@@ -451,7 +451,7 @@ function actOf(e){return e==='point'?'skewered':e==='crush'?'crushed':e==='cut'?
 function killBy(h,act){const a=h.a,b=h.b,at=h.at||b.pos,cl=cladeOf(b);bloodBurst(at,16,cl);hitFx(b,a,at,24);thump(0.6,90,40,b===player?null:at,1,0.1);
   if(b===player){die((act==='swallowed'?'swallowed by':act+' by')+' a '+(a===player?'player':a.kind));return;}
   kill(b,a,act==='swallowed');}
-function slowOf(o){return bloodK(o)*(o.stungT>0?STING.slow:1)*(o.sickT>0?POISON.slow:1)*(o.speedK||1)*((o.held||0)>0?stamK(o):1);} // the blood lost (v11.91), the sting, the poison, the live spec's derive against the whole body's (v11.57), the stamina while held (v11.93: the struggle fades)
+function slowOf(o){return bloodK(o)*(o.stungT>0?STING.slow:1)*(o.sickT>0?POISON.slow:1)*(o.speedK||1)*((o.held||0)>0?stamK(o):1)*(o===player?1:o.therm);} // v11.231: a cold slowblood's activity (creatures_ai.js THERM; 1 for the rest) // the blood lost (v11.91), the sting, the poison, the live spec's derive against the whole body's (v11.57), the stamina while held (v11.93: the struggle fades)
 function bleeding(o){return o===player?player.bleed>1e-5&&!playerGone()&&player.inkT<=0:o.bleed>1e-5;}
 function smellR(o){return SMELL_R*Math.min(2,Math.sqrt((o.bleed||0)/BLOOD.qRef));} // how far a wound is read from: by the square root of its rate — a pouring wound from 180 m, a thread from 40
 // the nearest bleeding body on c's prey list within R (creatures_ai.js updateHunter: past its detect, the water carries the blood)
