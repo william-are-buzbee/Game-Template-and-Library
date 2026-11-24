@@ -2098,9 +2098,21 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   profile), schools at 0.25 s, hunters at 0.4 s, traps at 0.25 s; the wave is only read for creatures within reach of the
   surface; beyond 150 m a creature moves every other frame with two frames' `dt` (`par`, `accT`). Beyond 360 and its `lodFar`
   it isn't updated at all, as before.
-- **Predators:** hunter role with `detect/reach/dmg/home` leash. `reach` must exceed the contact distance of the two
-  bodies' capsules (`hit` in the builder; [Contact](#contact)) or the push-apart keeps them from ever landing a bite —
-  every predator's does by a margin now. Big predators bitten to 35% flee. Predators with arms grab what they reach.
+- **Predators:** hunter role with `detect/reach/dmg/home` leash. A jaw bites when its mouth touches a capsule (`mouthOn`), its `reach` only the
+  strike range's floor; arms and claws at their reach, floored by the two bodies' contact (`reachOf`). A hunter that loses blood past `BLOOD.weak` or a
+  part leaves (the life–dinner rule, combat.js) — since v11.228 away from what wounded it (`c.dread`), not from the player whatever did. Predators with
+  arms grab what they reach.
+- **The clock and the risk (v11.228; BEHAVIOUR.md §2–3; creatures_defs.js `BEHAVE`, creatures_ai.js `CLK`, `CK`, `REST`, `RISK`).** The sim's own sun,
+  once a step (`clockTick`; never `SKY`): `CK.day`, `night`, `dusk` summing to one, `CK.hi` the tide. A kind's hours (`act` [day, night, dusk, tide]) give
+  `c.awake` at each scan (`awakeOf`); a hunter hunts past `huntAt` = `ECO.hungry` + `REST.k` 0.45 × (1 − awake) — 0.85 at none of its hours, hunger
+  getting it up — and out of its hours rests (`rest`: cover, floor, bury, hover, slow; `restBegin`/`restStep`, under `REST.on` 0.35, up over `REST.off`
+  0.5), taking only what comes within `REST.see` 0.35 of its detect; an ambusher looks that share of its radius; a trap's reflex rises by half; a school
+  settles over the floor (`s.rest`). What it hunts is weighed (`riskOf`: the mass ratio from `RISK.m` 0.08 to 1, `unarmed` 0.6, `sting` +0.3, × its own
+  blood lost, `weak` −0.7 for a failing body): it goes only while its need (`needOf`) is ≥ `RISK.k` 0.9 × the risk (`cap` 0.95), the nearest by distance ×
+  (1 + risk) — the player weighed as any body (the 0.7 of v11.227 struck). Prey that watches a hunter that reads it (`insp`: a slowblood `circle`s, a
+  ringmouth `stand`s off facing it; a hingeshell never looks) is looked at first (`inspect`, `inspectStep`): it runs — the chase; turns its back
+  `RISK.back` 0.7 s — the chase; comes at it while watching — driven off after `deter` 3 s × (0.5 + need), for `cool` 20 s; at the look's end (`insp`
+  3 + 7 × (1 − need) s) in at need ≥ `commit` 0.5, else away. Past `reckless` 0.85, straight in.
 - **Removed by request:** the mid-water `weed` flora (the "floating spiky objects"); the `colony` creature (pink/cyan
   glowing chains); darter/glim **schools are no longer spawned** — the code (`school` role, `makeSchool`,
   `updateSchools`, `buildDarter`) is intact. They went because the rigid formation read as a block; if they return it

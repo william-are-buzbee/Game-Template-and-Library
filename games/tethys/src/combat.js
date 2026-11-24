@@ -437,7 +437,7 @@ function losable(o,pi){if(pi<0)return false;const sp=specOf(o);const p=sp&&sp.pa
 function losePart(o,pi,by,at,quiet){const live=liveSpec(o);if(!live)return 0;const p=live.parts[pi];if(!p||p.lost)return 0;p.lost=true;(o.lost||(o.lost=[])).push(pi);
   const r=o.b.built[pi];if(r){if(r.nodes)for(const m of r.nodes)m.visible=false;if(r.rig){r.rig.mesh.visible=false;for(const c of r.rig.chains)c.gone=true;}}
   const m0=liveMass(o);rederive(o);const share=Math.max(0,(m0-o.liveMass)/(o.fullMass||m0||1));if(quiet)return share;at=at||o.pos;hitFx(o,by,at,20);thump(0.5,100,45,o===player?null:at,1,0.08);
-  if(o===player)hurtPlayer(0,null);else{o.lastHurt=t;if(o.def.role==='hunter'||o.def.role==='ambush'){dropTarget(o);o.state='flee';o.fleeT=LOSE.flee;}}
+  if(o===player)hurtPlayer(0,null);else{o.lastHurt=t;if(o.def.role==='hunter'||o.def.role==='ambush'){dropTarget(o);o.state='flee';o.fleeT=LOSE.flee;o.dread=by||null;}} // dread (v11.228): what it flees — the biter, not the player whoever it was
   return share;}
 // the placed act once a hunter has subdued its prey (v11.91; v11.93 §10.4): a gape that takes the body begins the swallow — SWALLOW.base + k × the lengths' ratio
 // seconds, the held drawn into the mouth (holderWork), the death at the end (updateHolds); an edge that gets through, at rest or with the saw worked up, goes on
@@ -482,7 +482,7 @@ function updateWounds(dt){
 function bloodTick(o,dt){const L=o.blood||0;if(!(L>0))return;
   if(L>=BLOOD.dead){bledOut(o);return;}
   if(!(o.bleed>1e-5)&&o.hunger<1)o.blood=Math.max(0,L-dt/((BLOOD.refill[cladeOf(o)]||2)*DAY_S));
-  if(o!==player&&L>BLOOD.weak&&(o.def.role==='hunter'||o.def.role==='ambush')&&o.state!=='flee'&&o.target){dropTarget(o);o.state='flee';o.fleeT=LOSE.flee;}} // the life–dinner rule: a hunter losing blood leaves what it was after
+  if(o!==player&&L>BLOOD.weak&&(o.def.role==='hunter'||o.def.role==='ambush')&&o.state!=='flee'&&o.target){dropTarget(o);o.state='flee';o.fleeT=LOSE.flee;o.dread=lastWounder(o);}} // the life–dinner rule: a hunter losing blood leaves what it was after — away from what wounded it (v11.228)
 function lastWounder(o){const W=o.wounds;let best=null,bq=0;if(W)for(const w of W)if(w.by&&w.q>=bq){bq=w.q;best=w.by;}return best;}
 function bledOut(o){const by=lastWounder(o);
   if(o===player){die('bled out'+(by?' after a '+(by===player?'player':by.kind)+"'s bite":''));return;}

@@ -37,7 +37,7 @@ function cropK(C){return C/(C+0.5);} // the capacity's share at a lit crop C (mg
 const DEFS={
   darter:{build:()=>compile(SPECS.darter),stock:8,size:0.6,pace:0.65,flee:true,hp:1,edible:true,food:14,role:'boid'},
   glim:{build:()=>compile(SPECS.glim),size:0.55,pace:0.6,flee:true,hp:1,edible:true,food:12,role:'boid'},
-  arrow:{build:()=>compile(SPECS.arrow),size:1.0,hp:1,edible:true,food:24,role:'hunter',prey:['darter','flicker','scuttle','sifter'],detect:14,reach:0.9,dmg:0,biteCD:1,home:26,cruise:8,cruiseF:0.5,cool:2},
+  arrow:{build:()=>compile(SPECS.arrow),size:1.0,hp:1,edible:true,food:24,role:'hunter',jetter:true,prey:['darter','flicker','scuttle','sifter'],detect:14,reach:0.9,dmg:0,biteCD:1,home:26,cruise:8,cruiseF:0.5,cool:2}, // jetter (v11.228): mantle-first with the arms trailing in the chase (PLANET, the jet pose) — only the player's line carried it
   grazer:{build:()=>compile(SPECS.grazer),stock:3,size:2.6,venom:{kind:'sting'},pace:0.55,flee:true,hp:70,role:'graze',home:32,floor:true}, // mortal since v11.26: the ridge's and the sickle's meal (it was 1e9 and every hunt ended bored)
   veil:{build:()=>compile(SPECS.veil),size:16,pace:0.19,hp:900,role:'wander',home:200,cruise:70,cruiseF:1},
   great:{build:()=>compile(SPECS.great),size:6,pace:0.14,ram:5,dmg:12,radius:9,reach:5.2,hp:600,role:'coil',home:45,cruise:10,cruiseF:1},
@@ -109,6 +109,54 @@ function founderDef(spec){const k=founderOf(spec);return k?DEFS[k]:null;}
 // (creatures_ai.js ACC_REF): a heavy body closes on the speed it wants more slowly than a light one.
 function defPhysics(d,spec){const st=derive(spec);d.top=st.speed;d.speed=+(st.speed*(d.pace||1)).toFixed(2);if(d.flee)d.flee=st.speed;d.turn=st.turn;d.accel=st.accel;d.filter=st.filter||0;d.sprint=st.burst||1;d.deepY=st.deepY;return d;} // sprint (v11.92): derive's burst over the top speed — the committed lunge's speed (creatures_ai.js) // v11.85: filter, the sieve's m² off the build — a kind with any is a filter feeder (ecology.js ecoOf puts the swarm on its prey; creatures_ai.js filterIntake feeds it) // deepY (v11.223): the deepest the body may be, derive's — a gas-chambered shell's DERIVE_K.chamberY; undefined for every other body (creatures_ai.js holds it there, findPrey looks no deeper)
 for(const k in DEFS)if(SPECS[k])defPhysics(DEFS[k],SPECS[k]);
+// ---------- the clock and the approach (v11.228; BEHAVIOUR.md §2, §3) ----------
+// The person (24 Nov 2026): "Have creatures like the hovering plumb actually move, have a schedule, do things… predatory [animals] more complex than
+// simply aggroing when hungry… animals within the ecology distinct based on behaviour." Habitat's third scale is the clock (CLADES, Habitat: three
+// scales): when a kind is about, and what it does when it is not. act: [day, night, dusk(, tide)] — its activity in each part of the sim's day
+// (creatures_ai.js CK: day and night by the sun's height, dusk the changeover between them, the sun within ~13° of the horizon either side; the three
+// sum to one, so a kind's activity is their blend) and, fourth, the tide: +1 about only at high water, −1 only at low. A kind with no act is about at
+// every hour — what lives below the light (the day does not reach it), what follows its food wherever it goes (the filter feeders, the ram on the
+// sifters, the swarms) and what has no brain to keep hours with (the drifters). rest: what it does outside its hours — 'cover' against a rock,
+// a stalk or a structure's foot (creatures_ai.js coverSpot; the open floor where there is none), 'floor' lying on the open floor, 'bury' sunk into the
+// sand, 'hover' held in the water near home, 'slow' cruising on at a fraction of its pace (a body that cannot stop: a mixotherm's warm muscle, a big
+// slowblood's ram-ventilation). The ambushers and the traps keep their posts; their hours move how hungry they must be to strike and how far they
+// look. The schools settle (updateSchools). insp: how a hunter approaches prey that is watching it — 'circle' (a slowblood: the tightening ring of a
+// shark at a seal), 'stand' (a ringmouth: held off at its standoff, facing, the ring's eyes on it, as the watcher stands), or none (a hingeshell: no
+// pursuit and nothing to read between its strikes, PLANET; the ambushers). Earth is the reference for the hours: the reef's day shift (the
+// herbivores, the planktivores' schools, the wrasse and the trigger that crush shells), its night shift (the moray, the octopus, the squid, the
+// demersal plankton that rises out of the weed) and the changeover's hunters (the jacks, the grouper, the trumpetfish) — "Earth is reference, never template"
+const BEHAVE={
+  // ringmouths: high metabolism and the ring's eyes; the night is the cephalopods'
+  arrow:{act:[0.15,0.9,1],rest:'hover',insp:'stand'}, // the squid's: in a loose hover by day, hunting the ribbons at dusk and through the night
+  ortho:{act:[0.3,0.8,1],rest:'hover',insp:'stand'}, // the slope's spear: about at dusk and in the dark, held in the current by day
+  great:{act:[0.8,0.3,0.6],rest:'hover'}, // the shelf's coil: by day; it holds still in the water at night
+  plumb:{act:[0.4,1,1]}, // its post at the wall (HANG): the layer it eats comes up at night, and it drops readily then; by day only the hungry drop
+  quill:{act:[1,0.3,0.6]}, // the lit weed's (the shrimpfish feeds by day among the spines)
+  lurker:{act:[0.3,1,0.8]}, // the octopus's hours: the night
+  watcher:{act:[1,0.15,0.6],rest:'cover'}, // curious by day; in a crevice at night
+  rasp:{act:[0.3,1,0.7],rest:'cover'}, // grazes the rock at night (the limpet's, the chiton's), clamped against it by day
+  // slowbloods: the reef fish's shifts (the temperature model, PLANET Hooks, will move them by the water's warmth)
+  darter:{act:[1,0.1,0.5]}, // a planktivore's school: up in the water by day, settled to the floor at night
+  needle:{act:[0.6,0.1,1],rest:'hover',insp:'circle'}, // the trumpetfish's: the ribbons at dawn and dusk
+  grazer:{act:[1,0.1,0.4],rest:'floor'}, // the herd crops by day and lies down on the sand at night
+  ridge:{act:[0.35,0.6,1],rest:'slow',insp:'circle'}, // the changeover's hunter: a mixotherm that never stops swimming
+  eel:{act:[0.15,1,0.8],rest:'cover',insp:'stand'}, // the moray's: in the rubble by day, out at night; it watches from its post rather than circling
+  crusher:{act:[1,0.15,0.6],rest:'cover',insp:'circle'}, // the shell-crusher's (the triggerfish, the wrasse): by day, in a crevice at night
+  basker:{rest:'slow',insp:'circle'}, // the vents are dark and warm at every hour
+  abyssal:{rest:'slow',insp:'circle'}, // below the light
+  // hingeshells: no pursuit, the strike; the night shift's walkers
+  scuttle:{act:[0.2,1,0.6],rest:'bury'}, // the ghost crab's: out at night, in the sand by day
+  trap:{act:[0.4,1,0.8]}, // buried at every hour; it strikes readily at night
+  hook:{act:[0.4,1,0.8]},
+  flicker:{act:[0.2,1,0.7]}, // the demersal plankton's: in the weed by day, up in the water at night
+  hose:{act:[0.2,1,0.8],rest:'cover'}, // after the flickers
+  sickle:{act:[0.3,0.7,1],rest:'cover'}, // among the rockfall's blocks out of its hours
+  hood:{act:[1,0.2,0.6],rest:'floor'}, // the sand flats' by day
+  lash:{act:[0.3,1,0.8],rest:'cover'}, // the ledges at night
+  wedge:{act:[1,1,1,1],rest:'cover'}, // the surf zone's walker: about when the water is over it, clamped to the rock at low tide
+  plough:{act:[0.3,1,0.6],rest:'bury'} // ploughs the flats at night, under the sand by day
+};
+for(const k in BEHAVE){const d=DEFS[k],b=BEHAVE[k];if(!d)continue;d.act=b.act;d.rest=b.rest;d.insp=b.insp;}
 // v11.149 (the creature performance pass): every def one shape. The rows above are each their own literal, and an individual's def was its kind's
 // chained under a copy of its own size (creatures_ai.js scaledDef: Object.create) — 26 shapes among the forest's creatures, so every d.role, d.size,
 // d.prey in the frame was a lookup by name. Now each row is remade with DEF_KEYS — every key any row, a line's young or a scaled copy carries, in one

@@ -142,7 +142,7 @@ dist.js; `archive/` old docs kept whole; the design docs.
 | creatures_builders.js · creatures_spec.js | `PAL` and the part kit · the spec compiler: cores, `PARTS`, `compile`, `validate`, `derive`, `coatFor`, `SPECS` |
 | flora.js · reef.js | the species, rocks, big structures and `FLORA` · the sessile structures appended to it |
 | creatures_defs.js | `DEFS` (roles, behaviour, `defPhysics`), `SPAWN`, `ROSTER` |
-| creatures_ai.js | spawning, LOD, behaviour by role, hunger, carcasses, eggs, the frame's update |
+| creatures_ai.js | spawning, LOD, behaviour by role, hunger, the clock and the risk (v11.228), carcasses, eggs, the frame's update |
 | chunks.js | cell streaming: grid, terrain, flora placement (`settleOn`, `clearOf`), the pools `POOLS`, solids, spawns, culling, `ORIGIN` |
 | ecology.js | the ledger `POP`: capacity, the off-screen model, births owed; the fine box and coarse patches |
 | far.js | past the cells: far terrain, the apron, big structures, impostors, the water and floor maps (`wmAt`) |
@@ -156,7 +156,7 @@ dist.js; `archive/` old docs kept whole; the design docs.
 
 **The docs**, most upstream first (each at length in README.md). When a doc's Open list says a choice is the person's, ask.
 `PLANET.md` the planet, its rules and the roster — the game changes when it conflicts · `TAXA.md`, `FLORA.md`, `REEF.md` the sessile life
-(TAXA wins) · `CLADES.md`, `DRIFTERS.md`, `CREATOR.md` the bodies and the lab, `VARIETY.md` the individual · `ARCHIPELAGO.md`, `GLOBE.md`, `DEEP.md`, `SEAFLOOR.md` the
+(TAXA wins) · `CLADES.md`, `DRIFTERS.md`, `CREATOR.md` the bodies and the lab, `VARIETY.md` the individual, `BEHAVIOUR.md` what they do · `ARCHIPELAGO.md`, `GLOBE.md`, `DEEP.md`, `SEAFLOOR.md` the
 islands, the region and the deep — read before placing an island or touching `CHEMO` · `PLANKTON.md`, `BIOLUM.md` (before any light on a
 creature), `CLOUDS.md`, `WATER.md`, `PIXEL.md`, `POLISH.md`, `COMBAT.md`, `AUDIO.md` (every number chosen blind), `LINEAGE.md` ·
 `DIRECTION.md` the game's loop; its Open list is the person's · **`DESIGN.md` the reference: a section per system, its numbers, knobs and

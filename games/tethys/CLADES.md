@@ -424,7 +424,7 @@ middle in its depth band and roams its `home`. Two species with one envelope liv
    grid: *the wall* (a steep drop, open water beside it), *the lee* (low flow behind relief), *the lip* (`rel` high), *the edge* (sand
    against rock), *the canopy* (in the weed), *the open* (far from anything), *the crevice*. A species names one or two, is placed at
    the best-scoring points, and its `home` is the station. Walls have hangers; the lip has lashes; the hook gets its rock face.
-3. **The clock** — a station moves: the day (the swarm's layer, built); the tide (the lee changes sides of a pinnacle as the stream turns,
+3. **The clock** — a station moves: the day (the swarm's layer, built; v11.228 every kind's hours and its rest out of them, BEHAVIOUR.md §2); the tide (the lee changes sides of a pinnacle as the stream turns,
    `tidalAt` — the hangers swing round it twice a day); the year (the filter giant comes with the bloom, PLANKTON §6).
 4. **Habitat made by animals** — later: the giant's carcass as a fall (a floor community that lasts), the dead shells squatters take, the
    hingeshells' dens (unbuilt).
