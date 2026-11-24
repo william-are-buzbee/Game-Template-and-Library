@@ -455,8 +455,8 @@ function slowOf(o){return bloodK(o)*(o.stungT>0?STING.slow:1)*(o.sickT>0?POISON.
 function bleeding(o){return o===player?player.bleed>1e-5&&!playerGone()&&player.inkT<=0:o.bleed>1e-5;}
 function smellR(o){return SMELL_R*Math.min(2,Math.sqrt((o.bleed||0)/BLOOD.qRef));} // how far a wound is read from: by the square root of its rate — a pouring wound from 180 m, a thread from 40
 // the nearest bleeding body on c's prey list within R (creatures_ai.js updateHunter: past its detect, the water carries the blood)
-function findBleeding(c,R){const d=c.def;let best=null,bd=R*2;if(d.prey.indexOf('player')>=0&&bleeding(player)&&(!d.preyClade||(player.clade&&player.clade.id===d.preyClade))){const dp=c.pos.distanceTo(player.pos);if(dp<bd&&dp<smellR(player)){bd=dp;best=player;}}
-  for(const o of creatures){if(!o.alive||o===c||!(o.bleed>1e-5))continue;if(!preyOn(d,o))continue;const dd=c.pos.distanceTo(o.pos);if(dd<bd&&dd<smellR(o)){bd=dd;best=o;}}return best;}
+function findBleeding(c,R){const d=c.def;let best=null,bd=R*2;scentFrom(c);if(d.prey.indexOf('player')>=0&&bleeding(player)&&(!d.preyClade||(player.clade&&player.clade.id===d.preyClade))){const dp=c.pos.distanceTo(player.pos);if(dp<bd&&dp<smellR(player)*plumeK(c,player.pos,dp)){bd=dp;best=player;}} // v11.229: the blood carried down the current (creatures_ai.js plumeK): from further below a wound, hardly at all above it
+  for(const o of creatures){if(!o.alive||o===c||!(o.bleed>1e-5))continue;if(!preyOn(d,o))continue;const dd=c.pos.distanceTo(o.pos);if(dd<bd&&dd<smellR(o)*plumeK(c,o.pos,dd)){bd=dd;best=o;}}return best;}
 function missed(c,tg){c.biteT=(c.def.biteCD||1.2)*STRIKE.cool;c.missN=(c.missN||0)+1;thump(0.3,130,50,tg===player?null:c.pos,1.2,0.04);if(tg===player)player.fovKickT=0.15;} // the snap on water
 function sicken(o){if(o===player){player.sickT=POISON.t;hurtPlayer(0,null);}else{o.sickT=POISON.t;dropTarget(o,POISON.t);}}
 // a hingeshell's toxin follows where it has fed (every 2 s, staggered): loading at the seeps and below the chemocline, clearing elsewhere

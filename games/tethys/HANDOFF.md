@@ -4,6 +4,15 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.229 (24 Nov 2026): the senses** (creatures_ai.js `clockTick`, `sightOf`, `hearOf`, `notices`, `plumeK`, `SENSE`, `SCENT`, `FREEZE`;
+creatures_defs.js `EYE_K`, `LAT_CLADE`, `BEHAVE`; combat.js `findBleeding`; fx.js `phoStep`; test/senses.js; BEHAVIOUR §3b; DESIGN Creatures; BIOLUM §7.6;
+CHANGELOG). Pass 1, after the person's playtest of v11.228 (*"enjoyed it, go ahead with pass 1"*). Animals notice each other by sight — the light at
+the body seen through each clade's and kind's eyes, a silhouette from below, a still body seen late, a matching or buried one later, one in the weed
+later still — and by the lateral line (light-blind, silent for a still body); blood and carrion are smelt down the current. Prey use the same senses; the
+cryptic grazers freeze (a hingeshell clamped) and bolt close. The step reads its own sky (the plumb's and the swarms' layer, the eclipses), and the
+pall's cloud and flee are the step's, whatever the effects list says. The frame within noise (×1.00, p95 ×1.06; Chromium ×1.02), the GPU's counts the same. **Ask:** BEHAVIOUR §8.4–5 — whether the night hides you now, or too
+well; whether your own colour should. **Next:** a pass a clade (BEHAVIOUR §4: the ringmouths first — the plumb's night).
+
 **v11.228 (24 Nov 2026): the clock and the risk** (creatures_defs.js `BEHAVE`; creatures_ai.js `CLK`, `CK`, `REST`, `RISK`, `findPrey`, the roles;
 combat.js `dread`; test/clock.js; BEHAVIOUR.md, new; DESIGN Creatures; CHANGELOG). The behaviour overhaul's pass 0, after the person's answers (24 Nov
 2026: the shared parts first, *"Clock and risk first"*; the player's bias struck; sight by light for the creatures, pass 1; readable predators, *"yes
@@ -13,7 +22,7 @@ schools settle at night. Prey is weighed by its mass, its bite, its venom, the h
 body. Prey that watches a hunter is looked at first — a slowblood circles, a ringmouth holds off facing it, a hingeshell never looks — and its answer
 decides: running is chased, a turned back is the opening, coming at it drives it off. Fixed: the crusher's carrion, the arrow's jet pose, a wounded
 hunter fleeing the player whatever hurt it, the carcass glow read from the drawing. The frame within noise (the forest ×0.97, p95 ×0.89; Chromium ×0.94), the GPU's counts the same. **Ask:** BEHAVIOUR §8 — whether the look reads and facing it down
-is fair; whether the shifts show; whether the shelf by day is too quiet. **Next:** pass 1, the senses (BEHAVIOUR §4).
+is fair; whether the shifts show; whether the shelf by day is too quiet.
 
 **v11.227 (24 Nov 2026): the hoop and the quill; the abyssal fed** (creatures_spec.js `SPECS.hoop`, `SPECS.quill`, the tentacles' `sieve`;
 creatures_defs.js `DEFS`, `STATION.canopy`, `stationW`, `SPAWN`, `VARIETY`; creatures_ai.js `filterSeek`'s `gape`, `plumbY`'s `canopy`; test/hoop.js;
@@ -36,12 +45,6 @@ test/variety.js; test/preview.js `INDIV=1`; VARIETY.md; DESIGN The individual's 
 stable in their cell, size by age with a range (the plumb 20 m typical, 30 m old), a morph (a rare pale one in 50), a proportion set, old shells shed
 and faded, their shells coloured by the place. The rest of the roster is the type, as before. **Ask:** the bestiary's `i` on those four; whether the
 morphs read. **Next:** VARIETY §7 step 2, the growth laws for every clade.
-
-**v11.224 (23 Nov 2026): the individual, designed** (VARIETY.md, new; LINEAGE §7c.6; CLADES; CHANGELOG). Docs only. The variety generator and
-palettes proposed: every difference with a cause (morph, age by the clade's growth law, place, history, development), variants as shared keys
-under a budget, palettes by `coatFor`'s physics. The person's answers: demigods for every god, the Plumb a god provisionally, 30 m for the old
-plumbs. The stipe (a shallow upright straightshell) a candidate. §8 answered the same day: stable individuals, rarity and budget per species (the
-ringmouths vary most), the founder left alone, size by age with a range on top. **Next:** VARIETY §7 step 1.
 
 ## Open
 

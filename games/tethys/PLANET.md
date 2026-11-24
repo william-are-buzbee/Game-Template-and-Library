@@ -317,8 +317,9 @@ The jelly is an outsider (a cnidarian analogue); "all clades represented" does n
 - **Burst-and-coast movement** for hingeshells: gate `accel` on a duty cycle, low `turn`, high `speed`, a tell before
   a strike.
 - **Moulting**: a `soft` state (pale palette, `edible`), shed carapaces as floor flora, dens.
-- **Detection modes**: sight in light, vibration scaled by the target's speed, a blood radius when hurt. Different pass.
-- **Day/night**, tidal current through the arch, a fourth (legged) playable clade — the hingeshell is the candidate
+- **Detection modes**: sight in light, vibration scaled by the target's speed, a blood radius when hurt. Different pass. *(Built v11.229, BEHAVIOUR.md §3b: sight by the light at
+  the body seen through each clade's eyes, the lateral line by the body's speed, blood and carrion down the current.)*
+- **Day/night** (the animals' hours: built v11.228, BEHAVIOUR.md §2), tidal current through the arch, a fourth (legged) playable clade — the hingeshell is the candidate
   (the person: three for now).
 
 ## The roster (proposed v9.4; built v10.6, placed v10.7 — all fifteen, stats and envelopes as first guesses)

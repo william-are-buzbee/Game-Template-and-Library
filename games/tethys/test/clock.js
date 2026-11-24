@@ -9,7 +9,7 @@ const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..');
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
 let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n');
-js+='\nglobal.__ck={CK,clockTick,awakeOf,huntAt,needOf,riskOf,findPrey,findCarcass,carcGlow,REST,RISK,DEFS,ECO,spawn,removeCreature,creatures,carcasses,schools,makeSchool,player,choose,faceQ,V3,groundAt,cellOf,chunkIJ,'
+js+='\nglobal.__ck={currentAt,CK,clockTick,awakeOf,huntAt,needOf,riskOf,findPrey,findCarcass,carcGlow,REST,RISK,DEFS,ECO,spawn,removeCreature,creatures,carcasses,schools,makeSchool,player,choose,faceQ,V3,groundAt,cellOf,chunkIJ,'
   +'at(x,z){player.pos.set(x,-60,z);cellsAround();},updateCreatures,updateSchools,kill,mulberry,kgOf,FX,solidPush,get mode(){return mode;},get t(){return t;},setT(v){t=v;},setClock(h){clockH=h;TIDE=tideAt(h);clockTick();},get clockH(){return clockH;}};';
 const tmp=path.join(require('os').tmpdir(),'tethys_clock_'+process.pid+'.js');
 fs.writeFileSync(tmp,'(function(){"use strict";\n'+js+'\n})();');
@@ -68,12 +68,12 @@ if(S){clearAll();X.setClock(noon);P.pos.set(S.x+150,Y,S.z);hold();
 
 // ---- 3. the risk, and the player as any body ----
 console.log('the risk');
-if(S){clearAll();X.setClock(mid);P.pos.set(S.x,Y,S.z);hold();
+if(S){clearAll();X.setClock(noon);P.pos.set(S.x,Y,S.z);hold();P.vel.set(2,0,0); // v11.229: at noon, and the bodies moving, so the hook and the ridge see them (the senses are test/senses.js's)
   const hk=put('hook',X.V3(S.x,Y,S.z+8),0);hk.awake=1;const thr=X.huntAt(hk),r=X.riskOf(hk,P);hk.hunger=thr+0.3*(1-thr);
   check(r>0.9&&X.findPrey(hk,20,thr)===null,'a hook (≈'+(X.kgOf(hk)/1000).toFixed(1)+' t) leaves the player (≈'+(X.kgOf(P)/1000).toFixed(1)+' t, risk '+r.toFixed(2)+') at need 0.3');
-  const dar=put('darter',X.V3(S.x+2,Y,S.z+14),0);dar.state='sit';check(X.findPrey(hk,20,thr)===dar,'and takes a darter further off');
+  const dar=put('darter',X.V3(S.x+2,Y,S.z+14),0);dar.state='sit';dar.vel.set(2,0,0);check(X.findPrey(hk,20,thr)===dar,'and takes a darter further off');
   hk.hunger=1;check(X.findPrey(hk,20,thr)===dar,'starving, still the darter nearer by its weight');X.removeCreature(dar);check(X.findPrey(hk,20,thr)===P,'and the player when there is nothing else');
-  clearAll();const rg=put('ridge',X.V3(S.x,Y,S.z),1);P.pos.set(S.x,Y,S.z+10);hold();const pk=put('picker',X.V3(S.x,Y,S.z-9.5),0);pk.state='sit';
+  clearAll();const rg=put('ridge',X.V3(S.x,Y,S.z),1);P.pos.set(S.x,Y,S.z+10);hold();P.vel.set(2,0,0);const pk=put('picker',X.V3(S.x,Y,S.z-9.5),0);pk.state='sit';pk.vel.set(2,0,0);
   check(X.findPrey(rg,40,X.huntAt(rg))===pk,'a ridge takes a picker 9.5 m off before the player 10 m off (the 0.7 is gone)');
   const gz=put('grazer',X.V3(S.x+2,Y,S.z-5),0);gz.state='sit';gz.bleed=0;const rgz=X.riskOf(rg,gz);gz.bleed=0.01;const rgw=X.riskOf(rg,gz);gz.bleed=0;
   check(rgw<rgz*0.5,'a bleeding grazer is less of a risk ('+rgz.toFixed(2)+' → '+rgw.toFixed(2)+')');}
@@ -102,7 +102,7 @@ console.log('the fixes');
 if(S){clearAll();X.setClock(dusk);P.pos.set(S.x-40,Y,S.z);hold();const rg=put('ridge',X.V3(S.x,Y,S.z),0);const gz=put('grazer',X.V3(S.x+15,Y,S.z),0);gz.state='sit';
   rg.state='flee';rg.fleeT=5;rg.dread=gz;const x0=rg.pos.x;frames(60*2,()=>{hold();});
   check(rg.pos.x<x0-3,'a ridge wounded by a grazer flees the grazer ('+(rg.pos.x-x0).toFixed(1)+' m along x), toward the player behind it if need be');
-  clearAll();X.setClock(noon);P.pos.set(S.x+200,Y,S.z);hold();const g=put('grazer',X.V3(S.x+12,S.h+3,S.z),0);X.kill(g,null);const cr=put('crusher',X.V3(S.x,S.h+5,S.z),0.7);
+  clearAll();X.setClock(noon);P.pos.set(S.x+200,Y,S.z);hold();const g=put('grazer',X.V3(S.x+12,S.h+3,S.z),0);X.kill(g,null);const cu=X.currentAt(g.pos.x,g.pos.z,g.pos.y,X.V3()),cl=Math.hypot(cu.x,cu.z)||1,cr=put('crusher',X.V3(g.pos.x+cu.x/cl*12,S.h+5,g.pos.z+cu.z/cl*12),0.7); // v11.229: downstream of it (the carrion's scent runs with the current)
   const f0=g.flesh;frames(60*25,()=>{hold();});check(g.flesh<f0&&cr.pos.distanceTo(g.pos)<8,'a hungry crusher eats at a carcass 12 m off (flesh '+(100*g.flesh/f0).toFixed(0)+'%)');
   X.FX.biolum=false;g.deadT=X.ECO.carc*2400*0.9;g.glow=0;const gl=X.carcGlow(g);X.FX.biolum=true;check(gl>0,'a carcass glows for the scavengers by its own law, whatever the effects list says ('+gl.toFixed(2)+')');
   clearAll();X.setClock(mid);P.pos.set(S.x+200,Y,S.z);hold();const ar=put('arrow',X.V3(S.x,Y,S.z),1);const dr=fish('darter',X.V3(S.x,Y,S.z+8));frames(60*0.5);

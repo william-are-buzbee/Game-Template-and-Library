@@ -49,7 +49,7 @@ function ecoOf(kind){
 // fraction of its need it has met lately, 0..1), ow the births a *loaded* cell is owed and has not laid yet (v11.31.2: the model banks
 // a loaded cell's growth there and not in n, since the living are the truth in a loaded cell and n follows them — ecoTick lays it as a
 // clutch); done: the cell's capacity is known; tally: what has happened, for the readout
-const POP={n:[],k:[],ke:[],cd:[],ow:[],done:new Uint8Array(ECO_CELLS),byKind:{},cells:[],mark:[],kcells:{},kmark:{},last:0,acc:0,births:0,deaths:0,kills:0,starved:0,eaten:0,recruits:0,laid:0,hatched:0,gen:null,model:null};
+const POP={n:[],k:[],ke:[],cd:[],ow:[],done:new Uint8Array(ECO_CELLS),byKind:{},cells:[],mark:[],kcells:{},kmark:{},last:0,acc:0,births:0,deaths:0,kills:0,chases:0,starved:0,eaten:0,recruits:0,laid:0,hatched:0,gen:null,model:null};
 // the cells by place and the places by cell (v11.105): ecoId(i, j) is a world cell's index in the ledger's fine tables, or -1 (off the world, or
 // in a coarse patch not split); ecoIJ(c) writes the world cell of index c into ECO_IJ. ECO_PT: the coarse patches — per entry n, k, ke, cd over
 // them, their census (done), whether each is outside the fine box (coarse), the slot it is split into (blk, -1 none) and each slot's patch (bp)
@@ -288,7 +288,7 @@ function ecoTick(dt0){
         else got=layEggs(ch,e,ei,Math.min(e.grp?Math.max(3,e.grp):3,extra),rng)||0;
         const fromOw=Math.max(0,got-Math.max(0,gap))/Q.creatures;if(fromOw>0){POP.ow[ei][c]=Math.max(0,POP.ow[ei][c]-fromOw);POP.n[ei][c]+=fromOw;}}}} // what the clutch took out of the owed goes into the ledger: the eggs are counted as living from here (ECO_CNT above)
 }
-function ecoReset(){POP.n.length=POP.k.length=POP.ke.length=POP.cd.length=POP.ow.length=POP.cells.length=POP.mark.length=0;POP.byKind={};POP.kcells={};POP.kmark={};POP.done.fill(0);POP.last=0;POP.acc=0;POP.model=null;ECO_PT.n.length=ECO_PT.k.length=ECO_PT.ke.length=ECO_PT.cd.length=ECO_PT.rc.length=ECO_PT.bref.length=ECO_PT.cells.length=ECO_PT.mark.length=ECO_PT.D.length=0;ECO_PT.B={};ECO_PT.T={};POP.births=POP.deaths=POP.kills=POP.starved=POP.eaten=POP.recruits=POP.laid=POP.hatched=0;ecoInit();} // the ledger as at boot, the paper census to run again: a new game, or a save loading over it (save.js, v11.47) — with every cell unloaded first
+function ecoReset(){POP.n.length=POP.k.length=POP.ke.length=POP.cd.length=POP.ow.length=POP.cells.length=POP.mark.length=0;POP.byKind={};POP.kcells={};POP.kmark={};POP.done.fill(0);POP.last=0;POP.acc=0;POP.model=null;ECO_PT.n.length=ECO_PT.k.length=ECO_PT.ke.length=ECO_PT.cd.length=ECO_PT.rc.length=ECO_PT.bref.length=ECO_PT.cells.length=ECO_PT.mark.length=ECO_PT.D.length=0;ECO_PT.B={};ECO_PT.T={};POP.births=POP.deaths=POP.kills=POP.chases=POP.starved=POP.eaten=POP.recruits=POP.laid=POP.hatched=0;ecoInit();} // the ledger as at boot, the paper census to run again: a new game, or a save loading over it (save.js, v11.47) — with every cell unloaded first
 ecoInit(); // the ledger exists before the first cell loads (main.js manageChunks); its paper census runs in ecoTick
 // the readout's fourth line: the ledger's world totals for a few kinds and its tally; the nearest hunter's hunger
 function ecoLine(){

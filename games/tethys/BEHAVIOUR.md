@@ -1,9 +1,11 @@
 # BEHAVIOUR.md — what the animals do
 
-**Status (24 Nov 2026): pass 0 built (v11.228): the clock, the risk and the look; the player's bias struck; the bugs §6 lists fixed.** The senses
-(pass 1) are next, then a pass a clade. Downstream of `PLANET.md` (each clade's deep decision is where its behaviour comes from), `CLADES.md`
+**Status (24 Nov 2026): pass 0 built (v11.228): the clock, the risk and the look; the player's bias struck; the bugs §6 lists fixed. Pass 1 built
+(v11.229): the senses (§3b); the sky and the pall's lights in the step.** The person on v11.228: *"I play tested and enjoyed it, go ahead with pass 1."*
+Next, a pass a clade (§4). Downstream of `PLANET.md` (each clade's deep decision is where its behaviour comes from), `CLADES.md`
 (habitat at three scales: the range, the station, the clock), `COMBAT.md` (what a hold means; pass D is the person's predator pass) and `DIRECTION.md`
-(the loop). The numbers live in `creatures_defs.js` (`BEHAVE`) and `creatures_ai.js` (`CLK`, `REST`, `RISK`); `DESIGN.md`, Creatures, has them.
+(the loop). The numbers live in `creatures_defs.js` (`BEHAVE`, `EYE_K`, `LAT_CLADE`) and `creatures_ai.js` (`CLK`, `REST`, `RISK`, `SENSE`, `SCENT`, `FREEZE`);
+`DESIGN.md`, Creatures, has them.
 
 ## 1. The ask, and the person's answers
 
@@ -106,10 +108,54 @@ turned** for `RISK.back` (0.7 s) is the opening. **Coming at it while watching i
 (4 s, and up to 10 s more the less it needs); at its end it goes in if its need is `RISK.commit` (0.5) or more, else it leaves. The player's lesson:
 face it, and back off toward cover; never bolt from what is circling unless the cover is close.
 
+## 3b. The senses (built v11.229)
+
+An animal notices another (`notices`) by its eyes or its lateral line, and smells blood and carrion down the current. The player is a body like any
+other to all three: what it does decides — swimming in the open at noon is seen from a predator's whole reach, holding still in the weed at night is
+hiding, bleeding upstream of a hunter is safer than bleeding downstream of it.
+
+- **The sky in the step** (`clockTick`): the moon's height and phase, the eclipses (a total eclipse of the sun is an evening: the day goes, the night
+  has not come — dusk), `CK.dayK` and `CK.moonL` (the swarms' layer and the plumb's station read them now, not the drawing's `SKY`), and `CK.lg0`: the
+  surface's light, log10 of noon's, by world.js `LIGHT_P` (the sun, the twilight falling 0.35 decades a degree, a full moon 1e-5, starlight 1e-8).
+- **Sight** (`sightOf`, 0..1 of the reach asked): the light at the body looked at — `CK.lg0` falling tenfold every 60 m (`LIGHT_P.dec`, the island's fed
+  water) — through the eye's two numbers (`DEFS.eye`, `EYE_K`: where it sees nothing, where it sees all it can, log10 of the light):
+
+  | eye | nothing | all | whose | |
+  |---|---|---|---|---|
+  | `ring` | −10.5 | −5.5 | the ringmouths | a ring of simple eyes, a predator's forward cluster: a cephalopod's eyes are among the best in the dim |
+  | `two` | −10 | −6 | the slowbloods | two good eyes, a fish's |
+  | `stalk` | −9 | −5 | the hingeshells | stalked compound eyes, duller in the dim |
+  | `night` | −11 | −7 | the eel, the lurker, the arrow, the hose, the lash, the trap, the hook | wide pupils and a tapetum (PLANET's eyeshine is its reflection) |
+  | `deep` | −12 | −8 | the abyssal, the basker, the relict, the picker, the pall, the veil | tuned to the deep's own lights |
+
+  PLANET's numbers fall out: noon's light reaches −6 at −360 m and −10 at −600 (big eyes see daylight to ~−600 in fed water), a full moon −6 at −60;
+  starlight at −55 gives a fish's eyes 0.45 of their reach. Above the eye a body is a silhouette (`SENSE.sil` 1.5 decades × the sine of its height over
+  it); a still body is seen at `SENSE.still` 0.35 of the reach plus `SENSE.big` 0.08 a metre of its size (motion gives the small away; an 18 m ridge
+  still is seen whole), a moving one at all of it from `SENSE.move` 1.5 m/s; a body that matches its ground (`c.crypt`: 0.25 for the countershaded
+  type, + 0.5 × its morph's favour at its place, read at its spawn — VARIETY's selection by the hunters now does what it was for) or is buried takes
+  `SENSE.crypt` 0.6 of that off; one in the weed (`coverOf`: the canopy station's envelope, where the kelp stands from the floor to the surface) 0.5.
+  The drifters have no eyes.
+- **The lateral line** (`hearOf`, m): `DEFS.lat` × the hearer's size (`LAT_CLADE`: the slowbloods' canals 2.0, the hingeshells' comb 1.6, the
+  ringmouths' epidermal lines 1.3; the eel 2.6) for a body moving at `SENSE.lat` 1.5 m/s or more, nothing under 0.2, × the square root of the felt
+  body's size over the hearer's (0.4–1.6). Light-blind; a still body is silent (DIRECTION: *"a lateral line makes a still hunter invisible and a moving
+  one loud"*). In the dark at −55 a ridge feels a swimming finback within 8 m and sees it within 21.
+- **Scent down the current** (`scentFrom`, `plumeK`; COMBAT §10.6, *"downcurrent is the true direction of a scent"*): blood (combat.js `findBleeding`)
+  and carrion (`findCarcass`) are smelt from `SCENT.down` 1.6 × their reach by a nose downstream of them and `SCENT.up` 0.2 × upstream, as the current
+  runs to `SCENT.v` 0.25 m/s; in still water as before. A clutch is smelt as it was (from half the distance, the current aside).
+- **Prey** notice with the same senses: a school's threat is a hunter of its kind it notices within 14 m (its members' eyes and lines), a grazer's the
+  player within 8, a big predator within 18, its own within 7. At night a school sees its hunter late; a resting one feels it only when it moves close.
+- **Freezing** (`DEFS.freeze`, `FREEZE.bolt` 3 m): the cryptic grazers — the rasp, the scuttle, the wedge, the plough, the cinder — hold still at a
+  threat they notice beyond 3 m and their size (buried ones stay under; a hingeshell clamps its valves: the anim's `st.soft`, PLANET's *"clamped shut
+  when threatened"*), and bolt when it comes closer. Still, they are seen late.
+- **The watcher** is curious about the player it notices.
+
+Not built (left for the clade passes): the player's own crypsis (its coat against the ground: `c.crypt` is the world's animals'); a lit body seen further
+(a lure's draw on prey: BIOLUM §7.11); prey seeking cover as it flees; a flight distance by kind beyond the three ranges; hearing.
+
 ## 4. The plan (the passes)
 
 0. **The clock and the risk** — built v11.228 (§2, §3, §6).
-1. **The senses** (PLANET Hooks "detection modes"; DIRECTION "senses per clade"; BIOLUM §7.6, answered yes): sight by the light at the animal's depth
+1. **The senses** — built v11.229 (§3b), but for what §3b leaves (the bucketing was not needed: §7). As planned: (PLANET Hooks "detection modes"; DIRECTION "senses per clade"; BIOLUM §7.6, answered yes): sight by the light at the animal's depth
    and hour (`lightPhys`, the moon), by the target's motion and by its contrast against its ground (the morphs' place: a dark one on dark rock is seen
    late — VARIETY's favour then has a gameplay reason); the lateral line, short and light-blind, loud for a moving body and silent for a still one;
    scent carried downstream (`currentAt`), for blood and carrion (COMBAT §10.6, pass D). Prey with the same senses: a flight distance per kind, freezing
@@ -149,23 +195,30 @@ times before building this"*).
 - **A carcass's glow** for the scavengers was the drawing's (`c.glow`, set once a frame and zeroed by the effects list's switch); `findCarcass` reads
   the sim's own (`carcGlow`, the same law).
 
-Open, for pass 1: **the pall's lights run in the drawing** (fx.js `updatePho`, on the frame's `dt`, and `phoCloud` returns when the effects list has
-bioluminescence off — so a cosmetic switch takes away the pall's flee). **The plumb's layer and the swarms read `SKY`**, the drawing's sky; they should
-read `CK` (or a step's own moon).
+Fixed in pass 1 (v11.229): **the pall's lights ran in the drawing** (fx.js `updatePho`, on the frame's `dt`, and `phoCloud` returned when the effects
+list had bioluminescence off — a cosmetic switch took away the pall's flee): the hold, the cloud, the dark and the flee are the step's now (`phoStep`),
+the drawing makes the cloud's blobs for each the step queues (`PHO_Q`). **The plumb's layer and the swarms read `SKY`**, the drawing's sky: they read
+`CK.dayK` and `CK.moonL`.
 
 ## 7. Rules a behaviour change keeps
 
 - The fixed step: every choice and timer from `SIMR`; nothing the drawing sets is read by a step (test/step.js, test/simrand.js).
-- One shape: a key a creature takes is in spawn's literal and the `Creature` typedef (v11.228: `awake`, `sink`, `inspT`, `deter`, `dread`); a `DEFS`
-  key in `DEF_KEYS` (`act`, `rest`, `insp` come from `BEHAVE` before it is made); a school's keys in `makeSchool`'s literal (`awake`, `rest`).
+- One shape: a key a creature takes is in spawn's literal and the `Creature` typedef (v11.228: `awake`, `sink`, `inspT`, `deter`, `dread`; v11.229:
+  `crypt`, `cov`, `covT`); a `DEFS` key in `DEF_KEYS` (`act`, `rest`, `insp`, and v11.229's `eye`, `lat`, `freeze`, come from `BEHAVE`, `EYE_K` and
+  `LAT_CLADE` before it is made); a school's keys in `makeSchool`'s literal (`awake`, `rest`).
 - `dropTarget` is the one way out of a pursuit; `kill()`, `removeCreature`, `placeKind` with `ent` for the ledger.
 - The paper model (ecology.js) knows nothing of hours, rest, risk or the look: the ledger's rates and the census are unchanged, and only what is seen in
   the loaded cells moves. A pass that changes how often things eat on screen checks `test/live.js`'s starving share.
 - The cost (`docs/decisions.md` 26): every scan is throttled (0.25–0.5 s) and allocation-free; `findPrey` walks every creature per scan (about 1,400 at
-  the forest), so pass 1's richer senses bucket them by cell first. `node test/perf.js` before and after.
+  the forest). Pass 1's senses ask more of each candidate within the reach and the frame held (v11.229: ×1.00 at the forest), so the creatures are not
+  bucketed by cell yet; the next scan that asks more of every creature measures first. `node test/perf.js` before and after.
 
 ## 8. Open (the person's)
 
 1. The hours in §2's table are first choices from Earth's reef shifts: any kind whose hours or rest are wrong for it.
 2. Whether the shelf by day is now too quiet (most of its hunters keep the night or the dusk), or as it should be.
 3. Whether the look reads — the ridge's circle, the ortho's standoff — and whether facing it down is too easy or too hard (`RISK.deter`, `RISK.commit`).
+   The person on v11.228 (24 Nov 2026): *"I play tested and enjoyed it."*
+4. Whether the night is now the hiding it should be (holding still in the weed; a hunter feeling you only when you move close), or too safe; whether
+   the eyes' numbers (§3b) want moving.
+5. Whether the player's own colour against its ground should hide it as the world's animals' does (§3b, not built).

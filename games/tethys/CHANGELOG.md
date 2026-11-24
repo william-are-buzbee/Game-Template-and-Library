@@ -11286,3 +11286,72 @@ struck (*"remove the bias for now"*); sight by light for the creatures too (*"Ye
   facing you — and what facing it down, turning away and bolting do; whether driving one off is too easy (`RISK.deter`) or the look too long; (2) the
   shifts: eels, lurkers and arrows out at night, the grazer herd lying down, the darters settled and the flickers up at night, the ploughs under the
   sand by day, the dusk the busiest hour; (3) whether the shelf by day is now too quiet or too safe; (4) BEHAVIOUR §2's hours, kind by kind.
+
+## v11.229 — the senses: sight by the light there is, the lateral line, scent down the current; prey that freeze; the sky and the pall's lights in the step (24 Nov 2026)
+
+The person on v11.228 (24 Nov 2026): *"I play tested and enjoyed it, go ahead with pass 1."* BEHAVIOUR.md's pass 1, and the person's answer to BIOLUM
+§7.6 (sight by light, for the creatures too: *"Yes"*). To v11.228 an animal knew of another inside a sphere, the same at noon and at midnight, at
+10 m and at 500. Now it notices one (`notices`) by its eyes or its lateral line, and smells blood and carrion down the current.
+
+- **The sky in the step** (creatures_ai.js `clockTick`): the moon's height and phase, the eclipses (a total eclipse of the sun is an evening: the day
+  goes, the night has not come — dusk), `CK.dayK`, `CK.moonL` and `CK.lg0`, the surface's light as log10 of noon's (world.js `LIGHT_P`: the sun, the
+  twilight, a full moon 1e-5, starlight 1e-8). The plumb's station and the swarms' layer read `CK` now, not the drawing's `SKY` (test/plumb.js and
+  test/hoop.js set the clock instead of the sky).
+- **Sight** (`sightOf`; creatures_defs.js `EYE_K`, `BEHAVE.eye`): the light at the body looked at, falling a decade every 60 m, through the eye's two
+  numbers — where it sees nothing, where it sees all it can: the ringmouths' `ring` (−10.5, −5.5), the slowbloods' `two` (−10, −6), the hingeshells'
+  `stalk` (−9, −5), a night hunter's `night` (−11, −7: the eel, the lurker, the arrow, the hose, the lash, the trap, the hook) and the deep's `deep`
+  (−12, −8: the abyssal, the basker, the relict, the picker, the pall, the veil). PLANET's numbers fall out of it (noon to −600 for a big eye, a full
+  moon to half that, starlight at −55 gives a fish 0.45 of its reach). A body over the eye is a silhouette (`SENSE.sil` 1.5 decades × the sine of its
+  height); a still one is seen at `SENSE.still` 0.35 of the reach plus `SENSE.big` 0.08 a metre of its size (motion gives the small away; a still ridge
+  is seen whole), a moving one at all of it from 1.5 m/s; a body that matches its ground (`c.crypt`: 0.25, + 0.5 × its morph's favour at its place —
+  VARIETY's selection by the hunters is now what it does) or is buried loses `SENSE.crypt` 0.6 of that; one among the stalks (`coverOf`, the canopy's
+  envelope) `SENSE.cover` 0.5. The drifters have no eyes.
+- **The lateral line** (`hearOf`; `LAT_CLADE`, `BEHAVE.lat`): the slowbloods 2.0 × their size, the hingeshells' comb 1.6, the ringmouths 1.3, the eel
+  2.6, for a body moving at 1.5 m/s or more (nothing under 0.2), × √ of the felt body's size over the hearer's (0.4–1.6). Light-blind, and silent for a
+  body that holds still.
+- **Scent down the current** (`scentFrom`, `plumeK`; combat.js `findBleeding`, `findCarcass`): from `SCENT.down` 1.6 × the reach below a source, 0.2
+  above it, as the current at the nose runs to 0.25 m/s (COMBAT §10.6's pass D item).
+- **Who uses them**: `findPrey` (the hunters, the cast, the ambushers, the traps), the schools' threats (a hunter of their kind noticed within 14 m),
+  the grazers' (the player within 8, a big predator within 18, their own within 7), the watcher's curiosity.
+- **Freezing** (`BEHAVE.freeze`, `FREEZE.bolt` 3): the rasp, the scuttle, the wedge, the plough and the cinder hold still at a threat they notice beyond
+  3 m and their size — buried ones stay under, a hingeshell clamps its valves (the anim's `st.soft`: PLANET's "clamped shut when threatened") — and bolt
+  when it comes closer.
+- **The pall's lights in the step** (fx.js `phoStep`, `PHO_Q`, `phoBlobs`): the hold, the cloud, the dark and the flee ran in the drawing on the frame's
+  `dt`, and the cloud (and so the flee) was skipped with the effects list's bioluminescence off. Now they are the step's; the drawing makes the cloud's
+  blobs for each the step queues, when the switch is on. test/glow.js steps them.
+- **One shape**: the creature's `crypt`, `cov`, `covT`; the defs' `eye`, `lat`, `freeze`.
+- **Tests.** test/senses.js (new, ~6 s, in `--test`; at (900, 0), and the weed at (330, 0)): the step's noon (log10 −0.03), a moonless
+  midnight (−7.26) and a full moon (−5.00); a ridge sees a swimming finback 40 m off at noon at −55 and not at a moonless midnight (its eyes' 0.45 there,
+  21 m); a still finback at 0.49 of the reach; felt in the dark within 8 m swimming, nothing of it still; a silhouette from under it 0.93 against 0.45
+  from over it; in the dark a grazer's eyes 0.45, the eel's 0.81, the abyssal's 1.00; a drifter's none; a grazer matching its ground 0.43 against the
+  type's 0.85, one under the sand 0.40; the player among the stalks, cover 1.00, seen at 0.50; where the current runs 0.93 m/s a source upstream smelt
+  from 1.60 × its reach, downstream 0.20 ×; a darter school sees an arrow 9 m off at noon and not at a moonless midnight; a scuttle with the player 6 m
+  off holds still, valves clamped, 84% of 2 s, and bolts at 2.5 m; a pall's cloud and flee with bioluminescence off. test/clock.js: the risk's checks at noon with the bodies moving (the hook and the ridge
+  must see what they weigh), the crusher downstream of its carcass. test/combat.js, test/player.js, test/plumb.js: the body a hunter must take moves
+  (a soft sickle lying still against its rock, a soft player held still, a player held under a plumb are seen only close now). test/live.js: the low tier's
+  180 s at its noon held no chase in its two-second samples (its run: one hunt begun, one kill — the shelf's prey still and in the weed by day, its
+  hunters resting), so the hunts begun are counted between the samples too (`POP.chases`: a chase, a look, a lunge or a strike begun, as `POP.kills`
+  counts the meals), and a look counts as hunting in the table.
+- **What it cost** (`node test/perf.js` against the merge base, main, so v11.228 is in it too; the cells best of five):
+
+  | measure | before | after | ratio |
+  |---|---|---|---|
+  | creatures' work a frame at (330, 0), ms (mean) | 3.259 | 3.256 | ×1.00 |
+  | the same, p95 | 4.548 | 4.837 | ×1.06 |
+  | creatures' work a frame at the forest (Chromium), ms | 2.645 | 2.705 | ×1.02 |
+  | every kind's build, ms (first / again) | 91.5 / 7.2 | 79.9 / 7.1 | ×0.87 / ×0.99 |
+  | a cell at forest / atoll / platform / sea / giant, ms | 71.5 / 38.8 / 27.6 / 10.6 / 37.9 | 62.7 / 38.1 / 27.8 / 10.5 / 34.9 | ×0.88 / 0.98 / 1.01 / 0.99 / 0.92 |
+  | the GPU's time at forest / shore / canopy (software WebGL, a proxy), ms | 2,324 / 2,838 / 2,403 | 2,372 / 3,114 / 2,568 | ×1.02 / 1.10 / 1.07 |
+  | the GPU's counts (test/gpu.js), every place | | | within 8% |
+
+  The first run's cells read ×1.10 at the atoll and ×1.40 at the platform (and ×0.62 at sea): five runs read them within noise, and nothing in a
+  cell's generation changed. The shore's GPU proxy ×1.10 is a different picture (3,446 pixels moved: the creatures are elsewhere), on the same counts.
+  The senses cost the scans: a candidate within the reach now asks its light, its motion, its ground and the weed (read once a second a body), and a
+  scent its current once a scan; the frame holds within the bench's noise (identical sources read up to ×1.02 mean and ×1.09 p95 here). The
+  bucketing BEHAVIOUR §7 planned was not needed.
+- **Seen**: the senses are numbers a picture does not show; test/senses.js holds them. The build booted in Chromium with no page error
+  (`npm run look`).
+- **Unseen, ask in this order**: (1) whether the night is hiding now — holding still in the weed, a hunter feeling you only when you move close — or too
+  safe; (2) whether swimming in the open at noon draws hunters from too far; (3) whether the freezers read (a scuttle or a plough holding still, a
+  hingeshell's valves shut, the bolt at 3 m); (4) whether you should be hidden by your own colour against the ground, as the world's animals are
+  (BEHAVIOUR §8.5).
