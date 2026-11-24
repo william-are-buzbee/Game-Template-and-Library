@@ -173,7 +173,7 @@ canvas{display:block;outline:none;touch-action:none}
 <div id="fade" class="layer"></div>
 <canvas id="spark" class="layer"></canvas>
 <div id="stats"></div>
-<script>window.TETHYS_BUILD={v:"v11.227",wh:"cde2674be7de46a4"};</script>
+<script>window.TETHYS_BUILD={v:"v11.227.1",wh:"24e1a88af4abfc38"};</script>
 <script>
 // loader.js — the page's loader, in tethys.html only, outside the game's bundle and before it: three.js and the world cache fetched side by side, then the
 // game. Since v11.215 (three.js-ready) three.js is loaded as a module — every release after r160 is only that — with import(); its exports are copied onto
@@ -10740,7 +10740,7 @@ const SPAWN=[
   {kind:'veil',n:0.2,env:{h:[-800,-150]}},
   {kind:'abyssal',n:0.1,env:{h:[-560,-380],nut:[0.25,1]}}, // the rim of the dark where the water is fed (PLANET: the rim, forays below). v11.66: it was h −800..−400 over the whole basin's flanks, where the sill's and the far floor's cells reach no combs, and the 120-day census had it collapsing 70 → 12 since v11.65 (the 40-day run --test makes does not see it); the ledger's reach is 5×5 cells, so its home band is the two cells over the combs' deep edge
   {kind:'plumb',n:12,env:{h:[-520,-30],flow:[0,0.45]}}, // v11.223: the walls in still water (DEFS station: the capacity is the cell's share of wall and lee, ecology.js ecoCap) — the foot to −520, the face up past −450 (its shell's floor); the ortho's opposite, which wants the current. Last: a new row goes at the end, so every row before it draws from a cell's rng as it did (the seeded tests' runs)
-  {kind:'quill',n:3,env:{h:[-54,-16],sub:[0.55,1],nut:[0.45,1]}}, // v11.227: the weed forest (its canopy station: the stalks' envelope); new rows go last
+  {kind:'quill',grp:5,n:8,env:{h:[-54,-16],sub:[0.55,1],nut:[0.45,1]}}, // v11.227: the weed forest (its canopy station: the stalks' envelope); new rows go last. v11.227.1: in stands of five (shrimpfish hang together), and n 3 → 8 — the person found none round the island at 1–2 a cell (n 12 overshot: the quill halved in 60 days and took the hook, its rival for the same small fish, to 47%)
   {kind:'hoop',n:0.12,env:{h:[-450,-80],nut:[0.5,1]}} // v11.227: the open water over the fed, cold flank — the upwelling, where the swarms are (the veil's deeper, the comb's on the plain)
 ];
 // ---------- the stations (v11.223; CLADES, The radiation: habitat at three scales) ----------
@@ -12478,9 +12478,10 @@ function* placeKind(ch,e,count,rng,opt){
       if(s){const k=Math.min(left,SCHOOL.max-schoolLive(s));for(let i=0;i<k;i++){const q=s.pos.clone().add(V3((rng()-0.5)*4,(rng()-0.5)*2,(rng()-0.5)*4));q.y=clamp(q.y,groundAt(q.x,q.z)+1,-4);const m=spawn(ch,kind,q,rng,schoolOpt(o,rng));m.school=s;s.members.push(m);placed++;yield;}left-=k;}
       if(left>0){yield* makeSchool(ch,kind,p,left,rng,o);placed+=left;}}
     else if(D.role==='swarm'){p.y=openY(ch,p,rng,10,40);const c=spawn(ch,kind,p,rng,o);c.pig=swarmPig(p.x,p.y,p.z);c.q=rng();c.home.copy(p);c.flesh=bioMass(c.def);placed++;yield;} // v11.84: a swarm in the open water over its place, its pigment kind read off the crop there; v11.85: its biomass, which the filter feeders eat through (creatures_ai.js filterIntake)
-    else if(e.grp){const sp=kind==='grazer'?16:kind==='arrow'?8:5;for(let i=0;i<g;i++){const q=p.clone().add(V3((rng()-0.5)*sp,0,(rng()-0.5)*sp)),h=ch.h(q.x,q.z);q.y=D.floor?h+1.5+rng()*1.5:clamp(h+1+rng()*4,h+1,-5);spawn(ch,kind,q,rng,o);placed++;yield;}}
     else if(D.station){const dir=V3(0,0,0);if(!stationPoint(ch,e,D,rng,p,dir)||(opt.off&&!unseenAt(p)))break; // a kind with stations (v11.223): at the best of the cell's, or not at all — the ledger holds what stood
-      const fl=p.y;p.y=fl+(D.clear!==undefined?D.clear:D.size*0.35);const c=spawn(ch,kind,p,rng,o);c.wallD=dir;c.state='sit';if(D.upright){c.pos.y=c.home.y=plumbY(c.def,fl,c);plumbPose(c,true);}else c.home.copy(c.pos);placed++;}
+      const p0=p.clone();for(let i=0;i<g;i++){const q=i===0?p0:p0.clone().add(V3((rng()-0.5)*6,0,(rng()-0.5)*6)),fl=i===0?p0.y:ch.h(q.x,q.z); // v11.227.1: a group (e.grp) stands round the station's point, each at its own floor — the quills' stand, as shrimpfish hang together
+        q.y=fl+(D.clear!==undefined?D.clear:D.size*0.35);const c=spawn(ch,kind,q,rng,o);c.wallD=dir;c.state='sit';if(D.upright){c.pos.y=c.home.y=plumbY(c.def,fl,c);plumbPose(c,true);}else c.home.copy(c.pos);placed++;if(i<g-1)yield;}}
+    else if(e.grp){const sp=kind==='grazer'?16:kind==='arrow'?8:5;for(let i=0;i<g;i++){const q=p.clone().add(V3((rng()-0.5)*sp,0,(rng()-0.5)*sp)),h=ch.h(q.x,q.z);q.y=D.floor?h+1.5+rng()*1.5:clamp(h+1+rng()*4,h+1,-5);spawn(ch,kind,q,rng,o);placed++;yield;}}
     else if(D.role==='trap'){p.y+=(D.clear!==undefined?D.clear:D.size*0.35)+0.05;if(solidPush(p,1.5,null,ch))continue;const c=spawn(ch,kind,p,rng,o);c.state='sit';c.g.rotation.y=rng()*TAU;placed++;} // the trap, the stone: lying on its floor, any way round (by role since v11.66)
     else if(D.role==='ambush'&&D.hang){let ok=false;for(let tr=0;tr<6&&!ok;tr++){const q=chunkPoint(ch,rng,e.env);if(!q)break;p.copy(q);p.y=clamp(p.y+5+rng()*9,p.y+4,-6);ok=!solidPush(p,2.5,null,ch);}if(!ok)continue;const c=spawn(ch,kind,p,rng,o);c.state='sit';c.g.rotation.y=rng()*TAU;placed++;} // the hook: hung up in the structure
     else if(D.role==='ambush'){let ok=false;for(let tr=0;tr<6&&!ok;tr++){const q=chunkPoint(ch,rng,e.env);if(!q)break;p.copy(q);p.y+=(D.clear!==undefined?D.clear:D.size*0.35)+0.1;ok=!solidPush(p,2,null,ch);}if(!ok)continue;const c=spawn(ch,kind,p,rng,o);c.state='sit';c.g.rotation.y=rng()*TAU;placed++;} // the lurker among rock, the hood under the sand (v11.66: by role, at its own clearance)
