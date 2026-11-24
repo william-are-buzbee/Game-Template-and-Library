@@ -3187,7 +3187,7 @@ const COAT_BLOOD = {ringmouths: [172, 0.32], slowbloods: [14, 0.55], hingeshells
 // `soft` (the moult: the whole animal pale, the bleached coat of v11.8) and `shed` (the cast carapace: dull, drying). The pale keys (joint, belly,
 // jaw) keep their lightness where the class darkens; eyes, pupils, mouths and claws never move (PAL_FIXED, as palVariant). coatClassAt reads the
 // class off the ground's height, the water's depth and the fields; creatures_ai.js spawn caches a geometry per kind and class.
-const COAT_CHEM_KEYS = {hingeshells: ['top', 'belly', 'flap', 'plate', 'leg', 'valve', 'rim', 'shell', 'comb', 'gut'], ringmouths: [], slowbloods: [], drifters: []};
+const COAT_CHEM_KEYS = {hingeshells: ['top', 'belly', 'flap', 'plate', 'leg', 'valve', 'rim', 'shell', 'comb', 'gut'], ringmouths: ['shell', 'band'], slowbloods: [], drifters: []}; // ringmouths (v11.225, VARIETY §5): the shell takes the water's chemistry (PLANET), the flesh is the blood's
 const COAT_CLASSES = {
   rust: (c, k) => [lerp(c[0], 14, 0.6), lerp(c[1], 0.55, 0.5), c[2] * 0.95],
   lime: (c, k) => [lerp(c[0], 40, 0.5), c[1] * 0.55, lerp(c[2], 0.72, 0.3)], // seen 15 Sep 2026 at 0.45/0.78/0.5: the hose in the forest read bleached, a soft one; toned to a cream cast
