@@ -59,7 +59,7 @@ function moults(kind){const sp=specOfKind(kind),g=sp&&GRAMMAR[sp.clade];return !
 // the kind built in a coat class (and, v11.225, an individual's variant: its morph and its age's marks): its PAL preset swapped for the shifted twin
 // for the build and put back (the zoo's own trick for the variants). d is the variant's def when there is one, so its tape is its own
 function buildKind(d,kind,cls,vx){const sp=specOfKind(kind),pk=sp&&typeof sp.coat==='string'?sp.coat:null,mo=!!vx&&(vx.m!=='type'||vx.o);if((!cls&&!mo)||!pk||!PAL[pk])return tapeBuild(d,kind,cls);const p0=PAL[pk];let p=p0;
-  if(vx&&MORPHS[vx.m])p=palMorph(p,MORPHS[vx.m]);if(vx&&vx.o)p=palMorph(p,MORPHS.old);PAL[pk]=cls?coatChem(p,cls,sp.clade):p;try{return tapeBuild(d,kind,cls);}finally{PAL[pk]=p0;}}
+  if(vx&&MORPHS[vx.m])p=palMorph(p,MORPHS[vx.m]);if(vx&&vx.o&&vx.op&&MORPHS[vx.op])p=palMorph(p,MORPHS[vx.op]);PAL[pk]=cls?coatChem(p,cls,sp.clade):p;try{return tapeBuild(d,kind,cls);}finally{PAL[pk]=p0;}}
 // a palette through a morph's or a mark's transform (creatures_defs.js MORPHS), the eyes, mouth and claws left as they are
 function palMorph(pal,fn){const out={};for(const key in pal){const c=pal[key];if(PAL_FIXED[key]||!Array.isArray(c)){out[key]=c;continue;}const c0=rgb2hsl(c),h=fn(c0,key);out[key]=h===c0?c:hsl2rgb(h[0],clamp(h[1],0,1),clamp(h[2],0.02,0.97));}return out;} // a key the transform hands back untouched is the palette's own colour, not its round trip through hsl
 // ---------- the individual's variants (v11.225; creatures_defs.js VARIETY, VARIETY.md §4) ----------
@@ -68,26 +68,40 @@ function palMorph(pal,fn){const out={};for(const key in pal){const c=pal[key];if
 // variantOf(kind, ind): the variant it is built as, shared: its key (morph.set, 'o' if old), its def (derive's numbers for its own spec, a flat copy
 // of the kind's: test/live.js's one shape) and its morph for buildKind. A kind builds at most its budget (max) of them; past it an animal takes the
 // nearest one built — the type's set, then the common morph, then the type — so a common kind fills its budget and a rare one never does.
-const VAR_KINDS={};
+const VAR_KINDS={},KIND_LOD={}; // KIND_LOD (v11.226): the far bakes an individual's variants share, by kind, morph, age and class (spawn)
 function varKind(kind){let V=VAR_KINDS[kind];if(V!==undefined)return V;const R=VARIETY[kind],sp=SPECS[kind];if(!R||!sp)return VAR_KINDS[kind]=null;const C=VARIETY_CLADE[sp.clade]||VARIETY_CLADE.ringmouths;
-  return VAR_KINDS[kind]={row:R,max:R.max||C.max,sets:R.sets||C.sets,range:R.range!==undefined?R.range:C.range,keys:new Map()};}
+  return VAR_KINDS[kind]={row:R,max:R.max||C.max,sets:R.sets||C.sets,range:R.range!==undefined?R.range:C.range,grow:R.grow||C.grow,oldPal:R.oldPal!==undefined?R.oldPal:C.oldPal,vary:R.vary||autoVary(sp),keys:new Map()};}
+// the proportions a species varies when its row lists none (v11.226): VARY_AUTO's by each of its parts' kinds and its core's
+function autoVary(sp){const out=[],seen={};for(const p of sp.parts){const L=VARY_AUTO[p.kind];if(!L||seen[p.kind])continue;seen[p.kind]=1;for(const v of L)out.push([p.kind,v[0],v[1]]);}
+  const C=VARY_AUTO.core[sp.core.kind];if(C)for(const v of C)out.push(['core',v[0],v[1]]);return out;}
 function indivSeed(ch,ent,nth){return ((ch.i*73856093)^(ch.j*19349663)^Math.imul(ent+1,83492791)^Math.imul(nth+1,0x9E3779B1))>>>0;} // the cell, the entry, its place among them: the same animal each visit while the counts hold
 function nthOf(ch,ent){let n=0;for(const c of ch.creatures)if(c.ent===ent)n++;return n;}
-function indiv(kind,seed){const V=varKind(kind);if(!V)return null;const R=V.row,r=mulberry(seed);let u=r(),m=R.morphs.length-1;for(let i=0;i<R.morphs.length;i++){u-=R.morphs[i][1];if(u<=0){m=i;break;}}
-  const q=r(),b=V.sets>1?Math.floor(r()*V.sets):0,k=GROW[R.grow](q,R.size)*(1+V.range*(2*r()-1));return {m:m,b:b,o:q>=R.old,k:k};}
-// a param moved within its believable band (PARTS params' b), widened to hold the type's own value
-function bandClamp(kind,param,v,t){const P=PARTS[kind]&&PARTS[kind].params[param],b=P&&P.b;return b?clamp(v,Math.min(b[0],t),Math.max(b[1],t)):v;}
+// a morph's favour at a place (v11.226.1; creatures_defs.js FAVOUR): its frequency's multiplier, 1 with no place or no term
+function favourOf(mo,P){const t=mo.length>2?mo[2]:MORPH_FAVOUR[mo[0]];if(!P||!t||t==='none')return 1;const v=P[t];return v===undefined?1:lerp(FAVOUR.k[0],FAVOUR.k[1],v*v);}
+// the place an animal is drawn at, as the favour's terms (v11.226.1): one literal, every key at once
+function placeOf(ch,pos){const x=pos.x,z=pos.z,y=pos.y,h=ch.h(x,z),f=ch.f(x,z),cls=coatClassAt(h,y,f,null,chemoAt(x,z)),young=/d$/.test(cls),gt=Math.min(1,(GROUND_TONE[young?cls.slice(0,-1):cls]||0)+(young?0.35:0)),near=smooth(60,5,y-h);
+  return {dark:Math.max(smooth(-15,-250,y),gt*near,0.85*smooth(-80,-450,h)),lit:smooth(-60,-8,y),rock:f[FI.sub]*near,sand:(1-f[FI.sub])*near,floor:near,vent:f[FI.heat],nut:f[FI.nut]};}
+function indiv(kind,seed,P){const V=varKind(kind);if(!V)return null;const R=V.row,r=mulberry(seed);let W=0;for(let i=0;i<R.morphs.length;i++)W+=R.morphs[i][1]*favourOf(R.morphs[i],P);
+  let u=r()*W,m=R.morphs.length-1;for(let i=0;i<R.morphs.length;i++){u-=R.morphs[i][1]*favourOf(R.morphs[i],P);if(u<=0){m=i;break;}} // P: the place (placeOf), or null — the frequencies as written
+  const q=r(),b=V.sets>1?Math.floor(r()*V.sets):0,k=GROW[V.grow](q,R.size,P?P.nut:undefined)*(1+V.range*(2*r()-1));return {m:m,b:b,o:q>=R.old,k:k};} // the place's food for a law that reads it (the drifters')
+// a param's registry entry: a part kind's (PARTS) or, for 'core', the core kind's (CORES)
+function regParam(target,sp,param){const R=target==='core'?CORES[sp.core.kind]:PARTS[target];return R&&R.params?R.params[param]:undefined;}
+// a param moved within its believable band (the registry's b), widened to hold the type's own value
+function bandClamp(P,v,t){const b=P&&P.b;return b?clamp(v,Math.min(b[0],t),Math.max(b[1],t)):v;}
 // the spec of proportion set b, old or not: set 0 is the type's; the others move each of the row's params by up to its fraction, drawn from the kind's
 // own seed so a set is the same in every session; old, the shell takes the row's oldShell (a straightshell's tip shed: the shell's hit capsule follows)
-function variantSpec(kind,b,o){const R=VARIETY[kind],sp=JSON.parse(JSON.stringify(SPECS[kind])),r=mulberry((hashStr(kind)^Math.imul(b+1,0x85EBCA6B))>>>0);
-  if(b>0)for(const v of R.vary){const p=sp.parts.find(q=>q.kind===v[0]);if(!p||typeof p[v[1]]!=='number')continue;const t=p[v[1]];p[v[1]]=bandClamp(v[0],v[1],t*(1+v[2]*(2*r()-1)),t);}
+function variantSpec(kind,m,b,o){const V=varKind(kind),R=V.row,sp=JSON.parse(JSON.stringify(SPECS[kind])),r=mulberry((hashStr(kind)^Math.imul(b+1,0x85EBCA6B))>>>0),mp=MORPH_PAT[R.morphs[m][0]];
+  if(mp)sp.pattern=Object.assign({},mp); // a pattern morph (v11.226): its own pattern in place of the clade's
+  if(b>0)for(const v of V.vary){const f=v[2]*(2*r()-1),o2=v[0]==='core'?sp.core:sp.parts.find(q=>q.kind===v[0]);if(!o2)continue; // a draw for every entry, used or not, so a set is the same whatever the spec omits
+    if(v[1]==='prof'){if(Array.isArray(o2.prof))o2.prof=o2.prof.map(e=>[e[0]*(1+f),e[1]]);continue;} // the lathe's girth: every radius of its profile
+    const P=regParam(v[0],sp,v[1]),t=typeof o2[v[1]]==='number'?o2[v[1]]:P&&typeof P.d==='number'?P.d:undefined;if(t===undefined)continue;o2[v[1]]=bandClamp(P,t*(1+f),t);}
   if(o&&R.oldShell){const p=sp.parts.find(q=>q.kind==='shell');if(p){const L0=p.L;for(const k in R.oldShell)if(typeof p[k]==='number')p[k]*=R.oldShell[k];
     if(L0&&p.L!==L0&&sp.hit&&sp.hit[0]&&p.z0!==undefined)sp.hit[0].a[2]=p.z0-(p.z0-sp.hit[0].a[2])*p.L/L0;}}
   return sp;}
 function variantDef(kind,sp){const d=defFlat(DEFS[kind]);defPhysics(d,sp);d.build=()=>compile(sp);return d;} // the kind's def with its own build and derive's numbers for it
 function variantOf(kind,ind){const V=varKind(kind),ok=ind.o?'o':'',key=ind.m+'.'+ind.b+ok;let x=V.keys.get(key);if(x)return x;
   if(V.keys.size>=V.max)for(const k2 of [ind.m+'.0'+ok,'0.'+ind.b+ok,'0.0'+ok,'0.0']){x=V.keys.get(k2);if(x)return x;}
-  x={key:key,m:V.row.morphs[ind.m][0],o:ind.o,def:variantDef(kind,variantSpec(kind,ind.b,ind.o))};V.keys.set(key,x);return x;}
+  x={key:key,m:V.row.morphs[ind.m][0],o:ind.o,op:V.oldPal,def:variantDef(kind,variantSpec(kind,ind.m,ind.b,ind.o))};V.keys.set(key,x);return x;} // op: the clade's (or the row's) palette for the old
 // v11.149 (the creature performance pass; parts.js GEO_TAPE): a kind's body built once per def and coat class, then replayed — its first build's
 // merges recorded, every later build of it handed them back, its primitives not made. A def is a kind's (DEFS, a juvenile's JUV_DEF, a line's
 // kind per spec), so the tape is kept on it (a WeakMap: a def that goes, goes with it); the lab's placed spec is built whole, as it changes. A
@@ -140,7 +154,7 @@ function spawn(ch,kind,pos,rng,opt){
   // VARIETY row is an individual of its seed (indiv: its morph, its age's size and marks, its proportion set) built as its shared variant, its def that
   // variant's; the seed its cell's, entry's and place's (or what it was: a juvenile grown up, a moult, keeps its seed). The VARY draw is still taken
   // from the cell's rng for every kind, so the draws after it in the cell are as they were
-  const seed=vary&&VARIETY[kind]?(opt&&opt.seed!==undefined?opt.seed:ch?indivSeed(ch,ent,nthOf(ch,ent)):0):undefined,ind=vary&&!juv?indiv(kind,seed):null,vx=ind?variantOf(kind,ind):null,D=vx?vx.def:D0;
+  const seed=vary&&VARIETY[kind]?(opt&&opt.seed!==undefined?opt.seed:ch?indivSeed(ch,ent,nthOf(ch,ent)):0):undefined,ind=vary&&!juv&&seed!==undefined?indiv(kind,seed,ch?placeOf(ch,pos):null):null,vx=ind?variantOf(kind,ind):null,D=vx?vx.def:D0;
   const kv=vary?1+VARY.spread*(2*rng()-1):1,k=ind?ind.k:kv,d=k!==1?scaledDef(D,k):D;
   const soft=vary&&!juv&&moults(kind)&&D.role!=='boid'&&(opt&&opt.soft!==undefined?!!opt.soft:rng()<MOULT.frac);
   const f=vary&&ch?ch.f(pos.x,pos.z):null,cls=soft?'soft':f&&SPECS[kind]?coatClassAt(ch.h(pos.x,pos.z),pos.y,f,SPECS[kind].clade,chemoAt(pos.x,pos.z)):'';
@@ -172,8 +186,11 @@ function spawn(ch,kind,pos,rng,opt){
   const gk=kind+(juv?'~':'')+(vx?'#'+vx.key:'')+(cls?'@'+cls:''),K=kind==='lab'?null:(KIND_GEO[gk]||(KIND_GEO[gk]={geos:[],lod:null})); // a geometry per kind, age and coat class (v11.66)
   if(K){const rigMeshes=new Set();if(b.rigs)for(const r of b.rigs)rigMeshes.add(r.mesh);let n=0;
     b.g.traverse(o=>{if(!o.isMesh||rigMeshes.has(o))return;const g=K.geos[n++];if(g){if(o.geometry!==g){o.geometry.dispose();o.geometry=g;}}else{K.geos[n-1]=o.geometry;SHARED_GEO.add(o.geometry);}});}
-  if(K&&K.lod)c.lodMeshes=K.lod.map(e=>{const m=new THREE.Mesh(e.geo,e.mat);m.visible=false;return m;});
-  else{c.lodMeshes=bakeLOD(b.g);if(K)K.lod=c.lodMeshes.map(m=>{SHARED_GEO.add(m.geometry);return {geo:m.geometry,mat:m.material};});}
+  // the far bake (v11.226): an individual's is shared by every proportion set of its morph, age and class (KIND_LOD) — a tenth of a limb's length is
+  // not seen at the far LOD's distance, and a set's own bake was a third of a variant's first build
+  const LK=vx?(KIND_LOD[kind+(juv?'~':'')+'#'+vx.m+(vx.o?'o':'')+(cls?'@'+cls:'')]||(KIND_LOD[kind+(juv?'~':'')+'#'+vx.m+(vx.o?'o':'')+(cls?'@'+cls:'')]={geos:[],lod:null})):K;
+  if(LK&&LK.lod)c.lodMeshes=LK.lod.map(e=>{const m=new THREE.Mesh(e.geo,e.mat);m.visible=false;return m;});
+  else{c.lodMeshes=bakeLOD(b.g);if(LK)LK.lod=c.lodMeshes.map(m=>{SHARED_GEO.add(m.geometry);return {geo:m.geometry,mat:m.material};});}
   for(const m of c.lodMeshes){if(d.size>=6&&m.material===MAT)m.material=MATBIG;patternOn(m.geometry,b.pat);b.g.add(m);} // a big animal's far LOD keeps the far ghost (scene.js, addTint)
   c.shM=[];b.g.traverse(o=>{if(o.isMesh)c.shM.push(o);});c.cast=false; // the meshes that cast into the shadow map when this body is among the nearest (scene.js updateShadow)
   c.lodNear=(d.lodNear||45+d.size*4)*Q.lodNear;c.lodFar=Math.min(FAR*0.7,120+d.size*40); // lodNear on the def (v11.18): the long-appendaged are simulated from further off; a veil is drawn to 760, an abyssal to 720

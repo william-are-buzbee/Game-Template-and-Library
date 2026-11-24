@@ -11029,3 +11029,82 @@ good… tangible, stable"*), rarity and budget per species with the ringmouths v
   for the four kinds, then replayed like any kind's.
 - **Unseen, ask in this order**: (1) the bestiary's `i` on the plumb, ortho, great and rasp — do the morphs read, is the spread of sizes right;
   (2) whether the rare pale one is rare enough to be a find at one in 50; (3) step 2 next (the growth laws for every clade), or more rows first.
+
+## v11.226 — the individual for every placed species: the clades' growth laws, more morphs, proportions by part (24 Nov 2026)
+
+The person on v11.225 (24 Nov 2026): *"I love it, looks great"*; one in 50 *"feels right for now"*; *"variety for more species first please"*; and,
+having played it, *"I love the variety and I love how they can match their environment… their larger size is SO much more threatening and unique
+to this setting."*
+
+- **A row for each of the 38 kinds the ledger places** (creatures_defs.js `VARIETY`), each with its morphs and a cause for each (see the rows'
+  comments): the lurker dark on basalt or mottled on rubble; the grazer's yellow (carotenoids from the green it crops); the scuttle red from a
+  shore diet; the trap mottled in its sand; the basker, the wedge, the hook, the picker dark by the vents and the basalt; the abyssal and the
+  jelly red, which is black where they live; a pale one in 50 nearly everywhere (not the vents' pickers). **Uniform**: the darter, flicker and
+  sifter (a school — the one that differs is the one picked out), the pall, the cinder.
+- **The clades' growth laws** (`GROW`, `VARIETY_CLADE.grow`; VARIETY §3): `stop` for the soft ringmouths (a narrow, even band), `never` for the
+  slowbloods (the old giants: the ridge to 1.55, the abyssal to 1.6), `moult` for the hingeshells (`INSTAR` 1.18: sizes in steps, the steps inside
+  the band, the range 0.02 so a step stays a step), `food` for the drifters (the place's `nut`, `indiv(kind, seed, nut)`). The old take their clade's
+  palette (`MORPHS` senescent, weathered, worn).
+- **Proportions by part** (`VARY_AUTO`, `autoVary`, `regParam`): a row without its own list varies its arms, fins, tails, legs, combs, eyestalks,
+  spines and barbels and its core's proportions (a trunk's widths, a shield's, a mantle's length and girth, a bell's) and a lathe's girth (its
+  profile's every radius), each where the spec sets it or its registry default is a number, within its believable band. Every variant compiles;
+  none is NaN (a few frame-derived defaults land a hair past a believable band — validate's soft warning, as some types already do).
+- **Morphs** (`MORPHS`, `MORPH_KEYS`, `MORPH_PAT`): `erythristic` now on the coat's pigmented keys, `hueTo` going all the way round from teal (a red
+  arrow was yellow in the first strip); `xanthic`; `banded` and `spotted` with their own pattern (drawn with the texels on) and a coat that reads with
+  them off.
+- **Tools**: `PIX=1 INDIV=1 node test/preview.js <id>` draws the strips with the patterns.
+- **test/variety.js**: every placed species has a row; the five uniform ones have one morph and one set; a pattern morph wears its pattern; every
+  hingeshell's sizes come in moult steps within its range; the general checks (frequencies, bands, budget, derive per variant, set 0 the type,
+  stable reloads — 26 individuals at the busiest wall) over all 38.
+- **The far bake shared** (creatures_ai.js `KIND_LOD`): an individual's far bake by kind, morph, age and class, shared by its proportion sets —
+  a tenth of a limb is not seen at the far LOD's distance, and a set's own bake was a third of a variant's first build. It took the forest's first
+  sight from ×1.28 to ×1.13 below.
+- **test/combat.js**: its forty ledger sickles now each its own seed (spawned and taken away at one spot, the cell's own seeds made them one animal),
+  checked to span their band in moult steps (0.83–1.42, four steps) and to scale capsules and reach within each variant; the soft sickle's cached
+  geometry read by its variant's key.
+- **Seen**: `PIX=1 INDIV=1` strips of the arrow, lurker, needle, scuttle, grazer, ridge, eel, trap and sickle — the red arrow red (it was yellow
+  before `hueTo` went all the way round), the yellow grazer, the dark and pale ones, the banded scuttle's dark plated back, the spotted lurker's
+  greyer mottle, the old ones bigger in each clade's way (the hingeshells' in steps). Not seen in the water this time (two container restarts during
+  the long runs); v11.225's shots were in it.
+- **What it cost** against v11.225 (`node test/perf.js --ref 7a59dea3`, each bench alone; the seeded draws moved again, so the same places and counts):
+
+  | measure | v11.225 | here | ratio |
+  |---|---|---|---|
+  | creatures' work a frame at the forest, ms (mean / p95) | 2.456 / 3.460 | 2.516 / 3.528 | ×1.02 / ×1.02 |
+  | a cell at the forest, ms — whole / in spawn() / the far bake | 42.9 / 23.2 / 1.4 | 48.6 / 29.3 / 1.7 | **×1.13** — the variants' first builds; ×1.28 before the shared bake |
+  | a cell at the atoll / platform / sea / giant, ms | 37.9 / 23.4 / 10.6 / 38.2 | 36.3 / 25.6 / 10.9 / 37.4 | ×0.96 / ×1.09 / ×1.02 / ×0.98 |
+  | every kind's build, ms (first / again) | 51.6 / 5.8 | 71.0 / 6.4 | ×1.38 / ×1.10 — the first is each variant's compile, once a session |
+  | the frame in Chromium at the forest, ms | 2.037 | 2.064 | ×1.01 |
+  | GPU draws / triangles / programs, seven places | | | within ±2% (forest draws 283.7 → 287) |
+  | GPU bytes uploaded a frame, the forest | 355 KB | 319 KB | ×0.90 — the seeded draws; `test/gpu.json` updated |
+  | test/live.js's peak memory | 571 MB | 601 MB | ×1.05 — the variants' geometry |
+
+  **Worse by more than 10%: a cell's first generation where many kinds meet (the forest ×1.13).** It is paid once a session per variant (a kind's
+  budget at most: ringmouths 12, hingeshells 10, slowbloods 6, drifters 4), then every body is replayed; the frame does not move. Worth it: the
+  variety is the change.
+- **Unseen, ask in this order**: (1) the bestiary's `i` across the roster — does each species' variety read, are any too subtle or too loud; (2) the
+  first visit to a busy place (the shelf forest) — any hitch while its variants are first built; (3) which species should be uniform beyond the five.
+
+## v11.226.1 — a morph's odds follow the place (24 Nov 2026)
+
+The person on v11.226: *"the varieties for the squat looking slowblood fish that are spikey and damage you should have darker ones in darker biomes,
+but otherwise should not have random really dark ones in the bright dunes… the totally black ridge should show up a lot more often in darker waters
+or open ocean and such. Not deterministic, just chance."* No hitch on their card; no more uniform species for now.
+
+- **A morph's frequency is weighed by its favour where the animal is drawn** (creatures_ai.js `placeOf`, `favourOf`, `indiv(kind, seed, P)`;
+  creatures_defs.js `FAVOUR`, `MORPH_FAVOUR`, `GROUND_TONE`): what a hunter sees an animal against picks off the ones that stand out (Earth's pocket
+  mice, dark on the lava and pale on the sand). The place's terms, read once at the spawn: `dark` (the light lost with depth, the ground's tone near
+  the floor — lime, sand and ooze pale, rust mid, manganese and sulfide black, fresh basalt darker — and the open ocean beneath), `lit`, `rock`,
+  `sand`, `floor`, `vent`. The multiplier runs with the favour's square, 0.08 to 3.2. Melanic and the deep red follow `dark`; yellow and a diet's red
+  (the rasp's, the scuttle's, the hose's) `lit`; banded `rock`; spotted the floor (the trap's sand, the lurker's and the eel's rock); the arrow's and
+  the watcher's chromatophore red and the ram's bands nothing; the pale one never.
+- **The ridge's black morph** 0.14 → 0.2 as written: 37% of ridges over the open ocean, 2% in bright water.
+- **test/variety.js**: the grazer's dark morph 1.3% on the bright dunes and 38.8% in a dark place (16% as written); its pale one 1.6% and 1.5%;
+  the black ridge 37.3% and 2.1%; the scuttle's red 44.2% in the lit water against 1.5% in the dark; the place read off real ground — shallow sand
+  0.05 dark and 0.91 lit, mid-water over the deep 1.00 dark.
+- **What it cost**: at the spawn, the place read once (`placeOf`: the cell's own height and fields, `coatClassAt`, `chemoAt` — what the coat class
+  already read) and a sum over a row's few morphs; nothing a frame. `node test/gpu.js --check` moved the canopy's draws 267 → 316 (+18%) with the same
+  31 cells and 80 → 82 creatures in sight: counted at that frame on both trees, the same 435 meshes, and one needle more at the near LOD (17 → 18) —
+  which draws its parts into the shadow maps too. The morphs drawn differently fill the variants' budgets in another order, an animal or two takes
+  another proportion set, and the simulation drifts; nothing new is drawn. `test/gpu.json` updated.
+- **Unseen, ask**: the dunes and the dark places side by side — does the dark morph now sit where the dark is; the black ridge over the open ocean.

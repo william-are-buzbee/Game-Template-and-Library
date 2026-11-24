@@ -204,28 +204,107 @@ function gridRise(hs,G,n){const a=n%G,b=(n-a)/G,h=hs[n];let r=0;if(a>0)r=Math.ma
 // entry and its place among them (creatures_ai.js indivSeed), so a cell shows the same animals each visit (the person: "the fixed locations feel
 // good… tangible, stable"). A kind with no row is built as the type, its size VARY's ±15%, as before; rows come a clade a pass (VARIETY §7).
 // the clade's defaults (the person: "ringmouths in general should vary the most", the hingeshells next): max, the variants a kind may build (morph ×
-// set × old; past it an animal takes the nearest built one); sets, the proportion sets; range, ± the size an animal takes on top of its age's
-const VARIETY_CLADE={ringmouths:{max:12,sets:3,range:0.06},hingeshells:{max:10,sets:3,range:0.05},slowbloods:{max:6,sets:2,range:0.05},drifters:{max:4,sets:1,range:0.04}};
-// the size an age gives: q the animal's age as its rank among its kind's adults (0 the youngest, 1 the oldest), S the adult band [least, most] about
-// the type's 1. shell: a shell grows all its life, slower as it goes — half the adults between the least and the type, the oldest few the largest
-const GROW={shell:(q,S)=>q<0.5?lerp(S[0],1,q/0.5):lerp(1,S[1],Math.pow((q-0.5)/0.5,2.5))};
+// set × old; past it an animal takes the nearest built one); sets, the proportion sets; range, ± the size an animal takes on top of its age's (the
+// hingeshells' small, so their moult steps stay steps); grow, the growth law; oldPal, what age does to the coat
+const VARIETY_CLADE={ringmouths:{max:12,sets:3,range:0.06,grow:'stop',oldPal:'senescent'},hingeshells:{max:10,sets:3,range:0.02,grow:'moult',oldPal:'worn'},
+  slowbloods:{max:6,sets:2,range:0.05,grow:'never',oldPal:'weathered'},drifters:{max:4,sets:1,range:0.04,grow:'food',oldPal:null}};
+// the size an age gives (VARIETY §3): q the animal's age as its rank among its kind's adults (0 the youngest, 1 the oldest), S the adult band [least,
+// most] about the type's 1, nut the place's food (0..1) where the law reads it. Every law puts the median adult at the type.
+const INSTAR=1.18; // a hingeshell's growth at a moult: Dyar's rule, ~1.2–1.4 a moult in Earth's crustaceans, less in the adults
+function growHalf(q,S,p){return q<0.5?lerp(S[0],1,q/0.5):lerp(1,S[1],Math.pow((q-0.5)/0.5,p));}
+const GROW={
+  shell:(q,S)=>growHalf(q,S,2.5), // a shell grows all its life, slower as it goes: half the adults between the least and the type, the oldest few the largest
+  stop:(q,S)=>growHalf(q,S,1), // grown and done (the soft ringmouths: short lives, one spawning, LINEAGE §3): a narrow band, even across it
+  never:(q,S)=>growHalf(q,S,1.8), // an ectotherm never stops (the slowbloods, as fish and reptiles): a long tail of old giants
+  moult:(q,S)=>{const k=growHalf(q,S,2),l=Math.log(INSTAR),n=clamp(Math.round(Math.log(k)/l),Math.ceil(Math.log(S[0])/l-0.05),Math.floor(Math.log(S[1])/l+0.05));return Math.pow(INSTAR,n);}, // grown only at a moult (the hingeshells): sizes in steps you can count, the steps inside the band
+  food:(q,S,nut)=>{const n=nut===undefined?0.5:nut;return growHalf(clamp(0.6*n+0.4*q,0,1),S,1);}}; // grows with food and shrinks without (the drifters, as Earth's jellies): the place's food first, age second
 // a morph or a mark as a palette transform, on [hue°, sat, light] for a key (the eyes, the mouth and the claws are never moved: PAL_FIXED); each
-// with its cause. melanic: more melanin (cold, deep and vent water favour it); erythristic: red in the shell (free camouflage below −15, where a red
-// animal is black); leucistic: little pigment at all (the rare pale one); old: an old shell's colour worn and faded
-function hueTo(a,b,t){return a+((((b-a)%360)+540)%360-180)*t;}
+// with its cause. A transform hands back the colour it was given for a key it leaves alone. The pigmented keys (MORPH_KEYS) are the coat's; the
+// flesh is the blood's, the belly and the joints are pale by build, the comb and the gut are what they are.
+const MORPH_KEYS={shell:1,band:1,top:1,mantle:1,arm:1,ridge:1,web:1,plate:1,flap:1,fin:1,rim:1,bell:1,valve:1,leg:1,rust:1};
+function hueTo(a,b,t){const d=(((b-a)%360)+540)%360-180;return a+d*(Math.abs(d)>90?1:t);} // far round the wheel (a teal body to red) it goes all the way: a part-way blend would pass through yellow or green
 const MORPHS={type:null,
-  melanic:(c,k)=>PAL_PALE[k]?[c[0],c[1]*0.7,c[2]*0.72]:[c[0],c[1]*0.6,c[2]*0.5],
-  erythristic:(c,k)=>k==='shell'||k==='band'?[hueTo(c[0],8,0.7),Math.max(c[1],0.42),c[2]*(k==='shell'?0.82:0.9)]:c,
-  leucistic:(c,k)=>[c[0],c[1]*0.35,lerp(c[2],0.86,0.55)],
-  old:(c,k)=>k==='shell'||k==='band'?[c[0],c[1]*0.62,lerp(c[2],0.6,0.3)]:c};
-// the rows. grow: the law; size: the adult band about the type; old: the age rank past which an animal is old; morphs: [name, frequency];
-// vary: [part kind, param, ± fraction]; oldShell: what age does to the shell's params (a straightshell sheds its tip: Sphooceras, VARIETY §2.4);
-// max, sets, range: the clade's unless set
+  melanic:(c,k)=>PAL_PALE[k]?[c[0],c[1]*0.7,c[2]*0.72]:[c[0],c[1]*0.6,c[2]*0.5], // more melanin: cold, deep and vent water favour it; dark rock hides it
+  erythristic:(c,k)=>MORPH_KEYS[k]?[hueTo(c[0],8,0.7),Math.max(c[1],0.42),c[2]*(k==='shell'?0.82:0.9)]:c, // red in the coat: ommochromes (ringmouths), astaxanthin from the diet (the rest); red is black below −15
+  xanthic:(c,k)=>MORPH_KEYS[k]?[hueTo(c[0],46,0.65),Math.min(0.75,c[1]*1.25+0.1),lerp(c[2],0.55,0.25)]:c, // yellow: carotenoids, so only where the diet is the lit shallows' (VARIETY §5)
+  leucistic:(c,k)=>[c[0],c[1]*0.35,lerp(c[2],0.86,0.55)], // little pigment at all: the rare pale one, one in 50 (the person, 23 Nov 2026)
+  banded:(c,k)=>PAL_PALE[k]?[c[0],c[1],lerp(c[2],0.86,0.4)]:MORPH_KEYS[k]?[c[0],Math.min(1,c[1]*1.1),c[2]*0.62]:c, // a pattern morph: disruptive bands (MORPH_PAT, drawn with the texels on) and the hard contrast that goes with them — dark back, pale belly
+  spotted:(c,k)=>MORPH_KEYS[k]?[hueTo(c[0],35,0.3),c[1]*0.6,lerp(c[2],0.5,0.35)]:c, // a pattern morph: the mottle (MORPH_PAT) and the floor's own paler, greyer tone
+  old:(c,k)=>k==='shell'||k==='band'?[c[0],c[1]*0.62,lerp(c[2],0.6,0.3)]:c, // an old shell, worn and faded
+  senescent:(c,k)=>MORPH_KEYS[k]?[c[0],c[1]*0.7,lerp(c[2],0.62,0.2)]:c, // a soft ringmouth near its end: the chromatophores fail, the skin pales
+  weathered:(c,k)=>MORPH_KEYS[k]?[c[0],c[1]*0.85,c[2]*0.86]:c, // an old slowblood: darker, duller
+  worn:(c,k)=>MORPH_KEYS[k]?[c[0],c[1]*0.72,lerp(c[2],0.42,0.25)]:c}; // an old hingeshell's carapace between its rare moults: dull, abraded
+// where a morph is favoured (v11.226.1). The person (24 Nov 2026): "darker ones in darker biomes, but otherwise should not have random really dark
+// ones in the bright dunes… the totally black ridge should show up a lot more often in darker waters or open ocean… not deterministic, just chance."
+// A morph's odds are its frequency times its favour at the place an animal is drawn: what a hunter sees an animal against picks off the ones that
+// stand out (Earth: the pocket mice dark on the lava and pale on the sand, the peppered moth). The place is read once, at the spawn (creatures_ai.js
+// placeOf), as terms 0..1 — dark: how dark the animal's background is (the light lost with its depth, the ground's tone near the floor, the open
+// ocean's depth beneath it); lit: the lit shallows, whose food carries carotenoids; rock, sand, floor: the ground within reach of it; vent: the
+// vents' heat. A favour f multiplies the frequency by k[0] + (k[1] − k[0])·f²; the type and the pale one follow nothing.
+const FAVOUR={k:[0.08,3.2]}; // the multiplier runs with the favour's square: a dark morph in the bright dunes is about one in 100, not one in 25
+const MORPH_FAVOUR={melanic:'dark',erythristic:'dark',xanthic:'lit',banded:'rock',spotted:'floor'}; // the term a morph follows unless the row names its own (a morph's third element: a term, or 'none')
+const GROUND_TONE={lime:0.02,'':0.05,rust:0.5,mn:0.85,sulfide:1}; // the ground's darkness by its chemistry class (coatClassAt): the reef's lime and the sand and ooze pale, the iron rust mid, manganese and sulfide black; fresh basalt ('d') 0.35 darker
+// a pattern morph's pattern (PATTERNS: kind, cells a period, tone), in place of the clade's: banded the disruptive stripe of a body among structure,
+// spotted the mottle of one on rubble, sand or weed
+const MORPH_PAT={banded:{kind:'stripes',scale:2,tone:0.24},spotted:{kind:'spots',scale:3,tone:0.24}};
+// the proportions that vary when a row does not list its own (`vary`): by part kind, and by core kind under 'core' — [param, ± fraction]; a param
+// moves only where the spec sets it or its registry default is a number; counts never move. prof (the lathe's profile) is its girth: every radius
+const VARY_AUTO={arms:[['len',0.14]],legs:[['ll',0.1]],fins:[['len',0.12],['h',0.12]],tail:[['ll',0.1],['lh',0.12],['L',0.1]],mouth:[['len',0.12]],
+  flaps:[['len',0.1],['w',0.1]],weapon:[['len',0.1],['w',0.08]],comb:[['len',0.12]],eyes:[['len',0.15]],spines:[['h',0.2]],barbels:[['len',0.2]],
+  chevrons:[['sz',0.1]],ridge:[['len',0.1],['h',0.15]],skirt:[['len',0.1],['h',0.1]],tailplate:[['w',0.1]],head:[['sy',0.08]],plates:[['w',0.08]],
+  core:{lathe:[['prof',0.07],['sz',0.06]],trunk:[['w0',0.08],['w1',0.08],['h0',0.06],['h1',0.06],['L',0.05]],shield:[['sx',0.06],['sz',0.06]],
+    coilbody:[['sx',0.05],['sy',0.06],['sz',0.05]],mantle:[['L',0.08],['R',0.06]],bell:[['R',0.08],['H',0.1]],chain:[['L',0.08],['w0',0.1]],
+    sac:[['R',0.06],['sy',0.06]],bean:[['sx',0.06],['sz',0.06]],arches:[['L',0.05],['w0',0.05]]}};
+// the rows (v11.225 the shelled ringmouths, v11.226 every placed species: the person, 24 Nov 2026, "variety for more species first"). grow: the law
+// (the clade's unless set); size: the adult band about the type; old: the age rank past which an animal is old (1.1: never); morphs: [name,
+// frequency, and the place's term it follows if not MORPH_FAVOUR's], the first the type; vary: [part kind or 'core', param, ± fraction] (VARY_AUTO's unless set); oldShell: what age does to the shell (a
+// straightshell sheds its tip: Sphooceras, VARIETY §2.4); max, sets, range, oldPal: the clade's unless set. A uniform species has the type alone:
+// the schooling forage (the oddity effect — the one that differs is the one a hunter picks out), the deep line's pall, the sulfide-black cinder.
+// The person on v11.225 (24 Nov 2026): "I love how they can match their environment… their larger size is SO much more threatening and unique to
+// this setting" — the bands are wide where the law allows it.
 const VARIETY={
-  plumb:{grow:'shell',size:[0.85,1.5],old:0.9,morphs:[['type',0.82],['melanic',0.16],['leucistic',0.02]],vary:[['arms','len',0.14],['shell','L',0.06],['shell','r0',0.1],['shell','turns',0.2]],oldShell:{L:0.82}}, // 20 m typical, 30 m the oldest (the person, 23 Nov 2026)
-  ortho:{grow:'shell',size:[0.85,1.35],old:0.9,morphs:[['type',0.82],['erythristic',0.16],['leucistic',0.02]],vary:[['arms','len',0.14],['shell','L',0.06],['shell','r0',0.1],['shell','turns',0.2]],oldShell:{L:0.85}},
-  great:{grow:'shell',size:[0.85,1.3],old:0.9,morphs:[['type',0.84],['melanic',0.14],['leucistic',0.02]],vary:[['arms','len',0.14],['shell','R1',0.08],['shell','k',0.05]]},
-  rasp:{grow:'shell',size:[0.8,1.25],old:0.9,morphs:[['type',0.68],['erythristic',0.3],['leucistic',0.02]],vary:[['arms','len',0.16],['shell','R1',0.1]]} // the rasp: a grazer of the lit rock, where a red shell among the red crusts is the common second
+  // ringmouths: the shelled grow by their shells, the soft stop; they vary most
+  plumb:{grow:'shell',size:[0.85,1.5],old:0.9,morphs:[['type',0.82],['melanic',0.16],['leucistic',0.02]],vary:[['arms','len',0.14],['shell','L',0.06],['shell','r0',0.1],['shell','turns',0.2]],oldShell:{L:0.82},oldPal:'old'}, // 20 m typical, 30 m the oldest (the person, 23 Nov 2026)
+  ortho:{grow:'shell',size:[0.85,1.35],old:0.9,morphs:[['type',0.82],['erythristic',0.16],['leucistic',0.02]],vary:[['arms','len',0.14],['shell','L',0.06],['shell','r0',0.1],['shell','turns',0.2]],oldShell:{L:0.85},oldPal:'old'},
+  great:{grow:'shell',size:[0.85,1.3],old:0.9,morphs:[['type',0.84],['melanic',0.14],['leucistic',0.02]],vary:[['arms','len',0.14],['shell','R1',0.08],['shell','k',0.05]],oldPal:'old'},
+  rasp:{grow:'shell',size:[0.8,1.25],old:0.9,morphs:[['type',0.68],['erythristic',0.3,'lit'],['leucistic',0.02]],vary:[['arms','len',0.16],['shell','R1',0.1]],oldPal:'old'}, // the rasp: a grazer of the lit rock, where a red shell among the red crusts is the common second
+  arrow:{size:[0.9,1.12],old:0.92,morphs:[['type',0.78],['erythristic',0.2,'none'],['leucistic',0.02]]}, // a pack's jetters: the flush of red is the chromatophores'
+  lurker:{size:[0.85,1.2],old:0.92,morphs:[['type',0.58],['melanic',0.2],['spotted',0.2,'rock'],['leucistic',0.02]]}, // among rock: dark on the basalt, mottled on the rubble
+  watcher:{size:[0.88,1.15],old:0.92,morphs:[['type',0.7],['erythristic',0.15,'none'],['banded',0.13],['leucistic',0.02]]},
+  veil:{size:[0.85,1.25],old:0.92,morphs:[['type',0.9],['melanic',0.08],['leucistic',0.02]]}, // the deep line's filter feeder: long-lived and slow, a wider band
+  pall:{size:[0.92,1.1],old:1.1,morphs:[['type',1]],sets:1}, // uniform: black in the oxygen minimum, nothing to show to anything there
+  // slowbloods: never stop growing
+  darter:{size:[0.85,1.25],old:1.1,morphs:[['type',1]],sets:1}, // uniform: a school (the oddity effect)
+  needle:{size:[0.85,1.3],old:0.92,morphs:[['type',0.8],['banded',0.18],['leucistic',0.02]]},
+  grazer:{size:[0.8,1.45],old:0.92,morphs:[['type',0.7],['melanic',0.16],['xanthic',0.12],['leucistic',0.02]]}, // the herds on the lit sand: carotenoid-rich from the green they crop
+  basker:{size:[0.85,1.45],old:0.92,morphs:[['type',0.82],['melanic',0.16],['leucistic',0.02]]}, // the vents' warmth: melanin
+  ridge:{size:[0.85,1.55],old:0.92,morphs:[['type',0.78],['melanic',0.2],['leucistic',0.02]]}, // the black ridge: the open ocean's and the dark water's (the person, 24 Nov 2026), rare in the lit
+  abyssal:{size:[0.85,1.6],old:0.92,morphs:[['type',0.9],['erythristic',0.08],['leucistic',0.02]]}, // the deep's red, which is black where it lives
+  eel:{size:[0.8,1.5],old:0.92,morphs:[['type',0.78],['spotted',0.2,'rock'],['leucistic',0.02]]}, // mottled in the weed's cover
+  stone:{size:[0.85,1.4],old:0.92,morphs:[['type',0.8],['melanic',0.18],['leucistic',0.02]]}, // dark on the pavement and the crust
+  crusher:{size:[0.85,1.45],old:0.92,morphs:[['type',0.82],['banded',0.16],['leucistic',0.02]]},
+  // hingeshells: in moult steps
+  flicker:{size:[0.85,1.2],old:1.1,morphs:[['type',1]],sets:1}, // uniform: a ribbon (the oddity effect)
+  sifter:{size:[0.85,1.2],old:1.1,morphs:[['type',1]],sets:1}, // uniform: a swarm
+  scuttle:{size:[0.8,1.4],old:0.92,morphs:[['type',0.7],['erythristic',0.18,'lit'],['banded',0.1],['leucistic',0.02]]}, // the strand's: red from a shore diet
+  wedge:{size:[0.85,1.3],old:0.92,morphs:[['type',0.75],['melanic',0.23],['leucistic',0.02]]}, // dark on the surf's basalt
+  trap:{size:[0.85,1.35],old:0.92,morphs:[['type',0.7],['spotted',0.28,'sand'],['leucistic',0.02]]}, // buried in sand: the mottle of it
+  plough:{size:[0.85,1.3],old:0.92,morphs:[['type',0.8],['banded',0.18,'sand'],['leucistic',0.02]]},
+  hood:{size:[0.85,1.3],old:0.92,morphs:[['type',0.85],['melanic',0.13],['leucistic',0.02]]},
+  hose:{size:[0.85,1.3],old:0.92,morphs:[['type',0.8],['erythristic',0.18,'lit'],['leucistic',0.02]]}, // the weed forest's carotenoids
+  lash:{size:[0.85,1.3],old:0.92,morphs:[['type',0.85],['banded',0.13],['leucistic',0.02]]},
+  hook:{size:[0.85,1.35],old:0.92,morphs:[['type',0.8],['melanic',0.18],['leucistic',0.02]]},
+  sickle:{size:[0.85,1.4],old:0.92,morphs:[['type',0.85],['melanic',0.13],['leucistic',0.02]]},
+  ram:{size:[0.85,1.35],old:0.92,morphs:[['type',0.88],['banded',0.1,'none'],['leucistic',0.02]]},
+  comb:{size:[0.85,1.35],old:0.92,morphs:[['type',0.9],['melanic',0.08],['leucistic',0.02]]},
+  relict:{size:[0.85,1.3],old:0.92,morphs:[['type',0.92],['melanic',0.06],['leucistic',0.02]]},
+  picker:{size:[0.85,1.3],old:0.92,morphs:[['type',0.85],['melanic',0.15]]}, // the vents' swarm: melanin, and no pale one in the dark
+  tread:{size:[0.9,1.25],old:0.92,morphs:[['type',0.9],['melanic',0.08],['leucistic',0.02]]}, // the giant moults seldom: few steps
+  cinder:{size:[0.85,1.25],old:1.1,morphs:[['type',1]],sets:1}, // uniform: black in its sulfide
+  // drifters: by the place's food
+  jelly:{size:[0.75,1.35],old:1.1,morphs:[['type',0.9],['erythristic',0.1]]}, // red is black below the light: the deeper ones carry it
+  deepbell:{size:[0.8,1.3],old:1.1,morphs:[['type',1]]},
+  sailer:{size:[0.8,1.25],old:1.1,morphs:[['type',1]]} // the ledger's (the fleets outside it are the type)
 };
 // The roster (PLANET.md) in the order the bestiary shows it (zoo.js). Display only: clade, family, niche, size is DEFS's (or the
 // clade's, for the three players), floor: sits on the ground (shown at the game's floor clearance), new: built and not yet placed.
