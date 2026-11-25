@@ -226,6 +226,10 @@ with species per biome capped at eight — measured, not assumed.
   where the trees do. The world's census (the far layer's placement at every try, 19,726 cells whose ground crosses the band): 1,528,208 trees on
   10,759 cells → 50,362 on 2,046 (×0.033); the four big islands (the giant, m109, m122, m153) carry 78% of them (49% before) and keep trees on 23–36% of the cells they
   stood on; the platform, the banks and the atolls keep 0–21% (the platform 9%), and ours none. The reed, the tidewood's dwarf, is untouched.
+  *v11.239 (the person, 25 Nov 2026, on the work tower's report #205: "probably smarter to do both versions" — both tiers):* the reed keeps its
+  numbers and its places but is drawn only to 160 m, fading over the last 40 (`REED_CUT`, scene.js; its own material `MATRD`). A reed is 1.4–3.6 m of
+  7 cm rods: past ~150 m a few pixels tall and far under one wide, yet most of a shore's reeds lie there — at the tower's worst place 957 of 1,157
+  sent, 600k of the frame's 1.33M triangles.
 - **Epibionts** (later): small things on big things — beards on tubes, crusts on towers, cones on a stipe's holdfast, a
   loop twined round a stalk — placed from the emergent instance's matrix. Both images are full of it; it is the
   cheapest "lived-in" there is.
