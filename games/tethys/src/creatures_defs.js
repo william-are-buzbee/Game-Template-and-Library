@@ -66,7 +66,7 @@ const DEFS={
   plumb:{build:()=>compile(SPECS.plumb),size:11,hp:120,role:'ambush',upright:true,station:['wall','lee'],below:0.5,prey:['player','darter','needle','arrow','flicker','sifter','hose','eel','watcher','grazer'],radius:22,lunge:8,reach:6.5,dmg:26,clear:11}, // v11.223 (CLADES, The radiation): hangs shell-up at a wall in still water (station), strikes only down (below), rides the swarm's layer (creatures_ai.js updatePlumb); clear: its arms' tips under its origin
   quill:{build:()=>compile(SPECS.quill),size:1.8,hp:30,role:'ambush',upright:true,station:['canopy'],canopy:[2,9],below:0.5,prey:['darter','flicker','needle'],radius:7,lunge:5,reach:1.2,dmg:6,clear:1.9}, // v11.227: the plumb's small line in the weed (CLADES, The radiation): hangs among the stalks (canopy: its height over the floor, a band, each its own), drops on the small
   hoop:{build:()=>compile(SPECS.hoop),size:8,pace:0.22,hp:500,role:'wander',gape:true,home:220,cruise:60,cruiseF:0.9,lodNear:110}, // v11.227: the filter giant — gape: its mouth's ring held open while it sieves (creatures_ai.js filterSeek); the abyssal's prey
-  hook:{build:()=>compile(SPECS.hook),size:2.5,hp:50,role:'ambush',prey:['player','flicker','darter','needle'],hang:true,radius:11,lunge:11,reach:2.8,dmg:18},
+  hook:{build:()=>compile(SPECS.hook),size:2.5,hp:50,role:'ambush',prey:['player','flicker','darter','needle'],hang:true,below:0.3,radius:11,lunge:11,reach:2.8,dmg:18}, // below (v11.232, HOOK): it drops on what passes under it, up in the structure
   tread:{build:()=>compile(SPECS.tread),size:7,pace:0.17,hp:800,role:'graze',calm:true,home:90,floor:true,legs:true,cruiseF:1},
   picker:{build:()=>compile(SPECS.picker),stock:3,size:1.5,pace:0.62,flee:true,hp:1,edible:true,food:10,role:'graze',home:40,floor:true,legs:true,cruiseF:0.6,scav:90},
   flicker:{build:()=>compile(SPECS.flicker),stock:8,size:0.4,pace:0.51,flee:true,hp:1,edible:true,food:6,role:'boid'},
@@ -147,7 +147,7 @@ const BEHAVE={
   hoop:{therm:'giga'}, // v11.231: the filter giant holds its warmth by its bulk
   stone:{therm:'torpid'}, // v11.231: the plain's torpid stone: cold slows it less than it slows an active body — it does little enough — and it starves slower
   // hingeshells: no pursuit, the strike; the night shift's walkers
-  scuttle:{act:[0.2,1,0.6],rest:'bury',freeze:true}, // the ghost crab's: out at night, in the sand by day
+  scuttle:{act:[0.2,1,0.6,-0.5],rest:'bury',freeze:true,tidal:true}, // the ghost crab's: out at night, in the sand by day; v11.232: the fiddler's too — out on the flats the low tide leaves (TIDEW), less about at high water
   trap:{act:[0.4,1,0.8],eye:'night'}, // buried at every hour; it strikes readily at night
   hook:{act:[0.4,1,0.8],eye:'night'},
   flicker:{act:[0.2,1,0.7]}, // the demersal plankton's: in the weed by day, up in the water at night
@@ -177,8 +177,9 @@ const EYE_K={ring:[-10.5,-5.5],two:[-10,-6],stalk:[-9,-5],night:[-11,-7],deep:[-
 // motion is the school's); nor the player, whose cold is the loop's (DIRECTION decision 2) and the person's to place
 const THERM_F={ecto:0.25,mixo:0.8,giga:0.85,torpid:0.75};
 const EYE_CLADE={ringmouths:'ring',slowbloods:'two',hingeshells:'stalk'},LAT_CLADE={ringmouths:1.3,slowbloods:2.0,hingeshells:1.6,drifters:0};
-for(const k in DEFS){const d=DEFS[k],sp=SPECS[k],b=BEHAVE[k]||{};if(b.act!==undefined)d.act=b.act;if(b.rest!==undefined)d.rest=b.rest;if(b.insp!==undefined)d.insp=b.insp;if(b.scav!==undefined)d.scav=b.scav;d.pack=b.pack||undefined;d.ink=b.ink||undefined;d.herd=b.herd||undefined;d.bask=b.bask||undefined;d.foray=b.foray||undefined;if(!sp)continue; // v11.230: scav, pack, ink (the ringmouths' pass); v11.231: herd, bask, foray (the slowbloods')
+for(const k in DEFS){const d=DEFS[k],sp=SPECS[k],b=BEHAVE[k]||{};if(b.act!==undefined)d.act=b.act;if(b.rest!==undefined)d.rest=b.rest;if(b.insp!==undefined)d.insp=b.insp;if(b.scav!==undefined)d.scav=b.scav;d.pack=b.pack||undefined;d.ink=b.ink||undefined;d.herd=b.herd||undefined;d.bask=b.bask||undefined;d.foray=b.foray||undefined;d.tidal=b.tidal||undefined;if(!sp)continue; // v11.230: scav, pack, ink (the ringmouths' pass); v11.231: herd, bask, foray (the slowbloods')
   d.thermF=sp.clade==='slowbloods'&&d.role!=='boid'&&d.role!=='player'?THERM_F[b.therm||'ecto']:undefined;
+  d.dens=sp.clade==='hingeshells'&&d.rest==='cover'||undefined;d.hinge=sp.clade==='hingeshells'&&!!d.strike&&d.role==='hunter'||undefined; // v11.232: a hingeshell that rests in cover keeps a den (DEN); one that strikes hunts by the strike alone (HINGE)
   const e=b.eye||EYE_CLADE[sp.clade];d.eye=e?EYE_K[e]:undefined;d.lat=b.lat!==undefined?b.lat:LAT_CLADE[sp.clade]||0;d.freeze=b.freeze||undefined;}
 // v11.149 (the creature performance pass): every def one shape. The rows above are each their own literal, and an individual's def was its kind's
 // chained under a copy of its own size (creatures_ai.js scaledDef: Object.create) — 26 shapes among the forest's creatures, so every d.role, d.size,

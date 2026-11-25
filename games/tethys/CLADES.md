@@ -429,7 +429,7 @@ middle in its depth band and roams its `home`. Two species with one envelope liv
 3. **The clock** — a station moves: the day (the swarm's layer, built; v11.228 every kind's hours and its rest out of them, BEHAVIOUR.md §2); the tide (the lee changes sides of a pinnacle as the stream turns,
    `tidalAt` — the hangers swing round it twice a day); the year (the filter giant comes with the bloom, PLANKTON §6).
 4. **Habitat made by animals** — later: the giant's carcass as a fall (a floor community that lasts), the dead shells squatters take, the
-   hingeshells' dens (unbuilt).
+   hingeshells' dens (built v11.232: BEHAVIOUR §3f).
 
 | | ortho | hanger |
 |---|---|---|

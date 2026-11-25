@@ -2150,6 +2150,14 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   up a chase at 0.44. The grazers' herd: a fright calls neighbours within 12 m for 3 s, each relay 0.5 s shorter. The abyssal: a quarter of its deep
   wanders 120–320 m below its home, to −900. The chase: × (1 + `CHASE` 0.6 / 0.5 / 0.25 by clade) × `stamK`, the chase draining the clade's stamina,
   given up spent at 0.03 when not within twice its reach.
+- **The hingeshells (v11.232; BEHAVIOUR.md §3f; creatures_ai.js `HINGE`, `DEN`, `HOOK`, `TIDEW`, `MOULT.cue`; creatures_spec.js `VALVE`).** A hingeshell
+  hunter that strikes (`DEFS.hinge`) has no sprint (`CHASE.hingeshells` 0) and gives up a hunt after `HINGE.chase` 8 s with no strike begun or `misses` 2.
+  The valves breathe at rest (under `VALVE.still` 0.3 of the anim's speed, up `lift` 0.1 rad over their resting lift and down over `p` 5 s, on the anim's clock, t + the creature's t0). A hingeshell
+  that rests in cover (`DEFS.dens`) keeps its first cover as `c.den` and rests there within `DEN.r` 60 m; a grazer with one bolts for it within `flee` 18 m
+  when it is not toward the threat and clamps in it; within `at` 1.5 m it has the weed's cover. In its last `MOULT.cue` 1 game hour before a moult its
+  valves stay down and `awakeC` is 0; `MOULT.soft` 1 game day (was 0.5; the player's too). The hook strikes only below (`below` 0.3), climbs home at
+  `HOOK.climb` 1 m/s, and after `give` 120 s hungry with nothing climbs to a post `step` 6–20 m off, `hang` 5–14 m up. A tidal scuttle at low water (CK.hi
+  under `TIDEW.lo` 0.35) wanders to ground `band` 0.2–2.5 m over the waterline within `r` 60 m.
 - **Removed by request:** the mid-water `weed` flora (the "floating spiky objects"); the `colony` creature (pink/cyan
   glowing chains); darter/glim **schools are no longer spawned** — the code (`school` role, `makeSchool`,
   `updateSchools`, `buildDarter`) is intact. They went because the rigid formation read as a block; if they return it
