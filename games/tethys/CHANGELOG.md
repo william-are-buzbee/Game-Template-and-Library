@@ -11825,3 +11825,17 @@ Three cuts, none of which changes what is simulated or drawn:
 The simulation the same to the bit (test/frames.js, test/bench_creatures.js, test/scangrid.js); every body the same, built and posed. The picture at
 the forest, the shore and the canopy: 3–8 pixels of 1.44 million differ, by 1 of 255 — the shader compiler's rounding round the new branches, not a
 light missed (a missing light is tens of levels over whole surfaces).
+
+**The low tier at the work tower's size** (`TIER=low SIZE=866x694`, test/fill.js against main, its seven places): the picture the same pixel for
+pixel at six and one pixel by 1 of 255 at the coast; renderFrame's CPU side ×0.42–0.84 at six (the wood, with no creatures, 3.2 → 4.1 ms on a clock of
+0.1 ms); the GPU's time by the proxy ×0.92–1.03 — the tower's frame is its GPU's (#152: 31 ms of 33), and this pass barely moves that. Not measured: the
+person's cards. The branch round a dark light is one test a draw on a GPU that keeps it; a compiler that flattens it (ANGLE's to Direct3D may) runs both
+sides and saves nothing, at no cost either.
+
+**Unseen, ask in this order:**
+1. The home machine at 120 Hz, on the preview against main's: the readout's `render` and `gpu` ms and the frame at the forest's shelf `tp(330,0)` and the
+   shore `tp(110,-380)`; then F9 after a few minutes' play — #190 had the CPU at 4.4 ms (submit 2.9) and the GPU's p95 at 11.3.
+2. The work tower: F8 then F9 on the preview (its last report is v11.197): its GPU's parts by the probe are what the next pass on a weak card needs.
+3. Nothing should look or act differently. Worth a glance: creatures coming into sight at the edge of the fog (their parts are recomposed the frame they
+   show — a body drawn a frame in an old pose would be this); lit things at night or in the deep (the own light, a bacterial glow, the pall's lure)
+   lighting the floor and the plants as before.
