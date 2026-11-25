@@ -11958,3 +11958,37 @@ sides and saves nothing, at no cost either.
 3. Nothing should look or act differently. Worth a glance: creatures coming into sight at the edge of the fog (their parts are recomposed the frame they
    show — a body drawn a frame in an old pose would be this); lit things at night or in the deep (the own light, a bacterial glow, the pall's lure)
    lighting the floor and the plants as before.
+
+## v11.239 — the reed and the seagrass drawn to 160 m (25 Nov 2026)
+
+The work tower's first report on v11.238 (#205, the Intel UHD 730 on the low tier at 1070×624): the frame's median 16.8 ms (33.3 in #152, v11.197),
+40% of frames over 16.7, the GPU 22 ms on the mean and 39.5 at its worst place, `tp(72929,243)` — a shallow sand flat from the surface. Stood there on the
+low tier at that size (test/fill.js, test/gpu.js with `AT=`), the costliest draw was the reed: 600k of the frame's 1.33M triangles, nearly all vertex
+work, for a plant that reads as a few specks — 957 of the 1,157 reeds sent were past 150 m, where a reed (1.4–3.6 m of 7 cm rods) is a few pixels tall and
+far under one wide. The strap, the flats' seagrass (blades 0.9–2 m by 0.16–0.24), the same: 954 of 1,175 past 150 m. The person (25 Nov 2026), offered
+the low tier only or both: *"Probably smarter to do both versions"*; then *"do the seagrass too."*
+
+- **`THIN_CUT`** (scene.js, [160, 40]): the reed and the strap are drawn to 160 m and fade over the last 40, on both tiers. Each has a material of its own
+  (`MATRD`, the tussock's `MATGL` with that cut; `MATSG`, `MATG`'s) — the same program, the cut a uniform — so nothing compiles anew, and the pools'
+  tiles past it are not sent at all (chunks.js `tileSeen` reads each material's reach). The reed keeps its numbers and places; so does the strap.
+  `warmShaders` lists both (main.js).
+- The tussock, the scrub, the paddle, the tress, the turf and the wisp keep their families' materials and `FLORA_FAR`.
+
+**What it costs** (`node test/perf.js --only gpu,fill` against v11.238; and the low tier at the tower's size, the same against v11.238):
+
+| measure | v11.238 | here | ratio |
+|---|---|---|---|
+| low tier, the tower's worst place: triangles a frame | 1.33M | 739k | ×0.56 |
+| the same: the GPU's time, a proxy (software WebGL) | 512 | 392 | ×0.77 (the reed ×0.35, the strap ×0.35) |
+| low tier, triangles: coast / canopy / shore / forest | 1.10M / 1.11M / 1.12M / 930k | 838k / 959k / 996k / 910k | ×0.77 / ×0.87 / ×0.89 / ×0.98 |
+| high tier, triangles: coast / canopy / shore / atoll / forest | 2.70M / 2.94M / 3.18M / 3.20M / 2.53M | 2.14M / 2.62M / 2.90M / 3.09M / 2.49M | ×0.79 / ×0.89 / ×0.91 / ×0.97 / ×0.98 |
+| high tier, the GPU's time, a proxy: forest / shore / canopy | 1,828 / 2,045 / 1,730 | 1,761 / 1,946 / 1,712 | ×0.96 / ×0.95 / ×0.99 (the strap ×0.05–0.08, the reed ×0.68 at the shore) |
+| uniforms a frame, every place | | | +20 (×1.01–1.02: two materials more to switch to) |
+| programs, draws, bytes, compiled at first sight | | | the same; none compiled at first sight anywhere |
+
+`test/gpu.json` updated (the coast's triangles −21%, its instances −12%). **What changes on screen:** the far specks of reed and seagrass — at the
+tower's worst place 0.21% of the pixels (1,417 of 667,680), at the shore 0.023%, at the canopy 5 pixels by at most 4 of 255, the forest none.
+
+**Unseen, ask in this order:**
+1. The work tower at `tp(72929,243)` and at any shore: the frame against before, and an F9.
+2. The home machine at a reed bed from the water, and over a seagrass flat: whether the beds now end where you notice — the fade runs 120–160 m.

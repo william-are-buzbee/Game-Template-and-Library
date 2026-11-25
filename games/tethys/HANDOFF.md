@@ -4,6 +4,12 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.239 (25 Nov 2026): the reed and the seagrass drawn to 160 m** (scene.js `THIN_CUT`, `MATRD`, `MATSG`; flora.js the reed and the strap; main.js
+`warmShaders`; FLORA.md; CHANGELOG). The work tower's report on v11.238 (#205): 60 fps on the median now, 40% of frames late, its worst place a sand flat
+where the reed was 600k of 1.33M triangles, nearly all of them past 150 m and sub-pixel; the seagrass the same. The person: *"both versions"* (both
+tiers), *"do the seagrass too."* There: triangles ×0.56, the proxy ×0.77 on the low tier; elsewhere ×0.77–0.98. Only far specks leave the picture.
+**Ask:** the tower's frame at `tp(72929,243)` and a shore; whether a reed bed's end at 120–160 m shows on the home machine.
+
 **v11.238 (25 Nov 2026): a performance pass — the scans by square, the matrices only of what is drawn, the dark lights skipped** (creatures_ai.js
 `CG`, `cgNear`, `crMW`; horizon.js `MW.hide`; scene.js the light chunks; test/scangrid.js; DESIGN Performance; CHANGELOG). The person: *"find any performance
 updates we can do to make the game more easily playable now."* Since v11.220 the GPU's side got lighter and the creatures' CPU work ×1.20–1.27. Three cuts,
@@ -31,11 +37,6 @@ surroundings."* Its light had a floor (45–95% of noon with no light at all, th
 the ambient, the sun or moon by its depth, the own light and the pool's lights by the ground's falloff — and nothing else. The lit shallows as they
 were; black water with nothing lit leaves it unseen. **Ask:** whether the snow in the own light's reach in the deep, and at night, is enough to keep
 the sense of space; whether mid-depth by day now reads too thin.
-
-**v11.235 (25 Nov 2026): the fan rebuilt** (flora.js `fanB`, the `fan` entry; grow.js `branch`'s `col2`; FLORA.md's head note and roster; CHANGELOG).
-The person: *"the multicolored triangles are a bit too ubiquitous and look kind of strange"* — the fan, a squashed cone in four vivid tints at 200 tries
-a cell. Asked to strike or rebuild, the person chose the rebuild: a pale branching fan in one plane across the current, 40 tries a cell in patches,
-only in strong current below 12 m — about a ninth as many. **Ask:** whether the new fans read as fans, and whether they are now too few to notice.
 
 ## Open
 
