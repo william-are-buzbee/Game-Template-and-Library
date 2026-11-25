@@ -158,6 +158,8 @@ const BEHAVE={
   wedge:{act:[1,1,1,1],rest:'cover',freeze:true}, // the surf zone's walker: about when the water is over it, clamped to the rock at low tide
   plough:{act:[0.3,1,0.6],rest:'bury',freeze:true}, // ploughs the flats at night, under the sand by day
   // v11.229, the senses (eye, lat, freeze; BEHAVIOUR §4): the deep's eyes, tuned to what light there is (DEEP, BIOLUM §2)
+  jelly:{layer:true}, // v11.233: the pulser follows the plankton's daily layer, as Earth's lit-water jellies do (creatures_ai.js DRIFT.rise); the deepbell keeps below the light
+  sailer:{strand:true}, // v11.232: a float on a shoal grounds, and the animal dies there (STRAND); the great sailer, the landmark, keeps the deep water
   relict:{eye:'deep'},picker:{eye:'deep'},pall:{eye:'deep'},veil:{eye:'deep'},cinder:{freeze:true}
 };
 // The senses (v11.229; BEHAVIOUR §4, pass 1; PLANET, Light, revised 17 Nov 2026, and the eyes by clade; the person, 24 Nov 2026, on sight by light — BIOLUM §7.6 —
@@ -177,7 +179,7 @@ const EYE_K={ring:[-10.5,-5.5],two:[-10,-6],stalk:[-9,-5],night:[-11,-7],deep:[-
 // motion is the school's); nor the player, whose cold is the loop's (DIRECTION decision 2) and the person's to place
 const THERM_F={ecto:0.25,mixo:0.8,giga:0.85,torpid:0.75};
 const EYE_CLADE={ringmouths:'ring',slowbloods:'two',hingeshells:'stalk'},LAT_CLADE={ringmouths:1.3,slowbloods:2.0,hingeshells:1.6,drifters:0};
-for(const k in DEFS){const d=DEFS[k],sp=SPECS[k],b=BEHAVE[k]||{};if(b.act!==undefined)d.act=b.act;if(b.rest!==undefined)d.rest=b.rest;if(b.insp!==undefined)d.insp=b.insp;if(b.scav!==undefined)d.scav=b.scav;d.pack=b.pack||undefined;d.ink=b.ink||undefined;d.herd=b.herd||undefined;d.bask=b.bask||undefined;d.foray=b.foray||undefined;d.tidal=b.tidal||undefined;if(!sp)continue; // v11.230: scav, pack, ink (the ringmouths' pass); v11.231: herd, bask, foray (the slowbloods')
+for(const k in DEFS){const d=DEFS[k],sp=SPECS[k],b=BEHAVE[k]||{};if(b.act!==undefined)d.act=b.act;if(b.rest!==undefined)d.rest=b.rest;if(b.insp!==undefined)d.insp=b.insp;if(b.scav!==undefined)d.scav=b.scav;d.pack=b.pack||undefined;d.ink=b.ink||undefined;d.herd=b.herd||undefined;d.bask=b.bask||undefined;d.foray=b.foray||undefined;d.tidal=b.tidal||undefined;d.strand=b.strand||undefined;d.layer=b.layer||undefined;if(!sp)continue; // v11.230: scav, pack, ink (the ringmouths' pass); v11.231: herd, bask, foray (the slowbloods')
   d.thermF=sp.clade==='slowbloods'&&d.role!=='boid'&&d.role!=='player'?THERM_F[b.therm||'ecto']:undefined;
   d.dens=sp.clade==='hingeshells'&&d.rest==='cover'||undefined;d.hinge=sp.clade==='hingeshells'&&!!d.strike&&d.role==='hunter'||undefined; // v11.232: a hingeshell that rests in cover keeps a den (DEN); one that strikes hunts by the strike alone (HINGE)
   const e=b.eye||EYE_CLADE[sp.clade];d.eye=e?EYE_K[e]:undefined;d.lat=b.lat!==undefined?b.lat:LAT_CLADE[sp.clade]||0;d.freeze=b.freeze||undefined;}

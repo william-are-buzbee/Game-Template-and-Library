@@ -192,6 +192,19 @@ function penB(rg, k) {
   blades(P, N, {from: 0.3, to: 0.98, count: 12 + k * 2, len: 0.35, w: 0.09, droop: 0.3, spin: 'two', twist: rg() * TAU, taper: 0.6}, rg);
   return {P: P};
 }
+// fan (v11.235): the polyp line's horny fan — the branch bauplan at planarity 1, forking in one plane broadside to the current (flow-faced:
+// the plane is x-y), a net that strains the water and costs nothing to hold, on a short dark stalk; the outer twigs carry the polyps, pale
+// (FLORA's polyp line: the jelly's tints, pale). 0 the broad fan (two primaries, four forks), 1 the tall narrow one, 2 the low wide one (four
+// primaries, three forks): 176–188 triangles. The collider one flat ellipsoid round the variant's own extent (seg: every twig, for its bounds).
+// To v11.233 a kept geometry, fanGeo: a cone squashed to 0.16 deep, so a solid triangle point-up, pink, orange, violet or gold, 200 tries a cell
+// on any rock in some current — the person, 25 Nov 2026: "the multicolored triangles are a bit too ubiquitous and look kind of strange"
+const FAXIS=[0.8,0.74,0.72],FSTALK=[0.5,0.42,0.4];
+function fanB(rg,k){const P=[],seg=[],n=k===2?4:2,sp=k===1?0.2:k===2?0.9:0.5,L=k===1?0.6:k===2?0.42:0.5,top=V3(0,0.18,0);
+  const o={levels:k===2?3:4,kids:[2,2,2,2],angle:k===1?0.22:0.32,ratio:0.76,planar:1,taper:0.8,sides:3,col:FAXIS,col2:PTIP,colLevels:9};
+  P.push(part(G.cyl(0.032,0.055,0.2,4,true),0,0.09,0,FSTALK));
+  for(let i=0;i<n;i++){const a=lerp(-sp,sp,i/(n-1))+(rg()-0.5)*0.12;branch(P,o,rg,top,V3(Math.sin(a),Math.cos(a),0),L*(0.85+rg()*0.3),0.036,1,seg);}
+  let x0=0,x1=0,y1=0;for(const c of seg){x0=Math.min(x0,c.b[0]);x1=Math.max(x1,c.b[0]);y1=Math.max(y1,c.b[1]);}
+  return {P:P,col:[{e:[(x0+x1)/2,y1*0.55,0,(x1-x0)/2,y1*0.45,0.12]}]};}
 // ---------- crowns (sessile ringmouths: a ring of arms round a mouth on a stalk or in a tube, an eye ring on the rim, copper flesh) ----------
 const CFLESH = [0.5, 0.66, 0.6],
   CSTALK = [0.36, 0.44, 0.42];
@@ -572,9 +585,6 @@ function ironB(rg, k) {
 }
 // ---------- kept geometries (one variant each) ----------
 // (vid0, the zero `vid` for a kept geometry on a variant-aware material, went with the bladder's builder, v11.67: nothing kept is drawn that way now)
-function fanGeo() {
-  return merge([part(G.cyl(0.08, 1.3, 2.4, 7), 0, 1.2, 0, W, {s: [1, 1, 0.16]}), part(G.cyl(0.1, 0.16, 0.6, 5), 0, 0.2, 0, [0.5, 0.4, 0.35])]);
-}
 function boulderGeo() {
   return merge([part(new THREE.DodecahedronGeometry(1, 0), 0, 0, 0, W)]);
 }
@@ -1034,6 +1044,8 @@ function darkrindB(rg,k){const P=[],n=1+(k%2);
 // maxSlope: steepest ground an instance may stand on (default 0.9; rocks 1.9; structures unlimited, they sink on slopes).
 // leePer: density where the retention field (world.js leeW) is 1 (v11.81; canopyPer to v11.80). ys: y for surface flora (default -0.45).
 // pocket: noise scale; the base density applies fully only inside pockets of that noise (~15% of area) and at 10% elsewhere.
+// stand: [frequency, lo, hi, drop] (v11.234, the tidewood): a colony's stands — none at all where a low noise is under lo, the island's catchment lowering
+// both thresholds by up to drop (chunks.js standK, isleK).
 // minH: lowest ground an instance may stand on (land plants stay above the wet sand).
 // col: colliders per instance in local units: {s:[x,y,z,r]} a sphere, {a:[..],b:[..],r} a capsule, {e:[cx,cy,cz,ax,ay,az]} an
 // ellipsoid (fans), {d:r} a dodecahedron of circumradius r (boulders: the rock's own twelve faces through the
@@ -1209,23 +1221,7 @@ const FLORA = [
     {mat: MATV, tints: DULL, s: [0.7, 1.2], tilt: true, per: 16, env: {h: [-150, -60], flow: [0, 0.4], sub: [0.5, 1], slope: [0, 0.5]}},
     (rg, k) => bommieB(rg, k, 4.5 + k * 0.8, 4) // 4.5–6 m (v11.20; was 11–14 × 1.4): a single fisher colony stood up out of the terrace's silt layer — nothing keeps a dead base defended for the centuries a taller one would take (REEF.md, The sizes)
   ),
-  {
-    id: 'fan',
-    geo: fanGeo(),
-    mat: MAT,
-    col: [{e: [0, 1.0, 0, 1.0, 1.05, 0.3]}],
-    tints: [
-      [0.9, 0.45, 0.5],
-      [0.95, 0.6, 0.3],
-      [0.7, 0.5, 0.85],
-      [0.95, 0.8, 0.5]
-    ],
-    s: [0.5, 1.6],
-    tilt: true,
-    flow: true,
-    per: 200,
-    env: {h: [-150, -6], flow: [0.45, 1], sub: [0.5, 1]}
-  },
+  species('fan', {mat: MATV, tints: [[0.96, 0.9, 0.86], [0.9, 0.86, 0.92], [0.94, 0.92, 0.84]], s: [0.7, 1.4], flow: true, per: 40, env: {h: [-150, -12], flow: [0.6, 1], sub: [0.5, 1]}, field: 0.02}, fanB), // v11.235 (FLORA, the person 25 Nov 2026): pale and branching, only where the current is strong and in patches (field), below the reef top the horn's fan form keeps — a ninth of the old count; to v11.233 MAT's one-variant plate, per 200, flow from 0.45, -150..-6, four vivid tints
   species(
     'pen',
     {
@@ -1362,9 +1358,9 @@ const FLORA = [
   // the greens in air (TAXA): the tidal forest, the reed margin, the rain scrub — one line, jointed, relicts of a bigger island
   species(
     'tidetree',
-    {mat: MATTR, photo: true, line: 'greenAir', tints: GREENT, s: [0.8, 1.3], air: true, per: 700, env: {h: [-3.5, 2.8], expo: [0, 0.75], young: [0, 0.45]}, field: 0.02, minH: -3.6, maxSlope: 0.5},
+    {mat: MATTR, photo: true, line: 'greenAir', tints: GREENT, s: [0.8, 1.3], air: true, per: 150, env: {h: [-3.5, 2.8], expo: [0, 0.75], young: [0, 0.45]}, field: 0.02, stand: [0.0003, 0.72, 0.78, 0.15], minH: -3.6, maxSlope: 0.5},
     tidewoodB
-  ), // the tidewood: the tide band, out of the surf, and off the last flows (young, v11.67: a wood is decades; the reed and the tussock keep the flows)
+  ), // the tidewood: the tide band, out of the surf, and off the last flows (young, v11.67: a wood is decades; the reed and the tussock keep the flows). v11.234 (the person, 25 Nov 2026: "an eye sore … should be sparse"): per 700 → 150, and in stands (chunks.js standK): a quarter to a third of a big island's tide band that held it, a tenth or none of a small one's
   species(
     'reed',
     {mat: MATGL, photo: true, line: 'green', tints: GREENT, s: [0.7, 1.4], air: true, per: 900, env: {h: [-5.5, 1.6], expo: [0, 0.4]}, field: 0.02, maxSlope: 0.6},

@@ -5,7 +5,8 @@
 stand, the arrows' pack and ink, the lurker's giving-up, the great a hunter; v11.230.1 the hangers' roam, the plumb's night under the surface, the
 wider ranges (§3d). The slowbloods' pass built (v11.231, §3e): the water's warmth and the body's, the basker's basking, the herd's alarm, the
 abyssal's forays, the chase paid from stamina. The hingeshells' pass built (v11.232, §3f): the strike as the only hunt, the valves, the dens, the
-moult's cue, the hook's drop and climb, the scuttles on the flats.** The person on v11.228: *"I play tested and enjoyed it, go ahead with pass 1."*
+moult's cue, the hook's drop and climb, the scuttles on the flats. The drifters' pass built (v11.233, §3g): eating what they sting, the jelly with the
+plankton's layer, the sailers' stranding.** The person on v11.228: *"I play tested and enjoyed it, go ahead with pass 1."*
 On v11.229 (24 Nov 2026): *"go ahead with the ringmouths pass and the plumb."* Next, the slowbloods (§4). Downstream of `PLANET.md` (each clade's deep decision is where its behaviour comes from), `CLADES.md`
 (habitat at three scales: the range, the station, the clock), `COMBAT.md` (what a hold means; pass D is the person's predator pass) and `DIRECTION.md`
 (the loop). The numbers live in `creatures_defs.js` (`BEHAVE`, `EYE_K`, `LAT_CLADE`) and `creatures_ai.js` (`CLK`, `REST`, `RISK`, `SENSE`, `SCENT`, `FREEZE`);
@@ -295,6 +296,31 @@ walking, clamped shut when threatened and through the moult"*.
 Not built in the pass: the coat's dulling before a moult (the coat is the kind's shared geometry; a creature's own tint would be a new channel); the
 cue on the player's own moult; the dens of the buriers (their bury is anywhere); the clamp as armour (a clamped valve as the covering a bite meets).
 
+## 3g. The drifters (v11.233)
+
+The person (25 Nov 2026), on v11.232: *"Let's do the drifters while I test this out."* DRIFTERS.md: *"No eyes, no brain, no intent — a drifter cannot
+hunt, only sting what touches it"*; *"what they eat: small swimmers and plankton stung on contact and hauled to a mouth"*; and its open list — the
+sailers' stranding, what eats them.
+
+- **They eat what they sting** (creatures_ai.js `DRIFT`, `driftTouch`, `driftHaul`, `driftEat`): a body small enough to haul (`DRIFT.take` 0.5 × the
+  drifter's size: a jelly takes a darter, not a needle) that touches the bell and the column of arms under it (`DRIFT.arms` 1.7 × its size down) — or,
+  for a sailer, any of its simulated lines (`DEFS.lines` of a line point) — is held at a chance of `DRIFT.p` 0.35 a `DRIFT.scan` 0.25 s scan: paralysed,
+  drawn to the mouth under the bell or the float over `DRIFT.haul` 5 s and eaten whole; the drifter digests `DRIFT.full` 90 s before it holds another.
+  The player is stung, never held. `POP.stung` counts them; test/live.js holds them under 6 a minute round the player.
+- **The jelly goes with the plankton** (`DRIFT.rise`, `BEHAVE.jelly.layer`): it climbs and sinks with the swarms' daily layer (`swarmDepth`) at 0.1 m/s,
+  as Earth's lit-water jellies follow the zooplankton up at dusk — so it is where the plankton and the fish that eat it are. The deepbell keeps below
+  the light.
+- **How often**: rarely. Over five minutes at each of three places on the shelf (330, 0; 900, 0; −200, 300), with five drifters and some 500 small fish
+  loaded round the player at the first, no fish touched a drifter (the closest pairs 6–11 m in the samples), and test/live.js's runs held none: about one
+  drifter a cell, in a sea. A ribbon swung through a jelly loses one in seconds (test/drifters.js). A jelly with a fish in it is a find, not a sight.
+- **The stranding** (`STRAND`, `BEHAVE.sailer.strand`): a sailer with under `STRAND.depth` 0.4 m of water under its float — the wind's work on the
+  windward shore, or the ebb's on the flats — grounds and dies; its body lies on the sand as carrion, and the strand's scavengers (the scuttles) come to it.
+  The old ones were already flora (flora.js `stranded`, v11.16: dead sailers on the windward strand); DRIFTERS.md's open note was stale. The great sailer,
+  the landmark, does not strand.
+
+Not built in the pass: what eats a live drifter (§8.10, the person's); the buttons' fleets drifting as a fleet (flora instances moved per frame — a cost
+for a look); a fish's shelter under a jelly (Earth's juvenile jacks and butterfish).
+
 ## 4. The plan (the passes)
 
 0. **The clock and the risk** — built v11.228 (§2, §3, §6).
@@ -312,7 +338,7 @@ cue on the player's own moult; the dens of the buriers (their bury is anywhere);
    alarm spreads; the abyssal's forays below the light; the chase paid from stamina (COMBAT §11 pass 4: *"hunters may outrun you in a short burst"*).
 4. **Hingeshells** — built v11.232 (§3f), but for what §3f leaves. As planned: the valves clamped at a threat and breathing at rest; the dens; the moult's cue (LINEAGE §12.34); the hook climbing and dropping from
    above; the scuttles on the strand at low tide; the strike as the clade's only hunt.
-5. **Drifters**: eating what they sting; stranding; what eats them (DRIFTERS' open list).
+5. **Drifters** — built v11.233 (§3g), but for what §3g leaves. As planned: eating what they sting; stranding; what eats them (DRIFTERS' open list).
 6. **Between kinds**, where Earth backs it: needles shadowing the ram for the shoal it stuns (the jacks with the moray); scavengers queuing at a carcass
    by size; bite-and-wait on dangerous prey and "the return" (COMBAT pass D, the person's).
 
@@ -378,3 +404,7 @@ the drawing makes the cloud's blobs for each the step queues (`PHO_Q`). **The pl
 9. **The soft window on the player** (§3f): v11.232 doubles the world's `MOULT.soft` to nature's lower end (LINEAGE §12.34's answer), and line.js
    gives the player the world's rule — a hose player soft 54 real minutes after a moult, not 27. If that is too long to play, the player's window can be
    its own number.
+10. **What eats a live drifter** (DRIFTERS.md's open list; BEHAVIOUR §3g): the drifters are immortal on the ledger and nothing hunts them. Earth's
+   eaters of jellies are the sunfish, the leatherback, the butterfish and the filefish, the blue sea slug that eats the man o' war, and the crabs on the
+   strand (v11.233 gives the strand's scavengers the stranded sailers). In the roster nothing has the mouth for it: a plated slowblood (the crusher's
+   family — the cells cannot get through plates) could, or a new kind could. Wanted, and if so which?

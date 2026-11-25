@@ -298,10 +298,10 @@ function* impostorsGen(i,j){
       // the envelope can only lower the chance: reject on the cheap terms first, sample() only for the rest
       const field=f.field?clamp(0.1+4*Math.pow(fbm(x*f.field+31,z*f.field+17,2),2.5),0,1.6):1;
       const pocket=f.pocket?0.1+smooth(0.6,0.72,fbm(x*f.pocket+53,z*f.pocket+29,2)):1;
-      const cterm=lee?leeW(x,z)*f.leePer/maxN:0;
-      if(u>=Math.max(pocket,cterm)*field)continue;
+      const cterm=lee?leeW(x,z)*f.leePer/maxN:0,stand=f.stand?standK(f.stand,x,z):1; // stand (v11.234): the tidewood's, as placeFloraType reads it
+      if(u>=Math.max(pocket,cterm)*field*stand)continue;
       const s=sample(x,z),h=s.h,sl=Math.hypot((sampleH(x+STEP,z)-h)/STEP,(sampleH(x,z+STEP)-h)/STEP);
-      if(u>=Math.max((f.per||0)/maxN*(f.env?envW(f.env,h,sl,fixF(s.f,sl)):1)*pocket,cterm)*field)continue;
+      if(u>=Math.max((f.per||0)/maxN*(f.env?envW(f.env,h,sl,fixF(s.f,sl)):1)*pocket,cterm)*field*stand)continue;
       if(floor&&underChemo(x,h,z))continue; // nothing on the floor under a basin's chemocline (v11.96; the -450 to v11.95)
       if(!floor&&h>-4)continue;
       if(floor&&sl>(f.maxSlope!==undefined?f.maxSlope:0.9))continue; // placeFloraType's slope (v11.124: the tidewood's 0.5; no other card species sets one)

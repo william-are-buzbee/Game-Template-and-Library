@@ -286,7 +286,7 @@ function updateSky(dt){const K=SKY;
 // toward the light), the sun's glare, and the bow. The moon's disc, the stars and the planets only pay for pixels near them.
 const skyU={uVig:{value:VIG},uZen:{value:new THREE.Vector3()},uHor:{value:new THREE.Vector3()},uGlow:{value:new THREE.Vector3()},uSunC:{value:new THREE.Vector3()},uLumC:{value:new THREE.Vector3()},uCirrC:{value:new THREE.Vector3()},
   uSun:{value:new THREE.Vector3()},uMoon:{value:new THREE.Vector3()},uLum:{value:new THREE.Vector3()},uCam:{value:new THREE.Vector3()},uWind:{value:new THREE.Vector2()},uUpper:{value:new THREE.Vector2()},
-  uDay:{value:1},uNight:{value:0},uCover:{value:0},uRain:{value:0},uMoonL:{value:0},uLumL:{value:1},uStarT:{value:0},uTime:timeU,uBow:{value:0},uCloudH:{value:CLOUD_H},uCirrusH:{value:CIRRUS_H},uCirr:{value:0},uCamH:{value:0},uEclS:{value:0},uEclL:{value:0},uFxCloud:{value:1},
+  uDay:{value:1},uNight:{value:0},uCover:{value:0},uRain:{value:0},uMoonL:{value:0},uLumL:{value:1},uStarT:{value:0},uTime:timeU,uBow:{value:0},uCloudH:{value:CLOUD_H},uCirrusH:{value:CIRRUS_H},uCirr:{value:0},uCamH:{value:0},uSkyStep:{value:0},uEclS:{value:0},uEclL:{value:0},uFxCloud:{value:1},
   uDeckC:{value:new THREE.Vector3(1,1,1)},uDeckL:{value:0},uCld:{value:FOG_CLD},uCldB:{value:FOG_CLDB},uCellA:{value:FOG_CELLA},uCellB:{value:FOG_CELLB},uCldTex:cldTexU,uVolT:{value:new THREE.Vector2(CLOUD_T,CLOUD_T)},uSkyFx:{value:new THREE.Vector4(1,1,1,1)},uSkD:{value:FOG_SKD},uFloorMap:{value:floorMap},uWmO:{value:WM_O}, // v11.178: the switches (cloud light, airglow, twilight, lagoon glow), the tone's, the floor map for the lagoon glow
    // v11.89 (clouds.js): the atlas, the deck's depth (a plain deck's, the deepest cell's) // v11.87 (clouds.js): the deck's sunlight and its colour, the lumps' share (the deck fades out under them), the field's state
   uCldRT:{value:null},uCldRes:{value:new THREE.Vector4(1,1,0,1)},uEye:{value:1},uMist:{value:MIST_P},uMistC:{value:MIST_C},uMistW:{value:MIST_W},uPlanD:{value:new Float32Array(9)},uPlanC:{value:new Float32Array(PLANETS.map(p=>[p[1][0],p[1][1],p[1][2],p[2]]).flat())}};
@@ -339,7 +339,7 @@ const VOL_GLSL=['vec4 cloudVol(vec3 d,vec3 zen,vec3 hor){float up=d.y;if(up<0.00
   '  if(sA<0.002)return vec4(0.0);float qx=sS/sA*3.0,qw=uSkyFx.x>0.5?'+CL_LIT.soft.toFixed(3)+':0.001;float q=(floor(qx)+smoothstep(0.5-qw,0.5+qw,fract(qx)))/3.0;float amb=0.95+0.25*(sM/sA);vec3 col=mix(shdC*amb,litC,q)+uDeckC*fw*(1.0-sA)*1.2;', // v11.178: the three bands' edges softened by CL_LIT.soft (to v11.177 floor(x+0.5): hard)
   '  if(uSkyFx.w>0.5){float dep=texture2D(uFloorMap,(sP/sA-uWmO)*'+WM_SCALE+'+0.5).r*'+FM_SCALE.toFixed(1)+';float lg=step('+LAGOON.land.toFixed(2)+',dep)*(1.0-smoothstep('+LAGOON.d0.toFixed(1)+','+LAGOON.d1.toFixed(1)+',dep))*pow(1.0-clamp(sM/sA,0.0,1.0),1.5)*(1.0-0.8*q)*(1.0-uRain)*'+LAGOON.k.toFixed(2)+';col*=mix(vec3(1.0),vec3('+LAGOON.tint.map(v=>v.toFixed(3)).join(',')+'),lg);}', // v11.178 (LAGOON): the base over shallow water lit from below by it
   'float fk=1.0-exp(-(sT/sA)/9000.0);col=mix(col,hor,fk*0.85)*(1.0-0.35*uRain);return vec4(col,sA*hf);}'].join('\n')+'\n';
-const SKY_FS=[DITHER_PARS,EYE_GLSL,'uniform vec3 uZen,uHor,uGlow,uSunC,uLumC,uCirrC,uSun,uMoon,uLum,uCam,uDeckC;uniform vec2 uWind,uUpper;uniform float uDay,uNight,uCover,uRain,uMoonL,uLumL,uStarT,uTime,uBow,uCloudH,uCirrusH,uCirr,uCamH,uEclS,uEclL,uFxCloud,uDeckL,uEye;uniform vec4 uSkyFx,uSkD;uniform sampler2D uFloorMap;uniform vec2 uWmO;',
+const SKY_FS=[DITHER_PARS,EYE_GLSL,'uniform vec3 uZen,uHor,uGlow,uSunC,uLumC,uCirrC,uSun,uMoon,uLum,uCam,uDeckC;uniform vec2 uWind,uUpper;uniform float uDay,uNight,uCover,uRain,uMoonL,uLumL,uStarT,uTime,uBow,uCloudH,uCirrusH,uCirr,uCamH,uSkyStep,uEclS,uEclL,uFxCloud,uDeckL,uEye;uniform vec4 uSkyFx,uSkD;uniform sampler2D uFloorMap;uniform vec2 uWmO;',
   'uniform vec4 uMist,uMistC,uMistW,uCld,uCldB,uCellA,uCellB;uniform vec2 uVolT;uniform vec3 uPlanD[3];uniform vec4 uPlanC[3];uniform sampler2D uCldRT;uniform vec4 uCldRes;varying vec3 vDir;',
   MIST_GLSL,
   SKY_NOISE_GLSL,CLD_GLSL,CLOUD_GLSL,CLD_VOL_GLSL,VOL_GLSL,
@@ -352,7 +352,7 @@ const SKY_FS=[DITHER_PARS,EYE_GLSL,'uniform vec3 uZen,uHor,uGlow,uSunC,uLumC,uCi
   '  vec3 o=vec3(h31(i+7.1),h31(i+3.3),h31(i+5.9))*0.6+0.2;vec3 q=normalize((i+o)/N);float br=(h-thr)/(1.0-thr);float r=sz*(0.5+br);float dd=length(s-q);',
   '  float tw=0.8+0.2*sin(uTime*(2.0+5.0*h31(i+1.7))+h31(i+2.9)*6.28);float v=(1.0-smoothstep(r*0.35,r,dd))*tw*(0.3+0.7*br)+br*br*0.10*exp(-dd*dd/(r*r*12.0));',
   '  float hc=h31(i+4.4);c=hc<0.14?vec3(0.72,0.82,1.0):(hc<0.34?vec3(1.0,0.84,0.66):vec3(1.0));return v;}',
-  'void main(){if(uCamH+normalize(vDir).y*'+(FAR*0.94).toFixed(1)+'<0.0)discard;vec3 d=normalize(vDir);float up=d.y;float cs=dot(d,uSun);',
+  'void main(){{float dy=normalize(vDir).y;if(uCamH+(dy+uSkyStep*(abs(dFdx(dy))+abs(dFdy(dy))))*'+(FAR*0.94).toFixed(1)+'<0.0)discard;}vec3 d=normalize(vDir);float up=d.y;float cs=dot(d,uSun);',
   // the gradient: horizon to zenith, brightest toward the sun and darkest 90 degrees from it, a broad haze aureole round the sun
   '  float k=smoothstep(-0.04,0.55,up);vec3 col=mix(uHor,uZen,k)*(0.92+0.10*cs*cs);',
   '  col+=(uSunC*0.55+uHor*0.45)*0.17*pow(max(cs,0.0),6.0)*uDay*(1.4-0.6*k);',
@@ -399,7 +399,7 @@ const SKY_FS=[DITHER_PARS,EYE_GLSL,'uniform vec3 uZen,uHor,uGlow,uSunC,uLumC,uCi
   '    vec3 rb=vec3(smoothstep(-0.25,0.65,xx),1.0-min(abs(xx)*1.3,1.0),1.0-smoothstep(-0.6,0.35,xx));col+=rb*0.30*ww*uBow*max(cta,uRain)*smoothstep(-0.02,0.1,up)*(1.0-0.6*ca);}', // v11.88: the bow stands on the rain — the curtain along the ray, or the rain here
   '  gl_FragColor=vec4(dithering(toneC(eyeC(col,uEye),uSkD.w)),1.0);}'].join('\n'); // v11.178: the tone curve with `soft highlights`, as the world and the horizon pass (to v11.177 the dome was left out: the sky not in the palette) // dithered (v11.29): the dusk gradient bands like the deep does; the eye's gain (v11.159, NIGHT_EYE) as every fogged material takes it in its fog chunk
 const sky=(function(){const g=new THREE.SphereGeometry(FAR*0.94,24,12);
-  const m=new THREE.Mesh(g,new THREE.ShaderMaterial({uniforms:skyU,vertexShader:SKY_VS,fragmentShader:SKY_FS,side:THREE.BackSide,depthWrite:false,fog:false}));m.frustumCulled=false;m.renderOrder=-10;m.visible=false;scene.add(m);return m;})();
+  const m=new THREE.Mesh(g,new THREE.ShaderMaterial({uniforms:skyU,vertexShader:SKY_VS,fragmentShader:SKY_FS,side:THREE.BackSide,depthWrite:false,fog:false,extensions:{derivatives:true}}));m.frustumCulled=false;m.renderOrder=-10;m.visible=false;scene.add(m);return m;})();
 // The cloud volume at a fraction of the screen (v11.188; the person, 20 Nov 2026, on v11.187's "the sky's cloud march": "that's not a bad idea, you have my
 // consent"). cloudVol marches up to Q.march steps for every sky pixel — 13–16% of a frame at the shore (test/fill.js), every pixel behind the land and the
 // trees too, since the horizon pass draws before the world. The cloud is soft, so it is marched into a target Q.cloudRes of the drawing buffer on a side (0.5:
@@ -525,7 +525,22 @@ function updateRain(dt,above){const K=SKY,on=above&&K.rainA>0.02&&FX.rain&&FX.cl
 // dome was hidden in air: from above, and from within SKY_NEAR of the surface (v11.42), the sky's lower half showed wherever the far terrain
 // was clipped by the draw distance — a white band under the horizon just beneath the surface line, the "white nothingness" the far kelp stood
 // against in the person's stills, gone the moment the camera went below SKY_NEAR.
-const waterDome=(function(){const mat=new THREE.MeshBasicMaterial({color:0x000000,side:THREE.BackSide,depthWrite:false});mat.onBeforeCompile=function(sh){sh.fragmentShader=sh.fragmentShader.replace('#include <fog_fragment>','\n#ifdef USE_FOG\nif(vFogPos.y>uFogW.x)discard;\n#endif\n#include <fog_fragment>');};mat.customProgramCacheKey=function(){return 'dome';};const m=new THREE.Mesh(new THREE.SphereGeometry(FAR*0.95,24,12),mat);m.frustumCulled=false;m.renderOrder=-11;scene.add(m);return m;})();
+// In air (v11.237) the dome is the water column under the surface's far end, and it is drawn only where it lies under the *drawn* sea at its own
+// point, DOME_M lower: a ray that reaches it there has crossed the sea's face first, nearer than the dome and inside the far plane, so the dark
+// veil is always seen through the surface and never alone. To v11.233 it was cut at the tide (uFogW.x), and the drawn far sea sits WAVE_MEAN
+// under the tide (~0.23–0.30 m: a faded wave keeps its sharpened mean) with the 150 m swell's troughs still in it along the grid's diagonals; a
+// ray dipping under the tide just short of the dome (FAR·0.95) met that sea only past the far plane, which in the middle of the view is a mere 5%
+// further out — the dome bare, a dark line one pixel high on the sea line across the middle of the screen, coming and going as the eye rode the
+// swell (the person: "horizon flickering black line above water", 25 Nov 2026). DOME_M covers the mesh's chords against the wave sum the fog
+// chunk evaluates (fogWaveH2's x: the drawn sum, the same waves, fade, clock and chop as the surface's vertices). The test is a pixel's step above
+// the fragment, not at it: with multisampling the dome's one fragment colours every sample of its pixel, and half a pixel at 1.5 km is ~1.3 m at
+// 720 rows (0.85 at 1080) — the pixel on the sea line straddles the dome's water line, and the samples in its upper half pass over the sea to the
+// far plane. Half a step reaches the pixel's top only where the position is linear on the screen; it is perspective's, and at the screen's edge a
+// corner sample lay past it (seen: three pixels at 1277–1279 of 1280), so a whole step. A pixel the dome leaves falls through to the horizon
+// pass, whose sea disc reaches in under it (horizon.js uHzIn) and whose sky is cut at the water a step down (uSkyStep). Under water, cut at the
+// tide as before.
+const DOME_M=0.2; // m: how far under the drawn sea a pixel's step above a fragment of the dome must be for it to be drawn in air (the mesh's chords against the wave sum at FAR·0.95: 0.12 m at most, shoaled, on the diagonal; test/horizon.js)
+const waterDome=(function(){const mat=new THREE.MeshBasicMaterial({color:0x000000,side:THREE.BackSide,depthWrite:false});mat.onBeforeCompile=function(sh){sh.fragmentShader=sh.fragmentShader.replace('#include <fog_fragment>','\n#ifdef USE_FOG\n{float fy=vFogPos.y,fyT=fy+abs(dFdx(fy))+abs(dFdy(fy));if(fy>uFogW.x)discard;if(uFogC.y>=uFogAC.w&&fyT>uFogW.x-3.0){vec2 dq=abs(vFogPos.xz-uFogC.xz);if(fyT>uFogW.x+fogWaveH2(vFogPos.xz,uFogTC.x,max(dq.x,dq.y),waveDep(vFogPos.xz,uFogW.x)).x-'+DOME_M.toFixed(2)+')discard;}}\n#endif\n#include <fog_fragment>');};mat.extensions={derivatives:true};mat.customProgramCacheKey=function(){return 'dome';};const m=new THREE.Mesh(new THREE.SphereGeometry(FAR*0.95,24,12),mat);m.frustumCulled=false;m.renderOrder=-11;scene.add(m);return m;})();
 
 // ---------- marine snow (v11.24) ----------
 // What is in the water, by what the column is doing (the person's ask, 10 Sep: the stuff at the bottom of the world is not the stuff
@@ -562,10 +577,9 @@ const waterDome=(function(){const mat=new THREE.MeshBasicMaterial({color:0x00000
 // a frame: the fields and the floor re-read) when its kind has faded where it has sunk to, or it was dormant.
 // Fall rates are a compromise with the eye: real aggregates do 50-200 m a day (2 mm/s, motionless to a swimmer); 8 cm/s (the
 // old rate, 7 km a day) read as a snowfall. These are ~10× reality and read as slow.
-// Drawn as one Points with a per-point colour (the particle's own), size and alpha (aSz), lit by the material colour (the ambient
-// by depth and daylight, updateAtmosphere) plus the player's light by distance — so the snow shows in a torch's reach in the
-// dark and is invisible outside it. The shader patch reads r128's points chunks; if a line isn't found it warns and the snow
-// draws uniform (the old look) rather than not at all.
+// Drawn as one Points with a per-point colour (the particle's own), size and alpha (aSz), lit by the light the world has where the point is
+// (ptsLit and snowLight, below: v11.236). The shader patch reads r128's points chunks; if a line isn't found it warns and the snow is lit by
+// the ambient alone (the material colour) rather than not drawn.
 const PN=Q.snow,SN_SW=Math.min(480,Math.floor(PN*0.25)),SN_SWN=6,SN_SWP=SN_SW/SN_SWN,PN_SN=PN-SN_SW,SN_HW=30,pp=new Float64Array(PN*3),ppG=new Float32Array(PN*3),pv=new Float32Array(PN*3),pc=new Float32Array(PN*3),ps=new Float32Array(PN*2),pk=new Uint8Array(PN),pr=new Float32Array(PN),ph=new Float32Array(PN),pf=new Float32Array(PN*10),snL=new Uint16Array(PN); // pf (v11.82): the six fields, then the maps' texel (the two crops, X, the floor); snL: a chain follower's leader (its own index otherwise)
 const SN_K=[{sz:0.5,fall:0.005},{sz:1.0,fall:0.02},{sz:0.6,fall:0.05},{sz:0.55,fall:-0.28},{sz:1.35,fall:0.006},{sz:0.5,fall:0.012}]; // size × the material's, m/s down; 5 the chain (v11.82)
 const SN_PIG=[[0.70,0.86,0.62],[0.86,0.78,0.48],[0.78,0.62,0.68]],SN_PALE=[0.82,0.90,0.78],SN_CHAIN=[0.80,0.78,0.66],SN_CK=0.6,SN_CHW=0.12;
@@ -596,16 +610,46 @@ const SN_TH=-64,SN_W0=0.9,SN_GAIN=3.0,SN_REF=63;let SN_CH=-1e5; // the thermocli
 // would not move at all
 const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(ppG,3));pg.setAttribute('color',new THREE.BufferAttribute(pc,3));pg.setAttribute('aSz',new THREE.BufferAttribute(ps,2));
 const plU={value:new THREE.Vector4(0,0,0,0)},plCU={value:new THREE.Color(0x6fbfe0)},snAU={value:new THREE.Vector4(0,1/2.5,0,0)}; // snAU (v11.82.1): the tide, 1/the depth the snow fades over seen from the air, 1 with the camera in air
+// The light on a point (v11.236; the person, 25 Nov 2026: "Marine snow should be considered an effect that is part of the world and is only as
+// bright as its surroundings"). Why it showed in pitch-black water to v11.233: its light was the material colour lerp((0.45,0.75,0.95), 1, df) —
+// df the daylight at the player's depth × the sky's — so with no light at all (480 m by day, any moonless night) a flake was lit at 45–95% of
+// noon, and drawn at 0.6·(0.45 + 0.55·df), 45% of noon's opacity; the fog's end multiplies every fragment by the eye's gain (×4 in the dark), so
+// it was the brightest thing in black water: 12 levels of 255 over a veil of 1 at 480 m by day with the own light off, where the floor and the
+// bodies take 0.8% of noon's light (hemi, sun by depth). Nothing else lit it: the blending is normal (not additive), there is no emissive term,
+// the per-point colours are albedos (0.1–1), the fog is applied to points, the swarm block is drawn the same way, and the own light fell *faster*
+// on a flake than on the ground (I·1.6/(0.5+r²): 3.2× the ground's at the lamp, a twentieth of it at 10 m) — the floor alone.
+// Now a point takes the terms the ground takes where it is, × SN_ALB (a flake against a surface of its own colour facing every light), and nothing
+// else: the ambient — the hemisphere's two colours averaged (a flake faces every way) × its intensity, the water's glow at the player's depth as
+// the ground has it (updateAtmosphere), in the material colour, so a patch that fails is lit by the ambient alone; the sun — its colour × its
+// surface value × the daylight at the point's own depth by channel (DL_GLSL × SPEC_DOWN, the ground's sun-by-depth); the own light — plight's
+// colour × intensity × r128's falloff over its distance, (1 − r/40)², as on the ground; and the pool's lights (scene.js assignLights: the
+// bacteria's, the pall's, the lures', a carcass's glow) by the same falloff over each one's distance. The opacity is the flake's own (SN_OP): it
+// is no longer dimmed with the light, the colour carries the light. The debris (fx.js) and the blood (combat.js) are lit by the same patch.
+// SN_ALB 0.74 keeps the lit shallows as they were (the weed forest at 8 m at noon: 0.957 of white to v11.233, the same luminance now).
+const SN_ALB=0.74,SN_OP=0.6,SN_LN=Q.lights,snLP=new Float32Array(SN_LN*4),snLC=new Float32Array(SN_LN*3),snSunU={value:new THREE.Vector3()},snLPU={value:snLP},snLCU={value:snLC}; // the albedo; the opacity; the pool's lights as the snow reads them: position against the render origin and distance, colour × intensity × SN_ALB (typed arrays, never NaN: r128's flatten)
+for(let i=0;i<SN_LN;i++){snLP[i*4+1]=-1e5;snLP[i*4+3]=1;}
+const SN_LIT_GLSL=()=>'{vec3 L=vec3(0.0);\n#ifdef USE_FOG\nL+=uSnSun*'+DL_GLSL('transformed.y')+'*'+SPEC_DOWN('transformed.y')+';\n#else\nL+=uSnSun;\n#endif\n'+ // the sun by the point's depth (the object sits at y 0: transformed.y is the world's)
+  'float pr=length(transformed-uPL.xyz),pf=clamp(1.0-pr/'+plight.distance.toFixed(1)+',0.0,1.0);L+=uPLc*(uPL.w*pf*pf);'+ // the own light, r128's falloff with decay 2 (scene.js plight; lightLegacy keeps it on r187)
+  (SN_LN?'for(int i=0;i<'+SN_LN+';i++){vec4 lp=uSnLP[i];float lf=clamp(1.0-length(transformed-lp.xyz)/lp.w,0.0,1.0);L+=uSnLC[i]*(lf*lf);}':'')+'vL=L;}'; // the pool's lights, the same falloff
+// the points' patch (the snow; fx.js the debris; combat.js the blood): a size and an alpha per point (aSz), faded from f0 to f1 m in front of the camera, capped at cap px,
+// `air` the snow's fade from the air; lit by snowLight's uniforms. Returns how many of its five lines it found
+function ptsLit(sh,cap,f0,f1,air){const U=sh.uniforms;U.uPL=plU;U.uPLc=plCU;U.uSnSun=snSunU;if(SN_LN){U.uSnLP=snLPU;U.uSnLC=snLCU;}if(air)U.uSnA=snAU;let n=0;
+  sh.vertexShader=sh.vertexShader.replace('uniform float size;',()=>{n++;return 'attribute vec2 aSz;uniform vec4 uPL;uniform vec3 uPLc;uniform vec3 uSnSun;'+(SN_LN?'uniform vec4 uSnLP['+SN_LN+'];uniform vec3 uSnLC['+SN_LN+'];':'')+(air?'uniform vec4 uSnA;':'')+'varying float vA;varying vec3 vL;uniform float size;';})
+    .replace('gl_PointSize = size;',()=>{n++;return 'gl_PointSize=size*aSz.x;vA=aSz.y*smoothstep('+f0.toFixed(2)+','+f1.toFixed(2)+',-mvPosition.z)'+(air?'*mix(1.0,exp(-max(uSnA.x-transformed.y,0.0)*uSnA.y),uSnA.z)':'')+';'+SN_LIT_GLSL()+'\n';})
+    .replace('#include <logdepthbuf_vertex>',()=>{n++;return 'gl_PointSize=min(gl_PointSize,'+cap.toFixed(1)+');\n#include <logdepthbuf_vertex>';});
+  sh.fragmentShader=sh.fragmentShader.replace('uniform vec3 diffuse;',()=>{n++;return 'varying float vA;varying vec3 vL;uniform vec3 diffuse;';})
+    .replace('#include <color_fragment>',()=>{n++;return 'diffuseColor.rgb=vColor.rgb*(diffuse+vL);diffuseColor.a*=vA;';}); // diffuse: the ambient (snowLight); vL: the sun, the own light, the pool's
+  return n;}
+// the light's uniforms, once a frame from updateAtmosphere, after the hemisphere, the sun and the own light are set (the pool's lights are last frame's assignLights)
+function snowLight(above,wk){const a=hemi.intensity/LI*SN_ALB*0.5,s=sun.intensity/LI*SN_ALB;
+  pm.color.setRGB((hemi.color.r+hemi.groundColor.r)*a,(hemi.color.g+hemi.groundColor.g)*a,(hemi.color.b+hemi.groundColor.b)*a);pm.opacity=SN_OP*(above?1:wk);
+  snSunU.value.set(sun.color.r*s,sun.color.g*s,sun.color.b*s);
+  plU.value.set(plight.position.x-ORIGIN.x,plight.position.y,plight.position.z-ORIGIN.z,plight.intensity/LI*SN_ALB);plCU.value.copy(plight.color); // against the render origin (v11.113): the snow, the debris and the blood read it beside their points'
+  for(let i=0;i<SN_LN;i++){const l=lightPool[i],j=i*4,c=i*3;if(l&&l.intensity>0){const e=l.intensity/LI*SN_ALB;snLP[j]=l.position.x-ORIGIN.x;snLP[j+1]=l.position.y;snLP[j+2]=l.position.z-ORIGIN.z;snLP[j+3]=l.distance>0?l.distance:1e4;snLC[c]=l.color.r*e;snLC[c+1]=l.color.g*e;snLC[c+2]=l.color.b*e;}else snLC[c]=snLC[c+1]=snLC[c+2]=0;}}
 // square on purpose (the person, 13 Sep 2026): an untextured PointsMaterial writes the whole quad, and a round sprite would cost a
 // texture fetch per fragment or a discard — squares are both the cheaper option and the one that suits the flat-shaded art
 const pm=new THREE.PointsMaterial({color:0xcfe6ee,size:0.14,transparent:true,opacity:0.55,depthWrite:false,vertexColors:true});
-pm.onBeforeCompile=function(sh){sh.uniforms.uPL=plU;sh.uniforms.uPLc=plCU;sh.uniforms.uSnA=snAU;let n=0;
-  sh.vertexShader=sh.vertexShader.replace('uniform float size;',()=>{n++;return 'attribute vec2 aSz;uniform vec4 uPL;uniform vec4 uSnA;varying float vA;varying float vL;uniform float size;';})
-    .replace('gl_PointSize = size;',()=>{n++;return 'gl_PointSize=size*aSz.x;vA=aSz.y*smoothstep(0.5,2.0,-mvPosition.z)*mix(1.0,exp(-max(uSnA.x-transformed.y,0.0)*uSnA.y),uSnA.z);{vec3 dl=transformed-uPL.xyz;vL=uPL.w/(0.5+dot(dl,dl));}';})
-    .replace('#include <logdepthbuf_vertex>',()=>{n++;return 'gl_PointSize=min(gl_PointSize,24.0);\n#include <logdepthbuf_vertex>';});
-  sh.fragmentShader=sh.fragmentShader.replace('uniform vec3 diffuse;',()=>{n++;return 'varying float vA;varying float vL;uniform vec3 uPLc;uniform vec3 diffuse;';})
-    .replace('#include <color_fragment>',()=>{n++;return 'diffuseColor.rgb=vColor.rgb*(diffuse+uPLc*vL);diffuseColor.a*=vA;';});
-  if(n!==5)console.warn('snow: points chunks not as expected ('+n+' of 5); the snow draws uniform');};
+pm.onBeforeCompile=function(sh){const n=ptsLit(sh,24,0.5,2.0,true);if(n!==5)console.warn('snow: points chunks not as expected ('+n+' of 5); the snow is lit by the ambient alone');};
 pm.customProgramCacheKey=function(){return 'snow';};
 const plankton=new THREE.Points(pg,pm);plankton.frustumCulled=false;scene.add(plankton);
 const snF=new Float32Array(NF),snW=[0,0,0,0,0,0],snB=[0,0,0,0],snC=[0,0,0],snLast=V3(1e9,0,0);let snFrame=0,snCi=-1,snCy=0; // snB, snC: the maps' texel and the crops at the point being weighed (snCrop); snCi/snCy: which point and height they hold // snLast: the camera last frame — a jump (spawn, the zoo, a respawn) reseeds the whole cloud at once
@@ -699,7 +743,6 @@ function updatePlankton(dt){
   }
   {const ox=ORIGIN.x,oz=ORIGIN.z;for(let i=0;i<PN;i++){ppG[i*3]=pp[i*3]-ox;ppG[i*3+1]=pp[i*3+1];ppG[i*3+2]=pp[i*3+2]-oz;}plankton.position.set(ox,0,oz);}
   pg.attributes.position.needsUpdate=true;pg.attributes.aSz.needsUpdate=true;if(snDirty){pg.attributes.color.needsUpdate=true;snDirty=false;}
-  plU.value.set(plight.position.x-ORIGIN.x,plight.position.y,plight.position.z-ORIGIN.z,plight.intensity/LI*1.6); // against the render origin (v11.113): the snow, the debris and the blood read it beside their points'
 }
 
 const fogTarget=new THREE.Color(),hemiSkyA=new THREE.Color(AIR.hemiSky),hemiSkyW=new THREE.Color(ABOVE.sky[0],ABOVE.sky[1],ABOVE.sky[2]),hemiGroundA=new THREE.Color(AIR.hemiGround),wmHere=[0,0,0,0],skyT=new THREE.Color(),skyT2=new THREE.Color(),WHITE=new THREE.Color(1,1,1);
@@ -783,7 +826,7 @@ function updateAtmosphere(dt){
   updateShafts(above,wk);
   updateHaze(dt,above);sky.visible=true;sky.position.copy(camera.position);pushSky();updateClouds(dt); // the volume's atlas, once (clouds.js) // every frame since v11.43: the surface's window reads the sky's uniforms from under the water, where the sphere is hidden // the sky stays up within SKY_NEAR under the line (v11.42): a camera just under sees air through the near plane's gap above the water, and that is the sky, not the dome
   plankton.visible=FX.snow;snAU.value.set(TIDE,1/2.5,above?1:0,0);tintU.value.set(TIDE,above?1:0,K.skyL,0); // the snow from the air too (v11.82.1, the person: none showed below the surface): the top few metres, fading over 2.5 m, through the surface's body // x the water level (LIGHT_GLSL's depth); the through-water tint that read y and z went with v11.42 (scene.js)
-  pm.color.setRGB(lerp(0.45,1,df),lerp(0.75,1,df),lerp(0.95,1,df));pm.opacity=0.6*(0.45+0.55*df)*(above?1:wk); // the light on the snow (v11.24: the particle's own colour is per point): blue-green and dim with depth and the night; the player's light is added in the shader
+  snowLight(above,wk); // the light on the snow, the debris and the blood: the world's where each point is (v11.236; to v11.233 lerp((0.45,0.75,0.95),1,df), the floor that lit it in black water)
   updateRain(dt,above);
   if(mode!=='play')return;
   // the depth, and nothing else: no place has a name (the person, Sep 2026). Shown under the water, in whole metres, faded at the surface

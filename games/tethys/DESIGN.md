@@ -475,8 +475,13 @@ tip (`whorl`); 510 tris a variant. The **reed** (`reedB`) is its dwarf on the sh
 (`tussockB`, small jointed shoots) are the greens on rain above the tide, species with three variants since v11.15, `MATGL`, all tinted
 by `pigment(h,'green')` — but the tidewood, since v11.190 on pigment's `greenAir` (grow.js `PIG`, `PIG_BOOST`): one colour, [0.35, 0.47, 0.21],
 with no sunscreen boost, between the greens' shallow green and the wood's leaf (`WOOD_C.leaf`); to v11.189 the greens' 0–15 m ×1.22, [0.44, 0.73, 0.24], which the person
-found neon beside the wood (20 Nov 2026; six colours tried in the game, this the midpoint of the two they liked). `env {h:[−3.5,2.8], expo:[0,0.75]}`, `per` 700, `field` 0.02, `maxSlope` 0.5: the leeward
-rim and the island's tidal flat (~530 before the field noise; none on the surf side). The trunk and props are capsules
+found neon beside the wood (20 Nov 2026; six colours tried in the game, this the midpoint of the two they liked). `env {h:[−3.5,2.8], expo:[0,0.75]}`, `per` 150 (700 to v11.233), `field` 0.02, `maxSlope` 0.5,
+and since v11.234 in **stands** (the person, 25 Nov 2026: "an eye sore … should be sparse"; FLORA "The tidewood's stands"): `stand`
+[0.0003, 0.72, 0.78, 0.15] — chunks.js `standK`, a seeded noise at ~3 km that is zero under 0.72 and full over 0.78, both lowered by up to 0.15 by
+the catchment of the land whose coast is nearest (`isleK`, `STAND_LAND` [1500, 7000, 2000, 5000]: a high or shield island's land radius from none to
+full, fading 2–5 km off its coast; a record without land — ours, an atoll, a bank — and the carbonate platform none). So a big island keeps trees on a quarter to a third of
+the shore they stood on, a small one on a tenth or none; read by placeFloraType and far.js impostorsGen alike. The world's census
+(v11.234): 50,362 trees on 2,046 cells, from 1,528,208 on 10,759; none round ours. The trunk and props are capsules
 (`col`), the crown is soft. Its material `MATTR` is a slow wind sway from the crown, never capped to the water (`air:true` in
 `placeFloraType` lets it stand into the air) and never leaning to the current (`MATTR.land`: `makeInstanced` gives it no `aCur`).
 A far impostor (`farTreeGeo`, stride 2) so the wood reads across the lagoon. v11.124 (the person, 12 Nov 2026: "strange looking square LOD's"): it was a crossed pair of 1.2 m cards 9 m tall under a flat six-sided pad, olive on olive — from the water a fence of dark posts with plates at 40% of the real wood's brightness; it is now the real one's middle size in 37 triangles (10 the cards): a four-sided trunk 0.3 → 0.12 m, four props, and the whorls at 4.5, 6 and 7.5 m and the brush at 9 (6, 7, 7 and 5 rods), each rod one upright triangle from the trunk to where the real kinked rod ends (2.2, 2.5, 2.7 and 1.2 m out), so the crown is the real goblet from any side. It draws one of the real three heights (`hs`), keeps the real one's slope and wet-sand rules (`maxSlope` 0.5, `minH`), and is tinted as the real ones are (`pig`: `pigment(h,'green')` and `tintBy`) on JOINT and white. Looked at from the water at 450 m to 1.5 km by day and night, round ours and off the giant. Land flora (`flora.js`): `tussock` (`minH:1.2`, per 1500), `scrub` (`minH:2`, per 110), `stranded` (`minH:0.4`, per 26 — a dead
@@ -970,7 +975,7 @@ three agree; it lerps at 0.25/s, so the ambient light shifts slowly across a bor
 hemi from it. **The hemisphere light is the water's:** sky = fog × 1.8, **ground = fog × `ground` (0.8)** — v8's ground
 was a fixed near-black (0x101c1c), so everything seen from below (the canopy's pads above all) was black; upwelling light
 in water is water-coloured. Pads straight overhead are still silhouettes against the bright surface, which is right.
-A black **dome** at 0.95·FAR (`waterDome`, atmosphere.js; both media since v11.42.3, drawn only below the water level, while the sky sphere draws only above it — the two tile at the water plane) is the sky under water: fogged like everything else (2.5%
+A black **dome** at 0.95·FAR (`waterDome`, atmosphere.js; both media since v11.42.3, drawn only below the water level, while the sky sphere draws only above it — the two tile at the water plane; *v11.237:* in air only where a pixel's step above it lies `DOME_M` (0.2 m) under the *drawn* sea at its point — the faded far sea sits `WAVE_MEAN` under the tide, and cut at the tide the dome showed bare past the surface's end, which the far plane cuts only 5% further out in the middle of the view: the person's flickering black line on the horizon; see The far layer, the horizon tier) is the sky under water: fogged like everything else (2.5%
 black at its distance), it is the veil in every direction — dark toward the deep, sunlit toward the surface — with no
 visible edge against the surface (both are the same shader at the same distance). **The veil closes fully between 0.62·FAR and
 0.9·FAR** (`FOG_CUT_GLSL`, v11.27, in the fog block, `fogExtinctOnly` and the shafts): the slow population alone left 1.1% at the far
@@ -1364,7 +1369,16 @@ between members). From the water at ours that is 6 of the 35 (ours, the giant, t
 the awesome shield's summit 41. `hzGen` still builds them all, for the test. Two rules it depends on:
 the main scene's `background` is nulled for the frame (three clears to it regardless of `autoClear`), and the near plane is short (near-plane
 clipping is by view depth). Under water the pass is skipped and the dome goes back. Seen (CHANGELOG v11.64): the giant on the horizon from open
-water, its foot in the haze; the seam where the disc meets the surface mesh's far end is a shade lighter, left.
+water, its foot in the haze; the seam where the disc meets the surface mesh's far end is a shade lighter, left. *v11.237 (the sea line):* from a low eye a ray can pass over
+the surface mesh's waves to the far plane — the drawn far sea sits up to ~0.7 m under the tide (`WAVE_MEAN` shoaled, the 150 m swell's trough
+where the grid still draws it), and in the middle of the view the far plane is only 5% past the water dome — so the dome steps aside wherever the
+sea's face might not be in front of it (DOME_M, a pixel's step up: multisampled, one fragment colours every sample, and half a pixel at
+1.5 km is ~1 m), the disc reaches in under the main pass to `hzIn(h)` = FAR·h/(h + `HZ_DIP` 0.9) for an eye h over the tide (`HZ_IN` 5 rings
+inside HZ_SEA0, drawn onto that circle by the vertex shader; the disc v11.233's from any eye over 2.7 m; a guarantee for a fine screen, a very low
+eye and shoaled water — at 720 and 900 rows the sky's step below covers the line without it), and the sky in this pass is cut at the water a
+pixel's step down (`uSkyStep` 1: it was cut per pixel too, leaving the samples over the disc's curved horizon to the clear colour; not cut at all,
+it would shade the whole sea under the disc for nothing). test/horizon.js holds
+the numbers, test/horizon_page.js (smoke) the picture.
 
 ## Flora and materials
 
@@ -1374,7 +1388,7 @@ lines' splits, the order they reached the mountain — is `TAXA.md` (v11.15); th
 and the placement rules are `FLORA.md`. All three outrank this section.
 
 **The grammar (`grow.js`, since v9.5).** Eight bauplan builders push parts into a list: `axis` (a segmented stem;
-returns its nodes), `branch` (recursive, `planar` 0 a bush to 1 a fan in the x-y plane, `tip` on the last level),
+returns its nodes), `branch` (recursive, `planar` 0 a bush to 1 a fan in the x-y plane, `tip` on the last level and `col2` its colour — v11.235, the fan's pale polyps),
 `blades`/`bladeAt` (strips of quads along an axis, Euler YXZ: droop then spin), `tuft` (planes or rods from a point),
 `cup` (a lathe: mouth, waist, base, lip, `closed`, `inner`), `disc` (a plate with polyp studs), `mound` (a squashed
 sphere in growth bands, optional spines), `pads` (the rafts' discs, returning their pads) and `line` (a hanging
@@ -1453,7 +1467,7 @@ order, so a descending profile comes out inside-out — invisible under `MAT`'s 
 a double-sided material. The geometry is identical either way; only the normals turn out. Callers still read the array they passed
 (`profR`, `nose`, `tail` in `creatures_spec.js`), so the reversed copy stays inside `G.lathe`.
 
-Materials (`scene.js`; since v11.13 every tinted one but `GLOW` carries the caustics and the bodies' shadows in its fragment — [The light](#the-light)): `MAT` (Lambert, vertex colours) for creatures and rigid one-variant flora (fans, rocks),
+Materials (`scene.js`; since v11.13 every tinted one but `GLOW` carries the caustics and the bodies' shadows in its fragment — [The light](#the-light)): `MAT` (Lambert, vertex colours) for creatures and rigid one-variant flora (rocks, limpets, chimneys; the fans until v11.235, a species on `MATV` since),
 `MATBIG` (the same, with the big-thing fog — see Visibility) for structures, landmarks and big creatures' far LOD,
 `GLOW` (Basic, vertex colours) for emissive parts, `TERRAIN_MAT` (flat Phong on high, Lambert on low), `MATFAR`
 (Lambert, double-sided) for impostors, `MATV` (above), and `swayMaterial(amp,freq,hn,dir,bob,H,strand)` instances
@@ -1761,14 +1775,22 @@ in behind, dead by four radii, plus a skin layer dragged along at `0.6·U·e^{�
 Fall rates are ~10× reality (real aggregates: 50–200 m a day, motionless to a swimmer; the old 8 cm/s was 7 km a day and read as a
 snowfall); the point is that the deep's flakes visibly fall slower than the shallows' silt.
 Drawn as one `Points` with a per-point colour (the particle's own), size and alpha (`aSz`), patched into r128's points chunks by
-`onBeforeCompile` (five replacements; a miss warns and the snow draws uniform); the material colour is the light on it (blue-green
-and dim with depth and the night, `updateAtmosphere`) and the player's light is added per point by distance (`uPL`, `I·1.6/(0.5+d²)`),
-so in the dark the snow shows only in the torch's reach. Points fade within 2 m of the camera and cap at 24 px. Headless cost 0.33 ms
+`onBeforeCompile` (five replacements, `ptsLit`, shared with the debris and the blood; a miss warns and the snow is lit by the ambient alone).
+**The light on it is the world's where each point is** (v11.236, `snowLight`; the person, 25 Nov 2026: *"an effect that is part of the world and is
+only as bright as its surroundings"*): the terms the ground takes there × `SN_ALB` 0.74 (a flake against a surface of its own colour facing every
+light) — the hemisphere's two colours averaged × its intensity (the material colour), the sun (the moon at night) × the daylight at the point's own
+depth by channel (`DL_GLSL` × `SPEC_DOWN`, the ground's sun-by-depth), the own light by r128's falloff `(1 − r/40)²` and the pool's lights (the
+bacteria, the pall, the lures, a carcass's glow) by the same over each one's distance; the opacity `SN_OP` 0.6, the flake's own, not the light's.
+`SN_ALB` keeps the weed forest at 8 m at noon as it was. To v11.233 the material colour was `lerp((0.45,0.75,0.95), 1, df)` and the opacity
+0.6·(0.45+0.55·df), df the daylight at the player's depth × the sky's: a floor that lit the snow at 45–95% of noon with no light at all, which the eye's
+gain (×4 in the dark) raised again — 12 levels of 255 over a veil of 1 at 480 m by day, 23 at a moonlit midnight in the shallows; and the own light
+was `I·1.6/(0.5+d²)` (3.2× the ground's at the lamp, a twentieth of it at 10 m). `test/snow.js` holds every drawn point under the ground's light
+there × `SN_ALB` at six places and times. Points fade within 2 m of the camera and cap at 24 px. Headless cost 0.33 ms
 a frame moving through the shelf forest in the sandbox against 0.17 for the old cloud (1800 points against 1400; the refresh and the
 swell's trig are the rest); `test/snow.js` prints the kinds' mix at twelve sites down the column and checks the layering.
 Known: the chimney landmark sits at raw angle 2.60 and the `heat` field (the warped angle) at 2.66–2.7, so the chimney's own water has
-no heat and no vent snow — the fissure field 60 m east of it does. Open, the person's: the fall-rate compromise; the black flakes
-(invisible outside the torch by design — reality — or a faint ambient?); whether the snow should be lit by the moon's window at night.
+no heat and no vent snow — the fissure field 60 m east of it does. Open, the person's: the fall-rate compromise. (The black flakes outside the
+torch and the moon's light on the snow at night were answered by the rule of v11.236: dark where the world is dark, lit by the moon as the ground is.)
 
 ## Combat
 
@@ -2158,6 +2180,11 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   valves stay down and `awakeC` is 0; `MOULT.soft` 1 game day (was 0.5; the player's too). The hook strikes only below (`below` 0.3), climbs home at
   `HOOK.climb` 1 m/s, and after `give` 120 s hungry with nothing climbs to a post `step` 6–20 m off, `hang` 5–14 m up. A tidal scuttle at low water (CK.hi
   under `TIDEW.lo` 0.35) wanders to ground `band` 0.2–2.5 m over the waterline within `r` 60 m.
+- **The drifters (v11.233; BEHAVIOUR.md §3g; creatures_ai.js `DRIFT`, `STRAND`).** A drifter (role `drift` or `sail`) holds a body of at most
+  `DRIFT.take` 0.5 × its size that touches it — a jelly's bell and the column of arms `arms` 1.7 × its size under it, a sailer's lines (`DEFS.lines` of a
+  line point, near LOD) — at `p` 0.35 a `scan` 0.25 s: paralysed, hauled to the mouth `haul` 5 s (the drifter's feedAt, feedT), eaten whole, then
+  `full` 90 s digesting (its cool). The jelly (`BEHAVE.jelly.layer`) follows `swarmDepth` at `rise` 0.1 m/s, read every `read` 2 s. A sailer
+  (`BEHAVE.sailer.strand`) under which there is less than `STRAND.depth` 0.4 m of water dies (a carcass), read every `STRAND.every` 1 s. `POP.stung`.
 - **Removed by request:** the mid-water `weed` flora (the "floating spiky objects"); the `colony` creature (pink/cyan
   glowing chains); darter/glim **schools are no longer spawned** — the code (`school` role, `makeSchool`,
   `updateSchools`, `buildDarter`) is intact. They went because the rigid formation read as a block; if they return it

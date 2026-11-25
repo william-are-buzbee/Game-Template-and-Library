@@ -18,7 +18,7 @@
 // and what it proves: every creature those cells placed (its kind, place, coat class, scale; every mesh's geometry — position, normal, colour, the
 // pattern — its far bake's, its hit capsules, coverings, grip, edge, gape and mass) and each body posed by its own anim at a fixed time, hashed; and after
 // the frames every creature's place, velocity, facing, state and hunger, and every rig's points (the simulation the same, frame for frame).
-// The comparison is fair (v11.232.1): identical sources read within ±4%, ×0.93–1.07 at the sea and the giant's coast, where they read ×0.81–1.28. With BASE both trees'
+// The comparison is fair (v11.237.1): identical sources read within ±4%, ×0.93–1.07 at the sea and the giant's coast, where they read ×0.81–1.28. With BASE both trees'
 // pages are open at once and take turns — kind by kind, cell by cell, BLOCK frames at a time — the side going first alternating (base, here |
 // here, base | …), each round booting and starting with the other side; and every piece is the least of its rounds, not every round's total — a
 // kind, a step of a cell's generator, a frame, each the same work in every round (the bodies and the simulation are held to the bit). A cloud
@@ -36,7 +36,7 @@ const here=path.join(__dirname,'..'),roots=(process.env.BASE?[path.resolve(proce
 const ONLY=new Set((process.env.ONLY||'build,cells,frame').split(','));
 const PLACES={forest:[330,0],atoll:[108100,4000],platform:[216062,15900],sea:[20000,40000],giant:[-12000,6000]};
 const {playwright,open}=require('./benchpage.js'); // the page, its clock and seed, and three's UUIDs on a stream of their own (test/benchpage.js, v11.179: shared with test/gpu.js)
-// ---- in the page: the bench's pieces as window.__bc, each called from node on its own (v11.232.1), so two pages can take turns ----
+// ---- in the page: the bench's pieces as window.__bc, each called from node on its own (v11.237.1), so two pages can take turns ----
 function inPage(){const now=()=>window.__real(),B={};
   // a hash of numbers (FNV over their float32 bits) and of strings
   const hs=()=>({h:2166136261>>>0,n:0}),f32=new Float32Array(1),u32=new Uint32Array(f32.buffer),addN=(H,v)=>{f32[0]=v;H.h=Math.imul(H.h^u32[0],16777619)>>>0;H.n++;},addA=(H,a)=>{if(!a)return addN(H,-1);addN(H,a.length);for(let i=0;i<a.length;i++)addN(H,a[i]);},addS=(H,s)=>{s=String(s);for(let i=0;i<s.length;i++)addN(H,s.charCodeAt(i));};
