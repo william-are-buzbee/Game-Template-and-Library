@@ -173,7 +173,7 @@ canvas{display:block;outline:none;touch-action:none}
 <div id="fade" class="layer"></div>
 <canvas id="spark" class="layer"></canvas>
 <div id="stats"></div>
-<script>window.TETHYS_BUILD={v:"v11.237.1",wh:"ea6bf5112d91641e"};</script>
+<script>window.TETHYS_BUILD={v:"v11.238",wh:"62c2cde9498956c5"};</script>
 <script>
 // loader.js — the page's loader, in tethys.html only, outside the game's bundle and before it: three.js and the world cache fetched side by side, then the
 // game. Since v11.215 (three.js-ready) three.js is loaded as a module — every release after r160 is only that — with import(); its exports are copied onto
@@ -3339,6 +3339,14 @@ const MIST_GLSL='float blR(float y,float e){float u=y-e+'+HAZE.soft.toFixed(1)+'
   if(T187){const L0='float getDistanceAttenuation(',L1='return distanceFalloff;\n}',s=C.lights_pars_begin||'',a=s.indexOf(L0),b=s.indexOf(L1,a); // lightLegacy (v11.218): r128's point-light falloff
     if(a<0||b<0)console.warn('lightLegacy: getDistanceAttenuation not as expected; point lights fall off as r187\'s');
     else C.lights_pars_begin=s.slice(0,a)+'float getDistanceAttenuation( const in float lightDistance, const in float cutoffDistance, const in float decayExponent ) {\n\tif ( cutoffDistance > 0.0 && decayExponent > 0.0 ) return pow( saturate( - lightDistance / cutoffDistance + 1.0 ), decayExponent );\n\treturn 1.0;\n}'+s.slice(b+L1.length);}
+  // A dark point light is skipped (v11.238). The pool's lights and the own light are never taken out of the scene — a light count that changed would
+  // recompile every program — so an unlit one stands at intensity 0, and three still worked all five through for every vertex (Lambert) and every
+  // terrain pixel (Phong) only to add nothing: by day in the shallows all five are dark. A light whose colour (×intensity: three's uniform) is black
+  // adds exactly 0, so the branch changes no value; it is the same for every vertex and pixel of a draw, which a GPU takes at the cost of one test.
+  const rePt=/(for\s*\(\s*int\s+i\s*=\s*0\s*;\s*i\s*<\s*NUM_POINT_LIGHTS\s*;\s*i\s*\+\+\s*\)\s*\{)([\s\S]*?)(\n\t\}\n\t#pragma unroll_loop_end)/;let np=0;
+  const ptSkip=k=>{const s=C[k];if(!s||!rePt.test(s))return;C[k]=s.replace(rePt,(m,a,b,c)=>{np++;return a+'\n\tif ( pointLights[ i ].color != vec3( 0.0 ) ) {'+b+'\n\t}'+c;});};
+  ptSkip('lights_lambert_vertex');ptSkip('lights_fragment_begin');
+  if(np!==(T187?1:2))console.warn('dark lights: light chunks not as expected ('+np+' point loops patched); every light is worked through');
 })();
 const hemi=new THREE.HemisphereLight(0x9fd6e0,0x101c1c,0.9);scene.add(hemi);
 const sun=new THREE.DirectionalLight(0xfff2d8,1.2);sun.position.set(SUN_POS[0],SUN_POS[1],SUN_POS[2]);scene.add(sun);
@@ -11234,6 +11242,37 @@ function audioLine(){if(!AU.on)return 'audio off';const A=AU_LINE;return 'audio 
 
 // creatures_ai.js — registry, spawning (with far-LOD bake), behaviours, per-frame update
 const creatures=/** @type {Creature[]} */([]),schools=[],carcasses=[],eggs=[]; // Creature: spawn's closed shape (v11.193, test/types.js) // carcasses (v11.26): the dead, lying where they fell until eaten or gone; eggs: the clutches
+// ---------- the scans' grid (v11.238) ----------
+// A school's look for a threat, a grazer's and a hunter's for prey each walked every creature (1,380 at the forest's shelf), a dozen times a step:
+// a fifth of the creatures' work, and most of what the behaviour passes v11.221–236 added to it. CG holds the live creatures by a CG.s-metre square
+// of x,z for the step: built when the step's schools are read (updateSchools), a body moved to its new square right after its own update
+// (updateCreatures), one born in the step put in at spawn. A scan takes the squares its reach covers (cgNear) in `creatures`' own order (seq: spawn
+// order, which every splice keeps) and tests them as the walk over all did — the same bodies in the same order, every other one already out of reach
+// at its first distance test — so every choice is the same to the bit (test/frames.js's hash; test/scangrid.js holds each scan to the walk). It
+// holds because inside the step's loop a body moves only in its own update (the holds and the contact move bodies after the loop, and CG is off by
+// then); a body killed or removed in the step stays in its square and is skipped as the walk skipped it (`alive` is every scan's first test). Off
+// (CG.on false: outside the step, or a reach over CG.maxC squares) a scan walks every creature, as before.
+let CSEQ=0;
+// a flat hash of the squares (v11.238's first cut was a Map of arrays by key: its upkeep was a third of what it saved): CG.list the step's creatures,
+// CG.key each one's square, CG.next its chain in CG.head's bucket. A square's key packs its two indices, each mod 16384 — the world is under 16384
+// squares across, so no two of it share one; a bucket shared by two squares is told apart by the key.
+const CG={on:false,s:32,maxC:144,n:0,head:new Int32Array(4096),key:new Int32Array(2048),next:new Int32Array(2048),list:/** @type {Creature[]} */([])},CG_OUT=/** @type {Creature[]} */([]);
+function cgK(x,z){return (Math.floor(x/CG.s)&16383)<<14|(Math.floor(z/CG.s)&16383);}
+function cgH(k){return Math.imul(k,0x9E3779B1)>>>20;} // 0..4095: CG.head's bucket
+function cgLink(i,k){const h=cgH(k);CG.key[i]=k;CG.next[i]=CG.head[h];CG.head[h]=i;}
+function cgPut(c){const i=CG.n++;if(i>=CG.key.length){const K=new Int32Array(i*2),N=new Int32Array(i*2);K.set(CG.key);N.set(CG.next);CG.key=K;CG.next=N;}
+  CG.list[i]=c;c.cgI=i;cgLink(i,cgK(c.pos.x,c.pos.z));}
+function cgBuild(){CG.head.fill(-1);CG.n=0;CG.list.length=0;for(const c of creatures){if(c.alive)cgPut(c);else c.cgI=-1;}CG.on=true;}
+function cgMove(c){const i=c.cgI;if(i<0){cgPut(c);return;}const k=cgK(c.pos.x,c.pos.z),k0=CG.key[i];if(k===k0)return;
+  const h=cgH(k0),N=CG.next;let p=CG.head[h];if(p===i)CG.head[h]=N[i];else{while(p>=0&&N[p]!==i)p=N[p];if(p>=0)N[p]=N[i];} // out of its old chain
+  cgLink(i,k);}
+const cgBySeq=(/** @type {Creature} */a,/** @type {Creature} */b)=>a.seq-b.seq;
+// every live creature within R of x,z on the ground plane, and some past it, in `creatures`' order; null when off or the reach is too wide (walk them all).
+// R+1: a body at exactly the reach's edge in x or z is never lost to rounding. The array is shared: a scan reads it before anything else asks
+function cgNear(x,z,R){if(!CG.on)return null;R+=1;const s=CG.s,i0=Math.floor((x-R)/s),i1=Math.floor((x+R)/s),j0=Math.floor((z-R)/s),j1=Math.floor((z+R)/s);if(!((i1-i0+1)*(j1-j0+1)<=CG.maxC))return null;
+  const out=CG_OUT,H=CG.head,N=CG.next,K=CG.key,L=CG.list;out.length=0;
+  for(let i=i0;i<=i1;i++)for(let j=j0;j<=j1;j++){const k=(i&16383)<<14|(j&16383);for(let q=H[cgH(k)];q>=0;q=N[q])if(K[q]===k)out.push(L[q]);}
+  if(out.length>1)out.sort(cgBySeq);return out;}
 // The eggs (v11.26): a birth the ledger owes a loaded cell is laid as a clutch on the floor near an adult of its kind — a knot of
 // translucent spheres the clade's colour, sized to the animal — and hatches after ECO.hatch days (by mass^¼: a flicker's in five
 // minutes, a ridge's in a day and a half) into juveniles at the clutch. A clutch is a carcass to the scavengers (findCarcass): eaten
@@ -11381,7 +11420,7 @@ function shedFlora(){const byKind={};SPAWN.forEach(e=>{if(e.land||!moults(e.kind
     const f={id:'shed_'+kind,shed:kind,geo:geo,mat:MAT,tints:[[1,1,1],[0.94,0.92,0.88],[0.9,0.9,0.86]],s:[MOULT.keep*0.9,MOULT.keep*1.05],sink:0.08,tilt:true,per:Math.max(1,Math.round(dens)),rare:Math.min(1,dens),envs:K.envs,top:d.size*0.6,maxSlope:1.0};
     FLORA.push(f);FLORA_BY_ID[f.id]=f;}}
 shedFlora();
-/** @typedef {{kind:any,def:any,g:any,anim:any,pos:any,vel:any,home:any,hp:any,state:any,t0:any,lastSpd:any,lastYaw:any,roll:any,rollV:any,sq:any,stunSide:any,target:any,biteT:any,wanderT:any,wander:any,alive:any,gone:any,stun:any,bored:any,cool:any,scanT:any,alarm:any,fleeT:any,lungeT:any,ramT:any,school:any,off:any,offT:any,chunk:any,lod:any,parts:any,lodMeshes:any,sub:any,wet:any,grounded:any,flopT:any,b:any,mass:any,mass0:any,bound:any,reach:any,shapesW:any,chainW:any,grab:any,holding:any,armT:any,touchF:any,hold:any,held:any,bleed:any,blood:any,wounds:any,paraT:any,stungT:any,armsLost:any,regrow:any,sickT:any,poison:any,poisT:any,commitT:any,coastT:any,missN:any,speedK:any,turnK:any,live:any,lost:any,cWith:any,d6:any,par:any,st:any,tellT:any,strikeT:any,recoverT:any,burstT:any,face:any,bit:any,accT:any,threat:any,ent:any,hunger:any,starveT:any,hunt:any,feedT:any,feedAt:any,dead:any,flesh:any,deadT:any,scav:any,scavT:any,glow:any,lumL:any,lumF:any,lumD:any,lumH:any,juv:any,k:any,cls:any,soft:any,softT:any,moultT:any,shM:any,cast:any,lodNear:any,lodFar:any,nearR:any,stepR:any,carried:any,cur:any,curT:any,turnedF:any,turnV:any,accV:any,shapeF:any,rigV:any,rigO:any,hitN:any,hitB:any,lieQ:any,chaseT:any,lungeP:any,strikeP:any,gapMin:any,pivotT:any,sw:any,swT:any,filtT:any,q:any,pig:any,hand:any,fall:any,brood:any,fxStruck:any,fxAcc:any,stam:any,spinV:any,shook:any,shakeYaw:any,shakeP:any,pointD:any,lenM:any,lastHurt:any,eaten:any,liveMass:any,fullMass:any,wallD:any,seed:any,vk:any,awake:any,sink:any,inspT:any,deter:any,dread:any,crypt:any,cov:any,covT:any,goal:any,waitT:any,inkT:any,post:any,pel:any,bodyT:any,therm:any,thmT:any,den:any}} Creature — every key a creature carries, closed: spawn's literal below in the same order (CLAUDE.md, "one shape"); a key added to the literal goes here too, and the type checker flags one misspelt or set that is not here (v11.193, test/types.js) */
+/** @typedef {{kind:any,def:any,g:any,anim:any,pos:any,vel:any,home:any,hp:any,state:any,t0:any,lastSpd:any,lastYaw:any,roll:any,rollV:any,sq:any,stunSide:any,target:any,biteT:any,wanderT:any,wander:any,alive:any,gone:any,stun:any,bored:any,cool:any,scanT:any,alarm:any,fleeT:any,lungeT:any,ramT:any,school:any,off:any,offT:any,chunk:any,lod:any,parts:any,lodMeshes:any,sub:any,wet:any,grounded:any,flopT:any,b:any,mass:any,mass0:any,bound:any,reach:any,shapesW:any,chainW:any,grab:any,holding:any,armT:any,touchF:any,hold:any,held:any,bleed:any,blood:any,wounds:any,paraT:any,stungT:any,armsLost:any,regrow:any,sickT:any,poison:any,poisT:any,commitT:any,coastT:any,missN:any,speedK:any,turnK:any,live:any,lost:any,cWith:any,d6:any,par:any,st:any,tellT:any,strikeT:any,recoverT:any,burstT:any,face:any,bit:any,accT:any,threat:any,ent:any,hunger:any,starveT:any,hunt:any,feedT:any,feedAt:any,dead:any,flesh:any,deadT:any,scav:any,scavT:any,glow:any,lumL:any,lumF:any,lumD:any,lumH:any,juv:any,k:any,cls:any,soft:any,softT:any,moultT:any,shM:any,cast:any,lodNear:any,lodFar:any,nearR:any,stepR:any,carried:any,cur:any,curT:any,turnedF:any,turnV:any,accV:any,shapeF:any,rigV:any,rigO:any,hitN:any,hitB:any,lieQ:any,chaseT:any,lungeP:any,strikeP:any,gapMin:any,pivotT:any,sw:any,swT:any,filtT:any,q:any,pig:any,hand:any,fall:any,brood:any,fxStruck:any,fxAcc:any,stam:any,spinV:any,shook:any,shakeYaw:any,shakeP:any,pointD:any,lenM:any,lastHurt:any,eaten:any,liveMass:any,fullMass:any,wallD:any,seed:any,vk:any,awake:any,sink:any,inspT:any,deter:any,dread:any,crypt:any,cov:any,covT:any,goal:any,waitT:any,inkT:any,post:any,pel:any,bodyT:any,therm:any,thmT:any,den:any,seq:any,cgI:any}} Creature — every key a creature carries, closed: spawn's literal below in the same order (CLAUDE.md, "one shape"); a key added to the literal goes here too, and the type checker flags one misspelt or set that is not here (v11.193, test/types.js) */
 function spawn(ch,kind,pos,rng,opt){
   const juv=!!(opt&&opt.juv),D0=juv?juvDef(kind):DEFS[kind],EK=ecoOf(kind),ent=opt&&opt.ent!==undefined?opt.ent:-1,vary=ent>=0&&kind!=='lab';
   // the individual (v11.66, above): the size band, the coat class of the place, the soft state; plain outside the ledger. v11.225: a kind with a
@@ -11402,7 +11441,7 @@ function spawn(ch,kind,pos,rng,opt){
     shM:null,cast:false,lodNear:0,lodFar:0,nearR:0,stepR:0, // set below, in this order
     carried:undefined,cur:undefined,curT:undefined,turnedF:undefined,turnV:undefined,accV:undefined,shapeF:undefined,rigV:undefined,rigO:undefined,hitN:undefined,hitB:undefined,lieQ:undefined,chaseT:undefined,lungeP:undefined,strikeP:undefined,gapMin:undefined,pivotT:undefined,
     sw:undefined,swT:undefined,filtT:undefined,q:undefined,pig:undefined,hand:undefined,fall:undefined,brood:undefined,fxStruck:undefined,fxAcc:undefined,stam:undefined,spinV:undefined,shook:undefined,shakeYaw:undefined,shakeP:undefined,pointD:undefined,
-    lenM:undefined,lastHurt:undefined,eaten:undefined,liveMass:undefined,fullMass:undefined,wallD:undefined,seed:seed,vk:vx?vx.key:undefined,awake:1,sink:1,inspT:0,deter:0,dread:null,crypt:crypt,cov:0,covT:-1,goal:null,waitT:0,inkT:0,post:null,pel:false,bodyT:-99,therm:1,thmT:0,den:null}); // den (v11.232): a hingeshell's kept den (DEN) // bodyT, therm, thmT (v11.231): a slowblood's body's warmth (°C; -99 unread), the activity it allows (THERM), when it is next read // post, pel (v11.230.1): a hanger's post, round which its station roams (a stand's one, shared); placed in the water column (a SPAWN row's mid), it keeps to its depth there // wallD (v11.223): the way to the wall from a station (chunks.js stationPoint), a unit vector; seed, vk (v11.225): the individual's seed and its variant's key // the individual (v11.66): its size factor, its coat class, the soft state and its clocks // awake, sink, inspT, deter, dread (v11.228, BEHAVIOUR.md): how much it is about (awakeOf, at its last scan), its clearance's share (a buried rest), the look's clock and how far it has been stood up to (RISK), what it flees; crypt, cov, covT (v11.229): how well it matches its ground (SENSE), the weed's cover where it is and when that was read; goal, waitT, inkT (v11.230): where it makes for (a plumb foraging), how long it has waited (a plumb, a lurker) or a quill hides, how long until it inks again (an arrow)
+    lenM:undefined,lastHurt:undefined,eaten:undefined,liveMass:undefined,fullMass:undefined,wallD:undefined,seed:seed,vk:vx?vx.key:undefined,awake:1,sink:1,inspT:0,deter:0,dread:null,crypt:crypt,cov:0,covT:-1,goal:null,waitT:0,inkT:0,post:null,pel:false,bodyT:-99,therm:1,thmT:0,den:null,seq:++CSEQ,cgI:-1}); // seq, cgI (v11.238): its place in `creatures` (spawn order, which every splice keeps) and its entry in the scans' grid (CG.list) // den (v11.232): a hingeshell's kept den (DEN) // bodyT, therm, thmT (v11.231): a slowblood's body's warmth (°C; -99 unread), the activity it allows (THERM), when it is next read // post, pel (v11.230.1): a hanger's post, round which its station roams (a stand's one, shared); placed in the water column (a SPAWN row's mid), it keeps to its depth there // wallD (v11.223): the way to the wall from a station (chunks.js stationPoint), a unit vector; seed, vk (v11.225): the individual's seed and its variant's key // the individual (v11.66): its size factor, its coat class, the soft state and its clocks // awake, sink, inspT, deter, dread (v11.228, BEHAVIOUR.md): how much it is about (awakeOf, at its last scan), its clearance's share (a buried rest), the look's clock and how far it has been stood up to (RISK), what it flees; crypt, cov, covT (v11.229): how well it matches its ground (SENSE), the weed's cover where it is and when that was read; goal, waitT, inkT (v11.230): where it makes for (a plumb foraging), how long it has waited (a plumb, a lurker) or a quill hides, how long until it inks again (an arrow)
   // v11.149 (the creature performance pass): every creature one shape. The keys above from shM on were added to a creature as it lived — the current
   // it is carried by, its turn, its holds, the falls, the brood, the effects' clocks — each by whichever system reached it first, in that order: the
   // forest's 1,400 creatures had 27 shapes, and past four an engine gives up a property read's fast path, so every c.pos, c.def, c.vel in the frame was
@@ -11410,7 +11449,7 @@ function spawn(ch,kind,pos,rng,opt){
   // takes later goes in this list: test/live.js fails on a creature, a state or a def off its spawn's keys after four game days and a minute of play
   c.mass=c.mass0=kgOfBody(kind,D,b); // one mass (v11.91, COMBAT.md §10.2): derive's, in kg, at this body's scale
   if(soft){c.b.cover=b.cover.map(()=>'skin');c.st.soft=1;c.state='sit';hideSpot(ch,c.pos,rng,d);c.home.copy(c.pos);}
-  b.g.position.copy(c.pos);scene.add(b.g);
+  b.g.position.copy(c.pos);scene.add(b.g);b.g.updateMatrixWorld=crMW; // the main pass walks only what it draws of it (crMW)
   // far LOD: the whole creature flattened into one mesh per material, hidden until needed
   c.parts=b.g.children.slice();
   // the far pose (v11.18): the rigs posed by the creature's own idle anim and skinned at rest before the bake, so a far lurker's arms
@@ -11430,7 +11469,7 @@ function spawn(ch,kind,pos,rng,opt){
   c.shM=[];b.g.traverse(o=>{if(o.isMesh)c.shM.push(o);});c.cast=false; // the meshes that cast into the shadow map when this body is among the nearest (scene.js updateShadow)
   c.lodNear=(d.lodNear||45+d.size*4)*Q.lodNear;c.lodFar=Math.min(FAR*0.7,120+d.size*40); // lodNear on the def (v11.18): the long-appendaged are simulated from further off; a veil is drawn to 760, an abyssal to 720
   c.nearR=Math.max(90,d.size*5);c.stepR=Math.max(150,d.size*8); // the two radii the loop's fixed 90 and 150 were (v11.67.2, CREATOR.md the size ceiling): a body to push against and to change out of sight; the distance past which it steps every other frame. Both floor at the old number, so nothing under 18 m moves — the whole roster today. A 300 m animal is pushed against and animated at full rate out to where it is still drawn
-  creatures.push(c);ch.creatures.push(c);return c;
+  creatures.push(c);ch.creatures.push(c);if(CG.on)cgPut(c);return c; // CG.on: born mid-step (a juvenile grown, a moult), in the grid for the scans after it
 }
 function setLOD(c,level){ // 0 near (the parts), 1 far (the bake), 2 drawn by its school's instanced bake (v11.168, SCHOOL_INST: the creature's own meshes all hidden)
   if(c.lod===level)return;c.lod=level;
@@ -11481,6 +11520,20 @@ function schoolMerge(dt){schoolMT-=dt;if(schoolMT>0)return;schoolMT=SCHOOL.merge
     for(let j=0;j<schools.length;j++){const a=schools[j];if(a===b||!a.members.length||a.members[0].kind!==kb||(a.pos.x-b.pos.x)*(a.pos.x-b.pos.x)+(a.pos.y-b.pos.y)*(a.pos.y-b.pos.y)+(a.pos.z-b.pos.z)*(a.pos.z-b.pos.z)>M2)continue;const na=schoolLive(a);if(na<nb||na+nb>SCHOOL.max)continue;
       for(const m of b.members)if(m.alive){m.school=a;a.members.push(m);}b.members.length=0;const k=b.chunk.schools.indexOf(b);if(k>=0)b.chunk.schools.splice(k,1);schools.splice(i,1);break;}}}
 function disposeCreature(c){if(c.fall&&c.fall.c===c)c.fall.c=null;c.alive=false;c.gone=true;releaseAll(c);scene.remove(c.g);c.g.traverse(o=>{if(o.geometry&&!SHARED_GEO.has(o.geometry))o.geometry.dispose();});} // a kind's shared body and bake stay (spawn)
+// ---------- the matrices a frame walks (v11.238) ----------
+// three's render recomposes the matrix of every object in the scene before it draws (Object3D.updateMatrixWorld), seen or not: at the forest's shelf
+// 15,900 objects, 15,500 of them creatures' parts, 13,600 under a body out of sight — 4.8–6.7 ms of the render's 15.6 here, the largest piece of the
+// readout's `render` (submit). Through the main pass (MW.hide, horizon.js renderFrame) a creature's root still recomposes its own matrix, as three does —
+// the sim reads c.g.matrix (combat.js localToWorld, the strikes, the holds) — but goes into only the parts that are drawn. A part out of sight keeps the
+// matrix of the last frame it was drawn in, and is recomposed the frame it shows again, before it is drawn, from its own position as before: nothing
+// drawn changes, and nothing in the sim reads a part's matrix (the bakes update their own, at build). Every other walk (an explicit call, the static
+// shadow map's pass, the stub) is three's own.
+const MW={hide:false};
+/** @this {any} @param {boolean} force */
+function crMW(force){if(!MW.hide){THREE.Object3D.prototype.updateMatrixWorld.call(this,force);return;}
+  if(this.matrixAutoUpdate)this.updateMatrix();
+  if(this.matrixWorldNeedsUpdate||force){const p=this.parent;if(this.matrixWorldAutoUpdate!==false){if(p===null)this.matrixWorld.copy(this.matrix);else this.matrixWorld.multiplyMatrices(p.matrixWorld,this.matrix);}this.matrixWorldNeedsUpdate=false;force=true;}
+  if(!this.visible)return;const ch=this.children;for(let i=0;i<ch.length;i++){const o=ch[i];if(o.visible)o.updateMatrixWorld(force);}}
 // a creature leaving the world mid-life (eaten away, grown up): disposed and struck from every list it is on
 function removeCreature(c){disposeCreature(c);let k=creatures.indexOf(c);if(k>=0)creatures.splice(k,1);if(c.chunk){k=c.chunk.creatures.indexOf(c);if(k>=0)c.chunk.creatures.splice(k,1);}
   if(c.school){k=c.school.members.indexOf(c);if(k>=0)c.school.members.splice(k,1);}k=carcasses.indexOf(c);if(k>=0)carcasses.splice(k,1);}
@@ -11536,7 +11589,7 @@ function reachable(c,d,p,dist){if(d.deepY!==undefined&&p.y<d.deepY-2)return fals
 function findPrey(c,R,thr){
   const d=c.def;let best=null,bd=1e9;if(R===undefined)R=d.detect;R*=c.therm;const n=needOf(c,thr===undefined?huntAt(c):thr);
   if(!playerGone()&&player.inkT<=0&&((d.prey.indexOf('player')>=0&&(!d.preyClade||(player.clade&&player.clade.id===d.preyClade)))||(player.soft&&softPrey(c,player)))){const dp=c.pos.distanceTo(player.pos);if(dp<R&&reachable(c,d,player.pos,dp)&&notices(d,c.pos.y,player,dp,R)){const r=riskOf(c,player);if(dares(n,r)){best=player;bd=dp*(1+r);}}} // v11.76: the player through its moult is a soft body like any other — prey to whatever is big enough (MOULT.prey), listed or not
-  for(const o of creatures){if(!o.alive||o===c)continue;if(!preyOn(d,o)&&!(o.soft&&softPrey(c,o)))continue;const dd=c.pos.distanceTo(o.pos);if(dd>=R||dd>=bd||!reachable(c,d,o.pos,dd)||!notices(d,c.pos.y,o,dd,R))continue;const r=riskOf(c,o),e=dd*(1+r);if(e<bd&&dares(n,r)){bd=e;best=o;}} // a soft body of any kind is prey to a hunter big enough (v11.66, MOULT)
+  for(const o of cgNear(c.pos.x,c.pos.z,R)||creatures){if(!o.alive||o===c)continue;if(!preyOn(d,o)&&!(o.soft&&softPrey(c,o)))continue;const dd=c.pos.distanceTo(o.pos);if(dd>=R||dd>=bd||!reachable(c,d,o.pos,dd)||!notices(d,c.pos.y,o,dd,R))continue;const r=riskOf(c,o),e=dd*(1+r);if(e<bd&&dares(n,r)){bd=e;best=o;}} // a soft body of any kind is prey to a hunter big enough (v11.66, MOULT)
   return best;
 }
 // The kill (v11.26): the ledger is debited and nothing comes back. Eaten whole (the player's bite, a small prey in a big mouth) the
@@ -12054,7 +12107,7 @@ function updateBoid(c,dt){
   c.vel.lerp(T3,1-Math.exp(-3.5*dt));
 }
 // The schools: a wandering target near home (fleeing threats), and the school's position as its members' mean.
-function updateSchools(dt){schoolMerge(dt);
+function updateSchools(dt){schoolMerge(dt);cgBuild(); // the scans' grid for the step (CG): the schools read it first
   for(const s of schools){
     let n=0;T1.set(0,0,0);for(const c of s.members)if(c.alive){n++;T1.add(c.pos);}if(n)s.pos.copy(T1.multiplyScalar(1/n));
     s.t-=dt;
@@ -12066,7 +12119,7 @@ function updateSchools(dt){schoolMerge(dt);
       if(kind){s.awake=awakeOf(s.members[0].def);const was=s.rest;s.rest=was?s.awake<REST.off:s.awake<REST.on;if(s.rest!==was)s.t=0;} // v11.228: the school's hours (BEHAVE), with the hunters' hysteresis; a change of shift takes a new target at once
       const md=s.members.length?s.members[0].def:null; // v11.229: the school's eyes and lines are its members' (notices): a threat it notices, not one that is there
       if(md&&!playerGone()){const d=s.pos.distanceTo(player.pos);if(d<td&&notices(md,s.pos.y,player,d,14)){th=player.pos;td=d;}}
-      if(md)for(const c of creatures){if(!c.alive||!c.def.prey||c.def.prey.indexOf(kind)<0)continue;const d=s.pos.distanceTo(c.pos);if(d<td&&notices(md,s.pos.y,c,d,14)){th=c.pos;td=d;}}
+      if(md)for(const c of cgNear(s.pos.x,s.pos.z,td)||creatures){if(!c.alive||!c.def.prey||c.def.prey.indexOf(kind)<0)continue;const d=s.pos.distanceTo(c.pos);if(d<td&&notices(md,s.pos.y,c,d,14)){th=c.pos;td=d;}}
       s.threat=th;
       if(kind&&DEFS[kind].filter>0){let hn=0,hs=0;for(const m of s.members)if(m.alive){hn++;hs+=m.hunger;}if(!hn||hs/hn<=(s.sw?FILTER.full:ECO.hungry))s.sw=null;else if(!s.sw||!s.sw.alive||s.sw.pos.distanceTo(s.pos)>seeOf(DEFS[kind])*1.5)s.sw=swarmNear(s.pos,seeOf(DEFS[kind]));if(s.sw&&s.sw.alive&&s.pos.distanceTo(s.sw.pos)<swarmR(s.sw))s.home.copy(s.sw.pos);}} // v11.85: the school's swarm — sought when its members are hungry on the mean, kept until they are fed; a school feeding in a swarm makes it home, so the ribbons follow the layer's day
     const th=s.threat;
@@ -12079,7 +12132,7 @@ function updateGrazer(c,dt){
   // threats, scanned three times a second (a hundred grazers reading a thousand creatures a frame was the frame's biggest cost)
   c.scanT-=dt;if(c.scanT<=0){c.scanT=0.3;let threat=null,by=null;const k=c.therm; // v11.231: a cold slowblood notices late (THERM)
     if(!playerGone()){const dp=c.pos.distanceTo(player.pos);if(dp<8*k&&notices(d,c.pos.y,player,dp,8*k)){threat=player.pos;by=player;}} // v11.229: what it notices (the senses), not what is there
-    if(!threat)for(const o of creatures){if(!o.alive||!o.def.prey)continue;const big=o.def.size>=6;if(!big&&!preyOn(o.def,c))continue;const R=(big?18:7)*k,dd=c.pos.distanceTo(o.pos);if(dd<R&&notices(d,c.pos.y,o,dd,R)){threat=o.pos;by=o;break;}}
+    if(!threat)for(const o of cgNear(c.pos.x,c.pos.z,18*k)||creatures){if(!o.alive||!o.def.prey)continue;const big=o.def.size>=6;if(!big&&!preyOn(o.def,c))continue;const R=(big?18:7)*k,dd=c.pos.distanceTo(o.pos);if(dd<R&&notices(d,c.pos.y,o,dd,R)){threat=o.pos;by=o;break;}}
     if(d.herd){c.fleeT=Math.max(0,c.fleeT-0.3);if(by){c.fleeT=HERD.hold;c.dread=by;}else if(c.fleeT>0&&c.dread&&(c.dread===player?!playerGone():c.dread.alive))threat=c.dread===player?player.pos:c.dread.pos;else c.dread=null;if(threat)herdCall(c);} // v11.231: the herd's alarm (HERD): its own fright, or a neighbour's
     c.threat=threat;c.awake=awakeC(c);const hold=!!threat&&!!d.freeze&&c.pos.distanceTo(threat)>FREEZE.bolt+d.size; // a cryptic one stays put (buried, clamped, still) at a threat not yet close
     if(c.state==='rest'){if((threat&&!hold)||c.awake>REST.off)restEnd(c);}else if(!threat&&c.alarm<=0&&d.rest&&c.awake<REST.on)restBegin(c);} // v11.228: out of its hours it rests (DEFS.rest: the herd lies down, the rasp clamps to its rock, the plough and the scuttle go under); a threat gets it up
@@ -12397,7 +12450,7 @@ function updateCreatures(dt0){
       if(c.face){_m.lookAt(c.face,c.pos,UP);_q.setFromRotationMatrix(_m);c.g.quaternion.slerp(_q,1-Math.exp(-(d.turn||2)*(c.turnK||1)*(c.commitT>0||c.strikeT>0?TURN_STRIKE:c.pivotT>0?PIVOT.rate:2)*dt));} // in a strike the head snaps to the point (TURN_STRIKE, v11.92): the mouth dips to a prey under it // turning to a thing (the tell, the watcher's stare)
       else if(c.vel.lengthSq()>0.02){T2.copy(c.pos).add(c.vel);_m.lookAt(T2,c.pos,UP);_q.setFromRotationMatrix(_m);c.g.quaternion.slerp(_q,1-Math.exp(-(d.turn||2)*(c.turnK||1)*(c.turnedF===frameNo?TURN_FACE:(d.top?clamp(c.vel.length()/d.top,TURN_MIN,1):1))*(c.hold?kgOf(c)/(kgOf(c)+kgOf(c.hold.b)):1)*dt));} // v11.92: a body steered by seekTurn already turns its velocity at its rate, so its facing follows the velocity TURN_FACE times faster (it points where it goes; the lunge's low steering is seekTurn's); holding, the pair turns by the holder's share of its mass // v11.92: in the committed lunge the steering is STRIKE.steer of the rate (it overshoots a dodge); holding, the pair turns by the holder's share of its mass // v11.71: d.turn is the rate at the top speed (derive); a turn is speed over a radius that goes as the length, so an ambling body comes round at its pace's share of it, floored at TURN_MIN
       if(c.shakeYaw){_q.setFromAxisAngle(UP,c.shakeYaw);c.g.quaternion.multiply(_q);c.shook=c.shakeYaw;}}
-    c.g.position.copy(c.pos);
+    c.g.position.copy(c.pos);if(CG.on)cgMove(c); // its square in the scans' grid, now that it has moved (CG)
     // the action state the anim reads: the tell and the strike are set by the behaviours above and let go here
     const st=c.st;if(c.tellT<=0&&c.strikeT<=0){st.tell*=Math.exp(-4*dt);st.strike*=Math.exp(-7*dt);if(d.role==='ambush'&&c.state!=='lunge')st.strike*=Math.exp(-7*dt);}st.jet=c.state==='chase'&&d.jetter===true;st.turn=c.turnV||0;st.acc=c.accV||0;
     const vis=dp<c.lodFar;c.g.visible=vis;
@@ -12405,6 +12458,7 @@ function updateCreatures(dt0){
     if(vis&&dp<c.lodNear&&c.lod===0)simList.push(c);
     if(vis&&dp<c.nearR)near.push(c);
   }
+  CG.on=false; // the contact and the holds move bodies from here: the grid is the loop's (CG)
   // contact: bodies near the player push apart by their actual shapes (the player among them), the player is kept out
   // of every arm and tail near it, then the arms and tails of everything at near LOD are simulated against the bodies.
   for(const c of near){c.g.updateMatrix();worldShapes(c);c.shapeF=frameNo;if((c.def.role==='ambush'&&c.state==='sit'&&!c.def.upright)||c.def.role==='trap'||c.dead)c.mass=1e6;else c.mass=c.mass0;}
@@ -15128,8 +15182,8 @@ function renderFrame(){const above=wasAbove===true&&!!renderer.clearDepth;cloudP
     hzCam.position.copy(camera.position);hzCam.quaternion.copy(camera.quaternion);if(hzCam.fov!==camera.fov||hzCam.aspect!==camera.aspect){hzCam.fov=camera.fov;hzCam.aspect=camera.aspect;hzCam.updateProjectionMatrix();}hzCam.updateMatrixWorld();
     hzSea.position.set(camera.position.x,TIDE,camera.position.z);HZ_SEA_MAT.uniforms.uHzIn.value=hzIn(camera.position.y-TIDE);
     const bg=scene.background;hzScene.background=bg;scene.background=null; // three clears to a scene's background colour whatever autoClear says (WebGLBackground forces it), so the main pass takes none while the horizon pass is under it
-    renderer.autoClear=false;recGpu(1);renderer.clear();renderer.render(hzScene,hzCam);renderer.clearDepth();recGpu(0);renderer.render(scene,camera);recGpuEnd();renderer.autoClear=true;scene.background=bg;}
-  else{if(sky.parent!==scene)scene.add(sky);skyU.uSkyStep.value=0;recGpu(0);renderer.render(scene,camera);recGpuEnd();}} // recGpu (v11.191, rec.js): the GPU's own time of each pass, where the browser can time it
+    renderer.autoClear=false;recGpu(1);renderer.clear();renderer.render(hzScene,hzCam);renderer.clearDepth();recGpu(0);MW.hide=true;renderer.render(scene,camera);MW.hide=false;recGpuEnd();renderer.autoClear=true;scene.background=bg;}
+  else{if(sky.parent!==scene)scene.add(sky);skyU.uSkyStep.value=0;recGpu(0);MW.hide=true;renderer.render(scene,camera);MW.hide=false;recGpuEnd();}} // MW.hide (v11.238, creatures_ai.js crMW): the main pass recomposes only the creatures' parts it draws // recGpu (v11.191, rec.js): the GPU's own time of each pass, where the browser can time it
 
 // combat.js — how combat happens (v11.31). Before this a bite was a number subtracted when two centres came within `reach`: the
 // bodies had real shapes and contact (physics.js) and the fight ignored them. Now a fight is a hold. Nothing here eats or kills by
