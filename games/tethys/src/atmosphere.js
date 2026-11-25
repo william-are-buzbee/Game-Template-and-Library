@@ -286,7 +286,7 @@ function updateSky(dt){const K=SKY;
 // toward the light), the sun's glare, and the bow. The moon's disc, the stars and the planets only pay for pixels near them.
 const skyU={uVig:{value:VIG},uZen:{value:new THREE.Vector3()},uHor:{value:new THREE.Vector3()},uGlow:{value:new THREE.Vector3()},uSunC:{value:new THREE.Vector3()},uLumC:{value:new THREE.Vector3()},uCirrC:{value:new THREE.Vector3()},
   uSun:{value:new THREE.Vector3()},uMoon:{value:new THREE.Vector3()},uLum:{value:new THREE.Vector3()},uCam:{value:new THREE.Vector3()},uWind:{value:new THREE.Vector2()},uUpper:{value:new THREE.Vector2()},
-  uDay:{value:1},uNight:{value:0},uCover:{value:0},uRain:{value:0},uMoonL:{value:0},uLumL:{value:1},uStarT:{value:0},uTime:timeU,uBow:{value:0},uCloudH:{value:CLOUD_H},uCirrusH:{value:CIRRUS_H},uCirr:{value:0},uCamH:{value:0},uEclS:{value:0},uEclL:{value:0},uFxCloud:{value:1},
+  uDay:{value:1},uNight:{value:0},uCover:{value:0},uRain:{value:0},uMoonL:{value:0},uLumL:{value:1},uStarT:{value:0},uTime:timeU,uBow:{value:0},uCloudH:{value:CLOUD_H},uCirrusH:{value:CIRRUS_H},uCirr:{value:0},uCamH:{value:0},uSkyStep:{value:0},uEclS:{value:0},uEclL:{value:0},uFxCloud:{value:1},
   uDeckC:{value:new THREE.Vector3(1,1,1)},uDeckL:{value:0},uCld:{value:FOG_CLD},uCldB:{value:FOG_CLDB},uCellA:{value:FOG_CELLA},uCellB:{value:FOG_CELLB},uCldTex:cldTexU,uVolT:{value:new THREE.Vector2(CLOUD_T,CLOUD_T)},uSkyFx:{value:new THREE.Vector4(1,1,1,1)},uSkD:{value:FOG_SKD},uFloorMap:{value:floorMap},uWmO:{value:WM_O}, // v11.178: the switches (cloud light, airglow, twilight, lagoon glow), the tone's, the floor map for the lagoon glow
    // v11.89 (clouds.js): the atlas, the deck's depth (a plain deck's, the deepest cell's) // v11.87 (clouds.js): the deck's sunlight and its colour, the lumps' share (the deck fades out under them), the field's state
   uCldRT:{value:null},uCldRes:{value:new THREE.Vector4(1,1,0,1)},uEye:{value:1},uMist:{value:MIST_P},uMistC:{value:MIST_C},uMistW:{value:MIST_W},uPlanD:{value:new Float32Array(9)},uPlanC:{value:new Float32Array(PLANETS.map(p=>[p[1][0],p[1][1],p[1][2],p[2]]).flat())}};
@@ -339,7 +339,7 @@ const VOL_GLSL=['vec4 cloudVol(vec3 d,vec3 zen,vec3 hor){float up=d.y;if(up<0.00
   '  if(sA<0.002)return vec4(0.0);float qx=sS/sA*3.0,qw=uSkyFx.x>0.5?'+CL_LIT.soft.toFixed(3)+':0.001;float q=(floor(qx)+smoothstep(0.5-qw,0.5+qw,fract(qx)))/3.0;float amb=0.95+0.25*(sM/sA);vec3 col=mix(shdC*amb,litC,q)+uDeckC*fw*(1.0-sA)*1.2;', // v11.178: the three bands' edges softened by CL_LIT.soft (to v11.177 floor(x+0.5): hard)
   '  if(uSkyFx.w>0.5){float dep=texture2D(uFloorMap,(sP/sA-uWmO)*'+WM_SCALE+'+0.5).r*'+FM_SCALE.toFixed(1)+';float lg=step('+LAGOON.land.toFixed(2)+',dep)*(1.0-smoothstep('+LAGOON.d0.toFixed(1)+','+LAGOON.d1.toFixed(1)+',dep))*pow(1.0-clamp(sM/sA,0.0,1.0),1.5)*(1.0-0.8*q)*(1.0-uRain)*'+LAGOON.k.toFixed(2)+';col*=mix(vec3(1.0),vec3('+LAGOON.tint.map(v=>v.toFixed(3)).join(',')+'),lg);}', // v11.178 (LAGOON): the base over shallow water lit from below by it
   'float fk=1.0-exp(-(sT/sA)/9000.0);col=mix(col,hor,fk*0.85)*(1.0-0.35*uRain);return vec4(col,sA*hf);}'].join('\n')+'\n';
-const SKY_FS=[DITHER_PARS,EYE_GLSL,'uniform vec3 uZen,uHor,uGlow,uSunC,uLumC,uCirrC,uSun,uMoon,uLum,uCam,uDeckC;uniform vec2 uWind,uUpper;uniform float uDay,uNight,uCover,uRain,uMoonL,uLumL,uStarT,uTime,uBow,uCloudH,uCirrusH,uCirr,uCamH,uEclS,uEclL,uFxCloud,uDeckL,uEye;uniform vec4 uSkyFx,uSkD;uniform sampler2D uFloorMap;uniform vec2 uWmO;',
+const SKY_FS=[DITHER_PARS,EYE_GLSL,'uniform vec3 uZen,uHor,uGlow,uSunC,uLumC,uCirrC,uSun,uMoon,uLum,uCam,uDeckC;uniform vec2 uWind,uUpper;uniform float uDay,uNight,uCover,uRain,uMoonL,uLumL,uStarT,uTime,uBow,uCloudH,uCirrusH,uCirr,uCamH,uSkyStep,uEclS,uEclL,uFxCloud,uDeckL,uEye;uniform vec4 uSkyFx,uSkD;uniform sampler2D uFloorMap;uniform vec2 uWmO;',
   'uniform vec4 uMist,uMistC,uMistW,uCld,uCldB,uCellA,uCellB;uniform vec2 uVolT;uniform vec3 uPlanD[3];uniform vec4 uPlanC[3];uniform sampler2D uCldRT;uniform vec4 uCldRes;varying vec3 vDir;',
   MIST_GLSL,
   SKY_NOISE_GLSL,CLD_GLSL,CLOUD_GLSL,CLD_VOL_GLSL,VOL_GLSL,
@@ -352,7 +352,7 @@ const SKY_FS=[DITHER_PARS,EYE_GLSL,'uniform vec3 uZen,uHor,uGlow,uSunC,uLumC,uCi
   '  vec3 o=vec3(h31(i+7.1),h31(i+3.3),h31(i+5.9))*0.6+0.2;vec3 q=normalize((i+o)/N);float br=(h-thr)/(1.0-thr);float r=sz*(0.5+br);float dd=length(s-q);',
   '  float tw=0.8+0.2*sin(uTime*(2.0+5.0*h31(i+1.7))+h31(i+2.9)*6.28);float v=(1.0-smoothstep(r*0.35,r,dd))*tw*(0.3+0.7*br)+br*br*0.10*exp(-dd*dd/(r*r*12.0));',
   '  float hc=h31(i+4.4);c=hc<0.14?vec3(0.72,0.82,1.0):(hc<0.34?vec3(1.0,0.84,0.66):vec3(1.0));return v;}',
-  'void main(){if(uCamH+normalize(vDir).y*'+(FAR*0.94).toFixed(1)+'<0.0)discard;vec3 d=normalize(vDir);float up=d.y;float cs=dot(d,uSun);',
+  'void main(){{float dy=normalize(vDir).y;if(uCamH+(dy+uSkyStep*(abs(dFdx(dy))+abs(dFdy(dy))))*'+(FAR*0.94).toFixed(1)+'<0.0)discard;}vec3 d=normalize(vDir);float up=d.y;float cs=dot(d,uSun);',
   // the gradient: horizon to zenith, brightest toward the sun and darkest 90 degrees from it, a broad haze aureole round the sun
   '  float k=smoothstep(-0.04,0.55,up);vec3 col=mix(uHor,uZen,k)*(0.92+0.10*cs*cs);',
   '  col+=(uSunC*0.55+uHor*0.45)*0.17*pow(max(cs,0.0),6.0)*uDay*(1.4-0.6*k);',
@@ -399,7 +399,7 @@ const SKY_FS=[DITHER_PARS,EYE_GLSL,'uniform vec3 uZen,uHor,uGlow,uSunC,uLumC,uCi
   '    vec3 rb=vec3(smoothstep(-0.25,0.65,xx),1.0-min(abs(xx)*1.3,1.0),1.0-smoothstep(-0.6,0.35,xx));col+=rb*0.30*ww*uBow*max(cta,uRain)*smoothstep(-0.02,0.1,up)*(1.0-0.6*ca);}', // v11.88: the bow stands on the rain — the curtain along the ray, or the rain here
   '  gl_FragColor=vec4(dithering(toneC(eyeC(col,uEye),uSkD.w)),1.0);}'].join('\n'); // v11.178: the tone curve with `soft highlights`, as the world and the horizon pass (to v11.177 the dome was left out: the sky not in the palette) // dithered (v11.29): the dusk gradient bands like the deep does; the eye's gain (v11.159, NIGHT_EYE) as every fogged material takes it in its fog chunk
 const sky=(function(){const g=new THREE.SphereGeometry(FAR*0.94,24,12);
-  const m=new THREE.Mesh(g,new THREE.ShaderMaterial({uniforms:skyU,vertexShader:SKY_VS,fragmentShader:SKY_FS,side:THREE.BackSide,depthWrite:false,fog:false}));m.frustumCulled=false;m.renderOrder=-10;m.visible=false;scene.add(m);return m;})();
+  const m=new THREE.Mesh(g,new THREE.ShaderMaterial({uniforms:skyU,vertexShader:SKY_VS,fragmentShader:SKY_FS,side:THREE.BackSide,depthWrite:false,fog:false,extensions:{derivatives:true}}));m.frustumCulled=false;m.renderOrder=-10;m.visible=false;scene.add(m);return m;})();
 // The cloud volume at a fraction of the screen (v11.188; the person, 20 Nov 2026, on v11.187's "the sky's cloud march": "that's not a bad idea, you have my
 // consent"). cloudVol marches up to Q.march steps for every sky pixel — 13–16% of a frame at the shore (test/fill.js), every pixel behind the land and the
 // trees too, since the horizon pass draws before the world. The cloud is soft, so it is marched into a target Q.cloudRes of the drawing buffer on a side (0.5:
@@ -525,7 +525,22 @@ function updateRain(dt,above){const K=SKY,on=above&&K.rainA>0.02&&FX.rain&&FX.cl
 // dome was hidden in air: from above, and from within SKY_NEAR of the surface (v11.42), the sky's lower half showed wherever the far terrain
 // was clipped by the draw distance — a white band under the horizon just beneath the surface line, the "white nothingness" the far kelp stood
 // against in the person's stills, gone the moment the camera went below SKY_NEAR.
-const waterDome=(function(){const mat=new THREE.MeshBasicMaterial({color:0x000000,side:THREE.BackSide,depthWrite:false});mat.onBeforeCompile=function(sh){sh.fragmentShader=sh.fragmentShader.replace('#include <fog_fragment>','\n#ifdef USE_FOG\nif(vFogPos.y>uFogW.x)discard;\n#endif\n#include <fog_fragment>');};mat.customProgramCacheKey=function(){return 'dome';};const m=new THREE.Mesh(new THREE.SphereGeometry(FAR*0.95,24,12),mat);m.frustumCulled=false;m.renderOrder=-11;scene.add(m);return m;})();
+// In air (v11.234) the dome is the water column under the surface's far end, and it is drawn only where it lies under the *drawn* sea at its own
+// point, DOME_M lower: a ray that reaches it there has crossed the sea's face first, nearer than the dome and inside the far plane, so the dark
+// veil is always seen through the surface and never alone. To v11.233 it was cut at the tide (uFogW.x), and the drawn far sea sits WAVE_MEAN
+// under the tide (~0.23–0.30 m: a faded wave keeps its sharpened mean) with the 150 m swell's troughs still in it along the grid's diagonals; a
+// ray dipping under the tide just short of the dome (FAR·0.95) met that sea only past the far plane, which in the middle of the view is a mere 5%
+// further out — the dome bare, a dark line one pixel high on the sea line across the middle of the screen, coming and going as the eye rode the
+// swell (the person: "horizon flickering black line above water", 25 Nov 2026). DOME_M covers the mesh's chords against the wave sum the fog
+// chunk evaluates (fogWaveH2's x: the drawn sum, the same waves, fade, clock and chop as the surface's vertices). The test is a pixel's step above
+// the fragment, not at it: with multisampling the dome's one fragment colours every sample of its pixel, and half a pixel at 1.5 km is ~1.3 m at
+// 720 rows (0.85 at 1080) — the pixel on the sea line straddles the dome's water line, and the samples in its upper half pass over the sea to the
+// far plane. Half a step reaches the pixel's top only where the position is linear on the screen; it is perspective's, and at the screen's edge a
+// corner sample lay past it (seen: three pixels at 1277–1279 of 1280), so a whole step. A pixel the dome leaves falls through to the horizon
+// pass, whose sea disc reaches in under it (horizon.js uHzIn) and whose sky is cut at the water a step down (uSkyStep). Under water, cut at the
+// tide as before.
+const DOME_M=0.2; // m: how far under the drawn sea a pixel's step above a fragment of the dome must be for it to be drawn in air (the mesh's chords against the wave sum at FAR·0.95: 0.12 m at most, shoaled, on the diagonal; test/horizon.js)
+const waterDome=(function(){const mat=new THREE.MeshBasicMaterial({color:0x000000,side:THREE.BackSide,depthWrite:false});mat.onBeforeCompile=function(sh){sh.fragmentShader=sh.fragmentShader.replace('#include <fog_fragment>','\n#ifdef USE_FOG\n{float fy=vFogPos.y,fyT=fy+abs(dFdx(fy))+abs(dFdy(fy));if(fy>uFogW.x)discard;if(uFogC.y>=uFogAC.w&&fyT>uFogW.x-3.0){vec2 dq=abs(vFogPos.xz-uFogC.xz);if(fyT>uFogW.x+fogWaveH2(vFogPos.xz,uFogTC.x,max(dq.x,dq.y),waveDep(vFogPos.xz,uFogW.x)).x-'+DOME_M.toFixed(2)+')discard;}}\n#endif\n#include <fog_fragment>');};mat.extensions={derivatives:true};mat.customProgramCacheKey=function(){return 'dome';};const m=new THREE.Mesh(new THREE.SphereGeometry(FAR*0.95,24,12),mat);m.frustumCulled=false;m.renderOrder=-11;scene.add(m);return m;})();
 
 // ---------- marine snow (v11.24) ----------
 // What is in the water, by what the column is doing (the person's ask, 10 Sep: the stuff at the bottom of the world is not the stuff

@@ -11613,3 +11613,63 @@ open list, the sailers' stranding and what eats them.
 - **Unseen, ask in this order**: (1) whether you ever see a jelly or a sailer with a fish in it (rare by design — say if it should be less so); (2) a
   sailer dead on a windward strand at low tide, and the scuttles at it; (3) the jellies' daily climb with the plankton — at dusk, up the water column;
   (4) BEHAVIOUR §8.10, what eats a live drifter.
+
+## v11.234 — the sea line: the water dome off the far sea's end (25 Nov 2026)
+
+The person: *"Horizon flickering black line above water."* By day, overcast, the eye 1–2 m over calm open sea: a thin dark line exactly on the
+sea–sky boundary, across about the middle half of the screen, flickering.
+
+- **The cause**, reproduced headless (the bench's page, the finback in first person held over open sea, each frame drawn with and without the water
+  dome). The water dome (atmosphere.js `waterDome`: black, fogged into the veil, at FAR·0.95) is, in air, the water column under the surface's far
+  end, and it was cut at the tide. The drawn far sea sits `WAVE_MEAN` under the tide (~0.23–0.30 m: a wave the grid fades out keeps its sharpened
+  mean), with the 150 m swell's troughs still in it along the grid's diagonals. A ray that dipped under the tide just short of the dome met that sea
+  only beyond the far plane, and straight ahead the far plane is only 5% past the dome (FAR against 0.95·FAR; toward the sides 1/cos further, so
+  the gap closes there — hence the middle). So the dome showed bare, 60–90 levels darker than the sea line. And with multisampling the dome's one
+  fragment a pixel coloured every sample of it, so the pixel straddling the dome's water line (half a pixel at 1.5 km is ~1 m) took it in its
+  upper samples too. Which eye height shows it depends on the screen's rows: at 1600×900 from 1.0 m the row on the sea line read 77–94 across
+  28–72% of the width, against 155–165 at the sides; at 1280×720 from 1.2 m, across 25–80%, and from 0.6–1.0 m all the way across. As the body
+  rides the swell the eye passes through those heights: the flicker.
+- **The dome** (atmosphere.js, `DOME_M` 0.2 m): in air it is drawn only where a pixel's step above its fragment lies DOME_M under the *drawn*
+  sea at that point (`fogWaveH2`'s x: the fog chunk's sum of the same waves with the mesh's own fade, clock and chop), so a ray that reaches it
+  has crossed the sea's face first, nearer than the dome and inside the far plane. Half a step (the pixel's top) still left three pixels at the
+  screen's right edge — the position is perspective's, not linear on the screen — so a whole step. Under water it is cut at the tide as before.
+- **The sea disc reaches in** (horizon.js `hzIn`, `HZ_IN` 5 rings, `HZ_DIP` 0.9 m, `uHzIn`). A pixel the dome now leaves falls through to the
+  horizon pass, and from a low eye a ray that passes over the sea's end can reach the tide nearer than where the disc begins (HZ_SEA0·FAR, 1200 m
+  on high), where the pass has only its clear colour. The disc has five more rings inside HZ_SEA0 on its own spacing (to ~0.16·FAR), and the
+  vertex shader draws them onto the circle at FAR·h/(h + HZ_DIP) for an eye h over the tide — where a ray that meets the drawn sea no nearer than
+  the far plane reaches the tide. From 2.7 m up that is HZ_SEA0, and the disc is v11.233's triangle for triangle. **Not seen to matter**: a copy
+  without it scanned clean from eyes of 0.3–1.0 m at 720 rows, the sky's cut below covering the line; by the arithmetic it is needed only on a
+  fine screen (~1,440 rows and up), from ~0.6 m, over shoaled water 1.5 km off. Kept as the guarantee: 960 triangles of no area from 2.7 m up.
+- **The horizon pass's sky is cut at the water a pixel's step down** (SKY_FS `uSkyStep`: 1 in that pass, 0 in the main scene). It was cut per
+  pixel too, at its fragment, so on the sea line it took the pixel whole and left the samples over the disc's curved horizon to the clear colour —
+  half the line pixel's colour once the dome no longer hid it. Not cut at all it would have shaded the whole sea under the disc for nothing (tried
+  first, and struck before it was measured). Under water the sky's cut is as before.
+- **Tests.** test/horizon.js (in `--test`): the drawn sea past 1200 m never more than HZ_DIP under the tide (0.73 m at most, shoaled to the cap);
+  the mesh's chords against the wave sum at the dome's 1520 m within DOME_M (0.12 m at most, shoaled, on the diagonal); the disc v11.233's from an
+  eye 3 m or more over the tide (3,456 triangles) and reaching in from below (842 m from 1 m, 400 from 0.3); the dome's and the sky's cuts in their
+  code. **test/horizon_page.js** (new, in `npm run smoke`, ~1 min): the bench's page, multisampled, the eye at 0.8 and 1.2 m across the grid and
+  1.0 along it, each frame drawn as it is, with the dome hidden, and with the horizon pass's clear colour red — it fails on a pixel by the sea line
+  darker with the dome, or one taking the clear colour bare. v11.233 fails it at all three (1,210, 508 and 1,028 pixels); the dome's fix alone fails
+  the clear colour at all three (154–400 pixels, the sky's per-pixel cut); this passes.
+- **Seen** (headless Chromium, software WebGL, 4× multisampled): the before and after at 1600×900 from 1.0 m (above); a scan at eight eye heights
+  from 0.4 to 3 m and three headings (along the grid, across it, and 17° off): no pixel by the sea line darker with the dome, none of the clear
+  colour bare. The sea-line row at 1280×720 now reads 126–165 in the middle at every eye height (the sky above 188, the sea below 113–121; v11.233:
+  84–109 from 0.6–1.2 m). The menu's sea shot from the build: no page error.
+- **What it cost** (`FILL_PLACES=shore,coast node test/perf.js`, against v11.233). Nothing worse by more than 10%.
+
+  | measure | before | after | ratio |
+  |---|---|---|---|
+  | the GPU's time at the shore (software WebGL, a proxy), ms | 2,829 | 2,980 | ×1.05 |
+  | the GPU's time at the giant's coast (the same), ms | 2,129 | 2,199 | ×1.03 |
+  | the water dome's draw alone, shore / coast, ms | 123 / 123 | 138 / 142 | ×1.12 / ×1.15 |
+  | triangles at the coast, the wood, the shore (the disc's inner rings) | 2.71M, 1.80M, 3.56M | +960 each | ×1.00 |
+
+  Every other GPU count is the same at all seven places, and nothing compiles at first sight. The dome's ×1.12–1.15 is the one row that moved alike at
+  both places (its derivatives and the wave sum on its few rows by the line: ~0.5% of the proxy's frame); draws this version does not touch swing as
+  much there (the wormshell ×1.40, the grape ×1.28), so a row of this tool is good to ±10%. The pictures: 528 pixels differ at the shore, 190 at the
+  coast — the line, which the coast's bench place had too. The CPU's side of drawing is noise (×0.76, ×1.07). SwiftShader's, not your GPU's.
+- **Unseen, ask in this order**: (1) the horizon from the surface at sea, away from land — first person (`f`) and the usual camera, headings along the
+  grid's axes and at 45° between them (the worst before), riding the swell: no dark line and nothing else flickering on it; (2) the same from a few
+  heights (just over the water, a breach, a cliff): the sea line as before but for the line; (3) under water nothing changed (the dome's and the
+  sky's under-water cuts are untouched); (4) your GPU: the fix is geometric (any sample pattern inside a pixel, and the step grows with the pixel
+  at a lower `RES`), but it was seen only in software WebGL.

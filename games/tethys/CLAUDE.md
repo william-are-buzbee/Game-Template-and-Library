@@ -32,7 +32,7 @@ node build.js            tethys.html (everything inlined), dev.html (src/*.js lo
 node build.js --test     the build, then every headless test on both tiers; exit 1 on any failure (JOBS=n side by side, SHARD=k/n one part)
 node serve.js            http://localhost:8080/dev.html (edit and refresh) or /tethys.html (the build)
 node test/types.js       the type checker over src/ against its baseline, test/types.json (also `npm run typecheck`, which CI runs)
-npm run smoke            the browser tests CI runs: node test/gpu.js --check, node test/boot.js
+npm run smoke            the browser tests CI runs: node test/gpu.js --check, test/boot.js, test/wcache_page.js, test/three187.js, test/horizon_page.js
 ```
 
 - Node 22. Python is **not** on the person's PC; `build.py` is the same build for sandbox sessions. Change `build.js` and `build.py` together:

@@ -970,7 +970,7 @@ three agree; it lerps at 0.25/s, so the ambient light shifts slowly across a bor
 hemi from it. **The hemisphere light is the water's:** sky = fog × 1.8, **ground = fog × `ground` (0.8)** — v8's ground
 was a fixed near-black (0x101c1c), so everything seen from below (the canopy's pads above all) was black; upwelling light
 in water is water-coloured. Pads straight overhead are still silhouettes against the bright surface, which is right.
-A black **dome** at 0.95·FAR (`waterDome`, atmosphere.js; both media since v11.42.3, drawn only below the water level, while the sky sphere draws only above it — the two tile at the water plane) is the sky under water: fogged like everything else (2.5%
+A black **dome** at 0.95·FAR (`waterDome`, atmosphere.js; both media since v11.42.3, drawn only below the water level, while the sky sphere draws only above it — the two tile at the water plane; *v11.234:* in air only where a pixel's step above it lies `DOME_M` (0.2 m) under the *drawn* sea at its point — the faded far sea sits `WAVE_MEAN` under the tide, and cut at the tide the dome showed bare past the surface's end, which the far plane cuts only 5% further out in the middle of the view: the person's flickering black line on the horizon; see The far layer, the horizon tier) is the sky under water: fogged like everything else (2.5%
 black at its distance), it is the veil in every direction — dark toward the deep, sunlit toward the surface — with no
 visible edge against the surface (both are the same shader at the same distance). **The veil closes fully between 0.62·FAR and
 0.9·FAR** (`FOG_CUT_GLSL`, v11.27, in the fog block, `fogExtinctOnly` and the shafts): the slow population alone left 1.1% at the far
@@ -1364,7 +1364,16 @@ between members). From the water at ours that is 6 of the 35 (ours, the giant, t
 the awesome shield's summit 41. `hzGen` still builds them all, for the test. Two rules it depends on:
 the main scene's `background` is nulled for the frame (three clears to it regardless of `autoClear`), and the near plane is short (near-plane
 clipping is by view depth). Under water the pass is skipped and the dome goes back. Seen (CHANGELOG v11.64): the giant on the horizon from open
-water, its foot in the haze; the seam where the disc meets the surface mesh's far end is a shade lighter, left.
+water, its foot in the haze; the seam where the disc meets the surface mesh's far end is a shade lighter, left. *v11.234 (the sea line):* from a low eye a ray can pass over
+the surface mesh's waves to the far plane — the drawn far sea sits up to ~0.7 m under the tide (`WAVE_MEAN` shoaled, the 150 m swell's trough
+where the grid still draws it), and in the middle of the view the far plane is only 5% past the water dome — so the dome steps aside wherever the
+sea's face might not be in front of it (DOME_M, a pixel's step up: multisampled, one fragment colours every sample, and half a pixel at
+1.5 km is ~1 m), the disc reaches in under the main pass to `hzIn(h)` = FAR·h/(h + `HZ_DIP` 0.9) for an eye h over the tide (`HZ_IN` 5 rings
+inside HZ_SEA0, drawn onto that circle by the vertex shader; the disc v11.233's from any eye over 2.7 m; a guarantee for a fine screen, a very low
+eye and shoaled water — at 720 and 900 rows the sky's step below covers the line without it), and the sky in this pass is cut at the water a
+pixel's step down (`uSkyStep` 1: it was cut per pixel too, leaving the samples over the disc's curved horizon to the clear colour; not cut at all,
+it would shade the whole sea under the disc for nothing). test/horizon.js holds
+the numbers, test/horizon_page.js (smoke) the picture.
 
 ## Flora and materials
 
