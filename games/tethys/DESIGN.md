@@ -1766,14 +1766,22 @@ in behind, dead by four radii, plus a skin layer dragged along at `0.6·U·e^{�
 Fall rates are ~10× reality (real aggregates: 50–200 m a day, motionless to a swimmer; the old 8 cm/s was 7 km a day and read as a
 snowfall); the point is that the deep's flakes visibly fall slower than the shallows' silt.
 Drawn as one `Points` with a per-point colour (the particle's own), size and alpha (`aSz`), patched into r128's points chunks by
-`onBeforeCompile` (five replacements; a miss warns and the snow draws uniform); the material colour is the light on it (blue-green
-and dim with depth and the night, `updateAtmosphere`) and the player's light is added per point by distance (`uPL`, `I·1.6/(0.5+d²)`),
-so in the dark the snow shows only in the torch's reach. Points fade within 2 m of the camera and cap at 24 px. Headless cost 0.33 ms
+`onBeforeCompile` (five replacements, `ptsLit`, shared with the debris and the blood; a miss warns and the snow is lit by the ambient alone).
+**The light on it is the world's where each point is** (v11.236, `snowLight`; the person, 25 Nov 2026: *"an effect that is part of the world and is
+only as bright as its surroundings"*): the terms the ground takes there × `SN_ALB` 0.74 (a flake against a surface of its own colour facing every
+light) — the hemisphere's two colours averaged × its intensity (the material colour), the sun (the moon at night) × the daylight at the point's own
+depth by channel (`DL_GLSL` × `SPEC_DOWN`, the ground's sun-by-depth), the own light by r128's falloff `(1 − r/40)²` and the pool's lights (the
+bacteria, the pall, the lures, a carcass's glow) by the same over each one's distance; the opacity `SN_OP` 0.6, the flake's own, not the light's.
+`SN_ALB` keeps the weed forest at 8 m at noon as it was. To v11.233 the material colour was `lerp((0.45,0.75,0.95), 1, df)` and the opacity
+0.6·(0.45+0.55·df), df the daylight at the player's depth × the sky's: a floor that lit the snow at 45–95% of noon with no light at all, which the eye's
+gain (×4 in the dark) raised again — 12 levels of 255 over a veil of 1 at 480 m by day, 23 at a moonlit midnight in the shallows; and the own light
+was `I·1.6/(0.5+d²)` (3.2× the ground's at the lamp, a twentieth of it at 10 m). `test/snow.js` holds every drawn point under the ground's light
+there × `SN_ALB` at six places and times. Points fade within 2 m of the camera and cap at 24 px. Headless cost 0.33 ms
 a frame moving through the shelf forest in the sandbox against 0.17 for the old cloud (1800 points against 1400; the refresh and the
 swell's trig are the rest); `test/snow.js` prints the kinds' mix at twelve sites down the column and checks the layering.
 Known: the chimney landmark sits at raw angle 2.60 and the `heat` field (the warped angle) at 2.66–2.7, so the chimney's own water has
-no heat and no vent snow — the fissure field 60 m east of it does. Open, the person's: the fall-rate compromise; the black flakes
-(invisible outside the torch by design — reality — or a faint ambient?); whether the snow should be lit by the moon's window at night.
+no heat and no vent snow — the fissure field 60 m east of it does. Open, the person's: the fall-rate compromise. (The black flakes outside the
+torch and the moon's light on the snow at night were answered by the rule of v11.236: dark where the world is dark, lit by the moon as the ground is.)
 
 ## Combat
 

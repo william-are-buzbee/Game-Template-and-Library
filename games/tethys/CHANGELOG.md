@@ -11714,3 +11714,59 @@ in FLORA.md's head note).
 - **Unseen, ask in this order**: (1) whether the new fans read as fans on the person's screen, and whether a fan of three-sided twigs shimmers at
   20–40 m; (2) whether they are now too few to notice — `per` and `field` are the knobs; (3) whether the shallow end should take more colour (the
   line's "pigmented where lit", not built).
+
+## v11.236 — the snow as bright as its surroundings: the world's light where each point is, no floor (25 Nov 2026)
+
+The person (25 Nov 2026): *"Marine snow is too visible in the dark."* And: *"Marine snow needs to be looked at so we can figure out how it works and
+thus find out why it can show up in pitch black water. Marine snow should be considered an effect that is part of the world and is only as bright as
+its surroundings."*
+
+- **Why it showed in black water.** The snow's light was the material colour `lerp((0.45,0.75,0.95), 1, df)` — df the daylight at the player's
+  depth × the sky's — and its opacity 0.6·(0.45+0.55·df): a floor, so with no light at all a flake was lit at 45–95% of noon at 45% of noon's
+  opacity. The fog's end multiplies every fragment by the eye's gain (×4 in the dark, `NIGHT_EYE`), so it was raised again: measured headless, the
+  snow brightened its pixels by 12 levels of 255 over a frame of 1.3 at 480 m by day with the own light off, and by 23 over 23 at a moonlit midnight
+  in the shallows, where the forest takes a few percent of noon's light. The other candidates, checked: the blending is normal (not additive); there is
+  no emissive term; the per-point colours are albedos (0.1–1); the fog is applied to points (PointsMaterial's `fog`, the chunk rewritten for all);
+  the swarm block is drawn by the same material with the same floor; a patch that misses draws the same floor without the own light; and the own light
+  fell *faster* on a flake than on the ground — `I·1.6/(0.5+r²)`, 3.2× the ground's at the lamp, a twentieth of it at 10 m, against r128's
+  `(1 − r/40)²`. The floor alone did it.
+- **The light the world has where each point is** (atmosphere.js `ptsLit`, `snowLight`, `SN_LIT_GLSL`): the terms the ground takes there × `SN_ALB`
+  0.74 (a flake against a surface of its own colour facing every light) and nothing else — the hemisphere's two colours averaged × its intensity (the
+  material colour, so a patch that misses is lit by the ambient alone), the sun (the moon at night) × the daylight at the point's own depth by channel
+  (`DL_GLSL` × `SPEC_DOWN`, the ground's sun-by-depth), the own light by r128's falloff over plight's distance, and the pool's lights (scene.js
+  `assignLights`: the bacteria, the pall, the lures, a carcass's glow) by the same falloff over each one's — a frame late, as they are assigned after
+  the atmosphere. The opacity is `SN_OP` 0.6, the flake's own; the colour carries the light. `SN_ALB` keeps the weed forest at 8 m at noon as it was
+  (0.957 of white to v11.233, the same luminance now; the hue follows the water's, a little greener there).
+- **The debris and the blood** (fx.js, combat.js) were the same patch, copied, with the same floor through `pm.color`: they take `ptsLit` now.
+- **Seen** (headless Chromium, software WebGL, 1280×720, the benches' seeded page; each frame drawn with the snow and without, the difference per
+  pixel — the snow's own share):
+
+  | place | pixels the snow changes | mean brightening (of 255) | p99 | the frame without it |
+  |---|---|---|---|---|
+  | the forest, 8 m, noon | 1490 → 1490 | +23.1 → +24.2 | 75.8 → 80.4 | 83.1 |
+  | open water, 120 m, noon | 541 → 539 | +36.5 → +20.5 | 62.8 → 49.5 | 24.2 |
+  | 480 m, noon, own light off | 135 → 0 | +12.0 → none over 1.5 | 17.4 → 0 | 1.3 |
+  | 480 m, noon, own light on | 135 → 115 | +11.7 → +5.3 | 17.1 → 9.6 | 9.5 |
+  | the forest, 8 m, a moonlit midnight, own light off | 1613 → 1228 | +23.3 → +4.5 | 64.1 → 14.6 | 23.1 |
+
+  The shallows look the same; mid-depth stood out more than the shallows before (against a third of the light) and now falls with it; the dark deep
+  shows nothing; in the own light's reach the snow shows round you. r187 compiles it (`test/three187.js`).
+- **Tests.** test/snow.js: at six places and times (the forest at noon and at midnight, 120 m at noon, 480 m with the own light off, on, and with a
+  light source 3 m off) every drawn point's light, summed from the shader's uniforms as the shader does, against the light the ground facing up takes
+  there from three's own lights × `SN_ALB`: never over it (0.97–1.00 of it); at 480 m with nothing lit 0.76% of the noon shallows' (the daylight there
+  0.87%; to v11.233 ~60%); at 120 m 64% against the ground's 60%; the own light and a light source each light it over ten times the dark's. test/stub.js:
+  a light keeps its `distance`, as three's does.
+  test/snow.js runs ~1.24× as long (76 s here against 62): `ALONE`'s 38 s is 47 in build.js and build.py.
+- **What it cost** (`node test/perf.js`; the GPU's counts once, the timed benches again with nothing else running): the GPU's counts the same at
+  all seven places (draws, triangles, programs, bytes uploaded, nothing compiled at first sight) but 1–2 more uniforms a frame of ~1,000–1,600 (×1.00);
+  the creatures' frame at (330, 0) ×1.01 mean, ×0.97 p95, the simulation the same to the bit; the GPU's time by the proxy (test/fill.js, software
+  WebGL) at the forest ×0.99 and ×1.01 in two runs, the shore ×1.02 and ×0.95, the canopy ×1.01; the snow's own draw 2.63 ms against 2.65 at the
+  forest and 2.42 against 2.35 at the shore, its vertices 0.95 ms; the picture 0.07–0.20% of the pixels moved (the snow). Flagged in the first run
+  and not the second: the CPU's side of drawing at the forest ×1.10 then ×0.92, the shore ×1.18 then ×0.97 (the canopy ×0.90) — the wall clock's
+  swing. A frame adds a handful of multiplies and one loop of `Q.lights` on the CPU (`snowLight`), and per point a daylight curve and four lights'
+  falloff in the vertex shader.
+- **Unseen, ask in this order**: (1) the deep with the own light on — the snow only in its reach now, and none outside it; and with `own light` off
+  none at all (is the sense of space kept?); (2) a night dive in the shallows — the snow as dim as the stalks round it; (3) mid-depth by day, 100–150 m,
+  where the snow is fainter than before (it was the floor that made it stand out there): too thin now?; (4) the shallows by day, meant to look as
+  they did, a shade greener with the water's light; (5) a bacterial glow, a carcass's or the pall's lights lighting the snow near them; (6) the
+  person's own screen at the faintest values — a few levels of 255 read differently on a monitor than in a headless picture.

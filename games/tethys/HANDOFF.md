@@ -4,6 +4,13 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.236 (25 Nov 2026): the snow as bright as its surroundings** (atmosphere.js `ptsLit`, `snowLight`, `SN_ALB`, `SN_OP`; fx.js, combat.js the same
+patch; test/snow.js, test/stub.js; DESIGN The snow; CHANGELOG). The person: *"Marine snow is too visible in the dark … only as bright as its
+surroundings."* Its light had a floor (45–95% of noon with no light at all, then the eye's gain); now a point takes the world's light where it is —
+the ambient, the sun or moon by its depth, the own light and the pool's lights by the ground's falloff — and nothing else. The lit shallows as they
+were; black water with nothing lit leaves it unseen. **Ask:** whether the snow in the own light's reach in the deep, and at night, is enough to keep
+the sense of space; whether mid-depth by day now reads too thin.
+
 **v11.235 (25 Nov 2026): the fan rebuilt** (flora.js `fanB`, the `fan` entry; grow.js `branch`'s `col2`; FLORA.md's head note and roster; CHANGELOG).
 The person: *"the multicolored triangles are a bit too ubiquitous and look kind of strange"* — the fan, a squashed cone in four vivid tints at 200 tries
 a cell. Asked to strike or rebuild, the person chose the rebuild: a pale branching fan in one plane across the current, 40 tries a cell in patches,
@@ -29,14 +36,6 @@ given up when no strike comes in 8 s or two miss. The valves breathe at rest. Th
 moult's last hour the valves stay down and the animal hides; the soft window is doubled to nature's lower end (5%), the player's too. The hook drops
 on what passes under it and climbs to a new post when nothing does. The scuttles walk out on the flats at low water. **Ask:** BEHAVIOUR §8.9 (the
 player's soft window, now 54 real minutes for a hose); whether the hingeshell hunters still frighten without chasing.
-
-**v11.231 (24 Nov 2026): the slowbloods** (creatures_ai.js `TEMP`, `tempAt`, `THERM`, `BASK`, `HERD`, `FORAY`, `CHASE`; creatures_defs.js
-`THERM_F`, `BEHAVE`; combat.js `slowOf`; test/slowbloods.js; BEHAVIOUR §3e; DESIGN Creatures; PLANET, COMBAT, DIRECTION status notes; CHANGELOG). The
-person: *"go ahead with the slowbloods pass."* The water has a temperature (27 °C to −60, the thermocline to 3 °C, the vents' bubble), and a slowblood's
-body follows it with its size's lag: the cold slows its speed, turn, notice and hunger, floored for the ridge (mixotherm), the abyssal and the hoop
-(gigantotherms) and the torpid stone. The basker goes home to its vents to bask when cooled. A grazer's fright runs through its herd. The abyssal
-forays below its rim. A chasing hunter sprints over its speed while its stamina lasts, then gives up spent — after you too. **Ask:** BEHAVIOUR §8.8
-(should the cold slow you as a finback?); whether the sprint and the giving-up feel right.
 
 ## Open
 
