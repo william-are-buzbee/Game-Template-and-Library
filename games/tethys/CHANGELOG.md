@@ -11473,3 +11473,52 @@ are a billion slowbloods?"* — and *"perhaps more thoroughly in another chat."*
   (2) whether a plumb or a stand of quills moving its station by day reads as roaming, and is often enough (`ROAM` every 90 s and 25 s on the mean);
   (3) the solo quills past the weed and the plumbs off the walls — whether you meet them, and too often; (4) the arrows over the upwelling; (5) still
   v11.230's: the pack's two sides and the ink.
+
+## v11.231 — the slowbloods: the water's warmth and the body's, the basker's basking, the herd's alarm, the abyssal's forays, the chase paid from stamina (24 Nov 2026)
+
+The person (24 Nov 2026): *"go ahead with the slowbloods pass."* BEHAVIOUR.md §4's third pass (§3e). PLANET's slowbloods are ectotherms — *"activity
+is a function of water temperature, so the shelf is home, the vent field is the deep exception where the big active ones bask between hunts, and
+the cold deep belongs to gigantotherms (big enough to hold heat: the abyssal) and the torpid"*, the ridge a mixotherm — and PLANET's Hooks asked for
+*"a temperature model `temp(x,z,y)` … one function, one multiplier in the hunters"* (DIRECTION decision 2: yes). COMBAT §11's pass 4, the chase paid
+from stamina, rides with it (the person, 19 Nov 2026: *"Hunters may outrun you in a short burst … Yeah that's totally fine"*).
+
+- **The water** (creatures_ai.js `TEMP`, `waterT`, `tempAt`): `TEMP.top` 27 °C to `TEMP.mix` −60, then the thermocline to `TEMP.deep` 3 °C with an
+  e-fold of `TEMP.L` 200 m (14.9 °C at −200, 5.7 at −500, 3.2 at −1000; Earth's tropics ~15, ~6, ~4), and over a vent `TEMP.vent` 40 °C × world.js's
+  `heat` more on its floor, falling off with height by `TEMP.ventH` 60 m. Above −60 nothing is read.
+- **The body** (`THERM`, `thermTick`; creatures_defs.js `THERM_F`, `BEHAVE.therm`; the creature's `bodyT`, `therm`, `thmT`; `DEFS.thermF`): a
+  slowblood's warmth follows the water's once a second with `THERM.tau` 20 s a metre of its length, and its activity is 2^((bodyT − 27)/10) — never under
+  its kind's floor (an ectotherm 0.25, the ridge 0.8, the abyssal and the hoop 0.85, the stone 0.75) — on its speed (combat.js `slowOf`), its turn
+  (`seekTurn`), its notice (`findPrey`, the grazers' threats) and its hunger's clock (`hungerTick`). The shelf is 1 throughout; a grazer on the terraces
+  at −150 is at 0.55, an eel at −250 at 0.36. Not the schools (their motion is the school's), not the other clades, not the player (BEHAVIOUR §8.8: yours).
+- **The basker basks** (`BASK`, `baskStep`, the state `'bask'`; `BEHAVE.basker.bask`): cooled under `BASK.go` 0.55 it goes home to its vents and lies
+  over the floor until `BASK.warm` 0.92, taking what comes within its resting reach; a chase that has cooled it to 0.44 it gives up. Off the vents in
+  5.7 °C water it cools from 50.8 to 22.3 °C in its 100 s.
+- **The herd's alarm** (`HERD`, `herdCall`; `BEHAVE.grazer.herd`): a grazer that notices a threat flees it and calls its herd within `HERD.r` 12 m for
+  `HERD.hold` 3 s; each that flees on a call calls on, `HERD.step` 0.5 s shorter — a wave faster than any one grazer's eyes, dying out with the threat.
+- **The abyssal's forays** (`FORAY`; `BEHAVE.abyssal.foray`; `setWander`): over the deep a quarter of its wanders go 120–320 m below its home's depth,
+  past the oxygen minimum's top the other open-water hunters keep above, to −900 and 20 m over the floor at the most (PLANET: *"the rim, forays below"*).
+- **The chase paid from stamina** (`CHASE`, `chaseStam`): a chasing hunter runs at (1 + its clade's share: 0.6 a slowblood, 0.5 a ringmouth, 0.25 a
+  hingeshell) × combat.js's `stamK` over its speed, the chase draining its `STAMINA` net of the rest's refill, and gives up a chase it has not closed
+  when it is spent (`CHASE.give` 0.03, past twice its reach); after the player too. To v11.230 a hunter ran at its speed after the player as long as it
+  saw it, and at 1 + 0.6 × smooth(6, 2, chaseT) after anything else.
+- **One shape**: the creature's `bodyT`, `therm`, `thmT`; the defs' `thermF`, `herd`, `bask`, `foray`.
+- **Tests.** test/slowbloods.js (new, ~8 s, in `--test`): the water's profile and a vent's bubble; at cold deep water off the vents a grazer at −150 at
+  0.55, an eel at −250 at 0.36 (one at −30 at 1.00), the ridge, the abyssal and the stone at their floors, the shelf's needle at 1, no school, ringmouth
+  or player's kind; the cold eel slowed and its hunger's clock 0.36 of the warm one's; the basker warm on its vent at 50.8 °C, cooling off it with its
+  length's lag; a basker cooled to 0.36 goes to bask, returns 120 m to its vents and lies there till warm (57 s, 25.8 °C); a herd of five 6 m apart
+  in a row on the shelf at (400, 0): the player at the first, every one takes fright (0.22 → 0.67 s), the last 26 m off on its neighbours' call, all
+  running from it, the alarm dead 2.5 s after the player is gone; the abyssal's wanders over the deep 21% forays, its lowest −737, a ridge over the
+  same water never under −420; a starving ridge's chase of the player kept 16 m ahead: 14.3 m/s against its speed 9.5, spent and given up at 11.6 s,
+  its stamina 0.03 → 0.28 in 10 s at rest. test/clock.js: the crusher at −138 is cold now (0.58), and fed it drifts off before its slowed hunger
+  brings it back — its eating is read at its closest (4.5 m), not where it is at the 25 s mark. test/live.js: the high tier 6 hunts begun and 4 kills
+  in 60 s (5 and 4 before), the low tier 2 and 2 (the same).
+- **The ledger** is not touched: the pass is how the animals in sight behave (the paper model has no temperature). No census was needed; none was run.
+- **What it cost** (`node test/perf.js --ref` v11.230.1, five runs a side): nothing worse by 10% — the creatures' frame at (330, 0) ×1.00 mean, ×0.99
+  p95; Chromium's at the forest ×0.90; every kind's rebuild ×0.99; the cells ×0.98–1.07 (nothing in a cell's generation changed); the GPU's counts the
+  same at every place. A slowblood's warmth is a field read once a second, and none above −60, where most of them are.
+- **Seen**: the build booted in Chromium with no page error (`npm run look`). The pass is numbers a picture does not show — the cold's slowness, a
+  basker's return, a herd's wave, a spent chase; test/slowbloods.js holds them.
+- **Unseen, ask in this order**: (1) the chase — whether a hunter's sprint after you, and its giving up spent, feel right (a ridge outruns a cruising
+  finback for some seconds, then falls off); (2) a grazer herd bolting as one when you come at the edge of it; (3) the slope's slowbloods slower in the
+  cold (the eel, the grazer on the terraces) — noticeable, or too much; (4) the basker leaving a chase to go back to its vents; (5) BEHAVIOUR §8.8, the
+  player's cold as a finback — yours to decide.

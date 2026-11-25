@@ -2142,6 +2142,14 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   arms' reach and gap under it; home at the dawn (`REST.off`). `PLUMB.full` struck. Rows with their own stations (`SPAWN` `st`, `stOf`): plumbs off the
   walls (`lee`, 0.4), quills alone in the weed (1) and past it (`lee`, 0.4); a pelagic arrow pack over the upwelling (`mid`, the creature's `pel`: placed
   in the column, wandering ±20 m of its depth).
+- **The slowbloods (v11.231; BEHAVIOUR.md §3e; creatures_ai.js `TEMP`, `THERM`, `BASK`, `HERD`, `FORAY`, `CHASE`; creatures_defs.js `THERM_F`).** The water:
+  `waterT` 27 °C to −60, then 3 + 24·e^((y+60)/200) (14.9 at −200, 5.7 at −500), a vent `TEMP.vent` 40 °C × heat over its floor, e-fold 60 m up. A
+  slowblood's body (not the schools', not the player's) follows it once a second with `THERM.tau` 20 s a metre of length; its activity `c.therm` =
+  2^((bodyT − 27)/10), floored by kind (ecto 0.25, mixo the ridge 0.8, giga the abyssal and the hoop 0.85, torpid the stone 0.75), × speed (`slowOf`),
+  turn (`seekTurn`), notice (`findPrey`, the grazers' threats) and the hunger's clock. The basker goes home to bask under 0.55 and leaves at 0.92, and gives
+  up a chase at 0.44. The grazers' herd: a fright calls neighbours within 12 m for 3 s, each relay 0.5 s shorter. The abyssal: a quarter of its deep
+  wanders 120–320 m below its home, to −900. The chase: × (1 + `CHASE` 0.6 / 0.5 / 0.25 by clade) × `stamK`, the chase draining the clade's stamina,
+  given up spent at 0.03 when not within twice its reach.
 - **Removed by request:** the mid-water `weed` flora (the "floating spiky objects"); the `colony` creature (pink/cyan
   glowing chains); darter/glim **schools are no longer spawned** — the code (`school` role, `makeSchool`,
   `updateSchools`, `buildDarter`) is intact. They went because the rigid formation read as a block; if they return it

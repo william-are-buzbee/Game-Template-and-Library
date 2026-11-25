@@ -4,6 +4,14 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.231 (24 Nov 2026): the slowbloods** (creatures_ai.js `TEMP`, `tempAt`, `THERM`, `BASK`, `HERD`, `FORAY`, `CHASE`; creatures_defs.js
+`THERM_F`, `BEHAVE`; combat.js `slowOf`; test/slowbloods.js; BEHAVIOUR §3e; DESIGN Creatures; PLANET, COMBAT, DIRECTION status notes; CHANGELOG). The
+person: *"go ahead with the slowbloods pass."* The water has a temperature (27 °C to −60, the thermocline to 3 °C, the vents' bubble), and a slowblood's
+body follows it with its size's lag: the cold slows its speed, turn, notice and hunger, floored for the ridge (mixotherm), the abyssal and the hoop
+(gigantotherms) and the torpid stone. The basker goes home to its vents to bask when cooled. A grazer's fright runs through its herd. The abyssal
+forays below its rim. A chasing hunter sprints over its speed while its stamina lasts, then gives up spent — after you too. **Ask:** BEHAVIOUR §8.8
+(should the cold slow you as a finback?); whether the sprint and the giving-up feel right.
+
 **v11.230.1 (24 Nov 2026): the hangers roam** (creatures_ai.js `ROAM`, `plumbRoam`, `standFollow`, `quillHide`, `hangGo`, `hangPath`, `hangFloor`,
 `plumbY`, `PLUMB.surf`; creatures_defs.js `SPAWN`'s last rows, `stOf`; chunks.js `placeKind`; ecology.js; test/ringmouths.js; BEHAVIOUR §3d; DESIGN
 Creatures; CHANGELOG). The person on v11.230: the plumbs and the quills should roam, quills need not be in stands, the plumb's rise reads only with
@@ -39,15 +47,6 @@ body. Prey that watches a hunter is looked at first — a slowblood circles, a r
 decides: running is chased, a turned back is the opening, coming at it drives it off. Fixed: the crusher's carrion, the arrow's jet pose, a wounded
 hunter fleeing the player whatever hurt it, the carcass glow read from the drawing. The frame within noise (the forest ×0.97, p95 ×0.89; Chromium ×0.94), the GPU's counts the same. **Ask:** BEHAVIOUR §8 — whether the look reads and facing it down
 is fair; whether the shifts show; whether the shelf by day is too quiet.
-
-**v11.227 (24 Nov 2026): the hoop and the quill; the abyssal fed** (creatures_spec.js `SPECS.hoop`, `SPECS.quill`, the tentacles' `sieve`;
-creatures_defs.js `DEFS`, `STATION.canopy`, `stationW`, `SPAWN`, `VARIETY`; creatures_ai.js `filterSeek`'s `gape`, `plumbY`'s `canopy`; test/hoop.js;
-test/plumb.js §8; CLADES, PLANET, DESIGN; CHANGELOG). The person's *"filter feeding slow blood giant and the smaller cone vertical ring mouth"*. The hoop:
-the ridge's line as a 16 m filter giant in the fed open water, its mouth's tentacle ring a sieve held open inside a swarm (~7,500 in the world). The
-quill: the plumb's line at 3 m, hung among the weed forest's stalks by the new canopy station (~29,000). The abyssal, which was collapsing on main
-(392 → 73 in 90 days: its prey breed too slowly), now eats the ortho too: from 2,017 it settles near half that (its least ~970 at day 325, rising after), the ortho steady at ~12,900. **v11.227.1**: the person found the hoop by accident while searching the island for a single quill — there were ~15 on the whole shelf;
-now ~40 there, in stands of five (`grp`, `n` 8). **Ask:** does the hoop read as a filter
-giant (its ring open in a swarm); can the quill be found among the stalks, and is it the small upright one they meant.
 
 ## Open
 
