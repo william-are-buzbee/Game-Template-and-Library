@@ -4,6 +4,12 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.237.1 (25 Nov 2026): the creatures bench made fair** (test/bench_creatures.js, test/benchpage.js `iso`, test/perf.js's note, test/README.md;
+CHANGELOG). No game code changed. The bench read identical sources ×0.81–1.28 at a place, so `perf.js` flagged cells no change could reach. Now
+both trees' pages are open at once and take turns — kind by kind, cell by cell, 20 frames at a time, the first alternating — and every piece is the
+least of eight rounds, a cell's down to each step of its generator, on a page whose clock reads to 5 µs: identical sources read within ±4% at the forest,
+the atoll and the platform and ×0.93–1.07 at the sea and the giant's coast (×0.81–1.28 before). It takes ~5½ minutes (~1¼ before). **Ask:** nothing.
+
 **v11.237 (25 Nov 2026): the sea line** (atmosphere.js `waterDome`, `DOME_M`, SKY_FS `uSkyCut`; horizon.js `hzIn`, `HZ_IN`, `HZ_DIP`, `uHzIn`;
 test/horizon.js, test/horizon_page.js (smoke); DESIGN Visibility and the horizon tier; CHANGELOG). The person: *"Horizon flickering black line above
 water."* The water dome was cut at the tide while the drawn far sea sits ~0.3 m under it, and the far plane is only 5% past the dome straight ahead, so
@@ -29,12 +35,6 @@ from many land areas, most common on the larger islands. `per` 700 → 150, and 
 bare, opened by the nearest land's catchment (a high or shield island's land radius). The world's census 1.53 M trees → 50 k (×0.033), 78% of them on
 the four big islands; none round ours. The far copies follow. The reed is untouched. **Ask:** whether ours should keep a small stand; whether a stand
 on the giant reads sparse enough; whether the reed is next.
-
-**v11.233 (25 Nov 2026): the drifters** (creatures_ai.js `DRIFT`, `STRAND`, `updateJelly`, `updateSailer`; creatures_defs.js `BEHAVE`; ecology.js
-`POP.stung`; test/drifters.js, test/live.js; BEHAVIOUR §3g; DRIFTERS, DESIGN; CHANGELOG). The person: *"Let's do the drifters while I test this
-out."* A jelly or a sailer's lines hold a small swimmer that touches them, haul it to the mouth and eat it, then digest; the player is stung, never
-held. The jelly follows the plankton's daily layer. A sailer that grounds on a shoal or the strand dies there, carrion for the scuttles. Rare in play:
-drifters are about one a cell. **Ask:** BEHAVIOUR §8.10 (what eats a live drifter); whether a catch is ever seen.
 
 ## Open
 
