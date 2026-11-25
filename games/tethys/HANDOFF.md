@@ -4,6 +4,12 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.233 (25 Nov 2026): the drifters** (creatures_ai.js `DRIFT`, `STRAND`, `updateJelly`, `updateSailer`; creatures_defs.js `BEHAVE`; ecology.js
+`POP.stung`; test/drifters.js, test/live.js; BEHAVIOUR §3g; DRIFTERS, DESIGN; CHANGELOG). The person: *"Let's do the drifters while I test this
+out."* A jelly or a sailer's lines hold a small swimmer that touches them, haul it to the mouth and eat it, then digest; the player is stung, never
+held. The jelly follows the plankton's daily layer. A sailer that grounds on a shoal or the strand dies there, carrion for the scuttles. Rare in play:
+drifters are about one a cell. **Ask:** BEHAVIOUR §8.10 (what eats a live drifter); whether a catch is ever seen.
+
 **v11.232 (25 Nov 2026): the hingeshells** (creatures_ai.js `HINGE`, `DEN`, `HOOK`, `TIDEW`, `premoult`, `MOULT`; creatures_spec.js `VALVE`;
 creatures_defs.js `BEHAVE`, `DEFS.hook`; test/hingeshells.js; BEHAVIOUR §3f; DESIGN Creatures; PLANET, CLADES, LINEAGE status notes; CHANGELOG). The
 person on v11.231: *"go ahead with the hingeshells pass … being hunted seems OK."* The hingeshell hunters strike and do not chase: no sprint, a hunt
@@ -35,15 +41,6 @@ to eat, and is home at dawn; the oldest hang at their day depth (the trim). A qu
 The arrows hunt as a pack, coming at a school from both sides, and ink when a chaser closes. The lurker leaves a post where nothing passes. The great
 hunts (the grazer, the eel, the plough, you), its ram the bite's opening blow; the `coil` role is gone. The pass costs nothing measurable over v11.229 (×1.00); v11.229's senses ×1.05 over v11.228 (`findPrey`). **Ask:** the plumb's night and its
 gathering at a fall; the pack; whether a lethal great on the shelf is wanted. **Next:** the slowbloods (BEHAVIOUR §4: the temperature model first).
-
-**v11.229 (24 Nov 2026): the senses** (creatures_ai.js `clockTick`, `sightOf`, `hearOf`, `notices`, `plumeK`, `SENSE`, `SCENT`, `FREEZE`;
-creatures_defs.js `EYE_K`, `LAT_CLADE`, `BEHAVE`; combat.js `findBleeding`; fx.js `phoStep`; test/senses.js; BEHAVIOUR §3b; DESIGN Creatures; BIOLUM §7.6;
-CHANGELOG). Pass 1, after the person's playtest of v11.228 (*"enjoyed it, go ahead with pass 1"*). Animals notice each other by sight — the light at
-the body seen through each clade's and kind's eyes, a silhouette from below, a still body seen late, a matching or buried one later, one in the weed
-later still — and by the lateral line (light-blind, silent for a still body); blood and carrion are smelt down the current. Prey use the same senses; the
-cryptic grazers freeze (a hingeshell clamped) and bolt close. The step reads its own sky (the plumb's and the swarms' layer, the eclipses), and the
-pall's cloud and flee are the step's, whatever the effects list says. The frame within noise (×1.00, p95 ×1.06; Chromium ×1.02), the GPU's counts the same. **Ask:** BEHAVIOUR §8.4–5 — whether the night hides you now, or too
-well; whether your own colour should.
 
 ## Open
 
