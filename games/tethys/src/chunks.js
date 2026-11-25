@@ -302,6 +302,16 @@ function chRange(ch){if(ch.rng!==undefined)return ch.rng;if(rgPlatSd(ch.cx,ch.cz
 // species' clumping by its `field` frequency (0.1 to 1.6)
 function meadowM(f,x,z){const M=f.meadow,o=M[3]||0;return smooth(M[1],M[2],fbm(x*M[0]+71+o,z*M[0]+43+o,2));}
 function fieldK(fr,x,z){return clamp(0.1+4*Math.pow(fbm(x*fr+31,z*fr+17,2),2.5),0,1.6);}
+// A stand's mask (v11.234, the tidewood; the person, 25 Nov 2026: "greatly reduce the odds … sparse and completely absent from many above-waterline
+// land areas … most commonly on the larger islands"). A tidal forest is a colony that has taken a stretch of coast and holds it: its seeds drift, so
+// a coast they never reached has none and one they did has a stand kilometres long (Earth's mangroves); and it thrives on the fresh water and silt
+// a big island's rain brings down to its shore, which an atoll, a bank, the carbonate platform's porous cays and ours have none of — no land above
+// the reef, no catchment. `stand` [frequency, lo, hi, drop]: 0 where a low-frequency noise is under lo, 1 over hi, both lowered by drop × isleK,
+// the catchment of the land whose coast is nearest. The same function near (placeFloraType) and far (far.js impostorsGen), so the far copies
+// stand where the near trees do. The noise's 0.9 quantile is ~0.71, its 0.7 ~0.59, its median 0.5.
+const STAND_LAND=[1500,7000,2000,5000]; // an island's land radius (m, world) over which its catchment goes from none to full (the giant's 7000 is full), and the distance off its coast (m) over which that fades
+function isleK(x,z){let k=0;for(const i of recsAt(x,z)){const R=ISLANDS[i];if(!R.land)continue;const q=smooth(STAND_LAND[0],STAND_LAND[1],R.land.r*R.sc)*(1-smooth(STAND_LAND[2],STAND_LAND[3],(rgLoc(R,x,z)-R.land.r)*R.sc));if(q>k)k=q;}return k;} // 0..1: only records with land (a high or shield island) — ours, the atolls, the banks and the platform have none
+function standK(S,x,z){const n=fbm(x*S[0]+211,z*S[0]+97,2);if(n<=S[1]-S[3])return 0;const b=S[3]*isleK(x,z);return smooth(S[1]-b,S[2]-b,n);}
 const WOOD_P=new Float32Array(4); // woodAt's output at a try (v11.180)
 function* placeFloraType(ch,rng,f){
   if(f.big)return; // structures are placed and drawn once for the whole world (far.js); placeBigSolids adds their collision
@@ -320,6 +330,7 @@ function* placeFloraType(ch,rng,f){
     if(f.meadow)p*=0.06+0.94*meadowM(f,x,z); // v11.116: meadows [frequency, lo, hi] — a runner's patches with bare sand between and a few shoots in it
     if(cw>0.03)p=Math.max(p,leeW(x,z)*f.leePer/maxN);
     if(f.field)p*=fieldK(f.field,x,z);
+    if(f.stand&&p>0)p*=standK(f.stand,x,z); // v11.234: the tidewood's stands — whole coasts bare, the big islands' shores most often held
     if(f.succ&&p>0)p*=smooth(f.succ[0],f.succ[1],distAge(x,z,ch.f(x,z)[FI.expo],ch.h(x,z))); // v11.120: the age of the storm's clearing here (grow.js distAge)
     if(f.wood&&p>0)p*=woodAt(x,z,ch.h(x,z),ch.slope(x,z),ch.f(x,z),WOOD_P,0); // v11.180: the wood's cover (world.js woodAt), its canopy's height in WOOD_P for the scale below
     if(rng()>=p)continue;

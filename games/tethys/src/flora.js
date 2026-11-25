@@ -1034,6 +1034,8 @@ function darkrindB(rg,k){const P=[],n=1+(k%2);
 // maxSlope: steepest ground an instance may stand on (default 0.9; rocks 1.9; structures unlimited, they sink on slopes).
 // leePer: density where the retention field (world.js leeW) is 1 (v11.81; canopyPer to v11.80). ys: y for surface flora (default -0.45).
 // pocket: noise scale; the base density applies fully only inside pockets of that noise (~15% of area) and at 10% elsewhere.
+// stand: [frequency, lo, hi, drop] (v11.234, the tidewood): a colony's stands — none at all where a low noise is under lo, the island's catchment lowering
+// both thresholds by up to drop (chunks.js standK, isleK).
 // minH: lowest ground an instance may stand on (land plants stay above the wet sand).
 // col: colliders per instance in local units: {s:[x,y,z,r]} a sphere, {a:[..],b:[..],r} a capsule, {e:[cx,cy,cz,ax,ay,az]} an
 // ellipsoid (fans), {d:r} a dodecahedron of circumradius r (boulders: the rock's own twelve faces through the
@@ -1362,9 +1364,9 @@ const FLORA = [
   // the greens in air (TAXA): the tidal forest, the reed margin, the rain scrub — one line, jointed, relicts of a bigger island
   species(
     'tidetree',
-    {mat: MATTR, photo: true, line: 'greenAir', tints: GREENT, s: [0.8, 1.3], air: true, per: 700, env: {h: [-3.5, 2.8], expo: [0, 0.75], young: [0, 0.45]}, field: 0.02, minH: -3.6, maxSlope: 0.5},
+    {mat: MATTR, photo: true, line: 'greenAir', tints: GREENT, s: [0.8, 1.3], air: true, per: 150, env: {h: [-3.5, 2.8], expo: [0, 0.75], young: [0, 0.45]}, field: 0.02, stand: [0.0003, 0.72, 0.78, 0.15], minH: -3.6, maxSlope: 0.5},
     tidewoodB
-  ), // the tidewood: the tide band, out of the surf, and off the last flows (young, v11.67: a wood is decades; the reed and the tussock keep the flows)
+  ), // the tidewood: the tide band, out of the surf, and off the last flows (young, v11.67: a wood is decades; the reed and the tussock keep the flows). v11.234 (the person, 25 Nov 2026: "an eye sore … should be sparse"): per 700 → 150, and in stands (chunks.js standK): a quarter to a third of a big island's tide band that held it, a tenth or none of a small one's
   species(
     'reed',
     {mat: MATGL, photo: true, line: 'green', tints: GREENT, s: [0.7, 1.4], air: true, per: 900, env: {h: [-5.5, 1.6], expo: [0, 0.4]}, field: 0.02, maxSlope: 0.6},
