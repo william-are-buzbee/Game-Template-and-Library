@@ -4,6 +4,14 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.237 (25 Nov 2026): a performance pass — the scans by square, the matrices only of what is drawn, the dark lights skipped** (creatures_ai.js
+`CG`, `cgNear`, `crMW`; horizon.js `MW.hide`; scene.js the light chunks; test/scangrid.js; DESIGN Performance; CHANGELOG). The person: *"find any performance
+updates we can do to make the game more easily playable now."* Since v11.220 the GPU's side got lighter and the creatures' CPU work ×1.20–1.27. Three cuts,
+nothing seen or simulated changed: the schools', grazers' and hunters' scans read the bodies within reach from a grid instead of all 1,380 (the creatures'
+step ×0.66–0.82); three's render no longer recomposes the matrices of 13,600 creature parts out of sight (renderFrame's CPU side ×0.65–0.79); a point
+light at 0 is skipped in the shaders (the proxy's vertex work ×0.81–0.89). **Ask:** the readout's `render` and `gpu` at `tp(330,0)` and `tp(110,-380)` on
+the preview against main's, and an F9 from each machine — the work tower's last report is v11.197.
+
 **v11.236 (25 Nov 2026): the snow as bright as its surroundings** (atmosphere.js `ptsLit`, `snowLight`, `SN_ALB`, `SN_OP`; fx.js, combat.js the same
 patch; test/snow.js, test/stub.js; DESIGN The snow; CHANGELOG). The person: *"Marine snow is too visible in the dark … only as bright as its
 surroundings."* Its light had a floor (45–95% of noon with no light at all, then the eye's gain); now a point takes the world's light where it is —
@@ -28,14 +36,6 @@ on the giant reads sparse enough; whether the reed is next.
 out."* A jelly or a sailer's lines hold a small swimmer that touches them, haul it to the mouth and eat it, then digest; the player is stung, never
 held. The jelly follows the plankton's daily layer. A sailer that grounds on a shoal or the strand dies there, carrion for the scuttles. Rare in play:
 drifters are about one a cell. **Ask:** BEHAVIOUR §8.10 (what eats a live drifter); whether a catch is ever seen.
-
-**v11.232 (25 Nov 2026): the hingeshells** (creatures_ai.js `HINGE`, `DEN`, `HOOK`, `TIDEW`, `premoult`, `MOULT`; creatures_spec.js `VALVE`;
-creatures_defs.js `BEHAVE`, `DEFS.hook`; test/hingeshells.js; BEHAVIOUR §3f; DESIGN Creatures; PLANET, CLADES, LINEAGE status notes; CHANGELOG). The
-person on v11.231: *"go ahead with the hingeshells pass … being hunted seems OK."* The hingeshell hunters strike and do not chase: no sprint, a hunt
-given up when no strike comes in 8 s or two miss. The valves breathe at rest. The hingeshells that rest in cover keep a den and run to it. In a
-moult's last hour the valves stay down and the animal hides; the soft window is doubled to nature's lower end (5%), the player's too. The hook drops
-on what passes under it and climbs to a new post when nothing does. The scuttles walk out on the flats at low water. **Ask:** BEHAVIOUR §8.9 (the
-player's soft window, now 54 real minutes for a hose); whether the hingeshell hunters still frighten without chasing.
 
 ## Open
 
