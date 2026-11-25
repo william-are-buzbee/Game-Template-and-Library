@@ -8,7 +8,7 @@ Add the new version's paragraph at the top; take out what is no longer true; kee
 `CG`, `cgNear`, `crMW`; horizon.js `MW.hide`; scene.js the light chunks; test/scangrid.js; DESIGN Performance; CHANGELOG). The person: *"find any performance
 updates we can do to make the game more easily playable now."* Since v11.220 the GPU's side got lighter and the creatures' CPU work ×1.20–1.27. Three cuts,
 nothing seen or simulated changed: the schools', grazers' and hunters' scans read the bodies within reach from a grid instead of all 1,380 (the creatures'
-step ×0.66–0.82); three's render no longer recomposes the matrices of 13,600 creature parts out of sight (renderFrame's CPU side ×0.65–0.79); a point
+step ×0.86 by the fair bench); three's render no longer recomposes the matrices of 13,600 creature parts out of sight (renderFrame's CPU side ×0.65–0.79); a point
 light at 0 is skipped in the shaders (the proxy's vertex work ×0.81–0.89). **Ask:** the readout's `render` and `gpu` at `tp(330,0)` and `tp(110,-380)` on
 the preview against main's, and an F9 from each machine — the work tower's last report is v11.197.
 

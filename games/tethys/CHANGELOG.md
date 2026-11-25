@@ -11928,16 +11928,17 @@ Three cuts, none of which changes what is simulated or drawn:
   `creatures`' order, none twice. Mutants checked: without the sort it fails on order; without the re-filing it fails on the squares (the 1 m margin
   in `cgNear` hid that one from the answers alone).
 
-**What it costs** (`node test/perf.js` against main; the timed benches again where they flagged code the change does not reach):
+**What it costs** (`node test/perf.js`; the creatures against v11.237.1, whose bench (#202) is the fair one — both pages open at once, taking turns; the
+rest against v11.236, measured before the merge, on code v11.237 and v11.237.1 did not touch):
 
 | measure | main | here | ratio |
 |---|---|---|---|
-| creatures' work a frame at (330, 0), node, ms (mean / p95) | 2.586 / 3.400 | 2.125 / 2.823 | ×0.82 / ×0.83 (an earlier run ×0.66 / ×0.52) |
-| the same in Chromium, ms (mean; four pages a side) | 2.497 | 1.885 | ×0.75 (two pages a side read ×0.98: the browser bench's spread) |
+| creatures' work a frame at the forest, Chromium, the fair bench, ms (mean) | 1.713 | 1.472 | ×0.86 |
+| the same at (330, 0) in node, ms (mean / p95) | 2.425 / 3.491 | 2.170 / 3.419 | ×0.90 / ×0.98 (against v11.236: ×0.82 / ×0.83 and ×0.66 / ×0.52 — node's spread is wide) |
 | renderFrame's CPU side, ms: forest / shore / canopy | 11.6 / 11.7 / 13.5 | 8.5 / 9.2 / 8.8 | ×0.73 / ×0.79 / ×0.65 |
 | the matrix walk alone at the forest, ms | 3.4–3.7 | 0.5 | ×0.14 |
 | the GPU's time, a proxy (software WebGL, 1600×900), ms: forest / shore / canopy | 1,975 / 2,317 / 1,898 | 1,905 / 2,087 / 1,892 | ×0.96 / ×0.90 / ×1.00 (an earlier run ×0.97 / ×0.85 / ×0.94) |
-| every kind's build (first / again), cells at five places | | | within noise: a first run flagged the builds ×1.19 and the sea's cell ×1.12, four pages a side read ×0.88 and ×0.96 |
+| every kind's build (first / again), a cell at five places (the fair bench) | | | ×0.96 / ×0.98; ×1.00–1.01 (the old bench had flagged the builds ×1.19 and the sea's cell ×1.12) |
 | the GPU's counts (test/gpu.js), seven places | | | the same, every count |
 
 The simulation the same to the bit (test/frames.js, test/bench_creatures.js, test/scangrid.js); every body the same, built and posed. The picture at
