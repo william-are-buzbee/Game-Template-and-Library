@@ -475,8 +475,13 @@ tip (`whorl`); 510 tris a variant. The **reed** (`reedB`) is its dwarf on the sh
 (`tussockB`, small jointed shoots) are the greens on rain above the tide, species with three variants since v11.15, `MATGL`, all tinted
 by `pigment(h,'green')` — but the tidewood, since v11.190 on pigment's `greenAir` (grow.js `PIG`, `PIG_BOOST`): one colour, [0.35, 0.47, 0.21],
 with no sunscreen boost, between the greens' shallow green and the wood's leaf (`WOOD_C.leaf`); to v11.189 the greens' 0–15 m ×1.22, [0.44, 0.73, 0.24], which the person
-found neon beside the wood (20 Nov 2026; six colours tried in the game, this the midpoint of the two they liked). `env {h:[−3.5,2.8], expo:[0,0.75]}`, `per` 700, `field` 0.02, `maxSlope` 0.5: the leeward
-rim and the island's tidal flat (~530 before the field noise; none on the surf side). The trunk and props are capsules
+found neon beside the wood (20 Nov 2026; six colours tried in the game, this the midpoint of the two they liked). `env {h:[−3.5,2.8], expo:[0,0.75]}`, `per` 150 (700 to v11.233), `field` 0.02, `maxSlope` 0.5,
+and since v11.234 in **stands** (the person, 25 Nov 2026: "an eye sore … should be sparse"; FLORA "The tidewood's stands"): `stand`
+[0.0003, 0.72, 0.78, 0.15] — chunks.js `standK`, a seeded noise at ~3 km that is zero under 0.72 and full over 0.78, both lowered by up to 0.15 by
+the catchment of the land whose coast is nearest (`isleK`, `STAND_LAND` [1500, 7000, 2000, 5000]: a high or shield island's land radius from none to
+full, fading 2–5 km off its coast; a record without land — ours, an atoll, a bank — and the carbonate platform none). So a big island keeps trees on a quarter to a third of
+the shore they stood on, a small one on a tenth or none; read by placeFloraType and far.js impostorsGen alike. The world's census
+(v11.234): 50,362 trees on 2,046 cells, from 1,528,208 on 10,759; none round ours. The trunk and props are capsules
 (`col`), the crown is soft. Its material `MATTR` is a slow wind sway from the crown, never capped to the water (`air:true` in
 `placeFloraType` lets it stand into the air) and never leaning to the current (`MATTR.land`: `makeInstanced` gives it no `aCur`).
 A far impostor (`farTreeGeo`, stride 2) so the wood reads across the lagoon. v11.124 (the person, 12 Nov 2026: "strange looking square LOD's"): it was a crossed pair of 1.2 m cards 9 m tall under a flat six-sided pad, olive on olive — from the water a fence of dark posts with plates at 40% of the real wood's brightness; it is now the real one's middle size in 37 triangles (10 the cards): a four-sided trunk 0.3 → 0.12 m, four props, and the whorls at 4.5, 6 and 7.5 m and the brush at 9 (6, 7, 7 and 5 rods), each rod one upright triangle from the trunk to where the real kinked rod ends (2.2, 2.5, 2.7 and 1.2 m out), so the crown is the real goblet from any side. It draws one of the real three heights (`hs`), keeps the real one's slope and wet-sand rules (`maxSlope` 0.5, `minH`), and is tinted as the real ones are (`pig`: `pigment(h,'green')` and `tintBy`) on JOINT and white. Looked at from the water at 450 m to 1.5 km by day and night, round ours and off the giant. Land flora (`flora.js`): `tussock` (`minH:1.2`, per 1500), `scrub` (`minH:2`, per 110), `stranded` (`minH:0.4`, per 26 — a dead
@@ -1374,7 +1379,7 @@ lines' splits, the order they reached the mountain — is `TAXA.md` (v11.15); th
 and the placement rules are `FLORA.md`. All three outrank this section.
 
 **The grammar (`grow.js`, since v9.5).** Eight bauplan builders push parts into a list: `axis` (a segmented stem;
-returns its nodes), `branch` (recursive, `planar` 0 a bush to 1 a fan in the x-y plane, `tip` on the last level and `col2` its colour — v11.234, the fan's pale polyps),
+returns its nodes), `branch` (recursive, `planar` 0 a bush to 1 a fan in the x-y plane, `tip` on the last level and `col2` its colour — v11.235, the fan's pale polyps),
 `blades`/`bladeAt` (strips of quads along an axis, Euler YXZ: droop then spin), `tuft` (planes or rods from a point),
 `cup` (a lathe: mouth, waist, base, lip, `closed`, `inner`), `disc` (a plate with polyp studs), `mound` (a squashed
 sphere in growth bands, optional spines), `pads` (the rafts' discs, returning their pads) and `line` (a hanging
@@ -1453,7 +1458,7 @@ order, so a descending profile comes out inside-out — invisible under `MAT`'s 
 a double-sided material. The geometry is identical either way; only the normals turn out. Callers still read the array they passed
 (`profR`, `nose`, `tail` in `creatures_spec.js`), so the reversed copy stays inside `G.lathe`.
 
-Materials (`scene.js`; since v11.13 every tinted one but `GLOW` carries the caustics and the bodies' shadows in its fragment — [The light](#the-light)): `MAT` (Lambert, vertex colours) for creatures and rigid one-variant flora (rocks, limpets, chimneys; the fans until v11.234, a species on `MATV` since),
+Materials (`scene.js`; since v11.13 every tinted one but `GLOW` carries the caustics and the bodies' shadows in its fragment — [The light](#the-light)): `MAT` (Lambert, vertex colours) for creatures and rigid one-variant flora (rocks, limpets, chimneys; the fans until v11.235, a species on `MATV` since),
 `MATBIG` (the same, with the big-thing fog — see Visibility) for structures, landmarks and big creatures' far LOD,
 `GLOW` (Basic, vertex colours) for emissive parts, `TERRAIN_MAT` (flat Phong on high, Lambert on low), `MATFAR`
 (Lambert, double-sided) for impostors, `MATV` (above), and `swayMaterial(amp,freq,hn,dir,bob,H,strand)` instances

@@ -85,7 +85,7 @@ function blades(P,N,o,rg){for(let i=0;i<o.count;i++){const t=lerp(o.from,o.to,o.
     const yaw=o.spin==='two'?(i%2)*Math.PI+(o.twist||0)+(rg()-0.5)*0.3:o.spin==='whorl'?(i%o.whorl)/o.whorl*TAU+Math.floor(i/o.whorl)*0.7:i*2.4+rg()*0.5;
     bladeAt(P,n.x,n.y,n.z,o.len*g*(0.85+rg()*0.3),o.w*g,yaw,o.droop||0,o.segs||1,o.col||W);}}
 // branch: recursive. levels, kids (per level), angle, ratio, planar (0 a bush .. 1 a fan in the x-y plane), taper, sides, col, col2 (the
-// last level's, the outer twigs: v11.234, the fan's pale polyps), tip(P,at,r,rg) on the last level, colLevels (capsules pushed to `out` for levels up to it)
+// last level's, the outer twigs: v11.235, the fan's pale polyps), tip(P,at,r,rg) on the last level, colLevels (capsules pushed to `out` for levels up to it)
 function branch(P,o,rg,base,dir,len,r,level,out){const v=dir.clone().multiplyScalar(len),tip=base.clone().add(v);
   P.push(part(G.cyl(r*(o.taper||0.7),r,len*1.04,o.sides||5,true),base.x+v.x/2,base.y+v.y/2,base.z+v.z/2,level>=o.levels&&o.col2||o.col||W,{dir:v}));
   if(out&&level<=(o.colLevels===undefined?1:o.colLevels))out.push({a:[base.x,base.y,base.z],b:[tip.x,tip.y,tip.z],r:r*1.4});

@@ -52,8 +52,8 @@ const PLACES={
   open:{x:20000,y:-30,z:40000,yaw:0,above:false,what:'open water over the deep floor: the water column, the snow and the fog alone'},
   coast:{x:-7700,y:0.6,z:6000,yaw:Math.PI/2,above:true,what:'the giant\'s coast from the sea\'s surface: the horizon pass, the sky, the clouds, the land'},
   wood:{x:-10703,y:144,z:10914,yaw:0,above:true,what:'inside the giant\'s windward forest, 3 m over the ground (v11.180, the wood): the platewood stand and the canopy\'s hand-off at 360–450 m'},
-  shore:{x:110,y:0.6,z:-380,yaw:Math.PI,above:true,hold:true,what:'the tidewood shore north of ours from the water\'s surface (v11.187): the tidewood and the reeds in the air, the kelp under the camera; the body held at 0.6 m (hold, v11.189: left to float it rests 2–3 m down by the world\'s state, and the camera with it at the waterline, above or under by a wave)'},
-  canopy:{x:80,y:-3,z:-360,yaw:Math.PI,above:false,what:'3 m down in the kelp off the same shore (v11.187), facing it: the canopy at the surface, the tidewood above it'},
+  shore:{x:110,y:0.6,z:-380,yaw:Math.PI,above:true,hold:true,what:'the shore north of ours from the water\'s surface (v11.187): the reeds in the air, the kelp under the camera (the tidewood stood here to v11.233; since v11.234 ours has none — FLORA, the tidewood\'s stands); the body held at 0.6 m (hold, v11.189: left to float it rests 2–3 m down by the world\'s state, and the camera with it at the waterline, above or under by a wave)'},
+  canopy:{x:80,y:-3,z:-360,yaw:Math.PI,above:false,what:'3 m down in the kelp off the same shore (v11.187), facing it: the canopy at the surface (the tidewood above it to v11.233)'},
 };
 // AT=x,y,z[,yaw] (v11.191): one more place, `at`, where a flight recorder's report says the worst frame was (test/report.js prints the line); the benches
 // then stand there alone (test/gpu.js and test/fill.js take ONLY=at when AT is set and ONLY is not). y absolute as above; the camera above the water at y >= 0,

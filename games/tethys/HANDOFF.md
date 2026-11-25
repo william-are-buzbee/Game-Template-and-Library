@@ -4,10 +4,17 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
-**v11.234 (25 Nov 2026): the fan rebuilt** (flora.js `fanB`, the `fan` entry; grow.js `branch`'s `col2`; FLORA.md's head note and roster; CHANGELOG).
+**v11.235 (25 Nov 2026): the fan rebuilt** (flora.js `fanB`, the `fan` entry; grow.js `branch`'s `col2`; FLORA.md's head note and roster; CHANGELOG).
 The person: *"the multicolored triangles are a bit too ubiquitous and look kind of strange"* — the fan, a squashed cone in four vivid tints at 200 tries
 a cell. Asked to strike or rebuild, the person chose the rebuild: a pale branching fan in one plane across the current, 40 tries a cell in patches,
 only in strong current below 12 m — about a ninth as many. **Ask:** whether the new fans read as fans, and whether they are now too few to notice.
+
+**v11.234 (25 Nov 2026): the tidewood sparse, in stands** (flora.js `tidetree` `per`, `stand`; chunks.js `standK`, `isleK`, `STAND_LAND`; far.js
+`impostorsGen`; FLORA Placement rules, DESIGN; CHANGELOG). The person: the tidal plant *"is simply too much of an eye sore … should be sparse"*, absent
+from many land areas, most common on the larger islands. `per` 700 → 150, and stands: a seeded ~3 km noise that leaves whole coasts and small islands
+bare, opened by the nearest land's catchment (a high or shield island's land radius). The world's census 1.53 M trees → 50 k (×0.033), 78% of them on
+the four big islands; none round ours. The far copies follow. The reed is untouched. **Ask:** whether ours should keep a small stand; whether a stand
+on the giant reads sparse enough; whether the reed is next.
 
 **v11.233 (25 Nov 2026): the drifters** (creatures_ai.js `DRIFT`, `STRAND`, `updateJelly`, `updateSailer`; creatures_defs.js `BEHAVE`; ecology.js
 `POP.stung`; test/drifters.js, test/live.js; BEHAVIOUR §3g; DRIFTERS, DESIGN; CHANGELOG). The person: *"Let's do the drifters while I test this
@@ -30,14 +37,6 @@ body follows it with its size's lag: the cold slows its speed, turn, notice and 
 (gigantotherms) and the torpid stone. The basker goes home to its vents to bask when cooled. A grazer's fright runs through its herd. The abyssal
 forays below its rim. A chasing hunter sprints over its speed while its stamina lasts, then gives up spent — after you too. **Ask:** BEHAVIOUR §8.8
 (should the cold slow you as a finback?); whether the sprint and the giving-up feel right.
-
-**v11.230.1 (24 Nov 2026): the hangers roam** (creatures_ai.js `ROAM`, `plumbRoam`, `standFollow`, `quillHide`, `hangGo`, `hangPath`, `hangFloor`,
-`plumbY`, `PLUMB.surf`; creatures_defs.js `SPAWN`'s last rows, `stOf`; chunks.js `placeKind`; ecology.js; test/ringmouths.js; BEHAVIOUR §3d; DESIGN
-Creatures; CHANGELOG). The person on v11.230: the plumbs and the quills should roam, quills need not be in stands, the plumb's rise reads only with
-lateral movement near the surface, and ranges should follow where an animal can live. By day a hanger moves its station now and then round its post
-(a stand together); every plumb leaves at dusk, fed or not, and roams the night with its shell's top 3–6 m under the surface, slanting up as it goes;
-a hungry plumb no longer forages on through the day. New rows: plumbs off the walls in still water, quills alone in and past the weed, an arrow pack
-in the open water over the upwelling. **Ask:** BEHAVIOUR §8.6–7 — whether the night's plumbs read now; ranges by survival in a session of their own.
 
 ## Open
 

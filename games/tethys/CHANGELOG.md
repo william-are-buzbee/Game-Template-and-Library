@@ -11614,7 +11614,68 @@ open list, the sailers' stranding and what eats them.
   sailer dead on a windward strand at low tide, and the scuttles at it; (3) the jellies' daily climb with the plankton — at dusk, up the water column;
   (4) BEHAVIOUR §8.10, what eats a live drifter.
 
-## v11.234 — the fan rebuilt: a pale branching fan in the current, a ninth as many (25 Nov 2026)
+## v11.234 — the tidewood sparse, in stands (25 Nov 2026)
+
+The person (25 Nov 2026): *"Greatly reduce the odds of the tidal plant from spawning, make it sparse and completely absent from many above-waterline
+land areas"*, and *"the one that sits at land and sea areas and looks like a spiny tree — it needs to be either removed or removed heavily. It is simply
+too much of an eye sore. Interesting in a small dose or most commonly on the larger islands, but in general it should be a minimal part of the game now
+visually. Should be sparse."* That is the tidewood (`tidetree`); the reed, its dwarf, is a clump of leafless uprights and is left as it was.
+
+- **Fewer** (flora.js `tidetree`): `per` 700 → 150 — a stand is a scatter of trees, not a wall.
+- **In stands** (FLORA `stand` [0.0003, 0.72, 0.78, 0.15]; chunks.js `standK`, `isleK`, `STAND_LAND`): a seeded low-frequency noise (~3 km features,
+  its own offsets) multiplies the chance, 0 under `lo` and 1 over `hi`, so whole stretches of coast and whole small islands have none. Both thresholds
+  fall by up to `drop` with the catchment of the land whose coast is nearest (`isleK`: over the records in reach that have land — a high or shield
+  island — smooth from a land radius of 1.5 km to 7 km, fading 2–5 km off its coast through `rgLoc`, so an oval is measured in its own frame). Ours, the
+  atolls, the banks, the drowned and the carbonate platform have no land above the reef: no catchment. The reason in the world: a tidal forest is a
+  colony that takes a stretch of coast and holds it (its seeds drift; a coast they never reached has none), and it lives on the fresh water and silt a
+  big island's rain brings down — Earth's mangroves are widest at a high island's river mouths and scant on atolls. Still placed by its envelope
+  (`h`, `expo`, `young`) and the cell's rng: the draws per try are unchanged, so no other species moves.
+- **The far copies follow**: far.js `impostorsGen` reads `standK` in its cheap terms and its envelope's, the same as `placeFloraType`; the far copy
+  near (`TREE_LOD`, v11.188) is drawn on the real pool's instances. A bare coast has no copies either (the census below; the pictures).
+- **The census** (a scratch script: far.js `impostorsGen` at every try with the tidewood's stride 1, over the 19,726 cells whose ground crosses the
+  band near any record; the near placement, eight cells loaded, within 15% of it before and after):
+
+  | | before | after | |
+  |---|---|---|---|
+  | trees in the world | 1,528,208 | 50,362 | ×0.033 |
+  | cells with any | 10,759 | 2,046 | ×0.19 |
+  | per occupied cell, mean / max | 142 / 617 | 25 / 123 | |
+  | on the four big islands (the giant, m109, m122, m153) | 49% | 78% | |
+  | the giant | 46,591 on 354 cells | 2,000 on 88 | |
+  | the carbonate platform | 543,619 on 3,407 | 8,171 on 306 | |
+  | the three atolls | 35,040 on 235 | 312 on 18 | |
+  | ours | 579 on 15 | none | |
+
+  A big island keeps trees on 23–36% of the cells it had them on, a bank or the platform 2–11%, an atoll 0–21%, ours none.
+- **What it cost** (`node test/perf.js` against main, v11.233; and a scratch timing at two tidewood shores, best of five, run twice a side). Nothing worse
+  by more than the benches' own noise; less drawn and less placed:
+
+  | measure | before | after | |
+  |---|---|---|---|
+  | the far copies placed at load (far.js impostorsGen), ms a cell — at the shore north of ours / at the giant's stand | 1.51–1.61 / 2.18–2.19 | 0.77–0.79 / 1.27 | ×0.50 / ×0.58 |
+  | a cell's generation (loadChunkNow, a 3×3) — at the shore / at the giant's stand, ms | 20.0–21.4 / 15.7–16.1 | 21.0–21.3 / 15.8–16.0 | ×1.00 |
+  | a cell at the bench's forest, atoll, platform, sea, giant, ms | 53.3, 30.8, 21.1, 8.1, 30.3 | 51.2, 31.3, 21.2, 8.6, 30.3 | ×0.96–1.05 |
+  | triangles a frame — forest / shore / canopy / atoll | 2.99M / 3.56M / 3.29M / 3.29M | 2.55M / 3.19M / 2.95M / 3.20M | ×0.85 / ×0.90 / ×0.90 / ×0.97 |
+  | draws a frame — forest / shore / canopy | 281 / 315 / 270 | 276 / 309 / 264 | ×0.98 |
+  | programs a frame — every place | 26–35 | 24–33 | −2 (the tidewood's and its far copy's) |
+  | buffers uploaded at the boot | 32.2 MB | 31.4 MB | ×0.97 |
+  | the GPU's time, software WebGL (a proxy) — forest / shore / canopy, ms | 1,804 / 2,272 / 1,885 | 1,779 / 2,125 / 1,913 | ×0.99 / ×0.94 / ×1.01 |
+  | the CPU's side of drawing — forest / shore / canopy, ms | 10.7 / 13.0 / 12.9 | 10.1 / 11.5 / 13.7 | ×0.94 / ×0.88 / ×1.06 |
+  | the creatures' frame at the forest (Chromium), ms | 2.48 | 2.24 | ×0.90 |
+
+  Every body the same to the bit, built and posed; the simulation the same. The canopy's CPU side (×1.06) is that measure's own swing (±30% between
+  runs of identical sources, v11.232); the creatures' frame is untouched code. The picture at the shore differs in 115,205 pixels (the tidewood gone),
+  at the forest 698 and the canopy 1,608 (the trees beyond them). test/gpu.json updated (the forest's and the shore's triangles moved past its 10%).
+- **Seen** (the real build in headless Chromium at five shores, before and after; the page with the pictures is linked from the pull request): the shore
+  north of ours bare, the reeds and the grass left; a stand on the giant's south-west shore (413 → 92 a cell) a scatter in the shallows; the giant's
+  north-east shore, toward ours, bare; atoll m117's rim bare; atoll m88 keeping a thin line on its rim.
+- **The bench places** `shore` and `canopy` (test/benchpage.js) no longer have the tidewood in view: their descriptions say so, and test/gpu.json
+  moves with it.
+- **Unseen, ask in this order**: (1) whether ours should keep a small stand (the noise gives it none; a hand-placed one would break the rule); (2) whether
+  a stand on a big island reads sparse enough at 150 a cell, or a stand should be rarer still; (3) whether the reed — under water at high tide, a swamp
+  of stems — is next.
+
+## v11.235 — the fan rebuilt: a pale branching fan in the current, a ninth as many (25 Nov 2026)
 
 The person (25 Nov 2026): *"Remove or change the multicolored triangles … The multicolored triangles are a bit too ubiquitous and look kind of
 strange. I'm thinking it would be good to either get rid of them temporarily or reinterpreting their design to be something more reasonable, because

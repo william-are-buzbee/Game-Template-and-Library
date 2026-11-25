@@ -192,7 +192,7 @@ function penB(rg, k) {
   blades(P, N, {from: 0.3, to: 0.98, count: 12 + k * 2, len: 0.35, w: 0.09, droop: 0.3, spin: 'two', twist: rg() * TAU, taper: 0.6}, rg);
   return {P: P};
 }
-// fan (v11.234): the polyp line's horny fan — the branch bauplan at planarity 1, forking in one plane broadside to the current (flow-faced:
+// fan (v11.235): the polyp line's horny fan — the branch bauplan at planarity 1, forking in one plane broadside to the current (flow-faced:
 // the plane is x-y), a net that strains the water and costs nothing to hold, on a short dark stalk; the outer twigs carry the polyps, pale
 // (FLORA's polyp line: the jelly's tints, pale). 0 the broad fan (two primaries, four forks), 1 the tall narrow one, 2 the low wide one (four
 // primaries, three forks): 176–188 triangles. The collider one flat ellipsoid round the variant's own extent (seg: every twig, for its bounds).
@@ -1044,6 +1044,8 @@ function darkrindB(rg,k){const P=[],n=1+(k%2);
 // maxSlope: steepest ground an instance may stand on (default 0.9; rocks 1.9; structures unlimited, they sink on slopes).
 // leePer: density where the retention field (world.js leeW) is 1 (v11.81; canopyPer to v11.80). ys: y for surface flora (default -0.45).
 // pocket: noise scale; the base density applies fully only inside pockets of that noise (~15% of area) and at 10% elsewhere.
+// stand: [frequency, lo, hi, drop] (v11.234, the tidewood): a colony's stands — none at all where a low noise is under lo, the island's catchment lowering
+// both thresholds by up to drop (chunks.js standK, isleK).
 // minH: lowest ground an instance may stand on (land plants stay above the wet sand).
 // col: colliders per instance in local units: {s:[x,y,z,r]} a sphere, {a:[..],b:[..],r} a capsule, {e:[cx,cy,cz,ax,ay,az]} an
 // ellipsoid (fans), {d:r} a dodecahedron of circumradius r (boulders: the rock's own twelve faces through the
@@ -1219,7 +1221,7 @@ const FLORA = [
     {mat: MATV, tints: DULL, s: [0.7, 1.2], tilt: true, per: 16, env: {h: [-150, -60], flow: [0, 0.4], sub: [0.5, 1], slope: [0, 0.5]}},
     (rg, k) => bommieB(rg, k, 4.5 + k * 0.8, 4) // 4.5–6 m (v11.20; was 11–14 × 1.4): a single fisher colony stood up out of the terrace's silt layer — nothing keeps a dead base defended for the centuries a taller one would take (REEF.md, The sizes)
   ),
-  species('fan', {mat: MATV, tints: [[0.96, 0.9, 0.86], [0.9, 0.86, 0.92], [0.94, 0.92, 0.84]], s: [0.7, 1.4], flow: true, per: 40, env: {h: [-150, -12], flow: [0.6, 1], sub: [0.5, 1]}, field: 0.02}, fanB), // v11.234 (FLORA, the person 25 Nov 2026): pale and branching, only where the current is strong and in patches (field), below the reef top the horn's fan form keeps — a ninth of the old count; to v11.233 MAT's one-variant plate, per 200, flow from 0.45, -150..-6, four vivid tints
+  species('fan', {mat: MATV, tints: [[0.96, 0.9, 0.86], [0.9, 0.86, 0.92], [0.94, 0.92, 0.84]], s: [0.7, 1.4], flow: true, per: 40, env: {h: [-150, -12], flow: [0.6, 1], sub: [0.5, 1]}, field: 0.02}, fanB), // v11.235 (FLORA, the person 25 Nov 2026): pale and branching, only where the current is strong and in patches (field), below the reef top the horn's fan form keeps — a ninth of the old count; to v11.233 MAT's one-variant plate, per 200, flow from 0.45, -150..-6, four vivid tints
   species(
     'pen',
     {
@@ -1356,9 +1358,9 @@ const FLORA = [
   // the greens in air (TAXA): the tidal forest, the reed margin, the rain scrub — one line, jointed, relicts of a bigger island
   species(
     'tidetree',
-    {mat: MATTR, photo: true, line: 'greenAir', tints: GREENT, s: [0.8, 1.3], air: true, per: 700, env: {h: [-3.5, 2.8], expo: [0, 0.75], young: [0, 0.45]}, field: 0.02, minH: -3.6, maxSlope: 0.5},
+    {mat: MATTR, photo: true, line: 'greenAir', tints: GREENT, s: [0.8, 1.3], air: true, per: 150, env: {h: [-3.5, 2.8], expo: [0, 0.75], young: [0, 0.45]}, field: 0.02, stand: [0.0003, 0.72, 0.78, 0.15], minH: -3.6, maxSlope: 0.5},
     tidewoodB
-  ), // the tidewood: the tide band, out of the surf, and off the last flows (young, v11.67: a wood is decades; the reed and the tussock keep the flows)
+  ), // the tidewood: the tide band, out of the surf, and off the last flows (young, v11.67: a wood is decades; the reed and the tussock keep the flows). v11.234 (the person, 25 Nov 2026: "an eye sore … should be sparse"): per 700 → 150, and in stands (chunks.js standK): a quarter to a third of a big island's tide band that held it, a tenth or none of a small one's
   species(
     'reed',
     {mat: MATGL, photo: true, line: 'green', tints: GREENT, s: [0.7, 1.4], air: true, per: 900, env: {h: [-5.5, 1.6], expo: [0, 0.4]}, field: 0.02, maxSlope: 0.6},
