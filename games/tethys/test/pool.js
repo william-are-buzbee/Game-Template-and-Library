@@ -33,7 +33,7 @@ const mid=X.chunks.get(X.ckey(ci,cj));ok(!!mid&&mid.pooled.length>0,'the middle 
 const heavy=[...X.POOLS.values()].sort((a,b)=>b.n-a.n).slice(0,6).map(P=>P.f.id+' '+P.n);console.log('  biggest pools: '+heavy.join(', '));
 // the card species pooled since v11.187 (their blocks hide by the cell's sight and FLORA_FAR edge, as their cell meshes did); the padded (the buttons) and glow ones stay per cell
 const cards=X.FAR_IMP.filter(sp=>!sp.f.pads).map(sp=>sp.f.id),pooledC=cards.filter(id=>[...X.POOLS.keys()].some(f=>f.id===id));ok(pooledC.length>0,'card species pooled where they grew: '+pooledC.join(' ')+' of '+cards.join(' '));
-{const L=[...X.POOLS.values()].filter(P=>P.lod);ok(L.length>0&&L.every(P=>P.lod.instanceMatrix===P.im.instanceMatrix&&P.lod.instanceColor===P.im.instanceColor&&P.lod.geometry.attributes.aHide===P.geo.attributes.aHide&&P.lod.geometry.attributes.aVar===P.geo.attributes.aVar),'the far copy\'s mirror (v11.188) on its pool\'s own buffers: '+L.map(P=>P.f.id).join(' '));}
+// the far copy's mirror (v11.188): at the tidewood's stand on the giant since v11.234 (below) — none grows round ours now
 {const cm=new Set();for(const sp of X.FAR_IMP)if(!sp.f.pads){cm.add(sp.f.mat);if(sp.f.mp)cm.add(sp.f.mp);}ok([...X.chunks.values()].every(ch=>ch.flora.every(m=>!cm.has(m.material))),'no card species left in a cell mesh');}
 // the middle cell's blocks, then the cell out: the others' blocks unchanged
 const before=new Map();for(const P of mid.pooled)before.set(P.f,blockOf(P.f,mid));
@@ -98,6 +98,11 @@ check('a 5×5 loaded');let grew=0;for(const P of X.POOLS.values())if(P.cap>(caps
 const mid4=X.chunks.get(X.ckey(ci,cj));let sameG=0,diffG=0;for(const [f,b] of before){if(same(b,blockOf(f,mid4)))sameG++;else diffG++;}ok(diffG===0,'the middle cell\'s blocks intact across the growth: '+sameG+' same, '+diffG+' different');
 const st=X.poolStats();console.log('  the 5×5: '+st.draws+' pool draws for '+st.inst+' instances; per cell it was '+[...X.chunks.values()].reduce((n,ch)=>n+ch.pooled.length,0)+' meshes');
 X.worldClear();
+// v11.234: the tidewood grows in stands (FLORA `stand`) and none round ours, so the far copy's mirror (v11.188, TREE_LOD) is checked at a stand on the
+// giant's south-west shore. (Its reach is the copy's, which has no cut, so no tile of it is ever hidden by distance.)
+{const si=X.cellOf(-20103),sj=X.cellOf(14302);for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++)X.loadChunkNow(si+di,sj+dj);check('a 3×3 at a tidewood stand on the giant loaded');
+  const L=[...X.POOLS.values()].filter(P=>P.lod&&P.n>0);ok(L.length>0&&L.every(P=>P.lod.instanceMatrix===P.im.instanceMatrix&&P.lod.instanceColor===P.im.instanceColor&&P.lod.geometry.attributes.aHide===P.geo.attributes.aHide&&P.lod.geometry.attributes.aVar===P.geo.attributes.aVar),'the far copy\'s mirror (v11.188) on its pool\'s own buffers: '+L.map(P=>P.f.id+' '+P.n).join(' '));
+  X.worldClear();}
 // v11.120 (analysis_flora_diversity §5.7): the storm clearings — a mosaic of patch ages over the exposed shallows (grow.js distAge), each
 // species back at its own pace (`succ`): the reef's polyps last, the canopy after its young, the turfs and crusts at once
 {const f=new Float32Array(9),F=id=>X.FLORA.find(e=>e.id===id);let n=0,cl=0,deep=1,calm=1;

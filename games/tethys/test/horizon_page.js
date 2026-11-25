@@ -1,4 +1,4 @@
-// test/horizon_page.js — the sea line in headless Chromium (v11.234; the person, 25 Nov 2026: "horizon flickering black line above water"): the
+// test/horizon_page.js — the sea line in headless Chromium (v11.237; the person, 25 Nov 2026: "horizon flickering black line above water"): the
 // bench's page (test/benchpage.js: its clock, Math.random seeded, the high tier, multisampled), the finback in first person held over open sea at
 // eye heights 0.8, 1.2 (across the surface grid) and 1.0 m (along it); each frame drawn three times — as it is, with the water dome hidden,
 // and with the horizon pass's clear colour turned red. Fails on a pixel by the sea line that is darker by more than DARK

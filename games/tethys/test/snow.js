@@ -18,6 +18,19 @@ js+='\nglobal.__sn={set:(x,y,z)=>{player.pos.set(x,y,z);player.vel.set(0,0,0);ca
   'stats:()=>{const o={live:0,kinds:[0,0,0,0,0,0],alpha:0,size:0,fall:0,nan:0,ymin:1e9,ymax:-1e9};for(let i=0;i<PN_SN;i++){const x=pp[i*3],y=pp[i*3+1],z=pp[i*3+2];if(x!==x||y!==y||z!==z)o.nan++;if(pk[i]===255||pk[i]===254)continue;o.live++;o.kinds[pk[i]]++;o.alpha+=ps[i*2+1];o.size+=ps[i*2];o.fall+=SN_K[pk[i]].fall;if(y<o.ymin)o.ymin=y;if(y>o.ymax)o.ymax=y;}'+
   'if(o.live){o.alpha/=o.live;o.size/=o.live;o.fall/=o.live;}o.share=o.live/PN_SN;return o;},'+
   'W:(x,y,z)=>{snowSeed(0,x,y,z);const w=[];let W=0;for(let k=0;k<6;k++){w.push(+snowW(k,0,y).toFixed(3));W+=w[k];}return {W:+W.toFixed(3),w:w};}};';
+// v11.236: the light at the snow's points by the shader's sum over its uniforms, against the ground's from three's lights (below)
+function snowLit(){const f=(dx,dy,dz,D)=>{const u=Math.max(0,1-Math.sqrt(dx*dx+dy*dy+dz*dz)/D);return u*u;},lum=(r,g,b)=>0.2126*r+0.7152*g+0.0722*b;
+  return {pl:on=>{FX.plight=on;},dayl:y=>daylightAt(y),hour:h=>{const now=(clockH+SOLAR_H0)%DAY_H;window.skip(((h-now+DAY_H)%DAY_H)/DAY_H);},
+    src:(x,y,z)=>{const s={x:x,y:y,z:z,color:0x6fe0c8,intensity:1,distance:12,d:0};lightSources.push(s);return s;},unsrc:s=>{const k=lightSources.indexOf(s);if(k>=0)lightSources.splice(k,1);},
+    eval:s=>{let n=0,maxL=0,maxG=0,worst=0,nearL=0;const ox=ORIGIN.x,oz=ORIGIN.z,L=[0,0,0],G=[0,0,0];
+      for(let i=0;i<PN;i++){if(pk[i]===255||ps[i*2+1]<=0)continue;n++;const x=ppG[i*3],y=ppG[i*3+1],z=ppG[i*3+2],wx=x+ox,wz=z+oz,dl=daylightAt(y);
+        const pf=f(x-plU.value.x,y-plU.value.y,z-plU.value.z,plight.distance),gf=f(wx-plight.position.x,y-plight.position.y,wz-plight.position.z,plight.distance),C=['r','g','b'];
+        for(let c=0;c<3;c++){const k=C[c];L[c]=pm.color[k]+(c===0?snSunU.value.x:c===1?snSunU.value.y:snSunU.value.z)*dl+plCU.value[k]*plU.value.w*pf;G[c]=hemi.color[k]*hemi.intensity/LI+sun.color[k]*sun.intensity/LI*dl+plight.color[k]*plight.intensity/LI*gf;
+          for(let j=0;j<SN_LN;j++){L[c]+=snLC[j*3+c]*f(x-snLP[j*4],y-snLP[j*4+1],z-snLP[j*4+2],snLP[j*4+3]);const l=lightPool[j];if(l&&l.intensity>0)G[c]+=l.color[k]*l.intensity/LI*f(wx-l.position.x,y-l.position.y,wz-l.position.z,l.distance);}}
+        const lL=lum(L[0],L[1],L[2]),lG=lum(G[0],G[1],G[2])*SN_ALB;if(lL>maxL)maxL=lL;if(lG>maxG)maxG=lG;for(let c=0;c<3;c++){const r=L[c]/Math.max(G[c]*SN_ALB,1e-9);if(L[c]>1e-7&&r>worst)worst=r;}
+        if(s&&Math.hypot(wx-s.x,y-s.y,wz-s.z)<4&&lL>nearL)nearL=lL;}
+      return {n:n,maxL:maxL,maxG:maxG,worst:worst,nearL:nearL};}};}
+js+='\nglobal.__lt=('+snowLit.toString()+')();';
 const tmp=path.join(require('os').tmpdir(),'tethys_snow_bundle.js');
 fs.writeFileSync(tmp,'(function(){"use strict";\n'+js+'\n})();');
 process.env.PICK='1';
@@ -72,6 +85,27 @@ ok(sh(sites[12],4)>0.15,'the vent field has its sulfide grains ('+(100*sh(sites[
 ok(sites[13].W.w[0]>sites[14].W.w[0]*1.5&&sites[13].S.share>sites[14].S.share,'the ring at the break holds more life than the slope beside it (the live weight '+sites[13].W.w[0]+' vs '+sites[14].W.w[0]+'; the box '+(100*sites[13].S.share).toFixed(0)+'% vs '+(100*sites[14].S.share).toFixed(0)+'%)');
 ok(sh(sites[13],5)>0.03,'and chains in it ('+(100*sh(sites[13],5)).toFixed(0)+'%)');
 ok(sites[15].W.w[0]>sites[16].W.w[0]*1.5&&sh(sites[15],0)>0.15,'the deep maximum at 95 m is alive where the same column 45 m under it is not (the live weight '+sites[15].W.w[0]+' vs '+sites[16].W.w[0]+' at 140; the box '+(100*sh(sites[15],0)).toFixed(0)+'% live)');
+// v11.236 (the person, 25 Nov 2026: "only as bright as its surroundings"): the light on the snow is the world's where each point is. At every point
+// drawn, the light the shader adds up from its uniforms (atmosphere.js ptsLit: the ambient in pm.color, the sun by the point's depth, the own light and
+// the pool's by r128's falloff; the sun's per-channel loss with depth left out, it only lowers it) against the light the ground facing up takes there
+// from three's own lights (hemi's sky colour, the sun by depth, plight and the pool by the same falloff) × SN_ALB: never over it. To v11.233 the
+// ambient's floor (0.45, 0.75, 0.95) lit the snow at 480 m by day at ~60% of its noon light, where the ground had under 1%.
+{const lt=__lt;
+  const at=(name,x,y,z,hour,pl,src)=>{__sn.set(x,y,z);lt.hour(hour);lt.pl(pl);__step(90);let s=null;if(src){s=lt.src(x+3,y,z+1);__step(3);}const o=lt.eval(src?s:null);if(s)lt.unsrc(s);o.name=name;
+    console.log('  '+name+': '+o.n+' points, the snow\'s light up to '+o.maxL.toFixed(4)+' (luminance; the ground\'s facing up × SN_ALB '+o.maxG.toFixed(4)+'), at most '+o.worst.toFixed(3)+' of the ground\'s'+(src?', within 4 m of the light '+o.nearL.toFixed(3):''));return o;};
+  const sh=at('the lit shallows at noon (the forest, 8 m)',330,-8,0,15,true);
+  const mid=at('mid-water at noon (120 m over the slope)',Math.cos(5.44)*1300,-120,Math.sin(5.44)*1300,15,true);
+  const dk=at('the dark deep at noon, 480 m, the own light off',6000,-480,0,15,false);
+  const dl=at('the same, the own light on',6000,-480,0,15,true);
+  const ng=at('the shallows at midnight, the own light off',330,-8,0,0,false);
+  const ls=at('the dark deep with a light source 3 m off (the pool: a bacterial glow\'s)',6000,-480,0,15,false,true);
+  lt.pl(true);
+  for(const o of [sh,mid,dk,dl,ng,ls])ok(o.n>50&&o.worst<=1+1e-6,o.name+': never brighter than the ground facing up takes ('+o.worst.toFixed(3)+' of it × SN_ALB, '+o.n+' points)');
+  ok(dk.maxL<0.015*sh.maxL,'black water with nothing lit leaves the snow dark: its light at 480 m by day '+(100*dk.maxL/sh.maxL).toFixed(2)+'% of the noon shallows\' (the daylight there '+(100*lt.dayl(-480)).toFixed(2)+'%; to v11.233 ~60%)');
+  ok(Math.abs(mid.maxL/sh.maxL-mid.maxG/sh.maxG)<0.25*mid.maxG/sh.maxG,'at 120 m it falls with the world\'s light: '+(100*mid.maxL/sh.maxL).toFixed(0)+'% of the shallows\' against the ground\'s '+(100*mid.maxG/sh.maxG).toFixed(0)+'%');
+  ok(dl.maxL>10*dk.maxL,'the own light lights it in the dark ('+dl.maxL.toFixed(4)+' against '+dk.maxL.toFixed(4)+')');
+  ok(ls.nearL>10*dk.maxL,'and so does a light source (the brightest point within 4 m of it '+ls.nearL.toFixed(4)+')');
+  ok(Math.abs(sh.maxL-0.957)<0.25,'the lit shallows as they were: the brightest point\'s light '+sh.maxL.toFixed(3)+' (0.957 of white to v11.233)');}
 // the cost
 __sn.set(330,__sn.ground(330,0)+3,0);__step(60);__T.upd=0n;__T.n=0;
 const key=(code,down)=>h['win:'+(down?'keydown':'keyup')].forEach(f=>f({code,preventDefault(){}}));

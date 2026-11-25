@@ -2,7 +2,7 @@
 // the build run to its end from the camera at ours, then again with the members collapsed to one (the source patched: the first member takes
 // every cell in the box, as v11.102–108's one mesh did). Every triangle is in one member's mesh and no other; the members' triangles are the one
 // mesh's, each to the bit with its winding; each vertex is on the lattice; the members are built nearest first; the giant's land is done after
-// a small share of the whole (by the triangles: the stub's clock stands within a frame). v11.234: the sea line — the two numbers the water dome's
+// a small share of the whole (by the triangles: the stub's clock stands within a frame). v11.237: the sea line — the two numbers the water dome's
 // cut and the sea disc's reach rest on, from the waves themselves, the disc v11.233's from an eye over 3 m, the dome's code (the picture is
 // test/horizon_page.js's, in smoke). In --test.
 'use strict';
@@ -37,7 +37,7 @@ const names=rn.land.children.map(m=>m.name);ok(names[0]==='home'&&names.indexOf(
 // island m138 and the low island m150 62 km west (a 50 m island seen ~30 km off to v11.129, a 4 m rim since v11.130), both vents of composites now
 {const q0=N.watch(0,2,0),low=N.sight('m117',2);ok(q0.includes('giant')&&q0.includes('m122')&&q0.includes('m153')&&!q0.includes('m117')&&low>5000&&low<40000,`by sight from the water at ours: ${q0.length} members queued, the giant first among the land (${q0.slice(0,4).join(', ')} …), the atoll m117 not (seen ${(low/1000).toFixed(0)} km off; it is 87)`);
   const q1=N.watch(-30005,2500,-36615);ok(q1.includes('m117'),'from the awesome shield\'s summit (2.5 km up) the atoll m117 comes into sight: '+q1.length+' queued');}
-// v11.234, the sea line (the person, 25 Nov 2026: "horizon flickering black line above water"). In air the water dome (atmosphere.js) is drawn only
+// v11.237, the sea line (the person, 25 Nov 2026: "horizon flickering black line above water"). In air the water dome (atmosphere.js) is drawn only
 // where a pixel's step above it lies DOME_M under the drawn sea at its point, so a ray reaching it has crossed the sea's face first; a ray the main pass's
 // sea leaves to the far plane falls to the horizon pass, whose disc reaches in to hzIn(h) (horizon.js), the tide's crossing of a ray that meets the
 // drawn sea no nearer than the far plane when that sea is never more than HZ_DIP under the tide. Here those two numbers against the waves' own:

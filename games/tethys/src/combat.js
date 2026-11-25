@@ -493,13 +493,7 @@ function bledOut(o){const by=lastWounder(o);
 const BL_N=Q.tier==='low'?240:480,blP=new Float64Array(BL_N*3),blPG=new Float32Array(BL_N*3),blV=new Float32Array(BL_N*3),blC=new Float32Array(BL_N*3),blS=new Float32Array(BL_N*2),blL=new Float32Array(BL_N),blA=new Float32Array(BL_N);let blNext=0,blLive=0;
 const blG=new THREE.BufferGeometry();blG.setAttribute('position',new THREE.BufferAttribute(blPG,3));/* v11.113: blP the simulation in doubles, blPG the GPU's copy against the render origin (atmosphere.js, the snow) */blG.setAttribute('color',new THREE.BufferAttribute(blC,3));blG.setAttribute('aSz',new THREE.BufferAttribute(blS,2));
 const blM=new THREE.PointsMaterial({color:0xcfe6ee,size:0.3,transparent:true,opacity:0.8,depthWrite:false,vertexColors:true});
-blM.onBeforeCompile=function(sh){sh.uniforms.uPL=plU;sh.uniforms.uPLc=plCU;let n=0;
-  sh.vertexShader=sh.vertexShader.replace('uniform float size;',()=>{n++;return 'attribute vec2 aSz;uniform vec4 uPL;varying float vA;varying float vL;uniform float size;';})
-    .replace('gl_PointSize = size;',()=>{n++;return 'gl_PointSize=size*aSz.x;vA=aSz.y*smoothstep(0.4,1.5,-mvPosition.z);{vec3 dl=transformed-uPL.xyz;vL=uPL.w/(0.5+dot(dl,dl));}';})
-    .replace('#include <logdepthbuf_vertex>',()=>{n++;return 'gl_PointSize=min(gl_PointSize,40.0);\n#include <logdepthbuf_vertex>';});
-  sh.fragmentShader=sh.fragmentShader.replace('uniform vec3 diffuse;',()=>{n++;return 'varying float vA;varying float vL;uniform vec3 uPLc;uniform vec3 diffuse;';})
-    .replace('#include <color_fragment>',()=>{n++;return 'diffuseColor.rgb=vColor.rgb*(diffuse+uPLc*vL);diffuseColor.a*=vA;';});
-  if(n!==5)console.warn('blood: points chunks not as expected ('+n+' of 5); the blood draws uniform');};
+blM.onBeforeCompile=function(sh){const n=ptsLit(sh,40,0.4,1.5,false);if(n!==5)console.warn('blood: points chunks not as expected ('+n+' of 5); the blood is lit by the ambient alone');}; // the snow's patch (atmosphere.js ptsLit): the world's light where each point is (v11.236)
 blM.customProgramCacheKey=function(){return 'blood';};
 const blood=new THREE.Points(blG,blM);blood.frustumCulled=false;blood.visible=false;scene.add(blood);
 for(let i=0;i<BL_N;i++){blS[i*2+1]=0;blP[i*3+1]=-1e4;}
