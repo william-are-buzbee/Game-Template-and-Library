@@ -7,24 +7,37 @@
 // The page runs on a clock of its own (as the node tests' stub does): performance.now and requestAnimationFrame are replaced before any script, the
 // frame loop advanced only by the bench, 16.7 ms a frame, and Math.random seeded — so the ledger, the streaming and every draw are the same in every
 // run, and two trees can be held to the same bodies and the same simulation. The bench's own timings read the real clock.
-// What it measures, after the boot and SETTLE frames (each page its own browser; the best of N pages):
-//   build      every kind's body (creatures_ai.js buildKind, plain coat): the first build, then the least of the next five — what a spawn pays
+// What it measures, after the boot and SETTLE frames, in N rounds (each page its own browser, a fresh one a round):
+//   build      every kind's body (creatures_ai.js buildKind, plain coat): the first build, then the least of the next five — what a spawn pays;
+//              each kind the least of its rounds
 //   cells      3×3 cells at five places (the forest's shelf, an atoll, the platform, the open sea, the giant's coast) generated whole (chunks.js
-//              loadChunkNow), the time a cell and the share of it inside spawn() and inside compile()
+//              genChunk drained, as loadChunkNow does), the time a cell and the share of it inside spawn() and inside compile(); each step of
+//              the generator timed apart and each step the least of its rounds
 //   frame      the player put at the forest's shelf (330, −12, 0: the heaviest place) and FRAMES frames stepped (the render left out): updateSchools +
-//              updateCreatures a frame, on the real clock, with every creature the cells round it hold
+//              updateCreatures a frame, on the real clock, with every creature the cells round it hold; each frame the least of its rounds
 // and what it proves: every creature those cells placed (its kind, place, coat class, scale; every mesh's geometry — position, normal, colour, the
 // pattern — its far bake's, its hit capsules, coverings, grip, edge, gape and mass) and each body posed by its own anim at a fixed time, hashed; and after
 // the frames every creature's place, velocity, facing, state and hunger, and every rig's points (the simulation the same, frame for frame).
+// The comparison is fair (v11.232.1): identical sources read within ±4%, ×0.93–1.07 at the sea and the giant's coast, where they read ×0.81–1.28. With BASE both trees'
+// pages are open at once and take turns — kind by kind, cell by cell, BLOCK frames at a time — the side going first alternating (base, here |
+// here, base | …), each round booting and starting with the other side; and every piece is the least of its rounds, not every round's total — a
+// kind, a step of a cell's generator, a frame, each the same work in every round (the bodies and the simulation are held to the bit). A cloud
+// machine's speed swings ±25% within half a second (a fixed loop timed again and again, 25 Nov 2026), each page's V8 tiers and collects on a
+// clock of its own, and a cell is 10–150 ms: a cell in a slow spell reads half as long again, and four or five rounds of whole cells left one
+// in a few without its fast reading. A step (~0.1 ms, ~250–700 a cell) misses one only now and then, and costs little when it does. So a cell's
+// time is its work on a quiet machine: what a collection pause adds falls on a different step each round and is mostly left out, as the best of
+// several runs always left it. The page is cross-origin isolated (test/benchpage.js `iso`): its clock reads to 5 µs, not 100 (a rebuild is
+// ~0.15 ms). Tried and worse: a collection forced before each cell, V8 single-threaded or --predictable, both pages on one renderer.
 // Needs Playwright (a cloud session has one globally; PLAYWRIGHT_MODULE names another) and three.js r128 from cdnjs, which the page loads itself.
-// Env: BASE, N (pages each, 2), FRAMES (300), SETTLE (60), ONLY (build,cells,frame), JSON=<file> (the results, for test/perf.js).
+// Env: BASE, N (rounds, 8: ~35 s a round with BASE), FRAMES (300), BLOCK (frames a turn, 20), SETTLE (60), ONLY (build,cells,frame), JSON=<file> (the results, for test/perf.js).
 'use strict';
 const path=require('path');
-const here=path.join(__dirname,'..'),roots=(process.env.BASE?[path.resolve(process.env.BASE)]:[]).concat([here]),N=+(process.env.N||2),FRAMES=+(process.env.FRAMES||300),SETTLE=+(process.env.SETTLE||60);
+const here=path.join(__dirname,'..'),roots=(process.env.BASE?[path.resolve(process.env.BASE)]:[]).concat([here]),N=+(process.env.N||8),FRAMES=+(process.env.FRAMES||300),BLOCK=+(process.env.BLOCK||20),SETTLE=+(process.env.SETTLE||60);
 const ONLY=new Set((process.env.ONLY||'build,cells,frame').split(','));
+const PLACES={forest:[330,0],atoll:[108100,4000],platform:[216062,15900],sea:[20000,40000],giant:[-12000,6000]};
 const {playwright,open}=require('./benchpage.js'); // the page, its clock and seed, and three's UUIDs on a stream of their own (test/benchpage.js, v11.179: shared with test/gpu.js)
-// ---- in the page ----
-function inPage(arg){const now=()=>window.__real(),out={};
+// ---- in the page: the bench's pieces as window.__bc, each called from node on its own (v11.232.1), so two pages can take turns ----
+function inPage(){const now=()=>window.__real(),B={};
   // a hash of numbers (FNV over their float32 bits) and of strings
   const hs=()=>({h:2166136261>>>0,n:0}),f32=new Float32Array(1),u32=new Uint32Array(f32.buffer),addN=(H,v)=>{f32[0]=v;H.h=Math.imul(H.h^u32[0],16777619)>>>0;H.n++;},addA=(H,a)=>{if(!a)return addN(H,-1);addN(H,a.length);for(let i=0;i<a.length;i++)addN(H,a[i]);},addS=(H,s)=>{s=String(s);for(let i=0;i<s.length;i++)addN(H,s.charCodeAt(i));};
   const geoH=(H,g)=>{if(!g){addN(H,-2);return;}for(const k of ['position','normal','color','aPat']){const a=g.attributes[k];addS(H,k);addA(H,a?a.array:null);}};
@@ -38,39 +51,61 @@ function inPage(arg){const now=()=>window.__real(),out={};
   const T={};const wrap=n=>{const f=window[n];if(typeof f!=='function')return;T[n]=0;window[n]=function(){const t0=now();try{return f.apply(this,arguments);}finally{T[n]+=now()-t0;}};};
   const simH=()=>{const H=hs();for(const c of creatures){addS(H,c.kind);for(const v of [c.pos,c.vel])if(v){addN(H,v.x);addN(H,v.y);addN(H,v.z);}const q=c.g.quaternion;addN(H,q.x);addN(H,q.y);addN(H,q.z);addN(H,q.w);addS(H,c.state);addN(H,c.hunger||0);addN(H,c.alive?1:0);
     if(c.b&&c.b.rigs)for(const r of c.b.rigs)for(const ch of r.chains)addA(H,ch.pts);}return H.h.toString(16);};
-  if(arg.only.includes('build')){ // every kind's body, plain
-    const kinds=[...new Set(SPAWN.map(e=>e.kind))].filter(k=>DEFS[k]&&specOfKind(k));const rows=[];let first=0,rep=0;
-    for(const k of kinds){const d=DEFS[k];let t0=now();const b0=buildKind(d,k,'');const f=now()-t0;b0.g.traverse(o=>{if(o.geometry)o.geometry.dispose();});let best=1e9;
-      for(let r=0;r<5;r++){t0=now();const b=buildKind(d,k,'');const t=now()-t0;if(t<best)best=t;b.g.traverse(o=>{if(o.geometry)o.geometry.dispose();});}rows.push([k,f,best]);first+=f;rep+=best;}
-    out.build={kinds:rows.length,first,rep,rows};}
-  if(arg.only.includes('cells')){wrap('spawn');wrap('compile');wrap('bakeLOD');const places={forest:[330,0],atoll:[108100,4000],platform:[216062,15900],sea:[20000,40000],giant:[-12000,6000]},res={};
-    for(const k in places){const ci=Math.floor((places[k][0]+HALF)/CELL),cj=Math.floor((places[k][1]+HALF)/CELL);for(const n in T)T[n]=0;let n=0,cr=0;const t0=now();
-      for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){if(chunks.has(ckey(ci+di,cj+dj)))continue;loadChunkNow(ci+di,cj+dj);n++;cr+=chunks.get(ckey(ci+di,cj+dj)).creatures.length;}
-      res[k]={cells:n,ms:(now()-t0)/Math.max(1,n),creatures:cr,spawn:T.spawn/Math.max(1,n),compile:T.compile/Math.max(1,n),bake:T.bakeLOD/Math.max(1,n)};}
-    out.cells=res;const H=hs(),P=hs(),per=[];let nc=0;
+  // build: every kind's body, plain — the first, then the least of the next five
+  B.kinds=()=>[...new Set(SPAWN.map(e=>e.kind))].filter(k=>DEFS[k]&&specOfKind(k));
+  B.build=k=>{const d=DEFS[k];let t0=now();const b0=buildKind(d,k,'');const f=now()-t0;b0.g.traverse(o=>{if(o.geometry)o.geometry.dispose();});let best=1e9;
+    for(let r=0;r<5;r++){t0=now();const b=buildKind(d,k,'');const t=now()-t0;if(t<best)best=t;b.g.traverse(o=>{if(o.geometry)o.geometry.dispose();});}return [k,f,best];};
+  // cells: the c-th of the 3×3 round (x, z), in the order the whole set was always made (dj, then di); null when it was already loaded. Made as
+  // loadChunkNow makes it — genChunk drained — with every step of the generator timed apart (st): a cell is 10–150 ms, a step well under one
+  B.cellsStart=()=>{wrap('spawn');wrap('compile');wrap('bakeLOD');};
+  B.cell=([x,z,c])=>{const i=Math.floor((x+HALF)/CELL)+c%3-1,j=Math.floor((z+HALF)/CELL)+Math.floor(c/3)-1;if(chunks.has(ckey(i,j)))return null;for(const n in T)T[n]=0;const st=[],g=genChunk(i,j);let t=now();
+    for(;;){const r=g.next(),u=now();st.push(u-t);t=u;if(r.done)break;}
+    return {st,spawn:T.spawn||0,compile:T.compile||0,bake:T.bakeLOD||0,creatures:chunks.get(ckey(i,j)).creatures.length};};
+  B.bodies=()=>{const H=hs(),P=hs(),per=[];let nc=0;
     for(const ch of [...chunks.values()].sort((a,b)=>a.i-b.i||a.j-b.j))for(const c of ch.creatures){bodyH(H,c);poseH(P,c);nc++;
       const parts={kind:c.kind+(c.cls?'@'+c.cls:'')+(c.juv>0?'~':'')},one=(k,f)=>{const q=hs();f(q);parts[k]=q.h.toString(16);};one('place',q=>{addS(q,c.kind);addS(q,c.cls||'');addN(q,c.k);addN(q,c.pos.x);addN(q,c.pos.y);addN(q,c.pos.z);});one('numbers',q=>{addN(q,c.mass);addN(q,c.b.gape||0);addS(q,(c.b.cover||[]).join());for(const h of c.b.hit||[]){addA(q,h.a);addA(q,h.b);addN(q,h.r);}});
       let mi=0;c.g.traverse(o=>{if(o.isMesh)one('mesh'+(mi++)+(o.visible?'':'h'),q=>geoH(q,o.geometry));});if(c.b.rigs)c.b.rigs.forEach((r,i)=>one('rig'+i,q=>{for(const ch of r.chains){addN(q,ch.n);addA(q,ch.restL);}}));one('pose',q=>poseH(q,c));per.push(parts);} // each body's pieces apart, to say which differs
-    out.bodies={n:nc,hash:H.h.toString(16),pose:P.h.toString(16),per};}
-  if(arg.only.includes('frame')){const rf=window.renderFrame;window.renderFrame=function(){}; // the render left out: software WebGL takes seconds a frame, and the creatures' work is the CPU's
-    player.pos.set(330,-12,0);camera.position.set(330,-12,0);cellsAround();window.__step(30); // the forest's shelf, the cells round it loaded
-    const ms=[],u=window.updateCreatures,sc=window.updateSchools;let ss=0;window.updateSchools=function(dt){const t0=now();sc(dt);ss=now()-t0;};window.updateCreatures=function(dt){const t0=now();u(dt);ms.push(now()-t0+ss);};
-    window.__step(arg.frames);window.updateCreatures=u;window.updateSchools=sc;window.renderFrame=rf;const m=ms.slice().sort((a,b)=>a-b),n=m.length;
-    out.frame={frames:n,mean:m.reduce((a,b)=>a+b,0)/n,median:m[n>>1],p95:m[Math.floor(n*0.95)],creatures:creatures.length,near:creatures.filter(c=>c.lod===0&&c.g.visible).length,sim:simH()};}
-  return out;}
-async function onePage(pw,root){const P=await open(pw,root);
+    return {n:nc,hash:H.h.toString(16),pose:P.h.toString(16),per};};
+  // frame: the forest's shelf, the cells round it loaded, then frameRun(n) as often as asked, then frameEnd
+  const F={};
+  B.frameStart=()=>{F.rf=window.renderFrame;window.renderFrame=function(){}; // the render left out: software WebGL takes seconds a frame, and the creatures' work is the CPU's
+    player.pos.set(330,-12,0);camera.position.set(330,-12,0);cellsAround();window.__step(30);
+    F.ms=[];F.u=window.updateCreatures;F.sc=window.updateSchools;let ss=0;window.updateSchools=function(dt){const t0=now();F.sc(dt);ss=now()-t0;};window.updateCreatures=function(dt){const t0=now();F.u(dt);F.ms.push(now()-t0+ss);};};
+  B.frameRun=n=>{window.__step(n);};
+  B.frameEnd=()=>{window.updateCreatures=F.u;window.updateSchools=F.sc;window.renderFrame=F.rf;return {ms:F.ms,creatures:creatures.length,near:creatures.filter(c=>c.lod===0&&c.g.visible).length,sim:simH()};};
+  window.__bc=B;}
+// ---- a page, booted and settled ----
+async function openSide(pw,root){const P=await open(pw,root,{iso:true}); // isolated: its clock to 5 µs, not 100 (a body's rebuild is ~0.15 ms)
   try{const {page,errs}=P;const boot=await page.evaluate(()=>{const n=performance.getEntriesByType('navigation')[0];return n.domContentLoadedEventStart-n.responseEnd;});
     for(let k=0;k<500;k++){if(await page.evaluate(()=>window.__boot.stage!=='store'))break;await new Promise(r=>setTimeout(r,20));} // v11.200: the store's answer first, no frame stepped (as test/gpu.js) — it comes when IndexedDB gives it, and a boot that streamed a few frames before it spawned another ledger: 'the bodies differ between two runs' (since v11.189's boot)
     await page.evaluate(()=>{const st=window.__step;window.__step=n=>{for(let i=0;i<n;i++){if(typeof menuWake==='function')menuWake();st(1);}};}); // v11.202: the bench runs on the menu — a mouse moving keeps it from the idle menu's pace (menu.js MENU_IDLE_IV)
     await page.evaluate(n=>{const rf=window.renderFrame;window.renderFrame=function(){};window.__step(n);window.renderFrame=rf;},SETTLE); // the menu's first frames, the same in every run
-    const o=await page.evaluate(inPage,{only:[...ONLY],frames:FRAMES});o.boot=boot;o.errs=errs;return o;}finally{await P.close();}}
-(async()=>{const pw=playwright(),res=[];
-  for(const r of roots){let best=null;for(let k=0;k<N;k++){const o=await onePage(pw,r);if(o.errs.length)console.log('page errors in '+r+': '+o.errs.slice(0,3).join(' | '));
-    if(!best){best=o;continue;}best.boot=Math.min(best.boot,o.boot);if(o.build){best.build.first=Math.min(best.build.first,o.build.first);best.build.rep=Math.min(best.build.rep,o.build.rep);best.build.rows=best.build.rows.map((w,i)=>[w[0],Math.min(w[1],o.build.rows[i][1]),Math.min(w[2],o.build.rows[i][2])]);}
-      if(o.cells)for(const k in o.cells)for(const q of ['ms','spawn','compile','bake'])best.cells[k][q]=Math.min(best.cells[k][q],o.cells[k][q]);
+    await page.evaluate(inPage);return {P,page,boot,errs};}catch(e){await P.close();throw e;}}
+// ---- one round: every side's page open, the sections run turn about ----
+async function round(pw,k){const S=[];
+  try{for(const r of k%2?roots.slice().reverse():roots)S.push(await openSide(pw,r));if(k%2)S.reverse(); // booted one after the other, the first to boot alternating: the boot's time is each page's alone, and the page just settled is the busier one
+    const turn=q=>(k+q)%2?S.slice().reverse():S,ix=s=>S.indexOf(s),o=S.map(s=>({boot:s.boot,errs:s.errs}));
+    if(ONLY.has('build')){const K=[];for(const s of S)K.push(await s.page.evaluate(()=>window.__bc.kinds()));const rows=S.map(()=>[]);
+      for(let j=0;j<Math.max(...K.map(x=>x.length));j++)for(const s of turn(j))if(j<K[ix(s)].length)rows[ix(s)].push(await s.page.evaluate(kk=>window.__bc.build(kk),K[ix(s)][j]));
+      rows.forEach((w,i)=>{o[i].build={kinds:w.length,rows:w};});}
+    if(ONLY.has('cells')){for(const s of S)await s.page.evaluate(()=>window.__bc.cellsStart());o.forEach(x=>{x.cells={};});let q=0;
+      for(const p in PLACES){o.forEach(x=>{x.cells[p]=[];});for(let c=0;c<9;c++,q++)for(const s of turn(q))o[ix(s)].cells[p].push(await s.page.evaluate(a=>window.__bc.cell(a),[PLACES[p][0],PLACES[p][1],c]));}
+      for(const s of S)o[ix(s)].bodies=await s.page.evaluate(()=>window.__bc.bodies());}
+    if(ONLY.has('frame')){for(const s of S)await s.page.evaluate(()=>window.__bc.frameStart());
+      for(let f=0,q=0;f<FRAMES;f+=BLOCK,q++)for(const s of turn(q))await s.page.evaluate(n=>window.__bc.frameRun(n),Math.min(BLOCK,FRAMES-f));
+      for(const s of S)o[ix(s)].frame=await s.page.evaluate(()=>window.__bc.frameEnd());}
+    return o;}finally{for(const s of S)await s.P.close();}}
+(async()=>{const pw=playwright(),res=roots.map(()=>null);
+  for(let k=0;k<N;k++){const rr=await round(pw,k);
+    rr.forEach((o,i)=>{const r=roots[i];if(o.errs.length)console.log('page errors in '+r+': '+o.errs.slice(0,3).join(' | '));const best=res[i];
+      if(!best){res[i]=o;return;}best.boot=Math.min(best.boot,o.boot);if(o.build)best.build.rows=best.build.rows.map((w,j)=>[w[0],Math.min(w[1],o.build.rows[j][1]),Math.min(w[2],o.build.rows[j][2])]); // each kind its least
+      if(o.cells)for(const p in o.cells)best.cells[p]=best.cells[p].map((a,j)=>{const b=o.cells[p][j];return a&&b?{st:a.st.length===b.st.length?a.st.map((v,q)=>Math.min(v,b.st[q])):a.st,spawn:Math.min(a.spawn,b.spawn),compile:Math.min(a.compile,b.compile),bake:Math.min(a.bake,b.bake),creatures:a.creatures}:a;}); // each step of each cell its least
       if(o.bodies&&(o.bodies.hash!==best.bodies.hash||o.bodies.pose!==best.bodies.pose))console.log('  the bodies differ between two runs of '+r+' (something unseeded)');
-      if(o.frame&&best.frame){for(const q of ['mean','median','p95'])best.frame[q]=Math.min(best.frame[q],o.frame[q]);if(o.frame.sim!==best.frame.sim)console.log('  the simulation differs between two runs of '+r+' (something unseeded)');}}
-    res.push(best);}
+      if(o.frame&&best.frame){best.frame.ms=best.frame.ms.slice(0,o.frame.ms.length).map((v,j)=>Math.min(v,o.frame.ms[j]));if(o.frame.sim!==best.frame.sim)console.log('  the simulation differs between two runs of '+r+' (something unseeded)');}});}
+  for(const o of res){if(o.build){o.build.first=o.build.rows.reduce((a,r)=>a+r[1],0);o.build.rep=o.build.rows.reduce((a,r)=>a+r[2],0);}
+    if(o.frame){const m=o.frame.ms.slice().sort((a,b)=>a-b),n=m.length;o.frame={frames:n,mean:m.reduce((a,b)=>a+b,0)/n,median:m[n>>1],p95:m[Math.floor(n*0.95)],creatures:o.frame.creatures,near:o.frame.near,sim:o.frame.sim};} // each frame its least: the simulation is the same frame for frame in every round
+    if(o.cells)for(const p in o.cells){const v=o.cells[p].filter(Boolean),n=Math.max(1,v.length),s=q=>v.reduce((a,c)=>a+c[q],0); // a place: its cells' steps, each its least, summed
+    o.cells[p]={cells:v.length,ms:v.reduce((a,c)=>a+c.st.reduce((x,y)=>x+y,0),0)/n,creatures:s('creatures'),spawn:s('spawn')/n,compile:s('compile')/n,bake:s('bake')/n};}}
   const pad=(s,n)=>String(s).padStart(n),f=(v,d)=>v.toFixed(d===undefined?1:d),name=i=>roots[i]===here?'here':'base',two=res.length>1;
   if(process.env.JSON)require('fs').writeFileSync(process.env.JSON,JSON.stringify(res.map((o,i)=>({who:name(i),boot:o.boot,build:o.build,cells:o.cells,bodies:o.bodies&&{n:o.bodies.n,hash:o.bodies.hash,pose:o.bodies.pose},frame:o.frame})))); // for test/perf.js
   console.log('the scripts at load (ms): '+res.map((o,i)=>name(i)+' '+f(o.boot,0)).join(', '));

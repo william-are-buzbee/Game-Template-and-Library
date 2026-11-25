@@ -11574,3 +11574,61 @@ hinge *"raised when swimming or walking, clamped shut when threatened and throug
   frighten when they strike and let you go, instead of chasing; (2) the valves breathing on a resting hingeshell (0.1 rad, every 5 s) — visible, or too
   much; (3) a wedge running to its crevice as you come; (4) the scuttles out on the wet sand at a low tide at night; (5) a hook dropping on you from above;
   (6) BEHAVIOUR §8.9 — the soft window on the player, now 54 real minutes for a hose.
+
+## v11.232.1 — the creatures bench made fair: both trees' pages open at once, taking turns, every step of a cell the least of eight rounds (25 Nov 2026)
+
+`test/bench_creatures.js` (`perf.js`'s `creatures`) read identical sources on both sides — `src/`, `vendor/` and `shell.html` copied and passed as
+`BASE` — ×0.81–1.28 at a place (25 Nov 2026, before this: the sea ×1.28, the platform ×1.20, the giant ×1.16, the atoll ×1.15, the forest ×0.91 in
+one run, and the table below), so every pull request from v11.230.1 to v11.233 had `perf.js` flag cells worse by more than 10% where the change
+could not reach, each dismissed by more runs. **No game code changed:** the game plays as v11.232.
+
+- **Why.** Less an order than noise the old way could not average out. This machine's speed swings: a fixed loop timed again and again in node read
+  40.8 ms at the median and 48 at the 90th percentile, runs of ten 39–56 ms, and each of its four CPUs drifts on its own; each page's V8 tiers its
+  code and collects on a clock of its own, and its incremental marking slows a run of cells by half wherever it lands. A place is 0.1–0.6 s of work:
+  one tree's whole set and then the other's met two different machines, and the best of two pages a side could not mend that.
+- **Both pages open at once, taking turns** (`round`, `openSide`; the page's pieces are `window.__bc`, each called from node on its own). With
+  `BASE` a round opens both trees' pages, a browser each, booted one after the other (the first to boot alternating by round: the page just settled
+  is the busier one), and runs each section turn about — the build kind by kind, the cells cell by cell (the 3×3 in the order it always was), the
+  frames `BLOCK` 20 at a time — the side going first alternating (base, here | here, base | …) and each round starting with the other.
+- **Every piece the least of its rounds**, not every round's total: a kind's build (first and again), a frame (the simulation is the same frame for
+  frame in every round, held to the bit), and **each step of a cell's generator** (`genChunk` drained as `loadChunkNow` drains it, ~250–700 steps a
+  cell, each timed apart). A cell is 10–150 ms and in a slow spell reads half as long again: with whole cells, four or five rounds left one cell in a
+  few without its fast reading, and a place read ×0.89–1.13. A step misses one only now and then, and costs little when it does. So a cell's time is
+  its work on a quiet machine; what a collection's pause adds falls on a different step each round and is mostly left out, as the best of several
+  runs always left it. A place's time a cell is its cells' steps, each its least, summed. **Eight rounds** (`N`; two pages a side before): resampled
+  from ten rounds, five kept every place within ±5% about half the time (the worst ×0.86, past `perf.js`'s 10%), eight read ×0.93 at the worst.
+- **The page cross-origin isolated** (test/benchpage.js `serve(root, iso)`, `open`'s `iso`: COOP and COEP on the page; three.js's module is already
+  fetched with CORS): its clock reads to 5 µs, not Chromium's 100. A body's rebuild is ~0.15 ms, so every "again" read 0.0–0.3 and their sum over 44
+  kinds read 4.6 ms against 7.1 now. Only this bench asks for it; test/gpu.js, test/fill.js and the rest are as they were.
+- **Tried and dropped:** a whole collection before each cell, off its clock (`gc()` under `--expose-gc`) — no steadier, and `spawn()` read ~40% more
+  after it (the code it flushed paid again); V8 on one thread (`--single-threaded`) or `--predictable` — noisier; every process pinned to one CPU
+  (`taskset`) — the forest 55 → 98 ms and noisier; both pages on one renderer (`--process-per-site`, one context; it cannot be cross-origin isolated)
+  — no steadier: what parts the sides is not the CPU they run on; a median, of a cell's times or of a round's ratio — worse than the least.
+- **The output is the same** (the tables, the bodies' and the simulation's lines, the JSON `perf.js` reads); its times read lower — a forest cell
+  ~42 ms where it read 55–65, an atoll's ~28 where 33–38 — the steps' quiet readings summed, so a cell's time from before this version is not to
+  be set beside one after it (a comparison is base against here in one run, as `perf.js` makes it). `perf.js`'s note on what a time is worth says
+  this bench's figures; test/README.md.
+- **Identical sources as `BASE`, here against there** (this cloud session, 25 Nov 2026; before: the bench as it was, two pages a side; after: as it is
+  now, eight rounds):
+
+  | | forest | atoll | platform | sea | giant | build, again | frame, mean |
+  |---|---|---|---|---|---|---|---|
+  | before, 25 Nov (the prompt's run) | ×0.91 | ×1.15 | ×1.20 | ×1.28 | ×1.16 | | |
+  | before, the cells alone | ×0.83 | ×1.22 | ×1.27 | ×1.04 | ×1.04 | | |
+  | before | ×0.99 | ×1.06 | ×1.02 | ×1.03 | ×0.93 | ×0.90 | ×0.97 |
+  | before | ×0.99 | ×0.81 | ×0.87 | ×0.81 | ×0.85 | ×1.00 | ×1.02 |
+  | before | ×0.97 | ×0.98 | ×0.86 | ×0.91 | ×0.98 | ×0.93 | ×1.02 |
+  | before | ×1.03 | ×0.97 | ×0.86 | ×0.87 | ×1.07 | ×0.94 | ×0.95 |
+  | after | ×0.98 | ×1.02 | ×1.00 | ×1.00 | ×0.99 | ×1.02 | ×1.00 |
+  | after | ×0.99 | ×0.98 | ×0.99 | ×1.06 | ×1.03 | ×0.99 | ×1.00 |
+  | after | ×1.00 | ×0.99 | ×0.96 | ×0.93 | ×0.97 | ×0.99 | ×1.01 |
+  | after, through `perf.js --only creatures` (main's sources: the same) | ×1.03 | ×1.03 | ×1.00 | ×1.06 | ×1.07 | ×0.99 | ×1.01 |
+
+  Within ±4% at the forest, the atoll and the platform, ×0.93–1.07 at the two lightest places (the sea's cells are 7.5 ms, the giant's 30), the
+  builds and the frame within ±2%; ×0.81–1.28 before. The bodies' and the simulation's fingerprints are the old bench's, run whole
+  (`999b63ae`, `f0fd763f`, `7e6a7073`): it builds and steps the same game.
+
+- **What it costs to run:** ~5½ minutes with `BASE` (eight rounds of ~38 s; the frame's turns and the steps' timing add
+  nothing measurable), against ~1¼ before. `N=4` halves it, at up to ±16% at the sea (resampled).
+- **Seen:** the runs above, every body the same to the bit and the simulation the same in each. Nothing in the game to look at.
+- **Unseen, ask in this order:** nothing; the person runs no bench.
