@@ -11655,3 +11655,17 @@ its surroundings."*
   there from three's own lights × `SN_ALB`: never over it (0.97–1.00 of it); at 480 m with nothing lit 0.76% of the noon shallows' (the daylight there
   0.87%; to v11.233 ~60%); at 120 m 64% against the ground's 60%; the own light and a light source each light it over ten times the dark's. test/stub.js:
   a light keeps its `distance`, as three's does.
+  test/snow.js runs ~1.24× as long (76 s here against 62): `ALONE`'s 38 s is 47 in build.js and build.py.
+- **What it cost** (`node test/perf.js`; the GPU's counts once, the timed benches again with nothing else running): the GPU's counts the same at
+  all seven places (draws, triangles, programs, bytes uploaded, nothing compiled at first sight) but 1–2 more uniforms a frame of ~1,000–1,600 (×1.00);
+  the creatures' frame at (330, 0) ×1.01 mean, ×0.97 p95, the simulation the same to the bit; the GPU's time by the proxy (test/fill.js, software
+  WebGL) at the forest ×0.99 and ×1.01 in two runs, the shore ×1.02 and ×0.95, the canopy ×1.01; the snow's own draw 2.63 ms against 2.65 at the
+  forest and 2.42 against 2.35 at the shore, its vertices 0.95 ms; the picture 0.07–0.20% of the pixels moved (the snow). Flagged in the first run
+  and not the second: the CPU's side of drawing at the forest ×1.10 then ×0.92, the shore ×1.18 then ×0.97 (the canopy ×0.90) — the wall clock's
+  swing. A frame adds a handful of multiplies and one loop of `Q.lights` on the CPU (`snowLight`), and per point a daylight curve and four lights'
+  falloff in the vertex shader.
+- **Unseen, ask in this order**: (1) the deep with the own light on — the snow only in its reach now, and none outside it; and with `own light` off
+  none at all (is the sense of space kept?); (2) a night dive in the shallows — the snow as dim as the stalks round it; (3) mid-depth by day, 100–150 m,
+  where the snow is fainter than before (it was the floor that made it stand out there): too thin now?; (4) the shallows by day, meant to look as
+  they did, a shade greener with the water's light; (5) a bacterial glow, a carcass's or the pall's lights lighting the snow near them; (6) the
+  person's own screen at the faintest values — a few levels of 255 read differently on a monitor than in a headless picture.
