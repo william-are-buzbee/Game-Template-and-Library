@@ -4,6 +4,13 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.237 (25 Nov 2026): the sea line** (atmosphere.js `waterDome`, `DOME_M`, SKY_FS `uSkyCut`; horizon.js `hzIn`, `HZ_IN`, `HZ_DIP`, `uHzIn`;
+test/horizon.js, test/horizon_page.js (smoke); DESIGN Visibility and the horizon tier; CHANGELOG). The person: *"Horizon flickering black line above
+water."* The water dome was cut at the tide while the drawn far sea sits ~0.3 m under it, and the far plane is only 5% past the dome straight ahead, so
+from a low eye a ray could pass over the sea's end to the bare dome: a one-pixel dark line across the middle, coming and going with the swell. The dome
+now draws only a pixel's step under the drawn sea; the horizon pass's sea disc reaches in from a low eye and its sky is not cut at the water. **Ask:**
+the horizon from the surface at sea, several headings and heights.
+
 **v11.236 (25 Nov 2026): the snow as bright as its surroundings** (atmosphere.js `ptsLit`, `snowLight`, `SN_ALB`, `SN_OP`; fx.js, combat.js the same
 patch; test/snow.js, test/stub.js; DESIGN The snow; CHANGELOG). The person: *"Marine snow is too visible in the dark … only as bright as its
 surroundings."* Its light had a floor (45–95% of noon with no light at all, then the eye's gain); now a point takes the world's light where it is —
@@ -28,14 +35,6 @@ on the giant reads sparse enough; whether the reed is next.
 out."* A jelly or a sailer's lines hold a small swimmer that touches them, haul it to the mouth and eat it, then digest; the player is stung, never
 held. The jelly follows the plankton's daily layer. A sailer that grounds on a shoal or the strand dies there, carrion for the scuttles. Rare in play:
 drifters are about one a cell. **Ask:** BEHAVIOUR §8.10 (what eats a live drifter); whether a catch is ever seen.
-
-**v11.232 (25 Nov 2026): the hingeshells** (creatures_ai.js `HINGE`, `DEN`, `HOOK`, `TIDEW`, `premoult`, `MOULT`; creatures_spec.js `VALVE`;
-creatures_defs.js `BEHAVE`, `DEFS.hook`; test/hingeshells.js; BEHAVIOUR §3f; DESIGN Creatures; PLANET, CLADES, LINEAGE status notes; CHANGELOG). The
-person on v11.231: *"go ahead with the hingeshells pass … being hunted seems OK."* The hingeshell hunters strike and do not chase: no sprint, a hunt
-given up when no strike comes in 8 s or two miss. The valves breathe at rest. The hingeshells that rest in cover keep a den and run to it. In a
-moult's last hour the valves stay down and the animal hides; the soft window is doubled to nature's lower end (5%), the player's too. The hook drops
-on what passes under it and climbs to a new post when nothing does. The scuttles walk out on the flats at low water. **Ask:** BEHAVIOUR §8.9 (the
-player's soft window, now 54 real minutes for a hose); whether the hingeshell hunters still frighten without chasing.
 
 ## Open
 

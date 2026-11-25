@@ -30,10 +30,10 @@ const HZ_TERRAIN_MAT=hzMat(HZ_VS_HEAD+'attribute vec4 aWood;varying vec3 vCol;va
 HZ_TERRAIN_MAT.defaultAttributeValues=Object.assign({},HZ_TERRAIN_MAT.defaultAttributeValues,{aWood:[0,0,1,0]}); // every member carries aWood; the default is for safety (scene.js TERRAIN_MAT)
 HZ_TERRAIN_MAT.uniforms.uHzMin={value:FAR*HZ_SEA0};HZ_TERRAIN_MAT.fragmentShader='uniform float uHzMin;\n'+HZ_TERRAIN_MAT.fragmentShader; // v11.86.1: the land mesh draws only past HZ_SEA0 of the far plane, where the sea disc starts and the main pass hands over — nearer, its Q.hz-metre triangles can stand over the camera where the fine ground is a hollow (the tuff cone's crater: from its floor the sky was the mesh's tan underside; the person, 23 Sep 2026), and nothing in the main pass covers the sky
 const HZ_SEA_U={value:new THREE.Vector4(HZ_LIGHT[3],HZ_LIGHT[2],1,0)}; // the disc's terms, live: the reflection's ceiling, the column's weight, the body's (tuned in the pane against the surface's far end, v11.65)
-const HZ_SEA_MAT=hzMat(HZ_VS_HEAD+'void main(){vec4 wp=modelMatrix*vec4(position,1.0);vec2 dd=wp.xz-uFogC.xz;wp.y-=dot(dd,dd)*'+(0.5/HZ_R).toExponential(6)+';vec4 mv=viewMatrix*wp;vFogDepth=length(mv.xyz);vFogPos=wp.xyz;gl_Position=projectionMatrix*mv;}',
+const HZ_SEA_MAT=hzMat(HZ_VS_HEAD+'uniform float uHzIn;void main(){vec3 q=position;float qr=length(q.xz);q.xz*=max(qr,uHzIn)/max(qr,1.0);vec4 wp=modelMatrix*vec4(q,1.0);vec2 dd=wp.xz-uFogC.xz;wp.y-=dot(dd,dd)*'+(0.5/HZ_R).toExponential(6)+';vec4 mv=viewMatrix*wp;vFogDepth=length(mv.xyz);vFogPos=wp.xyz;gl_Position=projectionMatrix*mv;}',
   HZ_FS_HEAD+THREE.ShaderChunk.fog_pars_fragment+'\nuniform vec4 uHzSea;void main(){vec3 dv=vFogPos-uFogC;float d=length(dv);vec3 rd=dv/max(d,1e-3);float cm=max(-rd.y,0.0);float R=pow(1.0-cm,3.0)*uHzSea.x;float a=0.22+R-0.22*R;vec3 Rw=reflect(rd,vec3(0.0,1.0,0.0));Rw.y=max(Rw.y,1e-3);Rw=normalize(Rw);float dl=mix(0.1,1.0,uSkA.w);'+
   'vec3 col=vec3(0.07,0.23,0.30)*dl*0.22*(1.0-R)*uHzSea.z+skyLite(Rw)*R+vec3(0.04,0.14,0.22)*dl*(1.0-a)*uHzSea.y+vec3('+MILKY.col.map(v=>v.toFixed(2)).join(',')+')*uHzSea.w*(1.0-a);col=fogAir(col,uFogC,rd,d,1.0,dot(dv.xz,dv.xz)*'+(0.5/HZ_R).toExponential(6)+');gl_FragColor=vec4(dithering(toneC(eyeC(col,uSkE.w),uSkD.w)),1.0);}'); // the surface's topside rule at its far end (atmosphere.js SURF_MAT: the Fresnel weight on the mean normal, the sky reflected at R, the body at uBody 0.22 of the rest) and, since the surface is a transparent mesh whose alpha a = uBody+R-uBody·R leaves the rest of the pixel to the water column beneath, the column as a dark blue at (1-a): without it the disc stood a shade lighter than the surface's far end from any height (v11.65). At grazing R → the ceiling: the sky a few degrees up, darker than the horizon's band — the sea line
-HZ_SEA_MAT.uniforms.uHzSea=HZ_SEA_U;
+HZ_SEA_MAT.uniforms.uHzSea=HZ_SEA_U;HZ_SEA_MAT.uniforms.uHzIn={value:FAR*HZ_SEA0}; // v11.237: where the disc starts this frame (hzIn); its rings nearer are drawn onto it
 // the extent: the world's square with its apron, and every island record's land or rim with a margin
 function hzExtent(){let x0=WX0-2000,x1=WX1+2000,z0=WZ0-2000,z1=WZ1+2000;for(const R of ISLANDS){const r=((R.land?R.land.r:R.rimR||0)+3000)*R.sc;x0=Math.min(x0,R.x-r);x1=Math.max(x1,R.x+r);z0=Math.min(z0,R.z-r);z1=Math.max(z1,R.z+r);}return [x0,x1,z0,z1];}
 // v11.102: the box grew with the model's records (111 × 98 km for seed 32, against the square's 56) and most of it is open sea, so the mesh is no
@@ -89,18 +89,28 @@ function* hzMember(m){const H=hzSetup(),{S,C,x0,z0,nx,nz,cx,cz,tops}=H,t0=perfor
 function* hzGen(cx0,cz0){const H=hzSetup(),order=H.tops.slice().sort((a,b)=>(Math.hypot(a.x-cx0,a.z-cz0)-a.to)-(Math.hypot(b.x-cx0,b.z-cz0)-b.to));
   for(const m of order)yield* hzMember(m);
   console.log('horizon: '+H.nx+'×'+H.nz+' at '+H.S+' m, '+H.n.cells+' coarse cells live, '+hzLand.children.length+' members, '+H.n.v+' vertices, '+H.n.t+' triangles, '+H.n.ms.toFixed(0)+' ms');}
-// the sea disc: rings from HZ_SEA0·FAR to HZ_FAR, spaced by a power so the near rings are fine, about the camera each frame (the drop is the shader's)
-function hzSeaBuild(){const K=18,NS=96,r0=FAR*HZ_SEA0,p=[],c=[],ix=[];for(let k=0;k<=K;k++){const r=r0*Math.pow(HZ_FAR/r0,k/K);for(let s=0;s<NS;s++){const a=s/NS*TAU;p.push(Math.cos(a)*r,0,Math.sin(a)*r);c.push(1,1,1);}}
-  for(let k=0;k<K;k++)for(let s=0;s<NS;s++){const a=k*NS+s,b=k*NS+(s+1)%NS,cc=a+NS,d=b+NS;ix.push(a,cc,b,b,cc,d);}
+// the sea disc: rings from HZ_SEA0·FAR to HZ_FAR, spaced by a power so the near rings are fine, about the camera each frame (the drop is the shader's).
+// v11.237: and HZ_IN rings more inside it, on the same spacing (to ~0.16 of the far plane), which the vertex shader draws onto the circle at uHzIn:
+// at HZ_SEA0·FAR from any eye over ~3 m above the tide, so the disc is v11.233's there, triangle for triangle (the inner ones of no area), and nearer
+// from a low eye (hzIn). Since v11.237 the water dome steps aside wherever the sea's face might not be in front of it (atmosphere.js DOME_M), and a
+// ray that passes over the surface mesh's waves to the far plane can reach the tide nearer than the disc's HZ_SEA0 from a low eye, where the pass
+// has only its clear colour. On the sea line the sky's cut a pixel's step down covers that at ordinary sizes (the scans at 720 and 900 rows found
+// none without the reach-in); this is the guarantee where it would not: a fine screen, a very low eye, shoaled water. A ray the main pass's sea does not cover meets the drawn far sea (never lower
+// than HZ_DIP under the tide past HZ_SEA0·FAR: the faded waves' mean and what the grid still draws of the 150 m swell's trough, shoaled) beyond the
+// far plane, so it reaches the tide past FAR·h/(h+HZ_DIP) for an eye h over it — where the disc now starts.
+const HZ_IN=5,HZ_DIP=0.9; // the rings inside HZ_SEA0·FAR; m, the most the drawn sea sits under the tide past HZ_SEA0·FAR (0.73 by test/horizon.js: WAVE_MEAN shoaled to the cap, 0.48, and what is left there of the 150 m swell's trough)
+function hzIn(h){return Math.min(FAR*HZ_SEA0,FAR*Math.max(h,0)/(Math.max(h,0)+HZ_DIP));} // m: the disc's inner radius for an eye h over the tide
+function hzSeaBuild(){const K=18,NS=96,r0=FAR*HZ_SEA0,p=[],c=[],ix=[];for(let k=-HZ_IN;k<=K;k++){const r=r0*Math.pow(HZ_FAR/r0,k/K);for(let s=0;s<NS;s++){const a=s/NS*TAU;p.push(Math.cos(a)*r,0,Math.sin(a)*r);c.push(1,1,1);}}
+  for(let k=0;k<K+HZ_IN;k++)for(let s=0;s<NS;s++){const a=k*NS+s,b=k*NS+(s+1)%NS,cc=a+NS,d=b+NS;ix.push(a,cc,b,b,cc,d);}
   const sgm=new THREE.BufferGeometry();sgm.setAttribute('position',new THREE.Float32BufferAttribute(p,3));sgm.setAttribute('color',new THREE.Float32BufferAttribute(c,3));sgm.setIndex(ix);hzSea=new THREE.Mesh(sgm,HZ_SEA_MAT);hzSea.frustumCulled=false;hzScene.add(hzSea);}
 function hzStep(){if(!HZ)return;const t0=performance.now();try{while(performance.now()-t0<HZ_MS){if(!hzG){const q=HZ.queue.shift();if(!q)return;q.queued=false;if(HZ.built.has(q))continue;hzG=hzMember(q);}if(hzG.next().done)hzG=null;}}catch(e){hzG=null;console.warn('the horizon tier could not build: '+e.message);}} // the queue's members one at a time, HZ_MS a frame (v11.113)
 // the frame's render (main.js): above the water the horizon pass first, then the world over it with the depth cleared; below, the world alone
 function renderFrame(){const above=wasAbove===true&&!!renderer.clearDepth;cloudPass(); // the cloud volume's own pass first (v11.188, atmosphere.js CLDP)
   if(above&&!hzTried){hzTried=true;try{hzSeaBuild();hzSetup();}catch(e){console.warn('the horizon tier could not build: '+e.message);}}
   if(above&&HZ){hzWatch(camera.position.x,camera.position.y,camera.position.z);hzStep();}
-  if(above&&hzSea){if(sky.parent!==hzScene)hzScene.add(sky);
+  if(above&&hzSea){if(sky.parent!==hzScene)hzScene.add(sky);skyU.uSkyStep.value=1; // v11.237: in this pass the sky is cut at the water a pixel's step down: the cut is one fragment for every sample of a pixel, and on the sea line it took the pixel whole, leaving the samples over the disc's curved horizon to the clear colour (the disc and the land draw over the sky where they are)
     hzCam.position.copy(camera.position);hzCam.quaternion.copy(camera.quaternion);if(hzCam.fov!==camera.fov||hzCam.aspect!==camera.aspect){hzCam.fov=camera.fov;hzCam.aspect=camera.aspect;hzCam.updateProjectionMatrix();}hzCam.updateMatrixWorld();
-    hzSea.position.set(camera.position.x,TIDE,camera.position.z);
+    hzSea.position.set(camera.position.x,TIDE,camera.position.z);HZ_SEA_MAT.uniforms.uHzIn.value=hzIn(camera.position.y-TIDE);
     const bg=scene.background;hzScene.background=bg;scene.background=null; // three clears to a scene's background colour whatever autoClear says (WebGLBackground forces it), so the main pass takes none while the horizon pass is under it
     renderer.autoClear=false;recGpu(1);renderer.clear();renderer.render(hzScene,hzCam);renderer.clearDepth();recGpu(0);renderer.render(scene,camera);recGpuEnd();renderer.autoClear=true;scene.background=bg;}
-  else{if(sky.parent!==scene)scene.add(sky);recGpu(0);renderer.render(scene,camera);recGpuEnd();}} // recGpu (v11.191, rec.js): the GPU's own time of each pass, where the browser can time it
+  else{if(sky.parent!==scene)scene.add(sky);skyU.uSkyStep.value=0;recGpu(0);renderer.render(scene,camera);recGpuEnd();}} // recGpu (v11.191, rec.js): the GPU's own time of each pass, where the browser can time it
