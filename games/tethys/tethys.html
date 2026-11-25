@@ -173,7 +173,7 @@ canvas{display:block;outline:none;touch-action:none}
 <div id="fade" class="layer"></div>
 <canvas id="spark" class="layer"></canvas>
 <div id="stats"></div>
-<script>window.TETHYS_BUILD={v:"v11.230",wh:"33d44b769b8fb91d"};</script>
+<script>window.TETHYS_BUILD={v:"v11.230.1",wh:"4790ecd9408ea0dd"};</script>
 <script>
 // loader.js — the page's loader, in tethys.html only, outside the game's bundle and before it: three.js and the world cache fetched side by side, then the
 // game. Since v11.215 (three.js-ready) three.js is loaded as a module — every release after r160 is only that — with import(); its exports are copied onto
@@ -10804,8 +10804,17 @@ const SPAWN=[
   {kind:'abyssal',n:0.1,env:{h:[-560,-380],nut:[0.25,1]}}, // the rim of the dark where the water is fed (PLANET: the rim, forays below). v11.66: it was h −800..−400 over the whole basin's flanks, where the sill's and the far floor's cells reach no combs, and the 120-day census had it collapsing 70 → 12 since v11.65 (the 40-day run --test makes does not see it); the ledger's reach is 5×5 cells, so its home band is the two cells over the combs' deep edge
   {kind:'plumb',n:12,env:{h:[-520,-30],flow:[0,0.45]}}, // v11.223: the walls in still water (DEFS station: the capacity is the cell's share of wall and lee, ecology.js ecoCap) — the foot to −520, the face up past −450 (its shell's floor); the ortho's opposite, which wants the current. Last: a new row goes at the end, so every row before it draws from a cell's rng as it did (the seeded tests' runs)
   {kind:'quill',grp:5,n:8,env:{h:[-54,-16],sub:[0.55,1],nut:[0.45,1]}}, // v11.227: the weed forest (its canopy station: the stalks' envelope); new rows go last. v11.227.1: in stands of five (shrimpfish hang together), and n 3 → 8 — the person found none round the island at 1–2 a cell (n 12 overshot: the quill halved in 60 days and took the hook, its rival for the same small fish, to 47%)
-  {kind:'hoop',n:0.12,env:{h:[-450,-80],nut:[0.5,1]}} // v11.227: the open water over the fed, cold flank — the upwelling, where the swarms are (the veil's deeper, the comb's on the plain)
+  {kind:'hoop',n:0.12,env:{h:[-450,-80],nut:[0.5,1]}}, // v11.227: the open water over the fed, cold flank — the upwelling, where the swarms are (the veil's deeper, the comb's on the plain)
+  // v11.230.1 (the person, 24 Nov 2026: "can this animal go here and survive? is a big open area lethal for them? Where can they make it? Then put them
+  // there to expand their range … why can't there be squids out in the shallows, or in the open ocean"). st: the row's own stations, for the kind's
+  // (stOf); mid: placed in the water column, not over the floor, and it keeps to its depth there (the creature's pel, setWander)
+  {kind:'plumb',n:0.4,st:['lee'],env:{h:[-600,-40],flow:[0,0.3]}}, // a hung body needs still water, not a wall (the wall is cover from what hunts it, and the wall's own row is eight times as dense): off the walls, over the slopes and the flank, thinly — the ledger feeds it where its prey is
+  {kind:'quill',n:1,env:{h:[-54,-16],sub:[0.55,1],nut:[0.45,1]}}, // and alone in the weed: a stand is how shrimpfish live, not the only way
+  {kind:'quill',n:0.4,st:['lee'],env:{h:[-40,-8],expo:[0,0.6]}}, // and alone over the shallows' still water past the weed — turf, rock, sand: its prey (the ribbons, the needles) is there too; out of the stalks it has no cover
+  {kind:'arrow',grp:5,n:1.2,mid:true,env:{h:[-300,-60],nut:[0.5,1],flow:[0.3,1]}} // a pack in the open water over the upwelling, with the sifters it hunts (Earth: most squid are oceanic)
 ];
+// a row's stations (v11.230.1): its own (st), else its kind's (DEFS.station)
+function stOf(e){return e.st!==undefined?e.st:DEFS[e.kind].station;}
 // ---------- the stations (v11.223; CLADES, The radiation: habitat at three scales) ----------
 // Habitat's second scale, where in its cell an animal stands (the first is SPAWN's envelope, the cells; the third the clock). A kind names its
 // stations (DEFS.station); each is a score 0..1 at a point from the ground round it, and the kind's is their product. The ledger weighs a cell's
@@ -11363,7 +11372,7 @@ function shedFlora(){const byKind={};SPAWN.forEach(e=>{if(e.land||!moults(e.kind
     const f={id:'shed_'+kind,shed:kind,geo:geo,mat:MAT,tints:[[1,1,1],[0.94,0.92,0.88],[0.9,0.9,0.86]],s:[MOULT.keep*0.9,MOULT.keep*1.05],sink:0.08,tilt:true,per:Math.max(1,Math.round(dens)),rare:Math.min(1,dens),envs:K.envs,top:d.size*0.6,maxSlope:1.0};
     FLORA.push(f);FLORA_BY_ID[f.id]=f;}}
 shedFlora();
-/** @typedef {{kind:any,def:any,g:any,anim:any,pos:any,vel:any,home:any,hp:any,state:any,t0:any,lastSpd:any,lastYaw:any,roll:any,rollV:any,sq:any,stunSide:any,target:any,biteT:any,wanderT:any,wander:any,alive:any,gone:any,stun:any,bored:any,cool:any,scanT:any,alarm:any,fleeT:any,lungeT:any,ramT:any,school:any,off:any,offT:any,chunk:any,lod:any,parts:any,lodMeshes:any,sub:any,wet:any,grounded:any,flopT:any,b:any,mass:any,mass0:any,bound:any,reach:any,shapesW:any,chainW:any,grab:any,holding:any,armT:any,touchF:any,hold:any,held:any,bleed:any,blood:any,wounds:any,paraT:any,stungT:any,armsLost:any,regrow:any,sickT:any,poison:any,poisT:any,commitT:any,coastT:any,missN:any,speedK:any,turnK:any,live:any,lost:any,cWith:any,d6:any,par:any,st:any,tellT:any,strikeT:any,recoverT:any,burstT:any,face:any,bit:any,accT:any,threat:any,ent:any,hunger:any,starveT:any,hunt:any,feedT:any,feedAt:any,dead:any,flesh:any,deadT:any,scav:any,scavT:any,glow:any,lumL:any,lumF:any,lumD:any,lumH:any,juv:any,k:any,cls:any,soft:any,softT:any,moultT:any,shM:any,cast:any,lodNear:any,lodFar:any,nearR:any,stepR:any,carried:any,cur:any,curT:any,turnedF:any,turnV:any,accV:any,shapeF:any,rigV:any,rigO:any,hitN:any,hitB:any,lieQ:any,chaseT:any,lungeP:any,strikeP:any,gapMin:any,pivotT:any,sw:any,swT:any,filtT:any,q:any,pig:any,hand:any,fall:any,brood:any,fxStruck:any,fxAcc:any,stam:any,spinV:any,shook:any,shakeYaw:any,shakeP:any,pointD:any,lenM:any,lastHurt:any,eaten:any,liveMass:any,fullMass:any,wallD:any,seed:any,vk:any,awake:any,sink:any,inspT:any,deter:any,dread:any,crypt:any,cov:any,covT:any,goal:any,waitT:any,inkT:any}} Creature — every key a creature carries, closed: spawn's literal below in the same order (CLAUDE.md, "one shape"); a key added to the literal goes here too, and the type checker flags one misspelt or set that is not here (v11.193, test/types.js) */
+/** @typedef {{kind:any,def:any,g:any,anim:any,pos:any,vel:any,home:any,hp:any,state:any,t0:any,lastSpd:any,lastYaw:any,roll:any,rollV:any,sq:any,stunSide:any,target:any,biteT:any,wanderT:any,wander:any,alive:any,gone:any,stun:any,bored:any,cool:any,scanT:any,alarm:any,fleeT:any,lungeT:any,ramT:any,school:any,off:any,offT:any,chunk:any,lod:any,parts:any,lodMeshes:any,sub:any,wet:any,grounded:any,flopT:any,b:any,mass:any,mass0:any,bound:any,reach:any,shapesW:any,chainW:any,grab:any,holding:any,armT:any,touchF:any,hold:any,held:any,bleed:any,blood:any,wounds:any,paraT:any,stungT:any,armsLost:any,regrow:any,sickT:any,poison:any,poisT:any,commitT:any,coastT:any,missN:any,speedK:any,turnK:any,live:any,lost:any,cWith:any,d6:any,par:any,st:any,tellT:any,strikeT:any,recoverT:any,burstT:any,face:any,bit:any,accT:any,threat:any,ent:any,hunger:any,starveT:any,hunt:any,feedT:any,feedAt:any,dead:any,flesh:any,deadT:any,scav:any,scavT:any,glow:any,lumL:any,lumF:any,lumD:any,lumH:any,juv:any,k:any,cls:any,soft:any,softT:any,moultT:any,shM:any,cast:any,lodNear:any,lodFar:any,nearR:any,stepR:any,carried:any,cur:any,curT:any,turnedF:any,turnV:any,accV:any,shapeF:any,rigV:any,rigO:any,hitN:any,hitB:any,lieQ:any,chaseT:any,lungeP:any,strikeP:any,gapMin:any,pivotT:any,sw:any,swT:any,filtT:any,q:any,pig:any,hand:any,fall:any,brood:any,fxStruck:any,fxAcc:any,stam:any,spinV:any,shook:any,shakeYaw:any,shakeP:any,pointD:any,lenM:any,lastHurt:any,eaten:any,liveMass:any,fullMass:any,wallD:any,seed:any,vk:any,awake:any,sink:any,inspT:any,deter:any,dread:any,crypt:any,cov:any,covT:any,goal:any,waitT:any,inkT:any,post:any,pel:any}} Creature — every key a creature carries, closed: spawn's literal below in the same order (CLAUDE.md, "one shape"); a key added to the literal goes here too, and the type checker flags one misspelt or set that is not here (v11.193, test/types.js) */
 function spawn(ch,kind,pos,rng,opt){
   const juv=!!(opt&&opt.juv),D0=juv?juvDef(kind):DEFS[kind],EK=ecoOf(kind),ent=opt&&opt.ent!==undefined?opt.ent:-1,vary=ent>=0&&kind!=='lab';
   // the individual (v11.66, above): the size band, the coat class of the place, the soft state; plain outside the ledger. v11.225: a kind with a
@@ -11384,7 +11393,7 @@ function spawn(ch,kind,pos,rng,opt){
     shM:null,cast:false,lodNear:0,lodFar:0,nearR:0,stepR:0, // set below, in this order
     carried:undefined,cur:undefined,curT:undefined,turnedF:undefined,turnV:undefined,accV:undefined,shapeF:undefined,rigV:undefined,rigO:undefined,hitN:undefined,hitB:undefined,lieQ:undefined,chaseT:undefined,lungeP:undefined,strikeP:undefined,gapMin:undefined,pivotT:undefined,
     sw:undefined,swT:undefined,filtT:undefined,q:undefined,pig:undefined,hand:undefined,fall:undefined,brood:undefined,fxStruck:undefined,fxAcc:undefined,stam:undefined,spinV:undefined,shook:undefined,shakeYaw:undefined,shakeP:undefined,pointD:undefined,
-    lenM:undefined,lastHurt:undefined,eaten:undefined,liveMass:undefined,fullMass:undefined,wallD:undefined,seed:seed,vk:vx?vx.key:undefined,awake:1,sink:1,inspT:0,deter:0,dread:null,crypt:crypt,cov:0,covT:-1,goal:null,waitT:0,inkT:0}); // wallD (v11.223): the way to the wall from a station (chunks.js stationPoint), a unit vector; seed, vk (v11.225): the individual's seed and its variant's key // the individual (v11.66): its size factor, its coat class, the soft state and its clocks // awake, sink, inspT, deter, dread (v11.228, BEHAVIOUR.md): how much it is about (awakeOf, at its last scan), its clearance's share (a buried rest), the look's clock and how far it has been stood up to (RISK), what it flees; crypt, cov, covT (v11.229): how well it matches its ground (SENSE), the weed's cover where it is and when that was read; goal, waitT, inkT (v11.230): where it makes for (a plumb foraging), how long it has waited (a plumb, a lurker) or a quill hides, how long until it inks again (an arrow)
+    lenM:undefined,lastHurt:undefined,eaten:undefined,liveMass:undefined,fullMass:undefined,wallD:undefined,seed:seed,vk:vx?vx.key:undefined,awake:1,sink:1,inspT:0,deter:0,dread:null,crypt:crypt,cov:0,covT:-1,goal:null,waitT:0,inkT:0,post:null,pel:false}); // post, pel (v11.230.1): a hanger's post, round which its station roams (a stand's one, shared); placed in the water column (a SPAWN row's mid), it keeps to its depth there // wallD (v11.223): the way to the wall from a station (chunks.js stationPoint), a unit vector; seed, vk (v11.225): the individual's seed and its variant's key // the individual (v11.66): its size factor, its coat class, the soft state and its clocks // awake, sink, inspT, deter, dread (v11.228, BEHAVIOUR.md): how much it is about (awakeOf, at its last scan), its clearance's share (a buried rest), the look's clock and how far it has been stood up to (RISK), what it flees; crypt, cov, covT (v11.229): how well it matches its ground (SENSE), the weed's cover where it is and when that was read; goal, waitT, inkT (v11.230): where it makes for (a plumb foraging), how long it has waited (a plumb, a lurker) or a quill hides, how long until it inks again (an arrow)
   // v11.149 (the creature performance pass): every creature one shape. The keys above from shM on were added to a creature as it lived — the current
   // it is carried by, its turn, its holds, the falls, the brood, the effects' clocks — each by whichever system reached it first, in that order: the
   // forest's 1,400 creatures had 27 shapes, and past four an engine gives up a property read's fast path, so every c.pos, c.def, c.vel in the frame was
@@ -11501,6 +11510,7 @@ function setWander(c){
   }
   if(d.floor)p.y=fh+srnd(0.5,2.5)+d.size*0.4;
   else if(d.deep)p.y=clamp(c.home.y+srnd(-60,60),Math.max(fh+8,OXY.core[1]),OXY.core[0]); // the pall: in the oxygen minimum's core, off the mud (v11.96, DEEP §2)
+  else if(c.pel)p.y=clamp(c.home.y+srnd(-20,20),fh+8,-6); // v11.230.1: a pelagic pack keeps to its depth in the column, not the floor's
   else if(fh<OXY.top)p.y=clamp(c.home.y+srnd(-80,80),-420,-30); // over the deep: above the minimum
   else p.y=clamp(fh+srnd(4,d.cruise||30),fh+3,-4-d.size*0.4);
   c.wander.copy(p);c.wanderT=srnd(6,14);
@@ -12036,7 +12046,7 @@ const HANG={rise:1.2,back:2,above:0.82,surf:3,tip:0.08,face:10,scan:0.25,
   pull:0.15,hold:0.45}; // 1/s and m/s: how hard it keeps its station against a push or the current (it is carried by the water, v11.223.1); a push moves it and it drifts back
 function plumbY(d,floor,c){let lo=floor+(d.clear||0)+d.size*HANG.gap;if(d.deepY!==undefined)lo=Math.max(lo,d.deepY);const top=-(d.size*HANG.above+HANG.surf);
   if(d.canopy)return Math.min(lo+lerp(d.canopy[0],d.canopy[1],c?(c.t0%1):0.5),top); // the quill (v11.227): among the stalks, at its own height in the canopy's band over the floor — no layer to follow in the lit weed
-  const lay=swarmDepth(floor,CK.dayK,CK.moonL,0.5),k=c?trimOf(c):1,y=k<1?lerp(swarmDepth(floor,1,0,0.5),lay,k):lay; // v11.230 (PLUMB.trim): an old giant keeps to its day depth
+  const day=swarmDepth(floor,1,0,0.5),night=top-PLUMB.surf*(c?(c.t0*3.71)%1:0.5),k=c?trimOf(c):1,y=lerp(day,night,(1-CK.dayK)*k); // v11.230 (PLUMB.trim): an old giant keeps to its day depth. v11.230.1: by night up past the layer to just under the surface (PLUMB.surf), each at its own depth there
   return Math.min(Math.max(y,lo),top);} // v11.229: the step's sky (CK), not the drawing's
 // The trim (v11.230; CLADES, The hanger: "pump bore ∝ L², gas ∝ L³ … past a few tens of metres it can no longer follow the swarm … a giant stays at one
 // depth"): the share of the layer's climb a plumb follows by its size factor (c.k, its age's: VARIETY), 1 to PLUMB.trim[0], none from PLUMB.trim[1] —
@@ -12045,7 +12055,7 @@ function trimOf(c){return 1-smooth(PLUMB.trim[0],PLUMB.trim[1],c.k||1);}
 // a stand's phase (v11.230): the quills of a stand (placed within 3 m of their station's point, chunks.js placeKind) sway and drift as one — their phase
 // the stand's square of STAND m, not each animal's own t0 (shrimpfish move together); a plumb's its own
 const STAND=6;
-function phaseOf(c){if(!c.def.canopy)return c.t0;return ((Math.imul(Math.floor(c.home.x/STAND),73856093)^Math.imul(Math.floor(c.home.z/STAND),19349663))>>>0)%997/9.97;}
+function phaseOf(c){if(!c.def.canopy)return c.t0;const o=c.post||c.home;return ((Math.imul(Math.floor(o.x/STAND),73856093)^Math.imul(Math.floor(o.z/STAND),19349663))>>>0)%997/9.97;} // v11.230.1: the stand's post (one, shared), so a stand that roams keeps its phase
 // the face point under it; snap: turn the body there at once (at its placing)
 function plumbPose(c,snap){const w=c.wallD,k=HANG.face*HANG.tip,S=HANG.sway,a=HANG.face*S[0]*(c.waitT>0&&c.def.canopy?0.2:1),p=phaseOf(c);c.wander.set(c.pos.x-(w?w.x*k:0)+a*Math.sin(TAU*t/S[1]+p),c.pos.y-HANG.face,c.pos.z-(w?w.z*k:k)+a*Math.cos(TAU*t/S[2]+p));c.face=c.wander; // leaning off the wall, swaying (v11.223.1)
   if(snap){_m.lookAt(c.wander,c.pos,UP);c.g.quaternion.setFromRotationMatrix(_m);c.g.position.copy(c.pos);}}
@@ -12056,24 +12066,54 @@ function plumbPose(c,snap){const w=c.wallD,k=HANG.face*HANG.tip,S=HANG.sway,a=HA
 // PLUMB.wait s of nothing passing under it, it leaves the wall to forage ('forage': a slow jet at PLUMB.jet m/s to points within PLUMB.range of its
 // station, at the layer's depth there, leaning into its way, dropping on what passes under it as at its post); it smells carrion down the current from
 // DEFS.scav m (findCarcass, the plume) and goes up the scent to it, over a fall on the floor or a carcass, to eat ('feed'; its arms reach down
-// PLUMB.reach past its clearance) — never under its shell's floor (deepY); fed (PLUMB.full) or at the dawn it goes home to its wall ('return'). The old
+// PLUMB.reach past its clearance) — never under its shell's floor (deepY); at the dawn it goes home to its wall ('return'). The old
 // giants (trimOf) hang at their day depth and forage there. A quill keeps to its stand: they sway and drift as one (phaseOf), and when something big
 // or the player comes near (QUILL.alarm, noticed) the stand slips down into the stalks, under its band (its arms' reach and gap over the floor), and holds
-// still for QUILL.hide s, hunting nothing
+// still for QUILL.hide s, hunting nothing.
+// v11.230.1 (the person, 24 Nov 2026: "seeing them go up is less clear than I thought, they would be easier to tell if they roamed at like -10 to -20
+// feet below the surface … without movement laterally the verticality change doesn't read right"): every plumb leaves its station at dusk, hungry or
+// not (after its own wait, plumbWait), and roams the night with its shell's top 3–6 m under the surface (plumbY, PLUMB.surf), climbing by its gas
+// as it jets across (hangGo) — a slant out from the wall; hungry, it drops on what passes under and smells carrion as before; after a strike or a
+// meal it roams on, and it goes home at the dawn. By day the hangers roam too (ROAM)
 const PLUMB={wait:15, // s it waits at its post, hungry at night, before it forages
   range:90, // m from its station it forages within
   leg:[18,36], // s between the points it makes for
   jet:0.8, // m/s: the slow jet (a nautilus cruises at 0.2–0.5; the plumb is four times its length)
-  full:0.15, // the hunger at which it goes home fed
+  surf:3, // v11.230.1: m of the band its shell's top keeps to by night, from HANG.surf under the surface down (3–6 m: the person, 24 Nov 2026, "-10 to -20 feet")
   trim:[1.2,1.45], // its size factor (c.k) from which it follows less of the layer, and at which none (trimOf)
   sniff:2, // s between its scent's reads
   reach:3}; // m its arms reach down past its clearance over a carcass on the floor
 const QUILL={alarm:8,big:12,hide:20,stand:4}; // m it notices the player within, m a hunter of 4 m or more; s it stays down in the stalks after; m within which its standmates take fright with it
+// The day's roam (v11.230.1; the person, 24 Nov 2026, on v11.230: the plumbs "would benefit from some roaming or even just a small radius with a small
+// wander chance"; the quills "should roam like any other animal in the game … This goes for the plumbs as well"). By day, sitting, a hanger moves its
+// station now and then — a chance a scan, every s on average — step m off, never past leash m from its post (where it was placed: a wall's foot, a
+// stand's point), in still water (STATION.lee; a quill of the weed among the stalks), jetting there at jet m/s and leaning into its way. A stand goes
+// together: one moves, its mates on the same post come with it, each keeping its place in the stand. By night the plumb roams farther (PLUMB)
+const ROAM={hang:{every:90,step:[10,30],leash:50,jet:0.35},stand:{every:25,step:[5,15],leash:40,jet:0.5}};
+function roamOf(d){return d.canopy?ROAM.stand:ROAM.hang;}
+function hangFloor(d){return -(d.size*HANG.above+HANG.surf)-(d.clear||0)-d.size*HANG.gap;} // the shallowest floor a hanger can hang over at its highest: its arms' reach and gap under a shell at the surface's limit (v11.230.1: over less the floor pushed a night's plumb out of the water)
+// whether the floor between two points stays under a hanger at y (the higher end of its way) by its arms' reach and gap, at five points on the line
+function hangPath(d,x0,z0,x1,z1,y){const m=y-(d.clear||0)-d.size*HANG.gap;for(let k=1;k<=5;k++){const u=k/5;if(groundAt(x0+(x1-x0)*u,z0+(z1-z0)*u)>m)return false;}return true;}
+function plumbWait(c){return PLUMB.wait*(0.5+(c.t0*7.13)%1);} // its own wait at dusk, so a wall's plumbs leave one by one
+// a new station near its post for the day's roam, into c.goal: false when none of four tries will do
+function plumbRoam(c){const d=c.def,R=roamOf(d),o=c.post||c.home,g=c.goal||(c.goal=V3()),wo=!!d.canopy&&weedAt(o.x,o.z)>0.2;
+  for(let k=0;k<4;k++){const a=SIMR()*TAU,r=srnd(R.step[0],R.step[1]),x=c.home.x+Math.cos(a)*r,z=c.home.z+Math.sin(a)*r,ex=x-o.x,ez=z-o.z;if(ex*ex+ez*ez>R.leash*R.leash)continue;
+    const ch=chunkAt(x,z);if(!ch)continue;const fl=ch.h(x,z);if(fl>hangFloor(d))continue;
+    if(wo){if(weedAt(x,z)<0.2)continue;}else if(ch.f(x,z)[FI.flow]>STATION.lee.hi)continue; // a quill of the weed keeps to the stalks; else still water (a hung body is a mast in a current)
+    const y=plumbY(d,fl,c);if(!hangPath(d,c.home.x,c.home.z,x,z,Math.max(y,c.home.y)))continue; // no shoal on the way
+    g.set(x,y,z);return true;}
+  return false;}
+// a stand's mates (its post's) come along, each keeping its place
+function standFollow(c){if(!c.chunk||!c.post)return;const g=c.goal;for(const o of c.chunk.creatures){if(o===c||o.post!==c.post||!o.alive||o.state!=='sit'||o.waitT>0)continue;const og=o.goal||(o.goal=V3());og.set(g.x+o.home.x-c.home.x,0,g.z+o.home.z-c.home.z);og.y=plumbY(o.def,groundAt(og.x,og.z),o);o.state='roam';}}
+// the quill hides: down into the stalks for QUILL.hide s, and its standmates within QUILL.stand with it — any roaming stop where they are
+function quillHide(c){c.waitT=QUILL.hide;if(c.state==='roam'){c.home.set(c.pos.x,c.home.y,c.pos.z);c.state='sit';}if(!c.chunk)return;for(const o of c.chunk.creatures)if(o!==c&&o.kind===c.kind&&o.alive&&o.pos.distanceTo(c.pos)<QUILL.stand){o.waitT=QUILL.hide;if(o.state==='roam'){o.home.set(o.pos.x,o.home.y,o.pos.z);o.state='sit';}}}
+// a hanger's way through the water: across at up to sp m/s (slowed by its wounds, against the current), up and down by its gas at HANG.rise over its size factor
+function hangGo(c,g,sp,dt){sp*=slowOf(c);T1.set(g.x-c.pos.x,0,g.z-c.pos.z);const h=T1.length(),rr=HANG.rise/Math.max(1,c.k||1),vy=clamp((g.y-c.pos.y)*0.5,-rr,rr);if(h>0.01)T1.multiplyScalar(Math.min(sp,h*0.4)/h);curComp(c,T1,sp);T1.y=vy;c.vel.lerp(T1,1-Math.exp(-0.8*dt));c.vel.y=vy;}
 function plumbFeedR(c,f){return Math.max(reachOf(c,f)*0.8,(c.def.clear||0)+f.def.size*0.5+PLUMB.reach);}
 // carrion it smells (findCarcass: the current's plume) and can reach: never under its shell's floor
 function plumbCarrion(c){const d=c.def,f=findCarcass(c,d.scav);if(!f)return null;if(d.deepY!==undefined&&f.pos.y<d.deepY-2)return null;return f;}
 // a point to forage toward: round its station, out to PLUMB.range, at the layer's depth over its floor there
-function plumbGoal(c){const d=c.def,g=c.goal||(c.goal=V3());for(let k=0;k<6;k++){const a=SIMR()*TAU,r=srnd(PLUMB.range*0.25,PLUMB.range),x=c.home.x+Math.cos(a)*r,z=c.home.z+Math.sin(a)*r,fl=groundAt(x,z);if(fl>-12)continue;g.set(x,plumbY(d,fl,c),z);c.wanderT=Math.max(srnd(PLUMB.leg[0],PLUMB.leg[1]),r/PLUMB.jet+5);return;} // long enough to get there: a leg, not a random walk
+function plumbGoal(c){const d=c.def,g=c.goal||(c.goal=V3()),o=c.post||c.home;for(let k=0;k<6;k++){const a=SIMR()*TAU,r=srnd(PLUMB.range*0.25,PLUMB.range),x=o.x+Math.cos(a)*r,z=o.z+Math.sin(a)*r,fl=groundAt(x,z);if(fl>hangFloor(d))continue;const y=plumbY(d,fl,c);if(!hangPath(d,c.pos.x,c.pos.z,x,z,Math.max(y,c.pos.y)))continue;g.set(x,y,z);c.wanderT=Math.max(srnd(PLUMB.leg[0],PLUMB.leg[1]),r/PLUMB.jet+5);return;} // long enough to get there: a leg, not a random walk
   g.copy(c.home);c.wanderT=PLUMB.leg[0];}
 function plumbLean(c){c.wander.set(c.pos.x+c.vel.x*3,c.pos.y-HANG.face,c.pos.z+c.vel.z*3);c.face=c.wander;} // foraging: its face point under it, ahead of its way — it leans into the jet
 // the quill's alarm: the player or a big hunter it notices close
@@ -12084,28 +12124,36 @@ function updatePlumb(c,dt){
   if(c.state==='sit'){c.scanT-=dt;c.cool-=dt;
     if(c.scanT<=0){c.scanT=HANG.scan;c.home.y=plumbY(d,groundAt(c.home.x,c.home.z),c); // the layer moves with the sky: the station's depth read four times a second
       c.awake=awakeOf(d);const thr=huntAt(c);
-      if(d.canopy){if(c.chunk&&quillAlarm(c)){c.waitT=QUILL.hide;for(const o of c.chunk.creatures)if(o!==c&&o.kind===c.kind&&o.alive&&o.pos.distanceTo(c.pos)<QUILL.stand)o.waitT=QUILL.hide;}else c.waitT=Math.max(0,c.waitT-HANG.scan);} // v11.230: the stand slips into the stalks — all of it, when one takes fright (QUILL.stand)
+      if(d.canopy){if(c.chunk&&quillAlarm(c))quillHide(c);else c.waitT=Math.max(0,c.waitT-HANG.scan);} // v11.230: the stand slips into the stalks — all of it, when one takes fright (QUILL.stand)
       if(c.cool<=0&&c.hunger>thr&&!(d.canopy&&c.waitT>0)){const tg=findPrey(c,d.radius*lerp(REST.see,1,c.awake),thr);if(tg){c.state='lunge';c.target=tg;c.lungeT=2;c.bit=false;POP.chases++;}} // v11.228: readier at night, when its layer has come up to it
-      if(c.state==='sit'&&!d.canopy&&d.scav){if(c.cool<=0&&c.hunger>thr&&c.awake>REST.off){c.waitT+=HANG.scan;if(c.waitT>PLUMB.wait){c.state='forage';c.waitT=0;c.wanderT=0;c.scavT=0;}}else c.waitT=0;}} // v11.230: nothing under it for a while, hungry, at night: it forages
+      if(c.state==='sit'&&!d.canopy&&d.scav){if(c.cool<=0&&c.awake>REST.off){c.waitT+=HANG.scan;if(c.waitT>plumbWait(c)){c.state='forage';c.waitT=0;c.wanderT=0;c.scavT=0;}}else c.waitT=0;} // v11.230: nothing under it for a while, hungry, at night: it forages. v11.230.1: every night, hungry or not — it roams the dark just under the surface
+      if(c.state==='sit'&&CK.dayK>0.5&&!(d.canopy&&c.waitT>0)&&SIMR()<HANG.scan/roamOf(d).every&&plumbRoam(c)){c.state='roam';if(d.canopy)standFollow(c);}} // v11.230.1: the day's roam (ROAM)
     if(c.state==='sit'){const D=HANG.drift,B=HANG.bob,p=phaseOf(c),hid=d.canopy&&c.waitT>0,sk=Math.min(1,d.size/11)*(hid?0.2:1),hy=hid?groundAt(c.home.x,c.home.z)+(d.clear||0)+d.size*HANG.gap:c.home.y,tx=c.home.x+sk*D[0]*Math.sin(TAU*t/D[1]+p)-c.pos.x,tz=c.home.z+sk*D[0]*Math.cos(TAU*t/D[2]+p*1.7)-c.pos.z,ty=hy+sk*B[0]*Math.sin(TAU*t/B[1]+p*2.3)-c.pos.y,rr=HANG.rise/Math.max(1,c.k||1); // sk (v11.227): the drift and the bob in proportion to a body smaller than the plumb's 11; v11.230: a stand's phase (phaseOf), down and still when it hides, the climb slower for a bigger body (the trim)
       let vx=tx*HANG.pull*4,vz=tz*HANG.pull*4;const hv=Math.hypot(vx,vz);if(hv>HANG.hold){vx*=HANG.hold/hv;vz*=HANG.hold/hv;}
       c.vel.set(vx,clamp(ty*0.5,-rr,rr),vz);plumbPose(c,false);}} // v11.223.1: held by its gas and the water, not fixed — carried by the current, pushed by bodies, drifting back
-  if(c.state==='forage'){c.scanT-=dt;c.wanderT-=dt;c.cool-=dt;
+  if(c.state==='roam'){const g=c.goal;c.scanT-=dt;c.cool-=dt;
     if(c.scanT<=0){c.scanT=HANG.scan;c.awake=awakeOf(d);const thr=huntAt(c);
-      if(c.hunger<PLUMB.full||c.awake<REST.on){c.state='return';c.feedAt=null;return;} // fed, or the dawn: home to its wall
-      if(c.cool<=0){const tg=findPrey(c,d.radius,thr);if(tg){c.state='lunge';c.target=tg;c.lungeT=2;c.bit=false;POP.chases++;return;}}
-      c.scavT-=HANG.scan;if(c.scavT<=0){c.scavT=PLUMB.sniff;const f=plumbCarrion(c);if(f){c.feedAt=f;const g=c.goal||(c.goal=V3());g.copy(f.pos);g.y=Math.max(f.pos.y+(d.clear||0)+PLUMB.reach*0.5,d.deepY!==undefined?d.deepY:-1e9);}}
+      if(d.canopy&&c.chunk&&quillAlarm(c)){quillHide(c);return;} // it stops where it is and drops into the stalks
+      if(c.cool<=0&&c.hunger>thr){const tg=findPrey(c,d.radius*lerp(REST.see,1,c.awake),thr);if(tg){c.state='lunge';c.target=tg;c.lungeT=2;c.bit=false;POP.chases++;return;}} // what passes under it on the way
+      g.y=plumbY(d,groundAt(g.x,g.z),c);}
+    const ex=g.x-c.pos.x,ez=g.z-c.pos.z;if(ex*ex+ez*ez<2.25){c.home.set(g.x,c.home.y,g.z);c.state='sit';c.scanT=0;return;} // there: its station now
+    hangGo(c,g,roamOf(d).jet,dt);plumbLean(c);return;}
+  if(c.state==='forage'){c.scanT-=dt;c.wanderT-=dt;c.cool-=dt;
+    if(c.scanT<=0){c.scanT=HANG.scan;c.awake=awakeOf(d);const thr=huntAt(c),hungry=c.hunger>thr;
+      if(c.awake<REST.off){c.state='return';c.feedAt=null;return;} // the dawn: home to its station (v11.230.1: fed, it roams on — v11.230 went home; and REST.off, as it left: the plumb's day is 0.4, over REST.on, so a hungry one that found nothing foraged on through the day)
+      if(c.cool<=0&&hungry){const tg=findPrey(c,d.radius,thr);if(tg){c.state='lunge';c.target=tg;c.lungeT=2;c.bit=false;POP.chases++;return;}}
+      if(!hungry)c.feedAt=null;else{c.scavT-=HANG.scan;if(c.scavT<=0){c.scavT=PLUMB.sniff;const f=plumbCarrion(c);if(f){c.feedAt=f;const g=c.goal||(c.goal=V3());g.copy(f.pos);g.y=Math.max(f.pos.y+(d.clear||0)+PLUMB.reach*0.5,d.deepY!==undefined?d.deepY:-1e9);}}}
       if(!c.feedAt&&c.goal)c.goal.y=plumbY(d,groundAt(c.goal.x,c.goal.z),c);}
     const f=c.feedAt;if(f&&(f.gone||f.flesh<=0)){c.feedAt=null;c.wanderT=0;}
     if(c.feedAt){if(c.pos.distanceTo(f.pos)<plumbFeedR(c,f)){c.state='feed';c.feedT=40+bioMass(d)*0.02;return;}}
     else if(!c.goal||c.wanderT<=0||c.pos.distanceTo(c.goal)<4)plumbGoal(c);
-    seek(c,c.goal,PLUMB.jet,dt,0.8);plumbLean(c);return;}
+    hangGo(c,c.goal,PLUMB.jet,dt);plumbLean(c);return;} // v11.230.1: across by its jet, up and down by its gas — so the dusk's climb is a slant out from the wall, not a lift
   if(c.state==='lunge'){const tg=c.target,tp=tg===player?player.pos:tg?tg.pos:c.home,dist=c.pos.distanceTo(tp);c.lungeT-=dt;c.biteT-=dt;c.face=tp;c.grab=c.b.rigs&&tg&&dist<armReach(c,tg,1.6)?tg:null;
     if(c.hold)c.vel.multiplyScalar(1-1.5*dt); // holding: the pair drifts
     else{seek(c,tp,d.lunge,dt,4);if(tg&&c.biteT<=0&&landsOn(c,tg)){c.biteT=1;c.bit=true;landBite(c,tg);if(!c.hold&&tg!==player&&!tg.alive)c.state='feed';}}
     if(c.state==='lunge'&&((c.lungeT<=0&&!c.hold)||!tg||(!c.hold&&tp.y>c.pos.y+1)||(tg!==player&&!tg.alive)||(tg===player&&playerGone()))){if(!c.hold&&c.lungeT<=0&&tg&&!c.bit)missed(c,tg);c.state='return';c.cool=4;}}
   else if(c.state==='feed'){const f=c.feedAt;c.feedT-=dt;if(!f||f.gone||f.flesh<=0||c.feedT<=0||c.hunger<=0){c.state='return';c.feedAt=null;return;}const dist=c.pos.distanceTo(f.pos);c.face=f.pos;if(dist>plumbFeedR(c,f))seek(c,f.pos,2,dt,2);else{c.vel.multiplyScalar(1-3*dt);eatAt(c,f,dt);}} // v11.230: over a carcass on the floor its arms reach down to it (plumbFeedR); full, it goes
-  else if(c.state!=='sit'){c.grab=null;if(!c.hold)c.target=null;c.scanT-=dt;if(c.scanT<=0){c.scanT=HANG.scan;c.home.y=plumbY(d,groundAt(c.home.x,c.home.z),c);}plumbPose(c,false);seek(c,c.home,HANG.back,dt,1.5);if(c.pos.distanceTo(c.home)<1){c.state='sit';c.scanT=0;c.waitT=0;}} // back to its station shell-first, by its buoyancy (v11.230: the station's depth kept up on the way)
+  else if(c.state!=='sit'){c.grab=null;if(!c.hold)c.target=null;c.scanT-=dt;if(c.scanT<=0){c.scanT=HANG.scan;c.home.y=plumbY(d,groundAt(c.home.x,c.home.z),c);c.awake=awakeOf(d);if(!d.canopy&&d.scav&&!c.hold&&c.awake>REST.off){c.state='forage';c.wanderT=0;c.scavT=0;return;}}plumbPose(c,false);seek(c,c.home,HANG.back,dt,1.5);if(c.pos.distanceTo(c.home)<1){c.state='sit';c.scanT=0;c.waitT=0;}} // back to its station shell-first, by its buoyancy (v11.230: the station's depth kept up on the way)
 }
 // The swarm's day (v11.84, PLANKTON.md §5, §10): the largest daily movement of animals on the planet, ours included. swarmDepth is the
 // height the cloud wants — the night layer SW_NIGHT under the surface, the day layer SW_DAY (or SW_FLOOR over the floor where the floor comes
@@ -12765,7 +12813,7 @@ function kindPoint(ch,rng,e,off){for(let tr=0;tr<(off?8:1);tr++){const p=chunkPo
 // far apart), one drawn by its score squared. Writes the point (on the ground) into p and the wall's way (toward the higher ground) into dir; false
 // when the cell has none
 const STATION_RUN=CELL/6,ST_DIR=[[1,0],[-1,0],[0,1],[0,-1],[0.7071,0.7071],[0.7071,-0.7071],[-0.7071,0.7071],[-0.7071,-0.7071]],ST_W=new Float32Array(64),ST_X=new Float32Array(64),ST_Z=new Float32Array(64),ST_D=new Int8Array(64);
-function stationPoint(ch,e,D,rng,p,dir){const st=D.station;let tot=0;
+function stationPoint(ch,e,D,rng,p,dir,st){let tot=0; // st: the row's stations (stOf, v11.230.1)
   for(let n=0;n<64;n++){const x=ch.x0+((n&7)+0.2+0.6*rng())/8*CELL,z=ch.z0+((n>>3)+0.2+0.6*rng())/8*CELL,h=ch.h(x,z);let rise=0,k=0;
     for(let q=0;q<8;q++){const r=ch.h(x+ST_DIR[q][0]*STATION_RUN,z+ST_DIR[q][1]*STATION_RUN)-h;if(r>rise){rise=r;k=q;}}
     const f=ch.f(x,z);let w=envW(e.env,h,ch.slope(x,z),f);if(w>0)w*=stationW(st,h,rise,STATION_RUN,f,D.deepY);w*=w;ST_W[n]=w;ST_X[n]=x;ST_Z[n]=z;ST_D[n]=k;tot+=w;}
@@ -12779,7 +12827,7 @@ function unseenAt(p){if(mode!=='play')return true;const dx=p.x-player.pos.x,dz=p
 // pall in the dark, a floor kind on the floor, the big swimmers in open water. Yields after every member (a build is 1–5 ms);
 // returns how many it placed
 function* placeKind(ch,e,count,rng,opt){
-  const kind=e.kind,D=DEFS[kind],ent=opt.ent!==undefined?opt.ent:-1,o={ent:ent,juv:!!opt.juv};let placed=0;
+  const kind=e.kind,D=DEFS[kind],ent=opt.ent!==undefined?opt.ent:-1,o={ent:ent,juv:!!opt.juv},st=stOf(e);let placed=0;
   while(count>0){const g=e.grp?Math.min(e.grp,count):1;count-=g;
     const p=opt.at?opt.at.clone():kindPoint(ch,rng,e,opt.off);if(!p)break;if(opt.at)p.y=ch.h(p.x,p.z); // at: a hatch, at the clutch
     if(e.land){p.y+=0.5;spawn(ch,kind,p,rng,o);placed++;yield;continue;}
@@ -12789,10 +12837,10 @@ function* placeKind(ch,e,count,rng,opt){
       if(s){const k=Math.min(left,SCHOOL.max-schoolLive(s));for(let i=0;i<k;i++){const q=s.pos.clone().add(V3((rng()-0.5)*4,(rng()-0.5)*2,(rng()-0.5)*4));q.y=clamp(q.y,groundAt(q.x,q.z)+1,-4);const m=spawn(ch,kind,q,rng,schoolOpt(o,rng));m.school=s;s.members.push(m);placed++;yield;}left-=k;}
       if(left>0){yield* makeSchool(ch,kind,p,left,rng,o);placed+=left;}}
     else if(D.role==='swarm'){p.y=openY(ch,p,rng,10,40);const c=spawn(ch,kind,p,rng,o);c.pig=swarmPig(p.x,p.y,p.z);c.q=rng();c.home.copy(p);c.flesh=bioMass(c.def);placed++;yield;} // v11.84: a swarm in the open water over its place, its pigment kind read off the crop there; v11.85: its biomass, which the filter feeders eat through (creatures_ai.js filterIntake)
-    else if(D.station){const dir=V3(0,0,0);if(!stationPoint(ch,e,D,rng,p,dir)||(opt.off&&!unseenAt(p)))break; // a kind with stations (v11.223): at the best of the cell's, or not at all — the ledger holds what stood
-      const p0=p.clone();for(let i=0;i<g;i++){const q=i===0?p0:p0.clone().add(V3((rng()-0.5)*6,0,(rng()-0.5)*6)),fl=i===0?p0.y:ch.h(q.x,q.z); // v11.227.1: a group (e.grp) stands round the station's point, each at its own floor — the quills' stand, as shrimpfish hang together
-        q.y=fl+(D.clear!==undefined?D.clear:D.size*0.35);const c=spawn(ch,kind,q,rng,o);c.wallD=dir;c.state='sit';if(D.upright){c.pos.y=c.home.y=plumbY(c.def,fl,c);plumbPose(c,true);}else c.home.copy(c.pos);placed++;if(i<g-1)yield;}}
-    else if(e.grp){const sp=kind==='grazer'?16:kind==='arrow'?8:5;for(let i=0;i<g;i++){const q=p.clone().add(V3((rng()-0.5)*sp,0,(rng()-0.5)*sp)),h=ch.h(q.x,q.z);q.y=D.floor?h+1.5+rng()*1.5:clamp(h+1+rng()*4,h+1,-5);spawn(ch,kind,q,rng,o);placed++;yield;}}
+    else if(st){const dir=V3(0,0,0);if(!stationPoint(ch,e,D,rng,p,dir,st)||(opt.off&&!unseenAt(p)))break; // a kind with stations (v11.223): at the best of the cell's, or not at all — the ledger holds what stood
+      const p0=p.clone(),post=p0.clone(),wall=st.indexOf('wall')>=0;for(let i=0;i<g;i++){const q=i===0?p0:p0.clone().add(V3((rng()-0.5)*6,0,(rng()-0.5)*6)),fl=i===0?p0.y:ch.h(q.x,q.z); // v11.227.1: a group (e.grp) stands round the station's point, each at its own floor — the quills' stand, as shrimpfish hang together
+        q.y=fl+(D.clear!==undefined?D.clear:D.size*0.35);const c=spawn(ch,kind,q,rng,o);c.wallD=wall?dir:undefined;c.post=post;c.state='sit';if(D.upright){c.pos.y=c.home.y=plumbY(c.def,fl,c);plumbPose(c,true);}else c.home.copy(c.pos);placed++;if(i<g-1)yield;}}
+    else if(e.grp){const sp=kind==='grazer'?16:kind==='arrow'?8:5;for(let i=0;i<g;i++){const q=p.clone().add(V3((rng()-0.5)*sp,0,(rng()-0.5)*sp)),h=ch.h(q.x,q.z);if(e.mid){q.y=h;q.y=openY(ch,q,rng,10,50);}else q.y=D.floor?h+1.5+rng()*1.5:clamp(h+1+rng()*4,h+1,-5);const c=spawn(ch,kind,q,rng,o);if(e.mid)c.pel=true;placed++;yield;}} // mid (v11.230.1): a pack in the water column, which keeps to its depth (setWander)
     else if(D.role==='trap'){p.y+=(D.clear!==undefined?D.clear:D.size*0.35)+0.05;if(solidPush(p,1.5,null,ch))continue;const c=spawn(ch,kind,p,rng,o);c.state='sit';c.g.rotation.y=rng()*TAU;placed++;} // the trap, the stone: lying on its floor, any way round (by role since v11.66)
     else if(D.role==='ambush'&&D.hang){let ok=false;for(let tr=0;tr<6&&!ok;tr++){const q=chunkPoint(ch,rng,e.env);if(!q)break;p.copy(q);p.y=clamp(p.y+5+rng()*9,p.y+4,-6);ok=!solidPush(p,2.5,null,ch);}if(!ok)continue;const c=spawn(ch,kind,p,rng,o);c.state='sit';c.g.rotation.y=rng()*TAU;placed++;} // the hook: hung up in the structure
     else if(D.role==='ambush'){let ok=false;for(let tr=0;tr<6&&!ok;tr++){const q=chunkPoint(ch,rng,e.env);if(!q)break;p.copy(q);p.y+=(D.clear!==undefined?D.clear:D.size*0.35)+0.1;ok=!solidPush(p,2,null,ch);}if(!ok)continue;const c=spawn(ch,kind,p,rng,o);c.state='sit';c.g.rotation.y=rng()*TAU;placed++;} // the lurker among rock, the hood under the sand (v11.66: by role, at its own clearance)
@@ -12961,7 +13009,7 @@ function ecoCap(c,ch){
   const hs=new Float32Array(36),sl=new Float32Array(36),fs=[];
   for(let b=0;b<6;b++)for(let a=0;a<6;a++){const n=b*6+a,x=x0+(a+0.5)/6*CELL,z=z0+(b+0.5)/6*CELL;
     if(ch){hs[n]=ch.h(x,z);sl[n]=ch.slope(x,z);fs.push(ch.f(x,z));}else{const s=sample(x,z);hs[n]=s.h;sl[n]=0;fs.push(s.f);}} /* s.f is sample's own new array: no copy (v11.205) */
-  SPAWN.forEach((e,ei)=>{let w=0;const st=DEFS[e.kind].station,dY=DEFS[e.kind].deepY;for(let n=0;n<36;n++){let t=envW(e.env,hs[n],sl[n],fs[n]);if(t>0&&st)t*=stationW(st,hs[n],gridRise(hs,6,n),CELL/6,fs[n],dY); /* the station (v11.223, creatures_defs.js STATION): the cell's share of the places the kind stands */if(t>0&&e.crop){_ecoS.h=hs[n];_ecoS.f=fs[n];t*=cropK(cropAt(x0+((n%6)+0.5)/6*CELL,z0+(Math.floor(n/6)+0.5)/6*CELL,_ecoS));}w+=t;}let K=e.n*w/36;if(e.max!==undefined)K=Math.min(K,e.max); // crop (v11.84): the swarms' capacity is the lit standing stock's. v11.85: the max clause was inside this comment from v11.84 (the strand's cap of 8 scuttles went unread); back on its line
+  SPAWN.forEach((e,ei)=>{let w=0;const st=stOf(e),dY=DEFS[e.kind].deepY;for(let n=0;n<36;n++){let t=envW(e.env,hs[n],sl[n],fs[n]);if(t>0&&st)t*=stationW(st,hs[n],gridRise(hs,6,n),CELL/6,fs[n],dY); /* the station (v11.223, creatures_defs.js STATION): the cell's share of the places the kind stands */if(t>0&&e.crop){_ecoS.h=hs[n];_ecoS.f=fs[n];t*=cropK(cropAt(x0+((n%6)+0.5)/6*CELL,z0+(Math.floor(n/6)+0.5)/6*CELL,_ecoS));}w+=t;}let K=e.n*w/36;if(e.max!==undefined)K=Math.min(K,e.max); // crop (v11.84): the swarms' capacity is the lit standing stock's. v11.85: the max clause was inside this comment from v11.84 (the strand's cap of 8 scuttles went unread); back on its line
     const k0=POP.k[ei][c];POP.k[ei][c]=K;POP.ke[ei][c]=K;
     if(first){POP.n[ei][c]=K*(ecoOf(e.kind).hunter?ECO.initH:ECO.init);POP.ow[ei][c]=rg()*Math.min(1,K)/Q.creatures;} // the owed birth starts at a random phase (v11.31.2): a population is not everywhere at the same point in its cycle, and every cell starting at zero was the whole reason the first clutch took two game days to appear. Over Q.creatures because a clutch is one animal the cell *shows*, so the low tier waits the same time for it
     else if(k0>1e-4)POP.n[ei][c]*=K/k0;else POP.n[ei][c]=Math.min(POP.n[ei][c],K);
@@ -13056,7 +13104,7 @@ function ecoModel(dt,isLoaded){const g=ecoModelGen(dt,isLoaded);while(!g.next().
 const RC_S=[0,0.0625,0.125,0.25,0.5,1,2,4];
 function ecoPatchCap(p,tables){const P=ECO_PT,G=16,W=PATCH*CELL,x0=ecoPI(p)*CELL-HALF,z0=ecoPJ(p)*CELL-HALF,hs=new Float32Array(G*G),fs=[],E=SPAWN.length,KC=[],NS=RC_S.length;
   for(let b=0;b<G;b++)for(let a=0;a<G;a++){const s=sample(x0+(a+0.5)/G*W,z0+(b+0.5)/G*W);hs[b*G+a]=s.h;fs.push(s.f);} /* sample's own new array: no copy (v11.205) */
-  SPAWN.forEach((e,ei)=>{const kc=KC[ei]=new Float32Array(64),st=DEFS[e.kind].station,dY=DEFS[e.kind].deepY;let K=0;
+  SPAWN.forEach((e,ei)=>{const kc=KC[ei]=new Float32Array(64),st=stOf(e),dY=DEFS[e.kind].deepY;let K=0;
     for(let l=0;l<64;l++){const ci=l>>3,cj=l&7;let w=0;for(let q=0;q<4;q++){const a=ci*2+(q&1),b=cj*2+(q>>1),n=b*G+a;let t=envW(e.env,hs[n],0,fs[n]);if(t>0&&st)t*=stationW(st,hs[n],gridRise(hs,G,n),W/G,fs[n],dY); /* the station on the patch's coarser grid (v11.223): a wall shows only where it is tall against 107 m */if(t>0&&e.crop){_ecoS.h=hs[n];_ecoS.f=fs[n];t*=cropK(cropAt(x0+(a+0.5)/G*W,z0+(b+0.5)/G*W,_ecoS));}w+=t;}
       let k=e.n*w/4;if(e.max!==undefined)k=Math.min(k,e.max);kc[l]=k;K+=k;}
     if(tables)return; // a loaded save's patch (v11.106): its count, capacity and condition are the save's; only the hunters' tables are rebuilt
