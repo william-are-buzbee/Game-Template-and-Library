@@ -24,7 +24,7 @@ js+='\nglobal.__H={n:0,k:{}};global.__samp=()=>{for(const c of creatures){if(!c.
   +'let bd=1e9;for(const o of creatures){if(!o.alive||o.dead||o===c)continue;if((d.prey||[]).indexOf(o.kind)<0&&!(d.filter>0&&o.def.role===\'swarm\'))continue;const dd=c.pos.distanceTo(o.pos);if(dd<bd)bd=dd;}'
   +'const r=__H.k[c.kind]||(__H.k[c.kind]={n:0,hun:0,hi:0,ch:0,near:0,nn:0,det:d.detect||d.radius||0,role:d.role});__H.n++;'
   +'r.n++;r.hun+=c.hunger;if(c.hunger>0.9)r.hi++;if(c.state===\'chase\'||c.state===\'inspect\'||c.state===\'strike\'||c.state===\'lunge\'||c.state===\'feed\'||c.state===\'filter\')r.ch++;if(bd<1e8){r.near+=bd;r.nn++;}}};';
-js+='\nglobal.__hunt=()=>({kills:POP.kills,chases:POP.chases,starved:+POP.starved.toFixed(1),carcasses:carcasses.length,rows:Object.keys(__H.k).map(k=>{const r=__H.k[k];'
+js+='\nglobal.__hunt=()=>({kills:POP.kills,chases:POP.chases,stung:POP.stung,starved:+POP.starved.toFixed(1),carcasses:carcasses.length,rows:Object.keys(__H.k).map(k=>{const r=__H.k[k];'
   +'return {kind:k,role:r.role,n:r.n,hunger:r.hun/r.n,hi:100*r.hi/r.n,ch:100*r.ch/r.n,near:r.nn?r.near/r.nn:-1,det:r.det};}).sort((a,b)=>b.hi-a.hi)});';
 // v11.149 (the creature performance pass): every creature one shape, every def one, every state one — the keys in one order on all of them
 js+='\nglobal.__shape=()=>{const K=o=>Object.keys(o).join(),c0=creatures[0];if(!c0)return null;const k=K(c0),s=K(c0.st),d=K(c0.def),out={n:creatures.length,c:[],s:[],d:[]};for(const c of creatures){if(K(c)!==k)out.c.push(c.kind+": "+Object.keys(c).filter(x=>!(x in c0)).join(" "));if(K(c.st)!==s)out.s.push(c.kind+": "+K(c.st));if(!c.def.line&&K(c.def)!==d)out.d.push(c.kind);}return out;};';
@@ -46,11 +46,11 @@ if(!E.laid)bad.push('no clutch was laid in four game days with '+E.cells+' cells
 else if(!E.hatched)bad.push(E.laid+' clutches laid and none hatched');
 else console.log('  first clutch at game day '+first.toFixed(2)+', '+E.laid+' laid and '+E.hatched+' hatched by day '+E.day);
 // ---- 2. the hunt ----
-const H0=__hunt(),k0=H0.kills,c0=H0.chases;__step(600); // v11.184: the kills are counted from here, the cells' settle after the clock's jump included — most of a run's hunting is in its first 20 s, while the loaded hunters are hungry (13 or 14 kills a run under four seeds, 8–10 of them before this line), and the minute after holds the tail (0–3). v11.184's strike, missing less, fed them a little sooner: the same 13–14 a run, but at seed 1234 none left for the minute (main 2), so the check moved to the 70 s since the egg days (4 and 3 kills against main's 5 and 4 at seeds 1234 and 4)
+const H0=__hunt(),k0=H0.kills,c0=H0.chases,s0=H0.stung;__step(600); // v11.184: the kills are counted from here, the cells' settle after the clock's jump included — most of a run's hunting is in its first 20 s, while the loaded hunters are hungry (13 or 14 kills a run under four seeds, 8–10 of them before this line), and the minute after holds the tail (0–3). v11.184's strike, missing less, fed them a little sooner: the same 13–14 a run, but at seed 1234 none left for the minute (main 2), so the check moved to the 70 s since the egg days (4 and 3 kills against main's 5 and 4 at seeds 1234 and 4)
 const HUNT_S=process.env.TIER==='low'?180:60; // v11.72: the low tier loads so few hunters that 60 s held one kill at v11.70.1 and none or one since (a coin flip, and the check below is 'any'); 180 s holds two. The high tier's 60 s held 4-9 then; 2 by v11.183
 for(let k=0;k<HUNT_S/2;k++){__step(120);__samp();} // HUNT_S of play, sampled every 2 s
 const H=__hunt();
-console.log('\n  the hunters over '+HUNT_S+' s of play (hunts begun '+(H.chases-c0)+', kills since the egg days '+(H.kills-k0)+', starved '+H.starved+', carcasses '+H.carcasses+'):');
+console.log('\n  the hunters over '+HUNT_S+' s of play (hunts begun '+(H.chases-c0)+', kills since the egg days '+(H.kills-k0)+', held by the drifters '+(H.stung-s0)+', starved '+H.starved+', carcasses '+H.carcasses+'):');
 console.log('  kind          role      seen   hunger   at 1.00   hunting   nearest prey   detect');
 for(const r of H.rows)console.log('  '+r.kind.padEnd(13)+r.role.padEnd(9)+String(r.n).padStart(5)+r.hunger.toFixed(2).padStart(9)
   +(r.hi.toFixed(0)+'%').padStart(10)+(r.ch.toFixed(0)+'%').padStart(10)+(r.near<0?'-':r.near.toFixed(0)+' m').padStart(15)+r.det.toFixed(0).padStart(9));
@@ -58,6 +58,7 @@ const hunters=H.rows.filter(r=>r.role==='hunter'),hi=hunters.reduce((a,b)=>a+b.h
 console.log('  '+hi.toFixed(0)+'% of the hunter role sat at hunger 1.00 (the cast, HUNT_SEEK/HUNT_CAST, took this from 13% to 9% on the shelf)');
 if(H.kills===k0)bad.push('nothing was killed in the '+(HUNT_S+10)+' s of play since the egg days');
 if(!hunters.some(r=>r.ch>0)&&H.chases===c0)bad.push('no hunter chased anything in '+HUNT_S+' s of play'); // v11.229: or began a hunt between the samples (POP.chases: a chase, a look, a lunge or a strike begun) — a chase is a second or two, and the samples every 2 s missed the low tier's few at its noon (the senses: the shelf's prey still and in the weed, its hunters resting)
+if((H.stung-s0)/HUNT_S*60>6)bad.push('the drifters held '+(H.stung-s0)+' in '+HUNT_S+' s: more than 6 a minute round the player would empty the ribbons (v11.233, DRIFT)');
 if(hi>25)bad.push(hi.toFixed(0)+'% of hunters are starving and not eating (was 13% at v11.31.1)');
 // ---- 3. one shape (v11.149) ----
 {const S=__shape();if(S){const say=L=>[...new Set(L)].slice(0,6).join('; ');

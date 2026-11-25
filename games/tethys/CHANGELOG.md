@@ -11574,3 +11574,42 @@ hinge *"raised when swimming or walking, clamped shut when threatened and throug
   frighten when they strike and let you go, instead of chasing; (2) the valves breathing on a resting hingeshell (0.1 rad, every 5 s) — visible, or too
   much; (3) a wedge running to its crevice as you come; (4) the scuttles out on the wet sand at a low tide at night; (5) a hook dropping on you from above;
   (6) BEHAVIOUR §8.9 — the soft window on the player, now 54 real minutes for a hose.
+
+## v11.233 — the drifters: eating what they sting, the jelly with the plankton's layer, the sailers' stranding (25 Nov 2026)
+
+The person (25 Nov 2026), on v11.232: *"Let's do the drifters while I test this out."* BEHAVIOUR.md §4's fifth pass (§3g). DRIFTERS.md: *"No eyes,
+no brain, no intent — a drifter cannot hunt, only sting what touches it"*; *"small swimmers and plankton stung on contact and hauled to a mouth"*; its
+open list, the sailers' stranding and what eats them.
+
+- **Eating what they sting** (creatures_ai.js `DRIFT`, `driftTakes`, `driftTouch`, `driftHaul`, `driftEat`; called from `updateJelly` and
+  `updateSailer`): a body of at most `DRIFT.take` 0.5 × the drifter's size (not a drifter, a swarm, a soft one or one already held) touching a jelly's
+  or a deepbell's bell and the column of arms under it (`DRIFT.arms` 1.7 × its size down), or a sailer's simulated lines (`DEFS.lines` of a point), is
+  held at `DRIFT.p` 0.35 a `DRIFT.scan` 0.25 s: paralysed, drawn to the mouth under the bell (or 1.2 m under the float) for `DRIFT.haul` 5 s, eaten whole
+  (`kill`, whole); then `DRIFT.full` 90 s digesting. The haul is the drifter's `feedAt`/`feedT` and the digestion its `cool` — the hunters' keys, unused
+  by a drifter, so no new shape. The player is stung as before (the sailer's line loop now leaves at the first sting: labelled), never held.
+  `POP.stung` counts them.
+- **The jelly goes with the plankton** (`DRIFT.rise` 0.1 m/s, `DRIFT.read` 2 s; `BEHAVE.jelly.layer`): toward `swarmDepth` over its floor, each at its
+  own share of the layer — Earth's lit-water jellies follow the zooplankton. The deepbell keeps below the light.
+- **The stranding** (`STRAND`; `BEHAVE.sailer.strand`): a sailer with under `STRAND.depth` 0.4 m of water under it, read every `STRAND.every` 1 s, dies
+  there — carrion on the sand, which the scuttles come to. To v11.232 a sailer driven ashore sat on the beach alive and stinging. The old dead floats
+  were already flora (`stranded`, v11.16); DRIFTERS.md's open note said otherwise and is mended.
+- **One shape**: the defs' `layer`, `strand`; `POP.stung`.
+- **How often** (a probe, five minutes at each of (330, 0), (900, 0), (−200, 300) at noon): none held — about one drifter a cell, the closest jelly to a
+  small fish 6–11 m in the samples; test/live.js's runs held none either (it fails a run that holds over 6 a minute round the player). A ribbon of ten
+  darters swung through a jelly loses one in 23 s. Rare by design: a jelly with a fish in it is a find.
+- **Tests.** test/drifters.js (new, ~8 s, in `--test`): a jelly holding a darter at its bell (2.4 s at its chance), drawing it within 0.43 m of its
+  mouth and eating it at 5.0 s, digesting 90 s and taking nothing for 20 s with a darter at its bell; a needle (0.9 m) too big; the player stung, not
+  held; the ribbon; a sailer's line taking a darter 22 m down and eating it at 5.2 s; at a moonlit midnight a jelly over a 93 m floor going 4 m in 30 s
+  toward the layer at −79; a sailer in 93 m of water sailing on; one aground at the waterline (−47, 238) dead at once, lying on the sand 0.54 m up, and a
+  hungry scuttle 12 m off eating at it in 5 s. test/live.js: the drifters' holds counted and held under 6 a minute; both tiers 0.
+- **The ledger** is not touched (the drifters stay immortal on paper; what they eat is the loaded cells' few); no census was needed.
+- **What it cost** (`node test/perf.js --ref` v11.232): the creatures' frame at (330, 0) ×0.95 mean, ×1.04 p95; Chromium's at the forest ×0.96; the
+  GPU's counts the same at every place. Flagged, and the bench's own: every kind's build ×1.23 and ×1.53 in the first run (×1.10 and ×0.85, then ×1.08 and
+  ×1.03, in two more), and the cells at the sea, the giant and the platform ×1.13–1.32 in all three — places with one body or none, whose generation the
+  pass does not touch. **The same bench run with identical sources on both sides reads the sea ×1.28, the giant ×1.16, the platform ×1.20 and the atoll
+  ×1.15**: the side that runs second is slower there. What the pass adds a frame is a drifter's touch scan four times a second over its cell's
+  creatures (and a sailer's line points against the few within 40 m), only while it is not digesting.
+- **Seen**: the build booted in Chromium with no page error (`npm run look`); the rest is test/drifters.js's numbers.
+- **Unseen, ask in this order**: (1) whether you ever see a jelly or a sailer with a fish in it (rare by design — say if it should be less so); (2) a
+  sailer dead on a windward strand at low tide, and the scuttles at it; (3) the jellies' daily climb with the plankton — at dusk, up the water column;
+  (4) BEHAVIOUR §8.10, what eats a live drifter.

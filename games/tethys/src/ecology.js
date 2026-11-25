@@ -49,7 +49,7 @@ function ecoOf(kind){
 // fraction of its need it has met lately, 0..1), ow the births a *loaded* cell is owed and has not laid yet (v11.31.2: the model banks
 // a loaded cell's growth there and not in n, since the living are the truth in a loaded cell and n follows them — ecoTick lays it as a
 // clutch); done: the cell's capacity is known; tally: what has happened, for the readout
-const POP={n:[],k:[],ke:[],cd:[],ow:[],done:new Uint8Array(ECO_CELLS),byKind:{},cells:[],mark:[],kcells:{},kmark:{},last:0,acc:0,births:0,deaths:0,kills:0,chases:0,starved:0,eaten:0,recruits:0,laid:0,hatched:0,gen:null,model:null};
+const POP={n:[],k:[],ke:[],cd:[],ow:[],done:new Uint8Array(ECO_CELLS),byKind:{},cells:[],mark:[],kcells:{},kmark:{},last:0,acc:0,births:0,deaths:0,kills:0,chases:0,stung:0,starved:0,eaten:0,recruits:0,laid:0,hatched:0,gen:null,model:null};
 // the cells by place and the places by cell (v11.105): ecoId(i, j) is a world cell's index in the ledger's fine tables, or -1 (off the world, or
 // in a coarse patch not split); ecoIJ(c) writes the world cell of index c into ECO_IJ. ECO_PT: the coarse patches — per entry n, k, ke, cd over
 // them, their census (done), whether each is outside the fine box (coarse), the slot it is split into (blk, -1 none) and each slot's patch (bp)

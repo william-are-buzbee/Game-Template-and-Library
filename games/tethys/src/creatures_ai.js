@@ -1057,9 +1057,33 @@ function filterSeek(c,dt){const d=c.def;if(!(d.filter>0))return false;
   if(d.gape&&dist<R)c.st.strike=1; // the hoop (v11.227): its mouth's ring held open while it is in the cloud, shut as it leaves (the strike's decay)
   filterIntake(c,dt);return true;}
 function filterPlayer(dt){const P=player;P.swT=(P.swT||0)-dt;if(P.swT<=0){P.swT=FILTER.scan;P.sw=eaterK(P).filter>0?swarmNear(P.pos,FILTER.see):null;}filterIntake(P,dt);} // the player's nearest swarm within FILTER.see, for the readout and the intake
+// ---------- the drifters eat what they sting (v11.233; BEHAVIOUR §3g; DRIFTERS.md: "small swimmers and plankton stung on contact and hauled to a
+// mouth") ----------
+// No eyes, no intent: a drifter takes what touches it. A body small enough to haul (DRIFT.take × its size) that touches the bell (its reach and the
+// body's half size) or a sailer's line (def.lines of a simulated line point) is held at a chance of DRIFT.p a scan (DRIFT.scan s; a fish brushes a jelly
+// and gets away more often than not): paralysed and drawn to its mouth under the bell or the float for DRIFT.haul s, then eaten whole; DRIFT.full s it
+// digests before it holds another. The hauled body is the drifter's feedAt and the haul's clock its feedT, its digestion its cool (the hunters' keys,
+// which a drifter does not otherwise use). The player is stung, not hauled (stingPlayer). POP.stung counts the held
+const DRIFT={take:0.5,p:0.35,scan:0.25,haul:5,full:90,reach:40,
+  arms:1.7, // the depth its arms hang under a bell, × its size: a bell's touch is a column, not a ball (the jelly's 2.4 m under a 1.4 m bell)
+  rise:0.1, // m/s: a jelly's climb and sink with the plankton's layer (BEHAVE.layer; Earth's moon jellies and sea nettles follow the zooplankton up at dusk)
+  read:2}; // s between its reads of the layer's depth
+function driftTakes(c,o){const od=o.def;return o.alive&&!o.dead&&o!==c&&!o.soft&&od.role!=='swarm'&&od.role!=='drift'&&od.role!=='sail'&&od.size<=c.def.size*DRIFT.take&&!(o.held>0)&&!(o.paraT>0);}
+function driftTouch(c){if(!c.chunk)return;const d=c.def,lines=d.role==='sail';let rigs=null;if(lines){if(c.lod!==0||!c.b.rigs)return;rigs=c.b.rigs;}
+  for(const o of c.chunk.creatures){if(!driftTakes(c,o))continue;const dd=c.pos.distanceTo(o.pos);
+    if(!lines){const r=(d.reach||d.size)+o.def.size*0.5,dx=o.pos.x-c.pos.x,dz=o.pos.z-c.pos.z,dy=o.pos.y-c.pos.y;if(dx*dx+dz*dz>r*r||dy>r||dy<-d.size*DRIFT.arms-r*0.5)continue;} // the bell and the arms under it
+    else{if(dd>DRIFT.reach)continue;const R=d.lines+o.def.size*0.5,R2=R*R;let hit=false;for(const rig of rigs){for(const ch of rig.chains){const P=ch.pts;for(let k=1;k<=ch.n;k++){const dx=P[k*3]-o.pos.x,dy=P[k*3+1]-o.pos.y,dz=P[k*3+2]-o.pos.z;if(dx*dx+dy*dy+dz*dz<R2){hit=true;break;}}if(hit)break;}if(hit)break;}if(!hit)continue;}
+    if(SIMR()<DRIFT.p){c.feedAt=o;c.feedT=DRIFT.haul;o.paraT=DRIFT.haul+1;o.target=null;POP.stung++;return;}}}
+// a step of the haul: the held body drawn to the mouth, still; eaten at the haul's end
+function driftHaul(c,dt){const o=c.feedAt;if(!o.alive||o.gone){c.feedAt=null;return;}const d=c.def,my=c.pos.y-(d.role==='sail'?1.2:d.size*0.35);
+  const k=1-Math.exp(-1.5*dt);o.pos.x+=(c.pos.x-o.pos.x)*k;o.pos.y+=(my-o.pos.y)*k;o.pos.z+=(c.pos.z-o.pos.z)*k;o.vel.set(0,0,0);o.paraT=Math.max(o.paraT,1);
+  c.feedT-=dt;if(c.feedT<=0){c.feedAt=null;c.cool=DRIFT.full;kill(o,c,true);}}
+function driftEat(c,dt){if(c.feedAt){driftHaul(c,dt);return;}c.cool-=dt;if(c.cool>0)return;c.scanT-=dt;if(c.scanT>0)return;c.scanT=DRIFT.scan;driftTouch(c);}
 function updateJelly(c,dt){
-  const k=c.def.size>3?0.5:1;c.vel.set(0.3*k*Math.sin(t*0.3*k+c.t0),0.15*k*Math.sin(t*0.5*k+c.t0),0.3*k*Math.cos(t*0.27*k+c.t0));
+  const d=c.def,k=d.size>3?0.5:1;c.vel.set(0.3*k*Math.sin(t*0.3*k+c.t0),0.15*k*Math.sin(t*0.5*k+c.t0),0.3*k*Math.cos(t*0.27*k+c.t0));
+  if(d.layer){c.wanderT-=dt;if(c.wanderT<=0){c.wanderT=DRIFT.read;c.wander.y=swarmDepth(groundAt(c.pos.x,c.pos.z),CK.dayK,CK.moonL,(c.t0*0.37)%1);}c.vel.y+=clamp((c.wander.y-c.pos.y)*0.05,-DRIFT.rise,DRIFT.rise);} // v11.233: with the plankton's layer (DRIFT.rise)
   c.biteT-=dt;if(c.def.dmg>0&&!playerGone()&&c.biteT<=0&&c.pos.distanceTo(player.pos)<Math.max((c.def.reach||0)+1,reachOf(c,player))){c.biteT=0.6;stingPlayer();}
+  driftEat(c,dt); // v11.233 (DRIFT)
 }
 // The sailer (DRIFTERS.md): rides the wave (the surface rule below), carried by the current like everything, and sails at ~5% of the
 // wind at 40° off downwind — left- or right-handed by the animal, so one wind sorts a fleet two ways. The whole animal is yawed to its
@@ -1072,9 +1096,16 @@ function updateSailer(c,dt){
   const th=HPI-a;_q.setFromAxisAngle(UP,th);c.g.quaternion.slerp(_q,1-Math.exp(-0.5*dt));
   const cs=Math.cos(th),sn=Math.sin(th),wx=-c.vel.x,wz=-c.vel.z;c.st.lx=wx*cs-wz*sn;c.st.lz=wx*sn+wz*cs;
   c.biteT-=dt;if(c.biteT<=0&&!playerGone()&&c.lod===0&&c.b.rigs){const R=d.lines*d.lines;
-    for(const rig of c.b.rigs)for(const ch of rig.chains){const P=ch.pts;for(let k=1;k<=ch.n;k++){const dx=P[k*3]-player.pos.x,dy=P[k*3+1]-player.pos.y,dz=P[k*3+2]-player.pos.z;
-      if(dx*dx+dy*dy+dz*dz<R){c.biteT=0.7;stingPlayer();return;}}}}
+    sting:for(const rig of c.b.rigs)for(const ch of rig.chains){const P=ch.pts;for(let k=1;k<=ch.n;k++){const dx=P[k*3]-player.pos.x,dy=P[k*3+1]-player.pos.y,dz=P[k*3+2]-player.pos.z;
+      if(dx*dx+dy*dy+dz*dz<R){c.biteT=0.7;stingPlayer();break sting;}}}}
+  driftEat(c,dt); // v11.233 (DRIFT): its lines take what touches them
+  if(d.strand){c.thmT-=dt;if(c.thmT<=0){c.thmT=STRAND.every;if(groundAt(c.pos.x,c.pos.z)>TIDE-STRAND.depth){if(c.feedAt){c.feedAt.paraT=0;c.feedAt=null;}kill(c,null);}}} // v11.233 (STRAND): aground — thmT, a slowblood's warmth's clock, is the sailer's stranding's (a sailer has no warmth to read)
 }
+// The stranding (STRAND; DRIFTERS.md: "a fleet strands on one shore"; Earth: the man o' war's beachings after an onshore wind): a sailer whose float
+// has less than STRAND.depth m of water under it — driven onto a shoal or the strand by the wind, or left there by the ebb — grounds and dies; its body
+// lies on the sand as carrion (kill: a carcass, the scuttles' and the strand's scavengers' meal). Read every STRAND.every s. The old ones are flora
+// (strandFlora): the wrack line of dead floats on the windward strands
+const STRAND={depth:0.4,every:1};
 
 // ---------- per frame ----------
 const nearList=[],simList=[],bodies=[]; // this frame's creatures within 90 of the player; those at near LOD (arms simulated); near plus the player

@@ -2158,6 +2158,11 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   valves stay down and `awakeC` is 0; `MOULT.soft` 1 game day (was 0.5; the player's too). The hook strikes only below (`below` 0.3), climbs home at
   `HOOK.climb` 1 m/s, and after `give` 120 s hungry with nothing climbs to a post `step` 6–20 m off, `hang` 5–14 m up. A tidal scuttle at low water (CK.hi
   under `TIDEW.lo` 0.35) wanders to ground `band` 0.2–2.5 m over the waterline within `r` 60 m.
+- **The drifters (v11.233; BEHAVIOUR.md §3g; creatures_ai.js `DRIFT`, `STRAND`).** A drifter (role `drift` or `sail`) holds a body of at most
+  `DRIFT.take` 0.5 × its size that touches it — a jelly's bell and the column of arms `arms` 1.7 × its size under it, a sailer's lines (`DEFS.lines` of a
+  line point, near LOD) — at `p` 0.35 a `scan` 0.25 s: paralysed, hauled to the mouth `haul` 5 s (the drifter's feedAt, feedT), eaten whole, then
+  `full` 90 s digesting (its cool). The jelly (`BEHAVE.jelly.layer`) follows `swarmDepth` at `rise` 0.1 m/s, read every `read` 2 s. A sailer
+  (`BEHAVE.sailer.strand`) under which there is less than `STRAND.depth` 0.4 m of water dies (a carcass), read every `STRAND.every` 1 s. `POP.stung`.
 - **Removed by request:** the mid-water `weed` flora (the "floating spiky objects"); the `colony` creature (pink/cyan
   glowing chains); darter/glim **schools are no longer spawned** — the code (`school` role, `makeSchool`,
   `updateSchools`, `buildDarter`) is intact. They went because the rigid formation read as a block; if they return it

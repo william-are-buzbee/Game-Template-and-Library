@@ -70,6 +70,10 @@ Open water, and on it three things with reasons: **rafts** (a weed that let go, 
 see from across the water, lines you learn not to swim under). The great sailer is the landmark. Nothing sits on the water that the
 physics would sink, and nothing on it is a plant that is not a weed.
 
+**Built v11.233** (BEHAVIOUR §3g): the drifters eat what they sting — a small swimmer touching a bell, its arms or a sailer's lines is held,
+hauled to the mouth and eaten; the jelly follows the plankton's daily layer; a sailer that grounds strands and dies there, carrion on the sand (the old
+ones are flora since v11.16: `stranded`, which this note's list below left open by mistake). What eats a live drifter is the person's (BEHAVIOUR §8.10).
+
 Left open, for the bigger island: whether the buttons' fleets should drift as a fleet (instance matrices per frame — the accepted
 "floating on their own" for now), the sailers' stranding on the windward strand (a dead float on the sand: a flora entry, cheap), and
 what eats them (the button's fleets are what the glim and the scuttle would graze if a grazer of jelly is wanted).
