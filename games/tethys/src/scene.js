@@ -888,11 +888,12 @@ const VAR_GLSL='attribute float vid;attribute float aVar;\n',VAR_COLLAPSE='if(ab
 // at once when its nearest edge came within FLORA_FAR. farCut(far, fade) opens a material's vertex code (it declares fadeK), FAR_FADE closes
 // it, after the material's own displacement. Instanced only: MAT's creatures and the depth pass (no USE_FOG) keep their size.
 const FLORA_FAR=450,FLORA_FADE=90;
-// The reed's own draw distance (v11.239; the person, 25 Nov 2026, "probably smarter to do both versions": both tiers): [far, fade], metres. A reed is
-// 1.4–3.6 m of 7 cm rods, so past ~150 m it is a few pixels tall and far under one wide — a speck that flickers, if it lands on a pixel at all — yet
-// at a shore most of its pool lies there: at the work tower's worst place (#205, tp(72929,243)) 957 of the 1,157 reeds sent were past 150 m, 600k of
-// the frame's 1.33M triangles. Its own material (MATRD, MATGL's program with its own uCut) fades them out over the last `fade` metres.
-const REED_CUT=[160,40];
+// The thin plants' own draw distance (v11.239; the person, 25 Nov 2026, on the work tower's report #205 — the reed: "probably smarter to do both versions",
+// both tiers; then "do the seagrass too"): [far, fade], metres, for the reed (MATRD) and the seagrass, the strap (MATSG). A reed is 1.4–3.6 m of 7 cm rods
+// and a strap blade 0.9–2 m by 0.16–0.24, so past ~150 m either is a few pixels tall and under one wide — a speck that flickers, if it lands on a pixel
+// at all — yet most of a shore's or a flat's lie there: at the tower's worst place (tp(72929,243)) 957 of the 1,157 reeds sent and 954 of the 1,175 straps
+// were past 150 m, 800k of the frame's 1.33M triangles. Each has a material of its own (its family's program, its own uCut) and fades over the last `fade`.
+const THIN_CUT=[160,40];
 // v11.194 (analysis_project.md §4): the cut is a uniform, `uCut` (x: the near edge — an instance nearer is gone, 0 none; y: the far edge; z: the fade
 // into it), each material's own (cutUOf) — made for v11.194's far copies (struck v11.201); kept, as it costs nothing and the pictures are the same.
 // The numbers are the ones the shaders had as literals; a material with no cut has its far edge at NO_CUT, which nothing reaches.
@@ -954,13 +955,13 @@ function varMaterial(dead){const m=new THREE.MeshLambertMaterial({vertexColors:t
 const MATV=varMaterial(),MATVD=varMaterial(true); // MATVD: the variants without the breath — a stranded float is a corpse (v11.31.4)
 // (v11.33: fogExtinctOnly is gone — nothing has called it since the glow clouds went in v10.1. The rule it carried stands and the
 // light shafts re-implement it by hand: an additive thing must lose its own colour with distance and never take the veil's.)
-const MATG=swayMaterial(0.35,1.6,2.4,1,false,2.4,false,true,true,0.35),MATB=swayMaterial(3.0,0.5,45,1,false,1.0,false,true,false,0.3),MATR=swayMaterial(2.2,0.9,12,-1,true,12,true,false,false,0.2), // the bladder, rafts and colonies: no cut, their cards take over
+const MATG=swayMaterial(0.35,1.6,2.4,1,false,2.4,false,true,true,0.35),MATSG=swayMaterial(0.35,1.6,2.4,1,false,2.4,false,true,THIN_CUT,0.35),MATB=swayMaterial(3.0,0.5,45,1,false,1.0,false,true,false,0.3),MATR=swayMaterial(2.2,0.9,12,-1,true,12,true,false,false,0.2), // the bladder, rafts and colonies: no cut, their cards take over
   MATW=swayMaterial(0.5,1.1,6,1,false,6.5,false,true,true,0.35), // whip corals bend too (fans are rigid and solid since v9.1); cut beyond FLORA_FAR
   MATS=swayMaterial(3.2,0.7,40,1,false,1.0,false,true), // the stipe: unit height stretched to the surface like the bladder, a slower deeper sway; no cut (the cards)
   MATSC=swayMaterial(3.2,0.7,40,1,false,1.0,false,true,true), // the stipeling (v11.155): the stipe's sway with the cut and its fade — it has no card, and on MATS a cell's young popped in at once at FLORA_FAR
   MATM=swayMaterial(1.6,1.0,12,1,false,14,false,true,true,0.35), // mid-height weed (ladder, ribbon, the pen): bends over its top ten metres; cut
   MATGL=swayMaterial(0.35,1.6,2.4,1,false,2.4,false,false,true,0.35), // the tussock: the grass sway on land, never folded to the water (cap); cut
-  MATRD=swayMaterial(0.35,1.6,2.4,1,false,2.4,false,false,REED_CUT,0.35), // the reed (v11.239): MATGL with its own cut, REED_CUT — the same program (the cut is a uniform)
+  MATRD=swayMaterial(0.35,1.6,2.4,1,false,2.4,false,false,THIN_CUT,0.35), // the reed (v11.239): MATGL with its own cut, THIN_CUT — the same program (the cut is a uniform)
   MATTR=swayMaterial(0.3,0.45,9,1,false,14,false,false,[TREE_LOD.d,TREE_LOD.fade]), // the tidal forest (v11): a trunk in the wind — a slow sway from the crown, never capped to the water, never leaning to the current (land: chunks.js makeInstanced gives it no aCur); since v11.188 cut at TREE_LOD.d, where its far copy takes over (MATTRF), to v11.187 drawn whole to its cell's FLORA_FAR edge
   MATWD=swayMaterial(0.25,0.35,18,1,false,27,false,false,true,0.25); // the platewood (v11.180): a tall trunk in the wind, its plates lit through a little (thin); cut at FLORA_FAR, where the terrain's shell takes over (woodGLSL)
 MATTR.land=true;MATWD.land=true; // thin (the last argument, v11.13): the share of the far face's light that comes through a blade — the weed, bladders, rafts, whips, the tussock; not the stipe, not the trunks
