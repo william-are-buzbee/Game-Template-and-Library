@@ -1374,7 +1374,7 @@ lines' splits, the order they reached the mountain — is `TAXA.md` (v11.15); th
 and the placement rules are `FLORA.md`. All three outrank this section.
 
 **The grammar (`grow.js`, since v9.5).** Eight bauplan builders push parts into a list: `axis` (a segmented stem;
-returns its nodes), `branch` (recursive, `planar` 0 a bush to 1 a fan in the x-y plane, `tip` on the last level),
+returns its nodes), `branch` (recursive, `planar` 0 a bush to 1 a fan in the x-y plane, `tip` on the last level and `col2` its colour — v11.234, the fan's pale polyps),
 `blades`/`bladeAt` (strips of quads along an axis, Euler YXZ: droop then spin), `tuft` (planes or rods from a point),
 `cup` (a lathe: mouth, waist, base, lip, `closed`, `inner`), `disc` (a plate with polyp studs), `mound` (a squashed
 sphere in growth bands, optional spines), `pads` (the rafts' discs, returning their pads) and `line` (a hanging
@@ -1453,7 +1453,7 @@ order, so a descending profile comes out inside-out — invisible under `MAT`'s 
 a double-sided material. The geometry is identical either way; only the normals turn out. Callers still read the array they passed
 (`profR`, `nose`, `tail` in `creatures_spec.js`), so the reversed copy stays inside `G.lathe`.
 
-Materials (`scene.js`; since v11.13 every tinted one but `GLOW` carries the caustics and the bodies' shadows in its fragment — [The light](#the-light)): `MAT` (Lambert, vertex colours) for creatures and rigid one-variant flora (fans, rocks),
+Materials (`scene.js`; since v11.13 every tinted one but `GLOW` carries the caustics and the bodies' shadows in its fragment — [The light](#the-light)): `MAT` (Lambert, vertex colours) for creatures and rigid one-variant flora (rocks, limpets, chimneys; the fans until v11.234, a species on `MATV` since),
 `MATBIG` (the same, with the big-thing fog — see Visibility) for structures, landmarks and big creatures' far LOD,
 `GLOW` (Basic, vertex colours) for emissive parts, `TERRAIN_MAT` (flat Phong on high, Lambert on low), `MATFAR`
 (Lambert, double-sided) for impostors, `MATV` (above), and `swayMaterial(amp,freq,hn,dir,bob,H,strand)` instances

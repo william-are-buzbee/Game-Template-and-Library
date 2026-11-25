@@ -4,6 +4,11 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.234 (25 Nov 2026): the fan rebuilt** (flora.js `fanB`, the `fan` entry; grow.js `branch`'s `col2`; FLORA.md's head note and roster; CHANGELOG).
+The person: *"the multicolored triangles are a bit too ubiquitous and look kind of strange"* — the fan, a squashed cone in four vivid tints at 200 tries
+a cell. Asked to strike or rebuild, the person chose the rebuild: a pale branching fan in one plane across the current, 40 tries a cell in patches,
+only in strong current below 12 m — about a ninth as many. **Ask:** whether the new fans read as fans, and whether they are now too few to notice.
+
 **v11.233 (25 Nov 2026): the drifters** (creatures_ai.js `DRIFT`, `STRAND`, `updateJelly`, `updateSailer`; creatures_defs.js `BEHAVE`; ecology.js
 `POP.stung`; test/drifters.js, test/live.js; BEHAVIOUR §3g; DRIFTERS, DESIGN; CHANGELOG). The person: *"Let's do the drifters while I test this
 out."* A jelly or a sailer's lines hold a small swimmer that touches them, haul it to the mouth and eat it, then digest; the player is stung, never
@@ -33,14 +38,6 @@ lateral movement near the surface, and ranges should follow where an animal can 
 (a stand together); every plumb leaves at dusk, fed or not, and roams the night with its shell's top 3–6 m under the surface, slanting up as it goes;
 a hungry plumb no longer forages on through the day. New rows: plumbs off the walls in still water, quills alone in and past the weed, an arrow pack
 in the open water over the upwelling. **Ask:** BEHAVIOUR §8.6–7 — whether the night's plumbs read now; ranges by survival in a session of their own.
-
-**v11.230 (24 Nov 2026): the ringmouths** (creatures_ai.js `updatePlumb`, `PLUMB`, `trimOf`, `phaseOf`, `QUILL`, `PACK`, `INK`, `LURK`, `landBite`;
-creatures_defs.js `DEFS.great`, `BEHAVE`; creatures_spec.js `SPECS.great.hit`; test/ringmouths.js; BEHAVIOUR §3c; DESIGN Creatures; CHANGELOG). The person:
-*"go ahead with the ringmouths pass and the plumb."* A hungry plumb leaves its wall at night to forage at the layer's depth, goes up a carcass's scent
-to eat, and is home at dawn; the oldest hang at their day depth (the trim). A quill's stand sways as one and drops into the stalks when you come close.
-The arrows hunt as a pack, coming at a school from both sides, and ink when a chaser closes. The lurker leaves a post where nothing passes. The great
-hunts (the grazer, the eel, the plough, you), its ram the bite's opening blow; the `coil` role is gone. The pass costs nothing measurable over v11.229 (×1.00); v11.229's senses ×1.05 over v11.228 (`findPrey`). **Ask:** the plumb's night and its
-gathering at a fall; the pack; whether a lethal great on the shelf is wanted. **Next:** the slowbloods (BEHAVIOUR §4: the temperature model first).
 
 ## Open
 

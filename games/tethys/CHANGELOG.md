@@ -11613,3 +11613,43 @@ open list, the sailers' stranding and what eats them.
 - **Unseen, ask in this order**: (1) whether you ever see a jelly or a sailer with a fish in it (rare by design — say if it should be less so); (2) a
   sailer dead on a windward strand at low tide, and the scuttles at it; (3) the jellies' daily climb with the plankton — at dusk, up the water column;
   (4) BEHAVIOUR §8.10, what eats a live drifter.
+
+## v11.234 — the fan rebuilt: a pale branching fan in the current, a ninth as many (25 Nov 2026)
+
+The person (25 Nov 2026): *"Remove or change the multicolored triangles … The multicolored triangles are a bit too ubiquitous and look kind of
+strange. I'm thinking it would be good to either get rid of them temporarily or reinterpreting their design to be something more reasonable, because
+right now it's multicolored triangles. It looked good at one point but now they are a bit outdated."* They were the polyp fan, the last kept geometry
+of the old flora (`fanGeo`): a seven-sided cone 1.3 wide at the foot and 0.08 at the top squashed to 0.16 deep — a solid triangle point-up — in
+pink, orange, violet or gold, `per` 200 on any hard ground with `flow` over 0.45 from −150 to −6, about 60 a loaded cell on the flanks (1,756–2,256 in
+the 30 cells round five places on our slope). Seen headless at the reef top, the shelf edge and the drop. Offered: strike it for now, rebuild it on
+the grammar's `branch` (shown as a mock-up beside the old), or keep a plate shaped like a sea fan; **the person chose the branching fan** (recorded
+in FLORA.md's head note).
+
+- **The fan** (flora.js `fanB`, a `species` on `MATV` with three variants; to v11.233 `fanGeo` on `MAT`, one variant): the polyp line's horny fan —
+  the `branch` bauplan at `planar` 1, forking in one plane broadside to the current (flow-faced, the plane x-y as before), from a short dark stalk
+  (`FSTALK`), the axis a pale grey-rose (`FAXIS`) and the outer twigs paler with polyps (`PTIP`). 0 the broad fan (two primaries, four forks), 1 the
+  tall narrow one, 2 the low wide one (four primaries, three forks); 176–188 triangles a variant (48 to v11.233), three-sided twigs. 1–2.8 m (scale
+  0.7–1.4; was 1.2–3.8). The collider one flat ellipsoid round each variant's own twigs (to v11.233 one fixed for the plate).
+- **The tints** pale: ivory-rose, lilac, cream (the line's jelly tints, FLORA's founders table) — the water and the place's stain (`tintBy`) do the rest.
+  The line's "pigmented where lit" (more colour in the shallow end) is not built: there is no depth pigment for an animal line yet, and the fan now
+  starts at −12.
+- **Where, and how many**: `per` 200 → 40, `field` 0.02 (patches), `flow` [0.45, 1] → [0.6, 1], `h` [−150, −6] → [−150, −12], `sub` as before; no
+  `tilt`. About a ninth as many: 194–224 in the same 30 cells; the densest patch near the drop has five within 20 m. The reef top's fan is the horn's
+  third growth form (`hornB` k 2, v11.116), which this does not touch.
+- **grow.js `branch`** takes `col2`, the last level's colour (the outer twigs); unset it is `col` as before, so the horn, the thicket and every other
+  brancher is unchanged.
+- Nothing else reads the fan by its id: no creature, ledger, reef or far copy (the generic far copies went in v11.201). DESIGN's materials line and
+  scene.js's note on `MAT`'s fade said "the fans"; mended.
+- **What it cost** (`node test/perf.js` against v11.233; nothing worse by more than 10%): the GPU's counts within 3% at every place — the forest
+  281 → 284 draws, 32 → 33 programs, 26,601 → 26,147 instances, triangles ×1.00; the coast and the shore −3 and −8 draws; 56 of 84 counts the same,
+  nothing compiled at first sight; `test/gpu.json` held, not rewritten. The fill proxy (SwiftShader) at the forest ×0.88 for the GPU and ×0.87 for
+  the CPU's side of drawing, the shore and the canopy ×0.89–0.98. A cell's generation at five places ×0.78–1.07 and every kind's build ×0.70–0.90:
+  the bench's noise either side (the sea and the giant, ×0.80 and ×0.78, have no fans to place). The bodies and the simulation are not the same as
+  v11.233's: the fans' colliders moved, so what is placed after them and where creatures spawn moves with them.
+- **Tests**: `node build.js --test` all OK on both tiers (798 s); the type checker at its baseline; `node test/gpu.js --check` within 10%.
+- **Seen** (headless, first person, at the places of the screenshots shown the person): `tp(323,-108,-9)` the reef top, `tp(108,-753,-66)` the shelf
+  edge facing west, `tp(753,-323,-60)` the drop facing south, `tp(711,-189,-69)` facing north, a patch of five, and one fan from 5 m at
+  `tp(86,-737,-75)`. The triangles are gone from all of them; the new fans read as pale fine fans across the current, few and in patches.
+- **Unseen, ask in this order**: (1) whether the new fans read as fans on the person's screen, and whether a fan of three-sided twigs shimmers at
+  20–40 m; (2) whether they are now too few to notice — `per` and `field` are the knobs; (3) whether the shallow end should take more colour (the
+  line's "pigmented where lit", not built).
