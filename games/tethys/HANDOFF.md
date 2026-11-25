@@ -4,6 +4,14 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.238 (25 Nov 2026): a performance pass — the scans by square, the matrices only of what is drawn, the dark lights skipped** (creatures_ai.js
+`CG`, `cgNear`, `crMW`; horizon.js `MW.hide`; scene.js the light chunks; test/scangrid.js; DESIGN Performance; CHANGELOG). The person: *"find any performance
+updates we can do to make the game more easily playable now."* Since v11.220 the GPU's side got lighter and the creatures' CPU work ×1.20–1.27. Three cuts,
+nothing seen or simulated changed: the schools', grazers' and hunters' scans read the bodies within reach from a grid instead of all 1,380 (the creatures'
+step ×0.86 by the fair bench); three's render no longer recomposes the matrices of 13,600 creature parts out of sight (renderFrame's CPU side ×0.65–0.79); a point
+light at 0 is skipped in the shaders (the proxy's vertex work ×0.81–0.89). **Ask:** the readout's `render` and `gpu` at `tp(330,0)` and `tp(110,-380)` on
+the preview against main's, and an F9 from each machine — the work tower's last report is v11.197.
+
 **v11.237.1 (25 Nov 2026): the creatures bench made fair** (test/bench_creatures.js, test/benchpage.js `iso`, test/perf.js's note, test/README.md;
 CHANGELOG). No game code changed. The bench read identical sources ×0.81–1.28 at a place, so `perf.js` flagged cells no change could reach. Now
 both trees' pages are open at once and take turns — kind by kind, cell by cell, 20 frames at a time, the first alternating — and every piece is the
@@ -28,13 +36,6 @@ the sense of space; whether mid-depth by day now reads too thin.
 The person: *"the multicolored triangles are a bit too ubiquitous and look kind of strange"* — the fan, a squashed cone in four vivid tints at 200 tries
 a cell. Asked to strike or rebuild, the person chose the rebuild: a pale branching fan in one plane across the current, 40 tries a cell in patches,
 only in strong current below 12 m — about a ninth as many. **Ask:** whether the new fans read as fans, and whether they are now too few to notice.
-
-**v11.234 (25 Nov 2026): the tidewood sparse, in stands** (flora.js `tidetree` `per`, `stand`; chunks.js `standK`, `isleK`, `STAND_LAND`; far.js
-`impostorsGen`; FLORA Placement rules, DESIGN; CHANGELOG). The person: the tidal plant *"is simply too much of an eye sore … should be sparse"*, absent
-from many land areas, most common on the larger islands. `per` 700 → 150, and stands: a seeded ~3 km noise that leaves whole coasts and small islands
-bare, opened by the nearest land's catchment (a high or shield island's land radius). The world's census 1.53 M trees → 50 k (×0.033), 78% of them on
-the four big islands; none round ours. The far copies follow. The reed is untouched. **Ask:** whether ours should keep a small stand; whether a stand
-on the giant reads sparse enough; whether the reed is next.
 
 ## Open
 

@@ -2759,6 +2759,23 @@ shaded triangles ×0.71–0.75, the pictures all but the same; the proxy's GPU t
 running the whole plant's vertex shader to leave it. Off until a report on a real weak card says otherwise; the version without the waste is two
 pools by cell (§4).
 
+**The CPU's creep after the behaviour passes, and three invisible cuts (v11.238, 25 Nov 2026).** Measured v11.220 → v11.236 (`node test/perf.js --all
+--ref 458d156`): the GPU's side better (triangles ×0.85–1.00, the proxy ×0.88–0.97 — the tidewood's stands, the fans), the creatures' work a frame ×1.20
+in node and ×1.27 in Chromium, each pass within its noise and together a fifth. Three cuts, every result the same:
+- **The scans by square** (creatures_ai.js `CG`, `cgBuild`, `cgMove`, `cgNear`): a school's look for a threat, a grazer's and a hunter's for prey each
+  walked every creature (1,380 at the forest's shelf; 6,686 walks in 10 s). A flat hash of 32 m squares built at the step's start (`updateSchools`), a
+  body re-filed after its own update, a newborn put in at spawn; a scan takes the live bodies within its reach (17 on the mean) in `creatures`' own
+  order (`seq`) and tests them as before. test/scangrid.js holds the world to the bit with it and without, and every body's square at every scan.
+- **The matrices of what is drawn** (creatures_ai.js `crMW`, `MW.hide`; horizon.js `renderFrame`): three's render recomposes every object's matrix,
+  seen or not — 15,908 at the forest, 13,561 under something out of sight, nearly all of them creatures' parts. Through the main pass a creature's root
+  recomposes its own (the sim reads `c.g.matrix`) and goes into only the parts drawn: the walk 3.7 → 0.5 ms, renderFrame's CPU side ×0.65–0.79 here.
+- **The dark point lights skipped** (scene.js, after sun-by-depth): the own light and the pool's lights stay in the scene at 0 when unlit (a count that
+  changed would recompile every program), so three worked all five through per vertex (Lambert) and per terrain and surface pixel (Phong). A light whose
+  colour is black is skipped by a branch the same for a whole draw: the proxy's vertices ×0.81–0.89, its frame ×0.90–0.97 where nothing is lit.
+- **Tried and not kept:** the opaque pass front to back (three sorts by program first) — the proxy ×0.94–1.05 within its noise, the CPU's side
+  ×1.25–1.35 (program changes); a real GPU's early depth test is not measured here. The terrain's specular off — with a black specular r128's Schlick
+  term still leaves a Fresnel sheen at grazing light, so it is a change to the picture, not a saving.
+
 **The flight recorder (v11.191, 20 Nov 2026; src/rec.js, test/report.js, analysis_project.md §1).** The person: "I could just play and you'd learn
 what device I'm on … You could check the log and that would literally be it." Recorded in the browser that plays, always, sent only when the person
 presses F9 (or calls `report()`): GitHub's new-issue page opens in a tab with a few lines for a person and one line, `tethys-rec:1:z…`, holding the

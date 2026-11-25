@@ -11888,3 +11888,73 @@ could not reach, each dismissed by more runs. **No game code changed:** the game
   nothing measurable), against ~1¼ before. `N=4` halves it, at up to ±16% at the sea (resampled).
 - **Seen:** the runs above, every body the same to the bit and the simulation the same in each. Nothing in the game to look at.
 - **Unseen, ask in this order:** nothing; the person runs no bench.
+
+## v11.238 — a performance pass: the scans by square, the matrices only of what is drawn, the dark lights skipped (25 Nov 2026)
+
+The person (25 Nov 2026): *"many updates have happened recently. I want you to look through and find any performance updates we can do to make the
+game more easily playable now."* Measured before touching anything:
+
+- **v11.220 → v11.236** (`node test/perf.js --all --ref 458d156`): the GPU's side got lighter — triangles ×0.85–1.00 at the seven places, the proxy
+  ×0.88–0.97 (the tidewood's stands, the fans) — and the CPU's heavier: the creatures' work a frame ×1.20 in node and ×1.27 in Chromium, the variants'
+  first builds ×1.42, a cell at the forest ×1.13. Each behaviour pass had measured itself within its noise; together they are a fifth.
+- **The person's last reports**: the home machine (#190, v11.226, 120 Hz) — CPU 4.4 ms a frame, of it three's submit 2.9; the GPU 7.1 ms, p95 11.3
+  against the 8.3 a 120 Hz frame has. The work tower (#152, v11.197, the low tier at 866×694) — the GPU 31 ms, the submit 4.0.
+
+Three cuts, none of which changes what is simulated or drawn:
+
+- **The scans by square** (creatures_ai.js `CG`, `cgBuild`, `cgMove`, `cgNear`; `seq`, `cgI` on the creature). A school's look for a threat (four times a
+  second), a grazer's (three) and a hunter's for prey (`findPrey`) each walked every creature — 1,380 at the forest's shelf, 6,686 walks in 10 s, a fifth of
+  the creatures' work. A flat hash of 32 m squares (typed arrays; no allocation a step) is built at the step's start (`updateSchools`); a body is re-filed
+  after its own update and a newborn put in at spawn; a scan takes the live bodies within its reach — 17 on the mean — in `creatures`' own order (`seq`:
+  spawn order, which every splice keeps) and tests them as before, so every choice is the one the walk made. It holds because inside the step's loop
+  a body moves only in its own update (the holds and the contact move bodies after the loop; `CG.on` is false by then). A first cut on a Map of arrays
+  gave ×0.87; its upkeep (numbers past V8's small integers as keys, an array a square) was a third of what it saved.
+- **The matrices of what is drawn** (creatures_ai.js `crMW`, `MW.hide`; horizon.js `renderFrame`). three's render recomposes the matrix of every object in
+  the scene before it draws, seen or not: at the forest 15,908 objects, 13,561 of them under something out of sight, nearly all the parts of creatures
+  past their draw distance — 3.4–6.7 ms of renderFrame's 11.7 here, inside the readout's `render` (submit). Through the main pass a creature's root still
+  recomposes its own matrix (the sim reads `c.g.matrix`: combat.js `localToWorld`, the strikes, the holds) and goes into only the parts that are drawn; a
+  part out of sight is recomposed the frame it shows again, before it is drawn, from its own place. Every other walk (an explicit call, the bakes, the
+  static shadow map's pass) is three's. The walk 3.7 → 0.5 ms at the forest.
+- **The dark point lights skipped** (scene.js, beside sun-by-depth). The own light and the pool's four stand in the scene at 0 when unlit — a light count
+  that changed would recompile every program — and three worked all five through for every vertex lit by Lambert (the plants, the rocks, the creatures;
+  the low tier's terrain too) and every pixel lit by Phong (the high tier's terrain, the surface), only to add nothing. A light whose colour is black is
+  now skipped by a branch the same for a whole draw. By day in the shallows all five are dark; where one is lit it costs one test more.
+- **Tried and not kept.** The opaque pass front to back (three r128 sorts it by program first, depth last): the proxy ×1.05, ×1.05, ×0.94 — within its
+  noise — and the CPU's side ×1.25–1.35 for the program changes; a real GPU's early depth test might say otherwise, and is not measured here. The
+  terrain's specular dropped: with a black specular r128's Schlick term still leaves a Fresnel sheen at grazing light (`F_Schlick(0, x)` is the Fresnel
+  term), so it is a change to the picture, not a free saving.
+- **test/scangrid.js** (in `--test`, ~31 s): the forest's shelf stepped 600 times with the grid and with it off (`CG.maxC` 0), every creature and the
+  player the same to the bit; at every scan the grid answers, every live body filed under the square it is in, none within the reach left out, in
+  `creatures`' order, none twice. Mutants checked: without the sort it fails on order; without the re-filing it fails on the squares (the 1 m margin
+  in `cgNear` hid that one from the answers alone).
+
+**What it costs** (`node test/perf.js`; the creatures against v11.237.1, whose bench (#202) is the fair one — both pages open at once, taking turns; the
+rest against v11.236, measured before the merge, on code v11.237 and v11.237.1 did not touch):
+
+| measure | main | here | ratio |
+|---|---|---|---|
+| creatures' work a frame at the forest, Chromium, the fair bench, ms (mean) | 1.713 | 1.472 | ×0.86 |
+| the same at (330, 0) in node, ms (mean / p95) | 2.425 / 3.491 | 2.170 / 3.419 | ×0.90 / ×0.98 (against v11.236: ×0.82 / ×0.83 and ×0.66 / ×0.52 — node's spread is wide) |
+| renderFrame's CPU side, ms: forest / shore / canopy | 11.6 / 11.7 / 13.5 | 8.5 / 9.2 / 8.8 | ×0.73 / ×0.79 / ×0.65 |
+| the matrix walk alone at the forest, ms | 3.4–3.7 | 0.5 | ×0.14 |
+| the GPU's time, a proxy (software WebGL, 1600×900), ms: forest / shore / canopy | 1,975 / 2,317 / 1,898 | 1,905 / 2,087 / 1,892 | ×0.96 / ×0.90 / ×1.00 (an earlier run ×0.97 / ×0.85 / ×0.94) |
+| every kind's build (first / again), a cell at five places (the fair bench) | | | ×0.96 / ×0.98; ×1.00–1.01 (the old bench had flagged the builds ×1.19 and the sea's cell ×1.12) |
+| the GPU's counts (test/gpu.js), seven places | | | the same, every count |
+
+The simulation the same to the bit (test/frames.js, test/bench_creatures.js, test/scangrid.js); every body the same, built and posed. The picture at
+the forest, the shore and the canopy: 3–8 pixels of 1.44 million differ, by 1 of 255 — the shader compiler's rounding round the new branches, not a
+light missed (a missing light is tens of levels over whole surfaces).
+
+**The low tier at the work tower's size** (`TIER=low SIZE=866x694`, test/fill.js against main, its seven places): the picture the same pixel for
+pixel at six and one pixel by 1 of 255 at the coast; renderFrame's CPU side ×0.42–0.84 at six (the wood, with no creatures, 3.2 → 4.1 ms on a clock of
+0.1 ms); the GPU's time by the proxy ×0.92–1.03 — the tower's frame is its GPU's (#152: 31 ms of 33), and this pass barely moves that. Not measured: the
+person's cards. The branch round a dark light is one test a draw on a GPU that keeps it; a compiler that flattens it (ANGLE's to Direct3D may) runs both
+sides and saves nothing, at no cost either.
+
+**Unseen, ask in this order:**
+1. The home machine at 120 Hz, on the preview against main's: the readout's `render` and `gpu` ms and the frame at the forest's shelf `tp(330,0)` and the
+   shore `tp(110,-380)`; then F9 after a few minutes' play — #190 had the CPU at 4.4 ms (submit 2.9) and the GPU's p95 at 11.3.
+2. The work tower: F8 then F9 on the preview (its last report is v11.197): its GPU's parts by the probe are what the next pass on a weak card needs.
+3. Nothing should look or act differently. Worth a glance: creatures coming into sight at the edge of the fog (their parts are recomposed the frame they
+   show — a body drawn a frame in an old pose would be this); lit things at night or in the deep (the own light, a bacterial glow, the pall's lure)
+   lighting the floor and the plants as before.
