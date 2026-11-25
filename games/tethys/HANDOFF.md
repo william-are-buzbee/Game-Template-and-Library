@@ -4,11 +4,12 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
-**v11.239 (25 Nov 2026): the reed and the seagrass drawn to 160 m** (scene.js `THIN_CUT`, `MATRD`, `MATSG`; flora.js the reed and the strap; main.js
-`warmShaders`; FLORA.md; CHANGELOG). The work tower's report on v11.238 (#205): 60 fps on the median now, 40% of frames late, its worst place a sand flat
-where the reed was 600k of 1.33M triangles, nearly all of them past 150 m and sub-pixel; the seagrass the same. The person: *"both versions"* (both
-tiers), *"do the seagrass too."* There: triangles ×0.56, the proxy ×0.77 on the low tier; elsewhere ×0.77–0.98. Only far specks leave the picture.
-**Ask:** the tower's frame at `tp(72929,243)` and a shore; whether a reed bed's end at 120–160 m shows on the home machine.
+**v11.239 (25 Nov 2026): the reed to 160 m on the low tier and 300 on the high, the seagrass to 160** (scene.js `Q.reed`, `THIN_CUT`, `MATRD`, `MATSG`;
+flora.js the reed and the strap; main.js `warmShaders`; FLORA.md; CHANGELOG). The work tower's report on v11.238 (#205): 60 fps on the median now, 40%
+of frames late, its worst place a sand flat where the reed was 600k of 1.33M triangles, nearly all past 150 m and specks at its size; the seagrass the same.
+The person: the low tier at 160, the high longer "for now" (option 2) — 300, where ours' north shore's far bed stays whole — and *"do the seagrass too."*
+The tower's worst place: triangles ×0.56, the proxy ×0.77; the high tier ×0.79–0.98 in triangles and its pictures the same. **Ask:** the tower's frame at
+`tp(72929,243)`; whether the high tier's reed may come down to 160 later (the person's "we can always do it for the other high tier later").
 
 **v11.238 (25 Nov 2026): a performance pass — the scans by square, the matrices only of what is drawn, the dark lights skipped** (creatures_ai.js
 `CG`, `cgNear`, `crMW`; horizon.js `MW.hide`; scene.js the light chunks; test/scangrid.js; DESIGN Performance; CHANGELOG). The person: *"find any performance
