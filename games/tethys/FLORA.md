@@ -18,6 +18,15 @@ skeleton; v10.1's branching stems read as bark); every sway species leans downst
 downstream (nothing floating takes weight); the lure-feeders (stalk, ltree) were a rationalisation and are gone with the rest of the
 bioluminescence — the deep floor has pens, whips, **glass** and **frond** (built) and nothing lit.
 
+**v11.235 (25 Nov 2026): the fan rebuilt — the person's choice.** The person: *"The multicolored triangles are a bit too ubiquitous and
+look kind of strange … either get rid of them temporarily or reinterpret their design."* They were the fan, a kept geometry from before the grammar (a
+cone squashed flat: a solid triangle point-up, pink, orange, violet or gold, 200 tries a cell on any rock in some current, −150..−6). Offered: strike it
+for now, rebuild it on the `branch` bauplan, or keep a plate shaped like a fan; **the person chose the branching fan** (25 Nov 2026). It is the
+polyp line's horny fan now (`fanB`): forks in one plane across the current from a short dark stalk, the outer twigs pale with polyps, the tissue
+pale (ivory, rose, lilac — the line's jelly tints), 1–2.8 m; 40 tries a cell, in patches (`field`), only in strong current (`flow` ≥ 0.6) on hard
+ground from −12 to −150 — below the reef top, whose fan is the horn's third form. About a ninth as many as before. Not built: the line's "pigmented
+where lit" (a deeper colour in the shallow end); the fan is pale at every depth and the water does the rest.
+
 Downstream of `PLANET.md` (the planet, the light gradient, the clades, the founders) and upstream of `flora.js`.
 **The person answered the open list on 8 Sep 2026** (see [Decided](#decided)); v9.5 builds the grammar and the reef top,
 the shelf, the flats, the rockfall's rust and the rafts; the slope proper, the deep, the vents and the rim are next.
@@ -248,7 +257,7 @@ the trait that wins its spot. Earth appears there only as the proof.
 | **star** | disc with spines | 0, 2, 7 | 0.3–0.8 | a flat sac on the floor, spines radiating from the rim | a sac that lay down: no stalk to snap, and the spines keep the rasps off |
 | **cup** (bulb replaced) | cup | 0, 7, 1 | 0.5–2 | vase sacs, single and paired | the sphere clusters were nothing; a vase is a filter |
 | **cone** | cup (plated) + tuft (legs) | 0 surf, 13 tide band, 14 the legs, 3 skerries | 0.05–0.4 | a plated cone cemented to rock, feathered legs combing from the top; in crowds | a hingeshell that sat down where the water moves most: armour against the surf and the rasp, the plates its moult never leaves |
-| fan (exists) | branch | 0 edge, 5, 14, 7 | 1–8 | polyp fan, **flow-faced** | keep; it belongs where the current is, not sprinkled |
+| fan (rebuilt v11.235) | branch | strong current on hard ground, −12..−150 (5, 14, 7; the reef top's fan is the horn's) | 1–2.8 | the polyps' horny fan: forks in one plane, **flow-faced**, pale polyps on the outer twigs, in patches; to v11.233 a solid flattened cone in four vivid tints at 200 a cell | it belongs where the current is, not sprinkled: a net across the flow strains the most water for the least skeleton |
 | **turf** (grass on 0 replaced) | tuft | 0, 3 cracks | 0.1–0.3 | a dense short lawn | the grazers' pasture: outgrows its grazing |
 
 ### The shelf forest — kelp towers (1), bladder forest (4), −20..−60, olive to gold
