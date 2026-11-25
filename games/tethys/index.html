@@ -173,7 +173,7 @@ canvas{display:block;outline:none;touch-action:none}
 <div id="fade" class="layer"></div>
 <canvas id="spark" class="layer"></canvas>
 <div id="stats"></div>
-<script>window.TETHYS_BUILD={v:"v11.233",wh:"fe388b31a388a80c"};</script>
+<script>window.TETHYS_BUILD={v:"v11.234",wh:"3a0fced674822500"};</script>
 <script>
 // loader.js — the page's loader, in tethys.html only, outside the game's bundle and before it: three.js and the world cache fetched side by side, then the
 // game. Since v11.215 (three.js-ready) three.js is loaded as a module — every release after r160 is only that — with import(); its exports are copied onto
@@ -10035,6 +10035,8 @@ function darkrindB(rg,k){const P=[],n=1+(k%2);
 // maxSlope: steepest ground an instance may stand on (default 0.9; rocks 1.9; structures unlimited, they sink on slopes).
 // leePer: density where the retention field (world.js leeW) is 1 (v11.81; canopyPer to v11.80). ys: y for surface flora (default -0.45).
 // pocket: noise scale; the base density applies fully only inside pockets of that noise (~15% of area) and at 10% elsewhere.
+// stand: [frequency, lo, hi, drop] (v11.234, the tidewood): a colony's stands — none at all where a low noise is under lo, the island's catchment lowering
+// both thresholds by up to drop (chunks.js standK, isleK).
 // minH: lowest ground an instance may stand on (land plants stay above the wet sand).
 // col: colliders per instance in local units: {s:[x,y,z,r]} a sphere, {a:[..],b:[..],r} a capsule, {e:[cx,cy,cz,ax,ay,az]} an
 // ellipsoid (fans), {d:r} a dodecahedron of circumradius r (boulders: the rock's own twelve faces through the
@@ -10363,9 +10365,9 @@ const FLORA = [
   // the greens in air (TAXA): the tidal forest, the reed margin, the rain scrub — one line, jointed, relicts of a bigger island
   species(
     'tidetree',
-    {mat: MATTR, photo: true, line: 'greenAir', tints: GREENT, s: [0.8, 1.3], air: true, per: 700, env: {h: [-3.5, 2.8], expo: [0, 0.75], young: [0, 0.45]}, field: 0.02, minH: -3.6, maxSlope: 0.5},
+    {mat: MATTR, photo: true, line: 'greenAir', tints: GREENT, s: [0.8, 1.3], air: true, per: 150, env: {h: [-3.5, 2.8], expo: [0, 0.75], young: [0, 0.45]}, field: 0.02, stand: [0.0003, 0.72, 0.78, 0.15], minH: -3.6, maxSlope: 0.5},
     tidewoodB
-  ), // the tidewood: the tide band, out of the surf, and off the last flows (young, v11.67: a wood is decades; the reed and the tussock keep the flows)
+  ), // the tidewood: the tide band, out of the surf, and off the last flows (young, v11.67: a wood is decades; the reed and the tussock keep the flows). v11.234 (the person, 25 Nov 2026: "an eye sore … should be sparse"): per 700 → 150, and in stands (chunks.js standK): a quarter to a third of a big island's tide band that held it, a tenth or none of a small one's
   species(
     'reed',
     {mat: MATGL, photo: true, line: 'green', tints: GREENT, s: [0.7, 1.4], air: true, per: 900, env: {h: [-5.5, 1.6], expo: [0, 0.4]}, field: 0.02, maxSlope: 0.6},
@@ -12727,6 +12729,16 @@ function chRange(ch){if(ch.rng!==undefined)return ch.rng;if(rgPlatSd(ch.cx,ch.cz
 // species' clumping by its `field` frequency (0.1 to 1.6)
 function meadowM(f,x,z){const M=f.meadow,o=M[3]||0;return smooth(M[1],M[2],fbm(x*M[0]+71+o,z*M[0]+43+o,2));}
 function fieldK(fr,x,z){return clamp(0.1+4*Math.pow(fbm(x*fr+31,z*fr+17,2),2.5),0,1.6);}
+// A stand's mask (v11.234, the tidewood; the person, 25 Nov 2026: "greatly reduce the odds … sparse and completely absent from many above-waterline
+// land areas … most commonly on the larger islands"). A tidal forest is a colony that has taken a stretch of coast and holds it: its seeds drift, so
+// a coast they never reached has none and one they did has a stand kilometres long (Earth's mangroves); and it thrives on the fresh water and silt
+// a big island's rain brings down to its shore, which an atoll, a bank, the carbonate platform's porous cays and ours have none of — no land above
+// the reef, no catchment. `stand` [frequency, lo, hi, drop]: 0 where a low-frequency noise is under lo, 1 over hi, both lowered by drop × isleK,
+// the catchment of the land whose coast is nearest. The same function near (placeFloraType) and far (far.js impostorsGen), so the far copies
+// stand where the near trees do. The noise's 0.9 quantile is ~0.71, its 0.7 ~0.59, its median 0.5.
+const STAND_LAND=[1500,7000,2000,5000]; // an island's land radius (m, world) over which its catchment goes from none to full (the giant's 7000 is full), and the distance off its coast (m) over which that fades
+function isleK(x,z){let k=0;for(const i of recsAt(x,z)){const R=ISLANDS[i];if(!R.land)continue;const q=smooth(STAND_LAND[0],STAND_LAND[1],R.land.r*R.sc)*(1-smooth(STAND_LAND[2],STAND_LAND[3],(rgLoc(R,x,z)-R.land.r)*R.sc));if(q>k)k=q;}return k;} // 0..1: only records with land (a high or shield island) — ours, the atolls, the banks and the platform have none
+function standK(S,x,z){const n=fbm(x*S[0]+211,z*S[0]+97,2);if(n<=S[1]-S[3])return 0;const b=S[3]*isleK(x,z);return smooth(S[1]-b,S[2]-b,n);}
 const WOOD_P=new Float32Array(4); // woodAt's output at a try (v11.180)
 function* placeFloraType(ch,rng,f){
   if(f.big)return; // structures are placed and drawn once for the whole world (far.js); placeBigSolids adds their collision
@@ -12745,6 +12757,7 @@ function* placeFloraType(ch,rng,f){
     if(f.meadow)p*=0.06+0.94*meadowM(f,x,z); // v11.116: meadows [frequency, lo, hi] — a runner's patches with bare sand between and a few shoots in it
     if(cw>0.03)p=Math.max(p,leeW(x,z)*f.leePer/maxN);
     if(f.field)p*=fieldK(f.field,x,z);
+    if(f.stand&&p>0)p*=standK(f.stand,x,z); // v11.234: the tidewood's stands — whole coasts bare, the big islands' shores most often held
     if(f.succ&&p>0)p*=smooth(f.succ[0],f.succ[1],distAge(x,z,ch.f(x,z)[FI.expo],ch.h(x,z))); // v11.120: the age of the storm's clearing here (grow.js distAge)
     if(f.wood&&p>0)p*=woodAt(x,z,ch.h(x,z),ch.slope(x,z),ch.f(x,z),WOOD_P,0); // v11.180: the wood's cover (world.js woodAt), its canopy's height in WOOD_P for the scale below
     if(rng()>=p)continue;
@@ -13640,10 +13653,10 @@ function* impostorsGen(i,j){
       // the envelope can only lower the chance: reject on the cheap terms first, sample() only for the rest
       const field=f.field?clamp(0.1+4*Math.pow(fbm(x*f.field+31,z*f.field+17,2),2.5),0,1.6):1;
       const pocket=f.pocket?0.1+smooth(0.6,0.72,fbm(x*f.pocket+53,z*f.pocket+29,2)):1;
-      const cterm=lee?leeW(x,z)*f.leePer/maxN:0;
-      if(u>=Math.max(pocket,cterm)*field)continue;
+      const cterm=lee?leeW(x,z)*f.leePer/maxN:0,stand=f.stand?standK(f.stand,x,z):1; // stand (v11.234): the tidewood's, as placeFloraType reads it
+      if(u>=Math.max(pocket,cterm)*field*stand)continue;
       const s=sample(x,z),h=s.h,sl=Math.hypot((sampleH(x+STEP,z)-h)/STEP,(sampleH(x,z+STEP)-h)/STEP);
-      if(u>=Math.max((f.per||0)/maxN*(f.env?envW(f.env,h,sl,fixF(s.f,sl)):1)*pocket,cterm)*field)continue;
+      if(u>=Math.max((f.per||0)/maxN*(f.env?envW(f.env,h,sl,fixF(s.f,sl)):1)*pocket,cterm)*field*stand)continue;
       if(floor&&underChemo(x,h,z))continue; // nothing on the floor under a basin's chemocline (v11.96; the -450 to v11.95)
       if(!floor&&h>-4)continue;
       if(floor&&sl>(f.maxSlope!==undefined?f.maxSlope:0.9))continue; // placeFloraType's slope (v11.124: the tidewood's 0.5; no other card species sets one)
