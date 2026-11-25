@@ -11614,7 +11614,108 @@ open list, the sailers' stranding and what eats them.
   sailer dead on a windward strand at low tide, and the scuttles at it; (3) the jellies' daily climb with the plankton — at dusk, up the water column;
   (4) BEHAVIOUR §8.10, what eats a live drifter.
 
-## v11.234 — the snow as bright as its surroundings: the world's light where each point is, no floor (25 Nov 2026)
+## v11.234 — the tidewood sparse, in stands (25 Nov 2026)
+
+The person (25 Nov 2026): *"Greatly reduce the odds of the tidal plant from spawning, make it sparse and completely absent from many above-waterline
+land areas"*, and *"the one that sits at land and sea areas and looks like a spiny tree — it needs to be either removed or removed heavily. It is simply
+too much of an eye sore. Interesting in a small dose or most commonly on the larger islands, but in general it should be a minimal part of the game now
+visually. Should be sparse."* That is the tidewood (`tidetree`); the reed, its dwarf, is a clump of leafless uprights and is left as it was.
+
+- **Fewer** (flora.js `tidetree`): `per` 700 → 150 — a stand is a scatter of trees, not a wall.
+- **In stands** (FLORA `stand` [0.0003, 0.72, 0.78, 0.15]; chunks.js `standK`, `isleK`, `STAND_LAND`): a seeded low-frequency noise (~3 km features,
+  its own offsets) multiplies the chance, 0 under `lo` and 1 over `hi`, so whole stretches of coast and whole small islands have none. Both thresholds
+  fall by up to `drop` with the catchment of the land whose coast is nearest (`isleK`: over the records in reach that have land — a high or shield
+  island — smooth from a land radius of 1.5 km to 7 km, fading 2–5 km off its coast through `rgLoc`, so an oval is measured in its own frame). Ours, the
+  atolls, the banks, the drowned and the carbonate platform have no land above the reef: no catchment. The reason in the world: a tidal forest is a
+  colony that takes a stretch of coast and holds it (its seeds drift; a coast they never reached has none), and it lives on the fresh water and silt a
+  big island's rain brings down — Earth's mangroves are widest at a high island's river mouths and scant on atolls. Still placed by its envelope
+  (`h`, `expo`, `young`) and the cell's rng: the draws per try are unchanged, so no other species moves.
+- **The far copies follow**: far.js `impostorsGen` reads `standK` in its cheap terms and its envelope's, the same as `placeFloraType`; the far copy
+  near (`TREE_LOD`, v11.188) is drawn on the real pool's instances. A bare coast has no copies either (the census below; the pictures).
+- **The census** (a scratch script: far.js `impostorsGen` at every try with the tidewood's stride 1, over the 19,726 cells whose ground crosses the
+  band near any record; the near placement, eight cells loaded, within 15% of it before and after):
+
+  | | before | after | |
+  |---|---|---|---|
+  | trees in the world | 1,528,208 | 50,362 | ×0.033 |
+  | cells with any | 10,759 | 2,046 | ×0.19 |
+  | per occupied cell, mean / max | 142 / 617 | 25 / 123 | |
+  | on the four big islands (the giant, m109, m122, m153) | 49% | 78% | |
+  | the giant | 46,591 on 354 cells | 2,000 on 88 | |
+  | the carbonate platform | 543,619 on 3,407 | 8,171 on 306 | |
+  | the three atolls | 35,040 on 235 | 312 on 18 | |
+  | ours | 579 on 15 | none | |
+
+  A big island keeps trees on 23–36% of the cells it had them on, a bank or the platform 2–11%, an atoll 0–21%, ours none.
+- **What it cost** (`node test/perf.js` against main, v11.233; and a scratch timing at two tidewood shores, best of five, run twice a side). Nothing worse
+  by more than the benches' own noise; less drawn and less placed:
+
+  | measure | before | after | |
+  |---|---|---|---|
+  | the far copies placed at load (far.js impostorsGen), ms a cell — at the shore north of ours / at the giant's stand | 1.51–1.61 / 2.18–2.19 | 0.77–0.79 / 1.27 | ×0.50 / ×0.58 |
+  | a cell's generation (loadChunkNow, a 3×3) — at the shore / at the giant's stand, ms | 20.0–21.4 / 15.7–16.1 | 21.0–21.3 / 15.8–16.0 | ×1.00 |
+  | a cell at the bench's forest, atoll, platform, sea, giant, ms | 53.3, 30.8, 21.1, 8.1, 30.3 | 51.2, 31.3, 21.2, 8.6, 30.3 | ×0.96–1.05 |
+  | triangles a frame — forest / shore / canopy / atoll | 2.99M / 3.56M / 3.29M / 3.29M | 2.55M / 3.19M / 2.95M / 3.20M | ×0.85 / ×0.90 / ×0.90 / ×0.97 |
+  | draws a frame — forest / shore / canopy | 281 / 315 / 270 | 276 / 309 / 264 | ×0.98 |
+  | programs a frame — every place | 26–35 | 24–33 | −2 (the tidewood's and its far copy's) |
+  | buffers uploaded at the boot | 32.2 MB | 31.4 MB | ×0.97 |
+  | the GPU's time, software WebGL (a proxy) — forest / shore / canopy, ms | 1,804 / 2,272 / 1,885 | 1,779 / 2,125 / 1,913 | ×0.99 / ×0.94 / ×1.01 |
+  | the CPU's side of drawing — forest / shore / canopy, ms | 10.7 / 13.0 / 12.9 | 10.1 / 11.5 / 13.7 | ×0.94 / ×0.88 / ×1.06 |
+  | the creatures' frame at the forest (Chromium), ms | 2.48 | 2.24 | ×0.90 |
+
+  Every body the same to the bit, built and posed; the simulation the same. The canopy's CPU side (×1.06) is that measure's own swing (±30% between
+  runs of identical sources, v11.232); the creatures' frame is untouched code. The picture at the shore differs in 115,205 pixels (the tidewood gone),
+  at the forest 698 and the canopy 1,608 (the trees beyond them). test/gpu.json updated (the forest's and the shore's triangles moved past its 10%).
+- **Seen** (the real build in headless Chromium at five shores, before and after; the page with the pictures is linked from the pull request): the shore
+  north of ours bare, the reeds and the grass left; a stand on the giant's south-west shore (413 → 92 a cell) a scatter in the shallows; the giant's
+  north-east shore, toward ours, bare; atoll m117's rim bare; atoll m88 keeping a thin line on its rim.
+- **The bench places** `shore` and `canopy` (test/benchpage.js) no longer have the tidewood in view: their descriptions say so, and test/gpu.json
+  moves with it.
+- **Unseen, ask in this order**: (1) whether ours should keep a small stand (the noise gives it none; a hand-placed one would break the rule); (2) whether
+  a stand on a big island reads sparse enough at 150 a cell, or a stand should be rarer still; (3) whether the reed — under water at high tide, a swamp
+  of stems — is next.
+
+## v11.235 — the fan rebuilt: a pale branching fan in the current, a ninth as many (25 Nov 2026)
+
+The person (25 Nov 2026): *"Remove or change the multicolored triangles … The multicolored triangles are a bit too ubiquitous and look kind of
+strange. I'm thinking it would be good to either get rid of them temporarily or reinterpreting their design to be something more reasonable, because
+right now it's multicolored triangles. It looked good at one point but now they are a bit outdated."* They were the polyp fan, the last kept geometry
+of the old flora (`fanGeo`): a seven-sided cone 1.3 wide at the foot and 0.08 at the top squashed to 0.16 deep — a solid triangle point-up — in
+pink, orange, violet or gold, `per` 200 on any hard ground with `flow` over 0.45 from −150 to −6, about 60 a loaded cell on the flanks (1,756–2,256 in
+the 30 cells round five places on our slope). Seen headless at the reef top, the shelf edge and the drop. Offered: strike it for now, rebuild it on
+the grammar's `branch` (shown as a mock-up beside the old), or keep a plate shaped like a sea fan; **the person chose the branching fan** (recorded
+in FLORA.md's head note).
+
+- **The fan** (flora.js `fanB`, a `species` on `MATV` with three variants; to v11.233 `fanGeo` on `MAT`, one variant): the polyp line's horny fan —
+  the `branch` bauplan at `planar` 1, forking in one plane broadside to the current (flow-faced, the plane x-y as before), from a short dark stalk
+  (`FSTALK`), the axis a pale grey-rose (`FAXIS`) and the outer twigs paler with polyps (`PTIP`). 0 the broad fan (two primaries, four forks), 1 the
+  tall narrow one, 2 the low wide one (four primaries, three forks); 176–188 triangles a variant (48 to v11.233), three-sided twigs. 1–2.8 m (scale
+  0.7–1.4; was 1.2–3.8). The collider one flat ellipsoid round each variant's own twigs (to v11.233 one fixed for the plate).
+- **The tints** pale: ivory-rose, lilac, cream (the line's jelly tints, FLORA's founders table) — the water and the place's stain (`tintBy`) do the rest.
+  The line's "pigmented where lit" (more colour in the shallow end) is not built: there is no depth pigment for an animal line yet, and the fan now
+  starts at −12.
+- **Where, and how many**: `per` 200 → 40, `field` 0.02 (patches), `flow` [0.45, 1] → [0.6, 1], `h` [−150, −6] → [−150, −12], `sub` as before; no
+  `tilt`. About a ninth as many: 194–224 in the same 30 cells; the densest patch near the drop has five within 20 m. The reef top's fan is the horn's
+  third growth form (`hornB` k 2, v11.116), which this does not touch.
+- **grow.js `branch`** takes `col2`, the last level's colour (the outer twigs); unset it is `col` as before, so the horn, the thicket and every other
+  brancher is unchanged.
+- Nothing else reads the fan by its id: no creature, ledger, reef or far copy (the generic far copies went in v11.201). DESIGN's materials line and
+  scene.js's note on `MAT`'s fade said "the fans"; mended.
+- **What it cost** (`node test/perf.js` against v11.233; nothing worse by more than 10%): the GPU's counts within 3% at every place — the forest
+  281 → 284 draws, 32 → 33 programs, 26,601 → 26,147 instances, triangles ×1.00; the coast and the shore −3 and −8 draws; 56 of 84 counts the same,
+  nothing compiled at first sight; `test/gpu.json` held, not rewritten. The fill proxy (SwiftShader) at the forest ×0.88 for the GPU and ×0.87 for
+  the CPU's side of drawing, the shore and the canopy ×0.89–0.98. A cell's generation at five places ×0.78–1.07 and every kind's build ×0.70–0.90:
+  the bench's noise either side (the sea and the giant, ×0.80 and ×0.78, have no fans to place). The bodies and the simulation are not the same as
+  v11.233's: the fans' colliders moved, so what is placed after them and where creatures spawn moves with them.
+- **Tests**: `node build.js --test` all OK on both tiers (798 s); the type checker at its baseline; `node test/gpu.js --check` within 10%.
+- **Seen** (headless, first person, at the places of the screenshots shown the person): `tp(323,-108,-9)` the reef top, `tp(108,-753,-66)` the shelf
+  edge facing west, `tp(753,-323,-60)` the drop facing south, `tp(711,-189,-69)` facing north, a patch of five, and one fan from 5 m at
+  `tp(86,-737,-75)`. The triangles are gone from all of them; the new fans read as pale fine fans across the current, few and in patches.
+- **Unseen, ask in this order**: (1) whether the new fans read as fans on the person's screen, and whether a fan of three-sided twigs shimmers at
+  20–40 m; (2) whether they are now too few to notice — `per` and `field` are the knobs; (3) whether the shallow end should take more colour (the
+  line's "pigmented where lit", not built).
+
+## v11.236 — the snow as bright as its surroundings: the world's light where each point is, no floor (25 Nov 2026)
 
 The person (25 Nov 2026): *"Marine snow is too visible in the dark."* And: *"Marine snow needs to be looked at so we can figure out how it works and
 thus find out why it can show up in pitch black water. Marine snow should be considered an effect that is part of the world and is only as bright as

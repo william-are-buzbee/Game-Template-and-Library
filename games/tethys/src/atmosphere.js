@@ -563,7 +563,7 @@ const waterDome=(function(){const mat=new THREE.MeshBasicMaterial({color:0x00000
 // Fall rates are a compromise with the eye: real aggregates do 50-200 m a day (2 mm/s, motionless to a swimmer); 8 cm/s (the
 // old rate, 7 km a day) read as a snowfall. These are ~10× reality and read as slow.
 // Drawn as one Points with a per-point colour (the particle's own), size and alpha (aSz), lit by the light the world has where the point is
-// (ptsLit and snowLight, below: v11.234). The shader patch reads r128's points chunks; if a line isn't found it warns and the snow is lit by
+// (ptsLit and snowLight, below: v11.236). The shader patch reads r128's points chunks; if a line isn't found it warns and the snow is lit by
 // the ambient alone (the material colour) rather than not drawn.
 const PN=Q.snow,SN_SW=Math.min(480,Math.floor(PN*0.25)),SN_SWN=6,SN_SWP=SN_SW/SN_SWN,PN_SN=PN-SN_SW,SN_HW=30,pp=new Float64Array(PN*3),ppG=new Float32Array(PN*3),pv=new Float32Array(PN*3),pc=new Float32Array(PN*3),ps=new Float32Array(PN*2),pk=new Uint8Array(PN),pr=new Float32Array(PN),ph=new Float32Array(PN),pf=new Float32Array(PN*10),snL=new Uint16Array(PN); // pf (v11.82): the six fields, then the maps' texel (the two crops, X, the floor); snL: a chain follower's leader (its own index otherwise)
 const SN_K=[{sz:0.5,fall:0.005},{sz:1.0,fall:0.02},{sz:0.6,fall:0.05},{sz:0.55,fall:-0.28},{sz:1.35,fall:0.006},{sz:0.5,fall:0.012}]; // size × the material's, m/s down; 5 the chain (v11.82)
@@ -595,7 +595,7 @@ const SN_TH=-64,SN_W0=0.9,SN_GAIN=3.0,SN_REF=63;let SN_CH=-1e5; // the thermocli
 // would not move at all
 const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(ppG,3));pg.setAttribute('color',new THREE.BufferAttribute(pc,3));pg.setAttribute('aSz',new THREE.BufferAttribute(ps,2));
 const plU={value:new THREE.Vector4(0,0,0,0)},plCU={value:new THREE.Color(0x6fbfe0)},snAU={value:new THREE.Vector4(0,1/2.5,0,0)}; // snAU (v11.82.1): the tide, 1/the depth the snow fades over seen from the air, 1 with the camera in air
-// The light on a point (v11.234; the person, 25 Nov 2026: "Marine snow should be considered an effect that is part of the world and is only as
+// The light on a point (v11.236; the person, 25 Nov 2026: "Marine snow should be considered an effect that is part of the world and is only as
 // bright as its surroundings"). Why it showed in pitch-black water to v11.233: its light was the material colour lerp((0.45,0.75,0.95), 1, df) —
 // df the daylight at the player's depth × the sky's — so with no light at all (480 m by day, any moonless night) a flake was lit at 45–95% of
 // noon, and drawn at 0.6·(0.45 + 0.55·df), 45% of noon's opacity; the fog's end multiplies every fragment by the eye's gain (×4 in the dark), so
@@ -811,7 +811,7 @@ function updateAtmosphere(dt){
   updateShafts(above,wk);
   updateHaze(dt,above);sky.visible=true;sky.position.copy(camera.position);pushSky();updateClouds(dt); // the volume's atlas, once (clouds.js) // every frame since v11.43: the surface's window reads the sky's uniforms from under the water, where the sphere is hidden // the sky stays up within SKY_NEAR under the line (v11.42): a camera just under sees air through the near plane's gap above the water, and that is the sky, not the dome
   plankton.visible=FX.snow;snAU.value.set(TIDE,1/2.5,above?1:0,0);tintU.value.set(TIDE,above?1:0,K.skyL,0); // the snow from the air too (v11.82.1, the person: none showed below the surface): the top few metres, fading over 2.5 m, through the surface's body // x the water level (LIGHT_GLSL's depth); the through-water tint that read y and z went with v11.42 (scene.js)
-  snowLight(above,wk); // the light on the snow, the debris and the blood: the world's where each point is (v11.234; to v11.233 lerp((0.45,0.75,0.95),1,df), the floor that lit it in black water)
+  snowLight(above,wk); // the light on the snow, the debris and the blood: the world's where each point is (v11.236; to v11.233 lerp((0.45,0.75,0.95),1,df), the floor that lit it in black water)
   updateRain(dt,above);
   if(mode!=='play')return;
   // the depth, and nothing else: no place has a name (the person, Sep 2026). Shown under the water, in whole metres, faded at the surface

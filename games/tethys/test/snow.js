@@ -18,7 +18,7 @@ js+='\nglobal.__sn={set:(x,y,z)=>{player.pos.set(x,y,z);player.vel.set(0,0,0);ca
   'stats:()=>{const o={live:0,kinds:[0,0,0,0,0,0],alpha:0,size:0,fall:0,nan:0,ymin:1e9,ymax:-1e9};for(let i=0;i<PN_SN;i++){const x=pp[i*3],y=pp[i*3+1],z=pp[i*3+2];if(x!==x||y!==y||z!==z)o.nan++;if(pk[i]===255||pk[i]===254)continue;o.live++;o.kinds[pk[i]]++;o.alpha+=ps[i*2+1];o.size+=ps[i*2];o.fall+=SN_K[pk[i]].fall;if(y<o.ymin)o.ymin=y;if(y>o.ymax)o.ymax=y;}'+
   'if(o.live){o.alpha/=o.live;o.size/=o.live;o.fall/=o.live;}o.share=o.live/PN_SN;return o;},'+
   'W:(x,y,z)=>{snowSeed(0,x,y,z);const w=[];let W=0;for(let k=0;k<6;k++){w.push(+snowW(k,0,y).toFixed(3));W+=w[k];}return {W:+W.toFixed(3),w:w};}};';
-// v11.234: the light at the snow's points by the shader's sum over its uniforms, against the ground's from three's lights (below)
+// v11.236: the light at the snow's points by the shader's sum over its uniforms, against the ground's from three's lights (below)
 function snowLit(){const f=(dx,dy,dz,D)=>{const u=Math.max(0,1-Math.sqrt(dx*dx+dy*dy+dz*dz)/D);return u*u;},lum=(r,g,b)=>0.2126*r+0.7152*g+0.0722*b;
   return {pl:on=>{FX.plight=on;},dayl:y=>daylightAt(y),hour:h=>{const now=(clockH+SOLAR_H0)%DAY_H;window.skip(((h-now+DAY_H)%DAY_H)/DAY_H);},
     src:(x,y,z)=>{const s={x:x,y:y,z:z,color:0x6fe0c8,intensity:1,distance:12,d:0};lightSources.push(s);return s;},unsrc:s=>{const k=lightSources.indexOf(s);if(k>=0)lightSources.splice(k,1);},
@@ -85,7 +85,7 @@ ok(sh(sites[12],4)>0.15,'the vent field has its sulfide grains ('+(100*sh(sites[
 ok(sites[13].W.w[0]>sites[14].W.w[0]*1.5&&sites[13].S.share>sites[14].S.share,'the ring at the break holds more life than the slope beside it (the live weight '+sites[13].W.w[0]+' vs '+sites[14].W.w[0]+'; the box '+(100*sites[13].S.share).toFixed(0)+'% vs '+(100*sites[14].S.share).toFixed(0)+'%)');
 ok(sh(sites[13],5)>0.03,'and chains in it ('+(100*sh(sites[13],5)).toFixed(0)+'%)');
 ok(sites[15].W.w[0]>sites[16].W.w[0]*1.5&&sh(sites[15],0)>0.15,'the deep maximum at 95 m is alive where the same column 45 m under it is not (the live weight '+sites[15].W.w[0]+' vs '+sites[16].W.w[0]+' at 140; the box '+(100*sh(sites[15],0)).toFixed(0)+'% live)');
-// v11.234 (the person, 25 Nov 2026: "only as bright as its surroundings"): the light on the snow is the world's where each point is. At every point
+// v11.236 (the person, 25 Nov 2026: "only as bright as its surroundings"): the light on the snow is the world's where each point is. At every point
 // drawn, the light the shader adds up from its uniforms (atmosphere.js ptsLit: the ambient in pm.color, the sun by the point's depth, the own light and
 // the pool's by r128's falloff; the sun's per-channel loss with depth left out, it only lowers it) against the light the ground facing up takes there
 // from three's own lights (hemi's sky colour, the sun by depth, plight and the pool by the same falloff) × SN_ALB: never over it. To v11.233 the

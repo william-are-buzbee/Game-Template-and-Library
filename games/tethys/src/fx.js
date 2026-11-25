@@ -7,7 +7,7 @@ const FX_N=Q.tier==='low'?320:720,fxP=new Float64Array(FX_N*3),fxPG=new Float32A
 const FXK=[{life:[3,4.5],fall:0.15,size:[0.7,1.3],grow:0.25,alpha:0.7},{life:[6,9],fall:-0.9,size:[0.35,0.6],grow:0.06,alpha:0.6},{life:[2.5,3.5],fall:0.3,size:[0.5,0.9],grow:0,alpha:0.85}]; // life (s), fall (m/s; bubbles rise), size × the material's, growth (size/s), alpha
 const fxG=new THREE.BufferGeometry();fxG.setAttribute('position',new THREE.BufferAttribute(fxPG,3));/* v11.113: fxP the simulation in doubles, fxPG the GPU's copy against the render origin (atmosphere.js, the snow) */fxG.setAttribute('color',new THREE.BufferAttribute(fxC,3));fxG.setAttribute('aSz',new THREE.BufferAttribute(fxS,2));
 const fxM=new THREE.PointsMaterial({color:0xcfe6ee,size:0.24,transparent:true,opacity:0.8,depthWrite:false,vertexColors:true});
-fxM.onBeforeCompile=function(sh){const n=ptsLit(sh,36,0.4,1.5,false);if(n!==5)console.warn('fx: points chunks not as expected ('+n+' of 5); the debris is lit by the ambient alone');}; // the snow's patch (atmosphere.js ptsLit): a size and an alpha per point, the world's light where it is (v11.234)
+fxM.onBeforeCompile=function(sh){const n=ptsLit(sh,36,0.4,1.5,false);if(n!==5)console.warn('fx: points chunks not as expected ('+n+' of 5); the debris is lit by the ambient alone');}; // the snow's patch (atmosphere.js ptsLit): a size and an alpha per point, the world's light where it is (v11.236)
 fxM.customProgramCacheKey=function(){return 'fxpts';};
 const fxPts=new THREE.Points(fxG,fxM);fxPts.frustumCulled=false;fxPts.visible=false;scene.add(fxPts);
 for(let i=0;i<FX_N;i++){fxS[i*2+1]=0;fxP[i*3+1]=-1e4;}

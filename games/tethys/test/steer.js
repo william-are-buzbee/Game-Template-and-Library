@@ -114,7 +114,7 @@ const gh=(x,z)=>X.groundAt(x,z),gradAt=(x,z)=>({x:(gh(x+1,z)-gh(x-1,z))/2,z:(gh(
 function clearPath(x,z,ux,uz,len){for(let s=-2;s<=len;s+=2){const px=x+ux*s,pz=z+uz*s,p=X.V3(px,gh(px,pz)+1.0,pz);if(X.solidPush(p,1.2,null,null,true))return false;}return true;}
 function findSpot(kind){for(let x=-330;x<=-260;x+=4)for(let z=0;z<=100;z+=4){const h=gh(x,z);const g=gradAt(x,z),gl=Math.hypot(g.x,g.z)||1e-9,ux=g.x/gl,uz=g.z/gl;
     if(kind==='slope'){if(!(h>-14&&h<-5&&gl>0.2&&gl<0.5))continue;if(!(gh(x+12*ux,z+12*uz)-h>2.6&&gh(x+24*ux,z+24*uz)-h>5))continue;P.pos.set(x,h+2,z);X.cellsAround();if(clearPath(x,z,ux,uz,26))return [x,z];}
-    else{if(!(h>0.6&&h<2&&gl>0.08&&gl<0.3))continue;if(!(gh(x+8*ux,z+8*uz)-h>0.6&&gh(x+16*ux,z+16*uz)-h>1.2&&gh(x-8*ux,z-8*uz)-h<-0.6))continue;P.pos.set(x,h+2,z);X.cellsAround();if(clearPath(x,z,ux,uz,16))return [x,z];}}
+    else{if(!(h>1.2&&h<2&&gl>0.08&&gl<0.3))continue; /* from 1.2 m (v11.234; 0.6 to v11.233): the tidewood's trunks had kept the search off (−278, 48), ground 1.0, where a scuttle's 6.9 m in 3 s leaves it 61% under the water */if(!(gh(x+8*ux,z+8*uz)-h>0.6&&gh(x+16*ux,z+16*uz)-h>1.2&&gh(x-8*ux,z-8*uz)-h<-0.6))continue;P.pos.set(x,h+2,z);X.cellsAround();if(clearPath(x,z,ux,uz,16))return [x,z];}}
   return null;}
 let SLOPE=null,STRAND=null;
 function walkRun(id,label){
