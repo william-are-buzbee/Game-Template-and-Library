@@ -30,10 +30,10 @@ const Q=(function(){
   const tier=HASH_TIER||(TIER_SAVED?TIER_SAVED.tier:(isTouch&&small)?'low':'high'),why=HASH_TIER?'hash':TIER_SAVED?'machine':(isTouch&&small)?'touch':'default';
   return tier==='low'
     ?{tier:tier,why:why,pr:1.0,far:1000,flora:0.45,creatures:0.6,lights:2,phong:false,aa:false,budgetMs:8,farMs:2,farQ:6,surf:96,lodNear:0.7,rockLvl:1,target:14,casters:6,shafts:2,cau:3,hrtf:0,vol:1,snow:1000,hz:200,cldSh:0,march:28,sparks:384,cloudRes:0.35,reed:[160,40]}
-    :{tier:tier,why:why,pr:1.5,far:1600,flora:1.0,creatures:1.0,lights:4,phong:true,aa:true,budgetMs:6,farMs:3,farQ:12,surf:192,lodNear:1.0,rockLvl:2,target:7.5,casters:16,shafts:4,cau:5,hrtf:1,vol:1,snow:1800,hz:100,cldSh:1,march:80,sparks:1024,cloudRes:0.5,reed:[250,50]};
+    :{tier:tier,why:why,pr:1.5,far:1600,flora:1.0,creatures:1.0,lights:4,phong:true,aa:true,budgetMs:6,farMs:3,farQ:12,surf:192,lodNear:1.0,rockLvl:2,target:7.5,casters:16,shafts:4,cau:5,hrtf:1,vol:1,snow:1800,hz:100,cldSh:1,march:80,sparks:1024,cloudRes:0.5,reed:[300,50]};
   // snow (v11.24): the marine snow's points (atmosphere.js); the deep is sparse, so many of them are dormant at a time
   // sparks (v11.160): the bioluminescence's pool (fx.js SPK): the most flashes alive at once — a bloom round a sprinting body and a hunter keeps a few hundred
-  // reed (v11.239): the reed's draw distance [far, fade], metres (MATRD) — the person, 25 Nov 2026: 160 on the low tier, 250 on the high "for now"
+  // reed (v11.239): the reed's draw distance [far, fade], metres (MATRD) — the person, 25 Nov 2026: 160 on the low tier, 300 on the high "for now" (option 2's 250 left a shore's far clumps half-faded)
   // cloudRes (v11.188): the cloud volume's pass, a fraction of the drawing buffer on a side (atmosphere.js CLDP; 1 marches in the dome as to v11.187)
   // march (v11.89; v11.90: the name — `vol` was the master volume's key above, and the clouds' 80 steps played the game at 80× gain, the person's "hilariously bass boosted"): the most steps of the cloud volume's march per sky pixel (atmosphere.js cloudVol); the low tier's 28 unmeasured there
   // cldSh (v11.87): the clouds' shadows on the sea and the land in air — one 3D billow noise per fragment (clouds.js cloudSh); off on the low tier until measured there
@@ -893,8 +893,8 @@ const FLORA_FAR=450,FLORA_FADE=90;
 // blade 0.9–2 m by 0.16–0.24; at the tower's worst place (tp(72929,243), the low tier at 1070×624) 957 of the 1,157 reeds sent and 954 of the 1,175 straps
 // were past 150 m — 800k of the frame's 1.33M triangles, specks a few pixels tall there. The seagrass (the strap, MATSG) is drawn to THIN_CUT on both tiers
 // ("do the seagrass too"): under the water the fog has it gone by then, and nothing changed on screen. The reed (MATRD) to Q.reed: 160 m on the low tier,
-// 250 on the high — at 1600×900 a reed bed at 160–250 m on a shore is clumps 15–20 px tall, and the person kept them there "for now" (option 2; the
-// high tier may follow later). Each has a material of its own (its family's program, its own uCut) and fades over the last [1] metres.
+// 300 on the high — at 1600×900 a reed bed at 160–250 m on a shore is clumps 15–20 px tall, and the person kept them there "for now" (option 2; the
+// high tier may follow later). 250, the first guess, left ours' north shore's far bed half-faded (its clumps 200–250 m off, in the fade). Each has a material of its own (its family's program, its own uCut) and fades over the last [1] metres.
 const THIN_CUT=[160,40];
 // v11.194 (analysis_project.md §4): the cut is a uniform, `uCut` (x: the near edge — an instance nearer is gone, 0 none; y: the far edge; z: the fade
 // into it), each material's own (cutUOf) — made for v11.194's far copies (struck v11.201); kept, as it costs nothing and the pictures are the same.

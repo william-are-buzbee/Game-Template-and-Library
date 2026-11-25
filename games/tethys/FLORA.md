@@ -227,10 +227,10 @@ with species per biome capped at eight — measured, not assumed.
   10,759 cells → 50,362 on 2,046 (×0.033); the four big islands (the giant, m109, m122, m153) carry 78% of them (49% before) and keep trees on 23–36% of the cells they
   stood on; the platform, the banks and the atolls keep 0–21% (the platform 9%), and ours none. The reed, the tidewood's dwarf, is untouched.
   *v11.239 (the person, 25 Nov 2026, on the work tower's report #205):* the reed keeps its numbers and places but is drawn only to `Q.reed` — 160 m on the
-  low tier, 250 on the high, each fading over its last 40–50 m (scene.js; its own material `MATRD`). A reed is 1.4–3.6 m of 7 cm rods; at the tower's worst
+  low tier, 300 on the high, each fading over its last 40–50 m (scene.js; its own material `MATRD`). A reed is 1.4–3.6 m of 7 cm rods; at the tower's worst
   place 957 of the 1,157 reeds sent were past 150 m, 600k of the frame's 1.33M triangles, specks a few pixels tall at its size. At 1600×900 a reed bed at
-  160–250 m on a shore is still clumps 15–20 px tall: shown them, the person chose 160 on the low tier and 250 on the high "for now" — *"we can always do
-  it for the high tier later as well."* The seagrass (the strap, `MATSG`) to `THIN_CUT`, 160 m, on both: *"do the seagrass too"*; under the water
+  160–250 m on a shore is still clumps 15–20 px tall: shown them, the person chose 160 on the low tier and a longer cut on the high "for now" — *"we can always do
+  it for the high tier later as well."* 250 left ours' north shore's far bed half-faded (it stands 200–250 m off); 300 keeps it. The seagrass (the strap, `MATSG`) to `THIN_CUT`, 160 m, on both: *"do the seagrass too"*; under the water
   nothing of it showed past that.
 - **Epibionts** (later): small things on big things — beards on tubes, crusts on towers, cones on a stipe's holdfast, a
   loop twined round a stalk — placed from the emergent instance's matrix. Both images are full of it; it is the
