@@ -205,6 +205,18 @@ with species per biome capped at eight — measured, not assumed.
   `young ≤ 0.45`. A flow decades old has crusts, turfs and rust, not a forest: kelp settles new lava within years, but a tall canopy takes
   longer than the rift arms, the fan's fresh blocks (`young` 0.5–1) and the giant's rift flows (0.7) have had. The turfs, the rinds and the
   rust forms keep their range, so a fresh flow reads bare, dark and encrusted between two forests, on either island.
+- **The tidewood's stands** (v11.234; **the person, 25 Nov 2026**: *"greatly reduce the odds of the tidal plant from spawning, make it sparse and
+  completely absent from many above-waterline land areas"*, and *"too much of an eye sore. Interesting in a small dose or most commonly on the larger
+  islands, but in general it should be a minimal part of the game now visually. Should be sparse"*). Decided that day: the tidewood stays, sparse and
+  in stands. `per` 700 → 150, and a stand mask over it (FLORA `stand`, chunks.js `standK`): a seeded low-frequency noise (~3 km features) that is
+  zero over whole stretches of coast and whole small islands, its thresholds lowered by the catchment of the land whose coast is nearest (`isleK`:
+  a high or shield island's land radius, none at 1.5 km and full at 7 km and over, fading 2–5 km off its coast; ours, the atolls, the banks and
+  the carbonate platform have no land above the reef and none). The reason in the world: a tidal forest is a colony that takes a stretch of coast
+  and holds it (its seeds drift; a coast they never reached has none), and it lives on the fresh water and silt a big island's rain brings down —
+  Earth's mangroves are widest at the river mouths of high islands and scant on atolls. Read near and far by one function, so the far copies stand
+  where the trees do. The world's census (the far layer's placement at every try, 19,726 cells whose ground crosses the band): 1,528,208 trees on
+  10,759 cells → 50,362 on 2,046 (×0.033); the four big islands (the giant, m109, m122, m153) carry 78% of them (49% before) and keep trees on 23–36% of the cells they
+  stood on; the platform, the banks and the atolls keep 0–21% (the platform 9%), and ours none. The reed, the tidewood's dwarf, is untouched.
 - **Epibionts** (later): small things on big things — beards on tubes, crusts on towers, cones on a stipe's holdfast, a
   loop twined round a stalk — placed from the emergent instance's matrix. Both images are full of it; it is the
   cheapest "lived-in" there is.
@@ -314,7 +326,9 @@ the trait that wins its spot. Earth appears there only as the proof.
 
 ### The strand (13) and the tide band — parked
 **v11.180:** above the tide, on the high islands' rain, the **platewood** (TAXA "The wood"; DESIGN "The wood") — the greens' canopy tree, placed by
-`woodAt`'s cover rather than an envelope, and drawn past 450 m as the terrain's own shell. The rest of this section is as it was.
+`woodAt`'s cover rather than an envelope, and drawn past 450 m as the terrain's own shell. **v11.234 (the person, 25 Nov 2026):** the tidal
+forest below is built (`tidetree`) and now sparse — stands on a big island's shores, few on a small one's, none on most (Placement rules, "The
+tidewood's stands"). The rest of this section is as it was.
 The land overhaul owns this. Note for then: the 6–9 m tide band is the one place a rigid trunk reaching for light is
 the *winning* form (in air), so a tidal forest — derived from the bladderweed line, roots in the water at high tide,
 the strand's scrub as its dwarf — is the plausible centrepiece, with cones and crusts and pools for a floor.
