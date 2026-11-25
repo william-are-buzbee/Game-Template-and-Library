@@ -1365,7 +1365,7 @@ const FLORA = [
     'reed',
     {mat: MATRD, photo: true, line: 'green', tints: GREENT, s: [0.7, 1.4], air: true, per: 900, env: {h: [-5.5, 1.6], expo: [0, 0.4]}, field: 0.02, maxSlope: 0.6},
     reedB
-  ), // the reed-bed: the sheltered tide band (the rim's inner slope, the island's flat) — under water at high tide, a swamp of stems; drawn to THIN_CUT (v11.239, scene.js), not FLORA_FAR
+  ), // the reed-bed: the sheltered tide band (the rim's inner slope, the island's flat) — under water at high tide, a swamp of stems; drawn to Q.reed (v11.239, scene.js: 160 m low, 250 high), not FLORA_FAR
   species('tussock', {mat: MATGL, photo: true, line: 'green', tints: GREENT, s: [0.5, 1.3], per: 1500, env: {h: [1.2, 60]}, field: 0.02, minH: 1.2}, tussockB),
   species('scrub', {mat: MATGL, photo: true, line: 'green', tints: GREENT, s: [0.7, 1.8], tilt: true, per: 110, env: {h: [2, 60], expo: [0, 0.65]}, minH: 2}, scrubB), // v11.86: not on the shore the waves strike — salt-blasted; on the tuff cone that is its windward rim (the cone has its own exposure, world.js CONE)
   species('platewood', {mat: MATWD, tints: [WOOD_C.leaf, [0.3, 0.39, 0.19], [0.35, 0.39, 0.21]], wood: true, air: true, s: [0.85, 1.15], per: 300, minH: 4, maxSlope: 1.3}, platewoodB), // the wood (v11.180): placed by world.js woodAt's cover and scaled to its canopy's height (chunks.js placeFloraType); no env, no card — past FLORA_FAR the terrain's shell is the wood (scene.js woodGLSL)
