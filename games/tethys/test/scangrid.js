@@ -1,4 +1,4 @@
-// test/scangrid.js — the scans' grid (v11.237, creatures_ai.js CG, cgNear): a school's look for a threat, a grazer's and a hunter's for prey walk the
+// test/scangrid.js — the scans' grid (v11.238, creatures_ai.js CG, cgNear): a school's look for a threat, a grazer's and a hunter's for prey walk the
 // squares their reach covers instead of every creature, and must choose exactly as the walk over all did. In two processes the game boots against the
 // stub, starts a new game, goes to the weed forest's shelf (330, 0: the most creatures) and lets the cells round it load; then the sim runs 600 steps
 // (10 s) with the grid, and with it off (CG.maxC 0: every scan walks every creature). Every creature and the player must come out the same to the bit.
@@ -23,7 +23,7 @@ if(process.argv[2]==='--child'){const linear=process.argv[3]==='linear';
     '\nglobal.__S={creatures,player,startNew,CLADES,BOOT,chunks,CG,cellsAround,get simSteps(){return simSteps;},get mode(){return mode;}};';
   const tmp=path.join(fs.mkdtempSync(path.join(os.tmpdir(),'tethys-scangrid-')),'bundle.js');fs.writeFileSync(tmp,'(function(){"use strict";\n'+js+'\n})();');
   const log=console.log;console.log=()=>{};console.warn=()=>{};require('./stub.js');require(tmp);const S=global.__S;
-  if(linear)S.CG.maxC=0; // every reach too wide: every scan walks every creature, as before v11.237
+  if(linear)S.CG.maxC=0; // every reach too wide: every scan walks every creature, as before v11.238
   global.__FRAME_MS=1000/60;
   for(let i=0;i<3000&&!S.BOOT.done;i++)__step(1);
   S.startNew(S.CLADES[1]);S.player.pos.set(PX,PY,PZ);S.player.vel.set(0,0,0);S.cellsAround();

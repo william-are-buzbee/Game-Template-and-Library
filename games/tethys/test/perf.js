@@ -9,7 +9,8 @@
 // "Here" is the working tree, committed or not. The sources from before are `git archive <ref>` of src/, vendor/ and shell.html, kept in the
 // system's temp folder by the commit's hash (made once). Each bench prints its own output as it runs; then the table, in markdown for the pull
 // request and the CHANGELOG entry, is printed and written to test/render/perf.md. A row worse by more than 10% is marked and listed first.
-// The times are the benches' (each the best of several runs, base and here alternated); the GPU's counts are exact. What none of them is: the
+// The times are the benches' (each the best of several runs, base and here alternated — test/bench_creatures.js's two pages open at once and taking
+// turns cell by cell, v11.237.1); the GPU's counts are exact. What none of them is: the
 // GPU's own time — the shaders, the fill — which is the person's readout at a tp(). Env: N (runs each, handed to the benches).
 'use strict';
 const fs=require('fs'),path=require('path'),os=require('os'),{execFileSync,spawnSync}=require('child_process');
@@ -71,8 +72,10 @@ if(out.fill){for(const [p,o] of Object.entries(out.fill.places)){add('the GPU\'s
     if(o.diff)notes.push('the picture at '+p+': '+(o.diff.n?o.diff.n+' pixels of '+out.fill.size.replace('x','×')+' differ, by up to '+o.diff.max+' of 255':'the same, pixel for pixel'));}}
 const md=[];
 md.push(worse.length?'**Worse by more than 10%:** '+worse.join(', ')+' — say why it is worth it in the first line.':'Nothing worse by more than 10%.');
-// what the times are worth here: identical sources on both sides read up to ×1.02 on frames.js's mean and ×1.09 on its p95 (a cloud session, 18 Nov 2026)
-if(timeWorse)md.push('','A time is a measurement on a shared machine: identical sources on both sides read up to ×1.02 on test/frames.js\'s mean and ×1.09 on its p95 here. A flagged time on code the change did not touch is worth a second run (`--only <bench>`, `N=5`) before it is believed; the counts and the hashes are exact.');
+// what the times are worth here: identical sources on both sides read up to ×1.02 on frames.js's mean and ×1.09 on its p95 (a cloud session, 18 Nov 2026);
+// bench_creatures.js's cells ±4%, and ×0.93–1.07 at the sea and the giant's coast, its builds and frame ±2% (its sides taking turns, v11.237.1, 25 Nov 2026;
+// ×0.81–1.28 at a place before it)
+if(timeWorse)md.push('','A time is a measurement on a shared machine: identical sources on both sides read up to ×1.02 on test/frames.js\'s mean and ×1.09 on its p95 here, and test/bench_creatures.js\'s cells ±4%, up to ×1.07 at the sea and the giant\'s coast, its builds and frame ±2%. A flagged time on code the change did not touch is worth a second run (`--only <bench>`, `N=5`) before it is believed; the counts and the hashes are exact.');
 if(rows.length){md.push('','| measure | before | after | ratio |','|---|---|---|---|',...rows);}
 if(out.gpu&&out.gpu.base){md.push('','What a frame asks of the GPU (test/gpu.js, '+out.gpu.size.replace('x','×')+', exact counts):');
   if(gpu.length)md.push('','| place | count | before | after | ratio |','|---|---|---|---|---|',...gpu,'','Every other count the same.');else md.push('the same at every place, every count.');}

@@ -11771,7 +11771,125 @@ its surroundings."*
   they did, a shade greener with the water's light; (5) a bacterial glow, a carcass's or the pall's lights lighting the snow near them; (6) the
   person's own screen at the faintest values — a few levels of 255 read differently on a monitor than in a headless picture.
 
-## v11.237 — a performance pass: the scans by square, the matrices only of what is drawn, the dark lights skipped (25 Nov 2026)
+## v11.237 — the sea line: the water dome off the far sea's end (25 Nov 2026)
+
+The person: *"Horizon flickering black line above water."* By day, overcast, the eye 1–2 m over calm open sea: a thin dark line exactly on the
+sea–sky boundary, across about the middle half of the screen, flickering.
+
+- **The cause**, reproduced headless (the bench's page, the finback in first person held over open sea, each frame drawn with and without the water
+  dome). The water dome (atmosphere.js `waterDome`: black, fogged into the veil, at FAR·0.95) is, in air, the water column under the surface's far
+  end, and it was cut at the tide. The drawn far sea sits `WAVE_MEAN` under the tide (~0.23–0.30 m: a wave the grid fades out keeps its sharpened
+  mean), with the 150 m swell's troughs still in it along the grid's diagonals. A ray that dipped under the tide just short of the dome met that sea
+  only beyond the far plane, and straight ahead the far plane is only 5% past the dome (FAR against 0.95·FAR; toward the sides 1/cos further, so
+  the gap closes there — hence the middle). So the dome showed bare, 60–90 levels darker than the sea line. And with multisampling the dome's one
+  fragment a pixel coloured every sample of it, so the pixel straddling the dome's water line (half a pixel at 1.5 km is ~1 m) took it in its
+  upper samples too. Which eye height shows it depends on the screen's rows: at 1600×900 from 1.0 m the row on the sea line read 77–94 across
+  28–72% of the width, against 155–165 at the sides; at 1280×720 from 1.2 m, across 25–80%, and from 0.6–1.0 m all the way across. As the body
+  rides the swell the eye passes through those heights: the flicker.
+- **The dome** (atmosphere.js, `DOME_M` 0.2 m): in air it is drawn only where a pixel's step above its fragment lies DOME_M under the *drawn*
+  sea at that point (`fogWaveH2`'s x: the fog chunk's sum of the same waves with the mesh's own fade, clock and chop), so a ray that reaches it
+  has crossed the sea's face first, nearer than the dome and inside the far plane. Half a step (the pixel's top) still left three pixels at the
+  screen's right edge — the position is perspective's, not linear on the screen — so a whole step. Under water it is cut at the tide as before.
+- **The sea disc reaches in** (horizon.js `hzIn`, `HZ_IN` 5 rings, `HZ_DIP` 0.9 m, `uHzIn`). A pixel the dome now leaves falls through to the
+  horizon pass, and from a low eye a ray that passes over the sea's end can reach the tide nearer than where the disc begins (HZ_SEA0·FAR, 1200 m
+  on high), where the pass has only its clear colour. The disc has five more rings inside HZ_SEA0 on its own spacing (to ~0.16·FAR), and the
+  vertex shader draws them onto the circle at FAR·h/(h + HZ_DIP) for an eye h over the tide — where a ray that meets the drawn sea no nearer than
+  the far plane reaches the tide. From 2.7 m up that is HZ_SEA0, and the disc is v11.233's triangle for triangle. **Not seen to matter**: a copy
+  without it scanned clean from eyes of 0.3–1.0 m at 720 rows, the sky's cut below covering the line; by the arithmetic it is needed only on a
+  fine screen (~1,440 rows and up), from ~0.6 m, over shoaled water 1.5 km off. Kept as the guarantee: 960 triangles of no area from 2.7 m up.
+- **The horizon pass's sky is cut at the water a pixel's step down** (SKY_FS `uSkyStep`: 1 in that pass, 0 in the main scene). It was cut per
+  pixel too, at its fragment, so on the sea line it took the pixel whole and left the samples over the disc's curved horizon to the clear colour —
+  half the line pixel's colour once the dome no longer hid it. Not cut at all it would have shaded the whole sea under the disc for nothing (tried
+  first, and struck before it was measured). Under water the sky's cut is as before.
+- **Tests.** test/horizon.js (in `--test`): the drawn sea past 1200 m never more than HZ_DIP under the tide (0.73 m at most, shoaled to the cap);
+  the mesh's chords against the wave sum at the dome's 1520 m within DOME_M (0.12 m at most, shoaled, on the diagonal); the disc v11.233's from an
+  eye 3 m or more over the tide (3,456 triangles) and reaching in from below (842 m from 1 m, 400 from 0.3); the dome's and the sky's cuts in their
+  code. **test/horizon_page.js** (new, in `npm run smoke`, ~1 min): the bench's page, multisampled, the eye at 0.8 and 1.2 m across the grid and
+  1.0 along it, each frame drawn as it is, with the dome hidden, and with the horizon pass's clear colour red — it fails on a pixel by the sea line
+  darker with the dome, or one taking the clear colour bare. v11.233 fails it at all three (1,210, 508 and 1,028 pixels); the dome's fix alone fails
+  the clear colour at all three (154–400 pixels, the sky's per-pixel cut); this passes.
+- **Seen** (headless Chromium, software WebGL, 4× multisampled): the before and after at 1600×900 from 1.0 m (above); a scan at eight eye heights
+  from 0.4 to 3 m and three headings (along the grid, across it, and 17° off): no pixel by the sea line darker with the dome, none of the clear
+  colour bare. The sea-line row at 1280×720 now reads 126–165 in the middle at every eye height (the sky above 188, the sea below 113–121; v11.233:
+  84–109 from 0.6–1.2 m). The menu's sea shot from the build: no page error.
+- **What it cost** (`FILL_PLACES=shore,coast node test/perf.js`, against v11.233). Nothing worse by more than 10%.
+
+  | measure | before | after | ratio |
+  |---|---|---|---|
+  | the GPU's time at the shore (software WebGL, a proxy), ms | 2,829 | 2,980 | ×1.05 |
+  | the GPU's time at the giant's coast (the same), ms | 2,129 | 2,199 | ×1.03 |
+  | the water dome's draw alone, shore / coast, ms | 123 / 123 | 138 / 142 | ×1.12 / ×1.15 |
+  | triangles at the coast, the wood, the shore (the disc's inner rings) | 2.71M, 1.80M, 3.56M | +960 each | ×1.00 |
+
+  Every other GPU count is the same at all seven places, and nothing compiles at first sight. The dome's ×1.12–1.15 is the one row that moved alike at
+  both places (its derivatives and the wave sum on its few rows by the line: ~0.5% of the proxy's frame); draws this version does not touch swing as
+  much there (the wormshell ×1.40, the grape ×1.28), so a row of this tool is good to ±10%. The pictures: 528 pixels differ at the shore, 190 at the
+  coast — the line, which the coast's bench place had too. The CPU's side of drawing is noise (×0.76, ×1.07). SwiftShader's, not your GPU's.
+- **Unseen, ask in this order**: (1) the horizon from the surface at sea, away from land — first person (`f`) and the usual camera, headings along the
+  grid's axes and at 45° between them (the worst before), riding the swell: no dark line and nothing else flickering on it; (2) the same from a few
+  heights (just over the water, a breach, a cliff): the sea line as before but for the line; (3) under water nothing changed (the dome's and the
+  sky's under-water cuts are untouched); (4) your GPU: the fix is geometric (any sample pattern inside a pixel, and the step grows with the pixel
+  at a lower `RES`), but it was seen only in software WebGL.
+
+## v11.237.1 — the creatures bench made fair: both trees' pages open at once, taking turns, every step of a cell the least of eight rounds (25 Nov 2026)
+
+`test/bench_creatures.js` (`perf.js`'s `creatures`) read identical sources on both sides — `src/`, `vendor/` and `shell.html` copied and passed as
+`BASE` — ×0.81–1.28 at a place (25 Nov 2026, before this: the sea ×1.28, the platform ×1.20, the giant ×1.16, the atoll ×1.15, the forest ×0.91 in
+one run, and the table below), so every pull request from v11.230.1 to v11.233 had `perf.js` flag cells worse by more than 10% where the change
+could not reach, each dismissed by more runs. **No game code changed:** the game plays as v11.232.
+
+- **Why.** Less an order than noise the old way could not average out. This machine's speed swings: a fixed loop timed again and again in node read
+  40.8 ms at the median and 48 at the 90th percentile, runs of ten 39–56 ms, and each of its four CPUs drifts on its own; each page's V8 tiers its
+  code and collects on a clock of its own, and its incremental marking slows a run of cells by half wherever it lands. A place is 0.1–0.6 s of work:
+  one tree's whole set and then the other's met two different machines, and the best of two pages a side could not mend that.
+- **Both pages open at once, taking turns** (`round`, `openSide`; the page's pieces are `window.__bc`, each called from node on its own). With
+  `BASE` a round opens both trees' pages, a browser each, booted one after the other (the first to boot alternating by round: the page just settled
+  is the busier one), and runs each section turn about — the build kind by kind, the cells cell by cell (the 3×3 in the order it always was), the
+  frames `BLOCK` 20 at a time — the side going first alternating (base, here | here, base | …) and each round starting with the other.
+- **Every piece the least of its rounds**, not every round's total: a kind's build (first and again), a frame (the simulation is the same frame for
+  frame in every round, held to the bit), and **each step of a cell's generator** (`genChunk` drained as `loadChunkNow` drains it, ~250–700 steps a
+  cell, each timed apart). A cell is 10–150 ms and in a slow spell reads half as long again: with whole cells, four or five rounds left one cell in a
+  few without its fast reading, and a place read ×0.89–1.13. A step misses one only now and then, and costs little when it does. So a cell's time is
+  its work on a quiet machine; what a collection's pause adds falls on a different step each round and is mostly left out, as the best of several
+  runs always left it. A place's time a cell is its cells' steps, each its least, summed. **Eight rounds** (`N`; two pages a side before): resampled
+  from ten rounds, five kept every place within ±5% about half the time (the worst ×0.86, past `perf.js`'s 10%), eight read ×0.93 at the worst.
+- **The page cross-origin isolated** (test/benchpage.js `serve(root, iso)`, `open`'s `iso`: COOP and COEP on the page; three.js's module is already
+  fetched with CORS): its clock reads to 5 µs, not Chromium's 100. A body's rebuild is ~0.15 ms, so every "again" read 0.0–0.3 and their sum over 44
+  kinds read 4.6 ms against 7.1 now. Only this bench asks for it; test/gpu.js, test/fill.js and the rest are as they were.
+- **Tried and dropped:** a whole collection before each cell, off its clock (`gc()` under `--expose-gc`) — no steadier, and `spawn()` read ~40% more
+  after it (the code it flushed paid again); V8 on one thread (`--single-threaded`) or `--predictable` — noisier; every process pinned to one CPU
+  (`taskset`) — the forest 55 → 98 ms and noisier; both pages on one renderer (`--process-per-site`, one context; it cannot be cross-origin isolated)
+  — no steadier: what parts the sides is not the CPU they run on; a median, of a cell's times or of a round's ratio — worse than the least.
+- **The output is the same** (the tables, the bodies' and the simulation's lines, the JSON `perf.js` reads); its times read lower — a forest cell
+  ~42 ms where it read 55–65, an atoll's ~28 where 33–38 — the steps' quiet readings summed, so a cell's time from before this version is not to
+  be set beside one after it (a comparison is base against here in one run, as `perf.js` makes it). `perf.js`'s note on what a time is worth says
+  this bench's figures; test/README.md.
+- **Identical sources as `BASE`, here against there** (this cloud session, 25 Nov 2026; before: the bench as it was, two pages a side; after: as it is
+  now, eight rounds):
+
+  | | forest | atoll | platform | sea | giant | build, again | frame, mean |
+  |---|---|---|---|---|---|---|---|
+  | before, 25 Nov (the prompt's run) | ×0.91 | ×1.15 | ×1.20 | ×1.28 | ×1.16 | | |
+  | before, the cells alone | ×0.83 | ×1.22 | ×1.27 | ×1.04 | ×1.04 | | |
+  | before | ×0.99 | ×1.06 | ×1.02 | ×1.03 | ×0.93 | ×0.90 | ×0.97 |
+  | before | ×0.99 | ×0.81 | ×0.87 | ×0.81 | ×0.85 | ×1.00 | ×1.02 |
+  | before | ×0.97 | ×0.98 | ×0.86 | ×0.91 | ×0.98 | ×0.93 | ×1.02 |
+  | before | ×1.03 | ×0.97 | ×0.86 | ×0.87 | ×1.07 | ×0.94 | ×0.95 |
+  | after | ×0.98 | ×1.02 | ×1.00 | ×1.00 | ×0.99 | ×1.02 | ×1.00 |
+  | after | ×0.99 | ×0.98 | ×0.99 | ×1.06 | ×1.03 | ×0.99 | ×1.00 |
+  | after | ×1.00 | ×0.99 | ×0.96 | ×0.93 | ×0.97 | ×0.99 | ×1.01 |
+  | after, through `perf.js --only creatures` (main's sources: the same) | ×1.03 | ×1.03 | ×1.00 | ×1.06 | ×1.07 | ×0.99 | ×1.01 |
+
+  Within ±4% at the forest, the atoll and the platform, ×0.93–1.07 at the two lightest places (the sea's cells are 7.5 ms, the giant's 30), the
+  builds and the frame within ±2%; ×0.81–1.28 before. The bodies' and the simulation's fingerprints are the old bench's, run whole
+  (`999b63ae`, `f0fd763f`, `7e6a7073`): it builds and steps the same game.
+
+- **What it costs to run:** ~5½ minutes with `BASE` (eight rounds of ~38 s; the frame's turns and the steps' timing add
+  nothing measurable), against ~1¼ before. `N=4` halves it, at up to ±16% at the sea (resampled).
+- **Seen:** the runs above, every body the same to the bit and the simulation the same in each. Nothing in the game to look at.
+- **Unseen, ask in this order:** nothing; the person runs no bench.
+
+## v11.238 — a performance pass: the scans by square, the matrices only of what is drawn, the dark lights skipped (25 Nov 2026)
 
 The person (25 Nov 2026): *"many updates have happened recently. I want you to look through and find any performance updates we can do to make the
 game more easily playable now."* Measured before touching anything:

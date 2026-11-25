@@ -32,7 +32,7 @@ node build.js            tethys.html (everything inlined), dev.html (src/*.js lo
 node build.js --test     the build, then every headless test on both tiers; exit 1 on any failure (JOBS=n side by side, SHARD=k/n one part)
 node serve.js            http://localhost:8080/dev.html (edit and refresh) or /tethys.html (the build)
 node test/types.js       the type checker over src/ against its baseline, test/types.json (also `npm run typecheck`, which CI runs)
-npm run smoke            the browser tests CI runs: node test/gpu.js --check, node test/boot.js
+npm run smoke            the browser tests CI runs: node test/gpu.js --check, test/boot.js, test/wcache_page.js, test/three187.js, test/horizon_page.js
 ```
 
 - Node 22. Python is **not** on the person's PC; `build.py` is the same build for sandbox sessions. Change `build.js` and `build.py` together:
@@ -326,11 +326,11 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
   whole. **Every creature, its `st` and its def are one shape**: a key a creature takes as it lives is in spawn's literal (unset) and its
   `Creature` typedef, a `DEFS` key is in `DEF_KEYS`, a def is never written after load (`scaledDef` copies it flat); `test/live.js` fails
   otherwise, and the type checker on any typed path. The player is one shape the same way (`Player`, player.js).
-- **A scan of the creatures by distance goes through the grid** (creatures_ai.js `CG`, `cgNear`; v11.237): `for(const o of cgNear(x,z,R)||creatures)`,
+- **A scan of the creatures by distance goes through the grid** (creatures_ai.js `CG`, `cgNear`; v11.238): `for(const o of cgNear(x,z,R)||creatures)`,
   the loop's tests as they were — it hands the live creatures within R in `creatures`' order, or null to walk them all. It is built at the step's start
   (`updateSchools`) and holds because inside the step's loop a body moves only in its own update and is re-filed after it (`cgMove`): code that moves
   another body in the loop re-files it, or test/scangrid.js fails (it checks every body's square at every scan). After the loop `CG.on` is false.
-- **The main pass recomposes only the creatures' parts it draws** (creatures_ai.js `crMW`, `MW.hide`, horizon.js `renderFrame`; v11.237): a creature
+- **The main pass recomposes only the creatures' parts it draws** (creatures_ai.js `crMW`, `MW.hide`, horizon.js `renderFrame`; v11.238): a creature
   out of sight keeps its parts' matrices from the last frame they were drawn. The root's own `c.g.matrix` is kept current as three keeps it (the sim
   reads it); the sim never reads a part's `matrix`/`matrixWorld` — call `updateMatrixWorld(true)` on the group first, as the bakes do.
 - **Every record is one shape** (world.js `recNew`, typed `Rec`): every key any record carries, in one order; a key unset with `undefined`, never
