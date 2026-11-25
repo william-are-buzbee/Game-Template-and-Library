@@ -401,6 +401,8 @@ species), never one per animal; what it costs is measured (`test/bench_creatures
   helix), `DEFS.plumb` (`upright`, `station` wall and lee, `below` 0.5), creatures_ai.js `updatePlumb`, chunks.js `stationPoint`. Named for a plumb line;
   "the hanger" in this section is the same animal. Its day depth is the swarm's (or its arms' reach over the floor), its night depth near the surface
   (−28, deeper under a full moon); 1.2 m/s between. About 1,700 in the world at the census's equilibrium (the ortho 17,000), at walls only.
+  v11.230.1 (the person, 24 Nov 2026; BEHAVIOUR §3d): it roams — by day its station round its post, by night off the wall with its shell's top 3–6 m
+  under the surface; and the wall is cover, not a need: a thinner population hangs off the walls in still water.
 - **Seen by the person (23 Nov 2026), v11.223.1**: *"I really enjoy it"* — but it did not read as hanging (*"more like it's just... there... stands
   perfectly still, you get close and it grabs you"*, standing on the floor) and was too rare. So: its arms' tips at least 0.7 × size over the floor
   (`HANG.gap`); a slow bob, a pendulum sway that turns it, a drift round its station; carried by the current and pushed by bodies, drifting back;

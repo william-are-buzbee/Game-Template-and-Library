@@ -246,8 +246,17 @@ const SPAWN=[
   {kind:'abyssal',n:0.1,env:{h:[-560,-380],nut:[0.25,1]}}, // the rim of the dark where the water is fed (PLANET: the rim, forays below). v11.66: it was h −800..−400 over the whole basin's flanks, where the sill's and the far floor's cells reach no combs, and the 120-day census had it collapsing 70 → 12 since v11.65 (the 40-day run --test makes does not see it); the ledger's reach is 5×5 cells, so its home band is the two cells over the combs' deep edge
   {kind:'plumb',n:12,env:{h:[-520,-30],flow:[0,0.45]}}, // v11.223: the walls in still water (DEFS station: the capacity is the cell's share of wall and lee, ecology.js ecoCap) — the foot to −520, the face up past −450 (its shell's floor); the ortho's opposite, which wants the current. Last: a new row goes at the end, so every row before it draws from a cell's rng as it did (the seeded tests' runs)
   {kind:'quill',grp:5,n:8,env:{h:[-54,-16],sub:[0.55,1],nut:[0.45,1]}}, // v11.227: the weed forest (its canopy station: the stalks' envelope); new rows go last. v11.227.1: in stands of five (shrimpfish hang together), and n 3 → 8 — the person found none round the island at 1–2 a cell (n 12 overshot: the quill halved in 60 days and took the hook, its rival for the same small fish, to 47%)
-  {kind:'hoop',n:0.12,env:{h:[-450,-80],nut:[0.5,1]}} // v11.227: the open water over the fed, cold flank — the upwelling, where the swarms are (the veil's deeper, the comb's on the plain)
+  {kind:'hoop',n:0.12,env:{h:[-450,-80],nut:[0.5,1]}}, // v11.227: the open water over the fed, cold flank — the upwelling, where the swarms are (the veil's deeper, the comb's on the plain)
+  // v11.230.1 (the person, 24 Nov 2026: "can this animal go here and survive? is a big open area lethal for them? Where can they make it? Then put them
+  // there to expand their range … why can't there be squids out in the shallows, or in the open ocean"). st: the row's own stations, for the kind's
+  // (stOf); mid: placed in the water column, not over the floor, and it keeps to its depth there (the creature's pel, setWander)
+  {kind:'plumb',n:0.4,st:['lee'],env:{h:[-600,-40],flow:[0,0.3]}}, // a hung body needs still water, not a wall (the wall is cover from what hunts it, and the wall's own row is eight times as dense): off the walls, over the slopes and the flank, thinly — the ledger feeds it where its prey is
+  {kind:'quill',n:1,env:{h:[-54,-16],sub:[0.55,1],nut:[0.45,1]}}, // and alone in the weed: a stand is how shrimpfish live, not the only way
+  {kind:'quill',n:0.4,st:['lee'],env:{h:[-40,-8],expo:[0,0.6]}}, // and alone over the shallows' still water past the weed — turf, rock, sand: its prey (the ribbons, the needles) is there too; out of the stalks it has no cover
+  {kind:'arrow',grp:5,n:1.2,mid:true,env:{h:[-300,-60],nut:[0.5,1],flow:[0.3,1]}} // a pack in the open water over the upwelling, with the sifters it hunts (Earth: most squid are oceanic)
 ];
+// a row's stations (v11.230.1): its own (st), else its kind's (DEFS.station)
+function stOf(e){return e.st!==undefined?e.st:DEFS[e.kind].station;}
 // ---------- the stations (v11.223; CLADES, The radiation: habitat at three scales) ----------
 // Habitat's second scale, where in its cell an animal stands (the first is SPAWN's envelope, the cells; the third the clock). A kind names its
 // stations (DEFS.station); each is a score 0..1 at a point from the ground round it, and the kind's is their product. The ledger weighs a cell's

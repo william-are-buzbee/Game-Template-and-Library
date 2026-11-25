@@ -4,6 +4,14 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.230.1 (24 Nov 2026): the hangers roam** (creatures_ai.js `ROAM`, `plumbRoam`, `standFollow`, `quillHide`, `hangGo`, `hangPath`, `hangFloor`,
+`plumbY`, `PLUMB.surf`; creatures_defs.js `SPAWN`'s last rows, `stOf`; chunks.js `placeKind`; ecology.js; test/ringmouths.js; BEHAVIOUR §3d; DESIGN
+Creatures; CHANGELOG). The person on v11.230: the plumbs and the quills should roam, quills need not be in stands, the plumb's rise reads only with
+lateral movement near the surface, and ranges should follow where an animal can live. By day a hanger moves its station now and then round its post
+(a stand together); every plumb leaves at dusk, fed or not, and roams the night with its shell's top 3–6 m under the surface, slanting up as it goes;
+a hungry plumb no longer forages on through the day. New rows: plumbs off the walls in still water, quills alone in and past the weed, an arrow pack
+in the open water over the upwelling. **Ask:** BEHAVIOUR §8.6–7 — whether the night's plumbs read now; ranges by survival in a session of their own.
+
 **v11.230 (24 Nov 2026): the ringmouths** (creatures_ai.js `updatePlumb`, `PLUMB`, `trimOf`, `phaseOf`, `QUILL`, `PACK`, `INK`, `LURK`, `landBite`;
 creatures_defs.js `DEFS.great`, `BEHAVE`; creatures_spec.js `SPECS.great.hit`; test/ringmouths.js; BEHAVIOUR §3c; DESIGN Creatures; CHANGELOG). The person:
 *"go ahead with the ringmouths pass and the plumb."* A hungry plumb leaves its wall at night to forage at the layer's depth, goes up a carcass's scent
@@ -40,13 +48,6 @@ quill: the plumb's line at 3 m, hung among the weed forest's stalks by the new c
 (392 → 73 in 90 days: its prey breed too slowly), now eats the ortho too: from 2,017 it settles near half that (its least ~970 at day 325, rising after), the ortho steady at ~12,900. **v11.227.1**: the person found the hoop by accident while searching the island for a single quill — there were ~15 on the whole shelf;
 now ~40 there, in stands of five (`grp`, `n` 8). **Ask:** does the hoop read as a filter
 giant (its ring open in a swarm); can the quill be found among the stalks, and is it the small upright one they meant.
-
-**v11.226 (24 Nov 2026): the individual for every placed species** (creatures_defs.js `VARIETY`, `GROW`, `MORPHS`, `VARY_AUTO`; creatures_ai.js
-`autoVary`, `KIND_LOD`; test/variety.js, test/combat.js; VARIETY.md; DESIGN; CHANGELOG). All 38 kinds the ledger places are individuals: the clades' growth
-laws (soft ringmouths narrow, slowbloods' old giants, hingeshells in moult steps, drifters by food), morphs with causes (red, yellow, dark, pale,
-banded, spotted), proportions by part; five uniform (the schools, the pall, the cinder). First sight of a busy place ×1.13 (once a session); the
-frame level; no hitch on the person's card. **v11.226.1**: a morph's odds follow the place (`placeOf`, `FAVOUR`) — the dark ones where the background
-is dark, about one in 100 on the bright dunes; the black ridge 37% over the open ocean. **Ask:** whether the dark morphs now sit where the dark is.
 
 ## Open
 

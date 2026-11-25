@@ -6,12 +6,12 @@ const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..');
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
 let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n');
-js+='\nglobal.__pl={CK,clockTick,setClock(h){clockH=h;TIDE=tideAt(h);clockTick();},CLADES,NCELL,CELL,HALF,FI,STATION,HANG,DEFS,SPAWN,SKY,POP,stationW,gridRise,stationPoint,envW,sample,ecoCap,ecoId,swarmDepth,plumbY,chunkIJ,loadChunkNow,cellOf,groundAt,creatures,player,spawn,removeCreature,placeKind,findPrey,updateCreatures,updatePlayer,finishPlayer,get bodies(){return bodies;},get mode(){return mode;},choose,faceQ,V3,mulberry,setT(v){t=v;},get t(){return t;}};';
+js+='\nglobal.__pl={ROAM,CK,clockTick,setClock(h){clockH=h;TIDE=tideAt(h);clockTick();},CLADES,NCELL,CELL,HALF,FI,STATION,HANG,DEFS,SPAWN,SKY,POP,stationW,gridRise,stationPoint,envW,sample,ecoCap,ecoId,swarmDepth,plumbY,chunkIJ,loadChunkNow,cellOf,groundAt,creatures,player,spawn,removeCreature,placeKind,findPrey,updateCreatures,updatePlayer,finishPlayer,get bodies(){return bodies;},get mode(){return mode;},choose,faceQ,V3,mulberry,setT(v){t=v;},get t(){return t;}};';
 const tmp=path.join(require('os').tmpdir(),'tethys_plumb.js');
 fs.writeFileSync(tmp,'(function(){"use strict";\n'+js+'\n})();');
 process.env.PICK='0';
 require('./stub.js');require(tmp);
-const X=global.__pl;{let noon=0,hi=-2,dark=-1;for(let h=0;h<300;h+=0.05){X.setClock(h);if(X.CK.sun>hi&&h<30){hi=X.CK.sun;noon=h;}if(dark<0&&X.CK.night>0.99&&X.CK.moonL<0.005)dark=h;}X.day=()=>X.setClock(noon);X.night=()=>X.setClock(dark);}let fails=0; // v11.229: the layer reads the step's sky (CK) from the clock — noon, and a moonless midnight
+const X=global.__pl;X.ROAM.hang.every=X.ROAM.stand.every=1e12; /* v11.230.1: the day's roam is test/ringmouths.js's; here a hanger keeps its station */{let noon=0,hi=-2,dark=-1;for(let h=0;h<300;h+=0.05){X.setClock(h);if(X.CK.sun>hi&&h<30){hi=X.CK.sun;noon=h;}if(dark<0&&X.CK.night>0.99&&X.CK.moonL<0.005)dark=h;}X.day=()=>X.setClock(noon);X.night=()=>X.setClock(dark);}let fails=0; // v11.229: the layer reads the step's sky (CK) from the clock — noon, and a moonless midnight
 Math.random=X.mulberry(23);
 function check(ok,msg){if(!ok){fails++;console.error('  FAIL '+msg);}else console.log('  ok   '+msg);}
 const fl=v=>{const a=new Float32Array(9);a[X.FI.flow]=v;return a;},dt=1/60,D=X.DEFS.plumb,ei=X.SPAWN.findIndex(e=>e.kind==='plumb'),E=X.SPAWN[ei];
@@ -67,7 +67,7 @@ if(P){for(const c of X.creatures.slice())if(c!==P)X.removeCreature(c); // the ce
   P.vel.set(3,0,0);frames(2,()=>{away();});const pushed=P.pos.x;frames(60*20,()=>{away();});
   check(Math.hypot(P.pos.x-x0,P.pos.z-z0)<X.HANG.drift[0]+4,'a push moves it and it drifts back');
   X.night();let maxV=0;frames(60*40,()=>{away();maxV=Math.max(maxV,Math.abs(P.vel.y));});const nightY=P.home.y;
-  check(nightY>dayY+5,'its station rises at night with the swarm\'s layer (day '+dayY.toFixed(0)+', night '+nightY.toFixed(0)+')');
+  check(nightY>dayY+5,'its station rises at night (v11.230.1: to just under the surface) (day '+dayY.toFixed(0)+', night '+nightY.toFixed(0)+')');
   check(maxV<=X.HANG.rise*1.1,'by buoyancy, at about '+X.HANG.rise+' m/s at most ('+maxV.toFixed(2)+'; the water\'s own drift on top)');
   check(Math.abs(P.pos.y-nightY)<Math.abs(dayY-nightY),'and climbs toward it');}
 
