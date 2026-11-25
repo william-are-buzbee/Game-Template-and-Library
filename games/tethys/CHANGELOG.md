@@ -11522,3 +11522,55 @@ from stamina, rides with it (the person, 19 Nov 2026: *"Hunters may outrun you i
   finback for some seconds, then falls off); (2) a grazer herd bolting as one when you come at the edge of it; (3) the slope's slowbloods slower in the
   cold (the eel, the grazer on the terraces) — noticeable, or too much; (4) the basker leaving a chase to go back to its vents; (5) BEHAVIOUR §8.8, the
   player's cold as a finback — yours to decide.
+
+## v11.232 — the hingeshells: the strike as the only hunt, the valves breathing, the dens, the moult's cue, the hook's drop and climb, the scuttles on the flats (25 Nov 2026)
+
+The person (25 Nov 2026), on v11.231: *"go ahead with the hingeshells pass. tested and merged. looks good, being hunted seems OK."* BEHAVIOUR.md
+§4's fourth pass (§3f). PLANET's hingeshells: an exoskeleton that must be shed — *"shed carapaces on the floor, dens in the rock, and a soft state after
+each moult"* — that *"cannot undulate … burst and coast, poor turning, explosive grabs. None of them wins a chase; the terror is the strike"*, and the
+hinge *"raised when swimming or walking, clamped shut when threatened and through the moult"*.
+
+- **The strike as the only hunt** (creatures_ai.js `HINGE`; creatures_defs.js `DEFS.hinge`: a hingeshell hunter that strikes — the hose, the sickle,
+  the hood, the lash, the ram, the relict): no sprint (`CHASE.hingeshells` 0.25 → 0), and a hunt in which it has begun no strike for `HINGE.chase` 8 s,
+  or whose strikes have missed `HINGE.misses` 2 times, it gives up (`dropTarget` now clears `missN`, a hunt's own count). Its strike is as it was.
+- **The valves breathe** (creatures_spec.js `VALVE`, the hinge's anim, on the creature's own clock, t + its `t0`): at rest, under `VALVE.still`
+  0.3 of the anim's speed, they rise by up to `VALVE.lift` 0.1 rad over their resting lift and sink again over `VALVE.p` 5 s, each out of step with its neighbours; up as before
+  walking or swimming; shut clamped (the freezers at a threat, v11.229) and through the moult.
+- **The dens** (`DEN`, `denSpot`, `toDen`, `inDen`; `DEFS.dens`: the hingeshells that rest in cover — the wedge, the lash, the hose, the sickle; the
+  creature's `den`): the first cover it rests in is its den, gone back to for every rest within `DEN.r` 60 m; the wedge bolts for its den at a threat
+  it cannot freeze out when the den is within `DEN.flee` 18 m and not toward the threat, and clamps in it; in its den (`DEN.at` 1.5 m) it is covered as
+  the weed covers (`coverOf`).
+- **The moult's cue** (`premoult`, `awakeC` for every role's `awakeOf`, `MOULT.cue` 1; LINEAGE §12.34, agreed 22 Sep 2026: *"the valves stop raising,
+  the coat dulls, a hint in the last hour"*): in its last game hour before a moult a hingeshell's valves stay down and it is out of its hours — to its
+  rest (its den), hunting only starving. **The soft window** (§12.34: *"whatever is believable in nature for animals of that size that moult"*; a decapod
+  is soft a twentieth to a tenth of its intermoult): `MOULT.soft` 0.5 → 1 game day at unit mass, 5% of `MOULT.every` (2.5% before), matching the start's
+  soft share `MOULT.frac` 0.05. line.js gives the player the world's `MOULT`: a hose player is soft 1.36 game days (54 real minutes, 27 before) — the
+  person's to keep or split (BEHAVIOUR §8.9).
+- **The hook** (`HOOK`, `hangSpot`; `DEFS.hook.below` 0.3): it takes only what is under it and drops on it; climbs back to its post at `HOOK.climb`
+  1 m/s (4 before); hungry in its hours, `HOOK.give` 120 s with nothing taken, it climbs to another post 6–20 m off, 5–14 m over the floor, out of any
+  solid and beside one where it can. To v11.231 it hung at its first post for good.
+- **The scuttles on the flats** (`TIDEW`, `tideFlat`, `setWander`; `BEHAVE.scuttle`: `tidal`, act's tide weight −0.5): in its hours at low water a
+  scuttle's wanders go to the wet sand 0.2–2.5 m over the waterline within 60 m of home — the water's scuttles up out of it, the strand's down — and back
+  with the flood; out of the water no fish follows (`ashore`).
+- **One shape**: the creature's `den`; the defs' `dens`, `hinge`, `tidal`.
+- **Tests.** test/hingeshells.js (new, ~7 s, in `--test`): a scuttle's valves 0.1 rad up at a breath's top, up walking, shut clamped; a lash three
+  hours from its moult about at night, in its last hour its valves down, awake 0, at rest; a lash's first cover kept as its den 11 m off, covered in it
+  (1.00), gone back to from 15 m off in 7 s; a wedge bolting 10 m for its den away from the player in 5.3 s and clamping there; the dens only the
+  cover-resting hingeshells'; a starving sickle's pursuit at 8.8 m/s at the most against its 9.4 (its strike's lunge 17), given up at 8.0 s with no strike
+  begun and at two misses, a ridge not held to it; a hook at noon taking nothing level with it 3.5 m off and dropping at once on the player 3.4 m under
+  it, climbing back at 1.05 m/s, and after 128 s with nothing climbing to a post 19 m off, 5.2 m up, out of any solid; a scuttle at a shore (314, −130):
+  at low water (−4.3 m) 31 of 40 wanders on the wet sand, at high water (3.6 m) none, and walking up out of the water in 19 s. test/clock.js: the risk's
+  hook is 8 m over the bodies it weighs (it takes only what is under it now). test/live.js: the high tier 7 hunts begun and 5 kills in 60 s (6 and 4
+  before), the low tier 2 and 2.
+- **The ledger** is not touched (the paper model has no moult, no den, no tide); no census was needed.
+- **What it cost** (`node test/perf.js` against main, v11.231; five runs a side): the creatures' frame at (330, 0) ×1.01 mean and ×0.96 in a second
+  run, p95 ×1.09 and ×1.15 (identical sources read up to ×1.09 there); every kind's build ×0.82–0.86, the cells ×0.77–1.09; the GPU's counts the same at
+  every place, the pictures within 43 pixels. Flagged in one run or both, and none a cost: Chromium's creature frame ×1.14 (v11.231's run read ×0.90 on
+  near-identical code) and the CPU's side of drawing at the canopy ×1.16 and ×1.15 — three more canopy runs by `test/fill.js` alone read ×0.87, ×0.67
+  and ×0.83, and the shore ×1.18 and ×0.98: that wall-clock measure swings ±30% here. What the pass adds a frame is a sine for each hingeshell at rest
+  in sight (its valves' breath) and nothing else; the dens, the cue and the flats are reads at a scan or a rest.
+- **Seen**: the build booted in Chromium with no page error (`npm run look`). The pass is behaviour; test/hingeshells.js holds its numbers.
+- **Unseen, ask in this order**: (1) whether the hingeshell hunters (the sickle on the rockfall, the hood on the flats, the lash on the ledges) still
+  frighten when they strike and let you go, instead of chasing; (2) the valves breathing on a resting hingeshell (0.1 rad, every 5 s) — visible, or too
+  much; (3) a wedge running to its crevice as you come; (4) the scuttles out on the wet sand at a low tide at night; (5) a hook dropping on you from above;
+  (6) BEHAVIOUR §8.9 — the soft window on the player, now 54 real minutes for a hose.

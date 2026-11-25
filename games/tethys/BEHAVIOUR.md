@@ -4,7 +4,8 @@
 (v11.229): the senses (§3b); the sky and the pall's lights in the step. The ringmouths' pass built (v11.230, §3c): the plumb's night, the quill's
 stand, the arrows' pack and ink, the lurker's giving-up, the great a hunter; v11.230.1 the hangers' roam, the plumb's night under the surface, the
 wider ranges (§3d). The slowbloods' pass built (v11.231, §3e): the water's warmth and the body's, the basker's basking, the herd's alarm, the
-abyssal's forays, the chase paid from stamina.** The person on v11.228: *"I play tested and enjoyed it, go ahead with pass 1."*
+abyssal's forays, the chase paid from stamina. The hingeshells' pass built (v11.232, §3f): the strike as the only hunt, the valves, the dens, the
+moult's cue, the hook's drop and climb, the scuttles on the flats.** The person on v11.228: *"I play tested and enjoyed it, go ahead with pass 1."*
 On v11.229 (24 Nov 2026): *"go ahead with the ringmouths pass and the plumb."* Next, the slowbloods (§4). Downstream of `PLANET.md` (each clade's deep decision is where its behaviour comes from), `CLADES.md`
 (habitat at three scales: the range, the station, the clock), `COMBAT.md` (what a hold means; pass D is the person's predator pass) and `DIRECTION.md`
 (the loop). The numbers live in `creatures_defs.js` (`BEHAVE`, `EYE_K`, `LAT_CLADE`) and `creatures_ai.js` (`CLK`, `REST`, `RISK`, `SENSE`, `SCENT`, `FREEZE`);
@@ -260,6 +261,40 @@ function, one multiplier in the hunters"*, and DIRECTION's decision 2 said yes t
 Not built in the pass: the player's cold (§8.8); the schools' (their motion is the school's); the seasons in the mixed layer; the stone's own strike in
 the cold (its notice and hunger only).
 
+## 3f. The hingeshells (v11.232)
+
+The person (25 Nov 2026), on v11.231: *"go ahead with the hingeshells pass. tested and merged. looks good, being hunted seems OK."* PLANET's
+hingeshells: *"an exoskeleton that must be shed … shed carapaces on the floor, dens in the rock, and a soft state after each moult"*; *"they cannot
+undulate … burst and coast, poor turning, explosive grabs. None of them wins a chase; the terror is the strike"*; the hinge *"raised when swimming or
+walking, clamped shut when threatened and through the moult"*.
+
+- **The strike as the only hunt** (creatures_ai.js `HINGE`; `DEFS.hinge`: a hingeshell hunter that strikes — the hose, the sickle, the hood, the lash,
+  the ram, the relict): no sprint (`CHASE.hingeshells` 0; it was 0.25 in v11.231), and a hunt with no strike begun for `HINGE.chase` 8 s, or whose
+  strikes have missed `HINGE.misses` 2 times, it gives up. It closes on its burst and coast and strikes, or lets the prey go. Its strike is unchanged:
+  the sickle's lunge is 17 m/s against its 9.4 cruise.
+- **The valves** (creatures_spec.js `VALVE`; on the creature's own clock, its `t0` in it): at rest (under `VALVE.still` 0.3 of the anim's speed) they breathe —
+  raised by up to `VALVE.lift` 0.1 rad over their resting lift and lowered again over `VALVE.p` 5 s, each animal out of step with its neighbours; walking or swimming they are up
+  as before; clamped at a threat (the freezers, v11.229) and through the moult they are shut.
+- **The dens** (`DEN`, `denSpot`, `toDen`, `inDen`; `DEFS.dens`: the hingeshells that rest in cover — the wedge, the lash, the hose, the sickle; the
+  creature's `den`): the first cover it rests in is its den, and it goes back to it to rest while within `DEN.r` 60 m. A grazer with a den (the wedge)
+  bolts for it at a threat it cannot freeze out, when it is within `DEN.flee` 18 m and not toward the threat, and clamps in it. In its den (within
+  `DEN.at` 1.5 m) it is covered as the weed covers (`coverOf`: seen at half the reach).
+- **The moult's cue** (`premoult`, `awakeC`, `MOULT.cue` 1; LINEAGE §12.34, agreed 22 Sep 2026: *"the valves stop raising, the coat dulls, a hint in
+  the last hour"*): in its last game hour before a moult a hingeshell's valves stay down and it is out of its hours — it goes to its rest (its den, if it
+  keeps one) and hunts only starving. The moult still waits for no one to be looking. **The soft window** (§12.34: *"whatever is believable in nature
+  for animals of that size that moult"* — a decapod is soft for a twentieth to a tenth of its intermoult): `MOULT.soft` 0.5 → 1 game day at unit mass,
+  5% of `MOULT.every` 20 (it was 2.5%), the start's soft share (`MOULT.frac` 0.05) the same now. **It is the player's too** (line.js runs the world's
+  `MOULT`): a hose player is soft 1.36 game days after a moult, 54 real minutes (27 before) — §8.9.
+- **The hook** (`HOOK`, `hangSpot`; `DEFS.hook.below` 0.3): it takes only what passes under it (a third of the distance down at the least) and drops
+  on it; it climbs back to its post at `HOOK.climb` 1 m/s (4 before); hungry in its hours with nothing taken for `HOOK.give` 120 s it climbs to another
+  post `HOOK.step` 6–20 m off, `HOOK.hang` 5–14 m over the floor, out of any solid and beside one where it can. (To v11.231 it never moved.)
+- **The scuttles on the flats** (`TIDEW`, `tideFlat`; `BEHAVE.scuttle`: `tidal`, and a fourth `act`, −0.5, less about at high water): in its hours at
+  low water (the tide under `TIDEW.lo` 0.35) a scuttle's wanders go to the wet sand just above the waterline (`TIDEW.band` 0.2–2.5 m over it) within
+  `TIDEW.r` 60 m of home — the water's scuttles walk up out of it, the strand's down to it — and back with the flood. No fish follows it out.
+
+Not built in the pass: the coat's dulling before a moult (the coat is the kind's shared geometry; a creature's own tint would be a new channel); the
+cue on the player's own moult; the dens of the buriers (their bury is anywhere); the clamp as armour (a clamped valve as the covering a bite meets).
+
 ## 4. The plan (the passes)
 
 0. **The clock and the risk** — built v11.228 (§2, §3, §6).
@@ -275,7 +310,7 @@ the cold (its notice and hunger only).
    remember"), if wanted, as a wariness a cell's kind keeps — VARIETY forbids the ledger remembering an individual.
 3. **Slowbloods** — built v11.231 (§3e), but for what §3e leaves. As planned: the temperature model (the basker basking, sluggish if it strays; the stone torpid; the ridge's mixothermy); the grazers a herd whose
    alarm spreads; the abyssal's forays below the light; the chase paid from stamina (COMBAT §11 pass 4: *"hunters may outrun you in a short burst"*).
-4. **Hingeshells**: the valves clamped at a threat and breathing at rest; the dens; the moult's cue (LINEAGE §12.34); the hook climbing and dropping from
+4. **Hingeshells** — built v11.232 (§3f), but for what §3f leaves. As planned: the valves clamped at a threat and breathing at rest; the dens; the moult's cue (LINEAGE §12.34); the hook climbing and dropping from
    above; the scuttles on the strand at low tide; the strike as the clade's only hunt.
 5. **Drifters**: eating what they sting; stranding; what eats them (DRIFTERS' open list).
 6. **Between kinds**, where Earth backs it: needles shadowing the ram for the shoal it stuns (the jacks with the moray); scavengers queuing at a carcass
@@ -340,3 +375,6 @@ the drawing makes the cloud's blobs for each the step queues (`PHO_Q`). **The pl
    gives it to the world's slowbloods only. Played as a finback, should the thermocline slow you as it slows them (a finback at −200 at 0.43 of its
    speed and turn, warming again in the shallows or at the vents) — and how strongly, since it changes where a finback can go? The ringmouths and the
    coilshell would be untouched (PLANET: their clade is not cold-limited).
+9. **The soft window on the player** (§3f): v11.232 doubles the world's `MOULT.soft` to nature's lower end (LINEAGE §12.34's answer), and line.js
+   gives the player the world's rule — a hose player soft 54 real minutes after a moult, not 27. If that is too long to play, the player's window can be
+   its own number.

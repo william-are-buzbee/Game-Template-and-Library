@@ -80,7 +80,7 @@ function hatchS(spec){return ECO.hatch*Math.pow(ecoOf(lineKind(spec)).mass,0.25)
 // playerClade takes any scale): MOULT_P.juv moults from the hatch to grown, a step of scale at each, the last at grown; soft after each for a share of the
 // interval (juvSoft — the adult's soft days would outlast a juvenile's interval). Everything is a function of the clock (moultN, moultAt: the life's born and
 // grown), so an unload, a run-on or a save change nothing; the life keeps only the count done and the clock it hardens at. The hose: 27 game days between
-// moults, soft 0.68 (27 real minutes); the sickle 67 days and 1.67 (an adult that never moults in a session — the person tunes MOULT.every)
+// moults, soft 1.36 (54 real minutes; 0.68 to v11.231, MOULT.soft doubled by LINEAGE §12.34); the sickle 67 days and 3.3 (an adult that never moults in a session — the person tunes MOULT.every)
 const MOULT_P={juv:3,juvSoft:0.25}; // juv: moults from the hatch to grown, a step of scale each (ECO.juv → 1); juvSoft: a juvenile's soft time as a share of its moult interval
 function moulting(L){const g=L&&L.spec&&GRAMMAR[L.spec.clade];return !!(g&&g.moult);}
 function moultTimes(L){const q=Math.pow(ecoOf(lineKind(L.spec)).mass,0.25);return {step:Math.max(1,(L.grown-L.born)/MOULT_P.juv),every:MOULT.every*q*DAY_S,softA:MOULT.soft*q*DAY_S};} // the juvenile's interval, the adult's, the adult's soft span (s)

@@ -220,7 +220,8 @@ radial, stinging, eyeless; bells in the water, floats on the surface (the button
   hingeshell is edible. Juveniles are soft; adults rarely unarmoured; some carry a mineral shell over the chitin too.
   (Built v11.66, creatures_ai.js `MOULT`: the soft state — pale, valves clamped, laid against a solid, skin to any edge — a twentieth of the
   placed adults and every adult on its own clock out of sight; the cast carapace beside it, and old sheds as debris by the kind's envelopes.
-  The dens are not built; the massif is struck.)
+  The dens are not built; the massif is struck. v11.232, BEHAVIOUR §3f: the dens built — the hingeshells that rest in cover keep one and run to it;
+  the valves breathe at rest; the moult's cue; the strike as the only hunt.)
 - **Why they can be huge here:** exoskeleton scaling is a land problem; in water buoyancy carries the mass. The real
   aquatic limits are oxygen delivery and moulting, so hingeshells have a closed circulatory system (vertebrates and
   cephalopods evolved one independently; a third time is not a stretch), the atmosphere supplies the oxygen, and

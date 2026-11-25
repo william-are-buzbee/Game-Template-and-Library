@@ -6,6 +6,7 @@
 // range (a believable band, and a wider band the lab clamps at). SPECS holds every species of the roster (all of them since v11.25:
 // the last eighteen hand builders became specs — CHANGELOG v11.25; the kit they compile from stays in creatures_builders.js).
 // The coordinates in a spec are the hand builders' own: metres along +z at the authoring scale `s`, the nose forward.
+const VALVE={still:0.3,lift:0.1,p:5}; // v11.232 (BEHAVIOUR §3f): a hingeshell's valves at rest (under still, the anim's speed) breathe — raised by up to lift rad over their resting lift and lowered again over p s (an absolute lift: some kinds' resting lift is 0.03, and a share of it would not show) (PLANET's hinge: raised swimming or walking, clamped shut when threatened)
 
 // ---------- the clade grammar ----------
 // cores: the body kinds a clade may build on. req: parts every animal of the clade carries (validate adds them if missing; the lab
@@ -2299,7 +2300,8 @@ const PARTS = {
         anim: (t, spd, st) => {
           const tell = st.tell || 0,
             strike = st.strike || 0;
-          vv.set(st.soft ? 0 : (p.o0 + p.o1 * Math.min(1, spd * 0.5)) * (1 - p.tc * tell - p.sc * strike) + p.tk * tell + p.sk * strike); // st.soft (v11.66): clamped shut through the moult — the soft body hides inside (PLANET)
+          const br = spd < VALVE.still ? VALVE.lift * (0.5 + 0.5 * Math.sin(TAU * t / VALVE.p)) : 0; // v11.232: at rest the valves breathe — lifted and lowered over VALVE.p s (t is the creature's own clock, t0 on: out of step with its neighbours)
+          vv.set(st.soft ? 0 : (p.o0 + br + p.o1 * Math.min(1, spd * 0.5)) * (1 - p.tc * tell - p.sc * strike) + p.tk * tell + p.sk * strike); // st.soft (v11.66): clamped shut through the moult — the soft body hides inside (PLANET); v11.232: at a threat (a freezer) and in the moult's last hour too
         },
         armour: V === 'small' ? 0.2 : V === 'clam' ? 0.1 : 0.4,
         mass: V === 'clam' ? p.R * p.R * p.R * 0.4 : F.w0 * F.h0 * 0.1 * (V === 'hood' ? H.l : V === 'placed' ? p.z0 - p.z1 : L) * 1.2,

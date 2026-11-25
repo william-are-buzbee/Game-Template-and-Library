@@ -575,6 +575,8 @@ coordinates and days in a form that could be exported.
 34. **The moult's numbers follow the animals, not the game** (22 Sep 2026): "probably whatever is believable in nature for animals of that size that
     moult." A real decapod is soft for roughly a twentieth to a tenth of its intermoult; `MOULT` runs 0.5 / 20 = 2.5% today, so the soft window is
     short by half at least. The cue that a moult is coming is agreed (the valves stop raising, the coat dulls, a hint in the last hour).
+    *Built v11.232 (BEHAVIOUR §3f): `MOULT.soft` 1 (5% of the intermoult, nature's lower end; the player's too, BEHAVIOUR §8.9); the world's cue —
+    the valves down and to its rest in the last hour. The coat's dulling and the player's own cue are not built.*
 35. **Everything that can starve, wastes** (22 Sep 2026): "yes, everyone is capable of starving so it should apply to everyone." v11.74's wasting is
     the brooder's only; it becomes the rule for any starving body, the one switch v11.73 left (CHANGELOG v11.73, candidate b).
 36. **The body's state is shown on a key, and knowing it is itself a trait** (22 Sep 2026): "we should have a button that shows UI elements that are

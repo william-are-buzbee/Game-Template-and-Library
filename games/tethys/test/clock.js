@@ -69,7 +69,7 @@ if(S){clearAll();X.setClock(noon);P.pos.set(S.x+150,Y,S.z);hold();
 // ---- 3. the risk, and the player as any body ----
 console.log('the risk');
 if(S){clearAll();X.setClock(noon);P.pos.set(S.x,Y,S.z);hold();P.vel.set(2,0,0); // v11.229: at noon, and the bodies moving, so the hook and the ridge see them (the senses are test/senses.js's)
-  const hk=put('hook',X.V3(S.x,Y,S.z+8),0);hk.awake=1;const thr=X.huntAt(hk),r=X.riskOf(hk,P);hk.hunger=thr+0.3*(1-thr);
+  const hk=put('hook',X.V3(S.x,Y+8,S.z+4),0);hk.awake=1;/* v11.232: 8 m over the bodies it weighs — a hook takes only what is under it (HOOK) */const thr=X.huntAt(hk),r=X.riskOf(hk,P);hk.hunger=thr+0.3*(1-thr);
   check(r>0.9&&X.findPrey(hk,20,thr)===null,'a hook (≈'+(X.kgOf(hk)/1000).toFixed(1)+' t) leaves the player (≈'+(X.kgOf(P)/1000).toFixed(1)+' t, risk '+r.toFixed(2)+') at need 0.3');
   const dar=put('darter',X.V3(S.x+2,Y,S.z+14),0);dar.state='sit';dar.vel.set(2,0,0);check(X.findPrey(hk,20,thr)===dar,'and takes a darter further off');
   hk.hunger=1;check(X.findPrey(hk,20,thr)===dar,'starving, still the darter nearer by its weight');X.removeCreature(dar);check(X.findPrey(hk,20,thr)===P,'and the player when there is nothing else');

@@ -4,6 +4,14 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.232 (25 Nov 2026): the hingeshells** (creatures_ai.js `HINGE`, `DEN`, `HOOK`, `TIDEW`, `premoult`, `MOULT`; creatures_spec.js `VALVE`;
+creatures_defs.js `BEHAVE`, `DEFS.hook`; test/hingeshells.js; BEHAVIOUR §3f; DESIGN Creatures; PLANET, CLADES, LINEAGE status notes; CHANGELOG). The
+person on v11.231: *"go ahead with the hingeshells pass … being hunted seems OK."* The hingeshell hunters strike and do not chase: no sprint, a hunt
+given up when no strike comes in 8 s or two miss. The valves breathe at rest. The hingeshells that rest in cover keep a den and run to it. In a
+moult's last hour the valves stay down and the animal hides; the soft window is doubled to nature's lower end (5%), the player's too. The hook drops
+on what passes under it and climbs to a new post when nothing does. The scuttles walk out on the flats at low water. **Ask:** BEHAVIOUR §8.9 (the
+player's soft window, now 54 real minutes for a hose); whether the hingeshell hunters still frighten without chasing.
+
 **v11.231 (24 Nov 2026): the slowbloods** (creatures_ai.js `TEMP`, `tempAt`, `THERM`, `BASK`, `HERD`, `FORAY`, `CHASE`; creatures_defs.js
 `THERM_F`, `BEHAVE`; combat.js `slowOf`; test/slowbloods.js; BEHAVIOUR §3e; DESIGN Creatures; PLANET, COMBAT, DIRECTION status notes; CHANGELOG). The
 person: *"go ahead with the slowbloods pass."* The water has a temperature (27 °C to −60, the thermocline to 3 °C, the vents' bubble), and a slowblood's
@@ -36,17 +44,6 @@ later still — and by the lateral line (light-blind, silent for a still body); 
 cryptic grazers freeze (a hingeshell clamped) and bolt close. The step reads its own sky (the plumb's and the swarms' layer, the eclipses), and the
 pall's cloud and flee are the step's, whatever the effects list says. The frame within noise (×1.00, p95 ×1.06; Chromium ×1.02), the GPU's counts the same. **Ask:** BEHAVIOUR §8.4–5 — whether the night hides you now, or too
 well; whether your own colour should.
-
-**v11.228 (24 Nov 2026): the clock and the risk** (creatures_defs.js `BEHAVE`; creatures_ai.js `CLK`, `CK`, `REST`, `RISK`, `findPrey`, the roles;
-combat.js `dread`; test/clock.js; BEHAVIOUR.md, new; DESIGN Creatures; CHANGELOG). The behaviour overhaul's pass 0, after the person's answers (24 Nov
-2026: the shared parts first, *"Clock and risk first"*; the player's bias struck; sight by light for the creatures, pass 1; readable predators, *"yes
-absolutely"*). Every kind keeps hours from Earth's reef shifts (the night's eel, lurker, arrow, rasp, flicker; the day's grazer, darter, crusher; the
-changeover's ridge and needle; the wedge the tide's) and rests out of them (cover, floor, sand, hover, a slow cruise), hungrier before it hunts; the
-schools settle at night. Prey is weighed by its mass, its bite, its venom, the hunter's own wounds and how far it is failing; the player is weighed as any
-body. Prey that watches a hunter is looked at first — a slowblood circles, a ringmouth holds off facing it, a hingeshell never looks — and its answer
-decides: running is chased, a turned back is the opening, coming at it drives it off. Fixed: the crusher's carrion, the arrow's jet pose, a wounded
-hunter fleeing the player whatever hurt it, the carcass glow read from the drawing. The frame within noise (the forest ×0.97, p95 ×0.89; Chromium ×0.94), the GPU's counts the same. **Ask:** BEHAVIOUR §8 — whether the look reads and facing it down
-is fair; whether the shifts show; whether the shelf by day is too quiet.
 
 ## Open
 
