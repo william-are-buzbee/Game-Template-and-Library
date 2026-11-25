@@ -389,6 +389,14 @@ const MIST_GLSL='float blR(float y,float e){float u=y-e+'+HAZE.soft.toFixed(1)+'
   if(T187){const L0='float getDistanceAttenuation(',L1='return distanceFalloff;\n}',s=C.lights_pars_begin||'',a=s.indexOf(L0),b=s.indexOf(L1,a); // lightLegacy (v11.218): r128's point-light falloff
     if(a<0||b<0)console.warn('lightLegacy: getDistanceAttenuation not as expected; point lights fall off as r187\'s');
     else C.lights_pars_begin=s.slice(0,a)+'float getDistanceAttenuation( const in float lightDistance, const in float cutoffDistance, const in float decayExponent ) {\n\tif ( cutoffDistance > 0.0 && decayExponent > 0.0 ) return pow( saturate( - lightDistance / cutoffDistance + 1.0 ), decayExponent );\n\treturn 1.0;\n}'+s.slice(b+L1.length);}
+  // A dark point light is skipped (v11.237). The pool's lights and the own light are never taken out of the scene — a light count that changed would
+  // recompile every program — so an unlit one stands at intensity 0, and three still worked all five through for every vertex (Lambert) and every
+  // terrain pixel (Phong) only to add nothing: by day in the shallows all five are dark. A light whose colour (×intensity: three's uniform) is black
+  // adds exactly 0, so the branch changes no value; it is the same for every vertex and pixel of a draw, which a GPU takes at the cost of one test.
+  const rePt=/(for\s*\(\s*int\s+i\s*=\s*0\s*;\s*i\s*<\s*NUM_POINT_LIGHTS\s*;\s*i\s*\+\+\s*\)\s*\{)([\s\S]*?)(\n\t\}\n\t#pragma unroll_loop_end)/;let np=0;
+  const ptSkip=k=>{const s=C[k];if(!s||!rePt.test(s))return;C[k]=s.replace(rePt,(m,a,b,c)=>{np++;return a+'\n\tif ( pointLights[ i ].color != vec3( 0.0 ) ) {'+b+'\n\t}'+c;});};
+  ptSkip('lights_lambert_vertex');ptSkip('lights_fragment_begin');
+  if(np!==(T187?1:2))console.warn('dark lights: light chunks not as expected ('+np+' point loops patched); every light is worked through');
 })();
 const hemi=new THREE.HemisphereLight(0x9fd6e0,0x101c1c,0.9);scene.add(hemi);
 const sun=new THREE.DirectionalLight(0xfff2d8,1.2);sun.position.set(SUN_POS[0],SUN_POS[1],SUN_POS[2]);scene.add(sun);
