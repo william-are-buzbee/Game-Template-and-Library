@@ -207,7 +207,7 @@ function spawn(ch,kind,pos,rng,opt){
   // takes later goes in this list: test/live.js fails on a creature, a state or a def off its spawn's keys after four game days and a minute of play
   c.mass=c.mass0=kgOfBody(kind,D,b); // one mass (v11.91, COMBAT.md §10.2): derive's, in kg, at this body's scale
   if(soft){c.b.cover=b.cover.map(()=>'skin');c.st.soft=1;c.state='sit';hideSpot(ch,c.pos,rng,d);c.home.copy(c.pos);}
-  b.g.position.copy(c.pos);scene.add(b.g);
+  b.g.position.copy(c.pos);scene.add(b.g);b.g.updateMatrixWorld=crMW; // the main pass walks only what it draws of it (crMW)
   // far LOD: the whole creature flattened into one mesh per material, hidden until needed
   c.parts=b.g.children.slice();
   // the far pose (v11.18): the rigs posed by the creature's own idle anim and skinned at rest before the bake, so a far lurker's arms
@@ -278,6 +278,20 @@ function schoolMerge(dt){schoolMT-=dt;if(schoolMT>0)return;schoolMT=SCHOOL.merge
     for(let j=0;j<schools.length;j++){const a=schools[j];if(a===b||!a.members.length||a.members[0].kind!==kb||(a.pos.x-b.pos.x)*(a.pos.x-b.pos.x)+(a.pos.y-b.pos.y)*(a.pos.y-b.pos.y)+(a.pos.z-b.pos.z)*(a.pos.z-b.pos.z)>M2)continue;const na=schoolLive(a);if(na<nb||na+nb>SCHOOL.max)continue;
       for(const m of b.members)if(m.alive){m.school=a;a.members.push(m);}b.members.length=0;const k=b.chunk.schools.indexOf(b);if(k>=0)b.chunk.schools.splice(k,1);schools.splice(i,1);break;}}}
 function disposeCreature(c){if(c.fall&&c.fall.c===c)c.fall.c=null;c.alive=false;c.gone=true;releaseAll(c);scene.remove(c.g);c.g.traverse(o=>{if(o.geometry&&!SHARED_GEO.has(o.geometry))o.geometry.dispose();});} // a kind's shared body and bake stay (spawn)
+// ---------- the matrices a frame walks (v11.237) ----------
+// three's render recomposes the matrix of every object in the scene before it draws (Object3D.updateMatrixWorld), seen or not: at the forest's shelf
+// 15,900 objects, 15,500 of them creatures' parts, 13,600 under a body out of sight — 4.8–6.7 ms of the render's 15.6 here, the largest piece of the
+// readout's `render` (submit). Through the main pass (MW.hide, horizon.js renderFrame) a creature's root still recomposes its own matrix, as three does —
+// the sim reads c.g.matrix (combat.js localToWorld, the strikes, the holds) — but goes into only the parts that are drawn. A part out of sight keeps the
+// matrix of the last frame it was drawn in, and is recomposed the frame it shows again, before it is drawn, from its own position as before: nothing
+// drawn changes, and nothing in the sim reads a part's matrix (the bakes update their own, at build). Every other walk (an explicit call, the static
+// shadow map's pass, the stub) is three's own.
+const MW={hide:false};
+/** @this {any} @param {boolean} force */
+function crMW(force){if(!MW.hide){THREE.Object3D.prototype.updateMatrixWorld.call(this,force);return;}
+  if(this.matrixAutoUpdate)this.updateMatrix();
+  if(this.matrixWorldNeedsUpdate||force){const p=this.parent;if(this.matrixWorldAutoUpdate!==false){if(p===null)this.matrixWorld.copy(this.matrix);else this.matrixWorld.multiplyMatrices(p.matrixWorld,this.matrix);}this.matrixWorldNeedsUpdate=false;force=true;}
+  if(!this.visible)return;const ch=this.children;for(let i=0;i<ch.length;i++){const o=ch[i];if(o.visible)o.updateMatrixWorld(force);}}
 // a creature leaving the world mid-life (eaten away, grown up): disposed and struck from every list it is on
 function removeCreature(c){disposeCreature(c);let k=creatures.indexOf(c);if(k>=0)creatures.splice(k,1);if(c.chunk){k=c.chunk.creatures.indexOf(c);if(k>=0)c.chunk.creatures.splice(k,1);}
   if(c.school){k=c.school.members.indexOf(c);if(k>=0)c.school.members.splice(k,1);}k=carcasses.indexOf(c);if(k>=0)carcasses.splice(k,1);}
