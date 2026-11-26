@@ -4,6 +4,15 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.246 (26 Nov 2026): the spine — every body a chain of knots, shaped by hand in the lab** (creatures_spec.js `SPINE`, `spineMove/Size/Add/Del`,
+`spineRide`; parts.js `G.loft`, `G.ellK`, `knotV`; lab.js "the body by hand"; line.js the bill; test/spine.js; analysis_creators.md; CREATOR.md Sixth
+round; DESIGN Creatures, The spine; CHANGELOG). The person: a Spore or Sapling style creator, *"they have to look identical but we can do the 'drag'
+feature"*. The investigation is analysis_creators.md. Every core's body is now knots in its own numbers (a lathe's rings, a trunk's taper, a mantle's
+rings, an ellipsoid's five, a bell's rings), so every species builds to the bit as before; in the lab the knots are beads on the body — drag to move
+or bend, the wheel to fatten (shift height, alt width), double-click to add or remove, a trunk pulled longer grows plates; parts drag along it and
+scale by the wheel; ctrl+z. **Ask:** analysis_creators.md's five questions; then in `#lab` the finback, the soft-arm, the sickle and the coilshell
+shaped by hand — whether the beads, the rings and the gestures read, and which of its "Next" comes first.
+
 **v11.245 (26 Nov 2026): the hover keeps station, never still; the plumb's day roam through the current and past the walls** (creatures_ai.js `HOVER`,
 `hoverShift`, `ROAM`, `HANG.head`, `hangGo`, `hangSettle`, `roamBegin`, `c.roamD`; test/clock.js, test/ringmouths.js; BEHAVIOUR §2, §3d; DESIGN; CHANGELOG).
 The person: the ortho "frozen", the plumb "barely moving"; on the findings, *"go ahead with those numbers."* The hover rest (the ortho and the arrow by day,
@@ -29,13 +38,6 @@ place's triangles ×0.79 (with v11.241, ×0.58 against v11.239), the high tier's
 Past 45 m on the low tier a plant's tile draws a copy at half the facets, without its smallest parts; the whole plant draws only its near tiles, so nothing
 is shaded twice (v11.194's mistake). Triangles ×0.73–0.86 where there are plants (against v11.239); 0.04–1.1% of pixels change (far specks). The grasses (strap, tress) got
 none — flat blades; next, invisible, their variants split by size. **Ask:** an F8 at `tp(69950,29582,-10)` against #208's plants 6.35 ms; any pop at 45 m.
-
-**v11.240 (26 Nov 2026): the sky under the water only when it can reach the screen** (atmosphere.js `skyUnder`, `skyViewMaxY`, `OCC.cvU`; horizon.js
-`renderFrame`; test/skyunder.js; CHANGELOG). The person: *"make sure being deep underwater actually stops the sky from trying to render."* It did not.
-Now the dome and its cloud pass are left out looking down (either tier) and when their weight through the window is under half a level (the high tier
-from ~135 m); pictures the same. Measured: **the low tier's window is the sky itself, faint to 800 m** — so it is still drawn there — and shallow and
-level the cloud pass's waste cannot be cut exactly. **Ask:** the clouds at half resolution under water, or none through the window on the low tier; the
-low tier's window fading to the computed sky with depth like the high tier's.
 
 ## Open
 

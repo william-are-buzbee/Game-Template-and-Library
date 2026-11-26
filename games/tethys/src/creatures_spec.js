@@ -61,12 +61,18 @@ const CORES = {
       const P = ctx.P,
         pal = ctx.pal,
         L = c.L,
-        R = c.R;
-      P.push(part(G.cyl(R * 0.92, R * 0.28, L, 8), 0, 0, -L / 2 + 0.1, palk(pal, 'mantle', 'top'), {r: [HPI, 0, 0], c2: pal.belly}));
-      P.push(part(G.sph(R * 0.3, 6, 5), 0, 0, -L + 0.1, palk(pal, 'mantle', 'top')));
+        R = c.R,
+        M = mantleRings(c), // the spine (v11.246): the mantle's rings, back to front — null while it is the plain cone it always was
+        yb = M ? M[0][2] : 0;
+      if (!M) P.push(part(G.cyl(R * 0.92, R * 0.28, L, 8), 0, 0, -L / 2 + 0.1, palk(pal, 'mantle', 'top'), {r: [HPI, 0, 0], c2: pal.belly}));
+      else P.push(part(G.loft(M, 8), 0, 0, 0, palk(pal, 'mantle', 'top'), {r: [HPI, 0, 0], c2: pal.belly})); // open at both ends: the knob and the collar close them
+      P.push(part(G.sph(R * 0.3, 6, 5), 0, yb, -L + 0.1, palk(pal, 'mantle', 'top')));
       P.push(part(G.sph(R * 1.06, 8, 6), 0, 0, 0.2, palk(pal, 'mantle', 'top'), {s: [1, 0.92, 0.72], c2: pal.belly}));
-      const rAt = z =>
-        z > 0.2 ? R * 1.06 * Math.max(0, 1 - Math.pow((z - 0.2) / (R * 1.06 * 0.72), 2)) : lerp(R * 0.28, R * 0.92, (z + L - 0.1) / L);
+      const rM = M ? profR(M) : null,
+        rAt = z =>
+        z > 0.2 ? R * 1.06 * Math.max(0, 1 - Math.pow((z - 0.2) / (R * 1.06 * 0.72), 2)) : M ? rM(Math.min(z, 0.1)) : lerp(R * 0.28, R * 0.92, (z + L - 0.1) / L);
+      let mvol = ((Math.PI * L) / 3) * (0.92 * 0.92 + 0.92 * 0.28 + 0.28 * 0.28) * R * R;
+      if (M) {mvol = 0; for (let i = 1; i < M.length; i++) {const a = M[i - 1][0], b = M[i][0]; mvol += ((Math.PI * (a * a + a * b + b * b)) / 3) * (M[i][1] - M[i - 1][1]);}}
       return {
         L: L,
         nose: 0.2 + R * 0.76,
@@ -78,6 +84,7 @@ const CORES = {
         zAt: u => lerp(0.2 + R * 0.76, -L + 0.1, u),
         sway: false,
         round: true,
+        ride: M && profBent(M) ? rideOf(profV(M, 2), 1) : null,
         anchors: {
           collar: {z: 0.42, R: R * 0.98, r: R * 0.11, sy: 0.82, y0: 0},
           cluster: {y: R * 0.62, z: 0.55, R: R * 0.42, r: R * 0.17},
@@ -91,7 +98,7 @@ const CORES = {
           B.body.scale.set(pu, pu, 1 - (st.pulse || 0) * 0.1);
         },
         hit: [{a: [0, 0, -L + 0.1], b: [0, 0, 0.6], r: R * 0.95}],
-        volume: ((Math.PI * L) / 3) * (0.92 * 0.92 + 0.92 * 0.28 + 0.28 * 0.28) * R * R + (4 / 3) * Math.PI * Math.pow(R * 1.06, 3) * 0.92 * 0.72,
+        volume: mvol + (4 / 3) * Math.PI * Math.pow(R * 1.06, 3) * 0.92 * 0.72,
         area: Math.PI * R * R * 1.06 * 0.97,
         cd: 0.55,
         jet: true
@@ -122,14 +129,15 @@ const CORES = {
         z = c.z,
         y = c.y || 0,
         fl = palk(pal, 'flesh', 'top');
-      P.push(part(G.sph(R, c.ws, c.hs), 0, y, z, fl, {s: [c.sx, c.sy, c.sz], c2: pal.belly || fl}));
-      const rAt = zz => {
+      P.push(part(c.ek ? G.ellK(R, c.ws, c.hs, c.ek, c.sy, c.sz) : G.sph(R, c.ws, c.hs), 0, y, z, fl, {s: [c.sx, c.sy, c.sz], c2: pal.belly || fl})); // the spine's knots (v11.246) bend and swell it
+      const ek = c.ek,
+        rAt = zz => {
         const u = (zz - z) / (R * c.sz);
-        return R * Math.max(c.sx, c.sy) * Math.sqrt(Math.max(0, 1 - u * u));
+        return R * Math.max(c.sx, c.sy) * Math.sqrt(Math.max(0, 1 - u * u)) * (ek ? Math.max(knotV(ek, u, 'kw'), knotV(ek, u, 'kh')) : 1);
       };
-      const ell = k => zz => {
+      const ell = (k, kk) => zz => {
         const u = (zz - z) / (R * c.sz);
-        return R * k * Math.sqrt(Math.max(0, 1 - u * u));
+        return R * k * Math.sqrt(Math.max(0, 1 - u * u)) * (ek ? knotV(ek, u, kk) : 1);
       };
       return {
         L: R * c.sz * 2,
@@ -137,12 +145,13 @@ const CORES = {
         tail: z - R * c.sz,
         Rmax: R * Math.max(c.sx, c.sy),
         rAt: rAt,
-        wAt: ell(c.sx),
-        hAt: ell(c.sy),
+        wAt: ell(c.sx, 'kw'),
+        hAt: ell(c.sy, 'kh'),
         zAt: u => lerp(z + R * c.sz, z - R * c.sz, u),
         sway: false,
         round: true,
         cy: y,
+        ride: ek ? ellRide(ek, z, R * c.sz, true) : null,
         anchors: {
           collar: {z: R * 0.95, R: R * 0.9, r: R * 0.13, sy: 0.8, y0: y},
           cluster: {y: y + R * 0.45, z: R * 0.8, R: R * 0.42, r: R * 0.18},
@@ -179,10 +188,11 @@ const CORES = {
         prof = c.prof,
         o = {r: [HPI, 0, 0], c2: pal[c.belly] || pal.belly};
       if (c.sz !== 1) o.s = [1, 1, c.sz];
-      P.push(part(G.lathe(prof, c.segs), 0, c.y || 0, 0, pal.top, o));
+      P.push(part(G.loft(prof, c.segs), 0, c.y || 0, 0, pal.top, o)); // the spine (v11.246): a ring may be an ellipse off the axis, [r, z, y, h]; a plain profile is G.lathe's
       const rAt = profR(prof),
         nose = prof[prof.length - 1][1] * c.sz,
-        tail = prof[0][1] * c.sz;
+        tail = prof[0][1] * c.sz,
+        bent = profBent(prof);
       let Rmax = 0,
         vol = 0,
         zr = 0;
@@ -193,7 +203,8 @@ const CORES = {
           const a = prof[i - 1][0],
             b = prof[i][0],
             dz = prof[i][1] - prof[i - 1][1];
-          vol += ((Math.PI * (a * a + a * b + b * b)) / 3) * dz;
+          if (bent) {const ha = ringH(prof[i - 1]), hb = ringH(prof[i]); vol += ((Math.PI * (a * ha + (a * hb + b * ha) / 2 + b * hb)) / 3) * dz;} // elliptical frustums
+          else vol += ((Math.PI * (a * a + a * b + b * b)) / 3) * dz;
         }
       }
       return {
@@ -201,13 +212,14 @@ const CORES = {
         nose: nose,
         tail: tail,
         Rmax: Rmax,
-        rAt: rAt,
+        rAt: bent ? (h => z => Math.max(rAt(z), h(z)))(profV(prof, 3)) : rAt,
         wAt: rAt,
-        hAt: rAt,
+        hAt: bent ? profV(prof, 3) : rAt,
         zAt: u => lerp(nose, tail, u),
         sway: true,
         round: true,
         cy: c.y || 0,
+        ride: bent ? rideOf(profV(prof, 2), c.sz) : null, // the bend the parts ride (v11.246): a ring's y, drawn × sz as the lathe's height is
         anchors: {
           eyes: {z: lerp(zr, nose, 0.75), R: rAt(lerp(zr, nose, 0.75)) * 0.9},
           chevrons: {z0: lerp(zr, nose, 0.4), z1: tail + 0.05 * (nose - tail), ds: Rmax * 0.45, sz: Rmax * 0.25},
@@ -276,22 +288,28 @@ const CORES = {
       P.push(part(G.box(H.w, H.h, H.l), 0, hy, zh, pal.top, {c2: pal.belly}));
       if (c.nl > 0) P.push(part(G.box(c.nw, c.nh, c.nl), 0, c.ny === undefined ? y : c.ny, zh + H.l * 0.5 + (c.nz || 0) + c.nl * 0.5, pal.top, {c2: pal.belly}));
       if (c.tl > 0) P.push(part(G.box(c.tw, c.th, c.tl), 0, c.ty === undefined ? y : c.ty, z1 + (c.tz || 0) - c.tl * 0.5, pal.top, {c2: pal.belly}));
+      // the spine (v11.246): the plates sample knots down the trunk, u 0 at its front and 1 at its back — two by default, the old w0 → w1 taper to the bit
+      const K = taperKnots(c, y),
+        bentT = K.some(k => k.y !== y),
+        Kw = u => knotV(K, u, 'w'),
+        Kh = u => knotV(K, u, 'h');
       trunk(
         P,
         pal,
         n,
         z0,
         z1,
-        u => lerp(c.w0, c.w1, u),
-        u => lerp(c.h0, c.h1, u),
-        y ? () => y : undefined
+        Kw,
+        Kh,
+        y || bentT ? u => knotV(K, u, 'y') : undefined,
+        bentT ? u => Math.atan2(knotV(K, u + 0.5 / n, 'y') - knotV(K, u - 0.5 / n, 'y'), L / n) : undefined // a bent trunk's plates pitch with it
       );
-      const wAt = z => (z > z0 ? H.w * 0.5 : lerp(c.w0, c.w1, (z0 - z) / L) * 0.5),
-        hAt = z => (z > z0 ? ht : lerp(c.h0, c.h1, (z0 - z) / L) * 0.5);
+      const wAt = z => (z > z0 ? H.w * 0.5 : Kw((z0 - z) / L) * 0.5),
+        hAt = z => (z > z0 ? ht : Kh((z0 - z) / L) * 0.5);
       let vol = 0;
       for (let k = 0; k < n; k++) {
         const u = (k + 0.5) / n;
-        vol += (lerp(c.w0, c.w1, u) * lerp(c.h0, c.h1, u) * L) / n;
+        vol += (Kw(u) * Kh(u) * L) / n;
       }
       vol += H.w * H.h * H.l + (c.tl > 0 ? c.tw * c.th * c.tl : 0) + (c.nl > 0 ? c.nw * c.nh * c.nl : 0);
       const r = Math.max(c.w0, c.h0) * 0.5,
@@ -308,6 +326,7 @@ const CORES = {
         sway: false,
         round: false,
         cy: y,
+        ride: bentT ? z => [z > z0 || z < z1 ? 0 : knotV(K, (z0 - z) / L, 'y') - y, 0] : null, // the plates' bend; the head and tail boxes are their own handles
         H: H,
         zh: zh,
         ht: ht,
@@ -316,10 +335,10 @@ const CORES = {
         z0: z0,
         z1: z1,
         LT: L,
-        w0: c.w0,
-        w1: c.w1,
-        h0: c.h0,
-        h1: c.h1,
+        w0: K[0].w,
+        w1: K[K.length - 1].w,
+        h0: K[0].h,
+        h1: K[K.length - 1].h,
         anchors: {},
         anim: (t, spd, st, B) => {
           B.body.scale.set(1 + 0.06 * (st.tell || 0), 1 + 0.12 * (st.tell || 0), 1);
@@ -360,11 +379,12 @@ const CORES = {
         lathe = c.shape === 'lathe' && c.prof,
         R = c.R,
         z = c.z;
-      let rAt, tail, Rm, vol;
+      let rAt, tail, Rm, vol, ride = null;
       if (lathe) {
         const prof = c.prof;
-        P.push(part(G.lathe(prof, c.segs), 0, 0, 0, pal.top, {r: [HPI, 0, 0], c2: pal.belly}));
+        P.push(part(G.loft(prof, c.segs), 0, 0, 0, pal.top, {r: [HPI, 0, 0], c2: pal.belly})); // the spine (v11.246): G.lathe's while no ring is bent
         rAt = profR(prof);
+        if (profBent(prof)) ride = rideOf(profV(prof, 2), 1);
         tail = prof[0][1];
         Rm = 0;
         vol = 0;
@@ -377,11 +397,12 @@ const CORES = {
           }
         }
       } else {
-        P.push(part(G.sph(R, c.ws, c.hs), 0, 0, z, pal.top, {s: [1, c.sy, c.sz], c2: pal.belly}));
+        P.push(part(c.ek ? G.ellK(R, c.ws, c.hs, c.ek, c.sy, c.sz) : G.sph(R, c.ws, c.hs), 0, 0, z, pal.top, {s: [1, c.sy, c.sz], c2: pal.belly})); // the spine's knots (v11.246) bend and swell the sphere
         rAt = zz => {
           const u = (zz - z) / (R * c.sz);
           return R * Math.sqrt(Math.max(0, 1 - u * u));
         };
+        if (c.ek) {const r0 = rAt; rAt = ellKnot(r0, c.ek, z, R * c.sz, 'kw'); ride = ellRide(c.ek, z, R * c.sz);}
         tail = z - R * c.sz;
         Rm = R;
         vol = (4 / 3) * Math.PI * R * R * R * c.sy * c.sz;
@@ -407,6 +428,7 @@ const CORES = {
         zAt: u => lerp(nose, tail, u),
         sway: false,
         round: true,
+        ride: ride,
         anchors: {
           collar: {z: cz + cR * c.csz * 0.3, R: cR * 0.9, r: cR * 0.15, sy: 0.9, y0: c.cy},
           cluster: {y: c.cy + cR * 0.45, z: cz + cR * c.csz * 0.5, R: cR * 0.4, r: cR * 0.15},
@@ -456,7 +478,7 @@ const CORES = {
         L = c.L,
         segd = [],
         ch = makeChain(n, -1, 0, 1, 0, {ks: c.ks, damp: c.damp, cosMax: c.cosMax}),
-        wAtI = i => c.w0 + c.w1 * (1 - i / n);
+        wAtI = c.knots ? i => knotV(c.knots, i / n, 'w') : i => c.w0 + c.w1 * (1 - i / n); // the spine (v11.246): a link's width off knots down the chain, u 0 the head and 1 past the last link
       let vol = 0;
       for (let i = 0; i < n; i++) {
         const w = wAtI(i),
@@ -547,17 +569,17 @@ const CORES = {
         y = c.y,
         z = c.z,
         H = {w: c.hw, h: c.hh, l: c.hl};
-      P.push(part(G.sph(R, c.ws, c.hs), 0, y, z, pal.top, {s: [c.sx, c.sy, c.sz], c2: pal.belly}));
+      P.push(part(c.ek ? G.ellK(R, c.ws, c.hs, c.ek, c.sy, c.sz) : G.sph(R, c.ws, c.hs), 0, y, z, pal.top, {s: [c.sx, c.sy, c.sz], c2: pal.belly})); // the spine's knots (v11.246)
       P.push(part(G.box(H.w, H.h, H.l), 0, c.hy, c.hz, pal.top, {c2: pal.belly}));
       if (c.tl > 0) P.push(part(G.box(c.tw, c.th, c.tl), 0, c.ty, c.tz, pal.top, {c2: pal.belly}));
       const nose = Math.max(c.hz + H.l * 0.5, z + R * c.sz),
         tail = Math.min(c.tl > 0 ? c.tz - c.tl * 0.5 : 1e9, z - R * c.sz),
-        ell = k => zz => {
+        ell = (k, kk) => zz => {
           const u = (zz - z) / (R * c.sz);
-          return R * k * Math.sqrt(Math.max(0, 1 - u * u));
+          return R * k * Math.sqrt(Math.max(0, 1 - u * u)) * (c.ek ? knotV(c.ek, u, kk) : 1);
         },
-        wAt = zz => Math.max(ell(c.sx)(zz), zz > c.hz - H.l * 0.5 && zz < c.hz + H.l * 0.5 ? H.w * 0.5 : 0),
-        hAt = ell(c.sy);
+        wAt = zz => Math.max(ell(c.sx, 'kw')(zz), zz > c.hz - H.l * 0.5 && zz < c.hz + H.l * 0.5 ? H.w * 0.5 : 0),
+        hAt = ell(c.sy, 'kh');
       return {
         L: nose - tail,
         nose: nose,
@@ -570,6 +592,7 @@ const CORES = {
         sway: false,
         round: true,
         cy: y,
+        ride: c.ek ? ellRide(c.ek, z, R * c.sz, false) : null,
         H: H,
         zh: c.hz,
         ht: H.h * 0.5,
@@ -615,13 +638,13 @@ const CORES = {
         R = c.R,
         z = c.z,
         y = c.y;
-      P.push(part(G.sph(R, c.ws, c.hs), 0, y, z, pal.top, {s: [c.sx, c.sy, c.sz]}));
-      if (c.gut) P.push(part(G.box(c.gw, c.gw, c.gl), 0, c.gy, z - 0.03, pal.gut || pal.joint || pal.top));
+      P.push(part(c.ek ? G.ellK(R, c.ws, c.hs, c.ek, c.sy, c.sz) : G.sph(R, c.ws, c.hs), 0, y, z, pal.top, {s: [c.sx, c.sy, c.sz]})); // the spine's knots (v11.246)
+      if (c.gut) P.push(part(G.box(c.gw, c.gw, c.gl), 0, c.ek ? c.gy + knotV(c.ek, -0.03 / (R * c.sz), 'dy') : c.gy, c.ek ? z - 0.03 + knotV(c.ek, -0.03 / (R * c.sz), 'dz') : z - 0.03, pal.gut || pal.joint || pal.top));
       const nose = z + R * c.sz,
         tail = z - R * c.sz,
-        ell = k => zz => {
+        ell = (k, kk) => zz => {
           const u = (zz - z) / (R * c.sz);
-          return R * k * Math.sqrt(Math.max(0, 1 - u * u));
+          return R * k * Math.sqrt(Math.max(0, 1 - u * u)) * (c.ek ? knotV(c.ek, u, kk) : 1);
         },
         H = {w: R * c.sx * 2, h: R * c.sy * 2, l: R * c.sz};
       return {
@@ -629,13 +652,14 @@ const CORES = {
         nose: nose,
         tail: tail,
         Rmax: R * Math.max(c.sx, c.sy),
-        rAt: zz => Math.max(ell(c.sx)(zz), ell(c.sy)(zz)),
-        wAt: ell(c.sx),
-        hAt: ell(c.sy),
+        rAt: zz => Math.max(ell(c.sx, 'kw')(zz), ell(c.sy, 'kh')(zz)),
+        wAt: ell(c.sx, 'kw'),
+        hAt: ell(c.sy, 'kh'),
         zAt: u => lerp(nose, tail, u),
         sway: false,
         round: true,
         cy: y,
+        ride: c.ek ? ellRide(c.ek, z, R * c.sz, true) : null,
         H: H,
         zh: z + R * c.sz * 0.5,
         ht: R * c.sy,
@@ -690,17 +714,20 @@ const CORES = {
         n = c.n,
         L = c.L,
         y = c.y,
-        wU = u => lerp(c.w0, c.w1, u),
-        hU = u => lerp(c.h0, c.h1, u);
+        K = taperKnots(c, y), // the spine (v11.246): knots down the arches, u 0 the first and 1 the last; two by default, the old taper to the bit
+        bentA = K.some(k => k.y !== y),
+        wU = u => knotV(K, u, 'w'),
+        hU = u => knotV(K, u, 'h');
       let vol = 0;
       for (let k = 0; k < n; k++) {
         const u = k / (n - 1),
           w = wU(u),
           h = hU(u),
-          z = c.z0 - k * L - L / 2;
-        P.push(part(G.cyl(w / 2, (w / 2) * 1.04, L * 1.1, c.segs, true), 0, y, z, c.alt && k % 2 ? pal.top : pal.rim || pal.top, {r: [HPI, 0, 0], s: [1, 1, h / (w / 2)]}));
-        P.push(part(G.cyl((w / 2) * 0.93, (w / 2) * 0.93, L * 1.3, c.segs, true), 0, y, z, pal.leg || pal.joint, {r: [HPI, 0, 0], s: [1, 1, h / (w / 2)]}));
-        P.push(part(G.box(w * 0.96, h, L * 1.3), 0, y - h / 2, z, pal.belly));
+          z = c.z0 - k * L - L / 2,
+          ya = bentA ? knotV(K, u, 'y') : y;
+        P.push(part(G.cyl(w / 2, (w / 2) * 1.04, L * 1.1, c.segs, true), 0, ya, z, c.alt && k % 2 ? pal.top : pal.rim || pal.top, {r: [HPI, 0, 0], s: [1, 1, h / (w / 2)]}));
+        P.push(part(G.cyl((w / 2) * 0.93, (w / 2) * 0.93, L * 1.3, c.segs, true), 0, ya, z, pal.leg || pal.joint, {r: [HPI, 0, 0], s: [1, 1, h / (w / 2)]}));
+        P.push(part(G.box(w * 0.96, h, L * 1.3), 0, ya - h / 2, z, pal.belly));
         vol += w * h * L * 1.4;
       }
       P.push(part(G.sph(c.hR, 10, 6), 0, c.hy, c.hz, pal.rim || pal.top, {s: [1, c.hsy, c.hsz], c2: pal.belly}));
@@ -724,6 +751,7 @@ const CORES = {
         sway: false,
         round: true,
         cy: y,
+        ride: bentA ? zz => [zz > c.z0 - L / 2 || zz < c.z0 - (n - 0.5) * L ? 0 : knotV(K, (c.z0 - L / 2 - zz) / ((n - 1) * L), 'y') - y, 0] : null,
         H: H,
         zh: c.hz,
         ht: c.hR * c.hsy,
@@ -732,10 +760,10 @@ const CORES = {
         z0: c.z0,
         z1: z1,
         LT: n * L,
-        w0: c.w0,
-        w1: c.w1,
-        h0: c.h0 * 2,
-        h1: c.h1 * 2,
+        w0: K[0].w,
+        w1: K[K.length - 1].w,
+        h0: K[0].h * 2,
+        h1: K[K.length - 1].h * 2,
         anchors: {},
         anim: null,
         hit: [{a: [0, y, tail + c.tR], b: [0, y, nose - c.hR * 0.5], r: c.h0 * 1.6}],
@@ -766,7 +794,7 @@ const CORES = {
         bc = palk(pal, 'bell', 'top'),
         cc = palk(pal, 'core', 'belly', 'top'),
         sc = (r, h) => [r * kr, h * kh];
-      P.push(part(G.lathe([sc(0.02, -0.05), sc(0.55, -0.05), sc(0.72, 0.12), sc(0.68, 0.32), sc(0.45, 0.5), sc(0.02, 0.56)], c.segs), 0, 0, 0, bc));
+      P.push(part(G.lathe(c.prof || bellProf(c), c.segs), 0, 0, 0, bc)); // the spine (v11.246): the bell's own rings once a hand has moved one, [r, y] apex last
       if (c.inner) P.push(part(G.lathe([sc(0.02, -0.02), sc(0.5, -0.02), sc(0.62, 0.1), sc(0.55, 0.28), sc(0.02, 0.36)], c.segs), 0, 0, 0, cc));
       if (c.core && ctx.bf) {
         const core = new THREE.Mesh(merge([part(G.sph(0.22 * kr, 8, 4), 0, 0.02 * kh, 0, cc, {s: [1, 0.8, 1]}), part(G.sph(0.09 * kr, 6, 3), 0, -0.12 * kh, 0, cc)]), ctx.mat || MAT);
@@ -825,14 +853,15 @@ const CORES = {
         fc = palk(pal, 'float', 'top'),
         cc = palk(pal, 'crest', 'top'),
         bc = palk(pal, 'body', 'belly', 'top');
-      P.push(part(G.sph(1, 8, 6), 0, c.y, 0, fc, {s: [c.sx, c.sy, c.sz]}));
+      P.push(part(c.ek ? G.ellK(1, 8, 6, c.ek, c.sy, c.sz) : G.sph(1, 8, 6), 0, c.y, 0, fc, {s: [c.sx, c.sy, c.sz]})); // the spine's knots (v11.246)
       if (c.crest)
         for (let k = 0; k < c.cn; k++) {
           const u = (k + 0.5) / c.cn,
             z = (-0.8 + u * 1.6) * c.sz,
             h = c.ch * Math.sin(u * Math.PI) + 0.1,
-            y0 = c.sy * 0.94 * Math.sqrt(Math.max(0, 1 - Math.pow(z / c.sz, 2)));
-          P.push(part(G.box(0.035, h, 0.36), 0, y0 + h / 2 - 0.02, z, cc, {r: [0.18, 0, 0.06 * (k - (c.cn - 1) / 2)]}));
+            y0 = c.sy * 0.94 * Math.sqrt(Math.max(0, 1 - Math.pow(z / c.sz, 2))),
+            rd = c.ek ? [knotV(c.ek, z / c.sz, 'dy') + y0 * (knotV(c.ek, z / c.sz, 'kh') - 1), knotV(c.ek, z / c.sz, 'dz')] : null; // the crest rides the spine's knots (v11.246)
+          P.push(part(G.box(0.035, h, 0.36), 0, rd ? y0 + rd[0] + h / 2 - 0.02 : y0 + h / 2 - 0.02, rd ? z + rd[1] : z, cc, {r: [0.18, 0, 0.06 * (k - (c.cn - 1) / 2)]}));
         }
       if (c.bodies > 0 && ctx.bf) {
         const B = [];
@@ -845,19 +874,20 @@ const CORES = {
         ctx.bf.add(new THREE.Mesh(merge(B), ctx.mat || MAT));
       }
       const R = c.sz,
-        ell = k => zz => k * Math.sqrt(Math.max(0, 1 - Math.pow(zz / c.sz, 2)));
+        ell = (k, kk) => zz => k * Math.sqrt(Math.max(0, 1 - Math.pow(zz / c.sz, 2))) * (c.ek ? knotV(c.ek, zz / c.sz, kk) : 1);
       return {
         L: R * 2,
         nose: R,
         tail: -R,
         Rmax: Math.max(c.sx, c.sy),
-        rAt: zz => Math.max(ell(c.sx)(zz), ell(c.sy)(zz)),
-        wAt: ell(c.sx),
-        hAt: ell(c.sy),
+        rAt: zz => Math.max(ell(c.sx, 'kw')(zz), ell(c.sy, 'kh')(zz)),
+        wAt: ell(c.sx, 'kw'),
+        hAt: ell(c.sy, 'kh'),
         zAt: u => lerp(R, -R, u),
         sway: false,
         round: true,
         cy: c.y,
+        ride: c.ek ? ellRide(c.ek, 0, c.sz, true) : null,
         anchors: {ring: {z: 0, R: 0.32, y0: -0.45}},
         anim: null,
         thrust: c.sz * c.ch * 0.6,
@@ -873,6 +903,281 @@ const CORES = {
   }
 };
 
+// ---------- the spine (v11.246, CREATOR.md "Sixth round: the spine") ----------
+// Every body is a chain of knots — Spore's vertebrae — that the creator moves and fattens by hand (lab.js). The knots live in each core's own
+// numbers, so a body nobody has touched builds exactly as it always did (test/spine.js holds all of SPECS to the bit): a lathe's rings are its
+// profile, [r, z, y, h] once a ring is bent off the axis or squashed (G.loft); a trunk's, the arches' and the eel's are knots down the body,
+// {u, w, h, y}, two by default — the old w0 → w1 taper (knotV); a mantle's are its back and front rings and any between (mantleRings); an
+// ellipsoid's (the coiled body, the bean, the shield, the float, a sac's mantle) are five factors along its length that bend and swell the sphere
+// (G.ellK); a bell's are its rings, apex last. The head, snout and tail boxes, the collars, the shield and the knob are handles of their own.
+// SPINE[kind] turns a filled core into handles — {z, y, w, h} in the body's metres at s 1, the half-width and half-height, ascending along the
+// axis — and writes a handle list back (set), returning the keys it wrote; a value written back unchanged stays the very number it was (spKeep),
+// so picking a knot up and putting it down changes nothing. A handle's move ('yz', 'y', 'z' or '') and size ('wh': across and up apart, 'r':
+// together, or '') say what the hand may do to it; chain: it is ordered along the axis with its neighbours; del: it may be taken out.
+// The parts ride the bend: a core whose knots moved off the straight gives its frame a ride(z) → [dy, dz] and compile moves every part's pieces
+// and meshes by it at their place (spineRide) — the parts themselves are built against the straight body, so nothing else had to learn it.
+const SPINE_EPS = 1e-9;
+function spKeep(o, v) {return o !== undefined && Math.abs(v - o) <= SPINE_EPS * Math.max(1, Math.abs(o)) ? o : v;} // a value written back unchanged stays the very number it was
+function profBent(prof) {for (const p of prof) if ((p[2] || 0) !== 0 || (p.length > 3 && p[3] !== p[0])) return true; return false;}
+function ringH(p) {return p.length > 3 ? p[3] : p[0];}
+// a profile's (ascending z) value j along it: 2 the ring's centre off the axis, 3 its half-height, else the entry; held past the ends
+function profV(prof, j) {const v = p => (j === 3 ? ringH(p) : j === 2 ? p[2] || 0 : p[j]); return z => {const n = prof.length; if (z <= prof[0][1]) return v(prof[0]); for (let i = 1; i < n; i++) if (z <= prof[i][1]) {const a = prof[i - 1], b = prof[i]; return lerp(v(a), v(b), (z - a[1]) / (b[1] - a[1]));} return v(prof[n - 1]);};}
+function rideOf(fy, k) {return z => [fy(z) * k, 0];}
+// an ellipsoid's knots as the ride: past its ends held at the end knot (hold, a body with nothing in front of it) or nothing (a separate head or collar is its own handle)
+function ellRide(K, z0, half, hold) {return z => {let u = (z - z0) / half; if (u < -1 || u > 1) {if (!hold) return [0, 0]; u = clamp(u, -1, 1);} return [knotV(K, u, 'dy'), knotV(K, u, 'dz')];};}
+function ellKnot(r0, K, z0, half, key) {return z => r0(z) * knotV(K, (z - z0) / half, key);}
+function taperKnots(c, y) {return c.knots || [{u: 0, w: c.w0, h: c.h0, y: y}, {u: 1, w: c.w1, h: c.h1, y: y}];}
+// the mantle's rings back to front, [r, z, y, h] — null while it is the plain cone (no rings between, the back on the axis, the two radii the old 0.28 and 0.92 of R)
+function mantleRings(c) {
+  const kb = c.kb === undefined ? 0.28 : c.kb, kf = c.kf === undefined ? 0.92 : c.kf, rs = c.rings || [], yb = c.yb || 0;
+  if (!rs.length && !yb && kb === 0.28 && kf === 0.92) return null;
+  const R = c.R, zb = -c.L + 0.1, M = [[kb * R, zb, yb, kb * R]];
+  for (const r of rs) M.push([r.k * R, lerp(zb, 0.1, r.u), r.y || 0, r.k * R]);
+  M.push([kf * R, 0.1, 0, kf * R]);
+  return M;
+}
+function bellProf(c) {const kr = c.R / 0.72, kh = c.H / 0.56, sc = (r, h) => [r * kr, h * kh]; return [sc(0.02, -0.05), sc(0.55, -0.05), sc(0.72, 0.12), sc(0.68, 0.32), sc(0.45, 0.5), sc(0.02, 0.56)];}
+const ELL_U = [-1, -0.5, 0, 0.5, 1];
+function ellDefault() {return ELL_U.map(u => ({u: u, kw: 1, kh: 1, dy: 0, dz: 0}));}
+// the ellipsoid's frame for its handles: E {R, sx, sy, sz, y, z}; a knot's handle stands on the rest body, its width the section's there (never under 0.3 of the widest, or a tip could not be grabbed)
+function ellBase(E, u) {return Math.max(0.3, Math.sqrt(Math.max(0, 1 - u * u)));}
+function ellKnots(E, K) {return (K || ellDefault()).map((k, i, a) => ({z: E.z + k.u * E.R * E.sz + k.dz, y: E.y + k.dy, w: E.R * E.sx * ellBase(E, k.u) * k.kw, h: E.R * E.sy * ellBase(E, k.u) * k.kh, u: k.u, role: 'k', move: 'yz', size: 'wh', chain: true, del: i > 0 && i < a.length - 1, src: i}));}
+function ellSet(E, K0, H) {
+  const old = K0 || ellDefault(), out = [];
+  for (const h of H) {
+    if (h.role !== 'k') continue;
+    const o = h.src !== undefined ? old[h.src] : null;
+    if (!o) {const u = h.u; out.push({u: u, kw: knotV(old, u, 'kw'), kh: knotV(old, u, 'kh'), dy: knotV(old, u, 'dy'), dz: knotV(old, u, 'dz')}); continue;} // a knot put in changes nothing
+    const b = ellBase(E, o.u);
+    out.push({u: o.u, kw: spKeep(o.kw, h.w / (E.R * E.sx * b)), kh: spKeep(o.kh, h.h / (E.R * E.sy * b)), dy: spKeep(o.dy, h.y - E.y), dz: spKeep(o.dz, h.z - (E.z + o.u * E.R * E.sz))});
+  }
+  out.sort((a, b) => a.u - b.u);
+  return out.length === ELL_U.length && out.every((k, i) => k.u === ELL_U[i] && k.kw === 1 && k.kh === 1 && k.dy === 0 && k.dz === 0) ? undefined : out; // nothing moved and none added: no knots at all, and the sphere is G.sph's
+}
+// a box (a head, a snout, a tail) or an ellipsoid piece as a handle of its own
+function pieceH(role, z, y, w, h, size) {return {z: z, y: y, w: w, h: h, role: role, move: 'yz', size: size || 'wh', chain: false, del: false};}
+function roleOf(H, r) {return H.find(h => h.role === r);}
+// the knots down a trunk, the arches or a chain as handles: u 0 at the front (z zf) and 1 at the back (z zb)
+function taperH(K, zf, zb, hk) {return K.map((k, i) => ({z: lerp(zf, zb, k.u), y: k.y, w: k.w / 2, h: (k.h === undefined ? k.w * hk : k.h) / 2, u: k.u, role: 'k', move: 'yz', size: 'wh', chain: true, del: i > 0 && i < K.length - 1, src: i})).reverse();}
+function taperSet(K0, H, zf, zb) {
+  const P = H.filter(h => h.role === 'k').sort((a, b) => b.z - a.z);
+  return P.map(h => {const o = h.src !== undefined ? K0[h.src] : null, u = (zf - h.z) / (zf - zb);
+    if (!o) return {u: u, w: knotV(K0, u, 'w'), h: knotV(K0, u, 'h'), y: knotV(K0, u, 'y')};
+    return {u: P[0] === h ? 0 : P[P.length - 1] === h ? 1 : spKeep(o.u, u), w: spKeep(o.w, h.w * 2), h: spKeep(o.h, h.h * 2), y: spKeep(o.y, h.y)};});
+}
+const SPINE = {
+  lathe: {
+    knots: c => c.prof.map((p, i, a) => ({z: p[1], y: (c.y || 0) + (p[2] || 0) * c.sz, w: p[0], h: ringH(p) * c.sz, role: 'k', move: 'yz', size: 'wh', chain: true, del: a.length > 3, src: i})),
+    set: (c, H) => {c.prof = ringsSet(c.prof, H, c.y || 0, c.sz); return ['prof'];}
+  },
+  sac: {
+    knots: c => {
+      const H = c.shape === 'lathe' && c.prof ? SPINE.lathe.knots({prof: c.prof, y: 0, sz: 1}) : ellKnots(sacE(c), c.ek);
+      H.push(pieceH('collar', c.cz, c.cy, c.cR, c.cR * c.csy));
+      return H;
+    },
+    set: (c, H) => {
+      const cl = roleOf(H, 'collar');
+      c.cz = spKeep(c.cz, cl.z); c.cy = spKeep(c.cy, cl.y); c.cR = spKeep(c.cR, cl.w); c.csy = spKeep(c.csy, cl.h / c.cR);
+      if (c.shape === 'lathe' && c.prof) {c.prof = ringsSet(c.prof, H, 0, 1); return ['cz', 'cy', 'cR', 'csy', 'prof'];}
+      c.ek = ellSet(sacE(c), c.ek, H);
+      return ['cz', 'cy', 'cR', 'csy', 'ek'];
+    }
+  },
+  mantle: {
+    knots: c => {
+      const R = c.R, zb = -c.L + 0.1, kb = c.kb === undefined ? 0.28 : c.kb, kf = c.kf === undefined ? 0.92 : c.kf, H = [];
+      H.push({z: zb, y: c.yb || 0, w: kb * R, h: kb * R, role: 'back', move: 'yz', size: 'r', chain: true, del: false});
+      (c.rings || []).forEach((r, i) => H.push({z: lerp(zb, 0.1, r.u), y: r.y || 0, w: r.k * R, h: r.k * R, u: r.u, role: 'k', move: 'yz', size: 'r', chain: true, del: true, src: i}));
+      H.push({z: 0.1, y: 0, w: kf * R, h: kf * R, role: 'front', move: '', size: 'r', chain: true, del: false});
+      H.push({z: 0.2, y: 0, w: R * 1.06, h: R * 1.06 * 0.92, role: 'collar', move: '', size: 'r', chain: false, del: false});
+      return H;
+    },
+    set: (c, H) => {
+      const cl = roleOf(H, 'collar'), bk = roleOf(H, 'back'), fr = roleOf(H, 'front'), kb0 = c.kb === undefined ? 0.28 : c.kb, kf0 = c.kf === undefined ? 0.92 : c.kf;
+      c.R = spKeep(c.R, cl.w / 1.06);
+      c.L = spKeep(c.L, Math.max(0.2, 0.1 - bk.z));
+      const zb = -c.L + 0.1, kb = spKeep(kb0, bk.w / c.R), kf = spKeep(kf0, fr.w / c.R), yb = Math.abs(bk.y) < 1e-12 ? 0 : spKeep(c.yb || 0, bk.y), old = c.rings || [];
+      const rs = H.filter(h => h.role === 'k').sort((a, b) => a.z - b.z).map(h => {const o = h.src !== undefined ? old[h.src] : null;
+        return {u: o ? spKeep(o.u, (h.z - zb) / (0.1 - zb)) : (h.z - zb) / (0.1 - zb), k: o ? spKeep(o.k, h.w / c.R) : h.w / c.R, y: o ? spKeep(o.y || 0, h.y) : h.y};});
+      c.kb = kb === 0.28 ? undefined : kb; c.kf = kf === 0.92 ? undefined : kf; c.yb = yb || undefined; c.rings = rs.length ? rs : undefined;
+      return ['R', 'L', 'kb', 'kf', 'yb', 'rings'];
+    }
+  },
+  trunk: {
+    knots: c => {
+      const y = c.y || 0, z0 = c.z0, z1 = z0 - c.L, zh = z0 + c.hl * 0.5 + (c.hz || 0), H = [];
+      if (c.tl > 0) H.push(pieceH('tail', z1 + (c.tz || 0) - c.tl * 0.5, c.ty === undefined ? y : c.ty, c.tw / 2, c.th / 2));
+      for (const h of taperH(taperKnots(c, y), z0, z1, 1)) H.push(h);
+      H.push(pieceH('head', zh, c.hy === undefined ? y : c.hy, c.hw / 2, c.hh / 2));
+      if (c.nl > 0) H.push(pieceH('snout', zh + c.hl * 0.5 + (c.nz || 0) + c.nl * 0.5, c.ny === undefined ? y : c.ny, c.nw / 2, c.nh / 2));
+      return H;
+    },
+    set: (c, H) => {
+      const y = c.y || 0, K0 = taperKnots(c, y), P = H.filter(h => h.role === 'k').sort((a, b) => b.z - a.z), keys = ['z0', 'L', 'n', 'w0', 'w1', 'h0', 'h1', 'knots', 'hy', 'hz', 'hw', 'hh', 'pitch'];
+      const z0 = spKeep(c.z0, P[0].z), L = spKeep(c.L, Math.max(0.1, z0 - P[P.length - 1].z)),
+        pitch = c.pitch && Math.round(c.L / c.pitch) === c.n ? c.pitch : c.L / c.n; // the plate the trunk grows by: held from the first pull (a drag's steps would creep it), taken afresh when a slider moved the count or the length
+      if (L !== c.L) {c.n = clamp(Math.round(L / pitch), 3, 14); c.pitch = pitch;} // pulled longer, it grows plates (Spore's spine): the plates keep their pitch
+      const K = taperSet(K0, H, z0, z0 - L);
+      c.z0 = z0; c.L = L;
+      if (K.length === 2 && K[0].y === y && K[1].y === y) {c.w0 = K[0].w; c.w1 = K[1].w; c.h0 = K[0].h; c.h1 = K[1].h; c.knots = undefined;}
+      else c.knots = K;
+      const hd = roleOf(H, 'head'), zh = hd.z;
+      c.hy = spKeep(c.hy === undefined ? y : c.hy, hd.y); c.hz = spKeep(c.hz || 0, zh - z0 - c.hl * 0.5); c.hw = spKeep(c.hw, hd.w * 2); c.hh = spKeep(c.hh, hd.h * 2);
+      const tl = roleOf(H, 'tail'), sn = roleOf(H, 'snout');
+      if (tl) {c.ty = spKeep(c.ty === undefined ? y : c.ty, tl.y); c.tz = spKeep(c.tz || 0, tl.z - (z0 - L) + c.tl * 0.5); c.tw = spKeep(c.tw, tl.w * 2); c.th = spKeep(c.th, tl.h * 2); keys.push('ty', 'tz', 'tw', 'th');}
+      if (sn) {c.ny = spKeep(c.ny === undefined ? y : c.ny, sn.y); c.nz = spKeep(c.nz || 0, sn.z - zh - c.hl * 0.5 - c.nl * 0.5); c.nw = spKeep(c.nw, sn.w * 2); c.nh = spKeep(c.nh, sn.h * 2); keys.push('ny', 'nz', 'nw', 'nh');}
+      return keys;
+    }
+  },
+  arches: {
+    knots: c => {
+      const zf = c.z0 - c.L / 2, zb = c.z0 - (c.n - 0.5) * c.L, H = [pieceH('tail', c.tz, c.ty, c.tR, c.tR * c.tsy)];
+      for (const h of taperH(taperKnots(c, c.y), zf, zb, 1)) H.push(h);
+      H.push(pieceH('head', c.hz, c.hy, c.hR, c.hR * c.hsy));
+      return H;
+    },
+    set: (c, H) => {
+      const K0 = taperKnots(c, c.y), P = H.filter(h => h.role === 'k').sort((a, b) => b.z - a.z), zf0 = c.z0 - c.L / 2, span0 = (c.n - 1) * c.L;
+      const zf = spKeep(zf0, P[0].z), span = spKeep(span0, Math.max(0.2, zf - P[P.length - 1].z)), pitch = c.pitch && Math.abs(c.pitch - c.L) < c.L * 0.5 ? c.pitch : c.L; // held from the first pull, as the trunk's
+      if (span !== span0) {c.n = clamp(Math.round(span / pitch) + 1, 3, 16); c.L = span / (c.n - 1); c.pitch = pitch;} // pulled longer, it grows arches at their pitch
+      c.z0 = spKeep(c.z0, zf + c.L / 2);
+      const K = taperSet(K0, H, zf, zf - span);
+      if (K.length === 2 && K[0].y === c.y && K[1].y === c.y) {c.w0 = K[0].w; c.w1 = K[1].w; c.h0 = K[0].h; c.h1 = K[1].h; c.knots = undefined;}
+      else c.knots = K;
+      const hd = roleOf(H, 'head'), tl = roleOf(H, 'tail');
+      c.hz = spKeep(c.hz, hd.z); c.hy = spKeep(c.hy, hd.y); c.hR = spKeep(c.hR, hd.w); c.hsy = spKeep(c.hsy, hd.h / c.hR);
+      c.tz = spKeep(c.tz, tl.z); c.ty = spKeep(c.ty, tl.y); c.tR = spKeep(c.tR, tl.w); c.tsy = spKeep(c.tsy, tl.h / c.tR);
+      return ['z0', 'L', 'n', 'w0', 'w1', 'h0', 'h1', 'knots', 'hz', 'hy', 'hR', 'hsy', 'tz', 'ty', 'tR', 'tsy', 'pitch'];
+    }
+  },
+  chain: {
+    knots: c => {
+      const K = c.knots || [{u: 0, w: c.w0 + c.w1}, {u: 1, w: c.w0}];
+      return taperH(K.map(k => ({u: k.u, w: k.w, h: k.w * 1.35, y: 0})), 0, -c.n * c.L, 1.35).map(h => Object.assign(h, {move: h.u > 0 ? 'z' : '', size: 'r'}));
+    },
+    set: (c, H) => {
+      const K0 = c.knots || [{u: 0, w: c.w0 + c.w1}, {u: 1, w: c.w0}], P = H.filter(h => h.role === 'k').sort((a, b) => b.z - a.z);
+      c.L = spKeep(c.L, Math.max(0.05, -P[P.length - 1].z / c.n));
+      const K = P.map(h => {const o = h.src !== undefined ? K0[h.src] : null, u = -h.z / (c.n * c.L); return o ? {u: P[0] === h ? 0 : P[P.length - 1] === h ? 1 : spKeep(o.u, u), w: spKeep(o.w, h.w * 2)} : {u: u, w: knotV(K0, u, 'w')};});
+      if (K.length === 2) {c.w0 = spKeep(c.w0, K[1].w); c.w1 = spKeep(c.w1, K[0].w - K[1].w); c.knots = undefined;}
+      else c.knots = K;
+      return ['L', 'w0', 'w1', 'knots'];
+    }
+  },
+  bell: {
+    axis: 'y',
+    knots: c => (c.prof || bellProf(c)).map((p, i, a) => ({z: 0, y: p[1], w: p[0], h: p[0], role: 'k', move: i > 0 ? 'y' : '', size: i < a.length - 1 ? 'r' : '', chain: true, del: i > 0 && i < a.length - 1 && a.length > 4, src: i})),
+    set: (c, H) => {
+      const old = c.prof || bellProf(c), def = bellProf(c);
+      const pr = H.filter(h => h.role === 'k').sort((a, b) => a.y - b.y).map(h => {const o = h.src !== undefined ? old[h.src] : null; return [o ? spKeep(o[0], h.w) : h.w, o ? spKeep(o[1], h.y) : h.y];});
+      c.prof = pr.length === def.length && pr.every((p, i) => p[0] === def[i][0] && p[1] === def[i][1]) ? undefined : pr;
+      return ['prof'];
+    }
+  },
+  coilbody: ellAdapter(c => ({R: c.R, sx: c.sx, sy: c.sy, sz: c.sz, y: c.y || 0, z: c.z})),
+  bean: ellAdapter(c => ({R: c.R, sx: c.sx, sy: c.sy, sz: c.sz, y: c.y, z: c.z})),
+  float: ellAdapter(c => ({R: 1, sx: c.sx, sy: c.sy, sz: c.sz, y: c.y, z: 0})),
+  shield: {
+    knots: c => {
+      const H = ellKnots(shieldE(c), c.ek);
+      if (c.tl > 0) H.unshift(pieceH('tail', c.tz, c.ty, c.tw / 2, c.th / 2));
+      H.push(pieceH('head', c.hz, c.hy, c.hw / 2, c.hh / 2));
+      return H;
+    },
+    set: (c, H) => {
+      c.ek = ellSet(shieldE(c), c.ek, H);
+      const hd = roleOf(H, 'head'), tl = roleOf(H, 'tail');
+      c.hz = spKeep(c.hz, hd.z); c.hy = spKeep(c.hy, hd.y); c.hw = spKeep(c.hw, hd.w * 2); c.hh = spKeep(c.hh, hd.h * 2);
+      if (tl) {c.tz = spKeep(c.tz, tl.z); c.ty = spKeep(c.ty, tl.y); c.tw = spKeep(c.tw, tl.w * 2); c.th = spKeep(c.th, tl.h * 2);}
+      return ['ek', 'hz', 'hy', 'hw', 'hh', 'tz', 'ty', 'tw', 'th'];
+    }
+  }
+};
+function sacE(c) {return {R: c.R, sx: 1, sy: c.sy, sz: c.sz, y: 0, z: c.z};}
+function shieldE(c) {return {R: c.R, sx: c.sx, sy: c.sy, sz: c.sz, y: c.y, z: c.z};}
+function ellAdapter(E) {return {knots: c => ellKnots(E(c), c.ek), set: (c, H) => {c.ek = ellSet(E(c), c.ek, H); return ['ek'];}};}
+// a lathe's rings back from handles (ascending z): [r, z] while a ring is round and on the axis, [r, z, y, h] once it is not
+function ringsSet(prof, H, cy, sz) {
+  return H.filter(h => h.role === 'k').sort((a, b) => a.z - b.z).map(h => {
+    const o = h.src !== undefined ? prof[h.src] : null;
+    let r = o ? spKeep(o[0], h.w) : h.w, z = o ? spKeep(o[1], h.z) : h.z, dy = (h.y - cy) / sz, hh = h.h / sz;
+    if (o) {dy = spKeep(o[2] || 0, dy); hh = spKeep(ringH(o), hh);}
+    if (Math.abs(dy) < 1e-12) dy = 0;
+    if (Math.abs(hh - r) <= SPINE_EPS * Math.max(1, r)) hh = r;
+    return dy === 0 && hh === r ? [r, z] : [r, z, dy, hh];
+  });
+}
+const SPINE_KEYS = ['knots', 'ek', 'rings', 'kb', 'kf', 'yb']; // the core keys the spine writes that no registry parameter names (and a bell's prof: a lathe's and a sac's is one)
+// the core's numbers its knots stand in for while it has them (the lab hides their sliders: a knot list is the taper)
+function spineOver(c) {return c && c.knots ? (c.kind === 'chain' ? ['w0', 'w1'] : ['w0', 'w1', 'h0', 'h1']) : [];}
+// ---- the hand's operations, on a spec (the lab calls these; test/spine.js too). Each returns the new handle list, or null when refused. ----
+function spineOf(spec) {const sp = fillSpec(spec), A = SPINE[sp.core.kind]; return A ? {A: A, c: sp.core, H: A.knots(sp.core)} : null;}
+// write a handle list into spec.core: the keys the adapter wrote, a key it cleared taken out (the spec keeps every other default as a default)
+function spineWrite(spec, S, H) {
+  const c = Object.assign({}, S.c), keys = S.A.set(c, H);
+  for (const k of keys) {if (c[k] === undefined) delete spec.core[k]; else spec.core[k] = JSON.parse(JSON.stringify(c[k]));}
+  return S.A.knots(fillSpec(spec).core);
+}
+function spineAxis(S) {return S.A.axis || 'z';}
+// a handle moved to (y, z): what it may move; a chained one never passes its neighbours (it stops a tenth of the way short of where it was from either)
+function spineMove(spec, i, y, z) {
+  const S = spineOf(spec); if (!S || !S.H[i]) return null;
+  const H = S.H, h = H[i], ax = spineAxis(S), v0 = h[ax];
+  if (h.move.indexOf('y') >= 0) h.y = y;
+  if (h.move.indexOf('z') >= 0) h.z = z;
+  if (h.chain && h.move) {
+    const C = H.filter(q => q.chain), j = C.indexOf(h), lo = C[j - 1], hi = C[j + 1];
+    h[ax] = clamp(h[ax], lo ? lo[ax] + (v0 - lo[ax]) * 0.1 : -Infinity, hi ? hi[ax] - (hi[ax] - v0) * 0.1 : Infinity);
+  }
+  return spineWrite(spec, S, H);
+}
+// a handle fattened or thinned: kw across, kh up (a round one takes kw for both)
+function spineSize(spec, i, kw, kh) {
+  const S = spineOf(spec); if (!S || !S.H[i]) return null;
+  const h = S.H[i];
+  if (!h.size) return null;
+  if (h.size === 'r') kh = kw;
+  h.w = Math.max(0.005, h.w * kw); h.h = Math.max(0.005, h.h * kh);
+  return spineWrite(spec, S, S.H);
+}
+// a knot put in at v along the axis between two chained knots: on the body where it was, so the body does not change until it is moved
+function spineAdd(spec, v) {
+  const S = spineOf(spec); if (!S) return null;
+  const ax = spineAxis(S), C = S.H.filter(q => q.chain).sort((a, b) => a[ax] - b[ax]);
+  for (let j = 1; j < C.length; j++) {
+    const a = C[j - 1], b = C[j];
+    if (v <= a[ax] || v >= b[ax]) continue;
+    const t = (v - a[ax]) / (b[ax] - a[ax]), n = {z: lerp(a.z, b.z, t), y: lerp(a.y, b.y, t), w: lerp(a.w, b.w, t), h: lerp(a.h, b.h, t), role: 'k', move: ax === 'y' ? 'y' : 'yz', size: a.size || b.size || 'wh', chain: true, del: true};
+    if (a.u !== undefined && b.u !== undefined) n.u = lerp(a.u, b.u, t);
+    if (S.A === SPINE.mantle) n.size = 'r';
+    S.H.splice(S.H.indexOf(b), 0, n); // every adapter lists its handles ascending along the axis
+    return spineWrite(spec, S, S.H);
+  }
+  return null;
+}
+function spineDel(spec, i) {
+  const S = spineOf(spec); if (!S || !S.H[i] || !S.H[i].del) return null;
+  S.H.splice(i, 1);
+  return spineWrite(spec, S, S.H);
+}
+// compile's ride (v11.246): every part's pieces and meshes moved by the bend at their place, a piece pitched with it too
+function spineRide(ride, P, n0, nodes, rigMeshes) {
+  const m = new THREE.Matrix4(), q4 = new THREE.Quaternion(), eu = new THREE.Euler(), one = new THREE.Vector3(1, 1, 1), o = new THREE.Vector3();
+  for (let q = n0; q < P.length; q++) {
+    const p = P[q];
+    if (!p.m) continue; // a replay of the build's tape: the recording has it
+    const y = p.m.elements[13], z = p.m.elements[14], d = ride(z), d0 = ride(z - 0.05), d1 = ride(z + 0.05), a = -Math.atan2(d1[0] - d0[0], 0.1);
+    if (Math.abs(a) > 1e-6) {const c = Math.cos(a), s = Math.sin(a); q4.setFromEuler(eu.set(a, 0, 0)); m.compose(o.set(0, y - (y * c - z * s), z - (y * s + z * c)), q4, one); p.m.premultiply(m);} // pitched with the bend about its own place
+    const e = p.m.elements;
+    e[13] += d[0]; e[14] += d[1];
+  }
+  for (const o of nodes) {
+    if (rigMeshes.indexOf(o) >= 0) continue;
+    const d = ride(o.position.z);
+    o.position.y += d[0]; o.position.z += d[1];
+  }
+}
 // ---------- the surface: where a part sits ----------
 // A part that snaps asks the body where its surface is at (x,z): the core's shape (an ellipse section for the round bodies, the
 // box for a trunk) raised by whatever armour covers that spot — a part's `cover(F,core,p)` returns {top(x,z), bottom(x,z)} in
@@ -2704,6 +3009,7 @@ function compile(spec, s, pal, opt) {
       }
     if (r.anim) hooks.push(r.anim);
   }
+  if (F.ride) spineRide(F.ride, P, nCore, [].concat(...built.map(r => (r ? r.nodes : []))), rigs.map(r => r.mesh)); // the spine bent (v11.246): the parts ride it
   const split = !!(opt && opt.split) && !F.finish; // the lab: every part's static geometry as its own mesh, so a part can be lit up under the cursor (not on a chain body: its parts ride the root segment)
   let body;
   if (F.finish) {
@@ -2793,6 +3099,7 @@ function compile(spec, s, pal, opt) {
   // that far off the jaws for good. The mouth sits at F.nose (its default z); a capsule's surface now ends there. The tail end is left alone.
   const hitF = (spec.hit || hit).map(h => {
     const o = {a: h.a.slice(), b: h.b.slice(), r: h.r};
+    if (F.ride) for (const e of [o.a, o.b]) {const d = F.ride(e[2]); e[1] += d[0]; e[2] += d[1];} // a bent body's capsules ride it (v11.246)
     if (isFinite(F.nose)) { if (o.a[2] + o.r > F.nose) o.a[2] = F.nose - o.r; if (o.b[2] + o.r > F.nose) o.b[2] = F.nose - o.r; }
     return o;
   });
