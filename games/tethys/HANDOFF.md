@@ -4,11 +4,11 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
-**v11.243 (26 Nov 2026): one sunken island where there were two — the atoll m93 struck** (region.js `REGION_K.strike`, `cut`, `run(mask,drop)`;
-test/region.js, test/plankton.js, test/gpu.json; DESIGN The region; ARCHIPELAGO; CHANGELOG). The person: *"there shouldn't really be two sunken islands in
-one spot … pick one and kill it"*, the two at the map's middle. m93 (one 25 km³ vent, 19 km² of reef) went; m54's bank (eight vents, 319 km²) stays. Left
-out of the history after the pins' fit, so the old square moves 7.7 cm at most and ours' core under 1 cm; m109's east face lost m93's wave shadow.
-**Ask:** the map's middle; m109's east face at `tp(109800,4000,-10)`.
+**v11.244 (26 Nov 2026): one of the two high islands in the map's middle struck — m122 gone, m93 back** (region.js `REGION_K.strike`; test/region.js,
+test/horizon.js, test/gpu.json; DESIGN The region; ARCHIPELAGO; CHANGELOG). The person: *"there shouldn't really be two sunken islands in one spot … pick one
+and kill it"* — m122 (799 m) and m109 (470 m), 54 km apart, each in its own drowned ring. m122 is never born and the pins refit: ours' own island the same
+to the bit, the giant's barrier 85 m out, m154 41 m lower, m31 out of the platform's north margin, m109, m117 and m93 the west's lineages now. v11.243 had
+struck the atoll m93 by misreading which two; it is back. **Ask:** the map's middle; whether "just one visible" means more of these should go.
 
 **v11.242 (26 Nov 2026): the uneven species split by their variants' size** (grow.js `VSPLIT`, `vsplitOf`; chunks.js `poolSplit`, `poolFor`'s key;
 test/vsplit.js; DESIGN; FLORA.md; CHANGELOG). The person: *"go ahead with the grass split."* A pulled draw ran every instance at its largest variant's count;

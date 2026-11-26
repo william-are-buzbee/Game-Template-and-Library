@@ -12191,3 +12191,54 @@ nothing there now but water 1,245 m deep.
 **Unseen, ask:**
 1. The map (`n`, zoomed out): the middle reads as m109, a deep channel, then m54's bank — one sunken island there, not two.
 2. m109's east face (`tp(109800,4000,-10)`): the swell m93 used to break now reaches it; whether its shallows look right more exposed.
+
+## v11.244 — one of the two high islands in the map's middle struck: m122 gone, m93 back (26 Nov 2026)
+
+v11.243 read "the two in the middle of the map" as the two members nearest the world's numeric centre (the atoll m93 and the bank m54) and struck m93.
+The person, with a picture of the map: *"I still see the island … I was under the impression there shouldn't be a ton of sunken islands like this, just
+one visible or something."* The two were m122 (799 m, 9.2 Ma, 1,306 km³) and m109 (470 m, 14.3 Ma, 4,045 km³), 54 km apart in the map's middle, each a
+high island inside its own drowned ring with a barrier reef. **m122 is struck; m93 is back.**
+
+- **Why m122:** struck, m109 stands alone in the middle and the water where m122 stood is plain deep floor. Struck the other way, the saddles (v11.143:
+  the passes that join neighbouring shallows at middle depth) close round where m109 stood into a horseshoe at −560 to −690 m round a pit at −1,300 —
+  a crater with no island. m109 is also the larger place (its land 2.6 times m122's) and holds the GPU bench's atoll place.
+- **`REGION_K.strike`** (region.js; `{32:['m122']}`) is now the plain strike: the member is left out right after the composites, never born — no
+  record, reef, load or moat — and the pins (ours' summit, the giant's, the awesome shield's, the floor beside ours at −1100) refit without it. v11.243's
+  way (the old fit kept, the load dropped after) was right only for m93's 7 mm pull on ours; m122's is ~55 m, and the −1100 pin must hold. Its machinery
+  (`cut`, `run(mask,drop)`, the indices' remap) is gone.
+- **What else moved** (the refit lowers the plateau so the floor beside ours stays −1100, and the pins grow to keep their summits): ours' own island
+  the same to the bit (0.0 m inside 2.4 km); round it the moat's floor ~10 m on average, the giant's barrier 85 m out (8,728 → 8,813 m from its centre: up to
+  ~250–290 m at points on its walls); the old square's east edge loses m122's flank (up to 1 km); the giant 476 → 494 km³, the awesome shield 4,096 →
+  4,246 km³ (still 2,533 m), m154 590 → 549 m, m109 470 → 473 m (its barrier 360 m in); **m31**, a bank the platform had buried, now stands out of the
+  platform's north margin as a lobe (its centre off the lower platform), fused to it.
+- **The lineages** (region.js `rangeBuild`): ours was settled through m122; its chain is 8 hops now (9), and the cuts are thirds of ours' hops, so
+  m109, m117 and m93 go from the middle's range to the young west's (their brooders' sister species the west's).
+- **The tests:** test/region.js holds the strike (m122 in no member or record, the pins at their summits) and takes seed 32's new counts — one model
+  record reaching the old square (two), two high islands with a barrier (three), one with bays (two), ours 8 hops (9); its bank-lagoon check labels each
+  bank as rgPlatform does, a 4-connected piece (it grouped them by lagoon depth, which two one-node banks now share). test/horizon.js: from ours the giant,
+  the awesome shield and m154 (m122 not). test/plankton.js as at v11.242 (m93's flank in a wake again), its open atoll's site moved to m117's break
+  after the refit (3.6 km up-current). test/origins.js swam to (30, −20) km, m122's flank at −321 m, for a pool block of its deep plants; open floor now,
+  so it swims to a shelf at −17 m on the awesome shield's coast, (−31.1, −21.8). The first spot tried, (−6.3, −35.5), failed it by one instance in two
+  cells (a vase, a turf): its reference run (world coordinates in float32, as to v11.109, 3.9 mm a step at 36 km) flips a placement on a threshold that
+  the game's own local numbers do not — the reference's imprecision, not the game's, as far as I can tell; not chased further.
+
+**What it costs** (against v11.243; `node test/perf.js`, the world bench three more times with N=5):
+
+| measure | before | after | ratio |
+|---|---|---|---|
+| the world's load, s | 0.90–1.04 | 0.98–1.06 | ×0.97–1.00 over three runs (×1.18 in the first, noise) |
+| sample() at plat, µs | 0.92–0.99 | 1.04–1.22 | **×1.11–1.23** in every run |
+| sample() at world, w70, ours, east | — | — | ×0.76–1.17, noise either way |
+| the atoll place: draws, programs | 266, 30 | 288, 32 | ×1.08, ×1.07 (m93's wave shadow on m109 back: v11.242's 278.6 and 32) |
+| the coast place: instances, bytes uploaded a frame | 18,908, 97 KB | 19,699, 117 KB | ×1.04, **×1.21** |
+
+**Worse:** sample() in the platform's window (x 150–350, z −40–140 km) ×1.11–1.23: the refit lowered the plateau, so the platform there covers 45% of
+the window, not 51%, and m31 stands out of it as a record — a sample there checks 1.55 records, not 1.36. Only there; the cost of what was asked. The
+giant's coast place uploads 20 KB a frame more with 4% more instances in sight (its barrier 85 m further out). test/gpu.json updated.
+
+**Seen:** the map (`node test/map.js`, the middle at 140 m a pixel), with m122 struck and with m109 struck, against main; m31's corner of the platform
+before and after. Not seen in play: the change is where the player rarely is, and the map shows it whole.
+
+**Unseen, ask:**
+1. The map (`n`): the middle reads as one high island, m109, with the atolls and banks round it.
+2. Whether "just one visible" means more of these should go — the giant also stands in a drowned ring with a barrier, 18 km from ours.
