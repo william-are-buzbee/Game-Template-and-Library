@@ -2776,6 +2776,12 @@ in node and ×1.27 in Chromium, each pass within its noise and together a fifth.
   ×1.25–1.35 (program changes); a real GPU's early depth test is not measured here. The terrain's specular off — with a black specular r128's Schlick
   term still leaves a Fresnel sheen at grazing light, so it is a change to the picture, not a saving.
 
+**The sky under the water (v11.240, 26 Nov 2026; atmosphere.js `skyUnder`).** The work tower's F8 (#208) put the sky and the clouds at a quarter of a
+15.8 ms GPU frame 10 m down. The dome reaches the screen from below only through the window (alpha 1 − winT unrefracted; winT × (1 − dk) refracted), so
+it and its cloud pass are left out when the view points below the tide's plane where the dome meets it, or when that weight is under half a level (the
+high tier from ~135 m). Measured, the low tier's window *is* the dome, faint to 800 m, so it stays; and shallow and level no exact bound on the window's
+lower edge exists (the waves' facets tilt to 33°), so the cloud pass's march behind the mirror stays — both are the person's to trade (CHANGELOG v11.240).
+
 **The flight recorder (v11.191, 20 Nov 2026; src/rec.js, test/report.js, analysis_project.md §1).** The person: "I could just play and you'd learn
 what device I'm on … You could check the log and that would literally be it." Recorded in the browser that plays, always, sent only when the person
 presses F9 (or calls `report()`): GitHub's new-issue page opens in a tab with a few lines for a person and one line, `tethys-rec:1:z…`, holding the
