@@ -237,6 +237,9 @@ with species per biome capped at eight — measured, not assumed.
   past 45 m draw a light copy: the same plant from its own builder on its own seeds, every primitive at half its sides and segments, parts under 6% of
   its reach dropped, kept only where it saves 20% or more (grow.js `PLOD`). The grape, the tulip, the flask ×0.23–0.30 of their vertices, the coin ×0.5;
   the grasses — the strap, the tress, flat blades with nothing to lose — none yet (see v11.241's note on their variants).
+  *v11.242 (the person, 26 Nov 2026: "go ahead with the grass split"):* nothing seen changes; a species whose variants are uneven draws its light
+  variants' instances in a pool of their own, at their own size (grow.js `VSPLIT`) — the strap (72/60/636 vertices) and the tress (60/84/468) on both
+  tiers, and on the high, which has no copies, the grape, the domes, the urn, the cup, the vase, the flask and the darkrind.
 - **Epibionts** (later): small things on big things — beards on tubes, crusts on towers, cones on a stipe's holdfast, a
   loop twined round a stalk — placed from the emergent instance's matrix. Both images are full of it; it is the
   cheapest "lived-in" there is.

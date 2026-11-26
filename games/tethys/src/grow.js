@@ -157,8 +157,17 @@ function vpullPack(F){ // every entry of F with a packed geometry (a `vid` attri
     for(let i=0;i<v.length;i++){const k=v[i],o=(a.b+k*a.n+(s[k]++))*12;data[o]=P[i*3];data[o+1]=P[i*3+1];data[o+2]=P[i*3+2];data[o+4]=N[i*3];data[o+5]=N[i*3+1];data[o+6]=N[i*3+2];data[o+8]=C[i*3];data[o+9]=C[i*3+1];data[o+10]=C[i*3+2];}
     for(let k=0;k<3;k++)for(let i=a.c[k];i<a.n;i++)data[(a.b+k*a.n+i)*12+3]=1;} // the padding: gone
   return {data:data,rows:rows,at:at};}
-function vpullGeo(a){const g=new THREE.BufferGeometry(),q=new Float32Array(a.n*2);for(let i=0;i<a.n;i++){q[i*2]=a.b+i;q[i*2+1]=a.n;} // position: n zeros, only for three's count (the shader never reads it)
-  g.setAttribute('position',new THREE.Float32BufferAttribute(new Float32Array(a.n*3),3));g.setAttribute('aPull',new THREE.Float32BufferAttribute(q,2));return g;}
+// The split (v11.242): a pulled species still runs every instance at its largest variant's count, the rest of the vertices padding that leaves at once —
+// the strap's beaded variant is ~640 vertices and its two blade tufts ~70, so two thirds of its instances pay nine times their own work. Where the
+// variants are that uneven, the species draws two pools: its light variants' instances at their own largest count (f.split.geo), the rest at the whole
+// n. The same instances, matrices, tints and pixels; one draw more (and its shadow's). `min`: the share of the species' vertex work the split must save,
+// reckoned with its three variants equally common (where they are not, chunks.js poolSplit's census in the test says what it saved).
+const VSPLIT={on:true,min:0.3};
+function vsplitOf(a){if(!VSPLIT.on)return null;const c=a.c,o=[0,1,2].sort((x,y)=>c[x]-c[y]);let best=null; // the light set: the smallest variant, or the two smallest
+  for(let m=1;m<3;m++){const nl=c[o[m-1]],save=m/3*(1-nl/a.n);if(save>=VSPLIT.min&&(!best||save>best.save)){let h=0;for(let j=m;j<3;j++)h|=1<<o[j];best={n:nl,heavy:h,save:save};}}
+  return best;} // {n: the light pool's count, heavy: the heavy variants' bits, save} or null
+function vpullGeo(a,m){const k=m||a.n,g=new THREE.BufferGeometry(),q=new Float32Array(k*2);for(let i=0;i<k;i++){q[i*2]=a.b+i;q[i*2+1]=a.n;} // position: k zeros, only for three's count (the shader never reads it); k the stride n, or fewer for a split species' light pool (v11.242, VSPLIT)
+  g.setAttribute('position',new THREE.Float32BufferAttribute(new Float32Array(k*3),3));g.setAttribute('aPull',new THREE.Float32BufferAttribute(q,2));return g;}
 // species(id, fields, build): three variants of one species (build(rg,k) → {P, col, pads}), packed. `top` is the tallest variant's
 // highest point (the surface cap in placeFloraType); `vars[k]` carries the variant's own colliders and pads; `pads:true` on the entry
 // says the cell must give the instances a dip attribute.

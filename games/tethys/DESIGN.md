@@ -2732,6 +2732,9 @@ After (CHANGELOG v11.187 has the tables): the shore ×0.88, the canopy ×0.77, t
   shader fetches the instance's own variant from one float texture (`VPULL_TEX`, three texels a vertex: the attributes' own floats) in place of three's
   begin_vertex, beginnormal_vertex and color_vertex: the same picture, pixel for pixel, one draw a species. It needed a texture unit: the tinted materials
   were at WebGL's 16, so the caustic's ten tiles are one texture array (`CAU_ARR`) — 7 units now, the pulled ones 8.
+  Since v11.242 a species whose variants are uneven (grow.js `VSPLIT`: the strap's beaded variant ~640 vertices, its blade tufts ~70) draws two pools,
+  its light variants' instances at their own largest count (chunks.js `poolSplit`) — not one with a light copy on the tier (v11.241), whose far
+  instances draw the copy.
 - **The surface from below** (atmosphere.js `SURF_OCC`, `OCC`). Under water the underside outside the window is the mirror, opaque, and everything in the
   air behind it was shaded first and painted over. Now the surface is drawn first, as depth, where its facet's cosine to the eye is under `OCC.cv` 0.25
   (the window opens at WIN_LO 0.35; the margin is the refraction's reach), pushed back a few depth steps so the real one draws over it.

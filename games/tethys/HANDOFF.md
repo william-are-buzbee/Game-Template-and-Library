@@ -4,6 +4,12 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.242 (26 Nov 2026): the uneven species split by their variants' size** (grow.js `VSPLIT`, `vsplitOf`; chunks.js `poolSplit`, `poolFor`'s key;
+test/vsplit.js; DESIGN; FLORA.md; CHANGELOG). The person: *"go ahead with the grass split."* A pulled draw ran every instance at its largest variant's count;
+the strap's and the tress's light variants are a tenth to a fifth of their heavy one. Such a species now draws its light instances in a pool of their own
+(the strap and the tress on both tiers; on the high, with no copies, eight more). Nothing seen changes (the pictures the same pixel for pixel). The F8
+place's triangles ×0.79 (with v11.241, ×0.58 against v11.239), the high tier's ×0.91–0.97, +2–6 draws. **Ask:** the tower's F8 at `tp(69950,29582,-10)`.
+
 **v11.241 (26 Nov 2026): the plants' light copies on the low tier** (grow.js `PLOD`, `plodVariants`; parts.js `GEO_LK`; chunks.js `poolPlod`, `poolCull`,
 `poolPack`; scene.js `HIDE_NEAR`, `HIDE_FAR`, `plodMat`; test/plod.js; FLORA.md; CHANGELOG). The person: *"YES we want to make lighter copies … 40% is 40%."*
 Past 45 m on the low tier a plant's tile draws a copy at half the facets, without its smallest parts; the whole plant draws only its near tiles, so nothing
@@ -30,12 +36,6 @@ nothing seen or simulated changed: the schools', grazers' and hunters' scans rea
 step ×0.86 by the fair bench); three's render no longer recomposes the matrices of 13,600 creature parts out of sight (renderFrame's CPU side ×0.65–0.79); a point
 light at 0 is skipped in the shaders (the proxy's vertex work ×0.81–0.89). **Ask:** the readout's `render` and `gpu` at `tp(330,0)` and `tp(110,-380)` on
 the preview against main's, and an F9 from each machine — the work tower's last report is v11.197.
-
-**v11.237.1 (25 Nov 2026): the creatures bench made fair** (test/bench_creatures.js, test/benchpage.js `iso`, test/perf.js's note, test/README.md;
-CHANGELOG). No game code changed. The bench read identical sources ×0.81–1.28 at a place, so `perf.js` flagged cells no change could reach. Now
-both trees' pages are open at once and take turns — kind by kind, cell by cell, 20 frames at a time, the first alternating — and every piece is the
-least of eight rounds, a cell's down to each step of its generator, on a page whose clock reads to 5 µs: identical sources read within ±4% at the forest,
-the atoll and the platform and ×0.93–1.07 at the sea and the giant's coast (×0.81–1.28 before). It takes ~5½ minutes (~1¼ before). **Ask:** nothing.
 
 ## Open
 
