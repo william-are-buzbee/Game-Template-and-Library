@@ -173,7 +173,7 @@ canvas{display:block;outline:none;touch-action:none}
 <div id="fade" class="layer"></div>
 <canvas id="spark" class="layer"></canvas>
 <div id="stats"></div>
-<script>window.TETHYS_BUILD={v:"v11.239",wh:"877fa9c6240a2832"};</script>
+<script>window.TETHYS_BUILD={v:"v11.240",wh:"a647f39fe1a1bd06"};</script>
 <script>
 // loader.js — the page's loader, in tethys.html only, outside the game's bundle and before it: three.js and the world cache fetched side by side, then the
 // game. Since v11.215 (three.js-ready) three.js is loaded as a module — every release after r160 is only that — with import(); its exports are copied onto
@@ -14404,9 +14404,9 @@ const surface=new THREE.Mesh(sg,SURF_MAT);surface.frustumCulled=false;scene.add(
 // for the window's refraction reads the frame up to REFR_MAX of the screen off), pushed back by a few depth steps (polygonOffset) so the real surface still
 // draws over it: what lies beyond it fails the depth test before its pixel shader runs. Its vertices are the surface's own (SURF_MAT's vertex code); its
 // pixel shader only the facet's cosine. In the air, or OCC.on false, it is not drawn.
-const OCC={on:true,cv:0.25};
+const OCC={on:true,cv:0.25,cvU:{value:0.25}}; // cvU (v11.240): the threshold the shader reads — OCC.cv while the frame is refracted, WIN_LO when it is not (skyUnder)
 const SURF_OCC=(function(){const m=new THREE.MeshPhongMaterial({flatShading:true,side:THREE.DoubleSide,colorWrite:false,depthWrite:true,polygonOffset:true,polygonOffsetFactor:1,polygonOffsetUnits:4});
-  m.onBeforeCompile=function(sh){SURF_MAT.onBeforeCompile.call(SURF_MAT,sh);sh.fragmentShader='varying vec3 vViewPosition;\nvoid main(){vec3 n=normalize(cross(dFdx(vViewPosition),dFdy(vViewPosition)));if(gl_FrontFacing||abs(dot(normalize(vViewPosition),n))>'+OCC.cv.toFixed(3)+')discard;gl_FragColor=vec4(0.0);}';};
+  m.onBeforeCompile=function(sh){SURF_MAT.onBeforeCompile.call(SURF_MAT,sh);sh.uniforms.uOccCv=OCC.cvU;sh.fragmentShader='uniform float uOccCv;varying vec3 vViewPosition;\nvoid main(){vec3 n=normalize(cross(dFdx(vViewPosition),dFdy(vViewPosition)));if(gl_FrontFacing||abs(dot(normalize(vViewPosition),n))>uOccCv)discard;gl_FragColor=vec4(0.0);}';};
   m.customProgramCacheKey=function(){return 'surfocc';};m.extensions={derivatives:true};
   const o=new THREE.Mesh(sg,m);o.frustumCulled=false;o.renderOrder=-12;o.visible=false;scene.add(o);return o;})();
 const refrMark=(function(){const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array(0),3));const m=new THREE.Mesh(g,new THREE.MeshBasicMaterial({colorWrite:false,depthWrite:false}));m.frustumCulled=false;m.renderOrder=0.5;scene.add(m);return m;})(); // the copy's place in the frame (v11.51, REFR_* above): an empty mesh (r128 lists it and returns from renderBufferDirect at its zero-length position) whose onBeforeRender runs in the opaque pass after everything at renderOrder 0 and before the player's body at 1
@@ -14641,6 +14641,40 @@ const CLDP=(function(){const on=Q.cloudRes<1&&GL2,ext=on&&!!renderer.extensions.
   const m=new THREE.ShaderMaterial({uniforms:u,vertexShader:'uniform mat4 uPInv;uniform mat3 uCRot;varying vec3 vDir;void main(){vec4 v=uPInv*vec4(position.xy,1.0,1.0);vDir=uCRot*(v.xyz/v.w);gl_Position=vec4(position.xy,0.0,1.0);}',fragmentShader:fs,depthTest:false,depthWrite:false,fog:false});
   const sc=new THREE.Scene(),mesh=new THREE.Mesh(g,m);mesh.frustumCulled=false;sc.add(mesh);skyU.uCldRT.value=rt.texture;
   return {on:on,k:k,rt:rt,scene:sc,cam:new THREE.OrthographicCamera(-1,1,1,-1,0,1),u:u,v:new THREE.Vector2()};})();
+// ---------- the sky under the water (v11.240) ----------
+// The person (25 Nov 2026), on the work tower's F8 (#208: under water at 10 m the sky 1.75 ms and the clouds 2.18 of a 15.8 ms GPU frame): "make sure being
+// deep underwater actually stops the sky from trying to render". It did not: under water the dome (renderOrder −10, after the water dome) and the cloud
+// pass (CLDP) ran every frame at any depth, though the dome reaches the screen only through Snell's window — on the underside the surface's own colour
+// over it with alpha 1 − winT (the frame not refracted), or the refracted copy of the frame at winT × (1 − dk) (refracted: dk the window's detail by the
+// water between, WIN_DET) — and a sky fragment under the tide's plane is thrown away first thing (SKY_FS). Measured looking straight up at noon, the
+// same frame drawn with the sky and without (1600×900 at 400×225): high tier 47 levels of 255 at 20 m, 12 at 50, 3 at 80, none over 1 from 100 m; low tier
+// (no refraction: the dome is the window) 150 at 20 m, 101 at 100, 35 at 200, 10 at 480, 6 at 800. So, each frame under the water, what can reach the
+// screen is bounded, and the dome and the cloud pass are left out when it is nothing:
+//  - deep: the window's weight on the dome at the nearest surface (WIN_T × the water's transmission to it, the surface's own fog FOG_PSURF, × e^(−d·uWinD)
+//    when the frame is refracted) under half a level of 255 — a pixel's value moves by at most that, so by at most one level after rounding. The high
+//    tier from ~135 m (with the window's detail on), the low tier only from ~2.5 km: its window is the dome.
+//  - looking away: no direction in the view rises above the tide's plane as the dome meets it (D/R up, D the depth, R the dome's radius), the zenith
+//    checked and the view's edges sampled with a margin wider than the samples' spacing.
+// And with the frame not refracted the occluder (SURF_OCC) covers to the window's own edge, WIN_LO, where the surface is opaque (winT 0, alpha 1), not
+// OCC.cv's margin, which is the refraction's reach.
+const SKY_UW={need:true,why:'',w:0},_skD=new THREE.Vector3();
+function skyUnder(){ // horizon.js renderFrame, under the water, before the cloud pass: whether the dome and its clouds can reach the screen this frame
+  const refr=!!FX.refract;OCC.cvU.value=refr?OCC.cv:WIN_LO;
+  const D=TIDE-camera.position.y;if(!(D>0)){SKY_UW.need=true;SKY_UW.why='';return true;}
+  const d=Math.max(0,D-2*WAVE_AMP),P=FOG_PSURF,dn=FOG_A[3],trw=(1-P[1])*Math.exp(-P[0]*d)+P[1]*Math.exp(-dn*dn*d*d);
+  const w=WIN_T*trw*(refr?Math.exp(-d*surfaceU.uWinD.value):1);SKY_UW.w=w;
+  if(w*255<0.5){SKY_UW.need=false;SKY_UW.why='deep';return false;}
+  const yT=D/(FAR*0.94);if(yT>=1){SKY_UW.need=false;SKY_UW.why='deep';return false;}
+  if(skyViewMaxY()<yT-0.03){SKY_UW.need=false;SKY_UW.why='away';return false;}
+  SKY_UW.need=true;SKY_UW.why='';return true;}
+function skyViewMaxY(){ // the highest a direction in the view rises (its y): 1 if the zenith is in view, else the most along its edges, sampled
+  const e=camera.matrixWorld.elements,pm=camera.projectionMatrix.elements,tx=1/pm[0],ty=1/pm[5];
+  const rx=e[1],uy=e[5],fy=-e[9]; // the view's right, up and forward vectors' y
+  {const zx=e[1],zy=e[5],vz=-e[9];if(vz>0){const px=zx/vz/tx,py=zy/vz/ty;if(Math.abs(px)<=1&&Math.abs(py)<=1)return 1;}} // the zenith (0,1,0) in view space is the camera matrix's second row: its x, y, z
+  let m=-1;const N=48;
+  for(let i=0;i<=N;i++){const s=-1+2*i/N;
+    for(const [a,b] of [[s,-1],[s,1],[-1,s],[1,s]]){const x=a*tx,y=b*ty,l=Math.sqrt(x*x+y*y+1),dy=(x*rx+y*uy+fy)/l;if(dy>m)m=dy;}}
+  return m;}
 function cloudPass(){const P=CLDP,R=skyU.uCldRes.value,on=P.on&&sky.visible&&skyU.uFxCloud.value>0.5;R.z=on?1:0;if(!on)return; // horizon.js renderFrame, before the frame's passes
   renderer.getDrawingBufferSize(P.v);const w=Math.max(1,Math.round(P.v.x*Q.cloudRes)),h=Math.max(1,Math.round(P.v.y*Q.cloudRes));if(P.rt.width!==w||P.rt.height!==h)P.rt.setSize(w,h);
   R.set(1/P.v.x,1/P.v.y,1,P.k);P.u.uPInv.value.copy(camera.projectionMatrixInverse);P.u.uCRot.value.setFromMatrix4(camera.matrixWorld);
@@ -15184,7 +15218,7 @@ function hzSeaBuild(){const K=18,NS=96,r0=FAR*HZ_SEA0,p=[],c=[],ix=[];for(let k=
   const sgm=new THREE.BufferGeometry();sgm.setAttribute('position',new THREE.Float32BufferAttribute(p,3));sgm.setAttribute('color',new THREE.Float32BufferAttribute(c,3));sgm.setIndex(ix);hzSea=new THREE.Mesh(sgm,HZ_SEA_MAT);hzSea.frustumCulled=false;hzScene.add(hzSea);}
 function hzStep(){if(!HZ)return;const t0=performance.now();try{while(performance.now()-t0<HZ_MS){if(!hzG){const q=HZ.queue.shift();if(!q)return;q.queued=false;if(HZ.built.has(q))continue;hzG=hzMember(q);}if(hzG.next().done)hzG=null;}}catch(e){hzG=null;console.warn('the horizon tier could not build: '+e.message);}} // the queue's members one at a time, HZ_MS a frame (v11.113)
 // the frame's render (main.js): above the water the horizon pass first, then the world over it with the depth cleared; below, the world alone
-function renderFrame(){const above=wasAbove===true&&!!renderer.clearDepth;cloudPass(); // the cloud volume's own pass first (v11.188, atmosphere.js CLDP)
+function renderFrame(){const above=wasAbove===true&&!!renderer.clearDepth;if(!above&&!skyUnder())sky.visible=false;cloudPass(); // v11.240 (atmosphere.js skyUnder): under the water the dome and its clouds only when they can reach the screen // the cloud volume's own pass first (v11.188, atmosphere.js CLDP)
   if(above&&!hzTried){hzTried=true;try{hzSeaBuild();hzSetup();}catch(e){console.warn('the horizon tier could not build: '+e.message);}}
   if(above&&HZ){hzWatch(camera.position.x,camera.position.y,camera.position.z);hzStep();}
   if(above&&hzSea){if(sky.parent!==hzScene)hzScene.add(sky);skyU.uSkyStep.value=1; // v11.237: in this pass the sky is cut at the water a pixel's step down: the cut is one fragment for every sample of a pixel, and on the sea line it took the pixel whole, leaving the samples over the disc's curved horizon to the clear colour (the disc and the land draw over the sky where they are)
