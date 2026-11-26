@@ -4,6 +4,12 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.243 (26 Nov 2026): one sunken island where there were two — the atoll m93 struck** (region.js `REGION_K.strike`, `cut`, `run(mask,drop)`;
+test/region.js, test/plankton.js, test/gpu.json; DESIGN The region; ARCHIPELAGO; CHANGELOG). The person: *"there shouldn't really be two sunken islands in
+one spot … pick one and kill it"*, the two at the map's middle. m93 (one 25 km³ vent, 19 km² of reef) went; m54's bank (eight vents, 319 km²) stays. Left
+out of the history after the pins' fit, so the old square moves 7.7 cm at most and ours' core under 1 cm; m109's east face lost m93's wave shadow.
+**Ask:** the map's middle; m109's east face at `tp(109800,4000,-10)`.
+
 **v11.242 (26 Nov 2026): the uneven species split by their variants' size** (grow.js `VSPLIT`, `vsplitOf`; chunks.js `poolSplit`, `poolFor`'s key;
 test/vsplit.js; DESIGN; FLORA.md; CHANGELOG). The person: *"go ahead with the grass split."* A pulled draw ran every instance at its largest variant's count;
 the strap's and the tress's light variants are a tenth to a fifth of their heavy one. Such a species now draws its light instances in a pool of their own
@@ -28,14 +34,6 @@ of frames late, its worst place a sand flat where the reed was 600k of 1.33M tri
 The person: the low tier at 160, the high longer "for now" (option 2) — 300, where ours' north shore's far bed stays whole — and *"do the seagrass too."*
 The tower's worst place: triangles ×0.56, the proxy ×0.77; the high tier ×0.79–0.98 in triangles and its pictures the same. **Ask:** the tower's frame at
 `tp(72929,243)`; whether the high tier's reed may come down to 160 later (the person's "we can always do it for the other high tier later").
-
-**v11.238 (25 Nov 2026): a performance pass — the scans by square, the matrices only of what is drawn, the dark lights skipped** (creatures_ai.js
-`CG`, `cgNear`, `crMW`; horizon.js `MW.hide`; scene.js the light chunks; test/scangrid.js; DESIGN Performance; CHANGELOG). The person: *"find any performance
-updates we can do to make the game more easily playable now."* Since v11.220 the GPU's side got lighter and the creatures' CPU work ×1.20–1.27. Three cuts,
-nothing seen or simulated changed: the schools', grazers' and hunters' scans read the bodies within reach from a grid instead of all 1,380 (the creatures'
-step ×0.86 by the fair bench); three's render no longer recomposes the matrices of 13,600 creature parts out of sight (renderFrame's CPU side ×0.65–0.79); a point
-light at 0 is skipped in the shaders (the proxy's vertex work ×0.81–0.89). **Ask:** the readout's `render` and `gpu` at `tp(330,0)` and `tp(110,-380)` on
-the preview against main's, and an F9 from each machine — the work tower's last report is v11.197.
 
 ## Open
 

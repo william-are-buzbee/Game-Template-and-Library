@@ -12144,3 +12144,50 @@ but for the page's own lettering, caught at another moment of its fade.
 
 **Unseen, ask:**
 1. The work tower, F8 at `tp(69950,29582,-10)`: the plants' share against #208's 6.35 ms — this and v11.241 together.
+
+## v11.243 — one sunken island where there were two: the atoll m93 struck (26 Nov 2026)
+
+The person (26 Nov 2026): *"there shouldn't really be two sunken islands in one spot because it doesn't make sense. we gotta axe one. I want you to
+pick one and kill it"* — *"of the two in the middle of the map."* The two: the atoll m93 at (130.3, 10.1) km, the member nearest the world's middle,
+and the bank m54 at (151.6, −1.0), the next nearest — m93's reef, 7 × 4 km of shallows (19 km² above −60), sat 14 km off the south-west corner of m54's bank (22 × 27 km,
+319 km²), two reef caps side by side with nothing between them but m93's moat. **m93 goes**: one 25 km³ vent born at 13.4 Ma, 4.4 Myr after m54's last, on
+its own; m54 is eight vents and 280 km³, the bigger place to swim, and keeps its reef. Where m93 stood is now the deep channel between m109 and the bank
+(its centre −29 → −1245 m, 5 km off −216 → −995).
+
+- **`REGION_K.strike`** (region.js; `{32:['m93']}`): members struck by hand, by seed — an id names another member under another seed, so region.html's
+  survey of the others strikes nothing. A struck member is left out of the history after the pins' fit: nobody's host or shelter (`cut`), its load not
+  grown in the last run (`run(mask,drop)`), so no reef, no moat and no record; then it leaves `M` with every member's `host`, `src` and `up` remapped.
+- **Why the fit keeps its load.** The pins' volumes (ours, the giant, and the tuned awesome shield) and the plateau's level are solved to 1 m. m93's
+  pull on ours is ~7 mm, but a fit without it took another path to its 1 m and landed a metre off (ours' summit 5.21 → 4.23, its volume 71.25 → 71.08
+  km³), which moved the old square by up to 19 m (ours' moat 6.5 m, the awesome shield's land 8 m) for nothing m93 did. With the fit as it was, the old
+  square moves by at most 7.7 cm (m93's arch gone) and ours' core (r < 3 km) by under a centimetre.
+- **What else moved** (the model's own consequences of a load that never grew): m88 +2.6 m, m109 +0.43 m (its barrier ring +12 m), m60 +0.39 m (ring
+  +7), m91 +0.24 m (ring +5), the rest by centimetres; every state the same. Over the world (a 2 km grid) the ground moved ≥ 1 m over ~4,000 km², to
+  102 km from m93 (the neighbours' rings moved a few metres, and a wall that moves sideways reads as metres in height), ≥ 100 m over ~400 km² (the cone).
+- **The tests:** test/region.js holds the strike (m93 in no member or record; the pins' fit to the bit as without it; every index in range), counts v11.133's
+  159 cones with `strike:null`, and its reef-wall check takes the world's two atolls (m88, m117; three with m93). test/plankton.js's member in a wake is now
+  m88's fed flank in m109's wake (shelter 0.23, gold 0.70 against the open atoll's 1.26; m93's to v11.242).
+
+**What it costs** (against v11.242; `node test/perf.js`):
+
+| measure | before | after | ratio |
+|---|---|---|---|
+| the world's load, s | 0.99 | 0.98 | ×1.00 |
+| sample(), five windows, µs | 0.62–1.17 | 0.62–1.17 | noise: the world window ×0.79–1.23 over five runs, main's own 0.62–0.79 |
+| the atoll place (high tier): draws | 278.6 | 266 | ×0.95 |
+| triangles | 2.995M | 2.881M | ×0.96 |
+| instances | 37,891 | 38,842 | ×1.03 |
+| programs, uniforms | 32, 1,506 | 30, 1,408 | ×0.94 |
+
+One record fewer; nothing on sample()'s path added (the strike is regionModel's, at load). The GPU's atoll place is m109's barrier reef, 20 km
+from m93, and moved because **m93's reef, awash, broke the trade swell on m109's east face** (its wave shadow there 0.38 → 0, `SHELTER.w`): that face
+now takes the full sea, and the shallows' plants follow their `expo` envelopes (the ground there moved 0.1–0.2 m). Every other place the same but the
+open water's uniforms (917.2 → 917.5). test/gpu.json updated. Every piece of the world's fingerprint moves (one load fewer under the province).
+
+**Seen:** the map (`node test/map.js`, the middle at 140 m a pixel) before and after — m93's oval reef gone, the deep channel from m109's barrier to
+m54's bank unbroken, no hole or scar where it stood; the build boots in headless Chromium with no page error. Not seen in play at the place: there is
+nothing there now but water 1,245 m deep.
+
+**Unseen, ask:**
+1. The map (`n`, zoomed out): the middle reads as m109, a deep channel, then m54's bank — one sunken island there, not two.
+2. m109's east face (`tp(109800,4000,-10)`): the swell m93 used to break now reaches it; whether its shallows look right more exposed.
