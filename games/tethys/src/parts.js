@@ -1,15 +1,15 @@
 // parts.js — geometry kit: primitives, merge-with-vertex-colors, arm rings, LOD baking
 const G={
   box:(w,h,d)=>new THREE.BoxGeometry(w,h,d),
-  sph:(r,w,h)=>new THREE.SphereGeometry(r,w||6,h||5),
-  cyl:(rt,rb,h,s,open)=>new THREE.CylinderGeometry(rt,rb,h,s||8,1,!!open),
-  cone:(r,h,s)=>new THREE.ConeGeometry(r,h,s||6),
+  sph:(r,w,h)=>new THREE.SphereGeometry(r,geoLk(w||6,3),geoLk(h||5,2)),
+  cyl:(rt,rb,h,s,open)=>new THREE.CylinderGeometry(rt,rb,h,geoLk(s||8,3),1,!!open),
+  cone:(r,h,s)=>new THREE.ConeGeometry(r,h,geoLk(s||6,3)),
   plane:(w,h)=>new THREE.PlaneGeometry(w,h),
   // A lathe's winding follows the profile's order: a profile written from the top down turns the surface inside out, and the
   // mesh vanishes under backface culling (v11.34.1: the finback's tail stem, FIN_TPROF, written nose-to-tip). Reverse a descending
   // profile here — the geometry is identical, only the normals (and so the countershading) come out right. Callers read the array
   // they passed (profR, nose, tail), so the copy stays local.
-  lathe:(pts,s)=>{if(pts.length>1&&pts[pts.length-1][1]<pts[0][1])pts=pts.slice().reverse();return new THREE.LatheGeometry(pts.map(p=>new THREE.Vector2(p[0],p[1])),s||8);},
+  lathe:(pts,s)=>{if(pts.length>1&&pts[pts.length-1][1]<pts[0][1])pts=pts.slice().reverse();return new THREE.LatheGeometry(pts.map(p=>new THREE.Vector2(p[0],p[1])),geoLk(s||8,3));},
   // a quad a-b-c-d (each [x,y,z]) seen from both sides: four triangles, no index (the webs and the tail fans)
   quad:(a,b,c,d)=>{const g=new THREE.BufferGeometry(),P=[];const tri=(p,q,r)=>P.push(p[0],p[1],p[2],q[0],q[1],q[2],r[0],r[1],r[2]);tri(a,b,c);tri(a,c,d);tri(c,b,a);tri(d,c,a);g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));return g;}
 };
@@ -28,6 +28,11 @@ class GeoTape{constructor(play,list){this.play=play;this.list=list;this.i=0;}}
 /** @type {GeoTape|null} */
 let GEO_TAPE=null;
 const LAZY_G={lazy:true,dispose(){}};
+// The light copies' tessellation (v11.241, grow.js plodVariants): while GEO_LK is under 1 a primitive's sides and segments are that share of what it was
+// asked for (at least m) — the plant's builder runs as ever, the same random draws in the same order, so the copy is the same plant with fewer facets.
+// 1 everywhere else: every count as asked.
+let GEO_LK=1;
+function geoLk(n,m){return GEO_LK===1?n:Math.max(m,Math.round(n*GEO_LK));}
 for(const k in G){const f=G[k];G[k]=function(){return GEO_TAPE!==null&&GEO_TAPE.play?LAZY_G:f.apply(null,arguments);};} // a primitive while a tape plays: not made
 // A part is a geometry plus a transform and a color (optionally a belly color for countershading).
 function part(g,x,y,z,c,o){

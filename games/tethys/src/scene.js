@@ -29,11 +29,12 @@ const Q=(function(){
   const small=Math.min(screen.width||9999,screen.height||9999)<900;
   const tier=HASH_TIER||(TIER_SAVED?TIER_SAVED.tier:(isTouch&&small)?'low':'high'),why=HASH_TIER?'hash':TIER_SAVED?'machine':(isTouch&&small)?'touch':'default';
   return tier==='low'
-    ?{tier:tier,why:why,pr:1.0,far:1000,flora:0.45,creatures:0.6,lights:2,phong:false,aa:false,budgetMs:8,farMs:2,farQ:6,surf:96,lodNear:0.7,rockLvl:1,target:14,casters:6,shafts:2,cau:3,hrtf:0,vol:1,snow:1000,hz:200,cldSh:0,march:28,sparks:384,cloudRes:0.35,reed:[160,40]}
-    :{tier:tier,why:why,pr:1.5,far:1600,flora:1.0,creatures:1.0,lights:4,phong:true,aa:true,budgetMs:6,farMs:3,farQ:12,surf:192,lodNear:1.0,rockLvl:2,target:7.5,casters:16,shafts:4,cau:5,hrtf:1,vol:1,snow:1800,hz:100,cldSh:1,march:80,sparks:1024,cloudRes:0.5,reed:[300,50]};
+    ?{tier:tier,why:why,pr:1.0,far:1000,flora:0.45,creatures:0.6,lights:2,phong:false,aa:false,budgetMs:8,farMs:2,farQ:6,surf:96,lodNear:0.7,rockLvl:1,target:14,casters:6,shafts:2,cau:3,hrtf:0,vol:1,snow:1000,hz:200,cldSh:0,march:28,sparks:384,cloudRes:0.35,reed:[160,40],lod:45}
+    :{tier:tier,why:why,pr:1.5,far:1600,flora:1.0,creatures:1.0,lights:4,phong:true,aa:true,budgetMs:6,farMs:3,farQ:12,surf:192,lodNear:1.0,rockLvl:2,target:7.5,casters:16,shafts:4,cau:5,hrtf:1,vol:1,snow:1800,hz:100,cldSh:1,march:80,sparks:1024,cloudRes:0.5,reed:[300,50],lod:0};
   // snow (v11.24): the marine snow's points (atmosphere.js); the deep is sparse, so many of them are dormant at a time
   // sparks (v11.160): the bioluminescence's pool (fx.js SPK): the most flashes alive at once — a bloom round a sprinting body and a hunter keeps a few hundred
   // reed (v11.239): the reed's draw distance [far, fade], metres (MATRD) — the person, 25 Nov 2026: 160 on the low tier, 300 on the high "for now" (option 2's 250 left a shore's far clumps half-faded)
+  // lod (v11.241): past this many metres a plant's tile draws its light copy (grow.js PLOD, chunks.js poolCull); 0 none. The low tier's: the person, 25 Nov 2026
   // cloudRes (v11.188): the cloud volume's pass, a fraction of the drawing buffer on a side (atmosphere.js CLDP; 1 marches in the dome as to v11.187)
   // march (v11.89; v11.90: the name — `vol` was the master volume's key above, and the clouds' 80 steps played the game at 80× gain, the person's "hilariously bass boosted"): the most steps of the cloud volume's march per sky pixel (atmosphere.js cloudVol); the low tier's 28 unmeasured there
   // cldSh (v11.87): the clouds' shadows on the sea and the land in air — one 3D billow noise per fragment (clouds.js cloudSh); off on the low tier until measured there
@@ -746,7 +747,7 @@ function updateShadowS(dt,force){ // after updateShadow (shadowFrame has run); f
   try{renderer.setRenderTarget(shsRT);recGpu(3);renderer.render(scene,camS);recGpuEnd();}catch(e){recGpuEnd();console.warn('world shadows: '+e.message);}
   renderer.setRenderTarget(rt);renderer.shadowMap.enabled=en;
   for(let i=0;i<shsVis.length;i+=2){const ch=shsVis[i];ch.group.visible=shsVis[i+1];for(const m of ch.flora)m.castShadow=false;for(const m of ch.shBig)m.castShadow=false;if(ch.terrain)ch.terrain.castShadow=false;}
-  for(const m of LMK.meshes)m.castShadow=false;for(const P of POOLS.values()){P.im.castShadow=false;P.im.count=P.nDraw;}shsVis.length=0;
+  for(const m of LMK.meshes)m.castShadow=false;for(const P of POOLS.values()){P.im.castShadow=false;P.im.count=poolCount(P);}shsVis.length=0;
   shMapSU.value=sunS.shadow.map?sunS.shadow.map.texture:null;SHS_P[1]=sunS.shadow.map?1:0;
   shsDirty=false;shsT=SHS_GAP;shsN++;shsMs=performance.now()-t0;
 }
@@ -781,12 +782,15 @@ const LIGHT_PARS=CAU_PARS+'uniform float uTime;uniform float uChop;uniform vec4 
 // a small plant past FLORA_FAR (FAR_CUT). To v11.124 the last two set the vertex to the origin and ran the rest of the shader on it.
 const GONE='{gl_Position=vec4(2.0,2.0,2.0,1.0);return;}';
 const AHIDE=2;
-const HIDE_V='#ifdef USE_INSTANCING\nattribute float aHide;\n#endif\n',HIDE_GLSL='\n#if defined(USE_INSTANCING)&&!defined(DEPTH_PASS)\nif(aHide>1.5)'+GONE+'\n#endif\n';
+// v11.241: the window of aHide an instanced draw shows, a uniform — 0 (seen, near) for every tinted material, 1 (seen, far) for a plant's light copy
+// (chunks.js poolCull); AHIDE out of sight for both. A pool with no copy never writes 1.
+const HIDE_NEAR={value:new THREE.Vector2(-1,0.5)},HIDE_FAR={value:new THREE.Vector2(0.5,1.5)};
+const HIDE_V='#ifdef USE_INSTANCING\nattribute float aHide;\nuniform vec2 uHide;\n#endif\n',HIDE_GLSL='\n#if defined(USE_INSTANCING)&&!defined(DEPTH_PASS)\nif(aHide<uHide.x||aHide>uHide.y)'+GONE+'\n#endif\n';
 function addTint(m,key,small,band,grid,cls){ // grid (v11.40): 'world' puts the de-res texels on the world grid; default the object's or instance's own. cls (v11.41): the texel pattern's class — terr, rock, plant, blade, card, body (PIX_CLASS)
   const prev=m.onBeforeCompile;
   m.onBeforeCompile=function(sh){
     if(prev)prev.call(m,sh);
-    sh.vertexShader=HIDE_V+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>'+HIDE_GLSL); // before the material's own code at begin_vertex (prev put it there first)
+    sh.vertexShader=HIDE_V+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>'+HIDE_GLSL);sh.uniforms.uHide=HIDE_NEAR; // before the material's own code at begin_vertex (prev put it there first)
     sh.uniforms.uTint=tintU;if(small)sh.uniforms.uFogP={value:FOG_PS};
     const lit=LIGHT_FX&&key!=='glow';if(lit){sh.uniforms.uTime=timeU;sh.uniforms.uChop=chopU;sh.uniforms.uSunW={value:SUN_W};if(CAU_ARR)sh.uniforms.uCauA={value:CAU_ARR};else for(let i=0;i<CAU_TEX.length;i++){sh.uniforms['uCauS'+i]={value:CAU_TEX[i].s};sh.uniforms['uCauC'+i]={value:CAU_TEX[i].c};}sh.uniforms.uCauG={value:CAU_GTEX};sh.uniforms.uPix=pixU;sh.uniforms.uTex=texU;sh.uniforms.uTexL=texLU;sh.uniforms.uWindOff=windOffU;sh.uniforms.uLightK=lightKU;sh.uniforms.uShMap=shMapU;sh.uniforms.uShMat=shMatU;sh.uniforms.uShP=shPU;sh.uniforms.uShL=shLU;sh.uniforms.uShMapS=shMapSU;sh.uniforms.uShMatS=shMatSU;sh.uniforms.uShPS=shPSU;sh.uniforms.uShLS=shLSU;}
     sh.vertexShader='varying float vWy;'+(lit?'varying vec3 vGrid;':'')+(lit&&cls==='body'?'varying vec3 vPat;\n#ifndef USE_INSTANCING\nattribute vec3 aPat;\n#endif\n':'')+'\n'+(lit?sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvec3 pGrid=transformed;'):sh.vertexShader).replace('#include <worldpos_vertex>','#include <worldpos_vertex>\n{vec4 wpp=vec4(transformed,1.0);\n#ifdef USE_INSTANCING\nwpp=instanceMatrix*wpp;\n#endif\nvWy=(modelMatrix*wpp).y;'+(lit?PIX_GRID_V(grid):'')+(lit&&cls==='body'?'\n#ifdef USE_INSTANCING\nvPat=vec3(0.0);\n#else\nvPat=aPat;\n#endif\n':'')+'}');
@@ -985,3 +989,8 @@ function vpullMat(m){let p=vpullMats.get(m);if(p)return p;p=m.clone();const ob=m
   if(m.cutAt!==undefined||m.cutU){p.cutU={value:cutUOf(m).value.clone()};} // v11.194: its own cut (poolLod moves it); the depth pass keeps the base's
   p.onBeforeCompile=function(sh){ob.call(m,sh);vpullGLSL(sh);if(p.cutU&&!(sh.defines&&sh.defines.DEPTH_PASS))sh.uniforms.uCut=p.cutU;};p.customProgramCacheKey=function(){return key+'pull';};
   for(const k of ['sway','land','extensions','defaultAttributeValues'])if(m[k]!==undefined)p[k]=m[k];vpullMats.set(m,p);return p;}
+// a plant's light copy draws with its pulled material's twin (v11.241): the same program (the same key), its own aHide window (HIDE_FAR), the same cut
+const plodMats=new Map();
+function plodMat(m){const p0=vpullMat(m);let p=plodMats.get(p0);if(p)return p;p=p0.clone();const ob=p0.onBeforeCompile,key=p0.customProgramCacheKey;
+  p.onBeforeCompile=function(sh){ob.call(p0,sh);sh.uniforms.uHide=HIDE_FAR;};p.customProgramCacheKey=key;if(p0.cutU)p.cutU=p0.cutU;
+  for(const k of ['sway','land','extensions','defaultAttributeValues','cutAt','cutR'])if(p0[k]!==undefined)p[k]=p0[k];plodMats.set(p0,p);return p;}

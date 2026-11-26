@@ -166,4 +166,27 @@ function species(id,f,build){const vars=[],geos=[];let top=0,hasPads=false;
   for(let k=0;k<3;k++){const rg=mulberry(hashStr(id)+k*7919),v=build(rg,k),g=merge(v.P),pa=g.attributes.position.array;let t=0;for(let i=1;i<pa.length;i+=3)if(pa[i]>t)t=pa[i];
     vars.push({col:v.col||null,pads:v.pads||null});geos.push(g);if(t>top)top=t;if(v.pads)hasPads=true;}
   const e=Object.assign({id:id,geo:packVariants(geos),vars:vars,top:top},f);if(hasPads)e.pads=true;
+  if(Q.lod>0&&GL2&&VPULL.on&&!hasPads){const L=plodVariants(id,build,e.geo);if(L)e.geoL=L;} // the light copy (v11.241), the tier's, drawn pulled (WebGL2) only
   return e;}
+// ---------- the plants' light copies (v11.241) ----------
+// The person (25 Nov 2026), on the work tower's F8 (#208: the plants 6.35 ms of a 15.8 ms GPU frame, under water at 10 m on the low tier): "YES we want to
+// make lighter copies and do whatever we have to do to reduce the lag. I love the look of the underwater grasses and kelp but we will simply need to do
+// what we must for these lower end cards … try to preserve them, but ultimately, 40% is 40%." v11.194 drew such copies over every instance and was struck
+// (v11.201): each far plant still ran the whole plant's vertex shader to leave it. Here a pool keeps its near tiles and its far ones apart (chunks.js
+// poolCull, poolPack), the whole plant drawn only to its last near tile and the copy only for the far ones, so nothing is shaded twice.
+// A copy is the species' own builder run again on the same seeds with every primitive at PLOD.k of its sides and segments (parts.js GEO_LK), and the parts
+// under PLOD.minPart of the plant's reach left out; kept only if it has at most PLOD.gain of the whole plant's vertices (the pulled draw's: its largest
+// variant's). Flat blades and boxes have no segments to lose: a grass keeps its blades.
+const PLOD={k:0.5,minPart:0.06,gain:0.8};
+function plodVariants(id,build,full){const fv=full.attributes.vid.array,fc=[0,0,0];for(let i=0;i<fv.length;i++)fc[fv[i]]++;const fn=Math.max(fc[0],fc[1],fc[2]);
+  const geos=[];GEO_LK=PLOD.k;
+  try{for(let k=0;k<3;k++){const rg=mulberry(hashStr(id)+k*7919),v=build(rg,k),P=v.P;let R=0;const r=[];
+      for(const p of P){const a=p.g.attributes.position.array,e=p.m?p.m.elements:null;let x0=1e9,y0=1e9,z0=1e9,x1=-1e9,y1=-1e9,z1=-1e9; // a part's size: half its box's diagonal, from its own vertices placed by its transform
+        for(let i=0;i<a.length;i+=3){let x=a[i],y=a[i+1],z=a[i+2];if(e){const X=e[0]*x+e[4]*y+e[8]*z+e[12],Y=e[1]*x+e[5]*y+e[9]*z+e[13],Z=e[2]*x+e[6]*y+e[10]*z+e[14];x=X;y=Y;z=Z;}
+          if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;if(z<z0)z0=z;if(z>z1)z1=z;const l=Math.sqrt(x*x+y*y+z*z);if(l>R)R=l;}
+        r.push(a.length?0.5*Math.sqrt((x1-x0)*(x1-x0)+(y1-y0)*(y1-y0)+(z1-z0)*(z1-z0)):0);}
+      let K=P.filter((p,i)=>r[i]>=PLOD.minPart*R);if(!K.length)K=P;for(const p of P)if(K.indexOf(p)<0)p.g.dispose();
+      geos.push(merge(K));}}
+  finally{GEO_LK=1;}
+  const n=Math.max(...geos.map(g=>g.attributes.position.count));if(n>PLOD.gain*fn){for(const g of geos)g.dispose();return null;}
+  return packVariants(geos);}

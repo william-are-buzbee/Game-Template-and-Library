@@ -232,6 +232,11 @@ with species per biome capped at eight — measured, not assumed.
   160–250 m on a shore is still clumps 15–20 px tall: shown them, the person chose 160 on the low tier and a longer cut on the high "for now" — *"we can always do
   it for the high tier later as well."* 250 left ours' north shore's far bed half-faded (it stands 200–250 m off); 300 keeps it. The seagrass (the strap, `MATSG`) to `THIN_CUT`, 160 m, on both: *"do the seagrass too"*; under the water
   nothing of it showed past that.
+  *v11.241 (the person, 25 Nov 2026, on the work tower's F8 #208 — the plants 40% of its GPU frame: "YES we want to make lighter copies … I love the look
+  of the underwater grasses and kelp … try to preserve them, but ultimately, 40% is 40%"):* on the low tier (`Q.lod` 45 m) each pulled species' tiles
+  past 45 m draw a light copy: the same plant from its own builder on its own seeds, every primitive at half its sides and segments, parts under 6% of
+  its reach dropped, kept only where it saves 20% or more (grow.js `PLOD`). The grape, the tulip, the flask ×0.23–0.30 of their vertices, the coin ×0.5;
+  the grasses — the strap, the tress, flat blades with nothing to lose — none yet (see v11.241's note on their variants).
 - **Epibionts** (later): small things on big things — beards on tubes, crusts on towers, cones on a stipe's holdfast, a
   loop twined round a stalk — placed from the emergent instance's matrix. Both images are full of it; it is the
   cheapest "lived-in" there is.

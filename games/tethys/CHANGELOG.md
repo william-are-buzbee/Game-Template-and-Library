@@ -12047,3 +12047,53 @@ low tier's window fading to the computed sky with depth as the high tier's does 
 1. Under water, looking down and then up again quickly: the window and its clouds there the first frame back (the cloud pass is computed fresh each
    frame it runs, so there is nothing stale to show).
 2. The high tier below ~135 m looking up: the window as it was (it is the computed sky there; the dome added nothing).
+
+## v11.241 — the plants' light copies on the low tier (26 Nov 2026)
+
+The work tower's F8 (#208, the Intel UHD 730 on the low tier at 1047×529, 10 m down at `tp(69950,29582,-10)`): the plants 6.35 ms of a 15.8 ms GPU frame,
+40%. The person (25 Nov 2026): *"For plants, YES we want to make lighter copies and do whatever we have to do to reduce the lag. I love the look of the
+underwater grasses and kelp but we will simply need to do what we must for these lower end cards. So, try to preserve them, but ultimately, 40% is 40%."*
+v11.194 drew such copies over every instance and v11.201 struck them: each far plant still ran the whole plant's vertex shader to leave it, and the copy
+drew it again. Here nothing is shaded twice.
+
+- **The copies** (grow.js `PLOD` {k 0.5, minPart 0.06, gain 0.8}, `plodVariants`; parts.js `GEO_LK`, `geoLk`): a species' builder run again on the same
+  seeds with every primitive at half its sides and segments (spheres, cylinders, cones, lathes; at least 3 and 2) — the same random draws in the same
+  order, so the same plant with fewer facets — and its parts under 6% of its reach left out; kept where it has at most 80% of the vertices the pulled draw
+  runs (its largest variant's). Packed in the same float texture as the species' own variants (chunks.js `VPULL_N`), each its own entry.
+- **The pools by distance** (chunks.js `poolPlod`, `poolCull`, `poolPack`, `tileFar`, `poolCount`): a pool with a copy marks each seen tile near or far by
+  its nearest instance against `Q.lod` (45 m on the low tier, 0 — none — on the high), with 4 m of hysteresis. `aHide` takes a third value (1, far), and each
+  instanced material shows a window of it (scene.js `HIDE_NEAR`, `HIDE_FAR`, the uniform `uHide`: a pool with no copy never writes 1, so every other draw is
+  as it was). Packing puts near, then far, then hidden; the whole plant draws to the end of its last near block, the copy — a second mesh over the pool's
+  own buffers, as the tidewood's far copy is — to the end of its last seen. A far plant is therefore never run through the whole plant's shader.
+- **One program**: a copy's material is its pulled twin's clone with `HIDE_FAR` (scene.js `plodMat`) — the same key, so the same program — and made beside
+  the twin (r128 sorts these draws by material id, so the two draw together: made last, they had added 8 program changes a frame).
+- **test/plod.js** (in `--test`, 5 s): stand-in copies for the swaying species, the forest's shelf swum and held — the flags, no copy nearer than 41 m,
+  every seen instance drawn by exactly one mesh, the counts, the packing.
+
+**What it costs** (the low tier at the tower's 1047×529; the triangles and draws against main as merged, v11.239 — its reed and seagrass cut already in —
+the proxy against v11.238, before that merge; the high tier has no copies and its counts are within 10% of test/gpu.json, every one the same):
+
+| place, the low tier | triangles | draws | the GPU's time, a proxy |
+|---|---|---|---|
+| the tower's F8 place, 10 m down | 642k → 472k (×0.73) | 60.5 → 67.5 | 296 → 280 (×0.94) |
+| the forest | 941k → 807k (×0.86) | 167 → 186 | 330 → 329 (×1.00) |
+| the atoll's kelp | 1.18M → 929k (×0.79) | 120 → 137 | — |
+| the giant's coast | 869k → 682k (×0.79) | 98 → 106 | — |
+| the shore | 1.02M → 856k (×0.84) | 153 → 174 | 454 → 433 (×0.95) |
+| the canopy | 977k → 804k (×0.82) | 179 → 199 | 419 → 399 (×0.95) |
+
+Programs the same; nothing compiled at first sight anywhere; uniforms +6–9%; the boot +3 MB of textures (the copies' vertices). The proxy is
+SwiftShader's, pixel-bound at these places, so the vertices' share it shows is small; the tower's own F8 is the measure. renderFrame's CPU side at the F8
+place, four pages a side: the fastest frames 1.7–1.9 ms on main, 1.9–2.0 here, the medians 2.1–2.4 and 2.8–4.3 (its spread); the cull 0.1 ms either way.
+**What changes on screen**: far plants a few pixels tall draw with fewer facets and without their smallest parts — at the F8 place 234 of 553,863 pixels
+(0.04%), the forest 1.1%, the canopy 0.28%, the shore 0.17%. By species there (the pulled draw's vertices): the grape ×0.23, the tulip ×0.33, the flask
+×0.25, the coin ×0.50, the star ×0.68, the cup ×0.57, the sandball ×0.56.
+
+**Not done yet — the grasses.** The strap and the tress are flat blades and boxes, with no sides to halve, and got no copy; at the F8 place they are
+158k of the 472k triangles left (the tress 95k, the strap 63k). Their cost is mostly elsewhere: the strap's third variant has about eight times its other two's vertices, and a pulled draw
+runs every instance at its largest variant's count (the rest leaving at once), so two thirds of the straps pay for vertices they never draw. Split into a
+light pool and a heavy one by variant, the same pixels would cost about 0.4 of the invocations — the next version, no change to the look.
+
+**Unseen, ask in this order:**
+1. The work tower, F8 at the same place (`tp(69950,29582,-10)`): the plants' share against #208's 6.35 ms.
+2. Any pop at 45 m as you swim — a plant snapping to fewer facets as its tile crosses (4 m of hysteresis; the copies are the same shape).
