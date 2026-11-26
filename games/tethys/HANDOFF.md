@@ -7,7 +7,7 @@ Add the new version's paragraph at the top; take out what is no longer true; kee
 **v11.241 (26 Nov 2026): the plants' light copies on the low tier** (grow.js `PLOD`, `plodVariants`; parts.js `GEO_LK`; chunks.js `poolPlod`, `poolCull`,
 `poolPack`; scene.js `HIDE_NEAR`, `HIDE_FAR`, `plodMat`; test/plod.js; FLORA.md; CHANGELOG). The person: *"YES we want to make lighter copies … 40% is 40%."*
 Past 45 m on the low tier a plant's tile draws a copy at half the facets, without its smallest parts; the whole plant draws only its near tiles, so nothing
-is shaded twice (v11.194's mistake). Triangles ×0.79–0.85 where there are plants; 0.04–1.1% of pixels change (far specks). The grasses (strap, tress) got
+is shaded twice (v11.194's mistake). Triangles ×0.73–0.86 where there are plants (against v11.239); 0.04–1.1% of pixels change (far specks). The grasses (strap, tress) got
 none — flat blades; next, invisible, their variants split by size. **Ask:** an F8 at `tp(69950,29582,-10)` against #208's plants 6.35 ms; any pop at 45 m.
 
 **v11.239 (25 Nov 2026): the reed to 160 m on the low tier and 300 on the high, the seagrass to 160** (scene.js `Q.reed`, `THIN_CUT`, `MATRD`, `MATSG`;

@@ -12025,18 +12025,19 @@ drew it again. Here nothing is shaded twice.
 - **test/plod.js** (in `--test`, 5 s): stand-in copies for the swaying species, the forest's shelf swum and held — the flags, no copy nearer than 41 m,
   every seen instance drawn by exactly one mesh, the counts, the packing.
 
-**What it costs** (against v11.238; the low tier at the tower's 1047×529 — the high tier has no copies and its counts are within 10% of test/gpu.json):
+**What it costs** (the low tier at the tower's 1047×529; the triangles and draws against main as merged, v11.239 — its reed and seagrass cut already in —
+the proxy against v11.238, before that merge; the high tier has no copies and its counts are within 10% of test/gpu.json, every one the same):
 
 | place, the low tier | triangles | draws | the GPU's time, a proxy |
 |---|---|---|---|
-| the tower's F8 place, 10 m down | 1.04M → 863k (×0.83) | 70.9 → 77.9 | 296 → 280 (×0.94) |
-| the forest | 970k → 822k (×0.85) | 168 → 187 | 330 → 329 (×1.00) |
-| the atoll's kelp | 1.23M → 978k (×0.79) | 120 → 137 | — |
-| the giant's coast | 1.13M → 947k (×0.84) | 98 → 106 | — |
-| the shore | 1.16M → 981k (×0.84) | 154 → 175 | 454 → 433 (×0.95) |
-| the canopy | 1.14M → 952k (×0.84) | 179 → 199 | 419 → 399 (×0.95) |
+| the tower's F8 place, 10 m down | 642k → 472k (×0.73) | 60.5 → 67.5 | 296 → 280 (×0.94) |
+| the forest | 941k → 807k (×0.86) | 167 → 186 | 330 → 329 (×1.00) |
+| the atoll's kelp | 1.18M → 929k (×0.79) | 120 → 137 | — |
+| the giant's coast | 869k → 682k (×0.79) | 98 → 106 | — |
+| the shore | 1.02M → 856k (×0.84) | 153 → 174 | 454 → 433 (×0.95) |
+| the canopy | 977k → 804k (×0.82) | 179 → 199 | 419 → 399 (×0.95) |
 
-Programs the same; nothing compiled at first sight anywhere; uniforms +5–8%; the boot +3 MB of textures (the copies' vertices). The proxy is
+Programs the same; nothing compiled at first sight anywhere; uniforms +6–9%; the boot +3 MB of textures (the copies' vertices). The proxy is
 SwiftShader's, pixel-bound at these places, so the vertices' share it shows is small; the tower's own F8 is the measure. renderFrame's CPU side at the F8
 place, four pages a side: the fastest frames 1.7–1.9 ms on main, 1.9–2.0 here, the medians 2.1–2.4 and 2.8–4.3 (its spread); the cull 0.1 ms either way.
 **What changes on screen**: far plants a few pixels tall draw with fewer facets and without their smallest parts — at the F8 place 234 of 553,863 pixels
@@ -12044,7 +12045,7 @@ place, four pages a side: the fastest frames 1.7–1.9 ms on main, 1.9–2.0 her
 ×0.25, the coin ×0.50, the star ×0.68, the cup ×0.57, the sandball ×0.56.
 
 **Not done yet — the grasses.** The strap and the tress are flat blades and boxes, with no sides to halve, and got no copy; at the F8 place they are
-400k of the 863k triangles left. Their cost is mostly elsewhere: the strap's third variant has about eight times its other two's vertices, and a pulled draw
+158k of the 472k triangles left (the tress 95k, the strap 63k). Their cost is mostly elsewhere: the strap's third variant has about eight times its other two's vertices, and a pulled draw
 runs every instance at its largest variant's count (the rest leaving at once), so two thirds of the straps pay for vertices they never draw. Split into a
 light pool and a heavy one by variant, the same pixels would cost about 0.4 of the invocations — the next version, no change to the look.
 
