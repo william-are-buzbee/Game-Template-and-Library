@@ -39,6 +39,7 @@ Most upstream first. When a doc's Open list says a choice is the person's, it is
 | `AUDIO.md` | the sound's design (v11.14); every number was chosen blind |
 | `WATER.md` | the sea surface from both sides (14 Sep 2026): Part 1 what was wrong, Part 2 proposals by believability per millisecond, Part 3 the line from above (built v11.45–46), Part 4 what other games do with water (17 Nov), Part 5 light across the line both ways (17 Nov; an audit, nothing built) |
 | `DESIGN.md` | **the reference**: one section per system with the owning file, the numbers, the knobs and the reasons |
+| `analysis_creators.md` | the 26 Nov 2026 investigation of Spore-like creature creators (Spore, The Sapling, Thrive, Planetary Life, Ecosystem): how each shapes a body, what recurs, the pitfalls, what Tethys takes — the spine and direct manipulation, built v11.246 — and the questions for the person |
 | `analysis_review.md` | the 12 Sep 2026 code review, its items fixed v11.31–33 (closed; the live list is DIRECTION.md) |
 | `analysis_flora_diversity.md` | the 12 Nov 2026 review of the flora's diversity (v11.115): the roster plausible, its layout not; the proposals and the person's decisions in §5 |
 | `analysis_believability.md` | the 12 Sep analysis: how the world, flora, clades and spawning work, and where the believability is strong and thin |

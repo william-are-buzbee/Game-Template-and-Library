@@ -21,10 +21,10 @@ const lab = {
   v: null,
   warn: [],
   d: null,
-  yaw: 0.6,
+  yaw: 1.15, // v11.246: from the side, where the body's spine is drawn and dragged (0.6 to v11.245: from the front)
   pitch: 0.22,
   dist: 10,
-  spin: true,
+  spin: false, // v11.246: still, as an editor is (r spins it)
   drag: null,
   act: -1,
   cruise: false,
@@ -37,6 +37,7 @@ const lab = {
   open: {},
   hi: -1,
   sec: 'species',
+  at: 0, // the body's clock (v11.246): stops while the cursor is on a knot or a part
   conceive: null, // the editor at conception (v11.72, line.js conceiveOpen): {parent, gen, budget, at, price} while the window is open over a laying
   player: false // the creator (v11.47): opened from the menu's `creator` word; only the species, clades, cores and part styles the profile has seen are offered (save.js PROFILE.seen, labOk)
 };
@@ -100,6 +101,7 @@ function labBuild() {
   if (lab.hi >= 0) labHi(lab.hi, true);
   labCaption();
   labReadout();
+  labSpineDraw(); // the knots on the body (v11.246)
 }
 // light the part under the cursor: its meshes swap to the lit material (the arms' chains too)
 function labHi(i, force) {
@@ -248,7 +250,10 @@ function labPanelHTML() {
     '<div class="sec" id="lab-core"><div class="hd">core</div><label class="row"><span>kind</span>' +
     labSel('core.kind', gr.cores.filter(c => c === s.core.kind || labOk('co', c)), s.core.kind) +
     '</label>';
-  for (const k in core.params) h += labSlider('core.' + k, s.core.kind, k, s.core, F);
+  const over = spineOver(s.core); // v11.246: the numbers the spine's knots stand in for are its, not a slider's
+  h += '<label class="row"><span>the spine</span><input type="checkbox" data-act="spine"' + (LAB_SP.on ? ' checked' : '') + '><i class="dim">on the body</i></label>';
+  if (LAB_SP.on && SPINE[s.core.kind]) h += '<div class="note">drag a knot to move it · wheel on it to fatten (shift: height, alt: width) · double-click the body to add a knot, a knot to take it out · drag or wheel a part · ctrl+z undoes</div>';
+  for (const k in core.params) if (over.indexOf(k) < 0) h += labSlider('core.' + k, s.core.kind, k, s.core, F);
   h +=
     '<label class="row"><span>beat</span>' +
     labNum('core.beat.0', (s.core.beat || [1.5, 0.9])[0], 0.1, 0.1, 12) +
@@ -459,6 +464,10 @@ function labLoad(spec) {
   lab.note = '';
   lab.open = {};
   lab.hi = -1;
+  LAB_SP.undo = [];
+  LAB_SP.hov = -1;
+  LAB_SP.part = -1;
+  LAB_SP.drag = null;
   labBuild();
   labRender();
   if (lab.v)
@@ -486,6 +495,12 @@ function labOnInput(e) {
   }
   if (t.dataset && t.dataset.act === 'spin') {
     lab.spin = t.checked;
+    return;
+  }
+  if (t.dataset && t.dataset.act === 'spine') { // v11.246
+    LAB_SP.on = t.checked;
+    LAB_SP.hov = -1;
+    labSpineDraw();
     return;
   }
   if (!path) return;
@@ -690,6 +705,168 @@ function labOnOver(e) {
   while (t && t !== labPanel && !(t.dataset && t.dataset.part !== undefined)) t = t.parentNode;
   labHi(t && t !== labPanel ? +t.dataset.part : -1);
 }
+// ---------- the body by hand (v11.246, CREATOR.md "Sixth round: the spine") ----------
+// Spore's grammar (analysis_creators.md): the body's knots stand on it as beads on its spine, each with its section drawn round it; the cursor near
+// one lights it. Drag moves it in the body's own middle plane (x 0 — or, seen end on, the plane facing the eye through it); the wheel over it
+// fattens or thins it (shift: up only; alt: across only); a double-click on the body puts a knot in there, on a knot takes it out (Delete too);
+// pulling the last plate of a trunk out grows plates. A part under the cursor lights up: drag slides it along the body (its z, and its y where the
+// body does not place it), the wheel scales it. ctrl+z undoes a gesture. Every gesture is an edit of the spec (creatures_spec.js spineMove,
+// spineSize, spineAdd, spineDel; a part's own numbers), so the panel, the link, the export and the conception's bill see the same body.
+const LAB_SP = {
+  on: true, // the spine drawn and in reach ('show the spine' in the core section)
+  H: null, // the handles as drawn (spineOf(lab.v))
+  ax: 'z',
+  hov: -1, // the handle under the cursor
+  part: -1, // the part under the cursor
+  drag: null, // {kind: 'knot'|'part', i, off|p0, ...}
+  g: null,
+  undo: [],
+  wheelT: 0,
+  renderT: null,
+  ball: new THREE.MeshBasicMaterial({color: 0xffd28a, transparent: true, opacity: 0.85, depthTest: false, fog: false}),
+  piece: new THREE.MeshBasicMaterial({color: 0x8fd0ff, transparent: true, opacity: 0.8, depthTest: false, fog: false}),
+  hot: new THREE.MeshBasicMaterial({color: 0xffffff, transparent: true, opacity: 1, depthTest: false, fog: false}),
+  line: new THREE.LineBasicMaterial({color: 0xffd28a, transparent: true, opacity: 0.5, depthTest: false, fog: false}),
+  ring: new THREE.LineBasicMaterial({color: 0xffd28a, transparent: true, opacity: 0.22, depthTest: false, fog: false}),
+  ringHot: new THREE.LineBasicMaterial({color: 0xffffff, transparent: true, opacity: 0.8, depthTest: false, fog: false})
+};
+// what a part's wheel scales: its main proportions (VARY_AUTO's, creatures_defs.js), those its style has
+const LAB_SIZE = {eyes: ['r'], mouth: ['R', 'r', 'len'], arms: ['len', 'w'], shell: ['R1', 'R0', 'L', 'r0', 'r1'], ridge: ['len', 'h', 'w'], skirt: ['len', 'h'], chevrons: ['sz'], spines: ['h'],
+  barbels: ['len'], plates: ['w'], fins: ['len', 'h'], tail: ['L', 'll', 'lh'], comb: ['len'], tailplate: ['w'], legs: ['len', 'll', 'wl'], keel: ['h'], valves: ['w', 'th'], flaps: ['len', 'w'], weapon: ['len', 'w'], head: ['sy']};
+// where a handle is drawn in the body's frame: on its knot, a bell's on its ring's rim (its axis is upright: the rim is what the hand reads)
+function labHandleAt(h) {return LAB_SP.ax === 'y' ? V3(0, h.y, h.w) : V3(0, h.y, h.z);}
+function labSpineDraw() {
+  if (LAB_SP.g && LAB_SP.g.parent) LAB_SP.g.parent.remove(LAB_SP.g);
+  LAB_SP.g = null;
+  const b = lab.b;
+  let S = null;
+  try {S = b ? spineOf(lab.v) : null;} catch (e) {S = null;}
+  LAB_SP.H = S ? S.H : null;
+  LAB_SP.ax = S ? spineAxis(S) : 'z';
+  if (!S || !LAB_SP.on) return;
+  const H = S.H, g = new THREE.Group(), ax = LAB_SP.ax;
+  let lo = Infinity, hi = -Infinity;
+  for (const h of H) {lo = Math.min(lo, h[ax]); hi = Math.max(hi, h[ax]);}
+  const rb = clamp((hi - lo) * 0.035, 0.025, 0.8),
+    C = H.filter(h => h.chain), sp = [], rg = [], rh = [], ring = (out, h) => {
+      for (let k = 0; k < 20; k++) {
+        const a0 = (k / 20) * TAU, a1 = ((k + 1) / 20) * TAU;
+        if (ax === 'y') out.push(Math.cos(a0) * h.w, h.y, Math.sin(a0) * h.w, Math.cos(a1) * h.w, h.y, Math.sin(a1) * h.w);
+        else out.push(Math.cos(a0) * h.w, h.y + Math.sin(a0) * h.h, h.z, Math.cos(a1) * h.w, h.y + Math.sin(a1) * h.h, h.z);
+      }
+    };
+  for (let j = 1; j < C.length; j++) {const a = labHandleAt(C[j - 1]), c = labHandleAt(C[j]); sp.push(a.x, a.y, a.z, c.x, c.y, c.z);}
+  H.forEach((h, i) => {
+    const hot = i === LAB_SP.hov || (LAB_SP.drag && LAB_SP.drag.kind === 'knot' && LAB_SP.drag.i === i);
+    if (h.size) ring(hot ? rh : rg, h);
+    const m = new THREE.Mesh(G.sph(rb * (h.chain ? 1 : 0.85), 8, 6), hot ? LAB_SP.hot : h.chain ? LAB_SP.ball : LAB_SP.piece);
+    m.position.copy(labHandleAt(h));
+    m.renderOrder = 20;
+    g.add(m);
+  });
+  const seg = (P, mat) => {
+    if (!P.length) return;
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.Float32BufferAttribute(P, 3));
+    const l = new THREE.LineSegments(geo, mat);
+    l.renderOrder = 19;
+    g.add(l);
+  };
+  seg(sp, LAB_SP.line);
+  seg(rg, LAB_SP.ring);
+  seg(rh, LAB_SP.ringHot);
+  b.g.add(g);
+  LAB_SP.g = g;
+}
+// the cursor's ray in the creature's frame (its metres at s 1: the group's scale undone)
+function labRay(e) {
+  const r = canvas.getBoundingClientRect(),
+    nx = ((e.clientX - r.left) / r.width) * 2 - 1,
+    ny = -(((e.clientY - r.top) / r.height) * 2 - 1),
+    o = camera.position.clone(),
+    p = V3(nx, ny, 0.5).unproject(camera);
+  lab.b.g.updateMatrixWorld(true);
+  const inv = new THREE.Matrix4().copy(lab.b.g.matrixWorld).invert(),
+    oL = o.clone().applyMatrix4(inv),
+    pL = p.applyMatrix4(inv);
+  return {o: oL, d: pL.sub(oL).normalize()};
+}
+// where the ray meets the body's middle plane (x 0); seen end on (the ray along that plane), the plane through q facing the eye
+function labPlaneHit(e, q) {
+  const R = labRay(e), o = R.o, d = R.d;
+  if (Math.abs(d.x) > 0.25) return o.clone().addScaledVector(d, -o.x / d.x);
+  const n = d.clone().negate(), dn = d.dot(n);
+  return o.clone().addScaledVector(d, q.clone().sub(o).dot(n) / dn);
+}
+// the handle within 14 px of the cursor, nearest first
+function labPick(e) {
+  if (!LAB_SP.g || !LAB_SP.H || !lab.b) return -1;
+  const r = canvas.getBoundingClientRect();
+  lab.b.g.updateMatrixWorld(true);
+  let best = -1, bd = 14 * 14;
+  LAB_SP.H.forEach((h, i) => {
+    const v = labHandleAt(h).applyMatrix4(lab.b.g.matrixWorld).project(camera);
+    if (v.z > 1) return;
+    const sx = ((v.x + 1) / 2) * r.width + r.left, sy = ((1 - v.y) / 2) * r.height + r.top, d2 = (sx - e.clientX) * (sx - e.clientX) + (sy - e.clientY) * (sy - e.clientY);
+    if (d2 < bd) {bd = d2; best = i;}
+  });
+  return best;
+}
+// the part under the cursor (the split build's meshes: compile's opt.split), or -1
+let LAB_RC = null; // made at the first use: the headless stub has no raycaster
+function labPickPart(e) {
+  if (!lab.b || !lab.b.built) return -1;
+  if (!LAB_RC) LAB_RC = new THREE.Raycaster();
+  const r = canvas.getBoundingClientRect();
+  LAB_RC.setFromCamera({x: ((e.clientX - r.left) / r.width) * 2 - 1, y: -(((e.clientY - r.top) / r.height) * 2 - 1)}, camera);
+  let best = -1, bd = Infinity;
+  lab.b.built.forEach((p, i) => {
+    if (!p || !p.meshes) return;
+    for (const m of p.meshes) for (const h of LAB_RC.intersectObject(m, true)) if (h.distance < bd) {bd = h.distance; best = i;}
+  });
+  if (best >= 0) {
+    const bh = LAB_RC.intersectObject(lab.b.body, false)[0]; // the body in front of the part hides it
+    if (bh && bh.distance < bd - 1e-3) return -1;
+  }
+  return best;
+}
+function labUndoPush() {
+  LAB_SP.undo.push(JSON.stringify(lab.spec));
+  if (LAB_SP.undo.length > 60) LAB_SP.undo.shift();
+}
+function labUndo() {
+  const j = LAB_SP.undo.pop();
+  if (!j) return;
+  lab.spec = JSON.parse(j);
+  labBuild();
+  labRender();
+}
+// the panel once a gesture rests (its sliders and readout follow the body)
+function labRenderSoon() {
+  if (LAB_SP.renderT) clearTimeout(LAB_SP.renderT);
+  LAB_SP.renderT = setTimeout(() => {LAB_SP.renderT = null; labRender();}, 250);
+}
+function labHover(e) {
+  const i = labPick(e);
+  let p = -1;
+  if (i < 0) p = labPickPart(e);
+  if (i !== LAB_SP.hov) {LAB_SP.hov = i; labSpineDraw();}
+  if (p !== LAB_SP.part) {LAB_SP.part = p; labHi(p);}
+  canvas.style.cursor = i >= 0 || p >= 0 ? 'grab' : '';
+}
+// a part's numbers as the build read them (lab.v: defaults filled), written into the working spec
+function labPartGet(i, k) {const p = lab.v.parts[i]; return p ? p[k] : undefined;}
+function labPartMove(i, dy, dz) {
+  const d = LAB_SP.drag, p = lab.spec.parts[i], pv = lab.v.parts[i], ks = paramsFor(pv.kind, pv.style);
+  if (ks.indexOf('z') >= 0 && typeof d.z0 === 'number') p.z = d.z0 + dz;
+  if (ks.indexOf('y') >= 0 && typeof d.y0 === 'number' && !(pv.snap && labHidden(pv, 'y'))) p.y = d.y0 + dy;
+}
+function labPartSize(i, k) {
+  const pv = lab.v.parts[i], ks = paramsFor(pv.kind, pv.style);
+  let n = 0;
+  for (const key of LAB_SIZE[pv.kind] || []) if (ks.indexOf(key) >= 0 && typeof pv[key] === 'number') {lab.spec.parts[i][key] = pv[key] * k; n++;}
+  return n > 0;
+}
 // ---------- the world ----------
 // p: the creature as a temporary species in DEFS (lab) with its derived stats, spawned near the peak — or, in play, ahead of the player.
 function labDrop() {
@@ -766,7 +943,7 @@ function labEnter(spec, asPlayer) {
   }
   hintEl.textContent = isTouch
     ? 'drag to turn'
-    : 'space for the action, s to cruise, r to spin, drag to turn, wheel to close in, p to place it in the world, l to go back';
+    : 'drag a knot or a part, wheel on it to size it, double-click the body for a knot · drag the water to turn · space, s, r, p, l as ever';
   hintEl.style.opacity = 1;
   labLoad(spec || lab.spec || SPECS.soft);
 }
@@ -813,7 +990,8 @@ function updateLab(dt) {
     st.withdrawn = st.strike > 0.5;
   }
   const spd = (lab.cruise ? 1.2 : 0.3) + 2.5 * (st.strike || 0);
-  b.anim(t, spd, st);
+  if (!(LAB_SP.hov >= 0 || LAB_SP.part >= 0 || LAB_SP.drag) || lab.act >= 0) lab.at += dt; // v11.246: the body holds still under the hand (a wagging tail would slip from under the cursor); its clock is the lab's
+  b.anim(lab.at, spd, st);
   b.g.updateMatrix();
   worldShapes(b.owner);
   stepRigs(b.owner, null, dt);
@@ -883,13 +1061,75 @@ addEventListener('keydown', e => {
     const c = labPanel.querySelector ? labPanel.querySelector('[data-act=spin]') : null;
     if (c) c.checked = lab.spin;
   } else if (e.code === 'KeyP' && !lab.conceive) labDrop();
+  else if ((e.ctrlKey || e.metaKey) && e.code === 'KeyZ') { // v11.246
+    e.preventDefault();
+    labUndo();
+  } else if ((e.code === 'Delete' || e.code === 'Backspace') && LAB_SP.hov >= 0) {
+    e.preventDefault();
+    labUndoPush();
+    if (spineDel(lab.spec, LAB_SP.hov)) {LAB_SP.hov = -1; labBuild(); labRender();}
+    else LAB_SP.undo.pop();
+  }
+});
+// a double-click on the body puts a knot in where it was clicked; on a knot, takes it out (v11.246)
+canvas.addEventListener('dblclick', e => {
+  if (mode !== 'lab' || !lab.b || !LAB_SP.H || !LAB_SP.on) return;
+  const i = labPick(e);
+  labUndoPush();
+  if (i >= 0) {
+    if (spineDel(lab.spec, i)) {LAB_SP.hov = -1; labBuild(); labRender();}
+    else LAB_SP.undo.pop();
+    return;
+  }
+  if (!LAB_RC) LAB_RC = new THREE.Raycaster();
+  const r = canvas.getBoundingClientRect();
+  LAB_RC.setFromCamera({x: ((e.clientX - r.left) / r.width) * 2 - 1, y: -(((e.clientY - r.top) / r.height) * 2 - 1)}, camera);
+  const hit = LAB_RC.intersectObject(lab.b.body, false)[0];
+  const p = hit ? labPlaneHit(e, lab.b.g.worldToLocal(hit.point.clone())) : null;
+  if (p && spineAdd(lab.spec, LAB_SP.ax === 'y' ? p.y : p.z)) {labBuild(); labRender();}
+  else LAB_SP.undo.pop();
 });
 canvas.addEventListener('mousedown', e => {
   if (mode !== 'lab' || e.button !== 0) return;
+  if (lab.b && LAB_SP.hov >= 0 && LAB_SP.H && LAB_SP.H[LAB_SP.hov]) { // a knot taken up (v11.246)
+    const h = LAB_SP.H[LAB_SP.hov], q = labHandleAt(h);
+    if (h.move) {labUndoPush(); LAB_SP.drag = {kind: 'knot', i: LAB_SP.hov, off: q.clone().sub(labPlaneHit(e, q)), moved: 0, p0: null, y0: 0, z0: 0};}
+    else LAB_SP.drag = {kind: 'none', i: LAB_SP.hov, off: null, moved: 0, p0: null, y0: 0, z0: 0};
+    canvas.style.cursor = 'grabbing';
+    return;
+  }
+  if (lab.b && LAB_SP.part >= 0 && lab.v.parts[LAB_SP.part]) { // a part taken up
+    const i = LAB_SP.part, pv = lab.v.parts[i], q = V3(0, isFinite(pv.y) ? pv.y : 0, isFinite(pv.z) ? pv.z : 0);
+    labUndoPush();
+    LAB_SP.drag = {kind: 'part', i: i, off: null, moved: 0, p0: labPlaneHit(e, q), y0: labPartGet(i, 'y'), z0: labPartGet(i, 'z')};
+    canvas.style.cursor = 'grabbing';
+    return;
+  }
   lab.drag = {moved: 0};
 });
 addEventListener('mousemove', e => {
-  if (mode !== 'lab' || !lab.drag) return;
+  if (mode !== 'lab') return;
+  const D = LAB_SP.drag;
+  if (D) {
+    D.moved += Math.abs(e.movementX || 0) + Math.abs(e.movementY || 0);
+    if (!lab.b || D.moved < 3) return;
+    if (D.kind === 'knot') {
+      const h = LAB_SP.H && LAB_SP.H[D.i];
+      if (!h) return;
+      const p = labPlaneHit(e, labHandleAt(h)).add(D.off);
+      if (spineMove(lab.spec, D.i, p.y, LAB_SP.ax === 'y' ? h.z : p.z)) labRebuildSoon(false);
+    } else if (D.kind === 'part') {
+      const p = labPlaneHit(e, D.p0);
+      labPartMove(D.i, p.y - D.p0.y, p.z - D.p0.z);
+      labRebuildSoon(false);
+    }
+    return;
+  }
+  if (!lab.drag) {
+    if (e.target === canvas && lab.b) labHover(e);
+    else if (LAB_SP.hov >= 0 || LAB_SP.part >= 0) {LAB_SP.hov = -1; LAB_SP.part = -1; labSpineDraw(); canvas.style.cursor = '';} // off the water (the panel): nothing under the hand
+    return;
+  }
   const dx = e.movementX || 0,
     dy = e.movementY || 0;
   lab.drag.moved += Math.abs(dx) + Math.abs(dy);
@@ -898,7 +1138,17 @@ addEventListener('mousemove', e => {
   if (lab.drag.moved > 4) lab.spin = false;
 });
 addEventListener('mouseup', () => {
-  if (mode !== 'lab' || !lab.drag) return;
+  if (mode !== 'lab') return;
+  if (LAB_SP.drag) { // a gesture ends: nothing moved, nothing to undo; else the panel follows
+    const D = LAB_SP.drag;
+    LAB_SP.drag = null;
+    if (D.kind !== 'none' && D.moved < 3) LAB_SP.undo.pop();
+    else if (D.kind !== 'none') labRenderSoon();
+    canvas.style.cursor = LAB_SP.hov >= 0 || LAB_SP.part >= 0 ? 'grab' : '';
+    labSpineDraw();
+    return;
+  }
+  if (!lab.drag) return;
   if (lab.drag.moved < 4 && lab.b) lab.act = 0;
   else {
     const c = labPanel.querySelector ? labPanel.querySelector('[data-act=spin]') : null;
@@ -910,6 +1160,16 @@ addEventListener(
   'wheel',
   e => {
     if (mode !== 'lab') return;
+    if (lab.b && e.target === canvas && (LAB_SP.hov >= 0 || LAB_SP.part >= 0)) { // v11.246: the wheel on a knot fattens it, on a part sizes it
+      const dv = e.deltaY || e.deltaX, k = dv < 0 ? 1.06 : 1 / 1.06, now = performance.now();
+      if (!dv) return;
+      if (now - LAB_SP.wheelT > 500) labUndoPush(); // a run of the wheel is one gesture
+      LAB_SP.wheelT = now;
+      if (LAB_SP.hov >= 0) {if (spineSize(lab.spec, LAB_SP.hov, e.shiftKey ? 1 : k, e.altKey ? 1 : k)) labRebuildSoon(false);}
+      else if (labPartSize(LAB_SP.part, k)) labRebuildSoon(false);
+      labRenderSoon();
+      return;
+    }
     lab.dist = clamp(lab.dist * (e.deltaY > 0 ? 1.1 : 0.9), Math.max(2, lab.radius * 0.6), Math.max(12, lab.radius * 6));
   },
   {passive: true}

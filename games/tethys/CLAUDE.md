@@ -139,7 +139,7 @@ dist.js; `archive/` old docs kept whole; the design docs.
 | scene.js | the tier `Q`, renderer, camera, lights, the fog, shadow maps, every shared material, the resolution `RES` |
 | parts.js | the geometry kit `part`/`merge`, arm rigs and poses, `swimClock`, LOD bakes, the build tape |
 | grow.js | the flora grammar: bauplans, `pigment(h,line)`, `species()`, `VPULL` |
-| creatures_builders.js · creatures_spec.js | `PAL` and the part kit · the spec compiler: cores, `PARTS`, `compile`, `validate`, `derive`, `coatFor`, `SPECS` |
+| creatures_builders.js · creatures_spec.js | `PAL` and the part kit · the spec compiler: cores, the spine (`SPINE`, v11.246), `PARTS`, `compile`, `validate`, `derive`, `coatFor`, `SPECS` |
 | flora.js · reef.js | the species, rocks, big structures and `FLORA` · the sessile structures appended to it |
 | creatures_defs.js | `DEFS` (roles, behaviour, `defPhysics`), `SPAWN`, `ROSTER` |
 | creatures_ai.js | spawning, LOD, behaviour by role, hunger, the clock and the risk (v11.228), carcasses, eggs, the frame's update |
@@ -160,7 +160,7 @@ dist.js; `archive/` old docs kept whole; the design docs.
 islands, the region and the deep — read before placing an island or touching `CHEMO` · `PLANKTON.md`, `BIOLUM.md` (before any light on a
 creature), `CLOUDS.md`, `WATER.md`, `PIXEL.md`, `POLISH.md`, `COMBAT.md`, `AUDIO.md` (every number chosen blind), `LINEAGE.md` ·
 `DIRECTION.md` the game's loop; its Open list is the person's · **`DESIGN.md` the reference: a section per system, its numbers, knobs and
-reasons** · `analysis_*.md` reviews with the person's answers (project, loading, fog, sessile, archipelago with its working notes, flora
+reasons** · `analysis_*.md` reviews with the person's answers (project, loading, fog, sessile, creators, archipelago with its working notes, flora
 diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now · `IDEAS.txt` the person's backlog · `archive/` old docs whole.
 
 ## Architecture
@@ -392,6 +392,10 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
   the pool's reach (`tileSeen`) — by a per-instance flag (`aHide`) in `addTint`'s vertex code, never moved by the view, packed once still; so a pooled
   species' material is a tinted one. A tile hides only what is not drawn anyway: test/pool.js fails if one hides an instance within its reach. Placement reads the cell's own hash only (`solidPush(…, own)`), which `placeBigSolids` completes with every
   neighbour's reaching structure (`test/pool.js` fails if a cell's blocks differ by arrival order).
+- **Every core has a spine** (creatures_spec.js `SPINE`, v11.246): the knots the creator drags are the core's own numbers, so a body nobody touched
+  is built by the same arithmetic (test/spine.js holds every species to the bit, and fails on a core with no adapter). A new core gets an adapter
+  whose handles come from its numbers and go back through `spKeep`; a part that moves geometry the core bends reads the frame's `wAt`/`hAt`, and
+  is moved by `ride` after it is built — never reads a knot itself.
 - **Capsules.** No hit capsule ends past the nose (`compile` clamps at `F.nose − r`; a hand-written list that reaches past it is cut back
   silently). A spec's own `hit` list puts the shell's capsule first and marks a part's own capsule `own` (the tails), or the covering reads the core's. A lost part is hidden and
   struck from the live spec, but the kind's shared far bake still has it past `lodNear`.

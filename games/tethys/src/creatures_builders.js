@@ -160,7 +160,8 @@ function profR(prof){return (z)=>{for(let i=1;i<prof.length;i++){const a=prof[i-
 
 // A jointed trunk (hingeshells): n plates from z0 (front) back to z1, width w(u) and height h(u) (u 0 at the front, 1 at the
 // back), each a box with a narrower joint box in the joint colour behind it. y(u): the centreline height. Parts pushed to P.
-function trunk(P,pal,n,z0,z1,w,h,y){const L=(z0-z1)/n;for(let k=0;k<n;k++){const u=(k+0.5)/n,z=z0-(k+0.5)*L,ww=w(u),hh=h(u),yy=y?y(u):0;P.push(part(G.box(ww,hh,L*0.78),0,yy,z,pal.top,{c2:pal.belly}));if(k<n-1)P.push(part(G.box(ww*0.8,hh*0.8,L*0.34),0,yy,z-L*0.5,pal.joint));}}
+function trunk(P,pal,n,z0,z1,w,h,y,tilt){const L=(z0-z1)/n;for(let k=0;k<n;k++){const u=(k+0.5)/n,z=z0-(k+0.5)*L,ww=w(u),hh=h(u),yy=y?y(u):0;P.push(part(G.box(ww,hh,L*0.78),0,yy,z,pal.top,tilt?{c2:pal.belly,r:[tilt(u),0,0]}:{c2:pal.belly}));
+  if(k<n-1){const uj=(k+1)/n;P.push(part(G.box(ww*0.8,hh*0.8,L*0.34),0,tilt?y(uj):yy,z-L*0.5,pal.joint,tilt?{r:[tilt(uj),0,0]}:undefined));}}} // tilt (v11.246, the spine): a bent trunk's plates and joints pitch along it, each joint on the bend where it falls
 // A two-segment leg (hingeshells): the hip at (x,y,z), the knee at hip+(kx,ky,kz) with a joint knob, the foot at hip+(fx,fy,fz);
 // w thick. hook: a claw of that length curving from the foot toward -y.
 function leg(P,pal,x,y,z,kx,ky,kz,fx,fy,fz,w,hook){

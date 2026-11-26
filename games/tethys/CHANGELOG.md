@@ -12310,3 +12310,48 @@ moving), not itemised further. Not measured: the person's machines.
    and not as swimming.
 2. A plumb at its wall by day: its roams every minute or so at a visible crawl, most stopping short against the wall and hanging there.
 3. The arrows by day and the needles at night: small resting bodies circling loosely.
+
+## v11.246 — the spine: every body a chain of knots, shaped by hand in the lab — Spore's and The Sapling's editor (26 Nov 2026)
+
+The person (26 Nov 2026): *"I want you to do an investigation of games like Spore that have a creature creator … the sapling and spore itself are
+the two that resemble the game the most. I want that kind of creature creator — and this means doing some serious reworking of the creature logic so
+that they can be segmented. This means that they have to look identical but we can do the 'drag' feature to allow bodies to be shaped intuitively
+and not using numbers on a dial."*
+
+**The investigation** is `analysis_creators.md`: Spore (the spine under a metaball skin; drag a vertebra, the wheel to fatten, pull an end to add
+vertebrae; parts stored along the spine so they ride it; the hidden modifier keys), The Sapling (a chain of segments with length handles; its drag
+from the outline — thickest at the front, tapering — the one shape-to-stats rule found that suits water), Thrive (its macroscopic prototype read in
+the source: a tree of balls under a SCALIS skin, which its own developers call messy), Planetary Life, Ecosystem and a few others; what recurs, the
+pitfalls, what Tethys takes and what it does not (no metaball skin), and the questions.
+
+**The spine** (creatures_spec.js `SPINE`, `spineOf`, `spineMove`, `spineSize`, `spineAdd`, `spineDel`, `spineRide`, `mantleRings`, `bellProf`,
+`ellKnots`; parts.js `G.loft`, `G.ellK`, `knotV`; creatures_builders.js `trunk`'s tilt). Every core's body is a chain of knots kept in the core's
+own numbers, so a body nobody has touched is built by the same arithmetic it always was:
+
+| core (species) | its knots | built by |
+|---|---|---|
+| lathe (the slowbloods' fish, 12), a sac drawn as a lathe (the veil) | its profile's rings, now `[r, z, y, h]` once one is bent off the axis or squashed | `G.loft`: `G.lathe` for a plain profile, else r128's lathe triangles through the ellipses |
+| trunk (13 hingeshells), arches (the tread), chain (the eel) | `knots` `{u, w, h, y}` down the body — two by default, the old taper (`knotV` at u 0 and 1 is `lerp` to the bit) | the plates sample them; a bent trunk's plates and joints pitch along it |
+| mantle (soft, arrow) | the back and front rings and any `rings` between; `kb`, `kf`, `yb` | `G.cyl` while plain, else `G.loft` open at both ends |
+| coilbody (8), bean, shield (2), float (2), a sac's sphere (the pall) | `ek`: five factors along it (across, up, a lift, a shift) | `G.ellK`: the sphere's own vertices moved, so nothing retiles |
+| bell (2) | its rings, `[r, y]` | `G.lathe` of them |
+
+The head, snout and tail boxes, the collars, the shield and the knob are handles of their own. A bent body's parts ride the bend (`ride(z)`; their
+pieces pitched with it, their meshes moved, their capsules with them), built as ever against the straight body; a part on the surface sits on a
+bulge (the frames' `wAt`/`hAt` read the knots). A trunk or the arches pulled longer grow plates at their pitch, held from the first pull. The
+conception's bill prices a reshape as a profile redrawn plus a switch for each knot put in or taken out (line.js).
+
+**The lab is the editor** (lab.js "the body by hand": `LAB_SP`, `labSpineDraw`, `labPick`, `labPickPart`, `labPlaneHit`, `LAB_SIZE`). The knots stand
+on the body as beads on the spine with each one's section; the cursor within 14 px of one lights it. Drag moves it in the body's middle plane (seen
+end on, the plane facing the eye through it); the wheel fattens or thins it, ×1.06 a notch (shift: height only; alt: width only); a double-click on
+the body puts a knot in there, on a knot takes it out (Delete too); a part under the cursor lights up, drags along the body by its own `z` and `y`,
+and its wheel scales its main proportions; ctrl+z undoes a gesture. The body holds still while the cursor is on it (a wagging tail slipped from under
+it). The lab now opens still (`spin` off; r spins it) and from the side (`yaw` 1.15, from 0.6), where the spine is drawn. The core's sliders stay
+under it, but for the numbers a knot list stands in for. The panel says the gestures; nothing is a hidden modifier but shift and alt, which it names.
+
+**Tests:** `test/spine.js` (new; `--test`): every species at its default knots written out (43: a trunk's two, a lathe's rings as `[r, z, 0, r]`,
+six identity knots on an ellipsoid, the mantle's two radii) the very body — the eel within 1e-6, its old taper being another sum; every handle of
+every species (224) picked up and put down, and fattened by 1, the very body; a knot put in between every two chained knots (152) leaves the bounds
+within 1e-5 and taken out again the very body; the middle knot fattened, raised and the last pulled out change the body with no NaN and no lost mass;
+a trunk and the arches pulled 4 m out in 0.1 m steps grow plates at their pitch (the steps once crept it, seen in the lab); a bent and swollen body of
+each of the 11 cores replayed from the build's tape to the bit. test/registry.js: 577 offers, all compile, the tape's 440 bodies to the bit.

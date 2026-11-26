@@ -10,9 +10,26 @@ const G={
   // profile here — the geometry is identical, only the normals (and so the countershading) come out right. Callers read the array
   // they passed (profR, nose, tail), so the copy stays local.
   lathe:(pts,s)=>{if(pts.length>1&&pts[pts.length-1][1]<pts[0][1])pts=pts.slice().reverse();return new THREE.LatheGeometry(pts.map(p=>new THREE.Vector2(p[0],p[1])),geoLk(s||8,3));},
+  // The spine's lathe (v11.246, CREATOR.md "Sixth round"): a profile whose rings may be ellipses off the axis — [r, z, y, h], y the ring's centre and h
+  // its half-height, both in the world's y once the part is turned by HPI as every body lathe is (the lathe's local z is the world's −y). A profile
+  // with neither on any ring is G.lathe itself, so a body nobody bent or squashed is the very geometry it was. The triangles are r128's
+  // LatheGeometry's, in its order and winding, unindexed: a ring bent off the axis moves its facets and never retiles them.
+  loft:(pts,s)=>{if(!pts.some(p=>(p[2]||0)!==0||(p.length>3&&p[3]!==p[0])))return G.lathe(pts,s);if(pts.length>1&&pts[pts.length-1][1]<pts[0][1])pts=pts.slice().reverse();
+    s=geoLk(s||8,3);const n=pts.length,V=[],P=[];for(let i=0;i<=s;i++){const ph=i*(1/s)*Math.PI*2,sn=Math.sin(ph),cs=Math.cos(ph);for(const p of pts){const h=p.length>3?p[3]:p[0];V.push([p[0]*sn,p[1],h*cs-(p[2]||0)]);}}
+    const t=(a,b,c)=>P.push(a[0],a[1],a[2],b[0],b[1],b[2],c[0],c[1],c[2]);for(let i=0;i<s;i++)for(let j=0;j<n-1;j++){const a=V[i*n+j],b=V[(i+1)*n+j],c=V[(i+1)*n+j+1],d=V[i*n+j+1];t(a,b,d);t(b,c,d);}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));return g;},
+  // The spine's ellipsoid (v11.246): G.sph(r,w,h) with its vertices moved by knots along its local z — K [{u,kw,kh,dy,dz}] ascending in u, u the
+  // vertex's z over r (−1 the tail, 1 the nose); kw and kh scale it across, dy and dz move it, in the body's metres (the part scales the sphere by
+  // sy and sz after, so they go in over those). Every knot 1, 1, 0, 0 moves nothing: the creature's body is G.sph's to the bit (a core without
+  // knots never calls this)
+  ellK:(r,w,h,K,sy,sz)=>{const g=new THREE.SphereGeometry(r,geoLk(w||6,3),geoLk(h||5,2)),a=/** @type {Float32Array} */(g.attributes.position.array); // r128's sphere: a Float32Array, written in place
+    for(let i=0;i<a.length;i+=3){const u=a[i+2]/r;a[i]*=knotV(K,u,'kw');a[i+1]=a[i+1]*knotV(K,u,'kh')+knotV(K,u,'dy')/sy;a[i+2]+=knotV(K,u,'dz')/sz;}return g;},
   // a quad a-b-c-d (each [x,y,z]) seen from both sides: four triangles, no index (the webs and the tail fans)
   quad:(a,b,c,d)=>{const g=new THREE.BufferGeometry(),P=[];const tri=(p,q,r)=>P.push(p[0],p[1],p[2],q[0],q[1],q[2],r[0],r[1],r[2]);tri(a,b,c);tri(a,c,d);tri(c,b,a);tri(d,c,a);g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));return g;}
 };
+// Knots [{u, ...}] ascending in u (v11.246, the spine): key k at u, piecewise linear, the end segments carried on past the ends — so two knots at u 0
+// and 1 are lerp(a, b, u) to the bit for any u, which is what lets a body's old linear taper (a trunk's w0 → w1) be its spine without moving a vertex
+function knotV(K,u,k){let i=1;while(i<K.length-1&&u>K[i].u)i++;const a=K[i-1],b=K[i];return lerp(a[k],b[k],(u-a.u)/(b.u-a.u));}
 // ---------- the build's tape (v11.149, the creature performance pass) ----------
 // A kind's body is the same every time it is built: its spec, its scale and its palette (a coat class is a palette) decide every vertex. To
 // v11.148 every spawn built it whole all the same — every primitive, every merge — and spawn() then threw the meshes' geometry away for the

@@ -173,7 +173,8 @@ function conceivePrice(parent,child){ // {total, items:[{what, cost}]} dearest f
   const A=validate(parent).spec,B=validate(child).spec,items=[],add=(what,cost)=>{if(cost>0)items.push({what:what,cost:+cost.toFixed(2)});};let F=null;try{F=compileFrame(B);}catch(e){}
   if(A.core.kind!==B.core.kind)add('the core: '+A.core.kind+' → '+B.core.kind,BUDGET.core);
   else{for(const k in CORES[B.core.kind].params){const q=paramOf(B.core.kind,k,B.core,F);add('core '+(q?q.label:k),priceMove(A.core[k],B.core[k],q));}
-    if(JSON.stringify(A.core.beat||0)!==JSON.stringify(B.core.beat||0))add('the beat',BUDGET.toggle);}
+    if(JSON.stringify(A.core.beat||0)!==JSON.stringify(B.core.beat||0))add('the beat',BUDGET.toggle);
+    if(SPINE_KEYS.concat(CORES[B.core.kind].params.prof?[]:['prof']).some(k=>JSON.stringify(A.core[k])!==JSON.stringify(B.core[k]))){const nA=(spineOf(A)||{H:[]}).H.length,nB=(spineOf(B)||{H:[]}).H.length;add('the spine reshaped',BUDGET.list+BUDGET.toggle*Math.abs(nB-nA));}} // v11.246: the knots by hand (a lathe's profile is priced above, as a list): a reshape as a profile redrawn, each knot put in or taken out as a switch
   const lg=(x,y)=>Math.abs(Math.log2(Math.max(1e-6,y)/Math.max(1e-6,x)));add('size',BUDGET.size*Math.max(lg(A.s||1,B.s||1),lg(A.size,B.size)));
   const kinds={};for(const p of A.parts)(kinds[p.kind]=kinds[p.kind]||[[],[]])[0].push(p);for(const p of B.parts)(kinds[p.kind]=kinds[p.kind]||[[],[]])[1].push(p);
   for(const kind in kinds){const def=PARTS[kind];if(!def)continue;const a=kinds[kind][0],b=kinds[kind][1],cost=p=>def.cost*(p.mirror?2:1);

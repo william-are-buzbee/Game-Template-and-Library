@@ -1,8 +1,8 @@
 # CREATOR — the creature lab: one body-plan system for every animal, a tool first, the player's creator later
 
 **Status: built — the compiler, the calculator and the lab v11.10–11.11, every species a spec v11.25, the creator on the menu v11.47, the
-player as a spec v11.68, the registry pass v11.70 ("Fifth round" below). Not built: the creator as the start of a game, the editor at
-conception (LINEAGE.md), direct manipulation, the studio.** Designed 9 Sep 2026, written at the end of the clade passes (CLADES.md, v11.8–11.9.1) so the next session can
+player as a spec v11.68, the registry pass v11.70 ("Fifth round" below), the spine and direct manipulation v11.246 ("Sixth round" below;
+analysis_creators.md). Not built: the creator as the start of a game, the studio.** (The editor at conception: v11.72, LINEAGE.md.) Designed 9 Sep 2026, written at the end of the clade passes (CLADES.md, v11.8–11.9.1) so the next session can
 build the first cut in one go. Downstream of `PLANET.md` (the planet and the stalemate rule) and `CLADES.md` (the three signatures and
 the kit); upstream of a new `src/lab.js` and, eventually, a rewrite of the builders. Questions for the person are at the end and are
 not to be decided by Claude.
@@ -296,6 +296,24 @@ Creatures, The registry). **The person's answers (21 Sep 2026), built v11.70.1:*
 4. `valves:back` and `valves:placed`: "probably two, but only if that makes sense" — two: back follows the body in fractions, placed is in metres.
 5. A second mouth: allowed.
 6. "All pieces should have control." Every piece has controls but the two that build nothing (`tail:stub`, `weapon:ram`).
+
+## Sixth round (26 Nov 2026, v11.246): the spine — Spore's and The Sapling's editor
+
+The person, 26 Nov 2026: a Spore or Sapling style creator over the sliders — *"serious reworking of the creature logic so that they can be
+segmented … they have to look identical but we can do the 'drag' feature to allow bodies to be shaped intuitively and not using numbers on a
+dial."* The investigation of Spore, The Sapling, Thrive, Planetary Life, Ecosystem and others is `analysis_creators.md`; what was built is
+DESIGN.md, Creatures, "The spine". In short:
+
+- **Every body is a chain of knots**, kept in each core's own numbers so that a body nobody touched is built by the very same arithmetic: a
+  lathe's rings (now `[r, z, y, h]`: off the axis, squashed), a trunk's and the arches' and the eel's knots down the body (two by default — the
+  old taper), a mantle's rings, an ellipsoid's five factors, a bell's rings. The boxes and collars at the ends are handles of their own.
+  `test/spine.js` holds all of SPECS to the bit, and every handle picked up and put down, and every knot put in and taken out, the same.
+- **The lab is the editor:** the knots stand on the body as beads with their sections; drag one to move or bend, the wheel to fatten (shift
+  height, alt width), double-click to add or take out a knot, a trunk pulled longer grows plates; a part under the cursor drags along the body and
+  scales by the wheel; ctrl+z undoes. The parts ride a bend. The sliders stay under it.
+- **Not a metaball skin** (Spore's): the skin is the core's own low-poly geometry bent and swollen — the look, the build's tape, and the person's
+  rule that every animal looks as it did.
+- Open: analysis_creators.md, "Next" and "Questions".
 
 ## The ganglion (21 Sep 2026) — a design note for later, the person's
 

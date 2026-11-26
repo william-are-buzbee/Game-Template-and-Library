@@ -2093,6 +2093,29 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   and every species onto every other core, and fails on anything that does not compile, a control without a name, a value or a range,
   two controls with one name, a style offered outside its declaration, a style declared for two clades, a piece with no controls, or a
   fault in the registry itself.
+- **The spine (v11.246; CREATOR.md "Sixth round"; creatures_spec.js `SPINE`; lab.js "the body by hand"; `test/spine.js`).** Every body is a
+  chain of knots the creator drags and fattens by hand (Spore's grammar; analysis_creators.md). The knots live in each core's own numbers, so a
+  body nobody touched is built by the same arithmetic it always was (all of SPECS to the bit): a lathe's rings are its profile, `[r, z, y, h]`
+  once a ring is bent off the axis (`y`) or squashed (`h`) — `G.loft`, which is `G.lathe` for a plain profile and r128's lathe triangles
+  otherwise; a trunk's, the arches' and the eel's are `knots` `{u, w, h, y}` down the body, two by default — the old taper, because `knotV`
+  with knots at u 0 and 1 is `lerp` to the bit for any u; a mantle's are its back and front rings and any `rings` between (`mantleRings`; `kb`,
+  `kf` 0.28 and 0.92 of R by default, `yb` the back's lift); an ellipsoid's (coilbody, bean, shield, float, a sac's sphere) are `ek`, five factors
+  along it (`ELL_U`) that `G.ellK` applies to the sphere's vertices (`kw`, `kh` across and up, `dy`, `dz` in metres); a bell's are its rings
+  (`prof`, `[r, y]`, `bellProf` the default). The head, snout and tail boxes, the collars, the shield and the knob are handles of their own.
+  `SPINE[kind].knots(c)` gives the handles (`{z, y, w, h}` in the body's metres at s 1, ascending, with `move`, `size`, `chain`, `del`) and
+  `set(c, H)` writes them back through `spKeep`, so a handle put down where it was leaves the very number (`SPINE_EPS` 1e-9 relative).
+  `spineMove/Size/Add/Del` are the hand's operations on a spec: a chained knot never passes its neighbours; a knot put in lies on the body where
+  it was (the body unchanged until it is moved); a trunk or the arches pulled longer grows plates at a `pitch` held from the first pull. A core
+  whose knots left the straight gives its frame `ride(z) → [dy, dz]`, and `compile` moves every part's pieces (pitched with the bend about their
+  own place) and meshes by it (`spineRide`; rig meshes are not moved) and its capsules with them; the parts themselves are built against the
+  straight body. The frame's `wAt`/`hAt` read the knots' widths, so a part that sits on the surface sits on a bulge. The conception prices a
+  reshape as a profile redrawn plus a switch for each knot put in or taken out (line.js, `SPINE_KEYS`). The lab draws the knots as beads on the
+  spine with each section's ring (`labSpineDraw`), picks within 14 px of the cursor, drags in the body's middle plane (or, seen end on, the plane
+  facing the eye), the wheel fattens (shift: height, alt: width) at ×1.06 a notch; a part under the cursor (a raycast of the split build) slides
+  by its `z` and `y` and its wheel scales its `LAB_SIZE` keys; double-click adds or takes out a knot; ctrl+z undoes a gesture (60 deep). The body
+  holds still while the cursor is on it (`lab.at`). Not yet: rigs ride a bend (an arm rooted where the body bends stays where it was); a ring is
+  kept upright, not turned square to a steep bend (a shear past ~40°); the eel's chain takes widths but no bend; the variety rows' core numbers
+  (`VARY_AUTO.core`) move nothing a knot list stands in for.
 - **Roles:** hunter (chases prey; `strike {tell, dur, speed, range}` for one that cocks and lunges — the tell slows it, turns it to
   the prey and drives `st.tell`, then a burst at `speed` with `st.strike` on and one bite within `reach`; `burst {on, off}`
   for burst-and-coast: speed and accel on a duty cycle, full for `on` s then a third for `off` s, in the chase and the wander
