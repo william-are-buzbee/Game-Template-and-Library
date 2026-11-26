@@ -10,6 +10,13 @@ Past 45 m on the low tier a plant's tile draws a copy at half the facets, withou
 is shaded twice (v11.194's mistake). Triangles ×0.79–0.85 where there are plants; 0.04–1.1% of pixels change (far specks). The grasses (strap, tress) got
 none — flat blades; next, invisible, their variants split by size. **Ask:** an F8 at `tp(69950,29582,-10)` against #208's plants 6.35 ms; any pop at 45 m.
 
+**v11.239 (25 Nov 2026): the reed to 160 m on the low tier and 300 on the high, the seagrass to 160** (scene.js `Q.reed`, `THIN_CUT`, `MATRD`, `MATSG`;
+flora.js the reed and the strap; main.js `warmShaders`; FLORA.md; CHANGELOG). The work tower's report on v11.238 (#205): 60 fps on the median now, 40%
+of frames late, its worst place a sand flat where the reed was 600k of 1.33M triangles, nearly all past 150 m and specks at its size; the seagrass the same.
+The person: the low tier at 160, the high longer "for now" (option 2) — 300, where ours' north shore's far bed stays whole — and *"do the seagrass too."*
+The tower's worst place: triangles ×0.56, the proxy ×0.77; the high tier ×0.79–0.98 in triangles and its pictures the same. **Ask:** the tower's frame at
+`tp(72929,243)`; whether the high tier's reed may come down to 160 later (the person's "we can always do it for the other high tier later").
+
 **v11.238 (25 Nov 2026): a performance pass — the scans by square, the matrices only of what is drawn, the dark lights skipped** (creatures_ai.js
 `CG`, `cgNear`, `crMW`; horizon.js `MW.hide`; scene.js the light chunks; test/scangrid.js; DESIGN Performance; CHANGELOG). The person: *"find any performance
 updates we can do to make the game more easily playable now."* Since v11.220 the GPU's side got lighter and the creatures' CPU work ×1.20–1.27. Three cuts,
@@ -30,13 +37,6 @@ water."* The water dome was cut at the tide while the drawn far sea sits ~0.3 m 
 from a low eye a ray could pass over the sea's end to the bare dome: a one-pixel dark line across the middle, coming and going with the swell. The dome
 now draws only a pixel's step under the drawn sea; the horizon pass's sea disc reaches in from a low eye and its sky is not cut at the water. **Ask:**
 the horizon from the surface at sea, several headings and heights.
-
-**v11.236 (25 Nov 2026): the snow as bright as its surroundings** (atmosphere.js `ptsLit`, `snowLight`, `SN_ALB`, `SN_OP`; fx.js, combat.js the same
-patch; test/snow.js, test/stub.js; DESIGN The snow; CHANGELOG). The person: *"Marine snow is too visible in the dark … only as bright as its
-surroundings."* Its light had a floor (45–95% of noon with no light at all, then the eye's gain); now a point takes the world's light where it is —
-the ambient, the sun or moon by its depth, the own light and the pool's lights by the ground's falloff — and nothing else. The lit shallows as they
-were; black water with nothing lit leaves it unseen. **Ask:** whether the snow in the own light's reach in the deep, and at night, is enough to keep
-the sense of space; whether mid-depth by day now reads too thin.
 
 ## Open
 

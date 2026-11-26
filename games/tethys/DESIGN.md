@@ -2776,6 +2776,12 @@ in node and ×1.27 in Chromium, each pass within its noise and together a fifth.
   ×1.25–1.35 (program changes); a real GPU's early depth test is not measured here. The terrain's specular off — with a black specular r128's Schlick
   term still leaves a Fresnel sheen at grazing light, so it is a change to the picture, not a saving.
 
+**The thin plants' draw distance (v11.239, 25 Nov 2026; scene.js `Q.reed`, `THIN_CUT`).** The work tower's worst place in #205 was a shallow flat from
+the surface where the reed was 600k of the frame's 1.33M triangles, nearly all past 150 m and specks at its size; the seagrass (the strap) the same. The
+person chose: the reed to 160 m on the low tier and 300 on the high "for now" (at 1600×900 a shore's reed bed at 160–250 m is clumps 15–20 px tall; 250
+left one half-faded), the seagrass to 160 on both. Each on a material of its own (`MATRD`, `MATSG`: the family's program, its own `uCut`), so the pools'
+tiles past it are not sent. The low tier there: triangles ×0.56, the proxy ×0.77; the high tier ×0.79–0.98 in triangles, its pictures the same.
+
 **The flight recorder (v11.191, 20 Nov 2026; src/rec.js, test/report.js, analysis_project.md §1).** The person: "I could just play and you'd learn
 what device I'm on … You could check the log and that would literally be it." Recorded in the browser that plays, always, sent only when the person
 presses F9 (or calls `report()`): GitHub's new-issue page opens in a tab with a few lines for a person and one line, `tethys-rec:1:z…`, holding the
