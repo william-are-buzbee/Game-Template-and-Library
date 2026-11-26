@@ -30,6 +30,9 @@ ok(bad===0,`${M.length} members: every number finite, every state a named one`);
 const R2=G.regionModel(),same=JSON.stringify(R2.M.map(m=>[m.x,m.z,m.age,m.V,m.zv,m.rt,m.state]))===JSON.stringify(M.map(m=>[m.x,m.z,m.age,m.V,m.zv,m.rt,m.state]));
 ok(same,'the same knobs, the same province to the bit');
 const R3=G.regionModel({seed:K.seed+1});ok(R3.M.length!==M.length||R3.M[2].x!==M[2].x,'another seed, another province');
+{const R4=G.regionModel({strike:null}),fit=M.filter(m=>m.pin>=0||m.tuned),ix=i=>Number.isInteger(i)&&i>=0&&i<M.length; // v11.243 (K.strike, the person: "pick one and kill it"): seed 32's m93 struck by hand
+  ok(!M.some(m=>m.id==='m93')&&R4.M.some(m=>m.id==='m93')&&!G.ISLANDS.some(r=>r.id==='m93')&&R.top===R4.top&&fit.every(m=>m.V===R4.M.find(q=>q.id===m.id).V)&&M.every(m=>(m.host<0||ix(m.host))&&(m.src<0||ix(m.src))&&m.up.every(ix)),
+    `struck by hand: m93 in no member or record; the pins' fit (${fit.map(m=>m.id).join(', ')}'s volumes, the plateau's level) the same as without the strike to the bit; ${M.length} members' host, src and up in range`);}
 const VT=M.filter(m=>m.pin<0).flatMap(m=>m.vents||[m]),ages=VT.map(m=>m.age);ok( // v11.134: the births are the volcanoes' vents
 Math.min(...ages)>=0&&Math.max(...ages)<=K.span+0.01,`births between now and ${K.span} Ma`);
 const atA=VT.filter(m=>m.age<0.6),atB=VT.filter(m=>m.age>K.span-3);let dA=0,dB=0;R.track(0,o);for(const m of atA)dA+=Math.hypot(m.x-o.x,m.z-o.z)/atA.length;R.track(K.span,o);for(const m of atB)dB+=Math.hypot(m.x-o.x,m.z-o.z)/atB.length;
@@ -210,8 +213,8 @@ ok(RB.struck.every(q=>RB.recs.some(r=>r.id===q.by)||q.by==='home'||q.by==='giant
   const P=G.RG_PL();let kn=0,ho=0,nn=0;for(let q=0;q<80000;q++){const x=P.bb[0]+(P.bb[1]-P.bb[0])*((q*0.618034)%1),z=P.bb[2]+(P.bb[3]-P.bb[2])*((q*0.414214)%1),o={};if(x<G.WX0||x>G.WX1||z<G.WZ0||z>G.WZ1)continue;const h=G.rgPlat(x,z,o);if(o.sd>9000){nn++;if(h>o.hs+10)kn++;if(h<o.hs-40)ho++;}}
   ok(nn>1000&&kn>0.03*nn&&kn<0.3*nn&&ho>0,`the platform's lagoon: patch reefs over ${(100*kn/nn).toFixed(0)}% of it, blue holes at ${ho} of ${nn} places`);
   const at=L.filter(R=>R.rimR!==undefined&&R.state==='atoll'&&!R.rimM).slice(0,8);let st=0,bn=0,sl=0;
-  for(const R of at){const r=R.rimR;const h1=G.rgRadial(R,r+190),h2=G.rgRadial(R,r+310),h3=G.rgRadial(R,r+350),h4=G.rgRadial(R,r+390);if((h1-h2)/120>0.6)st++;if(Math.abs(h3-(R.rimH-122))<8&&Math.abs(h4-h3)<6)bn++;const fr=R.flank.r,hA=G.rgRadial(R,fr+200),hB=G.rgRadial(R,fr+700);if((hA-hB)/500>0.55)sl++; /* v11.141: the talus past the reef's apron (rgApron), at its flank's start */}
-  ok(at.length>=3&&st===at.length&&bn===at.length&&sl===at.length,`the reef's walls: on ${at.length} atolls a wall of 31°+ from −32 to −122, the bench at the reef's top −122 (the last Myr's lowstands), the talus past 29°: ${st}, ${bn}, ${sl}`);}
+  for(const R of at){const r=R.rimR;const h1=G.rgRadial(R,r+190),h2=G.rgRadial(R,r+310),h3=G.rgRadial(R,r+350),h4=G.rgRadial(R,r+390);if((h1-h2)/120>0.6)st++;if(Math.abs(h3-(R.rimH-122))<8&&Math.abs(h4-h3)<6)bn++;const fr=R.flank.r,hA=G.rgRadial(R,fr+200),hB=G.rgRadial(R,fr+700);if((hA-hB)/500>0.55)sl++; /* v11.141: the talus past the reef's apron (rgApron), at its flank's start */} // v11.243: the world's two atolls, m88 and m117 (three with m93 to v11.242, struck by hand)
+  ok(at.length>=2&&st===at.length&&bn===at.length&&sl===at.length,`the reef's walls: on ${at.length} atolls a wall of 31°+ from −32 to −122, the bench at the reef's top −122 (the last Myr's lowstands), the talus past 29°: ${st}, ${bn}, ${sl}`);}
 // v11.126 (analysis_archipelago §8; the person, 13 Nov 2026: "a chain of banks", "drowned saddles"): the old end's relief — a lower head with volcanic
 // centres where the head arrived and at the pulses — and its necks, swept by the currents and the tides that cross the ridge, drowned under the big swings
 {const P=G.RG_PL(),Rl=K.relief;let z70=0,n70=0;for(let q=0;q<2000;q++){const x=(((q*0.618034)%1)-0.5)*2*70520,zz=(((q*0.414214)%1)-0.5)*2*70520;n70++;if(R.rlAt(x,zz).every(v=>v===0))z70++;}
@@ -265,7 +268,7 @@ ok(RB.struck.every(q=>RB.recs.some(r=>r.id===q.by)||q.by==='home'||q.by==='giant
 // and rides it down — a satellite cone, or on an island the rejuvenated stage — and never buries its host
 // v11.134: the composites take seed 32's late vents into their volcanoes (m151 is a vent of the awesome shield's now), so none is a satellite here: the
 // rule is tested on the province drawn without composites (K.comp null, v11.133's), and on the records if any
-{const R0=G.regionModel({comp:null}),M0=R0.M,sat0=M0.filter(m=>m.host>=0),hosts0=sat0.length>=10&&sat0.every(m=>{const q=M0[m.host];return q.age-m.age>=q.Ts-1e-9&&q.V>m.V&&Math.hypot(q.x-m.x,q.z-m.z)<q.R-0.5*m.R&&m.off>=0;})&&M0.every(m=>m.pin<0||m.host<0);
+{const R0=G.regionModel({comp:null,strike:null}),M0=R0.M,sat0=M0.filter(m=>m.host>=0),hosts0=sat0.length>=10&&sat0.every(m=>{const q=M0[m.host];return q.age-m.age>=q.Ts-1e-9&&q.V>m.V&&Math.hypot(q.x-m.x,q.z-m.z)<q.R-0.5*m.R&&m.off>=0;})&&M0.every(m=>m.pin<0||m.host<0);
   ok(hosts0&&M0.length===159,`without composites (v11.133's ${M0.length} cones) ${sat0.length} satellites, each host older, bigger, finished and under it; with them (seed 32) ${M.filter(m=>m.host>=0).length}`);}
 {const sat=M.filter(m=>m.host>=0),RB=G.RG_BUILT,land=G.ISLANDS.filter(R=>R.sat&&R.land&&R.land.b>0);
   const hosts=sat.every(m=>{const q=M[m.host];return q.age-m.age>=q.Ts-1e-9&&q.V>m.V&&Math.hypot(q.x-m.x,q.z-m.z)<q.R-0.5*m.R;})&&M.every(m=>m.pin<0||m.host<0);

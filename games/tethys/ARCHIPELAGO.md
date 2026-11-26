@@ -84,3 +84,7 @@ same rings to a png), `tp(x,z,y)` in the game's console to go and look, `test/pr
   the greens above `h` 60 (tussock and scrub stop there by their envelopes, so the giant's slopes are bare rock above it; the rain says the
   windward flank should be green to the cloud base at 650) — answered 18 Nov 2026 by the person's ask for a wood, built v11.180 (TAXA "The wood"); whether the windward cliff's face wants a rock colour of its own (the strand's
   colours run to 18 m by height, so it reads as a bluff); the road; the layout against the map's json.
+- 26 Nov 2026: "there shouldn't really be two sunken islands in one spot … pick one and kill it" — the two at the map's middle, the atoll m93
+  (one 25 km³ vent at 13.4 Ma, 19 km² of shallows) 14 km off the south-west corner of m54's bank (eight vents, 280 km³,
+  319 km²). Claude struck m93,
+  the smaller, later and lone one, and kept the bank (region.js `REGION_K.strike`, v11.243).
