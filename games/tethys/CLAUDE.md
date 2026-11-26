@@ -374,6 +374,11 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
 - **Draw distance.** The flora ends at `FLORA_FAR` and fades into it (`FLORA_FADE`, scene.js `farCut`): a new small species wants a fading
   material (every sway, variant, rock and `MAT` instance has one); a new big one a card in `FAR_IMP` (a low-poly copy of itself, never crossed
   cards) and no cut. The disturbance loop runs only within `DIST_R` of the camera.
+- **A plant's light copy** (v11.241; grow.js `PLOD`, `plodVariants`; chunks.js `poolPlod`; scene.js `HIDE_NEAR`, `HIDE_FAR`): on a tier with `Q.lod`
+  (the low: 45 m) a pulled species' tiles past it draw a copy built by its own builder with every primitive at half its sides and segments
+  (parts.js `GEO_LK` — never change how many random draws a builder makes, or the copy is another plant) and its small parts dropped. `aHide` has three
+  values (0 near, 1 far, `AHIDE` hidden) and each instanced material a window of them (`uHide`); a pool with a copy packs near, far, hidden, its whole
+  plant drawn to its last near block (`poolCount`). A copy's material is made beside its twin's: r128 sorts these draws by the material's id.
 - **The pools** (chunks.js `POOLS`): a cell's small flora is a block in its species' pool (not in `ch.meshes`/`ch.flora`) — since v11.212 one block a
   tile (`POOL_TILE.k`² a cell, `poolTiles`: written in the rng's order, then put in tile order), each with its sphere — the blocks after a cell's moved
   down over them in one sweep on unload, the written range uploaded (`updateRange`). Out of sight — its cell's, or its tile wholly out of the view or past

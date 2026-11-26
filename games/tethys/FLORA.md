@@ -226,6 +226,11 @@ with species per biome capped at eight — measured, not assumed.
   where the trees do. The world's census (the far layer's placement at every try, 19,726 cells whose ground crosses the band): 1,528,208 trees on
   10,759 cells → 50,362 on 2,046 (×0.033); the four big islands (the giant, m109, m122, m153) carry 78% of them (49% before) and keep trees on 23–36% of the cells they
   stood on; the platform, the banks and the atolls keep 0–21% (the platform 9%), and ours none. The reed, the tidewood's dwarf, is untouched.
+*v11.241 (the person, 25 Nov 2026, on the work tower's F8 #208 — the plants 40% of its GPU frame: "YES we want to make lighter copies … I love the look
+  of the underwater grasses and kelp … try to preserve them, but ultimately, 40% is 40%"):* on the low tier (`Q.lod` 45 m) each pulled species' tiles
+  past 45 m draw a light copy: the same plant from its own builder on its own seeds, every primitive at half its sides and segments, parts under 6% of
+  its reach dropped, kept only where it saves 20% or more (grow.js `PLOD`). The grape, the tulip, the flask ×0.23–0.30 of their vertices, the coin ×0.5;
+  the grasses — the strap, the tress, flat blades with nothing to lose — none yet (see v11.241's note on their variants).
 - **Epibionts** (later): small things on big things — beards on tubes, crusts on towers, cones on a stipe's holdfast, a
   loop twined round a stalk — placed from the emergent instance's matrix. Both images are full of it; it is the
   cheapest "lived-in" there is.

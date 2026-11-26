@@ -172,9 +172,9 @@ function makeInstanced(ch,rng,geo,mat,tints,list,dip,vars,f){
 const ORIGIN={on:true,x:0,z:0,snap:4000,grid:1000};
 // the variants pulled (v11.187, grow.js VPULL, scene.js VPULL_GLSL): once FLORA is whole (reef.js appends to it), every species' variants into one
 // float texture and each species its pulled geometry (f.gp) and material (f.mp), which makeInstanced draws in place of f.geo and f.mat. WebGL2 only.
-const VPULL_N=(function(){if(!VPULL.on||!GL2||!THREE.FloatType)return 0;const pk=vpullPack(FLORA);
+const VPULL_N=(function(){if(!VPULL.on||!GL2||!THREE.FloatType)return 0;const LE=FLORA.filter(f=>f.geoL).map(f=>({geo:f.geoL,lodOf:f})),pk=vpullPack(FLORA.concat(LE)); // v11.241: the light copies' variants in the same texture, each its own entry
   const t=new THREE.DataTexture(pk.data,VPULL.row*3,pk.rows,THREE.RGBAFormat,THREE.FloatType);t.minFilter=t.magFilter=THREE.NearestFilter;t.generateMipmaps=false;t.needsUpdate=true;t.clone=function(){return this;};VPULL_TEX=t;
-  for(const [f,a] of pk.at){f.gp=vpullGeo(a);f.mp=vpullMat(f.mat);}return pk.at.size;})(); // the species pulled
+  for(const [f,a] of pk.at){const o=/** @type {any} */(f).lodOf;if(o){o.gpL=vpullGeo(a);o.mpL=plodMat(o.mat);}else{f.gp=vpullGeo(a);f.mp=vpullMat(f.mat);if(f.geoL)plodMat(f.mat);}}return pk.at.size;})(); // the species pulled; a copy's material made beside its twin (v11.241): r128 sorts these draws by the material's id, so the two draw together, one program
 const POOLS=new Map(),poolGroup=new THREE.Group();scene.add(poolGroup); // entry → pool (the group at the render origin, v11.110)
 function poolSnap(px,pz){if(!ORIGIN.on||(Math.abs(px-ORIGIN.x)<ORIGIN.snap&&Math.abs(pz-ORIGIN.z)<ORIGIN.snap))return false; // the render origin to the camera's square; every pooled instance moved by the change
   const nx=Math.round(px/ORIGIN.grid)*ORIGIN.grid,nz=Math.round(pz/ORIGIN.grid)*ORIGIN.grid,dx=nx-ORIGIN.x,dz=nz-ORIGIN.z;
@@ -184,7 +184,7 @@ function poolSnap(px,pz){if(!ORIGIN.on||(Math.abs(px-ORIGIN.x)<ORIGIN.snap&&Math
 function originOf(x0,z0){return ORIGIN.on?[x0,z0]:[0,0];}
 function instLocal(im,list,ox,oz,get){const a=im.instanceMatrix.array;for(let i=0;i<list.length;i++){const e=get(list[i]).elements;a[i*16+12]=e[12]-ox;a[i*16+14]=e[14]-oz;}}
 const POOL_SPHERE=new THREE.Sphere(new THREE.Vector3(0,0,0),2*Math.max(-WX0,WX1,-WZ0,WZ1)+2000);
-function poolFor(f,geo,mat,vars,cur){let P=POOLS.get(f);if(P)return P;P={f:f,src:geo,mat:mat,vars:!!vars,cur:cur,cap:0,n:0,nVis:0,nDraw:0,calm:0,blocks:[],geo:null,im:null,R0:poolReach(f,geo)};poolAlloc(P,Math.max(64,Math.round((f.per||60)*Q.flora*12)));POOLS.set(f,P);return P;}
+function poolFor(f,geo,mat,vars,cur){let P=POOLS.get(f);if(P)return P;P={f:f,src:geo,mat:mat,vars:!!vars,cur:cur,cap:0,n:0,nVis:0,nDraw:0,calm:0,blocks:[],geo:null,im:null,R0:poolReach(f,geo),nFar:0,nNear:0,plod:null};poolAlloc(P,Math.max(64,Math.round((f.per||60)*Q.flora*12)));POOLS.set(f,P);return P;} // nFar, nNear, plod (v11.241): the seen instances its light copy draws, the end of its last near block, the copy's mesh
 function poolAlloc(P,cap){ // the pool's mesh at capacity cap, what is written carried over; the old geometry disposed
   const old=P.im,g=P.src.clone();
   if(P.vars)g.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(cap),1));
@@ -194,7 +194,7 @@ function poolAlloc(P,cap){ // the pool's mesh at capacity cap, what is written c
   if(old){const n=P.n;im.instanceMatrix.array.set(old.instanceMatrix.array.subarray(0,n*16));im.instanceColor.array.set(old.instanceColor.array.subarray(0,n*3));
     if(P.vars)g.attributes.aVar.array.set(old.geometry.attributes.aVar.array.subarray(0,n));if(P.cur){g.attributes.aCur.array.set(old.geometry.attributes.aCur.array.subarray(0,n*2));g.attributes.aTide.array.set(old.geometry.attributes.aTide.array.subarray(0,n*2));}g.attributes.aHide.array.set(old.geometry.attributes.aHide.array.subarray(0,n));
     poolGroup.remove(old);old.geometry.dispose();old.dispose();}
-  im.count=P.nDraw;P.geo=g;P.im=im;P.cap=cap;shadowCaster(im,P.mat,POOL_SPHERE);poolGroup.add(im);poolLod(P);
+  P.geo=g;P.im=im;P.cap=cap;im.count=poolCount(P);shadowCaster(im,P.mat,POOL_SPHERE);poolGroup.add(im);poolLod(P);poolPlod(P);
 }
 // The far copy's mirror (v11.188, scene.js TREE_LOD): a card species whose FAR_IMP entry has a `lod` material draws its far copy on the pool's own instance
 // buffers — the matrices, the tints, the variant, the sight flags shared, not copied, so whatever the pool writes, moves, packs or hides the mirror follows,
@@ -204,6 +204,17 @@ function poolLod(P){const sp=P.f.card?FAR_IMP.find(s=>s.f===P.f&&s.lod):null;if(
   if(P.lod){poolGroup.remove(P.lod);P.lod.geometry.dispose();} // its own position, normal, colour; the shared ones went with the pool's old mesh
   const g=sp.geo.clone();g.setAttribute('aHide',P.geo.attributes.aHide);if(P.vars)g.setAttribute('aVar',P.geo.attributes.aVar);
   const m=new THREE.InstancedMesh(g,sp.lod,P.cap);cutFit(sp.lod,sp.geo||g);P.R0=Math.max(P.R0,poolReach(null,sp.geo)); /* a tile's sphere covers the copy too (v11.212) */m.instanceMatrix=P.im.instanceMatrix;m.instanceColor=P.im.instanceColor;m.frustumCulled=false;m.count=P.im.count;m.onBeforeRender=function(){this.count=P.im.count;};P.lod=m;poolGroup.add(m);}
+// The light copy (v11.241, grow.js PLOD): a species with one (f.gpL, pulled) on the tier that asks (Q.lod) draws it on the pool's own buffers for the blocks
+// poolCull marks far — the whole plant (P.im) draws only to the end of the last near block (P.nNear), the copy to the end of the last seen (P.nDraw), each
+// leaving the others' instances at the top of its vertex shader by aHide (scene.js HIDE_NEAR, HIDE_FAR). Not for a species with a far copy of its own.
+function poolPlod(P){const f=P.f;if(!(Q.lod>0)||!f||!f.gpL||P.lod)return;
+  if(P.plod){poolGroup.remove(P.plod);P.plod.geometry.dispose();}
+  const g=f.gpL.clone();for(const k of ['aHide','aVar','aCur','aTide'])if(P.geo.attributes[k])g.setAttribute(k,P.geo.attributes[k]);
+  const m=new THREE.InstancedMesh(g,f.mpL,P.cap);cutFit(f.mpL,f.geo);m.instanceMatrix=P.im.instanceMatrix;m.instanceColor=P.im.instanceColor;m.frustumCulled=false;
+  m.count=P.nDraw;m.onBeforeRender=function(){this.count=P.nDraw;};P.plod=m;poolGroup.add(m);}
+function poolCount(P){return P.plod?P.nNear:P.nDraw;} // what the whole plant's mesh draws
+function tileFar(b,was){const v=b.ch.tv;if(v===null)return false;const d=v[b.t*7+6]-b.re;return was?d>Q.lod-PLOD_HYS:d>Q.lod+PLOD_HYS;} // its nearest instance past Q.lod (a few metres' hysteresis)
+const PLOD_HYS=4; // m
 function poolUp(a,s,c,sz){if(!a.updateRange){const R=a.updateRanges;if(R.length){const q=R[0],lo=Math.min(q.start,s*sz),hi=Math.max(q.start+q.count,(s+c)*sz);q.start=lo;q.count=hi-lo;}else a.addUpdateRange(s*sz,c*sz);a.needsUpdate=true;return;} /* v11.215 (three.js-ready): a later three keeps a list of ranges, updateRanges (r159+); r128 one, updateRange */const r=a.updateRange;if(r.count>0){const lo=Math.min(r.offset,s*sz),hi=Math.max(r.offset+r.count,(s+c)*sz);r.offset=lo;r.count=hi-lo;}else{r.offset=s*sz;r.count=c*sz;}a.needsUpdate=true;} // one attribute's range [s,s+c) uploaded at the next draw, joined to a range still pending
 function poolTouch(P,s,c){ // every attribute's range [s,s+c)
   poolUp(P.im.instanceMatrix,s,c,16);poolUp(P.im.instanceColor,s,c,3);if(P.vars)poolUp(P.geo.attributes.aVar,s,c,1);if(P.cur){poolUp(P.geo.attributes.aCur,s,c,2);poolUp(P.geo.attributes.aTide,s,c,2);}poolUp(P.geo.attributes.aHide,s,c,1);
@@ -220,7 +231,8 @@ function poolRemove(P,ch){ // the cell's blocks out (v11.212: its tiles, whereve
   const s0=B[first].start,keep=[];let gone=0,goneV=0;for(const b of B){if(b.ch===ch){gone+=b.count;if(b.vis)goneV+=b.count;}else keep.push(b);}
   for(const [a,sz] of poolArrays(P)){let s=s0;for(let i=first;i<B.length;i++){const b=B[i];if(b.ch===ch)continue;if(b.start!==s)a.copyWithin(s*sz,b.start*sz,(b.start+b.count)*sz);s+=b.count;}}
   {let s=s0;for(let i=first;i<B.length;i++){const b=B[i];if(b.ch===ch)continue;b.start=s;s+=b.count;}}
-  P.blocks=keep;P.n-=gone;P.nVis-=goneV;P.nDraw=poolEnd(P);P.im.count=P.nDraw;if(s0<P.n)poolTouch(P,s0,P.n-s0);
+  let goneF=0;for(const b of B)if(b.ch===ch&&b.vis&&b.far)goneF+=b.count;
+  P.blocks=keep;P.n-=gone;P.nVis-=goneV;P.nFar-=goneF;P.nDraw=poolEnd(P);P.nNear=poolEndNear(P);P.im.count=poolCount(P);if(s0<P.n)poolTouch(P,s0,P.n-s0);
 }
 // v11.52.1: the pools partitioned by sight. The person's readouts on v11.52: the CPU halved and the vsync interval rose (9.3 ms in the forest
 // against 8.7, 16 in the air over it) — a pool drew every loaded cell's instances, behind the camera and all (tris 4.7M → 9.6M), and their GPU
@@ -242,14 +254,15 @@ function poolRemove(P,ch){ // the cell's blocks out (v11.212: its tiles, whereve
 const POOL_CALM=0.4; // s
 function poolArrays(P){const A=[[P.im.instanceMatrix.array,16],[P.im.instanceColor.array,3]];if(P.vars)A.push([P.geo.attributes.aVar.array,1]);if(P.cur){A.push([P.geo.attributes.aCur.array,2]);A.push([P.geo.attributes.aTide.array,2]);}A.push([P.geo.attributes.aHide.array,1]);return A;}
 function poolEnd(P){const B=P.blocks;for(let i=B.length-1;i>=0;i--)if(B[i].vis)return B[i].start+B[i].count;return 0;} // the end of the last seen block: what the pool draws
+function poolEndNear(P){const B=P.blocks;for(let i=B.length-1;i>=0;i--)if(B[i].vis&&!B[i].far)return B[i].start+B[i].count;return 0;} // v11.241: the end of the last near one — what the whole plant draws when the pool has a copy
 let packTmp=new Float32Array(0);
-function poolPack(P){ // the seen blocks first, each side in its old order: one pass from the first block out of place through a scratch copy, one ranged upload
-  const B=P.blocks,O=[];for(const b of B)if(b.vis)O.push(b);for(const b of B)if(!b.vis)O.push(b);
+function poolPack(P){ // the seen blocks first — the near, then the far (v11.241) — each side in its old order: one pass from the first block out of place through a scratch copy, one ranged upload
+  const B=P.blocks,O=[];for(const b of B)if(b.vis&&!b.far)O.push(b);for(const b of B)if(b.vis&&b.far)O.push(b);for(const b of B)if(!b.vis)O.push(b);
   let i=0;while(i<B.length&&O[i]===B[i])i++;if(i===B.length)return;
   const s0=B[i].start,n=P.n;
   for(const [a,sz] of poolArrays(P)){const len=(n-s0)*sz;if(packTmp.length<len)packTmp=new Float32Array(len);packTmp.set(a.subarray(s0*sz,n*sz));let s=s0;for(let k=i;k<O.length;k++){const b=O[k];a.set(packTmp.subarray((b.start-s0)*sz,(b.start-s0+b.count)*sz),s*sz);s+=b.count;}}
   let s=s0;for(let k=i;k<O.length;k++){O[k].start=s;s+=O[k].count;}P.blocks=O;
-  poolTouch(P,s0,n-s0);P.nDraw=P.nVis;
+  poolTouch(P,s0,n-s0);P.nDraw=P.nVis;P.nNear=P.nVis-P.nFar;
 }
 // v11.212: a cell's block in each pool is cut into POOL_TILE.k × k tiles, each a block of its own with its sphere, hidden like a cell when it is wholly
 // out of view or past the pool's reach — the same flags (aHide) and the same packing once still (POOL_CALM) as v11.125's cells, so turning writes only
@@ -282,15 +295,18 @@ function poolTiles(P,ch,s,n){ // the block [s, s+n) just written: put in tile or
   for(let t=0;t<K*K;t++){const c=TILE_N[t];if(!c)continue;const s0=s+TILE_AT[t];let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9,z0=1e9,z1=-1e9,sc=0;
     for(let k=s0;k<s0+c;k++){const x=M[k*16+12]+ox,y=M[k*16+13],z=M[k*16+14]+oz;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;if(z<z0)z0=z;if(z>z1)z1=z;const q=Math.max(len3(M[k*16],M[k*16+1],M[k*16+2]),len3(M[k*16+4],M[k*16+5],M[k*16+6]),len3(M[k*16+8],M[k*16+9],M[k*16+10]));if(q>sc)sc=q;}
     const e=0.5*len3(x1-x0,y1-y0,z1-z0),bx=(x0+x1)/2,by=(y0+y1)/2,bz=(z0+z1)/2,ti=t%K,tj=(t-ti)/K,off=len3(bx-(ch.x0+(ti+0.5)*CELL/K),by-(ch.sphere?ch.sphere.center.y:by),bz-(ch.z0+(tj+0.5)*CELL/K)),r=e+P.R0*sc+2;
-    P.blocks.push({ch:ch,start:s0,count:c,vis:false,t:t,x:bx,y:by,z:bz,e:e,r:r,rr:off+r,re:off+e});}} // rr, re: its sphere's and its extent's reach about the tile's centre (tileView's point)
-function poolCull(dt){ // after cullChunks has set every cell's visible and near (and `frustum`): each block's flags to its cell's and its tile's sight, the count to the last seen block; the loosest pool packed
+    P.blocks.push({ch:ch,start:s0,count:c,vis:false,far:false,t:t,x:bx,y:by,z:bz,e:e,r:r,rr:off+r,re:off+e});}} // rr, re: its sphere's and its extent's reach about the tile's centre (tileView's point)
+function poolCull(dt){ // after cullChunks has set every cell's visible and near (and `frustum`): each block's flags to its cell's and its tile's sight — and, with a light copy (v11.241), near or far — the counts to the last seen and the last near block; the loosest pool packed
   let best=null,bl=0;tileView();
-  for(const P of POOLS.values()){const B=P.blocks,H=P.geo.attributes.aHide;let moved=false;
-    const reach=poolFar(P);for(let i=0;i<B.length;i++){const b=B[i],ch=b.ch,v=ch.group.visible&&ch.near&&(!POOL_TILE.on||tileSeen(b,reach));if(v===b.vis)continue;b.vis=v;H.array.fill(v?0:AHIDE,b.start,b.start+b.count);poolUp(H,b.start,b.count,1);P.nVis+=v?b.count:-b.count;moved=true;}
-    if(moved){P.calm=0;P.nDraw=poolEnd(P);}else P.calm+=dt||0;
-    const loose=P.nDraw-P.nVis;if(P.calm>=POOL_CALM&&loose*8>P.nDraw&&loose>bl){best=P;bl=loose;}
-    P.im.count=P.nDraw;}
-  if(best){poolPack(best);best.im.count=best.nDraw;}
+  for(const P of POOLS.values()){const B=P.blocks,H=P.geo.attributes.aHide,L=P.plod!==null;let moved=false;
+    const reach=poolFar(P);for(let i=0;i<B.length;i++){const b=B[i],ch=b.ch,v=ch.group.visible&&ch.near&&(!POOL_TILE.on||tileSeen(b,reach)),fr=v&&L&&tileFar(b,b.far);if(v===b.vis&&fr===b.far)continue;
+      if(b.vis&&b.far)P.nFar-=b.count;if(fr)P.nFar+=b.count;if(v!==b.vis)P.nVis+=v?b.count:-b.count;b.vis=v;b.far=fr;
+      H.array.fill(v?(fr?1:0):AHIDE,b.start,b.start+b.count);poolUp(H,b.start,b.count,1);moved=true;}
+    if(moved){P.calm=0;P.nDraw=poolEnd(P);P.nNear=L?poolEndNear(P):P.nDraw;}else P.calm+=dt||0;
+    const loose=P.nDraw-P.nVis+(L?P.nNear-(P.nVis-P.nFar):0); // hidden instances drawn, and (a copy's pool) far ones the whole plant's draw passes over
+    if(P.calm>=POOL_CALM&&loose*8>P.nDraw&&loose>bl){best=P;bl=loose;}
+    P.im.count=poolCount(P);}
+  if(best){poolPack(best);best.im.count=poolCount(best);}
 }
 function poolStats(){let draws=0,inst=0,hid=0;for(const P of POOLS.values()){if(P.n>0)draws++;inst+=P.n;hid+=P.nDraw-P.nVis;}return {pools:POOLS.size,draws:draws,inst:inst,hid:hid};} // the readout (main.js); hid (v11.125): instances drawn hidden, not yet packed
 function cellLee(ch){return Math.max(leeW(ch.cx,ch.cz),leeW(ch.x0,ch.z0),leeW(ch.x0+CELL,ch.z0),leeW(ch.x0,ch.z0+CELL),leeW(ch.x0+CELL,ch.z0+CELL));} // the retention field over the cell (v11.81; cellCanopy to v11.80)
