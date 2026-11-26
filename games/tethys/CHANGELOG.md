@@ -12355,3 +12355,33 @@ every species (224) picked up and put down, and fattened by 1, the very body; a 
 within 1e-5 and taken out again the very body; the middle knot fattened, raised and the last pulled out change the body with no NaN and no lost mass;
 a trunk and the arches pulled 4 m out in 0.1 m steps grow plates at their pitch (the steps once crept it, seen in the lab); a bent and swollen body of
 each of the 11 cores replayed from the build's tape to the bit. test/registry.js: 577 offers, all compile, the tape's 440 bodies to the bit.
+
+**What it costs** (`node test/perf.js` against main): nothing that runs a frame changed, and nothing an untouched body builds; the knots cost only
+when a hand has moved one.
+
+| measure | before | after | ratio |
+|---|---|---|---|
+| creatures' work a frame at (330, 0), ms, mean / p95 (N=5) | 1.589 / 1.940 | 1.642 / 1.953 | ×1.03 / ×1.01 |
+| the first run of the same, p95 | 2.454 | 2.869 | ×1.17 (noise: the five-run repeat above reads ×1.01; the simulation the same to the bit both times) |
+| every kind's build, ms (first / again) | 51.4 / 5.9 | 52.3 / 5.9 | ×1.02 / ×1.00 |
+| a cell at forest, atoll, platform, sea, giant, ms | 35.0, 25.6, 18.0, 6.5, 26.2 | 35.5, 25.8, 17.9, 6.5, 26.3 | ×0.99–1.01 |
+| creatures' work a frame at the forest (Chromium), ms | 1.474 | 1.458 | ×0.99 |
+| the GPU's counts (test/gpu.js), seven places | | | the same, every count |
+
+Every body the same to the bit, built and posed (test/bench_creatures.js); the simulation the same to the bit (test/frames.js); the pictures at
+the forest, the shore and the canopy the same pixel for pixel (test/fill.js). Not measured: the lab's own frame while a knot is dragged (each step a
+rebuild of one creature — the build's ~1 ms a kind) on the person's machine.
+
+**Seen** (headless Chromium, software WebGL, the gestures driven by Playwright): the finback's tail raised, its belly fattened and its head lowered,
+its fins, eyes and mouth riding the bend; the soft-arm with a ring put in and lifted, its back cocked down, its collar grown; the sickle pulled
+longer with a knot put in and raised, its plates pitched along it, its head raised; the coilshell's nose pulled forward and fattened, its tail
+dropped, the shell riding; the jelly's rim widened, the eel's links fattened, the scuttle's back lowered; the finback's fins dragged forward and
+shrunk by the wheel. No page error in any.
+
+**Unseen, ask in this order:**
+1. In `#lab` (or the menu's creator): the finback, the soft-arm, the sickle and the coilshell shaped by hand — whether the beads, the rings and the
+   gestures read as Spore's, and whether the drag in the body's middle plane is where the hand expects it from the side and from above.
+2. analysis_creators.md's questions: the knots always shown or only on hover; growth by pulling for every body or only the plates; the sliders
+   kept or hidden in the creator; the clades' bend limits; which of "Next" first.
+3. The lab now opens still and from the side (it spun, from the front): whether that is the start the person wants.
+4. A steep bend (past ~40°) shears the rings rather than turning them; an arm or leg rooted where the body bends stays where it was.
