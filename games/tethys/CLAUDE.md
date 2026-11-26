@@ -312,6 +312,9 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
   (`m.cutAt` [far, fade], null for FLORA_FAR's). A new flora material sets `cutAt`, prepends `CUT_V` and sets `sh.uniforms.uCut=cutUOf(m)`. The
   generic far copies it was made for were struck in v11.201 (they cost more than they saved; analysis_project.md §4); the tidewood's own
   (`TREE_LOD`, a card's copy) stays.
+- **Under water the sky reaches the screen only through the window** (atmosphere.js `skyUnder`; v11.240): the dome and its cloud pass are left out
+  when the view points below the tide's plane as the dome meets it, or when the window's weight on the dome is under half a level of 255 (deep). A new way
+  for the sky to reach the screen from below — another blend, a reflection of the dome — goes into that bound, or test/skyunder.js and the pictures go wrong.
 - **Under water the surface is drawn first as an occluder** (atmosphere.js `SURF_OCC`, `OCC`): its facets outside the window write depth before
   the dome and the sky (the facet's cosine to the eye under `OCC.cv` 0.25; the window opens at `WIN_LO` 0.35). What must be seen through the
   surface from below is seen in the window or not at all; a thing drawn before renderOrder −12 is under it; a change to the window's rule
