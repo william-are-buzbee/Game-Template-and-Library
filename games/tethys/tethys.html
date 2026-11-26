@@ -173,7 +173,7 @@ canvas{display:block;outline:none;touch-action:none}
 <div id="fade" class="layer"></div>
 <canvas id="spark" class="layer"></canvas>
 <div id="stats"></div>
-<script>window.TETHYS_BUILD={v:"v11.240",wh:"a647f39fe1a1bd06"};</script>
+<script>window.TETHYS_BUILD={v:"v11.241",wh:"ed5a7c6a0d5cb514"};</script>
 <script>
 // loader.js — the page's loader, in tethys.html only, outside the game's bundle and before it: three.js and the world cache fetched side by side, then the
 // game. Since v11.215 (three.js-ready) three.js is loaded as a module — every release after r160 is only that — with import(); its exports are copied onto
@@ -2979,11 +2979,12 @@ const Q=(function(){
   const small=Math.min(screen.width||9999,screen.height||9999)<900;
   const tier=HASH_TIER||(TIER_SAVED?TIER_SAVED.tier:(isTouch&&small)?'low':'high'),why=HASH_TIER?'hash':TIER_SAVED?'machine':(isTouch&&small)?'touch':'default';
   return tier==='low'
-    ?{tier:tier,why:why,pr:1.0,far:1000,flora:0.45,creatures:0.6,lights:2,phong:false,aa:false,budgetMs:8,farMs:2,farQ:6,surf:96,lodNear:0.7,rockLvl:1,target:14,casters:6,shafts:2,cau:3,hrtf:0,vol:1,snow:1000,hz:200,cldSh:0,march:28,sparks:384,cloudRes:0.35,reed:[160,40]}
-    :{tier:tier,why:why,pr:1.5,far:1600,flora:1.0,creatures:1.0,lights:4,phong:true,aa:true,budgetMs:6,farMs:3,farQ:12,surf:192,lodNear:1.0,rockLvl:2,target:7.5,casters:16,shafts:4,cau:5,hrtf:1,vol:1,snow:1800,hz:100,cldSh:1,march:80,sparks:1024,cloudRes:0.5,reed:[300,50]};
+    ?{tier:tier,why:why,pr:1.0,far:1000,flora:0.45,creatures:0.6,lights:2,phong:false,aa:false,budgetMs:8,farMs:2,farQ:6,surf:96,lodNear:0.7,rockLvl:1,target:14,casters:6,shafts:2,cau:3,hrtf:0,vol:1,snow:1000,hz:200,cldSh:0,march:28,sparks:384,cloudRes:0.35,reed:[160,40],lod:45}
+    :{tier:tier,why:why,pr:1.5,far:1600,flora:1.0,creatures:1.0,lights:4,phong:true,aa:true,budgetMs:6,farMs:3,farQ:12,surf:192,lodNear:1.0,rockLvl:2,target:7.5,casters:16,shafts:4,cau:5,hrtf:1,vol:1,snow:1800,hz:100,cldSh:1,march:80,sparks:1024,cloudRes:0.5,reed:[300,50],lod:0};
   // snow (v11.24): the marine snow's points (atmosphere.js); the deep is sparse, so many of them are dormant at a time
   // sparks (v11.160): the bioluminescence's pool (fx.js SPK): the most flashes alive at once — a bloom round a sprinting body and a hunter keeps a few hundred
   // reed (v11.239): the reed's draw distance [far, fade], metres (MATRD) — the person, 25 Nov 2026: 160 on the low tier, 300 on the high "for now" (option 2's 250 left a shore's far clumps half-faded)
+  // lod (v11.241): past this many metres a plant's tile draws its light copy (grow.js PLOD, chunks.js poolCull); 0 none. The low tier's: the person, 25 Nov 2026
   // cloudRes (v11.188): the cloud volume's pass, a fraction of the drawing buffer on a side (atmosphere.js CLDP; 1 marches in the dome as to v11.187)
   // march (v11.89; v11.90: the name — `vol` was the master volume's key above, and the clouds' 80 steps played the game at 80× gain, the person's "hilariously bass boosted"): the most steps of the cloud volume's march per sky pixel (atmosphere.js cloudVol); the low tier's 28 unmeasured there
   // cldSh (v11.87): the clouds' shadows on the sea and the land in air — one 3D billow noise per fragment (clouds.js cloudSh); off on the low tier until measured there
@@ -3696,7 +3697,7 @@ function updateShadowS(dt,force){ // after updateShadow (shadowFrame has run); f
   try{renderer.setRenderTarget(shsRT);recGpu(3);renderer.render(scene,camS);recGpuEnd();}catch(e){recGpuEnd();console.warn('world shadows: '+e.message);}
   renderer.setRenderTarget(rt);renderer.shadowMap.enabled=en;
   for(let i=0;i<shsVis.length;i+=2){const ch=shsVis[i];ch.group.visible=shsVis[i+1];for(const m of ch.flora)m.castShadow=false;for(const m of ch.shBig)m.castShadow=false;if(ch.terrain)ch.terrain.castShadow=false;}
-  for(const m of LMK.meshes)m.castShadow=false;for(const P of POOLS.values()){P.im.castShadow=false;P.im.count=P.nDraw;}shsVis.length=0;
+  for(const m of LMK.meshes)m.castShadow=false;for(const P of POOLS.values()){P.im.castShadow=false;P.im.count=poolCount(P);}shsVis.length=0;
   shMapSU.value=sunS.shadow.map?sunS.shadow.map.texture:null;SHS_P[1]=sunS.shadow.map?1:0;
   shsDirty=false;shsT=SHS_GAP;shsN++;shsMs=performance.now()-t0;
 }
@@ -3731,12 +3732,15 @@ const LIGHT_PARS=CAU_PARS+'uniform float uTime;uniform float uChop;uniform vec4 
 // a small plant past FLORA_FAR (FAR_CUT). To v11.124 the last two set the vertex to the origin and ran the rest of the shader on it.
 const GONE='{gl_Position=vec4(2.0,2.0,2.0,1.0);return;}';
 const AHIDE=2;
-const HIDE_V='#ifdef USE_INSTANCING\nattribute float aHide;\n#endif\n',HIDE_GLSL='\n#if defined(USE_INSTANCING)&&!defined(DEPTH_PASS)\nif(aHide>1.5)'+GONE+'\n#endif\n';
+// v11.241: the window of aHide an instanced draw shows, a uniform — 0 (seen, near) for every tinted material, 1 (seen, far) for a plant's light copy
+// (chunks.js poolCull); AHIDE out of sight for both. A pool with no copy never writes 1.
+const HIDE_NEAR={value:new THREE.Vector2(-1,0.5)},HIDE_FAR={value:new THREE.Vector2(0.5,1.5)};
+const HIDE_V='#ifdef USE_INSTANCING\nattribute float aHide;\nuniform vec2 uHide;\n#endif\n',HIDE_GLSL='\n#if defined(USE_INSTANCING)&&!defined(DEPTH_PASS)\nif(aHide<uHide.x||aHide>uHide.y)'+GONE+'\n#endif\n';
 function addTint(m,key,small,band,grid,cls){ // grid (v11.40): 'world' puts the de-res texels on the world grid; default the object's or instance's own. cls (v11.41): the texel pattern's class — terr, rock, plant, blade, card, body (PIX_CLASS)
   const prev=m.onBeforeCompile;
   m.onBeforeCompile=function(sh){
     if(prev)prev.call(m,sh);
-    sh.vertexShader=HIDE_V+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>'+HIDE_GLSL); // before the material's own code at begin_vertex (prev put it there first)
+    sh.vertexShader=HIDE_V+sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>'+HIDE_GLSL);sh.uniforms.uHide=HIDE_NEAR; // before the material's own code at begin_vertex (prev put it there first)
     sh.uniforms.uTint=tintU;if(small)sh.uniforms.uFogP={value:FOG_PS};
     const lit=LIGHT_FX&&key!=='glow';if(lit){sh.uniforms.uTime=timeU;sh.uniforms.uChop=chopU;sh.uniforms.uSunW={value:SUN_W};if(CAU_ARR)sh.uniforms.uCauA={value:CAU_ARR};else for(let i=0;i<CAU_TEX.length;i++){sh.uniforms['uCauS'+i]={value:CAU_TEX[i].s};sh.uniforms['uCauC'+i]={value:CAU_TEX[i].c};}sh.uniforms.uCauG={value:CAU_GTEX};sh.uniforms.uPix=pixU;sh.uniforms.uTex=texU;sh.uniforms.uTexL=texLU;sh.uniforms.uWindOff=windOffU;sh.uniforms.uLightK=lightKU;sh.uniforms.uShMap=shMapU;sh.uniforms.uShMat=shMatU;sh.uniforms.uShP=shPU;sh.uniforms.uShL=shLU;sh.uniforms.uShMapS=shMapSU;sh.uniforms.uShMatS=shMatSU;sh.uniforms.uShPS=shPSU;sh.uniforms.uShLS=shLSU;}
     sh.vertexShader='varying float vWy;'+(lit?'varying vec3 vGrid;':'')+(lit&&cls==='body'?'varying vec3 vPat;\n#ifndef USE_INSTANCING\nattribute vec3 aPat;\n#endif\n':'')+'\n'+(lit?sh.vertexShader.replace('#include <begin_vertex>','#include <begin_vertex>\nvec3 pGrid=transformed;'):sh.vertexShader).replace('#include <worldpos_vertex>','#include <worldpos_vertex>\n{vec4 wpp=vec4(transformed,1.0);\n#ifdef USE_INSTANCING\nwpp=instanceMatrix*wpp;\n#endif\nvWy=(modelMatrix*wpp).y;'+(lit?PIX_GRID_V(grid):'')+(lit&&cls==='body'?'\n#ifdef USE_INSTANCING\nvPat=vec3(0.0);\n#else\nvPat=aPat;\n#endif\n':'')+'}');
@@ -3935,6 +3939,11 @@ function vpullMat(m){let p=vpullMats.get(m);if(p)return p;p=m.clone();const ob=m
   if(m.cutAt!==undefined||m.cutU){p.cutU={value:cutUOf(m).value.clone()};} // v11.194: its own cut (poolLod moves it); the depth pass keeps the base's
   p.onBeforeCompile=function(sh){ob.call(m,sh);vpullGLSL(sh);if(p.cutU&&!(sh.defines&&sh.defines.DEPTH_PASS))sh.uniforms.uCut=p.cutU;};p.customProgramCacheKey=function(){return key+'pull';};
   for(const k of ['sway','land','extensions','defaultAttributeValues'])if(m[k]!==undefined)p[k]=m[k];vpullMats.set(m,p);return p;}
+// a plant's light copy draws with its pulled material's twin (v11.241): the same program (the same key), its own aHide window (HIDE_FAR), the same cut
+const plodMats=new Map();
+function plodMat(m){const p0=vpullMat(m);let p=plodMats.get(p0);if(p)return p;p=p0.clone();const ob=p0.onBeforeCompile,key=p0.customProgramCacheKey;
+  p.onBeforeCompile=function(sh){ob.call(p0,sh);sh.uniforms.uHide=HIDE_FAR;};p.customProgramCacheKey=key;if(p0.cutU)p.cutU=p0.cutU;
+  for(const k of ['sway','land','extensions','defaultAttributeValues','cutAt','cutR'])if(p0[k]!==undefined)p[k]=p0[k];plodMats.set(p0,p);return p;}
 
 // clouds.js — the cloud field and the near clouds (v11.87, CLOUDS.md). The trade-wind deck as one function of a point, written twice — in GLSL for
 // the dome, the sea's topside and the land in air, in JavaScript for the beam at the player — from a hash that is exact in float32
@@ -4090,15 +4099,15 @@ function cldBake(){if(cldBaked)return;cldBaked=true;
 // parts.js — geometry kit: primitives, merge-with-vertex-colors, arm rings, LOD baking
 const G={
   box:(w,h,d)=>new THREE.BoxGeometry(w,h,d),
-  sph:(r,w,h)=>new THREE.SphereGeometry(r,w||6,h||5),
-  cyl:(rt,rb,h,s,open)=>new THREE.CylinderGeometry(rt,rb,h,s||8,1,!!open),
-  cone:(r,h,s)=>new THREE.ConeGeometry(r,h,s||6),
+  sph:(r,w,h)=>new THREE.SphereGeometry(r,geoLk(w||6,3),geoLk(h||5,2)),
+  cyl:(rt,rb,h,s,open)=>new THREE.CylinderGeometry(rt,rb,h,geoLk(s||8,3),1,!!open),
+  cone:(r,h,s)=>new THREE.ConeGeometry(r,h,geoLk(s||6,3)),
   plane:(w,h)=>new THREE.PlaneGeometry(w,h),
   // A lathe's winding follows the profile's order: a profile written from the top down turns the surface inside out, and the
   // mesh vanishes under backface culling (v11.34.1: the finback's tail stem, FIN_TPROF, written nose-to-tip). Reverse a descending
   // profile here — the geometry is identical, only the normals (and so the countershading) come out right. Callers read the array
   // they passed (profR, nose, tail), so the copy stays local.
-  lathe:(pts,s)=>{if(pts.length>1&&pts[pts.length-1][1]<pts[0][1])pts=pts.slice().reverse();return new THREE.LatheGeometry(pts.map(p=>new THREE.Vector2(p[0],p[1])),s||8);},
+  lathe:(pts,s)=>{if(pts.length>1&&pts[pts.length-1][1]<pts[0][1])pts=pts.slice().reverse();return new THREE.LatheGeometry(pts.map(p=>new THREE.Vector2(p[0],p[1])),geoLk(s||8,3));},
   // a quad a-b-c-d (each [x,y,z]) seen from both sides: four triangles, no index (the webs and the tail fans)
   quad:(a,b,c,d)=>{const g=new THREE.BufferGeometry(),P=[];const tri=(p,q,r)=>P.push(p[0],p[1],p[2],q[0],q[1],q[2],r[0],r[1],r[2]);tri(a,b,c);tri(a,c,d);tri(c,b,a);tri(d,c,a);g.setAttribute('position',new THREE.Float32BufferAttribute(P,3));return g;}
 };
@@ -4117,6 +4126,11 @@ class GeoTape{constructor(play,list){this.play=play;this.list=list;this.i=0;}}
 /** @type {GeoTape|null} */
 let GEO_TAPE=null;
 const LAZY_G={lazy:true,dispose(){}};
+// The light copies' tessellation (v11.241, grow.js plodVariants): while GEO_LK is under 1 a primitive's sides and segments are that share of what it was
+// asked for (at least m) — the plant's builder runs as ever, the same random draws in the same order, so the copy is the same plant with fewer facets.
+// 1 everywhere else: every count as asked.
+let GEO_LK=1;
+function geoLk(n,m){return GEO_LK===1?n:Math.max(m,Math.round(n*GEO_LK));}
 for(const k in G){const f=G[k];G[k]=function(){return GEO_TAPE!==null&&GEO_TAPE.play?LAZY_G:f.apply(null,arguments);};} // a primitive while a tape plays: not made
 // A part is a geometry plus a transform and a color (optionally a belly color for countershading).
 function part(g,x,y,z,c,o){
@@ -4433,7 +4447,30 @@ function species(id,f,build){const vars=[],geos=[];let top=0,hasPads=false;
   for(let k=0;k<3;k++){const rg=mulberry(hashStr(id)+k*7919),v=build(rg,k),g=merge(v.P),pa=g.attributes.position.array;let t=0;for(let i=1;i<pa.length;i+=3)if(pa[i]>t)t=pa[i];
     vars.push({col:v.col||null,pads:v.pads||null});geos.push(g);if(t>top)top=t;if(v.pads)hasPads=true;}
   const e=Object.assign({id:id,geo:packVariants(geos),vars:vars,top:top},f);if(hasPads)e.pads=true;
+  if(Q.lod>0&&GL2&&VPULL.on&&!hasPads){const L=plodVariants(id,build,e.geo);if(L)e.geoL=L;} // the light copy (v11.241), the tier's, drawn pulled (WebGL2) only
   return e;}
+// ---------- the plants' light copies (v11.241) ----------
+// The person (25 Nov 2026), on the work tower's F8 (#208: the plants 6.35 ms of a 15.8 ms GPU frame, under water at 10 m on the low tier): "YES we want to
+// make lighter copies and do whatever we have to do to reduce the lag. I love the look of the underwater grasses and kelp but we will simply need to do
+// what we must for these lower end cards … try to preserve them, but ultimately, 40% is 40%." v11.194 drew such copies over every instance and was struck
+// (v11.201): each far plant still ran the whole plant's vertex shader to leave it. Here a pool keeps its near tiles and its far ones apart (chunks.js
+// poolCull, poolPack), the whole plant drawn only to its last near tile and the copy only for the far ones, so nothing is shaded twice.
+// A copy is the species' own builder run again on the same seeds with every primitive at PLOD.k of its sides and segments (parts.js GEO_LK), and the parts
+// under PLOD.minPart of the plant's reach left out; kept only if it has at most PLOD.gain of the whole plant's vertices (the pulled draw's: its largest
+// variant's). Flat blades and boxes have no segments to lose: a grass keeps its blades.
+const PLOD={k:0.5,minPart:0.06,gain:0.8};
+function plodVariants(id,build,full){const fv=full.attributes.vid.array,fc=[0,0,0];for(let i=0;i<fv.length;i++)fc[fv[i]]++;const fn=Math.max(fc[0],fc[1],fc[2]);
+  const geos=[];GEO_LK=PLOD.k;
+  try{for(let k=0;k<3;k++){const rg=mulberry(hashStr(id)+k*7919),v=build(rg,k),P=v.P;let R=0;const r=[];
+      for(const p of P){const a=p.g.attributes.position.array,e=p.m?p.m.elements:null;let x0=1e9,y0=1e9,z0=1e9,x1=-1e9,y1=-1e9,z1=-1e9; // a part's size: half its box's diagonal, from its own vertices placed by its transform
+        for(let i=0;i<a.length;i+=3){let x=a[i],y=a[i+1],z=a[i+2];if(e){const X=e[0]*x+e[4]*y+e[8]*z+e[12],Y=e[1]*x+e[5]*y+e[9]*z+e[13],Z=e[2]*x+e[6]*y+e[10]*z+e[14];x=X;y=Y;z=Z;}
+          if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;if(z<z0)z0=z;if(z>z1)z1=z;const l=Math.sqrt(x*x+y*y+z*z);if(l>R)R=l;}
+        r.push(a.length?0.5*Math.sqrt((x1-x0)*(x1-x0)+(y1-y0)*(y1-y0)+(z1-z0)*(z1-z0)):0);}
+      let K=P.filter((p,i)=>r[i]>=PLOD.minPart*R);if(!K.length)K=P;for(const p of P)if(K.indexOf(p)<0)p.g.dispose();
+      geos.push(merge(K));}}
+  finally{GEO_LK=1;}
+  const n=Math.max(...geos.map(g=>g.attributes.position.count));if(n>PLOD.gain*fn){for(const g of geos)g.dispose();return null;}
+  return packVariants(geos);}
 
 // creatures_builders.js — how each creature is put together from primitives (all face +z)
 // Each builder returns {g, anim(t,spd,state), hit, rigs}: hit is the body as capsules {a,b,r} in the unscaled frame (what
@@ -12656,9 +12693,9 @@ function makeInstanced(ch,rng,geo,mat,tints,list,dip,vars,f){
 const ORIGIN={on:true,x:0,z:0,snap:4000,grid:1000};
 // the variants pulled (v11.187, grow.js VPULL, scene.js VPULL_GLSL): once FLORA is whole (reef.js appends to it), every species' variants into one
 // float texture and each species its pulled geometry (f.gp) and material (f.mp), which makeInstanced draws in place of f.geo and f.mat. WebGL2 only.
-const VPULL_N=(function(){if(!VPULL.on||!GL2||!THREE.FloatType)return 0;const pk=vpullPack(FLORA);
+const VPULL_N=(function(){if(!VPULL.on||!GL2||!THREE.FloatType)return 0;const LE=FLORA.filter(f=>f.geoL).map(f=>({geo:f.geoL,lodOf:f})),pk=vpullPack(FLORA.concat(LE)); // v11.241: the light copies' variants in the same texture, each its own entry
   const t=new THREE.DataTexture(pk.data,VPULL.row*3,pk.rows,THREE.RGBAFormat,THREE.FloatType);t.minFilter=t.magFilter=THREE.NearestFilter;t.generateMipmaps=false;t.needsUpdate=true;t.clone=function(){return this;};VPULL_TEX=t;
-  for(const [f,a] of pk.at){f.gp=vpullGeo(a);f.mp=vpullMat(f.mat);}return pk.at.size;})(); // the species pulled
+  for(const [f,a] of pk.at){const o=/** @type {any} */(f).lodOf;if(o){o.gpL=vpullGeo(a);o.mpL=plodMat(o.mat);}else{f.gp=vpullGeo(a);f.mp=vpullMat(f.mat);if(f.geoL)plodMat(f.mat);}}return pk.at.size;})(); // the species pulled; a copy's material made beside its twin (v11.241): r128 sorts these draws by the material's id, so the two draw together, one program
 const POOLS=new Map(),poolGroup=new THREE.Group();scene.add(poolGroup); // entry → pool (the group at the render origin, v11.110)
 function poolSnap(px,pz){if(!ORIGIN.on||(Math.abs(px-ORIGIN.x)<ORIGIN.snap&&Math.abs(pz-ORIGIN.z)<ORIGIN.snap))return false; // the render origin to the camera's square; every pooled instance moved by the change
   const nx=Math.round(px/ORIGIN.grid)*ORIGIN.grid,nz=Math.round(pz/ORIGIN.grid)*ORIGIN.grid,dx=nx-ORIGIN.x,dz=nz-ORIGIN.z;
@@ -12668,7 +12705,7 @@ function poolSnap(px,pz){if(!ORIGIN.on||(Math.abs(px-ORIGIN.x)<ORIGIN.snap&&Math
 function originOf(x0,z0){return ORIGIN.on?[x0,z0]:[0,0];}
 function instLocal(im,list,ox,oz,get){const a=im.instanceMatrix.array;for(let i=0;i<list.length;i++){const e=get(list[i]).elements;a[i*16+12]=e[12]-ox;a[i*16+14]=e[14]-oz;}}
 const POOL_SPHERE=new THREE.Sphere(new THREE.Vector3(0,0,0),2*Math.max(-WX0,WX1,-WZ0,WZ1)+2000);
-function poolFor(f,geo,mat,vars,cur){let P=POOLS.get(f);if(P)return P;P={f:f,src:geo,mat:mat,vars:!!vars,cur:cur,cap:0,n:0,nVis:0,nDraw:0,calm:0,blocks:[],geo:null,im:null,R0:poolReach(f,geo)};poolAlloc(P,Math.max(64,Math.round((f.per||60)*Q.flora*12)));POOLS.set(f,P);return P;}
+function poolFor(f,geo,mat,vars,cur){let P=POOLS.get(f);if(P)return P;P={f:f,src:geo,mat:mat,vars:!!vars,cur:cur,cap:0,n:0,nVis:0,nDraw:0,calm:0,blocks:[],geo:null,im:null,R0:poolReach(f,geo),nFar:0,nNear:0,plod:null};poolAlloc(P,Math.max(64,Math.round((f.per||60)*Q.flora*12)));POOLS.set(f,P);return P;} // nFar, nNear, plod (v11.241): the seen instances its light copy draws, the end of its last near block, the copy's mesh
 function poolAlloc(P,cap){ // the pool's mesh at capacity cap, what is written carried over; the old geometry disposed
   const old=P.im,g=P.src.clone();
   if(P.vars)g.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(cap),1));
@@ -12678,7 +12715,7 @@ function poolAlloc(P,cap){ // the pool's mesh at capacity cap, what is written c
   if(old){const n=P.n;im.instanceMatrix.array.set(old.instanceMatrix.array.subarray(0,n*16));im.instanceColor.array.set(old.instanceColor.array.subarray(0,n*3));
     if(P.vars)g.attributes.aVar.array.set(old.geometry.attributes.aVar.array.subarray(0,n));if(P.cur){g.attributes.aCur.array.set(old.geometry.attributes.aCur.array.subarray(0,n*2));g.attributes.aTide.array.set(old.geometry.attributes.aTide.array.subarray(0,n*2));}g.attributes.aHide.array.set(old.geometry.attributes.aHide.array.subarray(0,n));
     poolGroup.remove(old);old.geometry.dispose();old.dispose();}
-  im.count=P.nDraw;P.geo=g;P.im=im;P.cap=cap;shadowCaster(im,P.mat,POOL_SPHERE);poolGroup.add(im);poolLod(P);
+  P.geo=g;P.im=im;P.cap=cap;im.count=poolCount(P);shadowCaster(im,P.mat,POOL_SPHERE);poolGroup.add(im);poolLod(P);poolPlod(P);
 }
 // The far copy's mirror (v11.188, scene.js TREE_LOD): a card species whose FAR_IMP entry has a `lod` material draws its far copy on the pool's own instance
 // buffers — the matrices, the tints, the variant, the sight flags shared, not copied, so whatever the pool writes, moves, packs or hides the mirror follows,
@@ -12688,6 +12725,17 @@ function poolLod(P){const sp=P.f.card?FAR_IMP.find(s=>s.f===P.f&&s.lod):null;if(
   if(P.lod){poolGroup.remove(P.lod);P.lod.geometry.dispose();} // its own position, normal, colour; the shared ones went with the pool's old mesh
   const g=sp.geo.clone();g.setAttribute('aHide',P.geo.attributes.aHide);if(P.vars)g.setAttribute('aVar',P.geo.attributes.aVar);
   const m=new THREE.InstancedMesh(g,sp.lod,P.cap);cutFit(sp.lod,sp.geo||g);P.R0=Math.max(P.R0,poolReach(null,sp.geo)); /* a tile's sphere covers the copy too (v11.212) */m.instanceMatrix=P.im.instanceMatrix;m.instanceColor=P.im.instanceColor;m.frustumCulled=false;m.count=P.im.count;m.onBeforeRender=function(){this.count=P.im.count;};P.lod=m;poolGroup.add(m);}
+// The light copy (v11.241, grow.js PLOD): a species with one (f.gpL, pulled) on the tier that asks (Q.lod) draws it on the pool's own buffers for the blocks
+// poolCull marks far — the whole plant (P.im) draws only to the end of the last near block (P.nNear), the copy to the end of the last seen (P.nDraw), each
+// leaving the others' instances at the top of its vertex shader by aHide (scene.js HIDE_NEAR, HIDE_FAR). Not for a species with a far copy of its own.
+function poolPlod(P){const f=P.f;if(!(Q.lod>0)||!f||!f.gpL||P.lod)return;
+  if(P.plod){poolGroup.remove(P.plod);P.plod.geometry.dispose();}
+  const g=f.gpL.clone();for(const k of ['aHide','aVar','aCur','aTide'])if(P.geo.attributes[k])g.setAttribute(k,P.geo.attributes[k]);
+  const m=new THREE.InstancedMesh(g,f.mpL,P.cap);cutFit(f.mpL,f.geo);m.instanceMatrix=P.im.instanceMatrix;m.instanceColor=P.im.instanceColor;m.frustumCulled=false;
+  m.count=P.nDraw;m.onBeforeRender=function(){this.count=P.nDraw;};P.plod=m;poolGroup.add(m);}
+function poolCount(P){return P.plod?P.nNear:P.nDraw;} // what the whole plant's mesh draws
+function tileFar(b,was){const v=b.ch.tv;if(v===null)return false;const d=v[b.t*7+6]-b.re;return was?d>Q.lod-PLOD_HYS:d>Q.lod+PLOD_HYS;} // its nearest instance past Q.lod (a few metres' hysteresis)
+const PLOD_HYS=4; // m
 function poolUp(a,s,c,sz){if(!a.updateRange){const R=a.updateRanges;if(R.length){const q=R[0],lo=Math.min(q.start,s*sz),hi=Math.max(q.start+q.count,(s+c)*sz);q.start=lo;q.count=hi-lo;}else a.addUpdateRange(s*sz,c*sz);a.needsUpdate=true;return;} /* v11.215 (three.js-ready): a later three keeps a list of ranges, updateRanges (r159+); r128 one, updateRange */const r=a.updateRange;if(r.count>0){const lo=Math.min(r.offset,s*sz),hi=Math.max(r.offset+r.count,(s+c)*sz);r.offset=lo;r.count=hi-lo;}else{r.offset=s*sz;r.count=c*sz;}a.needsUpdate=true;} // one attribute's range [s,s+c) uploaded at the next draw, joined to a range still pending
 function poolTouch(P,s,c){ // every attribute's range [s,s+c)
   poolUp(P.im.instanceMatrix,s,c,16);poolUp(P.im.instanceColor,s,c,3);if(P.vars)poolUp(P.geo.attributes.aVar,s,c,1);if(P.cur){poolUp(P.geo.attributes.aCur,s,c,2);poolUp(P.geo.attributes.aTide,s,c,2);}poolUp(P.geo.attributes.aHide,s,c,1);
@@ -12704,7 +12752,8 @@ function poolRemove(P,ch){ // the cell's blocks out (v11.212: its tiles, whereve
   const s0=B[first].start,keep=[];let gone=0,goneV=0;for(const b of B){if(b.ch===ch){gone+=b.count;if(b.vis)goneV+=b.count;}else keep.push(b);}
   for(const [a,sz] of poolArrays(P)){let s=s0;for(let i=first;i<B.length;i++){const b=B[i];if(b.ch===ch)continue;if(b.start!==s)a.copyWithin(s*sz,b.start*sz,(b.start+b.count)*sz);s+=b.count;}}
   {let s=s0;for(let i=first;i<B.length;i++){const b=B[i];if(b.ch===ch)continue;b.start=s;s+=b.count;}}
-  P.blocks=keep;P.n-=gone;P.nVis-=goneV;P.nDraw=poolEnd(P);P.im.count=P.nDraw;if(s0<P.n)poolTouch(P,s0,P.n-s0);
+  let goneF=0;for(const b of B)if(b.ch===ch&&b.vis&&b.far)goneF+=b.count;
+  P.blocks=keep;P.n-=gone;P.nVis-=goneV;P.nFar-=goneF;P.nDraw=poolEnd(P);P.nNear=poolEndNear(P);P.im.count=poolCount(P);if(s0<P.n)poolTouch(P,s0,P.n-s0);
 }
 // v11.52.1: the pools partitioned by sight. The person's readouts on v11.52: the CPU halved and the vsync interval rose (9.3 ms in the forest
 // against 8.7, 16 in the air over it) — a pool drew every loaded cell's instances, behind the camera and all (tris 4.7M → 9.6M), and their GPU
@@ -12726,14 +12775,15 @@ function poolRemove(P,ch){ // the cell's blocks out (v11.212: its tiles, whereve
 const POOL_CALM=0.4; // s
 function poolArrays(P){const A=[[P.im.instanceMatrix.array,16],[P.im.instanceColor.array,3]];if(P.vars)A.push([P.geo.attributes.aVar.array,1]);if(P.cur){A.push([P.geo.attributes.aCur.array,2]);A.push([P.geo.attributes.aTide.array,2]);}A.push([P.geo.attributes.aHide.array,1]);return A;}
 function poolEnd(P){const B=P.blocks;for(let i=B.length-1;i>=0;i--)if(B[i].vis)return B[i].start+B[i].count;return 0;} // the end of the last seen block: what the pool draws
+function poolEndNear(P){const B=P.blocks;for(let i=B.length-1;i>=0;i--)if(B[i].vis&&!B[i].far)return B[i].start+B[i].count;return 0;} // v11.241: the end of the last near one — what the whole plant draws when the pool has a copy
 let packTmp=new Float32Array(0);
-function poolPack(P){ // the seen blocks first, each side in its old order: one pass from the first block out of place through a scratch copy, one ranged upload
-  const B=P.blocks,O=[];for(const b of B)if(b.vis)O.push(b);for(const b of B)if(!b.vis)O.push(b);
+function poolPack(P){ // the seen blocks first — the near, then the far (v11.241) — each side in its old order: one pass from the first block out of place through a scratch copy, one ranged upload
+  const B=P.blocks,O=[];for(const b of B)if(b.vis&&!b.far)O.push(b);for(const b of B)if(b.vis&&b.far)O.push(b);for(const b of B)if(!b.vis)O.push(b);
   let i=0;while(i<B.length&&O[i]===B[i])i++;if(i===B.length)return;
   const s0=B[i].start,n=P.n;
   for(const [a,sz] of poolArrays(P)){const len=(n-s0)*sz;if(packTmp.length<len)packTmp=new Float32Array(len);packTmp.set(a.subarray(s0*sz,n*sz));let s=s0;for(let k=i;k<O.length;k++){const b=O[k];a.set(packTmp.subarray((b.start-s0)*sz,(b.start-s0+b.count)*sz),s*sz);s+=b.count;}}
   let s=s0;for(let k=i;k<O.length;k++){O[k].start=s;s+=O[k].count;}P.blocks=O;
-  poolTouch(P,s0,n-s0);P.nDraw=P.nVis;
+  poolTouch(P,s0,n-s0);P.nDraw=P.nVis;P.nNear=P.nVis-P.nFar;
 }
 // v11.212: a cell's block in each pool is cut into POOL_TILE.k × k tiles, each a block of its own with its sphere, hidden like a cell when it is wholly
 // out of view or past the pool's reach — the same flags (aHide) and the same packing once still (POOL_CALM) as v11.125's cells, so turning writes only
@@ -12766,15 +12816,18 @@ function poolTiles(P,ch,s,n){ // the block [s, s+n) just written: put in tile or
   for(let t=0;t<K*K;t++){const c=TILE_N[t];if(!c)continue;const s0=s+TILE_AT[t];let x0=1e9,x1=-1e9,y0=1e9,y1=-1e9,z0=1e9,z1=-1e9,sc=0;
     for(let k=s0;k<s0+c;k++){const x=M[k*16+12]+ox,y=M[k*16+13],z=M[k*16+14]+oz;if(x<x0)x0=x;if(x>x1)x1=x;if(y<y0)y0=y;if(y>y1)y1=y;if(z<z0)z0=z;if(z>z1)z1=z;const q=Math.max(len3(M[k*16],M[k*16+1],M[k*16+2]),len3(M[k*16+4],M[k*16+5],M[k*16+6]),len3(M[k*16+8],M[k*16+9],M[k*16+10]));if(q>sc)sc=q;}
     const e=0.5*len3(x1-x0,y1-y0,z1-z0),bx=(x0+x1)/2,by=(y0+y1)/2,bz=(z0+z1)/2,ti=t%K,tj=(t-ti)/K,off=len3(bx-(ch.x0+(ti+0.5)*CELL/K),by-(ch.sphere?ch.sphere.center.y:by),bz-(ch.z0+(tj+0.5)*CELL/K)),r=e+P.R0*sc+2;
-    P.blocks.push({ch:ch,start:s0,count:c,vis:false,t:t,x:bx,y:by,z:bz,e:e,r:r,rr:off+r,re:off+e});}} // rr, re: its sphere's and its extent's reach about the tile's centre (tileView's point)
-function poolCull(dt){ // after cullChunks has set every cell's visible and near (and `frustum`): each block's flags to its cell's and its tile's sight, the count to the last seen block; the loosest pool packed
+    P.blocks.push({ch:ch,start:s0,count:c,vis:false,far:false,t:t,x:bx,y:by,z:bz,e:e,r:r,rr:off+r,re:off+e});}} // rr, re: its sphere's and its extent's reach about the tile's centre (tileView's point)
+function poolCull(dt){ // after cullChunks has set every cell's visible and near (and `frustum`): each block's flags to its cell's and its tile's sight — and, with a light copy (v11.241), near or far — the counts to the last seen and the last near block; the loosest pool packed
   let best=null,bl=0;tileView();
-  for(const P of POOLS.values()){const B=P.blocks,H=P.geo.attributes.aHide;let moved=false;
-    const reach=poolFar(P);for(let i=0;i<B.length;i++){const b=B[i],ch=b.ch,v=ch.group.visible&&ch.near&&(!POOL_TILE.on||tileSeen(b,reach));if(v===b.vis)continue;b.vis=v;H.array.fill(v?0:AHIDE,b.start,b.start+b.count);poolUp(H,b.start,b.count,1);P.nVis+=v?b.count:-b.count;moved=true;}
-    if(moved){P.calm=0;P.nDraw=poolEnd(P);}else P.calm+=dt||0;
-    const loose=P.nDraw-P.nVis;if(P.calm>=POOL_CALM&&loose*8>P.nDraw&&loose>bl){best=P;bl=loose;}
-    P.im.count=P.nDraw;}
-  if(best){poolPack(best);best.im.count=best.nDraw;}
+  for(const P of POOLS.values()){const B=P.blocks,H=P.geo.attributes.aHide,L=P.plod!==null;let moved=false;
+    const reach=poolFar(P);for(let i=0;i<B.length;i++){const b=B[i],ch=b.ch,v=ch.group.visible&&ch.near&&(!POOL_TILE.on||tileSeen(b,reach)),fr=v&&L&&tileFar(b,b.far);if(v===b.vis&&fr===b.far)continue;
+      if(b.vis&&b.far)P.nFar-=b.count;if(fr)P.nFar+=b.count;if(v!==b.vis)P.nVis+=v?b.count:-b.count;b.vis=v;b.far=fr;
+      H.array.fill(v?(fr?1:0):AHIDE,b.start,b.start+b.count);poolUp(H,b.start,b.count,1);moved=true;}
+    if(moved){P.calm=0;P.nDraw=poolEnd(P);P.nNear=L?poolEndNear(P):P.nDraw;}else P.calm+=dt||0;
+    const loose=P.nDraw-P.nVis+(L?P.nNear-(P.nVis-P.nFar):0); // hidden instances drawn, and (a copy's pool) far ones the whole plant's draw passes over
+    if(P.calm>=POOL_CALM&&loose*8>P.nDraw&&loose>bl){best=P;bl=loose;}
+    P.im.count=poolCount(P);}
+  if(best){poolPack(best);best.im.count=poolCount(best);}
 }
 function poolStats(){let draws=0,inst=0,hid=0;for(const P of POOLS.values()){if(P.n>0)draws++;inst+=P.n;hid+=P.nDraw-P.nVis;}return {pools:POOLS.size,draws:draws,inst:inst,hid:hid};} // the readout (main.js); hid (v11.125): instances drawn hidden, not yet packed
 function cellLee(ch){return Math.max(leeW(ch.cx,ch.cz),leeW(ch.x0,ch.z0),leeW(ch.x0+CELL,ch.z0),leeW(ch.x0,ch.z0+CELL),leeW(ch.x0+CELL,ch.z0+CELL));} // the retention field over the cell (v11.81; cellCanopy to v11.80)
