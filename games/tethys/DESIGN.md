@@ -2116,7 +2116,12 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   holds still while the cursor is on it (`lab.at`). v11.246.1 (the person's answers): the knots are drawn only while the cursor is on the body, a
   knot or a part (`LAB_SP.show`); the creator (`lab.player`) shows no core slider or profile table; a bend at a knot (the angle between the spans
   either side) is held to the clade's `SPINE_BEND` extreme by `spineMove` and warned past its believable band by `derive` (hingeshells 12/25°,
-  slowbloods 25/50, ringmouths 35/70, drifters 15/30). Not yet: rigs ride a bend (an arm rooted where the body bends stays where it was); a ring is
+  slowbloods 25/50, ringmouths 35/70, drifters 15/30). v11.247, the shape's drag (The Sapling's; `SPINE_FORM`, `spineForm`): `derive`
+  multiplies the core's cd by `form`, read off the chained knots as a side view (girth sqrt(w × h)): 1 + `lump` 0.5 × the girth's travel past one
+  rise and one fall (over the widest girth) + `crook` 0.5 × the middle line's rise and fall (over the widest girth's diameter) + `rear` 1.5 × how far
+  behind `rearFree` 0.6 of the way back the widest girth is (a tie goes to the frontmost). Every species of the roster is 1 (one rise and fall, a
+  straight line, thickest no further back than 0.56), so none moved; derive returns `form` and `formWhy`, and the lab's caption says what the
+  outline costs and why. A thickest-at-the-front body is not rewarded past the roster: the ideal is where the roster already is. Not yet: rigs ride a bend (an arm rooted where the body bends stays where it was); a ring is
   kept upright, not turned square to a steep bend (a shear past ~40°); the eel's chain takes widths but no bend; the variety rows' core numbers
   (`VARY_AUTO.core`) move nothing a knot list stands in for.
 - **Roles:** hunter (chases prey; `strike {tell, dur, speed, range}` for one that cocks and lunges — the tell slows it, turns it to

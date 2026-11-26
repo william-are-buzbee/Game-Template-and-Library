@@ -154,7 +154,7 @@ after players were frustrated by parts appearing at a default spot. Its editor i
 1. **The skin turned square to a steep bend.** Rings are kept upright now, which shears past about 40°; Spore and sporer turn each ring to the
    spine's tangent (parallel transport).
 2. **Rigs ride the bend.** An arm or leg rooted where the body bends stays where it was today.
-3. **Shape → stats, The Sapling's way.** A drag term from the outline: thickest at the front, tapering, smooth. `derive` has the profile already.
+3. **Shape → stats, The Sapling's way.** A drag term from the outline: thickest at the front, tapering, smooth. *Built v11.247.*
 4. **A ghost before a part is placed, and placing a part by dragging it from the panel onto the body** (Ecosystem's lesson), in place of the add
    list.
 5. **Part handles as morphs** (Spore's rigblocks): a mouth's gape, an arm's curl, dragged on the part rather than slid in the panel.
@@ -179,5 +179,6 @@ after players were frustrated by parts appearing at a default spot. Its editor i
 4. *"Yes for sure."* A bend limit per clade, `SPINE_BEND` (degrees between the spans either side of a knot): hingeshells 12 believable / 25
    extreme, slowbloods 25 / 50, ringmouths 35 / 70, drifters 15 / 30. Past the believable band the readout warns; the hand cannot drag past the
    extreme. The numbers are chosen, not measured: the person's to tune.
-5. *"Absolutely, go for that"* — The Sapling's drag from the outline: v11.247.
+5. *"Absolutely, go for that"* — The Sapling's drag from the outline: built v11.247 (`SPINE_FORM`; DESIGN, The spine). It charges a lump, a bend
+   and a fat rear, read off the knots; every species of the roster already has The Sapling's ideal outline, so none changed speed.
 

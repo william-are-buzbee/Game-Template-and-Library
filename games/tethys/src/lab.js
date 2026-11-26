@@ -143,6 +143,7 @@ function labCaption() {
     ' · ' +
     d.cost +
     ' points' +
+    (d.form > 1 ? '<br>drag ×' + d.form.toFixed(2) + ' from its shape: ' + d.formWhy : '') + // v11.247: what the outline costs, and why
     (d.plausible.length ? '<br><i>' + d.plausible.join(' · ') + '</i>' : '') +
     (lab.note ? '<br><i>' + lab.note + '</i>' : '') + // what the lab did to the spec on its own (v11.70: a coat filled, parts a new core cannot carry removed); until the next load
 

@@ -1126,6 +1126,34 @@ function spineBend(H, ax) {
   }
   return m;
 }
+// The shape's drag (v11.247; analysis_creators.md, The Sapling's "Body Shape Drag"; the person, 26 Nov 2026: "Absolutely, go for that"): a
+// swimmer pays for an outline that is not a swimmer's — the knots read as a side view, the girth at each sqrt(w × h). The Sapling's ideal is
+// "straight, with their thickest part at the front, and their thinnest part at the back"; every species of the roster is that already (one rise
+// and one fall, a straight middle line, thickest no further back than its middle — its fish are thickest at 0.41–0.56 of the way back), so
+// each keeps its speed to the bit, and only what a hand makes is charged. form multiplies the core's drag coefficient:
+//   lump   the girth's travel past one rise and one fall, over the widest girth — a bulge or a pinch (a 30% bulge on a fish: 0.6)
+//   crook  the middle line's rise and fall over the widest girth's diameter — a bend (the tail cocked up one body's thickness: 1)
+//   rear   how far behind rearFree of the way back the widest girth is, as a share of the length — a fat rear
+// Speed goes as drag^-0.35 (DERIVE_K.tdExp): a form of 1.3 is ×0.91 of the speed. Numbers chosen, not measured: the person's to tune.
+const SPINE_FORM = {lump: 0.5, crook: 0.5, rear: 1.5, rearFree: 0.6};
+function spineForm(H, ax) {
+  const C = H.filter(h => h.chain).sort((a, b) => a[ax] - b[ax]), out = {form: 1, lump: 0, crook: 0, rear: 0};
+  if (C.length < 2) return out;
+  const g = C.map(h => Math.sqrt(Math.max(0, h.w) * Math.max(0, h.h)));
+  let gm = 0, im = 0, tv = 0, ylo = Infinity, yhi = -Infinity;
+  g.forEach((v, i) => {if (v >= gm) {gm = v; im = i;} if (i) tv += Math.abs(v - g[i - 1]);}); // a tie goes to the frontmost (an even trunk is not fat at the back)
+  if (!(gm > 0)) return out;
+  const lump = (tv - (2 * gm - g[0] - g[g.length - 1])) / gm;
+  out.lump = lump > 1e-6 ? lump : 0;
+  if (ax === 'z') {
+    for (const h of C) {ylo = Math.min(ylo, h.y); yhi = Math.max(yhi, h.y);}
+    const crook = (yhi - ylo) / (2 * gm), span = C[C.length - 1].z - C[0].z, back = span > 0 ? (C[C.length - 1].z - C[im].z) / span : 0; // ascending z: the nose last
+    out.crook = crook > 1e-6 ? crook : 0;
+    out.rear = back > SPINE_FORM.rearFree + 1e-6 ? back - SPINE_FORM.rearFree : 0;
+  }
+  if (out.lump || out.crook || out.rear) out.form = 1 + SPINE_FORM.lump * out.lump + SPINE_FORM.crook * out.crook + SPINE_FORM.rear * out.rear;
+  return out;
+}
 // the core's numbers its knots stand in for while it has them (the lab hides their sliders: a knot list is the taper)
 function spineOver(c) {return c && c.knots ? (c.kind === 'chain' ? ['w0', 'w1'] : ['w0', 'w1', 'h0', 'h1']) : [];}
 // ---- the hand's operations, on a spec (the lab calls these; test/spine.js too). Each returns the new handle list, or null when refused. ----
@@ -3355,6 +3383,8 @@ function derive(spec0) {
   if (jet) thrust += Math.pow(F.volume, 2 / 3) * DERIVE_K.jet * (F.jetK || 1); // the jet: the mantle's volume per pulse, and the pulse rate falling as 1/length (a sac pulses feebly: jetK)
   thrust *= s2;
   if (spec.waste > 0) thrust *= 1 - DERIVE_K.waste * Math.min(1, spec.waste); // v11.74: a wasting body (spec.waste 0..1, a live spec's: line.js) has burnt that share of its muscle
+  const SA = SPINE[spec.core.kind], fm = SA ? spineForm(SA.knots(spec.core), SA.axis || 'z') : null; // v11.247: the shape's drag
+  if (fm && fm.form !== 1) cd *= fm.form;
   const drag = Math.max(0.02, area * cd);
   const mode = F.mode === 'sail' ? 'sail' : flaps ? 'flap' : tail ? 'undulate' : jet ? 'jet' : legs ? 'walk' : 'drift';
   // speed (v11.71, one calculator for every animal): a swimmer's top speed is K × efficiency(mode) × (thrust/drag)^tdExp × (L/2)^lenExp, under the
@@ -3412,6 +3442,8 @@ function derive(spec0) {
     filter: +filter.toFixed(3), // m² of sieve (v11.85, PLANKTON §11): 0 on a body with none — the stomach then has no swarm in its model
     cost: cost,
     length: +L.toFixed(2),
+    form: fm ? +fm.form.toFixed(2) : 1, // v11.247: the shape's drag, × the core's cd (1: a swimmer's outline)
+    formWhy: fm && fm.form !== 1 ? [fm.lump ? 'lumpy' : '', fm.crook ? 'bent' : '', fm.rear ? 'fat at the back' : ''].filter(x => x).join(', ') : '',
     plausible: plausible
   };
 }
