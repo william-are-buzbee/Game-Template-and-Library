@@ -4,6 +4,12 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.240 (26 Nov 2026): the sky under the water only when it can reach the screen** (atmosphere.js `skyUnder`, `skyViewMaxY`, `OCC.cvU`; horizon.js
+`renderFrame`; test/skyunder.js; CHANGELOG). The person: *"make sure being deep underwater actually stops the sky from trying to render."* It did not.
+Now the dome and its cloud pass are left out looking down (either tier) and when their weight through the window is under half a level (the high tier
+from ~135 m); pictures the same. Measured: **the low tier's window is the sky itself, faint to 800 m** — so it is still drawn there — and shallow and
+level the cloud pass's waste cannot be cut exactly. **Ask:** the clouds at half resolution under water, or none through the window on the low tier; the
+low tier's window fading to the computed sky with depth like the high tier's.
 **v11.239 (25 Nov 2026): the reed to 160 m on the low tier and 300 on the high, the seagrass to 160** (scene.js `Q.reed`, `THIN_CUT`, `MATRD`, `MATSG`;
 flora.js the reed and the strap; main.js `warmShaders`; FLORA.md; CHANGELOG). The work tower's report on v11.238 (#205): 60 fps on the median now, 40%
 of frames late, its worst place a sand flat where the reed was 600k of 1.33M triangles, nearly all past 150 m and specks at its size; the seagrass the same.
@@ -31,13 +37,6 @@ water."* The water dome was cut at the tide while the drawn far sea sits ~0.3 m 
 from a low eye a ray could pass over the sea's end to the bare dome: a one-pixel dark line across the middle, coming and going with the swell. The dome
 now draws only a pixel's step under the drawn sea; the horizon pass's sea disc reaches in from a low eye and its sky is not cut at the water. **Ask:**
 the horizon from the surface at sea, several headings and heights.
-
-**v11.236 (25 Nov 2026): the snow as bright as its surroundings** (atmosphere.js `ptsLit`, `snowLight`, `SN_ALB`, `SN_OP`; fx.js, combat.js the same
-patch; test/snow.js, test/stub.js; DESIGN The snow; CHANGELOG). The person: *"Marine snow is too visible in the dark … only as bright as its
-surroundings."* Its light had a floor (45–95% of noon with no light at all, then the eye's gain); now a point takes the world's light where it is —
-the ambient, the sun or moon by its depth, the own light and the pool's lights by the ground's falloff — and nothing else. The lit shallows as they
-were; black water with nothing lit leaves it unseen. **Ask:** whether the snow in the own light's reach in the deep, and at night, is enough to keep
-the sense of space; whether mid-depth by day now reads too thin.
 
 ## Open
 

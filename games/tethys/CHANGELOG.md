@@ -12002,3 +12002,48 @@ of 255.
 1. The work tower at `tp(72929,243)` and at any shore: the frame against before, and an F9.
 2. The home machine at a reed bed from the water, and over a seagrass flat: whether the beds' end shows — the reed fades over 250–300 m on the high tier.
 3. The low tier's reed fading over 120–160 m: whether it reads, on a machine that plays it.
+
+## v11.240 — the sky under the water only when it can reach the screen (26 Nov 2026)
+
+The work tower's F8 (#208: under water at `tp(69950,29582,-10)`, the low tier at 1047×529) put the sky at 1.75 ms and the clouds at 2.18 of a 15.8 ms GPU
+frame. The person (25 Nov 2026): *"go ahead with the sky and clouds fix … make sure being deep underwater actually stops the sky from trying to render.
+I bet it does but, just be sure."* It did not: under the water the dome and the cloud pass ran every frame at any depth and any look.
+
+**What reaches the screen, measured.** The dome is seen from below only through Snell's window: on the underside the surface's own colour over it with
+alpha 1 − winT (the frame not refracted — the low tier), or the refracted copy of the frame at winT × (1 − dk) (refracted — the high tier; dk the window's
+detail by the water between, WIN_DET); a sky fragment under the tide's plane is thrown away first thing. The same frame drawn with the sky and without,
+looking straight up at noon (400×225): the high tier 47 levels of 255 at 20 m, 12 at 50, 3 at 80, none over 1 from 100 m; the low tier 150 at 20 m, 101 at
+100, 35 at 200, 10 at 480, 6 at 800. So deep down the high tier drew a sky nothing showed, and **the low tier's window is the sky itself, faint to 800 m
+and past** — leaving it out there would take the window away: not done here (below, the person's call).
+
+- **`skyUnder`** (atmosphere.js; horizon.js `renderFrame` calls it before the cloud pass): under the water the dome and its cloud pass are left out when
+  (1) the window's weight on the dome at the nearest surface — WIN_T × the water's transmission to it (the surface's own fog, FOG_PSURF) × e^(−d·uWinD)
+  when refracted — is under half a level of 255 (a pixel moves by at most that, so by at most one level after rounding): from ~135 m on the high tier,
+  only where the dome itself goes under the tide's plane on the low (1,504 m); or (2) no direction in the view rises above the tide's plane where the
+  dome meets it (`skyViewMaxY`: the zenith checked, the view's edges sampled, a margin 100× the samples' worst error) — looking down, on either tier.
+- **The occluder to the window's edge when the frame is not refracted** (`OCC.cvU`, a uniform now): SURF_OCC covered facets under OCC.cv 0.25 — a
+  margin under the window's WIN_LO 0.35 for the refraction's reach. With the refraction off the surface is opaque below WIN_LO (winT 0, alpha 1), so the
+  occluder covers to WIN_LO and the dome is not shaded behind it.
+- **test/skyunder.js** (in `--test`, 2 s): the decisions at each depth, look and tier, the occluder's threshold, and the view's highest direction against
+  a dense search over 2,100 random looks with roll at three fields of view (never under by more than 0.0003; 0.03 allowed).
+
+**What it costs** (the same seeded world on main and here, 400×225, the dome's draw counted; and test/fill.js against main at 1047×529):
+
+| case | main | here |
+|---|---|---|
+| looking down (−0.6, −1.4 rad), 10 / 60 / 150 m, both tiers | the dome and the cloud pass drawn | left out; the picture the same pixel for pixel |
+| level and up, 10 and 60 m, both tiers; 150 m on the low tier | drawn | drawn; the same pixel for pixel |
+| level and up, 150 m, the high tier | drawn | left out; level the same, looking up 4–1,451 of 90,000 pixels by 1 level of 255 |
+| the GPU's time, a proxy: 200 m down, level, the high tier | 283 | 189 (×0.67), the picture the same |
+| the same: the forest and the canopy, the low tier at the tower's size | 352 / 401 | 343 / 413 (×0.97 / ×1.03: no change past noise), the pictures the same |
+
+**What it does not do — the tower's 3.9 ms at 10 m.** Shallow and looking level the dome is needed where the window is, and the cloud pass marches every
+upward ray though only the window's are seen. Where the window ends is each facet's tilt: the waves' steepest (Σ A·k with the crest's sharpening, ×√2
+for the grid's facets) reaches 33°, which puts the window's lowest edge at the horizon — no exact bound cuts the march there. That needs a change to
+what is seen; offered to the person: the cloud pass at half its resolution under water, or no volume clouds through the window on the low tier; and the
+low tier's window fading to the computed sky with depth as the high tier's does (after which the deep cut applies there too).
+
+**Unseen, ask in this order:**
+1. Under water, looking down and then up again quickly: the window and its clouds there the first frame back (the cloud pass is computed fresh each
+   frame it runs, so there is nothing stale to show).
+2. The high tier below ~135 m looking up: the window as it was (it is the computed sky there; the dome added nothing).
