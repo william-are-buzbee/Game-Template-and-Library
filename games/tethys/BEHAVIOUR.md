@@ -6,7 +6,8 @@ stand, the arrows' pack and ink, the lurker's giving-up, the great a hunter; v11
 wider ranges (§3d). The slowbloods' pass built (v11.231, §3e): the water's warmth and the body's, the basker's basking, the herd's alarm, the
 abyssal's forays, the chase paid from stamina. The hingeshells' pass built (v11.232, §3f): the strike as the only hunt, the valves, the dens, the
 moult's cue, the hook's drop and climb, the scuttles on the flats. The drifters' pass built (v11.233, §3g): eating what they sting, the jelly with the
-plankton's layer, the sailers' stranding.** The person on v11.228: *"I play tested and enjoyed it, go ahead with pass 1."*
+plankton's layer, the sailers' stranding. v11.245 (26 Nov 2026): the hover keeps station, never still (§2); the plumb's day roam twice as often and
+faster, through the current and past the walls' colliders (§3d).** The person on v11.228: *"I play tested and enjoyed it, go ahead with pass 1."*
 On v11.229 (24 Nov 2026): *"go ahead with the ringmouths pass and the plumb."* Next, the slowbloods (§4). Downstream of `PLANET.md` (each clade's deep decision is where its behaviour comes from), `CLADES.md`
 (habitat at three scales: the range, the station, the clock), `COMBAT.md` (what a hold means; pass D is the person's predator pass) and `DIRECTION.md`
 (the loop). The numbers live in `creatures_defs.js` (`BEHAVE`, `EYE_K`, `LAT_CLADE`) and `creatures_ai.js` (`CLK`, `REST`, `RISK`, `SENSE`, `SCENT`, `FREEZE`);
@@ -78,7 +79,12 @@ What the hours do (`awakeOf` → `c.awake`, read at each scan):
   `REST.see` (0.35) of its radius.
 - **Rest** (`restBegin`, `restStep`), under `REST.on` (0.35), up again over `REST.off` (0.5): *cover* — against a rock, a stalk or a structure's foot
   within `REST.r` (24 m; `coverSpot`, the moult's `hideSpot` test), the open floor where there is none; *floor* — lying where it is; *bury* — sunk to
-  `REST.bury` (0.3) of its clearance (`c.sink`, read by the floor clamp); *hover* — held in the water at `REST.lift` + its size over the floor;
+  `REST.bury` (0.3) of its clearance (`c.sink`, read by the floor clamp); *hover* — in the water at `REST.lift` + its size over the floor,
+  keeping station as a squid or a nautilus does (v11.245, `HOVER`, `hoverShift`: to v11.244 it held a point with its speed damped to nothing, and the
+  person found the ortho "frozen" — 0.03 m/s, 0.1 m and 5° in a minute, ~45% of every game day): it drifts round its spot on periods of 37 and 53 s
+  and bobs on 9 s (`HOVER.drift` 0.3 of its length, at least 1.5 m; `HOVER.bob` 0.08, at least 0.4 m), faces the way it drifts — into the current
+  where it holds against one — and every 20–40 s (`HOVER.every`) shifts its spot 0.8–2 body lengths (at least 3 m, `HOVER.step`) within its home
+  range, at no more than `HOVER.go` (0.1) of its speed: the ortho at noon 0.47 m/s, 12 m net and 287° in a minute, never still;
   *slow* — cruising on at `REST.slow` (0.45) of its cruise. One lying on the floor holds against the current, as one sitting does. A resting hunter takes
   only an easy meal that comes within `REST.see` of its detect (the moray bites the hand put in its hole); a resting grazer still flees.
 - **The schools** settle out of their hours: their marks 0.8–2.5 m over the floor within 12 m of home, the members at `REST.school` (0.45) of their speed.
@@ -205,7 +211,11 @@ there be squids out in the shallows, or in the open ocean the way there are a bi
 - **The day's roam** (`ROAM`, `plumbRoam`, `standFollow`; the state `'roam'`): by day, sitting, a hanger moves its station now and then — a chance a scan
   that comes every `ROAM.hang.every` 90 s on the mean for a plumb, `ROAM.stand.every` 25 s for a quill — `step` (10–30 m; 5–15) off, never past `leash`
   (50; 40 m) from its **post** (`c.post`: where it was placed, a wall's foot or a stand's point), in still water (`STATION.lee`), a quill of the weed
-  among the stalks; it jets there at `jet` (0.35; 0.5 m/s) leaning into its way, takes what passes under it on the way, and sits: its station now. A
+  among the stalks; it jets there at `jet` (0.35; 0.5 m/s) leaning into its way, takes what passes under it on the way, and sits: its station now. v11.245
+  (the person, 26 Nov 2026: the plumbs "barely moving … almost stationary"): every 45 s at 0.6 m/s for a plumb, its jet made good over the ground in any
+  current (`HANG.head` 1: the tide runs 0.3–0.8 m/s at the walls, over the old jet's 0.42 through the water, and a roam stalled for minutes), its new
+  station settled where its body can hang (`hangSettle`: out of the walls' colliders, still a step off), and a roam that makes no `ROAM.gain` (1 m) in
+  `ROAM.stall` (10 s at its start, then 5) — a solid in the way, a kick off one as it climbs — stops where it is (`c.roamD`, the nearest it came). A
   stand goes together — one moves and its mates on the same post come, each keeping its place — and holds its phase (the post's square, `phaseOf`).
   A quill that takes fright on the way stops and drops into the stalks where it is (`quillHide`).
 - **The plumb's night under the surface** (`plumbY`, `PLUMB.surf`, `plumbWait`, `hangGo`): every plumb leaves its station at dusk, hungry or not, after

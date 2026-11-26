@@ -2130,7 +2130,8 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   once a step (`clockTick`; never `SKY`): `CK.day`, `night`, `dusk` summing to one, `CK.hi` the tide. A kind's hours (`act` [day, night, dusk, tide]) give
   `c.awake` at each scan (`awakeOf`); a hunter hunts past `huntAt` = `ECO.hungry` + `REST.k` 0.45 × (1 − awake) — 0.85 at none of its hours, hunger
   getting it up — and out of its hours rests (`rest`: cover, floor, bury, hover, slow; `restBegin`/`restStep`, under `REST.on` 0.35, up over `REST.off`
-  0.5), taking only what comes within `REST.see` 0.35 of its detect; an ambusher looks that share of its radius; a trap's reflex rises by half; a school
+  0.5; v11.245 a hover keeps station, never still: `HOVER`, `hoverShift`, drifting 0.3 of its length (≥ 1.5 m) round a spot that shifts 0.8–2 lengths every
+  20–40 s, at ≤ 0.1 of its speed), taking only what comes within `REST.see` 0.35 of its detect; an ambusher looks that share of its radius; a trap's reflex rises by half; a school
   settles over the floor (`s.rest`). What it hunts is weighed (`riskOf`: the mass ratio from `RISK.m` 0.08 to 1, `unarmed` 0.6, `sting` +0.3, × its own
   blood lost, `weak` −0.7 for a failing body): it goes only while its need (`needOf`) is ≥ `RISK.k` 0.9 × the risk (`cap` 0.95), the nearest by distance ×
   (1 + risk) — the player weighed as any body (the 0.7 of v11.227 struck). Prey that watches a hunter that reads it (`insp`: a slowblood `circle`s, a
@@ -2159,8 +2160,10 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   with nothing taken (`coverSpot`). The great is a hunter (prey the player, the grazer, the eel, the plough; `insp` `stand`), its ram the
   bite's opening blow (`landBite`); the `coil` role is struck. `POP.chases` counts the hunts begun (test/live.js).
 - **The hangers roam; the plumb's night under the surface; the wider ranges (v11.230.1; BEHAVIOUR.md §3d; creatures_ai.js `ROAM`, `hangGo`, `hangPath`,
-  `hangFloor`).** By day a sitting hanger moves its station by a chance a scan (`ROAM.hang` every 90 s on the mean, `step` 10–30 m, `leash` 50 m of its
-  `post`, `jet` 0.35 m/s; `ROAM.stand` 25 s, 5–15 m, 40 m, 0.5 m/s), in still water or, a quill of the weed, among the stalks; a stand goes together
+  `hangFloor`).** By day a sitting hanger moves its station by a chance a scan (`ROAM.hang` every 45 s on the mean, `step` 10–30 m, `leash` 50 m of its
+  `post`, `jet` 0.6 m/s — v11.245, from 90 s and 0.35; `ROAM.stand` 25 s, 5–15 m, 40 m, 0.5 m/s), its jet made good over the ground in any current
+  (`HANG.head` 1, `hangGo`), a plumb's new station settled out of the solids (`hangSettle`), a roam with no `ROAM.gain` 1 m of headway in `ROAM.stall`
+  10 s at its start and 5 after given up where it is (`c.roamD`), in still water or, a quill of the weed, among the stalks; a stand goes together
   (`standFollow`). Every plumb leaves at dusk after `plumbWait` (`PLUMB.wait` × 0.5–1.5), hungry or not, and roams the night with its shell's top
   `HANG.surf` + 0–`PLUMB.surf` 3 m under the surface, across by its jet and up by its gas together (`hangGo`), its legs over floor and paths at least its
   arms' reach and gap under it; home at the dawn (`REST.off`). `PLUMB.full` struck. Rows with their own stations (`SPAWN` `st`, `stOf`): plumbs off the
