@@ -374,7 +374,7 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
   nothing.
 - **The far layer draws every structure** (`bigsFor`) and every boulder (`rocksGen`, FLORA `farRock`); cells only register their collision —
   anything `big` or `farRock` that a cell draws itself pops and doubles. The ground rule is `settleOn`'s alone.
-- **Draw distance.** The flora ends at `FLORA_FAR` and fades into it (`FLORA_FADE`, scene.js `farCut`): a new small species wants a fading
+- **Draw distance.** The flora ends at `FLORA_FAR` (the reed at `Q.reed`, 160 m low and 300 high, and the strap at `THIN_CUT`, 160 m; v11.239) and fades into it (`FLORA_FADE`, scene.js `farCut`): a new small species wants a fading
   material (every sway, variant, rock and `MAT` instance has one); a new big one a card in `FAR_IMP` (a low-poly copy of itself, never crossed
   cards) and no cut. The disturbance loop runs only within `DIST_R` of the camera.
 - **The pools** (chunks.js `POOLS`): a cell's small flora is a block in its species' pool (not in `ch.meshes`/`ch.flora`) — since v11.212 one block a
