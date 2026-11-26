@@ -173,7 +173,7 @@ canvas{display:block;outline:none;touch-action:none}
 <div id="fade" class="layer"></div>
 <canvas id="spark" class="layer"></canvas>
 <div id="stats"></div>
-<script>window.TETHYS_BUILD={v:"v11.243",wh:"840d47b8921d83fb"};</script>
+<script>window.TETHYS_BUILD={v:"v11.244",wh:"6a657fdb800591fb"};</script>
 <script>
 // loader.js — the page's loader, in tethys.html only, outside the game's bundle and before it: three.js and the world cache fetched side by side, then the
 // game. Since v11.215 (three.js-ready) three.js is loaded as a module — every release after r160 is only that — with import(); its exports are copied onto
@@ -1791,7 +1791,7 @@ const REGION_K={
   fedK:0,         // the reef's growth on a fed member, as a share of K.reef (PLANET: the lime polyps win only in clear, bright water; the weed takes fed shallows)
   erode:0.15,     // per Myr: subaerial erosion (the land's height over the sea lost at this rate: 0.07 mm/yr at 450 m). v11.121 (analysis_archipelago §6; the person, 12 Nov 2026: "let's say 10"): high islands that last ~10 Myr, as a slow plate's do (Mauritius 828 m at ~8 Ma, Gran Canaria 1,956 m at 14.5); to v11.120 0.45, a fast plate's clock run on a slow one
   tune:{m153:2533}, // v11.121 (the person, 12 Nov 2026, answer (c)): members held to a summit today as the pins are, their volume solved for it — seed 32's awesome shield at its 2,533 m, so the volume-true shape (rgShape2) leaves it the awesome one
-  strike:{32:['m93']}, // v11.243 (the person, 26 Nov 2026: "there shouldn't really be two sunken islands in one spot … pick one and kill it"): members struck by hand, by seed (an id names another member under another seed) — out of the history, so no record, no reef, no load, no moat (its load is left only in the pins' fit: regionModel, at `cut`). Seed 32's m93: a lone 25 km³ vent at 13.4 Ma, an atoll of 19 km² 14 km off the south-west corner of m54's bank (eight vents, 280 km³, 319 km²), the two reefs side by side at the map's middle
+  strike:{32:['m122']}, // members struck by hand, by seed (an id names another member under another seed): the volcano and its vents never born, so no record, reef, load or moat, and the pins refitted without it. v11.244 (the person, 26 Nov 2026: "there shouldn't really be two sunken islands in one spot … pick one and kill it", the two high islands in the map's middle, each in its own drowned ring): seed 32's m122, the 799 m island 48 km east of ours (9.2 Ma, 1,306 km³), 54 km from m109 (470 m, 14.3 Ma) — m109 stands alone; struck the other way, the saddles ring a deep pit where m109 stood. v11.243 struck the atoll m93 by mistake (the two nearest the world's centre), restored
   plane:0.3,      // mm/yr: the waves' planing of rock in the surf band, wave base to +30
   wb:10,          // m: wave base
   platW:70,       // km: the plateau's half-width about the track (the tail's aprons); it falls to the plate over the next 40
@@ -1873,6 +1873,7 @@ function regionModel(Kin){
         m.Tspan=first.age-Math.min(...vs.map(q=>q.age-q.Ts));}
       m.inSq=m.x>sq[0]&&m.x<sq[1]&&m.z>sq[2]&&m.z<sq[3];keep.push(m);}
     M.length=0;for(const m of keep)M.push(m);}
+  {const X=K.strike&&K.strike[K.seed];if(X&&X.length){const keep=M.filter(m=>!X.includes(m.id));M.length=0;for(const m of keep)M.push(m);}} // K.strike: struck by hand, the volcano and its vents never born (the births' draws, and every other member's id, as before); the pins refitted without it
   M.forEach(rgShape);
   for(const id in K.tune||{}){const m=M.find(q=>q.id===id);if(m){m.target=K.tune[id];m.tuned=true;}} // v11.121: members held to a summit (K.tune)
   // the plateau: a band about the track and the head's disc at its old end, the plate beyond; its level solved below so the floor beside ours is K.floor
@@ -1932,20 +1933,16 @@ function regionModel(Kin){
   // it is born inside, its shield already built, and whose cone stands highest there (by their 12° shapes); at its birth its base is raised to the host's surface there (m.off), and it
   // rides that surface as the host sinks and wears — a satellite cone, or on an old island the rejuvenated stage (Diamond Head and Punchbowl on Oahu). To v11.130 every member stood
   // on the plateau, and one whose top stayed under an older neighbour's flank was struck
-  // v11.243 (K.strike): a member struck by hand. The pins' fit below (their volumes and the plateau's level, solved to 1 m) still counts its load —
-  // seed 32's m93 pulls ours 7 mm, under the fit's tolerance, and a fit without it lands a metre off and moves the old square up to 19 m (ours' moat
-  // 6.5) for nothing m93 did — then the history is run without it (no load, no reef, nobody's host or shelter) and it leaves M with the indices remapped
-  const SX=K.strike&&K.strike[K.seed],cut=M.map(m=>!!SX&&SX.includes(m.id));
-  M.forEach((m,j)=>{m.host=-1;m.hd=0;if(m.pin>=0)return;let best=0;M.forEach((q,i)=>{if(i===j||cut[i]||q.age-m.age<q.Ts||q.V<=m.V)return;const d=Math.hypot(q.x-m.x,q.z-m.z);if(d>=q.R-0.5*m.R)return; /* bigger, its shield built before this one's birth (a vent on a shield still growing is its flank, buried as before), and it stands mostly on it */const s=q.H*(1-d/q.R);if(s>best){best=s;m.host=i;m.hd=d;m.hostId=q.id;}});});
-  M.forEach((m,j)=>{m.up=m.pin<0?M.map((q,i)=>i).filter(i=>{if(i===j||cut[i])return false;const q=M[i],rx=q.x-m.x,rz=q.z-m.z,al2=rx*ux+rz*uz,la=Math.abs(rx*uz-rz*ux);return al2>0&&al2<K.fedL*1000&&la<0.7*m.R+0.5*q.R;}):[];m.fed=false;});
+  M.forEach((m,j)=>{m.host=-1;m.hd=0;if(m.pin>=0)return;let best=0;M.forEach((q,i)=>{if(i===j||q.age-m.age<q.Ts||q.V<=m.V)return;const d=Math.hypot(q.x-m.x,q.z-m.z);if(d>=q.R-0.5*m.R)return; /* bigger, its shield built before this one's birth (a vent on a shield still growing is its flank, buried as before), and it stands mostly on it */const s=q.H*(1-d/q.R);if(s>best){best=s;m.host=i;m.hd=d;m.hostId=q.id;}});});
+  M.forEach((m,j)=>{m.up=m.pin<0?M.map((q,i)=>i).filter(i=>{if(i===j)return false;const q=M[i],rx=q.x-m.x,rz=q.z-m.z,al2=rx*ux+rz*uz,la=Math.abs(rx*uz-rz*ux);return al2>0&&al2<K.fedL*1000&&la<0.7*m.R+0.5*q.R;}):[];m.fed=false;});
   // a member that cannot come within 200 m of the lowest sea even at its birth, on the swell, unloaded, is a seamount whatever happens: not stepped
   const deep=M.map(m=>m.host<0&&K.plate+(K.floor-K.plate)*m.pw+Math.max(m.rl0,m.rl[0])+cool(m.age)+K.swell+m.H<-120-K.photic-200);
   const ord=M.map((m,i)=>i).sort((a,b)=>M[b].age-M[a].age); // oldest first: the loads are born in this order
-  const run=(mask,drop)=>{const Fl=new Float64Array(n),Ld=new Float64Array(n),S=[],grow=[];let ob=0;for(let j=0;j<n;j++)if(mask[j])S.push(j);
+  const run=mask=>{const Fl=new Float64Array(n),Ld=new Float64Array(n),S=[],grow=[];let ob=0;for(let j=0;j<n;j++)if(mask[j])S.push(j);
     M.forEach(m=>{m.plat=K.plate+(top-K.plate)*m.pw;m.off=0;m.born=false;m.E=0;m.Ef=0;m.peak=-1e9;m.reef=false;m.alive=false;m.rt=0;m.ring=0;m.lit=null;m.surf=null;m.src=-1;m.srcD=0;m.exp=0;m.died=null;m.lastB=null;m.litNow=false;m.zv=-1e9;});
     const litPrev=new Uint8Array(n);
     for(let k=Math.round(K.span/RG_DT);k>=0;k--){const t=k*RG_DT,sea=rgSea(t),C=cool(t);T(t,o);const px=o.x,pz=o.z;
-      while(ob<n&&M[ord[ob]].age>t){const i=ord[ob++];if(!drop||!cut[i])grow.push(i);} // v11.243: a struck member's load in the pins' fit only
+      while(ob<n&&M[ord[ob]].age>t)grow.push(ord[ob++]);
       for(let g=grow.length-1;g>=0;g--){const i=grow[g],m=M[i],l=m.V*Math.min(1,(m.age-t)/m.Ts),dl=l-Ld[i];if(dl>0){for(const j of S)Fl[j]+=Kf[i*n+j]*dl;Ld[i]=l;}if(l>=m.V)grow.splice(g,1);}
       for(const j of S){const m=M[j];if(t>=m.age)continue;const dx=(m.x-px)/(K.swellW*1000),dz=(m.z-pz)/(K.swellW*1000);
         const base0=m.plat+(m.rl0||m.rl[0]?rlT(m.rl,t):0)+C+K.swell*Math.exp(-dx*dx-dz*dz)-Fl[j];if(m.host>=0){const Hq=M[m.host];if(Hq.born&&Hq.lastB!==null)m.off=Math.max(0,Hq.lastB+(Hq.zv-Hq.lastB)*Math.max(0,1-m.hd/Hq.R)-base0);} // v11.131: on its host's surface, which sinks and wears as the host does
@@ -1967,18 +1964,16 @@ function regionModel(Kin){
     for(let j=0;j<n;j++){let f=0;for(let i=0;i<n;i++)f+=Kf[i*n+j]*Ld[i];M[j].fl=f;} // today's loads on every member, stepped or not
     let fr=0;for(let i=0;i<n;i++)fr+=refK[i]*M[i].V;return K.plate+(top-K.plate)*refW+swellAt(ref.x,ref.z,0)-fr;}; // the floor beside ours now
   // the pins: Newton then secant on each pinned volume (log) for its summit today, and the plateau's level for the floor beside ours
-  const pm=M.map(m=>m.pin>=0||m.tuned),all=M.map((m,i)=>!deep[i]&&!cut[i]),prev=M.map(()=>null);let it=0,err=1e9;
+  const pm=M.map(m=>m.pin>=0||m.tuned),all=M.map((m,i)=>!deep[i]),prev=M.map(()=>null);let it=0,err=1e9;
   for(;it<40;it++){const fl=run(pm);top+=K.floor-fl;err=Math.abs(K.floor-fl);
     for(let q=0;q<M.length;q++){const m=M[q];if(m.pin<0&&!m.tuned)continue;const e=m.zv-m.target,lv=Math.log(m.V),p=prev[q];err=Math.max(err,Math.abs(e));
       let d=p&&Math.abs(e-p.e)>1e-6?-e*(lv-p.lv)/(e-p.e):-e/Math.max(50,m.H/3*0.6);d=clamp(d,-1,1);prev[q]={lv,e};m.V=Math.exp(lv+d);rgShape(m);}
     if(err<1)break;}
-  run(all,true);M.forEach((m,i)=>{if(deep[i]){m.zv=m.plat+m.rl0+swellAt(m.x,m.z,0)+m.H-m.fl;m.peak=m.zv;}}); // the unstepped: today's summit on today's swell, under today's loads
+  run(all);M.forEach((m,i)=>{if(deep[i]){m.zv=m.plat+m.rl0+swellAt(m.x,m.z,0)+m.H-m.fl;m.peak=m.zv;}}); // the unstepped: today's summit on today's swell, under today's loads
   // today: each member's state, its flat top, its shore, and what the history says of its life
   for(const m of M){const s=m.zv,building=m.age<m.Ts;m.rtop=Math.min(0.75*m.R,m.E/RG_S);m.shore=s>0?(m.pin<0&&RG_COAST.on?Math.min(0.75*m.R,(m.E-m.Ef)/RG_S)+(s+m.Ef)/RG_SA:m.rtop+s/RG_SA):m.reef&&m.rt>0?m.ring:0; /* v11.153: a member's coast where its flank, as the rain left it, meets the sea (RG_COAST) */m.top=Math.max(s,m.reef?m.rt:-1e9);
     m.state=building?(s>0?'shield':'young'):s>150?'high':s>0?(m.alive?'rim':'low'):m.reef&&m.rt>5?'raised':m.alive&&m.rt>-K.photic?(m.ring>6000?'bank':'atoll'):m.reef?(m.rt>-150?'drowned':'guyot'):m.E>0?'guyot':'seamount';
     m.land=m.shore>0?Math.PI*m.shore*m.shore/1e6:0;} // km², the disc's
-  if(cut.includes(true)){const nw=new Int32Array(n).fill(-1);let k=0;for(let i=0;i<n;i++)if(!cut[i])nw[i]=k++;const keep=M.filter((m,i)=>!cut[i]); // v11.243: the struck leave M; host, src and up are indices into it
-    for(const m of keep){m.host=m.host>=0?nw[m.host]:-1;m.src=m.src>=0?nw[m.src]:-1;m.up=m.up.map(i=>nw[i]);}M.length=0;for(const m of keep)M.push(m);}
   return {fz:{nx:nfx,nz:nfz,sp,ph0},K,M,pulses,flux,track:T,tg,top,al,cf,err,iter:it,head,platW,swellAt,ref,cen,rlAt,rlT,rlG,rlTg,rlNeck,tAge,
     floorAt:(x,z)=>{let f=K.plate+(top-K.plate)*platW(x,z)+swellAt(x,z,0);if(RL)f+=rlT(rlAt(x,z),0);for(const m of M)f-=cf*rgKei(hyp2(m.x-x,m.z-z)/al)*m.V;return f;}};
 }
