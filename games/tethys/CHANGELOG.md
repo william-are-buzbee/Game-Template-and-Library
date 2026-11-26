@@ -12242,3 +12242,71 @@ before and after. Not seen in play: the change is where the player rarely is, an
 **Unseen, ask:**
 1. The map (`n`): the middle reads as one high island, m109, with the atolls and banks round it.
 2. Whether "just one visible" means more of these should go — the giant also stands in a drowned ring with a barrier, 18 km from ours.
+
+## v11.245 — the hover keeps station, never still; the plumb's day roam through the current and past the walls (26 Nov 2026)
+
+The person (26 Nov 2026): *"look into … why the animals like the Ortho aren't moving and seem to be frozen. and also why animals like the plume [plumb]
+barely moving"*, then, on the findings, *"go ahead with those numbers."* Two causes, measured headless (the bundle against the stub, the real world):
+
+- **The hover rest held a point with its speed damped to nothing** (v11.228 `restBegin`/`restStep`). The ortho and the arrow rest so by day, the great and
+  the needle by night — each ~45% of the 40-minute game day — and resting they made 0.02–0.03 m/s, 0.1–0.3 m and ~5° of turn in a minute: a statue
+  (up close the ring's arms still beat; past its near distance a still bake).
+- **The plumb's day roam stalled.** It jetted at 0.35 m/s and `curComp` let it reach 1.2 × that through the water, under the tide at its walls
+  (0.3–0.8 m/s); and a plumb hangs beside a wall, among the wall's colliders, which pushed its nose back each step (`bodyPush`) — a sinking or
+  climbing body's speed off a slanted collider also kicks it sideways, 0.4–0.7 m/s at a time. The roam had no end but arrival: at a wall cell over
+  10 minutes at noon (on main) five plumbs began 5 roams and finished 3, 80% of their time "roaming", 64% of that at under 0.1 m/s.
+
+What changed (creatures_ai.js):
+
+- **`HOVER`, `hoverShift`** — a hover keeps station as a squid or a nautilus does: it drifts round its spot on periods of 37 and 53 s and bobs on 9 s
+  (`drift` 0.3 of its length, at least 1.5 m; `bob` 0.08, at least 0.4 m), faces the way it drifts (into the current where it holds against one:
+  `seek`'s `curComp`), and every 20–40 s (`every`) shifts its spot 0.8–2 body lengths (at least 3 m, `step`) within its home range, at no more than
+  `go` 0.1 of its speed. Still a rest: it takes only what comes to it and gets up at its hours.
+- **`ROAM.hang`** every 45 s on the mean (90) at 0.6 m/s (0.35), the person's numbers.
+- **`HANG.head`** 1: `hangGo` lets the water speed rise to the current's plus the jet, so a hanger makes its jet good over the ground in any current
+  (the night's forage too, at 0.8, where the surface's tide reaches 0.8).
+- **`hangSettle`** — a plumb's new station is settled where its body can hang: its middle, nose and tail pushed out of the solids as `bodyPush` would
+  push them, still 10–30 m off its station and within its leash. A quill's is not (a small body slides round the stalks).
+- **`ROAM.stall`, `ROAM.gain`, `c.roamD`** — a roam that makes no 1 m toward its station in 10 s at its start (to turn into its way) and 5 s after
+  each metre stops where it is: its station now. `roamD` is a new key on the creature (spawn's literal and the `Creature` typedef).
+
+Measured (the same probes, main against this):
+
+| | main | here |
+|---|---|---|
+| the ortho resting at noon: m/s, net m and turn in a minute | 0.03, 0.1, 5° (89% of steps still) | 0.47, 12.1, 287° (never still) |
+| the arrow at noon / the great and the needle at midnight, m/s | 0.03 / 0.02, 0.03 | 0.33 / 0.22, 0.51 |
+| the same kinds in their hours | | the same (ortho 3.3 m/s at night, the great 2.4 at noon) |
+| five plumbs at a wall cell, 10 minutes at noon: horizontal m/s | 0.149 | 0.352 (×2.4) |
+| roams begun / arrived / stopped where they were | 5 / 3 / 0 | 38 / 11 / 27 |
+| share of their time jammed in a roam (under 0.1 m/s) | 51% | 6% |
+
+Most roams now end short of the station they set out for — a wall in the way, a kick off one — and the plumb hangs where it stopped, its new station
+there. That reads as a roam; a plumb pressed against a rock for the rest of the day did not.
+
+**Tests:** test/clock.js (the hover: an ortho at noon and a needle at midnight rest the whole minute, ≥ 15 and ≥ 8 m of way, never still a second,
+turning, their spot shifting inside their home range); test/ringmouths.js (into a 0.75 m/s current a plumb makes its 0.6 m/s jet good over the
+ground; held where it is it gives its roam up in `ROAM.stall[0]` s and hangs there). Both fail on main's sources. test/ringmouths.js's day roam still
+lands 10–30 m off within its leash, gets there (21 s) and sits.
+
+**What it costs** (`node test/perf.js` against main; the creatures' bench in Chromium run twice):
+
+| measure | before | after | ratio |
+|---|---|---|---|
+| creatures' work a frame at the forest (Chromium), ms | 1.685 / 1.692 | 1.847 / 1.844 | **×1.10 / ×1.09** |
+| the same at (330, 0) in node, ms (mean / p95) | 2.298 / 3.294 | 2.363 / 3.550 | ×1.03 / ×1.08 |
+| `restStep` under a profile, 400 frames at (330, 0), ms | 17 | 31 | +0.035 ms a frame |
+| every kind's build (first / again), a cell at five places | | | ×0.99–1.02, ×1.00 |
+| the GPU's counts (test/gpu.js), seven places | | | within 6% (the forest's bytes to buffers 330 → 348 KB, the coast's draws 175 → 182) |
+
+The creatures' frame is a tenth heavier at the forest in Chromium (+0.15 ms), at the 10% line. The hover's own steering is a quarter of that
+(`restStep`, +0.035 ms: 21 arrows resting there by day); the rest is a simulation that is not main's (resting bodies that move, turn and are seen
+moving), not itemised further. Not measured: the person's machines.
+
+**Seen:** the probes' numbers above (headless: a still picture cannot show a drift); the build boots in headless Chromium with no page error.
+
+**Unseen, ask in this order:**
+1. An ortho resting by day on the slope (−100 to −800 m, in a current): whether the drift, the bob and the slow turns read as rest, not as a statue
+   and not as swimming.
+2. A plumb at its wall by day: its roams every minute or so at a visible crawl, most stopping short against the wall and hanging there.
+3. The arrows by day and the needles at night: small resting bodies circling loosely.

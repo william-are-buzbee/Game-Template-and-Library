@@ -4,6 +4,14 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.245 (26 Nov 2026): the hover keeps station, never still; the plumb's day roam through the current and past the walls** (creatures_ai.js `HOVER`,
+`hoverShift`, `ROAM`, `HANG.head`, `hangGo`, `hangSettle`, `roamBegin`, `c.roamD`; test/clock.js, test/ringmouths.js; BEHAVIOUR §2, §3d; DESIGN; CHANGELOG).
+The person: the ortho "frozen", the plumb "barely moving"; on the findings, *"go ahead with those numbers."* The hover rest (the ortho and the arrow by day,
+the great and the needle by night, ~45% of the day) held a point at 0.03 m/s; now it drifts, bobs, turns and shifts its spot (the ortho 0.47 m/s at rest).
+The plumb's day roam (every 45 s at 0.6 m/s, from 90 and 0.35) makes its jet good in any current, settles its station out of the walls' colliders and stops
+where it is after 5 s without headway: five plumbs at a wall 0.149 → 0.352 m/s across, jammed 51% → 6% of the day. **Ask:** an ortho at noon on the slope
+and a plumb at its wall by day — whether the hover reads as rest, and whether the plumb's roams (most stop short against the wall) read right.
+
 **v11.244 (26 Nov 2026): one of the two high islands in the map's middle struck — m122 gone, m93 back** (region.js `REGION_K.strike`; test/region.js,
 test/horizon.js, test/gpu.json; DESIGN The region; ARCHIPELAGO; CHANGELOG). The person: *"there shouldn't really be two sunken islands in one spot … pick one
 and kill it"* — m122 (799 m) and m109 (470 m), 54 km apart, each in its own drowned ring. m122 is never born and the pins refit: ours' own island the same
@@ -28,12 +36,6 @@ Now the dome and its cloud pass are left out looking down (either tier) and when
 from ~135 m); pictures the same. Measured: **the low tier's window is the sky itself, faint to 800 m** — so it is still drawn there — and shallow and
 level the cloud pass's waste cannot be cut exactly. **Ask:** the clouds at half resolution under water, or none through the window on the low tier; the
 low tier's window fading to the computed sky with depth like the high tier's.
-**v11.239 (25 Nov 2026): the reed to 160 m on the low tier and 300 on the high, the seagrass to 160** (scene.js `Q.reed`, `THIN_CUT`, `MATRD`, `MATSG`;
-flora.js the reed and the strap; main.js `warmShaders`; FLORA.md; CHANGELOG). The work tower's report on v11.238 (#205): 60 fps on the median now, 40%
-of frames late, its worst place a sand flat where the reed was 600k of 1.33M triangles, nearly all past 150 m and specks at its size; the seagrass the same.
-The person: the low tier at 160, the high longer "for now" (option 2) — 300, where ours' north shore's far bed stays whole — and *"do the seagrass too."*
-The tower's worst place: triangles ×0.56, the proxy ×0.77; the high tier ×0.79–0.98 in triangles and its pictures the same. **Ask:** the tower's frame at
-`tp(72929,243)`; whether the high tier's reed may come down to 160 later (the person's "we can always do it for the other high tier later").
 
 ## Open
 

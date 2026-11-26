@@ -9,7 +9,7 @@ const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..');
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
 let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n');
-js+='\nglobal.__rm={CK,clockTick,PLUMB,QUILL,ROAM,STATION,plumbWait,stOf,setWander,weedAt,PACK,INK,LURK,HANG,REST,DEFS,SPAWN,CELL,HALF,NCELL,FI,sample,envW,gridRise,stationW,ecoId,ecoCap,POP,trimOf,phaseOf,plumbY,sightOf,currentAt,'
+js+='\nglobal.__rm={CK,clockTick,PLUMB,QUILL,ROAM,hangGo,STATION,plumbWait,stOf,setWander,weedAt,PACK,INK,LURK,HANG,REST,DEFS,SPAWN,CELL,HALF,NCELL,FI,sample,envW,gridRise,stationW,ecoId,ecoCap,POP,trimOf,phaseOf,plumbY,sightOf,currentAt,'
   +'updatePlayer,finishPlayer,get bodies(){return bodies;},get mode(){return mode;},spawn,removeCreature,creatures,schools,makeSchool,placeKind,loadChunkNow,chunkIJ,cellOf,groundAt,player,choose,faceQ,V3,mulberry,kill,holds,startHold,releaseHold,updateCreatures,updateSchools,'
   +'at(x,z){player.pos.set(x,-30,z);cellsAround();},get t(){return t;},setT(v){t=v;},setClock(h){clockH=h;TIDE=tideAt(h);clockTick();}};';
 const tmp=path.join(require('os').tmpdir(),'tethys_ringmouths_'+process.pid+'.js');
@@ -79,6 +79,15 @@ if(Pl){const away=()=>{P.pos.set(Pl.pos.x+300,-30,Pl.pos.z);hold();};away();cons
   check(lm>0&&ln>lm*0.7,'leaning into its way ('+(100*ln/Math.max(1,lm)).toFixed(0)+'%)');
   X.ROAM.hang.every=5;let worst=0;frames(60*600,()=>{away();worst=Math.max(worst,Math.hypot(Pl.pos.x-post.x,Pl.pos.z-post.z));});
   check(worst<X.ROAM.hang.leash+X.HANG.drift[0]+3,'roaming every 5 s on the mean for ten minutes, never past its leash of its post ('+worst.toFixed(0)+' m at most)');
+  // v11.245: into a current it makes its jet good over the ground (to v11.244 at most 1.2 × its jet through the water: a day's roam at 0.35 m/s stalled in the
+  // 0.3–0.56 m/s the tide runs at the walls), and held where it is — against a solid, as the walls' colliders held it — it gives the roam up there
+  {X.ROAM.hang.every=1e12;const jet=X.ROAM.hang.jet,g=X.V3(Pl.pos.x+20,Pl.pos.y,Pl.pos.z),cur0=Pl.cur,car0=Pl.carried;Pl.cur=X.V3(-0.75,0,0);Pl.carried=true;Pl.vel.set(0,0,0);let gx=0;
+    for(let i=0;i<60*6;i++){X.hangGo(Pl,g,jet,dt);if(i>=60*4)gx+=(Pl.vel.x+Pl.cur.x)*dt;}Pl.cur=cur0;Pl.carried=car0;
+    check(gx/2>=jet*0.9,'into a 0.75 m/s current it makes its '+jet+' m/s jet good over the ground ('+(gx/2).toFixed(2)+' m/s)');
+    Pl.state='sit';Pl.cool=1e9;X.ROAM.hang.every=1;Pl.scanT=0;const r0=frames(60*20,()=>{away();return Pl.state==='roam';});X.ROAM.hang.every=1e12;const at=Pl.pos.clone(),gl2=Pl.goal.clone();
+    const st=frames(60*30,()=>{away();Pl.pos.copy(at);Pl.vel.set(0,0,0);return Pl.state!=='roam';});
+    check(r0>=0&&st>=0&&Math.abs(st/60-X.ROAM.stall[0])<0.5&&Pl.state==='sit'&&Math.hypot(Pl.home.x-at.x,Pl.home.z-at.z)<0.01&&Math.hypot(gl2.x-at.x,gl2.z-at.z)>5,
+      'held where it is, it gives its roam up in '+(st/60).toFixed(1)+' s and hangs there: its station now ('+Pl.state+')');Pl.cool=0;}
   X.ROAM.hang.every=ev;X.removeCreature(Pl);}
 
 // ---- 2. the quill's stand (the weed at 330, 0) ----

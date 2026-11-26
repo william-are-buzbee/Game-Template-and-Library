@@ -178,7 +178,7 @@ function shedFlora(){const byKind={};SPAWN.forEach(e=>{if(e.land||!moults(e.kind
     const f={id:'shed_'+kind,shed:kind,geo:geo,mat:MAT,tints:[[1,1,1],[0.94,0.92,0.88],[0.9,0.9,0.86]],s:[MOULT.keep*0.9,MOULT.keep*1.05],sink:0.08,tilt:true,per:Math.max(1,Math.round(dens)),rare:Math.min(1,dens),envs:K.envs,top:d.size*0.6,maxSlope:1.0};
     FLORA.push(f);FLORA_BY_ID[f.id]=f;}}
 shedFlora();
-/** @typedef {{kind:any,def:any,g:any,anim:any,pos:any,vel:any,home:any,hp:any,state:any,t0:any,lastSpd:any,lastYaw:any,roll:any,rollV:any,sq:any,stunSide:any,target:any,biteT:any,wanderT:any,wander:any,alive:any,gone:any,stun:any,bored:any,cool:any,scanT:any,alarm:any,fleeT:any,lungeT:any,ramT:any,school:any,off:any,offT:any,chunk:any,lod:any,parts:any,lodMeshes:any,sub:any,wet:any,grounded:any,flopT:any,b:any,mass:any,mass0:any,bound:any,reach:any,shapesW:any,chainW:any,grab:any,holding:any,armT:any,touchF:any,hold:any,held:any,bleed:any,blood:any,wounds:any,paraT:any,stungT:any,armsLost:any,regrow:any,sickT:any,poison:any,poisT:any,commitT:any,coastT:any,missN:any,speedK:any,turnK:any,live:any,lost:any,cWith:any,d6:any,par:any,st:any,tellT:any,strikeT:any,recoverT:any,burstT:any,face:any,bit:any,accT:any,threat:any,ent:any,hunger:any,starveT:any,hunt:any,feedT:any,feedAt:any,dead:any,flesh:any,deadT:any,scav:any,scavT:any,glow:any,lumL:any,lumF:any,lumD:any,lumH:any,juv:any,k:any,cls:any,soft:any,softT:any,moultT:any,shM:any,cast:any,lodNear:any,lodFar:any,nearR:any,stepR:any,carried:any,cur:any,curT:any,turnedF:any,turnV:any,accV:any,shapeF:any,rigV:any,rigO:any,hitN:any,hitB:any,lieQ:any,chaseT:any,lungeP:any,strikeP:any,gapMin:any,pivotT:any,sw:any,swT:any,filtT:any,q:any,pig:any,hand:any,fall:any,brood:any,fxStruck:any,fxAcc:any,stam:any,spinV:any,shook:any,shakeYaw:any,shakeP:any,pointD:any,lenM:any,lastHurt:any,eaten:any,liveMass:any,fullMass:any,wallD:any,seed:any,vk:any,awake:any,sink:any,inspT:any,deter:any,dread:any,crypt:any,cov:any,covT:any,goal:any,waitT:any,inkT:any,post:any,pel:any,bodyT:any,therm:any,thmT:any,den:any,seq:any,cgI:any}} Creature — every key a creature carries, closed: spawn's literal below in the same order (CLAUDE.md, "one shape"); a key added to the literal goes here too, and the type checker flags one misspelt or set that is not here (v11.193, test/types.js) */
+/** @typedef {{kind:any,def:any,g:any,anim:any,pos:any,vel:any,home:any,hp:any,state:any,t0:any,lastSpd:any,lastYaw:any,roll:any,rollV:any,sq:any,stunSide:any,target:any,biteT:any,wanderT:any,wander:any,alive:any,gone:any,stun:any,bored:any,cool:any,scanT:any,alarm:any,fleeT:any,lungeT:any,ramT:any,school:any,off:any,offT:any,chunk:any,lod:any,parts:any,lodMeshes:any,sub:any,wet:any,grounded:any,flopT:any,b:any,mass:any,mass0:any,bound:any,reach:any,shapesW:any,chainW:any,grab:any,holding:any,armT:any,touchF:any,hold:any,held:any,bleed:any,blood:any,wounds:any,paraT:any,stungT:any,armsLost:any,regrow:any,sickT:any,poison:any,poisT:any,commitT:any,coastT:any,missN:any,speedK:any,turnK:any,live:any,lost:any,cWith:any,d6:any,par:any,st:any,tellT:any,strikeT:any,recoverT:any,burstT:any,face:any,bit:any,accT:any,threat:any,ent:any,hunger:any,starveT:any,hunt:any,feedT:any,feedAt:any,dead:any,flesh:any,deadT:any,scav:any,scavT:any,glow:any,lumL:any,lumF:any,lumD:any,lumH:any,juv:any,k:any,cls:any,soft:any,softT:any,moultT:any,shM:any,cast:any,lodNear:any,lodFar:any,nearR:any,stepR:any,carried:any,cur:any,curT:any,turnedF:any,turnV:any,accV:any,shapeF:any,rigV:any,rigO:any,hitN:any,hitB:any,lieQ:any,chaseT:any,lungeP:any,strikeP:any,gapMin:any,pivotT:any,sw:any,swT:any,filtT:any,q:any,pig:any,hand:any,fall:any,brood:any,fxStruck:any,fxAcc:any,stam:any,spinV:any,shook:any,shakeYaw:any,shakeP:any,pointD:any,lenM:any,lastHurt:any,eaten:any,liveMass:any,fullMass:any,wallD:any,seed:any,vk:any,awake:any,sink:any,inspT:any,deter:any,dread:any,crypt:any,cov:any,covT:any,goal:any,waitT:any,inkT:any,post:any,roamD:any,pel:any,bodyT:any,therm:any,thmT:any,den:any,seq:any,cgI:any}} Creature — every key a creature carries, closed: spawn's literal below in the same order (CLAUDE.md, "one shape"); a key added to the literal goes here too, and the type checker flags one misspelt or set that is not here (v11.193, test/types.js) */
 function spawn(ch,kind,pos,rng,opt){
   const juv=!!(opt&&opt.juv),D0=juv?juvDef(kind):DEFS[kind],EK=ecoOf(kind),ent=opt&&opt.ent!==undefined?opt.ent:-1,vary=ent>=0&&kind!=='lab';
   // the individual (v11.66, above): the size band, the coat class of the place, the soft state; plain outside the ledger. v11.225: a kind with a
@@ -199,7 +199,7 @@ function spawn(ch,kind,pos,rng,opt){
     shM:null,cast:false,lodNear:0,lodFar:0,nearR:0,stepR:0, // set below, in this order
     carried:undefined,cur:undefined,curT:undefined,turnedF:undefined,turnV:undefined,accV:undefined,shapeF:undefined,rigV:undefined,rigO:undefined,hitN:undefined,hitB:undefined,lieQ:undefined,chaseT:undefined,lungeP:undefined,strikeP:undefined,gapMin:undefined,pivotT:undefined,
     sw:undefined,swT:undefined,filtT:undefined,q:undefined,pig:undefined,hand:undefined,fall:undefined,brood:undefined,fxStruck:undefined,fxAcc:undefined,stam:undefined,spinV:undefined,shook:undefined,shakeYaw:undefined,shakeP:undefined,pointD:undefined,
-    lenM:undefined,lastHurt:undefined,eaten:undefined,liveMass:undefined,fullMass:undefined,wallD:undefined,seed:seed,vk:vx?vx.key:undefined,awake:1,sink:1,inspT:0,deter:0,dread:null,crypt:crypt,cov:0,covT:-1,goal:null,waitT:0,inkT:0,post:null,pel:false,bodyT:-99,therm:1,thmT:0,den:null,seq:++CSEQ,cgI:-1}); // seq, cgI (v11.238): its place in `creatures` (spawn order, which every splice keeps) and its entry in the scans' grid (CG.list) // den (v11.232): a hingeshell's kept den (DEN) // bodyT, therm, thmT (v11.231): a slowblood's body's warmth (°C; -99 unread), the activity it allows (THERM), when it is next read // post, pel (v11.230.1): a hanger's post, round which its station roams (a stand's one, shared); placed in the water column (a SPAWN row's mid), it keeps to its depth there // wallD (v11.223): the way to the wall from a station (chunks.js stationPoint), a unit vector; seed, vk (v11.225): the individual's seed and its variant's key // the individual (v11.66): its size factor, its coat class, the soft state and its clocks // awake, sink, inspT, deter, dread (v11.228, BEHAVIOUR.md): how much it is about (awakeOf, at its last scan), its clearance's share (a buried rest), the look's clock and how far it has been stood up to (RISK), what it flees; crypt, cov, covT (v11.229): how well it matches its ground (SENSE), the weed's cover where it is and when that was read; goal, waitT, inkT (v11.230): where it makes for (a plumb foraging), how long it has waited (a plumb, a lurker) or a quill hides, how long until it inks again (an arrow)
+    lenM:undefined,lastHurt:undefined,eaten:undefined,liveMass:undefined,fullMass:undefined,wallD:undefined,seed:seed,vk:vx?vx.key:undefined,awake:1,sink:1,inspT:0,deter:0,dread:null,crypt:crypt,cov:0,covT:-1,goal:null,waitT:0,inkT:0,post:null,roamD:0,pel:false,bodyT:-99,therm:1,thmT:0,den:null,seq:++CSEQ,cgI:-1}); // seq, cgI (v11.238): its place in `creatures` (spawn order, which every splice keeps) and its entry in the scans' grid (CG.list) // den (v11.232): a hingeshell's kept den (DEN) // bodyT, therm, thmT (v11.231): a slowblood's body's warmth (°C; -99 unread), the activity it allows (THERM), when it is next read // post, pel (v11.230.1): a hanger's post, round which its station roams (a stand's one, shared); placed in the water column (a SPAWN row's mid), it keeps to its depth there // wallD (v11.223): the way to the wall from a station (chunks.js stationPoint), a unit vector; seed, vk (v11.225): the individual's seed and its variant's key // the individual (v11.66): its size factor, its coat class, the soft state and its clocks // awake, sink, inspT, deter, dread (v11.228, BEHAVIOUR.md): how much it is about (awakeOf, at its last scan), its clearance's share (a buried rest), the look's clock and how far it has been stood up to (RISK), what it flees; crypt, cov, covT (v11.229): how well it matches its ground (SENSE), the weed's cover where it is and when that was read; goal, waitT, inkT (v11.230): where it makes for (a plumb foraging), how long it has waited (a plumb, a lurker) or a quill hides, how long until it inks again (an arrow)
   // v11.149 (the creature performance pass): every creature one shape. The keys above from shM on were added to a creature as it lived — the current
   // it is carried by, its turn, its holds, the falls, the brood, the effects' clocks — each by whichever system reached it first, in that order: the
   // forest's 1,400 creatures had 27 shapes, and past four an engine gives up a property read's fast path, so every c.pos, c.def, c.vel in the frame was
@@ -560,15 +560,33 @@ function coverSpot(c,p){const d=c.def,ch=c.chunk;if(!ch)return false;const r=d.s
 // to rest: the place (c.wander holds it — a resting animal does not wander) by its kind's rest
 function restBegin(c){const d=c.def,m=d.rest,p=c.wander;c.state='rest';c.face=null;c.hunt=0;c.wanderT=0;
   if(m==='slow'){setWander(c);return;}
-  if(m==='hover'){const fh=groundAt(c.pos.x,c.pos.z);p.set(c.pos.x,clamp(c.pos.y,fh+REST.lift+d.size,-4-d.size*0.4),c.pos.z);return;}
+  if(m==='hover'){const fh=groundAt(c.pos.x,c.pos.z);p.set(c.pos.x,clamp(c.pos.y,fh+REST.lift+d.size,-4-d.size*0.4),c.pos.z);c.wanderT=srnd(HOVER.every[0],HOVER.every[1]);return;} // v11.245: its spot shifts every so often (HOVER)
   if(m==='cover'&&denSpot(c,p))return; // v11.232: a hingeshell's kept den (DEN)
   p.set(c.pos.x,groundAt(c.pos.x,c.pos.z)+bodyClear(d)*(m==='bury'?REST.bury:1),c.pos.z);}
 function restEnd(c){c.state='wander';c.sink=1;setWander(c);}
-// a step of rest: to its place at REST.go of its speed, then still (a buried one sunk to REST.bury of its clearance: updateCreatures' floor reads c.sink); a 'slow' one cruises on
+// The hover (v11.245; the person, 26 Nov 2026: the ortho "frozen" — v11.228's hover held its point and damped its speed to nothing, an ortho or an arrow
+// by day and a great or a needle by night at 0.02–0.03 m/s, 4° of turn a minute, ~45% of every game day): a body resting in the water keeps station as a
+// squid or a nautilus does. It drifts round its spot on two slow periods and bobs (HOVER.drift, HOVER.bob: a share of its length, at least a floor in m),
+// faces the way it drifts — into the current where it holds against one (seek's curComp) — and every HOVER.every s shifts its spot HOVER.step body
+// lengths within its home range (hoverShift), at no more than HOVER.go of its speed. Still a rest: it takes only what comes to it, and gets up at its hours
+const HOVER={drift:[0.3,1.5,37,53], // the drift's reach (× its length, at least m) and its two periods (s)
+  bob:[0.08,0.4,9], // the bob's reach (× its length, at least m) and its period (s)
+  every:[20,40], // s between shifts of its spot
+  step:[0.8,2,3], // a shift in body lengths, and at least m
+  go:0.1}; // the share of its speed it hovers at, at most (the ortho 0.9 m/s, the arrow 0.6)
+const HOVER_P=V3();
+function hoverShift(c){const d=c.def,p=c.wander,R=d.home||30,hx=c.pos.x-c.home.x,hz=c.pos.z-c.home.z,h0=Math.sqrt(hx*hx+hz*hz);c.wanderT=srnd(HOVER.every[0],HOVER.every[1]);
+  for(let k=0;k<6;k++){const a=SIMR()*TAU,r=Math.max(HOVER.step[2],srnd(HOVER.step[0],HOVER.step[1])*d.size),x=worldX(c.pos.x+Math.cos(a)*r,30),z=worldZ(c.pos.z+Math.sin(a)*r,30),fh=groundAt(x,z);
+    if(fh>=-3-d.size*0.6)continue;const ex=x-c.home.x,ez=z-c.home.z,e=Math.sqrt(ex*ex+ez*ez);if(e>R&&e>h0)continue; // wet, and within its home range (or no farther out than it is)
+    let y=clamp(p.y,fh+REST.lift+d.size,-4-d.size*0.4);if(d.deepY!==undefined)y=Math.max(y,d.deepY);p.set(x,y,z);return;}}
+// a step of rest: to its place at REST.go of its speed, then still (a buried one sunk to REST.bury of its clearance: updateCreatures' floor reads c.sink); a 'slow' one cruises on; a 'hover' keeps station (HOVER)
 function restStep(c,dt){const d=c.def,m=d.rest,p=c.wander;
   if(m==='slow'){c.wanderT-=dt;if(c.wanderT<=0||c.pos.distanceTo(p)<3)setWander(c);seek(c,p,d.speed*(d.cruiseF||0.45)*REST.slow,dt,0.6);return;}
+  if(m==='hover'){c.wanderT-=dt;if(c.wanderT<=0)hoverShift(c);const L=d.size,A=Math.max(HOVER.drift[1],HOVER.drift[0]*L),B=Math.max(HOVER.bob[1],HOVER.bob[0]*L),ph=c.t0,q=HOVER_P;
+    q.set(p.x+A*Math.sin(TAU*t/HOVER.drift[2]+ph),p.y+B*Math.sin(TAU*t/HOVER.bob[2]+ph*2.3),p.z+A*Math.cos(TAU*t/HOVER.drift[3]+ph*1.7));c.sink=1;
+    seek(c,q,Math.min(d.speed*HOVER.go,0.3+c.pos.distanceTo(q)*0.5),dt,1.2);return;}
   const dx=p.x-c.pos.x,dz=p.z-c.pos.z,far=Math.sqrt(dx*dx+dz*dz);
-  if(far>REST.arrive||(m==='hover'&&Math.abs(p.y-c.pos.y)>REST.arrive)){c.sink=1;seek(c,p,Math.min(d.speed*REST.go,0.4+far*0.5),dt,1.2);return;}
+  if(far>REST.arrive){c.sink=1;seek(c,p,Math.min(d.speed*REST.go,0.4+far*0.5),dt,1.2);return;}
   c.sink=m==='bury'?REST.bury:1;const k=Math.min(1,2*dt);c.vel.x-=c.vel.x*k;c.vel.z-=c.vel.z*k;c.vel.y+=((p.y-c.pos.y)*0.8-c.vel.y)*k;}
 // ---------- the risk, and the approach (v11.228; BEHAVIOUR.md §3) ----------
 // A hunter no longer takes whatever it eats once hungry. Each prey is weighed (riskOf): a body near its own mass can fight (a share for one with no bite),
@@ -939,6 +957,7 @@ const HANG={rise:1.2,back:2,above:0.82,surf:3,tip:0.08,face:10,scan:0.25,
   bob:[0.6,7], // m, s: the slow rise and fall of a body held by its own gas — never quite at rest
   sway:[0.11,23,31], // the tilt's reach (of the face's 10 m, so ~6°) and its two periods (s): a pendulum's wander, which turns it slowly as it goes
   drift:[2.2,47,61], // m, s, s: the wander of its station round where it was placed — still water, not a fixed post
+  head:1, // v11.245: the share of its jet it makes good over the ground at the least, against the current (hangGo: it jets harder into one — the tide runs 0.3–0.8 m/s at the walls, and at half its jet a roam into it crawled at 0.3 m/s)
   pull:0.15,hold:0.45}; // 1/s and m/s: how hard it keeps its station against a push or the current (it is carried by the water, v11.223.1); a push moves it and it drifts back
 function plumbY(d,floor,c){let lo=floor+(d.clear||0)+d.size*HANG.gap;if(d.deepY!==undefined)lo=Math.max(lo,d.deepY);const top=-(d.size*HANG.above+HANG.surf);
   if(d.canopy)return Math.min(lo+lerp(d.canopy[0],d.canopy[1],c?(c.t0%1):0.5),top); // the quill (v11.227): among the stalks, at its own height in the canopy's band over the floor — no layer to follow in the lit weed
@@ -985,10 +1004,22 @@ const QUILL={alarm:8,big:12,hide:20,stand:4}; // m it notices the player within,
 // station now and then — a chance a scan, every s on average — step m off, never past leash m from its post (where it was placed: a wall's foot, a
 // stand's point), in still water (STATION.lee; a quill of the weed among the stalks), jetting there at jet m/s and leaning into its way. A stand goes
 // together: one moves, its mates on the same post come with it, each keeping its place in the stand. By night the plumb roams farther (PLUMB)
-const ROAM={hang:{every:90,step:[10,30],leash:50,jet:0.35},stand:{every:25,step:[5,15],leash:40,jet:0.5}};
+// v11.245 (the person, 26 Nov 2026: the plumbs "barely moving … almost stationary", and "go ahead with those numbers"): the hang's roam every 45 s, not
+// 90, at 0.6 m/s, not 0.35 — which was under the current where the plumbs hang (0.3–0.56 m/s measured at noon), so a roam stalled short of its station
+// for minutes, its nose in its jet — and more often against a solid: a plumb hangs beside a wall, among the wall's colliders, which pushed its nose
+// back each step. It now jets harder into a current (HANG.head), its new station is settled where its body can hang (hangSettle), and a roam that has
+// made no ROAM.gain m toward its station in ROAM.stall[1] s (ROAM.stall[0] at its start, to turn into its way) is given up where it is (c.roamD: the
+// nearest it has come): its station now
+const ROAM={hang:{every:45,step:[10,30],leash:50,jet:0.6},stand:{every:25,step:[5,15],leash:40,jet:0.5},stall:[10,5],gain:1};
+function roamBegin(c,x,z){const dx=x-c.pos.x,dz=z-c.pos.z;c.roamD=Math.sqrt(dx*dx+dz*dz);c.wanderT=ROAM.stall[0];} // the roam's headway clock (v11.245)
 function roamOf(d){return d.canopy?ROAM.stand:ROAM.hang;}
 function hangFloor(d){return -(d.size*HANG.above+HANG.surf)-(d.clear||0)-d.size*HANG.gap;} // the shallowest floor a hanger can hang over at its highest: its arms' reach and gap under a shell at the surface's limit (v11.230.1: over less the floor pushed a night's plumb out of the water)
 // whether the floor between two points stays under a hanger at y (the higher end of its way) by its arms' reach and gap, at five points on the line
+// v11.245: a hanger's new station settled where its body can hang — its middle, nose and tail pushed out of every solid as updateCreatures' bodyPush
+// pushes them each step (the body as it hangs now). A plumb hangs beside a wall, and the wall's colliders are there: a day's roam toward a station
+// its nose could not reach had it pressed against them for the rest of the day (pushed back each step: 0.05 m/s over the ground, 9 m short). The
+// quill's is not settled: a small body slides round the stalks it hangs among
+function hangSettle(c,g){const d=c.def;for(let k=0;k<3;k++)bodyPush(g,null,c.g.quaternion,d.size*0.75,d.size*0.35,d.size*0.28);}
 function hangPath(d,x0,z0,x1,z1,y){const m=y-(d.clear||0)-d.size*HANG.gap;for(let k=1;k<=5;k++){const u=k/5;if(groundAt(x0+(x1-x0)*u,z0+(z1-z0)*u)>m)return false;}return true;}
 function plumbWait(c){return PLUMB.wait*(0.5+(c.t0*7.13)%1);} // its own wait at dusk, so a wall's plumbs leave one by one
 // a new station near its post for the day's roam, into c.goal: false when none of four tries will do
@@ -997,14 +1028,15 @@ function plumbRoam(c){const d=c.def,R=roamOf(d),o=c.post||c.home,g=c.goal||(c.go
     const ch=chunkAt(x,z);if(!ch)continue;const fl=ch.h(x,z);if(fl>hangFloor(d))continue;
     if(wo){if(weedAt(x,z)<0.2)continue;}else if(ch.f(x,z)[FI.flow]>STATION.lee.hi)continue; // a quill of the weed keeps to the stalks; else still water (a hung body is a mast in a current)
     const y=plumbY(d,fl,c);if(!hangPath(d,c.home.x,c.home.z,x,z,Math.max(y,c.home.y)))continue; // no shoal on the way
-    g.set(x,y,z);return true;}
+    g.set(x,y,z);if(!d.canopy){hangSettle(c,g);const sx=g.x-o.x,sz=g.z-o.z,hx=g.x-c.home.x,hz=g.z-c.home.z;const h2=hx*hx+hz*hz;if(sx*sx+sz*sz>R.leash*R.leash||h2<R.step[0]*R.step[0]||h2>R.step[1]*R.step[1]||groundAt(g.x,g.z)>hangFloor(d))continue;g.y=y;} // v11.245: where its body can hang (hangSettle), still a step off and within its leash, over deep enough water
+    roamBegin(c,g.x,g.z);return true;}
   return false;}
 // a stand's mates (its post's) come along, each keeping its place
-function standFollow(c){if(!c.chunk||!c.post)return;const g=c.goal;for(const o of c.chunk.creatures){if(o===c||o.post!==c.post||!o.alive||o.state!=='sit'||o.waitT>0)continue;const og=o.goal||(o.goal=V3());og.set(g.x+o.home.x-c.home.x,0,g.z+o.home.z-c.home.z);og.y=plumbY(o.def,groundAt(og.x,og.z),o);o.state='roam';}}
+function standFollow(c){if(!c.chunk||!c.post)return;const g=c.goal;for(const o of c.chunk.creatures){if(o===c||o.post!==c.post||!o.alive||o.state!=='sit'||o.waitT>0)continue;const og=o.goal||(o.goal=V3());og.set(g.x+o.home.x-c.home.x,0,g.z+o.home.z-c.home.z);og.y=plumbY(o.def,groundAt(og.x,og.z),o);roamBegin(o,og.x,og.z);o.state='roam';}}
 // the quill hides: down into the stalks for QUILL.hide s, and its standmates within QUILL.stand with it — any roaming stop where they are
 function quillHide(c){c.waitT=QUILL.hide;if(c.state==='roam'){c.home.set(c.pos.x,c.home.y,c.pos.z);c.state='sit';}if(!c.chunk)return;for(const o of c.chunk.creatures)if(o!==c&&o.kind===c.kind&&o.alive&&o.pos.distanceTo(c.pos)<QUILL.stand){o.waitT=QUILL.hide;if(o.state==='roam'){o.home.set(o.pos.x,o.home.y,o.pos.z);o.state='sit';}}}
 // a hanger's way through the water: across at up to sp m/s (slowed by its wounds, against the current), up and down by its gas at HANG.rise over its size factor
-function hangGo(c,g,sp,dt){sp*=slowOf(c);T1.set(g.x-c.pos.x,0,g.z-c.pos.z);const h=T1.length(),rr=HANG.rise/Math.max(1,c.k||1),vy=clamp((g.y-c.pos.y)*0.5,-rr,rr);if(h>0.01)T1.multiplyScalar(Math.min(sp,h*0.4)/h);curComp(c,T1,sp);T1.y=vy;c.vel.lerp(T1,1-Math.exp(-0.8*dt));c.vel.y=vy;}
+function hangGo(c,g,sp,dt){sp*=slowOf(c);T1.set(g.x-c.pos.x,0,g.z-c.pos.z);const h=T1.length(),rr=HANG.rise/Math.max(1,c.k||1),vy=clamp((g.y-c.pos.y)*0.5,-rr,rr),cu=c.cur?Math.sqrt(c.cur.x*c.cur.x+c.cur.z*c.cur.z):0;if(h>0.01)T1.multiplyScalar(Math.min(sp,h*0.4)/h);curComp(c,T1,Math.max(sp,(cu+sp*HANG.head)/CUR_FIGHT));T1.y=vy;c.vel.lerp(T1,1-Math.exp(-0.8*dt));c.vel.y=vy;} // v11.245: through the water up to the current and HANG.head of its jet, so it makes headway in any current (to v11.244 at most CUR_FIGHT × its jet: a day's roam at 0.35 stalled in a 0.4 current)
 function plumbFeedR(c,f){return Math.max(reachOf(c,f)*0.8,(c.def.clear||0)+f.def.size*0.5+PLUMB.reach);}
 // carrion it smells (findCarcass: the current's plume) and can reach: never under its shell's floor
 function plumbCarrion(c){const d=c.def,f=findCarcass(c,d.scav);if(!f)return null;if(d.deepY!==undefined&&f.pos.y<d.deepY-2)return null;return f;}
@@ -1032,7 +1064,8 @@ function updatePlumb(c,dt){
       if(d.canopy&&c.chunk&&quillAlarm(c)){quillHide(c);return;} // it stops where it is and drops into the stalks
       if(c.cool<=0&&c.hunger>thr){const tg=findPrey(c,d.radius*lerp(REST.see,1,c.awake),thr);if(tg){c.state='lunge';c.target=tg;c.lungeT=2;c.bit=false;POP.chases++;return;}} // what passes under it on the way
       g.y=plumbY(d,groundAt(g.x,g.z),c);}
-    const ex=g.x-c.pos.x,ez=g.z-c.pos.z;if(ex*ex+ez*ez<2.25){c.home.set(g.x,c.home.y,g.z);c.state='sit';c.scanT=0;return;} // there: its station now
+    const ex=g.x-c.pos.x,ez=g.z-c.pos.z,e=Math.sqrt(ex*ex+ez*ez);if(e<1.5){c.home.set(g.x,c.home.y,g.z);c.state='sit';c.scanT=0;return;} // there: its station now
+    if(e<c.roamD-ROAM.gain){c.roamD=e;c.wanderT=ROAM.stall[1];}else{c.wanderT-=dt;if(c.wanderT<=0){c.home.set(c.pos.x,c.home.y,c.pos.z);c.state='sit';c.scanT=0;return;}} // v11.245: no headway for ROAM.stall s (a solid in the way, a kick off one): it stops where it is, its station now
     hangGo(c,g,roamOf(d).jet,dt);plumbLean(c);return;}
   if(c.state==='forage'){c.scanT-=dt;c.wanderT-=dt;c.cool-=dt;
     if(c.scanT<=0){c.scanT=HANG.scan;c.awake=awakeC(c);const thr=huntAt(c),hungry=c.hunger>thr;

@@ -9,7 +9,7 @@ const fs=require('fs'),path=require('path');
 const ROOT=path.join(__dirname,'..');
 const ORDER=fs.readFileSync(path.join(ROOT,'src','order.txt'),'utf8').split('\n').map(s=>s.trim()).filter(s=>s&&s[0]!=='#');
 let js=ORDER.map(n=>fs.readFileSync(path.join(ROOT,'src',n+'.js'),'utf8')).join('\n');
-js+='\nglobal.__ck={currentAt,CK,clockTick,awakeOf,huntAt,needOf,riskOf,findPrey,findCarcass,carcGlow,REST,RISK,DEFS,ECO,spawn,removeCreature,creatures,carcasses,schools,makeSchool,player,choose,faceQ,V3,groundAt,cellOf,chunkIJ,'
+js+='\nglobal.__ck={currentAt,CK,clockTick,awakeOf,huntAt,needOf,riskOf,findPrey,findCarcass,carcGlow,REST,HOVER,RISK,DEFS,ECO,spawn,removeCreature,creatures,carcasses,schools,makeSchool,player,choose,faceQ,V3,groundAt,cellOf,chunkIJ,'
   +'at(x,z){player.pos.set(x,-60,z);cellsAround();},updateCreatures,updateSchools,kill,mulberry,kgOf,FX,solidPush,get mode(){return mode;},get t(){return t;},setT(v){t=v;},setClock(h){clockH=h;TIDE=tideAt(h);clockTick();},get clockH(){return clockH;}};';
 const tmp=path.join(require('os').tmpdir(),'tethys_clock_'+process.pid+'.js');
 fs.writeFileSync(tmp,'(function(){"use strict";\n'+js+'\n})();');
@@ -65,6 +65,19 @@ if(S){clearAll();X.setClock(noon);P.pos.set(S.x+150,Y,S.z);hold();
   clearAll();X.setClock(mid);const sc=[];const it=X.makeSchool(ch,'darter',X.V3(S.x,S.h+12,S.z),10,Math.random,{ent:-1});while(!it.next().done);const sch=X.schools[X.schools.length-1];frames(60*2);
   const sfh=X.groundAt(sch.target.x,sch.target.z);check(sch.rest&&sch.target.y-sfh<3,'a school of darters at midnight settles over the floor (its mark '+(sch.target.y-sfh).toFixed(1)+' m up)');
   X.setClock(noon);frames(60*2);check(!sch.rest,'and is up by day');}
+
+// ---- 2b. the hover (v11.245): a body resting in the water keeps station as a squid does, never still. To v11.244 it held a point with its speed damped
+// to nothing — the ortho at noon 0.03 m/s, 0.1 m and 5° in a minute — and the person found it frozen ----
+console.log('the hover');
+if(S){const hov=(kind,h,when,minPath)=>{clearAll();X.setClock(h);const at=()=>{P.pos.set(S.x+120,Y,S.z);hold();};at();const c=put(kind,X.V3(S.x,Y,S.z),0.2),d=D[kind];
+    const r=frames(60*20,()=>{at();return c.state==='rest';});const w0=c.wander.clone(),q=c.pos.clone(),qq=c.g.quaternion.clone();let path=0,run=0,still=0,turn=0,far=0,out=0;
+    frames(60*60,()=>{at();const m=c.pos.distanceTo(q);path+=m;q.copy(c.pos);run=m<0.05/60?run+1:0;still=Math.max(still,run);const g=c.g.quaternion,k=Math.abs(qq.x*g.x+qq.y*g.y+qq.z*g.z+qq.w*g.w);turn+=2*Math.acos(Math.min(1,k));qq.copy(g);
+      far=Math.max(far,Math.hypot(c.pos.x-c.home.x,c.pos.z-c.home.z));if(c.state!=='rest')out++;});
+    check(r>=0&&out===0,'a '+kind+' '+when+' rests in the water and stays at rest for the minute ('+c.state+')');
+    check(path>=minPath&&still<60&&turn>Math.PI/2,'and keeps station, never still: '+path.toFixed(1)+' m in a minute, still '+(still/60).toFixed(2)+' s at the most, turned '+(turn*57.3).toFixed(0)+'°');
+    const A=Math.max(X.HOVER.drift[1],X.HOVER.drift[0]*d.size); // a shift is a step from where the body is, which drifts up to A off its spot
+    check(c.wander.distanceTo(w0)>=X.HOVER.step[2]-A&&far<=(d.home||30)+A+2,'its spot shifting within its home range ('+c.wander.distanceTo(w0).toFixed(1)+' m from where it began, '+far.toFixed(0)+' m from home at the most)');};
+  hov('ortho',noon,'at noon',15);hov('needle',mid,'at midnight',8);}
 
 // ---- 3. the risk, and the player as any body ----
 console.log('the risk');
