@@ -1117,7 +1117,7 @@ const FLORA = [
   // longer than the rift arms, the fan's fresh blocks and the giant's flows have had; the turfs, the rinds and the rust forms keep their range
   species('turf', {mat: MATG, photo: true, line: 'green', tints: GREENT, s: [0.7, 1.5], per: 1200, env: {h: [-42, -1], sub: [0.5, 1]}, field: 0.02, eco: true}, turfB), // the greens' founder form and the reef's lawn; olive at its deep edge, then the floaters' wisp takes the ground
   species('wisp', {mat: MATG, photo: true, line: 'float', tints: FLOATT, s: [0.4, 1.6], per: 420, env: {h: [-82, -16], sub: [0.3, 1], nut: [0.3, 1]}, field: 0.02, eco: true}, wispB), // nut (v11.116): the floaters' line is the fed flanks' (TAXA) — to v11.115 the founder stood on every poor lagoon floor (nut 0.17–0.21) // the floaters' founder form, small and large: the forests' ground layer and their middle
-  species('strap', {mat: MATG, photo: true, line: 'green', tints: GREENT, s: [0.6, 1.4], per: 1400, env: {h: [-42, -3], sub: [0.05, 0.45]}, field: 0.02, meadow: [0.012, 0.42, 0.55], clone: 0.006}, strapB), // the flats' pasture. v11.116 (analysis_flora_diversity §5.1): meadows with bare sand between (`meadow`, about half the sand) and each meadow a clone (`clone`: its variant), not one lawn at 2400 tries a cell — 91% of every lagoon floor's view to v11.115
+  species('strap', {mat: MATSG, photo: true, line: 'green', tints: GREENT, s: [0.6, 1.4], per: 1400, env: {h: [-42, -3], sub: [0.05, 0.45]}, field: 0.02, meadow: [0.012, 0.42, 0.55], clone: 0.006}, strapB), // the flats' pasture; drawn to THIN_CUT (v11.239, scene.js MATSG), not FLORA_FAR. v11.116 (analysis_flora_diversity §5.1): meadows with bare sand between (`meadow`, about half the sand) and each meadow a clone (`clone`: its variant), not one lawn at 2400 tries a cell — 91% of every lagoon floor's view to v11.115
   species('paddle', {mat: MATG, photo: true, line: 'green', tints: GREENT, s: [0.7, 1.4], per: 600, env: {h: [-26, -3], turb: [0.3, 1], sub: [0.05, 0.62]}, field: 0.02, eco: true}, paddleB), // the turbidity form (v11.67): surf over sand — a scrap of our windward shallows, the giant's whole windward shelf
   species(
     'chain',
@@ -1363,9 +1363,9 @@ const FLORA = [
   ), // the tidewood: the tide band, out of the surf, and off the last flows (young, v11.67: a wood is decades; the reed and the tussock keep the flows). v11.234 (the person, 25 Nov 2026: "an eye sore … should be sparse"): per 700 → 150, and in stands (chunks.js standK): a quarter to a third of a big island's tide band that held it, a tenth or none of a small one's
   species(
     'reed',
-    {mat: MATGL, photo: true, line: 'green', tints: GREENT, s: [0.7, 1.4], air: true, per: 900, env: {h: [-5.5, 1.6], expo: [0, 0.4]}, field: 0.02, maxSlope: 0.6},
+    {mat: MATRD, photo: true, line: 'green', tints: GREENT, s: [0.7, 1.4], air: true, per: 900, env: {h: [-5.5, 1.6], expo: [0, 0.4]}, field: 0.02, maxSlope: 0.6},
     reedB
-  ), // the reed-bed: the sheltered tide band (the rim's inner slope, the island's flat) — under water at high tide, a swamp of stems
+  ), // the reed-bed: the sheltered tide band (the rim's inner slope, the island's flat) — under water at high tide, a swamp of stems; drawn to Q.reed (v11.239, scene.js: 160 m low, 300 high), not FLORA_FAR
   species('tussock', {mat: MATGL, photo: true, line: 'green', tints: GREENT, s: [0.5, 1.3], per: 1500, env: {h: [1.2, 60]}, field: 0.02, minH: 1.2}, tussockB),
   species('scrub', {mat: MATGL, photo: true, line: 'green', tints: GREENT, s: [0.7, 1.8], tilt: true, per: 110, env: {h: [2, 60], expo: [0, 0.65]}, minH: 2}, scrubB), // v11.86: not on the shore the waves strike — salt-blasted; on the tuff cone that is its windward rim (the cone has its own exposure, world.js CONE)
   species('platewood', {mat: MATWD, tints: [WOOD_C.leaf, [0.3, 0.39, 0.19], [0.35, 0.39, 0.21]], wood: true, air: true, s: [0.85, 1.15], per: 300, minH: 4, maxSlope: 1.3}, platewoodB), // the wood (v11.180): placed by world.js woodAt's cover and scaled to its canopy's height (chunks.js placeFloraType); no env, no card — past FLORA_FAR the terrain's shell is the wood (scene.js woodGLSL)
