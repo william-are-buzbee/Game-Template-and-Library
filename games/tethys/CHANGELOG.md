@@ -12052,3 +12052,50 @@ light pool and a heavy one by variant, the same pixels would cost about 0.4 of t
 **Unseen, ask in this order:**
 1. The work tower, F8 at the same place (`tp(69950,29582,-10)`): the plants' share against #208's 6.35 ms.
 2. Any pop at 45 m as you swim — a plant snapping to fewer facets as its tile crosses (4 m of hysteresis; the copies are the same shape).
+
+## v11.242 — the uneven species split by their variants' size: the grasses' padding gone (26 Nov 2026)
+
+v11.241 left the grasses: at the work tower's F8 place (`tp(69950,29582,-10)`, the low tier) the tress and the strap were 158k of the 472k triangles,
+and most of that was padding — a pulled draw (v11.187) runs every instance at its species' largest variant's vertex count, the shorter variants' extra
+vertices leaving at the top of the shader, and the strap's beaded variant is 636 vertices against its blade tufts' 72 and 60, the tress's bristles 468
+against 60 and 84. The person (26 Nov 2026): *"go ahead with the grass split after this PR."* Nothing seen changes.
+
+- **The split** (grow.js `VSPLIT` {min 0.3}, `vsplitOf`; chunks.js `VPULL_N`): a pulled species whose light variants — its smallest, or its two smallest
+  — would save 30% of its vertex work or more, its three variants taken as equally common, gets a second geometry, `f.split.geo`: the same stride in the
+  texture, drawn at the light variants' largest count. Not a species with a light copy on the tier (v11.241): its far instances already draw the copy,
+  and its near few would buy two draws more for ×0.9–1.0. So on the low tier the strap and the tress; on the high, which has no copies, those and the
+  grape, the dome, the rustdome, the urn, the cup, the vase, the flask and the darkrind.
+- **Two pools** (chunks.js `poolSplit`; `poolFor` takes a key): its light variants' instances to a pool keyed `f.split.key`, the rest to the species' own,
+  each with `P.f` the species — the tiles, the culling, the packing, the copies and the shadows are the pools' as before. The cell's random draws are
+  taken for every instance first, in the list's order (the tint's pick unless the place gave one, then three jitters, as `poolAdd` reads them), then
+  handed to each pool in its own order: each instance keeps its tint, and the cell's rng ends where it did, so every later species' tints too.
+- **test/vsplit.js** (in `--test`, 8 s): a stand-in split for every pooled species with variants, three places loaded whole and split — every cell's
+  instances of every species the same set to the bit, each in the pool of its variant's weight. Its mutants (a pick drawn for a placed tint, the two
+  pools' draws swapped, the pools swapped) each fail it.
+
+**What it costs** (against v11.241; the low tier at the tower's 1047×529, the high at 1600×900):
+
+| place | triangles | draws | the GPU's time, a proxy |
+|---|---|---|---|
+| the tower's F8 place, the low tier | 472k → 372k (×0.79) | 67.5 → 69.5 | 217 → 207 (×0.95; the tress ×0.48, the strap ×0.79) |
+| the forest, the low tier | 807k → 800k (×0.99) | 186 → 186 | — |
+| the giant's coast, the low tier | 682k → 649k (×0.95) | 106 → 108 | — |
+| the canopy, the low tier | 804k → 773k (×0.96) | 199 → 201 | — |
+| the forest, the high tier | 2.49M → 2.39M (×0.96) | 279 → 284 | — |
+| the atoll's kelp, the high tier | 3.09M → 3.00M (×0.97) | 273 → 279 | — |
+| the giant's coast, the high tier | 2.14M → 1.95M (×0.91) | 162 → 168 | 1337 → 1318 (×0.99; the strap ×0.93, the grape ×0.86) |
+| the shore, the high tier | 2.91M → 2.80M (×0.96) | 301 → 306 | — |
+| the canopy, the high tier | 2.63M → 2.50M (×0.95) | 264 → 270 | 1538 → 1543 (×1.00) |
+
+The open water and the wood the same. Programs and uniforms the same, the uploads within 3%; nothing compiled at first sight anywhere; the high tier's
+boot +0.2 MB of buffers (the light geometries) and 24 draws. With v11.241, the F8 place against main as merged (v11.239): 642k → 372k triangles (×0.58). The pulled plants'
+vertex work alone (seen instances × the count drawn) at the F8 place ×0.68 (the tress ×0.23, the strap ×0.59); on the high tier ×0.81 at the coast,
+×0.89 the canopy, ×0.92 the shore, ×0.95 the atoll, ×0.96 the forest. How common each variant is depends on the place (the strap's clone patches,
+grow.js `cloneK`): at the atoll every strap in sight is beaded and its split saves nothing; in the forest none is. The proxy is pixel-bound at these
+places, as v11.241 said; the tower's own F8 is the measure.
+
+**What changes on screen**: nothing — the proxy's pictures the same pixel for pixel at all three; the bench's shots at five places (both tiers) the same
+but for the page's own lettering, caught at another moment of its fade.
+
+**Unseen, ask:**
+1. The work tower, F8 at `tp(69950,29582,-10)`: the plants' share against #208's 6.35 ms — this and v11.241 together.

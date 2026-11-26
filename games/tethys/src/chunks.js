@@ -130,7 +130,7 @@ function* buildTerrain(ch){
 }
 function makeInstanced(ch,rng,geo,mat,tints,list,dip,vars,f){
   if(f&&f.gp&&geo===f.geo){geo=f.gp;mat=f.mp;} // the species' variants pulled (v11.187, VPULL below): its pool and a padded species' cell mesh alike
-  if(f&&!dip&&mat!==GLOW){poolAdd(poolFor(f,geo,mat,vars,!!mat.sway),ch,rng,tints,list,mat);return null;} // v11.52: one mesh per species across the loaded cells (the pools, below); since v11.187 the card species too (far.js FAR_IMP: their blocks hide by the cell's sight and FLORA_FAR edge, as their cell meshes did); a padded one (aDip, physics.js) and the glow clouds keep a mesh per cell
+  if(f&&!dip&&mat!==GLOW){if(f.split&&geo===f.gp)poolSplit(ch,rng,tints,list,f,geo,mat,vars);else poolAdd(poolFor(f,geo,mat,vars,!!mat.sway),ch,rng,tints,list,mat);return null;} // v11.52: one mesh per species across the loaded cells (the pools, below); since v11.187 the card species too (far.js FAR_IMP: their blocks hide by the cell's sight and FLORA_FAR edge, as their cell meshes did); a padded one (aDip, physics.js) and the glow clouds keep a mesh per cell
   const cur=!!mat.sway; // a sway material reads aCur: the current at every instance's base (scene.js LEAN)
   if(dip||vars||cur)geo=geo.clone(); // per-cell instance attributes need the cell's own copy (disposed with the cell)
   if(dip)geo.setAttribute('aDip',new THREE.InstancedBufferAttribute(new Float32Array(list.length),1)); // rafts: a per-instance dip the pads sink by under a body (physics.js updatePads)
@@ -172,9 +172,11 @@ function makeInstanced(ch,rng,geo,mat,tints,list,dip,vars,f){
 const ORIGIN={on:true,x:0,z:0,snap:4000,grid:1000};
 // the variants pulled (v11.187, grow.js VPULL, scene.js VPULL_GLSL): once FLORA is whole (reef.js appends to it), every species' variants into one
 // float texture and each species its pulled geometry (f.gp) and material (f.mp), which makeInstanced draws in place of f.geo and f.mat. WebGL2 only.
+// And a species whose variants are uneven (v11.242, grow.js VSPLIT) its light pool's geometry, f.split.geo: the light variants' largest count, the same stride
+// — not one with a light copy on this tier (v11.241): its far instances draw the copy, and the near few would buy two draws more for ×0.9–1.0.
 const VPULL_N=(function(){if(!VPULL.on||!GL2||!THREE.FloatType)return 0;const LE=FLORA.filter(f=>f.geoL).map(f=>({geo:f.geoL,lodOf:f})),pk=vpullPack(FLORA.concat(LE)); // v11.241: the light copies' variants in the same texture, each its own entry
   const t=new THREE.DataTexture(pk.data,VPULL.row*3,pk.rows,THREE.RGBAFormat,THREE.FloatType);t.minFilter=t.magFilter=THREE.NearestFilter;t.generateMipmaps=false;t.needsUpdate=true;t.clone=function(){return this;};VPULL_TEX=t;
-  for(const [f,a] of pk.at){const o=/** @type {any} */(f).lodOf;if(o){o.gpL=vpullGeo(a);o.mpL=plodMat(o.mat);}else{f.gp=vpullGeo(a);f.mp=vpullMat(f.mat);if(f.geoL)plodMat(f.mat);}}return pk.at.size;})(); // the species pulled; a copy's material made beside its twin (v11.241): r128 sorts these draws by the material's id, so the two draw together, one program
+  for(const [f,a] of pk.at){const o=/** @type {any} */(f).lodOf;if(o){o.gpL=vpullGeo(a);o.mpL=plodMat(o.mat);}else{f.gp=vpullGeo(a);f.mp=vpullMat(f.mat);if(f.geoL)plodMat(f.mat);const s=f.geoL?null:vsplitOf(a);if(s)f.split={geo:vpullGeo(a,s.n),heavy:s.heavy,key:{id:f.id+' (light)'}};}}return pk.at.size;})(); // the species pulled; a copy's material made beside its twin (v11.241): r128 sorts these draws by the material's id, so the two draw together, one program
 const POOLS=new Map(),poolGroup=new THREE.Group();scene.add(poolGroup); // entry → pool (the group at the render origin, v11.110)
 function poolSnap(px,pz){if(!ORIGIN.on||(Math.abs(px-ORIGIN.x)<ORIGIN.snap&&Math.abs(pz-ORIGIN.z)<ORIGIN.snap))return false; // the render origin to the camera's square; every pooled instance moved by the change
   const nx=Math.round(px/ORIGIN.grid)*ORIGIN.grid,nz=Math.round(pz/ORIGIN.grid)*ORIGIN.grid,dx=nx-ORIGIN.x,dz=nz-ORIGIN.z;
@@ -184,7 +186,7 @@ function poolSnap(px,pz){if(!ORIGIN.on||(Math.abs(px-ORIGIN.x)<ORIGIN.snap&&Math
 function originOf(x0,z0){return ORIGIN.on?[x0,z0]:[0,0];}
 function instLocal(im,list,ox,oz,get){const a=im.instanceMatrix.array;for(let i=0;i<list.length;i++){const e=get(list[i]).elements;a[i*16+12]=e[12]-ox;a[i*16+14]=e[14]-oz;}}
 const POOL_SPHERE=new THREE.Sphere(new THREE.Vector3(0,0,0),2*Math.max(-WX0,WX1,-WZ0,WZ1)+2000);
-function poolFor(f,geo,mat,vars,cur){let P=POOLS.get(f);if(P)return P;P={f:f,src:geo,mat:mat,vars:!!vars,cur:cur,cap:0,n:0,nVis:0,nDraw:0,calm:0,blocks:[],geo:null,im:null,R0:poolReach(f,geo),nFar:0,nNear:0,plod:null};poolAlloc(P,Math.max(64,Math.round((f.per||60)*Q.flora*12)));POOLS.set(f,P);return P;} // nFar, nNear, plod (v11.241): the seen instances its light copy draws, the end of its last near block, the copy's mesh
+function poolFor(f,geo,mat,vars,cur,key){const K=key||f;let P=POOLS.get(K);if(P)return P;P={f:f,src:geo,mat:mat,vars:!!vars,cur:cur,cap:0,n:0,nVis:0,nDraw:0,calm:0,blocks:[],geo:null,im:null,R0:poolReach(f,geo),nFar:0,nNear:0,plod:null};poolAlloc(P,Math.max(64,Math.round((f.per||60)*Q.flora*12)));POOLS.set(K,P);return P;} // key (v11.242): a split species' light pool's (f.split.key); nFar, nNear, plod (v11.241): the seen instances its light copy draws, the end of its last near block, the copy's mesh
 function poolAlloc(P,cap){ // the pool's mesh at capacity cap, what is written carried over; the old geometry disposed
   const old=P.im,g=P.src.clone();
   if(P.vars)g.setAttribute('aVar',new THREE.InstancedBufferAttribute(new Float32Array(cap),1));
@@ -226,6 +228,16 @@ function poolAdd(P,ch,rng,tints,list,mat){ // the cell's instances as one block 
     if(A){if(p.y>0.5||mat.land){A[k*2]=A[k*2+1]=B[k*2]=B[k*2+1]=0;continue;}steadyOf(ch,p.x,p.z,p.y+8,CURV);A[k*2]=CURV.x;A[k*2+1]=CURV.z;tidalAt(p.x,p.z,CURV);B[k*2]=CURV.x;B[k*2+1]=CURV.z;}} // nothing on land (the tussock) leans to the water
   P.n+=list.length;poolTiles(P,ch,s,list.length);ch.pooled.push(P);poolTouch(P,s,list.length); // hidden (aHide AHIDE, past nDraw) until poolCull sees its tiles (this frame: cullChunks runs after the streaming); written in the rng's order, then put in tile order (poolTiles)
 }
+// A split species' cell (v11.242, grow.js VSPLIT): its light variants' instances to its light pool, the rest to its whole one, each in the list's order.
+// poolAdd draws the rng per instance (the tint's pick unless the place gave one, then three jitters); here every instance's draws are taken first, in
+// the list's order, so the cell's rng ends where it did and each instance keeps its own tint, then handed to each pool in the order it reads them.
+const SPLIT_R={a:[],i:0},SPLIT_Q={a:[],i:0}; // the light pool's draws and the heavy's
+function poolSplit(ch,rng,tints,list,f,geo,mat,vars){const S=f.split,L=[],H=[],cur=!!mat.sway;SPLIT_R.a.length=0;SPLIT_Q.a.length=0;SPLIT_R.i=SPLIT_Q.i=0;
+  for(const p of list){const h=(S.heavy>>p.v)&1,R=h?SPLIT_Q.a:SPLIT_R.a;(h?H:L).push(p);if(!p.tint)R.push(rng());R.push(rng(),rng(),rng());}
+  if(L.length)poolAdd(poolFor(f,S.geo,mat,vars,cur,S.key),ch,splitR,tints,L,mat);
+  if(H.length)poolAdd(poolFor(f,geo,mat,vars,cur),ch,splitQ,tints,H,mat);}
+function splitR(){return SPLIT_R.a[SPLIT_R.i++];}
+function splitQ(){return SPLIT_Q.a[SPLIT_Q.i++];}
 function poolRemove(P,ch){ // the cell's blocks out (v11.212: its tiles, wherever packing put them): the blocks after the first of them moved down over them in one sweep, re-based
   const B=P.blocks;let first=-1;for(let i=0;i<B.length;i++)if(B[i].ch===ch){first=i;break;}if(first<0)return;
   const s0=B[first].start,keep=[];let gone=0,goneV=0;for(const b of B){if(b.ch===ch){gone+=b.count;if(b.vis)goneV+=b.count;}else keep.push(b);}

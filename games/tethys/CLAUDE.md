@@ -379,6 +379,10 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
   (parts.js `GEO_LK` — never change how many random draws a builder makes, or the copy is another plant) and its small parts dropped. `aHide` has three
   values (0 near, 1 far, `AHIDE` hidden) and each instanced material a window of them (`uHide`); a pool with a copy packs near, far, hidden, its whole
   plant drawn to its last near block (`poolCount`). A copy's material is made beside its twin's: r128 sorts these draws by the material's id.
+- **A split species** (v11.242; grow.js `VSPLIT`, `vsplitOf`; chunks.js `poolSplit`): a pulled species whose variants are uneven (the strap's beaded one
+  ~640 vertices, its blade tufts ~70) has two pools, `POOLS` keyed by the entry for its heavy variants and by `f.split.key` for its light ones, each `P.f`
+  the entry. A cell's instances go to the pool of their variant; every instance's random draws are taken first in the list's order (`poolAdd` draws the
+  tint's pick unless the place gave one, then three jitters) — draw them in any other order and every later species' tints move (test/vsplit.js).
 - **The pools** (chunks.js `POOLS`): a cell's small flora is a block in its species' pool (not in `ch.meshes`/`ch.flora`) — since v11.212 one block a
   tile (`POOL_TILE.k`² a cell, `poolTiles`: written in the rng's order, then put in tile order), each with its sphere — the blocks after a cell's moved
   down over them in one sweep on unload, the written range uploaded (`updateRange`). Out of sight — its cell's, or its tile wholly out of the view or past

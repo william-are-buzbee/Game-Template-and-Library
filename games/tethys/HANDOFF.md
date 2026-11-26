@@ -4,6 +4,12 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.242 (26 Nov 2026): the uneven species split by their variants' size** (grow.js `VSPLIT`, `vsplitOf`; chunks.js `poolSplit`, `poolFor`'s key;
+test/vsplit.js; DESIGN; FLORA.md; CHANGELOG). The person: *"go ahead with the grass split."* A pulled draw ran every instance at its largest variant's count;
+the strap's and the tress's light variants are a tenth to a fifth of their heavy one. Such a species now draws its light instances in a pool of their own
+(the strap and the tress on both tiers; on the high, with no copies, eight more). Nothing seen changes (the pictures the same pixel for pixel). The F8
+place's triangles ×0.79 (with v11.241, ×0.58 against v11.239), the high tier's ×0.91–0.97, +2–6 draws. **Ask:** the tower's F8 at `tp(69950,29582,-10)`.
+
 **v11.241 (26 Nov 2026): the plants' light copies on the low tier** (grow.js `PLOD`, `plodVariants`; parts.js `GEO_LK`; chunks.js `poolPlod`, `poolCull`,
 `poolPack`; scene.js `HIDE_NEAR`, `HIDE_FAR`, `plodMat`; test/plod.js; FLORA.md; CHANGELOG). The person: *"YES we want to make lighter copies … 40% is 40%."*
 Past 45 m on the low tier a plant's tile draws a copy at half the facets, without its smallest parts; the whole plant draws only its near tiles, so nothing
@@ -30,13 +36,6 @@ CHANGELOG). No game code changed. The bench read identical sources ×0.81–1.28
 both trees' pages are open at once and take turns — kind by kind, cell by cell, 20 frames at a time, the first alternating — and every piece is the
 least of eight rounds, a cell's down to each step of its generator, on a page whose clock reads to 5 µs: identical sources read within ±4% at the forest,
 the atoll and the platform and ×0.93–1.07 at the sea and the giant's coast (×0.81–1.28 before). It takes ~5½ minutes (~1¼ before). **Ask:** nothing.
-
-**v11.237 (25 Nov 2026): the sea line** (atmosphere.js `waterDome`, `DOME_M`, SKY_FS `uSkyCut`; horizon.js `hzIn`, `HZ_IN`, `HZ_DIP`, `uHzIn`;
-test/horizon.js, test/horizon_page.js (smoke); DESIGN Visibility and the horizon tier; CHANGELOG). The person: *"Horizon flickering black line above
-water."* The water dome was cut at the tide while the drawn far sea sits ~0.3 m under it, and the far plane is only 5% past the dome straight ahead, so
-from a low eye a ray could pass over the sea's end to the bare dome: a one-pixel dark line across the middle, coming and going with the swell. The dome
-now draws only a pixel's step under the drawn sea; the horizon pass's sea disc reaches in from a low eye and its sky is not cut at the water. **Ask:**
-the horizon from the surface at sea, several headings and heights.
 
 ## Open
 
