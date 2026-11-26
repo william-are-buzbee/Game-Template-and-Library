@@ -137,9 +137,9 @@ v11.121; to v11.120 a 12° cone with a 7° land drawn over it, 2–2.6 V; `rgSha
 plus the plate's cooling (`plateAge`), the swell (`swell`, `swellW`) and the flexure of every load (`Te`, kei by `rgKei`); erosion (`erode`)
 and planing (`plane`, `wb`) after the shield; the reef by `rgSea` (Earth's sawtooth) at `reef` mm/yr decaying with depth (`light`), drowned
 past `photic`, none on the fed face (`fedL`, `fedK`). The pins' volumes are tuned by secant until their summits are `REGION_PINS`'s, and with them the members in `tune` (v11.121: the awesome
-shield's 2,533 m, the person's answer (c) — on Earth's slopes it needs `Te` 15, 6,290 km³). The members in `strike` (by seed; v11.243, the person:
-no two sunken islands in one spot) are left out of the history after the pins' fit — no reef, no load, no moat, no record; their load stays only in the fit, which it
-moves by millimetres and a refit by a metre (the old square by up to 19 m): seed 32's m93, an atoll of 19 km² 14 km off m54's bank at the map's middle. Each
+shield's 2,533 m, the person's answer (c) — on Earth's slopes it needs `Te` 15, 6,290 km³). The members in `strike` (by seed; v11.244, the person: no two sunken
+islands in one spot) are never born — no record, reef, load or moat — and the pins refit without them: seed 32's m122, the 799 m island 48 km east of ours,
+54 km from m109's like island in the map's middle (v11.243 struck the atoll m93 by mistake). Each
 member ends with a state (`RG_STATE`), its flat top, its shore, its first light and the neighbour it was settled from. `regionGrid` draws the
 province (and the game's own ground inside its square), `regionBasins` floods it from the edge for every cell's sill and the basins,
 `regionSeen` what clears the horizon from a point. ~0.3 s a run; `test/region.js` pins it.
