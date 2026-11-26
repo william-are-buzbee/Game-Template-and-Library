@@ -1,7 +1,7 @@
 # analysis_creators — how Spore-like creature creators shape a body, and what Tethys takes
 
-**Status: the investigation (26 Nov 2026), and its first build, v11.246 (the spine: CREATOR.md "Sixth round").** The questions at the end are the
-person's and are not to be decided by Claude.
+**Status: the investigation (26 Nov 2026), and its first build, v11.246 (the spine: CREATOR.md "Sixth round"); the person's answers to its
+questions (26 Nov 2026) built in v11.246.1, and the shape's drag ("Next" 3) chosen next.**
 
 ## What the person asked (26 Nov 2026)
 
@@ -161,7 +161,7 @@ after players were frustrated by parts appearing at a default spot. Its editor i
 6. **A studio**: a neutral room and a turntable for the editor, in place of the peak's water (CREATOR.md, the size ceiling §6, already asks
    for it).
 
-## Questions (26 Nov 2026; the person's)
+## Questions (26 Nov 2026) and the person's answers (the same day)
 
 1. **The knots' look:** beads on a line with each section's ring, always shown while the spine is on — or only on hover, as Spore does?
 2. **Growth by pulling:** should every body grow segments when pulled (a fish adding rings), or only the hingeshells' plates, as now?
@@ -170,3 +170,14 @@ after players were frustrated by parts appearing at a default spot. Its editor i
 4. **The bend's limit:** should the clades bend differently — a hingeshell's plates stiff, a ringmouth's mantle soft — as a believable band like
    the parameters' (warn past it), or free?
 5. **Which next:** of the list above, which first?
+
+**The answers (26 Nov 2026), built v11.246.1:**
+1. *"Only on hover, as in spore."* The knots show while the cursor is on the body, a knot or a part, and through a gesture (`LAB_SP.show`).
+2. *"Only the hingeshell."* Only a trunk and the arches grow plates when pulled; the other bodies stretch (as built in v11.246).
+3. *"Hide the sliders."* The creator (the menu's word and the conception) shows none of the core's sliders, nor the profile's table; the dev lab
+   keeps them. The parts' sliders stay in both (the question was the core's).
+4. *"Yes for sure."* A bend limit per clade, `SPINE_BEND` (degrees between the spans either side of a knot): hingeshells 12 believable / 25
+   extreme, slowbloods 25 / 50, ringmouths 35 / 70, drifters 15 / 30. Past the believable band the readout warns; the hand cannot drag past the
+   extreme. The numbers are chosen, not measured: the person's to tune.
+5. *"Absolutely, go for that"* — The Sapling's drag from the outline: v11.247.
+

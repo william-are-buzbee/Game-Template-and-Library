@@ -313,7 +313,8 @@ DESIGN.md, Creatures, "The spine". In short:
   scales by the wheel; ctrl+z undoes. The parts ride a bend. The sliders stay under it.
 - **Not a metaball skin** (Spore's): the skin is the core's own low-poly geometry bent and swollen — the look, the build's tape, and the person's
   rule that every animal looks as it did.
-- Open: analysis_creators.md, "Next" and "Questions".
+- The person's answers (26 Nov 2026, built v11.246.1): the knots only on hover; only the hingeshells grow plates; the creator without the core's
+  sliders; a bend limit per clade (`SPINE_BEND`). Next: The Sapling's drag from the outline (v11.247). The rest: analysis_creators.md, "Next".
 
 ## The ganglion (21 Sep 2026) — a design note for later, the person's
 
