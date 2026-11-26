@@ -1109,6 +1109,23 @@ function ringsSet(prof, H, cy, sz) {
   });
 }
 const SPINE_KEYS = ['knots', 'ek', 'rings', 'kb', 'kf', 'yb']; // the core keys the spine writes that no registry parameter names (and a bell's prof: a lathe's and a sac's is one)
+// How far a body may bend at a knot, by clade (v11.246.1; the person, 26 Nov 2026: "yes for sure" to a limit per clade): the angle in degrees
+// between the two spans either side of a chained knot, the body's middle line. b: the believable band — past it the readout warns (derive's
+// plausible); x: the extreme — the hand cannot drag past it (spineMove stops short). A hingeshell's plates are stiff (an exoskeleton bends only
+// at its joints), a slowblood's back flexes (a fish's spine), a ringmouth's mantle is soft muscle, a drifter's float or bell little. Numbers
+// chosen, not measured: the person's to tune.
+const SPINE_BEND = {hingeshells: {b: 12, x: 25}, slowbloods: {b: 25, x: 50}, ringmouths: {b: 35, x: 70}, drifters: {b: 15, x: 30}};
+// the sharpest bend along the chained handles, degrees (a bell's rings stack along y: no bend to read)
+function spineBend(H, ax) {
+  if (ax === 'y') return 0;
+  const C = H.filter(h => h.chain);
+  let m = 0;
+  for (let j = 1; j < C.length - 1; j++) {
+    const a = C[j - 1], b = C[j], c = C[j + 1], t0 = Math.atan2(b.y - a.y, b.z - a.z), t1 = Math.atan2(c.y - b.y, c.z - b.z);
+    m = Math.max(m, Math.abs(t1 - t0) / DEG);
+  }
+  return m;
+}
 // the core's numbers its knots stand in for while it has them (the lab hides their sliders: a knot list is the taper)
 function spineOver(c) {return c && c.knots ? (c.kind === 'chain' ? ['w0', 'w1'] : ['w0', 'w1', 'h0', 'h1']) : [];}
 // ---- the hand's operations, on a spec (the lab calls these; test/spine.js too). Each returns the new handle list, or null when refused. ----
@@ -1123,12 +1140,21 @@ function spineAxis(S) {return S.A.axis || 'z';}
 // a handle moved to (y, z): what it may move; a chained one never passes its neighbours (it stops a tenth of the way short of where it was from either)
 function spineMove(spec, i, y, z) {
   const S = spineOf(spec); if (!S || !S.H[i]) return null;
-  const H = S.H, h = H[i], ax = spineAxis(S), v0 = h[ax];
+  const H = S.H, h = H[i], ax = spineAxis(S), v0 = h[ax], y0 = h.y, z0 = h.z;
   if (h.move.indexOf('y') >= 0) h.y = y;
   if (h.move.indexOf('z') >= 0) h.z = z;
   if (h.chain && h.move) {
     const C = H.filter(q => q.chain), j = C.indexOf(h), lo = C[j - 1], hi = C[j + 1];
     h[ax] = clamp(h[ax], lo ? lo[ax] + (v0 - lo[ax]) * 0.1 : -Infinity, hi ? hi[ax] - (hi[ax] - v0) * 0.1 : Infinity);
+    // the clade's extreme bend (v11.246.1): a move that would fold the body past it stops where it reaches it (bisected along the move; a body
+    // already past it — an old spec — may still be moved back toward straight)
+    const lim = (SPINE_BEND[spec.clade] || SPINE_BEND.ringmouths).x, y1 = h.y, z1 = h.z, b0 = (h.y = y0, h.z = z0, spineBend(H, ax));
+    h.y = y1; h.z = z1;
+    if (spineBend(H, ax) > Math.max(lim, b0)) {
+      let a = 0, b = 1;
+      for (let k = 0; k < 24; k++) {const m = (a + b) / 2; h.y = lerp(y0, y1, m); h.z = lerp(z0, z1, m); if (spineBend(H, ax) > Math.max(lim, b0)) b = m; else a = m;}
+      h.y = lerp(y0, y1, a); h.z = lerp(z0, z1, a);
+    }
   }
   return spineWrite(spec, S, H);
 }
@@ -3363,6 +3389,8 @@ function derive(spec0) {
   if (spec.depth !== undefined && spec.depth < -200 && eyes > 8) plausible.push('many eyes below the light');
   if (thrust < 0.01) plausible.push('nothing propels it');
   if (capped) plausible.push('the lobes outrun the stem that swings them (' + Math.round(capped * 100) + '% driven)'); // v11.74: DERIVE_K.stemM
+  {const A = SPINE[spec.core.kind], bl = (SPINE_BEND[spec.clade] || SPINE_BEND.ringmouths).b; // v11.246.1: bent past the clade's believable band
+    if (A) {const bd = spineBend(A.knots(spec.core), A.axis || 'z'); if (bd > bl) plausible.push('bent ' + Math.round(bd) + '° at a knot, past a ' + spec.clade.replace(/s$/, '') + "'s " + bl + '°');}}
   if (L / 2 > spec.size * 1.6) plausible.push('longer than its size says (' + (L / 2).toFixed(1) + ' m half-length)');
   return {
     mass: +mass.toFixed(2),

@@ -2113,7 +2113,10 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   spine with each section's ring (`labSpineDraw`), picks within 14 px of the cursor, drags in the body's middle plane (or, seen end on, the plane
   facing the eye), the wheel fattens (shift: height, alt: width) at ×1.06 a notch; a part under the cursor (a raycast of the split build) slides
   by its `z` and `y` and its wheel scales its `LAB_SIZE` keys; double-click adds or takes out a knot; ctrl+z undoes a gesture (60 deep). The body
-  holds still while the cursor is on it (`lab.at`). Not yet: rigs ride a bend (an arm rooted where the body bends stays where it was); a ring is
+  holds still while the cursor is on it (`lab.at`). v11.246.1 (the person's answers): the knots are drawn only while the cursor is on the body, a
+  knot or a part (`LAB_SP.show`); the creator (`lab.player`) shows no core slider or profile table; a bend at a knot (the angle between the spans
+  either side) is held to the clade's `SPINE_BEND` extreme by `spineMove` and warned past its believable band by `derive` (hingeshells 12/25°,
+  slowbloods 25/50, ringmouths 35/70, drifters 15/30). Not yet: rigs ride a bend (an arm rooted where the body bends stays where it was); a ring is
   kept upright, not turned square to a steep bend (a shear past ~40°); the eel's chain takes widths but no bend; the variety rows' core numbers
   (`VARY_AUTO.core`) move nothing a knot list stands in for.
 - **Roles:** hunter (chases prey; `strike {tell, dur, speed, range}` for one that cocks and lunges — the tell slows it, turns it to
