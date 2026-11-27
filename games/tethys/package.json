@@ -8,10 +8,11 @@
     "vendor": "node tools/vendor.js",
     "build": "node tools/vendor.js --check && node build.js && node tools/dist.js",
     "test": "node tools/vendor.js --check && node build.js --test",
-    "smoke": "node test/gpu.js --check && node test/boot.js && node test/wcache_page.js && node test/three187.js && node test/horizon_page.js",
+    "smoke": "node test/browsers.js",
     "typecheck": "node test/types.js"
   },
   "shards": 3,
+  "smokeShards": 4,
   "dependencies": {
     "@wb/core": "*"
   },

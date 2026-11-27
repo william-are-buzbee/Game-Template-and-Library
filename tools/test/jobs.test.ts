@@ -67,6 +67,24 @@ test('a split suite with nothing to build is only its parts; "shards" without te
   assert.deepEqual(jobs([{ ...ws('games/one', { test: 'x' }), shards: 1 }], null), [{ name: 'one', dir: 'games/one', test: true, build: false, smoke: false, boot: false }]);
 });
 
+test('split browser tests (package.json "smokeShards"): -browser-1 to -n each build and run their part; the job named for it keeps the build and boot', () => {
+  const tethys = { ...ws('games/tethys', { test: 'x', build: 'z', smoke: 's' }), shards: 2, smokeShards: 2 };
+  assert.deepEqual(jobs([tethys], null), [
+    { name: 'tethys', dir: 'games/tethys', test: false, build: true, smoke: false, boot: true },
+    { name: 'tethys-1', dir: 'games/tethys', test: true, build: false, smoke: false, boot: false, shard: '1/2' },
+    { name: 'tethys-2', dir: 'games/tethys', test: true, build: false, smoke: false, boot: false, shard: '2/2' },
+    { name: 'tethys-browser-1', dir: 'games/tethys', test: false, build: true, smoke: true, boot: false, smokeShard: '1/2' },
+    { name: 'tethys-browser-2', dir: 'games/tethys', test: false, build: true, smoke: true, boot: false, smokeShard: '2/2' },
+  ]);
+  // without "shards", the tests stay in the job named for it; without browser tests, "smokeShards" splits nothing
+  assert.deepEqual(jobs([{ ...ws('games/one', { test: 'x', build: 'z', smoke: 's' }), smokeShards: 2 }], null).map(j => [j.name, j.test, j.smoke, j.smokeShard]), [
+    ['one', true, false, undefined],
+    ['one-browser-1', false, true, '1/2'],
+    ['one-browser-2', false, true, '2/2'],
+  ]);
+  assert.deepEqual(jobs([{ ...ws('games/two', { test: 'x', build: 'z' }), smokeShards: 3 }], null).map(j => j.name), ['two']);
+});
+
 test('nothing affected, no jobs', () => {
   assert.deepEqual(jobs(ALL, []), []);
 });
