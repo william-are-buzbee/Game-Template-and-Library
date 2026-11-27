@@ -12414,3 +12414,44 @@ past it, and the readout warns. Registry, lint, types as before; the full suite 
 1. The bend limits' feel: a hingeshell stiff at 25°, a fish to 50°, a mantle to 70° — too tight, too loose?
 2. The parts' sliders in the creator: hide them too (a part then shaped only by dragging and the wheel), or keep them?
 3. The knots on hover: whether the beads appearing as the cursor reaches the body reads as Spore's.
+
+## v11.247 — the shape's drag, The Sapling's: a lump, a bend, a fat rear cost a swimmer speed (26 Nov 2026)
+
+The person (26 Nov 2026), on The Sapling's drag from the outline (analysis_creators.md, "Next" 3): *"Absolutely, go for that."*
+
+**The shape's drag** (creatures_spec.js `SPINE_FORM`, `spineForm`; derive's `form` and `formWhy`; lab.js the caption). The Sapling scores a swimmer's
+outline against "straight, with their thickest part at the front, and their thinnest part at the back". Here the outline is read off the spine's
+chained knots as a side view (each knot's girth sqrt(w × h)), and the core's drag coefficient is multiplied by `form` = 1 + `lump` 0.5 × the girth's
+travel past one rise and one fall, over the widest girth + `crook` 0.5 × the middle line's rise and fall, over the widest girth's diameter + `rear`
+1.5 × how far behind `rearFree` 0.6 of the way back the widest girth sits (a tie goes to the frontmost: an even trunk is not fat at the back).
+Speed goes as drag^-0.35, so a form of 1.3 is ×0.91 of the speed.
+
+**Measured on the roster first** (a prototype read every species' outline): its fish are thickest 0.41–0.56 of the way back and their cores end
+blunt where the tail part continues them, the hingeshells are thickest at the head, the coiled bodies in the middle — an absolute score of the
+outline would have moved every species' speed for reasons that are not its shape. So the term charges only what no species has: every one is one
+rise and one fall on a straight line, thickest no further back than 0.56, and every one is at form 1 — its speed its own to the bit. A body thicker
+at the front than the roster's is not rewarded: the ideal is where the roster already is (asked below).
+
+What the hand pays: a hump put in a finback's back half (a knot at z −0.4 fattened 1.5) is lumpy and fat at the back, drag ×1.50, 6.1 → 4.8 m/s; a
+soft-arm's back cocked up 0.6 m is bent, ×1.18, 8.1 → 7.6. The caption says it: "drag ×1.50 from its shape: lumpy, fat at the back".
+
+**Tests:** test/spine.js adds `form`: every species at 1; a bulge in a finback's back half is lumpy and slower; a soft-arm's back cocked up is bent
+and slower; a lash's back plate ×3 is fat at the back. The full suite green on both tiers.
+
+**What it costs** (`node test/perf.js` against main — v11.246.1 under it):
+
+| measure | before | after | ratio |
+|---|---|---|---|
+| creatures' work a frame at (330, 0), ms (mean / p95) | 1.737 / 2.238 | 1.727 / 2.264 | ×0.99 / ×1.01 |
+| every kind's build, ms (first / again) | 51.2 / 5.9 | 51.2 / 5.8 | ×1.00 / ×0.99 |
+| a cell at five places | | | ×0.97–1.01 |
+| creatures' work a frame at the forest (Chromium), ms | 1.428 | 1.442 | ×1.01 |
+| the GPU's counts, seven places | | | the same, every count |
+
+The simulation, every body and the pictures at three places the same to the bit. Not measured: the person's machine.
+
+**Seen** (headless): the caption on a lumpy finback, its hump near the tail.
+
+**Unseen, ask in this order:**
+1. The weights (`lump` 0.5, `crook` 0.5, `rear` 1.5): whether a lump or a bend costs as much as it looks like it should.
+2. Whether a body thicker at the front than the roster's should go faster than the roster (a reward past the ideal), or the roster stays the best.
