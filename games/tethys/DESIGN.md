@@ -2121,7 +2121,13 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   rise and one fall (over the widest girth) + `crook` 0.5 × the middle line's rise and fall (over the widest girth's diameter) + `rear` 1.5 × how far
   behind `rearFree` 0.6 of the way back the widest girth is (a tie goes to the frontmost). Every species of the roster is 1 (one rise and fall, a
   straight line, thickest no further back than 0.56), so none moved; derive returns `form` and `formWhy`, and the lab's caption says what the
-  outline costs and why. A thickest-at-the-front body is not rewarded past the roster: the ideal is where the roster already is. Not yet: rigs ride a bend (an arm rooted where the body bends stays where it was); a ring is
+  outline costs and why. A thickest-at-the-front body is not rewarded past the roster: the ideal is where the roster already is.
+  v11.248, the creator as a picture (creator.js; CREATOR.md Seventh round; `test/creator.js`): with `lab.player` the panel, the caption and the hint
+  are hidden (`#lab.player`, `body.creator`) and `#crt` drawn over the lab — the parts' pictures (`crtIcon`, `CRT_VIEW`: a 2D canvas, facets from the
+  build's meshes painted far to near, lit by one light; `crtIconsStep` draws them 12 ms a frame; `CRT.icons` keeps them), dropped on the body
+  (`crtDrop`: the drop's z on the middle plane) and dragged off it (`LAB_SP.drag.gone`); the icons' bar (`CRT_SVG`), the coat swatches, the name, the
+  bars (`crtBars`), the conception's budget (`crtBudget`), the picker (`crtPicker`). `labRedo` beside `labUndo`. creator.js loads before lab.js (a
+  `#lab` in the address opens the lab as lab.js loads). Not yet: rigs ride a bend (an arm rooted where the body bends stays where it was); a ring is
   kept upright, not turned square to a steep bend (a shear past ~40°); the eel's chain takes widths but no bend; the variety rows' core numbers
   (`VARY_AUTO.core`) move nothing a knot list stands in for.
 - **Roles:** hunter (chases prey; `strike {tell, dur, speed, range}` for one that cocks and lunges — the tell slows it, turns it to
