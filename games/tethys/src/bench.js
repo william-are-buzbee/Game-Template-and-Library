@@ -6,14 +6,18 @@
 // the copy would go stale the first time a knob moved. So: while the bench holds the graph, AU.bench stops auTick (which would
 // fight it for every gain), and an offline render swaps actx out from under audio.js's own helpers (one shared scope; util.js's
 // rule) and puts it back. Both are restored in a finally.
-//   Three engines:
+//   Four engines:
 //   offline  a one-shot through the real thump(), into an OfflineAudioContext. Dry, at the ear, faster than real time.
-//   solo     one live chain recorded off the master with everything else silenced, the medium open and the reverb shut: the bed
-//            as the chain makes it, six seconds, real time (there is no offline copy of a graph that is already running).
-//   live     the master bus exactly as the person hears it, wherever the player is standing. The space, the reverb and all.
-// The wavs land in test/render/. `node test/spectro.js` turns them into pictures and a table of numbers.
-const BN_SR=48000,BN_BED=6,BN_LIVE=20; // the render rate (fixed, so two runs compare); a bed's seconds; a live capture's
-const bench={on:false,busy:false,log:[],el:null,logEl:null};
+//   solo     one chain alone through a whole graph auGraph built offline (v11.248; it was recorded live off the running graph, in real time,
+//            for two minutes): everything else silent as built, the medium open, the reverb shut. Six seconds of the bed as the chain makes it.
+//   mix      the whole graph offline with the game's own tick run against it at 20 Hz (v11.248): the mix where the player stands, the space,
+//            the reverb and all, the same every run where the world is (test/sound.js steps the world between the ticks; in the game it runs
+//            itself, and the take is the place held still).
+//   live     the master bus exactly as the person hears it, wherever the player is standing, in real time.
+// The wavs land in test/render/ (or go to bench.out when it is set: test/sound.js, headless). `node test/spectro.js` turns them into
+// pictures and a table of numbers; `node test/sound.js` renders them headless and holds their numbers in test/sound.json.
+const BN_SR=48000,BN_BED=6,BN_LIVE=20,BN_MIX=8,BN_PRE=2; // the render rate (fixed, so two runs compare); a bed's seconds; a live capture's; a mix's, and the seconds rendered before it and thrown away (the beds fade in from the silence they are built in)
+const bench={on:false,busy:false,log:[],el:null,logEl:null,out:null}; // out(name, channels, rate): where a take goes instead of serve.js (test/sound.js)
 // ---------- wav ----------
 // 16-bit pcm, the only format worth the four lines it takes. A float over 1 would wrap, so it clips — and spectro.js counts the clips.
 function bnWav(chans,sr){
@@ -26,6 +30,7 @@ function bnWav(chans,sr){
 function bnPost(name,blob){ // to serve.js's sink. A file:// page or a dead server means no bench; say so rather than failing quietly
   return fetch('/_bench/'+name,{method:'POST',body:blob}).then(r=>{if(!r.ok)throw new Error(r.status+'');return name+'  '+(blob.size/1024).toFixed(0)+' kB';})
     .catch(e=>{throw new Error('post failed ('+e.message+') — is node serve.js running?');});}
+function bnOut(name,chans,sr){return bench.out?Promise.resolve(bench.out(name,chans,sr)).then(()=>name):bnPost(name,bnWav(chans,sr));}
 function bnSay(s){bench.log.push(s);if(bench.logEl)bench.logEl.textContent=bench.log.slice(-26).join('\n');console.log('bench  '+s);}
 // ---------- the offline engine ----------
 // actx, AU.dry, AU.send and AU.whiteBuf are what every helper in audio.js reaches for. Point them at an offline context, let the
@@ -63,28 +68,33 @@ function bnChains(){
   add('slosh',AU.slosh);add('slosh_low',AU.sloshB);add('rain_under',AU.rain);add('surf',AU.surf);add('surf_wash',AU.surfW);
   add('vent_rumble',AU.ventR);add('vent_boil',AU.ventB);add('forest',AU.forest);
   if(AU.bodies&&AU.bodies[0])add('body_pass',AU.bodies[0]);
+  if(AU.press)add('pressure',{out:AU.press,self:true}); // v11.248: the two sines below the chemocline, a gain and not a chain
   return c;}
-// Solo: every chain's gain to zero but one, the medium wide open, the reverb and the taps shut, the emitters unhooked from their
-// voices and their out gains up. Then record. The graph is restored by the caller's finally through bnRestore.
-function bnHush(){
-  const s={med:AU.med.frequency.value,shelf:AU.shelf.gain.value,wa:AU.wetA.gain.value,wb:AU.wetB.gain.value,taps:AU.taps.map(t=>t.g.gain.value),chains:[],press:AU.press.gain.value};
-  const now=actx.currentTime,set=(p,v)=>{p.cancelScheduledValues(now);p.setValueAtTime(v,now);};
-  set(AU.med.frequency,16000);set(AU.shelf.gain,0);set(AU.wetA.gain,0);set(AU.wetB.gain,0);set(AU.press.gain,0);
-  AU.taps.forEach(t=>set(t.g.gain,0));
-  for(const c of bnChains()){s.chains.push({e:c.e,g:c.e.out.gain.value,a:c.e.a});set(c.e.out.gain,0);c.e.a=0;}
-  for(const v of AU.voices){s.chains.push({v:v,g:v.g.gain.value});set(v.g.gain,0);}
-  return s;}
-function bnRestore(s){
-  const now=actx.currentTime,set=(p,v)=>{p.cancelScheduledValues(now);p.setValueAtTime(v,now);};
-  set(AU.med.frequency,s.med);set(AU.shelf.gain,s.shelf);set(AU.wetA.gain,s.wa);set(AU.wetB.gain,s.wb);set(AU.press.gain,s.press);
-  AU.taps.forEach((t,i)=>set(t.g.gain,s.taps[i]));
-  for(const r of s.chains){if(r.v)set(r.v.g.gain,r.g);else{set(r.e.out.gain,r.g);r.e.a=r.a;}}}
-// A placed chain (one that borrows a voice) is recorded straight: its out is patched to the dry bus for the take and unpatched after.
-function bnSolo(c,sec){
-  const now=actx.currentTime,patched=!c.e.self&&!c.e.voice;
-  if(patched)c.e.out.connect(AU.dry);
-  c.e.out.gain.cancelScheduledValues(now);c.e.out.gain.setValueAtTime(0.5,now); // a fixed level: two beds compare, and the master's own gain is the only thing between here and the file
-  return bnRecord(sec).then(ch=>{c.e.out.gain.setValueAtTime(0,actx.currentTime);if(patched)try{c.e.out.disconnect(AU.dry);}catch(e){}return ch;});}
+// ---------- the whole graph, offline (v11.248) ----------
+// auGraph (audio.js) built into an OfflineAudioContext, with actx, master and every node AU holds swapped for the length of the render; done()
+// puts them back. AU.bench is up throughout, so the game's own tick leaves both graphs alone. A render that runs no code of ours (a bed) can
+// be put back before it renders; one the tick runs through (a mix) is put back when it ends, whatever happens.
+function bnGraph(sec){
+  const off=new (window.OfflineAudioContext||window.webkitOfflineAudioContext)(2,Math.ceil(sec*BN_SR),BN_SR);
+  const keep={actx:actx,master:master,muted:muted,au:Object.assign({},AU)};
+  const done=()=>{Object.assign(AU,keep.au);actx=keep.actx;master=keep.master;muted=keep.muted;};
+  actx=off;muted=false;AU.taps=[];AU.voices=[];AU.ems=[];AU.bodies=[];AU.bench=true;
+  try{auGraph();}catch(e){done();throw e;}
+  return {off:off,done:done};}
+function bnBed(id,sec){ // one chain alone: every other gain is zero as built, the reverb's too; the medium opened; a placed bed, which has no voice here, straight to the dry bus
+  const G=bnGraph(sec);let p;
+  try{const c=bnChains().find(c=>c.id===id);if(!c)throw new Error('no chain '+id);
+    AU.med.frequency.value=16000;if(AU.ems.indexOf(c.e)>=0)c.e.out.connect(AU.dry);
+    c.e.out.gain.value=0.5; // a fixed level: two beds compare, and the master's own gain is the only thing between here and the file
+    p=G.off.startRendering();}
+  finally{G.done();}
+  return p.then(bnBufFromCtx);}
+function bnMix(sec,pre,step){ // the mix where the player is: the tick at 20 Hz between suspends, step(dt) moving the world on before each (test/sound.js; none in the game)
+  const G=bnGraph(sec+pre),off=G.off;let err=null;
+  const tick=()=>{try{if(step)step(AU_DT);auTick(AU_DT,player,mode==='play'&&!player.dead);}catch(e){err=err||e;}};
+  tick();
+  for(let i=1;i*AU_DT<sec+pre;i++){off.suspend(Math.round(i*AU_DT*BN_SR/128)*128/BN_SR).then(()=>{tick();off.resume();});} // a suspend falls on a render quantum (128 frames)
+  return off.startRendering().then(b=>{G.done();if(err)throw err;const n0=Math.floor(pre*BN_SR);return bnBufFromCtx(b).map(c=>c.subarray(n0));},e=>{G.done();throw e;});}
 // ---------- the catalogue of one-shots ----------
 // Every thump() in the game, with the arguments its call site actually passes. Where a call site scales by a state (a speed, a
 // fall), the value here is a plausible middle and the comment says which. Grep a name here against src/ and it should be there.
@@ -106,26 +116,24 @@ const BN_SHOTS=[
 // ---------- the runs ----------
 function bnShots(){ // every one-shot, offline. 1.2 s each: thump's longest tail is 0.45 plus the noise's
   let p=Promise.resolve();
-  for(const s of BN_SHOTS)p=p.then(()=>bnOffline(1.2,()=>{s.f();}).then(b=>bnPost('shot_'+s.id+'.wav',bnWav(bnBufFromCtx(b),BN_SR))).then(bnSay));
+  for(const s of BN_SHOTS)p=p.then(()=>bnOffline(1.2,()=>{s.f();}).then(b=>bnOut('shot_'+s.id+'.wav',bnBufFromCtx(b),BN_SR)).then(bnSay));
   return p;}
 function bnNoises(){ // the raw material: the four noise buffers and the two impulse responses, as auNoise and auIR make them
   const kinds=[['white','white'],['brown','brown'],['pink','pink'],['crackle',45]];
   let p=Promise.resolve();
   for(const [id,k] of kinds)p=p.then(()=>bnOffline(4,(out,off)=>{const s=off.createBufferSource();s.buffer=auNoise(4,k);s.connect(out);s.start();})
-    .then(b=>bnPost('noise_'+id+'.wav',bnWav(bnBufFromCtx(b),BN_SR))).then(bnSay));
+    .then(b=>bnOut('noise_'+id+'.wav',bnBufFromCtx(b),BN_SR)).then(bnSay));
   const irs=[['cove',0.7,0.18,3000,500,0.004],['cavern',2.4,0.7,1200,200,0.012]];
   for(const [id,sec,tau,c0,c1,pre] of irs)p=p.then(()=>bnOffline(sec,(out,off)=>{const s=off.createBufferSource();s.buffer=auIR(sec,tau,c0,c1,pre);s.connect(out);s.start();},2)
-    .then(b=>bnPost('ir_'+id+'.wav',bnWav(bnBufFromCtx(b),BN_SR))).then(bnSay));
+    .then(b=>bnOut('ir_'+id+'.wav',bnBufFromCtx(b),BN_SR)).then(bnSay));
   return p;}
-function bnBeds(){ // the live chains, one at a time, real time. Six seconds each; twenty-odd chains is about two minutes
-  const cs=bnChains();let p=Promise.resolve(),st=null;
-  p=p.then(()=>{st=bnHush();});
-  cs.forEach((c,i)=>{p=p.then(()=>{bnSay('bed '+(i+1)+'/'+cs.length+'  '+c.id);return bnSolo(c,BN_BED);})
-    .then(ch=>bnPost('bed_'+c.id+'.wav',bnWav(ch,actx.sampleRate))).then(bnSay);});
-  return p.then(()=>{if(st)bnRestore(st);},e=>{if(st)bnRestore(st);throw e;});}
+function bnBeds(){ // every chain alone, offline: seconds, not the two minutes the live recording took
+  let p=Promise.resolve();
+  for(const c of bnChains()){const id=c.id;p=p.then(()=>bnBed(id,BN_BED)).then(ch=>bnOut('bed_'+id+'.wav',ch,BN_SR)).then(bnSay);}
+  return p;}
 function bnLive(sec){ // what the person hears, here, now. The tick keeps running: this one wants the space
   const was=AU.bench;AU.bench=false;
-  return bnRecord(sec||BN_LIVE).then(ch=>{AU.bench=was;return bnPost('live_'+bnSite()+'.wav',bnWav(ch,actx.sampleRate));},e=>{AU.bench=was;throw e;})
+  return bnRecord(sec||BN_LIVE).then(ch=>{AU.bench=was;return bnOut('live_'+bnSite()+'.wav',ch,actx.sampleRate);},e=>{AU.bench=was;throw e;})
     .then(bnSay);}
 function bnSite(){ // a live take names itself by where it was taken: the depth and the fields, not a place name (PLANET: no place has a name)
   const P=player,d=Math.round(TIDE-P.pos.y),ch=chunkAt(P.pos.x,P.pos.z),f=ch?ch.f(P.pos.x,P.pos.z):null;
@@ -136,7 +144,7 @@ function bnPanel(){
   if(bench.el)return;
   const d=document.createElement('div');
   d.style.cssText='position:fixed;left:12px;top:12px;z-index:60;background:rgba(6,14,18,0.88);color:#cfe6ea;font:11px ui-monospace,monospace;padding:10px 12px;border:1px solid #24424a;max-width:min(520px,60vw);white-space:pre;line-height:1.45';
-  const h=document.createElement('div');h.textContent='sound bench   [1] one-shots   [2] noise + irs   [3] beds (~2 min)   [4] live 20 s here   [0] all three   b close';
+  const h=document.createElement('div');h.textContent='sound bench   [1] one-shots   [2] noise + irs   [3] beds   [4] live 20 s here   [5] the mix here, offline   [0] 1-3   b close';
   h.style.cssText='color:#7fb2bd;margin-bottom:6px';
   const l=document.createElement('div');l.textContent='ready. node serve.js must be running; the wavs land in test/render/.';
   d.appendChild(h);d.appendChild(l);document.body.appendChild(d);bench.el=d;bench.logEl=l;}
@@ -156,6 +164,7 @@ addEventListener('keydown',e=>{
   else if(k==='2')bnRun(bnNoises,'noise + irs');
   else if(k==='3')bnRun(bnBeds,'beds');
   else if(k==='4')bnRun(()=>bnLive(BN_LIVE),'live capture');
+  else if(k==='5')bnRun(()=>bnMix(BN_MIX,BN_PRE,null).then(ch=>bnOut('mix_'+bnSite()+'.wav',ch,BN_SR)).then(bnSay),'the mix here, offline');
   else if(k==='0')bnRun(()=>bnShots().then(bnNoises).then(bnBeds),'everything');
   else if(e.code==='Escape')bnOpen(false);});
-if(HASH_FLAGS.indexOf('bench')>=0)addEventListener('click',function once(){removeEventListener('click',once);bnOpen(true);bnRun(()=>bnShots().then(bnNoises),'one-shots + noise (press 3 for the beds)');}); // a context needs a gesture; #bench arms the first click
+if(HASH_FLAGS.indexOf('bench')>=0)addEventListener('click',function once(){removeEventListener('click',once);bnOpen(true);bnRun(()=>bnShots().then(bnNoises).then(bnBeds),'one-shots, noise, beds');}); // a context needs a gesture; #bench arms the first click

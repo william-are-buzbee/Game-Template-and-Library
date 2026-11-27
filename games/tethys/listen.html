@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>tethys · listen</title>
+<style>
+/* listen.html — the person's ear on a pull request (v11.248; AUDIO.md, "The ear's instruments"). Every sound test/sound.js renders, as the site
+   publishes it (listen/index.json and an mp3 each, made by .github/workflows/pages.yml), and on a preview each sound that changed played blind
+   against main's: A and B in step, switched at the same instant, levels matched unless asked; a verdict reveals which was which. "Copy for the
+   pull request" makes the verdicts and the notes one block to paste as a comment, which is what the session reads. Nothing here is the game. */
+:root{--bg:#081014;--panel:#0e1a20;--line:#20343c;--fg:#cfe3e7;--dim:#7d9aa2;--acc:#7fd0d8;--warn:#e0a060;--good:#8fd39a}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 Georgia,'Times New Roman',serif}
+main{max-width:860px;margin:0 auto;padding:24px 16px 80px}
+h1{font-weight:normal;letter-spacing:.3em;text-transform:lowercase;font-size:20px;margin:0 0 4px}
+h2{font-weight:normal;letter-spacing:.2em;font-size:13px;text-transform:lowercase;color:var(--dim);margin:28px 0 8px;border-bottom:1px solid var(--line);padding-bottom:4px}
+p{margin:6px 0;color:var(--dim)}
+.bar{position:sticky;top:0;background:var(--bg);padding:10px 0;display:flex;flex-wrap:wrap;gap:12px;align-items:center;border-bottom:1px solid var(--line);z-index:2}
+.bar label{color:var(--dim);font-size:13px;display:flex;align-items:center;gap:6px}
+button{background:var(--panel);color:var(--fg);border:1px solid var(--line);padding:5px 11px;font:inherit;font-size:13px;cursor:pointer;border-radius:3px}
+button:hover{border-color:var(--acc)}button.on{border-color:var(--acc);color:var(--acc)}button.pick{background:#16323a;border-color:var(--acc)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:4px;padding:10px 12px;margin:8px 0}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.name{font-family:ui-monospace,Menlo,monospace;font-size:13px;color:var(--acc);margin-right:auto}
+.what{font-size:13px;color:var(--dim);margin:2px 0 6px}
+.nums{font-family:ui-monospace,Menlo,monospace;font-size:11px;color:var(--dim)}
+.reveal{font-size:13px;color:var(--good)}
+input[type=text]{flex:1 1 220px;background:#071216;color:var(--fg);border:1px solid var(--line);padding:5px 8px;font:inherit;font-size:13px;border-radius:3px}
+.warn{color:var(--warn)}
+textarea{width:100%;height:160px;background:#071216;color:var(--fg);border:1px solid var(--line);font:12px ui-monospace,monospace}
+</style>
+</head>
+<body>
+<main>
+<h1>tethys · listen</h1>
+<p id="intro">loading…</p>
+<div class="bar">
+  <label>volume <input id="vol" type="range" min="0" max="1" step="0.01" value="0.35"></label>
+  <label><input id="match" type="checkbox" checked> levels matched in a/b</label>
+  <label><input id="loop" type="checkbox" checked> loop</label>
+  <button id="stop">stop</button>
+  <button id="copy">copy for the pull request</button>
+</div>
+<p class="warn">headphones: start low. the takes are the game's own levels, and a one-shot can be loud.</p>
+<div id="changed"></div>
+<div id="all"></div>
+<textarea id="out" hidden readonly></textarea>
+</main>
+<script>
+'use strict';
+const $=id=>document.getElementById(id),el=(t,c,txt)=>{const e=document.createElement(t);if(c)e.className=c;if(txt!==undefined)e.textContent=txt;return e;};
+const store={get(k){try{return JSON.parse(localStorage.getItem(k)||'null');}catch(e){return null;}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}};
+// where main's set is: a preview lives at <site>/preview/<n>/games/tethys/, main at <site>/games/tethys/
+const here=location.pathname.replace(/[^/]*$/,''),pm=here.match(/^(.*\/)preview\/(\d+)\/(.*)$/),PR=pm?pm[2]:null,MAIN=pm?pm[1]+pm[3]+'listen/':null;
+const KEY='tethys.listen.'+(PR||'main');let ST=store.get(KEY)||{};
+const save=()=>store.set(KEY,ST);
+let ctx=null,master=null,playing=null;const bufs=new Map();
+function audio(){if(!ctx){ctx=new (window.AudioContext||window.webkitAudioContext)();master=ctx.createGain();master.connect(ctx.destination);}master.gain.value=+$('vol').value;if(ctx.state==='suspended')ctx.resume();return ctx;}
+$('vol').value=store.get('tethys.listen.vol')??0.35;
+$('vol').oninput=()=>{store.set('tethys.listen.vol',+$('vol').value);if(master)master.gain.setTargetAtTime(+$('vol').value,ctx.currentTime,0.02);};
+function load(url){if(!bufs.has(url))bufs.set(url,fetch(url).then(r=>{if(!r.ok)throw new Error(r.status+' '+url);return r.arrayBuffer();}).then(b=>audio().decodeAudioData(b)));return bufs.get(url);}
+function stop(){if(!playing)return;for(const s of playing.src)try{s.stop();}catch(e){}playing.btns.forEach(b=>b.classList.remove('on'));playing=null;}
+$('stop').onclick=stop;
+// one sound, or a pair in step: both start together, the one not chosen at zero; a switch crossfades over 15 ms at the same instant
+async function play(urls,gains,which,btns){
+  stop();audio();const B=await Promise.all(urls.map(load));const t0=ctx.currentTime+0.05,src=[],g=[];
+  B.forEach((b,i)=>{const s=ctx.createBufferSource();s.buffer=b;s.loop=$('loop').checked;const gn=ctx.createGain();gn.gain.value=i===which?gains[i]:0;s.connect(gn);gn.connect(master);s.start(t0);src.push(s);g.push(gn);});
+  src[0].onended=()=>{if(playing&&playing.src===src){playing.btns.forEach(b=>b.classList.remove('on'));playing=null;}};
+  playing={src,g,gains,urls,btns,which};btns.forEach((b,i)=>b.classList.toggle('on',i===which));}
+function choose(urls,gains,i,btns){
+  if(playing&&playing.urls.join()===urls.join()){const now=ctx.currentTime;playing.g.forEach((gn,k)=>gn.gain.setTargetAtTime(k===i?gains[k]:0,now,0.005));playing.which=i;btns.forEach((b,k)=>b.classList.toggle('on',k===i));}
+  else play(urls,gains,i,btns);}
+const fmt=s=>s.lufs.toFixed(1)+' lufs · peak '+s.peak.toFixed(1)+' dB · centroid '+s.centroid+' Hz · '+s.secs+' s';
+const VERD={a:'A',b:'B',same:'the same',wrong:'both wrong'};
+function abCard(h,m){ // a changed sound, blind: which side is this pull request's is drawn once and kept with the verdict
+  const st=ST[h.name]||(ST[h.name]={});if(st.thisIs===undefined){st.thisIs=Math.random()<0.5?0:1;save();}
+  const side=[null,null];side[st.thisIs]=h;side[1-st.thisIs]=m;
+  const urls=[side[0]===h?'listen/'+h.name+'.mp3':MAIN+m.name+'.mp3',side[1]===h?'listen/'+h.name+'.mp3':MAIN+m.name+'.mp3'];
+  const c=el('div','card'),r=el('div','row');r.appendChild(el('span','name',h.name));
+  const bA=el('button',null,'A'),bB=el('button',null,'B'),btns=[bA,bB];
+  const gains=()=>{if(!$('match').checked||side[0].lufs<=-69||side[1].lufs<=-69)return [1,1];const q=Math.min(side[0].lufs,side[1].lufs);return side.map(s=>Math.pow(10,(q-s.lufs)/20));}; // only ever down: the quieter is the level
+  bA.onclick=()=>choose(urls,gains(),0,btns);bB.onclick=()=>choose(urls,gains(),1,btns);r.appendChild(bA);r.appendChild(bB);c.appendChild(r);
+  c.appendChild(el('div','what',h.what));
+  const v=el('div','row');v.appendChild(el('span','nums','better:'));
+  const rv=el('div','reveal');
+  const show=()=>{for(const b of v.querySelectorAll('button'))b.classList.toggle('pick',b.dataset.k===st.verdict);
+    rv.textContent=st.verdict?'A was '+(st.thisIs===0?'this pull request':'main')+', B '+(st.thisIs===1?'this pull request':'main')+'. this pull request is '+((h.lufs-m.lufs)>=0?'+':'')+(h.lufs-m.lufs).toFixed(1)+' LU against main. here: '+fmt(h)+'; main: '+fmt(m):'';};
+  for(const k of Object.keys(VERD)){const b=el('button',null,VERD[k]);b.dataset.k=k;b.onclick=()=>{st.verdict=k;save();show();};v.appendChild(b);}
+  c.appendChild(v);const n=el('input');n.type='text';n.placeholder='what you hear (optional)';n.value=st.note||'';n.oninput=()=>{st.note=n.value;save();};
+  const nr=el('div','row');nr.style.marginTop='6px';nr.appendChild(n);c.appendChild(nr);c.appendChild(rv);show();return c;}
+function oneCard(h,tag){
+  const st=ST[h.name]||(ST[h.name]={}),c=el('div','card'),r=el('div','row');r.appendChild(el('span','name',h.name+(tag?'  ('+tag+')':'')));
+  const b=el('button',null,'play');b.onclick=()=>{if(playing&&playing.btns[0]===b)stop();else play(['listen/'+h.name+'.mp3'],[1],0,[b]);};r.appendChild(b);c.appendChild(r);
+  c.appendChild(el('div','what',h.what));c.appendChild(el('div','nums',fmt(h)));
+  if(CHANGED.some(([x])=>x===h))return c; // its note is the a/b's, above
+  const n=el('input');n.type='text';n.placeholder='a note on this sound (optional)';n.value=st.note||'';n.oninput=()=>{st.note=n.value;save();};
+  const nr=el('div','row');nr.style.marginTop='6px';nr.appendChild(n);c.appendChild(nr);return c;}
+let HERE=null,MAINSET=null,CHANGED=[];
+$('copy').onclick=()=>{
+  const lines=['**listening** ('+(HERE?HERE.version:'?')+(PR?', preview '+PR:'')+')',''];
+  if(CHANGED.length){lines.push('| sound | better | loudness vs main | note |','|---|---|---|---|');
+    for(const [h,m] of CHANGED){const st=ST[h.name]||{},v=st.verdict;const who=!v?'—':v==='same'||v==='wrong'?VERD[v]:((v==='a')===(st.thisIs===0)?'**this PR**':'main');
+      lines.push('| '+h.name+' | '+who+' | '+((h.lufs-m.lufs)>=0?'+':'')+(h.lufs-m.lufs).toFixed(1)+' LU | '+(st.note||'').replace(/\|/g,'/')+' |');}}
+  const notes=HERE?HERE.sounds.filter(h=>!CHANGED.some(([x])=>x===h)&&ST[h.name]&&ST[h.name].note):[];
+  if(notes.length){lines.push('','notes:');for(const h of notes)lines.push('- `'+h.name+'`: '+ST[h.name].note);}
+  if(!CHANGED.length&&!notes.length)lines.push('(no verdicts or notes yet)');
+  const txt=lines.join('\n'),o=$('out');o.value=txt;o.hidden=false;o.select();
+  (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>{$('copy').textContent='copied';setTimeout(()=>$('copy').textContent='copy for the pull request',1500);},()=>{document.execCommand&&document.execCommand('copy');});};
+(async()=>{
+  try{HERE=await (await fetch('listen/index.json')).json();}catch(e){$('intro').textContent='no listening set here (listen/index.json): the site\'s publish makes it, with ffmpeg and a headless browser.';return;}
+  if(MAIN){try{const r=await fetch(MAIN+'index.json');if(r.ok)MAINSET=await r.json();}catch(e){}}
+  const M=new Map((MAINSET?MAINSET.sounds:[]).map(s=>[s.name,s]));
+  CHANGED=HERE.sounds.filter(h=>M.has(h.name)&&M.get(h.name).fp!==h.fp).map(h=>[h,M.get(h.name)]);
+  const fresh=HERE.sounds.filter(h=>MAINSET&&!M.has(h.name)),gone=MAINSET?MAINSET.sounds.filter(m=>!HERE.sounds.some(h=>h.name===m.name)):[];
+  $('intro').textContent=HERE.version+(PR?' · preview of pull request '+PR+' · '+(MAINSET?CHANGED.length+' changed from main ('+MAINSET.version+'), '+fresh.length+' new, '+gone.length+' gone':'main\'s set not found: nothing to compare'):' · main')+'. each sound is the game\'s own recipe rendered by test/sound.js: the one-shots and the beds dry, the mixes as heard at a place, held still.';
+  if(PR&&MAINSET){const box=$('changed');box.appendChild(el('h2',null,'changed — blind: pick the better, then see which was which'));
+    if(!CHANGED.length)box.appendChild(el('p',null,'nothing changed from main.'));for(const [h,m] of CHANGED)box.appendChild(abCard(h,m));
+    if(gone.length)box.appendChild(el('p',null,'gone since main: '+gone.map(g=>g.name).join(', ')));}
+  const all=$('all'),groups=[['mix','the mix at a place'],['shot','one-shots'],['bed','beds, each alone']];
+  for(const [g,t] of groups){const hs=HERE.sounds.filter(h=>h.group===g);if(!hs.length)continue;all.appendChild(el('h2',null,t));for(const h of hs)all.appendChild(oneCard(h,fresh.includes(h)?'new':''));}
+})();
+</script>
+</body>
+</html>

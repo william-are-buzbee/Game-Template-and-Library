@@ -50,6 +50,15 @@ jobs:
           npm i -g playwright@1.63.0
           npx playwright@1.63.0 install --with-deps chromium
           PLAYWRIGHT_MODULE="$(npm root -g)/playwright" node tools/cards.ts
+      # Tethys's listening set (games/tethys/test/sound.js --dist, listen.html): every sound rendered headless, an mp3 each beside the game;
+      # a sound whose numbers are main's takes main's live file, so gh-pages keeps one copy of it. If this fails the site is still published,
+      # listen.html saying there is no set
+      - name: tethys listening set (headless chromium, ffmpeg)
+        if: github.event.action != 'closed'
+        continue-on-error: true
+        run: |
+          command -v ffmpeg >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends ffmpeg)
+          PLAYWRIGHT_MODULE="$(npm root -g)/playwright" node games/tethys/test/sound.js --dist games/tethys/dist --from "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/games/tethys/listen/"
       - if: github.event.action != 'closed'
         env:
           PREVIEW_PR: ${{ github.event.pull_request.number }}

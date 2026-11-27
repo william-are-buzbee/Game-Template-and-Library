@@ -32,7 +32,7 @@ node build.js            tethys.html (everything inlined), dev.html (src/*.js lo
 node build.js --test     the build, then every headless test on both tiers; exit 1 on any failure (JOBS=n side by side, SHARD=k/n one part)
 node serve.js            http://localhost:8080/dev.html (edit and refresh) or /tethys.html (the build)
 node test/types.js       the type checker over src/ against its baseline, test/types.json (also `npm run typecheck`, which CI runs)
-npm run smoke            the browser tests CI runs: node test/gpu.js --check, test/boot.js, test/wcache_page.js, test/three187.js, test/horizon_page.js
+npm run smoke            the browser tests CI runs: node test/gpu.js --check, test/sound.js --check, test/boot.js, test/wcache_page.js, test/three187.js, test/horizon_page.js
 ```
 
 - Node 22. Python is **not** on the person's PC; `build.py` is the same build for sandbox sessions. Change `build.js` and `build.py` together:
@@ -54,7 +54,8 @@ npm run smoke            the browser tests CI runs: node test/gpu.js --check, te
   typed: the record (`Rec`, world.js), the creature (`Creature`, creatures_ai.js) and the player (`Player`, player.js) are closed shapes
   listed beside their literals — a key misspelt or set that is not there is an error, the shape rule held at check time. A key added to one of
   those literals goes in its typedef too. When the checker is wrong, say why in a JSDoc type or `types/globals.d.ts`; never `@ts-ignore`.
-- The benches are not in `--test`: `test/perf.js` (the pull request's table), `test/gpu.js` (exact GPU counts, held in CI), `test/fill.js`
+- The benches are not in `--test`: `test/perf.js` (the pull request's table), `test/gpu.js` (exact GPU counts, held in CI), `test/sound.js`
+  (every sound rendered headless and measured, held in CI to `test/sound.json`; its listening set is the site's `listen.html`, v11.248), `test/fill.js`
   (GPU time per draw, a proxy), `test/frames.js`, `test/bench.js`, `test/bench_creatures.js`; the person's own machines: `test/report.js`.
 
 ## Delivering a change
@@ -420,8 +421,8 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
 ## Dev tools in the game
 
 - **Keys.** `n` the world map (wheel zooms, drag pans, a click teleports, `o` the marks); `z` the bestiary (←→ step, space strike, s cruise);
-  `l` the lab, `p` place its spec; `e` the effects list; `b` the sound bench (1 one-shots, 2 noise and irs, 3 the beds, 4 a live capture; needs
-  `node serve.js`); `f` first person; `x` lay a clutch (any body but a drifter's, grown, on the floor; a soft ringmouth once, then it broods; a
+  `l` the lab, `p` place its spec; `e` the effects list; `b` the sound bench (1 one-shots, 2 noise and irs, 3 the beds, 4 a live capture, 5 the mix here offline; needs
+  `node serve.js`; `node test/sound.js` runs 1–3 and the mixes headless, v11.248); `f` first person; `x` lay a clutch (any body but a drifter's, grown, on the floor; a soft ringmouth once, then it broods; a
   hingeshell at a den; it opens the editor at conception, where `l` lays); `r` or right mouse grab, click bite; `Q` the body's ability; `M` mute; **F9** send a report; **F8** the probe: what each part of the frame costs this GPU here (~15–30 s, hold still, leave the window be; kept for the next report).
 - **The readout**: backquote (or `'`, F3) — fps, frame ms, work/worst, gen, res, draws, tris, cells, pools, far, creatures, phys, render (the
   submit and any wait), **gpu** (the card's own time, where the browser times it), heap, the tier, the medium, the place, oxygen, tide, hour,
@@ -445,7 +446,7 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
 ## The person
 
 - Concise replies, dry wit, no praise, no constant agreement; disagree when it is reasonable. Be plain about what you can and cannot do: from
-  here you can build, test, serve, look and screenshot; you cannot hear the sound, and their GPU is measured only by their reports (F9; the GPU's
+  here you can build, test, serve, look and screenshot; you cannot hear the sound (measure it: `test/sound.js`; ask through the preview's `listen.html`), and their GPU is measured only by their reports (F9; the GPU's
   time needs desktop Chrome's timer).
 - Likes questions and is open to ideas. When a design choice is theirs (a doc's Open list, anything about the planet or the roster, what to
   strike), ask, don't guess, and record the answer in the doc with the date. The old per-version ask lists are a record of what was never

@@ -7,6 +7,7 @@
 // over the same octave, whether anything clips. The numbers are the part that can go in a test and stay true.
 //   node test/spectro.js              every wav in test/render/
 //   node test/spectro.js shot_ bed_   only names containing one of these
+// Loudness (v11.248) is BS.1770's LUFS — what a person hears as loud, where rms is only energy — checked against ffmpeg's ebur128.
 // Not part of the game and not in build.js --test: it needs the bench to have run first.
 'use strict';
 const fs=require('fs'),path=require('path'),{png,text,textW}=require('./png.js');
@@ -46,6 +47,26 @@ function spectrum(x,off){ // one frame's magnitude, NFFT/2 bins
   const m=new Float64Array(NFFT/2);
   for(let i=0;i<NFFT/2;i++)m[i]=Math.sqrt(re[i]*re[i]+im[i]*im[i])/(NFFT/2);
   return m;}
+// ---------- loudness (v11.248) ----------
+// ITU-R BS.1770-4: each channel K-weighted (a high shelf, +4 dB over ~1.7 kHz, for the head; a high-pass at 38 Hz), its mean square over 400 ms
+// blocks every 100 ms, the blocks summed over the channels (front left and right weigh 1). Integrated: the blocks gated at −70 LUFS, then at
+// 10 LU under their own mean; short-term max: the loudest 3 s. The coefficients from the filters' analogue definitions by the bilinear
+// transform (libebur128's, which ffmpeg's ebur128 is), so any rate works; at 48 kHz they are the standard's to six places. A mono file is one channel: played to both
+// ears it reads 3 LU louder than this says. −70 when there is nothing to gate (silence, or shorter than a block).
+function biquad(x,b0,b1,b2,a0,a1,a2){const y=new Float64Array(x.length);let x1=0,x2=0,y1=0,y2=0;b0/=a0;b1/=a0;b2/=a0;a1/=a0;a2/=a0;
+  for(let i=0;i<x.length;i++){const v=b0*x[i]+b1*x1+b2*x2-a1*y1-a2*y2;x2=x1;x1=x[i];y2=y1;y1=v;y[i]=v;}return y;}
+function kweight(x,sr){
+  let K=Math.tan(Math.PI*1681.974450955533/sr),Q=0.7071752369554196,Vh=Math.pow(10,3.999843853973347/20),Vb=Math.pow(Vh,0.4996667741545416);
+  const y=biquad(x,Vh+Vb*K/Q+K*K,2*(K*K-Vh),Vh-Vb*K/Q+K*K,1+K/Q+K*K,2*(K*K-1),1-K/Q+K*K);
+  K=Math.tan(Math.PI*38.13547087602444/sr);Q=0.5003270373238773;
+  return biquad(y,1,-2,1,1,2*(K*K-1)/(1+K/Q+K*K),(1-K/Q+K*K)/(1+K/Q+K*K));}
+function loudness(w){
+  const k=w.ch.map(x=>kweight(x,w.sr)),n=w.n,blk=Math.round(0.4*w.sr),hop=Math.round(0.1*w.sr),z=[];
+  for(let o=0;o+blk<=n;o+=hop){let s=0;for(const y of k){for(let i=o;i<o+blk;i++)s+=y[i]*y[i];}z.push(s/blk);}
+  const L=v=>-0.691+10*Math.log10(Math.max(v,1e-12)),mean=a=>a.reduce((s,v)=>s+v,0)/Math.max(1,a.length);
+  const g1=z.filter(v=>L(v)>-70),rel=L(mean(g1))-10,g2=g1.filter(v=>L(v)>rel);
+  let st=-70;const sb=Math.round(3*w.sr);for(let o=0;o+sb<=n||o===0;o+=hop){let s=0,m=Math.min(n,o+sb);for(const y of k)for(let i=o;i<m;i++)s+=y[i]*y[i];st=Math.max(st,L(s/Math.max(1,m-o)));if(o+sb>=n)break;}
+  return {lufs:g2.length?Math.max(-70,L(mean(g2))):-70,stmax:st};}
 // ---------- the numbers ----------
 const db=v=>20*Math.log10(Math.max(v,1e-9));
 function measure(w){
@@ -73,8 +94,9 @@ function measure(w){
   // how steady is it? the spread of the frame energies says bed (steady) from event (not)
   let em=0;for(const v of env)em+=v;em/=Math.max(1,env.length);
   let ev=0;for(const v of env)ev+=(v-em)*(v-em);ev=Math.sqrt(ev/Math.max(1,env.length));
+  const lo=loudness(w);
   return {peak:db(peak),rms:db(rms),crest:db(peak)-db(rms),clip:clip,dc:dco,centroid:centroid,roll:roll,bands:bands,
-    attack:attack,decay:d40,steady:em>0?ev/em:0,env:env,mean:mean,hop:hop};}
+    attack:attack,decay:d40,steady:em>0?ev/em:0,env:env,mean:mean,hop:hop,lufs:lo.lufs,stmax:lo.stmax};}
 // ---------- the picture ----------
 const BG=[10,16,20],FG=[150,196,205],DIM=[52,80,88];
 function ramp(v){ // 0..1 → dark blue, cyan, yellow, white. Enough contrast to see a 40 dB range at a glance
@@ -115,7 +137,7 @@ function panel(name,w,M){
     text(img,W,H,2,y-3,f>=1000?(f/1000)+'K':''+f,DIM,1);}
   // the numbers
   const B=M.bands.map(v=>Math.round(v*100));
-  const l1='peak '+M.peak.toFixed(1)+'dB   rms '+M.rms.toFixed(1)+'dB   crest '+M.crest.toFixed(1)+'dB   centroid '+M.centroid.toFixed(0)+'hz   roll85 '+M.roll.toFixed(0)+'hz'+(M.clip?'   CLIPPED '+M.clip:'')+(Math.abs(M.dc)>0.002?'   DC '+M.dc.toFixed(3):'');
+  const l1='lufs '+M.lufs.toFixed(1)+'   peak '+M.peak.toFixed(1)+'dB   rms '+M.rms.toFixed(1)+'dB   crest '+M.crest.toFixed(1)+'dB   centroid '+M.centroid.toFixed(0)+'hz   roll85 '+M.roll.toFixed(0)+'hz'+(M.clip?'   CLIPPED '+M.clip:'')+(Math.abs(M.dc)>0.002?'   DC '+M.dc.toFixed(3):'');
   const l2='bands  sub'+B[0]+'% low'+B[1]+'% mid'+B[2]+'% hi'+B[3]+'% air'+B[4]+'%    attack '+(M.attack*1000).toFixed(0)+'ms   decay40 '+(M.decay<0?'-':(M.decay*1000).toFixed(0)+'ms')+'   steadiness '+(1-Math.min(1,M.steady)).toFixed(2);
   text(img,W,H,MX,s0+HS+5,l1,M.clip?[255,120,110]:FG,1);
   text(img,W,H,MX,s0+HS+15,l2,DIM,1);
@@ -132,9 +154,9 @@ function main(){
     const M=measure(w),img=panel(f.replace(/\.wav$/,''),w,M);
     fs.writeFileSync(path.join(DIR,f.replace(/\.wav$/,'.png')),png(img,W,H));
     panels.push(img);
-    rows.push([f.replace(/\.wav$/,''),(w.n/w.sr).toFixed(2),M.peak.toFixed(1),M.rms.toFixed(1),M.crest.toFixed(1),M.centroid.toFixed(0),M.roll.toFixed(0),
+    rows.push([f.replace(/\.wav$/,''),(w.n/w.sr).toFixed(2),M.lufs.toFixed(1),M.peak.toFixed(1),M.rms.toFixed(1),M.crest.toFixed(1),M.centroid.toFixed(0),M.roll.toFixed(0),
       M.bands.map(v=>String(Math.round(v*100)).padStart(2)).join('/'),(M.attack*1000).toFixed(0),M.decay<0?'-':(M.decay*1000).toFixed(0),(1-Math.min(1,M.steady)).toFixed(2),M.clip?'CLIP':'']);}
-  const head=['name','s','peak','rms','crest','centr','roll85','sub/low/mid/hi/air','atk','dec40','steady',''];
+  const head=['name','s','lufs','peak','rms','crest','centr','roll85','sub/low/mid/hi/air','atk','dec40','steady',''];
   const wid=head.map((h,i)=>Math.max(h.length,...rows.map(r=>String(r[i]).length)));
   const line=r=>r.map((c,i)=>String(c).padEnd(wid[i])).join('  ').trimEnd();
   console.log('');console.log(line(head));console.log(wid.map(n=>'-'.repeat(n)).join('  '));
@@ -146,4 +168,5 @@ function main(){
     fs.writeFileSync(path.join(DIR,'_sheet.png'),png(sheet,W,SH));
     console.log('sheet             →  test/render/_sheet.png');}
 }
-main();
+if(require.main===module)main();
+module.exports={readWav,measure,loudness,panel,W,H}; // test/sound.js (v11.248)

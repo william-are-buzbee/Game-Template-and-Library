@@ -4,6 +4,13 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.248 (27 Nov 2026): the ear's instruments — the audio overhaul's first step** (src/audio.js `auGraph`; src/bench.js `bnGraph`, `bnBed`, `bnMix`;
+test/sound.js, test/sound.json; test/spectro.js LUFS; listen.html; pages.yml; AUDIO.md "The overhaul", "The ear's instruments"). Every sound rendered
+headless and offline — one-shots, beds, the whole mix at eight places — measured (LUFS) and held in CI (`npm run smoke`); on every preview
+`listen.html` plays each sound that differs from main's blind, and copies the verdicts as a comment. Nothing heard changed. The person's answers:
+headphones, creature voices in scope, music theirs, a blind pass per audio PR, the network opened later. First finding: the mix is quiet (−30 to
+−41 LUFS) and below 2 kHz everywhere. **Next:** phase 2, the engine (AUDIO.md). **Ask:** the mixes on the preview's listen.html; CI's 7–10 minutes.
+
 **v11.247 (26 Nov 2026): the shape's drag, The Sapling's** (creatures_spec.js `SPINE_FORM`, `spineForm`, derive's `form`/`formWhy`; lab.js the caption;
 test/spine.js; DESIGN The spine; CHANGELOG). The person: *"Absolutely, go for that."* A swimmer's drag coefficient × `form`, read off its knots: a lump
 (girth past one rise and fall), a bend (the middle line off straight), a fat rear (widest girth past 0.6 of the way back). Every roster species is at 1
@@ -34,12 +41,6 @@ test/horizon.js, test/gpu.json; DESIGN The region; ARCHIPELAGO; CHANGELOG). The 
 and kill it"* — m122 (799 m) and m109 (470 m), 54 km apart, each in its own drowned ring. m122 is never born and the pins refit: ours' own island the same
 to the bit, the giant's barrier 85 m out, m154 41 m lower, m31 out of the platform's north margin, m109, m117 and m93 the west's lineages now. v11.243 had
 struck the atoll m93 by misreading which two; it is back. **Ask:** the map's middle; whether "just one visible" means more of these should go.
-
-**v11.242 (26 Nov 2026): the uneven species split by their variants' size** (grow.js `VSPLIT`, `vsplitOf`; chunks.js `poolSplit`, `poolFor`'s key;
-test/vsplit.js; DESIGN; FLORA.md; CHANGELOG). The person: *"go ahead with the grass split."* A pulled draw ran every instance at its largest variant's count;
-the strap's and the tress's light variants are a tenth to a fifth of their heavy one. Such a species now draws its light instances in a pool of their own
-(the strap and the tress on both tiers; on the high, with no copies, eight more). Nothing seen changes (the pictures the same pixel for pixel). The F8
-place's triangles ×0.79 (with v11.241, ×0.58 against v11.239), the high tier's ×0.91–0.97, +2–6 draws. **Ask:** the tower's F8 at `tp(69950,29582,-10)`.
 
 ## Open
 

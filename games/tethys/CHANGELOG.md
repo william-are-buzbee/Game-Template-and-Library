@@ -12455,3 +12455,63 @@ The simulation, every body and the pictures at three places the same to the bit.
 **Unseen, ask in this order:**
 1. The weights (`lump` 0.5, `crook` 0.5, `rear` 1.5): whether a lump or a bend costs as much as it looks like it should.
 2. Whether a body thicker at the front than the roster's should go faster than the roster (a reward past the ideal), or the roster stays the best.
+
+## v11.248 — the ear's instruments: every sound rendered headless, held in CI, and a blind listening page (27 Nov 2026)
+
+The person asked what would let a session make and test sound with them, for an overhaul of the audio. Nobody here can hear, so the overhaul
+starts with the instruments: what a sound *is*, measured the same way every run and held in CI, and the person's ear made cheap to use and to
+read back. Their answers (AUDIO.md, "The overhaul"): headphones; creature voices in scope, music theirs; a blind pass on each audio pull
+request; the network opened for learned ears later. **Nothing the player hears changes in this version.**
+
+**Offline, all of it** (src/audio.js, src/bench.js). `initAudio`'s body is `auGraph()`, which builds the whole graph into whatever `actx` is; the
+bench's `bnGraph` swaps an OfflineAudioContext in under it, as `bnOffline` already did for the one-shots. So the beds now render offline in
+seconds, not live in two minutes (`bnBed`: one chain alone through a fresh graph, everything else silent as built), and there is a new engine,
+**the mix** (`bnMix`, key `5` in the bench): the whole graph with the game's own `auTick` run at 20 Hz between the render's suspends — what the
+person hears where the player stands, rendered faster than real time. Two fixes on the way: the crackle's solo was recorded twice over (patched
+to the dry bus besides its own panner: placed beds only are patched now), and `AU.boil` joined AU's literal (with `bench`) — the vent's boil
+started from 0.7 the first time and from wherever it was after, and a snapshot that puts back only the keys that were there could not reset it.
+The pressure's two sines are a bed of their own on the list (`pressure`).
+
+**`test/sound.js`** (new) runs the bench in test/benchpage.js's page — seeded, the bench's clock — with its takes handed back
+(`bench.out`) instead of posted to serve.js: 13 one-shots, 6 noise buffers and impulse responses, 22 beds, and the mix at eight places (the
+seven bench places and 25 m off the vent's mouth), each mix in a page of its own with the world streamed and settled as test/gpu.js does, 2 s
+rendered and thrown away (the beds fade in from silence) then 8 s kept. `--check` holds every number to **`test/sound.json`** (new) within a
+tolerance (loudness 1 LU, a mix 1.5; centroid 10%, 15%; a band's share 0.04, 0.06; decay 15%) and is in `npm run smoke`; `--update` writes it.
+One-shots, material and beds are the same to the bit run to run; a mix moves about 129 samples of 768,000 by one step of sixteen bits (float order
+in the audio thread at −136 dB — traced: every input to every tick the same), so the same sound is `fp`, the hash of its numbers to a hundredth.
+Once in a full run (two pages at a time) the wood's page sat busy for twenty minutes, where alone it takes 55 s; it did not come back on
+running it alone or in the next full run, and is not understood. So a mix has 240 s (`MIX_S`), then its browser is closed and it runs once more,
+and twice over is a failure that names the place — never a hung CI job.
+
+**Loudness** (test/spectro.js): BS.1770's LUFS, integrated and the loudest 3 s, beside rms — rms is energy, LUFS is what is heard as loud.
+K-weighting by libebur128's coefficients; checked against ffmpeg's ebur128 on pink noise (−30.8 both) and a 1 kHz sine (−21.1 both).
+spectro.js is now `require`-able (`readWav`, `measure`, `loudness`).
+
+**`listen.html`** (new, on the site beside the game). `test/sound.js --dist` writes the listening set — an mp3 of every mix, one-shot and bed
+(192 kbps, about 4 MB), and `listen/index.json` with each one's numbers and `fp` — in the site's publish (.github/workflows/pages.yml: a step after
+the pictures, ffmpeg installed when missing, continue-on-error). On a preview the page finds main's set and plays each sound that differs **blind**:
+A and B start together and switch at the same instant (a 15 ms crossfade), the louder brought down to the quieter unless "levels matched" is
+off, a verdict (A, B, the same, both wrong) revealing which was which and the loudness between them. Every sound has a note box; **copy for the
+pull request** makes the verdicts and notes one markdown block to paste as a comment. A sound whose `fp` is main's takes main's live file
+(`--from`), so gh-pages (a commit every publish) does not fill with copies of the same mixes. Volume starts at 0.35 and is remembered.
+
+**Shared:** test/gpu.js's `bootThrough` moved to test/benchpage.js for test/sound.js; gpu.js is otherwise unchanged.
+
+**What the first render says** (AUDIO.md, "The ear's instruments"; nothing fixed here):
+- The mix is quiet and dark at every place: −29.6 LUFS at the vent, −36.2 in the forest, −40.8 in open water (games sit at −24 to −18);
+  centroids 106–318 Hz, and under 1% of the energy above 2 kHz anywhere — the coast and the wood, in air with the lowpass open, included.
+- Eleven of thirteen one-shots are still one low thud (v11.34). The crackle is −57 LUFS at the bench's level.
+
+**What it costs:** nothing in play — `auGraph` is `initAudio`'s body moved, run once; the tick is the same code (test/audio.js: updateAudio
+0.040 ms a frame headless, its bound 0.3). CI: `test/sound.js --check` is 7–10 minutes in a session (620 s with one retry) (two pages at a time — four ran it out of
+memory; a page's boot is 27 s of each mix's ~50); the publish about as long again, in parallel with nothing it blocks.
+
+**Seen:** all 49 takes rendered and measured, twice for determinism; the listening page driven headless on a mock preview (a changed mix and
+one-shot, blind A/B, a verdict, the reveal, the copied block). **Unheard**: everything — that is what the page is for.
+
+**Unseen, ask in this order:**
+1. On this pull request's preview, `games/tethys/listen.html`: whether the mixes sound like the places they are named for (forest, open, vent,
+   coast, shore), and whether the page works on your browser and headphones. Nothing differs from main yet, so there is no A/B to judge; the
+   next audio pull request will have one.
+2. Whether 7–10 minutes more on Tethys's smoke job is acceptable, or the check should hold the one-shots and beds and only three mixes.
+3. Whether the first finding — everything quiet and below 2 kHz — matches what you hear in play.
