@@ -9,6 +9,8 @@
 //   grow      a trunk's and the arches' back knot pulled out a step at a time grows plates at their pitch (a drag's small steps once crept the pitch)
 //   bend      (v11.246.1) a knot of every species dragged far up stops at its clade's extreme bend (SPINE_BEND.x), and a bend past the believable
 //             band (b) is in derive's plausible list
+//   form      (v11.247) the shape's drag: every species of the roster at 1, so its speed is its own; a bulge put in a fish's back, its tail
+//             cocked up, a fat rear on a trunk each raise the form and cost speed
 //   tape      a bent, swollen body of every core replayed from the build's tape (creatures_ai.js tapeBuild) is its whole build to the bit
 //   node test/spine.js        the summary and any failure
 const fs=require('fs'),path=require('path');
@@ -37,7 +39,7 @@ const near=(a,b,e)=>a.V.length===b.V.length&&a.V.every((v,i)=>Math.abs(v-b.V[i])
 const bnd=(a,b)=>Math.max(...a.lo.map((x,k)=>Math.abs(x-b.lo[k])),...a.hi.map((x,k)=>Math.abs(x-b.hi[k])));
 const J=o=>JSON.parse(JSON.stringify(o)),canon=o=>JSON.stringify(Object.keys(o).sort().map(k=>[k,o[k]])); // a core's numbers whatever order its keys were written in
 const bad=[],fail=(...a)=>bad.push(a.join(' '));
-const C={default:0,still:0,add:0,edits:0,grow:0,bend:0,tape:0};
+const C={default:0,still:0,add:0,edits:0,grow:0,bend:0,form:0,tape:0};
 // ---------- default: the knots as they would default build the very body ----------
 const ELL=['coilbody','bean','shield','float'];
 for(const id in X.SPECS){const sp0=X.SPECS[id],base=sig(sp0),c=X.fillSpec(sp0).core,k=c.kind,sp=J(sp0);let tol=0;
@@ -72,6 +74,14 @@ for(const id in X.SPECS){const sp=J(X.SPECS[id]),S=X.spineOf(sp),ax=X.spineAxis(
   X.spineMove(sp,S.H.indexOf(m),m.y+3*L,m.z);const bd=X.spineBend(X.spineOf(sp).H,ax);if(bd>B.x+1e-6)fail(id,'dragged up 3 body lengths: bent '+bd.toFixed(1)+'°, past the extreme '+B.x+'°');
   if(bd<B.x*0.98)fail(id,'dragged up 3 body lengths stopped at '+bd.toFixed(1)+'°, short of the extreme '+B.x+'°');
   if(!X.derive(sp).plausible.some(w=>/^bent /.test(w)))fail(id,'bent '+bd.toFixed(1)+'° and the readout does not say so');C.bend++;}
+// ---------- form: the roster is a swimmer's outline; a hand's lump, bend or fat rear costs speed ----------
+for(const id in X.SPECS){const d=X.derive(X.SPECS[id]);if(d.form!==1)fail(id,'the roster at form '+d.form+' ('+d.formWhy+'): its speed would not be its own');C.form++;}
+{const sp=J(X.SPECS.fin),S=X.spineOf(sp),k=S.H.find(h=>h.role==='k'&&h.z>0.5&&h.z<1),d0=X.derive(sp);X.spineAdd(sp,-0.4);const H=X.spineOf(sp).H,i=H.findIndex(h=>Math.abs(h.z+0.4)<1e-7);X.spineSize(sp,i,1.4,1.4); // in its back half, past its widest girth behind it
+  const d1=X.derive(sp);if(!(d1.form>1&&/lumpy/.test(d1.formWhy)&&d1.speed<d0.speed))fail('fin','a bulge put in its back: form '+d1.form+' '+d1.formWhy+', speed '+d0.speed+' → '+d1.speed);C.form++;}
+{const sp=J(X.SPECS.soft),S=X.spineOf(sp),b=S.H.findIndex(h=>h.role==='back'),d0=X.derive(sp);X.spineMove(sp,b,S.H[b].y+0.6,S.H[b].z);const d1=X.derive(sp);
+  if(!(d1.form>1&&/bent/.test(d1.formWhy)&&d1.speed<d0.speed))fail('soft','its back cocked up: form '+d1.form+' '+d1.formWhy+', speed '+d0.speed+' → '+d1.speed);C.form++;}
+{const sp=J(X.SPECS.lash),S=X.spineOf(sp),k=S.H.findIndex(h=>h.role==='k'),d0=X.derive(sp);X.spineSize(sp,k,3,3);const d1=X.derive(sp);
+  if(!(d1.form>1&&/fat at the back/.test(d1.formWhy)))fail('lash','its back plate ×3: form '+d1.form+' '+d1.formWhy);C.form++;}
 // ---------- tape: a bent, swollen body replays from the build's tape to the bit ----------
 {const T=X.BUILD_TAPE,geoA=g=>['position','normal','color'].map(k=>g.attributes[k]?g.attributes[k].array:null),eq=(a,b)=>{if(!a||!b)return a===b;if(a.length!==b.length)return false;for(let i=0;i<a.length;i++)if(!Object.is(a[i],b[i]))return false;return true;};
   const meshes=b=>{const rigM=new Set((b.rigs||[]).map(r=>r.mesh)),M=[];b.g.updateMatrixWorld(true);b.g.traverse(o=>{if(o.isMesh&&!rigM.has(o))M.push(geoA(o.geometry).concat([o.matrixWorld.elements.slice()]));});return {M,num:JSON.stringify([b.hit,b.cover,b.grip])};};
@@ -80,6 +90,6 @@ for(const id in X.SPECS){const sp=J(X.SPECS[id]),S=X.spineOf(sp),ax=X.spineAxis(
     const d={build:()=>X.compile(sp)};T.on=false;seed();const w=meshes(X.tapeBuild(d,'spine-'+k,''));T.on=true;T.map=new WeakMap();seed();X.tapeBuild(d,'spine-'+k,'');seed();const r=meshes(X.tapeBuild(d,'spine-'+k,''));
     if(w.num!==r.num||w.M.length!==r.M.length||!w.M.every((a,i)=>a.every((x,j)=>eq(x,r.M[i][j]))))fail(id,'('+k+') bent and swollen: the tape\'s replay is not its whole build');C.tape++;}
   T.on=true;T.map=new WeakMap();}
-console.log('spine: '+C.default+' bodies at their default knots, '+C.still+' handles picked up and put down, '+C.add+' knots put in and taken out, '+C.edits+' edits, '+C.grow+' trunks grown, '+C.bend+' bent to their clade\'s wall, '+C.tape+' cores replayed from the tape');
+console.log('spine: '+C.default+' bodies at their default knots, '+C.still+' handles picked up and put down, '+C.add+' knots put in and taken out, '+C.edits+' edits, '+C.grow+' trunks grown, '+C.bend+' bent to their clade\'s wall, '+C.form+' forms, '+C.tape+' cores replayed from the tape');
 if(bad.length){console.log('SPINE FAILED '+bad.length+'\n  '+bad.slice(0,30).join('\n  '));process.exit(1);}
 console.log('OK');

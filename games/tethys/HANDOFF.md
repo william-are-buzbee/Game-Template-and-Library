@@ -4,6 +4,12 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.247 (26 Nov 2026): the shape's drag, The Sapling's** (creatures_spec.js `SPINE_FORM`, `spineForm`, derive's `form`/`formWhy`; lab.js the caption;
+test/spine.js; DESIGN The spine; CHANGELOG). The person: *"Absolutely, go for that."* A swimmer's drag coefficient × `form`, read off its knots: a lump
+(girth past one rise and fall), a bend (the middle line off straight), a fat rear (widest girth past 0.6 of the way back). Every roster species is at 1
+— none changed speed; a hand-made hump near a finback's tail is ×1.5 drag, 6.1 → 4.8 m/s. The lab's caption says why. **Ask:** the weights' feel
+(lump 0.5, crook 0.5, rear 1.5); whether a body thicker at the front than the roster's should be rewarded.
+
 **v11.246 (26 Nov 2026): the spine — every body a chain of knots, shaped by hand in the lab** (creatures_spec.js `SPINE`, `spineMove/Size/Add/Del`,
 `spineRide`; parts.js `G.loft`, `G.ellK`, `knotV`; lab.js "the body by hand"; line.js the bill; test/spine.js; analysis_creators.md; CREATOR.md Sixth
 round; DESIGN Creatures, The spine; CHANGELOG). The person: a Spore or Sapling style creator, *"they have to look identical but we can do the 'drag'
@@ -34,12 +40,6 @@ test/vsplit.js; DESIGN; FLORA.md; CHANGELOG). The person: *"go ahead with the gr
 the strap's and the tress's light variants are a tenth to a fifth of their heavy one. Such a species now draws its light instances in a pool of their own
 (the strap and the tress on both tiers; on the high, with no copies, eight more). Nothing seen changes (the pictures the same pixel for pixel). The F8
 place's triangles ×0.79 (with v11.241, ×0.58 against v11.239), the high tier's ×0.91–0.97, +2–6 draws. **Ask:** the tower's F8 at `tp(69950,29582,-10)`.
-
-**v11.241 (26 Nov 2026): the plants' light copies on the low tier** (grow.js `PLOD`, `plodVariants`; parts.js `GEO_LK`; chunks.js `poolPlod`, `poolCull`,
-`poolPack`; scene.js `HIDE_NEAR`, `HIDE_FAR`, `plodMat`; test/plod.js; FLORA.md; CHANGELOG). The person: *"YES we want to make lighter copies … 40% is 40%."*
-Past 45 m on the low tier a plant's tile draws a copy at half the facets, without its smallest parts; the whole plant draws only its near tiles, so nothing
-is shaded twice (v11.194's mistake). Triangles ×0.73–0.86 where there are plants (against v11.239); 0.04–1.1% of pixels change (far specks). The grasses (strap, tress) got
-none — flat blades; next, invisible, their variants split by size. **Ask:** an F8 at `tp(69950,29582,-10)` against #208's plants 6.35 ms; any pop at 45 m.
 
 ## Open
 
