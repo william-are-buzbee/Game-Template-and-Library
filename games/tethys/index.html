@@ -70,6 +70,40 @@ canvas{display:block;outline:none;touch-action:none}
 /* the lab (lab.js): the game's text, with a dark halo and a panel it can be read against; controls thin and quiet */
 #lab{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity .6s;color:rgba(222,230,236,.92);text-shadow:0 0 6px rgba(0,0,0,.9),0 1px 2px rgba(0,0,0,.9);font-size:13px;letter-spacing:.1em}
 #lab.on{opacity:1}
+/* the creator (v11.248, creator.js): the lab with its words taken away — the dev lab keeps its panel */
+#lab.player #labpanel,#lab.player #labcap{display:none}
+#crt{display:none}
+#lab.player #crt{display:block}
+body.creator #title{opacity:0!important}
+#lab #crt button{pointer-events:auto;background:none;border:0;min-width:0;color:rgba(222,230,236,.78);cursor:pointer;padding:6px;border-radius:50%;transition:color .2s,background .2s}
+#lab #crt button:hover,#lab #crt button.on{color:#fff;background:rgba(200,220,235,.12)}
+#crt svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;display:block}
+#crt-parts{position:absolute;top:0;left:0;bottom:0;width:72px;overflow-y:auto;overflow-x:hidden;pointer-events:auto;padding:14px 8px 80px;box-sizing:border-box;background:linear-gradient(90deg,rgba(3,8,15,.55),rgba(3,8,15,0));scrollbar-width:none}
+#crt-parts::-webkit-scrollbar{display:none}
+#crt .grp{padding:4px 0 8px;border-bottom:1px solid rgba(200,215,225,.08);margin-bottom:6px}
+#crt .grp:last-child{border:0}
+#crt .tile{width:52px;height:52px;margin:2px auto;border-radius:10px;background:rgba(200,220,235,.05);cursor:grab;display:flex;align-items:center;justify-content:center;transition:background .2s,transform .15s}
+#crt .tile:hover{background:rgba(200,220,235,.1);transform:scale(1.08)}
+#crt .tile img{width:48px;height:48px;pointer-events:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
+#crt .tile img[src=""]{visibility:hidden}
+#crt-top{position:absolute;top:22px;left:50%;transform:translateX(-50%);text-align:center;pointer-events:auto;width:220px}
+#crt-name{background:none;border:0;border-bottom:1px solid transparent;color:rgba(232,238,242,.95);font:inherit;font-size:20px;letter-spacing:.35em;text-align:center;width:100%;outline:none;text-shadow:0 0 8px rgba(0,0,0,.9);padding:2px 0}
+#crt-name:hover,#crt-name:focus{border-bottom-color:rgba(200,215,225,.3)}
+#crt-bars{display:flex;gap:10px;justify-content:center;margin-top:8px}
+#crt .bar{width:48px;height:3px;background:rgba(200,215,225,.16);border-radius:2px;overflow:hidden}
+#crt .bar i{display:block;height:100%;background:rgba(232,238,242,.8)}
+#crt .budget{height:3px;margin:12px auto 0;width:180px;background:rgba(200,215,225,.16);border-radius:2px;overflow:hidden}
+#crt .budget i{display:block;height:100%;background:#cfe6c8}
+#crt .budget.over i{background:#e39a86}
+#crt-tools{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:4px;pointer-events:auto;padding:4px 10px;border-radius:24px;background:rgba(3,8,15,.38)}
+#crt-tools .gap{width:14px}
+#crt-coat{position:absolute;bottom:30px;right:26px;display:flex;align-items:center;gap:8px;pointer-events:auto}
+#lab #crt .sw{width:22px;height:22px;padding:0;border-radius:50%;border:1px solid rgba(232,238,242,.35)}
+#lab #crt .sw.on{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.25)}
+#crt-pick{position:absolute;left:50%;bottom:84px;transform:translateX(-50%);max-width:70vw;max-height:52vh;overflow-y:auto;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;pointer-events:auto;padding:12px;border-radius:16px;background:rgba(3,8,15,.72)}
+#crt .tile.big{width:84px;height:84px}
+#crt .tile.big img{width:80px;height:80px}
+.crt-ghost{position:fixed;width:56px;height:56px;margin:-28px 0 0 -28px;pointer-events:none;z-index:50;opacity:.85;filter:drop-shadow(0 2px 6px rgba(0,0,0,.6))}
 #labpanel{position:absolute;top:0;left:0;bottom:0;width:330px;overflow-y:auto;overflow-x:hidden;pointer-events:auto;background:rgba(3,8,15,.72);padding:18px 16px 40px 18px;box-sizing:border-box;scrollbar-width:thin;scrollbar-color:rgba(200,215,225,.25) transparent}
 #lab .sec{margin-bottom:22px}
 #lab .hd{font-size:14px;letter-spacing:.35em;text-indent:.35em;margin:0 0 10px;padding-bottom:4px;border-bottom:1px solid rgba(200,215,225,.15);text-align:center}
@@ -168,12 +202,12 @@ canvas{display:block;outline:none;touch-action:none}
 </div>
 <div id="fx"><div id="fxhd">effects</div><div id="fxlist"></div><div id="fxnote">e to close</div></div>
 <div id="zoo"><div id="zooname"></div><div id="zooline"></div><div id="zoohint"></div></div>
-<div id="lab"><div id="labpanel"></div><div id="labcap"></div></div>
+<div id="lab"><div id="labpanel"></div><div id="labcap"></div><div id="crt"></div></div>
 <div id="wmap"><canvas id="wmapc"></canvas><div id="wmapl"></div></div>
 <div id="fade" class="layer"></div>
 <canvas id="spark" class="layer"></canvas>
 <div id="stats"></div>
-<script>window.TETHYS_BUILD={v:"v11.247",wh:"a1381f5a423de130"};</script>
+<script>window.TETHYS_BUILD={v:"v11.248",wh:"c6f1827c302fe3b7"};</script>
 <script>
 // loader.js — the page's loader, in tethys.html only, outside the game's bundle and before it: three.js and the world cache fetched side by side, then the
 // game. Since v11.215 (three.js-ready) three.js is loaded as a module — every release after r160 is only that — with import(); its exports are copied onto
@@ -17507,6 +17541,249 @@ canvas.addEventListener('touchmove',e=>{if(mode!=='zoo'||!zoo.drag)return;const 
 canvas.addEventListener('touchend',()=>{if(mode!=='zoo'||!zoo.drag)return;const d=zoo.drag;zoo.drag=null;if(d.moved>=12)return;if(d.x0<innerWidth*0.2)zooShow(zoo.i-1);else if(d.x0>innerWidth*0.8)zooShow(zoo.i+1);else zooAct();});
 if(HASH_FLAGS.indexOf('zoo')>=0)zooEnter(); // the flags, not the whole hash (v11.31.4): a spec's base64 in #lab= can hold 'zoo'
 
+// creator.js — the creator as the player sees it (v11.248): the lab with its words taken away. The person, 27 Nov 2026: "we should be able to
+// remove 95% of the text on the left side of the screen and have a perfectly functional creature creator … a tasteful, minimalist thing my dad
+// can use to make a creature." Spore's editor is the model (analysis_creators.md): parts as pictures in a column, dragged onto the body and off it
+// again; the body shaped on itself (lab.js, "the body by hand"); a row of colours; a few icons. The dev lab (#lab, l) keeps its panel; this
+// overlay is lab.player's — the menu's creator and the conception's window. Words only where a picture cannot say it: the name, and a tooltip.
+// The style and the stage are the person's next (images to come).
+const crtEl = document.getElementById('crt');
+const CRT = {
+  icons: new Map(), // key → data URL: a part or a body drawn as a flat-shaded silhouette (crtIcon)
+  queue: [], // icons still to draw, a few a frame
+  key: '', // what the palette was built for (clade, core, coat): rebuilt when it moves
+  ghost: null, // a part on its way from the palette: {kind, style, el}
+  pick: false // the species' pictures open
+};
+// ---------- the pictures: a body or one part drawn flat on a 2D canvas, in the game's own facets ----------
+// Every mesh's triangles projected orthographically from the lab's side (the body's nose to the right, seen a little from above and in front),
+// painted far to near, each facet its vertex colour lit by one light: the low-poly look without a second WebGL context or the scene's shaders.
+const CRT_VIEW = {yaw: 1.15, pitch: 0.32, light: [0.35, 0.85, 0.4], px: 88};
+function crtIcon(key, spec, which) {
+  if (CRT.icons.has(key)) return CRT.icons.get(key);
+  let url = '';
+  try {
+    const cv = document.createElement('canvas'), cx = cv.getContext && cv.getContext('2d');
+    if (cx && typeof cx.fill === 'function' && typeof cv.toDataURL === 'function') {
+      cv.width = cv.height = CRT_VIEW.px;
+      const b = compile(spec, 1, undefined, {split: true});
+      b.anim(0, 0, {});
+      if (b.rigs) for (const r of b.rigs) rigRest(r);
+      b.g.updateMatrixWorld(true);
+      const roots = which < 0 ? [b.g] : (b.built[which] && b.built[which].meshes) || [];
+      const cy = Math.cos(CRT_VIEW.yaw), sy = Math.sin(CRT_VIEW.yaw), cp = Math.cos(CRT_VIEW.pitch), sp = Math.sin(CRT_VIEW.pitch);
+      const ex = [sy * cp, sp, cy * cp], rx = [cy, 0, -sy], ux = [-sy * sp, cp, -cy * sp]; // toward the eye, the screen's right, its up
+      const Lt = CRT_VIEW.light, ll = Math.hypot(Lt[0], Lt[1], Lt[2]), T = [], v = new THREE.Vector3();
+      for (const root of roots)
+        root.traverse(o0 => {
+          const o = /** @type {import('three').Mesh} */ (o0);
+          if (!o.isMesh || !o.visible || !o.geometry || !o.geometry.attributes.position) return;
+          const g = o.geometry, pa = g.attributes.position, ca = g.attributes.color, ix = g.index, n = ix ? ix.count : pa.count, e = o.matrixWorld;
+          const P = k => {v.fromBufferAttribute(pa, k).applyMatrix4(e); return [v.x, v.y, v.z];};
+          for (let i = 0; i + 2 < n; i += 3) {
+            const k0 = ix ? ix.getX(i) : i, k1 = ix ? ix.getX(i + 1) : i + 1, k2 = ix ? ix.getX(i + 2) : i + 2, a = P(k0), bb = P(k1), c = P(k2);
+            const ux1 = bb[0] - a[0], uy1 = bb[1] - a[1], uz1 = bb[2] - a[2], vx1 = c[0] - a[0], vy1 = c[1] - a[1], vz1 = c[2] - a[2];
+            let nx = uy1 * vz1 - uz1 * vy1, ny = uz1 * vx1 - ux1 * vz1, nz = ux1 * vy1 - uy1 * vx1;
+            const nl = Math.hypot(nx, ny, nz);
+            if (!(nl > 1e-12)) continue;
+            nx /= nl; ny /= nl; nz /= nl;
+            const facing = nx * ex[0] + ny * ex[1] + nz * ex[2];
+            if (facing <= 0) continue; // the back of a facet: the front one covers it
+            const lit = 0.42 + 0.58 * Math.max(0, (nx * Lt[0] + ny * Lt[1] + nz * Lt[2]) / ll),
+              col = ca ? [ca.getX(k0), ca.getY(k0), ca.getZ(k0)] : [0.7, 0.7, 0.7],
+              pr = q => [q[0] * rx[0] + q[1] * rx[1] + q[2] * rx[2], q[0] * ux[0] + q[1] * ux[1] + q[2] * ux[2], q[0] * ex[0] + q[1] * ex[1] + q[2] * ex[2]];
+            const A = pr(a), B = pr(bb), C = pr(c);
+            T.push({p: [A, B, C], z: (A[2] + B[2] + C[2]) / 3, c: col.map(x => Math.round(255 * Math.min(1, x * lit)))});
+          }
+        });
+      if (T.length) {
+        let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
+        for (const t of T) for (const q of t.p) {x0 = Math.min(x0, q[0]); x1 = Math.max(x1, q[0]); y0 = Math.min(y0, q[1]); y1 = Math.max(y1, q[1]);}
+        const W = CRT_VIEW.px, k = (W * 0.84) / Math.max(1e-6, x1 - x0, y1 - y0), ox = W / 2 - ((x0 + x1) / 2) * k, oy = W / 2 + ((y0 + y1) / 2) * k;
+        T.sort((a, b) => a.z - b.z);
+        cx.lineJoin = 'round';
+        cx.lineWidth = 0.6;
+        for (const t of T) {
+          cx.beginPath();
+          t.p.forEach((q, i) => (i ? cx.lineTo(ox + q[0] * k, oy - q[1] * k) : cx.moveTo(ox + q[0] * k, oy - q[1] * k)));
+          cx.closePath();
+          cx.fillStyle = cx.strokeStyle = 'rgb(' + t.c[0] + ',' + t.c[1] + ',' + t.c[2] + ')';
+          cx.fill();
+          cx.stroke();
+        }
+        url = cv.toDataURL();
+      }
+      b.g.traverse(o => {const m = /** @type {import('three').Mesh} */ (o); if (m.geometry) m.geometry.dispose();});
+    }
+  } catch (e) {url = '';}
+  CRT.icons.set(key, url);
+  return url;
+}
+// a few pictures a frame (each is a build): the palette and the picker fill in as they are drawn
+function crtIconsStep() {
+  const t0 = performance.now();
+  while (CRT.queue.length && performance.now() - t0 < 12) {
+    const q = CRT.queue.shift(), url = crtIcon(q.key, q.spec, q.which);
+    if (crtEl.querySelectorAll) for (const im of /** @type {NodeListOf<HTMLImageElement>} */ (crtEl.querySelectorAll('img[data-key="' + q.key + '"]'))) if (url) im.src = url;
+  }
+  if (CRT.queue.length) setTimeout(crtIconsStep, 16);
+}
+function crtIconFor(key, spec, which) {
+  if (CRT.icons.has(key)) return CRT.icons.get(key) || '';
+  if (!CRT.queue.some(q => q.key === key)) {CRT.queue.push({key: key, spec: spec, which: which}); if (CRT.queue.length === 1) setTimeout(crtIconsStep, 0);}
+  return '';
+}
+function crtEsc(s) {return String(s).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'})[c]);}
+// ---------- the icons of the bar: strokes, no words ----------
+const CRT_SVG = {
+  undo: '<path d="M9 7 4 12l5 5"/><path d="M4 12h10a6 6 0 0 1 0 12h-3" transform="translate(0 -6)"/>',
+  redo: '<path d="m15 7 5 5-5 5"/><path d="M20 12H10a6 6 0 0 0 0 12h3" transform="translate(0 -6)"/>',
+  turn: '<path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 4v4h-4"/>',
+  swim: '<path d="M3 12c3-4 6-4 9 0s6 4 9 0"/>',
+  act: '<path d="M5 12h11"/><path d="m12 7 5 5-5 5"/>',
+  paint: '<circle cx="12" cy="12" r="7"/><circle cx="9.5" cy="10" r="1.2"/><circle cx="14.5" cy="10" r="1.2"/><circle cx="12" cy="15" r="1.2"/>',
+  dice: '<rect x="5" y="5" width="14" height="14" rx="3"/><circle cx="9.5" cy="9.5" r="1"/><circle cx="14.5" cy="14.5" r="1"/>',
+  new: '<rect x="4" y="4" width="7" height="7" rx="1.5"/><rect x="13" y="4" width="7" height="7" rx="1.5"/><rect x="4" y="13" width="7" height="7" rx="1.5"/><rect x="13" y="13" width="7" height="7" rx="1.5"/>',
+  keep: '<path d="M7 4h10v16l-5-4-5 4z"/>',
+  done: '<path d="m5 12 5 5 9-10"/>',
+  close: '<path d="M6 6l12 12M18 6 6 18"/>'
+};
+function crtBtn(act, tip, on) {return '<button data-crt="' + act + '" title="' + tip + '"' + (on ? ' class="on"' : '') + '><svg viewBox="0 0 24 24">' + CRT_SVG[act] + '</svg></button>';}
+// ---------- the overlay ----------
+function crtSpecOf(kind, style) { // a part alone on the creature's own core, for its picture
+  const v = lab.v, c = Object.assign({}, v.core);
+  return {id: 'icon', clade: v.clade, size: v.size, s: 1, coat: v.coat, core: c, parts: [{kind: kind, style: style}]};
+}
+function crtPalette() {
+  const v = lab.v, core = v.core.kind, gr = GRAMMAR[v.clade], coatKey = typeof v.coat === 'string' ? v.coat : JSON.stringify(v.coat).length;
+  let h = '';
+  for (const kind of Object.keys(PARTS)) {
+    const st = labStyles(kind, v.clade, undefined, core);
+    if (!st.length) continue;
+    h += '<div class="grp">';
+    for (const style of st) {
+      const key = 'p|' + v.clade + '|' + core + '|' + kind + '|' + style + '|' + coatKey,
+        url = crtIconFor(key, crtSpecOf(kind, style), 0);
+      h += '<div class="tile" data-kind="' + kind + '" data-style="' + style + '" title="' + kind + (st.length > 1 ? ' · ' + style : '') + '"><img data-key="' + crtEsc(key) + '" src="' + url + '" draggable="false"></div>';
+    }
+    h += '</div>';
+  }
+  return h;
+}
+function crtCoats() {
+  const v = lab.v, keys = [];
+  for (const id in SPECS) {const sp = SPECS[id]; if (sp.clade === v.clade && typeof sp.coat === 'string' && keys.indexOf(sp.coat) < 0 && labOk('sp', id)) keys.push(sp.coat);}
+  const sw = k => {const p = PAL[k] || {}, c = a => 'rgb(' + (a || [0.5, 0.5, 0.5]).map(x => Math.round(x * 255)).join(',') + ')'; return 'linear-gradient(160deg,' + c(p.top || p.bell || p.float) + ' 50%,' + c(p.belly || p.top || p.core) + ' 50%)';};
+  return keys.slice(0, 8).map(k => '<button class="sw' + (v.coat === k ? ' on' : '') + '" data-coat="' + k + '" title="a coat" style="background:' + sw(k) + '"></button>').join('') + crtBtn('dice', 'a coat its chemistry would give it');
+}
+function crtBars() {
+  const d = lab.d;
+  if (!d) return '';
+  const bar = (k, f, tip) => '<div class="bar" title="' + tip + '"><i style="width:' + Math.round(100 * clamp(f, 0.04, 1)) + '%"></i></div>';
+  return bar('speed', d.speed / 12, 'speed ' + d.speed + ' m/s') + bar('turn', Math.sqrt(d.turn / 8), 'agility ' + d.turn) + bar('mass', Math.log10(1 + d.mass) / 2.5, 'mass ' + d.mass + ' t');
+}
+function crtBudget() {
+  const cv = lab.conceive;
+  if (!cv) return '';
+  const pr = conceivePrice(cv.parent, lab.v || cv.parent), f = pr.total / Math.max(1e-6, cv.budget), over = pr.total > cv.budget + 1e-9;
+  return '<div class="budget' + (over ? ' over' : '') + '" title="' + crtEsc(pr.items.map(i => i.what + ' ' + i.cost.toFixed(2)).join('\n') || 'unchanged') + '"><i style="width:' + Math.round(100 * Math.min(1, f)) + '%"></i></div>';
+}
+function crtPicker() {
+  if (!CRT.pick) return '';
+  let h = '<div id="crt-pick">';
+  const add = (key, spec, val, tip) => {h += '<div class="tile big" data-load="' + crtEsc(val) + '" title="' + crtEsc(tip) + '"><img data-key="' + crtEsc(key) + '" src="' + crtIconFor(key, spec, -1) + '" draggable="false"></div>';};
+  for (const k in PROFILE.creatures) {try {const sp = specFromJSON(PROFILE.creatures[k]); add('s|' + k + '|' + PROFILE.creatures[k].length, sp, 'saved:' + k, k);} catch (e) {}}
+  for (const id in SPECS) if (labOk('sp', id) && (!lab.conceive || SPECS[id].clade === lab.conceive.parent.clade)) add('b|' + id, SPECS[id], id, id);
+  return h + '</div>';
+}
+function crtRender() {
+  if (!lab.player || !lab.v) return;
+  const key = lab.v.clade + '|' + lab.v.core.kind + '|' + (typeof lab.v.coat === 'string' ? lab.v.coat : 'own');
+  crtEl.innerHTML =
+    '<div id="crt-parts">' + crtPalette() + '</div>' +
+    '<div id="crt-top"><input id="crt-name" value="' + crtEsc(lab.spec.id || '') + '" spellcheck="false" maxlength="40"><div id="crt-bars">' + crtBars() + '</div>' + crtBudget() + '</div>' +
+    '<div id="crt-tools">' + crtBtn('undo', 'undo (ctrl+z)') + crtBtn('redo', 'redo') + '<span class="gap"></span>' + crtBtn('turn', 'turn it', lab.spin) + crtBtn('swim', 'swim', lab.cruise) + crtBtn('act', 'the action (space)') + '<span class="gap"></span>' +
+      (lab.conceive ? '' : crtBtn('new', 'start from another') + crtBtn('keep', 'keep it')) + crtBtn('done', lab.conceive ? 'lay the clutch' : 'done') + (lab.conceive ? crtBtn('close', 'decline: a copy of the parent') : '') + '</div>' +
+    '<div id="crt-coat">' + crtCoats() + '</div>' + crtPicker();
+  CRT.key = key;
+}
+// the parts of the overlay that follow the body without a rebuild of the palette (its pictures are dear): the bars, the budget, the name
+function crtUpdate() {
+  if (!lab.player || !lab.v) return;
+  const key = lab.v.clade + '|' + lab.v.core.kind + '|' + (typeof lab.v.coat === 'string' ? lab.v.coat : 'own');
+  if (key !== CRT.key || !crtEl.querySelector) {crtRender(); return;}
+  const b = crtEl.querySelector('#crt-bars');
+  if (b) b.innerHTML = crtBars();
+  const top = crtEl.querySelector('#crt-top'), old = top && top.querySelector('.budget');
+  if (old) old.outerHTML = crtBudget();
+}
+// ---------- the hand: a part from the palette onto the body ----------
+function crtDrop(e) {
+  const g = CRT.ghost;
+  CRT.ghost = null;
+  if (g && g.el && g.el.parentNode) g.el.parentNode.removeChild(g.el);
+  if (!g || !lab.b || mode !== 'lab') return;
+  if (!labOnBody(e) && labPickPart(e) < 0) return; // dropped in the water: nothing
+  const p = labPlaneHit(e, V3(0, 0, 0)), part = {kind: g.kind, style: g.style}, ks = paramsFor(g.kind, g.style);
+  if (ks.indexOf('z') >= 0 && isFinite(p.z)) part.z = +p.z.toFixed(3);
+  labUndoPush();
+  lab.spec.parts.push(part);
+  labBuild();
+  labRender();
+}
+crtEl.addEventListener('mousedown', e => {
+  let t = /** @type {HTMLElement} */ (e.target);
+  while (t && t !== crtEl && !(t.dataset && (t.dataset.kind || t.dataset.crt || t.dataset.coat || t.dataset.load))) t = /** @type {HTMLElement} */ (t.parentNode);
+  if (!t || t === crtEl || !t.dataset.kind) return;
+  e.preventDefault();
+  const im = document.createElement('img');
+  const ti = /** @type {HTMLImageElement|null} */ (t.querySelector ? t.querySelector('img') : null);
+  im.src = (ti && ti.src) || '';
+  im.className = 'crt-ghost';
+  im.style.left = e.clientX + 'px';
+  im.style.top = e.clientY + 'px';
+  document.body.appendChild(im);
+  CRT.ghost = {kind: t.dataset.kind, style: t.dataset.style, el: im};
+});
+addEventListener('mousemove', e => {
+  if (!CRT.ghost) return;
+  CRT.ghost.el.style.left = e.clientX + 'px';
+  CRT.ghost.el.style.top = e.clientY + 'px';
+});
+addEventListener('mouseup', e => {if (CRT.ghost) crtDrop(e);});
+crtEl.addEventListener('click', e => {
+  let t = /** @type {HTMLElement} */ (e.target);
+  while (t && t !== crtEl && !(t.dataset && (t.dataset.crt || t.dataset.coat || t.dataset.load))) t = /** @type {HTMLElement} */ (t.parentNode);
+  if (!t || t === crtEl) return;
+  const a = t.dataset.crt;
+  if (t.dataset.coat) {labUndoPush(); lab.spec.coat = t.dataset.coat; labBuild(); crtRender(); return;}
+  if (t.dataset.load) {
+    const v = t.dataset.load;
+    CRT.pick = false;
+    if (v.indexOf('saved:') === 0) {try {labLoad(specFromJSON(PROFILE.creatures[v.slice(6)]));} catch (err) {}}
+    else if (SPECS[v]) labLoad(SPECS[v]);
+    crtRender();
+    return;
+  }
+  if (a === 'undo') labUndo();
+  else if (a === 'redo') labRedo();
+  else if (a === 'turn') lab.spin = !lab.spin;
+  else if (a === 'swim') lab.cruise = !lab.cruise;
+  else if (a === 'act') {if (lab.b) lab.act = 0;}
+  else if (a === 'dice') {labUndoPush(); lab.spec.coat = coatFor(lab.spec.clade, lab.spec.depth !== undefined ? lab.spec.depth : -30, 'hunter', mulberry(Math.floor(Math.random() * 1e6))); labBuild();}
+  else if (a === 'new') CRT.pick = !CRT.pick;
+  else if (a === 'keep') {const id = String(lab.v.id || 'new').trim().slice(0, 40) || 'new'; PROFILE.creatures[id] = specToJSON(lab.v); profileSave(); CRT.icons.forEach((u, k) => {if (k.indexOf('s|' + id + '|') === 0) CRT.icons.delete(k);}); t.classList.add('on');}
+  else if (a === 'done') {if (lab.conceive) conceiveClose(false); else labLeave();}
+  else if (a === 'close') {if (lab.conceive) conceiveClose(true);}
+  if (a !== 'keep') crtRender();
+});
+crtEl.addEventListener('input', e => {
+  const t = /** @type {HTMLInputElement} */ (e.target);
+  if (t && t.id === 'crt-name') {lab.spec.id = t.value; if (lab.v) lab.v.id = t.value;}
+});
+crtEl.addEventListener('keydown', e => {e.stopPropagation();});
+crtEl.addEventListener('wheel', e => {e.stopPropagation();}, {passive: true});
+
 // lab.js — the creature lab (CREATOR.md, v11.10–11.11): a spec (creatures_spec.js) edited live, shown the way the bestiary shows a
 // species — at the peak, in the game's own light and water, the arms simulated — with its derived numbers beside it. Open with #lab
 // in the URL (#lab=<base64 spec> opens a saved creature), l on the menu, l in the bestiary on a species that has a spec, or l in
@@ -17611,6 +17888,7 @@ function labBuild() {
   labCaption();
   labReadout();
   labSpineDraw(); // the knots on the body (v11.246)
+  crtUpdate(); // the creator's bars and budget (v11.248)
 }
 // light the part under the cursor: its meshes swap to the lit material (the arms' chains too)
 function labHi(i, force) {
@@ -17902,6 +18180,7 @@ function labRender() {
   const sc = labPanel.scrollTop || 0;
   labPanel.innerHTML = labPanelHTML();
   labPanel.scrollTop = sc;
+  crtRender(); // the creator's overlay (v11.248; lab.player only)
 }
 function labReadout() {
   // the readout and the caption refresh without rebuilding the panel (a slider drag keeps its focus)
@@ -17976,6 +18255,7 @@ function labLoad(spec) {
   lab.open = {};
   lab.hi = -1;
   LAB_SP.undo = [];
+  LAB_SP.redo = [];
   LAB_SP.hov = -1;
   LAB_SP.part = -1;
   LAB_SP.drag = null;
@@ -18233,6 +18513,7 @@ const LAB_SP = {
   drag: null, // {kind: 'knot'|'part', i, off|p0, ...}
   g: null,
   undo: [],
+  redo: [], // v11.248
   wheelT: 0,
   renderT: null,
   ball: new THREE.MeshBasicMaterial({color: 0xffd28a, transparent: true, opacity: 0.85, depthTest: false, fog: false}),
@@ -18343,12 +18624,22 @@ function labPickPart(e) {
   return best;
 }
 function labUndoPush() {
+  LAB_SP.redo.length = 0;
   LAB_SP.undo.push(JSON.stringify(lab.spec));
   if (LAB_SP.undo.length > 60) LAB_SP.undo.shift();
 }
 function labUndo() {
   const j = LAB_SP.undo.pop();
   if (!j) return;
+  LAB_SP.redo.push(JSON.stringify(lab.spec));
+  lab.spec = JSON.parse(j);
+  labBuild();
+  labRender();
+}
+function labRedo() { // v11.248: the creator's redo
+  const j = LAB_SP.redo.pop();
+  if (!j) return;
+  LAB_SP.undo.push(JSON.stringify(lab.spec));
   lab.spec = JSON.parse(j);
   labBuild();
   labRender();
@@ -18443,6 +18734,8 @@ function labEnter(spec, asPlayer) {
   lab.from = mode;
   mode = 'lab';
   lab.player = !!asPlayer; // the creator (menu.js): gated to what has been seen
+  labEl.classList.toggle('player', lab.player); // v11.248: the creator's overlay (creator.js) in place of the panel
+  if (document.body && document.body.classList) document.body.classList.toggle('creator', lab.player); // and the game's title out of its way
   grantCreator(); // the lab used once is the creator used (v11.47): the menu shows the word from here
   labEl.classList.add('on');
   lab.pend = true;
@@ -18465,7 +18758,7 @@ function labEnter(spec, asPlayer) {
   hintEl.textContent = isTouch
     ? 'drag to turn'
     : 'drag a knot or a part, wheel on it to size it, double-click the body for a knot · drag the water to turn · space, s, r, p, l as ever';
-  hintEl.style.opacity = 1;
+  hintEl.style.opacity = lab.player ? 0 : 1; // the creator says nothing it can show (v11.248)
   labLoad(spec || lab.spec || SPECS.soft);
 }
 function labLeave() {
@@ -18481,6 +18774,9 @@ function labLeave() {
     lab.b = null;
   }
   lab.player = false;
+  labEl.classList.remove('player');
+  if (document.body && document.body.classList) document.body.classList.remove('creator');
+  CRT.pick = false;
   lab.conceive = null;
   if (player.away) playerAway(false); // the parent back in the world (v11.72.1)
   if (mode === 'menu') {
@@ -18614,15 +18910,15 @@ canvas.addEventListener('mousedown', e => {
   if (mode !== 'lab' || e.button !== 0) return;
   if (lab.b && LAB_SP.hov >= 0 && LAB_SP.H && LAB_SP.H[LAB_SP.hov]) { // a knot taken up (v11.246)
     const h = LAB_SP.H[LAB_SP.hov], q = labHandleAt(h);
-    if (h.move) {labUndoPush(); LAB_SP.drag = {kind: 'knot', i: LAB_SP.hov, off: q.clone().sub(labPlaneHit(e, q)), moved: 0, p0: null, y0: 0, z0: 0};}
-    else LAB_SP.drag = {kind: 'none', i: LAB_SP.hov, off: null, moved: 0, p0: null, y0: 0, z0: 0};
+    if (h.move) {labUndoPush(); LAB_SP.drag = {kind: 'knot', i: LAB_SP.hov, off: q.clone().sub(labPlaneHit(e, q)), gone: false, moved: 0, p0: null, y0: 0, z0: 0};}
+    else LAB_SP.drag = {kind: 'none', i: LAB_SP.hov, off: null, gone: false, moved: 0, p0: null, y0: 0, z0: 0};
     canvas.style.cursor = 'grabbing';
     return;
   }
   if (lab.b && LAB_SP.part >= 0 && lab.v.parts[LAB_SP.part]) { // a part taken up
     const i = LAB_SP.part, pv = lab.v.parts[i], q = V3(0, isFinite(pv.y) ? pv.y : 0, isFinite(pv.z) ? pv.z : 0);
     labUndoPush();
-    LAB_SP.drag = {kind: 'part', i: i, off: null, moved: 0, p0: labPlaneHit(e, q), y0: labPartGet(i, 'y'), z0: labPartGet(i, 'z')};
+    LAB_SP.drag = {kind: 'part', i: i, off: null, gone: false, moved: 0, p0: labPlaneHit(e, q), y0: labPartGet(i, 'y'), z0: labPartGet(i, 'z')};
     canvas.style.cursor = 'grabbing';
     return;
   }
@@ -18642,6 +18938,8 @@ addEventListener('mousemove', e => {
     } else if (D.kind === 'part') {
       const p = labPlaneHit(e, D.p0);
       labPartMove(D.i, p.y - D.p0.y, p.z - D.p0.z);
+      D.gone = D.moved > 12 && !labOnBody(e) && !labIsReq(lab.v.parts[D.i], GRAMMAR[lab.v.clade], CORES[lab.v.core.kind]); // v11.248: pulled off the body, it goes when let go (a part the clade must have never does)
+      canvas.style.cursor = D.gone ? 'no-drop' : 'grabbing';
       labRebuildSoon(false);
     }
     return;
@@ -18658,11 +18956,21 @@ addEventListener('mousemove', e => {
   lab.pitch = clamp(lab.pitch + dy * 0.004, -0.3, 1.2);
   if (lab.drag.moved > 4) lab.spin = false;
 });
-addEventListener('mouseup', () => {
+addEventListener('mouseup', e => {
   if (mode !== 'lab') return;
   if (LAB_SP.drag) { // a gesture ends: nothing moved, nothing to undo; else the panel follows
     const D = LAB_SP.drag;
     LAB_SP.drag = null;
+    if (D.kind === 'part' && D.gone && e && !labOnBody(e)) { // let go off the body: the part is taken out (v11.248)
+      lab.spec.parts.splice(D.i, 1);
+      LAB_SP.part = -1;
+      lab.hi = -1;
+      lab.open = {};
+      canvas.style.cursor = '';
+      labBuild();
+      labRender();
+      return;
+    }
     if (D.kind !== 'none' && D.moved < 3) LAB_SP.undo.pop();
     else if (D.kind !== 'none') labRenderSoon();
     canvas.style.cursor = LAB_SP.hov >= 0 || LAB_SP.part >= 0 ? 'grab' : '';
