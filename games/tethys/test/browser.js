@@ -13,7 +13,7 @@
 const path=require('path'),{spawnSync}=require('child_process');
 const {PLACES}=require('./benchpage.js');
 const ROOT=path.join(__dirname,'..');
-const GPU={forest:200,atoll:230,open:150,coast:190,wood:190,shore:200,canopy:200}; // gpu.js --check at one place, its seconds in CI
+const GPU={forest:194,atoll:215,open:189,coast:209,wood:194,shore:178,canopy:183}; // gpu.js --check at one place, its seconds in CI: a session's (34-41 s) x 5.2, CI's whole run over the session's
 const RUNS=[[['test/boot.js'],{},147],[['test/wcache_page.js'],{},132],[['test/three187.js'],{},119],[['test/horizon_page.js'],{},339]];
 const places=Object.keys(PLACES),gpu=places.map(p=>[['test/gpu.js','--check'],{ONLY:p},GPU[p]||200,p]);
 const SH=/^(\d+)\/(\d+)$/.exec(process.env.SHARD||'');
