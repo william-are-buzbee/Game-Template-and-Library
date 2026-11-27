@@ -192,3 +192,17 @@ which found four repositories sharing no code, copying it instead (the same rand
     the picture whole, so two trees compare pixel for pixel; `test/perf.js --only fill` puts it in the pull request's table.
     Its first use found two thirds of the flora's vertex work thrown away and the sky shaded under water behind the surface
     (v11.187). It is a time on a shared machine, so never held in CI; the person's readout stays the measure.
+30. **Browser tests too slow for one machine are split across CI jobs too** (27 Nov 2026; the person, after PR 218's
+    `tethys` job ran out at its 45 minutes and failed `all`: split them as the tests are split, or raise the limit with a
+    reason). The job had crept to 36 minutes on PRs 216 and 217, all of it the browser-tests step: `test/gpu.js --check` 23
+    minutes, `test/horizon_page.js` 6, `test/boot.js`, `test/wcache_page.js` and `test/three187.js` 2 each — about 9
+    minutes on a session's 4 cores, but software WebGL runs 2 to 6 times slower on a runner, unevenly (gpu.js 4.7×, boot.js
+    2×), and a slow runner took it past 45. Raising the limit was weighed and not done: it keeps a green pull request
+    waiting 36 minutes or more, and the next test added creeps toward the new limit the same way. Instead a workspace's
+    package.json `"smokeShards": n` makes `tools/lib/jobs.ts` give its browser tests n jobs, `<name>-smoke-1` … `-n`, each
+    building it and running `npm run smoke` with `SHARD=k/n`, and the job named for it keeps the build and the boot. The
+    smoke script runs its k-th part. Tethys's (`test/browser.js`) deals its tests longest first by their seconds in CI, as
+    build.js deals the suite (25), and gpu.js a place at a time (`ONLY=`; each place has a browser of its own, so its counts
+    are the same split or not). Tethys has four parts of about 9 CI minutes each; the limit stays 45, as headroom for a slow
+    runner. The cost is two to three more runners a Tethys pull request, each about a minute of setup (the install and
+    Chromium), and the seconds in `test/browser.js` to keep roughly right; a stale number only unbalances the parts.

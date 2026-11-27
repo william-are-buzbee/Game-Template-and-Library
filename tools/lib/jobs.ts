@@ -1,7 +1,9 @@
 // tools/lib/jobs.ts — CI's jobs for a set of workspaces: one per workspace with anything to run, in catalog order, each
 // with its tests, its build, its browser tests and (for a game or lab) its boot check. A workspace whose package.json
 // has "shards": n gets its tests split across n jobs, <name>-1 … <name>-n, each given SHARD=k/n, and its build, browser
-// tests and boot in a job of its own named for it. Pure: tools/plan.ts decides which workspaces and writes the matrix.
+// tests and boot in a job of its own named for it. "smokeShards": n does the same for its browser tests: <name>-smoke-1 …
+// <name>-smoke-n each build it and run `npm run smoke` with SHARD=k/n, and the job named for it keeps the build and the boot.
+// Pure: tools/plan.ts decides which workspaces and writes the matrix.
 import type { Workspace } from './workspaces.ts';
 
 export interface Job {
@@ -13,7 +15,8 @@ export interface Job {
   smoke: boolean;
   /** boot the build in headless Chromium (tools/look.ts): games and labs that build */
   boot: boolean;
-  /** `k/n`: this job runs the k-th of n parts of the tests (package.json "shards"), passed to them as SHARD */
+  /** `k/n`: this job runs the k-th of n parts of the tests (package.json "shards") or, in a -smoke-k job, of the browser
+   * tests ("smokeShards"), passed to them as SHARD */
   shard?: string;
 }
 
@@ -30,9 +33,9 @@ export function jobs(all: Workspace[], dirs: string[] | null): Job[] {
         smoke: !!w.scripts.smoke,
         boot: w.kind !== 'package' && !!w.scripts.build,
       };
-      const n = w.shards ?? 1;
-      if (!job.test || n < 2) return [job];
-      const parts: Job[] = Array.from({ length: n }, (_, i) => ({
+      const n = job.test ? (w.shards ?? 1) : 1;
+      const m = job.smoke ? (w.smokeShards ?? 1) : 1;
+      const tests: Job[] = n < 2 ? [] : Array.from({ length: n }, (_, i) => ({
         name: `${w.name}-${i + 1}`,
         dir: w.dir,
         test: true,
@@ -41,7 +44,16 @@ export function jobs(all: Workspace[], dirs: string[] | null): Job[] {
         boot: false,
         shard: `${i + 1}/${n}`,
       }));
-      return [{ ...job, test: false }, ...parts];
+      const smokes: Job[] = m < 2 ? [] : Array.from({ length: m }, (_, i) => ({
+        name: `${w.name}-smoke-${i + 1}`,
+        dir: w.dir,
+        test: false,
+        build: job.build,
+        smoke: true,
+        boot: false,
+        shard: `${i + 1}/${m}`,
+      }));
+      return [{ ...job, test: job.test && n < 2, smoke: job.smoke && m < 2 }, ...tests, ...smokes];
     })
     .filter(j => j.test || j.build || j.smoke);
 }

@@ -31,6 +31,11 @@ export interface Workspace {
    * one machine. Each runs `npm test` with SHARD=k/n in its environment, and the test script runs only its k-th part.
    */
   shards?: number;
+  /**
+   * package.json's "smokeShards": the same for its browser tests (`npm run smoke`): n jobs, each running the build and
+   * `npm run smoke` with SHARD=k/n, and the smoke script runs only its k-th part.
+   */
+  smokeShards?: number;
 }
 
 /**
@@ -74,6 +79,7 @@ export function workspaces(): Workspace[] {
         uses: Object.keys(deps).filter(d => d.startsWith(SCOPE)).sort(),
         ...(pkg.card ? { card: pkg.card as Card } : {}),
         ...(Number.isInteger(pkg.shards) && pkg.shards > 1 ? { shards: pkg.shards as number } : {}),
+        ...(Number.isInteger(pkg.smokeShards) && pkg.smokeShards > 1 ? { smokeShards: pkg.smokeShards as number } : {}),
       });
     }
   }

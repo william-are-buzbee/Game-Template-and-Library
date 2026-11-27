@@ -67,6 +67,28 @@ test('a split suite with nothing to build is only its parts; "shards" without te
   assert.deepEqual(jobs([{ ...ws('games/one', { test: 'x' }), shards: 1 }], null), [{ name: 'one', dir: 'games/one', test: true, build: false, smoke: false, boot: false }]);
 });
 
+test('split browser tests (package.json "smokeShards"): n jobs -smoke-1 to -smoke-n, each building and told its part; the boot stays in the one named for it', () => {
+  const tethys = { ...ws('games/tethys', { test: 'x', build: 'z', smoke: 'y' }), shards: 2, smokeShards: 3 };
+  assert.deepEqual(jobs([tethys], null), [
+    { name: 'tethys', dir: 'games/tethys', test: false, build: true, smoke: false, boot: true },
+    { name: 'tethys-1', dir: 'games/tethys', test: true, build: false, smoke: false, boot: false, shard: '1/2' },
+    { name: 'tethys-2', dir: 'games/tethys', test: true, build: false, smoke: false, boot: false, shard: '2/2' },
+    { name: 'tethys-smoke-1', dir: 'games/tethys', test: false, build: true, smoke: true, boot: false, shard: '1/3' },
+    { name: 'tethys-smoke-2', dir: 'games/tethys', test: false, build: true, smoke: true, boot: false, shard: '2/3' },
+    { name: 'tethys-smoke-3', dir: 'games/tethys', test: false, build: true, smoke: true, boot: false, shard: '3/3' },
+  ]);
+});
+
+test('"smokeShards" without a smoke script, or of 1, splits nothing; with tests unsplit, they stay in the job named for it', () => {
+  assert.deepEqual(jobs([{ ...ws('labs/quiet', { build: 'z' }), smokeShards: 2 }], null).map(j => j.name), ['quiet']);
+  assert.deepEqual(jobs([{ ...ws('games/one', { test: 'x', smoke: 'y' }), smokeShards: 1 }], null), [{ name: 'one', dir: 'games/one', test: true, build: false, smoke: true, boot: false }]);
+  assert.deepEqual(jobs([{ ...ws('games/two', { test: 'x', smoke: 'y' }), smokeShards: 2 }], null), [
+    { name: 'two', dir: 'games/two', test: true, build: false, smoke: false, boot: false },
+    { name: 'two-smoke-1', dir: 'games/two', test: false, build: false, smoke: true, boot: false, shard: '1/2' },
+    { name: 'two-smoke-2', dir: 'games/two', test: false, build: false, smoke: true, boot: false, shard: '2/2' },
+  ]);
+});
+
 test('nothing affected, no jobs', () => {
   assert.deepEqual(jobs(ALL, []), []);
 });

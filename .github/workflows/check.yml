@@ -5,7 +5,8 @@
 #   <name>     one job per workspace in the plan, on a machine of its own: its tests, its build, its browser tests, and
 #              for a game or lab its boot in headless Chromium (tools/look.ts). The pull request's checks name the game
 #              that failed, and main takes as long as its slowest workspace. A suite too slow for one machine is split
-#              (package.json "shards": n): <name>-1 … <name>-n run its tests, each given SHARD=k/n, and <name> the rest
+#              (package.json "shards": n): <name>-1 … <name>-n run its tests, each given SHARD=k/n, and <name> the rest;
+#              and its browser tests likewise ("smokeShards": n): <name>-smoke-1 … -n each build it and run its k-th part
 #   shared     the quick whole-repository checks: types, the tools' own tests, the catalog; and, when the plan says, that
 #              the templates still make a game and a lab that work (tools/try-templates.ts)
 #   all        passes only if all of the above did: the one check to require, if checks are ever required
@@ -47,7 +48,9 @@ jobs:
     name: ${{ matrix.name }}
     runs-on: ubuntu-latest
     # Tethys's suite (node build.js --test, 19 runs) is the longest: 18 min one after another, 6-8 side by side (v11.93.3),
-    # about 3 in each of its three shards (v11.93.4)
+    # about 3 in each of its three shards (v11.93.4), 5-8 by v11.247. Its browser tests were 35 min in one job by v11.247
+    # (gpu.js 23 of them: software WebGL runs 2-6x slower here than on a session's 4 cores) and once ran past this limit;
+    # since split in four, "smokeShards" (docs/decisions.md 30). 45 is headroom for a slow runner, not a target
     timeout-minutes: 45
     strategy:
       # one game failing does not stop the others: each says for itself
@@ -78,6 +81,9 @@ jobs:
       - name: browser tests
         if: ${{ matrix.smoke && !cancelled() }}
         run: PLAYWRIGHT_MODULE="$(npm root -g)/playwright" npm run smoke -w ${{ matrix.dir }}
+        env:
+          # k/n in a <name>-smoke-k job; empty (all of them) otherwise
+          SHARD: ${{ matrix.shard }}
       - name: boots with no page error
         if: ${{ matrix.boot && !cancelled() }}
         run: PLAYWRIGHT_MODULE="$(npm root -g)/playwright" node tools/look.ts ${{ matrix.dir }} --no-shot

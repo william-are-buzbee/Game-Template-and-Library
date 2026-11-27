@@ -40,7 +40,8 @@ These are the repository standard (`docs/standard.md`); `main` is locked by the 
   them); `npm run check:all` runs every test. CI does the same on a pull request, everything on `main`, one job per
   workspace (named for it), each of which also builds it and boots it in headless Chromium; a suite too slow for one
   machine is split across several (`"shards": n` in its package.json: `<name>-1` … `<name>-n` run its tests, each
-  given `SHARD=k/n`, which its test script must honour — Tethys's does).
+  given `SHARD=k/n`, which its test script must honour — Tethys's does), and browser tests the same way
+  (`"smokeShards": n`: `<name>-smoke-1` … `-n` each build it and run `npm run smoke` with `SHARD=k/n`; `docs/decisions.md` 30).
 - **The pull request says** what changed and why, what was checked and what was looked at, and what the person should
   try on the preview: which game, which keys, what to look for. Say plainly what could not be checked from a session.
   A change to anything that runs every frame or at load also says **what it cost**, measured before and after (below, and
