@@ -152,7 +152,7 @@ dist.js; `archive/` old docs kept whole; the design docs.
 | audio.js · bench.js | procedural WebAudio · the sound bench |
 | effects.js · worldmap.js · save.js | the effects list (`e`) · the world map (`n`) · slots, the profile, `startNew`/`startFrom`, `slotDeath` |
 | step.js | the fixed step (v11.210): `simStep`, the accumulator's constants, the drawing between steps (`lerpSnap`, `lerpApply`, `lerpRestore`) |
-| menu.js zoo.js lab.js · input.js main.js | the menu, the bestiary, the creature lab · input; the boot `BOOT`, the frame loop, the readout |
+| menu.js zoo.js creator.js lab.js · input.js main.js | the menu, the bestiary, the creator's overlay (v11.248: the lab as pictures for the player), the creature lab · input; the boot `BOOT`, the frame loop, the readout |
 
 **The docs**, most upstream first (each at length in README.md). When a doc's Open list says a choice is the person's, ask.
 `PLANET.md` the planet, its rules and the roster — the game changes when it conflicts · `TAXA.md`, `FLORA.md`, `REEF.md` the sessile life

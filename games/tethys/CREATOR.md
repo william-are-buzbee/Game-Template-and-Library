@@ -316,6 +316,25 @@ DESIGN.md, Creatures, "The spine". In short:
 - The person's answers (26 Nov 2026, built v11.246.1): the knots only on hover; only the hingeshells grow plates; the creator without the core's
   sliders; a bend limit per clade (`SPINE_BEND`). The Sapling's drag from the outline: built v11.247 (a lump, a bend, a fat rear cost drag; the roster is untouched). The rest: analysis_creators.md, "Next".
 
+## Seventh round (27 Nov 2026, v11.248): the creator as a picture — words taken away
+
+The person, 27 Nov 2026, on "hide the sliders": *"what I meant to say was that we should have our menu resemble spores in the sense that it should be
+largely visual how it works. Like, we should be able to remove 95% of the text on the left side of the screen and have a perfectly functional
+creature creator … I want a tasteful, minimalist thing my dad can use to make a creature. So focus on the UI being cleaner and showing as little as
+possible, then I will give you some images after that and we can hone in on the style of the UI as well as the 'stage' it's set on."*
+
+Built (`src/creator.js`; the creator only — `lab.player`, the menu's word and the conception's window; the dev lab keeps its panel):
+
+- **The parts are pictures** in a column at the left, a group a kind: each style the lab would offer drawn from its own geometry on the creature's own
+  core (`crtIcon`: the meshes' facets projected flat from the lab's side and painted far to near on a 2D canvas, a few a frame, kept by key). Drag one
+  onto the body and it is put there; drag a part off the body and let go, and it goes (a part the clade must have stays).
+- **The body is shaped on itself** (v11.246–247): the knots on hover, drag, wheel, double-click.
+- **A few icons at the bottom**: undo, redo, turn, swim, the action, start from another (a grid of the bodies as pictures: the kept creatures, the
+  seen species), keep it, done — at conception, lay (✓) and decline (✕). **Colours** as swatches at the bottom right (the clade's coats) and a die
+  (a coat by chemistry). **The name** at the top, and under it three thin bars — speed, agility, mass — and at conception the budget's bar.
+- **Words:** only the name. Every other word is a tooltip (`test/creator.js` fails on another). The bottom hint and the game's title are hidden.
+- Next: the style and the stage, from the person's images.
+
 ## The ganglion (21 Sep 2026) — a design note for later, the person's
 
 Abilities are to come from a **universal ganglion model**: a neuron cluster that drives a motor cortex, which contracts muscles — or communicates —
