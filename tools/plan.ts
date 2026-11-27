@@ -27,6 +27,6 @@ if (ref) {
 }
 const plan = jobs(all, dirs);
 const templates = needsTemplates(dirs);
-console.log(plan.length ? `jobs: ${plan.map(j => `${j.name} (${(['test', 'build', 'smoke', 'boot'] as const).filter(k => j[k]).map(k => (k === 'test' && j.shard ? `test ${j.shard}` : k)).join(', ')})`).join('; ')}` : 'jobs: none');
+console.log(plan.length ? `jobs: ${plan.map(j => `${j.name} (${(['test', 'build', 'smoke', 'boot'] as const).filter(k => j[k]).map(k => (k === 'test' && j.shard ? `test ${j.shard}` : k === 'smoke' && j.smokeShard ? `smoke ${j.smokeShard}` : k)).join(', ')})`).join('; ')}` : 'jobs: none');
 console.log(`templates: ${templates ? 'tried' : 'not needed'}`);
 if (process.env.GITHUB_OUTPUT) appendFileSync(process.env.GITHUB_OUTPUT, `matrix=${JSON.stringify({ include: plan })}\nany=${plan.length > 0}\ntemplates=${templates}\n`);

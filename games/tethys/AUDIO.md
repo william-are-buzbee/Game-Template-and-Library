@@ -1,6 +1,6 @@
 # AUDIO — the sound of the water (IDEAS #6), 9 Sep 2026
 
-**v11.248 (27 Nov 2026): the overhaul begins, and its instruments come first** — "The overhaul" and "The ear's instruments" below. The
+**v11.249 (27 Nov 2026): the overhaul begins, and its instruments come first** — "The overhaul" and "The ear's instruments" below. The
 design further down is v11.14's, as built; the overhaul will strike and replace it piece by piece, and say so here.
 
 **v11.34: there is now a bench — `#bench` renders every sound here to a wav and `node test/spectro.js` draws it, so a number in this file can be checked against what it actually makes. The first run's findings are in CHANGELOG v11.34; nothing below has been struck by them yet.**
@@ -178,7 +178,7 @@ the person to listen and say what they heard. The person's answers, 27 Nov 2026:
 
 The plan, each phase its own pull requests:
 
-1. **The instruments** (v11.248): every sound rendered headless and measured, its numbers held in CI, and the listening page. Nothing heard changes.
+1. **The instruments** (v11.249): every sound rendered headless and measured, its numbers held in CI, and the listening page. Nothing heard changes.
 2. **The engine**: the sources as plain functions (samples out, no Web Audio types) run in an AudioWorklet in the game and in Node in the tests —
    the same code to the sample, a cost a voice that can be measured, renders by the thousand for a search — with placement and the reverbs left
    to the browser's own nodes (the panner, the convolver). The recipes move one for one first; test/sound.json proves nothing moved. An
@@ -192,7 +192,7 @@ The plan, each phase its own pull requests:
    regression check on what a sound is heard *as*, and the texture statistics of public-domain hydrophone recordings (McDermott and
    Simoncelli's: a rain or a crackle is heard by its statistics) kept as small JSON targets, not recordings.
 
-## The ear's instruments (v11.248)
+## The ear's instruments (v11.249)
 
 - **`node test/sound.js`** renders every sound in headless Chromium through the bench (`src/bench.js`), offline and with `Math.random` seeded:
   the thirteen one-shots, the material (four noise buffers, two impulse responses), every bed alone (22: the pressure's two sines joined
@@ -210,7 +210,7 @@ The plan, each phase its own pull requests:
   pull request" makes the verdicts and notes one block to paste as a comment. A sound whose numbers are main's takes main's file, so the site's
   history keeps one copy.
 
-**What the first full render says** (v11.248, before anything is changed; test/sound.json):
+**What the first full render says** (v11.249, before anything is changed; test/sound.json):
 - The mix is **quiet and dark everywhere**: −29.6 LUFS at the vent, −36 in the forest, −40.8 in open water; a game is usually mixed to −24 to −18.
   Every place's centroid is 106–318 Hz and nothing reaches past 2 kHz above a hundredth of the energy — at the coast and in the wood too,
   where the medium is air and the lowpass opens to 16 kHz.

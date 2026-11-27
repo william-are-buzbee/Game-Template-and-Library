@@ -102,6 +102,7 @@ function labBuild() {
   labCaption();
   labReadout();
   labSpineDraw(); // the knots on the body (v11.246)
+  crtUpdate(); // the creator's bars and budget (v11.248)
 }
 // light the part under the cursor: its meshes swap to the lit material (the arms' chains too)
 function labHi(i, force) {
@@ -393,6 +394,7 @@ function labRender() {
   const sc = labPanel.scrollTop || 0;
   labPanel.innerHTML = labPanelHTML();
   labPanel.scrollTop = sc;
+  crtRender(); // the creator's overlay (v11.248; lab.player only)
 }
 function labReadout() {
   // the readout and the caption refresh without rebuilding the panel (a slider drag keeps its focus)
@@ -467,6 +469,7 @@ function labLoad(spec) {
   lab.open = {};
   lab.hi = -1;
   LAB_SP.undo = [];
+  LAB_SP.redo = [];
   LAB_SP.hov = -1;
   LAB_SP.part = -1;
   LAB_SP.drag = null;
@@ -724,6 +727,7 @@ const LAB_SP = {
   drag: null, // {kind: 'knot'|'part', i, off|p0, ...}
   g: null,
   undo: [],
+  redo: [], // v11.248
   wheelT: 0,
   renderT: null,
   ball: new THREE.MeshBasicMaterial({color: 0xffd28a, transparent: true, opacity: 0.85, depthTest: false, fog: false}),
@@ -834,12 +838,22 @@ function labPickPart(e) {
   return best;
 }
 function labUndoPush() {
+  LAB_SP.redo.length = 0;
   LAB_SP.undo.push(JSON.stringify(lab.spec));
   if (LAB_SP.undo.length > 60) LAB_SP.undo.shift();
 }
 function labUndo() {
   const j = LAB_SP.undo.pop();
   if (!j) return;
+  LAB_SP.redo.push(JSON.stringify(lab.spec));
+  lab.spec = JSON.parse(j);
+  labBuild();
+  labRender();
+}
+function labRedo() { // v11.248: the creator's redo
+  const j = LAB_SP.redo.pop();
+  if (!j) return;
+  LAB_SP.undo.push(JSON.stringify(lab.spec));
   lab.spec = JSON.parse(j);
   labBuild();
   labRender();
@@ -934,6 +948,8 @@ function labEnter(spec, asPlayer) {
   lab.from = mode;
   mode = 'lab';
   lab.player = !!asPlayer; // the creator (menu.js): gated to what has been seen
+  labEl.classList.toggle('player', lab.player); // v11.248: the creator's overlay (creator.js) in place of the panel
+  if (document.body && document.body.classList) document.body.classList.toggle('creator', lab.player); // and the game's title out of its way
   grantCreator(); // the lab used once is the creator used (v11.47): the menu shows the word from here
   labEl.classList.add('on');
   lab.pend = true;
@@ -956,7 +972,7 @@ function labEnter(spec, asPlayer) {
   hintEl.textContent = isTouch
     ? 'drag to turn'
     : 'drag a knot or a part, wheel on it to size it, double-click the body for a knot · drag the water to turn · space, s, r, p, l as ever';
-  hintEl.style.opacity = 1;
+  hintEl.style.opacity = lab.player ? 0 : 1; // the creator says nothing it can show (v11.248)
   labLoad(spec || lab.spec || SPECS.soft);
 }
 function labLeave() {
@@ -972,6 +988,9 @@ function labLeave() {
     lab.b = null;
   }
   lab.player = false;
+  labEl.classList.remove('player');
+  if (document.body && document.body.classList) document.body.classList.remove('creator');
+  CRT.pick = false;
   lab.conceive = null;
   if (player.away) playerAway(false); // the parent back in the world (v11.72.1)
   if (mode === 'menu') {
@@ -1105,15 +1124,15 @@ canvas.addEventListener('mousedown', e => {
   if (mode !== 'lab' || e.button !== 0) return;
   if (lab.b && LAB_SP.hov >= 0 && LAB_SP.H && LAB_SP.H[LAB_SP.hov]) { // a knot taken up (v11.246)
     const h = LAB_SP.H[LAB_SP.hov], q = labHandleAt(h);
-    if (h.move) {labUndoPush(); LAB_SP.drag = {kind: 'knot', i: LAB_SP.hov, off: q.clone().sub(labPlaneHit(e, q)), moved: 0, p0: null, y0: 0, z0: 0};}
-    else LAB_SP.drag = {kind: 'none', i: LAB_SP.hov, off: null, moved: 0, p0: null, y0: 0, z0: 0};
+    if (h.move) {labUndoPush(); LAB_SP.drag = {kind: 'knot', i: LAB_SP.hov, off: q.clone().sub(labPlaneHit(e, q)), gone: false, moved: 0, p0: null, y0: 0, z0: 0};}
+    else LAB_SP.drag = {kind: 'none', i: LAB_SP.hov, off: null, gone: false, moved: 0, p0: null, y0: 0, z0: 0};
     canvas.style.cursor = 'grabbing';
     return;
   }
   if (lab.b && LAB_SP.part >= 0 && lab.v.parts[LAB_SP.part]) { // a part taken up
     const i = LAB_SP.part, pv = lab.v.parts[i], q = V3(0, isFinite(pv.y) ? pv.y : 0, isFinite(pv.z) ? pv.z : 0);
     labUndoPush();
-    LAB_SP.drag = {kind: 'part', i: i, off: null, moved: 0, p0: labPlaneHit(e, q), y0: labPartGet(i, 'y'), z0: labPartGet(i, 'z')};
+    LAB_SP.drag = {kind: 'part', i: i, off: null, gone: false, moved: 0, p0: labPlaneHit(e, q), y0: labPartGet(i, 'y'), z0: labPartGet(i, 'z')};
     canvas.style.cursor = 'grabbing';
     return;
   }
@@ -1133,6 +1152,8 @@ addEventListener('mousemove', e => {
     } else if (D.kind === 'part') {
       const p = labPlaneHit(e, D.p0);
       labPartMove(D.i, p.y - D.p0.y, p.z - D.p0.z);
+      D.gone = D.moved > 12 && !labOnBody(e) && !labIsReq(lab.v.parts[D.i], GRAMMAR[lab.v.clade], CORES[lab.v.core.kind]); // v11.248: pulled off the body, it goes when let go (a part the clade must have never does)
+      canvas.style.cursor = D.gone ? 'no-drop' : 'grabbing';
       labRebuildSoon(false);
     }
     return;
@@ -1149,11 +1170,21 @@ addEventListener('mousemove', e => {
   lab.pitch = clamp(lab.pitch + dy * 0.004, -0.3, 1.2);
   if (lab.drag.moved > 4) lab.spin = false;
 });
-addEventListener('mouseup', () => {
+addEventListener('mouseup', e => {
   if (mode !== 'lab') return;
   if (LAB_SP.drag) { // a gesture ends: nothing moved, nothing to undo; else the panel follows
     const D = LAB_SP.drag;
     LAB_SP.drag = null;
+    if (D.kind === 'part' && D.gone && e && !labOnBody(e)) { // let go off the body: the part is taken out (v11.248)
+      lab.spec.parts.splice(D.i, 1);
+      LAB_SP.part = -1;
+      lab.hi = -1;
+      lab.open = {};
+      canvas.style.cursor = '';
+      labBuild();
+      labRender();
+      return;
+    }
     if (D.kind !== 'none' && D.moved < 3) LAB_SP.undo.pop();
     else if (D.kind !== 'none') labRenderSoon();
     canvas.style.cursor = LAB_SP.hov >= 0 || LAB_SP.part >= 0 ? 'grab' : '';

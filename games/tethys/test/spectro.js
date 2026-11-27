@@ -7,7 +7,7 @@
 // over the same octave, whether anything clips. The numbers are the part that can go in a test and stay true.
 //   node test/spectro.js              every wav in test/render/
 //   node test/spectro.js shot_ bed_   only names containing one of these
-// Loudness (v11.248) is BS.1770's LUFS — what a person hears as loud, where rms is only energy — checked against ffmpeg's ebur128.
+// Loudness (v11.249) is BS.1770's LUFS — what a person hears as loud, where rms is only energy — checked against ffmpeg's ebur128.
 // Not part of the game and not in build.js --test: it needs the bench to have run first.
 'use strict';
 const fs=require('fs'),path=require('path'),{png,text,textW}=require('./png.js');
@@ -47,7 +47,7 @@ function spectrum(x,off){ // one frame's magnitude, NFFT/2 bins
   const m=new Float64Array(NFFT/2);
   for(let i=0;i<NFFT/2;i++)m[i]=Math.sqrt(re[i]*re[i]+im[i]*im[i])/(NFFT/2);
   return m;}
-// ---------- loudness (v11.248) ----------
+// ---------- loudness (v11.249) ----------
 // ITU-R BS.1770-4: each channel K-weighted (a high shelf, +4 dB over ~1.7 kHz, for the head; a high-pass at 38 Hz), its mean square over 400 ms
 // blocks every 100 ms, the blocks summed over the channels (front left and right weigh 1). Integrated: the blocks gated at −70 LUFS, then at
 // 10 LU under their own mean; short-term max: the loudest 3 s. The coefficients from the filters' analogue definitions by the bilinear
@@ -169,4 +169,4 @@ function main(){
     console.log('sheet             →  test/render/_sheet.png');}
 }
 if(require.main===module)main();
-module.exports={readWav,measure,loudness,panel,W,H}; // test/sound.js (v11.248)
+module.exports={readWav,measure,loudness,panel,W,H}; // test/sound.js (v11.249)

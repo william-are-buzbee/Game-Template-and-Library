@@ -12,7 +12,7 @@ const AU_LINE={enc:0,size:AU_REACH,floor:AU_REACH,lid:AU_REACH,wet:0,voices:0,fo
 // The twelve rays: up, down, four level, four level-up at 45°, two level-down at 30° (the world's axes; the taps are panned relative to the camera)
 const AU_DIRS=(function(){const d=[[0,1,0],[0,-1,0],[1,0,0],[-1,0,0],[0,0,1],[0,0,-1]],s=Math.SQRT1_2,c=Math.cos(Math.PI/6),n=Math.sin(Math.PI/6);
   d.push([s*s,s,s*s],[-s*s,s,s*s],[s*s,s,-s*s],[-s*s,s,-s*s],[c,-n,0],[-c,-n,0]);return d.map(v=>{const l=Math.hypot(v[0],v[1],v[2]);return [v[0]/l,v[1]/l,v[2]/l];});})();
-const AU={on:false,hit:new Float32Array(12),hitK:new Uint8Array(12),ems:[],voices:[],bodies:[],taps:[],t:0,pt:0,ph:0,jetT:0,rk:0,fl:0,lastH:0,wr:0,occI:0,boil:0.7,bench:false}; // boil and bench in the literal (v11.248): the bench's snapshot (bench.js bnGraph) puts back only the keys that were there
+const AU={on:false,hit:new Float32Array(12),hitK:new Uint8Array(12),ems:[],voices:[],bodies:[],taps:[],t:0,pt:0,ph:0,jetT:0,rk:0,fl:0,lastH:0,wr:0,occI:0,boil:0.7,bench:false}; // boil and bench in the literal (v11.249): the bench's snapshot (bench.js bnGraph) puts back only the keys that were there
 function auP(p,v,tau){if(p&&isFinite(v))p.setTargetAtTime(v,actx.currentTime,tau||0.08);} // every parameter goes through here: NaN never reaches the graph
 function auNoise(sec,kind){ // one looped buffer per kind: white, brown (the old bed's recipe), crackle (sparse spikes with a two-cycle ring; kind is the rate a second)
   const sr=actx.sampleRate,n=Math.floor(sec*sr),b=actx.createBuffer(1,n,sr),d=b.getChannelData(0);
@@ -45,7 +45,7 @@ function initAudio(){
   try{actx=new (window.AudioContext||window.webkitAudioContext)();auGraph();AU.on=true;}
   catch(e){actx=null;AU.on=false;}
 }
-// The whole graph, built into whatever actx is (v11.248): the game's own context at initAudio, or an OfflineAudioContext the sound bench swaps in
+// The whole graph, built into whatever actx is (v11.249): the game's own context at initAudio, or an OfflineAudioContext the sound bench swaps in
 // (bench.js bnGraph), so a bed or a place's whole mix renders offline, faster than real time and the same every run — the bench's rule kept: the
 // recipes are only ever here. It writes master and AU's nodes and pushes into AU.taps, voices, ems and bodies (empty when it is called).
 function auGraph(){

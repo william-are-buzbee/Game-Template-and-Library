@@ -62,7 +62,7 @@ const PLACES={
 // the body held there. Not for gpu.js --check or --update: gpu.json holds the named places only
 if(process.env.AT){const a=process.env.AT.split(',').map(Number);if(a.length<3||a.slice(0,3).some(v=>!isFinite(v)))throw new Error('AT=x,y,z[,yaw]: '+process.env.AT);
   PLACES.at={x:a[0],y:a[1],z:a[2],yaw:isFinite(a[3])?a[3]:0,above:a[1]>=0,hold:a[1]>=0,what:'AT='+process.env.AT+', from a flight recorder\'s report (test/report.js)'};}
-// the boot through (test/gpu.js's to v11.248, shared with test/sound.js) to the scene (v11.189, main.js BOOT), as the game has it before anyone can play: its store answers between the steps, so a few at a time.
+// the boot through (test/gpu.js's to v11.249, shared with test/sound.js) to the scene (v11.189, main.js BOOT), as the game has it before anyone can play: its store answers between the steps, so a few at a time.
 // A tree from before v11.189 has no __boot, and atPlace's three frames are its boot
 async function bootThrough(page){ // the store's answer waited for with no frame stepped, then the rest stepped: the same frames, so the same clock, in every run
   for(let k=0;k<500;k++){if(await page.evaluate(()=>!window.__boot||window.__boot.stage!=='store'))break;await new Promise(r=>setTimeout(r,20));}

@@ -5,7 +5,8 @@
 #   <name>     one job per workspace in the plan, on a machine of its own: its tests, its build, its browser tests, and
 #              for a game or lab its boot in headless Chromium (tools/look.ts). The pull request's checks name the game
 #              that failed, and main takes as long as its slowest workspace. A suite too slow for one machine is split
-#              (package.json "shards": n): <name>-1 … <name>-n run its tests, each given SHARD=k/n, and <name> the rest
+#              (package.json "shards": n): <name>-1 … <name>-n run its tests, each given SHARD=k/n, and <name> the rest;
+#              browser tests too slow for one ("smokeShards": n) the same way, <name>-browser-1 … -n
 #   shared     the quick whole-repository checks: types, the tools' own tests, the catalog; and, when the plan says, that
 #              the templates still make a game and a lab that work (tools/try-templates.ts)
 #   all        passes only if all of the above did: the one check to require, if checks are ever required
@@ -78,6 +79,9 @@ jobs:
       - name: browser tests
         if: ${{ matrix.smoke && !cancelled() }}
         run: PLAYWRIGHT_MODULE="$(npm root -g)/playwright" npm run smoke -w ${{ matrix.dir }}
+        env:
+          # k/n for one part of split browser tests (package.json "smokeShards"); empty (all of them) otherwise
+          SHARD: ${{ matrix.smokeShard }}
       - name: boots with no page error
         if: ${{ matrix.boot && !cancelled() }}
         run: PLAYWRIGHT_MODULE="$(npm root -g)/playwright" node tools/look.ts ${{ matrix.dir }} --no-shot

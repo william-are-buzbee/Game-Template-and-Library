@@ -192,3 +192,15 @@ which found four repositories sharing no code, copying it instead (the same rand
     the picture whole, so two trees compare pixel for pixel; `test/perf.js --only fill` puts it in the pull request's table.
     Its first use found two thirds of the flora's vertex work thrown away and the sky shaded under water behind the surface
     (v11.187). It is a time on a shared machine, so never held in CI; the person's readout stays the measure.
+
+30. **Browser tests too slow for one machine are split across several, as a suite's tests are** (27 Nov 2026; the person,
+    after a Tethys pull request went red: *"is there some way we can speed up these like, timing out checks, it sucks to wait
+    for 30 minutes for some random thing"*). Tethys's job named for it ran its browser tests one after another — `test/gpu.js
+    --check` at seven places 20.5 minutes, the rest 10 — 31 to 36 minutes against its 45-minute limit, so a slow runner
+    cancelled a good pull request (#218, green on its re-run). A workspace's `"smokeShards": n` (tools/lib/jobs.ts) now makes
+    `<name>-browser-1` … `-n`, each building and running `npm run smoke` with `SHARD=k/n`, and the job named for it keeps the
+    build and the boot. Tethys's smoke script (`test/browsers.js`) deals its runs — gpu.js a place at a time — longest first
+    across the parts by their measured seconds, as build.js deals its suite: four parts of about 7.5 minutes each, so its checks
+    finish in about the time of the test shards (~9 minutes) instead of half an hour. Locally `npm run smoke` runs them all.
+    Tethys v11.249 added `test/sound.js --check` (every sound rendered offline: 9.4 minutes here in a row); it runs a group or a mix at a
+    time in the same runner, and Tethys's parts went to eight.
