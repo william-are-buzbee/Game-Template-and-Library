@@ -11,7 +11,9 @@ feature"*. The investigation is analysis_creators.md. Every core's body is now k
 rings, an ellipsoid's five, a bell's rings), so every species builds to the bit as before; in the lab the knots are beads on the body — drag to move
 or bend, the wheel to fatten (shift height, alt width), double-click to add or remove, a trunk pulled longer grows plates; parts drag along it and
 scale by the wheel; ctrl+z. **Ask:** analysis_creators.md's five questions; then in `#lab` the finback, the soft-arm, the sickle and the coilshell
-shaped by hand — whether the beads, the rings and the gestures read, and which of its "Next" comes first.
+shaped by hand — whether the beads, the rings and the gestures read. **v11.246.1**, the person's answers: the knots only on hover; the creator without
+the core's sliders; a bend limit per clade (`SPINE_BEND`: hingeshells 25°, slowbloods 50, ringmouths 70, drifters 30 at most). **Ask:** the limits'
+feel; whether the parts' sliders go from the creator too.
 
 **v11.245 (26 Nov 2026): the hover keeps station, never still; the plumb's day roam through the current and past the walls** (creatures_ai.js `HOVER`,
 `hoverShift`, `ROAM`, `HANG.head`, `hangGo`, `hangSettle`, `roamBegin`, `c.roamD`; test/clock.js, test/ringmouths.js; BEHAVIOUR §2, §3d; DESIGN; CHANGELOG).

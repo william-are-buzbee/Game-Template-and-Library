@@ -12385,3 +12385,32 @@ shrunk by the wheel. No page error in any.
    kept or hidden in the creator; the clades' bend limits; which of "Next" first.
 3. The lab now opens still and from the side (it spun, from the front): whether that is the start the person wants.
 4. A steep bend (past ~40°) shears the rings rather than turning them; an arm or leg rooted where the body bends stays where it was.
+
+## v11.246.1 — the person's answers: the knots on hover, the creator without sliders, a bend limit per clade (26 Nov 2026)
+
+The person answered analysis_creators.md's questions the same day: *"1. only on hover, as in spore. 2. Only the hingeshell. 3. Hide the sliders.
+4. Yes for sure. 5. Absolutely, go for that."*
+
+1. **The knots on hover** (lab.js `LAB_SP.show`, `labOnBody`): drawn only while the cursor is on the body (a raycast of its core's mesh), within 14 px
+   of a knot, on a part, or through a gesture. A knot can be picked whether drawn or not, so the cursor near one shows it.
+2. **Growth only for the hingeshells**: as built (a trunk and the arches grow plates; every other body stretches). Recorded.
+3. **The creator without sliders** (lab.js `byHand`): with `lab.player` (the menu's creator and the conception's window) the core shows its kind, the
+   spine's switch and note and the beat, and none of its sliders nor the profile's table; the dev lab keeps them. The parts' sliders stay in both:
+   the question was the core's (asked again below).
+4. **A bend limit per clade** (creatures_spec.js `SPINE_BEND`, `spineBend`; `spineMove`; derive's plausible): the angle between the spans either side
+   of a chained knot. Hingeshells 12° believable / 25° extreme (an exoskeleton bends at its joints only), slowbloods 25 / 50, ringmouths 35 / 70 (the
+   mantle is muscle), drifters 15 / 30. A drag that would bend past the extreme stops where it reaches it (bisected along the move; a body already past
+   may still move back toward straight); past the believable band the caption says "bent N° at a knot, past a …'s M°". Numbers chosen, not measured.
+5. **The Sapling's drag**: v11.247, its own pull request (stacked on this one).
+
+**Tests:** test/spine.js adds `bend`: one knot of each of 26 species dragged three body lengths up stops within 2% of its clade's extreme and never
+past it, and the readout warns. Registry, lint, types as before; the full suite green on both tiers.
+
+**What it costs:** nothing the world runs changed (derive's plausible list and the lab only). Bodies, the simulation and the GPU's counts as v11.246.
+
+**Seen** (headless, the creator on the sickle): no knots with the cursor in the water; beads, spine and rings with it on the body; no core sliders.
+
+**Unseen, ask in this order:**
+1. The bend limits' feel: a hingeshell stiff at 25°, a fish to 50°, a mantle to 70° — too tight, too loose?
+2. The parts' sliders in the creator: hide them too (a part then shaped only by dragging and the wheel), or keep them?
+3. The knots on hover: whether the beads appearing as the cursor reaches the body reads as Spore's.

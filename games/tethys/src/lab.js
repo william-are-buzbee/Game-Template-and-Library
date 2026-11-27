@@ -252,15 +252,16 @@ function labPanelHTML() {
     '</label>';
   const over = spineOver(s.core); // v11.246: the numbers the spine's knots stand in for are its, not a slider's
   h += '<label class="row"><span>the spine</span><input type="checkbox" data-act="spine"' + (LAB_SP.on ? ' checked' : '') + '><i class="dim">on the body</i></label>';
-  if (LAB_SP.on && SPINE[s.core.kind]) h += '<div class="note">drag a knot to move it · wheel on it to fatten (shift: height, alt: width) · double-click the body to add a knot, a knot to take it out · drag or wheel a part · ctrl+z undoes</div>';
-  for (const k in core.params) if (over.indexOf(k) < 0) h += labSlider('core.' + k, s.core.kind, k, s.core, F);
+  if (LAB_SP.on && SPINE[s.core.kind]) h += '<div class="note">the knots show with the cursor on the body · drag a knot to move it · wheel on it to fatten (shift: height, alt: width) · double-click the body to add a knot, a knot to take it out · drag or wheel a part · ctrl+z undoes</div>';
+  const byHand = lab.player && !!SPINE[s.core.kind]; // v11.246.1 (the person: "hide the sliders"): the creator shapes the body by hand only; the dev lab keeps them
+  if (!byHand) for (const k in core.params) if (over.indexOf(k) < 0) h += labSlider('core.' + k, s.core.kind, k, s.core, F);
   h +=
     '<label class="row"><span>beat</span>' +
     labNum('core.beat.0', (s.core.beat || [1.5, 0.9])[0], 0.1, 0.1, 12) +
     ' + ' +
     labNum('core.beat.1', (s.core.beat || [1.5, 0.9])[1], 0.05, 0, 4) +
     '<b>× spd</b></label>';
-  if (s.core.kind === 'lathe' || (s.core.kind === 'sac' && s.core.shape === 'lathe' && s.core.prof))
+  if (!byHand && (s.core.kind === 'lathe' || (s.core.kind === 'sac' && s.core.shape === 'lathe' && s.core.prof)))
     h += '<div class="hd2">profile, tail to nose [r, z]</div>' + labProfile('core.prof', s.core.prof);
   h += '</div>';
   // the parts: a fold each; only the clade's styles
@@ -716,6 +717,7 @@ const LAB_SP = {
   on: true, // the spine drawn and in reach ('show the spine' in the core section)
   H: null, // the handles as drawn (spineOf(lab.v))
   ax: 'z',
+  show: false, // v11.246.1 (the person: "only on hover, as in spore"): the knots are drawn while the cursor is on the body, a knot or a part, or a gesture is under way
   hov: -1, // the handle under the cursor
   part: -1, // the part under the cursor
   drag: null, // {kind: 'knot'|'part', i, off|p0, ...}
@@ -743,7 +745,7 @@ function labSpineDraw() {
   try {S = b ? spineOf(lab.v) : null;} catch (e) {S = null;}
   LAB_SP.H = S ? S.H : null;
   LAB_SP.ax = S ? spineAxis(S) : 'z';
-  if (!S || !LAB_SP.on) return;
+  if (!S || !LAB_SP.on || !(LAB_SP.show || LAB_SP.drag)) return;
   const H = S.H, g = new THREE.Group(), ax = LAB_SP.ax;
   let lo = Infinity, hi = -Infinity;
   for (const h of H) {lo = Math.min(lo, h[ax]); hi = Math.max(hi, h[ax]);}
@@ -800,7 +802,7 @@ function labPlaneHit(e, q) {
 }
 // the handle within 14 px of the cursor, nearest first
 function labPick(e) {
-  if (!LAB_SP.g || !LAB_SP.H || !lab.b) return -1;
+  if (!LAB_SP.on || !LAB_SP.H || !lab.b) return -1; // drawn or not: the cursor near a knot is what shows it
   const r = canvas.getBoundingClientRect();
   lab.b.g.updateMatrixWorld(true);
   let best = -1, bd = 14 * 14;
@@ -846,11 +848,20 @@ function labRenderSoon() {
   if (LAB_SP.renderT) clearTimeout(LAB_SP.renderT);
   LAB_SP.renderT = setTimeout(() => {LAB_SP.renderT = null; labRender();}, 250);
 }
+// the cursor on the body itself (its core's mesh)
+function labOnBody(e) {
+  if (!lab.b || !lab.b.body) return false;
+  if (!LAB_RC) LAB_RC = new THREE.Raycaster();
+  const r = canvas.getBoundingClientRect();
+  LAB_RC.setFromCamera({x: ((e.clientX - r.left) / r.width) * 2 - 1, y: -(((e.clientY - r.top) / r.height) * 2 - 1)}, camera);
+  return LAB_RC.intersectObject(lab.b.body, false).length > 0;
+}
 function labHover(e) {
   const i = labPick(e);
   let p = -1;
   if (i < 0) p = labPickPart(e);
-  if (i !== LAB_SP.hov) {LAB_SP.hov = i; labSpineDraw();}
+  const show = i >= 0 || p >= 0 || labOnBody(e);
+  if (i !== LAB_SP.hov || show !== LAB_SP.show) {LAB_SP.hov = i; LAB_SP.show = show; labSpineDraw();}
   if (p !== LAB_SP.part) {LAB_SP.part = p; labHi(p);}
   canvas.style.cursor = i >= 0 || p >= 0 ? 'grab' : '';
 }
@@ -1127,7 +1138,7 @@ addEventListener('mousemove', e => {
   }
   if (!lab.drag) {
     if (e.target === canvas && lab.b) labHover(e);
-    else if (LAB_SP.hov >= 0 || LAB_SP.part >= 0) {LAB_SP.hov = -1; LAB_SP.part = -1; labSpineDraw(); canvas.style.cursor = '';} // off the water (the panel): nothing under the hand
+    else if (LAB_SP.hov >= 0 || LAB_SP.part >= 0 || LAB_SP.show) {LAB_SP.hov = -1; LAB_SP.part = -1; LAB_SP.show = false; labSpineDraw(); canvas.style.cursor = '';} // off the water (the panel): nothing under the hand
     return;
   }
   const dx = e.movementX || 0,
