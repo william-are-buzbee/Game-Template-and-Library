@@ -202,3 +202,5 @@ which found four repositories sharing no code, copying it instead (the same rand
     build and the boot. Tethys's smoke script (`test/browsers.js`) deals its runs — gpu.js a place at a time — longest first
     across the parts by their measured seconds, as build.js deals its suite: four parts of about 7.5 minutes each, so its checks
     finish in about the time of the test shards (~9 minutes) instead of half an hour. Locally `npm run smoke` runs them all.
+    Tethys v11.249 added `test/sound.js --check` (every sound rendered offline: 9.4 minutes here in a row); it runs a group or a mix at a
+    time in the same runner, and Tethys's parts went to eight.

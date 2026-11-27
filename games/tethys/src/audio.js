@@ -12,7 +12,7 @@ const AU_LINE={enc:0,size:AU_REACH,floor:AU_REACH,lid:AU_REACH,wet:0,voices:0,fo
 // The twelve rays: up, down, four level, four level-up at 45°, two level-down at 30° (the world's axes; the taps are panned relative to the camera)
 const AU_DIRS=(function(){const d=[[0,1,0],[0,-1,0],[1,0,0],[-1,0,0],[0,0,1],[0,0,-1]],s=Math.SQRT1_2,c=Math.cos(Math.PI/6),n=Math.sin(Math.PI/6);
   d.push([s*s,s,s*s],[-s*s,s,s*s],[s*s,s,-s*s],[-s*s,s,-s*s],[c,-n,0],[-c,-n,0]);return d.map(v=>{const l=Math.hypot(v[0],v[1],v[2]);return [v[0]/l,v[1]/l,v[2]/l];});})();
-const AU={on:false,hit:new Float32Array(12),hitK:new Uint8Array(12),ems:[],voices:[],bodies:[],taps:[],t:0,pt:0,ph:0,jetT:0,rk:0,fl:0,lastH:0,wr:0,occI:0};
+const AU={on:false,hit:new Float32Array(12),hitK:new Uint8Array(12),ems:[],voices:[],bodies:[],taps:[],t:0,pt:0,ph:0,jetT:0,rk:0,fl:0,lastH:0,wr:0,occI:0,boil:0.7,bench:false}; // boil and bench in the literal (v11.249): the bench's snapshot (bench.js bnGraph) puts back only the keys that were there
 function auP(p,v,tau){if(p&&isFinite(v))p.setTargetAtTime(v,actx.currentTime,tau||0.08);} // every parameter goes through here: NaN never reaches the graph
 function auNoise(sec,kind){ // one looped buffer per kind: white, brown (the old bed's recipe), crackle (sparse spikes with a two-cycle ring; kind is the rate a second)
   const sr=actx.sampleRate,n=Math.floor(sec*sr),b=actx.createBuffer(1,n,sr),d=b.getChannelData(0);
@@ -42,8 +42,13 @@ function auVoice(){const g=auGain(0),lp=auFilt('lowpass',3000,0.3),pan=actx.crea
 function auPos(pan,x,y,z,tau){if(pan.positionX){auP(pan.positionX,x,tau);auP(pan.positionY,y,tau);auP(pan.positionZ,z,tau);}else if(isFinite(x+y+z))pan.setPosition(x,y,z);}
 function initAudio(){
   if(actx)return;
-  try{
-    actx=new (window.AudioContext||window.webkitAudioContext)();
+  try{actx=new (window.AudioContext||window.webkitAudioContext)();auGraph();AU.on=true;}
+  catch(e){actx=null;AU.on=false;}
+}
+// The whole graph, built into whatever actx is (v11.249): the game's own context at initAudio, or an OfflineAudioContext the sound bench swaps in
+// (bench.js bnGraph), so a bed or a place's whole mix renders offline, faster than real time and the same every run — the bench's rule kept: the
+// recipes are only ever here. It writes master and AU's nodes and pushes into AU.taps, voices, ems and bodies (empty when it is called).
+function auGraph(){
     const white=auNoise(2.5,'white'),brown=auNoise(4,'brown'),pink=auNoise(4,'pink'),crL=auNoise(6,45),crR=auNoise(6,45);AU.whiteBuf=white;
     // the buses: dry + the taps + the reverbs → the medium (the water's lowpass by depth, a shelf for the hollow and the flinch) → the compressor → master.
     // music (the person's, later) joins after the medium: the water does not colour it.
@@ -74,8 +79,6 @@ function initAudio(){
     AU.ems.push(AU.slosh,AU.sloshB,AU.rain,AU.surf,AU.surfW,AU.ventR,AU.ventB,AU.forest);
     // 18 the passing bodies: the water the six nearest creatures displace (physics.js gathers them for the snow); a low hiss the size of the thing
     for(let i=0;i<6;i++){const e=auChain(pink,'lowpass',600,0.5,false,2000,0.7);e.c=null;AU.bodies.push(e);AU.ems.push(e);}
-    AU.on=true;
-  }catch(e){actx=null;AU.on=false;}
 }
 // ---------- the space ----------
 // Is the point inside a solid? The hash physics.js keeps (spheres, capsules, ellipsoids, twelve-plane rocks; pads are rafts: nothing to sound)
@@ -165,7 +168,7 @@ function auTick(dt,P,play){
   AU.surf.x=AU.surfW.x=lx+gx/gl*22;AU.surf.z=AU.surfW.z=lz+gz/gl*22;AU.surf.y=AU.surfW.y=TIDE;AU.surf.a=B*0.32*shal*swell*(under?1:1.3);AU.surfW.a=B*0.16*shal*swell*(under?0.6:1.3);
   // 6 the vent: at the chimney's throat, from anywhere within reach; the boil wanders (a random walk at the tick)
   const vp=LM.chimney,vy=(LMK.chimney?LMK.chimney.y:vp.h)+52;AU.ventR.x=AU.ventB.x=vp.x;AU.ventR.z=AU.ventB.z=vp.z;AU.ventR.y=AU.ventB.y=vy; // at the mouth, where the plume and the light are (chunks.js placeLandmarks)
-  AU.boil=clamp((AU.boil||0.7)+(Math.random()-0.5)*0.3,0.4,1);AU.ventR.a=B*0.9*(1-k);AU.ventB.a=B*0.4*AU.boil*(1-k);
+  AU.boil=clamp(AU.boil+(Math.random()-0.5)*0.3,0.4,1);AU.ventR.a=B*0.9*(1-k);AU.ventB.a=B*0.4*AU.boil*(1-k);
   // 7 the forest: the flora's height in the cells' 4×4 buckets (chunks.js), summed with a reach of 30 m; placed at the weighted centre; loud in a stream, near silent in slack water
   let fw=0,fx=0,fz=0;const ci=cellOf(lx),cj=cellOf(lz);
   for(let dj=-1;dj<=1;dj++)for(let di=-1;di<=1;di++){const c=chunkIJ(ci+di,cj+dj);if(!c||!c.ac)continue;

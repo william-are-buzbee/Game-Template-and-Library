@@ -7,6 +7,7 @@
 //                         cross-origin isolated (COOP and COEP), so its clock reads to 5 µs, not 100 (v11.237.1: a body's rebuild is ~0.15 ms)
 //   open(pw, root, opt)   a browser of its own (software WebGL), the page loaded: {browser, page, server, errs, close()}. opt: {width, height,
 //                         init: [functions run in the page before any script, e.g. tools/lib/browser.ts glCounting], iso: as serve's}
+//   bootThrough(page)     the boot run through to the menu's world, the same frames every run (main.js BOOT)
 //   playwright()          Playwright: PLAYWRIGHT_MODULE, else the global one (a cloud session has one; CI installs one)
 // In the page: performance.now and requestAnimationFrame are the bench's (the page's clock is still between steps, so a streaming budget never
 // runs out: each frame generates one whole cell and one whole far region), setTimeout runs at once, and `__step(n)` runs n frames of 1000/60 ms (`window.__FRAME_MS` another: v11.210, a screen at another rate).
@@ -61,4 +62,9 @@ const PLACES={
 // the body held there. Not for gpu.js --check or --update: gpu.json holds the named places only
 if(process.env.AT){const a=process.env.AT.split(',').map(Number);if(a.length<3||a.slice(0,3).some(v=>!isFinite(v)))throw new Error('AT=x,y,z[,yaw]: '+process.env.AT);
   PLACES.at={x:a[0],y:a[1],z:a[2],yaw:isFinite(a[3])?a[3]:0,above:a[1]>=0,hold:a[1]>=0,what:'AT='+process.env.AT+', from a flight recorder\'s report (test/report.js)'};}
-module.exports={here,playwright,pageOf,serve,open,PLACES};
+// the boot through (test/gpu.js's to v11.249, shared with test/sound.js) to the scene (v11.189, main.js BOOT), as the game has it before anyone can play: its store answers between the steps, so a few at a time.
+// A tree from before v11.189 has no __boot, and atPlace's three frames are its boot
+async function bootThrough(page){ // the store's answer waited for with no frame stepped, then the rest stepped: the same frames, so the same clock, in every run
+  for(let k=0;k<500;k++){if(await page.evaluate(()=>!window.__boot||window.__boot.stage!=='store'))break;await new Promise(r=>setTimeout(r,20));}
+  await page.evaluate(()=>{for(let i=0;i<3000&&window.__boot&&!window.__boot.done;i++)window.__step(1);});}
+module.exports={here,playwright,pageOf,serve,open,PLACES,bootThrough};

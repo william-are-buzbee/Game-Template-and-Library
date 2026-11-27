@@ -1,6 +1,6 @@
 // test/browsers.js — the browser tests (`npm run smoke`), all of them one after another, or one part of them for CI. Each run is a real build in
-// headless Chromium under software WebGL: test/gpu.js --check a place at a time (its seven places, each in a browser of its own already), then
-// test/boot.js, test/wcache_page.js, test/three187.js and test/horizon_page.js. On one CI machine they took 31 minutes in a row (27 Nov 2026: gpu.js
+// headless Chromium under software WebGL: test/gpu.js --check a place at a time (its seven places, each in a browser of its own already),
+// test/sound.js --check a group or a mix at a time (v11.249), then test/boot.js, test/wcache_page.js, test/three187.js and test/horizon_page.js. On one CI machine they took 31 minutes in a row (27 Nov 2026: gpu.js
 // 20.5, horizon_page 4.3, boot 2, wcache_page 2, three187 1.5) against a 45-minute limit, so a slow runner cancelled a good pull request; package.json's
 // "smokeShards" splits them across that many CI jobs (tools/lib/jobs.ts: tethys-browser-1 … -n), each given SHARD=k/n, as "shards" splits the suite.
 //   node test/browsers.js            every run, in order (what `npm run smoke` is locally)
@@ -11,14 +11,19 @@ const {spawnSync}=require('child_process'),path=require('path');
 const {PLACES}=require('./benchpage.js');
 const ROOT=path.join(__dirname,'..');
 // [the script and its arguments, its environment, its seconds on a CI machine (27 Nov 2026), for the dealing]
+// test/sound.js (v11.249): its one-shots, noise and beds in one run (41 s here), then each mix alone — the bench places and the vent (about a minute each
+// here, JOBS 1, once its race's timer was cleared: it held every run open 240 s). Their CI seconds are guesses until a CI run says (gpu.js and
+// horizon_page ran ×4 here's there, boot ×1.6): 200 a mix
+const MIXES=Object.keys(PLACES).filter(n=>n!=='at').concat(['vent']);
 const RUNS=Object.keys(PLACES).map(p=>[['test/gpu.js','--check'],{ONLY:p},176]) // gpu.js's 1,235 s over its seven places
+  .concat([[['test/sound.js','--check'],{ONLY:'shots,noise,beds'},100]],MIXES.map(p=>[['test/sound.js','--check'],{ONLY:'mix',PLACES:p,JOBS:'1'},200]))
   .concat([[['test/boot.js'],{},119],[['test/wcache_page.js'],{},124],[['test/three187.js'],{},93],[['test/horizon_page.js'],{},260]]);
 const SH=/^(\d+)\/(\d+)$/.exec(process.env.SHARD||'');
 if(process.env.SHARD&&!(SH&&+SH[1]>=1&&+SH[1]<=+SH[2])){console.error('SHARD is k/n with 1 <= k <= n, not '+process.env.SHARD);process.exit(1);}
 let mine=RUNS;
 if(SH){const n=+SH[2],load=new Array(n).fill(0),part=new Map();for(const r of RUNS.slice().sort((a,b)=>b[2]-a[2])){let k=0;for(let i=1;i<n;i++)if(load[i]<load[k])k=i;load[k]+=r[2];part.set(r,k+1);}
   mine=RUNS.filter(r=>part.get(r)===+SH[1]);}
-const name=r=>r[0].join(' ')+(r[1].ONLY?' (ONLY='+r[1].ONLY+')':'');
+const name=r=>r[0].join(' ')+(r[1].ONLY?' (ONLY='+r[1].ONLY+(r[1].PLACES?' PLACES='+r[1].PLACES:'')+')':'');
 console.log('browser tests'+(SH?' (part '+SH[1]+' of '+SH[2]+', SHARD)':'')+': '+mine.map(name).join('; '));
 const failed=[],t0=Date.now();
 for(const r of mine){const t=Date.now();

@@ -17,7 +17,7 @@
 // place to test/render/gpu_<place>.png, to see what was counted), JSON=<file> (the results as JSON, for test/perf.js).
 'use strict';
 const fs=require('fs'),path=require('path');
-const {here,playwright,open,PLACES}=require('./benchpage.js'); // the places are benchpage.js's since v11.187, shared with test/fill.js
+const {here,playwright,open,PLACES,bootThrough}=require('./benchpage.js'); // the places are benchpage.js's since v11.187, shared with test/fill.js
 const {glCounting,GL_KEYS,glNumber}=require('../../../tools/lib/browser.ts');
 const argv=process.argv.slice(2),CHECK=argv.includes('--check')||!!process.env.CHECK,UPDATE=argv.includes('--update')||!!process.env.UPDATE;
 if(process.env.AT&&(CHECK||UPDATE)){console.log('AT= is a report\'s place: gpu.json holds the named places only (no --check or --update with it)');process.exit(2);}
@@ -36,11 +36,6 @@ function atPlace(a){const take=()=>window.__gl.take(),mean=F=>{const o={};for(co
   take();window.__step(8);const sight=take(); // the place's first frames drawn
   const F=[];for(let i=0;i<a.frames;i++){window.__step(1);F.push(take());}
   return {boot,sight:sight.compiles,frame:mean(F),above:wasAbove===true,mode,cells:chunks.size,creatures:typeof visibleCreatures==='number'?visibleCreatures:-1,settle:k};}
-// the boot through to the scene (v11.189, main.js BOOT), as the game has it before anyone can play: its store answers between the steps, so a few at a time.
-// A tree from before v11.189 has no __boot, and atPlace's three frames are its boot
-async function bootThrough(page){ // the store's answer waited for with no frame stepped, then the rest stepped: the same frames, so the same clock, in every run
-  for(let k=0;k<500;k++){if(await page.evaluate(()=>!window.__boot||window.__boot.stage!=='store'))break;await new Promise(r=>setTimeout(r,20));}
-  await page.evaluate(()=>{for(let i=0;i<3000&&window.__boot&&!window.__boot.done;i++)window.__step(1);});}
 async function place(pw,root,name,shot){const p=PLACES[name],P=await open(pw,root,{width:W,height:H,init:[glCounting]});
   try{await bootThrough(P.page);const o=await P.page.evaluate(atPlace,Object.assign({frames:FRAMES,shot:!!shot},p));o.errs=P.errs.slice();if(!shot)return o;
     const f=path.join(here,'test/render/gpu_'+name+'.png');fs.mkdirSync(path.dirname(f),{recursive:true});
