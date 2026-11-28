@@ -1,0 +1,779 @@
+{
+ "version": "v11.250",
+ "sounds": [
+  {
+   "name": "bed_body_pass",
+   "group": "bed",
+   "what": "the body pass chain alone at 0.5, the medium open, no reverb",
+   "fp": "e5637e5510b4",
+   "secs": 6,
+   "lufs": -27.5,
+   "stmax": -27.4,
+   "peak": -14.9,
+   "centroid": 231,
+   "bands": [
+    0.45,
+    0.42,
+    0.13,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "bed_brush",
+   "group": "bed",
+   "what": "the brush chain alone at 0.5, the medium open, no reverb",
+   "fp": "f57b0c54c6f6",
+   "secs": 6,
+   "lufs": -17.1,
+   "stmax": -17,
+   "peak": -11.6,
+   "centroid": 4615,
+   "bands": [
+    0,
+    0,
+    0.14,
+    0.72,
+    0.14
+   ]
+  },
+  {
+   "name": "bed_col",
+   "group": "bed",
+   "what": "the col chain alone at 0.5, the medium open, no reverb",
+   "fp": "ffb2c443748a",
+   "secs": 6,
+   "lufs": -30.1,
+   "stmax": -30,
+   "peak": -20.3,
+   "centroid": 761,
+   "bands": [
+    0.03,
+    0.39,
+    0.53,
+    0.05,
+    0
+   ]
+  },
+  {
+   "name": "bed_crackle_l",
+   "group": "bed",
+   "what": "the crackle l chain alone at 0.5, the medium open, no reverb",
+   "fp": "09c3fe66e8f0",
+   "secs": 6,
+   "lufs": -57.5,
+   "stmax": -56.9,
+   "peak": -23.4,
+   "centroid": 7443,
+   "bands": [
+    0,
+    0,
+    0.03,
+    0.57,
+    0.4
+   ]
+  },
+  {
+   "name": "bed_crackle_r",
+   "group": "bed",
+   "what": "the crackle r chain alone at 0.5, the medium open, no reverb",
+   "fp": "e587d387862a",
+   "secs": 6,
+   "lufs": -57.8,
+   "stmax": -56.9,
+   "peak": -24.6,
+   "centroid": 7444,
+   "bands": [
+    0,
+    0,
+    0.03,
+    0.57,
+    0.4
+   ]
+  },
+  {
+   "name": "bed_cur",
+   "group": "bed",
+   "what": "the cur chain alone at 0.5, the medium open, no reverb",
+   "fp": "b8d1b4731e23",
+   "secs": 6,
+   "lufs": -28.2,
+   "stmax": -28.1,
+   "peak": -15.9,
+   "centroid": 181,
+   "bands": [
+    0.52,
+    0.42,
+    0.06,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "bed_deep",
+   "group": "bed",
+   "what": "the deep chain alone at 0.5, the medium open, no reverb",
+   "fp": "f1281247b6f9",
+   "secs": 6,
+   "lufs": -27.7,
+   "stmax": -27.5,
+   "peak": -15.6,
+   "centroid": 94,
+   "bands": [
+    0.74,
+    0.26,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "bed_flow",
+   "group": "bed",
+   "what": "the flow chain alone at 0.5, the medium open, no reverb",
+   "fp": "bec988bbb123",
+   "secs": 6,
+   "lufs": -29,
+   "stmax": -28.9,
+   "peak": -15.2,
+   "centroid": 142,
+   "bands": [
+    0.54,
+    0.44,
+    0.01,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "bed_forest",
+   "group": "bed",
+   "what": "the forest chain alone at 0.5, the medium open, no reverb",
+   "fp": "13380f39fba5",
+   "secs": 6,
+   "lufs": -28.1,
+   "stmax": -28,
+   "peak": -20.5,
+   "centroid": 1744,
+   "bands": [
+    0.01,
+    0.11,
+    0.61,
+    0.26,
+    0.01
+   ]
+  },
+  {
+   "name": "bed_heat",
+   "group": "bed",
+   "what": "the heat chain alone at 0.5, the medium open, no reverb",
+   "fp": "a37c021d032a",
+   "secs": 6,
+   "lufs": -27.8,
+   "stmax": -27.8,
+   "peak": -20.4,
+   "centroid": 2000,
+   "bands": [
+    0,
+    0.08,
+    0.57,
+    0.33,
+    0.02
+   ]
+  },
+  {
+   "name": "bed_pressure",
+   "group": "bed",
+   "what": "the pressure chain alone at 0.5, the medium open, no reverb",
+   "fp": "eedb5182055d",
+   "secs": 6,
+   "lufs": -16.8,
+   "stmax": -16.7,
+   "peak": -6.5,
+   "centroid": 51,
+   "bands": [
+    1,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "bed_rain_air",
+   "group": "bed",
+   "what": "the rain air chain alone at 0.5, the medium open, no reverb",
+   "fp": "30666c52bdf6",
+   "secs": 6,
+   "lufs": -47.3,
+   "stmax": -47,
+   "peak": -24.7,
+   "centroid": 5800,
+   "bands": [
+    0,
+    0.01,
+    0.23,
+    0.46,
+    0.3
+   ]
+  },
+  {
+   "name": "bed_rain_hush",
+   "group": "bed",
+   "what": "the rain hush chain alone at 0.5, the medium open, no reverb",
+   "fp": "1822e133b8c7",
+   "secs": 6,
+   "lufs": -26.1,
+   "stmax": -26.1,
+   "peak": -13.8,
+   "centroid": 455,
+   "bands": [
+    0.37,
+    0.3,
+    0.31,
+    0.02,
+    0
+   ]
+  },
+  {
+   "name": "bed_rain_under",
+   "group": "bed",
+   "what": "the rain under chain alone at 0.5, the medium open, no reverb",
+   "fp": "a6670dea6a5a",
+   "secs": 6,
+   "lufs": -27.1,
+   "stmax": -27,
+   "peak": -18.1,
+   "centroid": 1433,
+   "bands": [
+    0.03,
+    0.24,
+    0.53,
+    0.19,
+    0.01
+   ]
+  },
+  {
+   "name": "bed_scrape",
+   "group": "bed",
+   "what": "the scrape chain alone at 0.5, the medium open, no reverb",
+   "fp": "2c9dc296105d",
+   "secs": 6,
+   "lufs": -28.4,
+   "stmax": -28.3,
+   "peak": -19.9,
+   "centroid": 1382,
+   "bands": [
+    0,
+    0.02,
+    0.87,
+    0.1,
+    0.01
+   ]
+  },
+  {
+   "name": "bed_slosh",
+   "group": "bed",
+   "what": "the slosh chain alone at 0.5, the medium open, no reverb",
+   "fp": "c69348286209",
+   "secs": 6,
+   "lufs": -28.7,
+   "stmax": -28.7,
+   "peak": -19,
+   "centroid": 965,
+   "bands": [
+    0.03,
+    0.35,
+    0.53,
+    0.09,
+    0
+   ]
+  },
+  {
+   "name": "bed_slosh_low",
+   "group": "bed",
+   "what": "the slosh low chain alone at 0.5, the medium open, no reverb",
+   "fp": "1033c22d3405",
+   "secs": 6,
+   "lufs": -26.5,
+   "stmax": -26.1,
+   "peak": -15.2,
+   "centroid": 111,
+   "bands": [
+    0.59,
+    0.41,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "bed_surf",
+   "group": "bed",
+   "what": "the surf chain alone at 0.5, the medium open, no reverb",
+   "fp": "05a681a613af",
+   "secs": 6,
+   "lufs": -24.1,
+   "stmax": -24,
+   "peak": -12.5,
+   "centroid": 206,
+   "bands": [
+    0.37,
+    0.57,
+    0.06,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "bed_surf_wash",
+   "group": "bed",
+   "what": "the surf wash chain alone at 0.5, the medium open, no reverb",
+   "fp": "0f178eed6783",
+   "secs": 6,
+   "lufs": -28.1,
+   "stmax": -28,
+   "peak": -19.5,
+   "centroid": 1292,
+   "bands": [
+    0.02,
+    0.22,
+    0.6,
+    0.16,
+    0.01
+   ]
+  },
+  {
+   "name": "bed_vent_boil",
+   "group": "bed",
+   "what": "the vent boil chain alone at 0.5, the medium open, no reverb",
+   "fp": "ae09e6c1fad2",
+   "secs": 6,
+   "lufs": -28.4,
+   "stmax": -28.3,
+   "peak": -20.1,
+   "centroid": 1486,
+   "bands": [
+    0.01,
+    0.14,
+    0.64,
+    0.2,
+    0.01
+   ]
+  },
+  {
+   "name": "bed_vent_rumble",
+   "group": "bed",
+   "what": "the vent rumble chain alone at 0.5, the medium open, no reverb",
+   "fp": "64aa647d413d",
+   "secs": 6,
+   "lufs": -28.9,
+   "stmax": -28.8,
+   "peak": -17.8,
+   "centroid": 78,
+   "bands": [
+    0.87,
+    0.13,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "bed_wind",
+   "group": "bed",
+   "what": "the wind chain alone at 0.5, the medium open, no reverb",
+   "fp": "fbb6744a0795",
+   "secs": 6,
+   "lufs": -25.4,
+   "stmax": -25.3,
+   "peak": -14.2,
+   "centroid": 336,
+   "bands": [
+    0.19,
+    0.63,
+    0.17,
+    0.01,
+    0
+   ]
+  },
+  {
+   "name": "mix_atoll",
+   "group": "mix",
+   "what": "the atoll 110 km east, 10 m down on its slope, facing its rim: a dense kelp stand, the most triangles under water",
+   "fp": "3fa89fd65925",
+   "secs": 8,
+   "lufs": -36.3,
+   "stmax": -35.1,
+   "peak": -24.3,
+   "centroid": 245,
+   "bands": [
+    0.36,
+    0.52,
+    0.11,
+    0.01,
+    0
+   ]
+  },
+  {
+   "name": "mix_canopy",
+   "group": "mix",
+   "what": "3 m down in the kelp off the same shore (v11.187), facing it: the canopy at the surface (the tidewood above it to v11.233)",
+   "fp": "f9e372d426d9",
+   "secs": 8,
+   "lufs": -32.3,
+   "stmax": -31.3,
+   "peak": -20.2,
+   "centroid": 235,
+   "bands": [
+    0.26,
+    0.64,
+    0.09,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "mix_coast",
+   "group": "mix",
+   "what": "the giant's coast from the sea's surface: the horizon pass, the sky, the clouds, the land",
+   "fp": "8d19c6491040",
+   "secs": 8,
+   "lufs": -34.8,
+   "stmax": -34,
+   "peak": -23.5,
+   "centroid": 246,
+   "bands": [
+    0.25,
+    0.66,
+    0.08,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "mix_forest",
+   "group": "mix",
+   "what": "the weed forest on the shelf: the heaviest place for creatures and flora",
+   "fp": "6751d7fb3c01",
+   "secs": 8,
+   "lufs": -36.2,
+   "stmax": -35.8,
+   "peak": -23.3,
+   "centroid": 253,
+   "bands": [
+    0.33,
+    0.55,
+    0.12,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "mix_open",
+   "group": "mix",
+   "what": "open water over the deep floor: the water column, the snow and the fog alone",
+   "fp": "97d9f36330d0",
+   "secs": 8,
+   "lufs": -40.8,
+   "stmax": -40.3,
+   "peak": -28.7,
+   "centroid": 237,
+   "bands": [
+    0.47,
+    0.39,
+    0.13,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "mix_shore",
+   "group": "mix",
+   "what": "the shore north of ours from the water's surface (v11.187): the reeds in the air, the kelp under the camera (the tidewood stood here to v11.233; since v11.234 ours has none — FLORA, the tidewood's stands); the body held at 0.6 m (hold, v11.189: left to float it rests 2–3 m down by the world's state, and the camera with it at the waterline, above or under by a wave)",
+   "fp": "ab6e9b1558f8",
+   "secs": 8,
+   "lufs": -34.1,
+   "stmax": -33.4,
+   "peak": -22.3,
+   "centroid": 259,
+   "bands": [
+    0.31,
+    0.58,
+    0.11,
+    0.01,
+    0
+   ]
+  },
+  {
+   "name": "mix_vent",
+   "group": "mix",
+   "what": "25 m off the vent's mouth, at its height, facing it: the rumble and the boil, placed and reverbed",
+   "fp": "841c8768906e",
+   "secs": 8,
+   "lufs": -29.6,
+   "stmax": -29.4,
+   "peak": -19,
+   "centroid": 106,
+   "bands": [
+    0.7,
+    0.3,
+    0.01,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "mix_wood",
+   "group": "mix",
+   "what": "inside the giant's windward forest, 3 m over the ground (v11.180, the wood): the platewood stand and the canopy's hand-off at 360–450 m",
+   "fp": "078457179b26",
+   "secs": 8,
+   "lufs": -38.5,
+   "stmax": -38.3,
+   "peak": -27.7,
+   "centroid": 318,
+   "bands": [
+    0.22,
+    0.62,
+    0.16,
+    0.01,
+    0
+   ]
+  },
+  {
+   "name": "shot_bite_landed",
+   "group": "shot",
+   "what": "combat.js: a bite on the player, dmg≈15",
+   "fp": "46616c5a5c15",
+   "secs": 1.2,
+   "lufs": -28.8,
+   "stmax": -30.7,
+   "peak": -10.7,
+   "centroid": 103,
+   "bands": [
+    0.77,
+    0.23,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "shot_breach",
+   "group": "shot",
+   "what": "player.js: crossing the surface, v≈6",
+   "fp": "1d5bed8ebd5a",
+   "secs": 1.2,
+   "lufs": -25.1,
+   "stmax": -27.1,
+   "peak": -6.4,
+   "centroid": 392,
+   "bands": [
+    0.03,
+    0.92,
+    0.01,
+    0.04,
+    0
+   ]
+  },
+  {
+   "name": "shot_clamp_blocked",
+   "group": "shot",
+   "what": "combat.js: a hold that did no damage",
+   "fp": "643b537198e6",
+   "secs": 1.2,
+   "lufs": -29.3,
+   "stmax": -31.3,
+   "peak": -10.3,
+   "centroid": 87,
+   "bands": [
+    0.93,
+    0.07,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "shot_fin_pulse",
+   "group": "shot",
+   "what": "player.js: the finback's ability",
+   "fp": "08547e30de97",
+   "secs": 1.2,
+   "lufs": -21.6,
+   "stmax": -26.3,
+   "peak": -3.7,
+   "centroid": 62,
+   "bands": [
+    1,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "shot_flop",
+   "group": "shot",
+   "what": "player.js: a flop on land",
+   "fp": "84447286238d",
+   "secs": 1.2,
+   "lufs": -29.6,
+   "stmax": -31.6,
+   "peak": -11.6,
+   "centroid": 139,
+   "bands": [
+    0.28,
+    0.72,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "shot_hold_break",
+   "group": "shot",
+   "what": "combat.js: a hold torn free",
+   "fp": "23fbb6cf5c6a",
+   "secs": 1.2,
+   "lufs": -29.7,
+   "stmax": -31.7,
+   "peak": -11.6,
+   "centroid": 134,
+   "bands": [
+    0.38,
+    0.62,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "shot_into_weed",
+   "group": "shot",
+   "what": "audio.js: brushing into weed — noise only, no chirp",
+   "fp": "2b4de555cb5e",
+   "secs": 1.2,
+   "lufs": -49.7,
+   "stmax": -54.5,
+   "peak": -31.1,
+   "centroid": 4167,
+   "bands": [
+    0,
+    0,
+    0.08,
+    0.84,
+    0.08
+   ]
+  },
+  {
+   "name": "shot_jet_squeeze",
+   "group": "shot",
+   "what": "audio.js: the ringmouth's jet, at full submersion",
+   "fp": "7a624e10e379",
+   "secs": 1.2,
+   "lufs": -34.7,
+   "stmax": -36.8,
+   "peak": -18.5,
+   "centroid": 282,
+   "bands": [
+    0,
+    0.99,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "shot_knock_rock",
+   "group": "shot",
+   "what": "audio.js: the knock, spd≈3",
+   "fp": "72374a2590d1",
+   "secs": 1.2,
+   "lufs": -29.6,
+   "stmax": -31.6,
+   "peak": -11.7,
+   "centroid": 143,
+   "bands": [
+    0.28,
+    0.72,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "shot_land_rock",
+   "group": "shot",
+   "what": "audio.js: bottoming out on rock, landV≈5",
+   "fp": "6d4f4edd9523",
+   "secs": 1.2,
+   "lufs": -26.8,
+   "stmax": -28.7,
+   "peak": -9.1,
+   "centroid": 168,
+   "bands": [
+    0.07,
+    0.93,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "shot_land_sediment",
+   "group": "shot",
+   "what": "audio.js: bottoming out on sediment, landV≈5",
+   "fp": "15b9d06a4658",
+   "secs": 1.2,
+   "lufs": -32.9,
+   "stmax": -34.9,
+   "peak": -12.5,
+   "centroid": 65,
+   "bands": [
+    0.99,
+    0,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "shot_player_bite",
+   "group": "shot",
+   "what": "combat.js: the player's bite",
+   "fp": "c76bd5181ec4",
+   "secs": 1.2,
+   "lufs": -27.3,
+   "stmax": -29.3,
+   "peak": -9.3,
+   "centroid": 118,
+   "bands": [
+    0.64,
+    0.36,
+    0,
+    0,
+    0
+   ]
+  },
+  {
+   "name": "shot_player_hurt",
+   "group": "shot",
+   "what": "player.js: taking damage",
+   "fp": "6ef34db7fa21",
+   "secs": 1.2,
+   "lufs": -24.3,
+   "stmax": -26.2,
+   "peak": -4.4,
+   "centroid": 77,
+   "bands": [
+    0.97,
+    0.03,
+    0,
+    0,
+    0
+   ]
+  }
+ ]
+}
