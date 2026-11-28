@@ -2133,7 +2133,8 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   v11.250, one kit a clade (CREATOR.md Eighth round): the creator's column is the clade's (`crtKinds`: every kind a core of the clade takes; in the
   creator a kind once any style of it is seen), one tile a kind dropping `CRT_STD[clade][kind]`, drawn on the clade's blank (`crtSpecOf`, the coat
   through `coatFill`); a kind the core carries itself turns the core's own on (`CRT_ON_CORE`: the chain's dorsal fin and lobes); `crtCan`/`crtAdd`
-  are the drop. `test/gaps.js` lists the parts that float off their bodies.
+  are the drop. `test/gaps.js` lists the parts that float off their bodies. v11.250.1: the creator's gate off (lab.js `LAB_GATE` false, the person
+  28 Nov 2026): `labOk` and `labStyles` offer everything in the creator as in the dev lab.
 - **Roles:** hunter (chases prey; `strike {tell, dur, speed, range}` for one that cocks and lunges — the tell slows it, turns it to
   the prey and drives `st.tell`, then a burst at `speed` with `st.strike` on and one bite within `reach`; `burst {on, off}`
   for burst-and-coast: speed and accel on a duty cycle, full for `on` s then a third for `off` s, in the chase and the wander

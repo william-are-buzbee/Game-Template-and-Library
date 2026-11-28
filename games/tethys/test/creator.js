@@ -42,6 +42,12 @@ for(const sp of all){
   if(h.indexOf('data-coat="')<0)fail(sp.id,'no coat swatch');
   const w=words(h);if(w)fail(sp.id,'words on the screen: "'+w.slice(0,80)+'"');
   n++;}
+// nothing seen (v11.250.1, the person: "all parts unlock by default"): a fresh profile has every part of the clade and every species to start from
+{const S=X.PROFILE.seen,keep={};for(const k in S){keep[k]=S[k].slice();S[k].length=0;}
+  for(const id of ['fin','eel','soft','sickle','jelly']){X.labLoad(X.SPECS[id]);X.CRT.pick=true;X.crtRender();const h=X.crtEl.innerHTML||'',cl=X.SPECS[id].clade,want=Object.keys(X.CRT_STD[cl]).filter(k=>X.stylesFor(k,cl).length);
+    for(const k of want)if(h.indexOf('data-kind="'+k+'"')<0)fail(id,'with nothing seen, no tile for '+k);
+    for(const sid in X.SPECS)if(h.indexOf('data-load="'+sid+'"')<0)fail(id,'with nothing seen, '+sid+' is not in the picker');}
+  X.CRT.pick=false;for(const k in S){S[k].length=0;for(const v of keep[k])S[k].push(v);}}
 // undo and redo: back and forth to the very spec
 {X.labLoad(X.SPECS.sickle);const a=JSON.stringify(X.lab.spec);X.labUndoPush();const S=X.spineOf(X.lab.spec);X.spineSize(X.lab.spec,S.H.findIndex(h=>h.role==='k'),1.4,1.4);X.labBuild();const b=JSON.stringify(X.lab.spec);
   X.labUndo();if(JSON.stringify(X.lab.spec)!==a)fail('sickle','undo is not the spec before');X.labRedo();if(JSON.stringify(X.lab.spec)!==b)fail('sickle','redo is not the spec after');}
@@ -50,6 +56,6 @@ for(const sp of all){
   if(h.indexOf('class="budget')<0)fail('conception','no budget bar');if(h.indexOf('data-crt="close"')<0||h.indexOf('data-crt="done"')<0)fail('conception','no lay and decline');if(h.indexOf('data-crt="new"')>=0)fail('conception','a child cannot start from another species');
   X.lab.conceive=null;}
 X.labLeave();if(X.lab.player)fail('the creator left as the player\'s');
-console.log('creator: '+n+' bodies in the creator, '+tiles+' part tiles (one a part, the same column through each clade, each dropped and built), the icons, the coats and the name on each; undo and redo; the conception\'s bar');
+console.log('creator: '+n+' bodies in the creator, '+tiles+' part tiles (one a part, the same column through each clade, each dropped and built, all of them with nothing seen), the icons, the coats and the name on each; undo and redo; the conception\'s bar');
 if(bad.length){console.log('CREATOR FAILED '+bad.length+'\n  '+bad.slice(0,30).join('\n  '));process.exit(1);}
 console.log('OK');

@@ -121,8 +121,8 @@ const CRT_STD = {
 // A part the clade has but this core carries itself (the eel's chain is its own tail and its own dorsal fin): the tile is there all the same,
 // and dropped it turns the core's own on (CREATOR.md, Eighth round)
 const CRT_ON_CORE = {chain: {fins: c => {c.fin = true;}, tail: c => {if (!(c.lobes >= 1)) c.lobes = CORES.chain.params.lobes.d;}}};
-// the clade's parts, in the registry's order: every kind any of its cores takes; in the creator, a kind once any of its styles has been seen
-function crtKinds(clade) {return Object.keys(PARTS).filter(k => CRT_STD[clade] && CRT_STD[clade][k] && stylesFor(k, clade).length && (!lab.player || stylesFor(k, clade).some(s => seen('pt', k + ':' + s))));}
+// the clade's parts, in the registry's order: every kind any of its cores takes (with the gate on, in the creator, a kind once any of its styles has been seen: LAB_GATE)
+function crtKinds(clade) {return Object.keys(PARTS).filter(k => CRT_STD[clade] && CRT_STD[clade][k] && stylesFor(k, clade).length && stylesFor(k, clade).some(s => labOk('pt', k + ':' + s)));}
 function crtSpecOf(kind, style, clade) { // a part alone on the clade's blank, in its coat (filled: a shell reads colours a soft body's lacks), for its picture: the same whichever body is open
   const b = SPEC_BLANK[clade];
   return {id: 'icon', clade: clade, size: b.size, s: 1, coat: coatFill(b.coat, clade, true), core: Object.assign({}, b.core), parts: [{kind: kind, style: style}]};
