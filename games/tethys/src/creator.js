@@ -8,7 +8,7 @@ const crtEl = document.getElementById('crt');
 const CRT = {
   icons: new Map(), // key → data URL: a part or a body drawn as a flat-shaded silhouette (crtIcon)
   queue: [], // icons still to draw, a few a frame
-  key: '', // what the palette was built for (clade, core, coat): rebuilt when it moves
+  key: '', // what the overlay was drawn for (clade, core, coat): drawn again when it moves (the palette's pictures are the clade's, cached)
   ghost: null, // a part on its way from the palette: {kind, style, el}
   pick: false // the species' pictures open
 };
@@ -107,23 +107,32 @@ const CRT_SVG = {
 };
 function crtBtn(act, tip, on) {return '<button data-crt="' + act + '" title="' + tip + '"' + (on ? ' class="on"' : '') + '><svg viewBox="0 0 24 24">' + CRT_SVG[act] + '</svg></button>';}
 // ---------- the overlay ----------
-function crtSpecOf(kind, style) { // a part alone on the creature's own core, for its picture
-  const v = lab.v, c = Object.assign({}, v.core);
-  return {id: 'icon', clade: v.clade, size: v.size, s: 1, coat: v.coat, core: c, parts: [{kind: kind, style: style}]};
+// One tile a part, the same for the whole clade (the person, 28 Nov 2026: "Every animal of the same clade should have an identical set of tools,
+// parts … none of them go away or come back unless you pick an entirely new clade", and "one part gets one spot on the left side list"; a part's
+// configs — the ortho's mouth and the soft-arm's as one part, two configs — come later). A tile drops its clade's standard style, below: the
+// commonest the roster wears, or the blank's where that is the clade's own (the soft-arm's jet arms). The other styles stay what the roster
+// wears and what the dev lab offers; a body keeps whatever it has.
+const CRT_STD = {
+  ringmouths: {eyes: 'collar', mouth: 'beak', arms: 'jet', shell: 'coil', ridge: 'gladius', skirt: 'trio', head: 'turret'},
+  slowbloods: {eyes: 'ring', mouth: 'tentacles', chevrons: 'rows', spines: 'row', barbels: 'cone', plates: 'rows', fins: 'trio', tail: 'lathe'},
+  hingeshells: {eyes: 'stalks', mouth: 'plates', spines: 'thorns', comb: 'rake', tailplate: 'spine', legs: 'walk', keel: 'ventral', valves: 'placed', flaps: 'sides', weapon: 'claws'},
+  drifters: {arms: 'hang'}
+};
+// A part the clade has but this core carries itself (the eel's chain is its own tail and its own dorsal fin): the tile is there all the same,
+// and dropped it turns the core's own on (CREATOR.md, Eighth round)
+const CRT_ON_CORE = {chain: {fins: c => {c.fin = true;}, tail: c => {if (!(c.lobes >= 1)) c.lobes = CORES.chain.params.lobes.d;}}};
+// the clade's parts, in the registry's order: every kind any of its cores takes; in the creator, a kind once any of its styles has been seen
+function crtKinds(clade) {return Object.keys(PARTS).filter(k => CRT_STD[clade] && CRT_STD[clade][k] && stylesFor(k, clade).length && (!lab.player || stylesFor(k, clade).some(s => seen('pt', k + ':' + s))));}
+function crtSpecOf(kind, style, clade) { // a part alone on the clade's blank, in its coat (filled: a shell reads colours a soft body's lacks), for its picture: the same whichever body is open
+  const b = SPEC_BLANK[clade];
+  return {id: 'icon', clade: clade, size: b.size, s: 1, coat: coatFill(b.coat, clade, true), core: Object.assign({}, b.core), parts: [{kind: kind, style: style}]};
 }
 function crtPalette() {
-  const v = lab.v, core = v.core.kind, gr = GRAMMAR[v.clade], coatKey = typeof v.coat === 'string' ? v.coat : JSON.stringify(v.coat).length;
+  const cl = lab.v.clade;
   let h = '';
-  for (const kind of Object.keys(PARTS)) {
-    const st = labStyles(kind, v.clade, undefined, core);
-    if (!st.length) continue;
-    h += '<div class="grp">';
-    for (const style of st) {
-      const key = 'p|' + v.clade + '|' + core + '|' + kind + '|' + style + '|' + coatKey,
-        url = crtIconFor(key, crtSpecOf(kind, style), 0);
-      h += '<div class="tile" data-kind="' + kind + '" data-style="' + style + '" title="' + kind + (st.length > 1 ? ' · ' + style : '') + '"><img data-key="' + crtEsc(key) + '" src="' + url + '" draggable="false"></div>';
-    }
-    h += '</div>';
+  for (const kind of crtKinds(cl)) {
+    const style = CRT_STD[cl][kind], key = 'p|' + cl + '|' + kind + '|' + style, url = crtIconFor(key, crtSpecOf(kind, style, cl), 0);
+    h += '<div class="tile" data-kind="' + kind + '" data-style="' + style + '" title="' + kind + '"><img data-key="' + crtEsc(key) + '" src="' + url + '" draggable="false"></div>';
   }
   return h;
 }
@@ -175,16 +184,29 @@ function crtUpdate() {
   if (old) old.outerHTML = crtBudget();
 }
 // ---------- the hand: a part from the palette onto the body ----------
+// the tile's part onto a spec at fore–aft z: a part of its own, or the core's own turned on (CRT_ON_CORE); false when the body cannot take it
+function crtCan(spec, kind, style) {return stylesFor(kind, spec.clade, spec.core.kind).indexOf(style) >= 0 || !!(CRT_ON_CORE[spec.core.kind] && CRT_ON_CORE[spec.core.kind][kind]);}
+function crtAdd(spec, kind, style, z) {
+  if (!crtCan(spec, kind, style)) return false;
+  if (stylesFor(kind, spec.clade, spec.core.kind).indexOf(style) < 0) {
+    CRT_ON_CORE[spec.core.kind][kind](spec.core);
+    return true;
+  }
+  const part = {kind: kind, style: style};
+  if (paramsFor(kind, style).indexOf('z') >= 0 && isFinite(z)) part.z = +(+z).toFixed(3);
+  spec.parts.push(part);
+  return true;
+}
 function crtDrop(e) {
   const g = CRT.ghost;
   CRT.ghost = null;
   if (g && g.el && g.el.parentNode) g.el.parentNode.removeChild(g.el);
   if (!g || !lab.b || mode !== 'lab') return;
   if (!labOnBody(e) && labPickPart(e) < 0) return; // dropped in the water: nothing
-  const p = labPlaneHit(e, V3(0, 0, 0)), part = {kind: g.kind, style: g.style}, ks = paramsFor(g.kind, g.style);
-  if (ks.indexOf('z') >= 0 && isFinite(p.z)) part.z = +p.z.toFixed(3);
+  const p = labPlaneHit(e, V3(0, 0, 0));
+  if (!crtCan(lab.spec, g.kind, g.style)) return; // the eel's tail on the eel: nothing to add
   labUndoPush();
-  lab.spec.parts.push(part);
+  crtAdd(lab.spec, g.kind, g.style, p.z);
   labBuild();
   labRender();
 }

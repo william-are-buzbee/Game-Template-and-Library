@@ -333,7 +333,42 @@ Built (`src/creator.js`; the creator only — `lab.player`, the menu's word and 
   seen species), keep it, done — at conception, lay (✓) and decline (✕). **Colours** as swatches at the bottom right (the clade's coats) and a die
   (a coat by chemistry). **The name** at the top, and under it three thin bars — speed, agility, mass — and at conception the budget's bar.
 - **Words:** only the name. Every other word is a tooltip (`test/creator.js` fails on another). The bottom hint and the game's title are hidden.
-- Next: the style and the stage, from the person's images.
+- Next: the style and the stage, from the person's images. (v11.250: one tile a part, the clade's — Eighth round.)
+
+## Eighth round (28 Nov 2026, v11.250): one kit a clade, one tile a part
+
+The person, 28 Nov 2026: *"Every animal of the same clade should have an identical set of tools, parts, etc. If I switch from a slowblood to a ridge
+in the creator, I should see zero changing on the sides … none of them go away or come back unless you pick an entirely new clade … even the eel vs
+the finback have distinct parts and I don't want that."* And: *"There should, for now, not be any 'variations' of the mouth parts, eyes, etc. under
+the part picker … one part gets one spot on the left side list"* — a part's configs later (*"I could make the ortho and the soft-arm mouth parts the
+same 'part' but have two separate configs"*), by a drop-down or a template per part. And the next pass is **clarity**: parts that float off the body
+or were never touching it, and a drag that sticks to where it should.
+
+Built (`src/creator.js`):
+- **The column is the clade's**, not the body's: every kind any of the clade's cores takes, in the registry's order, one tile each — ringmouths 7
+  (eyes, mouth, arms, shell, ridge, skirt, head), slowbloods 8 (eyes, mouth, chevrons, spines, barbels, plates, fins, tail), hingeshells 10 (eyes,
+  mouth, spines, comb, tailplate, legs, keel, valves, flaps, weapon), drifters 1 (arms). Before, it was each style the creature's own core took, so
+  the eel (a chain: its own tail and dorsal fin) lost two groups and the coil gained `withdraw`.
+- **A tile drops its clade's standard style** (`CRT_STD`): the commonest the roster wears, or the clade's own blank's where that says the clade
+  (the soft-arm's jet arms): ringmouths collar eyes, beak, jet arms, coil shell, gladius, trio skirt, turret; slowbloods ring eyes, tentacles,
+  rows of chevrons, a row of spines, cone barbels, rows of plates, trio fins, lathe tail; hingeshells stalked eyes, plates, thorns, rake, spine
+  tailplate, walking legs, ventral keel, placed valves, side flaps, claws; drifters hanging arms. The other styles are still what the roster wears and
+  what the dev lab offers; a body keeps whatever it has.
+- **The pictures are the clade's**: each drawn on the clade's blank in its coat (filled from the clade's, so a shell has its colours on a soft body),
+  so switching body within a clade changes nothing in the column, not even a redraw (`CRT.icons` keyed by clade and part).
+- **A part the core carries itself** keeps its tile: on the eel, fins turn its own dorsal fin on and a tail its lobes (`CRT_ON_CORE`); a part a core
+  cannot take at all would do nothing (none today).
+- **Seen** (round four's gate) is now by the kind: a part's tile shows once any of its styles has been seen. So a tile can appear over a game, but
+  never on a switch of body.
+
+**For the clarity pass** — `node test/gaps.js` (v11.250) measures every part of every species against the rest of its body at rest: the nearest of
+its vertices to any triangle of the core or another part, over the body's length. On v11.250, 36 of 228 parts are 1% or more off, the worst: the
+veil's skirt 9.3%, the crusher's tail 7.6% (the cylinder's lobes behind a thin stalk), the flicker's comb and eye stalks 5.2% (the stalks stand in
+front of the clam's valves on nothing), the hose's tail fan 5.0%, the darter's and the glim's tail lobes 4.9%, the rasp's crawling arms 4.3%. It
+measures a part as a whole: a ring of eyes one of which touches reads as attached. The drag's own clipping is the bigger half: a part is placed by its
+numbers in the core's frame (x, y, z), so the drop sets only z and the rest are the style's defaults, and a body reshaped under a part leaves it where
+it was (only `spineRide`'s bend moves it). The fix proposed for that pass: a part anchored to the skin — where along the spine and round it, and how
+far out — resolved from the knots at build, the drop and the drag a ray onto the body.
 
 ## The ganglion (21 Sep 2026) — a design note for later, the person's
 

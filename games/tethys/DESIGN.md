@@ -2130,6 +2130,10 @@ far LOD), `setLOD`, steering, one `updateX` per role, `updateCreatures()`.
   `#lab` in the address opens the lab as lab.js loads). Not yet: rigs ride a bend (an arm rooted where the body bends stays where it was); a ring is
   kept upright, not turned square to a steep bend (a shear past ~40°); the eel's chain takes widths but no bend; the variety rows' core numbers
   (`VARY_AUTO.core`) move nothing a knot list stands in for.
+  v11.250, one kit a clade (CREATOR.md Eighth round): the creator's column is the clade's (`crtKinds`: every kind a core of the clade takes; in the
+  creator a kind once any style of it is seen), one tile a kind dropping `CRT_STD[clade][kind]`, drawn on the clade's blank (`crtSpecOf`, the coat
+  through `coatFill`); a kind the core carries itself turns the core's own on (`CRT_ON_CORE`: the chain's dorsal fin and lobes); `crtCan`/`crtAdd`
+  are the drop. `test/gaps.js` lists the parts that float off their bodies.
 - **Roles:** hunter (chases prey; `strike {tell, dur, speed, range}` for one that cocks and lunges — the tell slows it, turns it to
   the prey and drives `st.tell`, then a burst at `speed` with `st.strike` on and one bite within `reach`; `burst {on, off}`
   for burst-and-coast: speed and accel on a duty cycle, full for `on` s then a third for `off` s, in the chase and the wander

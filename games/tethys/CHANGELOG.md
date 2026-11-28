@@ -12555,3 +12555,43 @@ one-shot, blind A/B, a verdict, the reveal, the copied block). **Unheard**: ever
    next audio pull request will have one.
 2. Whether 7–10 minutes more on Tethys's smoke job is acceptable, or the check should hold the one-shots and beds and only three mixes.
 3. Whether the first finding — everything quiet and below 2 kHz — matches what you hear in play.
+
+## v11.250 — one kit a clade, one tile a part (28 Nov 2026)
+
+The person (28 Nov 2026): *"Every animal of the same clade should have an identical set of tools, parts, etc. If I switch from a slowblood to a ridge
+in the creator, I should see zero changing on the sides … none of them go away or come back unless you pick an entirely new clade … even the eel vs
+the finback have distinct parts and I don't want that."* And *"for now, not be any 'variations' of the mouth parts, eyes, etc. under the part picker
+specifically … one part gets one spot on the left side list"*; configs per part later. Clarity (parts that float off the body, a drag that clips) is
+the next pass: *"if you see anything obvious, note it or fix it if it seems easy to fix."*
+
+**The column is the clade's** (creator.js; CREATOR.md Eighth round). Before, the column was every style the open body's core took, each drawn on that
+body in its coat: a switch of body redrew every picture, the eel (a chain, its own tail and dorsal fin) had no fins or tail, the coil had `withdraw`.
+- `crtKinds(clade)`: every kind any of the clade's cores takes, in the registry's order, one tile each — ringmouths 7, slowbloods 8, hingeshells 10,
+  drifters 1. In the creator a kind shows once any of its styles has been seen (round four's gate, by the kind now, not the style).
+- `CRT_STD`: the style a tile drops, one a kind a clade — the commonest the roster wears, or the blank's where that is the clade's own (the soft-arm's
+  jet arms). The list is in CREATOR.md. The other styles stay in the roster and the dev lab; a body keeps what it wears.
+- `crtSpecOf(kind, style, clade)`: the picture on the clade's blank in its coat, filled (`coatFill`: a shell on a soft body has its colours), keyed by
+  clade and part, so the column is drawn once a clade and never moves within it.
+- `CRT_ON_CORE`, `crtCan`, `crtAdd`: a kind the core carries itself keeps its tile — on the eel, fins turn its own dorsal fin on and a tail its lobes.
+  `crtDrop` adds through `crtAdd`.
+
+**For the clarity pass:** `test/gaps.js` (new, a list, not in --test): every part of every species at rest, the nearest of its vertices to the core or
+another part over the body's length. 36 of 228 are 1% or more off: the veil's skirt 9.3%, the crusher's tail 7.6%, the flicker's comb and eye stalks
+5.2%, the hose's tail fan 5.0%, the darter's and glim's tail lobes 4.9%, the rasp's crawling arms 4.3%, then 3.9% and down. None fixed here: each is a
+roster species' look, held to the bit by test/spine.js, and the cause is one — a part placed by numbers in the core's frame, not on the skin. Seen
+too: the eel in the creator stands beside a dark wedge of the stage (on main as well), for the stage pass.
+
+**Tests:** `test/creator.js`: one standard for every kind a clade's cores take, each the clade's; every standard's picture builds with a mesh; every body
+of SPECS and every blank — 49, 380 tiles — has each kind of its clade once in its standard style, the same column (bar the pictures' data) as every other
+body of its clade, and each tile dropped on it builds. The full suite on both tiers, `node test/types.js`, `npm run check`.
+
+**Seen** (headless Chromium, the creator with everything seen): the finback, the ridge and the eel show the same eight pictures in the same order, the
+soft-arm and the coil the same seven, the sickle and the scuttle the same ten, the jelly one; fins dropped on a finless eel turn its dorsal fin on. No
+page error.
+
+**What it costs:** nothing that runs in play changed (the creator draws only in the creator); see the pull request for test/perf.js's GPU counts.
+
+**Unseen, ask in this order:**
+1. The standard styles: whether each tile's part is the one you would pick (the hingeshells' walking legs and claws, the ringmouths' jet arms).
+2. Whether every part is free in the creator, or still appears as its kind is first seen in play.
+3. The clarity pass: parts anchored to the skin, the drop and the drag a ray onto the body (CREATOR.md Eighth round).
