@@ -207,7 +207,7 @@ body.creator #title{opacity:0!important}
 <div id="fade" class="layer"></div>
 <canvas id="spark" class="layer"></canvas>
 <div id="stats"></div>
-<script>window.TETHYS_BUILD={v:"v11.250",wh:"5964d0e56e222104"};</script>
+<script>window.TETHYS_BUILD={v:"v11.250.1",wh:"e5e8f89cd4db9ccb"};</script>
 <script>
 // loader.js — the page's loader, in tethys.html only, outside the game's bundle and before it: three.js and the world cache fetched side by side, then the
 // game. Since v11.215 (three.js-ready) three.js is loaded as a module — every release after r160 is only that — with import(); its exports are copied onto
@@ -17667,8 +17667,8 @@ const CRT_STD = {
 // A part the clade has but this core carries itself (the eel's chain is its own tail and its own dorsal fin): the tile is there all the same,
 // and dropped it turns the core's own on (CREATOR.md, Eighth round)
 const CRT_ON_CORE = {chain: {fins: c => {c.fin = true;}, tail: c => {if (!(c.lobes >= 1)) c.lobes = CORES.chain.params.lobes.d;}}};
-// the clade's parts, in the registry's order: every kind any of its cores takes; in the creator, a kind once any of its styles has been seen
-function crtKinds(clade) {return Object.keys(PARTS).filter(k => CRT_STD[clade] && CRT_STD[clade][k] && stylesFor(k, clade).length && (!lab.player || stylesFor(k, clade).some(s => seen('pt', k + ':' + s))));}
+// the clade's parts, in the registry's order: every kind any of its cores takes (with the gate on, in the creator, a kind once any of its styles has been seen: LAB_GATE)
+function crtKinds(clade) {return Object.keys(PARTS).filter(k => CRT_STD[clade] && CRT_STD[clade][k] && stylesFor(k, clade).length && stylesFor(k, clade).some(s => labOk('pt', k + ':' + s)));}
 function crtSpecOf(kind, style, clade) { // a part alone on the clade's blank, in its coat (filled: a shell reads colours a soft body's lacks), for its picture: the same whichever body is open
   const b = SPEC_BLANK[clade];
   return {id: 'icon', clade: clade, size: b.size, s: 1, coat: coatFill(b.coat, clade, true), core: Object.assign({}, b.core), parts: [{kind: kind, style: style}]};
@@ -17852,8 +17852,12 @@ const lab = {
   conceive: null, // the editor at conception (v11.72, line.js conceiveOpen): {parent, gen, budget, at, price} while the window is open over a laying
   player: false // the creator (v11.47): opened from the menu's `creator` word; only the species, clades, cores and part styles the profile has seen are offered (save.js PROFILE.seen, labOk)
 };
-function labOk(k,v){return !lab.player||seen(k,v);} // k: 'sp' | 'cl' | 'co' | 'pt'
-function labStyles(kind,clade,cur,core){const st=stylesFor(kind,clade,core);return lab.player?st.filter(s=>s===cur||seen('pt',kind+':'+s)):st;} // the styles offered for a part: all of the clade's that stand on the core (v11.70), or in the creator the seen ones (and the one it wears)
+// The creator's gate (v11.47: only what the profile has seen) is off: the person, 28 Nov 2026, "all parts unlock by default … regardless of how the
+// mechanics work in-game, I mostly want to just see the creator working functionally and fully." Every species, clade, core and part is offered;
+// true puts round four's gate back (the founder's list on a new game keeps its own, menu.js founderList).
+const LAB_GATE = false;
+function labOk(k,v){return !lab.player||!LAB_GATE||seen(k,v);} // k: 'sp' | 'cl' | 'co' | 'pt'
+function labStyles(kind,clade,cur,core){const st=stylesFor(kind,clade,core);return lab.player&&LAB_GATE?st.filter(s=>s===cur||seen('pt',kind+':'+s)):st;} // the styles offered for a part: all of the clade's that stand on the core (v11.70), or in the creator the seen ones (and the one it wears)
 const LAB_CLADES = ['ringmouths', 'slowbloods', 'hingeshells', 'drifters'],
   LAB_SECS = ['species', 'core', 'parts', 'coat', 'readout', 'save'];
 const MAT_HI = addTint(new THREE.MeshLambertMaterial({vertexColors: true, emissive: new THREE.Color(0.55, 0.32, 0.08)}), 'lam', true, undefined, undefined, 'body'); // the part under the cursor
