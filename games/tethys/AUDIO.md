@@ -198,21 +198,22 @@ The plan, each phase its own pull requests:
   the thirteen one-shots, the material (four noise buffers, two impulse responses), every bed alone (22: the pressure's two sines joined
   them), and **the whole mix at eight places** — the bench places (test/benchpage.js `PLACES`) and the vent — the whole graph (`auGraph`) built
   into an OfflineAudioContext with the game's own tick (`auTick`) run against it at 20 Hz while the world steps between. One-shots, material and
-  beds are the same to the bit run to run; a mix moves some hundred samples of 768,000 by one step of sixteen bits (float order in the audio
+  beds are the same to the bit run to run; a mix moved some hundred samples of 768,000 (8 s) by one step of sixteen bits (float order in the audio
   thread), so "the same sound" is `fp`, a hash of its numbers.
 - **The numbers** (test/spectro.js `measure`): loudness in **LUFS** (BS.1770, K-weighted and gated; within 0.1 LU of ffmpeg's ebur128), the
   loudest 3 s, peak, crest, centroid, roll-off, five band shares, attack, decay, steadiness, clipping. **`test/sound.json`** holds them;
-  `--check` (in `npm run smoke`, so CI) fails when one moves past its tolerance, `--update` writes it — a change that moves a sound says so in
-  its diff, as test/gpu.json does for the GPU.
+  `--check` fails when one moves past its tolerance, `--update` writes it — a change that moves a sound says so in its diff, as test/gpu.json
+  does for the GPU. **CI holds the recipes only** (`--check --recipes` in `npm run smoke`, ~45 s; the person, 28 Nov 2026): the mixes move
+  with the creatures as well as the sound, so they are checked by hand on an audio pull request, and heard.
 - **`listen.html`** (on the site beside the game; its mp3s and `listen/index.json` made at publish by `test/sound.js --dist`, pages.yml): every
   mix, one-shot and bed to play, and on a preview every sound that differs from main's played **blind** — A and B in step, switched at the same
   instant, the louder brought down to the quieter unless asked (louder reads as better) — a verdict revealing which was which. "Copy for the
   pull request" makes the verdicts and notes one block to paste as a comment. A sound whose numbers are main's takes main's file, so the site's
-  history keeps one copy.
+  history keeps one copy; and the set is rendered only when the sound's sources changed — otherwise main's live set is copied (`--copy`).
 
 **What the first full render says** (v11.248, before anything is changed; test/sound.json):
-- The mix is **quiet and dark everywhere**: −29.6 LUFS at the vent, −36 in the forest, −40.8 in open water; a game is usually mixed to −24 to −18.
-  Every place's centroid is 106–318 Hz and nothing reaches past 2 kHz above a hundredth of the energy — at the coast and in the wood too,
+- The mix is **quiet and dark everywhere**: −29.6 LUFS at the vent, −36.6 in the forest, −40.5 in open water; a game is usually mixed to −24 to −18.
+  Every place's centroid is 107–326 Hz and nothing reaches past 2 kHz above a hundredth of the energy — at the coast and in the wood too,
   where the medium is air and the lowpass opens to 16 kHz.
 - The one-shots are still v11.34's finding: eleven of thirteen are one low thud (centroids 62–392 Hz, decays 260–385 ms), the knock has no
   knock in it, and the weed's brush (−49.7 LUFS) is the only one of its own.

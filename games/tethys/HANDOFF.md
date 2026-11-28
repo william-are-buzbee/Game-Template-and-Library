@@ -6,10 +6,11 @@ Add the new version's paragraph at the top; take out what is no longer true; kee
 
 **v11.248 (27 Nov 2026): the ear's instruments — the audio overhaul's first step** (src/audio.js `auGraph`; src/bench.js `bnGraph`, `bnBed`, `bnMix`;
 test/sound.js, test/sound.json; test/spectro.js LUFS; listen.html; pages.yml; AUDIO.md "The overhaul", "The ear's instruments"). Every sound rendered
-headless and offline — one-shots, beds, the whole mix at eight places — measured (LUFS) and held in CI (`npm run smoke`); on every preview
+headless and offline — one-shots, beds, the whole mix at eight places — measured (LUFS) and held to `test/sound.json` (CI: the one-shots and beds,
+~45 s); on every preview
 `listen.html` plays each sound that differs from main's blind, and copies the verdicts as a comment. Nothing heard changed. The person's answers:
 headphones, creature voices in scope, music theirs, a blind pass per audio PR, the network opened later. First finding: the mix is quiet (−30 to
-−41 LUFS) and below 2 kHz everywhere. **Next:** phase 2, the engine (AUDIO.md). **Ask:** the mixes on the preview's listen.html; CI's 7–10 minutes.
+−41 LUFS) and below 2 kHz everywhere. **Next:** phase 2, the engine (AUDIO.md). **Ask:** the mixes on the preview's listen.html.
 
 **v11.247 (26 Nov 2026): the shape's drag, The Sapling's** (creatures_spec.js `SPINE_FORM`, `spineForm`, derive's `form`/`formWhy`; lab.js the caption;
 test/spine.js; DESIGN The spine; CHANGELOG). The person: *"Absolutely, go for that."* A swimmer's drag coefficient × `form`, read off its knots: a lump

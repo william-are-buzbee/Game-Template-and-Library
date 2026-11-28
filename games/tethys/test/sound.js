@@ -9,11 +9,17 @@
 // so a change that turns the vent into a hiss, or a bite into silence, shows in the diff of test/sound.json, as test/gpu.json does for the GPU.
 // Whether it sounds right is the person's: test/sound.js --dist writes the listening set the site's listen.html plays, blind, against main's.
 //   node test/sound.js              render every take into test/render/ (shot_, noise_, ir_, bed_, mix_*.wav) and print the table
-//   node test/sound.js --check      the same, then against test/sound.json: fails when a number moves past its tolerance (npm run smoke)
+//   node test/sound.js --check      the same, then against test/sound.json: fails when a number moves past its tolerance
+//   node test/sound.js --check --recipes   the one-shots, the material and the beds only (npm run smoke, CI; v11.248). They depend on audio.js
+//                                    alone, are the same to the bit every run and take ~45 s, one page's boot of it. The mixes depend on where the
+//                                    creatures are as well, take ~45 s a place, and would fail a flora pull request for no sound's reason: they
+//                                    are checked by hand on an audio pull request, and heard on listen.html
 //   node test/sound.js --update     writes test/sound.json — a change that moves a sound updates it in the same pull request, which says why
 //   node test/sound.js --dist <dir> [--from <url>]   also the listening set: <dir>/listen/*.mp3 (ffmpeg) and <dir>/listen/index.json, for the site
 //                                    (.github/workflows/pages.yml). --from: the live site's listening set; a sound whose numbers are main's takes
-//                                    main's file as it is, so the site's history (every publish a commit on gh-pages) holds one copy of it
+//                                    main's file as it is, so the site's history (every publish a commit on gh-pages) holds one copy of it.
+//                                    --copy: nothing rendered — the live set fetched as it is (pages.yml, when nothing the sound reads changed);
+//                                    exit 3 when there is none to fetch (the first publish), and pages.yml renders instead
 // Env: MIX_S (a mix's seconds before it is tried again, 240), ONLY (groups, comma-separated: shots, noise, beds, mix), PLACES (mix places, comma-separated), JOBS (pages side by side for the mixes,
 // 2).
 //   The same to the bit: the one-shots, the material and the beds, run to run. A mix is not quite: some hundred of its 768,000 samples move by
@@ -25,10 +31,10 @@ const fs=require('fs'),path=require('path'),crypto=require('crypto'),{execFileSy
 const {here,playwright,open,PLACES,bootThrough}=require('./benchpage.js');
 const {readWav,measure}=require('./spectro.js');
 const argv=process.argv.slice(2),CHECK=argv.includes('--check'),UPDATE=argv.includes('--update'),DIST=argv.includes('--dist')?argv[argv.indexOf('--dist')+1]:null;
-const FROM=argv.includes('--from')?argv[argv.indexOf('--from')+1]:null;
+const FROM=argv.includes('--from')?argv[argv.indexOf('--from')+1]:null,COPY=argv.includes('--copy'),RECIPES=argv.includes('--recipes');
 if(argv.includes('--dist')&&!DIST){console.log('--dist <dir>: where the listening set goes');process.exit(2);}
 const OUT=path.join(here,'test','render'),KEPT=path.join(here,'test','sound.json');
-const GROUPS=(process.env.ONLY||'shots,noise,beds,mix').split(',');
+const GROUPS=(process.env.ONLY||(RECIPES?'shots,noise,beds':'shots,noise,beds,mix')).split(',');
 // the vent is the one placed bed no bench place hears: 25 m off the chimney's mouth, at its height (audio.js auTick, 6)
 const MIXES=Object.assign({},PLACES,{vent:{vent:true,yaw:Math.PI/2,above:false,what:'25 m off the vent\'s mouth, at its height, facing it: the rumble and the boil, placed and reverbed'}});
 const mixNames=(process.env.PLACES||Object.keys(MIXES).filter(n=>n!=='at').join(',')).split(',').filter(n=>n in MIXES);
@@ -71,8 +77,9 @@ async function mixOnce(pw,name){ // one place's whole mix: a page of its own, so
       choose(0,V3(a.x,a.y,a.z),a.yaw,0);
       const step=n=>{for(let i=0;i<n;i++){if(a.hold){player.pos.y=a.y;player.vel.y=0;}window.__step(1);}};
       let k=0,quiet=0;for(;k<600&&quiet<20;k++){const n=gens;step(1);quiet=gens===n?quiet+1:0;}step(150); // streamed in and settled, as test/gpu.js stands
+      const above=wasAbove===true; // the medium as the take begins, as test/gpu.js reads it: the canopy's camera, 3 m down, can bob through the surface during it
       const ch=await bnMix(BN_MIX,BN_PRE,dt=>step(Math.round(dt*60)));await bench.out('mix_'+a.name+'.wav',ch,BN_SR);
-      return {mode:mode,above:wasAbove===true,depth:TIDE-player.pos.y};},Object.assign({name},a));
+      return {mode:mode,above:above,depth:TIDE-player.pos.y};},Object.assign({name},a));
     if(r.mode!=='play'||r.above!==!!a.above)throw new Error(name+': not the place it says ('+r.mode+', the camera '+(r.above?'above':'under')+' the water)');
     takes.set('mix_'+name,{group:'mix',what:a.what});
     if(P.errs.length)throw new Error('page errors at '+name+': '+P.errs.slice(0,3).join(' | '));}
@@ -110,7 +117,15 @@ async function dist(rows){
   fs.writeFileSync(path.join(dir,'index.json'),JSON.stringify({version:version,sounds:list},null,1)+'\n');
   console.log('listening set: '+list.length+' sounds ('+kept+' main\'s files, the same sound) → '+path.relative(process.cwd(),dir));}
 // ---- run ----
-(async()=>{const pw=playwright(),t0=Date.now();
+async function copyLive(){ // --copy: the live set as it is, every file of its index; false when there is none (the first publish)
+  if(!FROM)return false;const base=FROM.replace(/\/?$/,'/'),dir=path.join(path.resolve(DIST),'listen');
+  try{const r=await fetch(base+'index.json');if(!r.ok){console.log('--copy: no live set ('+r.status+')');return false;}const ix=await r.json();
+    fs.rmSync(dir,{recursive:true,force:true});fs.mkdirSync(dir,{recursive:true});
+    for(const x of ix.sounds){const f=await fetch(base+x.name+'.mp3');if(!f.ok)throw new Error(x.name+'.mp3 '+f.status);fs.writeFileSync(path.join(dir,x.name+'.mp3'),Buffer.from(await f.arrayBuffer()));}
+    fs.writeFileSync(path.join(dir,'index.json'),JSON.stringify(ix,null,1)+'\n');console.log('listening set: main\'s '+ix.sounds.length+' sounds copied as they are ('+ix.version+')');return true;}
+  catch(e){console.log('--copy: '+e.message);return false;}}
+(async()=>{if(COPY&&DIST){if(await copyLive())return;process.exit(3);} // none to copy: exit 3, and pages.yml installs ffmpeg and renders
+  const pw=playwright(),t0=Date.now();
   if(GROUPS.some(g=>g!=='mix'))await bench(pw);
   if(GROUPS.includes('mix')){const q=mixNames.slice();await Promise.all(Array.from({length:Math.max(1,JOBS)},async()=>{while(q.length)await mix(pw,q.shift());}));}
   const rows=[...takes.keys()].sort().map(n=>[n,numbers(n)]);
@@ -127,7 +142,7 @@ async function dist(rows){
   if(CHECK){if(!fs.existsSync(KEPT)){console.log('no test/sound.json: node test/sound.js --update writes it');process.exit(1);}
     const kept=JSON.parse(fs.readFileSync(KEPT,'utf8')).sounds,lines=[];let same=0;
     for(const [name,n] of rows){const k=kept[name];if(!k){lines.push(name+': not in test/sound.json');continue;}if(k.pcm===n.pcm)same++;const m=moved(name,k,n);if(m.length)lines.push(name+': '+m.join(', '));}
-    for(const name of Object.keys(kept))if(!now[name]&&(!process.env.ONLY&&!process.env.PLACES))lines.push(name+': in test/sound.json, not made');
+    for(const name of Object.keys(kept))if(!now[name]&&(!process.env.ONLY&&!process.env.PLACES&&!RECIPES))lines.push(name+': in test/sound.json, not made');
     if(lines.length){console.log('\nmoved past its tolerance from test/sound.json:\n  '+lines.join('\n  ')+'\nIf the change means it: node test/sound.js --update, commit test/sound.json with the change, and say in the pull request what moved and why.');bad++;}
     else console.log('\nevery sound within its tolerance of test/sound.json; '+same+' of '+rows.length+' the same to the bit');}
   if(DIST)await dist(rows);

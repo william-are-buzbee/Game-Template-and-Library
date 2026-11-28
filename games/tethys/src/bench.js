@@ -16,7 +16,7 @@
 //   live     the master bus exactly as the person hears it, wherever the player is standing, in real time.
 // The wavs land in test/render/ (or go to bench.out when it is set: test/sound.js, headless). `node test/spectro.js` turns them into
 // pictures and a table of numbers; `node test/sound.js` renders them headless and holds their numbers in test/sound.json.
-const BN_SR=48000,BN_BED=6,BN_LIVE=20,BN_MIX=8,BN_PRE=2; // the render rate (fixed, so two runs compare); a bed's seconds; a live capture's; a mix's, and the seconds rendered before it and thrown away (the beds fade in from the silence they are built in)
+const BN_SR=48000,BN_BED=6,BN_LIVE=20,BN_MIX=6,BN_PRE=1; // the render rate (fixed, so two runs compare); a bed's seconds; a live capture's; a mix's, and the seconds rendered before it and thrown away (the beds fade in from the silence they are built in: by 1 s the slowest that matters, the reverb's send after the first probe at 0.25 s, is 92% there)
 const bench={on:false,busy:false,log:[],el:null,logEl:null,out:null}; // out(name, channels, rate): where a take goes instead of serve.js (test/sound.js)
 // ---------- wav ----------
 // 16-bit pcm, the only format worth the four lines it takes. A float over 1 would wrap, so it clips — and spectro.js counts the clips.

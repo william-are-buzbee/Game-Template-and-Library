@@ -50,15 +50,23 @@ jobs:
           npm i -g playwright@1.63.0
           npx playwright@1.63.0 install --with-deps chromium
           PLAYWRIGHT_MODULE="$(npm root -g)/playwright" node tools/cards.ts
-      # Tethys's listening set (games/tethys/test/sound.js --dist, listen.html): every sound rendered headless, an mp3 each beside the game;
-      # a sound whose numbers are main's takes main's live file, so gh-pages keeps one copy of it. If this fails the site is still published,
-      # listen.html saying there is no set
+      # Tethys's listening set (games/tethys/test/sound.js --dist, listen.html): rendered headless (~5 min, an mp3 each) only when something the
+      # sound reads changed against the branch this goes into (or, on main, the commit before); otherwise main's live set is copied as it is,
+      # in seconds. A rendered sound whose numbers are main's takes main's file, so gh-pages keeps one copy. If this fails the site is still
+      # published, listen.html saying there is no set
       - name: tethys listening set (headless chromium, ffmpeg)
         if: github.event.action != 'closed'
         continue-on-error: true
+        env:
+          BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || 'HEAD^' }}
+          LIVE: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/games/tethys/listen/
         run: |
+          T=games/tethys
+          if git diff --quiet "$BASE"...HEAD -- $T/src $T/shell.html $T/vendor $T/test/sound.js $T/test/benchpage.js $T/test/spectro.js; then
+            node $T/test/sound.js --dist $T/dist --from "$LIVE" --copy && exit 0
+          fi
           command -v ffmpeg >/dev/null || (sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends ffmpeg)
-          PLAYWRIGHT_MODULE="$(npm root -g)/playwright" node games/tethys/test/sound.js --dist games/tethys/dist --from "https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/games/tethys/listen/"
+          PLAYWRIGHT_MODULE="$(npm root -g)/playwright" node $T/test/sound.js --dist $T/dist --from "$LIVE"
       - if: github.event.action != 'closed'
         env:
           PREVIEW_PR: ${{ github.event.pull_request.number }}

@@ -32,7 +32,7 @@ node build.js            tethys.html (everything inlined), dev.html (src/*.js lo
 node build.js --test     the build, then every headless test on both tiers; exit 1 on any failure (JOBS=n side by side, SHARD=k/n one part)
 node serve.js            http://localhost:8080/dev.html (edit and refresh) or /tethys.html (the build)
 node test/types.js       the type checker over src/ against its baseline, test/types.json (also `npm run typecheck`, which CI runs)
-npm run smoke            the browser tests CI runs: node test/gpu.js --check, test/sound.js --check, test/boot.js, test/wcache_page.js, test/three187.js, test/horizon_page.js
+npm run smoke            the browser tests CI runs: node test/gpu.js --check, test/sound.js --check --recipes, test/boot.js, test/wcache_page.js, test/three187.js, test/horizon_page.js
 ```
 
 - Node 22. Python is **not** on the person's PC; `build.py` is the same build for sandbox sessions. Change `build.js` and `build.py` together:
@@ -55,7 +55,8 @@ npm run smoke            the browser tests CI runs: node test/gpu.js --check, te
   listed beside their literals — a key misspelt or set that is not there is an error, the shape rule held at check time. A key added to one of
   those literals goes in its typedef too. When the checker is wrong, say why in a JSDoc type or `types/globals.d.ts`; never `@ts-ignore`.
 - The benches are not in `--test`: `test/perf.js` (the pull request's table), `test/gpu.js` (exact GPU counts, held in CI), `test/sound.js`
-  (every sound rendered headless and measured, held in CI to `test/sound.json`; its listening set is the site's `listen.html`, v11.248), `test/fill.js`
+  (every sound rendered headless and measured, held to `test/sound.json` — CI the one-shots and beds, `--recipes`; its listening set is the
+  site's `listen.html`, v11.248), `test/fill.js`
   (GPU time per draw, a proxy), `test/frames.js`, `test/bench.js`, `test/bench_creatures.js`; the person's own machines: `test/report.js`.
 
 ## Delivering a change
