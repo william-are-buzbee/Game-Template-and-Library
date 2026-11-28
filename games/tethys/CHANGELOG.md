@@ -12589,7 +12589,7 @@ body of its clade, and each tile dropped on it builds. The full suite on both ti
 soft-arm and the coil the same seven, the sickle and the scuttle the same ten, the jelly one; fins dropped on a finless eel turn its dorsal fin on. No
 page error.
 
-**What it costs:** nothing that runs in play changed (the creator draws only in the creator); see the pull request for test/perf.js's GPU counts.
+**What it costs:** nothing that runs in play changed (the creator draws only in the creator). `node test/perf.js` against main: what a frame asks of the GPU the same at all seven places, every count, and the boot the same (46 programs, 1,057 draws).
 
 **Unseen, ask in this order:**
 1. The standard styles: whether each tile's part is the one you would pick (the hingeshells' walking legs and claws, the ringmouths' jet arms).
