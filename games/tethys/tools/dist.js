@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // tools/dist.js — the published game for the repository's site, from what build.js wrote: as the old pages workflow
 // published it (tethys.html as index.html and as itself, map.html, and the two src files map.html loads), plus the
-// vendored @wb/core that map.html loads before them, and region.html (v11.94) with the third file it loads; listen.html (v11.248), whose
+// vendored @wb/core that map.html loads before them, and region.html (v11.94) with the third file it loads; listen.html (v11.249), whose
 // listen/ the site's publish adds (test/sound.js --dist, .github/workflows/pages.yml).
 'use strict';
 const fs=require('fs'),path=require('path');

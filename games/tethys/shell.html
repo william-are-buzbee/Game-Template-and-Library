@@ -70,6 +70,40 @@ canvas{display:block;outline:none;touch-action:none}
 /* the lab (lab.js): the game's text, with a dark halo and a panel it can be read against; controls thin and quiet */
 #lab{position:fixed;inset:0;pointer-events:none;opacity:0;transition:opacity .6s;color:rgba(222,230,236,.92);text-shadow:0 0 6px rgba(0,0,0,.9),0 1px 2px rgba(0,0,0,.9);font-size:13px;letter-spacing:.1em}
 #lab.on{opacity:1}
+/* the creator (v11.248, creator.js): the lab with its words taken away — the dev lab keeps its panel */
+#lab.player #labpanel,#lab.player #labcap{display:none}
+#crt{display:none}
+#lab.player #crt{display:block}
+body.creator #title{opacity:0!important}
+#lab #crt button{pointer-events:auto;background:none;border:0;min-width:0;color:rgba(222,230,236,.78);cursor:pointer;padding:6px;border-radius:50%;transition:color .2s,background .2s}
+#lab #crt button:hover,#lab #crt button.on{color:#fff;background:rgba(200,220,235,.12)}
+#crt svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;display:block}
+#crt-parts{position:absolute;top:0;left:0;bottom:0;width:72px;overflow-y:auto;overflow-x:hidden;pointer-events:auto;padding:14px 8px 80px;box-sizing:border-box;background:linear-gradient(90deg,rgba(3,8,15,.55),rgba(3,8,15,0));scrollbar-width:none}
+#crt-parts::-webkit-scrollbar{display:none}
+#crt .grp{padding:4px 0 8px;border-bottom:1px solid rgba(200,215,225,.08);margin-bottom:6px}
+#crt .grp:last-child{border:0}
+#crt .tile{width:52px;height:52px;margin:2px auto;border-radius:10px;background:rgba(200,220,235,.05);cursor:grab;display:flex;align-items:center;justify-content:center;transition:background .2s,transform .15s}
+#crt .tile:hover{background:rgba(200,220,235,.1);transform:scale(1.08)}
+#crt .tile img{width:48px;height:48px;pointer-events:none;filter:drop-shadow(0 1px 2px rgba(0,0,0,.6))}
+#crt .tile img[src=""]{visibility:hidden}
+#crt-top{position:absolute;top:22px;left:50%;transform:translateX(-50%);text-align:center;pointer-events:auto;width:220px}
+#crt-name{background:none;border:0;border-bottom:1px solid transparent;color:rgba(232,238,242,.95);font:inherit;font-size:20px;letter-spacing:.35em;text-align:center;width:100%;outline:none;text-shadow:0 0 8px rgba(0,0,0,.9);padding:2px 0}
+#crt-name:hover,#crt-name:focus{border-bottom-color:rgba(200,215,225,.3)}
+#crt-bars{display:flex;gap:10px;justify-content:center;margin-top:8px}
+#crt .bar{width:48px;height:3px;background:rgba(200,215,225,.16);border-radius:2px;overflow:hidden}
+#crt .bar i{display:block;height:100%;background:rgba(232,238,242,.8)}
+#crt .budget{height:3px;margin:12px auto 0;width:180px;background:rgba(200,215,225,.16);border-radius:2px;overflow:hidden}
+#crt .budget i{display:block;height:100%;background:#cfe6c8}
+#crt .budget.over i{background:#e39a86}
+#crt-tools{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:4px;pointer-events:auto;padding:4px 10px;border-radius:24px;background:rgba(3,8,15,.38)}
+#crt-tools .gap{width:14px}
+#crt-coat{position:absolute;bottom:30px;right:26px;display:flex;align-items:center;gap:8px;pointer-events:auto}
+#lab #crt .sw{width:22px;height:22px;padding:0;border-radius:50%;border:1px solid rgba(232,238,242,.35)}
+#lab #crt .sw.on{border-color:#fff;box-shadow:0 0 0 2px rgba(255,255,255,.25)}
+#crt-pick{position:absolute;left:50%;bottom:84px;transform:translateX(-50%);max-width:70vw;max-height:52vh;overflow-y:auto;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;pointer-events:auto;padding:12px;border-radius:16px;background:rgba(3,8,15,.72)}
+#crt .tile.big{width:84px;height:84px}
+#crt .tile.big img{width:80px;height:80px}
+.crt-ghost{position:fixed;width:56px;height:56px;margin:-28px 0 0 -28px;pointer-events:none;z-index:50;opacity:.85;filter:drop-shadow(0 2px 6px rgba(0,0,0,.6))}
 #labpanel{position:absolute;top:0;left:0;bottom:0;width:330px;overflow-y:auto;overflow-x:hidden;pointer-events:auto;background:rgba(3,8,15,.72);padding:18px 16px 40px 18px;box-sizing:border-box;scrollbar-width:thin;scrollbar-color:rgba(200,215,225,.25) transparent}
 #lab .sec{margin-bottom:22px}
 #lab .hd{font-size:14px;letter-spacing:.35em;text-indent:.35em;margin:0 0 10px;padding-bottom:4px;border-bottom:1px solid rgba(200,215,225,.15);text-align:center}
@@ -168,7 +202,7 @@ canvas{display:block;outline:none;touch-action:none}
 </div>
 <div id="fx"><div id="fxhd">effects</div><div id="fxlist"></div><div id="fxnote">e to close</div></div>
 <div id="zoo"><div id="zooname"></div><div id="zooline"></div><div id="zoohint"></div></div>
-<div id="lab"><div id="labpanel"></div><div id="labcap"></div></div>
+<div id="lab"><div id="labpanel"></div><div id="labcap"></div><div id="crt"></div></div>
 <div id="wmap"><canvas id="wmapc"></canvas><div id="wmapl"></div></div>
 <div id="fade" class="layer"></div>
 <canvas id="spark" class="layer"></canvas>

@@ -12456,7 +12456,47 @@ The simulation, every body and the pictures at three places the same to the bit.
 1. The weights (`lump` 0.5, `crook` 0.5, `rear` 1.5): whether a lump or a bend costs as much as it looks like it should.
 2. Whether a body thicker at the front than the roster's should go faster than the roster (a reward past the ideal), or the roster stays the best.
 
-## v11.248 — the ear's instruments: every sound rendered headless, held in CI, and a blind listening page (27 Nov 2026)
+## v11.248 — the creator as a picture: the words taken away (27 Nov 2026)
+
+The person (27 Nov 2026), on "hide the sliders": *"what I meant to say was that we should have our menu resemble spores in the sense that it should be
+largely visual how it works. Like, we should be able to remove 95% of the text on the left side of the screen and have a perfectly functional
+creature creator … I want a tasteful, minimalist thing my dad can use to make a creature. So focus on the UI being cleaner and showing as little as
+possible, then I will give you some images after that and we can hone in on the style of the UI as well as the 'stage' it's set on."*
+
+**The creator** (new `src/creator.js`, before lab.js in order.txt; shell.html `#crt` and its styles; lab.js `labRedo`, the hooks; CREATOR.md Seventh
+round). With `lab.player` — the menu's creator and the conception's window — the panel, the caption, the bottom hint and the game's title are hidden
+and the overlay drawn instead; the dev lab keeps its panel.
+- **The parts are pictures**, a column at the left, a group a kind: each style the lab would offer on the creature's own core, drawn from its own
+  build (`crtIcon`: the meshes' facets projected flat from the lab's side and painted far to near on a 2D canvas, lit by one light — the low-poly look
+  without a second WebGL context; `crtIconsStep` 12 ms a frame; `CRT.icons` keeps them). Drag one onto the body and it is put where it lands (its z on
+  the body's middle plane, `crtDrop`); a drop in the water does nothing. Drag a part off the body and let go and it goes (`LAB_SP.drag.gone`; a part
+  the clade must have never does) — in the dev lab too.
+- **The icons' bar** at the bottom (`CRT_SVG`, strokes): undo, redo (new: `labRedo`), turn, swim, the action, start from another (a grid of the bodies
+  as pictures — the kept creatures and the seen species), keep it, done; at conception lay (✓) and decline (✕) in place of the last three.
+- **The coat** as swatches (the clade's roster coats) and a die (a coat by chemistry), at the bottom right.
+- **The name** at the top, and under it three thin bars — speed, agility, mass (their numbers in the tooltips) — and at conception the budget's bar,
+  pale over it red (the bill in its tooltip).
+- **Words:** only the name.
+
+**Tests:** `test/creator.js` (new; `--test`): every species and every clade's blank in the creator with everything seen — 49 bodies, 1,053 part tiles:
+a tile for every style the lab offers on that core, every icon, the coats, the name, and no word on the screen but the name; undo and redo to the very
+spec; the conception's bar, lay and decline, and no "start from another" for a child. The full suite green on both tiers.
+
+**What it costs:** nothing that runs in play changed (the creator draws only in the creator). `node test/perf.js` against main (v11.246.1 and v11.247
+under it): the simulation, every body, the pictures at three places and the GPU's counts the same to the bit; the creatures' frame ×1.04 / p95 ×1.00;
+builds and cells ×0.99–1.02. One flag, noise: the CPU's side of drawing at the canopy 4.2 → 5.1 ms (×1.21), where the same column read ×0.57 at the
+shore and ×0.86 at the forest in the same run (v11.247's run: ×1.01). The pictures cost the creator ~5 ms each the first time a style is shown.
+
+**Seen** (headless Chromium, the finback in the creator, everything seen): the column of part pictures, the name and bars, the bar of icons, the
+swatches; a spine dragged from the column onto the body and placed (5 → 6 parts), then pulled off and gone (6 → 5); the picker's grid of bodies; the
+conception's bar with lay and decline. No page error.
+
+**Unseen, ask in this order:**
+1. The person's images: the style of the overlay and the stage it is set on (today the lab's spot at the peak, the creature half against a slope).
+2. Whether the bars (speed, agility, mass) earn their place or go too.
+3. The parts' pictures: whether each reads as what it is at 48 px (the eye rings are faint).
+
+## v11.249 — the ear's instruments: every sound rendered headless, held in CI, and a blind listening page (27 Nov 2026)
 
 The person asked what would let a session make and test sound with them, for an overhaul of the audio. Nobody here can hear, so the overhaul
 starts with the instruments: what a sound *is*, measured the same way every run and held in CI, and the person's ear made cheap to use and to
@@ -12479,7 +12519,9 @@ rendered and thrown away (the beds fade in from silence) then 6 s kept. `--check
 tolerance (loudness 1 LU, a mix 1.5; centroid 10%, 15%; a band's share 0.04, 0.06; decay 15%); `--update` writes it. **CI holds the recipes only**
 (`--check --recipes` in `npm run smoke`: the one-shots, the material and the beds, ~45 s, one page's boot of it — the person, 28 Nov 2026, on
 the first draft's 7–10 minutes): they depend on audio.js alone and are the same to the bit. The mixes depend on where the creatures are too, so
-they would fail a flora pull request for no sound's reason; they are checked by hand on an audio pull request and heard on listen.html.
+they would fail a flora pull request for no sound's reason; they are checked by hand on an audio pull request and heard on listen.html. So test/browsers.js
+(CI's browser tests, split across machines by `smokeShards`) runs sound.js once, `--recipes`, and Tethys's split is back to four machines (eight
+while every mix had a run of its own).
 One-shots, material and beds are the same to the bit run to run; a mix moved about 129 samples of 768,000 (an 8 s take) by one step of sixteen bits (float order
 in the audio thread at −136 dB — traced: every input to every tick the same), so the same sound is `fp`, the hash of its numbers to a hundredth.
 Once in a full run (two pages at a time) the wood's page sat busy for twenty minutes, where alone it takes 55 s; it did not come back on

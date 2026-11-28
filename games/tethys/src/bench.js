@@ -8,9 +8,9 @@
 // rule) and puts it back. Both are restored in a finally.
 //   Four engines:
 //   offline  a one-shot through the real thump(), into an OfflineAudioContext. Dry, at the ear, faster than real time.
-//   solo     one chain alone through a whole graph auGraph built offline (v11.248; it was recorded live off the running graph, in real time,
+//   solo     one chain alone through a whole graph auGraph built offline (v11.249; it was recorded live off the running graph, in real time,
 //            for two minutes): everything else silent as built, the medium open, the reverb shut. Six seconds of the bed as the chain makes it.
-//   mix      the whole graph offline with the game's own tick run against it at 20 Hz (v11.248): the mix where the player stands, the space,
+//   mix      the whole graph offline with the game's own tick run against it at 20 Hz (v11.249): the mix where the player stands, the space,
 //            the reverb and all, the same every run where the world is (test/sound.js steps the world between the ticks; in the game it runs
 //            itself, and the take is the place held still).
 //   live     the master bus exactly as the person hears it, wherever the player is standing, in real time.
@@ -68,9 +68,9 @@ function bnChains(){
   add('slosh',AU.slosh);add('slosh_low',AU.sloshB);add('rain_under',AU.rain);add('surf',AU.surf);add('surf_wash',AU.surfW);
   add('vent_rumble',AU.ventR);add('vent_boil',AU.ventB);add('forest',AU.forest);
   if(AU.bodies&&AU.bodies[0])add('body_pass',AU.bodies[0]);
-  if(AU.press)add('pressure',{out:AU.press,self:true}); // v11.248: the two sines below the chemocline, a gain and not a chain
+  if(AU.press)add('pressure',{out:AU.press,self:true}); // v11.249: the two sines below the chemocline, a gain and not a chain
   return c;}
-// ---------- the whole graph, offline (v11.248) ----------
+// ---------- the whole graph, offline (v11.249) ----------
 // auGraph (audio.js) built into an OfflineAudioContext, with actx, master and every node AU holds swapped for the length of the render; done()
 // puts them back. AU.bench is up throughout, so the game's own tick leaves both graphs alone. A render that runs no code of ours (a bed) can
 // be put back before it renders; one the tick runs through (a mix) is put back when it ends, whatever happens.

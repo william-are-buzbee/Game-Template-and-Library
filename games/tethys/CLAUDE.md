@@ -32,7 +32,7 @@ node build.js            tethys.html (everything inlined), dev.html (src/*.js lo
 node build.js --test     the build, then every headless test on both tiers; exit 1 on any failure (JOBS=n side by side, SHARD=k/n one part)
 node serve.js            http://localhost:8080/dev.html (edit and refresh) or /tethys.html (the build)
 node test/types.js       the type checker over src/ against its baseline, test/types.json (also `npm run typecheck`, which CI runs)
-npm run smoke            the browser tests CI runs: node test/gpu.js --check, test/sound.js --check --recipes, test/boot.js, test/wcache_page.js, test/three187.js, test/horizon_page.js
+npm run smoke            the browser tests CI runs (test/browsers.js): node test/gpu.js --check a place at a time, test/sound.js --check --recipes, test/boot.js, test/wcache_page.js, test/three187.js, test/horizon_page.js
 ```
 
 - Node 22. Python is **not** on the person's PC; `build.py` is the same build for sandbox sessions. Change `build.js` and `build.py` together:
@@ -56,7 +56,7 @@ npm run smoke            the browser tests CI runs: node test/gpu.js --check, te
   those literals goes in its typedef too. When the checker is wrong, say why in a JSDoc type or `types/globals.d.ts`; never `@ts-ignore`.
 - The benches are not in `--test`: `test/perf.js` (the pull request's table), `test/gpu.js` (exact GPU counts, held in CI), `test/sound.js`
   (every sound rendered headless and measured, held to `test/sound.json` — CI the one-shots and beds, `--recipes`; its listening set is the
-  site's `listen.html`, v11.248), `test/fill.js`
+  site's `listen.html`, v11.249), `test/fill.js`
   (GPU time per draw, a proxy), `test/frames.js`, `test/bench.js`, `test/bench_creatures.js`; the person's own machines: `test/report.js`.
 
 ## Delivering a change
@@ -154,7 +154,7 @@ dist.js; `archive/` old docs kept whole; the design docs.
 | audio.js · bench.js | procedural WebAudio · the sound bench |
 | effects.js · worldmap.js · save.js | the effects list (`e`) · the world map (`n`) · slots, the profile, `startNew`/`startFrom`, `slotDeath` |
 | step.js | the fixed step (v11.210): `simStep`, the accumulator's constants, the drawing between steps (`lerpSnap`, `lerpApply`, `lerpRestore`) |
-| menu.js zoo.js lab.js · input.js main.js | the menu, the bestiary, the creature lab · input; the boot `BOOT`, the frame loop, the readout |
+| menu.js zoo.js creator.js lab.js · input.js main.js | the menu, the bestiary, the creator's overlay (v11.248: the lab as pictures for the player), the creature lab · input; the boot `BOOT`, the frame loop, the readout |
 
 **The docs**, most upstream first (each at length in README.md). When a doc's Open list says a choice is the person's, ask.
 `PLANET.md` the planet, its rules and the roster — the game changes when it conflicts · `TAXA.md`, `FLORA.md`, `REEF.md` the sessile life
@@ -423,7 +423,7 @@ diversity, believability, review) · `CHANGELOG.md` history · `HANDOFF.md` now 
 
 - **Keys.** `n` the world map (wheel zooms, drag pans, a click teleports, `o` the marks); `z` the bestiary (←→ step, space strike, s cruise);
   `l` the lab, `p` place its spec; `e` the effects list; `b` the sound bench (1 one-shots, 2 noise and irs, 3 the beds, 4 a live capture, 5 the mix here offline; needs
-  `node serve.js`; `node test/sound.js` runs 1–3 and the mixes headless, v11.248); `f` first person; `x` lay a clutch (any body but a drifter's, grown, on the floor; a soft ringmouth once, then it broods; a
+  `node serve.js`; `node test/sound.js` runs 1–3 and the mixes headless, v11.249); `f` first person; `x` lay a clutch (any body but a drifter's, grown, on the floor; a soft ringmouth once, then it broods; a
   hingeshell at a den; it opens the editor at conception, where `l` lays); `r` or right mouse grab, click bite; `Q` the body's ability; `M` mute; **F9** send a report; **F8** the probe: what each part of the frame costs this GPU here (~15–30 s, hold still, leave the window be; kept for the next report).
 - **The readout**: backquote (or `'`, F3) — fps, frame ms, work/worst, gen, res, draws, tris, cells, pools, far, creatures, phys, render (the
   submit and any wait), **gpu** (the card's own time, where the browser times it), heap, the tier, the medium, the place, oxygen, tide, hour,

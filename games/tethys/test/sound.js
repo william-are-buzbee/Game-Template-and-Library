@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// test/sound.js — every sound the game makes, rendered headless and measured (v11.248, the audio overhaul's instrument; AUDIO.md, "The ear's
+// test/sound.js — every sound the game makes, rendered headless and measured (v11.249, the audio overhaul's instrument; AUDIO.md, "The ear's
 // instruments"). The sound bench (src/bench.js) run in test/benchpage.js's page — Math.random seeded, the bench's clock, the real sources — with
 // its takes handed back here (bench.out) instead of posted to serve.js: the one-shots, the noise buffers and impulse responses and the beds,
 // offline, then the whole mix at each of the bench places (benchpage.js PLACES) and at the vent, offline too, with the game's own tick run
@@ -10,7 +10,7 @@
 // Whether it sounds right is the person's: test/sound.js --dist writes the listening set the site's listen.html plays, blind, against main's.
 //   node test/sound.js              render every take into test/render/ (shot_, noise_, ir_, bed_, mix_*.wav) and print the table
 //   node test/sound.js --check      the same, then against test/sound.json: fails when a number moves past its tolerance
-//   node test/sound.js --check --recipes   the one-shots, the material and the beds only (npm run smoke, CI; v11.248). They depend on audio.js
+//   node test/sound.js --check --recipes   the one-shots, the material and the beds only (npm run smoke, CI; v11.249). They depend on audio.js
 //                                    alone, are the same to the bit every run and take ~45 s, one page's boot of it. The mixes depend on where the
 //                                    creatures are as well, take ~45 s a place, and would fail a flora pull request for no sound's reason: they
 //                                    are checked by hand on an audio pull request, and heard on listen.html
@@ -23,7 +23,7 @@
 // Env: MIX_S (a mix's seconds before it is tried again, 240), ONLY (groups, comma-separated: shots, noise, beds, mix), PLACES (mix places, comma-separated), JOBS (pages side by side for the mixes,
 // 2).
 //   The same to the bit: the one-shots, the material and the beds, run to run. A mix is not quite: some hundred of its 768,000 samples move by
-// one step of sixteen bits between runs (float order in the audio thread, at −136 dB; seen v11.248), so "the same sound" is `fp`, the hash of
+// one step of sixteen bits between runs (float order in the audio thread, at −136 dB; seen v11.249), so "the same sound" is `fp`, the hash of
 // its numbers to a hundredth of a dB, a hertz and a thousandth of a band — what listen.html and --from compare. `pcm` is the take's own hash.
 // Then `node test/spectro.js` draws any of them.
 'use strict';
@@ -38,7 +38,7 @@ const GROUPS=(process.env.ONLY||(RECIPES?'shots,noise,beds':'shots,noise,beds,mi
 // the vent is the one placed bed no bench place hears: 25 m off the chimney's mouth, at its height (audio.js auTick, 6)
 const MIXES=Object.assign({},PLACES,{vent:{vent:true,yaw:Math.PI/2,above:false,what:'25 m off the vent\'s mouth, at its height, facing it: the rumble and the boil, placed and reverbed'}});
 const mixNames=(process.env.PLACES||Object.keys(MIXES).filter(n=>n!=='at').join(',')).split(',').filter(n=>n in MIXES);
-const JOBS=+(process.env.JOBS||2); // two: four browsers at once ran a session out of memory (v11.248)
+const JOBS=+(process.env.JOBS||2); // two: four browsers at once ran a session out of memory (v11.249)
 fs.mkdirSync(OUT,{recursive:true});
 const takes=new Map(); // name → {group, what}
 // ---- in the page ----
@@ -63,12 +63,13 @@ async function bench(pw){ // the one-shots, the material and the beds: one page,
     if(GROUPS.includes('beds'))for(const b of r.beds)takes.set('bed_'+b,{group:'bed',what:'the '+b.replace(/_/g,' ')+' chain alone at 0.5, the medium open, no reverb'});
     if(P.errs.length)throw new Error('page errors: '+P.errs.slice(0,3).join(' | '));}
   finally{await P.close();}}
-// A mix gets MIX_S seconds, then its browser is closed and it runs once more: once in a full run (v11.248, the wood, two pages at a time) a
+// A mix gets MIX_S seconds, then its browser is closed and it runs once more: once in a full run (v11.249, the wood, two pages at a time) a
 // page sat busy for twenty minutes that alone takes one. Twice over the limit is a failure, said, never a hang in CI.
 const MIX_S=+(process.env.MIX_S||240);
 async function mix(pw,name){for(let n=1;;n++){const t0=Date.now();
-  try{await Promise.race([mixOnce(pw,name),new Promise((ok,no)=>setTimeout(()=>no(new Error('timeout')),MIX_S*1000))]);console.log('  '+name+' '+((Date.now()-t0)/1000).toFixed(0)+' s'+(n>1?' (again)':''));return;}
-  catch(e){if(e.message!=='timeout'||n>=2)throw new Error(name+': '+(e.message==='timeout'?'over '+MIX_S+' s twice':e.message));console.log('  '+name+': over '+MIX_S+' s, its browser closed; again');}}}
+  let to=null; // the race's timer, cleared when the mix wins it: left running it held the process open MIX_S seconds after the last mix (a run of one mix took 240 s for 54 s of work)
+  try{await Promise.race([mixOnce(pw,name),new Promise((ok,no)=>{to=setTimeout(()=>no(new Error('timeout')),MIX_S*1000);})]);clearTimeout(to);console.log('  '+name+' '+((Date.now()-t0)/1000).toFixed(0)+' s'+(n>1?' (again)':''));return;}
+  catch(e){clearTimeout(to);if(e.message!=='timeout'||n>=2)throw new Error(name+': '+(e.message==='timeout'?'over '+MIX_S+' s twice':e.message));console.log('  '+name+': over '+MIX_S+' s, its browser closed; again');}}}
 async function mixOnce(pw,name){ // one place's whole mix: a page of its own, so a place depends on no other
   const a=MIXES[name],P=await pageOf(pw);const kill=setTimeout(()=>{P.close().catch(()=>{});},MIX_S*1000);
   try{const r=await P.page.evaluate(async a=>{
