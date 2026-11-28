@@ -13,7 +13,7 @@
 /test/render/
 
 # --- dependencies (none today: three.js loads from cdnjs; acorn is vendored in test/ on purpose and stays tracked) ---
-node_modules/
+node_modules
 
 # --- python bytecode (from build.py) ---
 __pycache__/

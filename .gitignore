@@ -1,5 +1,5 @@
 # dependencies and build output (every workspace)
-node_modules/
+node_modules
 dist/
 
 # the assembled site and the gh-pages worktree (tools/site.ts, .github/publish.sh)
