@@ -41,8 +41,12 @@ const lab = {
   conceive: null, // the editor at conception (v11.72, line.js conceiveOpen): {parent, gen, budget, at, price} while the window is open over a laying
   player: false // the creator (v11.47): opened from the menu's `creator` word; only the species, clades, cores and part styles the profile has seen are offered (save.js PROFILE.seen, labOk)
 };
-function labOk(k,v){return !lab.player||seen(k,v);} // k: 'sp' | 'cl' | 'co' | 'pt'
-function labStyles(kind,clade,cur,core){const st=stylesFor(kind,clade,core);return lab.player?st.filter(s=>s===cur||seen('pt',kind+':'+s)):st;} // the styles offered for a part: all of the clade's that stand on the core (v11.70), or in the creator the seen ones (and the one it wears)
+// The creator's gate (v11.47: only what the profile has seen) is off: the person, 28 Nov 2026, "all parts unlock by default … regardless of how the
+// mechanics work in-game, I mostly want to just see the creator working functionally and fully." Every species, clade, core and part is offered;
+// true puts round four's gate back (the founder's list on a new game keeps its own, menu.js founderList).
+const LAB_GATE = false;
+function labOk(k,v){return !lab.player||!LAB_GATE||seen(k,v);} // k: 'sp' | 'cl' | 'co' | 'pt'
+function labStyles(kind,clade,cur,core){const st=stylesFor(kind,clade,core);return lab.player&&LAB_GATE?st.filter(s=>s===cur||seen('pt',kind+':'+s)):st;} // the styles offered for a part: all of the clade's that stand on the core (v11.70), or in the creator the seen ones (and the one it wears)
 const LAB_CLADES = ['ringmouths', 'slowbloods', 'hingeshells', 'drifters'],
   LAB_SECS = ['species', 'core', 'parts', 'coat', 'readout', 'save'];
 const MAT_HI = addTint(new THREE.MeshLambertMaterial({vertexColors: true, emissive: new THREE.Color(0.55, 0.32, 0.08)}), 'lam', true, undefined, undefined, 'body'); // the part under the cursor

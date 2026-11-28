@@ -274,7 +274,7 @@ Not done, still: the player's creator, unlocks, growth, the moult; converting th
 ## Fourth round (14 Sep 2026, v11.47): the creator on the menu, gated
 The lab is reachable from the menu's `creator` word (menu.js) once it has been opened at all (or `#creator`), as the player's: only the
 species, clades, cores and part styles the profile has seen — any species drawn within 30 m in play, and the player's own clade — are offered
-(lab.js `lab.player`, `labOk`, `labStyles`; save.js `PROFILE.seen`). A `saved creatures` list in the lab's save section keeps the player's
+(lab.js `lab.player`, `labOk`, `labStyles`; save.js `PROFILE.seen`). **Off since v11.250.1** (the person, 28 Nov 2026: every part unlocked; `LAB_GATE`). A `saved creatures` list in the lab's save section keeps the player's
 specs by name, with a file out and in. Still not done: the creator as the start of a new game (the finback starts it for now), the mass budget
 and the mineral/pigment gates at growth stages, the moult.
 
@@ -369,6 +369,15 @@ measures a part as a whole: a ring of eyes one of which touches reads as attache
 numbers in the core's frame (x, y, z), so the drop sets only z and the rest are the style's defaults, and a body reshaped under a part leaves it where
 it was (only `spineRide`'s bend moves it). The fix proposed for that pass: a part anchored to the skin — where along the spine and round it, and how
 far out — resolved from the knots at build, the drop and the drag a ray onto the body.
+
+**The person's answers (28 Nov 2026), built v11.250.1:**
+1. The standard styles: *"we can just try our best on that and if it comes out looking weird, no problem, we just fix it when I test ingame."*
+   `CRT_STD` stands as it is until a play-test says otherwise.
+2. Unlocking: *"all parts unlock by default. So right now, regardless of how the mechanics work in-game, I mostly want to just see the creator working
+   functionally and fully."* The creator's gate (round four) is off (lab.js `LAB_GATE` false): every species to start from, every coat of the clade,
+   every part of the clade, on any profile. The founder's list on a new game keeps its own (menu.js `founderList`).
+3. Configs per part, later: a placed part clicked opens its configs — templates, as pictures beside it (*"you should eventually be able to click, get a
+   dropdown and then find templates per part … good idea"*).
 
 ## The ganglion (21 Sep 2026) — a design note for later, the person's
 

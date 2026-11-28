@@ -9,8 +9,8 @@ test/gaps.js; CREATOR.md Eighth round; DESIGN; CHANGELOG). The person: *"Every a
 and *"one part gets one spot on the left side list"*. The creator's column is the clade's: every kind its cores take, one tile each, dropping the
 clade's standard style, drawn on the clade's blank — the finback, the ridge and the eel show the very same column (the eel's fins and tail turn its
 own on). Configs per part are later. `node test/gaps.js` lists the parts that float off their bodies for the clarity pass (36 of 228 by 1% or more;
-the veil's skirt, the crusher's tail, the flicker's eye stalks worst). **Next:** clarity — parts anchored to the skin. **Ask:** the standard styles;
-whether every part is free in the creator or still gated by what was seen (now by the kind).
+the veil's skirt, the crusher's tail, the flicker's eye stalks worst). **Next:** clarity — parts anchored to the skin. **v11.250.1:** the person's answers — every part,
+species and coat free in the creator (`LAB_GATE` off); the standard styles stand until a play-test; configs per part later, a click on a placed part.
 
 **v11.249 (27 Nov 2026): the ear's instruments — the audio overhaul's first step** (src/audio.js `auGraph`; src/bench.js `bnGraph`, `bnBed`, `bnMix`;
 test/sound.js, test/sound.json; test/spectro.js LUFS; listen.html; pages.yml; AUDIO.md "The overhaul", "The ear's instruments"). Every sound rendered

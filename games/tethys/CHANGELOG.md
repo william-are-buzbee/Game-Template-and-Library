@@ -12595,3 +12595,21 @@ page error.
 1. The standard styles: whether each tile's part is the one you would pick (the hingeshells' walking legs and claws, the ringmouths' jet arms).
 2. Whether every part is free in the creator, or still appears as its kind is first seen in play.
 3. The clarity pass: parts anchored to the skin, the drop and the drag a ray onto the body (CREATOR.md Eighth round).
+
+## v11.250.1 — the creator unlocked: every part, every species (28 Nov 2026)
+
+The person's answers to v11.250 (28 Nov 2026; CREATOR.md Eighth round):
+1. The standard styles: *"we can just try our best on that and if it comes out looking weird, no problem, we just fix it when I test ingame."* Unchanged.
+2. *"all parts unlock by default. So right now, regardless of how the mechanics work in-game, I mostly want to just see the creator working
+   functionally and fully."* Built: lab.js `LAB_GATE` false — `labOk` and `labStyles` offer everything in the creator, and creator.js `crtKinds` reads
+   `labOk`. On any profile, a fresh one included, the creator has every part of the clade, every species in "start from another" and every coat of
+   the clade. `LAB_GATE` true puts round four's gate back. The founder's list on a new game keeps its own (menu.js `founderList`): not the creator.
+3. Configs per part later, as a click on a placed part that shows its templates. Recorded.
+
+**Tests:** `test/creator.js`: with nothing seen, the finback, the eel, the soft-arm, the sickle and the jelly each have every part of their clade and
+every species in the picker (with `LAB_GATE` true it fails: checked). The full suite on both tiers, `node test/types.js`, `npm run check`.
+
+**What it costs:** nothing in play (the creator only).
+
+**Unseen, ask in this order:**
+1. The creator on a fresh profile in the preview: everything there from the start.
