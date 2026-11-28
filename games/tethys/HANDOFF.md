@@ -4,6 +4,14 @@ Where things stand: the latest versions, what to ask the person, what is open. C
 CHANGELOG entry, and this file as it stood to v11.191 (220 versions back to v11.18, with the old dated notes) is `archive/HANDOFF-to-v11.191.md`.
 Add the new version's paragraph at the top; take out what is no longer true; keep the five latest.
 
+**v11.250 (28 Nov 2026): one kit a clade, one tile a part** (creator.js `CRT_STD`, `crtKinds`, `CRT_ON_CORE`, `crtAdd`; test/creator.js; new
+test/gaps.js; CREATOR.md Eighth round; DESIGN; CHANGELOG). The person: *"Every animal of the same clade should have an identical set of tools, parts"*
+and *"one part gets one spot on the left side list"*. The creator's column is the clade's: every kind its cores take, one tile each, dropping the
+clade's standard style, drawn on the clade's blank — the finback, the ridge and the eel show the very same column (the eel's fins and tail turn its
+own on). Configs per part are later. `node test/gaps.js` lists the parts that float off their bodies for the clarity pass (36 of 228 by 1% or more;
+the veil's skirt, the crusher's tail, the flicker's eye stalks worst). **Next:** clarity — parts anchored to the skin. **Ask:** the standard styles;
+whether every part is free in the creator or still gated by what was seen (now by the kind).
+
 **v11.249 (27 Nov 2026): the ear's instruments — the audio overhaul's first step** (src/audio.js `auGraph`; src/bench.js `bnGraph`, `bnBed`, `bnMix`;
 test/sound.js, test/sound.json; test/spectro.js LUFS; listen.html; pages.yml; AUDIO.md "The overhaul", "The ear's instruments"). Every sound rendered
 headless and offline — one-shots, beds, the whole mix at eight places — measured (LUFS) and held in CI (`npm run smoke`); on every preview
@@ -33,20 +41,6 @@ scale by the wheel; ctrl+z. **Ask:** analysis_creators.md's five questions; then
 shaped by hand — whether the beads, the rings and the gestures read. **v11.246.1**, the person's answers: the knots only on hover; the creator without
 the core's sliders; a bend limit per clade (`SPINE_BEND`: hingeshells 25°, slowbloods 50, ringmouths 70, drifters 30 at most). **Ask:** the limits'
 feel; whether the parts' sliders go from the creator too.
-
-**v11.245 (26 Nov 2026): the hover keeps station, never still; the plumb's day roam through the current and past the walls** (creatures_ai.js `HOVER`,
-`hoverShift`, `ROAM`, `HANG.head`, `hangGo`, `hangSettle`, `roamBegin`, `c.roamD`; test/clock.js, test/ringmouths.js; BEHAVIOUR §2, §3d; DESIGN; CHANGELOG).
-The person: the ortho "frozen", the plumb "barely moving"; on the findings, *"go ahead with those numbers."* The hover rest (the ortho and the arrow by day,
-the great and the needle by night, ~45% of the day) held a point at 0.03 m/s; now it drifts, bobs, turns and shifts its spot (the ortho 0.47 m/s at rest).
-The plumb's day roam (every 45 s at 0.6 m/s, from 90 and 0.35) makes its jet good in any current, settles its station out of the walls' colliders and stops
-where it is after 5 s without headway: five plumbs at a wall 0.149 → 0.352 m/s across, jammed 51% → 6% of the day. **Ask:** an ortho at noon on the slope
-and a plumb at its wall by day — whether the hover reads as rest, and whether the plumb's roams (most stop short against the wall) read right.
-
-**v11.244 (26 Nov 2026): one of the two high islands in the map's middle struck — m122 gone, m93 back** (region.js `REGION_K.strike`; test/region.js,
-test/horizon.js, test/gpu.json; DESIGN The region; ARCHIPELAGO; CHANGELOG). The person: *"there shouldn't really be two sunken islands in one spot … pick one
-and kill it"* — m122 (799 m) and m109 (470 m), 54 km apart, each in its own drowned ring. m122 is never born and the pins refit: ours' own island the same
-to the bit, the giant's barrier 85 m out, m154 41 m lower, m31 out of the platform's north margin, m109, m117 and m93 the west's lineages now. v11.243 had
-struck the atoll m93 by misreading which two; it is back. **Ask:** the map's middle; whether "just one visible" means more of these should go.
 
 ## Open
 
